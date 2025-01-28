@@ -1,0 +1,52 @@
+﻿namespace InlineSqlSharp;
+
+internal static class Keywords
+{
+	internal const string ADD = "ADD";
+	internal const string ALL = "ALL";
+	internal const string AND = "AND";
+	internal const string AS = "AS";
+	internal const string ASC = "ASC";
+	internal const string BY = "BY";
+	internal const string CASE = "CASE";
+	internal const string CONCAT = "CONCAT";
+	internal const string COUNT = "COUNT";
+	internal const string CURRVAL = "CURRVAL";
+	internal const string DELETE = "DELETE";
+	internal const string DESC = "DESC";
+	internal const string DISTINCT = "DISTINCT";
+	internal const string DUAL = "DUAL";
+	internal const string ELSE = "ELSE";
+	internal const string END = "END";
+	internal const string EXISTS = "EXISTS";
+	internal const string FROM = "FROM";
+	internal const string GROUP = "GROUP";
+	internal const string HAVING = "HAVING";
+	internal const string INNER = "INNER";
+	internal const string INSERT = "INSERT";
+	internal const string INTO = "INTO";
+	internal const string IS = "IS";
+	internal const string JOIN = "JOIN";
+	internal const string NEXTVAL = "NEXTVAL";
+	internal const string NOT = "NOT";
+	internal const string NULL = "NULL";
+	internal const string NULLS_FIRST = "NULLS FIRST";
+	internal const string NULLS_LAST = "NULLS LAST";
+	internal const string ON = "ON";
+	internal const string OR = "OR";
+	internal const string ORDER = "ORDER";
+	internal const string OVER = "OVER";
+	internal const string PARTITION = "PARTITION";
+	internal const string RANK = "RANK";
+	internal const string RETURNING = "RETURNING";
+	internal const string SELECT = "SELECT";
+	internal const string SET = "SET";
+	internal const string THEN = "THEN";
+	internal const string TO_DATE = "TO_DATE";
+	internal const string UNION = "UNION";
+	internal const string UPDATE = "UPDATE";
+	internal const string VALUES = "VALUES";
+	internal const string WHERE = "WHERE";
+	internal const string WHEN = "WHEN";
+	internal const string WHTH = "WHTH";
+}
