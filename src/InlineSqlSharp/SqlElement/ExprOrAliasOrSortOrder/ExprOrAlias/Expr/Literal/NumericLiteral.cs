@@ -1,0 +1,14 @@
+﻿using System.Numerics;
+
+namespace InlineSqlSharp;
+
+public sealed class NumericLiteral<TValue>(TValue value) : NumberExpr, ILiteral
+	where TValue : INumber<TValue>
+{
+	private readonly TValue _value = value;
+
+	public override void FormatSql(ref SqlBuildingBuffer buffer)
+	{
+		buffer.Append(_value.ToString());
+	}
+}

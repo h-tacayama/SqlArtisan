@@ -15,7 +15,7 @@ public struct SqlBuildingBuffer : IDisposable
 		_statement.Clear();
 	}
 
-	public void Append(string value) => _statement.Append(value);
+	public void Append(string? value) => _statement.Append(value);
 
 	public void AppendFormat<T1>(string format, T1 arg1) =>
 		_statement.AppendFormat(format, arg1);
@@ -36,9 +36,9 @@ public struct SqlBuildingBuffer : IDisposable
 
 	public void AppendLine() => _statement.AppendLine();
 
-	public void AppendLine(string value) => _statement.AppendLine(value);
+	public void AppendLine(string? value) => _statement.AppendLine(value);
 
-	public void AppendLineIf(bool condition, string value)
+	public void AppendLineIf(bool condition, string? value)
 	{
 		if (condition)
 		{
