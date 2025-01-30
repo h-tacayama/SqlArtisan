@@ -9,12 +9,12 @@ internal sealed class test_table : Table
 
 	private test_table(AliasName alias) : base(alias)
 	{
-		code = new NumberColumn(alias, "code");
+		code = new NumericColumn(alias, "code");
 		name = new CharacterColumn(alias, "name");
 		created_at = new(alias, "created_at");
 	}
 
-	public NumberColumn code { get; }
+	public NumericColumn code { get; }
 
 	public CharacterColumn name { get; }
 

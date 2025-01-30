@@ -1,7 +1,7 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class NumberColumn(AliasName tableAlias, string name) :
-	NumberExpr,
+public sealed class NumericColumn(AliasName tableAlias, string name) :
+	NumericExpr,
 	IColumn
 {
 	private readonly ColumnCore _core = new(tableAlias, name);
