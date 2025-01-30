@@ -6,15 +6,15 @@ namespace InlineSqlSharp.Tests;
 public class SelectTest
 {
 	[Fact]
-	public void SELECT_FROM_Basic()
+	public void SELECT_FROM()
 	{
-		test_table t = new("a");
+		test_table a = new("a");
 		SqlCommand sql =
 			SELECT(
-				t.code,
-				t.name,
-				t.created_at)
-			.FROM(t)
+				a.code,
+				a.name,
+				a.created_at)
+			.FROM(a)
 			.Build();
 
 		StringBuilder expected = new();
@@ -29,7 +29,28 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_Literal()
+	public void SELECT_FROM_WHERE()
+	{
+		test_table a = new("a");
+		SqlCommand sql =
+			SELECT(a.name)
+			.FROM(a)
+			.WHERE(a.code == L(1))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("a.name");
+		expected.AppendLine("FROM");
+		expected.AppendLine("test_table a");
+		expected.AppendLine("WHERE");
+		expected.Append("a.code = 1");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_Literals()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -49,7 +70,7 @@ public class SelectTest
 
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
-		expected.AppendLine("abc");
+		expected.AppendLine("'abc'");
 		expected.AppendLine(", 1");
 		expected.AppendLine(", 2");
 		expected.AppendLine(", 3");
@@ -60,7 +81,7 @@ public class SelectTest
 		expected.AppendLine(", 8");
 		expected.AppendLine(", 9.9");
 		expected.AppendLine(", 10.1");
-		expected.AppendLine(", 11.11");
+		expected.Append(", 11.11");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}

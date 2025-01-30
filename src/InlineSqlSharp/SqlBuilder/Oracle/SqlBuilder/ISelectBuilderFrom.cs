@@ -2,4 +2,5 @@
 
 public interface ISelectBuilderFrom : ISqlBuilder
 {
+	ISelectBuildertWhere WHERE(ICondition condition);
 }

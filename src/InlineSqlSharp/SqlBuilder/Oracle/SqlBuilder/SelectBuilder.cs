@@ -3,7 +3,8 @@
 public class SelectBuilder :
 	AbstractSqlBuilder,
 	ISelectBuilderFrom,
-	ISelectBuilderSelect
+	ISelectBuilderSelect,
+	ISelectBuildertWhere
 {
 	public SelectBuilder(ISqlElement sqlElement) : base(sqlElement)
 	{
@@ -28,6 +29,12 @@ public class SelectBuilder :
 		params IExprOrAlias[] secondaryItems)
 	{
 		AddElement(new SelectClause(primaryItem, secondaryItems));
+		return this;
+	}
+
+	public ISelectBuildertWhere WHERE(ICondition condition)
+	{
+		AddElement(new WhereClause(condition));
 		return this;
 	}
 }
