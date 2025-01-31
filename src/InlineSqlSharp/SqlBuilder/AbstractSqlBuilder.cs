@@ -24,7 +24,7 @@ public abstract class AbstractSqlBuilder(ISqlElement primaryElement)
 				_secondaryElements[i].FormatSql(ref buffer);
 			}
 
-			return new(buffer.ToString());
+			return new(buffer.ToString(), buffer.Parameters);
 		}
 		finally
 		{

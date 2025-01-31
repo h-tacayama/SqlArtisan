@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class ComparisonCondition(
+public abstract class ComparisonCondition(
 	IExpr leftSide,
 	string @operator,
 	IExpr rightSide) : ICondition
