@@ -1,9 +1,16 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 
 namespace InlineSqlSharp;
 
 public abstract class NumericExpr : IDataExpr
 {
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public IsNullCondition IS_NULL => new(this);
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public IsNotNullCondition IS_NOT_NULL => new(this);
+
 	public abstract void FormatSql(ref SqlBuildingBuffer buffer);
 
 	public virtual void FormatAsSelect(ref SqlBuildingBuffer buffer) =>
