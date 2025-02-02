@@ -78,4 +78,12 @@ public abstract class DateTimeExpr : IDataExpr
 		DateTimeExpr @this,
 		DateTime rightSide) =>
 		new GreaterThanOrEqualCondition(@this, new DateTimeBoundValue(rightSide));
+
+	public BetweenCondition BETWEEN(
+		DateTimeExpr rightSide1,
+		DateTimeExpr rightSide2) => new(this, rightSide1, rightSide2);
+
+	public NotBetweenCondition NOT_BETWEEN(
+		DateTimeExpr rightSide1,
+		DateTimeExpr rightSide2) => new(this, rightSide1, rightSide2);
 }

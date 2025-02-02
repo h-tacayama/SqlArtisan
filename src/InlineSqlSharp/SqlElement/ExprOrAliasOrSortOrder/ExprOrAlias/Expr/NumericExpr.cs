@@ -170,6 +170,14 @@ public abstract class NumericExpr : IDataExpr
 		NumericExpr @this,
 		decimal rightSide) => NewGreaterThanOrEqual(@this, rightSide);
 
+	public BetweenCondition BETWEEN(
+		NumericExpr rightSide1,
+		NumericExpr rightSide2) => new(this, rightSide1, rightSide2);
+
+	public NotBetweenCondition NOT_BETWEEN(
+		NumericExpr rightSide1,
+		NumericExpr rightSide2) => new(this, rightSide1, rightSide2);
+
 	private static ComparisonCondition NewEquality<TValue>(
 		NumericExpr @this,
 		TValue rightSide)

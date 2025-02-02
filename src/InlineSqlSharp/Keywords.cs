@@ -7,6 +7,7 @@ internal static class Keywords
 	internal const string AND = "AND";
 	internal const string AS = "AS";
 	internal const string ASC = "ASC";
+	internal const string BETWEEN = "BETWEEN";
 	internal const string BY = "BY";
 	internal const string CASE = "CASE";
 	internal const string CONCAT = "CONCAT";

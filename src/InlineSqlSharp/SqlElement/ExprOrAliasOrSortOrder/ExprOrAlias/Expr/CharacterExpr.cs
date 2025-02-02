@@ -78,4 +78,12 @@ public abstract class CharacterExpr : IDataExpr
 		CharacterExpr @this,
 		string rightSide) =>
 		new GreaterThanOrEqualCondition(@this, new CharacterBoundValue(rightSide));
+
+	public BetweenCondition BETWEEN(
+		CharacterExpr rightSide1,
+		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
+
+	public NotBetweenCondition NOT_BETWEEN(
+		CharacterExpr rightSide1,
+		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
 }
