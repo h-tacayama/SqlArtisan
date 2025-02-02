@@ -9,9 +9,16 @@ public abstract class MultiLogicalCondition(
 
 	public void FormatSql(ref SqlBuildingBuffer buffer)
 	{
+		bool added = false;
+
 		for (int i = 0; i < _conditions.Length; i++)
 		{
-			if (i > 0)
+			if (_conditions[i] is DynamicCondition dc && !dc.AddIf)
+			{
+				continue;
+			}
+
+			if (added)
 			{
 				buffer.AppendLine();
 				buffer.AppendLine(_operator);
@@ -21,6 +28,8 @@ public abstract class MultiLogicalCondition(
 			_conditions[i].FormatSql(ref buffer);
 			buffer.AppendLine();
 			buffer.Append(")");
+
+			added = true;
 		}
 	}
 }
