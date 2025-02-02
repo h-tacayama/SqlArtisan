@@ -3,21 +3,14 @@ using static InlineSqlSharp.Oracle.SqlWordbook;
 
 namespace InlineSqlSharp.Tests;
 
-public class DynamicConditionTest
+internal sealed class ConditionTestAssert(test_table t)
 {
-	private test_table _t = new("t");
+	private readonly test_table _t = t;
 
-	[Fact]
-	public void AddConditionIf_Add() =>
-		TestImpl(AddConditionIf(true, _t.code == L(1)), "t.code = 1");
-
-	[Fact]
-	public void AddConditionIf_Not_Add() =>
-		TestImpl(AddConditionIf(false, _t.code == L(1)), string.Empty);
-
-	private void TestImpl(
+	public  void Equal(
 		ICondition testCondition,
-		string expectedSql)
+		string expectedSql,
+		int expectedBindCount = 0)
 	{
 		SqlCommand sql =
 			SELECT(_t.name)
@@ -34,5 +27,6 @@ public class DynamicConditionTest
 		expected.Append(expectedSql);
 
 		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expectedBindCount, sql.Parameters.Count);
 	}
 }

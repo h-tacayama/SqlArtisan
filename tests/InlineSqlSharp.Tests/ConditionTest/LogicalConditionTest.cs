@@ -5,7 +5,14 @@ namespace InlineSqlSharp.Tests;
 
 public class LogicalConditionTest
 {
-	private test_table _t = new("t");
+	private readonly test_table _t;
+	private readonly ConditionTestAssert _assert;
+
+	public LogicalConditionTest()
+	{
+		_t = new test_table("t");
+		_assert = new(_t);
+	}
 
 	[Fact]
 	public void And()
@@ -19,7 +26,7 @@ public class LogicalConditionTest
 		expected.AppendLine("t.code = 2");
 		expected.Append(")");
 
-		TestImpl(
+		_assert.Equal(
 			AND(_t.code == L(1), _t.code == L(2)),
 			expected.ToString());
 	}
@@ -36,7 +43,7 @@ public class LogicalConditionTest
 		expected.AppendLine("t.code = 2");
 		expected.Append(")");
 
-		TestImpl(
+		_assert.Equal(
 			OR(_t.code == L(1), _t.code == L(2)),
 			expected.ToString());
 	}
@@ -65,7 +72,7 @@ public class LogicalConditionTest
 		expected.AppendLine(")");
 		expected.Append(")");
 
-		TestImpl(
+		_assert.Equal(
 			AND(
 				OR(_t.code == L(1), _t.code == L(2)),
 				OR(_t.code == L(3), _t.code == L(4))),
@@ -96,7 +103,7 @@ public class LogicalConditionTest
 		expected.AppendLine(")");
 		expected.Append(")");
 
-		TestImpl(
+		_assert.Equal(
 			OR(
 				AND(_t.code == L(1), _t.code == L(2)),
 				AND(_t.code == L(3), _t.code == L(4))),
@@ -112,29 +119,8 @@ public class LogicalConditionTest
 		expected.AppendLine("t.code = 1");
 		expected.Append(")");
 
-		TestImpl(
+		_assert.Equal(
 			NOT(_t.code == L(1)),
 			expected.ToString());
-	}
-
-	private void TestImpl(
-		ICondition testCondition,
-		string expectedSql)
-	{
-		SqlCommand sql =
-			SELECT(_t.name)
-			.FROM(_t)
-			.WHERE(testCondition)
-			.Build();
-
-		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.name");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
-		expected.Append(expectedSql);
-
-		Assert.Equal(expected.ToString(), sql.Statement);
 	}
 }
