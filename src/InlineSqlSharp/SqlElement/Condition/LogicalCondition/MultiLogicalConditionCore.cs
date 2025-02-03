@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class MultiLogicalConditionCore(
+internal sealed class MultiLogicalConditionCore(
 	string @operator,
 	ICondition[] conditions)
 {

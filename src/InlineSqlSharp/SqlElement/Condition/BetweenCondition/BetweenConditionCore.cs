@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class BetweenConditionCore(
+internal sealed class BetweenConditionCore(
 	bool isNot,
 	IExpr leftSide,
 	IExpr rightSide1,
@@ -21,9 +21,9 @@ public sealed class BetweenConditionCore(
 		}
 		else
 		{
-
 			buffer.AppendFormat(" {0} ", Keywords.BETWEEN);
 		}
+
 		_rightSide1.FormatSql(ref buffer);
 		buffer.AppendFormat(" {0} ", Keywords.AND);
 		_rightSide2.FormatSql(ref buffer);
