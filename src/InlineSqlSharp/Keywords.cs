@@ -28,6 +28,7 @@ internal static class Keywords
 	internal const string INTO = "INTO";
 	internal const string IS = "IS";
 	internal const string JOIN = "JOIN";
+	internal const string LIKE = "LIKE";
 	internal const string NEXTVAL = "NEXTVAL";
 	internal const string NOT = "NOT";
 	internal const string NULL = "NULL";

@@ -86,4 +86,10 @@ public abstract class CharacterExpr : IDataExpr
 	public NotBetweenCondition NOT_BETWEEN(
 		CharacterExpr rightSide1,
 		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
+
+	public LikeCondition LIKE(
+		CharacterExpr rightSide) => new(this, rightSide);
+
+	public NotLikeCondition NOT_LIKE(
+		CharacterExpr rightSide) => new(this, rightSide);
 }
