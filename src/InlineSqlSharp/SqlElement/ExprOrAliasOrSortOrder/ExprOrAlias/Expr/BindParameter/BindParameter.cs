@@ -2,20 +2,13 @@
 
 namespace InlineSqlSharp;
 
-public sealed class BindParameter(
-	string name,
-	IBoundValue value,
-	ParameterDirection direction = ParameterDirection.Input) : IExpr
+public sealed class BindParameter(string name, IBindValue bindValue)
 {
-	internal string Name { get; } = name.StartsWith(':') ? name : $":{name}";
+	public string Name { get; } = name.StartsWith(':') ? name : $":{name}";
 
-	internal IBoundValue Value { get; } = value;
+	public DbType DbType { get; } = bindValue.DbType;
 
-	internal ParameterDirection Direction { get; } = direction;
+	public ParameterDirection Direction { get; } = bindValue.Direction;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.BindValue(Value);
-
-	public void FormatAsSelect(ref SqlBuildingBuffer buffer) =>
-		FormatSql(ref buffer);
+	public object Value { get; } = bindValue.Value;
 }

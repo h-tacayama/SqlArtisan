@@ -49,36 +49,6 @@ public abstract class CharacterExpr : IDataExpr
 		CharacterExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
 
-	public static ComparisonCondition operator ==(
-		CharacterExpr @this,
-		string rightSide) =>
-		new EqualityCondition(@this, new CharacterBoundValue(rightSide));
-
-	public static ComparisonCondition operator !=(
-		CharacterExpr @this,
-		string rightSide) =>
-		new InequalityCondition(@this, new CharacterBoundValue(rightSide));
-
-	public static ComparisonCondition operator <(
-		CharacterExpr @this,
-		string rightSide) =>
-		new LessThanCondition(@this, new CharacterBoundValue(rightSide));
-
-	public static ComparisonCondition operator >(
-		CharacterExpr @this,
-		string rightSide) =>
-		new GreaterThanCondition(@this, new CharacterBoundValue(rightSide));
-
-	public static ComparisonCondition operator <=(
-		CharacterExpr @this,
-		string rightSide) =>
-		new LessThanOrEqualCondition(@this, new CharacterBoundValue(rightSide));
-
-	public static ComparisonCondition operator >=(
-		CharacterExpr @this,
-		string rightSide) =>
-		new GreaterThanOrEqualCondition(@this, new CharacterBoundValue(rightSide));
-
 	public BetweenCondition BETWEEN(
 		CharacterExpr rightSide1,
 		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);

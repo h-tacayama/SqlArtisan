@@ -49,36 +49,6 @@ public abstract class DateTimeExpr : IDataExpr
 		DateTimeExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
 
-	public static ComparisonCondition operator ==(
-		DateTimeExpr @this,
-		DateTime rightSide) =>
-		new EqualityCondition(@this, new DateTimeBoundValue(rightSide));
-
-	public static ComparisonCondition operator !=(
-		DateTimeExpr @this,
-		DateTime rightSide) =>
-		new InequalityCondition(@this, new DateTimeBoundValue(rightSide));
-
-	public static ComparisonCondition operator <(
-		DateTimeExpr @this,
-		DateTime rightSide) =>
-		new LessThanCondition(@this, new DateTimeBoundValue(rightSide));
-
-	public static ComparisonCondition operator >(
-		DateTimeExpr @this,
-		DateTime rightSide) =>
-		new GreaterThanCondition(@this, new DateTimeBoundValue(rightSide));
-
-	public static ComparisonCondition operator <=(
-		DateTimeExpr @this,
-		DateTime rightSide) =>
-		new LessThanOrEqualCondition(@this, new DateTimeBoundValue(rightSide));
-
-	public static ComparisonCondition operator >=(
-		DateTimeExpr @this,
-		DateTime rightSide) =>
-		new GreaterThanOrEqualCondition(@this, new DateTimeBoundValue(rightSide));
-
 	public BetweenCondition BETWEEN(
 		DateTimeExpr rightSide1,
 		DateTimeExpr rightSide2) => new(this, rightSide1, rightSide2);

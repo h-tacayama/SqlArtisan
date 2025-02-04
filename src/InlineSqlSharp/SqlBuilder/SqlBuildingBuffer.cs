@@ -20,11 +20,11 @@ public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
 
 	public IReadOnlyList<BindParameter> Parameters => _parameters;
 
-	public void BindValue(IBoundValue value)
+	public void AddParameter(IBindValue bindValue)
 	{
-		BindParameter bindParam = new($":B_{ParameterIndex}", value);
-		_parameters.Add(bindParam);
-		_statement.Append(bindParam.Name);
+		BindParameter parameter = new($":P_{ParameterIndex}", bindValue);
+		_parameters.Add(parameter);
+		_statement.Append(parameter.Name);
 		ParameterIndex++;
 	}
 

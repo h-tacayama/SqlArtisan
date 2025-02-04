@@ -53,4 +53,38 @@ public class SelectTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
+
+	[Fact]
+	public void SELECT_Parameters()
+	{
+		SqlCommand sql =
+			SELECT(
+				P("abc"),
+				P(new DateTime(2001, 2, 3)),
+				P((int)1),
+				P((long)2),
+				P((float)3.3),
+				P((double)4.4),
+				P((decimal)5.5))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine(":P_0");
+		expected.AppendLine(", :P_1");
+		expected.AppendLine(", :P_2");
+		expected.AppendLine(", :P_3");
+		expected.AppendLine(", :P_4");
+		expected.AppendLine(", :P_5");
+		expected.Append(", :P_6");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal("abc", sql.Parameters[0].Value);
+		Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters[1].Value);
+		Assert.Equal((int)1, sql.Parameters[2].Value);
+		Assert.Equal((long)2, sql.Parameters[3].Value);
+		Assert.Equal((float)3.3, sql.Parameters[4].Value);
+		Assert.Equal((double)4.4, sql.Parameters[5].Value);
+		Assert.Equal((decimal)5.5, sql.Parameters[6].Value);
+	}
 }
