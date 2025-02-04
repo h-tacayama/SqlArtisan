@@ -57,4 +57,14 @@ public abstract class NumericExpr : IDataExpr
 	public NotBetweenCondition NOT_BETWEEN(
 		NumericExpr rightSide1,
 		NumericExpr rightSide2) => new(this, rightSide1, rightSide2);
+
+	public InCondition IN(
+		NumericExpr primaryExpr,
+		params NumericExpr[] secondaryExprs) =>
+		new(this, primaryExpr, secondaryExprs);
+
+	public NotInCondition NOT_IN(
+		NumericExpr primaryExpr,
+		params NumericExpr[] secondaryExprs) =>
+		new(this, primaryExpr, secondaryExprs);
 }

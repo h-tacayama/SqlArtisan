@@ -23,6 +23,7 @@ internal static class Keywords
 	internal const string FROM = "FROM";
 	internal const string GROUP = "GROUP";
 	internal const string HAVING = "HAVING";
+	internal const string IN = "IN";
 	internal const string INNER = "INNER";
 	internal const string INSERT = "INSERT";
 	internal const string INTO = "INTO";
