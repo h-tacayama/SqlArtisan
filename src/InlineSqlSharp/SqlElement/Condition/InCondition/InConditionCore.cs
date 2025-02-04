@@ -18,11 +18,10 @@ internal sealed class InConditionCore(
 
 		if (_isNot)
 		{
-			buffer.AppendFormat("{0} {1}", Keywords.NOT, Keywords.IN);
+			buffer.AppendFormat("{0} ", Keywords.NOT);
 		}
 
-		buffer.AppendFormat("{0}", Keywords.IN);
-		buffer.Append(" (");
+		buffer.AppendFormat("{0} (", Keywords.IN);
 		_primaryItem.FormatSql(ref buffer);
 
 		for (int i = 0; i < _secondaryItems.Length; i++)

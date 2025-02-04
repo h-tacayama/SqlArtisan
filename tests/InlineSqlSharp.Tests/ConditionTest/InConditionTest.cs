@@ -23,6 +23,10 @@ public class InConditionTest
 			"t.name IN (:P_0, :P_1, :P_2)", 3);
 
 	[Fact]
+	public void Character_NOT_IN_Single() =>
+		_assert.Equal(_t.name.NOT_IN(L("a")), "t.name NOT IN ('a')");
+
+	[Fact]
 	public void DateTime_IN_Single() =>
 		_assert.Equal(_t.created_at.IN(P(new DateTime(2001, 2, 3))),
 			"t.created_at IN (:P_0)", 1);
@@ -36,6 +40,11 @@ public class InConditionTest
 			"t.created_at IN (:P_0, :P_1, :P_2)", 3);
 
 	[Fact]
+	public void DateTime_NOT_IN_Single() =>
+		_assert.Equal(_t.created_at.NOT_IN(P(new DateTime(2001, 2, 3))),
+			"t.created_at NOT IN (:P_0)", 1);
+
+	[Fact]
 	public void Numeric_IN_Single() =>
 		_assert.Equal(_t.code.IN(L(1)), "t.code IN (1)");
 
@@ -43,4 +52,8 @@ public class InConditionTest
 	public void Numeric_IN_Multi() =>
 		_assert.Equal(_t.code.IN(P(1), P(2), P(3)),
 			"t.code IN (:P_0, :P_1, :P_2)", 3);
+
+	[Fact]
+	public void Numeric_NOT_IN_Single() =>
+		_assert.Equal(_t.code.NOT_IN(L(1)), "t.code NOT IN (1)");
 }
