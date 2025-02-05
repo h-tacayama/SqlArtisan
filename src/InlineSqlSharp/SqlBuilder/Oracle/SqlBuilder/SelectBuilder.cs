@@ -14,7 +14,9 @@ public class SelectBuilder :
 	{
 	}
 
-	public SqlCommand Build() => BuildCore();
+	public SqlCommand AsSubquery(int parameterIndex) => BuildCore(parameterIndex);
+
+	public SqlCommand Build() => BuildCore(0);
 
 	public ISelectBuilderFrom FROM(
 		ITableReference primaryTable,

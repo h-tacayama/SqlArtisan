@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp.Oracle;
 
-public interface ISelectBuilderSelect : ISqlBuilder
+public interface ISelectBuilderSelect : ISqlBuilder, ISubqueryBuilder
 {
 	ISelectBuilderFrom FROM(
 		ITableReference primaryTable,

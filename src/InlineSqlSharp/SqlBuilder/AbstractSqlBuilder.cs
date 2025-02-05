@@ -10,9 +10,9 @@ public abstract class AbstractSqlBuilder(ISqlElement primaryElement)
 		_secondaryElements.Add(element);
 	}
 
-	protected SqlCommand BuildCore()
+	protected SqlCommand BuildCore(int parameterIndex)
 	{
-		SqlBuildingBuffer buffer = new();
+		SqlBuildingBuffer buffer = new(parameterIndex);
 
 		try
 		{
