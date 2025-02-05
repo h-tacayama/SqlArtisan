@@ -1,4 +1,5 @@
-﻿using static InlineSqlSharp.Oracle.SqlWordbook;
+﻿using System.Text;
+using static InlineSqlSharp.Oracle.SqlWordbook;
 
 namespace InlineSqlSharp.Tests;
 
@@ -14,46 +15,133 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void Character_IN_Single() =>
-		_assert.Equal(_t.name.IN(L("a")), "t.name IN ('a')");
+	public void Character_IN_Single()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.name IN");
+		expected.AppendLine("(");
+		expected.AppendLine("'a'");
+		expected.Append(")");
+
+		_assert.Equal(_t.name.IN(L("a")), expected.ToString());
+	}
 
 	[Fact]
-	public void Character_IN_Multi() =>
-		_assert.Equal(_t.name.IN(P("a"), P("b"), P("c")),
-			"t.name IN (:P_0, :P_1, :P_2)", 3);
+	public void Character_IN_Multi()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.name IN");
+		expected.AppendLine("(");
+		expected.AppendLine(":P_0");
+		expected.AppendLine(", :P_1");
+		expected.AppendLine(", :P_2");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.name.IN(P("a"), P("b"), P("c")),
+			expected.ToString(),
+			3);
+	}
 
 	[Fact]
-	public void Character_NOT_IN_Single() =>
-		_assert.Equal(_t.name.NOT_IN(L("a")), "t.name NOT IN ('a')");
+	public void Character_NOT_IN_Single()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.name NOT IN");
+		expected.AppendLine("(");
+		expected.AppendLine("'a'");
+		expected.Append(")");
+
+		_assert.Equal(_t.name.NOT_IN(L("a")), expected.ToString());
+	}
 
 	[Fact]
-	public void DateTime_IN_Single() =>
-		_assert.Equal(_t.created_at.IN(P(new DateTime(2001, 2, 3))),
-			"t.created_at IN (:P_0)", 1);
+	public void DateTime_IN_Single()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.created_at IN");
+		expected.AppendLine("(");
+		expected.AppendLine(":P_0");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.created_at.IN(P(new DateTime(2001, 2, 3))),
+			expected.ToString(),
+			1);
+	}
 
 	[Fact]
-	public void DateTime_IN_Multi() =>
-		_assert.Equal(_t.created_at.IN(
+	public void DateTime_IN_Multi()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.created_at IN");
+		expected.AppendLine("(");
+		expected.AppendLine(":P_0");
+		expected.AppendLine(", :P_1");
+		expected.AppendLine(", :P_2");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.created_at.IN(
 			P(new DateTime(2001, 2, 3)),
 			P(new DateTime(2001, 2, 4)),
 			P(new DateTime(2001, 2, 5))),
-			"t.created_at IN (:P_0, :P_1, :P_2)", 3);
+			expected.ToString(),
+			3);
+	}
 
 	[Fact]
-	public void DateTime_NOT_IN_Single() =>
-		_assert.Equal(_t.created_at.NOT_IN(P(new DateTime(2001, 2, 3))),
-			"t.created_at NOT IN (:P_0)", 1);
+	public void DateTime_NOT_IN_Single()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.created_at NOT IN");
+		expected.AppendLine("(");
+		expected.AppendLine(":P_0");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.created_at.NOT_IN(P(new DateTime(2001, 2, 3))),
+			expected.ToString(),
+			1);
+	}
 
 	[Fact]
-	public void Numeric_IN_Single() =>
-		_assert.Equal(_t.code.IN(L(1)), "t.code IN (1)");
+	public void Numeric_IN_Single()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.code IN");
+		expected.AppendLine("(");
+		expected.AppendLine("1");
+		expected.Append(")");
+
+		_assert.Equal(_t.code.IN(L(1)), expected.ToString());
+	}
 
 	[Fact]
-	public void Numeric_IN_Multi() =>
+	public void Numeric_IN_Multi()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.code IN");
+		expected.AppendLine("(");
+		expected.AppendLine(":P_0");
+		expected.AppendLine(", :P_1");
+		expected.AppendLine(", :P_2");
+		expected.Append(")");
+
 		_assert.Equal(_t.code.IN(P(1), P(2), P(3)),
-			"t.code IN (:P_0, :P_1, :P_2)", 3);
+			expected.ToString(),
+			3);
+	}
 
 	[Fact]
-	public void Numeric_NOT_IN_Single() =>
-		_assert.Equal(_t.code.NOT_IN(L(1)), "t.code NOT IN (1)");
+	public void Numeric_NOT_IN_Single()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.code NOT IN");
+		expected.AppendLine("(");
+		expected.AppendLine("1");
+		expected.Append(")");
+
+		_assert.Equal(_t.code.NOT_IN(L(1)), expected.ToString());
+	}
 }

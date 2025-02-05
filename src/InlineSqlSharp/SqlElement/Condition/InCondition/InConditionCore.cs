@@ -21,15 +21,20 @@ internal sealed class InConditionCore(
 			buffer.AppendFormat("{0} ", Keywords.NOT);
 		}
 
-		buffer.AppendFormat("{0} (", Keywords.IN);
+
+		buffer.AppendLine(Keywords.IN);
+		buffer.AppendLine("(");
+
 		_primaryItem.FormatSql(ref buffer);
 
 		for (int i = 0; i < _secondaryItems.Length; i++)
 		{
+			buffer.AppendLine();
 			buffer.Append(", ");
 			_secondaryItems[i].FormatSql(ref buffer);
 		}
 
+		buffer.AppendLine();
 		buffer.Append(")");
 	}
 }
