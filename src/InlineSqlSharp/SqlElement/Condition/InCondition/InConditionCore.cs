@@ -21,7 +21,6 @@ internal sealed class InConditionCore(
 			buffer.AppendFormat("{0} ", Keywords.NOT);
 		}
 
-
 		buffer.AppendLine(Keywords.IN);
 		buffer.AppendLine("(");
 
