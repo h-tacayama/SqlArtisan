@@ -66,4 +66,10 @@ public abstract class DateTimeExpr : IDataExpr
 		DateTimeExpr primaryExpr,
 		params DateTimeExpr[] secondaryExprs) =>
 		new(this, primaryExpr, secondaryExprs);
+
+	public InSubqueryCondition IN(ISubqueryBuilder subquery) =>
+		new(this, subquery);
+
+	public NotInSubqueryCondition NOT_IN(ISubqueryBuilder subquery) =>
+		new(this, subquery);
 }

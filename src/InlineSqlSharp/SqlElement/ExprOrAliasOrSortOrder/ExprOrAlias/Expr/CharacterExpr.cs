@@ -67,6 +67,12 @@ public abstract class CharacterExpr : IDataExpr
 		params CharacterExpr[] secondaryExprs) =>
 		new(this, primaryExpr, secondaryExprs);
 
+	public InSubqueryCondition IN(ISubqueryBuilder subquery) =>
+		new(this, subquery);
+
+	public NotInSubqueryCondition NOT_IN(ISubqueryBuilder subquery) =>
+		new(this, subquery);
+
 	public LikeCondition LIKE(
 		CharacterExpr rightSide) => new(this, rightSide);
 
