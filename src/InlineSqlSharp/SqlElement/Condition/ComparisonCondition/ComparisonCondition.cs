@@ -12,7 +12,7 @@ public abstract class ComparisonCondition(
 	public void FormatSql(ref SqlBuildingBuffer buffer)
 	{
 		_leftSide.FormatSql(ref buffer);
-		buffer.AppendFormat(" {0} ", _operator);
+		buffer.EncloseInSpace(_operator);
 		_rightSide.FormatSql(ref buffer);
 	}
 }

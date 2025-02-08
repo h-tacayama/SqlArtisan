@@ -5,7 +5,7 @@ namespace InlineSqlSharp;
 public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
 {
 	private readonly StringBuilder _statement = new();
-	private readonly List<BindParameter> _parameters = new();
+	private readonly List<BindParameter> _parameters = [];
 
 	public SqlBuildingBuffer() : this(0)
 	{
@@ -56,9 +56,7 @@ public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
 		}
 	}
 
-	public void AppendLine() => _statement.AppendLine();
-
-	public void AppendLine(string? value) => _statement.AppendLine(value);
+	public void AppendLine(string? value = null) => _statement.AppendLine(value);
 
 	public void AppendLineIf(bool condition, string? value)
 	{
@@ -84,6 +82,9 @@ public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
 		}
 	}
 
+	public void AppendSpace(string? value = null) =>
+		_statement.AppendFormat("{0} ", value);
+
 	public void AddParameter(IBindValue bindValue)
 	{
 		BindParameter parameter = new($":P_{ParameterIndex}", bindValue);
@@ -103,6 +104,18 @@ public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
 		_parameters.AddRange(parameters);
 		ParameterIndex += parameters.Count;
 	}
+
+	public void EncloseInSpace(string value) =>
+		_statement.AppendFormat(" {0} ", value);
+
+	public void PrependLine(string value)
+	{
+		_statement.AppendLine();
+		_statement.Append(value);
+	}
+
+	public void PrependSpace(string value) =>
+		_statement.AppendFormat(" {0}", value);
 
 	public override string ToString() => _statement.ToString();
 }

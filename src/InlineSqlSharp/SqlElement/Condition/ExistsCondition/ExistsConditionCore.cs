@@ -11,14 +11,13 @@ public sealed class ExistsConditionCore(bool isNot, ISubqueryBuilder subquery)
 
 		if (_isNot)
 		{
-			buffer.AppendFormat("{0} ", Keywords.NOT);
+			buffer.AppendSpace(Keywords.NOT);
 		}
 
 		buffer.AppendLine(Keywords.EXISTS);
 		buffer.AppendLine("(");
 		buffer.Append(subquery.Statement);
-		buffer.AppendLine();
-		buffer.Append(")");
+		buffer.PrependLine(")");
 
 		buffer.AddParameters(subquery.Parameters);
 	}

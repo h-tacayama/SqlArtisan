@@ -9,14 +9,14 @@ internal sealed class LikeConditionCore(bool isNot, IExpr leftSide, IExpr rightS
 	public void FormatSql(ref SqlBuildingBuffer buffer)
 	{
 		_leftSide.FormatSql(ref buffer);
-		buffer.Append(" ");
+		buffer.AppendSpace();
 
 		if (_isNot)
 		{
-			buffer.AppendFormat("{0} ", Keywords.NOT);
+			buffer.AppendSpace(Keywords.NOT);
 		}
 
-		buffer.AppendFormat("{0} ", Keywords.LIKE);
+		buffer.AppendSpace(Keywords.LIKE);
 		_rightSide.FormatSql(ref buffer);
 	}
 }

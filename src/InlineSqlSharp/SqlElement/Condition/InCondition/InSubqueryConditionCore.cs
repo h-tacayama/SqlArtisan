@@ -14,11 +14,11 @@ internal sealed class InSubqueryConditionCore(
 		SqlCommand subquery = _subquery.AsSubquery(buffer.ParameterIndex);
 
 		_leftSide.FormatSql(ref buffer);
-		buffer.Append(" ");
+		buffer.AppendSpace();
 
 		if (_isNot)
 		{
-			buffer.AppendFormat("{0} ", Keywords.NOT);
+			buffer.AppendSpace(Keywords.NOT);
 		}
 
 		buffer.AppendLine(Keywords.IN);

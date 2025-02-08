@@ -14,16 +14,16 @@ internal sealed class BetweenConditionCore(
 	public void FormatSql(ref SqlBuildingBuffer buffer)
 	{
 		_leftSide.FormatSql(ref buffer);
-		buffer.Append(" ");
+		buffer.AppendSpace();
 
 		if (_isNot)
 		{
-			buffer.AppendFormat("{0} ", Keywords.NOT);
+			buffer.AppendSpace(Keywords.NOT);
 		}
 
-		buffer.AppendFormat("{0} ", Keywords.BETWEEN);
+		buffer.AppendSpace(Keywords.BETWEEN);
 		_rightSide1.FormatSql(ref buffer);
-		buffer.AppendFormat(" {0} ", Keywords.AND);
+		buffer.EncloseInSpace(Keywords.AND);
 		_rightSide2.FormatSql(ref buffer);
 	}
 }
