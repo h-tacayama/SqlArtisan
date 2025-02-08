@@ -1,14 +1,12 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class ExistsConditionCore(bool isNot, ISubqueryBuilder subquery)
+public sealed class ExistsConditionCore(bool isNot, ISubquery subquery)
 {
 	private readonly bool _isNot = isNot;
-	private readonly ISubqueryBuilder _subquery = subquery;
+	private readonly ISubquery _subquery = subquery;
 
 	public void FormatSql(ref SqlBuildingBuffer buffer)
 	{
-		SqlCommand subquery = _subquery.AsSubquery(buffer.ParameterIndex);
-
 		if (_isNot)
 		{
 			buffer.AppendSpace(Keywords.NOT);
@@ -16,9 +14,7 @@ public sealed class ExistsConditionCore(bool isNot, ISubqueryBuilder subquery)
 
 		buffer.AppendLine(Keywords.EXISTS);
 		buffer.AppendLine("(");
-		buffer.Append(subquery.Statement);
+		_subquery.FormatSql(ref buffer);
 		buffer.PrependLine(")");
-
-		buffer.AddParameters(subquery.Parameters);
 	}
 }

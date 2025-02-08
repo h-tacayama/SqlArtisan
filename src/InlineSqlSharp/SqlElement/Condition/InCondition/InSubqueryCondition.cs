@@ -2,7 +2,7 @@
 
 public sealed class InSubqueryCondition(
 	IExpr leftSide,
-	ISubqueryBuilder subquey) : ICondition
+	ISubquery subquey) : ICondition
 {
 	private readonly InSubqueryConditionCore _core = new(false, leftSide, subquey);
 

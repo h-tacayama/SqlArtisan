@@ -3,16 +3,14 @@
 internal sealed class InSubqueryConditionCore(
 	bool isNot,
 	IExpr leftSide,
-	ISubqueryBuilder subquey)
+	ISubquery subquey)
 {
 	private readonly bool _isNot = isNot;
 	private readonly IExpr _leftSide = leftSide;
-	private readonly ISubqueryBuilder _subquery = subquey;
+	private readonly ISubquery _subquery = subquey;
 
 	public void FormatSql(ref SqlBuildingBuffer buffer)
 	{
-		SqlCommand subquery = _subquery.AsSubquery(buffer.ParameterIndex);
-
 		_leftSide.FormatSql(ref buffer);
 		buffer.AppendSpace();
 
@@ -23,10 +21,8 @@ internal sealed class InSubqueryConditionCore(
 
 		buffer.AppendLine(Keywords.IN);
 		buffer.AppendLine("(");
-		buffer.Append(subquery.Statement);
+		_subquery.FormatSql(ref buffer);
 		buffer.AppendLine();
 		buffer.Append(")");
-
-		buffer.AddParameters(subquery.Parameters);
 	}
 }

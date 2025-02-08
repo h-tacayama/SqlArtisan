@@ -64,9 +64,9 @@ public abstract class NumericExpr : IDataExpr
 	public NotInCondition NOT_IN(params NumericExpr[] expressions) =>
 		new(this, expressions);
 
-	public InSubqueryCondition IN(ISubqueryBuilder subquery) =>
+	public InSubqueryCondition IN(ISubquery subquery) =>
 		new(this, subquery);
 
-	public NotInSubqueryCondition NOT_IN(ISubqueryBuilder subquery) =>
+	public NotInSubqueryCondition NOT_IN(ISubquery subquery) =>
 		new(this, subquery);
 }

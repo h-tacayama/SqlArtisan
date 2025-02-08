@@ -2,6 +2,6 @@
 
 public static partial class SqlWordbook
 {
-	public static ExistsCondition EXISTS(ISubqueryBuilder subquery) =>
+	public static ExistsCondition EXISTS(ISubquery subquery) =>
 		new(subquery);
 }

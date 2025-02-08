@@ -14,9 +14,10 @@ public class SelectBuilder :
 	{
 	}
 
-	public SqlCommand AsSubquery(int parameterIndex) => BuildCore(parameterIndex);
+	public SqlCommand Build() => BuildCore();
 
-	public SqlCommand Build() => BuildCore(0);
+	public void FormatSql(ref SqlBuildingBuffer buffer) =>
+		FormatAsSubquery(ref buffer);
 
 	public ISelectBuilderFrom FROM(params ITableReference[] tables)
 	{

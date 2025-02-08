@@ -2,7 +2,7 @@
 
 public sealed class NotInSubqueryCondition(
 	IExpr leftSide,
-	ISubqueryBuilder subquey) : ICondition
+	ISubquery subquey) : ICondition
 {
 	private readonly InSubqueryConditionCore _core = new(true, leftSide, subquey);
 

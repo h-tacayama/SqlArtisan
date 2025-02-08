@@ -2,21 +2,16 @@
 
 namespace InlineSqlSharp;
 
-public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
+public struct SqlBuildingBuffer() : IDisposable
 {
 	private readonly StringBuilder _statement = new();
 	private readonly List<BindParameter> _parameters = [];
 
-	public SqlBuildingBuffer() : this(0)
-	{
-	}
-
 	public void Dispose()
 	{
 		_statement.Clear();
+		_parameters.Clear();
 	}
-
-	public int ParameterIndex { get; private set; } = parameterIndex;
 
 	public IReadOnlyList<BindParameter> Parameters => _parameters;
 
@@ -87,22 +82,10 @@ public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
 
 	public void AddParameter(IBindValue bindValue)
 	{
-		BindParameter parameter = new($":P_{ParameterIndex}", bindValue);
+		int index = _parameters.Count;
+		BindParameter parameter = new($":P_{index}", bindValue);
 		_parameters.Add(parameter);
 		_statement.Append(parameter.Name);
-		ParameterIndex++;
-	}
-
-	public void AddParameter(BindParameter parameter)
-	{
-		_parameters.Add(parameter);
-		ParameterIndex += 1;
-	}
-
-	public void AddParameters(IReadOnlyList<BindParameter> parameters)
-	{
-		_parameters.AddRange(parameters);
-		ParameterIndex += parameters.Count;
 	}
 
 	public void EncloseInLines(string value) =>

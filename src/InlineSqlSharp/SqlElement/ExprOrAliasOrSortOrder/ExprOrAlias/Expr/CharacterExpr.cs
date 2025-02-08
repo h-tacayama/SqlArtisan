@@ -63,10 +63,10 @@ public abstract class CharacterExpr : IDataExpr
 	public NotInCondition NOT_IN(params CharacterExpr[] expressions) =>
 		new(this, expressions);
 
-	public InSubqueryCondition IN(ISubqueryBuilder subquery) =>
+	public InSubqueryCondition IN(ISubquery subquery) =>
 		new(this, subquery);
 
-	public NotInSubqueryCondition NOT_IN(ISubqueryBuilder subquery) =>
+	public NotInSubqueryCondition NOT_IN(ISubquery subquery) =>
 		new(this, subquery);
 
 	public LikeCondition LIKE(

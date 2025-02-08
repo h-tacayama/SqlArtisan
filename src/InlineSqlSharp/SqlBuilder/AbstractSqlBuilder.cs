@@ -14,9 +14,12 @@ public abstract class AbstractSqlBuilder
 		_elements.Add(element);
 	}
 
-	protected SqlCommand BuildCore(int parameterIndex)
+	public void FormatAsSubquery(ref SqlBuildingBuffer buffer) =>
+		buffer.AppendLineSeparated(_elements.ToArray());
+
+	protected SqlCommand BuildCore()
 	{
-		SqlBuildingBuffer buffer = new(parameterIndex);
+		SqlBuildingBuffer buffer = new();
 
 		try
 		{

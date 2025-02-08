@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class ExistsCondition(ISubqueryBuilder subquery) : ICondition
+public sealed class ExistsCondition(ISubquery subquery) : ICondition
 {
 	private readonly ExistsConditionCore _core = new(false, subquery);
 
