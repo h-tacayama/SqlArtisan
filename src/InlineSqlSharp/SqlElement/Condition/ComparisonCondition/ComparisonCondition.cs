@@ -9,10 +9,8 @@ public abstract class ComparisonCondition(
 	private readonly string _operator = @operator;
 	private readonly IExpr _rightSide = rightSide;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer)
-	{
-		_leftSide.FormatSql(ref buffer);
-		buffer.EncloseInSpaces(_operator);
-		_rightSide.FormatSql(ref buffer);
-	}
+	public void FormatSql(ref SqlBuildingBuffer buffer) =>
+		buffer.FormatSql(_leftSide)
+			.EncloseInSpaces(_operator)
+			.FormatSql(_rightSide);
 }

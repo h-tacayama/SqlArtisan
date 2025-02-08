@@ -9,19 +9,12 @@ internal sealed class InConditionCore(
 	private readonly IExpr _leftSide = leftSide;
 	private readonly IExpr[] _expressions = expressions;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer)
-	{
-		_leftSide.FormatSql(ref buffer);
-		buffer.AppendSpace();
-
-		if (_isNot)
-		{
-			buffer.AppendSpace(Keywords.NOT);
-		}
-
-		buffer.AppendLine(Keywords.IN);
-		buffer.OpenParenthesisBeforeLine();
-		buffer.AppendCommaSeparated(_expressions);
-		buffer.CloseParenthesisAfterLine();
-	}
+	public void FormatSql(ref SqlBuildingBuffer buffer) =>
+		buffer.FormatSql(_leftSide)
+			.AppendSpace()
+			.AppendSpaceIf(_isNot, Keywords.NOT)
+			.AppendLine(Keywords.IN)
+			.OpenParenthesisBeforeLine()
+			.AppendCommaSeparated(_expressions)
+			.CloseParenthesisAfterLine();
 }

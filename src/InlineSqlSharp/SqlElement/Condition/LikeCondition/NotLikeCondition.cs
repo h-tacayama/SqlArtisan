@@ -4,8 +4,6 @@ public sealed class NotLikeCondition(IExpr leftSide, IExpr rightSide) : IConditi
 {
 	private readonly LikeConditionCore _core = new(true, leftSide, rightSide);
 
-	public void FormatSql(ref SqlBuildingBuffer buffer)
-	{
+	public void FormatSql(ref SqlBuildingBuffer buffer) =>
 		_core.FormatSql(ref buffer);
-	}
 }

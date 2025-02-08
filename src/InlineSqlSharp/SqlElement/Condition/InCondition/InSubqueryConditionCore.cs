@@ -9,17 +9,10 @@ internal sealed class InSubqueryConditionCore(
 	private readonly IExpr _leftSide = leftSide;
 	private readonly ISubquery _subquery = subquey;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer)
-	{
-		_leftSide.FormatSql(ref buffer);
-		buffer.AppendSpace();
-
-		if (_isNot)
-		{
-			buffer.AppendSpace(Keywords.NOT);
-		}
-
-		buffer.AppendLine(Keywords.IN);
-		buffer.EncloseInLines(_subquery);
-	}
+	public void FormatSql(ref SqlBuildingBuffer buffer) =>
+		buffer.FormatSql(_leftSide)
+			.AppendSpace()
+			.AppendSpaceIf(_isNot, Keywords.NOT)
+			.AppendLine(Keywords.IN)
+			.EncloseInLines(_subquery);
 }

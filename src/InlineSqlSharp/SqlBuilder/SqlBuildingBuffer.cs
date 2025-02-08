@@ -13,13 +13,17 @@ public struct SqlBuildingBuffer() : IDisposable
 		_parameters.Clear();
 	}
 
-	public void Append(string? value) => _statement.Append(value);
+	public SqlBuildingBuffer Append(string? value)
+	{
+		_statement.Append(value);
+		return this;
+	}
 
-	public void AppendCommaSeparated(ISqlElement[] elements)
+	public SqlBuildingBuffer AppendCommaSeparated(ISqlElement[] elements)
 	{
 		if (elements.Length == 0)
 		{
-			return;
+			return this;
 		}
 
 		elements[0].FormatSql(ref this);
@@ -30,40 +34,59 @@ public struct SqlBuildingBuffer() : IDisposable
 			_statement.Append(", ");
 			elements[i].FormatSql(ref this);
 		}
+
+		return this;
 	}
 
-	public void AppendFormat<T1>(string format, T1 arg1) =>
+	public SqlBuildingBuffer AppendFormat<T1>(string format, T1 arg1)
+	{
 		_statement.AppendFormat(format, arg1);
+		return this;
+	}
 
-	public void AppendFormat<T1, T2>(string format, T1 arg1, T2 arg2) =>
+	public SqlBuildingBuffer AppendFormat<T1, T2>(string format, T1 arg1, T2 arg2)
+	{
 		_statement.AppendFormat(format, arg1, arg2);
+		return this;
+	}
 
-	public void AppendFormat<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3) =>
+	public SqlBuildingBuffer AppendFormat<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
+	{
 		_statement.AppendFormat(format, arg1, arg2, arg3);
+		return this;
+	}
 
-	public void AppendFormatIf<T1>(bool condition, string format, T1 arg1)
+	public SqlBuildingBuffer AppendFormatIf<T1>(bool condition, string format, T1 arg1)
 	{
 		if (condition)
 		{
 			_statement.AppendFormat(format, arg1);
 		}
+
+		return this;
 	}
 
-	public void AppendLine(string? value = null) => _statement.AppendLine(value);
+	public SqlBuildingBuffer AppendLine(string? value = null)
+	{
+		_statement.AppendLine(value);
+		return this;
+	}
 
-	public void AppendLineIf(bool condition, string? value)
+	public SqlBuildingBuffer AppendLineIf(bool condition, string? value)
 	{
 		if (condition)
 		{
 			_statement.AppendLine(value);
 		}
+
+		return this;
 	}
 
-	public void AppendLineSeparated(ISqlElement[] elements)
+	public SqlBuildingBuffer AppendLineSeparated(ISqlElement[] elements)
 	{
 		if (elements.Length == 0)
 		{
-			return;
+			return this;
 		}
 
 		elements[0].FormatSql(ref this);
@@ -73,58 +96,99 @@ public struct SqlBuildingBuffer() : IDisposable
 			_statement.AppendLine();
 			elements[i].FormatSql(ref this);
 		}
+
+		return this;
 	}
 
-	public void AppendSpace(string? value = null) =>
+	public SqlBuildingBuffer AppendSpace(string? value = null)
+	{
 		_statement.AppendFormat("{0} ", value);
+		return this;
+	}
 
-	public void AddParameter(IBindValue bindValue)
+	public SqlBuildingBuffer AppendSpaceIf(bool condition, string? value = null)
+	{
+		if (condition)
+		{
+			_statement.AppendFormat("{0} ", value);
+		}
+
+		return this;
+	}
+
+	public SqlBuildingBuffer AddParameter(IBindValue bindValue)
 	{
 		int index = _parameters.Count;
 		BindParameter parameter = new($":P_{index}", bindValue);
 		_parameters.Add(parameter);
 		_statement.Append(parameter.Name);
+		return this;
 	}
 
-	public void CloseParenthesis() =>
+	public SqlBuildingBuffer CloseParenthesis()
+	{
 		_statement.Append(")");
+		return this;
+	}
 
-	public void CloseParenthesisAfterLine()
+	public SqlBuildingBuffer CloseParenthesisAfterLine()
 	{
 		_statement.AppendLine();
 		CloseParenthesis();
+		return this;
 	}
 
-	public void EncloseInLines(ISqlElement element)
+	public SqlBuildingBuffer EncloseInLines(ISqlElement element)
 	{
 		OpenParenthesisBeforeLine();
 		element.FormatSql(ref this);
 		CloseParenthesisAfterLine();
+		return this;
 	}
 
-	public void EncloseInLines(string value) =>
+	public SqlBuildingBuffer EncloseInLines(string value)
+	{
 		_statement.AppendLine().AppendLine(value);
+		return this;
+	}
 
-	public void EncloseInSpaces(string value) =>
+	public SqlBuildingBuffer EncloseInSpaces(string value)
+	{
 		_statement.AppendFormat(" {0} ", value);
+		return this;
+	}
 
-	public void OpenParenthesis() =>
+	public SqlBuildingBuffer FormatSql(ISqlElement element)
+	{
+		element.FormatSql(ref this);
+		return this;
+	}
+
+	public SqlBuildingBuffer OpenParenthesis()
+	{
 		_statement.Append("(");
+		return this;
+	}
 
-	public void OpenParenthesisBeforeLine()
+	public SqlBuildingBuffer OpenParenthesisBeforeLine()
 	{
 		OpenParenthesis();
 		_statement.AppendLine();
+		return this;
 	}
 
-	public void PrependLine(string value)
+	public SqlBuildingBuffer PrependLine(string value)
 	{
 		_statement.AppendLine();
 		_statement.Append(value);
+		return this;
 	}
 
-	public void PrependSpace(string value) =>
+	public SqlBuildingBuffer PrependSpace(string value)
+	{
 		_statement.AppendFormat(" {0}", value);
+		return this;
+	}
 
 	public SqlCommand ToSqlCommand() =>
 		// Return a clone of _parameters to avoid keeping references

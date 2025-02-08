@@ -6,8 +6,6 @@ public sealed class OrCondition(ICondition[] conditions) : ICondition
 		Keywords.OR,
 		conditions);
 
-	public void FormatSql(ref SqlBuildingBuffer buffer)
-	{
+	public void FormatSql(ref SqlBuildingBuffer buffer) =>
 		_core.FormatSql(ref buffer);
-	}
 }
