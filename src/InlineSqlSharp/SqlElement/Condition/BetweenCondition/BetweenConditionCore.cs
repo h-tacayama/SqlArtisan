@@ -23,7 +23,7 @@ internal sealed class BetweenConditionCore(
 
 		buffer.AppendSpace(Keywords.BETWEEN);
 		_rightSide1.FormatSql(ref buffer);
-		buffer.EncloseInSpace(Keywords.AND);
+		buffer.EncloseInSpaces(Keywords.AND);
 		_rightSide2.FormatSql(ref buffer);
 	}
 }

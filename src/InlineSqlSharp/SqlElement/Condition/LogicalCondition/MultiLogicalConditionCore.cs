@@ -20,8 +20,7 @@ internal sealed class MultiLogicalConditionCore(
 
 			if (added)
 			{
-				buffer.AppendLine();
-				buffer.AppendLine(_operator);
+				buffer.EncloseInLines(_operator);
 			}
 
 			buffer.AppendLine("(");

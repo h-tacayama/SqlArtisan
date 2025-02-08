@@ -105,7 +105,10 @@ public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
 		ParameterIndex += parameters.Count;
 	}
 
-	public void EncloseInSpace(string value) =>
+	public void EncloseInLines(string value) =>
+		_statement.AppendLine().AppendLine(value);
+
+	public void EncloseInSpaces(string value) =>
 		_statement.AppendFormat(" {0} ", value);
 
 	public void PrependLine(string value)
