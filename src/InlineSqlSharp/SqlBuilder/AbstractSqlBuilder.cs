@@ -24,7 +24,7 @@ public abstract class AbstractSqlBuilder
 		try
 		{
 			buffer.AppendLineSeparated(_elements.ToArray());
-			return new(buffer.ToString(), buffer.Parameters);
+			return buffer.ToSqlCommand();
 		}
 		finally
 		{

@@ -10,9 +10,8 @@ public struct SqlBuildingBuffer() : IDisposable
 	public void Dispose()
 	{
 		_statement.Clear();
+		_parameters.Clear();
 	}
-
-	public IReadOnlyList<BindParameter> Parameters => _parameters;
 
 	public void Append(string? value) => _statement.Append(value);
 
@@ -127,5 +126,7 @@ public struct SqlBuildingBuffer() : IDisposable
 	public void PrependSpace(string value) =>
 		_statement.AppendFormat(" {0}", value);
 
-	public override string ToString() => _statement.ToString();
+	public SqlCommand ToSqlCommand() =>
+		// Return a clone of _parameters to avoid keeping references
+		new(_statement.ToString(), _parameters.ToList());
 }
