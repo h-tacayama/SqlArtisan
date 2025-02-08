@@ -1,13 +1,17 @@
 ﻿namespace InlineSqlSharp;
 
-public abstract class AbstractSqlBuilder(ISqlElement primaryElement)
+public abstract class AbstractSqlBuilder
 {
-	private readonly ISqlElement _primaryElement = primaryElement;
-	private readonly List<ISqlElement> _secondaryElements = new();
+	private readonly List<ISqlElement> _elements;
+
+	public AbstractSqlBuilder(ISqlElement element)
+	{
+		_elements = [element];
+	}
 
 	protected void AddElement(ISqlElement element)
 	{
-		_secondaryElements.Add(element);
+		_elements.Add(element);
 	}
 
 	protected SqlCommand BuildCore(int parameterIndex)
@@ -16,14 +20,7 @@ public abstract class AbstractSqlBuilder(ISqlElement primaryElement)
 
 		try
 		{
-			_primaryElement.FormatSql(ref buffer);
-
-			for (int i = 0; i < _secondaryElements.Count; i++)
-			{
-				buffer.AppendLine();
-				_secondaryElements[i].FormatSql(ref buffer);
-			}
-
+			buffer.AppendLineSeparated(_elements.ToArray());
 			return new(buffer.ToString(), buffer.Parameters);
 		}
 		finally

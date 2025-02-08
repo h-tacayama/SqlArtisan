@@ -58,15 +58,11 @@ public abstract class NumericExpr : IDataExpr
 		NumericExpr rightSide1,
 		NumericExpr rightSide2) => new(this, rightSide1, rightSide2);
 
-	public InCondition IN(
-		NumericExpr primaryExpr,
-		params NumericExpr[] secondaryExprs) =>
-		new(this, primaryExpr, secondaryExprs);
+	public InCondition IN(params NumericExpr[] expressions) =>
+		new(this, expressions);
 
-	public NotInCondition NOT_IN(
-		NumericExpr primaryExpr,
-		params NumericExpr[] secondaryExprs) =>
-		new(this, primaryExpr, secondaryExprs);
+	public NotInCondition NOT_IN(params NumericExpr[] expressions) =>
+		new(this, expressions);
 
 	public InSubqueryCondition IN(ISubqueryBuilder subquery) =>
 		new(this, subquery);

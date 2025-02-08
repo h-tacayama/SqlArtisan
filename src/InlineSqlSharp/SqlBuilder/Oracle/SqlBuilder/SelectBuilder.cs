@@ -18,19 +18,15 @@ public class SelectBuilder :
 
 	public SqlCommand Build() => BuildCore(0);
 
-	public ISelectBuilderFrom FROM(
-		ITableReference primaryTable,
-		params ITableReference[] secondaryTables)
+	public ISelectBuilderFrom FROM(params ITableReference[] tables)
 	{
-		AddElement(new FromClause(primaryTable, secondaryTables));
+		AddElement(new FromClause(tables));
 		return this;
 	}
 
-	public ISelectBuilderSelect SELECT(
-		IExprOrAlias primaryItem,
-		params IExprOrAlias[] secondaryItems)
+	public ISelectBuilderSelect SELECT(params IExprOrAlias[] selectList)
 	{
-		AddElement(new SelectClause(primaryItem, secondaryItems));
+		AddElement(new SelectClause(selectList));
 		return this;
 	}
 

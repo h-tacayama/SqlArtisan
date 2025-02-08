@@ -57,15 +57,11 @@ public abstract class CharacterExpr : IDataExpr
 		CharacterExpr rightSide1,
 		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
 
-	public InCondition IN(
-		CharacterExpr primaryExpr,
-		params CharacterExpr[] secondaryExprs) =>
-		new(this, primaryExpr, secondaryExprs);
+	public InCondition IN(params CharacterExpr[] expressions) =>
+		new(this, expressions);
 
-	public NotInCondition NOT_IN(
-		CharacterExpr primaryExpr,
-		params CharacterExpr[] secondaryExprs) =>
-		new(this, primaryExpr, secondaryExprs);
+	public NotInCondition NOT_IN(params CharacterExpr[] expressions) =>
+		new(this, expressions);
 
 	public InSubqueryCondition IN(ISubqueryBuilder subquery) =>
 		new(this, subquery);

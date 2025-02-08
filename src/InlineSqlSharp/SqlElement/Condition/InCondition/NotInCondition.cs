@@ -1,15 +1,11 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class NotInCondition(
-	IExpr leftSide,
-	IExpr primaryExpr,
-	IExpr[] secondaryExprs) : ICondition
+public sealed class NotInCondition(IExpr leftSide, IExpr[] expressions) : ICondition
 {
 	private readonly InConditionCore _core = new(
 		true,
 		leftSide,
-		primaryExpr,
-		secondaryExprs);
+		expressions);
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
 		_core.FormatSql(ref buffer);

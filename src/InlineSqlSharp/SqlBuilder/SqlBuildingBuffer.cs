@@ -20,27 +20,24 @@ public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
 
 	public IReadOnlyList<BindParameter> Parameters => _parameters;
 
-	public void AddParameter(IBindValue bindValue)
-	{
-		BindParameter parameter = new($":P_{ParameterIndex}", bindValue);
-		_parameters.Add(parameter);
-		_statement.Append(parameter.Name);
-		ParameterIndex++;
-	}
-
-	public void AddParameter(BindParameter parameter)
-	{
-		_parameters.Add(parameter);
-		ParameterIndex += 1;
-	}
-
-	public void AddParameters(IReadOnlyList<BindParameter> parameters)
-	{
-		_parameters.AddRange(parameters);
-		ParameterIndex += parameters.Count;
-	}
-
 	public void Append(string? value) => _statement.Append(value);
+
+	public void AppendCommaSeparated(ISqlElement[] elements)
+	{
+		if (elements.Length == 0)
+		{
+			return;
+		}
+
+		elements[0].FormatSql(ref this);
+
+		for (int i = 1; i < elements.Length; i++)
+		{
+			_statement.AppendLine();
+			_statement.Append(", ");
+			elements[i].FormatSql(ref this);
+		}
+	}
 
 	public void AppendFormat<T1>(string format, T1 arg1) =>
 		_statement.AppendFormat(format, arg1);
@@ -69,6 +66,42 @@ public struct SqlBuildingBuffer(int parameterIndex) : IDisposable
 		{
 			_statement.AppendLine(value);
 		}
+	}
+
+	public void AppendLineSeparated(ISqlElement[] elements)
+	{
+		if (elements.Length == 0)
+		{
+			return;
+		}
+
+		elements[0].FormatSql(ref this);
+
+		for (int i = 1; i < elements.Length; i++)
+		{
+			_statement.AppendLine();
+			elements[i].FormatSql(ref this);
+		}
+	}
+
+	public void AddParameter(IBindValue bindValue)
+	{
+		BindParameter parameter = new($":P_{ParameterIndex}", bindValue);
+		_parameters.Add(parameter);
+		_statement.Append(parameter.Name);
+		ParameterIndex++;
+	}
+
+	public void AddParameter(BindParameter parameter)
+	{
+		_parameters.Add(parameter);
+		ParameterIndex += 1;
+	}
+
+	public void AddParameters(IReadOnlyList<BindParameter> parameters)
+	{
+		_parameters.AddRange(parameters);
+		ParameterIndex += parameters.Count;
 	}
 
 	public override string ToString() => _statement.ToString();

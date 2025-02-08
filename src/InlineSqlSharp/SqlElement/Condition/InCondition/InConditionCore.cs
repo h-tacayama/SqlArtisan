@@ -3,13 +3,11 @@
 internal sealed class InConditionCore(
 	bool isNot,
 	IExpr leftSide,
-	IExpr primaryExpr,
-	IExpr[] secondaryExprs)
+	IExpr[] expressions)
 {
 	private readonly bool _isNot = isNot;
 	private readonly IExpr _leftSide = leftSide;
-	private readonly IExpr _primaryItem = primaryExpr;
-	private readonly IExpr[] _secondaryItems = secondaryExprs;
+	private readonly IExpr[] _expressions = expressions;
 
 	public void FormatSql(ref SqlBuildingBuffer buffer)
 	{
@@ -23,16 +21,7 @@ internal sealed class InConditionCore(
 
 		buffer.AppendLine(Keywords.IN);
 		buffer.AppendLine("(");
-
-		_primaryItem.FormatSql(ref buffer);
-
-		for (int i = 0; i < _secondaryItems.Length; i++)
-		{
-			buffer.AppendLine();
-			buffer.Append(", ");
-			_secondaryItems[i].FormatSql(ref buffer);
-		}
-
+		buffer.AppendCommaSeparated(_expressions);
 		buffer.AppendLine();
 		buffer.Append(")");
 	}

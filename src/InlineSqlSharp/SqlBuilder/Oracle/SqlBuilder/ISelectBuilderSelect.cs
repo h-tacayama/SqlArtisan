@@ -2,7 +2,5 @@
 
 public interface ISelectBuilderSelect : ISqlBuilder, ISubqueryBuilder
 {
-	ISelectBuilderFrom FROM(
-		ITableReference primaryTable,
-		params ITableReference[] secondaryTables);
+	ISelectBuilderFrom FROM(params ITableReference[] tables);
 }
