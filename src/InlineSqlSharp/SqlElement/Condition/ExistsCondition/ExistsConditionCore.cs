@@ -13,8 +13,6 @@ public sealed class ExistsConditionCore(bool isNot, ISubquery subquery)
 		}
 
 		buffer.AppendLine(Keywords.EXISTS);
-		buffer.AppendLine("(");
-		_subquery.FormatSql(ref buffer);
-		buffer.PrependLine(")");
+		buffer.EncloseInLines(_subquery);
 	}
 }

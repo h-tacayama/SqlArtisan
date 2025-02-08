@@ -23,11 +23,7 @@ internal sealed class MultiLogicalConditionCore(
 				buffer.EncloseInLines(_operator);
 			}
 
-			buffer.AppendLine("(");
-			_conditions[i].FormatSql(ref buffer);
-			buffer.AppendLine();
-			buffer.Append(")");
-
+			buffer.EncloseInLines(_conditions[i]);
 			added = true;
 		}
 	}

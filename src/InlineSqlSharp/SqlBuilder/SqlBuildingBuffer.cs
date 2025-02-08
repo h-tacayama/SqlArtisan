@@ -10,7 +10,6 @@ public struct SqlBuildingBuffer() : IDisposable
 	public void Dispose()
 	{
 		_statement.Clear();
-		_parameters.Clear();
 	}
 
 	public IReadOnlyList<BindParameter> Parameters => _parameters;
@@ -88,11 +87,36 @@ public struct SqlBuildingBuffer() : IDisposable
 		_statement.Append(parameter.Name);
 	}
 
+	public void CloseParenthesis() =>
+		_statement.Append(")");
+
+	public void CloseParenthesisAfterLine()
+	{
+		_statement.AppendLine();
+		CloseParenthesis();
+	}
+
+	public void EncloseInLines(ISqlElement element)
+	{
+		OpenParenthesisBeforeLine();
+		element.FormatSql(ref this);
+		CloseParenthesisAfterLine();
+	}
+
 	public void EncloseInLines(string value) =>
 		_statement.AppendLine().AppendLine(value);
 
 	public void EncloseInSpaces(string value) =>
 		_statement.AppendFormat(" {0} ", value);
+
+	public void OpenParenthesis() =>
+		_statement.Append("(");
+
+	public void OpenParenthesisBeforeLine()
+	{
+		OpenParenthesis();
+		_statement.AppendLine();
+	}
 
 	public void PrependLine(string value)
 	{

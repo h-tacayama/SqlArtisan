@@ -7,9 +7,6 @@ public sealed class NotCondition(ICondition condition) : ICondition
 	public void FormatSql(ref SqlBuildingBuffer buffer)
 	{
 		buffer.AppendLine(Keywords.NOT);
-		buffer.AppendLine("(");
-		_condition.FormatSql(ref buffer);
-		buffer.AppendLine();
-		buffer.Append(")");
+		buffer.EncloseInLines(_condition);
 	}
 }

@@ -20,9 +20,6 @@ internal sealed class InSubqueryConditionCore(
 		}
 
 		buffer.AppendLine(Keywords.IN);
-		buffer.AppendLine("(");
-		_subquery.FormatSql(ref buffer);
-		buffer.AppendLine();
-		buffer.Append(")");
+		buffer.EncloseInLines(_subquery);
 	}
 }

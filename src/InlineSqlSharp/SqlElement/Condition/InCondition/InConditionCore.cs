@@ -20,9 +20,8 @@ internal sealed class InConditionCore(
 		}
 
 		buffer.AppendLine(Keywords.IN);
-		buffer.AppendLine("(");
+		buffer.OpenParenthesisBeforeLine();
 		buffer.AppendCommaSeparated(_expressions);
-		buffer.AppendLine();
-		buffer.Append(")");
+		buffer.CloseParenthesisAfterLine();
 	}
 }
