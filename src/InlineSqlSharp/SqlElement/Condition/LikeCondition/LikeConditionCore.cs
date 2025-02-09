@@ -7,7 +7,7 @@ internal sealed class LikeConditionCore(bool isNot, IExpr leftSide, IExpr rightS
 	private readonly IExpr _rightSide = rightSide;
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.AppendSpace(_leftSide)
+		buffer.Core.AppendSpace(_leftSide)
 		.AppendSpaceIf(_isNot, Keywords.NOT)
 		.AppendSpace(Keywords.LIKE)
 		.Append(_rightSide);

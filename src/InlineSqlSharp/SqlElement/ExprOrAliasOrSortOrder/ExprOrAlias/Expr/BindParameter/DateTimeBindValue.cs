@@ -16,5 +16,5 @@ public sealed class DateTimeBindValue(
 	public object Value { get; } = value;
 
 	public override void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.AddParameter(this);
+		buffer.Core.AddParameter(this);
 }
