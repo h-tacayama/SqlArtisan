@@ -1,0 +1,9 @@
+﻿namespace InlineSqlSharp;
+
+public sealed class RightJoinClause(ITableReference table) : ISqlElement
+{
+	private readonly JoinClauseCore _core = new(Keywords.RIGHT, table);
+
+	public void FormatSql(ref SqlBuildingBuffer buffer) =>
+		_core.FormatSql(ref buffer);
+}

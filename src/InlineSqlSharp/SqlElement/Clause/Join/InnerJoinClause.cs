@@ -2,10 +2,8 @@
 
 public sealed class InnerJoinClause(ITableReference table) : ISqlElement
 {
-	private readonly ITableReference _table = table;
+	private readonly JoinClauseCore _core = new(Keywords.INNER, table);
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.Core.AppendSpace(Keywords.INNER)
-			.AppendLine(Keywords.JOIN)
-			.Append(_table);
+		_core.FormatSql(ref buffer);
 }

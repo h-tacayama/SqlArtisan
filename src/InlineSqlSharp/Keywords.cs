@@ -12,6 +12,7 @@ internal static class Keywords
 	internal const string CASE = "CASE";
 	internal const string CONCAT = "CONCAT";
 	internal const string COUNT = "COUNT";
+	internal const string CROSS = "CROSS";
 	internal const string CURRVAL = "CURRVAL";
 	internal const string DELETE = "DELETE";
 	internal const string DESC = "DESC";
@@ -21,6 +22,7 @@ internal static class Keywords
 	internal const string END = "END";
 	internal const string EXISTS = "EXISTS";
 	internal const string FROM = "FROM";
+	internal const string FULL = "FULL";
 	internal const string GROUP = "GROUP";
 	internal const string HAVING = "HAVING";
 	internal const string IN = "IN";
@@ -29,6 +31,7 @@ internal static class Keywords
 	internal const string INTO = "INTO";
 	internal const string IS = "IS";
 	internal const string JOIN = "JOIN";
+	internal const string LEFT = "LEFT";
 	internal const string LIKE = "LIKE";
 	internal const string NEXTVAL = "NEXTVAL";
 	internal const string NOT = "NOT";
@@ -42,6 +45,7 @@ internal static class Keywords
 	internal const string PARTITION = "PARTITION";
 	internal const string RANK = "RANK";
 	internal const string RETURNING = "RETURNING";
+	internal const string RIGHT = "RIGHT";
 	internal const string SELECT = "SELECT";
 	internal const string SET = "SET";
 	internal const string THEN = "THEN";

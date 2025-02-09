@@ -4,7 +4,6 @@ public class SelectBuilder :
 	AbstractSqlBuilder,
 	ISelectBuilderFrom,
 	ISelectBuilderJoin,
-	ISelectBuilderOn,
 	ISelectBuilderSelect,
 	ISelectBuildertWhere
 {
@@ -18,6 +17,12 @@ public class SelectBuilder :
 
 	public SqlCommand Build() => BuildCore();
 
+	public ISelectBuilderFrom CROSS_JOIN(ITableReference table)
+	{
+		AddElement(new CrossJoinClause(table));
+		return this;
+	}
+
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
 		FormatAsSubquery(ref buffer);
 
@@ -27,13 +32,31 @@ public class SelectBuilder :
 		return this;
 	}
 
+	public ISelectBuilderJoin FULL_JOIN(ITableReference table)
+	{
+		AddElement(new FullJoinClause(table));
+		return this;
+	}
+
 	public ISelectBuilderJoin INNER_JOIN(ITableReference table)
 	{
 		AddElement(new InnerJoinClause(table));
 		return this;
 	}
 
-	public ISelectBuilderOn ON(ICondition condition)
+	public ISelectBuilderJoin LEFT_JOIN(ITableReference table)
+	{
+		AddElement(new LeftJoinClause(table));
+		return this;
+	}
+
+	public ISelectBuilderJoin RIGHT_JOIN(ITableReference table)
+	{
+		AddElement(new RightJoinClause(table));
+		return this;
+	}
+
+	public ISelectBuilderFrom ON(ICondition condition)
 	{
 		AddElement(new OnClause(condition));
 		return this;
