@@ -12,11 +12,10 @@ internal sealed class BetweenConditionCore(
 	private readonly IExpr _rightSide2 = rightSide2;
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.FormatSql(_leftSide)
-			.AppendSpace()
+		buffer.AppendSpace(_leftSide)
 			.AppendSpaceIf(_isNot, Keywords.NOT)
 			.AppendSpace(Keywords.BETWEEN)
-			.FormatSql(_rightSide1)
+			.Append(_rightSide1)
 			.EncloseInSpaces(Keywords.AND)
-			.FormatSql(_rightSide2);
+			.Append(_rightSide2);
 }

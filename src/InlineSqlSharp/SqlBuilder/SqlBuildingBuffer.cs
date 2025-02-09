@@ -13,6 +13,12 @@ public struct SqlBuildingBuffer() : IDisposable
 		_parameters.Clear();
 	}
 
+	public SqlBuildingBuffer Append(ISqlElement element)
+	{
+		element.FormatSql(ref this);
+		return this;
+	}
+
 	public SqlBuildingBuffer Append(string? value)
 	{
 		_statement.Append(value);
@@ -66,6 +72,13 @@ public struct SqlBuildingBuffer() : IDisposable
 		return this;
 	}
 
+	public SqlBuildingBuffer AppendLine(ISqlElement element)
+	{
+		element.FormatSql(ref this);
+		_statement.AppendLine();
+		return this;
+	}
+
 	public SqlBuildingBuffer AppendLine(string? value = null)
 	{
 		_statement.AppendLine(value);
@@ -97,6 +110,13 @@ public struct SqlBuildingBuffer() : IDisposable
 			elements[i].FormatSql(ref this);
 		}
 
+		return this;
+	}
+
+	public SqlBuildingBuffer AppendSpace(ISqlElement element)
+	{
+		element.FormatSql(ref this);
+		_statement.Append(" ");
 		return this;
 	}
 
@@ -155,12 +175,6 @@ public struct SqlBuildingBuffer() : IDisposable
 	public SqlBuildingBuffer EncloseInSpaces(string value)
 	{
 		_statement.AppendFormat(" {0} ", value);
-		return this;
-	}
-
-	public SqlBuildingBuffer FormatSql(ISqlElement element)
-	{
-		element.FormatSql(ref this);
 		return this;
 	}
 

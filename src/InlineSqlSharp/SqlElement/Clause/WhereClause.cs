@@ -6,5 +6,5 @@ public sealed class WhereClause(ICondition condition) : ISqlElement
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
 		buffer.AppendLine(Keywords.WHERE)
-			.FormatSql(_condition);
+			.Append(_condition);
 }
