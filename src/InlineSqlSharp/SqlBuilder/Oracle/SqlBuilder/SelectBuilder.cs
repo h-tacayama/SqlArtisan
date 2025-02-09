@@ -3,6 +3,8 @@
 public class SelectBuilder :
 	AbstractSqlBuilder,
 	ISelectBuilderFrom,
+	ISelectBuilderJoin,
+	ISelectBuilderOn,
 	ISelectBuilderSelect,
 	ISelectBuildertWhere
 {
@@ -22,6 +24,18 @@ public class SelectBuilder :
 	public ISelectBuilderFrom FROM(params ITableReference[] tables)
 	{
 		AddElement(new FromClause(tables));
+		return this;
+	}
+
+	public ISelectBuilderJoin INNER_JOIN(ITableReference table)
+	{
+		AddElement(new InnerJoinClause(table));
+		return this;
+	}
+
+	public ISelectBuilderOn ON(ICondition condition)
+	{
+		AddElement(new OnClause(condition));
 		return this;
 	}
 
