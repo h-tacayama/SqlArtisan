@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp.Oracle;
+﻿namespace InlineSqlSharp;
 
 public interface ISelectBuildertWhere : ISqlBuilder, ISubquery
 {

@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using static InlineSqlSharp.Oracle.SqlWordbook;
+using static InlineSqlSharp.SqlWordbook;
 
 namespace InlineSqlSharp.Tests;
 

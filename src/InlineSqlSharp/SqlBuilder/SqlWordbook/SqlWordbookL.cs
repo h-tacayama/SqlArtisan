@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace InlineSqlSharp.Oracle;
+namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {

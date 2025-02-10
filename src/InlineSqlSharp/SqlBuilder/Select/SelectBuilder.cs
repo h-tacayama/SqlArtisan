@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp.Oracle;
+﻿namespace InlineSqlSharp;
 
 public class SelectBuilder :
 	AbstractSqlBuilder,
