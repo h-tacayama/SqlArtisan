@@ -3,6 +3,7 @@
 public class SelectBuilder :
 	AbstractSqlBuilder,
 	ISelectBuilderFrom,
+	ISelectBuilderGroupBy,
 	ISelectBuilderJoin,
 	ISelectBuilderOrderBy,
 	ISelectBuilderSelect,
@@ -36,6 +37,12 @@ public class SelectBuilder :
 	public ISelectBuilderJoin FULL_JOIN(ITableReference table)
 	{
 		AddElement(new FullJoinClause(table));
+		return this;
+	}
+
+	public ISelectBuilderGroupBy GROUP_BY(params IExpr[] groupingExpressions)
+	{
+		AddElement(new GroupByClause(groupingExpressions));
 		return this;
 	}
 

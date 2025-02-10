@@ -7,6 +7,8 @@ public interface ISelectBuilderFrom : ISqlBuilder, ISubquery
 
 	ISelectBuilderJoin FULL_JOIN(ITableReference table);
 
+	ISelectBuilderGroupBy GROUP_BY(params IExpr[] groupingExpressions);
+
 	ISelectBuilderJoin INNER_JOIN(ITableReference table);
 
 	ISelectBuilderJoin LEFT_JOIN(ITableReference table);
