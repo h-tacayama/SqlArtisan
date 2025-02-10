@@ -10,7 +10,8 @@ public abstract class ComparisonCondition(
 	private readonly IExpr _rightSide = rightSide;
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.Core.Append(_leftSide)
+		buffer.Core
+			.Append(_leftSide)
 			.EncloseInSpaces(_operator)
 			.Append(_rightSide);
 }

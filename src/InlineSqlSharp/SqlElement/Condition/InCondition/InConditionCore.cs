@@ -10,7 +10,8 @@ internal sealed class InConditionCore(
 	private readonly IExpr[] _expressions = expressions;
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.Core.AppendSpace(_leftSide)
+		buffer.Core
+			.AppendSpace(_leftSide)
 			.AppendSpaceIf(_isNot, Keywords.NOT)
 			.AppendLine(Keywords.IN)
 			.OpenParenthesisBeforeLine()

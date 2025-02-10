@@ -10,7 +10,8 @@ internal sealed class InSubqueryConditionCore(
 	private readonly ISubquery _subquery = subquey;
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.Core.AppendSpace(_leftSide)
+		buffer.Core
+			.AppendSpace(_leftSide)
 			.AppendSpaceIf(_isNot, Keywords.NOT)
 			.AppendLine(Keywords.IN)
 			.EncloseInLines(_subquery);
