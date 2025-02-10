@@ -137,6 +137,15 @@ internal struct SqlBuildingBufferCore(SqlBuildingBuffer parent) : IDisposable
 		return this;
 	}
 
+	public SqlBuildingBufferCore AppendUnaryFunction(string functionName, ISqlElement arg)
+	{
+		_statement.Append(functionName);
+		OpenParenthesis();
+		arg.FormatSql(ref _parent);
+		CloseParenthesis();
+		return this;
+	}
+
 	public SqlBuildingBufferCore AddParameter(IBindValue bindValue)
 	{
 		int index = _parameters.Count;
