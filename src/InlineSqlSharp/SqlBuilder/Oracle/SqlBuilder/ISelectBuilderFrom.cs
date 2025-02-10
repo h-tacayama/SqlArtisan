@@ -11,6 +11,9 @@ public interface ISelectBuilderFrom : ISqlBuilder, ISubquery
 
 	ISelectBuilderJoin LEFT_JOIN(ITableReference table);
 
+	ISelectBuilderOrderBy ORDER_BY(
+		params IExprOrAliasOrSortOrder[] sortExpressions);
+
 	ISelectBuilderJoin RIGHT_JOIN(ITableReference table);
 
 	ISelectBuildertWhere WHERE(ICondition condition);

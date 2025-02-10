@@ -4,6 +4,7 @@ public class SelectBuilder :
 	AbstractSqlBuilder,
 	ISelectBuilderFrom,
 	ISelectBuilderJoin,
+	ISelectBuilderOrderBy,
 	ISelectBuilderSelect,
 	ISelectBuildertWhere
 {
@@ -59,6 +60,13 @@ public class SelectBuilder :
 	public ISelectBuilderFrom ON(ICondition condition)
 	{
 		AddElement(new OnClause(condition));
+		return this;
+	}
+
+	public ISelectBuilderOrderBy ORDER_BY(
+		params IExprOrAliasOrSortOrder[] sortExpressions)
+	{
+		AddElement(new OrderByClause(sortExpressions));
 		return this;
 	}
 

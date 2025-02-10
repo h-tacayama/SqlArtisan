@@ -2,13 +2,25 @@
 
 namespace InlineSqlSharp;
 
-public abstract class DateTimeExpr : IDataExpr
+public abstract class DateTimeExpr : IDataExpr, ISortable
 {
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public SortOrder ASC => new(this, SortDirection.Asc);
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public SortOrder DESC => new(this, SortDirection.Desc);
+
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public IsNullCondition IS_NULL => new(this);
 
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public IsNotNullCondition IS_NOT_NULL => new(this);
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public SortOrder NULLS_FIRST => new(this, NullOrdering.NullsFirst);
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public SortOrder NULLS_LAST => new(this, NullOrdering.NullsLast);
 
 	public abstract void FormatSql(ref SqlBuildingBuffer buffer);
 
