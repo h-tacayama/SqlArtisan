@@ -21,4 +21,7 @@ public class Benchmarker
 
 	[Benchmark]
 	public void SqlKata() => SqlKataExample.Do();
+
+	[Benchmark]
+	public void InlineSqlSharp() => InlineSqlSharpExample.Do();
 }
