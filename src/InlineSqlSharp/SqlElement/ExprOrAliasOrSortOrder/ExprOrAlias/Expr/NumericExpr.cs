@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace InlineSqlSharp;
 
-public abstract class NumericExpr : IDataExpr, ISortable
+public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 {
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public SortOrder ASC => new(this, SortDirection.Asc);
@@ -61,6 +61,8 @@ public abstract class NumericExpr : IDataExpr, ISortable
 		NumericExpr @this,
 		NumericExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
+
+	public ExprAlias AS(string alias) => new(this, new AliasName(alias));
 
 	public BetweenCondition BETWEEN(
 		NumericExpr rightSide1,

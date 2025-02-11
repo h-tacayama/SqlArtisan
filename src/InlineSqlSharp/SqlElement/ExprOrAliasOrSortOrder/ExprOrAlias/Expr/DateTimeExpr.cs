@@ -2,7 +2,7 @@
 
 namespace InlineSqlSharp;
 
-public abstract class DateTimeExpr : IDataExpr, ISortable
+public abstract class DateTimeExpr : IAliasable, IDataExpr, ISortable
 {
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public SortOrder ASC => new(this, SortDirection.Asc);
@@ -60,6 +60,8 @@ public abstract class DateTimeExpr : IDataExpr, ISortable
 		DateTimeExpr @this,
 		DateTimeExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
+
+	public ExprAlias AS(string alias) => new(this, new AliasName(alias));
 
 	public BetweenCondition BETWEEN(
 		DateTimeExpr rightSide1,

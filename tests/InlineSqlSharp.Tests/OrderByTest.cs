@@ -117,4 +117,33 @@ public class OrderByTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
+
+	[Fact]
+	public void ORDER_BY_Alias()
+	{
+		SqlCommand sql =
+			SELECT(_t.code)
+			.FROM(_t)
+			.ORDER_BY(
+				_t.name.AS("a"),
+				_t.created_at.AS("b").ASC,
+				_t.code.AS("c").DESC,
+				_t.name.AS("d").NULLS_FIRST,
+				_t.created_at.AS("e").NULLS_LAST)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("t.code");
+		expected.AppendLine("FROM");
+		expected.AppendLine("test_table t");
+		expected.AppendLine("ORDER BY");
+		expected.AppendLine("a");
+		expected.AppendLine(", b ASC");
+		expected.AppendLine(", c DESC");
+		expected.AppendLine(", d NULLS FIRST");
+		expected.Append(", e NULLS LAST");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
 }

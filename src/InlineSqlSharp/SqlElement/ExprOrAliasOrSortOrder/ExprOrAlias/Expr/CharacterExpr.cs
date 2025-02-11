@@ -2,7 +2,7 @@
 
 namespace InlineSqlSharp;
 
-public abstract class CharacterExpr : IDataExpr, ISortable
+public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 {
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public SortOrder ASC => new(this, SortDirection.Asc);
@@ -60,6 +60,8 @@ public abstract class CharacterExpr : IDataExpr, ISortable
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
+
+	public ExprAlias AS(string alias) => new(this, new AliasName(alias));
 
 	public BetweenCondition BETWEEN(
 		CharacterExpr rightSide1,
