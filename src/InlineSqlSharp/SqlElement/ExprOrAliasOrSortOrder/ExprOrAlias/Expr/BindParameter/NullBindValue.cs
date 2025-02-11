@@ -15,5 +15,5 @@ internal sealed class NullBindValue(ParameterDirection direction)
 	public object Value { get; } = DBNull.Value;
 
 	public override void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.Core.AddParameter(this);
+		buffer.AddParameter(this);
 }

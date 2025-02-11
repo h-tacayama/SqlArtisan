@@ -8,5 +8,5 @@ public sealed class NumericLiteral<TValue>(TValue value) : NumericExpr, ILiteral
 	private readonly TValue _value = value;
 
 	public override void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.Core.Append(_value.ToString());
+		buffer.Append(_value.ToString());
 }

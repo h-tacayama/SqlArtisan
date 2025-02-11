@@ -43,20 +43,20 @@ public sealed class SortOrder : IExprOrAliasOrSortOrder
 		switch (_direction)
 		{
 			case SortDirection.Asc:
-				buffer.Core.PrependSpace(Keywords.ASC);
+				buffer.PrependSpace(Keywords.ASC);
 				break;
 			case SortDirection.Desc:
-				buffer.Core.PrependSpace(Keywords.DESC);
+				buffer.PrependSpace(Keywords.DESC);
 				break;
 		}
 
 		switch (_nullOrdering)
 		{
 			case NullOrdering.NullsFirst:
-				buffer.Core.PrependSpace(Keywords.NULLS_FIRST);
+				buffer.PrependSpace(Keywords.NULLS_FIRST);
 				break;
 			case NullOrdering.NullsLast:
-				buffer.Core.PrependSpace(Keywords.NULLS_LAST);
+				buffer.PrependSpace(Keywords.NULLS_LAST);
 				break;
 		}
 	}

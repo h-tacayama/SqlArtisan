@@ -6,8 +6,7 @@ public sealed class JoinClauseCore(string joinType, ITableReference table)
 	private readonly ITableReference _table = table;
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.Core
-			.AppendSpace(_joinType)
+		buffer.AppendSpace(_joinType)
 			.AppendLine(Keywords.JOIN)
 			.Append(_table);
 }

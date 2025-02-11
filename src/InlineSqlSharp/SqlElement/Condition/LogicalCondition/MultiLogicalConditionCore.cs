@@ -20,10 +20,10 @@ internal sealed class MultiLogicalConditionCore(
 
 			if (added)
 			{
-				buffer.Core.EncloseInLines(_operator);
+				buffer.EncloseInLines(_operator);
 			}
 
-			buffer.Core.EncloseInLines(_conditions[i]);
+			buffer.EncloseInLines(_conditions[i]);
 			added = true;
 		}
 	}

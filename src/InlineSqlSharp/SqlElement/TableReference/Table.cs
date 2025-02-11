@@ -18,5 +18,5 @@ public abstract class Table : ITableReference
 	}
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.Core.AppendFormat("{0} {1}", _tableName, _alias);
+		buffer.AppendFormat("{0} {1}", _tableName, _alias);
 }
