@@ -6,7 +6,7 @@ public sealed class SortOrder : IExprOrAliasOrSortOrder
 {
 	private readonly IExprOrAlias _exprOrAlias;
 	private readonly SortDirection _direction;
-	private readonly NullOrdering _nullOrdering;
+	private NullOrdering _nullOrdering;
 
 	internal SortOrder(IExprOrAlias exprOrAlias)
 		: this(exprOrAlias, SortDirection.None, NullOrdering.None)
@@ -31,10 +31,10 @@ public sealed class SortOrder : IExprOrAliasOrSortOrder
 	}
 
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	public SortOrder NULLS_FIRST => new(_exprOrAlias, _direction, NullOrdering.NullsFirst);
+	public SortOrder NULLS_FIRST => SetNullOrdering(NullOrdering.NullsFirst);
 
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	public SortOrder NULLS_LAST => new(_exprOrAlias, _direction, NullOrdering.NullsLast);
+	public SortOrder NULLS_LAST => SetNullOrdering(NullOrdering.NullsLast);
 
 	public void FormatSql(ref SqlBuildingBuffer buffer)
 	{
@@ -59,5 +59,11 @@ public sealed class SortOrder : IExprOrAliasOrSortOrder
 				buffer.Core.PrependSpace(Keywords.NULLS_LAST);
 				break;
 		}
+	}
+
+	private SortOrder SetNullOrdering(NullOrdering value)
+	{
+		_nullOrdering = value;
+		return this;
 	}
 }
