@@ -17,7 +17,7 @@ public static class SqlifyExample
 			.Join(b, a.Id == b.AuthorId)
 			.Where(b.Rating > 2.5)
 			.GroupBy(a.Id)
-			.OrderByDesc(Count());
+			.OrderByDesc(a.Id);
 
 		var writer = new SqlWriter();
 		selectQuery.Format(writer);
