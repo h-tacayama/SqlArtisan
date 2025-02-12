@@ -2,12 +2,7 @@
 
 internal sealed class test_table : Table
 {
-	public test_table(string alias)
-		: this(new AliasName(alias))
-	{
-	}
-
-	private test_table(AliasName alias) : base(alias)
+	public test_table(string alias) : base(alias)
 	{
 		code = new NumericColumn(alias, "code");
 		name = new CharacterColumn(alias, "name");

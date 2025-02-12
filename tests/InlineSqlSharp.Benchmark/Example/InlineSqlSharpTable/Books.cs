@@ -2,12 +2,7 @@
 
 internal sealed class Books : Table
 {
-	public Books(string alias)
-		: this(new AliasName(alias))
-	{
-	}
-
-	private Books(AliasName alias) : base(alias)
+	public Books(string alias) : base(alias)
 	{
 		Id = new NumericColumn(alias, "Id");
 		Name = new CharacterColumn(alias, "Name");

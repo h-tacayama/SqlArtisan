@@ -1,10 +1,10 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class CharacterColumn(AliasName tableAlias, string name) :
-	CharacterExpr,
+public sealed class CharacterColumn(string tableAlias, string columnName)
+	: CharacterExpr,
 	IColumn
 {
-	private readonly ColumnCore _core = new(tableAlias, name);
+	private readonly ColumnCore _core = new(tableAlias, columnName);
 
 	public override void FormatSql(ref SqlBuildingBuffer buffer) =>
 		_core.FormatSql(ref buffer);

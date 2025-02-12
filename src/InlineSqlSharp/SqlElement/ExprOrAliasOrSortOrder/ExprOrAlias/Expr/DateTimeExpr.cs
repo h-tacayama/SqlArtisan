@@ -61,7 +61,7 @@ public abstract class DateTimeExpr : IAliasable, IDataExpr, ISortable
 		DateTimeExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
 
-	public ExprAlias AS(string alias) => new(this, new AliasName(alias));
+	public ExprAlias AS(string alias) => new(this, alias);
 
 	public BetweenCondition BETWEEN(
 		DateTimeExpr rightSide1,

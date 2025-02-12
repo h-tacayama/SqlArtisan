@@ -61,7 +61,7 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 		CharacterExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
 
-	public ExprAlias AS(string alias) => new(this, new AliasName(alias));
+	public ExprAlias AS(string alias) => new(this, alias);
 
 	public BetweenCondition BETWEEN(
 		CharacterExpr rightSide1,

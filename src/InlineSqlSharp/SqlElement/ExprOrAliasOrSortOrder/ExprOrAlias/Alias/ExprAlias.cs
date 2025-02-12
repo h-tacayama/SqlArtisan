@@ -2,12 +2,12 @@
 
 namespace InlineSqlSharp;
 
-public sealed class ExprAlias(IExpr expr, AliasName alias) :
+public sealed class ExprAlias(IExpr expr, string alias) :
 	IExprOrAlias,
 	ISortable
 {
 	private readonly IExpr _expr = expr;
-	private readonly AliasName _alias = alias;
+	private readonly string _alias = alias;
 
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public SortOrder ASC => new(this, SortDirection.Asc);
@@ -22,9 +22,9 @@ public sealed class ExprAlias(IExpr expr, AliasName alias) :
 	public SortOrder NULLS_LAST => new(this, NullOrdering.NullsLast);
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.Append(_alias.Name);
+		buffer.Append(_alias);
 
 	public void FormatAsSelect(ref SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_expr)
-		.Append(_alias.Name);
+		.Append(_alias);
 }

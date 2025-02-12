@@ -2,12 +2,7 @@
 
 internal sealed class Authors : Table
 {
-	public Authors(string alias)
-		: this(new AliasName(alias))
-	{
-	}
-
-	private Authors(AliasName alias) : base(alias)
+	public Authors(string alias) : base(alias)
 	{
 		Id = new NumericColumn(alias, "Id");
 		Name = new CharacterColumn(alias, "Name");
