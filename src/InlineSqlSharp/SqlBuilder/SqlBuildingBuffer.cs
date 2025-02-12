@@ -171,7 +171,8 @@ public struct SqlBuildingBuffer() : IDisposable
 
 	internal SqlBuildingBuffer EncloseInLines(string value)
 	{
-		_statement.AppendLine().AppendLine(value);
+		_statement.AppendLine();
+		_statement.AppendLine(value);
 		return this;
 	}
 
