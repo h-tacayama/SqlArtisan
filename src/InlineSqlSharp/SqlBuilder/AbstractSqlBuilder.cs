@@ -19,16 +19,10 @@ public abstract class AbstractSqlBuilder
 
 	protected SqlCommand BuildCore()
 	{
-		SqlBuildingBuffer buffer = new();
-
-		try
+		using (SqlBuildingBuffer buffer = new())
 		{
 			buffer.AppendLineSeparated(_elements.ToArray());
 			return buffer.ToSqlCommand();
-		}
-		finally
-		{
-			buffer.Dispose();
 		}
 	}
 }

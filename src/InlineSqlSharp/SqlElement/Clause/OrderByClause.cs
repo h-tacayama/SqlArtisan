@@ -5,8 +5,8 @@ public sealed class OrderByClause(
 {
 	private readonly IExprOrAliasOrSortOrder[] _sortExpressions = sortExpressions;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		buffer.AppendSpace(Keywords.ORDER)
-			.AppendLine(Keywords.BY)
-			.AppendCommaSeparated(_sortExpressions);
+	public void FormatSql(ref SqlBuildingBuffer buffer) => buffer
+		.AppendSpace(Keywords.ORDER)
+		.AppendLine(Keywords.BY)
+		.AppendCommaSeparated(_sortExpressions);
 }
