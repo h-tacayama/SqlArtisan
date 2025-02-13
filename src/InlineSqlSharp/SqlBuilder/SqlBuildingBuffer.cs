@@ -85,6 +85,17 @@ public struct SqlBuildingBuffer() : IDisposable
 		return this;
 	}
 
+	internal SqlBuildingBuffer AppendLineIf(bool condition, ISqlElement element)
+	{
+		if (condition)
+		{
+			element.FormatSql(ref this);
+			_statement.AppendLine();
+		}
+
+		return this;
+	}
+
 	internal SqlBuildingBuffer AppendLineIf(bool condition, string? value)
 	{
 		if (condition)

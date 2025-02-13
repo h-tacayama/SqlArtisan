@@ -84,12 +84,6 @@ public class SelectBuilder :
 		return this;
 	}
 
-	public ISelectBuilderSelect SELECT(params IExprOrAlias[] selectList)
-	{
-		AddElement(new SelectClause(selectList));
-		return this;
-	}
-
 	public ISelectBuildertWhere WHERE(ICondition condition)
 	{
 		AddElement(new WhereClause(condition));

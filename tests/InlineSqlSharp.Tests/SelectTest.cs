@@ -30,6 +30,24 @@ public class SelectTest
 	}
 
 	[Fact]
+	public void SELECT_DISTINCT_FROM()
+	{
+		SqlCommand sql =
+			SELECT_DISTINCT(_t.code)
+			.FROM(_t)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("DISTINCT");
+		expected.AppendLine("t.code");
+		expected.AppendLine("FROM");
+		expected.Append("test_table t");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_Literals()
 	{
 		SqlCommand sql =
