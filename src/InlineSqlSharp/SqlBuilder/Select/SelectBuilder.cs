@@ -4,6 +4,7 @@ public class SelectBuilder :
 	AbstractSqlBuilder,
 	ISelectBuilderFrom,
 	ISelectBuilderGroupBy,
+	ISelectBuilderHaving,
 	ISelectBuilderJoin,
 	ISelectBuilderOrderBy,
 	ISelectBuilderSelect,
@@ -43,6 +44,12 @@ public class SelectBuilder :
 	public ISelectBuilderGroupBy GROUP_BY(params IExpr[] groupingExpressions)
 	{
 		AddElement(new GroupByClause(groupingExpressions));
+		return this;
+	}
+
+	public ISelectBuilderHaving HAVING(ICondition condition)
+	{
+		AddElement(new HavingClause(condition));
 		return this;
 	}
 
