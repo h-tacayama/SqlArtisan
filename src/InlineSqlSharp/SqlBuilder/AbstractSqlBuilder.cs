@@ -17,12 +17,7 @@ public abstract class AbstractSqlBuilder
 	public void FormatAsSubquery(ref SqlBuildingBuffer buffer) =>
 		buffer.AppendLineSeparated(_elements.ToArray());
 
-	protected SqlCommand BuildCore()
-	{
-		using (SqlBuildingBuffer buffer = new())
-		{
-			buffer.AppendLineSeparated(_elements.ToArray());
-			return buffer.ToSqlCommand();
-		}
-	}
+	protected SqlCommand BuildCore() => new SqlBuildingBuffer()
+		.AppendLineSeparated(_elements.ToArray())
+		.ToSqlCommand();
 }

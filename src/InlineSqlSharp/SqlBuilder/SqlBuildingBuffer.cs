@@ -2,16 +2,10 @@
 
 namespace InlineSqlSharp;
 
-public struct SqlBuildingBuffer() : IDisposable
+public struct SqlBuildingBuffer()
 {
 	private readonly StringBuilder _statement = new();
 	private readonly List<BindParameter> _parameters = [];
-
-	public void Dispose()
-	{
-		_statement.Clear();
-		_parameters.Clear();
-	}
 
 	internal SqlBuildingBuffer Append(ISqlElement element)
 	{
@@ -39,34 +33,6 @@ public struct SqlBuildingBuffer() : IDisposable
 			_statement.AppendLine();
 			_statement.Append(", ");
 			elements[i].FormatSql(ref this);
-		}
-
-		return this;
-	}
-
-	internal SqlBuildingBuffer AppendFormat<T1>(string format, T1 arg1)
-	{
-		_statement.AppendFormat(format, arg1);
-		return this;
-	}
-
-	internal SqlBuildingBuffer AppendFormat<T1, T2>(string format, T1 arg1, T2 arg2)
-	{
-		_statement.AppendFormat(format, arg1, arg2);
-		return this;
-	}
-
-	internal SqlBuildingBuffer AppendFormat<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
-	{
-		_statement.AppendFormat(format, arg1, arg2, arg3);
-		return this;
-	}
-
-	internal SqlBuildingBuffer AppendFormatIf<T1>(bool condition, string format, T1 arg1)
-	{
-		if (condition)
-		{
-			_statement.AppendFormat(format, arg1);
 		}
 
 		return this;
@@ -133,7 +99,8 @@ public struct SqlBuildingBuffer() : IDisposable
 
 	internal SqlBuildingBuffer AppendSpace(string? value = null)
 	{
-		_statement.AppendFormat("{0} ", value);
+		_statement.Append(value);
+		_statement.Append(" ");
 		return this;
 	}
 
@@ -141,7 +108,8 @@ public struct SqlBuildingBuffer() : IDisposable
 	{
 		if (condition)
 		{
-			_statement.AppendFormat("{0} ", value);
+			_statement.Append(value);
+			_statement.Append(" ");
 		}
 
 		return this;
@@ -189,7 +157,9 @@ public struct SqlBuildingBuffer() : IDisposable
 
 	internal SqlBuildingBuffer EncloseInSpaces(string value)
 	{
-		_statement.AppendFormat(" {0} ", value);
+		_statement.Append(" ");
+		_statement.Append(value);
+		_statement.Append(" ");
 		return this;
 	}
 
@@ -209,7 +179,8 @@ public struct SqlBuildingBuffer() : IDisposable
 
 	internal SqlBuildingBuffer PrependSpace(string value)
 	{
-		_statement.AppendFormat(" {0}", value);
+		_statement.Append(" ");
+		_statement.Append(value);
 		return this;
 	}
 
@@ -217,7 +188,8 @@ public struct SqlBuildingBuffer() : IDisposable
 	{
 		if (condition)
 		{
-			_statement.AppendFormat(" {0}", value);
+			_statement.Append(" ");
+			_statement.Append(value);
 		}
 
 		return this;

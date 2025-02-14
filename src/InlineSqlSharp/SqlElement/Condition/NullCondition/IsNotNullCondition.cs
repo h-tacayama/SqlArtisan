@@ -6,5 +6,7 @@ public sealed class IsNotNullCondition(IExpr leftSide) : ICondition
 
 	public void FormatSql(ref SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_leftSide)
-		.AppendFormat("{0} {1} {2}", Keywords.IS, Keywords.NOT, Keywords.NULL);
+		.AppendSpace(Keywords.IS)
+		.AppendSpace(Keywords.NOT)
+		.Append(Keywords.NULL);
 }
