@@ -1,7 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public abstract class AbstractSqlBuilder<TDerived>
-	where TDerived : AbstractSqlBuilder<TDerived>
+public abstract class AbstractSqlBuilder
 {
 	private readonly List<ISqlElement> _elements;
 
@@ -10,10 +9,9 @@ public abstract class AbstractSqlBuilder<TDerived>
 		_elements = [element];
 	}
 
-	protected TDerived AddElement(ISqlElement element)
+	protected void AddElement(ISqlElement element)
 	{
 		_elements.Add(element);
-		return (TDerived)this;
 	}
 
 	public void FormatAsSubquery(ref SqlBuildingBuffer buffer) =>
