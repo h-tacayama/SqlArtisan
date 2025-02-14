@@ -1,10 +1,13 @@
-﻿namespace InlineSqlSharp;
+﻿using System.Diagnostics;
+
+namespace InlineSqlSharp;
 
 public class SelectBuilder :
 	AbstractSqlBuilder,
 	ISelectBuilderFrom,
 	ISelectBuilderGroupBy,
 	ISelectBuilderHaving,
+	ISelectBuilderSetOperator,
 	ISelectBuilderJoin,
 	ISelectBuilderOrderBy,
 	ISelectBuilderSelect,
@@ -18,6 +21,9 @@ public class SelectBuilder :
 	{
 	}
 
+	public void FormatSql(ref SqlBuildingBuffer buffer) =>
+		FormatAsSubquery(ref buffer);
+
 	public SqlCommand Build() => BuildCore();
 
 	public ISelectBuilderFrom CROSS_JOIN(ITableReference table)
@@ -26,8 +32,25 @@ public class SelectBuilder :
 		return this;
 	}
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		FormatAsSubquery(ref buffer);
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator EXCEPT
+	{
+		get
+		{
+			AddElement(new ExceptOperator(false));
+			return this;
+		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator EXCEPT_ALL
+	{
+		get
+		{
+			AddElement(new ExceptOperator(true));
+			return this;
+		}
+	}
 
 	public ISelectBuilderFrom FROM(params ITableReference[] tables)
 	{
@@ -59,10 +82,50 @@ public class SelectBuilder :
 		return this;
 	}
 
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator INTERSECT
+	{
+		get
+		{
+			AddElement(new IntersectOperator(false));
+			return this;
+		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator INTERSECT_ALL
+	{
+		get
+		{
+			AddElement(new IntersectOperator(true));
+			return this;
+		}
+	}
+
 	public ISelectBuilderJoin LEFT_JOIN(ITableReference table)
 	{
 		AddElement(new LeftJoinClause(table));
 		return this;
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator MINUS
+	{
+		get
+		{
+			AddElement(new MinusOperator(false));
+			return this;
+		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator MINUS_ALL
+	{
+		get
+		{
+			AddElement(new MinusOperator(true));
+			return this;
+		}
 	}
 
 	public ISelectBuilderJoin RIGHT_JOIN(ITableReference table)
@@ -82,6 +145,38 @@ public class SelectBuilder :
 	{
 		AddElement(new OrderByClause(sortExpressions));
 		return this;
+	}
+
+	public ISelectBuilderSelect SELECT(params IExprOrAlias[] selectList)
+	{
+		AddElement(new SelectClause(false, selectList));
+		return this;
+	}
+
+	public ISelectBuilderSelect SELECT_DISTINCT(params IExprOrAlias[] selectList)
+	{
+		AddElement(new SelectClause(true, selectList));
+		return this;
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator UNION
+	{
+		get
+		{
+			AddElement(new UnionOperator(false));
+			return this;
+		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator UNION_ALL
+	{
+		get
+		{
+			AddElement(new UnionOperator(true));
+			return this;
+		}
 	}
 
 	public ISelectBuildertWhere WHERE(ICondition condition)

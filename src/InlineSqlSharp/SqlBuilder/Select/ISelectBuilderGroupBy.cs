@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public interface ISelectBuilderGroupBy : ISqlBuilder, ISubquery
+public interface ISelectBuilderGroupBy : ISqlBuilder, ISubquery, ISetOperator
 {
 	ISelectBuilderHaving HAVING(ICondition condition);
 

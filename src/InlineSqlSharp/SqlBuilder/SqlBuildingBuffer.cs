@@ -213,6 +213,16 @@ public struct SqlBuildingBuffer() : IDisposable
 		return this;
 	}
 
+	internal SqlBuildingBuffer PrependSpaceIf(bool condition, string value)
+	{
+		if (condition)
+		{
+			_statement.AppendFormat(" {0}", value);
+		}
+
+		return this;
+	}
+
 	internal SqlCommand ToSqlCommand() =>
 		// Return a clone of _parameters to avoid keeping references
 		new(_statement.ToString(), _parameters.ToList());

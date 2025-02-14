@@ -1,5 +1,5 @@
 ﻿namespace InlineSqlSharp;
 
-public interface ISelectBuilderHaving : ISqlBuilder, ISubquery
+public interface ISelectBuilderHaving : ISqlBuilder, ISubquery, ISetOperator
 {
 }

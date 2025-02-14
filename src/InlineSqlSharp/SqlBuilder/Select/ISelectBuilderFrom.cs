@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public interface ISelectBuilderFrom : ISqlBuilder, ISubquery
+public interface ISelectBuilderFrom : ISqlBuilder, ISubquery, ISetOperator
 {
 	// Subsequent SQL is the same as the FROM clause.
 	ISelectBuilderFrom CROSS_JOIN(ITableReference table);

@@ -20,6 +20,7 @@ internal static class Keywords
 	internal const string DUAL = "DUAL";
 	internal const string ELSE = "ELSE";
 	internal const string END = "END";
+	internal const string EXCEPT = "EXCEPT";
 	internal const string EXISTS = "EXISTS";
 	internal const string FROM = "FROM";
 	internal const string FULL = "FULL";
@@ -28,11 +29,13 @@ internal static class Keywords
 	internal const string IN = "IN";
 	internal const string INNER = "INNER";
 	internal const string INSERT = "INSERT";
+	internal const string INTERSECT = "INTERSECT";
 	internal const string INTO = "INTO";
 	internal const string IS = "IS";
 	internal const string JOIN = "JOIN";
 	internal const string LEFT = "LEFT";
 	internal const string LIKE = "LIKE";
+	internal const string MINUS = "MINUS";
 	internal const string NEXTVAL = "NEXTVAL";
 	internal const string NOT = "NOT";
 	internal const string NULL = "NULL";
