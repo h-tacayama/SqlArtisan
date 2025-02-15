@@ -21,17 +21,6 @@ public class SelectBuilder :
 	{
 	}
 
-	public void FormatSql(SqlBuildingBuffer buffer) =>
-		FormatAsSubquery(ref buffer);
-
-	public SqlCommand Build() => BuildCore();
-
-	public ISelectBuilderFrom CROSS_JOIN(ITableReference table)
-	{
-		AddElement(new CrossJoinClause(table));
-		return this;
-	}
-
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public ISelectBuilderSetOperator EXCEPT
 	{
@@ -50,6 +39,77 @@ public class SelectBuilder :
 			AddElement(new ExceptOperator(true));
 			return this;
 		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator INTERSECT
+	{
+		get
+		{
+			AddElement(new IntersectOperator(false));
+			return this;
+		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator INTERSECT_ALL
+	{
+		get
+		{
+			AddElement(new IntersectOperator(true));
+			return this;
+		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator MINUS
+	{
+		get
+		{
+			AddElement(new MinusOperator(false));
+			return this;
+		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator MINUS_ALL
+	{
+		get
+		{
+			AddElement(new MinusOperator(true));
+			return this;
+		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator UNION
+	{
+		get
+		{
+			AddElement(new UnionOperator(false));
+			return this;
+		}
+	}
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public ISelectBuilderSetOperator UNION_ALL
+	{
+		get
+		{
+			AddElement(new UnionOperator(true));
+			return this;
+		}
+	}
+
+	public void FormatSql(SqlBuildingBuffer buffer) =>
+		FormatAsSubquery(ref buffer);
+
+	public SqlCommand Build() => BuildCore();
+
+	public ISelectBuilderFrom CROSS_JOIN(ITableReference table)
+	{
+		AddElement(new CrossJoinClause(table));
+		return this;
 	}
 
 	public ISelectBuilderFrom FROM(params ITableReference[] tables)
@@ -82,50 +142,10 @@ public class SelectBuilder :
 		return this;
 	}
 
-	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	public ISelectBuilderSetOperator INTERSECT
-	{
-		get
-		{
-			AddElement(new IntersectOperator(false));
-			return this;
-		}
-	}
-
-	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	public ISelectBuilderSetOperator INTERSECT_ALL
-	{
-		get
-		{
-			AddElement(new IntersectOperator(true));
-			return this;
-		}
-	}
-
 	public ISelectBuilderJoin LEFT_JOIN(ITableReference table)
 	{
 		AddElement(new LeftJoinClause(table));
 		return this;
-	}
-
-	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	public ISelectBuilderSetOperator MINUS
-	{
-		get
-		{
-			AddElement(new MinusOperator(false));
-			return this;
-		}
-	}
-
-	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	public ISelectBuilderSetOperator MINUS_ALL
-	{
-		get
-		{
-			AddElement(new MinusOperator(true));
-			return this;
-		}
 	}
 
 	public ISelectBuilderJoin RIGHT_JOIN(ITableReference table)
@@ -157,26 +177,6 @@ public class SelectBuilder :
 	{
 		AddElement(new SelectClause(true, selectList));
 		return this;
-	}
-
-	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	public ISelectBuilderSetOperator UNION
-	{
-		get
-		{
-			AddElement(new UnionOperator(false));
-			return this;
-		}
-	}
-
-	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	public ISelectBuilderSetOperator UNION_ALL
-	{
-		get
-		{
-			AddElement(new UnionOperator(true));
-			return this;
-		}
 	}
 
 	public ISelectBuildertWhere WHERE(ICondition condition)
