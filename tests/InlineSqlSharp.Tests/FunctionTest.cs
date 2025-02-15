@@ -8,18 +8,29 @@ public class FunctionTest
 	private test_table _t = new("t");
 
 	[Fact]
-	public void Function_COUNT()
+	public void SELECT_COUNT()
 	{
 		SqlCommand sql =
 			SELECT(COUNT(_t.code))
-			.FROM(_t)
 			.Build();
 
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
-		expected.AppendLine("COUNT(t.code)");
-		expected.AppendLine("FROM");
-		expected.Append("test_table t");
+		expected.Append("COUNT(t.code)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_COUNT_DISTINCT()
+	{
+		SqlCommand sql =
+			SELECT(COUNT_DISTINCT(_t.code))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("COUNT(DISTINCT t.code)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}

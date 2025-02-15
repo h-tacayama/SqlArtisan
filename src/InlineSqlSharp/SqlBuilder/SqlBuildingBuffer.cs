@@ -133,6 +133,12 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer CloseParenthesis()
+	{
+		_statement.Append(")");
+		return this;
+	}
+
 	internal SqlBuildingBuffer CloseParenthesisAfterLine()
 	{
 		_statement.AppendLine();
@@ -161,6 +167,12 @@ public sealed class SqlBuildingBuffer()
 		_statement.Append(" ");
 		_statement.Append(value);
 		_statement.Append(" ");
+		return this;
+	}
+
+	internal SqlBuildingBuffer OpenParenthesis()
+	{
+		_statement.Append("(");
 		return this;
 	}
 
