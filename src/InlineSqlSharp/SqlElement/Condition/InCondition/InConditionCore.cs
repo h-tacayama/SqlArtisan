@@ -9,7 +9,7 @@ internal sealed class InConditionCore(
 	private readonly IExpr _leftSide = leftSide;
 	private readonly IExpr[] _expressions = expressions;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) => buffer
+	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_leftSide)
 		.AppendSpaceIf(_isNot, Keywords.NOT)
 		.AppendLine(Keywords.IN)

@@ -21,7 +21,7 @@ public class SelectBuilder :
 	{
 	}
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) =>
+	public void FormatSql(SqlBuildingBuffer buffer) =>
 		FormatAsSubquery(ref buffer);
 
 	public SqlCommand Build() => BuildCore();

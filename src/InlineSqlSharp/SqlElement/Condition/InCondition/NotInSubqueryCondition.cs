@@ -6,6 +6,6 @@ public sealed class NotInSubqueryCondition(
 {
 	private readonly InSubqueryConditionCore _core = new(true, leftSide, subquey);
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		_core.FormatSql(ref buffer);
+	public void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }

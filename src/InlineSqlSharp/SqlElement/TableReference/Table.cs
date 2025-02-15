@@ -17,7 +17,7 @@ public abstract class Table : ITableReference
 		_alias = alias;
 	}
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) => buffer
+	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_tableName)
 		.Append(_alias);
 }

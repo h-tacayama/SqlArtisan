@@ -36,9 +36,9 @@ public sealed class SortOrder : IExprOrAliasOrSortOrder
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public SortOrder NULLS_LAST => SetNullOrdering(NullOrdering.NullsLast);
 
-	public void FormatSql(ref SqlBuildingBuffer buffer)
+	public void FormatSql(SqlBuildingBuffer buffer)
 	{
-		_exprOrAlias.FormatSql(ref buffer);
+		_exprOrAlias.FormatSql(buffer);
 
 		switch (_direction)
 		{

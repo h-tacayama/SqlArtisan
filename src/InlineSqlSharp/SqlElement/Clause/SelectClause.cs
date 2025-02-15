@@ -7,7 +7,7 @@ public sealed class SelectClause(
 	private readonly bool _distinct = distinct;
 	private readonly IExprOrAlias[] _selectList = selectList;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) => buffer
+	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendLine(Keywords.SELECT)
 		.AppendLineIf(_distinct, Keywords.DISTINCT)
 		.AppendCommaSeparated(_selectList);

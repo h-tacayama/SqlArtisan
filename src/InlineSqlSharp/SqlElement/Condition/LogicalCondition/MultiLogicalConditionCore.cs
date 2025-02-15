@@ -7,7 +7,7 @@ internal sealed class MultiLogicalConditionCore(
 	private readonly string _operator = @operator;
 	private readonly ICondition[] _conditions = conditions;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer)
+	public void FormatSql(SqlBuildingBuffer buffer)
 	{
 		bool added = false;
 
@@ -23,7 +23,7 @@ internal sealed class MultiLogicalConditionCore(
 				buffer.EncloseInLines(_operator);
 			}
 
-			buffer.EncloseInLines(_conditions[i]);
+			buffer.EncloseInParentheses(_conditions[i]);
 			added = true;
 		}
 	}

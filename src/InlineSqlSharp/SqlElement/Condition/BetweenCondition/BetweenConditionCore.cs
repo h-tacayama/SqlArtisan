@@ -11,7 +11,7 @@ internal sealed class BetweenConditionCore(
 	private readonly IExpr _rightSide1 = rightSide1;
 	private readonly IExpr _rightSide2 = rightSide2;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) => buffer
+	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_leftSide)
 		.AppendSpaceIf(_isNot, Keywords.NOT)
 		.AppendSpace(Keywords.BETWEEN)

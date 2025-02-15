@@ -2,14 +2,14 @@
 
 namespace InlineSqlSharp;
 
-public struct SqlBuildingBuffer()
+public sealed class SqlBuildingBuffer()
 {
 	private readonly StringBuilder _statement = new();
 	private readonly List<BindParameter> _parameters = [];
 
 	internal SqlBuildingBuffer Append(ISqlElement element)
 	{
-		element.FormatSql(ref this);
+		element.FormatSql(this);
 		return this;
 	}
 
@@ -26,13 +26,13 @@ public struct SqlBuildingBuffer()
 			return this;
 		}
 
-		elements[0].FormatSql(ref this);
+		elements[0].FormatSql(this);
 
 		for (int i = 1; i < elements.Length; i++)
 		{
 			_statement.AppendLine();
 			_statement.Append(", ");
-			elements[i].FormatSql(ref this);
+			elements[i].FormatSql(this);
 		}
 
 		return this;
@@ -40,7 +40,7 @@ public struct SqlBuildingBuffer()
 
 	internal SqlBuildingBuffer AppendLine(ISqlElement element)
 	{
-		element.FormatSql(ref this);
+		element.FormatSql(this);
 		_statement.AppendLine();
 		return this;
 	}
@@ -55,7 +55,7 @@ public struct SqlBuildingBuffer()
 	{
 		if (condition)
 		{
-			element.FormatSql(ref this);
+			element.FormatSql(this);
 			_statement.AppendLine();
 		}
 
@@ -79,12 +79,12 @@ public struct SqlBuildingBuffer()
 			return this;
 		}
 
-		elements[0].FormatSql(ref this);
+		elements[0].FormatSql(this);
 
 		for (int i = 1; i < elements.Length; i++)
 		{
 			_statement.AppendLine();
-			elements[i].FormatSql(ref this);
+			elements[i].FormatSql(this);
 		}
 
 		return this;
@@ -92,7 +92,7 @@ public struct SqlBuildingBuffer()
 
 	internal SqlBuildingBuffer AppendSpace(ISqlElement element)
 	{
-		element.FormatSql(ref this);
+		element.FormatSql(this);
 		_statement.Append(" ");
 		return this;
 	}
@@ -119,7 +119,7 @@ public struct SqlBuildingBuffer()
 	{
 		_statement.Append(functionName);
 		_statement.Append("(");
-		arg.FormatSql(ref this);
+		arg.FormatSql(this);
 		_statement.Append(")");
 		return this;
 	}
@@ -140,11 +140,12 @@ public struct SqlBuildingBuffer()
 		return this;
 	}
 
-	internal SqlBuildingBuffer EncloseInLines(ISqlElement element)
+	internal SqlBuildingBuffer EncloseInParentheses(ISqlElement element)
 	{
-		OpenParenthesisBeforeLine();
-		element.FormatSql(ref this);
-		CloseParenthesisAfterLine();
+		_statement.AppendLine("(");
+		element.FormatSql(this);
+		_statement.AppendLine();
+		_statement.Append(")");
 		return this;
 	}
 
@@ -165,8 +166,7 @@ public struct SqlBuildingBuffer()
 
 	internal SqlBuildingBuffer OpenParenthesisBeforeLine()
 	{
-		_statement.Append("(");
-		_statement.AppendLine();
+		_statement.AppendLine("(");
 		return this;
 	}
 
@@ -197,5 +197,5 @@ public struct SqlBuildingBuffer()
 
 	internal SqlCommand ToSqlCommand() =>
 		// Return a clone of _parameters to avoid keeping references
-		new(_statement.ToString(), _parameters.ToList());
+		new(_statement.ToString(), [.. _parameters]);
 }

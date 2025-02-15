@@ -23,10 +23,10 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public SortOrder NULLS_LAST => new(this, NullOrdering.NullsLast);
 
-	public abstract void FormatSql(ref SqlBuildingBuffer buffer);
+	public abstract void FormatSql(SqlBuildingBuffer buffer);
 
 	public virtual void FormatAsSelect(ref SqlBuildingBuffer buffer) =>
-		FormatSql(ref buffer);
+		FormatSql(buffer);
 
 	public override bool Equals(object? obj) => base.Equals(obj);
 

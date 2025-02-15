@@ -6,13 +6,13 @@ public sealed class DynamicCondition(bool addIf, ICondition condition) : ICondit
 
 	public bool AddIf { get; } = addIf;
 
-	public void FormatSql(ref SqlBuildingBuffer buffer)
+	public void FormatSql(SqlBuildingBuffer buffer)
 	{
 		if (!AddIf)
 		{
 			return;
 		}
 
-		_condition.FormatSql(ref buffer);
+		_condition.FormatSql(buffer);
 	}
 }

@@ -11,6 +11,6 @@ public sealed class BetweenCondition(
 		rightSide1,
 		rightSide2);
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		_core.FormatSql(ref buffer);
+	public void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }

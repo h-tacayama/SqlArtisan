@@ -21,7 +21,7 @@ public sealed class ExprAlias(IExpr expr, string alias) :
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public SortOrder NULLS_LAST => new(this, NullOrdering.NullsLast);
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) =>
+	public void FormatSql(SqlBuildingBuffer buffer) =>
 		buffer.Append(_alias);
 
 	public void FormatAsSelect(ref SqlBuildingBuffer buffer) => buffer

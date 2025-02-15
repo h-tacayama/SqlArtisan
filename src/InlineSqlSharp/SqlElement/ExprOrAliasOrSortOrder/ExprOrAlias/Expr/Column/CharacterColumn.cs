@@ -6,6 +6,6 @@ public sealed class CharacterColumn(string tableAlias, string columnName)
 {
 	private readonly ColumnCore _core = new(tableAlias, columnName);
 
-	public override void FormatSql(ref SqlBuildingBuffer buffer) =>
-		_core.FormatSql(ref buffer);
+	public override void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }

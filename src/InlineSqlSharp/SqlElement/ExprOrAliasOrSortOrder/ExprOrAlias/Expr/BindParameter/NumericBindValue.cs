@@ -17,6 +17,6 @@ public sealed class NumericBindValue<TValue>(
 
 	public object Value { get; } = value;
 
-	public override void FormatSql(ref SqlBuildingBuffer buffer) =>
+	public override void FormatSql(SqlBuildingBuffer buffer) =>
 		buffer.AddParameter(this);
 }

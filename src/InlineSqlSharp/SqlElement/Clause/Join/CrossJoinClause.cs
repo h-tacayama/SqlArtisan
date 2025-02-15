@@ -4,6 +4,6 @@ public sealed class CrossJoinClause(ITableReference table) : ISqlElement
 {
 	private readonly JoinClauseCore _core = new(Keywords.CROSS, table);
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		_core.FormatSql(ref buffer);
+	public void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }

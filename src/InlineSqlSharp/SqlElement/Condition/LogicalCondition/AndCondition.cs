@@ -6,6 +6,6 @@ public sealed class AndCondition(ICondition[] conditions) : ICondition
 		Keywords.AND,
 		conditions);
 
-	public void FormatSql(ref SqlBuildingBuffer buffer) =>
-		_core.FormatSql(ref buffer);
+	public void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }
