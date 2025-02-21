@@ -7,5 +7,5 @@ public sealed class GroupByClause(IExpr[] groupingExpressions) : ISqlElement
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(Keywords.GROUP)
 		.AppendLine(Keywords.BY)
-		.AppendCommaSeparated(_groupingExpressions);
+		.AppendCsvLines(_groupingExpressions);
 }

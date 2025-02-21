@@ -8,6 +8,20 @@ public class FunctionTest
 	private test_table _t = new("t");
 
 	[Fact]
+	public void SELECT_CONCAT()
+	{
+		SqlCommand sql =
+			SELECT(CONCAT(_t.name, L("a"), L("b")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("CONCAT(t.name, 'a', 'b')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_COUNT()
 	{
 		SqlCommand sql =

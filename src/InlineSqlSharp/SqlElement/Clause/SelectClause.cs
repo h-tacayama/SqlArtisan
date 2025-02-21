@@ -13,5 +13,5 @@ public sealed class SelectClause(
 		.AppendLine(Keywords.SELECT)
 		.AppendLineIf(_hints.IsSome, _hints)
 		.AppendLineIf(_allOrDistinct.IsDistinct, _allOrDistinct)
-		.AppendCommaSeparated(_selectList);
+		.AppendCsvLines(_selectList);
 }

@@ -8,5 +8,5 @@ public sealed class OrderByClause(
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(Keywords.ORDER)
 		.AppendLine(Keywords.BY)
-		.AppendCommaSeparated(_sortExpressions);
+		.AppendCsvLines(_sortExpressions);
 }

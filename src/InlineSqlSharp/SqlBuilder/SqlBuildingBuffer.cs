@@ -19,7 +19,25 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
-	internal SqlBuildingBuffer AppendCommaSeparated(ISqlElement[] elements)
+	internal SqlBuildingBuffer AppendCsv(ISqlElement[] elements)
+	{
+		if (elements.Length == 0)
+		{
+			return this;
+		}
+
+		elements[0].FormatSql(this);
+
+		for (int i = 1; i < elements.Length; i++)
+		{
+			_statement.Append(", ");
+			elements[i].FormatSql(this);
+		}
+
+		return this;
+	}
+
+	internal SqlBuildingBuffer AppendCsvLines(ISqlElement[] elements)
 	{
 		if (elements.Length == 0)
 		{

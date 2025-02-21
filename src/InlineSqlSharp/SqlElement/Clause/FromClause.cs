@@ -6,5 +6,5 @@ public sealed class FromClause(ITableReference[] tables) : ISqlElement
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendLine(Keywords.FROM)
-		.AppendCommaSeparated(_tables);
+		.AppendCsvLines(_tables);
 }

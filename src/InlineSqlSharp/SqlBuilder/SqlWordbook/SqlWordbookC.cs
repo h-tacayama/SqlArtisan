@@ -2,6 +2,11 @@
 
 public static partial class SqlWordbook
 {
+	public static ConcatFunction CONCAT(
+		CharacterExpr primary,
+		CharacterExpr secondary,
+		params CharacterExpr[] others) => new(primary, secondary, others);
+
 	public static CountFunction COUNT(IExpr expr) => new(AllOrDistinct.All, expr);
 
 	public static CountFunction COUNT(AllOrDistinct allOrDistinct, IExpr expr) =>

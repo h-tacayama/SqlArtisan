@@ -14,6 +14,6 @@ internal sealed class InConditionCore(
 		.AppendSpaceIf(_isNot, Keywords.NOT)
 		.AppendLine(Keywords.IN)
 		.OpenParenthesisBeforeLine()
-		.AppendCommaSeparated(_expressions)
+		.AppendCsvLines(_expressions)
 		.CloseParenthesisAfterLine();
 }
