@@ -1,14 +1,17 @@
 ﻿namespace InlineSqlSharp;
 
 public sealed class SelectClause(
-	bool distinct,
+	Hints hints,
+	AllOrDistinct allOrDistinct,
 	IExprOrAlias[] selectList) : ISqlElement
 {
-	private readonly bool _distinct = distinct;
+	private readonly Hints _hints = hints;
+	private readonly AllOrDistinct _allOrDistinct = allOrDistinct;
 	private readonly IExprOrAlias[] _selectList = selectList;
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendLine(Keywords.SELECT)
-		.AppendLineIf(_distinct, Keywords.DISTINCT)
+		.AppendLineIf(_hints.IsSome, _hints)
+		.AppendLineIf(_allOrDistinct.IsDistinct, _allOrDistinct)
 		.AppendCommaSeparated(_selectList);
 }

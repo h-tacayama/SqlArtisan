@@ -33,7 +33,7 @@ public class SelectTest
 	public void SELECT_DISTINCT_FROM()
 	{
 		SqlCommand sql =
-			SELECT_DISTINCT(_t.code)
+			SELECT(DISTINCT, _t.code)
 			.FROM(_t)
 			.Build();
 
@@ -104,5 +104,41 @@ public class SelectTest
 		Assert.Equal((float)3.3, sql.Parameters[4].Value);
 		Assert.Equal((double)4.4, sql.Parameters[5].Value);
 		Assert.Equal((decimal)5.5, sql.Parameters[6].Value);
+	}
+
+	[Fact]
+	public void SELECT_Hints()
+	{
+		SqlCommand sql =
+			SELECT(
+				HINTS("/*+ ANY HINT */"),
+				_t.code)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("/*+ ANY HINT */");
+		expected.Append("t.code");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_Hints_DISTINCT()
+	{
+		SqlCommand sql =
+			SELECT(
+				HINTS("/*+ ANY HINT */"),
+				DISTINCT,
+				_t.code)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("/*+ ANY HINT */");
+		expected.AppendLine("DISTINCT");
+		expected.Append("t.code");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
 	}
 }

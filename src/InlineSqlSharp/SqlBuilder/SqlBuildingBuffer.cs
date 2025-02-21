@@ -38,6 +38,16 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer AppendIf(bool condition, string? value)
+	{
+		if (condition)
+		{
+			_statement.Append(value);
+		}
+
+		return this;
+	}
+
 	internal SqlBuildingBuffer AppendLine(ISqlElement element)
 	{
 		element.FormatSql(this);

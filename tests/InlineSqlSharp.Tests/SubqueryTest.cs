@@ -51,6 +51,24 @@ public class SubqueryTest
 	}
 
 	[Fact]
+	public void Subquery_SELECT_DISTINCT_FROM()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.code IN");
+		expected.AppendLine("(");
+		expected.AppendLine("SELECT");
+		expected.AppendLine("DISTINCT");
+		expected.AppendLine("s.code");
+		expected.AppendLine("FROM");
+		expected.AppendLine("test_table s");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.code.IN(SELECT(DISTINCT, _s.code).FROM(_s)),
+			expected.ToString());
+	}
+
+	[Fact]
 	public void Subquery_SELECT_FROM_WHERE()
 	{
 		StringBuilder expected = new();
@@ -87,6 +105,39 @@ public class SubqueryTest
 
 		_assert.Equal(
 			_t.code.IN(SELECT(_s.code).FROM(_s).INNER_JOIN(_r).ON(_s.code == _r.code)),
+			expected.ToString());
+	}
+
+	[Fact]
+	public void Subquery_SELECT_Hints()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.code IN");
+		expected.AppendLine("(");
+		expected.AppendLine("SELECT");
+		expected.AppendLine("/*+ ANY HINT */");
+		expected.AppendLine("s.code");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.code.IN(SELECT(HINTS("/*+ ANY HINT */"), _s.code)),
+			expected.ToString());
+	}
+
+	[Fact]
+	public void Subquery_SELECT_Hints_DISTINCT()
+	{
+		StringBuilder expected = new();
+		expected.AppendLine("t.code IN");
+		expected.AppendLine("(");
+		expected.AppendLine("SELECT");
+		expected.AppendLine("/*+ ANY HINT */");
+		expected.AppendLine("DISTINCT");
+		expected.AppendLine("s.code");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.code.IN(SELECT(HINTS("/*+ ANY HINT */"), DISTINCT, _s.code)),
 			expected.ToString());
 	}
 }

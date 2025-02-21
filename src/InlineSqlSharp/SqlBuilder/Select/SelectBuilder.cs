@@ -169,13 +169,32 @@ public class SelectBuilder :
 
 	public ISelectBuilderSelect SELECT(params IExprOrAlias[] selectList)
 	{
-		AddElement(new SelectClause(false, selectList));
+		AddElement(new SelectClause(Hints.None, AllOrDistinct.All, selectList));
 		return this;
 	}
 
-	public ISelectBuilderSelect SELECT_DISTINCT(params IExprOrAlias[] selectList)
+	public ISelectBuilderSelect SELECT(
+		AllOrDistinct allOrDistinct,
+		params IExprOrAlias[] selectList)
 	{
-		AddElement(new SelectClause(true, selectList));
+		AddElement(new SelectClause(Hints.None, allOrDistinct, selectList));
+		return this;
+	}
+
+	public ISelectBuilderSelect SELECT(
+		Hints hints,
+		params IExprOrAlias[] selectList)
+	{
+		AddElement(new SelectClause(hints, AllOrDistinct.All, selectList));
+		return this;
+	}
+
+	public ISelectBuilderSelect SELECT(
+		Hints hints,
+		AllOrDistinct allOrDistinct,
+		params IExprOrAlias[] selectList)
+	{
+		AddElement(new SelectClause(hints, allOrDistinct, selectList));
 		return this;
 	}
 
