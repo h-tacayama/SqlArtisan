@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Dapper;
 
 namespace InlineSqlSharp.Benchmark;
 
@@ -15,7 +14,7 @@ public static class DapperSqlBuilderExample
 		template.Append("/**groupby**/");
 		template.Append("/**orderby**/");
 
-		var builder = new SqlBuilder()
+		var builder = new Dapper.SqlBuilder()
 			.InnerJoin("Books b ON b.AuthorId = a.Id")
 			.Where("b.Rating > @p1", new { p1 = 2.5 })
 			.GroupBy("a.Id")
