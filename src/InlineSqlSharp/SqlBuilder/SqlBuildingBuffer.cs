@@ -114,6 +114,17 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer AppendSpaceIf(bool condition, ISqlElement element)
+	{
+		if (condition)
+		{
+			element.FormatSql(this);
+			_statement.Append(" ");
+		}
+
+		return this;
+	}
+
 	internal SqlBuildingBuffer AppendSpaceIf(bool condition, string? value = null)
 	{
 		if (condition)

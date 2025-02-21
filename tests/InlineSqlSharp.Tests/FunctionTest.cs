@@ -25,7 +25,7 @@ public class FunctionTest
 	public void SELECT_COUNT_DISTINCT()
 	{
 		SqlCommand sql =
-			SELECT(COUNT_DISTINCT(_t.code))
+			SELECT(COUNT(DISTINCT, _t.code))
 			.Build();
 
 		StringBuilder expected = new();
