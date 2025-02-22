@@ -5,8 +5,8 @@ namespace InlineSqlSharp.Tests;
 
 public class FullJoinTest
 {
-	private test_table _t = new("t");
-	private test_table _s = new("s");
+	private readonly test_table _t = new("t");
+	private readonly test_table _s = new("s");
 
 	[Fact]
 	public void FULL_JOIN_ON()

@@ -5,7 +5,7 @@ namespace InlineSqlSharp.Tests;
 
 public class OrderByTest
 {
-	private test_table _t = new("t");
+	private readonly test_table _t = new("t");
 
 	[Fact]
 	public void ORDER_BY_Character()

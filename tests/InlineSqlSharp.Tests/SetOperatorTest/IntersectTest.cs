@@ -5,7 +5,7 @@ namespace InlineSqlSharp.Tests;
 
 public class IntersectTest
 {
-	private test_table _t = new("t");
+	private readonly test_table _t = new("t");
 
 	[Fact]
 	public void SELECT_INTERSECT()

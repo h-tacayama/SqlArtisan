@@ -5,8 +5,8 @@ namespace InlineSqlSharp.Tests;
 
 public class LeftJoinTest
 {
-	private test_table _t = new("t");
-	private test_table _s = new("s");
+	private readonly test_table _t = new("t");
+	private readonly test_table _s = new("s");
 
 	[Fact]
 	public void LEFT_JOIN_ON()
