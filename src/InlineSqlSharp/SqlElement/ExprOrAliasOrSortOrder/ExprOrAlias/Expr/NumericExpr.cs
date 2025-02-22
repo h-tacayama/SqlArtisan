@@ -62,6 +62,32 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		NumericExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
 
+
+	public static NumericExpr operator +(
+		NumericExpr @this,
+		NumericExpr rightSide) =>
+		new AdditionOperator(@this, rightSide);
+
+	public static NumericExpr operator -(
+		NumericExpr @this,
+		NumericExpr rightSide) =>
+		new SubtractionOperator(@this, rightSide);
+
+	public static NumericExpr operator *(
+		NumericExpr @this,
+		NumericExpr rightSide) =>
+		new MultiplicationOperator(@this, rightSide);
+
+	public static NumericExpr operator /(
+		NumericExpr @this,
+		NumericExpr rightSide) =>
+		new DivisionOperator(@this, rightSide);
+
+	public static NumericExpr operator %(
+		NumericExpr @this,
+		NumericExpr rightSide) =>
+		new ModulusOperator(@this, rightSide);
+
 	public ExprAlias AS(string alias) => new(this, alias);
 
 	public BetweenCondition BETWEEN(

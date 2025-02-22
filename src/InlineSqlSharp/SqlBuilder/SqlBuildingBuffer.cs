@@ -19,6 +19,21 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+
+	internal SqlBuildingBuffer AppendComma(ISqlElement element)
+	{
+		element.FormatSql(this);
+		_statement.Append(", ");
+		return this;
+	}
+
+	internal SqlBuildingBuffer AppendComma(string? value = null)
+	{
+		_statement.Append(value);
+		_statement.Append(", ");
+		return this;
+	}
+
 	internal SqlBuildingBuffer AppendCsv(ISqlElement[] elements)
 	{
 		if (elements.Length == 0)
@@ -172,8 +187,13 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
-	internal SqlBuildingBuffer CloseParenthesis()
+	internal SqlBuildingBuffer CloseParenthesis(ISqlElement? element = null)
 	{
+		if (element != null)
+		{
+			element.FormatSql(this);
+		}
+
 		_statement.Append(")");
 		return this;
 	}
@@ -209,9 +229,15 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
-	internal SqlBuildingBuffer OpenParenthesis()
+	internal SqlBuildingBuffer OpenParenthesis(ISqlElement? element = null)
 	{
 		_statement.Append("(");
+
+		if (element != null)
+		{
+			element.FormatSql(this);
+		}
+
 		return this;
 	}
 

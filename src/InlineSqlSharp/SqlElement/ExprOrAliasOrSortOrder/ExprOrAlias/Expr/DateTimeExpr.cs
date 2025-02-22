@@ -61,6 +61,21 @@ public abstract class DateTimeExpr : IAliasable, IDataExpr, ISortable
 		DateTimeExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
 
+	public static DateTimeExpr operator +(
+		DateTimeExpr @this,
+		NumericExpr rightSide) =>
+		new DateOffsetAdditionOperator(@this, rightSide);
+
+	public static DateTimeExpr operator -(
+		DateTimeExpr @this,
+		NumericExpr rightSide) =>
+		new DateOffsetSubtractionOperator(@this, rightSide);
+
+	public static NumericExpr operator -(
+		DateTimeExpr @this,
+		DateTimeExpr rightSide) =>
+		new DateDiffSubtractionOperator(@this, rightSide);
+
 	public ExprAlias AS(string alias) => new(this, alias);
 
 	public BetweenCondition BETWEEN(
