@@ -221,6 +221,14 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer EncloseInSingleQuotes(string value, bool isEscaped)
+	{
+		_statement.Append("'");
+		_statement.Append(isEscaped ? value : value.Replace("'", "''"));
+		_statement.Append("'");
+		return this;
+	}
+
 	internal SqlBuildingBuffer EncloseInSpaces(string value)
 	{
 		_statement.Append(" ");
