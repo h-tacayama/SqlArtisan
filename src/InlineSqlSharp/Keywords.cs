@@ -47,6 +47,7 @@ internal static class Keywords
 	internal const string OVER = "OVER";
 	internal const string PARTITION = "PARTITION";
 	internal const string RANK = "RANK";
+	internal const string REGEXP_LIKE = "REGEXP_LIKE";
 	internal const string RETURNING = "RETURNING";
 	internal const string RIGHT = "RIGHT";
 	internal const string SELECT = "SELECT";

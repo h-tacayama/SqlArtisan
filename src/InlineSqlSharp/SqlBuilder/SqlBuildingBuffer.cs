@@ -255,6 +255,17 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer PrependCommmaIf(bool condition, string value)
+	{
+		if (condition)
+		{
+			_statement.Append(", ");
+			_statement.Append(value);
+		}
+
+		return this;
+	}
+
 	internal SqlBuildingBuffer PrependLine(string value)
 	{
 		_statement.AppendLine();
