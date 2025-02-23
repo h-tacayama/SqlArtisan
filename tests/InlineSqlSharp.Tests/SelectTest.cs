@@ -52,7 +52,8 @@ public class SelectTest
 	{
 		SqlCommand sql =
 			SELECT(
-				L("abc"),
+				L("O'Reilly"),
+				L("O''Reilly", true),
 				L((int)1),
 				L((long)2),
 				L((float)3.3),
@@ -62,7 +63,8 @@ public class SelectTest
 
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
-		expected.AppendLine("'abc'");
+		expected.AppendLine("'O''Reilly'");
+		expected.AppendLine(", 'O''Reilly'");
 		expected.AppendLine(", 1");
 		expected.AppendLine(", 2");
 		expected.AppendLine(", 3.3");
