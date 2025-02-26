@@ -79,14 +79,14 @@ public class CaseTest
 		SqlCommand sql =
 			SELECT(
 				CASE(
-					WHEN(_t.code == L(1)).THEN(_t.created_at),
+					WHEN(_t.code == L(1)).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
 		expected.AppendLine("CASE");
-		expected.AppendLine("WHEN (t.code = 1) THEN t.created_at");
+		expected.AppendLine("WHEN (t.code = 1) THEN TO_DATE('2001/02/03\', 'YYYY/MM/DD')");
 		expected.AppendLine("ELSE t.created_at");
 		expected.Append("END");
 
@@ -99,16 +99,16 @@ public class CaseTest
 		SqlCommand sql =
 			SELECT(
 				CASE(
-					WHEN(_t.code == L(1)).THEN(_t.created_at),
-					WHEN(_t.code == L(2)).THEN(_t.created_at),
+					WHEN(_t.code == L(1)).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
+					WHEN(_t.code == L(2)).THEN(TO_DATE("2004/05/06", "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
 		expected.AppendLine("CASE");
-		expected.AppendLine("WHEN (t.code = 1) THEN t.created_at");
-		expected.AppendLine("WHEN (t.code = 2) THEN t.created_at");
+		expected.AppendLine("WHEN (t.code = 1) THEN TO_DATE('2001/02/03', 'YYYY/MM/DD')");
+		expected.AppendLine("WHEN (t.code = 2) THEN TO_DATE('2004/05/06', 'YYYY/MM/DD')");
 		expected.AppendLine("ELSE t.created_at");
 		expected.Append("END");
 
@@ -121,18 +121,18 @@ public class CaseTest
 		SqlCommand sql =
 			SELECT(
 				CASE(
-					WHEN(_t.code == L(1)).THEN(_t.created_at),
-					WHEN(_t.code == L(2)).THEN(_t.created_at),
-					WHEN(_t.code == L(3)).THEN(_t.created_at),
+					WHEN(_t.code == L(1)).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
+					WHEN(_t.code == L(2)).THEN(TO_DATE("2004/05/06", "YYYY/MM/DD")),
+					WHEN(_t.code == L(3)).THEN(TO_DATE("2007/08/09", "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
 		expected.AppendLine("CASE");
-		expected.AppendLine("WHEN (t.code = 1) THEN t.created_at");
-		expected.AppendLine("WHEN (t.code = 2) THEN t.created_at");
-		expected.AppendLine("WHEN (t.code = 3) THEN t.created_at");
+		expected.AppendLine("WHEN (t.code = 1) THEN TO_DATE('2001/02/03', 'YYYY/MM/DD')");
+		expected.AppendLine("WHEN (t.code = 2) THEN TO_DATE('2004/05/06', 'YYYY/MM/DD')");
+		expected.AppendLine("WHEN (t.code = 3) THEN TO_DATE('2007/08/09', 'YYYY/MM/DD')");
 		expected.AppendLine("ELSE t.created_at");
 		expected.Append("END");
 
@@ -284,7 +284,7 @@ public class CaseTest
 			SELECT(
 				CASE(
 					_t.name,
-					WHEN(L("a")).THEN(_t.created_at),
+					WHEN(L("a")).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
@@ -292,7 +292,7 @@ public class CaseTest
 		expected.AppendLine("SELECT");
 		expected.AppendLine("CASE");
 		expected.AppendLine("t.name");
-		expected.AppendLine("WHEN 'a' THEN t.created_at");
+		expected.AppendLine("WHEN 'a' THEN TO_DATE('2001/02/03', 'YYYY/MM/DD')");
 		expected.AppendLine("ELSE t.created_at");
 		expected.Append("END");
 
@@ -306,8 +306,8 @@ public class CaseTest
 			SELECT(
 				CASE(
 					_t.name,
-					WHEN(L("a")).THEN(_t.created_at),
-					WHEN(L("b")).THEN(_t.created_at),
+					WHEN(L("a")).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
+					WHEN(L("b")).THEN(TO_DATE("2004/05/06", "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
@@ -315,8 +315,8 @@ public class CaseTest
 		expected.AppendLine("SELECT");
 		expected.AppendLine("CASE");
 		expected.AppendLine("t.name");
-		expected.AppendLine("WHEN 'a' THEN t.created_at");
-		expected.AppendLine("WHEN 'b' THEN t.created_at");
+		expected.AppendLine("WHEN 'a' THEN TO_DATE('2001/02/03', 'YYYY/MM/DD')");
+		expected.AppendLine("WHEN 'b' THEN TO_DATE('2004/05/06', 'YYYY/MM/DD')");
 		expected.AppendLine("ELSE t.created_at");
 		expected.Append("END");
 
@@ -330,9 +330,9 @@ public class CaseTest
 			SELECT(
 				CASE(
 					_t.name,
-					WHEN(L("a")).THEN(_t.created_at),
-					WHEN(L("b")).THEN(_t.created_at),
-					WHEN(L("c")).THEN(_t.created_at),
+					WHEN(L("a")).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
+					WHEN(L("b")).THEN(TO_DATE("2004/05/06", "YYYY/MM/DD")),
+					WHEN(L("c")).THEN(TO_DATE("2007/08/09", "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
@@ -340,9 +340,9 @@ public class CaseTest
 		expected.AppendLine("SELECT");
 		expected.AppendLine("CASE");
 		expected.AppendLine("t.name");
-		expected.AppendLine("WHEN 'a' THEN t.created_at");
-		expected.AppendLine("WHEN 'b' THEN t.created_at");
-		expected.AppendLine("WHEN 'c' THEN t.created_at");
+		expected.AppendLine("WHEN 'a' THEN TO_DATE('2001/02/03', 'YYYY/MM/DD')");
+		expected.AppendLine("WHEN 'b' THEN TO_DATE('2004/05/06', 'YYYY/MM/DD')");
+		expected.AppendLine("WHEN 'c' THEN TO_DATE('2007/08/09', 'YYYY/MM/DD')");
 		expected.AppendLine("ELSE t.created_at");
 		expected.Append("END");
 

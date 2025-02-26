@@ -48,4 +48,18 @@ public class FunctionTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
+
+	[Fact]
+	public void SELECT_TO_DATE()
+	{
+		SqlCommand sql =
+			SELECT(TO_DATE("2001/02/03", "YYYY/MM/DD"))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("TO_DATE('2001/02/03', 'YYYY/MM/DD')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
 }

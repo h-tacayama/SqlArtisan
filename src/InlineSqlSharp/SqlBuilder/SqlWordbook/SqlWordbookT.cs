@@ -10,4 +10,7 @@ public static partial class SqlWordbook
 
 	public static CaseThenExpr<NumericExpr> THEN(NumericExpr thenExpr) =>
 		new(thenExpr);
+
+	public static ToDateFunction TO_DATE(string text, string format) =>
+		new(text, format);
 }
