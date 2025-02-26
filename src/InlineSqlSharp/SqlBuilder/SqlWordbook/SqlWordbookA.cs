@@ -8,4 +8,9 @@ public static partial class SqlWordbook
 
 	public static AndCondition AND(params ICondition[] conditions) =>
 		new(conditions);
+
+	public static AvgFunction AVG(IExpr expr) => new(AllOrDistinct.All, expr);
+
+	public static AvgFunction AVG(AllOrDistinct allOrDistinct, IExpr expr) =>
+		new(allOrDistinct, expr);
 }
