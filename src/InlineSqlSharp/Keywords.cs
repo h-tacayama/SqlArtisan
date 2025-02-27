@@ -30,6 +30,7 @@ internal static class Keywords
 	internal const string IN = "IN";
 	internal const string INNER = "INNER";
 	internal const string INSERT = "INSERT";
+	internal const string INSTR = "INSTR";
 	internal const string INTERSECT = "INTERSECT";
 	internal const string INTO = "INTO";
 	internal const string IS = "IS";
