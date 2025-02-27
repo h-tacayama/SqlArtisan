@@ -36,6 +36,8 @@ internal static class Keywords
 	internal const string JOIN = "JOIN";
 	internal const string LEFT = "LEFT";
 	internal const string LIKE = "LIKE";
+	internal const string MAX = "MAX";
+	internal const string MIN = "MIN";
 	internal const string MINUS = "MINUS";
 	internal const string NEXTVAL = "NEXTVAL";
 	internal const string NOT = "NOT";
