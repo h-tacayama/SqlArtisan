@@ -130,6 +130,20 @@ public class FunctionTest
 	}
 
 	[Fact]
+	public void SELECT_LENGTH()
+	{
+		SqlCommand sql =
+			SELECT(LENGTH(_t.name))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LENGTH(t.name)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_TO_DATE()
 	{
 		SqlCommand sql =
