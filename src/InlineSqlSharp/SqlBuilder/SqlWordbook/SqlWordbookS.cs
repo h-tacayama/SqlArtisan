@@ -20,4 +20,9 @@ public static partial class SqlWordbook
 		AllOrDistinct allOrAistinct,
 		params IExprOrAlias[] selectList) =>
 		new SelectBuilder(new SelectClause(hints, allOrAistinct, selectList));
+
+	public static SumFunction SUM(IExpr expr) => new(AllOrDistinct.All, expr);
+
+	public static SumFunction SUM(AllOrDistinct allOrDistinct, NumericExpr expr) =>
+		new(allOrDistinct, expr);
 }

@@ -55,6 +55,7 @@ internal static class Keywords
 	internal const string RIGHT = "RIGHT";
 	internal const string SELECT = "SELECT";
 	internal const string SET = "SET";
+	internal const string SUM = "SUM";
 	internal const string THEN = "THEN";
 	internal const string TO_DATE = "TO_DATE";
 	internal const string UNION = "UNION";
