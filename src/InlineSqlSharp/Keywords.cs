@@ -38,6 +38,7 @@ internal static class Keywords
 	internal const string LEFT = "LEFT";
 	internal const string LENGTH = "LENGTH";
 	internal const string LIKE = "LIKE";
+	internal const string LOWER = "LOWER";
 	internal const string MAX = "MAX";
 	internal const string MIN = "MIN";
 	internal const string MINUS = "MINUS";
@@ -62,6 +63,7 @@ internal static class Keywords
 	internal const string TO_DATE = "TO_DATE";
 	internal const string UNION = "UNION";
 	internal const string UPDATE = "UPDATE";
+	internal const string UPPER = "UPPER";
 	internal const string VALUES = "VALUES";
 	internal const string WHERE = "WHERE";
 	internal const string WHEN = "WHEN";

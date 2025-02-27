@@ -11,4 +11,6 @@ public static partial class SqlWordbook
 		where TValue : INumber<TValue> => new(value);
 
 	public static LengthFunction LENGTH(CharacterExpr source) => new(source);
+
+	public static LowerFunction LOWER(CharacterExpr source) => new(source);
 }

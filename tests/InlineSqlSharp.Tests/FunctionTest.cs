@@ -144,6 +144,20 @@ public class FunctionTest
 	}
 
 	[Fact]
+	public void SELECT_LOWER()
+	{
+		SqlCommand sql =
+			SELECT(LOWER(_t.name))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LOWER(t.name)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_TO_DATE()
 	{
 		SqlCommand sql =
@@ -265,6 +279,20 @@ public class FunctionTest
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
 		expected.Append("SUM(DISTINCT t.code)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_UPPER()
+	{
+		SqlCommand sql =
+			SELECT(UPPER(_t.name))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("UPPER(t.name)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
