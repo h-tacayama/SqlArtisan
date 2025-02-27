@@ -2,7 +2,7 @@
 
 public sealed class CharacterMinFunction(CharacterExpr expr) : CharacterExpr
 {
-	private readonly MinFunctionCore<CharacterExpr> _core = new(expr);
+	readonly UnaryFunctionCore _core = new(Keywords.MIN, expr);
 
 	public override void FormatSql(SqlBuildingBuffer buffer) =>
 		_core.FormatSql(buffer);

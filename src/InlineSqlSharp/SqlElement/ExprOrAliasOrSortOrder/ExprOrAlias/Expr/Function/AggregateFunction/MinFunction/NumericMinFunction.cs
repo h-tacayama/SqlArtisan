@@ -2,7 +2,7 @@
 
 public sealed class NumericMinFunction(NumericExpr expr) : NumericExpr
 {
-	private readonly MinFunctionCore<NumericExpr> _core = new(expr);
+	readonly UnaryFunctionCore _core = new(Keywords.MIN, expr);
 
 	public override void FormatSql(SqlBuildingBuffer buffer) =>
 		_core.FormatSql(buffer);
