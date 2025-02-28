@@ -13,4 +13,13 @@ public static partial class SqlWordbook
 	public static LengthFunction LENGTH(CharacterExpr source) => new(source);
 
 	public static LowerFunction LOWER(CharacterExpr source) => new(source);
+
+	public static LpadFunction LPAD(
+		CharacterExpr source,
+		NumericExpr length) => LpadFunction.Of(source, length);
+
+	public static LpadFunction LPAD(
+		CharacterExpr source,
+		NumericExpr length,
+		CharacterExpr padding) => LpadFunction.Of(source, length, padding);
 }

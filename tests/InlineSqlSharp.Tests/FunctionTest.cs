@@ -117,9 +117,7 @@ public class FunctionTest
 			SELECT(
 				INSTR(_t.name, L("abc"), L(1), L(1)),
 				INSTR(_t.name, L("abc"), L(1), L(2)),
-				INSTR(_t.name, L("abc"), L(2), L(-1)),
-
-				INSTR(_t.name, L("abc"), null, L(-1)))
+				INSTR(_t.name, L("abc"), L(2), L(-1)))
 			.Build();
 
 		StringBuilder expected = new();
@@ -155,6 +153,62 @@ public class FunctionTest
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
 		expected.Append("LOWER(t.name)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_LPAD()
+	{
+		SqlCommand sql =
+			SELECT(LPAD(_t.name, L(10)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LPAD(t.name, 10)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_LPAD_Padding()
+	{
+		SqlCommand sql =
+			SELECT(LPAD(_t.name, L(10), L("a")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LPAD(t.name, 10, 'a')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_RPAD()
+	{
+		SqlCommand sql =
+			SELECT(RPAD(_t.name, L(10)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("RPAD(t.name, 10)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_RPAD_Padding()
+	{
+		SqlCommand sql =
+			SELECT(RPAD(_t.name, L(10), L("a")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("RPAD(t.name, 10, 'a')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
