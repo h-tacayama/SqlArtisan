@@ -7,18 +7,18 @@ public sealed class InstrFunction : NumericExpr
 	private readonly NumericExpr? _position;
 	private readonly NumericExpr? _occurrence;
 
-	public static InstrFunction Of(
+	internal static InstrFunction Of(
 		CharacterExpr source,
 		CharacterExpr substring) =>
 		new(source, substring, null, null);
 
-	public static InstrFunction Of(
+	internal static InstrFunction Of(
 		CharacterExpr source,
 		CharacterExpr substring,
 		NumericExpr position) =>
 		new(source, substring, position, null);
 
-	public static InstrFunction Of(
+	internal static InstrFunction Of(
 		CharacterExpr source,
 		CharacterExpr substring,
 		NumericExpr position,
@@ -29,9 +29,9 @@ public sealed class InstrFunction : NumericExpr
 		.Append(Keywords.INSTR)
 		.OpenParenthesis()
 		.Append(_source)
-		.PrependCommma(_substring)
-		.PrependCommmaIfNotNull(_position)
-		.PrependCommmaIfNotNull(_occurrence)
+		.PrependComma(_substring)
+		.PrependCommaIfNotNull(_position)
+		.PrependCommaIfNotNull(_occurrence)
 		.CloseParenthesis();
 
 	private InstrFunction(

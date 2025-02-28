@@ -14,6 +14,6 @@ public sealed class RegexpLikeCondition(
 		.OpenParenthesis()
 		.AppendComma(_source)
 		.EncloseInSingleQuotes(_pattern, true)
-		.PrependCommmaIf(!_options.IsNone(), _options.ToSql())
+		.PrependCommaIf(!_options.IsNone(), _options.ToSql())
 		.CloseParenthesis();
 }
