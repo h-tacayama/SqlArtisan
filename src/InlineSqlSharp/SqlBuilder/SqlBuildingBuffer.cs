@@ -255,12 +255,41 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer PrependCommma(ISqlElement element)
+	{
+		_statement.Append(", ");
+		element.FormatSql(this);
+		return this;
+	}
+
+	internal SqlBuildingBuffer PrependCommmaIf(bool condition, ISqlElement element)
+	{
+		if (condition)
+		{
+			_statement.Append(", ");
+			element.FormatSql(this);
+		}
+
+		return this;
+	}
+
 	internal SqlBuildingBuffer PrependCommmaIf(bool condition, string value)
 	{
 		if (condition)
 		{
 			_statement.Append(", ");
 			_statement.Append(value);
+		}
+
+		return this;
+	}
+
+	internal SqlBuildingBuffer PrependCommmaIfNotNull(ISqlElement? element)
+	{
+		if (element is not null)
+		{
+			_statement.Append(", ");
+			element.FormatSql(this);
 		}
 
 		return this;
