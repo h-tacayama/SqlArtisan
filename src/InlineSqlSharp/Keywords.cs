@@ -40,6 +40,7 @@ internal static class Keywords
 	internal const string LIKE = "LIKE";
 	internal const string LOWER = "LOWER";
 	internal const string LPAD = "LPAD";
+	internal const string LTRIM = "LTRIM";
 	internal const string MAX = "MAX";
 	internal const string MIN = "MIN";
 	internal const string MINUS = "MINUS";
@@ -58,6 +59,7 @@ internal static class Keywords
 	internal const string RETURNING = "RETURNING";
 	internal const string RIGHT = "RIGHT";
 	internal const string RPAD = "RPAD";
+	internal const string RTRIM = "RTRIM";
 	internal const string SELECT = "SELECT";
 	internal const string SET = "SET";
 	internal const string SUM = "SUM";

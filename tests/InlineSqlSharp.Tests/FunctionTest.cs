@@ -186,6 +186,34 @@ public class FunctionTest
 	}
 
 	[Fact]
+	public void SELECT_LTRIM()
+	{
+		SqlCommand sql =
+			SELECT(LTRIM(_t.name))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LTRIM(t.name)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_LTRIM_TrimChars()
+	{
+		SqlCommand sql =
+			SELECT(LTRIM(_t.name, L("a")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LTRIM(t.name, 'a')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_RPAD()
 	{
 		SqlCommand sql =
@@ -209,6 +237,34 @@ public class FunctionTest
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
 		expected.Append("RPAD(t.name, 10, 'a')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_RTRIM()
+	{
+		SqlCommand sql =
+			SELECT(RTRIM(_t.name))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("RTRIM(t.name)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_RTRIM_TrimChars()
+	{
+		SqlCommand sql =
+			SELECT(RTRIM(_t.name, L("a")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("RTRIM(t.name, 'a')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}

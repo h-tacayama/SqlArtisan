@@ -22,4 +22,11 @@ public static partial class SqlWordbook
 		CharacterExpr source,
 		NumericExpr length,
 		CharacterExpr padding) => LpadFunction.Of(source, length, padding);
+
+	public static CharacterExpr LTRIM(CharacterExpr source) =>
+		LtrimFunction.Of(source);
+		
+	public static CharacterExpr LTRIM(
+		CharacterExpr source,
+		CharacterExpr trimChars) => LtrimFunction.Of(source, trimChars);
 }

@@ -16,4 +16,11 @@ public static partial class SqlWordbook
 		CharacterExpr source,
 		NumericExpr length,
 		CharacterExpr padding) => RpadFunction.Of(source, length, padding);
+
+	public static CharacterExpr RTRIM(CharacterExpr source) =>
+		RtrimFunction.Of(source);
+		
+	public static CharacterExpr RTRIM(
+		CharacterExpr source,
+		CharacterExpr trimChars) => RtrimFunction.Of(source, trimChars);
 }
