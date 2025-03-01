@@ -79,7 +79,7 @@ public class CaseTest
 		SqlCommand sql =
 			SELECT(
 				CASE(
-					WHEN(_t.code == L(1)).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
+					WHEN(_t.code == L(1)).THEN(TO_DATE(L("2001/02/03"), "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
@@ -99,8 +99,8 @@ public class CaseTest
 		SqlCommand sql =
 			SELECT(
 				CASE(
-					WHEN(_t.code == L(1)).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
-					WHEN(_t.code == L(2)).THEN(TO_DATE("2004/05/06", "YYYY/MM/DD")),
+					WHEN(_t.code == L(1)).THEN(TO_DATE(L("2001/02/03"), "YYYY/MM/DD")),
+					WHEN(_t.code == L(2)).THEN(TO_DATE(L("2004/05/06"), "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
@@ -121,9 +121,9 @@ public class CaseTest
 		SqlCommand sql =
 			SELECT(
 				CASE(
-					WHEN(_t.code == L(1)).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
-					WHEN(_t.code == L(2)).THEN(TO_DATE("2004/05/06", "YYYY/MM/DD")),
-					WHEN(_t.code == L(3)).THEN(TO_DATE("2007/08/09", "YYYY/MM/DD")),
+					WHEN(_t.code == L(1)).THEN(TO_DATE(L("2001/02/03"), "YYYY/MM/DD")),
+					WHEN(_t.code == L(2)).THEN(TO_DATE(L("2004/05/06"), "YYYY/MM/DD")),
+					WHEN(_t.code == L(3)).THEN(TO_DATE(L("2007/08/09"), "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
@@ -284,7 +284,7 @@ public class CaseTest
 			SELECT(
 				CASE(
 					_t.name,
-					WHEN(L("a")).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
+					WHEN(L("a")).THEN(TO_DATE(L("2001/02/03"), "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
@@ -306,8 +306,8 @@ public class CaseTest
 			SELECT(
 				CASE(
 					_t.name,
-					WHEN(L("a")).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
-					WHEN(L("b")).THEN(TO_DATE("2004/05/06", "YYYY/MM/DD")),
+					WHEN(L("a")).THEN(TO_DATE(L("2001/02/03"), "YYYY/MM/DD")),
+					WHEN(L("b")).THEN(TO_DATE(L("2004/05/06"), "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 
@@ -330,9 +330,9 @@ public class CaseTest
 			SELECT(
 				CASE(
 					_t.name,
-					WHEN(L("a")).THEN(TO_DATE("2001/02/03", "YYYY/MM/DD")),
-					WHEN(L("b")).THEN(TO_DATE("2004/05/06", "YYYY/MM/DD")),
-					WHEN(L("c")).THEN(TO_DATE("2007/08/09", "YYYY/MM/DD")),
+					WHEN(L("a")).THEN(TO_DATE(L("2001/02/03"), "YYYY/MM/DD")),
+					WHEN(L("b")).THEN(TO_DATE(L("2004/05/06"), "YYYY/MM/DD")),
+					WHEN(L("c")).THEN(TO_DATE(L("2007/08/09"), "YYYY/MM/DD")),
 					ELSE(_t.created_at)))
 			.Build();
 

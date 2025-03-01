@@ -11,7 +11,7 @@ public static partial class SqlWordbook
 	public static CaseThenExpr<NumericExpr> THEN(NumericExpr thenExpr) =>
 		new(thenExpr);
 
-	public static ToDateFunction TO_DATE(string text, string format) =>
+	public static ToDateFunction TO_DATE(CharacterExpr text, string format) =>
 		new(text, format);
 
 	public static CharacterExpr TRIM(CharacterExpr source) =>
