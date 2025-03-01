@@ -213,6 +213,48 @@ public class FunctionTest
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
 
+[Fact]
+	public void SELECT_REGEXP_COUNT()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_COUNT(_t.name, L("[abc]")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_COUNT(t.name, '[abc]')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_REGEXP_COUNT_Position()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_COUNT(_t.name, L("[abc]"), L(2)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_COUNT(t.name, '[abc]', 2)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_REGEXP_COUNT_Position_Options()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_COUNT(_t.name, L("[abc]"), L(2), RegexpOptions.CaseInsensitive))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_COUNT(t.name, '[abc]', 2, 'i')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
 	[Fact]
 	public void SELECT_RPAD()
 	{
@@ -395,7 +437,7 @@ public class FunctionTest
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
 
-[Fact]
+	[Fact]
 	public void SELECT_TRIM()
 	{
 		SqlCommand sql =

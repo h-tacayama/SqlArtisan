@@ -273,6 +273,13 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer PrependComma(string value)
+	{
+		_statement.Append(", ");
+		_statement.Append(value);
+		return this;
+	}
+
 	internal SqlBuildingBuffer PrependCommaIf(bool condition, ISqlElement element)
 	{
 		if (condition)

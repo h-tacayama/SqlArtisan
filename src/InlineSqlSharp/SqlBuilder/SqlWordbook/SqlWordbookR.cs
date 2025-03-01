@@ -2,6 +2,18 @@
 
 public static partial class SqlWordbook
 {
+	public static RegexpCountFunction REGEXP_COUNT(
+		CharacterExpr source,
+		CharacterExpr pattern) =>
+		RegexpCountFunction.Of(source, pattern);
+
+	public static RegexpCountFunction REGEXP_COUNT(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		NumericExpr position,
+		RegexpOptions options = RegexpOptions.None) =>
+		RegexpCountFunction.Of(source, pattern, position, options);
+
 	public static RegexpLikeCondition REGEXP_LIKE(
 		CharacterExpr source,
 		string pattern,
@@ -19,7 +31,7 @@ public static partial class SqlWordbook
 
 	public static CharacterExpr RTRIM(CharacterExpr source) =>
 		RtrimFunction.Of(source);
-		
+
 	public static CharacterExpr RTRIM(
 		CharacterExpr source,
 		CharacterExpr trimChars) => RtrimFunction.Of(source, trimChars);
