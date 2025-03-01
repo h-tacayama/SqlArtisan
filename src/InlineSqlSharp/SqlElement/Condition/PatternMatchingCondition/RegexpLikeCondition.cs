@@ -12,8 +12,8 @@ public sealed class RegexpLikeCondition(
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.Append(Keywords.REGEXP_LIKE)
 		.OpenParenthesis()
-		.AppendComma(_source)
-		.EncloseInSingleQuotes(_pattern)
+		.Append(_source)
+		.PrependComma(_pattern)
 		.PrependCommaIf(!_options.IsNone(), _options.ToSql())
 		.CloseParenthesis();
 }
