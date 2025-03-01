@@ -169,6 +169,17 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer AppendSpaceIfNotNull(ISqlElement? element)
+	{
+		if (element is not null)
+		{
+			element.FormatSql(this);
+			_statement.Append(" ");
+		}
+
+		return this;
+	}
+
 	internal SqlBuildingBuffer AppendUnaryFunction(string functionName, ISqlElement arg)
 	{
 		_statement.Append(functionName);

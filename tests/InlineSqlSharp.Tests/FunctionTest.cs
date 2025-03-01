@@ -395,6 +395,34 @@ public class FunctionTest
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
 
+[Fact]
+	public void SELECT_TRIM()
+	{
+		SqlCommand sql =
+			SELECT(TRIM(_t.name))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("TRIM(t.name)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_TRIM_TrimChar()
+	{
+		SqlCommand sql =
+			SELECT(TRIM(_t.name, L("a")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("TRIM(BOTH 'a' FROM t.name)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
 	[Fact]
 	public void SELECT_UPPER()
 	{

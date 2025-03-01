@@ -13,4 +13,11 @@ public static partial class SqlWordbook
 
 	public static ToDateFunction TO_DATE(string text, string format) =>
 		new(text, format);
+
+	public static CharacterExpr TRIM(CharacterExpr source) =>
+		TrimFunction.Of(source);
+
+	public static CharacterExpr TRIM(
+		CharacterExpr source,
+		CharacterExpr trimChar) => TrimFunction.Of(source, trimChar);
 }

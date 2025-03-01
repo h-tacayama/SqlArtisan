@@ -9,6 +9,7 @@ internal static class Keywords
 	internal const string ASC = "ASC";
 	internal const string AVG = "AVG";
 	internal const string BETWEEN = "BETWEEN";
+	internal const string BOTH = "BOTH";
 	internal const string BY = "BY";
 	internal const string CASE = "CASE";
 	internal const string CONCAT = "CONCAT";
@@ -65,6 +66,7 @@ internal static class Keywords
 	internal const string SUM = "SUM";
 	internal const string THEN = "THEN";
 	internal const string TO_DATE = "TO_DATE";
+	internal const string TRIM = "TRIM";
 	internal const string UNION = "UNION";
 	internal const string UPDATE = "UPDATE";
 	internal const string UPPER = "UPPER";
