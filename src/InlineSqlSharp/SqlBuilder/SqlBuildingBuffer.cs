@@ -232,6 +232,14 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer EncloseInSingleQuotes(ISqlElement element)
+	{
+		_statement.Append("'");
+		element.FormatSql(this);
+		_statement.Append("'");
+		return this;
+	}
+
 	internal SqlBuildingBuffer EncloseInSingleQuotes(string value, bool isEscaped)
 	{
 		_statement.Append("'");

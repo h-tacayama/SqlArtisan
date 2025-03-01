@@ -16,7 +16,7 @@ public static partial class SqlWordbook
 
 	public static RegexpLikeCondition REGEXP_LIKE(
 		CharacterExpr source,
-		string pattern,
+		CharacterExpr pattern,
 		RegexpOptions options = RegexpOptions.None) =>
 		new(source, pattern, options);
 
