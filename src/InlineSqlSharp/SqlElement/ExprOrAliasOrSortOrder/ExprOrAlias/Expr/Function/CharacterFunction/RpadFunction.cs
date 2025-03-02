@@ -4,20 +4,20 @@ public sealed class RpadFunction : NumericExpr
 {
 	private readonly PadFunctionCore _core;
 
-	public static RpadFunction Of(
+	public override void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
+
+	internal static RpadFunction Of(
 		CharacterExpr source,
 		NumericExpr length) =>
 		new(source, length, null);
 
 
-	public static RpadFunction Of(
+	internal static RpadFunction Of(
 		CharacterExpr source,
 		NumericExpr length,
 		CharacterExpr pad) =>
 		new(source, length, pad);
-
-	public override void FormatSql(SqlBuildingBuffer buffer) =>
-		_core.FormatSql(buffer);
 
 	private RpadFunction(
 		CharacterExpr source,

@@ -7,6 +7,15 @@ public sealed class InstrFunction : NumericExpr
 	private readonly NumericExpr? _position;
 	private readonly NumericExpr? _occurrence;
 
+	public override void FormatSql(SqlBuildingBuffer buffer) => buffer
+		.Append(Keywords.INSTR)
+		.OpenParenthesis()
+		.Append(_source)
+		.PrependComma(_substring)
+		.PrependCommaIfNotNull(_position)
+		.PrependCommaIfNotNull(_occurrence)
+		.CloseParenthesis();
+
 	internal static InstrFunction Of(
 		CharacterExpr source,
 		CharacterExpr substring) =>
@@ -24,15 +33,6 @@ public sealed class InstrFunction : NumericExpr
 		NumericExpr position,
 		NumericExpr occurrence) =>
 		new(source, substring, position, occurrence);
-
-	public override void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.Append(Keywords.INSTR)
-		.OpenParenthesis()
-		.Append(_source)
-		.PrependComma(_substring)
-		.PrependCommaIfNotNull(_position)
-		.PrependCommaIfNotNull(_occurrence)
-		.CloseParenthesis();
 
 	private InstrFunction(
 		CharacterExpr source,

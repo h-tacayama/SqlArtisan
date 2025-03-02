@@ -4,16 +4,17 @@ public sealed class SubstrFunction : CharacterExpr
 {
 	private readonly SubstrFunctionCore _core;
 
-	public static SubstrFunction Of(
+	public override void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
+
+	internal static SubstrFunction Of(
 		CharacterExpr source,
 		NumericExpr position) => new(source, position, null);
 
-	public static SubstrFunction Of(
+	internal static SubstrFunction Of(
 		CharacterExpr source,
 		NumericExpr position,
 		NumericExpr length) => new(source, position, length);
-
-	public override void FormatSql(SqlBuildingBuffer buffer) => _core.FormatSql(buffer);
 
 	private SubstrFunction(
 		CharacterExpr source,

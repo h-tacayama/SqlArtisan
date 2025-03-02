@@ -9,28 +9,6 @@ public sealed class RegexpReplaceFunction : CharacterExpr
 	private readonly NumericExpr? _occurrence;
 	private readonly RegexpOptions _options;
 
-	public static RegexpReplaceFunction Of(
-		CharacterExpr source,
-		CharacterExpr pattern,
-		CharacterExpr replacement) =>
-		new(source, pattern, replacement, null, null, RegexpOptions.None);
-
-	public static RegexpReplaceFunction Of(
-		CharacterExpr source,
-		CharacterExpr pattern,
-		CharacterExpr replacement,
-		NumericExpr position) =>
-		new(source, pattern, replacement, position, null, RegexpOptions.None);
-
-	public static RegexpReplaceFunction Of(
-		CharacterExpr source,
-		CharacterExpr pattern,
-		CharacterExpr replacement,
-		NumericExpr position,
-		NumericExpr occurrence,
-		RegexpOptions options = RegexpOptions.None) =>
-		new(source, pattern, replacement, position, occurrence, options);
-
 	public override void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.Append(Keywords.REGEXP_REPLACE)
 		.OpenParenthesis()
@@ -41,6 +19,28 @@ public sealed class RegexpReplaceFunction : CharacterExpr
 		.PrependCommaIfNotNull(_occurrence)
 		.PrependCommaIf(!_options.IsNone(), _options.ToSql())
 		.CloseParenthesis();
+
+	internal static RegexpReplaceFunction Of(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		CharacterExpr replacement) =>
+		new(source, pattern, replacement, null, null, RegexpOptions.None);
+
+	internal static RegexpReplaceFunction Of(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		CharacterExpr replacement,
+		NumericExpr position) =>
+		new(source, pattern, replacement, position, null, RegexpOptions.None);
+
+	internal static RegexpReplaceFunction Of(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		CharacterExpr replacement,
+		NumericExpr position,
+		NumericExpr occurrence,
+		RegexpOptions options = RegexpOptions.None) =>
+		new(source, pattern, replacement, position, occurrence, options);
 
 	private RegexpReplaceFunction(
 		CharacterExpr source,
