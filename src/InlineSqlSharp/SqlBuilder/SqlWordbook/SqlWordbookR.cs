@@ -20,6 +20,28 @@ public static partial class SqlWordbook
 		RegexpOptions options = RegexpOptions.None) =>
 		new(source, pattern, options);
 
+	public static RegexpReplaceFunction REGEXP_REPLACE(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		CharacterExpr replacement) =>
+		RegexpReplaceFunction.Of(source, pattern, replacement);
+
+	public static RegexpReplaceFunction REGEXP_REPLACE(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		CharacterExpr replacement,
+		NumericExpr position) =>
+		RegexpReplaceFunction.Of(source, pattern, replacement, position);
+
+	public static RegexpReplaceFunction REGEXP_REPLACE(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		CharacterExpr replacement,
+		NumericExpr position,
+		NumericExpr occurrence,
+		RegexpOptions options = RegexpOptions.None) =>
+		RegexpReplaceFunction.Of(source, pattern, replacement, position, occurrence, options);
+
 	public static ReplaceFunction REPLACE(
 		CharacterExpr source,
 		CharacterExpr search,

@@ -48,6 +48,62 @@ public partial class FunctionTest
 	}
 
 	[Fact]
+	public void SELECT_REGEXP_REPLACE()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_REGEXP_REPLACE_Position()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x"), L(2)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_REGEXP_REPLACE_Position_Occurrence()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x"), L(2), L(3)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2, 3)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_REGEXP_REPLACE_Position_Occurrence_Options()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x"), L(2), L(3), RegexpOptions.CaseInsensitive))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2, 3, 'i')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_REPLACE()
 	{
 		SqlCommand sql =
