@@ -20,6 +20,11 @@ public static partial class SqlWordbook
 		RegexpOptions options = RegexpOptions.None) =>
 		new(source, pattern, options);
 
+	public static ReplaceFunction REPLACE(
+		CharacterExpr source,
+		CharacterExpr search,
+		CharacterExpr replacement) => new(source, search, replacement);
+
 	public static RpadFunction RPAD(
 		CharacterExpr source,
 		NumericExpr length) => RpadFunction.Of(source, length);

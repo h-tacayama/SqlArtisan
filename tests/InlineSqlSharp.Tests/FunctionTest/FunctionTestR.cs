@@ -48,6 +48,20 @@ public partial class FunctionTest
 	}
 
 	[Fact]
+	public void SELECT_REPLACE()
+	{
+		SqlCommand sql =
+			SELECT(REPLACE(_t.name, L("a"), L("b")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REPLACE(t.name, 'a', 'b')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_RPAD()
 	{
 		SqlCommand sql =

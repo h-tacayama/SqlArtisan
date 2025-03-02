@@ -58,6 +58,7 @@ internal static class Keywords
 	internal const string RANK = "RANK";
 	internal const string REGEXP_COUNT = "REGEXP_COUNT";
 	internal const string REGEXP_LIKE = "REGEXP_LIKE";
+	internal const string REPLACE = "REPLACE";
 	internal const string RETURNING = "RETURNING";
 	internal const string RIGHT = "RIGHT";
 	internal const string RPAD = "RPAD";
