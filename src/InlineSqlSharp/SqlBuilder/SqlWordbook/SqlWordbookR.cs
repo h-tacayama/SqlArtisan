@@ -62,4 +62,39 @@ public static partial class SqlWordbook
 	public static CharacterExpr RTRIM(
 		CharacterExpr source,
 		CharacterExpr trimChars) => RtrimFunction.Of(source, trimChars);
+
+	public static RegexpSubstrFunction REGEXP_SUBSTR(
+		CharacterExpr source,
+		CharacterExpr pattern) =>
+		RegexpSubstrFunction.Of(source, pattern);
+
+	public static RegexpSubstrFunction REGEXP_SUBSTR(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		NumericExpr position) =>
+		RegexpSubstrFunction.Of(source, pattern, position);
+
+	public static RegexpSubstrFunction REGEXP_SUBSTR(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		NumericExpr position,
+		NumericExpr occurrence) =>
+		RegexpSubstrFunction.Of(source, pattern, position, occurrence);
+
+	public static RegexpSubstrFunction REGEXP_SUBSTR(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		NumericExpr position,
+		NumericExpr occurrence,
+		RegexpOptions options) =>
+		RegexpSubstrFunction.Of(source, pattern, position, occurrence, options);
+
+	public static RegexpSubstrFunction REGEXP_SUBSTR(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		NumericExpr position,
+		NumericExpr occurrence,
+		RegexpOptions options,
+		NumericExpr subPatternPos) =>
+		RegexpSubstrFunction.Of(source, pattern, position, occurrence, options, subPatternPos);
 }

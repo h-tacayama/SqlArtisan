@@ -104,6 +104,76 @@ public partial class FunctionTest
 	}
 
 	[Fact]
+	public void SELECT_REGEXP_SUBSTR()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_SUBSTR(t.name, '[abc]')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_REGEXP_SUBSTR_Position()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_REGEXP_SUBSTR_Position_Occurrence()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2), L(3)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_REGEXP_SUBSTR_Position_Occurrence_Options()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2), L(3), RegexpOptions.CaseInsensitive))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3, 'i')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_REGEXP_SUBSTR_Position_Occurrence_Options_SubPattern()
+	{
+		SqlCommand sql =
+			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2), L(3), RegexpOptions.None, L(1)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3, '', 1)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_REPLACE()
 	{
 		SqlCommand sql =

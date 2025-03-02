@@ -20,11 +20,6 @@ public static class RegexpOptionsExtensions
 
 	public static string ToSql(this RegexpOptions options)
 	{
-		if (options.IsNone())
-		{
-			return string.Empty;
-		}
-
 		StringBuilder result = new();
 		result.Append("'");
 
