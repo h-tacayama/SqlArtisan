@@ -32,6 +32,17 @@ public static partial class SqlWordbook
 		NumericExpr length) =>
 		SubstrFunction.Of(source, position, length);
 
+	public static SubstrbFunction SUBSTRB(
+		CharacterExpr source,
+		NumericExpr position) =>
+		SubstrbFunction.Of(source, position);
+
+	public static SubstrbFunction SUBSTRB(
+		CharacterExpr source,
+		NumericExpr position,
+		NumericExpr length) =>
+		SubstrbFunction.Of(source, position, length);
+
 	public static SumFunction SUM(IExpr expr) => new(AllOrDistinct.All, expr);
 
 	public static SumFunction SUM(AllOrDistinct allOrDistinct, NumericExpr expr) =>

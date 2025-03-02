@@ -32,7 +32,35 @@ public partial class FunctionTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
-	
+
+	[Fact]
+	public void SELECT_SUBSTRB()
+	{
+		SqlCommand sql =
+			SELECT(SUBSTRB(_t.name, L(1)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("SUBSTRB(t.name, 1)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_SUBSTRB_Length()
+	{
+		SqlCommand sql =
+			SELECT(SUBSTRB(_t.name, L(1), L(3)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("SUBSTRB(t.name, 1, 3)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
 	[Fact]
 	public void SELECT_SUM()
 	{
