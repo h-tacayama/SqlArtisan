@@ -1,26 +1,13 @@
 namespace InlineSqlSharp;
 
-public sealed class SubstrFunction : CharacterExpr
+public sealed class SubstrFunction(
+	CharacterExpr source,
+	NumericExpr position,
+	NumericExpr? length = null) : CharacterExpr
 {
-	private readonly SubstrFunctionCore _core;
+	private readonly VariadicFunctionCore _core =
+		new(Keywords.SUBSTR, source, position, length);
 
 	public override void FormatSql(SqlBuildingBuffer buffer) =>
 		_core.FormatSql(buffer);
-
-	internal static SubstrFunction Of(
-		CharacterExpr source,
-		NumericExpr position) => new(source, position, null);
-
-	internal static SubstrFunction Of(
-		CharacterExpr source,
-		NumericExpr position,
-		NumericExpr length) => new(source, position, length);
-
-	private SubstrFunction(
-		CharacterExpr source,
-		NumericExpr position,
-		NumericExpr? length)
-	{
-		_core = new(Keywords.SUBSTR, source, position, length);
-	}
 }

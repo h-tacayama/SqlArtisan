@@ -16,17 +16,16 @@ public static partial class SqlWordbook
 
 	public static LpadFunction LPAD(
 		CharacterExpr source,
-		NumericExpr length) => LpadFunction.Of(source, length);
+		NumericExpr length) => new(source, length);
 
 	public static LpadFunction LPAD(
 		CharacterExpr source,
 		NumericExpr length,
-		CharacterExpr padding) => LpadFunction.Of(source, length, padding);
+		CharacterExpr padding) => new(source, length, padding);
 
-	public static CharacterExpr LTRIM(CharacterExpr source) =>
-		LtrimFunction.Of(source);
-		
-	public static CharacterExpr LTRIM(
+	public static LtrimFunction LTRIM(CharacterExpr source) => new(source);
+
+	public static LtrimFunction LTRIM(
 		CharacterExpr source,
-		CharacterExpr trimChars) => LtrimFunction.Of(source, trimChars);
+		CharacterExpr trimChars) => new(source, trimChars);
 }

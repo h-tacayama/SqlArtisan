@@ -4,20 +4,16 @@ public static partial class SqlWordbook
 {
 	public static InstrFunction INSTR(
 		CharacterExpr source,
-		CharacterExpr substring) => InstrFunction.Of(source, substring);
+		CharacterExpr substring) => new(source, substring);
 
 	public static InstrFunction INSTR(
 		CharacterExpr source,
 		CharacterExpr substring,
-		NumericExpr position) => InstrFunction.Of(source, substring, position);
+		NumericExpr position) => new(source, substring, position);
 
 	public static InstrFunction INSTR(
 		CharacterExpr source,
 		CharacterExpr substring,
 		NumericExpr position,
-		NumericExpr occurrence) => InstrFunction.Of(
-			source,
-			substring,
-			position,
-			occurrence);
+		NumericExpr occurrence) => new(source, substring, position, occurrence);
 }

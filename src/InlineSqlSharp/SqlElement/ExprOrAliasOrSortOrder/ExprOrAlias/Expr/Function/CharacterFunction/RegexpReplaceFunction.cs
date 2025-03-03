@@ -1,60 +1,22 @@
 namespace InlineSqlSharp;
 
-public sealed class RegexpReplaceFunction : CharacterExpr
+public sealed class RegexpReplaceFunction(
+	CharacterExpr source,
+	CharacterExpr pattern,
+	CharacterExpr replacement,
+	NumericExpr? position = null,
+	NumericExpr? occurrence = null,
+	RegexpOptions? options = null) : CharacterExpr
 {
-	private readonly CharacterExpr _source;
-	private readonly CharacterExpr _pattern;
-	private readonly CharacterExpr _replacement;
-	private readonly NumericExpr? _position;
-	private readonly NumericExpr? _occurrence;
-	private readonly RegexpOptions _options;
+	private readonly VariadicFunctionCore _core = new(
+		Keywords.REGEXP_REPLACE,
+		source,
+		pattern,
+		replacement,
+		position,
+		occurrence,
+		options?.ToValue());
 
-	public override void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.Append(Keywords.REGEXP_REPLACE)
-		.OpenParenthesis()
-		.Append(_source)
-		.PrependComma(_pattern)
-		.PrependComma(_replacement)
-		.PrependCommaIfNotNull(_position)
-		.PrependCommaIfNotNull(_occurrence)
-		.PrependCommaIf(!_options.IsNone(), _options.ToSql())
-		.CloseParenthesis();
-
-	internal static RegexpReplaceFunction Of(
-		CharacterExpr source,
-		CharacterExpr pattern,
-		CharacterExpr replacement) =>
-		new(source, pattern, replacement, null, null, RegexpOptions.None);
-
-	internal static RegexpReplaceFunction Of(
-		CharacterExpr source,
-		CharacterExpr pattern,
-		CharacterExpr replacement,
-		NumericExpr position) =>
-		new(source, pattern, replacement, position, null, RegexpOptions.None);
-
-	internal static RegexpReplaceFunction Of(
-		CharacterExpr source,
-		CharacterExpr pattern,
-		CharacterExpr replacement,
-		NumericExpr position,
-		NumericExpr occurrence,
-		RegexpOptions options = RegexpOptions.None) =>
-		new(source, pattern, replacement, position, occurrence, options);
-
-	private RegexpReplaceFunction(
-		CharacterExpr source,
-		CharacterExpr pattern,
-		CharacterExpr replacement,
-		NumericExpr? position,
-		NumericExpr? occurrence,
-		RegexpOptions options)
-	{
-		_source = source;
-		_pattern = pattern;
-		_replacement = replacement;
-		_position = position;
-		_occurrence = occurrence;
-		_options = options;
-	}
+	public override void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }

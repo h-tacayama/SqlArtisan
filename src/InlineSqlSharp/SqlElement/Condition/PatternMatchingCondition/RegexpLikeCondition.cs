@@ -3,17 +3,17 @@
 public sealed class RegexpLikeCondition(
 	CharacterExpr source,
 	CharacterExpr pattern,
-	RegexpOptions options) : ICondition
+	RegexpOptions? options = null) : ICondition
 {
 	private readonly CharacterExpr _source = source;
 	private readonly CharacterExpr _pattern = pattern;
-	private readonly RegexpOptions _options = options;
+	private readonly RegexpOptionsValue? _options = options?.ToValue();
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.Append(Keywords.REGEXP_LIKE)
 		.OpenParenthesis()
 		.Append(_source)
 		.PrependComma(_pattern)
-		.PrependCommaIf(!_options.IsNone(), _options.ToSql())
+		.PrependCommaIfNotNull(_options)
 		.CloseParenthesis();
 }

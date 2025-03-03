@@ -11,13 +11,13 @@ public static partial class SqlWordbook
 	public static CaseThenExpr<NumericExpr> THEN(NumericExpr thenExpr) =>
 		new(thenExpr);
 
-	public static ToDateFunction TO_DATE(CharacterExpr text, string format) =>
-		new(text, format);
+	public static ToDateFunction TO_DATE(
+		CharacterExpr text,
+		CharacterExpr format) => new(text, format);
 
-	public static CharacterExpr TRIM(CharacterExpr source) =>
-		TrimFunction.Of(source);
+	public static TrimFunction TRIM(CharacterExpr source) => new(source);
 
-	public static CharacterExpr TRIM(
+	public static TrimFunction TRIM(
 		CharacterExpr source,
-		CharacterExpr trimChar) => TrimFunction.Of(source, trimChar);
+		CharacterExpr trimChar) => new(source, trimChar);
 }

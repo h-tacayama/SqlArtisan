@@ -1,28 +1,12 @@
 namespace InlineSqlSharp;
 
-public sealed class LtrimFunction : CharacterExpr
+public sealed class LtrimFunction(
+	CharacterExpr source,
+	CharacterExpr? trimChars = null) : CharacterExpr
 {
-	private readonly CharacterExpr _source;
-	private readonly CharacterExpr? _trimChars;
+	private readonly VariadicFunctionCore _core =
+		new(Keywords.LTRIM, source, trimChars);
 
-	public override void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.Append(Keywords.LTRIM)
-		.OpenParenthesis()
-		.Append(_source)
-		.PrependCommaIfNotNull(_trimChars)
-		.CloseParenthesis();
-
-	internal static LtrimFunction Of(CharacterExpr source) => new(source, null);
-
-	internal static LtrimFunction Of(
-		CharacterExpr source,
-		CharacterExpr trimChars) => new(source, trimChars);
-
-	private LtrimFunction(
-		CharacterExpr source,
-		CharacterExpr? trimChars)
-	{
-		_source = source;
-		_trimChars = trimChars;
-	}
+	public override void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }

@@ -5,11 +5,9 @@ public sealed class ConcatFunction(
 	CharacterExpr secondary,
 	CharacterExpr[] others) : CharacterExpr
 {
-	private readonly CharacterExpr[] _values = [primary, secondary, .. others];
+	private readonly VariadicFunctionCore _core =
+		new(Keywords.CONCAT, [primary, secondary, .. others]);
 
-	public override void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.Append(Keywords.CONCAT)
-		.OpenParenthesis()
-		.AppendCsv(_values)
-		.CloseParenthesis();
+	public override void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }

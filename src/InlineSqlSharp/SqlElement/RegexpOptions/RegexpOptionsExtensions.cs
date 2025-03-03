@@ -2,23 +2,12 @@
 
 namespace InlineSqlSharp;
 
-[Flags]
-public enum RegexpOptions
+internal static class RegexpOptionsExtensions
 {
-	None = 0,
-	CaseSensitive = 1 << 0,
-	CaseInsensitive = 1 << 1,
-	MultipleLines = 1 << 2,
-	NewLine = 1 << 3,
-	ExcludingWhiteSpace = 1 << 4,
-}
+	internal static RegexpOptionsValue ToValue(this RegexpOptions options) =>
+		new(options);
 
-public static class RegexpOptionsExtensions
-{
-	public static bool IsNone(this RegexpOptions options) =>
-		options == RegexpOptions.None;
-
-	public static string ToSql(this RegexpOptions options)
+	internal static string ToSql(this RegexpOptions options)
 	{
 		StringBuilder result = new();
 		result.Append("'");

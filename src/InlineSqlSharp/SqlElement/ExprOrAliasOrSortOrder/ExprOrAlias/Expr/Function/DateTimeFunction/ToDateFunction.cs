@@ -1,14 +1,12 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class ToDateFunction(CharacterExpr text, string format) : DateTimeExpr
+public sealed class ToDateFunction(
+	CharacterExpr text,
+	CharacterExpr format) : DateTimeExpr
 {
-	private readonly CharacterExpr _text = text;
-	private readonly string _format = format;
+	private readonly BinaryFunctionCore _core =
+		new(Keywords.TO_DATE, text, format);
 
-	public override void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.Append(Keywords.TO_DATE)
-		.OpenParenthesis(_text)
-		.Append(", ")
-		.Append(new CharacterLiteral(_format))
-		.CloseParenthesis();
+	public override void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }

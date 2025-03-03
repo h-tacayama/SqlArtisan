@@ -1,9 +1,11 @@
 namespace InlineSqlSharp;
 
-public sealed class TrimFunction : CharacterExpr
+public sealed class TrimFunction(
+	CharacterExpr source,
+	CharacterExpr? trimChar = null) : CharacterExpr
 {
-	private readonly CharacterExpr _source;
-	private readonly CharacterExpr? _trimChar;
+	private readonly CharacterExpr _source = source;
+	private readonly CharacterExpr? _trimChar = trimChar;
 
 	public override void FormatSql(SqlBuildingBuffer buffer)
 	{
@@ -19,19 +21,5 @@ public sealed class TrimFunction : CharacterExpr
 
 		buffer.Append(_source)
 			.CloseParenthesis();
-	}
-
-	internal static TrimFunction Of(CharacterExpr source) => new(source, null);
-
-	internal static TrimFunction Of(
-		CharacterExpr source,
-		CharacterExpr trimChar) => new(source, trimChar);
-
-	private TrimFunction(
-		CharacterExpr source,
-		CharacterExpr? trimChar)
-	{
-		_source = source;
-		_trimChar = trimChar;
 	}
 }

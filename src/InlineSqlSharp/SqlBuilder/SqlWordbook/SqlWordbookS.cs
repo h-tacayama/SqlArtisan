@@ -23,25 +23,21 @@ public static partial class SqlWordbook
 
 	public static SubstrFunction SUBSTR(
 		CharacterExpr source,
-		NumericExpr position) =>
-		SubstrFunction.Of(source, position);
+		NumericExpr position) => new(source, position);
 
 	public static SubstrFunction SUBSTR(
 		CharacterExpr source,
 		NumericExpr position,
-		NumericExpr length) =>
-		SubstrFunction.Of(source, position, length);
+		NumericExpr length) => new(source, position, length);
 
 	public static SubstrbFunction SUBSTRB(
 		CharacterExpr source,
-		NumericExpr position) =>
-		SubstrbFunction.Of(source, position);
+		NumericExpr position) => new(source, position);
 
 	public static SubstrbFunction SUBSTRB(
 		CharacterExpr source,
 		NumericExpr position,
-		NumericExpr length) =>
-		SubstrbFunction.Of(source, position, length);
+		NumericExpr length) => new(source, position, length);
 
 	public static SumFunction SUM(IExpr expr) => new(AllOrDistinct.All, expr);
 

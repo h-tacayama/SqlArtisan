@@ -9,7 +9,7 @@ public partial class FunctionTest
 	public void SELECT_TO_DATE()
 	{
 		SqlCommand sql =
-			SELECT(TO_DATE(L("2001/02/03"), "YYYY/MM/DD"))
+			SELECT(TO_DATE(L("2001/02/03"), L("YYYY/MM/DD")))
 			.Build();
 
 		StringBuilder expected = new();

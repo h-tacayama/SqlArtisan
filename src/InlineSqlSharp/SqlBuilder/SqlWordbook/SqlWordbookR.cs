@@ -4,34 +4,46 @@ public static partial class SqlWordbook
 {
 	public static RegexpCountFunction REGEXP_COUNT(
 		CharacterExpr source,
-		CharacterExpr pattern) =>
-		RegexpCountFunction.Of(source, pattern);
+		CharacterExpr pattern) => new(source, pattern);
+
+	public static RegexpCountFunction REGEXP_COUNT(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		NumericExpr position) => new(source, pattern, position);
 
 	public static RegexpCountFunction REGEXP_COUNT(
 		CharacterExpr source,
 		CharacterExpr pattern,
 		NumericExpr position,
-		RegexpOptions options = RegexpOptions.None) =>
-		RegexpCountFunction.Of(source, pattern, position, options);
+		RegexpOptions options) => new(source, pattern, position, options);
+
+	public static RegexpLikeCondition REGEXP_LIKE(
+		CharacterExpr source,
+		CharacterExpr pattern) => new(source, pattern);
 
 	public static RegexpLikeCondition REGEXP_LIKE(
 		CharacterExpr source,
 		CharacterExpr pattern,
-		RegexpOptions options = RegexpOptions.None) =>
-		new(source, pattern, options);
+		RegexpOptions options) => new(source, pattern, options);
 
 	public static RegexpReplaceFunction REGEXP_REPLACE(
 		CharacterExpr source,
 		CharacterExpr pattern,
-		CharacterExpr replacement) =>
-		RegexpReplaceFunction.Of(source, pattern, replacement);
+		CharacterExpr replacement) => new(source, pattern, replacement);
 
 	public static RegexpReplaceFunction REGEXP_REPLACE(
 		CharacterExpr source,
 		CharacterExpr pattern,
 		CharacterExpr replacement,
-		NumericExpr position) =>
-		RegexpReplaceFunction.Of(source, pattern, replacement, position);
+		NumericExpr position) => new(source, pattern, replacement, position);
+
+	public static RegexpReplaceFunction REGEXP_REPLACE(
+		CharacterExpr source,
+		CharacterExpr pattern,
+		CharacterExpr replacement,
+		NumericExpr position,
+		NumericExpr occurrence) =>
+		new(source, pattern, replacement, position, occurrence);
 
 	public static RegexpReplaceFunction REGEXP_REPLACE(
 		CharacterExpr source,
@@ -39,8 +51,8 @@ public static partial class SqlWordbook
 		CharacterExpr replacement,
 		NumericExpr position,
 		NumericExpr occurrence,
-		RegexpOptions options = RegexpOptions.None) =>
-		RegexpReplaceFunction.Of(source, pattern, replacement, position, occurrence, options);
+		RegexpOptions options) =>
+		new(source, pattern, replacement, position, occurrence, options);
 
 	public static ReplaceFunction REPLACE(
 		CharacterExpr source,
@@ -49,37 +61,33 @@ public static partial class SqlWordbook
 
 	public static RpadFunction RPAD(
 		CharacterExpr source,
-		NumericExpr length) => RpadFunction.Of(source, length);
+		NumericExpr length) => new(source, length);
 
 	public static RpadFunction RPAD(
 		CharacterExpr source,
 		NumericExpr length,
-		CharacterExpr padding) => RpadFunction.Of(source, length, padding);
+		CharacterExpr padding) => new(source, length, padding);
 
-	public static CharacterExpr RTRIM(CharacterExpr source) =>
-		RtrimFunction.Of(source);
+	public static RtrimFunction RTRIM(CharacterExpr source) => new(source);
 
-	public static CharacterExpr RTRIM(
+	public static RtrimFunction RTRIM(
 		CharacterExpr source,
-		CharacterExpr trimChars) => RtrimFunction.Of(source, trimChars);
+		CharacterExpr trimChars) => new(source, trimChars);
 
 	public static RegexpSubstrFunction REGEXP_SUBSTR(
 		CharacterExpr source,
-		CharacterExpr pattern) =>
-		RegexpSubstrFunction.Of(source, pattern);
+		CharacterExpr pattern) => new(source, pattern);
 
 	public static RegexpSubstrFunction REGEXP_SUBSTR(
 		CharacterExpr source,
 		CharacterExpr pattern,
-		NumericExpr position) =>
-		RegexpSubstrFunction.Of(source, pattern, position);
+		NumericExpr position) => new(source, pattern, position);
 
 	public static RegexpSubstrFunction REGEXP_SUBSTR(
 		CharacterExpr source,
 		CharacterExpr pattern,
 		NumericExpr position,
-		NumericExpr occurrence) =>
-		RegexpSubstrFunction.Of(source, pattern, position, occurrence);
+		NumericExpr occurrence) => new(source, pattern, position, occurrence);
 
 	public static RegexpSubstrFunction REGEXP_SUBSTR(
 		CharacterExpr source,
@@ -87,7 +95,7 @@ public static partial class SqlWordbook
 		NumericExpr position,
 		NumericExpr occurrence,
 		RegexpOptions options) =>
-		RegexpSubstrFunction.Of(source, pattern, position, occurrence, options);
+		new(source, pattern, position, occurrence, options);
 
 	public static RegexpSubstrFunction REGEXP_SUBSTR(
 		CharacterExpr source,
@@ -96,5 +104,5 @@ public static partial class SqlWordbook
 		NumericExpr occurrence,
 		RegexpOptions options,
 		NumericExpr subPatternPos) =>
-		RegexpSubstrFunction.Of(source, pattern, position, occurrence, options, subPatternPos);
+		new(source, pattern, position, occurrence, options, subPatternPos);
 }
