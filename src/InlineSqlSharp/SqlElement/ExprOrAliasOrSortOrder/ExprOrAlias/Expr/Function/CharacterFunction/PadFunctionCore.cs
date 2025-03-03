@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace InlineSqlSharp;
+﻿namespace InlineSqlSharp;
 
 internal sealed class PadFunctionCore(
 	string functionName,

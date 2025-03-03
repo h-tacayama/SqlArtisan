@@ -1,9 +1,9 @@
 namespace InlineSqlSharp;
 
 public sealed class ReplaceFunction(
-    CharacterExpr source,
-    CharacterExpr search,
-    CharacterExpr replacement) : CharacterExpr
+	CharacterExpr source,
+	CharacterExpr search,
+	CharacterExpr replacement) : CharacterExpr
 {
 	private readonly CharacterExpr _source = source;
 	private readonly CharacterExpr _search = search;

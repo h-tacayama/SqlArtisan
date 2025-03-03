@@ -1,6 +1,10 @@
 namespace InlineSqlSharp;
 
-internal sealed class SubstrFunctionCore(string functionName, CharacterExpr source, NumericExpr position, NumericExpr? length)
+internal sealed class SubstrFunctionCore(
+	string functionName,
+	CharacterExpr source,
+	NumericExpr position,
+	NumericExpr? length)
 {
 	private readonly string _functionName = functionName;
 	private readonly CharacterExpr _source = source;
