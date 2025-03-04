@@ -6,6 +6,10 @@ public static partial class SqlWordbook
 		bool addIf,
 		ICondition condition) => new(addIf, condition);
 
+	public static AddMonthsFunction ADD_MONTHS(
+		DateTimeExpr dateTime,
+		NumericExpr months) => new(dateTime, months);
+
 	public static AndCondition AND(params ICondition[] conditions) =>
 		new(conditions);
 

@@ -3,6 +3,7 @@
 internal static class Keywords
 {
 	internal const string ADD = "ADD";
+	internal const string ADD_MONTHS = "ADD_MONTHS";
 	internal const string ALL = "ALL";
 	internal const string AND = "AND";
 	internal const string AS = "AS";
