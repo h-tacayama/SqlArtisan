@@ -88,4 +88,21 @@ public partial class FunctionTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
+
+	[Fact]
+	public void SELECT_MONTHS_BETWEEN()
+	{
+		SqlCommand sql =
+			SELECT(MONTHS_BETWEEN(
+				TO_DATE(L("2001/02/03"), L("YYYY/MM/DD")),
+				TO_DATE(L("2004/05/06"), L("YYYY/MM/DD"))))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("MONTHS_BETWEEN(TO_DATE('2001/02/03', 'YYYY/MM/DD')");
+		expected.Append(", TO_DATE('2004/05/06', 'YYYY/MM/DD'))");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
 }

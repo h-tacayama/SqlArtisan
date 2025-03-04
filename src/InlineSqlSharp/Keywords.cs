@@ -47,6 +47,7 @@ internal static class Keywords
 	internal const string MAX = "MAX";
 	internal const string MIN = "MIN";
 	internal const string MINUS = "MINUS";
+	internal const string MONTHS_BETWEEN = "MONTHS_BETWEEN";
 	internal const string NEXTVAL = "NEXTVAL";
 	internal const string NOT = "NOT";
 	internal const string NULL = "NULL";
