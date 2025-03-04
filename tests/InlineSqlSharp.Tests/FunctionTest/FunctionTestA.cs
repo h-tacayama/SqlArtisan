@@ -16,7 +16,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
-		expected.Append("ADD_MONTHS(t.date, 3)");
+		expected.Append("ADD_MONTHS(t.created_at, 3)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
