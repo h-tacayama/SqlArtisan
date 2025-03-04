@@ -53,6 +53,7 @@ internal static class Keywords
 	internal const string NULL = "NULL";
 	internal const string NULLS_FIRST = "NULLS FIRST";
 	internal const string NULLS_LAST = "NULLS LAST";
+	internal const string NVL = "NVL";
 	internal const string ON = "ON";
 	internal const string OR = "OR";
 	internal const string ORDER = "ORDER";
