@@ -6,6 +6,20 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
+	public void SELECT_LAST_DAY()
+	{
+		SqlCommand sql =
+			SELECT(LAST_DAY(_t.created_at))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LAST_DAY(t.created_at)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+	
+	[Fact]
 	public void SELECT_LENGTH()
 	{
 		SqlCommand sql =

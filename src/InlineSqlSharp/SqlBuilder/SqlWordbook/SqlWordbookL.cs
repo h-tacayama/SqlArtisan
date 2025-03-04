@@ -10,6 +10,8 @@ public static partial class SqlWordbook
 	public static NumericLiteral<TValue> L<TValue>(TValue value)
 		where TValue : INumber<TValue> => new(value);
 
+	public static LastDayFunction LAST_DAY(DateTimeExpr date) => new(date);
+
 	public static LengthFunction LENGTH(CharacterExpr source) => new(source);
 
 	public static LowerFunction LOWER(CharacterExpr source) => new(source);
