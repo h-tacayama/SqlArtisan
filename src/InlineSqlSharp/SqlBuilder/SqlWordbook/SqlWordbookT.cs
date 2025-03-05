@@ -20,4 +20,18 @@ public static partial class SqlWordbook
 	public static TrimFunction TRIM(
 		CharacterExpr source,
 		CharacterExpr trimChar) => new(source, trimChar);
+
+	public static ToCharFunction TO_CHAR(
+		DateTimeExpr expr) => ToCharFunction.Of(expr);
+
+	public static ToCharFunction TO_CHAR(
+		DateTimeExpr expr,
+		CharacterExpr datetimeFormat) => ToCharFunction.Of(expr, datetimeFormat);
+
+	public static ToCharFunction TO_CHAR(
+		NumericExpr expr) => ToCharFunction.Of(expr);
+
+	public static ToCharFunction TO_CHAR(
+		NumericExpr expr,
+		CharacterExpr numericFormat) => ToCharFunction.Of(expr, numericFormat);
 }
