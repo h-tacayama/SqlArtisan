@@ -34,4 +34,10 @@ public static partial class SqlWordbook
 	public static ToCharFunction TO_CHAR(
 		NumericExpr expr,
 		CharacterExpr numericFormat) => ToCharFunction.Of(expr, numericFormat);
+
+	public static ToNumberFunction TO_NUMBER(CharacterExpr expr) => new(expr);
+
+	public static ToNumberFunction TO_NUMBER(
+		CharacterExpr expr,
+		CharacterExpr numericFormat) => new(expr, numericFormat);
 }

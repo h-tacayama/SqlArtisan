@@ -102,4 +102,32 @@ public partial class FunctionTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
+
+	[Fact]
+	public void SELECT_TO_NUMBER_Numeric_NoFormat()
+	{
+		SqlCommand sql =
+			SELECT(TO_NUMBER(L("01")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("TO_NUMBER('01')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_TO_NUMBER()
+	{
+		SqlCommand sql =
+			SELECT(TO_NUMBER(L("100.00"), L("9G999D99")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("TO_NUMBER('100.00', '9G999D99')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
 }

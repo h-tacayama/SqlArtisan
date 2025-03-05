@@ -77,6 +77,7 @@ internal static class Keywords
 	internal const string THEN = "THEN";
 	internal const string TO_CHAR = "TO_CHAR";
 	internal const string TO_DATE = "TO_DATE";
+	internal const string TO_NUMBER = "TO_NUMBER";
 	internal const string TRIM = "TRIM";
 	internal const string UNION = "UNION";
 	internal const string UPDATE = "UPDATE";
