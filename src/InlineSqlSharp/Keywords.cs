@@ -17,6 +17,7 @@ internal static class Keywords
 	internal const string COUNT = "COUNT";
 	internal const string CROSS = "CROSS";
 	internal const string CURRVAL = "CURRVAL";
+	internal const string DECODE = "DECODE";
 	internal const string DELETE = "DELETE";
 	internal const string DESC = "DESC";
 	internal const string DISTINCT = "DISTINCT";
