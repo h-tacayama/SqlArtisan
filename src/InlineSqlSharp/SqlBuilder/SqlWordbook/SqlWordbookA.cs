@@ -2,6 +2,8 @@
 
 public static partial class SqlWordbook
 {
+	public static AbsFunction ABS(NumericExpr expr) => new(expr);
+
 	public static DynamicCondition AddConditionIf(
 		bool addIf,
 		ICondition condition) => new(addIf, condition);

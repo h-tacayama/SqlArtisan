@@ -8,6 +8,20 @@ public partial class FunctionTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
+	public void SELECT_ABS()
+	{
+		SqlCommand sql =
+			SELECT(ABS(_t.code))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("ABS(t.code)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_ADD_MONTHS()
 	{
 		SqlCommand sql =
