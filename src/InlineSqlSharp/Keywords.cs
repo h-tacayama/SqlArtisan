@@ -29,6 +29,7 @@ internal static class Keywords
 	internal const string EXISTS = "EXISTS";
 	internal const string FROM = "FROM";
 	internal const string FULL = "FULL";
+	internal const string GREATEST = "GREATEST";
 	internal const string GROUP = "GROUP";
 	internal const string HAVING = "HAVING";
 	internal const string IN = "IN";
