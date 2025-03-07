@@ -1,4 +1,6 @@
-﻿namespace InlineSqlSharp;
+﻿using System.Diagnostics;
+
+namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
@@ -43,4 +45,7 @@ public static partial class SqlWordbook
 
 	public static SumFunction SUM(AllOrDistinct allOrDistinct, NumericExpr expr) =>
 		new(allOrDistinct, expr);
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public static SysdateFunction SYSDATE => new();
 }

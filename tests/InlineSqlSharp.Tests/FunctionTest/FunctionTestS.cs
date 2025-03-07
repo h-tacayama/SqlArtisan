@@ -88,4 +88,18 @@ public partial class FunctionTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
+
+	[Fact]
+	public void SELECT_SYSDATE()
+	{
+		SqlCommand sql =
+			SELECT(SYSDATE)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("SYSDATE");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
 }
