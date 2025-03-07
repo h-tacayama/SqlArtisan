@@ -76,6 +76,7 @@ internal static class Keywords
 	internal const string SUBSTRB = "SUBSTRB";
 	internal const string SUM = "SUM";
 	internal const string SYSDATE = "SYSDATE";
+	internal const string SYSTIMESTAMP = "SYSTIMESTAMP";
 	internal const string THEN = "THEN";
 	internal const string TO_CHAR = "TO_CHAR";
 	internal const string TO_DATE = "TO_DATE";

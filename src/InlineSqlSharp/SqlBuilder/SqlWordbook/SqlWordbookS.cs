@@ -48,4 +48,7 @@ public static partial class SqlWordbook
 
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public static SysdateFunction SYSDATE => new();
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	public static SystimestampFunction SYSTIMESTAMP => new();
 }

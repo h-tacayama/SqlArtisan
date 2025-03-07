@@ -102,4 +102,18 @@ public partial class FunctionTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
+
+	[Fact]
+	public void SELECT_SYSTIMESTAMP()
+	{
+		SqlCommand sql =
+			SELECT(SYSTIMESTAMP)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("SYSTIMESTAMP");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
 }
