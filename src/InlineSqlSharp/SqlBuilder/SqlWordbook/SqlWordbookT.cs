@@ -41,6 +41,13 @@ public static partial class SqlWordbook
 		CharacterExpr expr,
 		CharacterExpr numericFormat) => new(expr, numericFormat);
 
+	public static DateTimeTruncFunction TRUNC(
+		DateTimeExpr expr) => new(expr);
+
+	public static DateTimeTruncFunction TRUNC(
+		DateTimeExpr expr,
+		CharacterExpr format) => new(expr, format);
+
 	public static NumericTruncFunction TRUNC(
 		NumericExpr expr) => new(expr);
 

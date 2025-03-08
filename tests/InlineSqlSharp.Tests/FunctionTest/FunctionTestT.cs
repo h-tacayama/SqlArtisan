@@ -132,6 +132,34 @@ public partial class FunctionTest
 	}
 
 	[Fact]
+	public void SELECT_TRUNC_DateTime()
+	{
+		SqlCommand sql =
+			SELECT(TRUNC(_t.created_at))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("TRUNC(t.created_at)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_TRUNC_DateTime_Format()
+	{
+		SqlCommand sql =
+			SELECT(TRUNC(_t.created_at, L("MONTH")))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("TRUNC(t.created_at, 'MONTH')");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_TRUNC_Numeric()
 	{
 		SqlCommand sql =
