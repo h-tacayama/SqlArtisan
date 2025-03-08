@@ -40,4 +40,11 @@ public static partial class SqlWordbook
 	public static ToNumberFunction TO_NUMBER(
 		CharacterExpr expr,
 		CharacterExpr numericFormat) => new(expr, numericFormat);
+
+	public static NumericTruncFunction TRUNC(
+		NumericExpr expr) => new(expr);
+
+	public static NumericTruncFunction TRUNC(
+		NumericExpr expr,
+		NumericExpr decimalPlaces) => new(expr, decimalPlaces);
 }

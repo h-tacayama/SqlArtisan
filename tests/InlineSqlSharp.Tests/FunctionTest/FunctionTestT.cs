@@ -130,4 +130,32 @@ public partial class FunctionTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
+
+	[Fact]
+	public void SELECT_TRUNC_Numeric()
+	{
+		SqlCommand sql =
+			SELECT(TRUNC(_t.code))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("TRUNC(t.code)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_TRUNC_Numeric_DecimalPlaces()
+	{
+		SqlCommand sql =
+			SELECT(TRUNC(_t.code, L(2)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("TRUNC(t.code, 2)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
 }

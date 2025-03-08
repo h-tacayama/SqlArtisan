@@ -87,6 +87,7 @@ internal static class Keywords
 	internal const string TO_DATE = "TO_DATE";
 	internal const string TO_NUMBER = "TO_NUMBER";
 	internal const string TRIM = "TRIM";
+	internal const string TRUNC = "TRUNC";
 	internal const string UNION = "UNION";
 	internal const string UPDATE = "UPDATE";
 	internal const string UPPER = "UPPER";
