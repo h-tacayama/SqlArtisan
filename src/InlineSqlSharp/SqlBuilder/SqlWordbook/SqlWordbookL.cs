@@ -12,6 +12,15 @@ public static partial class SqlWordbook
 
 	public static LastDayFunction LAST_DAY(DateTimeExpr date) => new(date);
 
+	public static CharacterLeastFunction LEAST(params CharacterExpr[] expressions) =>
+		new(expressions);
+
+	public static DateTimeLeastFunction LEAST(params DateTimeExpr[] expressions) =>
+		new(expressions);
+
+	public static NumericLeastFunction LEAST(params NumericExpr[] expressions) =>
+		new(expressions);
+
 	public static LengthFunction LENGTH(CharacterExpr source) => new(source);
 
 	public static LowerFunction LOWER(CharacterExpr source) => new(source);

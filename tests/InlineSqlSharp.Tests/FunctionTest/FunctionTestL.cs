@@ -18,7 +18,52 @@ public partial class FunctionTest
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
-	
+
+	[Fact]
+	public void SELECT_LEAST_Character()
+	{
+		SqlCommand sql =
+			SELECT(LEAST(_t.name, L("test"), _t.name))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LEAST(t.name, 'test', t.name)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_LEAST_DateTime()
+	{
+		SqlCommand sql =
+			SELECT(LEAST(
+				_t.created_at,
+				TO_DATE(L("2000/01/01"), L("YYYY/MM/DD")),
+				_t.created_at))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LEAST(t.created_at, TO_DATE('2000/01/01', 'YYYY/MM/DD'), t.created_at)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_LEAST_Numeric()
+	{
+		SqlCommand sql =
+			SELECT(LEAST(_t.code, L(10), _t.code))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LEAST(t.code, 10, t.code)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
 	[Fact]
 	public void SELECT_LENGTH()
 	{
