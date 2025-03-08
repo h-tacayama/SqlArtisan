@@ -79,6 +79,20 @@ public partial class FunctionTest
 	}
 
 	[Fact]
+	public void SELECT_LENGTHB()
+	{
+		SqlCommand sql =
+			SELECT(LENGTHB(_t.name))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("LENGTHB(t.name)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_LOWER()
 	{
 		SqlCommand sql =

@@ -44,6 +44,7 @@ internal static class Keywords
 	internal const string LEAST = "LEAST";
 	internal const string LEFT = "LEFT";
 	internal const string LENGTH = "LENGTH";
+	internal const string LENGTHB = "LENGTHB";
 	internal const string LIKE = "LIKE";
 	internal const string LOWER = "LOWER";
 	internal const string LPAD = "LPAD";
