@@ -14,6 +14,10 @@ public static partial class SqlWordbook
 
 	public static NumericMinFunction MIN(NumericExpr expr) => new(expr);
 
+	public static ModFunction MOD(
+		NumericExpr dividend,
+		NumericExpr divisor) => new(dividend, divisor);
+
 	public static MonthsBetweenFunction MONTHS_BETWEEN(
 		DateTimeExpr date1,
 		DateTimeExpr date2) => new(date1, date2);

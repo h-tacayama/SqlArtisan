@@ -90,6 +90,20 @@ public partial class FunctionTest
 	}
 
 	[Fact]
+	public void SELECT_MOD()
+	{
+		SqlCommand sql =
+			SELECT(MOD(_t.code, L(3)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.Append("MOD(t.code, 3)");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_MONTHS_BETWEEN()
 	{
 		SqlCommand sql =
