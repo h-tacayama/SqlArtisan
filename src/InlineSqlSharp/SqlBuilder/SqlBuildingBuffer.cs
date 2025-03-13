@@ -115,6 +115,17 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer AppendLineIfNotNull(ISqlElement? element)
+	{
+		if (element is not null)
+		{
+			element.FormatSql(this);
+			_statement.AppendLine();
+		}
+
+		return this;
+	}
+
 	internal SqlBuildingBuffer AppendLineSeparated(ISqlElement[] elements)
 	{
 		if (elements.Length == 0)
@@ -318,6 +329,13 @@ public sealed class SqlBuildingBuffer()
 			element.FormatSql(this);
 		}
 
+		return this;
+	}
+
+	internal SqlBuildingBuffer PrependLine(ISqlElement element)
+	{
+		_statement.AppendLine();
+		element.FormatSql(this);
 		return this;
 	}
 

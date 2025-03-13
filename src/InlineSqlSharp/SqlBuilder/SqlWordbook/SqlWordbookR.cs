@@ -2,6 +2,8 @@
 
 public static partial class SqlWordbook
 {
+	public static AnalyticRankFunction RANK() => new();
+
 	public static RegexpCountFunction REGEXP_COUNT(
 		CharacterExpr source,
 		CharacterExpr pattern) => new(source, pattern);

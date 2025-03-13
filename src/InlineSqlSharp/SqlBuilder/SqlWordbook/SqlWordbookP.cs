@@ -10,4 +10,7 @@ public static partial class SqlWordbook
 
 	public static NumericBindValue<TValue> P<TValue>(TValue value)
 		where TValue : INumber<TValue> => new(value);
+
+	public static PartitionByClause PARTITION_BY(
+		params IExprOrAliasOrSortOrder[] expressions) => new(expressions);
 }
