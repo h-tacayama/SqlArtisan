@@ -67,6 +67,7 @@ internal static class Keywords
 	internal const string ORDER = "ORDER";
 	internal const string OVER = "OVER";
 	internal const string PARTITION = "PARTITION";
+	internal const string PERCENT_RANK = "PERCENT_RANK";
 	internal const string RANK = "RANK";
 	internal const string REGEXP_COUNT = "REGEXP_COUNT";
 	internal const string REGEXP_LIKE = "REGEXP_LIKE";
