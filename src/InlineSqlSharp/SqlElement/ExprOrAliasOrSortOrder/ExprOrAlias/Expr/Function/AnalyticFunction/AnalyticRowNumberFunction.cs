@@ -6,4 +6,10 @@ public sealed class AnalyticRowNumberFunction() : AnalyticFunction
 		.Append(Keywords.ROW_NUMBER)
 		.OpenParenthesis()
 		.CloseParenthesis();
+
+	public WindowFunction OVER(PartitionByAndOrderBy partitionByAndOrderBy) =>
+		new(this, OverClause.Of(partitionByAndOrderBy));
+
+	public WindowFunction OVER(OrderByClause orderByClause) =>
+		new(this, OverClause.Of(orderByClause));
 }

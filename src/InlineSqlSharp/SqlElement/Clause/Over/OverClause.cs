@@ -3,14 +3,17 @@
 public sealed class OverClause : ISqlElement
 {
 	private readonly PartitionByClause? _partitionByClause;
-	private readonly PartitionAndOrderByClause? _partitionAndOrderByClause;
+	private readonly OrderByClause? _orderByClause;
+	private readonly PartitionByAndOrderBy? _partitionByAndOrderBy;
 
 	private OverClause(
 		PartitionByClause? partitionByClause = null,
-		PartitionAndOrderByClause? partitionAndOrderByClause = null)
+		PartitionByAndOrderBy? partitionByAndOrderBy = null,
+		OrderByClause? orderByClause = null)
 	{
 		_partitionByClause = partitionByClause;
-		_partitionAndOrderByClause = partitionAndOrderByClause;
+		_partitionByAndOrderBy = partitionByAndOrderBy;
+		_orderByClause = orderByClause;
 	}
 
 	internal static OverClause Of() => new();
@@ -18,15 +21,19 @@ public sealed class OverClause : ISqlElement
 	internal static OverClause Of(PartitionByClause partitionByClause) =>
 		new(partitionByClause);
 
-	internal static OverClause Of(PartitionAndOrderByClause partitionAndOrderByClause) =>
-		new(null, partitionAndOrderByClause);
+	internal static OverClause Of(PartitionByAndOrderBy partitionByAndOrderBy) =>
+		new(null, partitionByAndOrderBy);
+
+	internal static OverClause Of(OrderByClause orderByClause) =>
+		new(null, null, orderByClause);
 
 	public void FormatSql(SqlBuildingBuffer buffer)
 	{
 		buffer.Append(Keywords.OVER);
 
 		if (_partitionByClause is null
-			&& _partitionAndOrderByClause is null)
+			&& _partitionByAndOrderBy is null
+			&& _orderByClause is null)
 		{
 			buffer.OpenParenthesis()
 				.CloseParenthesis();
@@ -37,13 +44,17 @@ public sealed class OverClause : ISqlElement
 			.OpenParenthesis()
 			.AppendLine();
 
-		if (_partitionAndOrderByClause is not null)
+		if (_partitionByAndOrderBy is not null)
 		{
-			_partitionAndOrderByClause.FormatSql(buffer);
+			_partitionByAndOrderBy.FormatSql(buffer);
 		}
 		else if (_partitionByClause is not null)
 		{
 			_partitionByClause.FormatSql(buffer);
+		}
+		else if(_orderByClause is not null)
+		{
+			_orderByClause.FormatSql(buffer);
 		}
 
 		buffer.AppendLine()

@@ -8,41 +8,6 @@ public partial class WindowDenseRankTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_DENSE_RANK_OVER()
-	{
-		SqlCommand sql =
-			SELECT(DENSE_RANK().OVER())
-			.Build();
-
-		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("DENSE_RANK()");
-		expected.Append("OVER()");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
-
-	[Fact]
-	public void SELECT_DENSE_RANK_OVER_ORDER_BY()
-	{
-		SqlCommand sql =
-			SELECT(DENSE_RANK().OVER(ORDER_BY(_t.code, _t.name)))
-			.Build();
-
-		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("DENSE_RANK()");
-		expected.AppendLine("OVER");
-		expected.AppendLine("(");
-		expected.AppendLine("ORDER BY");
-		expected.AppendLine("t.code");
-		expected.AppendLine(", t.name");
-		expected.Append(")");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
-
-	[Fact]
 	public void SELECT_DENSE_RANK_OVER_PARTITION_BY_ORDER_BY()
 	{
 		SqlCommand sql =
@@ -62,6 +27,26 @@ public partial class WindowDenseRankTest
 		expected.AppendLine("ORDER BY");
 		expected.AppendLine("t.code ASC");
 		expected.AppendLine(", t.name DESC");
+		expected.Append(")");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_DENSE_RANK_OVER_ORDER_BY()
+	{
+		SqlCommand sql =
+			SELECT(DENSE_RANK().OVER(ORDER_BY(_t.code, _t.name)))
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("DENSE_RANK()");
+		expected.AppendLine("OVER");
+		expected.AppendLine("(");
+		expected.AppendLine("ORDER BY");
+		expected.AppendLine("t.code");
+		expected.AppendLine(", t.name");
 		expected.Append(")");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

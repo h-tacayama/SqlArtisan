@@ -10,7 +10,7 @@ public sealed class PartitionByClause(
 		.AppendLine(Keywords.BY)
 		.AppendCsvLines(_expressions);
 
-	public PartitionAndOrderByClause ORDER_BY(
+	public PartitionByAndOrderBy ORDER_BY(
 		params IExprOrAliasOrSortOrder[] sortExpressions) =>
-		PartitionAndOrderByClause.Of(this, new OrderByClause(sortExpressions));
+		new (this, new OrderByClause(sortExpressions));
 }
