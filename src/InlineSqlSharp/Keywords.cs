@@ -20,6 +20,7 @@ internal static class Keywords
 	internal const string CURRVAL = "CURRVAL";
 	internal const string DECODE = "DECODE";
 	internal const string DELETE = "DELETE";
+	internal const string DENSE_RANK = "DENSE_RANK";
 	internal const string DESC = "DESC";
 	internal const string DISTINCT = "DISTINCT";
 	internal const string DUAL = "DUAL";

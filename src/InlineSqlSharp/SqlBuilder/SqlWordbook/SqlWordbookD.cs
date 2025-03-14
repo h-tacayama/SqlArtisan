@@ -60,4 +60,6 @@ public static partial class SqlWordbook
 		(NumericExpr search, NumericExpr result)[] searchResultPairs,
 		NumericExpr @default) =>
 		new(expr, searchResultPairs, @default);
+
+	public static AnalyticDenseRankFunction DENSE_RANK() => new();
 }
