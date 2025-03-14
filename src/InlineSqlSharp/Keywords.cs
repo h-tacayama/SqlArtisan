@@ -73,6 +73,7 @@ internal static class Keywords
 	internal const string REPLACE = "REPLACE";
 	internal const string RETURNING = "RETURNING";
 	internal const string RIGHT = "RIGHT";
+	internal const string ROW_NUMBER = "ROW_NUMBER";
 	internal const string RPAD = "RPAD";
 	internal const string RTRIM = "RTRIM";
 	internal const string SELECT = "SELECT";

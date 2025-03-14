@@ -1,9 +1,9 @@
 ﻿namespace InlineSqlSharp;
 
 public sealed class PartitionByClause(
-	IExprOrAliasOrSortOrder[] expressions) : ISqlElement
+	IExpr[] expressions) : ISqlElement
 {
-	private readonly IExprOrAliasOrSortOrder[] _expressions = expressions;
+	private readonly IExpr[] _expressions = expressions;
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(Keywords.PARTITION)

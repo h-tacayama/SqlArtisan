@@ -12,5 +12,5 @@ public static partial class SqlWordbook
 		where TValue : INumber<TValue> => new(value);
 
 	public static PartitionByClause PARTITION_BY(
-		params IExprOrAliasOrSortOrder[] expressions) => new(expressions);
+		params IExpr[] expressions) => new(expressions);
 }
