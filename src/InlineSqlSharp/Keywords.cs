@@ -17,6 +17,7 @@ internal static class Keywords
 	internal const string CONCAT = "CONCAT";
 	internal const string COUNT = "COUNT";
 	internal const string CROSS = "CROSS";
+	internal const string CUME_DIST = "CUME_DIST";
 	internal const string CURRVAL = "CURRVAL";
 	internal const string DECODE = "DECODE";
 	internal const string DELETE = "DELETE";
