@@ -1,4 +1,5 @@
 ﻿namespace InlineSqlSharp;
+
 public sealed class Hints(string hints) : ISqlElement
 {
 	private readonly string _hints = hints;
