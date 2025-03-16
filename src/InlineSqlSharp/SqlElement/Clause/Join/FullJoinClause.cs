@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class FullJoinClause(ITableReference table) : ISqlElement
+internal sealed class FullJoinClause(ITableReference table) : ISqlElement
 {
 	private readonly JoinClauseCore _core = new(Keywords.FULL, table);
 

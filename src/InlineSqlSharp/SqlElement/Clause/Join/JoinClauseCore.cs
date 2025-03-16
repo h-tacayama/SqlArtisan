@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class JoinClauseCore(string joinType, ITableReference table)
+internal sealed class JoinClauseCore(string joinType, ITableReference table)
 {
 	private readonly string _joinType = joinType;	
 	private readonly ITableReference _table = table;

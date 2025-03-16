@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class InnerJoinClause(ITableReference table) : ISqlElement
+internal sealed class InnerJoinClause(ITableReference table) : ISqlElement
 {
 	private readonly JoinClauseCore _core = new(Keywords.INNER, table);
 

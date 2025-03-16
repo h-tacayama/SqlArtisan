@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class FromClause(ITableReference[] tables) : ISqlElement
+internal sealed class FromClause(ITableReference[] tables) : ISqlElement
 {
 	private readonly ITableReference[] _tables = tables;
 

@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class CrossJoinClause(ITableReference table) : ISqlElement
+internal sealed class CrossJoinClause(ITableReference table) : ISqlElement
 {
 	private readonly JoinClauseCore _core = new(Keywords.CROSS, table);
 

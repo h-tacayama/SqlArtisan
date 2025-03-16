@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class RightJoinClause(ITableReference table) : ISqlElement
+internal sealed class RightJoinClause(ITableReference table) : ISqlElement
 {
 	private readonly JoinClauseCore _core = new(Keywords.RIGHT, table);
 

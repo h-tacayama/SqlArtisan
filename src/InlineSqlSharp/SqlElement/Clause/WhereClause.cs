@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class WhereClause(ICondition condition) : ISqlElement
+internal sealed class WhereClause(ICondition condition) : ISqlElement
 {
 	private readonly ICondition _condition = condition;
 

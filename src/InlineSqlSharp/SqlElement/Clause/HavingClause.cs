@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class HavingClause(ICondition condition) : ISqlElement
+internal sealed class HavingClause(ICondition condition) : ISqlElement
 {
 	private readonly ICondition _condition = condition;
 

@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class SelectClause(
+internal sealed class SelectClause(
 	Hints hints,
 	AllOrDistinct allOrDistinct,
 	IExprOrAlias[] selectList) : ISqlElement

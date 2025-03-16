@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class GroupByClause(IExpr[] groupingExpressions) : ISqlElement
+internal sealed class GroupByClause(IExpr[] groupingExpressions) : ISqlElement
 {
 	private readonly IExpr[] _groupingExpressions = groupingExpressions;
 
