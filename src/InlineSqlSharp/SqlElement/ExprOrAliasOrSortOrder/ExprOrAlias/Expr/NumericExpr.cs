@@ -32,32 +32,32 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 
 	public override int GetHashCode() => base.GetHashCode();
 
-	public static ComparisonCondition operator ==(
+	public static IEqualityCondition operator ==(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
 		new EqualityCondition(@this, rightSide);
 
-	public static ComparisonCondition operator !=(
+	public static IEqualityCondition operator !=(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
 		new InequalityCondition(@this, rightSide);
 
-	public static ComparisonCondition operator <(
+	public static IComparisonCondition operator <(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
 		new LessThanCondition(@this, rightSide);
 
-	public static ComparisonCondition operator >(
+	public static IComparisonCondition operator >(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
 		new GreaterThanCondition(@this, rightSide);
 
-	public static ComparisonCondition operator <=(
+	public static IComparisonCondition operator <=(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
 		new LessThanOrEqualCondition(@this, rightSide);
 
-	public static ComparisonCondition operator >=(
+	public static IComparisonCondition operator >=(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);

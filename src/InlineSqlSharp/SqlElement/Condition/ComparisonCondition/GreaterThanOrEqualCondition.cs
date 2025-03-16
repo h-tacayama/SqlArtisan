@@ -2,7 +2,11 @@
 
 public sealed class GreaterThanOrEqualCondition(
 	IExpr leftSide,
-	IExpr rightSide)
-	: ComparisonCondition(leftSide, Operators.GreaterThanOrEqual, rightSide)
+	IExpr rightSide) : IComparisonCondition
 {
+	private readonly ComparisonConditionCore _core =
+		new(leftSide, Operators.GreaterThanOrEqual, rightSide);
+
+	public void FormatSql(SqlBuildingBuffer buffer) =>
+		_core.FormatSql(buffer);
 }

@@ -353,6 +353,13 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer PrependSpace(ISqlElement element)
+	{
+		_statement.Append(" ");
+		element.FormatSql(this);
+		return this;
+	}
+
 	internal SqlBuildingBuffer PrependSpaceIf(bool condition, string value)
 	{
 		if (condition)

@@ -31,32 +31,32 @@ public abstract class DateTimeExpr : IAliasable, IDataExpr, ISortable
 
 	public override int GetHashCode() => base.GetHashCode();
 
-	public static ComparisonCondition operator ==(
+	public static IEqualityCondition operator ==(
 		DateTimeExpr @this,
 		DateTimeExpr rightSide) =>
 		new EqualityCondition(@this, rightSide);
 
-	public static ComparisonCondition operator !=(
+	public static IEqualityCondition operator !=(
 		DateTimeExpr @this,
 		DateTimeExpr rightSide) =>
 		new InequalityCondition(@this, rightSide);
 
-	public static ComparisonCondition operator <(
+	public static IComparisonCondition operator <(
 		DateTimeExpr @this,
 		DateTimeExpr rightSide) =>
 		new LessThanCondition(@this, rightSide);
 
-	public static ComparisonCondition operator >(
+	public static IComparisonCondition operator >(
 		DateTimeExpr @this,
 		DateTimeExpr rightSide) =>
 		new GreaterThanCondition(@this, rightSide);
 
-	public static ComparisonCondition operator <=(
+	public static IComparisonCondition operator <=(
 		DateTimeExpr @this,
 		DateTimeExpr rightSide) =>
 		new LessThanOrEqualCondition(@this, rightSide);
 
-	public static ComparisonCondition operator >=(
+	public static IComparisonCondition operator >=(
 		DateTimeExpr @this,
 		DateTimeExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);

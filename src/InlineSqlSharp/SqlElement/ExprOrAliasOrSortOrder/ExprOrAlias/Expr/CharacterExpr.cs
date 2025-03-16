@@ -31,32 +31,32 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 
 	public override int GetHashCode() => base.GetHashCode();
 
-	public static ComparisonCondition operator ==(
+	public static IEqualityCondition operator ==(
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new EqualityCondition(@this, rightSide);
 
-	public static ComparisonCondition operator !=(
+	public static IEqualityCondition operator !=(
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new InequalityCondition(@this, rightSide);
 
-	public static ComparisonCondition operator <(
+	public static IComparisonCondition operator <(
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new LessThanCondition(@this, rightSide);
 
-	public static ComparisonCondition operator >(
+	public static IComparisonCondition operator >(
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new GreaterThanCondition(@this, rightSide);
 
-	public static ComparisonCondition operator <=(
+	public static IComparisonCondition operator <=(
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new LessThanOrEqualCondition(@this, rightSide);
 
-	public static ComparisonCondition operator >=(
+	public static IComparisonCondition operator >=(
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
