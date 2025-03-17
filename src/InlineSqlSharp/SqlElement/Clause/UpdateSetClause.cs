@@ -6,17 +6,7 @@ internal sealed class UpdateSetClause : ISqlElement
 
 	internal UpdateSetClause(params IEquality[] assignments)
 	{
-		_assignments = new EqualityCondition[assignments.Length];
-
-		for (int i = 0; i < assignments.Length; i++)
-		{
-			if (assignments[i] is not EqualityCondition)
-			{
-				throw new ArgumentException("All assignments must be EqualityCondition.");
-			}
-
-			_assignments[i] = (EqualityCondition)assignments[i];
-		}
+		_assignments = ArgumentValidator.ThrowIfNotEqualityCondition(assignments);
 	}
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer

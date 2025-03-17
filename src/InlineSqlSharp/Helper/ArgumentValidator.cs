@@ -35,4 +35,24 @@ internal static class ArgumentValidator
 	
 		return self;
 	}
+
+	internal static EqualityCondition[] ThrowIfNotEqualityCondition(
+		IEquality[] values,
+		[CallerArgumentExpression(nameof(values))] string? valuesExpr = null)
+	{
+		EqualityCondition[] result = new EqualityCondition[values.Length];
+
+		for (int i = 0; i < values.Length; i++)
+		{
+			if (values[i] is not EqualityCondition)
+			{
+				throw new ArgumentException(
+					$"All '{valuesExpr}' must be {nameof(EqualityCondition)}.");
+			}
+
+			result[i] = (EqualityCondition)values[i];
+		}
+
+		return result;
+	}
 }

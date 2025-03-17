@@ -2,7 +2,7 @@
 
 namespace InlineSqlSharp;
 
-internal sealed class SelectBuilder :
+internal class SelectBuilder :
 	AbstractSqlBuilder,
 	ISelectBuilderFrom,
 	ISelectBuilderGroupBy,

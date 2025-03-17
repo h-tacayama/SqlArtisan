@@ -2,6 +2,14 @@
 
 public static partial class SqlWordbook
 {
+	public static IInsertBuilderInsertInto INSERT_INTO(Table table) =>
+		new InsertBuilder(new InsertIntoClause(table));
+
+	public static IInsertBuilderSelect INSERT_INTO(
+		Table table,
+		params IColumn[] columns) =>
+		new InsertBuilder(new InsertSelectClause(table, columns));
+
 	public static InstrFunction INSTR(
 		CharacterExpr source,
 		CharacterExpr substring) => new(source, substring);
