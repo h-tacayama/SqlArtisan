@@ -23,6 +23,8 @@ public static partial class SqlWordbook
 		params IExprOrAlias[] selectList) =>
 		new SelectBuilder(new SelectClause(hints, allOrAistinct, selectList));
 
+	public static Sequence SEQUENCE(string name) => new(name);
+
 	public static SubstrFunction SUBSTR(
 		CharacterExpr source,
 		NumericExpr position) => new(source, position);

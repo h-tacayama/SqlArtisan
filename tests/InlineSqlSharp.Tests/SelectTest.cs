@@ -8,6 +8,24 @@ public class SelectTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
+	public void SELECT_DISTINCT_FROM()
+	{
+		SqlCommand sql =
+			SELECT(DISTINCT, _t.code)
+			.FROM(_t)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("DISTINCT");
+		expected.AppendLine("t.code");
+		expected.AppendLine("FROM");
+		expected.Append("test_table t");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_FROM()
 	{
 		SqlCommand sql =
@@ -23,24 +41,6 @@ public class SelectTest
 		expected.AppendLine("t.code");
 		expected.AppendLine(", t.name");
 		expected.AppendLine(", t.created_at");
-		expected.AppendLine("FROM");
-		expected.Append("test_table t");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
-
-	[Fact]
-	public void SELECT_DISTINCT_FROM()
-	{
-		SqlCommand sql =
-			SELECT(DISTINCT, _t.code)
-			.FROM(_t)
-			.Build();
-
-		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("DISTINCT");
-		expected.AppendLine("t.code");
 		expected.AppendLine("FROM");
 		expected.Append("test_table t");
 
@@ -92,6 +92,42 @@ public class SelectTest
 	}
 
 	[Fact]
+	public void SELECT_Hints()
+	{
+		SqlCommand sql =
+			SELECT(
+				HINTS("/*+ ANY HINT */"),
+				_t.code)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("/*+ ANY HINT */");
+		expected.Append("t.code");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_Hints_DISTINCT()
+	{
+		SqlCommand sql =
+			SELECT(
+				HINTS("/*+ ANY HINT */"),
+				DISTINCT,
+				_t.code)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("/*+ ANY HINT */");
+		expected.AppendLine("DISTINCT");
+		expected.Append("t.code");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_Parameters()
 	{
 		SqlCommand sql =
@@ -126,37 +162,18 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_Hints()
+	public void SELECT_Sequence()
 	{
 		SqlCommand sql =
 			SELECT(
-				HINTS("/*+ ANY HINT */"),
-				_t.code)
+				SEQUENCE("seq").CURRVAL,
+				SEQUENCE("seq").NEXTVAL)
 			.Build();
 
 		StringBuilder expected = new();
 		expected.AppendLine("SELECT");
-		expected.AppendLine("/*+ ANY HINT */");
-		expected.Append("t.code");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
-
-	[Fact]
-	public void SELECT_Hints_DISTINCT()
-	{
-		SqlCommand sql =
-			SELECT(
-				HINTS("/*+ ANY HINT */"),
-				DISTINCT,
-				_t.code)
-			.Build();
-
-		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("/*+ ANY HINT */");
-		expected.AppendLine("DISTINCT");
-		expected.Append("t.code");
+		expected.AppendLine("seq.CURRVAL");
+		expected.Append(", seq.NEXTVAL");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
