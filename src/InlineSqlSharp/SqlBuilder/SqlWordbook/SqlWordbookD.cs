@@ -61,5 +61,8 @@ public static partial class SqlWordbook
 		NumericExpr @default) =>
 		new(expr, searchResultPairs, @default);
 
+	public static IDeleteBuilderDelete DELETE_FROM(Table table)
+		=> new DeleteBuilder(new DeleteClause(table));
+
 	public static AnalyticDenseRankFunction DENSE_RANK() => new();
 }
