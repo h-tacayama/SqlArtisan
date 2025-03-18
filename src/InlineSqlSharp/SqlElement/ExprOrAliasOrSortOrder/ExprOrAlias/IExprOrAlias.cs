@@ -2,5 +2,5 @@
 
 public interface IExprOrAlias : IExprOrAliasOrSortOrder
 {
-	void FormatAsSelect(ref SqlBuildingBuffer buffer);
+	void FormatAsSelect(SqlBuildingBuffer buffer);
 }

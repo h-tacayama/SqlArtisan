@@ -9,6 +9,6 @@ public sealed class SequenceNextval(Sequence sequence) : NumericExpr
 		.Append(".")
 		.Append(Keywords.NEXTVAL);
 
-	public override void FormatAsSelect(ref SqlBuildingBuffer buffer) =>
+	public override void FormatAsSelect(SqlBuildingBuffer buffer) =>
 		FormatSql(buffer);
 }

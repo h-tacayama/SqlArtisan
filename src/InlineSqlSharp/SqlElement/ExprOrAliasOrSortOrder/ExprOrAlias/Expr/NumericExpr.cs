@@ -25,7 +25,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 
 	public abstract void FormatSql(SqlBuildingBuffer buffer);
 
-	public virtual void FormatAsSelect(ref SqlBuildingBuffer buffer) =>
+	public virtual void FormatAsSelect(SqlBuildingBuffer buffer) =>
 		FormatSql(buffer);
 
 	public override bool Equals(object? obj) => base.Equals(obj);

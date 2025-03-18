@@ -9,6 +9,6 @@ public sealed class SequenceCurrval(Sequence sequence) : NumericExpr
 		.Append(".")
 		.Append(Keywords.CURRVAL);
 
-	public override void FormatAsSelect(ref SqlBuildingBuffer buffer) =>
+	public override void FormatAsSelect(SqlBuildingBuffer buffer) =>
 		FormatSql(buffer);
 }

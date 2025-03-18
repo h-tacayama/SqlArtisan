@@ -24,7 +24,7 @@ public sealed class ExprAlias(IExpr expr, string alias) :
 	public void FormatSql(SqlBuildingBuffer buffer) =>
 		buffer.Append(_alias);
 
-	public void FormatAsSelect(ref SqlBuildingBuffer buffer) => buffer
+	public void FormatAsSelect(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_expr)
 		.Append(_alias);
 }
