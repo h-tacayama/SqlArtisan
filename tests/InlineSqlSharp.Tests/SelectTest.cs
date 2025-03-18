@@ -48,6 +48,23 @@ public class SelectTest
 	}
 
 	[Fact]
+	public void SELECT_FROM_DUAL()
+	{
+		SqlCommand sql =
+			SELECT(SYSDATE)
+			.FROM(DUAL)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.AppendLine("SELECT");
+		expected.AppendLine("SYSDATE");
+		expected.AppendLine("FROM");
+		expected.Append("DUAL");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_Literals()
 	{
 		SqlCommand sql =

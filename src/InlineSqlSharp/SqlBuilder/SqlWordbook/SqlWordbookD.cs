@@ -65,4 +65,6 @@ public static partial class SqlWordbook
 		=> new DeleteBuilder(new DeleteClause(table));
 
 	public static AnalyticDenseRankFunction DENSE_RANK() => new();
+
+	public static DualTable DUAL => new();
 }
