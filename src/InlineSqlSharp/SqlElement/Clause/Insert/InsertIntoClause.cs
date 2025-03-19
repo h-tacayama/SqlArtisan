@@ -6,6 +6,6 @@ public sealed class InsertIntoClause(Table table) : ISqlElement
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(Keywords.INSERT)
-		.AppendLine(Keywords.INTO)
+		.AppendSpace(Keywords.INTO)
 		.Append(_table);
 }

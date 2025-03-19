@@ -6,6 +6,6 @@ internal sealed class DeleteClause(Table table) : ISqlElement
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(Keywords.DELETE)
-		.AppendLine(Keywords.FROM)
+		.AppendSpace(Keywords.FROM)
 		.Append(_table);
 }

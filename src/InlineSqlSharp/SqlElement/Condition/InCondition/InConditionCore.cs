@@ -12,8 +12,8 @@ internal sealed class InConditionCore(
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_leftSide)
 		.AppendSpaceIf(_isNot, Keywords.NOT)
-		.AppendLine(Keywords.IN)
-		.OpenParenthesisBeforeLine()
-		.AppendCsvLines(_expressions)
-		.CloseParenthesisAfterLine();
+		.AppendSpace(Keywords.IN)
+		.OpenParenthesis()
+		.AppendCsv(_expressions)
+		.CloseParenthesis();
 }

@@ -13,7 +13,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("CONCAT(t.name, 'a', 'b')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -27,7 +27,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("COUNT(t.code)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -41,7 +41,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("COUNT(DISTINCT t.code)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

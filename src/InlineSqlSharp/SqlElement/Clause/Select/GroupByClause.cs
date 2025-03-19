@@ -6,6 +6,6 @@ internal sealed class GroupByClause(IExpr[] groupingExpressions) : ISqlElement
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(Keywords.GROUP)
-		.AppendLine(Keywords.BY)
-		.AppendCsvLines(_groupingExpressions);
+		.AppendSpace(Keywords.BY)
+		.AppendCsv(_groupingExpressions);
 }

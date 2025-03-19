@@ -8,6 +8,6 @@ public sealed class PartitionByAndOrderBy(
 	private readonly OrderByClause _orderByClause = orderByClause;
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.AppendLineIfNotNull(_partitionByClause)
+		.AppendSpaceIfNotNull(_partitionByClause)
 		.Append(_orderByClause);
 }

@@ -10,6 +10,6 @@ internal sealed class UpdateSetClause : ISqlElement
 	}
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.AppendLine(Keywords.SET)
-		.AppendCsvLines(_assignments);
+		.AppendSpace(Keywords.SET)
+		.AppendCsv(_assignments);
 }

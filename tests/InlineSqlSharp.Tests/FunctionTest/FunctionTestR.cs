@@ -13,7 +13,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_COUNT(t.name, '[abc]')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -27,7 +27,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_COUNT(t.name, '[abc]', 2)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -41,7 +41,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_COUNT(t.name, '[abc]', 2, 'i')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -55,7 +55,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -69,7 +69,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -83,7 +83,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2, 3)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -97,7 +97,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2, 3, 'i')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -111,7 +111,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -125,7 +125,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -139,7 +139,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -153,7 +153,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3, 'i')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -167,7 +167,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3, '', 1)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -181,7 +181,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("REPLACE(t.name, 'a', 'b')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -195,7 +195,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("RPAD(t.name, 10)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -209,7 +209,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("RPAD(t.name, 10, 'a')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -223,7 +223,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("RTRIM(t.name)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -237,7 +237,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("RTRIM(t.name, 'a')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

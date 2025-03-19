@@ -10,7 +10,7 @@ internal sealed class ComparisonConditionCore(
 	private readonly IExpr _rightSide = rightSide;
 
 	internal void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.Append(_leftSide)
-		.EncloseInSpaces(_operator)
+		.AppendSpace(_leftSide)
+		.AppendSpace(_operator)
 		.Append(_rightSide);
 }

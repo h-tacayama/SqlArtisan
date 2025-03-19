@@ -9,10 +9,10 @@ internal sealed class SearchedCaseExprCore<TReturnExpr>(
 	private readonly CaseElseExpr<TReturnExpr> _elseClause = elseClause;
 
 	internal void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.AppendLine(Keywords.CASE)
-		.AppendLineSeparated(_whenClauses)
-		.AppendLine()
+		.AppendSpace(Keywords.CASE)
+		.AppendSpaceSeparated(_whenClauses)
+		.AppendSpace()
 		.AppendSpace(Keywords.ELSE)
-		.AppendLine(_elseClause)
+		.AppendSpace(_elseClause)
 		.Append(Keywords.END);
 }

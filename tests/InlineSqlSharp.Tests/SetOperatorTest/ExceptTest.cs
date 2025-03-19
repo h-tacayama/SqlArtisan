@@ -17,10 +17,10 @@ public class ExceptTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("1");
-		expected.AppendLine("EXCEPT");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("1 ");
+		expected.Append("EXCEPT ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -37,12 +37,12 @@ public class ExceptTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("EXCEPT");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("EXCEPT ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -60,14 +60,14 @@ public class ExceptTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine("EXCEPT");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("WHERE ");
+		expected.Append("t.code = 1 ");
+		expected.Append("EXCEPT ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -86,16 +86,16 @@ public class ExceptTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine("GROUP BY");
-		expected.AppendLine("t.code");
-		expected.AppendLine("EXCEPT");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("WHERE ");
+		expected.Append("t.code = 1 ");
+		expected.Append("GROUP BY ");
+		expected.Append("t.code ");
+		expected.Append("EXCEPT ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -115,18 +115,18 @@ public class ExceptTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine("GROUP BY");
-		expected.AppendLine("t.code");
-		expected.AppendLine("HAVING");
-		expected.AppendLine("COUNT(t.code) > 0");
-		expected.AppendLine("EXCEPT");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("WHERE ");
+		expected.Append("t.code = 1 ");
+		expected.Append("GROUP BY ");
+		expected.Append("t.code ");
+		expected.Append("HAVING ");
+		expected.Append("COUNT(t.code) > 0 ");
+		expected.Append("EXCEPT ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -142,10 +142,10 @@ public class ExceptTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("1");
-		expected.AppendLine("EXCEPT ALL");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("1 ");
+		expected.Append("EXCEPT ALL ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

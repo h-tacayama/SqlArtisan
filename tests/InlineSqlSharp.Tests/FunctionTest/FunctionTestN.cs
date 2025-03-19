@@ -13,7 +13,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("NVL(t.name, 'Unknown')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -27,7 +27,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("NVL(t.created_at, TO_DATE('2000/01/01', 'YYYY/MM/DD'))");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -41,7 +41,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("NVL(t.code, 0)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

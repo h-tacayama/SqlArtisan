@@ -18,12 +18,12 @@ public class LogicalConditionTest
 	public void And()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine(")");
-		expected.AppendLine("AND");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 2");
+		expected.Append("(");
+		expected.Append("t.code = 1");
+		expected.Append(") ");
+		expected.Append("AND ");
+		expected.Append("(");
+		expected.Append("t.code = 2");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -35,12 +35,12 @@ public class LogicalConditionTest
 	public void Or()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine(")");
-		expected.AppendLine("OR");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 2");
+		expected.Append("(");
+		expected.Append("t.code = 1");
+		expected.Append(") ");
+		expected.Append("OR ");
+		expected.Append("(");
+		expected.Append("t.code = 2");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -52,24 +52,24 @@ public class LogicalConditionTest
 	public void And_Or()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("(");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine(")");
-		expected.AppendLine("OR");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 2");
-		expected.AppendLine(")");
-		expected.AppendLine(")");
-		expected.AppendLine("AND");
-		expected.AppendLine("(");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 3");
-		expected.AppendLine(")");
-		expected.AppendLine("OR");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 4");
-		expected.AppendLine(")");
+		expected.Append("(");
+		expected.Append("(");
+		expected.Append("t.code = 1");
+		expected.Append(") ");
+		expected.Append("OR ");
+		expected.Append("(");
+		expected.Append("t.code = 2");
+		expected.Append(")");
+		expected.Append(") ");
+		expected.Append("AND ");
+		expected.Append("(");
+		expected.Append("(");
+		expected.Append("t.code = 3");
+		expected.Append(") ");
+		expected.Append("OR ");
+		expected.Append("(");
+		expected.Append("t.code = 4");
+		expected.Append(")");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -83,24 +83,24 @@ public class LogicalConditionTest
 	public void Or_And()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("(");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine(")");
-		expected.AppendLine("AND");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 2");
-		expected.AppendLine(")");
-		expected.AppendLine(")");
-		expected.AppendLine("OR");
-		expected.AppendLine("(");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 3");
-		expected.AppendLine(")");
-		expected.AppendLine("AND");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 4");
-		expected.AppendLine(")");
+		expected.Append("(");
+		expected.Append("(");
+		expected.Append("t.code = 1");
+		expected.Append(") ");
+		expected.Append("AND ");
+		expected.Append("(");
+		expected.Append("t.code = 2");
+		expected.Append(")");
+		expected.Append(") ");
+		expected.Append("OR ");
+		expected.Append("(");
+		expected.Append("(");
+		expected.Append("t.code = 3");
+		expected.Append(") ");
+		expected.Append("AND ");
+		expected.Append("(");
+		expected.Append("t.code = 4");
+		expected.Append(")");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -114,9 +114,9 @@ public class LogicalConditionTest
 	public void Not()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("NOT");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = 1");
+		expected.Append("NOT ");
+		expected.Append("(");
+		expected.Append("t.code = 1");
 		expected.Append(")");
 
 		_assert.Equal(

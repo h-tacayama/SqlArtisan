@@ -17,10 +17,10 @@ public class UnionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("1");
-		expected.AppendLine("UNION");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("1 ");
+		expected.Append("UNION ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -37,12 +37,12 @@ public class UnionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("UNION");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("UNION ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -60,14 +60,14 @@ public class UnionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine("UNION");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("WHERE ");
+		expected.Append("t.code = 1 ");
+		expected.Append("UNION ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -86,16 +86,16 @@ public class UnionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine("GROUP BY");
-		expected.AppendLine("t.code");
-		expected.AppendLine("UNION");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("WHERE ");
+		expected.Append("t.code = 1 ");
+		expected.Append("GROUP BY ");
+		expected.Append("t.code ");
+		expected.Append("UNION ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -115,18 +115,18 @@ public class UnionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine("GROUP BY");
-		expected.AppendLine("t.code");
-		expected.AppendLine("HAVING");
-		expected.AppendLine("COUNT(t.code) > 0");
-		expected.AppendLine("UNION");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("WHERE ");
+		expected.Append("t.code = 1 ");
+		expected.Append("GROUP BY ");
+		expected.Append("t.code ");
+		expected.Append("HAVING ");
+		expected.Append("COUNT(t.code) > 0 ");
+		expected.Append("UNION ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -142,10 +142,10 @@ public class UnionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("1");
-		expected.AppendLine("UNION ALL");
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
+		expected.Append("1 ");
+		expected.Append("UNION ALL ");
+		expected.Append("SELECT ");
 		expected.Append("2");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

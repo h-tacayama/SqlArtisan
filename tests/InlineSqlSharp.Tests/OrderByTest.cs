@@ -26,20 +26,20 @@ public class OrderByTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.name");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("ORDER BY");
-		expected.AppendLine("t.name");
-		expected.AppendLine(", t.name ASC");
-		expected.AppendLine(", t.name DESC");
-		expected.AppendLine(", t.name NULLS FIRST");
-		expected.AppendLine(", t.name ASC NULLS FIRST");
-		expected.AppendLine(", t.name DESC NULLS FIRST");
-		expected.AppendLine(", t.name NULLS LAST");
-		expected.AppendLine(", t.name ASC NULLS LAST");
-		expected.Append(", t.name DESC NULLS LAST");
+		expected.Append("SELECT ");
+		expected.Append("t.name ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("ORDER BY ");
+		expected.Append("t.name, ");
+		expected.Append("t.name ASC, ");
+		expected.Append("t.name DESC, ");
+		expected.Append("t.name NULLS FIRST, ");
+		expected.Append("t.name ASC NULLS FIRST, ");
+		expected.Append("t.name DESC NULLS FIRST, ");
+		expected.Append("t.name NULLS LAST, ");
+		expected.Append("t.name ASC NULLS LAST, ");
+		expected.Append("t.name DESC NULLS LAST");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
@@ -63,20 +63,20 @@ public class OrderByTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.created_at");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("ORDER BY");
-		expected.AppendLine("t.created_at");
-		expected.AppendLine(", t.created_at ASC");
-		expected.AppendLine(", t.created_at DESC");
-		expected.AppendLine(", t.created_at NULLS FIRST");
-		expected.AppendLine(", t.created_at ASC NULLS FIRST");
-		expected.AppendLine(", t.created_at DESC NULLS FIRST");
-		expected.AppendLine(", t.created_at NULLS LAST");
-		expected.AppendLine(", t.created_at ASC NULLS LAST");
-		expected.Append(", t.created_at DESC NULLS LAST");
+		expected.Append("SELECT ");
+		expected.Append("t.created_at ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("ORDER BY ");
+		expected.Append("t.created_at, ");
+		expected.Append("t.created_at ASC, ");
+		expected.Append("t.created_at DESC, ");
+		expected.Append("t.created_at NULLS FIRST, ");
+		expected.Append("t.created_at ASC NULLS FIRST, ");
+		expected.Append("t.created_at DESC NULLS FIRST, ");
+		expected.Append("t.created_at NULLS LAST, ");
+		expected.Append("t.created_at ASC NULLS LAST, ");
+		expected.Append("t.created_at DESC NULLS LAST");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
@@ -100,20 +100,20 @@ public class OrderByTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("ORDER BY");
-		expected.AppendLine("t.code");
-		expected.AppendLine(", t.code ASC");
-		expected.AppendLine(", t.code DESC");
-		expected.AppendLine(", t.code NULLS FIRST");
-		expected.AppendLine(", t.code ASC NULLS FIRST");
-		expected.AppendLine(", t.code DESC NULLS FIRST");
-		expected.AppendLine(", t.code NULLS LAST");
-		expected.AppendLine(", t.code ASC NULLS LAST");
-		expected.Append(", t.code DESC NULLS LAST");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("ORDER BY ");
+		expected.Append("t.code, ");
+		expected.Append("t.code ASC, ");
+		expected.Append("t.code DESC, ");
+		expected.Append("t.code NULLS FIRST, ");
+		expected.Append("t.code ASC NULLS FIRST, ");
+		expected.Append("t.code DESC NULLS FIRST, ");
+		expected.Append("t.code NULLS LAST, ");
+		expected.Append("t.code ASC NULLS LAST, ");
+		expected.Append("t.code DESC NULLS LAST");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
@@ -133,16 +133,16 @@ public class OrderByTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("ORDER BY");
-		expected.AppendLine("a");
-		expected.AppendLine(", b ASC");
-		expected.AppendLine(", c DESC");
-		expected.AppendLine(", d NULLS FIRST");
-		expected.Append(", e NULLS LAST");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("ORDER BY ");
+		expected.Append("a, ");
+		expected.Append("b ASC, ");
+		expected.Append("c DESC, ");
+		expected.Append("d NULLS FIRST, ");
+		expected.Append("e NULLS LAST");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}

@@ -15,7 +15,7 @@ public class ArithmeticOperatorTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("(1 + 2)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -29,7 +29,7 @@ public class ArithmeticOperatorTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("(1 - 2)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -43,7 +43,7 @@ public class ArithmeticOperatorTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("(1 * 2)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -57,7 +57,7 @@ public class ArithmeticOperatorTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("(1 / 2)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -71,7 +71,7 @@ public class ArithmeticOperatorTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("(1 % 2)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -85,7 +85,7 @@ public class ArithmeticOperatorTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("(t.created_at + 1)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -99,7 +99,7 @@ public class ArithmeticOperatorTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("(t.created_at - 1)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -113,7 +113,7 @@ public class ArithmeticOperatorTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("((t.created_at - t.created_at) + 1)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

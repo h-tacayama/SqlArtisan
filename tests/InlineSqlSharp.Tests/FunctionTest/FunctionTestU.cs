@@ -13,7 +13,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("UPPER(t.name)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

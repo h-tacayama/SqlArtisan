@@ -15,7 +15,7 @@ internal sealed class BetweenConditionCore(
 		.AppendSpace(_leftSide)
 		.AppendSpaceIf(_isNot, Keywords.NOT)
 		.AppendSpace(Keywords.BETWEEN)
-		.Append(_rightSide1)
-		.EncloseInSpaces(Keywords.AND)
+		.AppendSpace(_rightSide1)
+		.AppendSpace(Keywords.AND)
 		.Append(_rightSide2);
 }

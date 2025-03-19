@@ -40,9 +40,8 @@ public sealed class OverClause : ISqlElement
 			return;
 		}
 
-		buffer.AppendLine()
-			.OpenParenthesis()
-			.AppendLine();
+		buffer.AppendSpace()
+			.OpenParenthesis();
 
 		if (_partitionByAndOrderBy is not null)
 		{
@@ -57,7 +56,6 @@ public sealed class OverClause : ISqlElement
 			_orderByClause.FormatSql(buffer);
 		}
 
-		buffer.AppendLine()
-			.CloseParenthesis();
+		buffer.CloseParenthesis();
 	}
 }

@@ -12,12 +12,11 @@ internal sealed class SimpleCaseExprCore<TComparisonExpr, TReturnExpr>(
 	private readonly CaseElseExpr<TReturnExpr> _elseClause = elseClause;
 
 	internal void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.AppendLine(Keywords.CASE)
-		.Append(_expr)
-		.AppendLine()
-		.AppendLineSeparated(_whenClauses)
-		.AppendLine()
+		.AppendSpace(Keywords.CASE)
+		.AppendSpace(_expr)
+		.AppendSpaceSeparated(_whenClauses)
+		.AppendSpace()
 		.AppendSpace(Keywords.ELSE)
-		.AppendLine(_elseClause)
+		.AppendSpace(_elseClause)
 		.Append(Keywords.END);
 }

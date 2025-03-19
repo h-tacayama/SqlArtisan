@@ -7,8 +7,8 @@ public sealed class PartitionByClause(
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(Keywords.PARTITION)
-		.AppendLine(Keywords.BY)
-		.AppendCsvLines(_expressions);
+		.AppendSpace(Keywords.BY)
+		.AppendCsv(_expressions);
 
 	public PartitionByAndOrderBy ORDER_BY(
 		params IExprOrAliasOrSortOrder[] sortExpressions) =>

@@ -20,7 +20,7 @@ internal sealed class MultiLogicalConditionCore(
 
 			if (added)
 			{
-				buffer.EncloseInLines(_operator);
+				buffer.EncloseInSpaces(_operator);
 			}
 
 			buffer.EncloseInParentheses(_conditions[i]);

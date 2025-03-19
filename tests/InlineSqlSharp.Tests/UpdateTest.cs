@@ -19,12 +19,12 @@ public class UpdateTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("UPDATE");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("SET");
-		expected.AppendLine("t.code = 1");
-		expected.AppendLine(", t.name = 'a'");
-		expected.Append(", t.created_at = SYSDATE");
+		expected.Append("UPDATE ");
+		expected.Append("test_table t ");
+		expected.Append("SET ");
+		expected.Append("t.code = 1, ");
+		expected.Append("t.name = 'a', ");
+		expected.Append("t.created_at = SYSDATE");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}

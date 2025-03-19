@@ -10,8 +10,8 @@ internal sealed class SelectClause(
 	private readonly IExprOrAlias[] _selectList = selectList;
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.AppendLine(Keywords.SELECT)
-		.AppendLineIf(_hints.IsSome, _hints)
-		.AppendLineIf(_allOrDistinct.IsDistinct, _allOrDistinct)
-		.AppendCsvLines(_selectList);
+		.AppendSpace(Keywords.SELECT)
+		.AppendSpaceIf(_hints.IsSome, _hints)
+		.AppendSpaceIf(_allOrDistinct.IsDistinct, _allOrDistinct)
+		.AppendCsv(_selectList);
 }

@@ -17,16 +17,16 @@ public partial class WindowCumeDistTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("CUME_DIST()");
-		expected.AppendLine("OVER");
-		expected.AppendLine("(");
-		expected.AppendLine("PARTITION BY");
-		expected.AppendLine("t.code");
-		expected.AppendLine(", t.name");
-		expected.AppendLine("ORDER BY");
-		expected.AppendLine("t.code ASC");
-		expected.AppendLine(", t.name DESC");
+		expected.Append("SELECT ");
+		expected.Append("CUME_DIST() ");
+		expected.Append("OVER ");
+		expected.Append("(");
+		expected.Append("PARTITION BY ");
+		expected.Append("t.code, ");
+		expected.Append("t.name ");
+		expected.Append("ORDER BY ");
+		expected.Append("t.code ASC, ");
+		expected.Append("t.name DESC");
 		expected.Append(")");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -41,13 +41,13 @@ public partial class WindowCumeDistTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("CUME_DIST()");
-		expected.AppendLine("OVER");
-		expected.AppendLine("(");
-		expected.AppendLine("ORDER BY");
-		expected.AppendLine("t.code");
-		expected.AppendLine(", t.name");
+		expected.Append("SELECT ");
+		expected.Append("CUME_DIST() ");
+		expected.Append("OVER ");
+		expected.Append("(");
+		expected.Append("ORDER BY ");
+		expected.Append("t.code, ");
+		expected.Append("t.name");
 		expected.Append(")");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

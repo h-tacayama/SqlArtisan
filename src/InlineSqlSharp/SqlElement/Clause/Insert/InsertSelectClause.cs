@@ -8,9 +8,9 @@ public sealed class InsertSelectClause(Table table, IColumn[] columns)
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(Keywords.INSERT)
-		.AppendLine(Keywords.INTO)
-		.AppendLine(_table)
-		.OpenParenthesisBeforeLine()
-		.AppendCsvLines(_columns)
-		.CloseParenthesisAfterLine();
+		.AppendSpace(Keywords.INTO)
+		.AppendSpace(_table)
+		.OpenParenthesis()
+		.AppendCsv(_columns)
+		.CloseParenthesis();
 }

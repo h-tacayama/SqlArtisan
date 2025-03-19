@@ -19,13 +19,13 @@ public class RightJoinTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.name");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("RIGHT JOIN");
-		expected.AppendLine("test_table s");
-		expected.AppendLine("ON");
+		expected.Append("SELECT ");
+		expected.Append("t.name ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("RIGHT JOIN ");
+		expected.Append("test_table s ");
+		expected.Append("ON ");
 		expected.Append("t.code = s.code");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

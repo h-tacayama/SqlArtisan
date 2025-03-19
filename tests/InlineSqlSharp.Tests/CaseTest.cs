@@ -21,11 +21,11 @@ public class CaseTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("CASE");
-		expected.AppendLine("WHEN (t.name = 'a') THEN 'b'");
-		expected.AppendLine("WHEN (t.name = 'c') THEN 'd'");
-		expected.AppendLine("ELSE 'z'");
+		expected.Append("SELECT ");
+		expected.Append("CASE ");
+		expected.Append("WHEN (t.name = 'a') THEN 'b' ");
+		expected.Append("WHEN (t.name = 'c') THEN 'd' ");
+		expected.Append("ELSE 'z' ");
 		expected.Append("END");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -45,11 +45,11 @@ public class CaseTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("CASE");
-		expected.AppendLine("WHEN (t.code = 1) THEN TO_DATE('2001/02/03', 'YYYY/MM/DD')");
-		expected.AppendLine("WHEN (t.code = 2) THEN TO_DATE('2004/05/06', 'YYYY/MM/DD')");
-		expected.AppendLine("ELSE t.created_at");
+		expected.Append("SELECT ");
+		expected.Append("CASE ");
+		expected.Append("WHEN (t.code = 1) THEN TO_DATE('2001/02/03', 'YYYY/MM/DD') ");
+		expected.Append("WHEN (t.code = 2) THEN TO_DATE('2004/05/06', 'YYYY/MM/DD') ");
+		expected.Append("ELSE t.created_at ");
 		expected.Append("END");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -69,11 +69,11 @@ public class CaseTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("CASE");
-		expected.AppendLine("WHEN (t.code = 1) THEN 2");
-		expected.AppendLine("WHEN (t.code = 3) THEN 4");
-		expected.AppendLine("ELSE 99");
+		expected.Append("SELECT ");
+		expected.Append("CASE ");
+		expected.Append("WHEN (t.code = 1) THEN 2 ");
+		expected.Append("WHEN (t.code = 3) THEN 4 ");
+		expected.Append("ELSE 99 ");
 		expected.Append("END");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -94,12 +94,12 @@ public class CaseTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("CASE");
-		expected.AppendLine("t.code");
-		expected.AppendLine("WHEN 1 THEN 'a'");
-		expected.AppendLine("WHEN 2 THEN 'b'");
-		expected.AppendLine("ELSE 'z'");
+		expected.Append("SELECT ");
+		expected.Append("CASE ");
+		expected.Append("t.code ");
+		expected.Append("WHEN 1 THEN 'a' ");
+		expected.Append("WHEN 2 THEN 'b' ");
+		expected.Append("ELSE 'z' ");
 		expected.Append("END");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -120,12 +120,12 @@ public class CaseTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("CASE");
-		expected.AppendLine("t.name");
-		expected.AppendLine("WHEN 'a' THEN TO_DATE('2001/02/03', 'YYYY/MM/DD')");
-		expected.AppendLine("WHEN 'b' THEN TO_DATE('2004/05/06', 'YYYY/MM/DD')");
-		expected.AppendLine("ELSE t.created_at");
+		expected.Append("SELECT ");
+		expected.Append("CASE ");
+		expected.Append("t.name ");
+		expected.Append("WHEN 'a' THEN TO_DATE('2001/02/03', 'YYYY/MM/DD') ");
+		expected.Append("WHEN 'b' THEN TO_DATE('2004/05/06', 'YYYY/MM/DD') ");
+		expected.Append("ELSE t.created_at ");
 		expected.Append("END");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -146,12 +146,12 @@ public class CaseTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("CASE");
-		expected.AppendLine("t.name");
-		expected.AppendLine("WHEN 'a' THEN 1");
-		expected.AppendLine("WHEN 'b' THEN 2");
-		expected.AppendLine("ELSE 99");
+		expected.Append("SELECT ");
+		expected.Append("CASE ");
+		expected.Append("t.name ");
+		expected.Append("WHEN 'a' THEN 1 ");
+		expected.Append("WHEN 'b' THEN 2 ");
+		expected.Append("ELSE 99 ");
 		expected.Append("END");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

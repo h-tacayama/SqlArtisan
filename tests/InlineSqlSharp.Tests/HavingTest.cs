@@ -18,13 +18,13 @@ public class HavingTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.name");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("GROUP BY");
-		expected.AppendLine("t.name");
-		expected.AppendLine("HAVING");
+		expected.Append("SELECT ");
+		expected.Append("t.name ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("GROUP BY ");
+		expected.Append("t.name ");
+		expected.Append("HAVING ");
 		expected.Append("COUNT(t.name) > 1");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

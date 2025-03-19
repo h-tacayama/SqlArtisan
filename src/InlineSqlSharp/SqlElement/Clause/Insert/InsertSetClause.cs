@@ -20,13 +20,12 @@ public sealed class InsertSetClause : ISqlElement
 			rightSides[i] = _assignments[i].RightSide;
 		}
 
-		buffer.OpenParenthesisBeforeLine()
-			.AppendCsvLines(leftSides)
-			.CloseParenthesisAfterLine()
-			.AppendLine()
-			.AppendLine(Keywords.VALUES)
-			.OpenParenthesisBeforeLine()
-			.AppendCsvLines(rightSides)
-			.CloseParenthesisAfterLine();
+		buffer.OpenParenthesis()
+			.AppendCsv(leftSides)
+			.CloseParenthesis()
+			.EncloseInSpaces(Keywords.VALUES)
+			.OpenParenthesis()
+			.AppendCsv(rightSides)
+			.CloseParenthesis();
 	}
 }

@@ -13,7 +13,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TO_DATE('2001/02/03', 'YYYY/MM/DD')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -27,7 +27,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TRIM(t.name)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -41,7 +41,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TRIM(BOTH 'a' FROM t.name)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -55,7 +55,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TO_CHAR(t.created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -69,7 +69,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TO_CHAR(t.created_at, 'YYYY-MM-DD')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -83,7 +83,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TO_CHAR(t.code)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -97,7 +97,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TO_CHAR(t.code, '999')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -111,7 +111,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TO_NUMBER('01')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -125,7 +125,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TO_NUMBER('100.00', '9G999D99')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -139,7 +139,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TRUNC(t.created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -153,7 +153,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TRUNC(t.created_at, 'MONTH')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -167,7 +167,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TRUNC(t.code)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -181,7 +181,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("TRUNC(t.code, 2)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

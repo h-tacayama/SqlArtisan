@@ -19,18 +19,18 @@ public class InsertTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("INSERT INTO");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code");
-		expected.AppendLine(", t.name");
-		expected.AppendLine(", t.created_at");
-		expected.AppendLine(")");
-		expected.AppendLine("VALUES");
-		expected.AppendLine("(");
-		expected.AppendLine("1");
-		expected.AppendLine(", 'a'");
-		expected.AppendLine(", SYSDATE");
+		expected.Append("INSERT INTO ");
+		expected.Append("test_table t ");
+		expected.Append("(");
+		expected.Append("t.code, ");
+		expected.Append("t.name, ");
+		expected.Append("t.created_at");
+		expected.Append(") ");
+		expected.Append("VALUES ");
+		expected.Append("(");
+		expected.Append("1, ");
+		expected.Append("'a', ");
+		expected.Append("SYSDATE");
 		expected.Append(")");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -60,18 +60,18 @@ public class InsertTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("INSERT INTO");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code");
-		expected.AppendLine(", t.name");
-		expected.AppendLine(", t.created_at");
-		expected.AppendLine(")");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.code");
-		expected.AppendLine(", s.name");
-		expected.AppendLine(", s.created_at");
-		expected.AppendLine("FROM");
+		expected.Append("INSERT INTO ");
+		expected.Append("test_table t ");
+		expected.Append("(");
+		expected.Append("t.code, ");
+		expected.Append("t.name, ");
+		expected.Append("t.created_at");
+		expected.Append(") ");
+		expected.Append("SELECT ");
+		expected.Append("s.code, ");
+		expected.Append("s.name, ");
+		expected.Append("s.created_at ");
+		expected.Append("FROM ");
 		expected.Append("test_table s");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

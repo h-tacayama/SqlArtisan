@@ -20,7 +20,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("DECODE(t.name, 'a', 'A', 'b', 'B', 'unknown')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -41,13 +41,13 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.Append("DECODE(t.created_at")
-			.Append(", TO_DATE('2000/01/01', 'YYYY/MM/DD')")
-			.Append(", 'A'")
-			.Append(", TO_DATE('2000/01/02', 'YYYY/MM/DD')")
-			.Append(", 'B'")
-			.Append(", 'unknown')");
+		expected.Append("SELECT ")
+			.Append("DECODE(t.created_at, ")
+			.Append("TO_DATE('2000/01/01', 'YYYY/MM/DD'), ")
+			.Append("'A', ")
+			.Append("TO_DATE('2000/01/02', 'YYYY/MM/DD'), ")
+			.Append("'B', ")
+			.Append("'unknown')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
@@ -67,7 +67,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("DECODE(t.code, 1, 'A', 2, 'B', 'unknown')");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -88,13 +88,13 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.Append("DECODE(t.name")
-			.Append(", 'a'")
-			.Append(", TO_DATE('2000/01/01', 'YYYY/MM/DD')")
-			.Append(", 'b'")
-			.Append(", TO_DATE('2000/01/02', 'YYYY/MM/DD')")
-			.Append(", t.created_at)");
+		expected.Append("SELECT ")
+			.Append("DECODE(t.name, ")
+			.Append("'a', ")
+			.Append("TO_DATE('2000/01/01', 'YYYY/MM/DD'), ")
+			.Append("'b', ")
+			.Append("TO_DATE('2000/01/02', 'YYYY/MM/DD'), ")
+			.Append("t.created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
@@ -114,13 +114,13 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.Append("DECODE(t.created_at")
-			.Append(", TO_DATE('2000/01/01', 'YYYY/MM/DD')")
-			.Append(", TO_DATE('2000/01/10', 'YYYY/MM/DD')")
-			.Append(", TO_DATE('2000/01/02', 'YYYY/MM/DD')")
-			.Append(", TO_DATE('2000/01/20', 'YYYY/MM/DD')")
-			.Append(", t.created_at)");
+		expected.Append("SELECT ")
+			.Append("DECODE(t.created_at, ")
+			.Append("TO_DATE('2000/01/01', 'YYYY/MM/DD'), ")
+			.Append("TO_DATE('2000/01/10', 'YYYY/MM/DD'), ")
+			.Append("TO_DATE('2000/01/02', 'YYYY/MM/DD'), ")
+			.Append("TO_DATE('2000/01/20', 'YYYY/MM/DD'), ")
+			.Append("t.created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
@@ -140,13 +140,13 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.Append("DECODE(t.code")
-			.Append(", 1")
-			.Append(", TO_DATE('2000/01/01', 'YYYY/MM/DD')")
-			.Append(", 2")
-			.Append(", TO_DATE('2000/01/02', 'YYYY/MM/DD')")
-			.Append(", t.created_at)");
+		expected.Append("SELECT ")
+			.Append("DECODE(t.code, ")
+			.Append("1, ")
+			.Append("TO_DATE('2000/01/01', 'YYYY/MM/DD'), ")
+			.Append("2, ")
+			.Append("TO_DATE('2000/01/02', 'YYYY/MM/DD'), ")
+			.Append("t.created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
@@ -166,7 +166,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("DECODE(t.name, 'a', 1, 'b', 2, 999)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -187,13 +187,13 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.Append("DECODE(t.created_at")
-			.Append(", TO_DATE('2000/01/01', 'YYYY/MM/DD')")
-			.Append(", 1")
-			.Append(", TO_DATE('2000/01/02', 'YYYY/MM/DD')")
-			.Append(", 2")
-			.Append(", 999)");
+		expected.Append("SELECT ")
+			.Append("DECODE(t.created_at, ")
+			.Append("TO_DATE('2000/01/01', 'YYYY/MM/DD'), ")
+			.Append("1, ")
+			.Append("TO_DATE('2000/01/02', 'YYYY/MM/DD'), ")
+			.Append("2, ")
+			.Append("999)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
@@ -213,7 +213,7 @@ public partial class FunctionTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
+		expected.Append("SELECT ");
 		expected.Append("DECODE(t.code, 1, 10, 2, 20, 999)");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

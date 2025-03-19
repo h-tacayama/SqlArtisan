@@ -12,6 +12,6 @@ internal sealed class InSubqueryConditionCore(
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_leftSide)
 		.AppendSpaceIf(_isNot, Keywords.NOT)
-		.AppendLine(Keywords.IN)
+		.AppendSpace(Keywords.IN)
 		.EncloseInParentheses(_subquery);
 }

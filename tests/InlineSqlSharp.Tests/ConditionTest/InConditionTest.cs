@@ -18,9 +18,9 @@ public class InConditionTest
 	public void Character_IN_Single()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.name IN");
-		expected.AppendLine("(");
-		expected.AppendLine("'a'");
+		expected.Append("t.name IN ");
+		expected.Append("(");
+		expected.Append("'a'");
 		expected.Append(")");
 
 		_assert.Equal(_t.name.IN(L("a")), expected.ToString());
@@ -30,11 +30,11 @@ public class InConditionTest
 	public void Character_IN_Multi()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.name IN");
-		expected.AppendLine("(");
-		expected.AppendLine(":P_0");
-		expected.AppendLine(", :P_1");
-		expected.AppendLine(", :P_2");
+		expected.Append("t.name IN ");
+		expected.Append("(");
+		expected.Append(":P_0, ");
+		expected.Append(":P_1, ");
+		expected.Append(":P_2");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -47,9 +47,9 @@ public class InConditionTest
 	public void Character_NOT_IN_Single()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.name NOT IN");
-		expected.AppendLine("(");
-		expected.AppendLine("'a'");
+		expected.Append("t.name NOT IN ");
+		expected.Append("(");
+		expected.Append("'a'");
 		expected.Append(")");
 
 		_assert.Equal(_t.name.NOT_IN(L("a")), expected.ToString());
@@ -59,9 +59,9 @@ public class InConditionTest
 	public void DateTime_IN_Single()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.created_at IN");
-		expected.AppendLine("(");
-		expected.AppendLine(":P_0");
+		expected.Append("t.created_at IN ");
+		expected.Append("(");
+		expected.Append(":P_0");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -74,11 +74,11 @@ public class InConditionTest
 	public void DateTime_IN_Multi()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.created_at IN");
-		expected.AppendLine("(");
-		expected.AppendLine(":P_0");
-		expected.AppendLine(", :P_1");
-		expected.AppendLine(", :P_2");
+		expected.Append("t.created_at IN ");
+		expected.Append("(");
+		expected.Append(":P_0, ");
+		expected.Append(":P_1, ");
+		expected.Append(":P_2");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -94,9 +94,9 @@ public class InConditionTest
 	public void DateTime_NOT_IN_Single()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.created_at NOT IN");
-		expected.AppendLine("(");
-		expected.AppendLine(":P_0");
+		expected.Append("t.created_at NOT IN ");
+		expected.Append("(");
+		expected.Append(":P_0");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -109,9 +109,9 @@ public class InConditionTest
 	public void Numeric_IN_Single()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine("1");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append("1");
 		expected.Append(")");
 
 		_assert.Equal(_t.code.IN(L(1)), expected.ToString());
@@ -121,11 +121,11 @@ public class InConditionTest
 	public void Numeric_IN_Multi()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine(":P_0");
-		expected.AppendLine(", :P_1");
-		expected.AppendLine(", :P_2");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append(":P_0, ");
+		expected.Append(":P_1, ");
+		expected.Append(":P_2");
 		expected.Append(")");
 
 		_assert.Equal(_t.code.IN(P(1), P(2), P(3)),
@@ -137,9 +137,9 @@ public class InConditionTest
 	public void Numeric_NOT_IN_Single()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code NOT IN");
-		expected.AppendLine("(");
-		expected.AppendLine("1");
+		expected.Append("t.code NOT IN ");
+		expected.Append("(");
+		expected.Append("1");
 		expected.Append(")");
 
 		_assert.Equal(_t.code.NOT_IN(L(1)), expected.ToString());

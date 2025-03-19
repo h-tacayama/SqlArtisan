@@ -8,6 +8,6 @@ public sealed class WindowFunction(
 	private readonly OverClause _overClause = overClause;
 
 	public override void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.Append(_analyticFunction)
-		.PrependLine(_overClause);
+		.AppendSpace(_analyticFunction)
+		.Append(_overClause);
 }

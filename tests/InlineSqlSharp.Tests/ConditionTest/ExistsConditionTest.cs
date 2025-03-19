@@ -18,10 +18,10 @@ public class ExistsConditionTest
 	public void EXISTS_SELECT()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("EXISTS");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("1");
+		expected.Append("EXISTS ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("1");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -33,12 +33,12 @@ public class ExistsConditionTest
 	public void EXISTS_SELECT_FROM()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("EXISTS");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
+		expected.Append("EXISTS ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -50,24 +50,24 @@ public class ExistsConditionTest
 	public void EXISTS_SELECT_FROM_WHERE()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = :P_0");
-		expected.AppendLine(")");
-		expected.AppendLine("AND");
-		expected.AppendLine("(");
-		expected.AppendLine("EXISTS");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("t.name = :P_1");
-		expected.AppendLine(")");
-		expected.AppendLine(")");
-		expected.AppendLine("AND");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = :P_2");
+		expected.Append("(");
+		expected.Append("t.code = :P_0");
+		expected.Append(") ");
+		expected.Append("AND ");
+		expected.Append("(");
+		expected.Append("EXISTS ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("WHERE ");
+		expected.Append("t.name = :P_1");
+		expected.Append(")");
+		expected.Append(") ");
+		expected.Append("AND ");
+		expected.Append("(");
+		expected.Append("t.code = :P_2");
 		expected.Append(")");
 
 		// Check if parameter indexes are correctly incremented
@@ -84,14 +84,14 @@ public class ExistsConditionTest
 	public void NOT_EXISTS_SELECT_FROM_WHERE()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("NOT EXISTS");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("t.code = :P_0");
+		expected.Append("NOT EXISTS ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("WHERE ");
+		expected.Append("t.code = :P_0");
 		expected.Append(")");
 
 		_assert.Equal(

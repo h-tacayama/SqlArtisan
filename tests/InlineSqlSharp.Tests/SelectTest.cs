@@ -16,10 +16,10 @@ public class SelectTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("DISTINCT");
-		expected.AppendLine("t.code");
-		expected.AppendLine("FROM");
+		expected.Append("SELECT ");
+		expected.Append("DISTINCT ");
+		expected.Append("t.code ");
+		expected.Append("FROM ");
 		expected.Append("test_table t");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -37,11 +37,11 @@ public class SelectTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.code");
-		expected.AppendLine(", t.name");
-		expected.AppendLine(", t.created_at");
-		expected.AppendLine("FROM");
+		expected.Append("SELECT ");
+		expected.Append("t.code, ");
+		expected.Append("t.name, ");
+		expected.Append("t.created_at ");
+		expected.Append("FROM ");
 		expected.Append("test_table t");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -56,9 +56,9 @@ public class SelectTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("SYSDATE");
-		expected.AppendLine("FROM");
+		expected.Append("SELECT ");
+		expected.Append("SYSDATE ");
+		expected.Append("FROM ");
 		expected.Append("DUAL");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -79,14 +79,14 @@ public class SelectTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("'O''Reilly'");
-		expected.AppendLine(", 'O''Reilly'");
-		expected.AppendLine(", 1");
-		expected.AppendLine(", 2");
-		expected.AppendLine(", 3.3");
-		expected.AppendLine(", 4.4");
-		expected.Append(", 5.5");
+		expected.Append("SELECT ");
+		expected.Append("'O''Reilly', ");
+		expected.Append("'O''Reilly', ");
+		expected.Append("1, ");
+		expected.Append("2, ");
+		expected.Append("3.3, ");
+		expected.Append("4.4, ");
+		expected.Append("5.5");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
@@ -101,8 +101,8 @@ public class SelectTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("/*+ ANY HINT */");
+		expected.Append("SELECT ");
+		expected.Append("/*+ ANY HINT */ ");
 		expected.Append("t.code");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -119,9 +119,9 @@ public class SelectTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("/*+ ANY HINT */");
-		expected.AppendLine("DISTINCT");
+		expected.Append("SELECT ");
+		expected.Append("/*+ ANY HINT */ ");
+		expected.Append("DISTINCT ");
 		expected.Append("t.code");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -142,14 +142,14 @@ public class SelectTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine(":P_0");
-		expected.AppendLine(", :P_1");
-		expected.AppendLine(", :P_2");
-		expected.AppendLine(", :P_3");
-		expected.AppendLine(", :P_4");
-		expected.AppendLine(", :P_5");
-		expected.Append(", :P_6");
+		expected.Append("SELECT ");
+		expected.Append(":P_0, ");
+		expected.Append(":P_1, ");
+		expected.Append(":P_2, ");
+		expected.Append(":P_3, ");
+		expected.Append(":P_4, ");
+		expected.Append(":P_5, ");
+		expected.Append(":P_6");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 		Assert.Equal("abc", sql.Parameters[0].Value);
@@ -171,9 +171,9 @@ public class SelectTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("seq.CURRVAL");
-		expected.Append(", seq.NEXTVAL");
+		expected.Append("SELECT ");
+		expected.Append("seq.CURRVAL, ");
+		expected.Append("seq.NEXTVAL");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}

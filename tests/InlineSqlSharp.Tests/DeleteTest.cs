@@ -15,7 +15,7 @@ public class DeleteTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("DELETE FROM");
+		expected.Append("DELETE FROM ");
 		expected.Append("test_table t");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -30,9 +30,9 @@ public class DeleteTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("DELETE FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("WHERE");
+		expected.Append("DELETE FROM ");
+		expected.Append("test_table t ");
+		expected.Append("WHERE ");
 		expected.Append("t.code = 1");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

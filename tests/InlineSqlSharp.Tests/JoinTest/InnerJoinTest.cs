@@ -19,13 +19,13 @@ public class InnerJoinTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.name");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("INNER JOIN");
-		expected.AppendLine("test_table s");
-		expected.AppendLine("ON");
+		expected.Append("SELECT ");
+		expected.Append("t.name ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("INNER JOIN ");
+		expected.Append("test_table s ");
+		expected.Append("ON ");
 		expected.Append("t.code = s.code");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
@@ -46,21 +46,21 @@ public class InnerJoinTest
 			.Build();
 
 		StringBuilder expected = new();
-		expected.AppendLine("SELECT");
-		expected.AppendLine("t.name");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table t");
-		expected.AppendLine("INNER JOIN");
-		expected.AppendLine("test_table s");
-		expected.AppendLine("ON");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = s.code");
-		expected.AppendLine(")");
-		expected.AppendLine("AND");
-		expected.AppendLine("(");
-		expected.AppendLine("t.name = s.name");
-		expected.AppendLine(")");
-		expected.AppendLine("WHERE");
+		expected.Append("SELECT ");
+		expected.Append("t.name ");
+		expected.Append("FROM ");
+		expected.Append("test_table t ");
+		expected.Append("INNER JOIN ");
+		expected.Append("test_table s ");
+		expected.Append("ON ");
+		expected.Append("(");
+		expected.Append("t.code = s.code");
+		expected.Append(") ");
+		expected.Append("AND ");
+		expected.Append("(");
+		expected.Append("t.name = s.name");
+		expected.Append(") ");
+		expected.Append("WHERE ");
 		expected.Append("t.code > 1");
 
 		Assert.Equal(expected.ToString(), sql.Statement);

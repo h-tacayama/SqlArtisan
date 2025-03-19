@@ -7,6 +7,6 @@ public sealed class ExistsConditionCore(bool isNot, ISubquery subquery)
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpaceIf(_isNot, Keywords.NOT)
-		.AppendLine(Keywords.EXISTS)
+		.AppendSpace(Keywords.EXISTS)
 		.EncloseInParentheses(_subquery);
 }

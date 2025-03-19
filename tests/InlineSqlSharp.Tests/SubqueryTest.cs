@@ -22,10 +22,10 @@ public class SubqueryTest
 	public void Subquery_SELECT()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.code");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.code");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -37,12 +37,12 @@ public class SubqueryTest
 	public void Subquery_SELECT_FROM()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table s");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -54,13 +54,13 @@ public class SubqueryTest
 	public void Subquery_SELECT_DISTINCT_FROM()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("DISTINCT");
-		expected.AppendLine("s.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("DISTINCT ");
+		expected.Append("s.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table s");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -72,14 +72,14 @@ public class SubqueryTest
 	public void Subquery_SELECT_FROM_WHERE()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("s.code > 1");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table s ");
+		expected.Append("WHERE ");
+		expected.Append("s.code > 1");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -91,16 +91,16 @@ public class SubqueryTest
 	public void Subquery_SELECT_FROM_INNER_JOIN_ON()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
-		expected.AppendLine("INNER JOIN");
-		expected.AppendLine("test_table r");
-		expected.AppendLine("ON");
-		expected.AppendLine("s.code = r.code");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table s ");
+		expected.Append("INNER JOIN ");
+		expected.Append("test_table r ");
+		expected.Append("ON ");
+		expected.Append("s.code = r.code");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -112,11 +112,11 @@ public class SubqueryTest
 	public void Subquery_SELECT_Hints()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("/*+ ANY HINT */");
-		expected.AppendLine("s.code");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("/*+ ANY HINT */ ");
+		expected.Append("s.code");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -128,12 +128,12 @@ public class SubqueryTest
 	public void Subquery_SELECT_Hints_DISTINCT()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("/*+ ANY HINT */");
-		expected.AppendLine("DISTINCT");
-		expected.AppendLine("s.code");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("/*+ ANY HINT */ ");
+		expected.Append("DISTINCT ");
+		expected.Append("s.code");
 		expected.Append(")");
 
 		_assert.Equal(

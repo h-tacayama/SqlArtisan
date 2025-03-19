@@ -20,24 +20,24 @@ public class InSubqueryConditionTest
 	public void Character_IN_Subquery_With_Parameter()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = :P_0");
-		expected.AppendLine(")");
-		expected.AppendLine("AND");
-		expected.AppendLine("(");
-		expected.AppendLine("t.name IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.name");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
-		expected.AppendLine("WHERE");
-		expected.AppendLine("s.code = :P_1");
-		expected.AppendLine(")");
-		expected.AppendLine(")");
-		expected.AppendLine("AND");
-		expected.AppendLine("(");
-		expected.AppendLine("t.code = :P_2");
+		expected.Append("(");
+		expected.Append("t.code = :P_0");
+		expected.Append(") ");
+		expected.Append("AND ");
+		expected.Append("(");
+		expected.Append("t.name IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.name ");
+		expected.Append("FROM ");
+		expected.Append("test_table s ");
+		expected.Append("WHERE ");
+		expected.Append("s.code = :P_1");
+		expected.Append(")");
+		expected.Append(") ");
+		expected.Append("AND ");
+		expected.Append("(");
+		expected.Append("t.code = :P_2");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -53,12 +53,12 @@ public class InSubqueryConditionTest
 	public void Character_NOT_IN_Subquery()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.name NOT IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.name");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
+		expected.Append("t.name NOT IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.name ");
+		expected.Append("FROM ");
+		expected.Append("test_table s");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -70,12 +70,12 @@ public class InSubqueryConditionTest
 	public void DateTime_IN_Subquery()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.created_at IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.created_at");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
+		expected.Append("t.created_at IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.created_at ");
+		expected.Append("FROM ");
+		expected.Append("test_table s");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -87,12 +87,12 @@ public class InSubqueryConditionTest
 	public void DateTime_NOT_IN_Subquery()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.created_at NOT IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.created_at");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
+		expected.Append("t.created_at NOT IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.created_at ");
+		expected.Append("FROM ");
+		expected.Append("test_table s");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -104,12 +104,12 @@ public class InSubqueryConditionTest
 	public void Numeric_IN_Subquery()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
+		expected.Append("t.code IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table s");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -121,12 +121,12 @@ public class InSubqueryConditionTest
 	public void Numeric_NOT_IN_Subquery()
 	{
 		StringBuilder expected = new();
-		expected.AppendLine("t.code NOT IN");
-		expected.AppendLine("(");
-		expected.AppendLine("SELECT");
-		expected.AppendLine("s.code");
-		expected.AppendLine("FROM");
-		expected.AppendLine("test_table s");
+		expected.Append("t.code NOT IN ");
+		expected.Append("(");
+		expected.Append("SELECT ");
+		expected.Append("s.code ");
+		expected.Append("FROM ");
+		expected.Append("test_table s");
 		expected.Append(")");
 
 		_assert.Equal(
