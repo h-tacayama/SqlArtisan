@@ -61,6 +61,24 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer AppendSelectList(IExprOrAlias[] selectList)
+	{
+		if (selectList.Length == 0)
+		{
+			return this;
+		}
+
+		selectList[0].FormatAsSelect(this);
+
+		for (int i = 1; i < selectList.Length; i++)
+		{
+			_statement.Append(", ");
+			selectList[i].FormatAsSelect(this);
+		}
+
+		return this;
+	}
+
 	internal SqlBuildingBuffer AppendSpace(ISqlElement element)
 	{
 		element.FormatSql(this);

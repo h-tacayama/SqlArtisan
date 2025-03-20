@@ -8,6 +8,28 @@ public class SelectTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
+	public void SELECT_ColumnAliases_CorrectSql()
+	{
+		SqlCommand sql =
+			SELECT(
+				_t.code.AS("code"),
+				_t.name.AS("name"),
+				_t.created_at.AS("\"登録日\""))
+			.FROM(_t)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.Append("SELECT ");
+		expected.Append("t.code AS code, ");
+		expected.Append("t.name AS name, ");
+		expected.Append("t.created_at AS \"登録日\" ");
+		expected.Append("FROM ");
+		expected.Append("test_table t");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
 	public void SELECT_DistinctFromClause_CorrectSql()
 	{
 		SqlCommand sql =

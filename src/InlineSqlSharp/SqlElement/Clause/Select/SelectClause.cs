@@ -13,5 +13,5 @@ internal sealed class SelectClause(
 		.AppendSpace(Keywords.SELECT)
 		.AppendSpaceIf(_hints.IsSome, _hints)
 		.AppendSpaceIf(_allOrDistinct.IsDistinct, _allOrDistinct)
-		.AppendCsv(_selectList);
+		.AppendSelectList(_selectList);
 }
