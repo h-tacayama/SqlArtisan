@@ -114,42 +114,6 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_WithHints_CorrectSql()
-	{
-		SqlCommand sql =
-			SELECT(
-				HINTS("/*+ ANY HINT */"),
-				_t.code)
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("/*+ ANY HINT */ ");
-		expected.Append("t.code");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
-
-	[Fact]
-	public void SELECT_WithHintsAndDistinct_CorrectSql()
-	{
-		SqlCommand sql =
-			SELECT(
-				HINTS("/*+ ANY HINT */"),
-				DISTINCT,
-				_t.code)
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("/*+ ANY HINT */ ");
-		expected.Append("DISTINCT ");
-		expected.Append("t.code");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
-
-	[Fact]
 	public void SELECT_ParameterValues_CorrectSql()
 	{
 		SqlCommand sql =
@@ -196,6 +160,61 @@ public class SelectTest
 		expected.Append("SELECT ");
 		expected.Append("seq.CURRVAL, ");
 		expected.Append("seq.NEXTVAL");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_TableAliasWithDoubleQuotes_CorrectSql()
+	{
+		test_table _t = new("\"t s\"");
+
+		SqlCommand sql =
+			SELECT(_t.code)
+			.FROM(_t)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.Append("SELECT ");
+		expected.Append("\"t s\".code ");
+		expected.Append("FROM ");
+		expected.Append("test_table \"t s\"");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_WithHints_CorrectSql()
+	{
+		SqlCommand sql =
+			SELECT(
+				HINTS("/*+ ANY HINT */"),
+				_t.code)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.Append("SELECT ");
+		expected.Append("/*+ ANY HINT */ ");
+		expected.Append("t.code");
+
+		Assert.Equal(expected.ToString(), sql.Statement);
+	}
+
+	[Fact]
+	public void SELECT_WithHintsAndDistinct_CorrectSql()
+	{
+		SqlCommand sql =
+			SELECT(
+				HINTS("/*+ ANY HINT */"),
+				DISTINCT,
+				_t.code)
+			.Build();
+
+		StringBuilder expected = new();
+		expected.Append("SELECT ");
+		expected.Append("/*+ ANY HINT */ ");
+		expected.Append("DISTINCT ");
+		expected.Append("t.code");
 
 		Assert.Equal(expected.ToString(), sql.Statement);
 	}
