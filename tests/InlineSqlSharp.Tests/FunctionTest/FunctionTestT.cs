@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_TO_DATE()
+	public void TO_DATE_CharacterValueWithFormat_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TO_DATE(L("2001/02/03"), L("YYYY/MM/DD")))
@@ -20,7 +20,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TRIM()
+	public void TRIM_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TRIM(_t.name))
@@ -34,7 +34,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TRIM_TrimChar()
+	public void TRIM_CharacterValueWithTrimChar_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TRIM(_t.name, L("a")))
@@ -48,7 +48,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TO_CHAR_DateTime_NoFormat()
+	public void TO_CHAR_DateTimeValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TO_CHAR(_t.created_at))
@@ -62,7 +62,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TO_CHAR_DateTime()
+	public void TO_CHAR_DateTimValueWithFormat_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TO_CHAR(_t.created_at, L("YYYY-MM-DD")))
@@ -76,7 +76,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TO_CHAR_Numeric_NoFormat()
+	public void TO_CHAR_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TO_CHAR(_t.code))
@@ -90,7 +90,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TO_CHAR_Numeric()
+	public void TO_CHAR_NumericValueWithFormat_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TO_CHAR(_t.code, L("999")))
@@ -104,7 +104,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TO_NUMBER_Numeric_NoFormat()
+	public void TO_NUMBER_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TO_NUMBER(L("01")))
@@ -118,7 +118,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TO_NUMBER()
+	public void TO_NUMBER_CharacterValueWithFormat_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TO_NUMBER(L("100.00"), L("9G999D99")))
@@ -132,7 +132,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TRUNC_DateTime()
+	public void TRUNC_DateTimeValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TRUNC(_t.created_at))
@@ -146,7 +146,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TRUNC_DateTime_Format()
+	public void TRUNC_DateTimeValueWithFormat_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TRUNC(_t.created_at, L("MONTH")))
@@ -160,7 +160,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TRUNC_Numeric()
+	public void TRUNC_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TRUNC(_t.code))
@@ -174,7 +174,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_TRUNC_Numeric_DecimalPlaces()
+	public void TRUNC_NumericValueWithDecimalPlaces_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(TRUNC(_t.code, L(2)))

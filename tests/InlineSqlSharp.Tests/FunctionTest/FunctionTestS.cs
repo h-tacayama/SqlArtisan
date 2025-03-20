@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_SUBSTR()
+	public void SUBSTR_CharacterPosition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(SUBSTR(_t.name, L(1)))
@@ -20,7 +20,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_SUBSTR_Length()
+	public void SUBSTR_CharacterPositionLength_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(SUBSTR(_t.name, L(1), L(3)))
@@ -34,7 +34,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_SUBSTRB()
+	public void SUBSTRB_CharacterPosition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(SUBSTRB(_t.name, L(1)))
@@ -48,7 +48,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_SUBSTRB_Length()
+	public void SUBSTRB_CharacterPositionLength_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(SUBSTRB(_t.name, L(1), L(3)))
@@ -62,7 +62,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_SUM()
+	public void SUM_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(SUM(_t.code))
@@ -76,7 +76,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_SUM_DISTINCT()
+	public void SUM_DISTINCT_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(SUM(DISTINCT, _t.code))
@@ -90,7 +90,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_SYSDATE()
+	public void SYSDATE_NoParameters_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(SYSDATE)
@@ -104,7 +104,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_SYSTIMESTAMP()
+	public void SYSTIMESTAMP_NoParameters_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(SYSTIMESTAMP)

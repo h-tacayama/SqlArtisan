@@ -8,7 +8,7 @@ public class OrderByTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void ORDER_BY_Character()
+	public void ORDER_BY_CharacterColumns_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.name)
@@ -45,7 +45,7 @@ public class OrderByTest
 	}
 
 	[Fact]
-	public void ORDER_BY_DateTime()
+	public void ORDER_BY_DateTimeColumns_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.created_at)
@@ -82,7 +82,7 @@ public class OrderByTest
 	}
 
 	[Fact]
-	public void ORDER_BY_Numeric()
+	public void ORDER_BY_NumericColumns_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -119,7 +119,7 @@ public class OrderByTest
 	}
 
 	[Fact]
-	public void ORDER_BY_Alias()
+	public void ORDER_BY_ColumnAliases_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)

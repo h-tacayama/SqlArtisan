@@ -8,7 +8,7 @@ public class GroupByTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void GROUP_BY_Single()
+	public void GROUP_BY_SingleColumn_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.name)
@@ -28,7 +28,7 @@ public class GroupByTest
 	}
 
 	[Fact]
-	public void GROUP_BY_Multi()
+	public void GROUP_BY_MultipleColumns_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(

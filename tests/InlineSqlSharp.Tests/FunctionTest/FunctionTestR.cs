@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_REGEXP_COUNT()
+	public void REGEXP_COUNT_Pattern_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_COUNT(_t.name, L("[abc]")))
@@ -20,7 +20,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_COUNT_Position()
+	public void REGEXP_COUNT_PatternPosition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_COUNT(_t.name, L("[abc]"), L(2)))
@@ -34,7 +34,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_COUNT_Position_Options()
+	public void REGEXP_COUNT_PatternPositionOptions_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_COUNT(_t.name, L("[abc]"), L(2), RegexpOptions.CaseInsensitive))
@@ -48,7 +48,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_REPLACE()
+	public void REGEXP_REPLACE_PatternReplacement_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x")))
@@ -62,7 +62,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_REPLACE_Position()
+	public void REGEXP_REPLACE_PatternReplacementPosition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x"), L(2)))
@@ -76,7 +76,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_REPLACE_Position_Occurrence()
+	public void REGEXP_REPLACE_PatternReplacementPositionOccurrence_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x"), L(2), L(3)))
@@ -90,7 +90,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_REPLACE_Position_Occurrence_Options()
+	public void REGEXP_REPLACE_PatternReplacementPositionOccurrenceOptions_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x"), L(2), L(3), RegexpOptions.CaseInsensitive))
@@ -104,7 +104,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_SUBSTR()
+	public void REGEXP_SUBSTR_Pattern_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]")))
@@ -118,7 +118,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_SUBSTR_Position()
+	public void REGEXP_SUBSTR_PatternPosition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2)))
@@ -132,7 +132,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_SUBSTR_Position_Occurrence()
+	public void REGEXP_SUBSTR_PatternPositionOccurrence_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2), L(3)))
@@ -146,7 +146,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_SUBSTR_Position_Occurrence_Options()
+	public void REGEXP_SUBSTR_PatternPositionOccurrenceOptions_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2), L(3), RegexpOptions.CaseInsensitive))
@@ -160,7 +160,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REGEXP_SUBSTR_Position_Occurrence_Options_SubPattern()
+	public void REGEXP_SUBSTR_PatternPositionOccurrenceOptionsSubPattern_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2), L(3), RegexpOptions.None, L(1)))
@@ -174,7 +174,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_REPLACE()
+	public void REPLACE_CharacterSearchAndReplacement_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(REPLACE(_t.name, L("a"), L("b")))
@@ -188,7 +188,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_RPAD()
+	public void RPAD_CharacterLength_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(RPAD(_t.name, L(10)))
@@ -202,7 +202,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_RPAD_Padding()
+	public void RPAD_CharacterLengthPadding_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(RPAD(_t.name, L(10), L("a")))
@@ -216,7 +216,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_RTRIM()
+	public void RTRIM_Character_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(RTRIM(_t.name))
@@ -230,7 +230,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_RTRIM_TrimChars()
+	public void RTRIM_CharacterTrimChars_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(RTRIM(_t.name, L("a")))

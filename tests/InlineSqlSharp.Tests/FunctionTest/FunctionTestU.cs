@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_UPPER()
+	public void UPPER_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(UPPER(_t.name))

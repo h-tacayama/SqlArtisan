@@ -8,7 +8,7 @@ public class DeleteTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void DELETE_FROM_Test()
+	public void DELETE_FROM_SimpleTable_CorrectSql()
 	{
 		SqlCommand sql =
 			DELETE_FROM(_t)
@@ -22,7 +22,7 @@ public class DeleteTest
 	}
 
 	[Fact]
-	public void DELETE_FROM_WHERE()
+	public void DELETE_FROM_WithWhereClause_CorrectSql()
 	{
 		SqlCommand sql =
 			DELETE_FROM(_t)

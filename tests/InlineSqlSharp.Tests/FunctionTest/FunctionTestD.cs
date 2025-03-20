@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_DECODE_Character_Character()
+	public void DECODE_CharacterToCharacter_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -27,7 +27,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_DECODE_Character_DateTime()
+	public void DECODE_DateTimeToCharacter_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -53,7 +53,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_DECODE_Character_Numeric()
+	public void DECODE_NumericToCharacter_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -74,7 +74,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_DECODE_DateTime_Character()
+	public void DECODE_CharacterToDateTime_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -100,7 +100,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_DECODE_DateTime_DateTime()
+	public void DECODE_DateTimeToDateTime_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -126,7 +126,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_DECODE_DateTime_Numeric()
+	public void DECODE_NumericToDateTime_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -152,7 +152,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_DECODE_Numeric_Character()
+	public void DECODE_CharacterToNumeric_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -173,7 +173,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_DECODE_Numeric_DateTime()
+	public void DECODE_DateTimeToNumeric_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -199,7 +199,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_DECODE_Numeric_Numeric()
+	public void DECODE_NumericToNumeric_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(

@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_LAST_DAY()
+	public void LAST_DAY_DateTimeValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LAST_DAY(_t.created_at))
@@ -20,7 +20,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LEAST_Character()
+	public void LEAST_CharacterValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LEAST(_t.name, L("test"), _t.name))
@@ -34,7 +34,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LEAST_DateTime()
+	public void LEAST_DateTimeValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LEAST(
@@ -51,7 +51,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LEAST_Numeric()
+	public void LEAST_NumericValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LEAST(_t.code, L(10), _t.code))
@@ -65,7 +65,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LENGTH()
+	public void LENGTH_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LENGTH(_t.name))
@@ -79,7 +79,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LENGTHB()
+	public void LENGTHB_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LENGTHB(_t.name))
@@ -93,7 +93,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LOWER()
+	public void LOWER_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LOWER(_t.name))
@@ -107,7 +107,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LPAD()
+	public void LPAD_CharacterAndLength_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LPAD(_t.name, L(10)))
@@ -121,7 +121,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LPAD_Padding()
+	public void LPAD_CharacterLengthAndPadding_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LPAD(_t.name, L(10), L("a")))
@@ -135,7 +135,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LTRIM()
+	public void LTRIM_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LTRIM(_t.name))
@@ -149,7 +149,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_LTRIM_TrimChars()
+	public void LTRIM_CharacterAndTrimChars_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(LTRIM(_t.name, L("a")))

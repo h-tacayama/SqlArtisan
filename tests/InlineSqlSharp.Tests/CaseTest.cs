@@ -8,7 +8,7 @@ public class CaseTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_SEARCH_CASE_Character()
+	public void CASE_SearchCaseWithCharacter_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -32,7 +32,7 @@ public class CaseTest
 	}
 
 	[Fact]
-	public void SELECT_SEARCH_CASE_DateTime()
+	public void CASE_SearchCaseWithDateTime_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -56,7 +56,7 @@ public class CaseTest
 	}
 
 	[Fact]
-	public void SELECT_SEARCH_CASE_Numeric()
+	public void CASE_SearchCaseWithNumeric_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -80,7 +80,7 @@ public class CaseTest
 	}
 
 	[Fact]
-	public void SELECT_SIMPLE_CASE_Character()
+	public void CASE_SimpleCaseWithCharacter_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -106,7 +106,7 @@ public class CaseTest
 	}
 
 	[Fact]
-	public void SELECT_SIMPLE_CASE_DateTime()
+	public void CASE_SimpleCaseWithDateTime_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -132,7 +132,7 @@ public class CaseTest
 	}
 
 	[Fact]
-	public void SELECT_SIMPLE_CASE_Numeric()
+	public void CASE_SimpleCaseWithNumeric_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(

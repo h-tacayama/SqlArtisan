@@ -8,7 +8,7 @@ public class HavingTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void HAVING_Single()
+	public void HAVING_SingleCondition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.name)

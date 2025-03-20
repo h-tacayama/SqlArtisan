@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_MAX_Character()
+	public void MAX_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(MAX(_t.name))
@@ -20,7 +20,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_MAX_DateTime()
+	public void MAX_DateTimeValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(MAX(_t.created_at))
@@ -34,7 +34,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_MAX_Numeric()
+	public void MAX_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(MAX(_t.code))
@@ -48,7 +48,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_MIN_Character()
+	public void MIN_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(MIN(_t.name))
@@ -62,7 +62,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_MIN_DateTime()
+	public void MIN_DateTimeValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(MIN(_t.created_at))
@@ -76,7 +76,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_MIN_Numeric()
+	public void MIN_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(MIN(_t.code))
@@ -90,7 +90,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_MOD()
+	public void MOD_NumericValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(MOD(_t.code, L(3)))
@@ -104,7 +104,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_MONTHS_BETWEEN()
+	public void MONTHS_BETWEEN_DateTimeValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(MONTHS_BETWEEN(

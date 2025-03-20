@@ -15,7 +15,7 @@ public class LogicalConditionTest
 	}
 
 	[Fact]
-	public void And()
+	public void AND_MultipleConditions_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
@@ -32,7 +32,7 @@ public class LogicalConditionTest
 	}
 
 	[Fact]
-	public void Or()
+	public void OR_MultipleConditions_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
@@ -49,7 +49,7 @@ public class LogicalConditionTest
 	}
 
 	[Fact]
-	public void And_Or()
+	public void AND_WithNestedORConditions_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
@@ -80,7 +80,7 @@ public class LogicalConditionTest
 	}
 
 	[Fact]
-	public void Or_And()
+	public void OR_WithNestedANDConditions_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
@@ -111,7 +111,7 @@ public class LogicalConditionTest
 	}
 
 	[Fact]
-	public void Not()
+	public void NOT_SingleCondition_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("NOT ");

@@ -8,7 +8,7 @@ public partial class WindowRankTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_RANK_OVER_PARTITION_BY_ORDER_BY()
+	public void RANK_OVER_PartitionByOrderBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(RANK().OVER(
@@ -33,7 +33,7 @@ public partial class WindowRankTest
 	}
 
 	[Fact]
-	public void SELECT_RANK_OVER_ORDER_BY()
+	public void RANK_OVER_OrderBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(RANK().OVER(

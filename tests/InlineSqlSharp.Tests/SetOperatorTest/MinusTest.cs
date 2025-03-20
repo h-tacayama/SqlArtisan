@@ -8,7 +8,7 @@ public class MinusTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_MINUS()
+	public void MINUS_SimpleSelect_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(L(1))
@@ -27,7 +27,7 @@ public class MinusTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_MINUS()
+	public void MINUS_SelectWithFrom_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -49,7 +49,7 @@ public class MinusTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_MINUS()
+	public void MINUS_SelectWithFromWhere_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -74,7 +74,7 @@ public class MinusTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_GROUP_BY_MINUS()
+	public void MINUS_SelectWithFromWhereGroupBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -102,7 +102,7 @@ public class MinusTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_GROUP_BY_HAVING_MINUS()
+	public void MINUS_SelectWithFromWhereGroupByHaving_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -133,7 +133,7 @@ public class MinusTest
 	}
 
 	[Fact]
-	public void SELECT_MINUS_ALL()
+	public void MINUS_ALL_SimpleSelect_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(L(1))

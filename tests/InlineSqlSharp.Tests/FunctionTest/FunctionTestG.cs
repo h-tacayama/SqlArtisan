@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-	public void SELECT_GREATEST_Character_Column()
+	public void GREATEST_CharacterValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(GREATEST(_t.name, L("test"), _t.name))
@@ -20,7 +20,7 @@ public partial class FunctionTest
 	}
 
     [Fact]
-	public void SELECT_GREATEST_DateTime()
+	public void GREATEST_DateTimeValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(GREATEST(
@@ -37,7 +37,7 @@ public partial class FunctionTest
 	}
 
     [Fact]
-	public void SELECT_GREATEST_Numeric()
+	public void GREATEST_NumericValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(GREATEST(_t.code, L(10), _t.code))

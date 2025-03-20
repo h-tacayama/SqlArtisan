@@ -8,7 +8,7 @@ public partial class FunctionTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_ABS()
+	public void ABS_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(ABS(_t.code))
@@ -22,7 +22,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_ADD_MONTHS()
+	public void ADD_MONTHS_DateTimeAndNumeric_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(ADD_MONTHS(_t.created_at, L(3)))
@@ -36,7 +36,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_AVG()
+	public void AVG_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(AVG(_t.code))
@@ -50,7 +50,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_AVG_DISTINCT()
+	public void AVG_DISTINCT_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(AVG(DISTINCT, _t.code))

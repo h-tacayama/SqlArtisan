@@ -8,7 +8,7 @@ public class UpdateTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void UPDATE_SET()
+	public void UPDATE_SetMultipleColumns_CorrectSql()
 	{
 		SqlCommand sql =
 			UPDATE(_t)
@@ -30,7 +30,7 @@ public class UpdateTest
 	}
 
 	[Fact]
-	public void UPDATE_SET_Inequality_then_Throw_ArgumentException()
+	public void UPDATE_SetWithInequality_ThrowsArgumentException()
 	{
 		Assert.Throws<ArgumentException>(() =>
 		{

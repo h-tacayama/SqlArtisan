@@ -15,7 +15,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void Character_IN_Single()
+	public void IN_CharacterValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.name IN ");
@@ -27,7 +27,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void Character_IN_Multi()
+	public void IN_CharacterValues_WithMultipleValues_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.name IN ");
@@ -44,7 +44,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void Character_NOT_IN_Single()
+	public void NOT_IN_CharacterValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.name NOT IN ");
@@ -56,7 +56,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void DateTime_IN_Single()
+	public void IN_DateTimeValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.created_at IN ");
@@ -71,7 +71,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void DateTime_IN_Multi()
+	public void IN_DateTimeValues_WithMultipleValues_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.created_at IN ");
@@ -91,7 +91,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void DateTime_NOT_IN_Single()
+	public void NOT_IN_DateTimeValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.created_at NOT IN ");
@@ -106,7 +106,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void Numeric_IN_Single()
+	public void IN_NumericValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");
@@ -118,7 +118,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void Numeric_IN_Multi()
+	public void IN_NumericValues_WithMultipleValues_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");
@@ -134,7 +134,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void Numeric_NOT_IN_Single()
+	public void NOT_IN_NumericValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code NOT IN ");

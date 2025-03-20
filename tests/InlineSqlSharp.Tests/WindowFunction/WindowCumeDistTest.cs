@@ -8,7 +8,7 @@ public partial class WindowCumeDistTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_CUME_DIST_OVER_PARTITION_BY_ORDER_BY()
+	public void CUME_DIST_OVER_PartitionByOrderBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(CUME_DIST().OVER(
@@ -33,7 +33,7 @@ public partial class WindowCumeDistTest
 	}
 
 	[Fact]
-	public void SELECT_CUME_DIST_OVER_ORDER_BY()
+	public void CUME_DIST_OVER_OrderBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(CUME_DIST().OVER(

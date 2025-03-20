@@ -8,114 +8,34 @@ public class ArithmeticOperatorTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_Addition()
-	{
-		SqlCommand sql =
-			SELECT(L(1) + L(2))
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("(1 + 2)");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
+	public void Addition_NumericValues_CorrectSql() =>
+		Assert.Equal("SELECT (1 + 2)", SELECT(L(1) + L(2)).Build().Statement);
 
 	[Fact]
-	public void SELECT_Subtraction()
-	{
-		SqlCommand sql =
-			SELECT(L(1) - L(2))
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("(1 - 2)");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
+	public void Subtraction_NumericValues_CorrectSql() =>
+		Assert.Equal("SELECT (1 - 2)", SELECT(L(1) - L(2)).Build().Statement);
 
 	[Fact]
-	public void SELECT_Multiplication()
-	{
-		SqlCommand sql =
-			SELECT(L(1) * L(2))
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("(1 * 2)");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
+	public void Multiplication_NumericValues_CorrectSql() =>
+		Assert.Equal("SELECT (1 * 2)", SELECT(L(1) * L(2)).Build().Statement);
 
 	[Fact]
-	public void SELECT_Division()
-	{
-		SqlCommand sql =
-			SELECT(L(1) / L(2))
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("(1 / 2)");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
+	public void Division_NumericValues_CorrectSql() =>
+		Assert.Equal("SELECT (1 / 2)", SELECT(L(1) / L(2)).Build().Statement);
 
 	[Fact]
-	public void SELECT_Modulus()
-	{
-		SqlCommand sql =
-			SELECT(L(1) % L(2))
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("(1 % 2)");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
+	public void Modulus_NumericValues_CorrectSql() =>
+		Assert.Equal("SELECT (1 % 2)", SELECT(L(1) % L(2)).Build().Statement);
 
 	[Fact]
-	public void SELECT_DateOffset_Addition()
-	{
-		SqlCommand sql =
-			SELECT(_t.created_at + L(1))
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("(t.created_at + 1)");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
+	public void DateOffset_AdditionWithNumber_CorrectSql() =>
+		Assert.Equal("SELECT (t.created_at + 1)", SELECT(_t.created_at + L(1)).Build().Statement);
 
 	[Fact]
-	public void SELECT_DateOffset_Subtraction()
-	{
-		SqlCommand sql =
-			SELECT(_t.created_at - L(1))
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("(t.created_at - 1)");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
+	public void DateOffset_SubtractionWithNumber_CorrectSql() =>
+		Assert.Equal("SELECT (t.created_at - 1)", SELECT(_t.created_at - L(1)).Build().Statement);
 
 	[Fact]
-	public void SELECT_DateDiff_Subtraction()
-	{
-		SqlCommand sql =
-			SELECT((_t.created_at - _t.created_at) + L(1))
-			.Build();
-
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("((t.created_at - t.created_at) + 1)");
-
-		Assert.Equal(expected.ToString(), sql.Statement);
-	}
+	public void DateDiff_SubtractionAndAddition_CorrectSql() =>
+		Assert.Equal("SELECT ((t.created_at - t.created_at) + 1)", SELECT((_t.created_at - _t.created_at) + L(1)).Build().Statement);
 }

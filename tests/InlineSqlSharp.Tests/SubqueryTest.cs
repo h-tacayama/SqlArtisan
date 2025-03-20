@@ -19,7 +19,7 @@ public class SubqueryTest
 	}
 
 	[Fact]
-	public void Subquery_SELECT()
+	public void Subquery_SimpleSelect_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");
@@ -34,7 +34,7 @@ public class SubqueryTest
 	}
 
 	[Fact]
-	public void Subquery_SELECT_FROM()
+	public void Subquery_SelectWithFrom_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");
@@ -51,7 +51,7 @@ public class SubqueryTest
 	}
 
 	[Fact]
-	public void Subquery_SELECT_DISTINCT_FROM()
+	public void Subquery_SelectDistinctWithFrom_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");
@@ -69,7 +69,7 @@ public class SubqueryTest
 	}
 
 	[Fact]
-	public void Subquery_SELECT_FROM_WHERE()
+	public void Subquery_SelectWithFromAndWhere_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");
@@ -88,7 +88,7 @@ public class SubqueryTest
 	}
 
 	[Fact]
-	public void Subquery_SELECT_FROM_INNER_JOIN_ON()
+	public void Subquery_SelectWithFromAndJoin_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");
@@ -109,7 +109,7 @@ public class SubqueryTest
 	}
 
 	[Fact]
-	public void Subquery_SELECT_Hints()
+	public void Subquery_SelectWithHints_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");
@@ -125,7 +125,7 @@ public class SubqueryTest
 	}
 
 	[Fact]
-	public void Subquery_SELECT_Hints_DISTINCT()
+	public void Subquery_SelectWithHintsAndDistinct_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");

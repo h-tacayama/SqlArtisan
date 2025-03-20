@@ -8,7 +8,7 @@ public class UnionTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_UNION()
+	public void UNION_SimpleSelect_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(L(1))
@@ -27,7 +27,7 @@ public class UnionTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_UNION()
+	public void UNION_SelectWithFrom_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -49,7 +49,7 @@ public class UnionTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_UNION()
+	public void UNION_SelectWithFromWhere_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -74,7 +74,7 @@ public class UnionTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_GROUP_BY_UNION()
+	public void UNION_SelectWithFromWhereGroupBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -102,7 +102,7 @@ public class UnionTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_GROUP_BY_HAVING_UNION()
+	public void UNION_SelectWithFromWhereGroupByHaving_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -133,7 +133,7 @@ public class UnionTest
 	}
 
 	[Fact]
-	public void SELECT_UNION_ALL()
+	public void UNION_ALL_SimpleSelect_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(L(1))

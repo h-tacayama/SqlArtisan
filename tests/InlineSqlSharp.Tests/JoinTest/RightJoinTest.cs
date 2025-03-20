@@ -9,7 +9,7 @@ public class RightJoinTest
 	private readonly test_table _s = new("s");
 
 	[Fact]
-	public void RIGHT_JOIN_ON()
+	public void RIGHT_JOIN_SimpleCondition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.name)

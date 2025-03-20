@@ -9,7 +9,7 @@ public class FullJoinTest
 	private readonly test_table _s = new("s");
 
 	[Fact]
-	public void FULL_JOIN_ON()
+	public void FULL_JOIN_SimpleCondition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.name)

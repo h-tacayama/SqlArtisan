@@ -8,7 +8,7 @@ public class ExceptTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_EXCEPT()
+	public void EXCEPT_SimpleSelect_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(L(1))
@@ -27,7 +27,7 @@ public class ExceptTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_EXCEPT()
+	public void EXCEPT_SelectWithFrom_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -49,7 +49,7 @@ public class ExceptTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_EXCEPT()
+	public void EXCEPT_SelectWithFromWhere_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -74,7 +74,7 @@ public class ExceptTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_GROUP_BY_EXCEPT()
+	public void EXCEPT_SelectWithFromWhereGroupBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -102,7 +102,7 @@ public class ExceptTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_GROUP_BY_HAVING_EXCEPT()
+	public void EXCEPT_SelectWithFromWhereGroupByHaving_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -133,7 +133,7 @@ public class ExceptTest
 	}
 
 	[Fact]
-	public void SELECT_EXCEPT_ALL()
+	public void EXCEPT_ALL_SimpleSelect_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(L(1))

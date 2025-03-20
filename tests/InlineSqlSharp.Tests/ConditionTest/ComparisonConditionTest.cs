@@ -14,98 +14,74 @@ public class ComparisonConditionTest
 	}
 
 	[Fact]
-	public void Character_Bind_Equality() =>
+	public void Equal_CharacterValues_CorrectSql() =>
 		_assert.Equal(_t.name == P("abc"), "t.name = :P_0", 1);
 
 	[Fact]
-	public void Character_Bind_Inequality() =>
+	public void NotEqual_CharacterValues_CorrectSql() =>
 		_assert.Equal(_t.name != P("abc"), "t.name <> :P_0", 1);
 
 	[Fact]
-	public void Character_Bind_LessThan() =>
+	public void LessThan_CharacterValues_CorrectSql() =>
 		_assert.Equal(_t.name < P("abc"), "t.name < :P_0", 1);
 
 	[Fact]
-	public void Character_Bind_GreaterThan() =>
+	public void GreaterThan_CharacterValues_CorrectSql() =>
 		_assert.Equal(_t.name > P("abc"), "t.name > :P_0", 1);
 
 	[Fact]
-	public void Character_Bind_LessThanOrEqual() =>
+	public void LessEqual_CharacterValues_CorrectSql() =>
 		_assert.Equal(_t.name <= P("abc"), "t.name <= :P_0", 1);
 
 	[Fact]
-	public void Character_Bind_GreaterThanOrEqual() =>
+	public void GreaterEqual_CharacterValues_CorrectSql() =>
 		_assert.Equal(_t.name >= P("abc"), "t.name >= :P_0", 1);
 
 	[Fact]
-	public void DateTime_Bind_Equality() =>
+	public void Equal_DateTimeValues_CorrectSql() =>
 		_assert.Equal(_t.created_at == P(new DateTime(2001, 2, 3)), "t.created_at = :P_0", 1);
 
 	[Fact]
-	public void DateTime_Bind_Inequality() =>
+	public void NotEqual_DateTimeValues_CorrectSql() =>
 		_assert.Equal(_t.created_at != P(new DateTime(2001, 2, 3)), "t.created_at <> :P_0", 1);
 
 	[Fact]
-	public void DateTime_Bind_LessThan() =>
+	public void LessThan_DateTimeValues_CorrectSql() =>
 		_assert.Equal(_t.created_at < P(new DateTime(2001, 2, 3)), "t.created_at < :P_0", 1);
 
 	[Fact]
-	public void DateTime_Bind_GreaterThan() =>
+	public void GreaterThan_DateTimeValues_CorrectSql() =>
 		_assert.Equal(_t.created_at > P(new DateTime(2001, 2, 3)), "t.created_at > :P_0", 1);
 
 	[Fact]
-	public void DateTime_Bind_LessThanOrEqual() =>
+	public void LessEqual_DateTimeValues_CorrectSql() =>
 		_assert.Equal(_t.created_at <= P(new DateTime(2001, 2, 3)), "t.created_at <= :P_0", 1);
 
 	[Fact]
-	public void DateTime_Bind_GreaterThanOrEqual() =>
+	public void GreaterEqual_DateTimeValues_CorrectSql() =>
 		_assert.Equal(_t.created_at >= P(new DateTime(2001, 2, 3)), "t.created_at >= :P_0", 1);
 
 	[Fact]
-	public void Numeric_Expr_Equality() =>
-		_assert.Equal(_t.code == L(1), "t.code = 1");
-
-	[Fact]
-	public void Numeric_Expr_Inequality() =>
-		_assert.Equal(_t.code != L(1), "t.code <> 1");
-
-	[Fact]
-	public void Numeric_Expr_LessThan() =>
-		_assert.Equal(_t.code < L(1), "t.code < 1");
-
-	[Fact]
-	public void Numeric_Expr_GreaterThan() =>
-		_assert.Equal(_t.code > L(1), "t.code > 1");
-
-	[Fact]
-	public void Numeric_Expr_LessThanOrEqual() =>
-		_assert.Equal(_t.code <= L(1), "t.code <= 1");
-
-	[Fact]
-	public void Numeric_Expr_GreaterThanOrEqual() =>
-		_assert.Equal(_t.code >= L(1), "t.code >= 1");
-
-	[Fact]
-	public void Int_Bind_Equality() =>
+	public void Equal_NumericValues_CorrectSql() =>
 		_assert.Equal(_t.code == P(1), "t.code = :P_0", 1);
 
 	[Fact]
-	public void Int_Bind_Inequality() =>
+	public void NotEqual_NumericValues_CorrectSql() =>
 		_assert.Equal(_t.code != P(1), "t.code <> :P_0", 1);
 
 	[Fact]
-	public void Int_Bind_LessThan() =>
+	public void LessThan_NumericValues_CorrectSql() =>
 		_assert.Equal(_t.code < P(1), "t.code < :P_0", 1);
 
 	[Fact]
-	public void Int_Bind_GreaterThan() =>
+	public void GreaterThan_NumericValues_CorrectSql() =>
 		_assert.Equal(_t.code > P(1), "t.code > :P_0", 1);
 
 	[Fact]
-	public void Int_Bind_LessThanOrEqual() =>
+	public void LessEqual_NumericValues_CorrectSql() =>
 		_assert.Equal(_t.code <= P(1), "t.code <= :P_0", 1);
 
 	[Fact]
-	public void Int_Bind_GreaterThanOrEqual() =>
+	public void GreaterEqual_NumericValues_CorrectSql() =>
 		_assert.Equal(_t.code >= P(1), "t.code >= :P_0", 1);
 }

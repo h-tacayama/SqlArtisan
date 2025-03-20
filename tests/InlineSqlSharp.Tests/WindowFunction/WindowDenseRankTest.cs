@@ -8,7 +8,7 @@ public partial class WindowDenseRankTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_DENSE_RANK_OVER_PARTITION_BY_ORDER_BY()
+	public void DENSE_RANK_OVER_PartitionByOrderBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(DENSE_RANK().OVER(
@@ -33,7 +33,7 @@ public partial class WindowDenseRankTest
 	}
 
 	[Fact]
-	public void SELECT_DENSE_RANK_OVER_ORDER_BY()
+	public void DENSE_RANK_OVER_OrderBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(DENSE_RANK().OVER(ORDER_BY(_t.code, _t.name)))

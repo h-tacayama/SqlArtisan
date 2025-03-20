@@ -8,7 +8,7 @@ public class InsertTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void INSERT_INTO_SET()
+	public void INSERT_INTO_WithSetClause_CorrectSql()
 	{
 		SqlCommand sql =
 			INSERT_INTO(_t)
@@ -37,7 +37,7 @@ public class InsertTest
 	}
 
 	[Fact]
-	public void UPDATE_SET_Inequality_then_Throw_ArgumentException()
+	public void INSERT_INTO_WithInequality_ThrowsArgumentException()
 	{
 		Assert.Throws<ArgumentException>(() =>
 		{
@@ -49,7 +49,7 @@ public class InsertTest
 	}
 
 	[Fact]
-	public void INSERT_INTO_SELECT()
+	public void INSERT_INTO_WithSelectClause_CorrectSql()
 	{
 		test_table s = new("s");
 

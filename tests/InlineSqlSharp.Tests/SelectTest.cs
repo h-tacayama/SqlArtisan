@@ -8,7 +8,7 @@ public class SelectTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_DISTINCT_FROM()
+	public void SELECT_DistinctFromClause_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(DISTINCT, _t.code)
@@ -26,7 +26,7 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_FROM()
+	public void SELECT_FromClauseWithMultipleColumns_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -48,7 +48,7 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_DUAL()
+	public void SELECT_FromDualClause_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(SYSDATE)
@@ -65,7 +65,7 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_Literals()
+	public void SELECT_LiteralValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -92,7 +92,7 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_Hints()
+	public void SELECT_WithHints_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -109,7 +109,7 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_Hints_DISTINCT()
+	public void SELECT_WithHintsAndDistinct_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -128,7 +128,7 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_Parameters()
+	public void SELECT_ParameterValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -162,7 +162,7 @@ public class SelectTest
 	}
 
 	[Fact]
-	public void SELECT_Sequence()
+	public void SELECT_SequenceValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(

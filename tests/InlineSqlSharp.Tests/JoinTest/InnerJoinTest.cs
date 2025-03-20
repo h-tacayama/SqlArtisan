@@ -9,7 +9,7 @@ public class InnerJoinTest
 	private readonly test_table _s = new("s");
 
 	[Fact]
-	public void INNER_JOIN_ON()
+	public void INNER_JOIN_SimpleCondition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.name)
@@ -32,7 +32,7 @@ public class InnerJoinTest
 	}
 
 	[Fact]
-	public void INNER_JOIN_ON_WHERE()
+	public void INNER_JOIN_ComplexConditionWithWhere_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.name)

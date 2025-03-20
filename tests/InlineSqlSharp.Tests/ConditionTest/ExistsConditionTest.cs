@@ -15,7 +15,7 @@ public class ExistsConditionTest
 	}
 
 	[Fact]
-	public void EXISTS_SELECT()
+	public void EXISTS_WithSimpleSelect_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("EXISTS ");
@@ -30,7 +30,7 @@ public class ExistsConditionTest
 	}
 
 	[Fact]
-	public void EXISTS_SELECT_FROM()
+	public void EXISTS_WithSelectFrom_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("EXISTS ");
@@ -47,7 +47,7 @@ public class ExistsConditionTest
 	}
 
 	[Fact]
-	public void EXISTS_SELECT_FROM_WHERE()
+	public void EXISTS_WithSelectFromWhere_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
@@ -81,7 +81,7 @@ public class ExistsConditionTest
 	}
 
 	[Fact]
-	public void NOT_EXISTS_SELECT_FROM_WHERE()
+	public void NOT_EXISTS_WithSelectFromWhere_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("NOT EXISTS ");

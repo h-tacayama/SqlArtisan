@@ -8,7 +8,7 @@ public partial class WindowRowNumberTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_ROW_NUMBER_OVER_PARTITION_BY_ORDER_BY()
+	public void ROW_NUMBER_OVER_PartitionByOrderBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(ROW_NUMBER().OVER(
@@ -33,7 +33,7 @@ public partial class WindowRowNumberTest
 	}
 
 	[Fact]
-	public void SELECT_ROW_NUMBER_OVER_ORDER_BY()
+	public void ROW_NUMBER_OVER_OrderBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(ROW_NUMBER().OVER(ORDER_BY(_t.code, _t.name)))

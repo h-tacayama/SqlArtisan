@@ -7,7 +7,7 @@ internal sealed class ConditionTestAssert(test_table t)
 {
 	private readonly test_table _t = t;
 
-	public  void Equal(
+	internal void Equal(
 		ICondition testCondition,
 		string expectedSql,
 		int expectedBindCount = 0)

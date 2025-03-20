@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_CONCAT()
+	public void CONCAT_MultipleValues_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(CONCAT(_t.name, L("a"), L("b")))
@@ -20,7 +20,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_COUNT()
+	public void COUNT_ColumnValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(COUNT(_t.code))
@@ -34,7 +34,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_COUNT_DISTINCT()
+	public void COUNT_DISTINCT_ColumnValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(COUNT(DISTINCT, _t.code))

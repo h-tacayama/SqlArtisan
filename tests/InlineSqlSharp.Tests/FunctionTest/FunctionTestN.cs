@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_NVL_Character()
+	public void NVL_CharacterValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(NVL(_t.name, L("Unknown")))
@@ -20,7 +20,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_NVL_DateTime()
+	public void NVL_DateTimeValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(NVL(_t.created_at, TO_DATE(L("2000/01/01"), L("YYYY/MM/DD"))))
@@ -34,7 +34,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_NVL_Numeric()
+	public void NVL_NumericValue_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(NVL(_t.code, L(0)))

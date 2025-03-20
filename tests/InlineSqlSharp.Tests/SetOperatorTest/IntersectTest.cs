@@ -8,7 +8,7 @@ public class IntersectTest
 	private readonly test_table _t = new("t");
 
 	[Fact]
-	public void SELECT_INTERSECT()
+	public void INTERSECT_SimpleSelect_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(L(1))
@@ -27,7 +27,7 @@ public class IntersectTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_INTERSECT()
+	public void INTERSECT_SelectWithFrom_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -49,7 +49,7 @@ public class IntersectTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_INTERSECT()
+	public void INTERSECT_SelectWithFromWhere_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -74,7 +74,7 @@ public class IntersectTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_GROUP_BY_INTERSECT()
+	public void INTERSECT_SelectWithFromWhereGroupBy_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -102,7 +102,7 @@ public class IntersectTest
 	}
 
 	[Fact]
-	public void SELECT_FROM_WHERE_GROUP_BY_HAVING_INTERSECT()
+	public void INTERSECT_SelectWithFromWhereGroupByHaving_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(_t.code)
@@ -133,7 +133,7 @@ public class IntersectTest
 	}
 
 	[Fact]
-	public void SELECT_INTERSECT_ALL()
+	public void INTERSECT_ALL_SimpleSelect_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(L(1))

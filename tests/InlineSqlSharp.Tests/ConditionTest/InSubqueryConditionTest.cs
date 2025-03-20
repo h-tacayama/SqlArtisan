@@ -17,7 +17,7 @@ public class InSubqueryConditionTest
 	}
 
 	[Fact]
-	public void Character_IN_Subquery_With_Parameter()
+	public void IN_CharacterValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
@@ -50,7 +50,7 @@ public class InSubqueryConditionTest
 	}
 
 	[Fact]
-	public void Character_NOT_IN_Subquery()
+	public void NOT_IN_CharacterValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.name NOT IN ");
@@ -67,7 +67,7 @@ public class InSubqueryConditionTest
 	}
 
 	[Fact]
-	public void DateTime_IN_Subquery()
+	public void IN_DateTimeValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.created_at IN ");
@@ -84,7 +84,7 @@ public class InSubqueryConditionTest
 	}
 
 	[Fact]
-	public void DateTime_NOT_IN_Subquery()
+	public void NOT_IN_DateTimeValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.created_at NOT IN ");
@@ -101,7 +101,7 @@ public class InSubqueryConditionTest
 	}
 
 	[Fact]
-	public void Numeric_IN_Subquery()
+	public void IN_NumericValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code IN ");
@@ -118,7 +118,7 @@ public class InSubqueryConditionTest
 	}
 
 	[Fact]
-	public void Numeric_NOT_IN_Subquery()
+	public void NOT_IN_NumericValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("t.code NOT IN ");

@@ -6,7 +6,7 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
 	[Fact]
-	public void SELECT_INSTR()
+	public void INSTR_BasicPattern_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(INSTR(_t.name, L("abc")))
@@ -20,7 +20,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_INSTR_Position()
+	public void INSTR_WithPosition_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
@@ -39,7 +39,7 @@ public partial class FunctionTest
 	}
 
 	[Fact]
-	public void SELECT_INSTR_Occurrence()
+	public void INSTR_WithOccurrence_CorrectSql()
 	{
 		SqlCommand sql =
 			SELECT(
