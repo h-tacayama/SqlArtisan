@@ -10,7 +10,7 @@ public partial class FunctionTest
 	[Fact]
 	public void ABS_NumericValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(ABS(_t.code))
 			.Build();
 
@@ -18,13 +18,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("ABS(t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void ADD_MONTHS_DateTimeAndNumeric_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(ADD_MONTHS(_t.created_at, L(3)))
 			.Build();
 
@@ -32,13 +32,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("ADD_MONTHS(t.created_at, 3)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void AVG_NumericValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(AVG(_t.code))
 			.Build();
 
@@ -46,13 +46,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("AVG(t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void AVG_DISTINCT_NumericValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(AVG(DISTINCT, _t.code))
 			.Build();
 
@@ -60,6 +60,6 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("AVG(DISTINCT t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

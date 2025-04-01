@@ -10,7 +10,7 @@ public class UpdateTest
 	[Fact]
 	public void UPDATE_SetMultipleColumns_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			UPDATE(_t)
 			.SET(
 				_t.code == L(1),
@@ -26,7 +26,7 @@ public class UpdateTest
 		expected.Append("t.name = 'a', ");
 		expected.Append("t.created_at = SYSDATE");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]

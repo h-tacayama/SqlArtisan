@@ -11,7 +11,7 @@ public class InnerJoinTest
 	[Fact]
 	public void INNER_JOIN_SimpleCondition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.name)
 			.FROM(_t)
 			.INNER_JOIN(_s)
@@ -28,13 +28,13 @@ public class InnerJoinTest
 		expected.Append("ON ");
 		expected.Append("t.code = s.code");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void INNER_JOIN_ComplexConditionWithWhere_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.name)
 			.FROM(_t)
 			.INNER_JOIN(_s)
@@ -63,6 +63,6 @@ public class InnerJoinTest
 		expected.Append("WHERE ");
 		expected.Append("t.code > 1");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

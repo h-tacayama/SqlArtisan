@@ -10,7 +10,7 @@ public class DeleteTest
 	[Fact]
 	public void DELETE_FROM_SimpleTable_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			DELETE_FROM(_t)
 			.Build();
 
@@ -18,13 +18,13 @@ public class DeleteTest
 		expected.Append("DELETE FROM ");
 		expected.Append("test_table t");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void DELETE_FROM_WithWhereClause_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			DELETE_FROM(_t)
 			.WHERE(_t.code == L(1))
 			.Build();
@@ -35,6 +35,6 @@ public class DeleteTest
 		expected.Append("WHERE ");
 		expected.Append("t.code = 1");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

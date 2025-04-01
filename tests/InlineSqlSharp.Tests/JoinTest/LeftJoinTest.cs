@@ -11,7 +11,7 @@ public class LeftJoinTest
 	[Fact]
 	public void LEFT_JOIN_SimpleCondition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.name)
 			.FROM(_t)
 			.LEFT_JOIN(_s)
@@ -28,6 +28,6 @@ public class LeftJoinTest
 		expected.Append("ON ");
 		expected.Append("t.code = s.code");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

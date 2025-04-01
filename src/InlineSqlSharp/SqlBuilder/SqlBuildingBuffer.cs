@@ -4,7 +4,7 @@ namespace InlineSqlSharp;
 
 public sealed class SqlBuildingBuffer()
 {
-	private readonly StringBuilder _statement = new();
+	private readonly StringBuilder _text = new();
 	private readonly List<BindParameter> _parameters = [];
 
 	internal SqlBuildingBuffer Append(ISqlElement element)
@@ -15,21 +15,21 @@ public sealed class SqlBuildingBuffer()
 
 	internal SqlBuildingBuffer Append(string? value)
 	{
-		_statement.Append(value);
+		_text.Append(value);
 		return this;
 	}
 
 	internal SqlBuildingBuffer AppendComma(ISqlElement element)
 	{
 		element.FormatSql(this);
-		_statement.Append(", ");
+		_text.Append(", ");
 		return this;
 	}
 
 	internal SqlBuildingBuffer AppendComma(string? value = null)
 	{
-		_statement.Append(value);
-		_statement.Append(", ");
+		_text.Append(value);
+		_text.Append(", ");
 		return this;
 	}
 
@@ -44,7 +44,7 @@ public sealed class SqlBuildingBuffer()
 
 		for (int i = 1; i < elements.Length; i++)
 		{
-			_statement.Append(", ");
+			_text.Append(", ");
 			elements[i].FormatSql(this);
 		}
 
@@ -55,7 +55,7 @@ public sealed class SqlBuildingBuffer()
 	{
 		if (condition)
 		{
-			_statement.Append(value);
+			_text.Append(value);
 		}
 
 		return this;
@@ -72,7 +72,7 @@ public sealed class SqlBuildingBuffer()
 
 		for (int i = 1; i < selectList.Length; i++)
 		{
-			_statement.Append(", ");
+			_text.Append(", ");
 			selectList[i].FormatAsSelect(this);
 		}
 
@@ -82,14 +82,14 @@ public sealed class SqlBuildingBuffer()
 	internal SqlBuildingBuffer AppendSpace(ISqlElement element)
 	{
 		element.FormatSql(this);
-		_statement.Append(" ");
+		_text.Append(" ");
 		return this;
 	}
 
 	internal SqlBuildingBuffer AppendSpace(string? value = null)
 	{
-		_statement.Append(value);
-		_statement.Append(" ");
+		_text.Append(value);
+		_text.Append(" ");
 		return this;
 	}
 
@@ -98,7 +98,7 @@ public sealed class SqlBuildingBuffer()
 		if (condition)
 		{
 			element.FormatSql(this);
-			_statement.Append(" ");
+			_text.Append(" ");
 		}
 
 		return this;
@@ -108,8 +108,8 @@ public sealed class SqlBuildingBuffer()
 	{
 		if (condition)
 		{
-			_statement.Append(value);
-			_statement.Append(" ");
+			_text.Append(value);
+			_text.Append(" ");
 		}
 
 		return this;
@@ -120,7 +120,7 @@ public sealed class SqlBuildingBuffer()
 		if (element is not null)
 		{
 			element.FormatSql(this);
-			_statement.Append(" ");
+			_text.Append(" ");
 		}
 
 		return this;
@@ -137,7 +137,7 @@ public sealed class SqlBuildingBuffer()
 
 		for (int i = 1; i < elements.Length; i++)
 		{
-			_statement.Append(" ");
+			_text.Append(" ");
 			elements[i].FormatSql(this);
 		}
 
@@ -149,7 +149,7 @@ public sealed class SqlBuildingBuffer()
 		int index = _parameters.Count;
 		BindParameter parameter = new($":P_{index}", bindValue);
 		_parameters.Add(parameter);
-		_statement.Append(parameter.Name);
+		_text.Append(parameter.Name);
 		return this;
 	}
 
@@ -160,53 +160,53 @@ public sealed class SqlBuildingBuffer()
 			element.FormatSql(this);
 		}
 
-		_statement.Append(")");
+		_text.Append(")");
 		return this;
 	}
 
 	internal SqlBuildingBuffer EncloseInParentheses(ISqlElement element)
 	{
-		_statement.Append("(");
+		_text.Append("(");
 		element.FormatSql(this);
-		_statement.Append(")");
+		_text.Append(")");
 		return this;
 	}
 
 	internal SqlBuildingBuffer EncloseInSingleQuotes(ISqlElement element)
 	{
-		_statement.Append("'");
+		_text.Append("'");
 		element.FormatSql(this);
-		_statement.Append("'");
+		_text.Append("'");
 		return this;
 	}
 
 	internal SqlBuildingBuffer EncloseInSingleQuotes(string value, bool isEscaped)
 	{
-		_statement.Append("'");
-		_statement.Append(isEscaped ? value : value.Replace("'", "''"));
-		_statement.Append("'");
+		_text.Append("'");
+		_text.Append(isEscaped ? value : value.Replace("'", "''"));
+		_text.Append("'");
 		return this;
 	}
 
 	internal SqlBuildingBuffer EncloseInSpaces(ISqlElement element)
 	{
-		_statement.Append(" ");
+		_text.Append(" ");
 		element.FormatSql(this);
-		_statement.Append(" ");
+		_text.Append(" ");
 		return this;
 	}
 
 	internal SqlBuildingBuffer EncloseInSpaces(string value)
 	{
-		_statement.Append(" ");
-		_statement.Append(value);
-		_statement.Append(" ");
+		_text.Append(" ");
+		_text.Append(value);
+		_text.Append(" ");
 		return this;
 	}
 
 	internal SqlBuildingBuffer OpenParenthesis(ISqlElement? element = null)
 	{
-		_statement.Append("(");
+		_text.Append("(");
 
 		if (element != null)
 		{
@@ -218,15 +218,15 @@ public sealed class SqlBuildingBuffer()
 
 	internal SqlBuildingBuffer PrependComma(ISqlElement element)
 	{
-		_statement.Append(", ");
+		_text.Append(", ");
 		element.FormatSql(this);
 		return this;
 	}
 
 	internal SqlBuildingBuffer PrependComma(string value)
 	{
-		_statement.Append(", ");
-		_statement.Append(value);
+		_text.Append(", ");
+		_text.Append(value);
 		return this;
 	}
 
@@ -234,7 +234,7 @@ public sealed class SqlBuildingBuffer()
 	{
 		if (condition)
 		{
-			_statement.Append(", ");
+			_text.Append(", ");
 			element.FormatSql(this);
 		}
 
@@ -245,8 +245,8 @@ public sealed class SqlBuildingBuffer()
 	{
 		if (condition)
 		{
-			_statement.Append(", ");
-			_statement.Append(value);
+			_text.Append(", ");
+			_text.Append(value);
 		}
 
 		return this;
@@ -256,7 +256,7 @@ public sealed class SqlBuildingBuffer()
 	{
 		if (element is not null)
 		{
-			_statement.Append(", ");
+			_text.Append(", ");
 			element.FormatSql(this);
 		}
 
@@ -265,15 +265,15 @@ public sealed class SqlBuildingBuffer()
 
 	internal SqlBuildingBuffer PrependSpace(ISqlElement element)
 	{
-		_statement.Append(" ");
+		_text.Append(" ");
 		element.FormatSql(this);
 		return this;
 	}
 
 	internal SqlBuildingBuffer PrependSpace(string value)
 	{
-		_statement.Append(" ");
-		_statement.Append(value);
+		_text.Append(" ");
+		_text.Append(value);
 		return this;
 	}
 
@@ -281,14 +281,14 @@ public sealed class SqlBuildingBuffer()
 	{
 		if (condition)
 		{
-			_statement.Append(" ");
-			_statement.Append(value);
+			_text.Append(" ");
+			_text.Append(value);
 		}
 
 		return this;
 	}
 
-	internal SqlCommand ToSqlCommand() =>
+	internal SqlStatement ToSqlStatement() =>
 		// Return a clone of _parameters to avoid keeping references
-		new(_statement.ToString(), [.. _parameters]);
+		new(_text.ToString(), [.. _parameters]);
 }

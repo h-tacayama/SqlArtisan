@@ -10,7 +10,7 @@ public static class InlineSqlSharpExample
 		Authors a = new("a");
 		Books b = new("b");
 
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(a.Id, COUNT(a.Id).AS("Count"))
 			.FROM(a)
 			.INNER_JOIN(b)

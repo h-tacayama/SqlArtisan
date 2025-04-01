@@ -10,7 +10,7 @@ public class HavingTest
 	[Fact]
 	public void HAVING_SingleCondition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.name)
 			.FROM(_t)
 			.GROUP_BY(_t.name)
@@ -27,6 +27,6 @@ public class HavingTest
 		expected.Append("HAVING ");
 		expected.Append("COUNT(t.name) > 1");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

@@ -8,7 +8,7 @@ public partial class FunctionTest
 	[Fact]
 	public void CONCAT_MultipleValues_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(CONCAT(_t.name, L("a"), L("b")))
 			.Build();
 
@@ -16,13 +16,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("CONCAT(t.name, 'a', 'b')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void COUNT_ColumnValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(COUNT(_t.code))
 			.Build();
 
@@ -30,13 +30,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("COUNT(t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void COUNT_DISTINCT_ColumnValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(COUNT(DISTINCT, _t.code))
 			.Build();
 
@@ -44,6 +44,6 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("COUNT(DISTINCT t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

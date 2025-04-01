@@ -8,7 +8,7 @@ public partial class FunctionTest
 	[Fact]
 	public void INSTR_BasicPattern_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(INSTR(_t.name, L("abc")))
 			.Build();
 
@@ -16,13 +16,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("INSTR(t.name, 'abc')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void INSTR_WithPosition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				INSTR(_t.name, L("abc"), L(2)),
 				INSTR(_t.name, L("abc"), L(1)),
@@ -35,13 +35,13 @@ public partial class FunctionTest
 		expected.Append("INSTR(t.name, 'abc', 1), ");
 		expected.Append("INSTR(t.name, 'abc', -1)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void INSTR_WithOccurrence_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				INSTR(_t.name, L("abc"), L(1), L(1)),
 				INSTR(_t.name, L("abc"), L(1), L(2)),
@@ -54,6 +54,6 @@ public partial class FunctionTest
 		expected.Append("INSTR(t.name, 'abc', 1, 2), ");
 		expected.Append("INSTR(t.name, 'abc', 2, -1)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

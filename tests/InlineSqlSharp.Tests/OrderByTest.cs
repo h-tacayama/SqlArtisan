@@ -10,7 +10,7 @@ public class OrderByTest
 	[Fact]
 	public void ORDER_BY_CharacterColumns_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.name)
 			.FROM(_t)
 			.ORDER_BY(
@@ -41,13 +41,13 @@ public class OrderByTest
 		expected.Append("t.name ASC NULLS LAST, ");
 		expected.Append("t.name DESC NULLS LAST");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void ORDER_BY_DateTimeColumns_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.created_at)
 			.FROM(_t)
 			.ORDER_BY(
@@ -78,13 +78,13 @@ public class OrderByTest
 		expected.Append("t.created_at ASC NULLS LAST, ");
 		expected.Append("t.created_at DESC NULLS LAST");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void ORDER_BY_NumericColumns_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.ORDER_BY(
@@ -115,13 +115,13 @@ public class OrderByTest
 		expected.Append("t.code ASC NULLS LAST, ");
 		expected.Append("t.code DESC NULLS LAST");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void ORDER_BY_ColumnAliases_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.ORDER_BY(
@@ -144,6 +144,6 @@ public class OrderByTest
 		expected.Append("d NULLS FIRST, ");
 		expected.Append("e NULLS LAST");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

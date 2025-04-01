@@ -10,7 +10,7 @@ public class ExceptTest
 	[Fact]
 	public void EXCEPT_SimpleSelect_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(L(1))
 			.EXCEPT
 			.SELECT(L(2))
@@ -23,13 +23,13 @@ public class ExceptTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void EXCEPT_SelectWithFrom_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.EXCEPT
@@ -45,13 +45,13 @@ public class ExceptTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void EXCEPT_SelectWithFromWhere_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.WHERE(_t.code == L(1))
@@ -70,13 +70,13 @@ public class ExceptTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void EXCEPT_SelectWithFromWhereGroupBy_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.WHERE(_t.code == L(1))
@@ -98,13 +98,13 @@ public class ExceptTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void EXCEPT_SelectWithFromWhereGroupByHaving_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.WHERE(_t.code == L(1))
@@ -129,13 +129,13 @@ public class ExceptTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void EXCEPT_ALL_SimpleSelect_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(L(1))
 			.EXCEPT_ALL
 			.SELECT(L(2))
@@ -148,6 +148,6 @@ public class ExceptTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

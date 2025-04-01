@@ -12,7 +12,7 @@ internal sealed class ConditionTestAssert(test_table t)
 		string expectedSql,
 		int expectedBindCount = 0)
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.name)
 			.FROM(_t)
 			.WHERE(testCondition)
@@ -26,7 +26,7 @@ internal sealed class ConditionTestAssert(test_table t)
 		expected.Append("WHERE ");
 		expected.Append(expectedSql);
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 		Assert.Equal(expectedBindCount, sql.Parameters.Count);
 	}
 }

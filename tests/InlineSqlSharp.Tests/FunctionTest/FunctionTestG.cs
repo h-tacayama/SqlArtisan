@@ -8,7 +8,7 @@ public partial class FunctionTest
     [Fact]
 	public void GREATEST_CharacterValues_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(GREATEST(_t.name, L("test"), _t.name))
 			.Build();
 
@@ -16,13 +16,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("GREATEST(t.name, 'test', t.name)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
     [Fact]
 	public void GREATEST_DateTimeValues_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(GREATEST(
 				_t.created_at,
 				TO_DATE(L("2000/01/01"), L("YYYY/MM/DD")),
@@ -33,13 +33,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("GREATEST(t.created_at, TO_DATE('2000/01/01', 'YYYY/MM/DD'), t.created_at)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
     [Fact]
 	public void GREATEST_NumericValues_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(GREATEST(_t.code, L(10), _t.code))
 			.Build();
 
@@ -47,6 +47,6 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("GREATEST(t.code, 10, t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

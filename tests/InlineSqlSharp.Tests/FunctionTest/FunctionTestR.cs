@@ -8,7 +8,7 @@ public partial class FunctionTest
 	[Fact]
 	public void REGEXP_COUNT_Pattern_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_COUNT(_t.name, L("[abc]")))
 			.Build();
 
@@ -16,13 +16,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_COUNT(t.name, '[abc]')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_COUNT_PatternPosition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_COUNT(_t.name, L("[abc]"), L(2)))
 			.Build();
 
@@ -30,13 +30,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_COUNT(t.name, '[abc]', 2)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_COUNT_PatternPositionOptions_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_COUNT(_t.name, L("[abc]"), L(2), RegexpOptions.CaseInsensitive))
 			.Build();
 
@@ -44,13 +44,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_COUNT(t.name, '[abc]', 2, 'i')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_REPLACE_PatternReplacement_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x")))
 			.Build();
 
@@ -58,13 +58,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_REPLACE_PatternReplacementPosition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x"), L(2)))
 			.Build();
 
@@ -72,13 +72,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_REPLACE_PatternReplacementPositionOccurrence_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x"), L(2), L(3)))
 			.Build();
 
@@ -86,13 +86,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2, 3)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_REPLACE_PatternReplacementPositionOccurrenceOptions_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_REPLACE(_t.name, L("[abc]"), L("x"), L(2), L(3), RegexpOptions.CaseInsensitive))
 			.Build();
 
@@ -100,13 +100,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2, 3, 'i')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_SUBSTR_Pattern_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]")))
 			.Build();
 
@@ -114,13 +114,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_SUBSTR_PatternPosition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2)))
 			.Build();
 
@@ -128,13 +128,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_SUBSTR_PatternPositionOccurrence_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2), L(3)))
 			.Build();
 
@@ -142,13 +142,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_SUBSTR_PatternPositionOccurrenceOptions_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2), L(3), RegexpOptions.CaseInsensitive))
 			.Build();
 
@@ -156,13 +156,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3, 'i')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REGEXP_SUBSTR_PatternPositionOccurrenceOptionsSubPattern_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REGEXP_SUBSTR(_t.name, L("[abc]"), L(2), L(3), RegexpOptions.None, L(1)))
 			.Build();
 
@@ -170,13 +170,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3, '', 1)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void REPLACE_CharacterSearchAndReplacement_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(REPLACE(_t.name, L("a"), L("b")))
 			.Build();
 
@@ -184,13 +184,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("REPLACE(t.name, 'a', 'b')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void RPAD_CharacterLength_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(RPAD(_t.name, L(10)))
 			.Build();
 
@@ -198,13 +198,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("RPAD(t.name, 10)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void RPAD_CharacterLengthPadding_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(RPAD(_t.name, L(10), L("a")))
 			.Build();
 
@@ -212,13 +212,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("RPAD(t.name, 10, 'a')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void RTRIM_Character_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(RTRIM(_t.name))
 			.Build();
 
@@ -226,13 +226,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("RTRIM(t.name)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void RTRIM_CharacterTrimChars_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(RTRIM(_t.name, L("a")))
 			.Build();
 
@@ -240,6 +240,6 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("RTRIM(t.name, 'a')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

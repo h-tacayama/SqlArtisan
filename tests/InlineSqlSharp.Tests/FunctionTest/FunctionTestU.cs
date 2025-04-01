@@ -8,7 +8,7 @@ public partial class FunctionTest
 	[Fact]
 	public void UPPER_CharacterValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(UPPER(_t.name))
 			.Build();
 
@@ -16,6 +16,6 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("UPPER(t.name)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

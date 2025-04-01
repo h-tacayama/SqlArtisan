@@ -10,7 +10,7 @@ public class CaseTest
 	[Fact]
 	public void CASE_SearchCaseWithCharacter_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				CASE(
 					[
@@ -28,13 +28,13 @@ public class CaseTest
 		expected.Append("ELSE 'z' ");
 		expected.Append("END");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void CASE_SearchCaseWithDateTime_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				CASE(
 					[
@@ -52,13 +52,13 @@ public class CaseTest
 		expected.Append("ELSE t.created_at ");
 		expected.Append("END");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void CASE_SearchCaseWithNumeric_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				CASE(
 					[
@@ -76,13 +76,13 @@ public class CaseTest
 		expected.Append("ELSE 99 ");
 		expected.Append("END");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void CASE_SimpleCaseWithCharacter_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				CASE(
 					_t.code,
@@ -102,13 +102,13 @@ public class CaseTest
 		expected.Append("ELSE 'z' ");
 		expected.Append("END");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void CASE_SimpleCaseWithDateTime_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				CASE(
 					_t.name,
@@ -128,13 +128,13 @@ public class CaseTest
 		expected.Append("ELSE t.created_at ");
 		expected.Append("END");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void CASE_SimpleCaseWithNumeric_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				CASE(
 					_t.name,
@@ -154,6 +154,6 @@ public class CaseTest
 		expected.Append("ELSE 99 ");
 		expected.Append("END");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

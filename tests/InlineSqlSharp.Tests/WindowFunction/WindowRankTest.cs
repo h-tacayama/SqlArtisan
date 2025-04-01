@@ -10,7 +10,7 @@ public partial class WindowRankTest
 	[Fact]
 	public void RANK_OVER_PartitionByOrderBy_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(RANK().OVER(
 				PARTITION_BY(_t.code, _t.name)
 				.ORDER_BY(_t.code.ASC, _t.name.DESC)))
@@ -29,13 +29,13 @@ public partial class WindowRankTest
 		expected.Append("t.name DESC");
 		expected.Append(")");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void RANK_OVER_OrderBy_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(RANK().OVER(
 				ORDER_BY(_t.code, _t.name)))
 			.Build();
@@ -50,6 +50,6 @@ public partial class WindowRankTest
 		expected.Append("t.name");
 		expected.Append(")");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

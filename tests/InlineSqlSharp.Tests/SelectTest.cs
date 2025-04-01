@@ -10,7 +10,7 @@ public class SelectTest
 	[Fact]
 	public void SELECT_ColumnAliases_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				_t.code.AS("code"),
 				_t.name.AS("name"),
@@ -26,13 +26,13 @@ public class SelectTest
 		expected.Append("FROM ");
 		expected.Append("test_table t");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SELECT_DistinctFromClause_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(DISTINCT, _t.code)
 			.FROM(_t)
 			.Build();
@@ -44,13 +44,13 @@ public class SelectTest
 		expected.Append("FROM ");
 		expected.Append("test_table t");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SELECT_FromClauseWithMultipleColumns_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				_t.code,
 				_t.name,
@@ -66,13 +66,13 @@ public class SelectTest
 		expected.Append("FROM ");
 		expected.Append("test_table t");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SELECT_FromDualClause_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(SYSDATE)
 			.FROM(DUAL)
 			.Build();
@@ -83,13 +83,13 @@ public class SelectTest
 		expected.Append("FROM ");
 		expected.Append("DUAL");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SELECT_LiteralValues_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				L("O'Reilly"),
 				L("O''Reilly", true),
@@ -110,13 +110,13 @@ public class SelectTest
 		expected.Append("4.4, ");
 		expected.Append("5.5");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SELECT_ParameterValues_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				P("abc"),
 				P(new DateTime(2001, 2, 3)),
@@ -137,7 +137,7 @@ public class SelectTest
 		expected.Append(":P_5, ");
 		expected.Append(":P_6");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 		Assert.Equal("abc", sql.Parameters[0].Value);
 		Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters[1].Value);
 		Assert.Equal((int)1, sql.Parameters[2].Value);
@@ -150,7 +150,7 @@ public class SelectTest
 	[Fact]
 	public void SELECT_SequenceValues_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				SEQUENCE("seq").CURRVAL,
 				SEQUENCE("seq").NEXTVAL)
@@ -161,7 +161,7 @@ public class SelectTest
 		expected.Append("seq.CURRVAL, ");
 		expected.Append("seq.NEXTVAL");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
@@ -169,7 +169,7 @@ public class SelectTest
 	{
 		test_table _t = new("\"t s\"");
 
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.Build();
@@ -180,13 +180,13 @@ public class SelectTest
 		expected.Append("FROM ");
 		expected.Append("test_table \"t s\"");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SELECT_WithHints_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				HINTS("/*+ ANY HINT */"),
 				_t.code)
@@ -197,13 +197,13 @@ public class SelectTest
 		expected.Append("/*+ ANY HINT */ ");
 		expected.Append("t.code");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SELECT_WithHintsAndDistinct_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				HINTS("/*+ ANY HINT */"),
 				DISTINCT,
@@ -216,6 +216,6 @@ public class SelectTest
 		expected.Append("DISTINCT ");
 		expected.Append("t.code");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

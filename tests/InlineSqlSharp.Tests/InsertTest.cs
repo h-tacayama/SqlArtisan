@@ -10,7 +10,7 @@ public class InsertTest
 	[Fact]
 	public void INSERT_INTO_WithSetClause_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			INSERT_INTO(_t)
 			.SET(
 				_t.code == L(1),
@@ -33,7 +33,7 @@ public class InsertTest
 		expected.Append("SYSDATE");
 		expected.Append(")");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
@@ -53,7 +53,7 @@ public class InsertTest
 	{
 		test_table s = new("s");
 
-		SqlCommand sql =
+		SqlStatement sql =
 			INSERT_INTO(_t, _t.code, _t.name, _t.created_at)
 			.SELECT(s.code, s.name, s.created_at)
 			.FROM(s)
@@ -74,6 +74,6 @@ public class InsertTest
 		expected.Append("FROM ");
 		expected.Append("test_table s");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

@@ -10,7 +10,7 @@ public class MinusTest
 	[Fact]
 	public void MINUS_SimpleSelect_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(L(1))
 			.MINUS
 			.SELECT(L(2))
@@ -23,13 +23,13 @@ public class MinusTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MINUS_SelectWithFrom_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.MINUS
@@ -45,13 +45,13 @@ public class MinusTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MINUS_SelectWithFromWhere_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.WHERE(_t.code == L(1))
@@ -70,13 +70,13 @@ public class MinusTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MINUS_SelectWithFromWhereGroupBy_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.WHERE(_t.code == L(1))
@@ -98,13 +98,13 @@ public class MinusTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MINUS_SelectWithFromWhereGroupByHaving_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.WHERE(_t.code == L(1))
@@ -129,13 +129,13 @@ public class MinusTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MINUS_ALL_SimpleSelect_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(L(1))
 			.MINUS_ALL
 			.SELECT(L(2))
@@ -148,6 +148,6 @@ public class MinusTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

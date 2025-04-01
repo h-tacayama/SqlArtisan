@@ -8,10 +8,10 @@ public static class IDbConnectionExtensions
 		this IDbConnection connection,
 		ISqlBuilder sqlBuilder)
 	{
-		SqlCommand sql = sqlBuilder.Build();
+		SqlStatement sql = sqlBuilder.Build();
 
 		IDbCommand command = connection.CreateCommand();
-		command.CommandText = sql.Statement;
+		command.CommandText = sql.Text;
 
 		foreach (BindParameter bindVar in sql.Parameters)
 		{

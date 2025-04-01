@@ -11,7 +11,7 @@ public class RightJoinTest
 	[Fact]
 	public void RIGHT_JOIN_SimpleCondition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.name)
 			.FROM(_t)
 			.RIGHT_JOIN(_s)
@@ -28,6 +28,6 @@ public class RightJoinTest
 		expected.Append("ON ");
 		expected.Append("t.code = s.code");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

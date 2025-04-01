@@ -8,7 +8,7 @@ public partial class FunctionTest
 	[Fact]
 	public void DECODE_CharacterToCharacter_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				DECODE(
 					_t.name,
@@ -23,13 +23,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("DECODE(t.name, 'a', 'A', 'b', 'B', 'unknown')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void DECODE_DateTimeToCharacter_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				DECODE(
 					_t.created_at,
@@ -49,13 +49,13 @@ public partial class FunctionTest
 			.Append("'B', ")
 			.Append("'unknown')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void DECODE_NumericToCharacter_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				DECODE(
 					_t.code,
@@ -70,13 +70,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("DECODE(t.code, 1, 'A', 2, 'B', 'unknown')");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void DECODE_CharacterToDateTime_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				DECODE(
 					_t.name,
@@ -96,13 +96,13 @@ public partial class FunctionTest
 			.Append("TO_DATE('2000/01/02', 'YYYY/MM/DD'), ")
 			.Append("t.created_at)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void DECODE_DateTimeToDateTime_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				DECODE(
 					_t.created_at,
@@ -122,13 +122,13 @@ public partial class FunctionTest
 			.Append("TO_DATE('2000/01/20', 'YYYY/MM/DD'), ")
 			.Append("t.created_at)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void DECODE_NumericToDateTime_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				DECODE(
 					_t.code,
@@ -148,13 +148,13 @@ public partial class FunctionTest
 			.Append("TO_DATE('2000/01/02', 'YYYY/MM/DD'), ")
 			.Append("t.created_at)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void DECODE_CharacterToNumeric_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				DECODE(
 					_t.name,
@@ -169,13 +169,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("DECODE(t.name, 'a', 1, 'b', 2, 999)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void DECODE_DateTimeToNumeric_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				DECODE(
 					_t.created_at,
@@ -195,13 +195,13 @@ public partial class FunctionTest
 			.Append("2, ")
 			.Append("999)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void DECODE_NumericToNumeric_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				DECODE(
 					_t.code,
@@ -216,6 +216,6 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("DECODE(t.code, 1, 10, 2, 20, 999)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

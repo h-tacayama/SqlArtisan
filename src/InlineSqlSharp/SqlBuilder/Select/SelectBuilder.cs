@@ -104,7 +104,7 @@ internal class SelectBuilder :
 	public void FormatSql(SqlBuildingBuffer buffer) =>
 		FormatAsSubquery(ref buffer);
 
-	public SqlCommand Build() => BuildCore();
+	public SqlStatement Build() => BuildCore();
 
 	public ISelectBuilderFrom CROSS_JOIN(ITableReference table)
 	{

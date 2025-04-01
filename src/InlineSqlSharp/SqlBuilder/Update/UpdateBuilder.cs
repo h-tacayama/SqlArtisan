@@ -6,7 +6,7 @@ internal sealed class UpdateBuilder(UpdateClause updateClause) :
 	IUpdateBuilderUpdate,
 	IUpdateBuilderWhere
 {
-	public SqlCommand Build() => BuildCore();
+	public SqlStatement Build() => BuildCore();
 
 	public IUpdateBuilderSet SET(params IEquality[] assignments)
 	{

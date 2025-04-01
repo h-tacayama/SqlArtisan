@@ -10,7 +10,7 @@ public class GroupByTest
 	[Fact]
 	public void GROUP_BY_SingleColumn_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.name)
 			.FROM(_t)
 			.GROUP_BY(_t.name)
@@ -24,13 +24,13 @@ public class GroupByTest
 		expected.Append("GROUP BY ");
 		expected.Append("t.name");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void GROUP_BY_MultipleColumns_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(
 				_t.code,
 				_t.name)
@@ -50,6 +50,6 @@ public class GroupByTest
 		expected.Append("t.code, ");
 		expected.Append("t.name");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

@@ -10,7 +10,7 @@ public class IntersectTest
 	[Fact]
 	public void INTERSECT_SimpleSelect_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(L(1))
 			.INTERSECT
 			.SELECT(L(2))
@@ -23,13 +23,13 @@ public class IntersectTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void INTERSECT_SelectWithFrom_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.INTERSECT
@@ -45,13 +45,13 @@ public class IntersectTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void INTERSECT_SelectWithFromWhere_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.WHERE(_t.code == L(1))
@@ -70,13 +70,13 @@ public class IntersectTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void INTERSECT_SelectWithFromWhereGroupBy_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.WHERE(_t.code == L(1))
@@ -98,13 +98,13 @@ public class IntersectTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void INTERSECT_SelectWithFromWhereGroupByHaving_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(_t.code)
 			.FROM(_t)
 			.WHERE(_t.code == L(1))
@@ -129,13 +129,13 @@ public class IntersectTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void INTERSECT_ALL_SimpleSelect_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(L(1))
 			.INTERSECT_ALL
 			.SELECT(L(2))
@@ -148,6 +148,6 @@ public class IntersectTest
 		expected.Append("SELECT ");
 		expected.Append("2");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

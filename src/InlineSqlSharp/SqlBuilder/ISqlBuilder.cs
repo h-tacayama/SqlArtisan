@@ -2,5 +2,5 @@
 
 public interface ISqlBuilder
 {
-	SqlCommand Build();
+	SqlStatement Build();
 }

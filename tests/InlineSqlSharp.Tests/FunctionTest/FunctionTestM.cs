@@ -8,7 +8,7 @@ public partial class FunctionTest
 	[Fact]
 	public void MAX_CharacterValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(MAX(_t.name))
 			.Build();
 
@@ -16,13 +16,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("MAX(t.name)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MAX_DateTimeValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(MAX(_t.created_at))
 			.Build();
 
@@ -30,13 +30,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("MAX(t.created_at)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MAX_NumericValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(MAX(_t.code))
 			.Build();
 
@@ -44,13 +44,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("MAX(t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MIN_CharacterValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(MIN(_t.name))
 			.Build();
 
@@ -58,13 +58,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("MIN(t.name)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MIN_DateTimeValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(MIN(_t.created_at))
 			.Build();
 
@@ -72,13 +72,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("MIN(t.created_at)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MIN_NumericValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(MIN(_t.code))
 			.Build();
 
@@ -86,13 +86,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("MIN(t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MOD_NumericValues_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(MOD(_t.code, L(3)))
 			.Build();
 
@@ -100,13 +100,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("MOD(t.code, 3)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void MONTHS_BETWEEN_DateTimeValues_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(MONTHS_BETWEEN(
 				TO_DATE(L("2001/02/03"), L("YYYY/MM/DD")),
 				TO_DATE(L("2004/05/06"), L("YYYY/MM/DD"))))
@@ -117,6 +117,6 @@ public partial class FunctionTest
 		expected.Append("MONTHS_BETWEEN(TO_DATE('2001/02/03', 'YYYY/MM/DD'), ");
 		expected.Append("TO_DATE('2004/05/06', 'YYYY/MM/DD'))");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }

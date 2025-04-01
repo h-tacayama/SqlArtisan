@@ -8,7 +8,7 @@ public partial class FunctionTest
 	[Fact]
 	public void SUBSTR_CharacterPosition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(SUBSTR(_t.name, L(1)))
 			.Build();
 
@@ -16,13 +16,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("SUBSTR(t.name, 1)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SUBSTR_CharacterPositionLength_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(SUBSTR(_t.name, L(1), L(3)))
 			.Build();
 
@@ -30,13 +30,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("SUBSTR(t.name, 1, 3)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SUBSTRB_CharacterPosition_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(SUBSTRB(_t.name, L(1)))
 			.Build();
 
@@ -44,13 +44,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("SUBSTRB(t.name, 1)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SUBSTRB_CharacterPositionLength_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(SUBSTRB(_t.name, L(1), L(3)))
 			.Build();
 
@@ -58,13 +58,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("SUBSTRB(t.name, 1, 3)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SUM_NumericValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(SUM(_t.code))
 			.Build();
 
@@ -72,13 +72,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("SUM(t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SUM_DISTINCT_NumericValue_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(SUM(DISTINCT, _t.code))
 			.Build();
 
@@ -86,13 +86,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("SUM(DISTINCT t.code)");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SYSDATE_NoParameters_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(SYSDATE)
 			.Build();
 
@@ -100,13 +100,13 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("SYSDATE");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 
 	[Fact]
 	public void SYSTIMESTAMP_NoParameters_CorrectSql()
 	{
-		SqlCommand sql =
+		SqlStatement sql =
 			SELECT(SYSTIMESTAMP)
 			.Build();
 
@@ -114,6 +114,6 @@ public partial class FunctionTest
 		expected.Append("SELECT ");
 		expected.Append("SYSTIMESTAMP");
 
-		Assert.Equal(expected.ToString(), sql.Statement);
+		Assert.Equal(expected.ToString(), sql.Text);
 	}
 }
