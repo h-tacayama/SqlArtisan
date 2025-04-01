@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp.TableClassGen;
 
-internal sealed class ALL_TABLES : Table
+internal sealed class ALL_TABLES : AbstractTable
 {
 	public ALL_TABLES(string alias) : base(alias)
 	{

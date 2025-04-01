@@ -1,8 +1,8 @@
 ﻿namespace InlineSqlSharp;
 
-internal sealed class UpdateClause(Table table) : ISqlElement
+internal sealed class UpdateClause(AbstractTable table) : ISqlElement
 {
-	private readonly Table _table = table;
+	private readonly AbstractTable _table = table;
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(Keywords.UPDATE)

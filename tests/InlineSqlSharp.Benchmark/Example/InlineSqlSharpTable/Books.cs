@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp.Benchmark.InlineSqlSharpTable;
 
-internal sealed class Books : Table
+internal sealed class Books : AbstractTable
 {
 	public Books(string alias) : base(alias)
 	{

@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp.Benchmark.InlineSqlSharpTable;
 
-internal sealed class Authors : Table
+internal sealed class Authors : AbstractTable
 {
 	public Authors(string alias) : base(alias)
 	{

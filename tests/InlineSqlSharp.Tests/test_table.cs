@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp.Tests;
 
-internal sealed class test_table : Table
+internal sealed class test_table : AbstractTable
 {
 	public test_table(string alias) : base(alias)
 	{

@@ -2,11 +2,11 @@
 
 public static partial class SqlWordbook
 {
-	public static IInsertBuilderInsertInto INSERT_INTO(Table table) =>
+	public static IInsertBuilderInsertInto INSERT_INTO(AbstractTable table) =>
 		new InsertBuilder(new InsertIntoClause(table));
 
 	public static IInsertBuilderSelect INSERT_INTO(
-		Table table,
+		AbstractTable table,
 		params IColumn[] columns) =>
 		new InsertBuilder(new InsertSelectClause(table, columns));
 

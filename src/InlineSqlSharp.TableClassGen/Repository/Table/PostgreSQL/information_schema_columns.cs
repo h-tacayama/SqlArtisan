@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp.TableClassGen;
 
-internal sealed class information_schema_columns : Table
+internal sealed class information_schema_columns : AbstractTable
 {
 	public information_schema_columns(string alias)
 		: base("information_schema.columns", alias)
