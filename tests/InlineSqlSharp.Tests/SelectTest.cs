@@ -91,6 +91,7 @@ public class SelectTest
 	{
 		SqlStatement sql =
 			SELECT(
+				L('a'),
 				L("O'Reilly"),
 				L("O''Reilly", true),
 				L((int)1),
@@ -102,6 +103,7 @@ public class SelectTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
+		expected.Append("'a', ");
 		expected.Append("'O''Reilly', ");
 		expected.Append("'O''Reilly', ");
 		expected.Append("1, ");
