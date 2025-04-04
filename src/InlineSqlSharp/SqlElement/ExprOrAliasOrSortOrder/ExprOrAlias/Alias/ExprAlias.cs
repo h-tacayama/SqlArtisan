@@ -22,10 +22,10 @@ public sealed class ExprAlias(IExpr expr, string alias) :
 	public SortOrder NULLS_LAST => new(this, NullOrdering.NullsLast);
 
 	public void FormatSql(SqlBuildingBuffer buffer) =>
-		buffer.Append(_alias);
+		buffer.EncloseInDoubleQuotes(_alias);
 
 	public void FormatAsSelect(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_expr)
 		.AppendSpace(Keywords.AS)
-		.Append(_alias);
+		.EncloseInDoubleQuotes(_alias);
 }

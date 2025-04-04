@@ -18,7 +18,7 @@ public class InConditionTest
 	public void IN_CharacterValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.name IN ");
+		expected.Append("\"t\".name IN ");
 		expected.Append("(");
 		expected.Append("'a'");
 		expected.Append(")");
@@ -30,7 +30,7 @@ public class InConditionTest
 	public void IN_CharacterValues_WithMultipleValues_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.name IN ");
+		expected.Append("\"t\".name IN ");
 		expected.Append("(");
 		expected.Append(":P_0, ");
 		expected.Append(":P_1, ");
@@ -47,7 +47,7 @@ public class InConditionTest
 	public void NOT_IN_CharacterValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.name NOT IN ");
+		expected.Append("\"t\".name NOT IN ");
 		expected.Append("(");
 		expected.Append("'a'");
 		expected.Append(")");
@@ -59,7 +59,7 @@ public class InConditionTest
 	public void IN_DateTimeValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.created_at IN ");
+		expected.Append("\"t\".created_at IN ");
 		expected.Append("(");
 		expected.Append(":P_0");
 		expected.Append(")");
@@ -74,7 +74,7 @@ public class InConditionTest
 	public void IN_DateTimeValues_WithMultipleValues_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.created_at IN ");
+		expected.Append("\"t\".created_at IN ");
 		expected.Append("(");
 		expected.Append(":P_0, ");
 		expected.Append(":P_1, ");
@@ -94,7 +94,7 @@ public class InConditionTest
 	public void NOT_IN_DateTimeValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.created_at NOT IN ");
+		expected.Append("\"t\".created_at NOT IN ");
 		expected.Append("(");
 		expected.Append(":P_0");
 		expected.Append(")");
@@ -109,7 +109,7 @@ public class InConditionTest
 	public void IN_NumericValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append("1");
 		expected.Append(")");
@@ -121,7 +121,7 @@ public class InConditionTest
 	public void IN_NumericValues_WithMultipleValues_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append(":P_0, ");
 		expected.Append(":P_1, ");
@@ -137,7 +137,7 @@ public class InConditionTest
 	public void NOT_IN_NumericValues_WithSingleValue_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code NOT IN ");
+		expected.Append("\"t\".code NOT IN ");
 		expected.Append("(");
 		expected.Append("1");
 		expected.Append(")");

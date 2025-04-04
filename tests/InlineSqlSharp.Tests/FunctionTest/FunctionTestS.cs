@@ -14,7 +14,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("SUBSTR(t.name, 1)");
+		expected.Append("SUBSTR(\"t\".name, 1)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -28,7 +28,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("SUBSTR(t.name, 1, 3)");
+		expected.Append("SUBSTR(\"t\".name, 1, 3)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -42,7 +42,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("SUBSTRB(t.name, 1)");
+		expected.Append("SUBSTRB(\"t\".name, 1)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -56,7 +56,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("SUBSTRB(t.name, 1, 3)");
+		expected.Append("SUBSTRB(\"t\".name, 1, 3)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -70,7 +70,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("SUM(t.code)");
+		expected.Append("SUM(\"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -84,7 +84,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("SUM(DISTINCT t.code)");
+		expected.Append("SUM(DISTINCT \"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

@@ -20,13 +20,13 @@ public class CrossJoinTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("t.name ");
+		expected.Append("\"t\".name ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("CROSS JOIN ");
-		expected.Append("test_table s ");
+		expected.Append("test_table \"s\" ");
 		expected.Append("WHERE ");
-		expected.Append("t.code = s.code");
+		expected.Append("\"t\".code = \"s\".code");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

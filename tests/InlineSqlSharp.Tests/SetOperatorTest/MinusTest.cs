@@ -38,9 +38,9 @@ public class MinusTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("t.code ");
+		expected.Append("\"t\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("MINUS ");
 		expected.Append("SELECT ");
 		expected.Append("2");
@@ -61,11 +61,11 @@ public class MinusTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("t.code ");
+		expected.Append("\"t\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("WHERE ");
-		expected.Append("t.code = 1 ");
+		expected.Append("\"t\".code = 1 ");
 		expected.Append("MINUS ");
 		expected.Append("SELECT ");
 		expected.Append("2");
@@ -87,13 +87,13 @@ public class MinusTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("t.code ");
+		expected.Append("\"t\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("WHERE ");
-		expected.Append("t.code = 1 ");
+		expected.Append("\"t\".code = 1 ");
 		expected.Append("GROUP BY ");
-		expected.Append("t.code ");
+		expected.Append("\"t\".code ");
 		expected.Append("MINUS ");
 		expected.Append("SELECT ");
 		expected.Append("2");
@@ -116,15 +116,15 @@ public class MinusTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("t.code ");
+		expected.Append("\"t\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("WHERE ");
-		expected.Append("t.code = 1 ");
+		expected.Append("\"t\".code = 1 ");
 		expected.Append("GROUP BY ");
-		expected.Append("t.code ");
+		expected.Append("\"t\".code ");
 		expected.Append("HAVING ");
-		expected.Append("COUNT(t.code) > 0 ");
+		expected.Append("COUNT(\"t\".code) > 0 ");
 		expected.Append("MINUS ");
 		expected.Append("SELECT ");
 		expected.Append("2");

@@ -20,9 +20,9 @@ internal sealed class ConditionTestAssert(test_table t)
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("t.name ");
+		expected.Append("\"t\".name ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("WHERE ");
 		expected.Append(expectedSql);
 

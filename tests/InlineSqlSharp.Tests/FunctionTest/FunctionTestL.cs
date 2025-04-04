@@ -14,7 +14,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LAST_DAY(t.created_at)");
+		expected.Append("LAST_DAY(\"t\".created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -28,7 +28,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LEAST(t.name, 'test', t.name)");
+		expected.Append("LEAST(\"t\".name, 'test', \"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -45,7 +45,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LEAST(t.created_at, TO_DATE('2000/01/01', 'YYYY/MM/DD'), t.created_at)");
+		expected.Append("LEAST(\"t\".created_at, TO_DATE('2000/01/01', 'YYYY/MM/DD'), \"t\".created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -59,7 +59,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LEAST(t.code, 10, t.code)");
+		expected.Append("LEAST(\"t\".code, 10, \"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -73,7 +73,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LENGTH(t.name)");
+		expected.Append("LENGTH(\"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -87,7 +87,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LENGTHB(t.name)");
+		expected.Append("LENGTHB(\"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -101,7 +101,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LOWER(t.name)");
+		expected.Append("LOWER(\"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -115,7 +115,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LPAD(t.name, 10)");
+		expected.Append("LPAD(\"t\".name, 10)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -129,7 +129,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LPAD(t.name, 10, 'a')");
+		expected.Append("LPAD(\"t\".name, 10, 'a')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -143,7 +143,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LTRIM(t.name)");
+		expected.Append("LTRIM(\"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -157,7 +157,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("LTRIM(t.name, 'a')");
+		expected.Append("LTRIM(\"t\".name, 'a')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

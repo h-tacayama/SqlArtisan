@@ -29,13 +29,13 @@ public class ArithmeticOperatorTest
 
 	[Fact]
 	public void DateOffset_AdditionWithNumber_CorrectSql() =>
-		Assert.Equal("SELECT (t.created_at + 1)", SELECT(_t.created_at + L(1)).Build().Text);
+		Assert.Equal("SELECT (\"t\".created_at + 1)", SELECT(_t.created_at + L(1)).Build().Text);
 
 	[Fact]
 	public void DateOffset_SubtractionWithNumber_CorrectSql() =>
-		Assert.Equal("SELECT (t.created_at - 1)", SELECT(_t.created_at - L(1)).Build().Text);
+		Assert.Equal("SELECT (\"t\".created_at - 1)", SELECT(_t.created_at - L(1)).Build().Text);
 
 	[Fact]
 	public void DateDiff_SubtractionAndAddition_CorrectSql() =>
-		Assert.Equal("SELECT ((t.created_at - t.created_at) + 1)", SELECT((_t.created_at - _t.created_at) + L(1)).Build().Text);
+		Assert.Equal("SELECT ((\"t\".created_at - \"t\".created_at) + 1)", SELECT((_t.created_at - _t.created_at) + L(1)).Build().Text);
 }

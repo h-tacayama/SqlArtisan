@@ -14,7 +14,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("INSTR(t.name, 'abc')");
+		expected.Append("INSTR(\"t\".name, 'abc')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -31,9 +31,9 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("INSTR(t.name, 'abc', 2), ");
-		expected.Append("INSTR(t.name, 'abc', 1), ");
-		expected.Append("INSTR(t.name, 'abc', -1)");
+		expected.Append("INSTR(\"t\".name, 'abc', 2), ");
+		expected.Append("INSTR(\"t\".name, 'abc', 1), ");
+		expected.Append("INSTR(\"t\".name, 'abc', -1)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -50,9 +50,9 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("INSTR(t.name, 'abc', 1, 1), ");
-		expected.Append("INSTR(t.name, 'abc', 1, 2), ");
-		expected.Append("INSTR(t.name, 'abc', 2, -1)");
+		expected.Append("INSTR(\"t\".name, 'abc', 1, 1), ");
+		expected.Append("INSTR(\"t\".name, 'abc', 1, 2), ");
+		expected.Append("INSTR(\"t\".name, 'abc', 2, -1)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

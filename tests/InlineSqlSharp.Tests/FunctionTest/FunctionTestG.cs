@@ -14,7 +14,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("GREATEST(t.name, 'test', t.name)");
+		expected.Append("GREATEST(\"t\".name, 'test', \"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -31,7 +31,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("GREATEST(t.created_at, TO_DATE('2000/01/01', 'YYYY/MM/DD'), t.created_at)");
+		expected.Append("GREATEST(\"t\".created_at, TO_DATE('2000/01/01', 'YYYY/MM/DD'), \"t\".created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -45,7 +45,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("GREATEST(t.code, 10, t.code)");
+		expected.Append("GREATEST(\"t\".code, 10, \"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

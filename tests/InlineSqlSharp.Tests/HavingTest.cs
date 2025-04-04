@@ -19,13 +19,13 @@ public class HavingTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("t.name ");
+		expected.Append("\"t\".name ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("GROUP BY ");
-		expected.Append("t.name ");
+		expected.Append("\"t\".name ");
 		expected.Append("HAVING ");
-		expected.Append("COUNT(t.name) > 1");
+		expected.Append("COUNT(\"t\".name) > 1");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

@@ -36,9 +36,9 @@ public class ExistsConditionTest
 		expected.Append("EXISTS ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("t.code ");
+		expected.Append("\"t\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table t");
+		expected.Append("test_table \"t\"");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -51,23 +51,23 @@ public class ExistsConditionTest
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
-		expected.Append("t.code = :P_0");
+		expected.Append("\"t\".code = :P_0");
 		expected.Append(") ");
 		expected.Append("AND ");
 		expected.Append("(");
 		expected.Append("EXISTS ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("t.code ");
+		expected.Append("\"t\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("WHERE ");
-		expected.Append("t.name = :P_1");
+		expected.Append("\"t\".name = :P_1");
 		expected.Append(")");
 		expected.Append(") ");
 		expected.Append("AND ");
 		expected.Append("(");
-		expected.Append("t.code = :P_2");
+		expected.Append("\"t\".code = :P_2");
 		expected.Append(")");
 
 		// Check if parameter indexes are correctly incremented
@@ -87,11 +87,11 @@ public class ExistsConditionTest
 		expected.Append("NOT EXISTS ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("t.code ");
+		expected.Append("\"t\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("WHERE ");
-		expected.Append("t.code = :P_0");
+		expected.Append("\"t\".code = :P_0");
 		expected.Append(")");
 
 		_assert.Equal(

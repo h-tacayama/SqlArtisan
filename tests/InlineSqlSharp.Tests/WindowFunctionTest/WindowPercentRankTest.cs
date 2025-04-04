@@ -22,11 +22,11 @@ public partial class WindowPercentRankTest
 		expected.Append("OVER ");
 		expected.Append("(");
 		expected.Append("PARTITION BY ");
-		expected.Append("t.code, ");
-		expected.Append("t.name ");
+		expected.Append("\"t\".code, ");
+		expected.Append("\"t\".name ");
 		expected.Append("ORDER BY ");
-		expected.Append("t.code ASC, ");
-		expected.Append("t.name DESC");
+		expected.Append("\"t\".code ASC, ");
+		expected.Append("\"t\".name DESC");
 		expected.Append(")");
 
 		Assert.Equal(expected.ToString(), sql.Text);
@@ -46,8 +46,8 @@ public partial class WindowPercentRankTest
 		expected.Append("OVER ");
 		expected.Append("(");
 		expected.Append("ORDER BY ");
-		expected.Append("t.code, ");
-		expected.Append("t.name");
+		expected.Append("\"t\".code, ");
+		expected.Append("\"t\".name");
 		expected.Append(")");
 
 		Assert.Equal(expected.ToString(), sql.Text);

@@ -20,11 +20,11 @@ public class UpdateTest
 
 		StringBuilder expected = new();
 		expected.Append("UPDATE ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("SET ");
-		expected.Append("t.code = 1, ");
-		expected.Append("t.name = 'a', ");
-		expected.Append("t.created_at = SYSDATE");
+		expected.Append("\"t\".code = 1, ");
+		expected.Append("\"t\".name = 'a', ");
+		expected.Append("\"t\".created_at = SYSDATE");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

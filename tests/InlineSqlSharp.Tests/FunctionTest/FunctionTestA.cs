@@ -16,7 +16,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("ABS(t.code)");
+		expected.Append("ABS(\"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -30,7 +30,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("ADD_MONTHS(t.created_at, 3)");
+		expected.Append("ADD_MONTHS(\"t\".created_at, 3)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -44,7 +44,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("AVG(t.code)");
+		expected.Append("AVG(\"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -58,7 +58,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("AVG(DISTINCT t.code)");
+		expected.Append("AVG(DISTINCT \"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

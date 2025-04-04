@@ -22,10 +22,10 @@ public class SubqueryTest
 	public void Subquery_SimpleSelect_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.code");
+		expected.Append("\"s\".code");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -37,12 +37,12 @@ public class SubqueryTest
 	public void Subquery_SelectWithFrom_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.code ");
+		expected.Append("\"s\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table s");
+		expected.Append("test_table \"s\"");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -54,13 +54,13 @@ public class SubqueryTest
 	public void Subquery_SelectDistinctWithFrom_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
 		expected.Append("DISTINCT ");
-		expected.Append("s.code ");
+		expected.Append("\"s\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table s");
+		expected.Append("test_table \"s\"");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -72,14 +72,14 @@ public class SubqueryTest
 	public void Subquery_SelectWithFromAndWhere_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.code ");
+		expected.Append("\"s\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table s ");
+		expected.Append("test_table \"s\" ");
 		expected.Append("WHERE ");
-		expected.Append("s.code > 1");
+		expected.Append("\"s\".code > 1");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -91,16 +91,16 @@ public class SubqueryTest
 	public void Subquery_SelectWithFromAndJoin_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.code ");
+		expected.Append("\"s\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table s ");
+		expected.Append("test_table \"s\" ");
 		expected.Append("INNER JOIN ");
-		expected.Append("test_table r ");
+		expected.Append("test_table \"r\" ");
 		expected.Append("ON ");
-		expected.Append("s.code = r.code");
+		expected.Append("\"s\".code = \"r\".code");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -112,11 +112,11 @@ public class SubqueryTest
 	public void Subquery_SelectWithHints_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
 		expected.Append("/*+ ANY HINT */ ");
-		expected.Append("s.code");
+		expected.Append("\"s\".code");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -128,12 +128,12 @@ public class SubqueryTest
 	public void Subquery_SelectWithHintsAndDistinct_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
 		expected.Append("/*+ ANY HINT */ ");
 		expected.Append("DISTINCT ");
-		expected.Append("s.code");
+		expected.Append("\"s\".code");
 		expected.Append(")");
 
 		_assert.Equal(

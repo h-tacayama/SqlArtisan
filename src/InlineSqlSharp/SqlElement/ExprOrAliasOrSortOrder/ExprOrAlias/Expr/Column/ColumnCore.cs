@@ -6,7 +6,7 @@ internal sealed class ColumnCore(string tableAlias, string columnName)
 	private readonly string _columnName = columnName;
 
 	internal void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.Append(_tableAlias)
+		.EncloseInDoubleQuotes(_tableAlias)
 		.Append(".")
 		.Append(_columnName);
 }

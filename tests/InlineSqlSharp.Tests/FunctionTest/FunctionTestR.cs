@@ -14,7 +14,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_COUNT(t.name, '[abc]')");
+		expected.Append("REGEXP_COUNT(\"t\".name, '[abc]')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -28,7 +28,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_COUNT(t.name, '[abc]', 2)");
+		expected.Append("REGEXP_COUNT(\"t\".name, '[abc]', 2)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -42,7 +42,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_COUNT(t.name, '[abc]', 2, 'i')");
+		expected.Append("REGEXP_COUNT(\"t\".name, '[abc]', 2, 'i')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -56,7 +56,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x')");
+		expected.Append("REGEXP_REPLACE(\"t\".name, '[abc]', 'x')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -70,7 +70,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2)");
+		expected.Append("REGEXP_REPLACE(\"t\".name, '[abc]', 'x', 2)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -84,7 +84,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2, 3)");
+		expected.Append("REGEXP_REPLACE(\"t\".name, '[abc]', 'x', 2, 3)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -98,7 +98,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_REPLACE(t.name, '[abc]', 'x', 2, 3, 'i')");
+		expected.Append("REGEXP_REPLACE(\"t\".name, '[abc]', 'x', 2, 3, 'i')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -112,7 +112,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_SUBSTR(t.name, '[abc]')");
+		expected.Append("REGEXP_SUBSTR(\"t\".name, '[abc]')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -126,7 +126,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2)");
+		expected.Append("REGEXP_SUBSTR(\"t\".name, '[abc]', 2)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -140,7 +140,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3)");
+		expected.Append("REGEXP_SUBSTR(\"t\".name, '[abc]', 2, 3)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -154,7 +154,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3, 'i')");
+		expected.Append("REGEXP_SUBSTR(\"t\".name, '[abc]', 2, 3, 'i')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -168,7 +168,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REGEXP_SUBSTR(t.name, '[abc]', 2, 3, '', 1)");
+		expected.Append("REGEXP_SUBSTR(\"t\".name, '[abc]', 2, 3, '', 1)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -182,7 +182,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("REPLACE(t.name, 'a', 'b')");
+		expected.Append("REPLACE(\"t\".name, 'a', 'b')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -196,7 +196,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("RPAD(t.name, 10)");
+		expected.Append("RPAD(\"t\".name, 10)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -210,7 +210,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("RPAD(t.name, 10, 'a')");
+		expected.Append("RPAD(\"t\".name, 10, 'a')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -224,7 +224,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("RTRIM(t.name)");
+		expected.Append("RTRIM(\"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -238,7 +238,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("RTRIM(t.name, 'a')");
+		expected.Append("RTRIM(\"t\".name, 'a')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

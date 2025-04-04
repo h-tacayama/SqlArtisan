@@ -14,7 +14,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("CONCAT(t.name, 'a', 'b')");
+		expected.Append("CONCAT(\"t\".name, 'a', 'b')");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -28,7 +28,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("COUNT(t.code)");
+		expected.Append("COUNT(\"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -42,7 +42,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("COUNT(DISTINCT t.code)");
+		expected.Append("COUNT(DISTINCT \"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

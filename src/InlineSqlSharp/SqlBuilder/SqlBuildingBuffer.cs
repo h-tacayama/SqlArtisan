@@ -164,6 +164,14 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
+	internal SqlBuildingBuffer EncloseInDoubleQuotes(string value)
+	{
+		_text.Append("\"");
+		_text.Append(value);
+		_text.Append("\"");
+		return this;
+	}
+
 	internal SqlBuildingBuffer EncloseInParentheses(ISqlElement element)
 	{
 		_text.Append("(");

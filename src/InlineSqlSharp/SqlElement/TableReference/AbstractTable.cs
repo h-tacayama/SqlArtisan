@@ -19,5 +19,5 @@ public abstract class AbstractTable : ITableReference
 
 	public void FormatSql(SqlBuildingBuffer buffer) => buffer
 		.AppendSpace(_name)
-		.Append(_alias);
+		.EncloseInDoubleQuotes(_alias);
 }

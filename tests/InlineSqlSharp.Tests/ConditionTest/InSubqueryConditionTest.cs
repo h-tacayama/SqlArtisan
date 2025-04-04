@@ -21,23 +21,23 @@ public class InSubqueryConditionTest
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
-		expected.Append("t.code = :P_0");
+		expected.Append("\"t\".code = :P_0");
 		expected.Append(") ");
 		expected.Append("AND ");
 		expected.Append("(");
-		expected.Append("t.name IN ");
+		expected.Append("\"t\".name IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.name ");
+		expected.Append("\"s\".name ");
 		expected.Append("FROM ");
-		expected.Append("test_table s ");
+		expected.Append("test_table \"s\" ");
 		expected.Append("WHERE ");
-		expected.Append("s.code = :P_1");
+		expected.Append("\"s\".code = :P_1");
 		expected.Append(")");
 		expected.Append(") ");
 		expected.Append("AND ");
 		expected.Append("(");
-		expected.Append("t.code = :P_2");
+		expected.Append("\"t\".code = :P_2");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -53,12 +53,12 @@ public class InSubqueryConditionTest
 	public void NOT_IN_CharacterValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.name NOT IN ");
+		expected.Append("\"t\".name NOT IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.name ");
+		expected.Append("\"s\".name ");
 		expected.Append("FROM ");
-		expected.Append("test_table s");
+		expected.Append("test_table \"s\"");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -70,12 +70,12 @@ public class InSubqueryConditionTest
 	public void IN_DateTimeValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.created_at IN ");
+		expected.Append("\"t\".created_at IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.created_at ");
+		expected.Append("\"s\".created_at ");
 		expected.Append("FROM ");
-		expected.Append("test_table s");
+		expected.Append("test_table \"s\"");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -87,12 +87,12 @@ public class InSubqueryConditionTest
 	public void NOT_IN_DateTimeValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.created_at NOT IN ");
+		expected.Append("\"t\".created_at NOT IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.created_at ");
+		expected.Append("\"s\".created_at ");
 		expected.Append("FROM ");
-		expected.Append("test_table s");
+		expected.Append("test_table \"s\"");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -104,12 +104,12 @@ public class InSubqueryConditionTest
 	public void IN_NumericValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code IN ");
+		expected.Append("\"t\".code IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.code ");
+		expected.Append("\"s\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table s");
+		expected.Append("test_table \"s\"");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -121,12 +121,12 @@ public class InSubqueryConditionTest
 	public void NOT_IN_NumericValues_WithSubquery_CorrectSql()
 	{
 		StringBuilder expected = new();
-		expected.Append("t.code NOT IN ");
+		expected.Append("\"t\".code NOT IN ");
 		expected.Append("(");
 		expected.Append("SELECT ");
-		expected.Append("s.code ");
+		expected.Append("\"s\".code ");
 		expected.Append("FROM ");
-		expected.Append("test_table s");
+		expected.Append("test_table \"s\"");
 		expected.Append(")");
 
 		_assert.Equal(

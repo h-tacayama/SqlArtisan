@@ -14,7 +14,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("MAX(t.name)");
+		expected.Append("MAX(\"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -28,7 +28,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("MAX(t.created_at)");
+		expected.Append("MAX(\"t\".created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -42,7 +42,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("MAX(t.code)");
+		expected.Append("MAX(\"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -56,7 +56,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("MIN(t.name)");
+		expected.Append("MIN(\"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -70,7 +70,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("MIN(t.created_at)");
+		expected.Append("MIN(\"t\".created_at)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -84,7 +84,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("MIN(t.code)");
+		expected.Append("MIN(\"t\".code)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -98,7 +98,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("MOD(t.code, 3)");
+		expected.Append("MOD(\"t\".code, 3)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

@@ -14,7 +14,7 @@ public partial class FunctionTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("UPPER(t.name)");
+		expected.Append("UPPER(\"t\".name)");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}

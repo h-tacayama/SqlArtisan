@@ -15,7 +15,7 @@ public class DynamicConditionTest
 
 	[Fact]
 	public void AddConditionIf_WhenConditionIsTrue_CorrectSql() =>
-		_assert.Equal(AddConditionIf(true, _t.code == L(1)), "t.code = 1");
+		_assert.Equal(AddConditionIf(true, _t.code == L(1)), "\"t\".code = 1");
 
 	[Fact]
 	public void AddConditionIf_WhenConditionIsFalse_ReturnsEmpty() =>

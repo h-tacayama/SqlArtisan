@@ -18,11 +18,11 @@ public class GroupByTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("t.name ");
+		expected.Append("\"t\".name ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("GROUP BY ");
-		expected.Append("t.name");
+		expected.Append("\"t\".name");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
@@ -42,13 +42,13 @@ public class GroupByTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append("t.code, ");
-		expected.Append("t.name ");
+		expected.Append("\"t\".code, ");
+		expected.Append("\"t\".name ");
 		expected.Append("FROM ");
-		expected.Append("test_table t ");
+		expected.Append("test_table \"t\" ");
 		expected.Append("GROUP BY ");
-		expected.Append("t.code, ");
-		expected.Append("t.name");
+		expected.Append("\"t\".code, ");
+		expected.Append("\"t\".name");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 	}
