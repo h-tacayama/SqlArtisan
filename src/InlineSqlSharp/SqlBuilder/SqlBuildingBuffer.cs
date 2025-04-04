@@ -147,7 +147,7 @@ public sealed class SqlBuildingBuffer()
 	internal SqlBuildingBuffer AddParameter(IBindValue bindValue)
 	{
 		int index = _parameters.Count;
-		BindParameter parameter = new($":P_{index}", bindValue);
+		BindParameter parameter = new($":{index}", bindValue);
 		_parameters.Add(parameter);
 		_text.Append(parameter.Name);
 		return this;

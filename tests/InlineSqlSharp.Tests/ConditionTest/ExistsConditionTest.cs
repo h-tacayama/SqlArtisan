@@ -51,7 +51,7 @@ public class ExistsConditionTest
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
-		expected.Append("\"t\".code = :P_0");
+		expected.Append("\"t\".code = :0");
 		expected.Append(") ");
 		expected.Append("AND ");
 		expected.Append("(");
@@ -62,12 +62,12 @@ public class ExistsConditionTest
 		expected.Append("FROM ");
 		expected.Append("test_table \"t\" ");
 		expected.Append("WHERE ");
-		expected.Append("\"t\".name = :P_1");
+		expected.Append("\"t\".name = :1");
 		expected.Append(")");
 		expected.Append(") ");
 		expected.Append("AND ");
 		expected.Append("(");
-		expected.Append("\"t\".code = :P_2");
+		expected.Append("\"t\".code = :2");
 		expected.Append(")");
 
 		// Check if parameter indexes are correctly incremented
@@ -91,7 +91,7 @@ public class ExistsConditionTest
 		expected.Append("FROM ");
 		expected.Append("test_table \"t\" ");
 		expected.Append("WHERE ");
-		expected.Append("\"t\".code = :P_0");
+		expected.Append("\"t\".code = :0");
 		expected.Append(")");
 
 		_assert.Equal(

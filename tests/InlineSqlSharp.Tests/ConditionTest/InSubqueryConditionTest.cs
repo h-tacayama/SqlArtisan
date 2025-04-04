@@ -21,7 +21,7 @@ public class InSubqueryConditionTest
 	{
 		StringBuilder expected = new();
 		expected.Append("(");
-		expected.Append("\"t\".code = :P_0");
+		expected.Append("\"t\".code = :0");
 		expected.Append(") ");
 		expected.Append("AND ");
 		expected.Append("(");
@@ -32,12 +32,12 @@ public class InSubqueryConditionTest
 		expected.Append("FROM ");
 		expected.Append("test_table \"s\" ");
 		expected.Append("WHERE ");
-		expected.Append("\"s\".code = :P_1");
+		expected.Append("\"s\".code = :1");
 		expected.Append(")");
 		expected.Append(") ");
 		expected.Append("AND ");
 		expected.Append("(");
-		expected.Append("\"t\".code = :P_2");
+		expected.Append("\"t\".code = :2");
 		expected.Append(")");
 
 		_assert.Equal(

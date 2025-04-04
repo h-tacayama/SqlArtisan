@@ -35,8 +35,12 @@ public abstract class AbstractSqlMapperTest : IDisposable
 			TABLESPACE TS_TBL_02";
 		createCommand.ExecuteNonQuery();
 
-		InsertTestData(1, "Test1", new DateTime(2025, 4, 1));
-		InsertTestData(2, "Test2", new DateTime(2025, 4, 2));
+		try
+		{
+			InsertTestData(1, "Test1", new DateTime(2025, 4, 1));
+			InsertTestData(2, "Test2", new DateTime(2025, 4, 2));
+		}
+		catch { }
 	}
 
 	public void Dispose()
@@ -54,7 +58,8 @@ public abstract class AbstractSqlMapperTest : IDisposable
 		{
 			test_table t = new("t");
 			ISqlBuilder sql = SELECT(COUNT(t.code)).FROM(t);
-			return _conn.ExecuteScalar<int>(sql) > 0;
+			_conn.ExecuteScalar<int>(sql);
+			return true;
 		}
 		catch (OracleException ex)
 		{

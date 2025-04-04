@@ -32,9 +32,9 @@ public class InConditionTest
 		StringBuilder expected = new();
 		expected.Append("\"t\".name IN ");
 		expected.Append("(");
-		expected.Append(":P_0, ");
-		expected.Append(":P_1, ");
-		expected.Append(":P_2");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -61,7 +61,7 @@ public class InConditionTest
 		StringBuilder expected = new();
 		expected.Append("\"t\".created_at IN ");
 		expected.Append("(");
-		expected.Append(":P_0");
+		expected.Append(":0");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -76,9 +76,9 @@ public class InConditionTest
 		StringBuilder expected = new();
 		expected.Append("\"t\".created_at IN ");
 		expected.Append("(");
-		expected.Append(":P_0, ");
-		expected.Append(":P_1, ");
-		expected.Append(":P_2");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -96,7 +96,7 @@ public class InConditionTest
 		StringBuilder expected = new();
 		expected.Append("\"t\".created_at NOT IN ");
 		expected.Append("(");
-		expected.Append(":P_0");
+		expected.Append(":0");
 		expected.Append(")");
 
 		_assert.Equal(
@@ -123,9 +123,9 @@ public class InConditionTest
 		StringBuilder expected = new();
 		expected.Append("\"t\".code IN ");
 		expected.Append("(");
-		expected.Append(":P_0, ");
-		expected.Append(":P_1, ");
-		expected.Append(":P_2");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
 		expected.Append(")");
 
 		_assert.Equal(_t.code.IN(P(1), P(2), P(3)),

@@ -129,13 +129,13 @@ public class SelectTest
 
 		StringBuilder expected = new();
 		expected.Append("SELECT ");
-		expected.Append(":P_0, ");
-		expected.Append(":P_1, ");
-		expected.Append(":P_2, ");
-		expected.Append(":P_3, ");
-		expected.Append(":P_4, ");
-		expected.Append(":P_5, ");
-		expected.Append(":P_6");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2, ");
+		expected.Append(":3, ");
+		expected.Append(":4, ");
+		expected.Append(":5, ");
+		expected.Append(":6");
 
 		Assert.Equal(expected.ToString(), sql.Text);
 		Assert.Equal("abc", sql.Parameters[0].Value);
