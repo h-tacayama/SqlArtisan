@@ -62,7 +62,6 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		NumericExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
 
-
 	public static NumericExpr operator +(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
@@ -101,11 +100,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public InCondition IN(params NumericExpr[] expressions) =>
 		new(this, expressions);
 
-	public NotInCondition NOT_IN(params NumericExpr[] expressions) =>
-		new(this, expressions);
-
 	public InSubqueryCondition IN(ISubquery subquery) =>
 		new(this, subquery);
+
+	public NotInCondition NOT_IN(params NumericExpr[] expressions) =>
+		new(this, expressions);
 
 	public NotInSubqueryCondition NOT_IN(ISubquery subquery) =>
 		new(this, subquery);
