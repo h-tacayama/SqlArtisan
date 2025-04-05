@@ -15,7 +15,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void IN_CharacterValues_WithSingleValue_CorrectSql()
+	public void IN_CharacterSingleLiteral_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".name IN ");
@@ -27,7 +27,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void IN_CharacterValues_WithMultipleValues_CorrectSql()
+	public void IN_CharacterMultipleStrings_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".name IN ");
@@ -38,13 +38,13 @@ public class InConditionTest
 		expected.Append(")");
 
 		_assert.Equal(
-			_t.name.IN(P("a"), P("b"), P("c")),
+			_t.name.IN("a", "b", "c"),
 			expected.ToString(),
 			3);
 	}
 
 	[Fact]
-	public void NOT_IN_CharacterValues_WithSingleValue_CorrectSql()
+	public void NOT_IN_CharacterSingleLiteral_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".name NOT IN ");
@@ -53,6 +53,23 @@ public class InConditionTest
 		expected.Append(")");
 
 		_assert.Equal(_t.name.NOT_IN(L("a")), expected.ToString());
+	}
+
+	[Fact]
+	public void NOT_IN_CharacterMultipleStrings_CorrectSql()
+	{
+		StringBuilder expected = new();
+		expected.Append("\"t\".name NOT IN ");
+		expected.Append("(");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.name.NOT_IN("a", "b", "c"),
+			expected.ToString(),
+			3);
 	}
 
 	[Fact]

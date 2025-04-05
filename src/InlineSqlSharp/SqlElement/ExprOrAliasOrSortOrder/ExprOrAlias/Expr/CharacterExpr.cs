@@ -97,21 +97,21 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 		CharacterExpr rightSide1,
 		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
 
+	public NotBetweenCondition NOT_BETWEEN(
+		CharacterExpr rightSide1,
+		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
+
 	public BetweenCondition BETWEEN(
+		CharacterExpr rightSide1,
+		string rightSide2) => new(this, rightSide1, new CharacterBindValue(rightSide2));
+
+	public NotBetweenCondition NOT_BETWEEN(
 		CharacterExpr rightSide1,
 		string rightSide2) => new(this, rightSide1, new CharacterBindValue(rightSide2));
 
 	public BetweenCondition BETWEEN(
 		string rightSide1,
 		CharacterExpr rightSide2) => new(this, new CharacterBindValue(rightSide1), rightSide2);
-
-	public NotBetweenCondition NOT_BETWEEN(
-		CharacterExpr rightSide1,
-		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
-
-	public NotBetweenCondition NOT_BETWEEN(
-		CharacterExpr rightSide1,
-		string rightSide2) => new(this, rightSide1, new CharacterBindValue(rightSide2));
 
 	public NotBetweenCondition NOT_BETWEEN(
 		string rightSide1,
@@ -123,6 +123,13 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 	public NotInCondition NOT_IN(params CharacterExpr[] expressions) =>
 		new(this, expressions);
 
+	public InCondition IN(params string[] values) =>
+		new(this, CharacterBindValueArray.Create(values));
+	
+
+	public NotInCondition NOT_IN(params string[] values) =>
+		new(this, CharacterBindValueArray.Create(values));
+
 	public InSubqueryCondition IN(ISubquery subquery) =>
 		new(this, subquery);
 
@@ -132,11 +139,11 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 	public LikeCondition LIKE(
 		CharacterExpr rightSide) => new(this, rightSide);
 
-	public LikeCondition LIKE(
-		string rightSide) => new(this, new CharacterBindValue(rightSide));
-
 	public NotLikeCondition NOT_LIKE(
 		CharacterExpr rightSide) => new(this, rightSide);
+
+	public LikeCondition LIKE(
+		string rightSide) => new(this, new CharacterBindValue(rightSide));
 
 	public NotLikeCondition NOT_LIKE(
 		string rightSide) => new(this, new CharacterBindValue(rightSide));
