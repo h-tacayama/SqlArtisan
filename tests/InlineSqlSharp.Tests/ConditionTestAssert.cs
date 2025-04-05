@@ -10,7 +10,8 @@ internal sealed class ConditionTestAssert(test_table t)
 	internal void Equal(
 		ICondition testCondition,
 		string expectedSql,
-		int expectedBindCount = 0)
+		int expectedBindCount = 0,
+		params object[] bindValues)
 	{
 		SqlStatement sql =
 			SELECT(_t.name)
@@ -28,5 +29,10 @@ internal sealed class ConditionTestAssert(test_table t)
 
 		Assert.Equal(expected.ToString(), sql.Text);
 		Assert.Equal(expectedBindCount, sql.Parameters.Count);
+
+		for (int i = 0; i < bindValues.Length; i++)
+		{
+			Assert.Equal(bindValues[i], sql.Parameters[i].Value);
+		}
 	}
 }

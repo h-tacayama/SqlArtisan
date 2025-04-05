@@ -61,6 +61,36 @@ public abstract class DateTimeExpr : IAliasable, IDataExpr, ISortable
 		DateTimeExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
 
+	public static IEqualityCondition operator ==(
+		DateTimeExpr @this,
+		DateTime rightSide) =>
+		new EqualityCondition(@this, new DateTimeBindValue(rightSide));
+
+	public static IEqualityCondition operator !=(
+		DateTimeExpr @this,
+		DateTime rightSide) =>
+		new InequalityCondition(@this, new DateTimeBindValue(rightSide));
+
+	public static IComparisonCondition operator <(
+		DateTimeExpr @this,
+		DateTime rightSide) =>
+		new LessThanCondition(@this, new DateTimeBindValue(rightSide));
+
+	public static IComparisonCondition operator >(
+		DateTimeExpr @this,
+		DateTime rightSide) =>
+		new GreaterThanCondition(@this, new DateTimeBindValue(rightSide));
+
+	public static IComparisonCondition operator <=(
+		DateTimeExpr @this,
+		DateTime rightSide) =>
+		new LessThanOrEqualCondition(@this, new DateTimeBindValue(rightSide));
+
+	public static IComparisonCondition operator >=(
+		DateTimeExpr @this,
+		DateTime rightSide) =>
+		new GreaterThanOrEqualCondition(@this, new DateTimeBindValue(rightSide));
+
 	public static DateTimeExpr operator +(
 		DateTimeExpr @this,
 		NumericExpr rightSide) =>
@@ -86,11 +116,47 @@ public abstract class DateTimeExpr : IAliasable, IDataExpr, ISortable
 		DateTimeExpr rightSide1,
 		DateTimeExpr rightSide2) => new(this, rightSide1, rightSide2);
 
+	public BetweenCondition BETWEEN(
+		DateTimeExpr rightSide1,
+		DateTime rightSide2) => new(this, rightSide1, new DateTimeBindValue(rightSide2));
+
+	public NotBetweenCondition NOT_BETWEEN(
+		DateTimeExpr rightSide1,
+		DateTime rightSide2) => new(this, rightSide1, new DateTimeBindValue(rightSide2));
+
+	public BetweenCondition BETWEEN(
+		DateTime rightSide1,
+		DateTimeExpr rightSide2) => new(this, new DateTimeBindValue(rightSide1), rightSide2);
+
+	public NotBetweenCondition NOT_BETWEEN(
+		DateTime rightSide1,
+		DateTimeExpr rightSide2) => new(this, new DateTimeBindValue(rightSide1), rightSide2);
+
+	public BetweenCondition BETWEEN(
+		DateTime rightSide1,
+		DateTime rightSide2) => new(
+			this,
+			new DateTimeBindValue(rightSide1),
+			new DateTimeBindValue(rightSide2));
+
+	public NotBetweenCondition NOT_BETWEEN(
+		DateTime rightSide1,
+		DateTime rightSide2) => new(
+			this,
+			new DateTimeBindValue(rightSide1),
+			new DateTimeBindValue(rightSide2));
+
 	public InCondition IN(params DateTimeExpr[] expressions) =>
 		new(this, expressions);
 
 	public NotInCondition NOT_IN(params DateTimeExpr[] expressions) =>
 		new(this, expressions);
+
+	public InCondition IN(params DateTime[] values) =>
+		new(this, DateTimeBindValueArray.Create(values));
+
+	public NotInCondition NOT_IN(params DateTime[] values) =>
+		new(this, DateTimeBindValueArray.Create(values));
 
 	public InSubqueryCondition IN(ISubquery subquery) =>
 		new(this, subquery);

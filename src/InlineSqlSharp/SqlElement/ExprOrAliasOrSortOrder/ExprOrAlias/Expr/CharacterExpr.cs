@@ -117,6 +117,20 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 		string rightSide1,
 		CharacterExpr rightSide2) => new(this, new CharacterBindValue(rightSide1), rightSide2);
 
+	public BetweenCondition BETWEEN(
+		string rightSide1,
+		string rightSide2) => new(
+			this,
+			new CharacterBindValue(rightSide1),
+			new CharacterBindValue(rightSide2));
+
+	public NotBetweenCondition NOT_BETWEEN(
+		string rightSide1,
+		string rightSide2) => new(
+			this,
+			new CharacterBindValue(rightSide1),
+			new CharacterBindValue(rightSide2));
+
 	public InCondition IN(params CharacterExpr[] expressions) =>
 		new(this, expressions);
 

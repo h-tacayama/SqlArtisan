@@ -40,7 +40,7 @@ public class InConditionTest
 		_assert.Equal(
 			_t.name.IN("a", "b", "c"),
 			expected.ToString(),
-			3);
+			3, "a", "b", "c");
 	}
 
 	[Fact]
@@ -69,11 +69,11 @@ public class InConditionTest
 		_assert.Equal(
 			_t.name.NOT_IN("a", "b", "c"),
 			expected.ToString(),
-			3);
+			3, "a", "b", "c");
 	}
 
 	[Fact]
-	public void IN_DateTimeValues_WithSingleValue_CorrectSql()
+	public void IN_DateTimeSingleParameter_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".created_at IN ");
@@ -84,11 +84,11 @@ public class InConditionTest
 		_assert.Equal(
 			_t.created_at.IN(P(new DateTime(2001, 2, 3))),
 			expected.ToString(),
-			1);
+			1, new DateTime(2001, 2, 3));
 	}
 
 	[Fact]
-	public void IN_DateTimeValues_WithMultipleValues_CorrectSql()
+	public void IN_DateTimeMultipleValues_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".created_at IN ");
@@ -100,15 +100,18 @@ public class InConditionTest
 
 		_assert.Equal(
 			_t.created_at.IN(
-			P(new DateTime(2001, 2, 3)),
-			P(new DateTime(2001, 2, 4)),
-			P(new DateTime(2001, 2, 5))),
+			new DateTime(2001, 2, 3),
+			new DateTime(2001, 2, 4),
+			new DateTime(2001, 2, 5)),
 			expected.ToString(),
-			3);
+			3,
+			new DateTime(2001, 2, 3),
+			new DateTime(2001, 2, 4),
+			new DateTime(2001, 2, 5));
 	}
 
 	[Fact]
-	public void NOT_IN_DateTimeValues_WithSingleValue_CorrectSql()
+	public void NOT_IN_DateTimeSingleParameter_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".created_at NOT IN ");
@@ -119,7 +122,30 @@ public class InConditionTest
 		_assert.Equal(
 			_t.created_at.NOT_IN(P(new DateTime(2001, 2, 3))),
 			expected.ToString(),
-			1);
+			1, new DateTime(2001, 2, 3));
+	}
+
+	[Fact]
+	public void NOT_IN_DateTimeMultipleValues_CorrectSql()
+	{
+		StringBuilder expected = new();
+		expected.Append("\"t\".created_at NOT IN ");
+		expected.Append("(");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.created_at.NOT_IN(
+			new DateTime(2001, 2, 3),
+			new DateTime(2001, 2, 4),
+			new DateTime(2001, 2, 5)),
+			expected.ToString(),
+			3,
+			new DateTime(2001, 2, 3),
+			new DateTime(2001, 2, 4),
+			new DateTime(2001, 2, 5));
 	}
 
 	[Fact]

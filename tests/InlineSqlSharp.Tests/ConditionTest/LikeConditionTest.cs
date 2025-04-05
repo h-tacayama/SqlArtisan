@@ -19,7 +19,7 @@ public class LikeConditionTest
 
 	[Fact]
 	public void LIKE_String_CorrectSql() =>
-		_assert.Equal(_t.name.LIKE("%abc%"), "\"t\".name LIKE :0", 1);
+		_assert.Equal(_t.name.LIKE("%abc%"), "\"t\".name LIKE :0", 1, "%abc%");
 
 	[Fact]
 	public void NOT_LIKE_Literal_CorrectSql() =>
@@ -27,5 +27,5 @@ public class LikeConditionTest
 
 	[Fact]
 	public void NOT_LIKE_String_CorrectSql() =>
-		_assert.Equal(_t.name.NOT_LIKE("%abc%"), "\"t\".name NOT LIKE :0", 1);
+		_assert.Equal(_t.name.NOT_LIKE("%abc%"), "\"t\".name NOT LIKE :0", 1, "%abc%");
 }

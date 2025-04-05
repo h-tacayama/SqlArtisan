@@ -77,7 +77,7 @@ public class ExistsConditionTest
 				EXISTS(SELECT(_t.code).FROM(_t).WHERE(_t.name == P("a"))),
 				_t.code == P(2)),
 			expected.ToString(),
-			3);
+			3, 1, "a", 2);
 	}
 
 	[Fact]
@@ -97,6 +97,6 @@ public class ExistsConditionTest
 		_assert.Equal(
 			NOT_EXISTS(SELECT(_t.code).FROM(_t).WHERE(_t.code == P(1))),
 			expected.ToString(),
-			1);
+			1, 1);
 	}
 }

@@ -46,7 +46,7 @@ public class InSubqueryConditionTest
 				_t.name.IN(SELECT(_s.name).FROM(_s).WHERE(_s.code == P(2))),
 				_t.code == P(3)),
 			expected.ToString(),
-			3);
+			3, 1, 2, 3);
 	}
 
 	[Fact]
