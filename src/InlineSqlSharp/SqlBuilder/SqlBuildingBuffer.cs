@@ -188,10 +188,10 @@ public sealed class SqlBuildingBuffer()
 		return this;
 	}
 
-	internal SqlBuildingBuffer EncloseInSingleQuotes(string value, bool isEscaped)
+	internal SqlBuildingBuffer EncloseInSingleQuotes(string value)
 	{
 		_text.Append("'");
-		_text.Append(isEscaped ? value : value.Replace("'", "''"));
+		_text.Append(value);
 		_text.Append("'");
 		return this;
 	}

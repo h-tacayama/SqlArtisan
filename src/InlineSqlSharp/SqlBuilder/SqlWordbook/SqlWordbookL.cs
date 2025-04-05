@@ -4,11 +4,9 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-	public static CharacterLiteral L(char value) =>
-		new(value.ToString(), false);
+	public static CharacterLiteral L(char value) => new(value.ToString());
 
-	public static CharacterLiteral L(string value, bool isEscaped = false) =>
-		new(value, isEscaped);
+	public static CharacterLiteral L(string value) => new(value);
 
 	public static NumericLiteral<TValue> L<TValue>(TValue value)
 		where TValue : INumber<TValue> => new(value);
