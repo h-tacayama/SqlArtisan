@@ -14,28 +14,52 @@ public class ComparisonConditionTest
 	}
 
 	[Fact]
-	public void Equal_CharacterValues_CorrectSql() =>
+	public void Equal_CharacterColumnAndParameter_CorrectSql() =>
 		_assert.Equal(_t.name == P("abc"), "\"t\".name = :0", 1);
 
 	[Fact]
-	public void NotEqual_CharacterValues_CorrectSql() =>
+	public void NotEqual_CharacterColumnAndParameter_CorrectSql() =>
 		_assert.Equal(_t.name != P("abc"), "\"t\".name <> :0", 1);
 
 	[Fact]
-	public void LessThan_CharacterValues_CorrectSql() =>
+	public void LessThan_CharacterColumnAndParameter_CorrectSql() =>
 		_assert.Equal(_t.name < P("abc"), "\"t\".name < :0", 1);
 
 	[Fact]
-	public void GreaterThan_CharacterValues_CorrectSql() =>
+	public void GreaterThan_CharacterColumnAndParameter_CorrectSql() =>
 		_assert.Equal(_t.name > P("abc"), "\"t\".name > :0", 1);
 
 	[Fact]
-	public void LessEqual_CharacterValues_CorrectSql() =>
+	public void LessEqual_CharacterColumnAndParameter_CorrectSql() =>
 		_assert.Equal(_t.name <= P("abc"), "\"t\".name <= :0", 1);
 
 	[Fact]
-	public void GreaterEqual_CharacterValues_CorrectSql() =>
+	public void GreaterEqual_CharacterColumnAndParameter_CorrectSql() =>
 		_assert.Equal(_t.name >= P("abc"), "\"t\".name >= :0", 1);
+
+	[Fact]
+	public void Equal_CharacterColumnAndString_CorrectSql() =>
+		_assert.Equal(_t.name == "abc", "\"t\".name = :0", 1);
+
+	[Fact]
+	public void NotEqual_CharacterColumnAndString_CorrectSql() =>
+		_assert.Equal(_t.name != "abc", "\"t\".name <> :0", 1);
+
+	[Fact]
+	public void LessThan_CharacterColumnAndString_CorrectSql() =>
+		_assert.Equal(_t.name < "abc", "\"t\".name < :0", 1);
+
+	[Fact]
+	public void GreaterThan_CharacterColumnAndString_CorrectSql() =>
+		_assert.Equal(_t.name > "abc", "\"t\".name > :0", 1);
+
+	[Fact]
+	public void LessEqual_CharacterColumnAndString_CorrectSql() =>
+		_assert.Equal(_t.name <= "abc", "\"t\".name <= :0", 1);
+
+	[Fact]
+	public void GreaterEqual_CharacterColumnAndString_CorrectSql() =>
+		_assert.Equal(_t.name >= "abc", "\"t\".name >= :0", 1);
 
 	[Fact]
 	public void Equal_DateTimeValues_CorrectSql() =>

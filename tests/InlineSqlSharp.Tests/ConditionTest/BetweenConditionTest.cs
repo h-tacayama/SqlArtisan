@@ -14,16 +14,44 @@ public class BetweenConditionTest
 	}
 
 	[Fact]
-	public void BETWEEN_CharacterValues_CorrectSql() =>
+	public void BETWEEN_CharacterLiterals_CorrectSql() =>
 		_assert.Equal(
 			_t.name.BETWEEN(L("a"), L("z")),
 			"\"t\".name BETWEEN 'a' AND 'z'");
 
 	[Fact]
-	public void NOT_BETWEEN_CharacterValues_CorrectSql() =>
+	public void BETWEEN_CharacterLiteralAndString_CorrectSql() =>
+		_assert.Equal(
+			_t.name.BETWEEN(L("a"), "z"),
+			"\"t\".name BETWEEN 'a' AND :0",
+			1);
+
+	[Fact]
+	public void BETWEEN_CharacterStringAndLiteral_CorrectSql() =>
+		_assert.Equal(
+			_t.name.BETWEEN("a", L("z")),
+			"\"t\".name BETWEEN :0 AND 'z'",
+			1);
+
+	[Fact]
+	public void NOT_BETWEEN_CharacterLiterals_CorrectSql() =>
 		_assert.Equal(
 			_t.name.NOT_BETWEEN(L("a"), L("z")),
 			"\"t\".name NOT BETWEEN 'a' AND 'z'");
+
+	[Fact]
+	public void NOT_BETWEEN_CharacterLiteralAndString_CorrectSql() =>
+		_assert.Equal(
+			_t.name.NOT_BETWEEN(L("a"), "z"),
+			"\"t\".name NOT BETWEEN 'a' AND :0",
+			1);
+
+	[Fact]
+	public void NOT_BETWEEN_CharacterStringAndLiteral_CorrectSql() =>
+		_assert.Equal(
+			_t.name.NOT_BETWEEN("a", L("z")),
+			"\"t\".name NOT BETWEEN :0 AND 'z'",
+			1);
 
 	[Fact]
 	public void BETWEEN_DateTimeValues_CorrectSql() =>

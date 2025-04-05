@@ -61,15 +61,61 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 		CharacterExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
 
+	public static IEqualityCondition operator ==(
+		CharacterExpr @this,
+		string rightSide) =>
+		new EqualityCondition(@this, new CharacterBindValue(rightSide));
+
+	public static IEqualityCondition operator !=(
+		CharacterExpr @this,
+		string rightSide) =>
+		new InequalityCondition(@this, new CharacterBindValue(rightSide));
+
+	public static IComparisonCondition operator <(
+		CharacterExpr @this,
+		string rightSide) =>
+		new LessThanCondition(@this, new CharacterBindValue(rightSide));
+
+	public static IComparisonCondition operator >(
+		CharacterExpr @this,
+		string rightSide) =>
+		new GreaterThanCondition(@this, new CharacterBindValue(rightSide));
+
+	public static IComparisonCondition operator <=(
+		CharacterExpr @this,
+		string rightSide) =>
+		new LessThanOrEqualCondition(@this, new CharacterBindValue(rightSide));
+
+	public static IComparisonCondition operator >=(
+		CharacterExpr @this,
+		string rightSide) =>
+		new GreaterThanOrEqualCondition(@this, new CharacterBindValue(rightSide));
+
 	public ExprAlias AS(string alias) => new(this, alias);
 
 	public BetweenCondition BETWEEN(
 		CharacterExpr rightSide1,
 		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
 
+	public BetweenCondition BETWEEN(
+		CharacterExpr rightSide1,
+		string rightSide2) => new(this, rightSide1, new CharacterBindValue(rightSide2));
+
+	public BetweenCondition BETWEEN(
+		string rightSide1,
+		CharacterExpr rightSide2) => new(this, new CharacterBindValue(rightSide1), rightSide2);
+
 	public NotBetweenCondition NOT_BETWEEN(
 		CharacterExpr rightSide1,
 		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
+
+	public NotBetweenCondition NOT_BETWEEN(
+		CharacterExpr rightSide1,
+		string rightSide2) => new(this, rightSide1, new CharacterBindValue(rightSide2));
+
+	public NotBetweenCondition NOT_BETWEEN(
+		string rightSide1,
+		CharacterExpr rightSide2) => new(this, new CharacterBindValue(rightSide1), rightSide2);
 
 	public InCondition IN(params CharacterExpr[] expressions) =>
 		new(this, expressions);
@@ -86,6 +132,12 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 	public LikeCondition LIKE(
 		CharacterExpr rightSide) => new(this, rightSide);
 
+	public LikeCondition LIKE(
+		string rightSide) => new(this, new CharacterBindValue(rightSide));
+
 	public NotLikeCondition NOT_LIKE(
 		CharacterExpr rightSide) => new(this, rightSide);
+
+	public NotLikeCondition NOT_LIKE(
+		string rightSide) => new(this, new CharacterBindValue(rightSide));
 }
