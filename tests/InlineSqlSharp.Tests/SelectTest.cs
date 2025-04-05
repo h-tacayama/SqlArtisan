@@ -118,7 +118,8 @@ public class SelectTest
 	{
 		SqlStatement sql =
 			SELECT(
-				P("abc"),
+				P('a'),
+				P("O''Reilly"),
 				P(new DateTime(2001, 2, 3)),
 				P((int)1),
 				P((long)2),
@@ -135,16 +136,18 @@ public class SelectTest
 		expected.Append(":3, ");
 		expected.Append(":4, ");
 		expected.Append(":5, ");
-		expected.Append(":6");
+		expected.Append(":6, ");
+		expected.Append(":7");
 
 		Assert.Equal(expected.ToString(), sql.Text);
-		Assert.Equal("abc", sql.Parameters[0].Value);
-		Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters[1].Value);
-		Assert.Equal((int)1, sql.Parameters[2].Value);
-		Assert.Equal((long)2, sql.Parameters[3].Value);
-		Assert.Equal((float)3.3, sql.Parameters[4].Value);
-		Assert.Equal((double)4.4, sql.Parameters[5].Value);
-		Assert.Equal((decimal)5.5, sql.Parameters[6].Value);
+		Assert.Equal("a", sql.Parameters[0].Value);
+		Assert.Equal("O''Reilly", sql.Parameters[1].Value);
+		Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters[2].Value);
+		Assert.Equal((int)1, sql.Parameters[3].Value);
+		Assert.Equal((long)2, sql.Parameters[4].Value);
+		Assert.Equal((float)3.3, sql.Parameters[5].Value);
+		Assert.Equal((double)4.4, sql.Parameters[6].Value);
+		Assert.Equal((decimal)5.5, sql.Parameters[7].Value);
 	}
 
 	[Fact]
