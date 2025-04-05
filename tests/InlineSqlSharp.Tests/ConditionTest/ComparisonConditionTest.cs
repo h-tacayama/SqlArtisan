@@ -18,44 +18,44 @@ public class ComparisonConditionTest
 		_assert.Equal(_t.name == L("abc"), "\"t\".name = 'abc'");
 
 	[Fact]
-	public void NotEqual_CharacterColumnAndLiteral_CorrectSql() =>
-		_assert.Equal(_t.name != L("abc"), "\"t\".name <> 'abc'");
-
-	[Fact]
-	public void LessThan_CharacterColumnAndLiteral_CorrectSql() =>
-		_assert.Equal(_t.name < L("abc"), "\"t\".name < 'abc'");
-
-	[Fact]
-	public void GreaterThan_CharacterColumnAndLiteral_CorrectSql() =>
-		_assert.Equal(_t.name > L("abc"), "\"t\".name > 'abc'");
-
-	[Fact]
-	public void LessEqual_CharacterColumnAndLiteral_CorrectSql() =>
-		_assert.Equal(_t.name <= L("abc"), "\"t\".name <= 'abc'");
-
-	[Fact]
-	public void GreaterEqual_CharacterColumnAndLiteral_CorrectSql() =>
-		_assert.Equal(_t.name >= L("abc"), "\"t\".name >= 'abc'");
-
-	[Fact]
 	public void Equal_CharacterColumnAndString_CorrectSql() =>
 		_assert.Equal(_t.name == "abc", "\"t\".name = :0", 1, "abc");
+
+	[Fact]
+	public void NotEqual_CharacterColumnAndLiteral_CorrectSql() =>
+		_assert.Equal(_t.name != L("abc"), "\"t\".name <> 'abc'");
 
 	[Fact]
 	public void NotEqual_CharacterColumnAndString_CorrectSql() =>
 		_assert.Equal(_t.name != "abc", "\"t\".name <> :0", 1, "abc");
 
 	[Fact]
+	public void LessThan_CharacterColumnAndLiteral_CorrectSql() =>
+		_assert.Equal(_t.name < L("abc"), "\"t\".name < 'abc'");
+
+	[Fact]
 	public void LessThan_CharacterColumnAndString_CorrectSql() =>
 		_assert.Equal(_t.name < "abc", "\"t\".name < :0", 1, "abc");
+
+	[Fact]
+	public void GreaterThan_CharacterColumnAndLiteral_CorrectSql() =>
+		_assert.Equal(_t.name > L("abc"), "\"t\".name > 'abc'");
 
 	[Fact]
 	public void GreaterThan_CharacterColumnAndString_CorrectSql() =>
 		_assert.Equal(_t.name > "abc", "\"t\".name > :0", 1, "abc");
 
 	[Fact]
+	public void LessEqual_CharacterColumnAndLiteral_CorrectSql() =>
+		_assert.Equal(_t.name <= L("abc"), "\"t\".name <= 'abc'");
+
+	[Fact]
 	public void LessEqual_CharacterColumnAndString_CorrectSql() =>
 		_assert.Equal(_t.name <= "abc", "\"t\".name <= :0", 1, "abc");
+
+	[Fact]
+	public void GreaterEqual_CharacterColumnAndLiteral_CorrectSql() =>
+		_assert.Equal(_t.name >= L("abc"), "\"t\".name >= 'abc'");
 
 	[Fact]
 	public void GreaterEqual_CharacterColumnAndString_CorrectSql() =>
@@ -68,8 +68,20 @@ public class ComparisonConditionTest
 			1, new DateTime(2001, 2, 3));
 
 	[Fact]
+	public void Equal_DateTimeColumnAndValue_CorrectSql() =>
+		_assert.Equal(_t.created_at == new DateTime(2001, 2, 3),
+			"\"t\".created_at = :0",
+			1, new DateTime(2001, 2, 3));
+
+	[Fact]
 	public void NotEqual_DateTimeColumnAndParameter_CorrectSql() =>
 		_assert.Equal(_t.created_at != P(new DateTime(2001, 2, 3)),
+			"\"t\".created_at <> :0",
+			1, new DateTime(2001, 2, 3));
+
+	[Fact]
+	public void NotEqual_DateTimeColumnAndValue_CorrectSql() =>
+		_assert.Equal(_t.created_at != new DateTime(2001, 2, 3),
 			"\"t\".created_at <> :0",
 			1, new DateTime(2001, 2, 3));
 
@@ -80,8 +92,20 @@ public class ComparisonConditionTest
 			1, new DateTime(2001, 2, 3));
 
 	[Fact]
+	public void LessThan_DateTimeColumnAndValue_CorrectSql() =>
+		_assert.Equal(_t.created_at < new DateTime(2001, 2, 3),
+			"\"t\".created_at < :0",
+			1, new DateTime(2001, 2, 3));
+
+	[Fact]
 	public void GreaterThan_DateTimeColumnAndParameter_CorrectSql() =>
 		_assert.Equal(_t.created_at > P(new DateTime(2001, 2, 3)),
+			"\"t\".created_at > :0",
+			1, new DateTime(2001, 2, 3));
+
+	[Fact]
+	public void GreaterThan_DateTimeColumnAndValue_CorrectSql() =>
+		_assert.Equal(_t.created_at > new DateTime(2001, 2, 3),
 			"\"t\".created_at > :0",
 			1, new DateTime(2001, 2, 3));
 
@@ -92,39 +116,15 @@ public class ComparisonConditionTest
 			1, new DateTime(2001, 2, 3));
 
 	[Fact]
-	public void GreaterEqual_DateTimeColumnAndParameter_CorrectSql() =>
-		_assert.Equal(_t.created_at >= P(new DateTime(2001, 2, 3)),
-			"\"t\".created_at >= :0",
-			1, new DateTime(2001, 2, 3));
-
-	[Fact]
-	public void Equal_DateTimeColumnAndValue_CorrectSql() =>
-		_assert.Equal(_t.created_at == new DateTime(2001, 2, 3),
-			"\"t\".created_at = :0",
-			1, new DateTime(2001, 2, 3));
-
-	[Fact]
-	public void NotEqual_DateTimeColumnAndValue_CorrectSql() =>
-		_assert.Equal(_t.created_at != new DateTime(2001, 2, 3),
-			"\"t\".created_at <> :0",
-			1, new DateTime(2001, 2, 3));
-
-	[Fact]
-	public void LessThan_DateTimeColumnAndValue_CorrectSql() =>
-		_assert.Equal(_t.created_at < new DateTime(2001, 2, 3),
-			"\"t\".created_at < :0",
-			1, new DateTime(2001, 2, 3));
-
-	[Fact]
-	public void GreaterThan_DateTimeColumnAndValue_CorrectSql() =>
-		_assert.Equal(_t.created_at > new DateTime(2001, 2, 3),
-			"\"t\".created_at > :0",
-			1, new DateTime(2001, 2, 3));
-
-	[Fact]
 	public void LessEqual_DateTimeColumnAndValue_CorrectSql() =>
 		_assert.Equal(_t.created_at <= new DateTime(2001, 2, 3),
 			"\"t\".created_at <= :0",
+			1, new DateTime(2001, 2, 3));
+
+	[Fact]
+	public void GreaterEqual_DateTimeColumnAndParameter_CorrectSql() =>
+		_assert.Equal(_t.created_at >= P(new DateTime(2001, 2, 3)),
+			"\"t\".created_at >= :0",
 			1, new DateTime(2001, 2, 3));
 
 	[Fact]
