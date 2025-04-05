@@ -161,7 +161,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void IN_NumericMultipleParameters_CorrectSql()
+	public void IN_NumericMultipleInts_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".code IN ");
@@ -171,9 +171,9 @@ public class InConditionTest
 		expected.Append(":2");
 		expected.Append(")");
 
-		_assert.Equal(_t.code.IN(P(1), P(2), P(3)),
+		_assert.Equal(_t.code.IN(1, 2, 3),
 			expected.ToString(),
-			3);
+			3, 1, 2, 3);
 	}
 
 	[Fact]
@@ -186,5 +186,21 @@ public class InConditionTest
 		expected.Append(")");
 
 		_assert.Equal(_t.code.NOT_IN(L(1)), expected.ToString());
+	}
+
+	[Fact]
+	public void NOT_IN_NumericMultipleInts_CorrectSql()
+	{
+		StringBuilder expected = new();
+		expected.Append("\"t\".code NOT IN ");
+		expected.Append("(");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
+		expected.Append(")");
+
+		_assert.Equal(_t.code.NOT_IN(1, 2, 3),
+			expected.ToString(),
+			3, 1, 2, 3);
 	}
 }

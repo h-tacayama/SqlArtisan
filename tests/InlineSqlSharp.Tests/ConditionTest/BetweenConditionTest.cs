@@ -126,6 +126,30 @@ public class BetweenConditionTest
 		_assert.Equal(_t.code.BETWEEN(L(1), L(10)), "\"t\".code BETWEEN 1 AND 10");
 
 	[Fact]
+	public void BETWEEN_NumericLiteralAndInt_CorrectSql() =>
+		_assert.Equal(_t.code.BETWEEN(L(1), 10), "\"t\".code BETWEEN 1 AND :0", 1, 10);
+
+	[Fact]
+	public void BETWEEN_NumericIntAndLiteral_CorrectSql() =>
+		_assert.Equal(_t.code.BETWEEN(1, L(10)), "\"t\".code BETWEEN :0 AND 10", 1, 1);
+
+	[Fact]
+	public void BETWEEN_NumericInts_CorrectSql() =>
+		_assert.Equal(_t.code.BETWEEN(1, 10), "\"t\".code BETWEEN :0 AND :1", 2, 1, 10);
+
+	[Fact]
 	public void NOT_BETWEEN_NumericLiterals_CorrectSql() =>
 		_assert.Equal(_t.code.NOT_BETWEEN(L(1), L(10)), "\"t\".code NOT BETWEEN 1 AND 10");
+
+	[Fact]
+	public void NOT_BETWEEN_NumericLiteralAndInt_CorrectSql() =>
+		_assert.Equal(_t.code.NOT_BETWEEN(L(1), 10), "\"t\".code NOT BETWEEN 1 AND :0", 1, 10);
+
+	[Fact]
+	public void NOT_BETWEEN_NumericIntAndLiteral_CorrectSql() =>
+		_assert.Equal(_t.code.NOT_BETWEEN(1, L(10)), "\"t\".code NOT BETWEEN :0 AND 10", 1, 1);
+
+	[Fact]
+	public void NOT_BETWEEN_NumericInts_CorrectSql() =>
+		_assert.Equal(_t.code.NOT_BETWEEN(1, 10), "\"t\".code NOT BETWEEN :0 AND :1", 2, 1, 10);
 }

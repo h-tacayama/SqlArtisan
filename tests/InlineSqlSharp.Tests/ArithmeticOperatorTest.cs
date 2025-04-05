@@ -12,20 +12,40 @@ public class ArithmeticOperatorTest
 		Assert.Equal("SELECT (1 + 2)", SELECT(L(1) + L(2)).Build().Text);
 
 	[Fact]
+	public void Addition_NumericExprAndInt_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code + :0)", SELECT(_t.code + 2).Build().Text);
+
+	[Fact]
 	public void Subtraction_NumericValues_CorrectSql() =>
 		Assert.Equal("SELECT (1 - 2)", SELECT(L(1) - L(2)).Build().Text);
+
+	[Fact]
+	public void Subtraction_NumericExprAndInt_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code - :0)", SELECT(_t.code - 2).Build().Text);
 
 	[Fact]
 	public void Multiplication_NumericValues_CorrectSql() =>
 		Assert.Equal("SELECT (1 * 2)", SELECT(L(1) * L(2)).Build().Text);
 
 	[Fact]
+	public void Multiplication_NumericExprAndInt_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code * :0)", SELECT(_t.code * 2).Build().Text);
+
+	[Fact]
 	public void Division_NumericValues_CorrectSql() =>
 		Assert.Equal("SELECT (1 / 2)", SELECT(L(1) / L(2)).Build().Text);
 
 	[Fact]
+	public void Division_NumericExprAndInt_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code / :0)", SELECT(_t.code / 2).Build().Text);
+
+	[Fact]
 	public void Modulus_NumericValues_CorrectSql() =>
 		Assert.Equal("SELECT (1 % 2)", SELECT(L(1) % L(2)).Build().Text);
+
+	[Fact]
+	public void Modulus_NumericExprAndInt_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code % :0)", SELECT(_t.code % 2).Build().Text);
 
 	[Fact]
 	public void DateOffset_AdditionWithNumber_CorrectSql() =>

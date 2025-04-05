@@ -138,22 +138,46 @@ public class ComparisonConditionTest
 		_assert.Equal(_t.code == L(1), "\"t\".code = 1");
 
 	[Fact]
+	public void Equal_NumericColumnAndInt_CorrectSql() =>
+		_assert.Equal(_t.code == 1, "\"t\".code = :0", 1, 1);
+
+	[Fact]
 	public void NotEqual_NumericColumnAndLiteral_CorrectSql() =>
 		_assert.Equal(_t.code != L(1), "\"t\".code <> 1");
+
+	[Fact]
+	public void NotEqual_NumericColumnAndInt_CorrectSql() =>
+		_assert.Equal(_t.code != 1, "\"t\".code <> :0", 1, 1);
 
 	[Fact]
 	public void LessThan_NumericColumnAndLiteral_CorrectSql() =>
 		_assert.Equal(_t.code < L(1), "\"t\".code < 1");
 
 	[Fact]
+	public void LessThan_NumericColumnAndInt_CorrectSql() =>
+		_assert.Equal(_t.code < 1, "\"t\".code < :0", 1, 1);
+
+	[Fact]
 	public void GreaterThan_NumericColumnAndLiteral_CorrectSql() =>
 		_assert.Equal(_t.code > L(1), "\"t\".code > 1");
+
+	[Fact]
+	public void GreaterThan_NumericColumnAndInt_CorrectSql() =>
+		_assert.Equal(_t.code > 1, "\"t\".code > :0", 1, 1);
 
 	[Fact]
 	public void LessEqual_NumericColumnAndLiteral_CorrectSql() =>
 		_assert.Equal(_t.code <= L(1), "\"t\".code <= 1");
 
 	[Fact]
+	public void LessEqual_NumericColumnAndInt_CorrectSql() =>
+		_assert.Equal(_t.code <= 1, "\"t\".code <= :0", 1, 1);
+
+	[Fact]
 	public void GreaterEqual_NumericColumnAndLiteral_CorrectSql() =>
 		_assert.Equal(_t.code >= L(1), "\"t\".code >= 1");
+
+	[Fact]
+	public void GreaterEqual_NumericColumnAndInt_CorrectSql() =>
+		_assert.Equal(_t.code >= 1, "\"t\".code >= :0", 1, 1);
 }
