@@ -149,7 +149,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void IN_NumericValues_WithSingleValue_CorrectSql()
+	public void IN_NumericSingleLiteral_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".code IN ");
@@ -161,7 +161,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void IN_NumericValues_WithMultipleValues_CorrectSql()
+	public void IN_NumericMultipleParameters_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".code IN ");
@@ -177,7 +177,7 @@ public class InConditionTest
 	}
 
 	[Fact]
-	public void NOT_IN_NumericValues_WithSingleValue_CorrectSql()
+	public void NOT_IN_NumericSingleLiteral_CorrectSql()
 	{
 		StringBuilder expected = new();
 		expected.Append("\"t\".code NOT IN ");

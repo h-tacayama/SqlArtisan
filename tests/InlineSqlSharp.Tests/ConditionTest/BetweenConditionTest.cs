@@ -122,10 +122,10 @@ public class BetweenConditionTest
 			2, new DateTime(2001, 2, 3), new DateTime(2004, 5, 6));
 
 	[Fact]
-	public void BETWEEN_NumericValues_CorrectSql() =>
+	public void BETWEEN_NumericLiterals_CorrectSql() =>
 		_assert.Equal(_t.code.BETWEEN(L(1), L(10)), "\"t\".code BETWEEN 1 AND 10");
 
 	[Fact]
-	public void NOT_BETWEEN_NumericValues_CorrectSql() =>
+	public void NOT_BETWEEN_NumericLiterals_CorrectSql() =>
 		_assert.Equal(_t.code.NOT_BETWEEN(L(1), L(10)), "\"t\".code NOT BETWEEN 1 AND 10");
 }
