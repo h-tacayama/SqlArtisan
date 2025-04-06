@@ -27,6 +27,23 @@ public class CharacterExpr_InTest
 	}
 
 	[Fact]
+	public void CharacterExpr_IN_MultipleChars_CorrectSql()
+	{
+		StringBuilder expected = new();
+		expected.Append("\"t\".name IN ");
+		expected.Append("(");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.name.IN('a', 'b', 'c'),
+			expected.ToString(),
+			3, "a", "b", "c");
+	}
+
+	[Fact]
 	public void CharacterExpr_IN_MultipleStrings_CorrectSql()
 	{
 		StringBuilder expected = new();
@@ -56,6 +73,23 @@ public class CharacterExpr_InTest
 	}
 
 	[Fact]
+	public void CharacterExpr_NOT_IN_MultipleChars_CorrectSql()
+	{
+		StringBuilder expected = new();
+		expected.Append("\"t\".name NOT IN ");
+		expected.Append("(");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
+		expected.Append(")");
+
+		_assert.Equal(
+			_t.name.NOT_IN('a', 'b', 'c'),
+			expected.ToString(),
+			3, "a", "b", "c");
+	}
+
+	[Fact]
 	public void CharacterExpr_NOT_IN_MultipleStrings_CorrectSql()
 	{
 		StringBuilder expected = new();
@@ -70,6 +104,5 @@ public class CharacterExpr_InTest
 			_t.name.NOT_IN("a", "b", "c"),
 			expected.ToString(),
 			3, "a", "b", "c");
-
 	}
 }

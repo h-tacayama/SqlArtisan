@@ -38,6 +38,11 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 
 	public static IEqualityCondition operator ==(
 		CharacterExpr @this,
+		char rightSide) =>
+		new EqualityCondition(@this, new CharacterBindValue(rightSide));
+
+	public static IEqualityCondition operator ==(
+		CharacterExpr @this,
 		string rightSide) =>
 		new EqualityCondition(@this, new CharacterBindValue(rightSide));
 
@@ -45,6 +50,11 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new InequalityCondition(@this, rightSide);
+
+	public static IEqualityCondition operator !=(
+		CharacterExpr @this,
+		char rightSide) =>
+		new InequalityCondition(@this, new CharacterBindValue(rightSide));
 
 	public static IEqualityCondition operator !=(
 		CharacterExpr @this,
@@ -58,6 +68,11 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 
 	public static IComparisonCondition operator <(
 		CharacterExpr @this,
+		char rightSide) =>
+		new LessThanCondition(@this, new CharacterBindValue(rightSide));
+
+	public static IComparisonCondition operator <(
+		CharacterExpr @this,
 		string rightSide) =>
 		new LessThanCondition(@this, new CharacterBindValue(rightSide));
 
@@ -65,6 +80,11 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new GreaterThanCondition(@this, rightSide);
+
+	public static IComparisonCondition operator >(
+		CharacterExpr @this,
+		char rightSide) =>
+		new GreaterThanCondition(@this, new CharacterBindValue(rightSide));
 
 	public static IComparisonCondition operator >(
 		CharacterExpr @this,
@@ -78,6 +98,11 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 
 	public static IComparisonCondition operator <=(
 		CharacterExpr @this,
+		char rightSide) =>
+		new LessThanOrEqualCondition(@this, new CharacterBindValue(rightSide));
+
+	public static IComparisonCondition operator <=(
+		CharacterExpr @this,
 		string rightSide) =>
 		new LessThanOrEqualCondition(@this, new CharacterBindValue(rightSide));
 
@@ -85,6 +110,11 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 		CharacterExpr @this,
 		CharacterExpr rightSide) =>
 		new GreaterThanOrEqualCondition(@this, rightSide);
+
+	public static IComparisonCondition operator >=(
+		CharacterExpr @this,
+		char rightSide) =>
+		new GreaterThanOrEqualCondition(@this, new CharacterBindValue(rightSide));
 
 	public static IComparisonCondition operator >=(
 		CharacterExpr @this,
@@ -96,6 +126,21 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 	public BetweenCondition BETWEEN(
 		CharacterExpr rightSide1,
 		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
+
+	public BetweenCondition BETWEEN(
+		CharacterExpr rightSide1,
+		char rightSide2) => new(this, rightSide1, new CharacterBindValue(rightSide2));
+
+	public BetweenCondition BETWEEN(
+		char rightSide1,
+		CharacterExpr rightSide2) => new(this, new CharacterBindValue(rightSide1), rightSide2);
+
+	public BetweenCondition BETWEEN(
+		char rightSide1,
+		char rightSide2) => new(
+			this,
+			new CharacterBindValue(rightSide1),
+			new CharacterBindValue(rightSide2));
 
 	public BetweenCondition BETWEEN(
 		CharacterExpr rightSide1,
@@ -115,6 +160,21 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 	public NotBetweenCondition NOT_BETWEEN(
 		CharacterExpr rightSide1,
 		CharacterExpr rightSide2) => new(this, rightSide1, rightSide2);
+
+	public NotBetweenCondition NOT_BETWEEN(
+		CharacterExpr rightSide1,
+		char rightSide2) => new(this, rightSide1, new CharacterBindValue(rightSide2));
+
+	public NotBetweenCondition NOT_BETWEEN(
+		char rightSide1,
+		CharacterExpr rightSide2) => new(this, new CharacterBindValue(rightSide1), rightSide2);
+
+	public NotBetweenCondition NOT_BETWEEN(
+		char rightSide1,
+		char rightSide2) => new(
+			this,
+			new CharacterBindValue(rightSide1),
+			new CharacterBindValue(rightSide2));
 
 	public NotBetweenCondition NOT_BETWEEN(
 		CharacterExpr rightSide1,
@@ -134,6 +194,9 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 	public InCondition IN(params CharacterExpr[] expressions) =>
 		new(this, expressions);
 
+	public InCondition IN(params char[] values) =>
+		new(this, CharacterBindValueArray.Create(values));
+
 	public InCondition IN(params string[] values) =>
 		new(this, CharacterBindValueArray.Create(values));
 
@@ -142,6 +205,9 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 
 	public NotInCondition NOT_IN(params CharacterExpr[] expressions) =>
 		new(this, expressions);
+
+	public NotInCondition NOT_IN(params char[] values) =>
+		new(this, CharacterBindValueArray.Create(values));
 
 	public NotInCondition NOT_IN(params string[] values) =>
 		new(this, CharacterBindValueArray.Create(values));

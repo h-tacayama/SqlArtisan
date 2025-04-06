@@ -6,6 +6,9 @@ public sealed class CharacterBindValue(
 	ParameterDirection direction,
 	string value) : CharacterExpr, IBindValue
 {
+	public CharacterBindValue(char value)
+		: this(ParameterDirection.Input, value.ToString()) { }
+
 	public CharacterBindValue(string value)
 		: this(ParameterDirection.Input, value) { }
 

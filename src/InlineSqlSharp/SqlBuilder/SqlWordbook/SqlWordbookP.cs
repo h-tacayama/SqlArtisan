@@ -4,7 +4,7 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-	public static CharacterBindValue P(char value) => new(value.ToString());
+	public static CharacterBindValue P(char value) => new(value);
 
 	public static CharacterBindValue P(string value) => new(value);
 
