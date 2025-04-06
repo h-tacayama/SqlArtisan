@@ -2,12 +2,12 @@
 
 namespace InlineSqlSharp.Tests;
 
-public class LikeConditionTest
+public class LikeTest
 {
 	private readonly test_table _t;
 	private readonly ConditionTestAssert _assert;
 
-	public LikeConditionTest()
+	public LikeTest()
 	{
 		_t = new test_table("t");
 		_assert = new(_t);

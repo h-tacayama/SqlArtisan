@@ -2,12 +2,12 @@
 
 namespace InlineSqlSharp.Tests;
 
-public class RegexpLikeConditionTest
+public class RegexpLikeTest
 {
 	private readonly test_table _t;
 	private readonly ConditionTestAssert _assert;
 
-	public RegexpLikeConditionTest()
+	public RegexpLikeTest()
 	{
 		_t = new test_table("t");
 		_assert = new(_t);

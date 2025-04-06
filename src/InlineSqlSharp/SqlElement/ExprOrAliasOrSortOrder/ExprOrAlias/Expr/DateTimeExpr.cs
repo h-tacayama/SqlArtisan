@@ -96,10 +96,20 @@ public abstract class DateTimeExpr : IAliasable, IDataExpr, ISortable
 		NumericExpr rightSide) =>
 		new DateOffsetAdditionOperator(@this, rightSide);
 
+	public static DateTimeExpr operator +(
+		DateTimeExpr @this,
+		int rightSide) =>
+		new DateOffsetAdditionOperator(@this, new NumericBindValue<int>(rightSide));
+
 	public static DateTimeExpr operator -(
 		DateTimeExpr @this,
 		NumericExpr rightSide) =>
 		new DateOffsetSubtractionOperator(@this, rightSide);
+
+	public static DateTimeExpr operator -(
+		DateTimeExpr @this,
+		int rightSide) =>
+		new DateOffsetSubtractionOperator(@this, new NumericBindValue<int>(rightSide));
 
 	public static NumericExpr operator -(
 		DateTimeExpr @this,

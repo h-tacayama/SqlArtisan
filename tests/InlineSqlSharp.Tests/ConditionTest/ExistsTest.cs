@@ -3,12 +3,12 @@ using static InlineSqlSharp.SqlWordbook;
 
 namespace InlineSqlSharp.Tests;
 
-public class ExistsConditionTest
+public class ExistsTest
 {
 	private readonly test_table _t;
 	private readonly ConditionTestAssert _assert;
 
-	public ExistsConditionTest()
+	public ExistsTest()
 	{
 		_t = new test_table("t");
 		_assert = new(_t);
