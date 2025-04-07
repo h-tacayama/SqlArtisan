@@ -91,6 +91,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		decimal rightSide) =>
 		new EqualityCondition(@this, new NumericBindValue<decimal>(rightSide));
 
+	public static IEqualityCondition operator ==(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new EqualityCondition(@this, NumericBindValue.Of(rightSide));
+
 	public static IEqualityCondition operator !=(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
@@ -150,6 +155,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		NumericExpr @this,
 		decimal rightSide) =>
 		new InequalityCondition(@this, new NumericBindValue<decimal>(rightSide));
+
+	public static IEqualityCondition operator !=(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new InequalityCondition(@this, NumericBindValue.Of(rightSide));
 
 	public static IComparisonCondition operator <(
 		NumericExpr @this,
@@ -211,6 +221,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		decimal rightSide) =>
 		new LessThanCondition(@this, new NumericBindValue<decimal>(rightSide));
 
+	public static IComparisonCondition operator <(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new LessThanCondition(@this, NumericBindValue.Of(rightSide));
+
 	public static IComparisonCondition operator >(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
@@ -270,6 +285,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		NumericExpr @this,
 		decimal rightSide) =>
 		new GreaterThanCondition(@this, new NumericBindValue<decimal>(rightSide));
+
+	public static IComparisonCondition operator >(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new GreaterThanCondition(@this, NumericBindValue.Of(rightSide));
 
 	public static IComparisonCondition operator <=(
 		NumericExpr @this,
@@ -331,6 +351,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		decimal rightSide) =>
 		new LessThanOrEqualCondition(@this, new NumericBindValue<decimal>(rightSide));
 
+	public static IComparisonCondition operator <=(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new LessThanOrEqualCondition(@this, NumericBindValue.Of(rightSide));
+
 	public static IComparisonCondition operator >=(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
@@ -390,6 +415,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		NumericExpr @this,
 		decimal rightSide) =>
 		new GreaterThanOrEqualCondition(@this, new NumericBindValue<decimal>(rightSide));
+
+	public static IComparisonCondition operator >=(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new GreaterThanOrEqualCondition(@this, NumericBindValue.Of(rightSide));
 
 	public static NumericExpr operator +(
 		NumericExpr @this,
@@ -451,6 +481,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		decimal rightSide) =>
 		new AdditionOperator(@this, new NumericBindValue<decimal>(rightSide));
 
+	public static NumericExpr operator +(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new AdditionOperator(@this, NumericBindValue.Of(rightSide));
+
 	public static NumericExpr operator -(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
@@ -510,6 +545,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		NumericExpr @this,
 		decimal rightSide) =>
 		new SubtractionOperator(@this, new NumericBindValue<decimal>(rightSide));
+
+	public static NumericExpr operator -(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new SubtractionOperator(@this, NumericBindValue.Of(rightSide));
 
 	public static NumericExpr operator *(
 		NumericExpr @this,
@@ -571,6 +611,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		decimal rightSide) =>
 		new MultiplicationOperator(@this, new NumericBindValue<decimal>(rightSide));
 
+	public static NumericExpr operator *(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new MultiplicationOperator(@this, NumericBindValue.Of(rightSide));
+
 	public static NumericExpr operator /(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
@@ -631,6 +676,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		decimal rightSide) =>
 		new DivisionOperator(@this, new NumericBindValue<decimal>(rightSide));
 
+	public static NumericExpr operator /(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new DivisionOperator(@this, NumericBindValue.Of(rightSide));
+
 	public static NumericExpr operator %(
 		NumericExpr @this,
 		NumericExpr rightSide) =>
@@ -690,6 +740,11 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		NumericExpr @this,
 		decimal rightSide) =>
 		new ModulusOperator(@this, new NumericBindValue<decimal>(rightSide));
+
+	public static NumericExpr operator %(
+		NumericExpr @this,
+		Enum rightSide) =>
+		new ModulusOperator(@this, NumericBindValue.Of(rightSide));
 
 	public ExprAlias AS(string alias) => new(this, alias);
 
@@ -828,6 +883,22 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		decimal rightSide1,
 		decimal rightSide2) => new(this, new NumericBindValue<decimal>(rightSide1), new NumericBindValue<decimal>(rightSide2));
 
+	public BetweenCondition BETWEEN(
+		NumericExpr rightSide1,
+		Enum rightSide2) =>
+		new(this, rightSide1, NumericBindValue.Of(rightSide2));
+
+	public BetweenCondition BETWEEN(
+		Enum rightSide1,
+		NumericExpr rightSide2) =>
+		new(this, NumericBindValue.Of(rightSide1), rightSide2);
+
+	public BetweenCondition BETWEEN<TEnum>(
+		TEnum rightSide1,
+		TEnum rightSide2)
+		where TEnum : Enum =>
+		new(this, NumericBindValue.Of(rightSide1), NumericBindValue.Of(rightSide2));
+
 	public NotBetweenCondition NOT_BETWEEN(
 		NumericExpr rightSide1,
 		NumericExpr rightSide2) => new(this, rightSide1, rightSide2);
@@ -839,7 +910,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public NotBetweenCondition NOT_BETWEEN(
 		sbyte rightSide1,
 		NumericExpr rightSide2) => new(this, new NumericBindValue<sbyte>(rightSide1), rightSide2);
-	
+
 	public NotBetweenCondition NOT_BETWEEN(
 		sbyte rightSide1,
 		sbyte rightSide2) => new(this, new NumericBindValue<sbyte>(rightSide1), new NumericBindValue<sbyte>(rightSide2));
@@ -851,7 +922,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public NotBetweenCondition NOT_BETWEEN(
 		byte rightSide1,
 		NumericExpr rightSide2) => new(this, new NumericBindValue<byte>(rightSide1), rightSide2);
-	
+
 	public NotBetweenCondition NOT_BETWEEN(
 		byte rightSide1,
 		byte rightSide2) => new(this, new NumericBindValue<byte>(rightSide1), new NumericBindValue<byte>(rightSide2));
@@ -947,7 +1018,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public NotBetweenCondition NOT_BETWEEN(
 		double rightSide1,
 		NumericExpr rightSide2) => new(this, new NumericBindValue<double>(rightSide1), rightSide2);
-	
+
 	public NotBetweenCondition NOT_BETWEEN(
 		double rightSide1,
 		double rightSide2) => new(this, new NumericBindValue<double>(rightSide1), new NumericBindValue<double>(rightSide2));
@@ -963,6 +1034,22 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public NotBetweenCondition NOT_BETWEEN(
 		decimal rightSide1,
 		decimal rightSide2) => new(this, new NumericBindValue<decimal>(rightSide1), new NumericBindValue<decimal>(rightSide2));
+
+	public NotBetweenCondition NOT_BETWEEN(
+		NumericExpr rightSide1,
+		Enum rightSide2) =>
+		new(this, rightSide1, NumericBindValue.Of(rightSide2));
+
+	public NotBetweenCondition NOT_BETWEEN(
+		Enum rightSide1,
+		NumericExpr rightSide2) =>
+		new(this, NumericBindValue.Of(rightSide1), rightSide2);
+
+	public NotBetweenCondition NOT_BETWEEN<TEnum>(
+		TEnum rightSide1,
+		TEnum rightSide2)
+		where TEnum : Enum =>
+		new(this, NumericBindValue.Of(rightSide1), NumericBindValue.Of(rightSide2));
 
 	public InCondition IN(params NumericExpr[] expressions) =>
 		new(this, expressions);
@@ -999,6 +1086,10 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 
 	public InCondition IN(params decimal[] values) =>
 		new(this, BindValueArrayFactory.Create(values));
+
+	public InCondition IN<TEnum>(params TEnum[] values)
+		where TEnum : Enum =>
+		new(this, BindValueArrayFactory.FromEnum(values));
 
 	public InSubqueryCondition IN(ISubquery subquery) =>
 		new(this, subquery);
@@ -1038,6 +1129,10 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 
 	public NotInCondition NOT_IN(params decimal[] values) =>
 		new(this, BindValueArrayFactory.Create(values));
+
+	public NotInCondition NOT_IN<TEnum>(params TEnum[] values)
+		where TEnum : Enum =>
+		new(this, BindValueArrayFactory.FromEnum(values));
 
 	public NotInSubqueryCondition NOT_IN(ISubquery subquery) =>
 		new(this, subquery);

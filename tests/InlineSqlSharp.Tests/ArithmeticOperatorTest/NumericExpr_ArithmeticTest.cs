@@ -55,6 +55,10 @@ public class NumericExpr_ArithmeticTest
 		Assert.Equal("SELECT (\"t\".code + :0)", SELECT(_t.code + 2.0m).Build().Text);
 
 	[Fact]
+	public void NumericExpr_Addition_ColumnAndEnum_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code + :0)", SELECT(_t.code + TestEnum.Two).Build().Text);
+
+	[Fact]
 	public void NumericExpr_Subtraction_Literals_CorrectSql() =>
 		Assert.Equal("SELECT (1 - 2)", SELECT(L(1) - L(2)).Build().Text);
 
@@ -101,6 +105,10 @@ public class NumericExpr_ArithmeticTest
 	[Fact]
 	public void NumericExpr_Subtraction_ColumnAndDecimal_CorrectSql() =>
 		Assert.Equal("SELECT (\"t\".code - :0)", SELECT(_t.code - 2.0m).Build().Text);
+
+	[Fact]
+	public void NumericExpr_Subtraction_ColumnAndEnum_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code - :0)", SELECT(_t.code - TestEnum.Two).Build().Text);
 
 	[Fact]
 	public void NumericExpr_Multiplication_Literals_CorrectSql() =>
@@ -151,6 +159,10 @@ public class NumericExpr_ArithmeticTest
 		Assert.Equal("SELECT (\"t\".code * :0)", SELECT(_t.code * 2.0m).Build().Text);
 
 	[Fact]
+	public void NumericExpr_Multiplication_ColumnAndEnum_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code * :0)", SELECT(_t.code * TestEnum.Two).Build().Text);
+
+	[Fact]
 	public void NumericExpr_Division_Literals_CorrectSql() =>
 		Assert.Equal("SELECT (1 / 2)", SELECT(L(1) / L(2)).Build().Text);
 
@@ -199,6 +211,10 @@ public class NumericExpr_ArithmeticTest
 		Assert.Equal("SELECT (\"t\".code / :0)", SELECT(_t.code / 2.0m).Build().Text);
 
 	[Fact]
+	public void NumericExpr_Division_ColumnAndEnum_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code / :0)", SELECT(_t.code / TestEnum.Two).Build().Text);
+
+	[Fact]
 	public void NumericExpr_Modulus_Literals_CorrectSql() =>
 		Assert.Equal("SELECT (1 % 2)", SELECT(L(1) % L(2)).Build().Text);
 
@@ -245,4 +261,8 @@ public class NumericExpr_ArithmeticTest
 	[Fact]
 	public void NumericExpr_Modulus_ColumnAndDecimal_CorrectSql() =>
 		Assert.Equal("SELECT (\"t\".code % :0)", SELECT(_t.code % 2.0m).Build().Text);
+
+	[Fact]
+	public void NumericExpr_Modulus_ColumnAndEnum_CorrectSql() =>
+		Assert.Equal("SELECT (\"t\".code % :0)", SELECT(_t.code % TestEnum.Two).Build().Text);
 }

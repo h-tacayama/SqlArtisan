@@ -150,6 +150,18 @@ public class NumericExpr_BetweenTest
 		_assert.Equal(_t.code.BETWEEN(1.0m, 10.0m), "\"t\".code BETWEEN :0 AND :1", 2, 1.0m, 10.0m);
 
 	[Fact]
+	public void NumericExpr_BETWEEN_LiteralAndEnum_CorrectSql() =>
+		_assert.Equal(_t.code.BETWEEN(L(1), TestEnum.Two), "\"t\".code BETWEEN 1 AND :0", 1, (int)TestEnum.Two);
+
+	[Fact]
+	public void NumericExpr_BETWEEN_EnumAndLiteral_CorrectSql() =>
+		_assert.Equal(_t.code.BETWEEN(TestEnum.One, L(10)), "\"t\".code BETWEEN :0 AND 10", 1, (int)TestEnum.One);
+
+	[Fact]
+	public void NumericExpr_BETWEEN_EnumValues_CorrectSql() =>
+		_assert.Equal(_t.code.BETWEEN(TestEnum.One, TestEnum.Two), "\"t\".code BETWEEN :0 AND :1", 2, (int)TestEnum.One, (int)TestEnum.Two);
+
+	[Fact]
 	public void NumericExpr_NOT_BETWEEN_Literals_CorrectSql() =>
 		_assert.Equal(_t.code.NOT_BETWEEN(L(1), L(10)), "\"t\".code NOT BETWEEN 1 AND 10");
 
@@ -284,4 +296,16 @@ public class NumericExpr_BetweenTest
 	[Fact]
 	public void NumericExpr_NOT_BETWEEN_DecimalValues_CorrectSql() =>
 		_assert.Equal(_t.code.NOT_BETWEEN(1.0m, 10.0m), "\"t\".code NOT BETWEEN :0 AND :1", 2, 1.0m, 10.0m);
+
+	[Fact]
+	public void NumericExpr_NOT_BETWEEN_LiteralAndEnum_CorrectSql() =>
+		_assert.Equal(_t.code.NOT_BETWEEN(L(1), TestEnum.Two), "\"t\".code NOT BETWEEN 1 AND :0", 1, (int)TestEnum.Two);
+
+	[Fact]
+	public void NumericExpr_NOT_BETWEEN_EnumAndLiteral_CorrectSql() =>
+		_assert.Equal(_t.code.NOT_BETWEEN(TestEnum.One, L(10)), "\"t\".code NOT BETWEEN :0 AND 10", 1, (int)TestEnum.One);
+
+	[Fact]
+	public void NumericExpr_NOT_BETWEEN_EnumValues_CorrectSql() =>
+		_assert.Equal(_t.code.NOT_BETWEEN(TestEnum.One, TestEnum.Two), "\"t\".code NOT BETWEEN :0 AND :1", 2, (int)TestEnum.One, (int)TestEnum.Two);
 }

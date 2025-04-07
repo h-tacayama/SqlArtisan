@@ -17,6 +17,10 @@ internal static class BindValueArrayFactory
 		where TValue : INumber<TValue> =>
 		CreateCore(values, value => new NumericBindValue<TValue>(value));
 
+	public static NumericExpr[] FromEnum<TEnum>(TEnum[] values)
+		where TEnum : Enum =>
+		CreateCore(values, value => NumericBindValue.Of(value));
+
 	private static TBindValue[] CreateCore<TValue, TBindValue>(
 		TValue[] values,
 		Func<TValue, TBindValue> factoryMethod)

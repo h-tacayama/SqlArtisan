@@ -214,6 +214,23 @@ public class NumericExpr_InTest
 	}
 
 	[Fact]
+	public void NumericExpr_IN_MultipleEnums_CorrectSql()
+	{
+		StringBuilder expected = new();
+		expected.Append("\"t\".code IN ");
+		expected.Append("(");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
+		expected.Append(")");
+
+		TestEnum[] values = [TestEnum.One, TestEnum.Two, TestEnum.Three];
+		_assert.Equal(_t.code.IN(values),
+			expected.ToString(),
+			3, (int)TestEnum.One, (int)TestEnum.Two, (int)TestEnum.Three);
+	}
+
+	[Fact]
 	public void NumericExpr_NOT_IN_SingleLiteral_CorrectSql()
 	{
 		StringBuilder expected = new();
@@ -410,5 +427,22 @@ public class NumericExpr_InTest
 		_assert.Equal(_t.code.NOT_IN(values),
 			expected.ToString(),
 			3, 1.0m, 2.0m, 3.0m);
+	}
+
+	[Fact]
+	public void NumericExpr_NOT_IN_MultipleEnums_CorrectSql()
+	{
+		StringBuilder expected = new();
+		expected.Append("\"t\".code NOT IN ");
+		expected.Append("(");
+		expected.Append(":0, ");
+		expected.Append(":1, ");
+		expected.Append(":2");
+		expected.Append(")");
+
+		TestEnum[] values = [TestEnum.One, TestEnum.Two, TestEnum.Three];
+		_assert.Equal(_t.code.NOT_IN(values),
+			expected.ToString(),
+			3, (int)TestEnum.One, (int)TestEnum.Two, (int)TestEnum.Three);
 	}
 }

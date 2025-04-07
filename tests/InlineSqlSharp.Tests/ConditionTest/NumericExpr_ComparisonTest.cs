@@ -7,6 +7,14 @@ public class NumericExpr_ComparisonTest
 	private readonly test_table _t;
 	private readonly ConditionTestAssert _assert;
 
+	private enum SByteEnum : sbyte { One = 1, }
+	private enum ByteEnum : byte { One = 1, }
+	private enum ShortEnum : short { One = 1, }
+	private enum UshortEnum : ushort { One = 1, }
+	private enum UintEnum : uint { One = 1, }
+	private enum LongEnum : long { One = 1, }
+	private enum UlongEnum : ulong { One = 1, }
+
 	public NumericExpr_ComparisonTest()
 	{
 		_t = new test_table("t");
@@ -62,6 +70,38 @@ public class NumericExpr_ComparisonTest
 		_assert.Equal(_t.code == 1.0m, "\"t\".code = :0", 1, 1.0m);
 
 	[Fact]
+	public void NumericExpr_Equal_ColumnAndSbyteEnum_CorrectSql() =>
+		_assert.Equal(_t.code == SByteEnum.One, "\"t\".code = :0", 1, (sbyte)SByteEnum.One);
+
+	[Fact]
+	public void NumericExpr_Equal_ColumnAndByteEnum_CorrectSql() =>
+		_assert.Equal(_t.code == ByteEnum.One, "\"t\".code = :0", 1, (byte)ByteEnum.One);
+
+	[Fact]
+	public void NumericExpr_Equal_ColumnAndShortEnum_CorrectSql() =>
+		_assert.Equal(_t.code == ShortEnum.One, "\"t\".code = :0", 1, (short)ShortEnum.One);
+
+	[Fact]
+	public void NumericExpr_Equal_ColumnAndUshortEnum_CorrectSql() =>
+		_assert.Equal(_t.code == UshortEnum.One, "\"t\".code = :0", 1, (ushort)UshortEnum.One);
+
+	[Fact]
+	public void NumericExpr_Equal_ColumnAndIntEnum_CorrectSql() =>
+		_assert.Equal(_t.code == TestEnum.One, "\"t\".code = :0", 1, (int)TestEnum.One);
+
+	[Fact]
+	public void NumericExpr_Equal_ColumnAndUintEnum_CorrectSql() =>
+		_assert.Equal(_t.code == UintEnum.One, "\"t\".code = :0", 1, (uint)UintEnum.One);
+
+	[Fact]
+	public void NumericExpr_Equal_ColumnAndLongEnum_CorrectSql() =>
+		_assert.Equal(_t.code == LongEnum.One, "\"t\".code = :0", 1, (long)LongEnum.One);
+
+	[Fact]
+	public void NumericExpr_Equal_ColumnAndUlongEnum_CorrectSql() =>
+		_assert.Equal(_t.code == UlongEnum.One, "\"t\".code = :0", 1, (ulong)UlongEnum.One);
+
+	[Fact]
 	public void NumericExpr_NotEqual_ColumnAndLiteral_CorrectSql() =>
 		_assert.Equal(_t.code != L(1), "\"t\".code <> 1");
 
@@ -108,6 +148,10 @@ public class NumericExpr_ComparisonTest
 	[Fact]
 	public void NumericExpr_NotEqual_ColumnAndDecimal_CorrectSql() =>
 		_assert.Equal(_t.code != 1.0m, "\"t\".code <> :0", 1, 1.0m);
+
+	[Fact]
+	public void NumericExpr_NotEqual_ColumnAndEnum_CorrectSql() =>
+		_assert.Equal(_t.code != TestEnum.One, "\"t\".code <> :0", 1, (int)TestEnum.One);
 
 	[Fact]
 	public void NumericExpr_LessThan_ColumnAndLiteral_CorrectSql() =>
@@ -158,6 +202,10 @@ public class NumericExpr_ComparisonTest
 		_assert.Equal(_t.code < 1.0m, "\"t\".code < :0", 1, 1.0m);
 
 	[Fact]
+	public void NumericExpr_LessThan_ColumnAndEnum_CorrectSql() =>
+		_assert.Equal(_t.code < TestEnum.One, "\"t\".code < :0", 1, (int)TestEnum.One);
+
+	[Fact]
 	public void NumericExpr_GreaterThan_ColumnAndLiteral_CorrectSql() =>
 		_assert.Equal(_t.code > L(1), "\"t\".code > 1");
 
@@ -204,6 +252,10 @@ public class NumericExpr_ComparisonTest
 	[Fact]
 	public void NumericExpr_GreaterThan_ColumnAndDecimal_CorrectSql() =>
 		_assert.Equal(_t.code > 1.0m, "\"t\".code > :0", 1, 1.0m);
+
+	[Fact]
+	public void NumericExpr_GreaterThan_ColumnAndEnum_CorrectSql() =>
+		_assert.Equal(_t.code > TestEnum.One, "\"t\".code > :0", 1, (int)TestEnum.One);
 
 	[Fact]
 	public void NumericExpr_LessEqual_ColumnAndLiteral_CorrectSql() =>
@@ -254,6 +306,10 @@ public class NumericExpr_ComparisonTest
 		_assert.Equal(_t.code <= 1.0m, "\"t\".code <= :0", 1, 1.0m);
 
 	[Fact]
+	public void NumericExpr_LessEqual_ColumnAndEnum_CorrectSql() =>
+		_assert.Equal(_t.code <= TestEnum.One, "\"t\".code <= :0", 1, (int)TestEnum.One);
+
+	[Fact]
 	public void NumericExpr_GreaterEqual_ColumnAndLiteral_CorrectSql() =>
 		_assert.Equal(_t.code >= L(1), "\"t\".code >= 1");
 
@@ -300,4 +356,8 @@ public class NumericExpr_ComparisonTest
 	[Fact]
 	public void NumericExpr_GreaterEqual_ColumnAndDecimal_CorrectSql() =>
 		_assert.Equal(_t.code >= 1.0m, "\"t\".code >= :0", 1, 1.0m);
+
+	[Fact]
+	public void NumericExpr_GreaterEqual_ColumnAndEnum_CorrectSql() =>
+		_assert.Equal(_t.code >= TestEnum.One, "\"t\".code >= :0", 1, (int)TestEnum.One);
 }
