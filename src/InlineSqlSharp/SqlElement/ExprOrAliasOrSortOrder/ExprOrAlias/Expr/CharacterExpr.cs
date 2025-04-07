@@ -195,10 +195,10 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 		new(this, expressions);
 
 	public InCondition IN(params char[] values) =>
-		new(this, CharacterBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params string[] values) =>
-		new(this, CharacterBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InSubqueryCondition IN(ISubquery subquery) =>
 		new(this, subquery);
@@ -207,10 +207,10 @@ public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
 		new(this, expressions);
 
 	public NotInCondition NOT_IN(params char[] values) =>
-		new(this, CharacterBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params string[] values) =>
-		new(this, CharacterBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInSubqueryCondition NOT_IN(ISubquery subquery) =>
 		new(this, subquery);

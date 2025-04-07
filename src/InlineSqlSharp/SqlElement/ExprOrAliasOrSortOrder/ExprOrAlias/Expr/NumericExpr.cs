@@ -968,37 +968,37 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		new(this, expressions);
 
 	public InCondition IN(params sbyte[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params byte[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params short[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params ushort[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params int[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params uint[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params long[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params ulong[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params float[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params double[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InCondition IN(params decimal[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InSubqueryCondition IN(ISubquery subquery) =>
 		new(this, subquery);
@@ -1007,37 +1007,37 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		new(this, expressions);
 
 	public NotInCondition NOT_IN(params sbyte[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params byte[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params short[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params ushort[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params int[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params uint[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params long[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params ulong[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params float[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params double[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInCondition NOT_IN(params decimal[] values) =>
-		new(this, NumericBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInSubqueryCondition NOT_IN(ISubquery subquery) =>
 		new(this, subquery);

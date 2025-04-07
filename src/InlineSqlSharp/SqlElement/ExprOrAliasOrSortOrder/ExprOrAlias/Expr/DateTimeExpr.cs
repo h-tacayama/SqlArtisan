@@ -160,7 +160,7 @@ public abstract class DateTimeExpr : IAliasable, IDataExpr, ISortable
 		new(this, expressions);
 
 	public InCondition IN(params DateTime[] values) =>
-		new(this, DateTimeBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public InSubqueryCondition IN(ISubquery subquery) =>
 		new(this, subquery);
@@ -169,7 +169,7 @@ public abstract class DateTimeExpr : IAliasable, IDataExpr, ISortable
 		new(this, expressions);
 
 	public NotInCondition NOT_IN(params DateTime[] values) =>
-		new(this, DateTimeBindValueArray.Create(values));
+		new(this, BindValueArrayFactory.Create(values));
 
 	public NotInSubqueryCondition NOT_IN(ISubquery subquery) =>
 		new(this, subquery);
