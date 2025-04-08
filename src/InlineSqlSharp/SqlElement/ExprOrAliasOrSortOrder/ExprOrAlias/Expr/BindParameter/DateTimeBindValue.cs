@@ -3,17 +3,15 @@
 namespace InlineSqlSharp;
 
 public sealed class DateTimeBindValue(
-	ParameterDirection direction,
-	DateTime value) : DateTimeExpr, IBindValue
+	DateTime value,
+	ParameterDirection direction = ParameterDirection.Input)
+	: DateTimeExpr, IBindValue
 {
-	public DateTimeBindValue(DateTime value)
-		: this(ParameterDirection.Input, value) { }
+	public object Value { get; } = value;
 
 	public DbType DbType { get; } = DbType.DateTime;
 
 	public ParameterDirection Direction { get; } = direction;
-
-	public object Value { get; } = value;
 
 	public override void FormatSql(SqlBuildingBuffer buffer) =>
 		buffer.AddParameter(this);

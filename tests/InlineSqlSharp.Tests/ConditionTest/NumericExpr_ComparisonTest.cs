@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using static InlineSqlSharp.SqlWordbook;
+﻿using static InlineSqlSharp.SqlWordbook;
 
 namespace InlineSqlSharp.Tests;
 
