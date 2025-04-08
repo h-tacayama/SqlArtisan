@@ -5,7 +5,7 @@ public sealed class CharacterDecodeFunction<TSearchExpr>(
 	(TSearchExpr, CharacterExpr)[] searchResultPairs,
 	CharacterExpr @default)
 	: CharacterExpr
-	where TSearchExpr : IDataExpr
+	where TSearchExpr : IExpr
 {
 	private readonly DecodeFunctionCore<TSearchExpr, CharacterExpr> _core =
 		new(expr, searchResultPairs, @default);

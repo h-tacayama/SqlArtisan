@@ -5,7 +5,7 @@ public sealed class DateTimeDecodeFunction<TSearchExpr>(
 	(TSearchExpr, DateTimeExpr)[] searchResultPairs,
 	DateTimeExpr @default)
 	: DateTimeExpr
-	where TSearchExpr : IDataExpr
+	where TSearchExpr : IExpr
 {
 	private readonly DecodeFunctionCore<TSearchExpr, DateTimeExpr> _core =
 		new(expr, searchResultPairs, @default);

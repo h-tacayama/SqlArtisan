@@ -6,7 +6,7 @@ public sealed class NumericSimpleCaseExpr<TComparisonExpr>(
 	CaseElseExpr<NumericExpr> elseClause) :
 	NumericExpr,
 	ISimpleCaseExpression
-	where TComparisonExpr : IDataExpr
+	where TComparisonExpr : IExpr
 {
 	private readonly SimpleCaseExprCore<TComparisonExpr, NumericExpr> _core =
 		new(expr, whenClauses, elseClause);

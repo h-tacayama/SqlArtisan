@@ -2,7 +2,7 @@
 
 namespace InlineSqlSharp;
 
-public abstract class CharacterExpr : IAliasable, IDataExpr, ISortable
+public abstract class CharacterExpr : IAliasable, IExpr, ISortable
 {
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	public SortOrder ASC => new(this, SortDirection.Asc);

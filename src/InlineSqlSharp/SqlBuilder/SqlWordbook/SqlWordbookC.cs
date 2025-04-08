@@ -21,21 +21,21 @@ public static partial class SqlWordbook
 		TComparisonExpr expr,
 		SimpleCaseWhenClause<TComparisonExpr, CharacterExpr>[] whenClauses,
 		CaseElseExpr<CharacterExpr> elseExpr)
-		where TComparisonExpr : IDataExpr =>
+		where TComparisonExpr : IExpr =>
 			new(expr, whenClauses, elseExpr);
 
 	public static DateTimeSimpleCaseExpr<TComparisonExpr> CASE<TComparisonExpr>(
 		TComparisonExpr expr,
 		SimpleCaseWhenClause<TComparisonExpr, DateTimeExpr>[] whenClauses,
 		CaseElseExpr<DateTimeExpr> elseExpr)
-		where TComparisonExpr : IDataExpr =>
+		where TComparisonExpr : IExpr =>
 			new(expr, whenClauses, elseExpr);
 
 	public static NumericSimpleCaseExpr<TComparisonExpr> CASE<TComparisonExpr>(
 		TComparisonExpr expr,
 		SimpleCaseWhenClause<TComparisonExpr, NumericExpr>[] whenClauses,
 		CaseElseExpr<NumericExpr> elseExpr)
-		where TComparisonExpr : IDataExpr =>
+		where TComparisonExpr : IExpr =>
 			new(expr, whenClauses, elseExpr);
 
 	public static ConcatFunction CONCAT(
