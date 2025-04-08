@@ -94,7 +94,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static IEqualityCondition operator ==(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new EqualityCondition(@this, NumericBindValue.Of(rightSide));
+		new EqualityCondition(@this, new EnumBindValue(rightSide));
 
 	public static IEqualityCondition operator !=(
 		NumericExpr @this,
@@ -159,7 +159,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static IEqualityCondition operator !=(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new InequalityCondition(@this, NumericBindValue.Of(rightSide));
+		new InequalityCondition(@this, new EnumBindValue(rightSide));
 
 	public static IComparisonCondition operator <(
 		NumericExpr @this,
@@ -224,7 +224,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static IComparisonCondition operator <(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new LessThanCondition(@this, NumericBindValue.Of(rightSide));
+		new LessThanCondition(@this, new EnumBindValue(rightSide));
 
 	public static IComparisonCondition operator >(
 		NumericExpr @this,
@@ -289,7 +289,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static IComparisonCondition operator >(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new GreaterThanCondition(@this, NumericBindValue.Of(rightSide));
+		new GreaterThanCondition(@this, new EnumBindValue(rightSide));
 
 	public static IComparisonCondition operator <=(
 		NumericExpr @this,
@@ -354,7 +354,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static IComparisonCondition operator <=(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new LessThanOrEqualCondition(@this, NumericBindValue.Of(rightSide));
+		new LessThanOrEqualCondition(@this, new EnumBindValue(rightSide));
 
 	public static IComparisonCondition operator >=(
 		NumericExpr @this,
@@ -419,7 +419,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static IComparisonCondition operator >=(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new GreaterThanOrEqualCondition(@this, NumericBindValue.Of(rightSide));
+		new GreaterThanOrEqualCondition(@this, new EnumBindValue(rightSide));
 
 	public static NumericExpr operator +(
 		NumericExpr @this,
@@ -484,7 +484,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static NumericExpr operator +(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new AdditionOperator(@this, NumericBindValue.Of(rightSide));
+		new AdditionOperator(@this, new EnumBindValue(rightSide));
 
 	public static NumericExpr operator -(
 		NumericExpr @this,
@@ -549,7 +549,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static NumericExpr operator -(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new SubtractionOperator(@this, NumericBindValue.Of(rightSide));
+		new SubtractionOperator(@this, new EnumBindValue(rightSide));
 
 	public static NumericExpr operator *(
 		NumericExpr @this,
@@ -614,7 +614,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static NumericExpr operator *(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new MultiplicationOperator(@this, NumericBindValue.Of(rightSide));
+		new MultiplicationOperator(@this, new EnumBindValue(rightSide));
 
 	public static NumericExpr operator /(
 		NumericExpr @this,
@@ -679,7 +679,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static NumericExpr operator /(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new DivisionOperator(@this, NumericBindValue.Of(rightSide));
+		new DivisionOperator(@this, new EnumBindValue(rightSide));
 
 	public static NumericExpr operator %(
 		NumericExpr @this,
@@ -744,7 +744,7 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public static NumericExpr operator %(
 		NumericExpr @this,
 		Enum rightSide) =>
-		new ModulusOperator(@this, NumericBindValue.Of(rightSide));
+		new ModulusOperator(@this, new EnumBindValue(rightSide));
 
 	public ExprAlias AS(string alias) => new(this, alias);
 
@@ -886,18 +886,18 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public BetweenCondition BETWEEN(
 		NumericExpr rightSide1,
 		Enum rightSide2) =>
-		new(this, rightSide1, NumericBindValue.Of(rightSide2));
+		new(this, rightSide1, new EnumBindValue(rightSide2));
 
 	public BetweenCondition BETWEEN(
 		Enum rightSide1,
 		NumericExpr rightSide2) =>
-		new(this, NumericBindValue.Of(rightSide1), rightSide2);
+		new(this, new EnumBindValue(rightSide1), rightSide2);
 
 	public BetweenCondition BETWEEN<TEnum>(
 		TEnum rightSide1,
 		TEnum rightSide2)
 		where TEnum : Enum =>
-		new(this, NumericBindValue.Of(rightSide1), NumericBindValue.Of(rightSide2));
+		new(this, new EnumBindValue(rightSide1), new EnumBindValue(rightSide2));
 
 	public NotBetweenCondition NOT_BETWEEN(
 		NumericExpr rightSide1,
@@ -1038,54 +1038,54 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 	public NotBetweenCondition NOT_BETWEEN(
 		NumericExpr rightSide1,
 		Enum rightSide2) =>
-		new(this, rightSide1, NumericBindValue.Of(rightSide2));
+		new(this, rightSide1, new EnumBindValue(rightSide2));
 
 	public NotBetweenCondition NOT_BETWEEN(
 		Enum rightSide1,
 		NumericExpr rightSide2) =>
-		new(this, NumericBindValue.Of(rightSide1), rightSide2);
+		new(this, new EnumBindValue(rightSide1), rightSide2);
 
 	public NotBetweenCondition NOT_BETWEEN<TEnum>(
 		TEnum rightSide1,
 		TEnum rightSide2)
 		where TEnum : Enum =>
-		new(this, NumericBindValue.Of(rightSide1), NumericBindValue.Of(rightSide2));
+		new(this, new EnumBindValue(rightSide1), new EnumBindValue(rightSide2));
 
 	public InCondition IN(params NumericExpr[] expressions) =>
 		new(this, expressions);
 
 	public InCondition IN(params sbyte[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params byte[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params short[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params ushort[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params int[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params uint[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params long[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params ulong[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params float[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params double[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN(params decimal[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public InCondition IN<TEnum>(params TEnum[] values)
 		where TEnum : Enum =>
@@ -1098,37 +1098,37 @@ public abstract class NumericExpr : IAliasable, IDataExpr, ISortable
 		new(this, expressions);
 
 	public NotInCondition NOT_IN(params sbyte[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params byte[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params short[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params ushort[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params int[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params uint[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params long[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params ulong[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params float[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params double[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN(params decimal[] values) =>
-		new(this, BindValueArrayFactory.Create(values));
+		new(this, BindValueArrayFactory.FromNumber(values));
 
 	public NotInCondition NOT_IN<TEnum>(params TEnum[] values)
 		where TEnum : Enum =>

@@ -4,24 +4,24 @@ namespace InlineSqlSharp;
 
 internal static class BindValueArrayFactory
 {
-	public static CharacterBindValue[] Create(char[] values) =>
-		CreateCore(values, value => new CharacterBindValue(value));
+	public static CharacterBindValue[] FromChar(char[] values) =>
+		Create(values, value => new CharacterBindValue(value));
 
-	public static CharacterBindValue[] Create(string[] values) =>
-		CreateCore(values, value => new CharacterBindValue(value));
+	public static CharacterBindValue[] FromString(string[] values) =>
+		Create(values, value => new CharacterBindValue(value));
 
-	public static DateTimeBindValue[] Create(DateTime[] values) =>
-		CreateCore(values, value => new DateTimeBindValue(value));
+	public static DateTimeBindValue[] FromDateTime(DateTime[] values) =>
+		Create(values, value => new DateTimeBindValue(value));
 
-	public static NumericBindValue<TValue>[] Create<TValue>(TValue[] values)
+	public static NumericBindValue<TValue>[] FromNumber<TValue>(TValue[] values)
 		where TValue : INumber<TValue> =>
-		CreateCore(values, value => new NumericBindValue<TValue>(value));
+		Create(values, value => new NumericBindValue<TValue>(value));
 
-	public static NumericExpr[] FromEnum<TEnum>(TEnum[] values)
+	public static EnumBindValue[] FromEnum<TEnum>(TEnum[] values)
 		where TEnum : Enum =>
-		CreateCore(values, value => NumericBindValue.Of(value));
+		Create(values, value => new EnumBindValue(value));
 
-	private static TBindValue[] CreateCore<TValue, TBindValue>(
+	private static TBindValue[] Create<TValue, TBindValue>(
 		TValue[] values,
 		Func<TValue, TBindValue> factoryMethod)
 	{

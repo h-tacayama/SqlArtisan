@@ -10,6 +10,8 @@ public static partial class SqlWordbook
 
 	public static DateTimeBindValue P(DateTime value) => new(value);
 
+	public static EnumBindValue P(Enum value) => new (value);
+
 	public static NumericBindValue<TValue> P<TValue>(TValue value)
 		where TValue : INumber<TValue> => new(value);
 

@@ -8,6 +8,8 @@ public static partial class SqlWordbook
 
 	public static CharacterLiteral L(string value) => new(value);
 
+	public static EnumLiteral L(Enum value) => new(value);
+
 	public static NumericLiteral<TValue> L<TValue>(TValue value)
 		where TValue : INumber<TValue> => new(value);
 

@@ -1,4 +1,5 @@
-﻿using static InlineSqlSharp.SqlWordbook;
+﻿using System.Security.Cryptography;
+using static InlineSqlSharp.SqlWordbook;
 
 namespace InlineSqlSharp.Tests;
 
@@ -22,8 +23,12 @@ public class NumericExpr_ComparisonTest
 	}
 
 	[Fact]
-	public void NumericExpr_Equal_ColumnAndLiteral_CorrectSql() =>
-		_assert.Equal(_t.code == L(1), "\"t\".code = 1");
+	public void NumericExpr_Equal_ColumnAndEnumLiteral_CorrectSql() =>
+		_assert.Equal(_t.code == L(TestEnum.One), "\"t\".code = 1");
+
+	[Fact]
+	public void NumericExpr_Equal_ColumnAndEnumParameter_CorrectSql() =>
+		_assert.Equal(_t.code == P(TestEnum.One), "\"t\".code = :0", 1, (int)TestEnum.One);
 
 	[Fact]
 	public void NumericExpr_Equal_ColumnAndSByte_CorrectSql() =>
@@ -360,4 +365,60 @@ public class NumericExpr_ComparisonTest
 	[Fact]
 	public void NumericExpr_GreaterEqual_ColumnAndEnum_CorrectSql() =>
 		_assert.Equal(_t.code >= TestEnum.One, "\"t\".code >= :0", 1, (int)TestEnum.One);
+
+	[Fact]
+	public void EnumBindValue_SByteEnum_CorrestValue()
+	{
+		EnumBindValue bindValue = new (SByteEnum.One);
+		Assert.Equal((sbyte)SByteEnum.One, bindValue.Value);
+	}
+
+	[Fact]
+	public void EnumBindValue_ByteEnum_CorrestValue()
+	{
+		EnumBindValue bindValue = new(ByteEnum.One);
+		Assert.Equal((byte)ByteEnum.One, bindValue.Value);
+	}
+
+	[Fact]
+	public void EnumBindValue_ShortEnum_CorrestValue()
+	{
+		EnumBindValue bindValue = new(ShortEnum.One);
+		Assert.Equal((short)ShortEnum.One, bindValue.Value);
+	}
+
+	[Fact]
+	public void EnumBindValue_UshortEnum_CorrestValue()
+	{
+		EnumBindValue bindValue = new(UshortEnum.One);
+		Assert.Equal((ushort)UshortEnum.One, bindValue.Value);
+	}
+
+	[Fact]
+	public void EnumBindValue_IntEnum_CorrestValue()
+	{
+		EnumBindValue bindValue = new(TestEnum.One);
+		Assert.Equal((int)TestEnum.One, bindValue.Value);
+	}
+
+	[Fact]
+	public void EnumBindValue_UintEnum_CorrestValue()
+	{
+		EnumBindValue bindValue = new(UintEnum.One);
+		Assert.Equal((uint)UintEnum.One, bindValue.Value);
+	}
+
+	[Fact]
+	public void EnumBindValue_LongEnum_CorrestValue()
+	{
+		EnumBindValue bindValue = new(LongEnum.One);
+		Assert.Equal((long)LongEnum.One, bindValue.Value);
+	}
+
+	[Fact]
+	public void EnumBindValue_UlongEnum_CorrestValue()
+	{
+		EnumBindValue bindValue = new(UlongEnum.One);
+		Assert.Equal((ulong)UlongEnum.One, bindValue.Value);
+	}
 }
