@@ -1,15 +1,15 @@
 ﻿namespace InlineSqlSharp;
 
 internal sealed class DeleteBuilder(DeleteClause deleteClause) :
-	AbstractSqlBuilder(deleteClause),
-	IDeleteBuilderDelete,
-	IDeleteBuilderWhere
+    AbstractSqlBuilder(deleteClause),
+    IDeleteBuilderDelete,
+    IDeleteBuilderWhere
 {
-	public SqlStatement Build() => BuildCore();
+    public SqlStatement Build() => BuildCore();
 
-	public IDeleteBuilderWhere WHERE(ICondition condition)
-	{
-		AddElement(new WhereClause(condition));
-		return this;
-	}
+    public IDeleteBuilderWhere WHERE(ICondition condition)
+    {
+        AddElement(new WhereClause(condition));
+        return this;
+    }
 }

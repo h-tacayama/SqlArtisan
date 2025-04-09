@@ -4,55 +4,55 @@ namespace InlineSqlSharp;
 
 internal static class ArgumentValidator
 {
-	internal static string ThrowIfNullOrEmpty(
-		string value,
-		[CallerArgumentExpression(nameof(value))] string? expression = null)
-	{
-		if (string.IsNullOrEmpty(value))
-		{
-			throw new ArgumentException(
-				$"'{expression}' cannot be empty.",
-				expression);
-		}
+    internal static string ThrowIfNullOrEmpty(
+        string value,
+        [CallerArgumentExpression(nameof(value))] string? expression = null)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            throw new ArgumentException(
+                $"'{expression}' cannot be empty.",
+                expression);
+        }
 
-		return value;
-	}
+        return value;
+    }
 
-	internal static TSecondary ThrowIfPrecedingNull<TPrimary, TSecondary>(
-		TPrimary preceding,
-		TSecondary self,
-		[CallerArgumentExpression(nameof(preceding))] string? precedingExpr = null,
-		[CallerArgumentExpression(nameof(self))] string? selfExpr = null)
-		where TPrimary : class?
-		where TSecondary : class?
-	{
-		if (self is not null && preceding is null)
-		{
-			throw new ArgumentException(
-				$"'{precedingExpr}' cannot be null when '{selfExpr}' is not null.",
-				precedingExpr);
-		}
-	
-		return self;
-	}
+    internal static TSecondary ThrowIfPrecedingNull<TPrimary, TSecondary>(
+        TPrimary preceding,
+        TSecondary self,
+        [CallerArgumentExpression(nameof(preceding))] string? precedingExpr = null,
+        [CallerArgumentExpression(nameof(self))] string? selfExpr = null)
+        where TPrimary : class?
+        where TSecondary : class?
+    {
+        if (self is not null && preceding is null)
+        {
+            throw new ArgumentException(
+                $"'{precedingExpr}' cannot be null when '{selfExpr}' is not null.",
+                precedingExpr);
+        }
 
-	internal static EqualityCondition[] ThrowIfNotEqualityCondition(
-		IEquality[] values,
-		[CallerArgumentExpression(nameof(values))] string? valuesExpr = null)
-	{
-		EqualityCondition[] result = new EqualityCondition[values.Length];
+        return self;
+    }
 
-		for (int i = 0; i < values.Length; i++)
-		{
-			if (values[i] is not EqualityCondition)
-			{
-				throw new ArgumentException(
-					$"All '{valuesExpr}' must be {nameof(EqualityCondition)}.");
-			}
+    internal static EqualityCondition[] ThrowIfNotEqualityCondition(
+        IEquality[] values,
+        [CallerArgumentExpression(nameof(values))] string? valuesExpr = null)
+    {
+        EqualityCondition[] result = new EqualityCondition[values.Length];
 
-			result[i] = (EqualityCondition)values[i];
-		}
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (values[i] is not EqualityCondition)
+            {
+                throw new ArgumentException(
+                    $"All '{valuesExpr}' must be {nameof(EqualityCondition)}.");
+            }
 
-		return result;
-	}
+            result[i] = (EqualityCondition)values[i];
+        }
+
+        return result;
+    }
 }

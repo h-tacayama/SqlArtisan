@@ -2,5 +2,5 @@
 
 public interface ISqlElement
 {
-	void FormatSql(SqlBuildingBuffer buffer);
+    void FormatSql(SqlBuildingBuffer buffer);
 }

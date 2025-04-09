@@ -1,8 +1,3 @@
-using System.Data;
-using InlineSqlSharp.Dapper;
-using static Dapper.SqlMapper;
-using static InlineSqlSharp.SqlWordbook;
-
 namespace InlineSqlSharp.Tests;
 
 #if SQL_MAPPER_TEST

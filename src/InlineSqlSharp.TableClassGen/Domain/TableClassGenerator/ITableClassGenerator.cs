@@ -2,5 +2,5 @@ namespace InlineSqlSharp.TableClassGen;
 
 internal interface ITableClassGenerator
 {
-	void Generate();
+    void Generate();
 }

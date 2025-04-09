@@ -2,21 +2,21 @@
 
 public interface ISelectBuilderFrom : ISqlBuilder, ISubquery, ISetOperator
 {
-	// Subsequent SQL is the same as the FROM clause.
-	ISelectBuilderFrom CROSS_JOIN(ITableReference table);
+    // Subsequent SQL is the same as the FROM clause.
+    ISelectBuilderFrom CROSS_JOIN(ITableReference table);
 
-	ISelectBuilderJoin FULL_JOIN(ITableReference table);
+    ISelectBuilderJoin FULL_JOIN(ITableReference table);
 
-	ISelectBuilderGroupBy GROUP_BY(params IExpr[] groupingExpressions);
+    ISelectBuilderGroupBy GROUP_BY(params IExpr[] groupingExpressions);
 
-	ISelectBuilderJoin INNER_JOIN(ITableReference table);
+    ISelectBuilderJoin INNER_JOIN(ITableReference table);
 
-	ISelectBuilderJoin LEFT_JOIN(ITableReference table);
+    ISelectBuilderJoin LEFT_JOIN(ITableReference table);
 
-	ISelectBuilderOrderBy ORDER_BY(
-		params IExprOrAliasOrSortOrder[] sortExpressions);
+    ISelectBuilderOrderBy ORDER_BY(
+        params IExprOrAliasOrSortOrder[] sortExpressions);
 
-	ISelectBuilderJoin RIGHT_JOIN(ITableReference table);
+    ISelectBuilderJoin RIGHT_JOIN(ITableReference table);
 
-	ISelectBuildertWhere WHERE(ICondition condition);
+    ISelectBuildertWhere WHERE(ICondition condition);
 }

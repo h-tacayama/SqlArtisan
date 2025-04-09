@@ -1,19 +1,19 @@
 ﻿namespace InlineSqlSharp;
 
 internal sealed class InConditionCore(
-	bool isNot,
-	IExpr leftSide,
-	IExpr[] expressions)
+    bool isNot,
+    IExpr leftSide,
+    IExpr[] expressions)
 {
-	private readonly bool _isNot = isNot;
-	private readonly IExpr _leftSide = leftSide;
-	private readonly IExpr[] _expressions = expressions;
+    private readonly bool _isNot = isNot;
+    private readonly IExpr _leftSide = leftSide;
+    private readonly IExpr[] _expressions = expressions;
 
-	public void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.AppendSpace(_leftSide)
-		.AppendSpaceIf(_isNot, Keywords.NOT)
-		.AppendSpace(Keywords.IN)
-		.OpenParenthesis()
-		.AppendCsv(_expressions)
-		.CloseParenthesis();
+    public void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_leftSide)
+        .AppendSpaceIf(_isNot, Keywords.NOT)
+        .AppendSpace(Keywords.IN)
+        .OpenParenthesis()
+        .AppendCsv(_expressions)
+        .CloseParenthesis();
 }

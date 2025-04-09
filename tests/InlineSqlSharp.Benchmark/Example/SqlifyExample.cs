@@ -6,21 +6,21 @@ namespace InlineSqlSharp.Benchmark;
 
 public static class SqlifyExample
 {
-	public static void Do()
-	{
-		var a = Table<IAuthors>("a");
-		var b = Table<IBooks>("b");
+    public static void Do()
+    {
+        var a = Table<IAuthors>("a");
+        var b = Table<IBooks>("b");
 
-		var selectQuery =
-			Select(a.Id, Count().As("Count"))
-			.From(a)
-			.Join(b, a.Id == b.AuthorId)
-			.Where(b.Rating > 2.5)
-			.GroupBy(a.Id)
-			.OrderByDesc(a.Id);
+        var selectQuery =
+            Select(a.Id, Count().As("Count"))
+            .From(a)
+            .Join(b, a.Id == b.AuthorId)
+            .Where(b.Rating > 2.5)
+            .GroupBy(a.Id)
+            .OrderByDesc(a.Id);
 
-		var writer = new SqlWriter();
-		selectQuery.Format(writer);
-		var sql = writer.GetCommand();
-	}
+        var writer = new SqlWriter();
+        selectQuery.Format(writer);
+        var sql = writer.GetCommand();
+    }
 }

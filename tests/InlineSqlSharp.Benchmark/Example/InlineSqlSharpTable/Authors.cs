@@ -2,13 +2,13 @@
 
 internal sealed class Authors : AbstractTable
 {
-	public Authors(string alias) : base(alias)
-	{
-		Id = new NumericColumn(alias, "Id");
-		Name = new CharacterColumn(alias, "Name");
-	}
+    public Authors(string alias) : base(alias)
+    {
+        Id = new NumericColumn(alias, "Id");
+        Name = new CharacterColumn(alias, "Name");
+    }
 
-	public NumericColumn Id { get; }
+    public NumericColumn Id { get; }
 
-	public CharacterColumn Name { get; }
+    public CharacterColumn Name { get; }
 }

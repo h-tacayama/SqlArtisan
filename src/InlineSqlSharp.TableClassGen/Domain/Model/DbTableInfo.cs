@@ -3,40 +3,40 @@ using System.Text;
 namespace InlineSqlSharp.TableClassGen;
 
 internal sealed class DbTableInfo(
-	string name,
-	IReadOnlyList<DbColumnInfo> columns)
+    string name,
+    IReadOnlyList<DbColumnInfo> columns)
 {
-	public string Name => name;
+    public string Name => name;
 
-	public IReadOnlyList<DbColumnInfo> Columns => columns;
+    public IReadOnlyList<DbColumnInfo> Columns => columns;
 
-	public string GenerateCode(string @namespace)
-	{
-		StringBuilder code = new();
+    public string GenerateCode(string @namespace)
+    {
+        StringBuilder code = new();
 
-		code.AppendLine($"namespace {@namespace};");
-		code.AppendLine();
-		code.AppendLine($"internal sealed class {Name} : Table");
-		code.AppendLine("{");
+        code.AppendLine($"namespace {@namespace};");
+        code.AppendLine();
+        code.AppendLine($"internal sealed class {Name} : Table");
+        code.AppendLine("{");
 
-		code.AppendLine($"\tpublic {Name}(string alias) : base(alias)");
-		code.AppendLine("\t{");
+        code.AppendLine($"\tpublic {Name}(string alias) : base(alias)");
+        code.AppendLine("\t{");
 
-		foreach (DbColumnInfo column in Columns)
-		{
-			code.AppendLine($"\t\t{column.Name} = new {column.GetCSharpType()}(alias, nameof({column.Name}));");
-		}
+        foreach (DbColumnInfo column in Columns)
+        {
+            code.AppendLine($"\t\t{column.Name} = new {column.GetCSharpType()}(alias, nameof({column.Name}));");
+        }
 
-		code.AppendLine("\t}");
+        code.AppendLine("\t}");
 
-		foreach (DbColumnInfo column in Columns)
-		{
-			code.AppendLine();
-			code.AppendLine($"\tpublic {column.GetCSharpType()} {column.Name} {{ get; }}");
-		}
+        foreach (DbColumnInfo column in Columns)
+        {
+            code.AppendLine();
+            code.AppendLine($"\tpublic {column.GetCSharpType()} {column.Name} {{ get; }}");
+        }
 
-		code.AppendLine("}");
+        code.AppendLine("}");
 
-		return code.ToString();
-	}
+        return code.ToString();
+    }
 }

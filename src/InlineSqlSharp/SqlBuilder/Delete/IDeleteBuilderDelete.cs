@@ -2,5 +2,5 @@
 
 public interface IDeleteBuilderDelete : ISqlBuilder
 {
-	IDeleteBuilderWhere WHERE(ICondition condition);
+    IDeleteBuilderWhere WHERE(ICondition condition);
 }

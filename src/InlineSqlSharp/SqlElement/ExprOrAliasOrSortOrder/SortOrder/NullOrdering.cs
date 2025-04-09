@@ -2,7 +2,7 @@
 
 internal enum NullOrdering
 {
-	None,
-	NullsFirst,
-	NullsLast,
+    None,
+    NullsFirst,
+    NullsLast,
 }

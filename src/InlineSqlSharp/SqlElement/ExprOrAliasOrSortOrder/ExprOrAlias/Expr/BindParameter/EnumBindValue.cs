@@ -3,16 +3,17 @@
 namespace InlineSqlSharp;
 
 public sealed class EnumBindValue(
-	Enum value,
-	ParameterDirection direction = ParameterDirection.Input)
-	: NumericExpr, IBindValue
+    Enum value,
+    ParameterDirection direction = ParameterDirection.Input) :
+    NumericExpr,
+    IBindValue
 {
-	public object Value { get; } = value.ToUnderlyingValue();
+    public object Value { get; } = value.ToUnderlyingValue();
 
-	public DbType DbType { get; } = DbType.Decimal;
+    public DbType DbType { get; } = DbType.Decimal;
 
-	public ParameterDirection Direction { get; } = direction;
+    public ParameterDirection Direction { get; } = direction;
 
-	public override void FormatSql(SqlBuildingBuffer buffer) =>
-		buffer.AddParameter(this);
+    public override void FormatSql(SqlBuildingBuffer buffer) =>
+        buffer.AddParameter(this);
 }

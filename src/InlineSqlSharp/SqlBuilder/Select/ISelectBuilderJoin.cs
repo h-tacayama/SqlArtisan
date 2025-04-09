@@ -2,6 +2,6 @@
 
 public interface ISelectBuilderJoin : ISqlBuilder
 {
-	// Subsequent SQL is the same as the FROM clause.
-	ISelectBuilderFrom ON(ICondition condition);
+    // Subsequent SQL is the same as the FROM clause.
+    ISelectBuilderFrom ON(ICondition condition);
 }

@@ -1,11 +1,11 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class CountFunction(AllOrDistinct allOrDistinct, IExpr expr)
-	: AggregateFunction
+public sealed class CountFunction(AllOrDistinct allOrDistinct, IExpr expr) :
+    AggregateFunction
 {
-	private readonly AllOrDistinctFunctionCore _core =
-		new(Keywords.COUNT, allOrDistinct, expr);
+    private readonly AllOrDistinctFunctionCore _core =
+        new(Keywords.COUNT, allOrDistinct, expr);
 
-	public override void FormatSql(SqlBuildingBuffer buffer) =>
-		_core.FormatSql(buffer);
+    public override void FormatSql(SqlBuildingBuffer buffer) =>
+        _core.FormatSql(buffer);
 }

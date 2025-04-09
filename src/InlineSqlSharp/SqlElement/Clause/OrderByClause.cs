@@ -1,12 +1,12 @@
 ﻿namespace InlineSqlSharp;
 
 public sealed class OrderByClause(
-	IExprOrAliasOrSortOrder[] sortExpressions) : ISqlElement
+    IExprOrAliasOrSortOrder[] sortExpressions) : ISqlElement
 {
-	private readonly IExprOrAliasOrSortOrder[] _sortExpressions = sortExpressions;
+    private readonly IExprOrAliasOrSortOrder[] _sortExpressions = sortExpressions;
 
-	public void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.AppendSpace(Keywords.ORDER)
-		.AppendSpace(Keywords.BY)
-		.AppendCsv(_sortExpressions);
+    public void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(Keywords.ORDER)
+        .AppendSpace(Keywords.BY)
+        .AppendCsv(_sortExpressions);
 }

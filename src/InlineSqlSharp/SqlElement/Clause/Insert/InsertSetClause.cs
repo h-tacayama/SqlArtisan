@@ -2,30 +2,30 @@
 
 public sealed class InsertSetClause : ISqlElement
 {
-	private readonly EqualityCondition[] _assignments;
+    private readonly EqualityCondition[] _assignments;
 
-	internal InsertSetClause(params IEquality[] assignments)
-	{
-		_assignments = ArgumentValidator.ThrowIfNotEqualityCondition(assignments);
-	}
+    internal InsertSetClause(params IEquality[] assignments)
+    {
+        _assignments = ArgumentValidator.ThrowIfNotEqualityCondition(assignments);
+    }
 
-	public void FormatSql(SqlBuildingBuffer buffer)
-	{
-		IExpr[] leftSides = new IExpr[_assignments.Length];
-		IExpr[] rightSides = new IExpr[_assignments.Length];
+    public void FormatSql(SqlBuildingBuffer buffer)
+    {
+        IExpr[] leftSides = new IExpr[_assignments.Length];
+        IExpr[] rightSides = new IExpr[_assignments.Length];
 
-		for (int i = 0; i < _assignments.Length; i++)
-		{
-			leftSides[i] = _assignments[i].LeftSide;
-			rightSides[i] = _assignments[i].RightSide;
-		}
+        for (int i = 0; i < _assignments.Length; i++)
+        {
+            leftSides[i] = _assignments[i].LeftSide;
+            rightSides[i] = _assignments[i].RightSide;
+        }
 
-		buffer.OpenParenthesis()
-			.AppendCsv(leftSides)
-			.CloseParenthesis()
-			.EncloseInSpaces(Keywords.VALUES)
-			.OpenParenthesis()
-			.AppendCsv(rightSides)
-			.CloseParenthesis();
-	}
+        buffer.OpenParenthesis()
+            .AppendCsv(leftSides)
+            .CloseParenthesis()
+            .EncloseInSpaces(Keywords.VALUES)
+            .OpenParenthesis()
+            .AppendCsv(rightSides)
+            .CloseParenthesis();
+    }
 }

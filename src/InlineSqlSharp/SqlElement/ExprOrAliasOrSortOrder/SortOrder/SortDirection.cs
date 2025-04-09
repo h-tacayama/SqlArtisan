@@ -2,7 +2,7 @@
 
 internal enum SortDirection
 {
-	None,
-	Asc,
-	Desc,
+    None,
+    Asc,
+    Desc,
 }

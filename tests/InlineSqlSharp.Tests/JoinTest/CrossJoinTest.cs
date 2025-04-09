@@ -5,29 +5,29 @@ namespace InlineSqlSharp.Tests;
 
 public class CrossJoinTest
 {
-	private readonly test_table _t = new("t");
-	private readonly test_table _s = new("s");
+    private readonly test_table _t = new("t");
+    private readonly test_table _s = new("s");
 
-	[Fact]
-	public void CROSS_JOIN_SimpleCondition_CorrectSql()
-	{
-		SqlStatement sql =
-			SELECT(_t.name)
-			.FROM(_t)
-			.CROSS_JOIN(_s)
-			.WHERE(_t.code == _s.code)
-			.Build();
+    [Fact]
+    public void CROSS_JOIN_SimpleCondition_CorrectSql()
+    {
+        SqlStatement sql =
+            SELECT(_t.name)
+            .FROM(_t)
+            .CROSS_JOIN(_s)
+            .WHERE(_t.code == _s.code)
+            .Build();
 
-		StringBuilder expected = new();
-		expected.Append("SELECT ");
-		expected.Append("\"t\".name ");
-		expected.Append("FROM ");
-		expected.Append("test_table \"t\" ");
-		expected.Append("CROSS JOIN ");
-		expected.Append("test_table \"s\" ");
-		expected.Append("WHERE ");
-		expected.Append("\"t\".code = \"s\".code");
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("CROSS JOIN ");
+        expected.Append("test_table \"s\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code = \"s\".code");
 
-		Assert.Equal(expected.ToString(), sql.Text);
-	}
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

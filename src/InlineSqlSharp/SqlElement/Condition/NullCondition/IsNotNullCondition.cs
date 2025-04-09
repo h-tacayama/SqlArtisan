@@ -2,11 +2,11 @@
 
 public sealed class IsNotNullCondition(IExpr leftSide) : ICondition
 {
-	private readonly IExpr _leftSide = leftSide;
+    private readonly IExpr _leftSide = leftSide;
 
-	public void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.AppendSpace(_leftSide)
-		.AppendSpace(Keywords.IS)
-		.AppendSpace(Keywords.NOT)
-		.Append(Keywords.NULL);
+    public void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_leftSide)
+        .AppendSpace(Keywords.IS)
+        .AppendSpace(Keywords.NOT)
+        .Append(Keywords.NULL);
 }

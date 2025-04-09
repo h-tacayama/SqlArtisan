@@ -1,13 +1,13 @@
 ﻿namespace InlineSqlSharp;
 
 public sealed class WindowFunction(
-		AnalyticFunction analyticFunction,
-		OverClause overClause) : NumericExpr
+        AnalyticFunction analyticFunction,
+        OverClause overClause) : NumericExpr
 {
-	private readonly AnalyticFunction _analyticFunction = analyticFunction;
-	private readonly OverClause _overClause = overClause;
+    private readonly AnalyticFunction _analyticFunction = analyticFunction;
+    private readonly OverClause _overClause = overClause;
 
-	public override void FormatSql(SqlBuildingBuffer buffer) => buffer
-		.AppendSpace(_analyticFunction)
-		.Append(_overClause);
+    public override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_analyticFunction)
+        .Append(_overClause);
 }

@@ -2,5 +2,5 @@
 
 public interface IAliasable
 {
-	public ExprAlias AS(string alias);
+    public ExprAlias AS(string alias);
 }
