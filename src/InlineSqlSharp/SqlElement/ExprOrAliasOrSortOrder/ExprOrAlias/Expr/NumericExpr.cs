@@ -96,13 +96,6 @@ public abstract class NumericExpr : IAliasable, IExpr, ISortable
         Enum rightSide) =>
         new EqualityCondition(@this, new EnumBindValue(rightSide));
 
-    // The return type is IAssignment instead of IEqualityCondition
-    // to allow usage in SET clauses but not in WHERE clauses.
-    public static IAssignment operator ==(
-        NumericExpr @this,
-        NullExpr rightSide) =>
-        new EqualityCondition(@this, rightSide);
-
     public static IEqualityCondition operator !=(
         NumericExpr @this,
         NumericExpr rightSide) =>
@@ -167,11 +160,6 @@ public abstract class NumericExpr : IAliasable, IExpr, ISortable
         NumericExpr @this,
         Enum rightSide) =>
         new InequalityCondition(@this, new EnumBindValue(rightSide));
-
-    public static IAssignment operator !=(
-        NumericExpr @this,
-        NullExpr rightSide) =>
-        new InequalityCondition(@this, rightSide);
 
     public static IComparisonCondition operator <(
         NumericExpr @this,

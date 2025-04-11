@@ -128,7 +128,11 @@ public class SelectTest
     [Fact]
     public void SELECT_Null_CorrectSql()
     {
-        SqlStatement sql = SELECT(NULL, NULL.AS("e")).Build();
+        SqlStatement sql =
+            SELECT(
+                NULL_AS_NUMERIC,
+                NULL_AS_NUMERIC.AS("e"))
+            .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT NULL, NULL AS \"e\"");

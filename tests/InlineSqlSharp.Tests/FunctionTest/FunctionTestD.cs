@@ -218,4 +218,70 @@ public partial class FunctionTest
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void DECODE_CharacterNullToNumeric_CorrectSql()
+    {
+        SqlStatement sql =
+            SELECT(
+                DECODE(
+                    _t.name,
+                    [
+                        (NULL_AS_CHARACTER, L(1))
+                    ],
+                    L(999)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ")
+            .Append("DECODE(\"t\".name, ")
+            .Append("NULL, ")
+            .Append("1, ")
+            .Append("999)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DECODE_DateTimeNullToNumeric_CorrectSql()
+    {
+        SqlStatement sql =
+            SELECT(
+                DECODE(
+                    _t.created_at,
+                    [
+                        (NULL_AS_DATETIME, L(1)),
+                    ],
+                    L(999)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ")
+            .Append("DECODE(\"t\".created_at, ")
+            .Append("NULL, ")
+            .Append("1, ")
+            .Append("999)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DECODE_NumericNullToNumeric_CorrectSql()
+    {
+        SqlStatement sql =
+            SELECT(
+                DECODE(
+                    _t.code,
+                    [
+                        (NULL_AS_NUMERIC, L(1)),
+                    ],
+                    L(999)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DECODE(\"t\".code, NULL, 1, 999)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

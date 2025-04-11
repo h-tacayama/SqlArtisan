@@ -46,13 +46,6 @@ public abstract class CharacterExpr : IAliasable, IExpr, ISortable
         string rightSide) =>
         new EqualityCondition(@this, new CharacterBindValue(rightSide));
 
-    // The return type is IAssignment instead of IEqualityCondition
-    // to allow usage in SET clauses but not in WHERE clauses.
-    public static IAssignment operator ==(
-        CharacterExpr @this,
-        NullExpr rightSide) =>
-        new EqualityCondition(@this, rightSide);
-
     public static IEqualityCondition operator !=(
         CharacterExpr @this,
         CharacterExpr rightSide) =>
@@ -67,11 +60,6 @@ public abstract class CharacterExpr : IAliasable, IExpr, ISortable
         CharacterExpr @this,
         string rightSide) =>
         new InequalityCondition(@this, new CharacterBindValue(rightSide));
-
-    public static IAssignment operator !=(
-        CharacterExpr @this,
-        NullExpr rightSide) =>
-        new InequalityCondition(@this, rightSide);
 
     public static IComparisonCondition operator <(
         CharacterExpr @this,
