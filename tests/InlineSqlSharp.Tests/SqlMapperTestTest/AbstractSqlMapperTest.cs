@@ -1,5 +1,5 @@
 using System.Data;
-using InlineSqlSharp.Dapper;
+using InlineSqlSharp.DapperExtensions;
 using Oracle.ManagedDataAccess.Client;
 using static InlineSqlSharp.SqlWordbook;
 

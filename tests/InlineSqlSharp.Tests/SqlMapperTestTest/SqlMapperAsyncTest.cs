@@ -1,6 +1,6 @@
 #if SQL_MAPPER_TEST
 using System.Data;
-using InlineSqlSharp.Dapper;
+using InlineSqlSharp.DapperExtensions;
 using static Dapper.SqlMapper;
 using static InlineSqlSharp.SqlWordbook;
 
