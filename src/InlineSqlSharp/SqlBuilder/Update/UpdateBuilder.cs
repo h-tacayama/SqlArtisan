@@ -8,7 +8,7 @@ internal sealed class UpdateBuilder(UpdateClause updateClause) :
 {
     public SqlStatement Build() => BuildCore();
 
-    public IUpdateBuilderSet SET(params IEquality[] assignments)
+    public IUpdateBuilderSet SET(params IAssignment[] assignments)
     {
         AddElement(new UpdateSetClause(assignments));
         return this;

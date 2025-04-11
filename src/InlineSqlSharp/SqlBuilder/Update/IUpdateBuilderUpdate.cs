@@ -2,5 +2,5 @@
 
 public interface IUpdateBuilderUpdate : ISqlBuilder
 {
-    IUpdateBuilderSet SET(params IEquality[] assignments);
+    IUpdateBuilderSet SET(params IAssignment[] assignments);
 }

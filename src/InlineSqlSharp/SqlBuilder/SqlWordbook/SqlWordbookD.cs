@@ -7,6 +7,9 @@ public static partial class SqlWordbook
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static AllOrDistinct DISTINCT => AllOrDistinct.Distinct;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static DualTable DUAL => new();
+
     public static CharacterDecodeFunction<CharacterExpr> DECODE(
         CharacterExpr expr,
         (CharacterExpr search, CharacterExpr result)[] searchResultPairs,
@@ -65,6 +68,4 @@ public static partial class SqlWordbook
         => new DeleteBuilder(new DeleteClause(table));
 
     public static AnalyticDenseRankFunction DENSE_RANK() => new();
-
-    public static DualTable DUAL => new();
 }

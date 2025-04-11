@@ -41,9 +41,21 @@ public abstract class DateTimeExpr : IAliasable, IExpr, ISortable
         DateTime rightSide) =>
         new EqualityCondition(@this, new DateTimeBindValue(rightSide));
 
+    // The return type is IAssignment instead of IEqualityCondition
+    // to allow usage in SET clauses but not in WHERE clauses.
+    public static IAssignment operator ==(
+        DateTimeExpr @this,
+        NullExpr rightSide) =>
+        new EqualityCondition(@this, rightSide);
+
     public static IEqualityCondition operator !=(
         DateTimeExpr @this,
         DateTimeExpr rightSide) =>
+        new InequalityCondition(@this, rightSide);
+
+    public static IAssignment operator !=(
+        DateTimeExpr @this,
+        NullExpr rightSide) =>
         new InequalityCondition(@this, rightSide);
 
     public static IEqualityCondition operator !=(

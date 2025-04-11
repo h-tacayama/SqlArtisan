@@ -4,7 +4,7 @@ internal sealed class UpdateSetClause : ISqlElement
 {
     private readonly EqualityCondition[] _assignments;
 
-    internal UpdateSetClause(params IEquality[] assignments)
+    internal UpdateSetClause(params IAssignment[] assignments)
     {
         _assignments = ArgumentValidator.ThrowIfNotEqualityCondition(assignments);
     }

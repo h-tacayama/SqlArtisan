@@ -1,7 +1,12 @@
-﻿namespace InlineSqlSharp;
+﻿using System.Diagnostics;
+
+namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static NullExpr NULL => new();
+
     public static NotCondition NOT(ICondition condition) => new(condition);
 
     public static NotExistsCondition NOT_EXISTS(ISubquery subquery) =>

@@ -15,7 +15,7 @@ internal sealed class InsertBuilder :
     {
     }
 
-    public IInsertBuilderSet SET(params IEquality[] assignments)
+    public IInsertBuilderSet SET(params IAssignment[] assignments)
     {
         AddElement(new InsertSetClause(assignments));
         return this;

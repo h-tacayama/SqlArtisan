@@ -4,7 +4,7 @@ public sealed class InsertSetClause : ISqlElement
 {
     private readonly EqualityCondition[] _assignments;
 
-    internal InsertSetClause(params IEquality[] assignments)
+    internal InsertSetClause(params IAssignment[] assignments)
     {
         _assignments = ArgumentValidator.ThrowIfNotEqualityCondition(assignments);
     }

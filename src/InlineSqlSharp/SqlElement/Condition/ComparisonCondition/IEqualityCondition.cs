@@ -1,5 +1,5 @@
 ﻿namespace InlineSqlSharp;
 
-public interface IEqualityCondition : IEquality, IComparisonCondition
+public interface IEqualityCondition : IAssignment, IComparisonCondition
 {
 }

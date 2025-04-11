@@ -126,6 +126,17 @@ public class SelectTest
     }
 
     [Fact]
+    public void SELECT_Null_CorrectSql()
+    {
+        SqlStatement sql = SELECT(NULL, NULL.AS("e")).Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT NULL, NULL AS \"e\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void SELECT_Parameters_CorrectSql()
     {
         SqlStatement sql =

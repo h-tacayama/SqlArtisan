@@ -37,7 +37,7 @@ internal static class ArgumentValidator
     }
 
     internal static EqualityCondition[] ThrowIfNotEqualityCondition(
-        IEquality[] values,
+        IAssignment[] values,
         [CallerArgumentExpression(nameof(values))] string? valuesExpr = null)
     {
         EqualityCondition[] result = new EqualityCondition[values.Length];
