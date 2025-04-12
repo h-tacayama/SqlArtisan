@@ -2,16 +2,17 @@
 
 public sealed class AllOrDistinct : ISqlElement
 {
-    private bool _isDistinct;
+    private AllOrDistinct(bool isDistinct)
+    {
+        IsDistinct = isDistinct;
+    }
 
-    public bool IsDistinct => _isDistinct;
+    public bool IsDistinct { get; }
 
     public static AllOrDistinct All => new(false);
 
     public static AllOrDistinct Distinct => new(true);
 
     public void FormatSql(SqlBuildingBuffer buffer) =>
-        buffer.AppendIf(_isDistinct, Keywords.DISTINCT);
-
-    private AllOrDistinct(bool isDistinct) => _isDistinct = isDistinct;
+        buffer.AppendIf(IsDistinct, Keywords.DISTINCT);
 }

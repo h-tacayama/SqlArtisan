@@ -6,7 +6,7 @@ internal sealed class BetweenConditionCore(
     IExpr rightSide1,
     IExpr rightSide2)
 {
-    private bool _isNot = isNot;
+    private readonly bool _isNot = isNot;
     private readonly IExpr _leftSide = leftSide;
     private readonly IExpr _rightSide1 = rightSide1;
     private readonly IExpr _rightSide2 = rightSide2;
