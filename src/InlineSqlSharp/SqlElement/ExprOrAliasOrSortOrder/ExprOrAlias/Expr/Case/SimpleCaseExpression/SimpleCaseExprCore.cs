@@ -4,8 +4,8 @@ internal sealed class SimpleCaseExprCore<TComparisonExpr, TReturnExpr>(
     TComparisonExpr expr,
     SimpleCaseWhenClause<TComparisonExpr, TReturnExpr>[] whenClauses,
     CaseElseExpr<TReturnExpr> elseClause)
-    where TComparisonExpr : IExpr
-    where TReturnExpr : IExpr
+    where TComparisonExpr : IDataTypeExpr
+    where TReturnExpr : IDataTypeExpr
 {
     private readonly TComparisonExpr _expr = expr;
     private readonly SimpleCaseWhenClause<TComparisonExpr, TReturnExpr>[] _whenClauses = whenClauses;

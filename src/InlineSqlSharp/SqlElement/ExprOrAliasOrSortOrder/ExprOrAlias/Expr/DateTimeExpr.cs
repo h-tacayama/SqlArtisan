@@ -2,7 +2,7 @@
 
 namespace InlineSqlSharp;
 
-public abstract class DateTimeExpr : IAliasable, IExpr, ISortable
+public abstract class DateTimeExpr : IAliasable, IDataTypeExpr, ISortable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder ASC => new(this, SortDirection.Asc);

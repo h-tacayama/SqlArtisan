@@ -3,7 +3,7 @@
 internal sealed class SearchedCaseExprCore<TReturnExpr>(
     SearchedCaseWhenClause<TReturnExpr>[] whenClauses,
     CaseElseExpr<TReturnExpr> elseClause)
-    where TReturnExpr : IExpr
+    where TReturnExpr : IDataTypeExpr
 {
     private readonly SearchedCaseWhenClause<TReturnExpr>[] _whenClauses = whenClauses;
     private readonly CaseElseExpr<TReturnExpr> _elseClause = elseClause;

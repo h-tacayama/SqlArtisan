@@ -4,8 +4,8 @@ internal sealed class DecodeFunctionCore<TSearchExpr, TResultExpr>(
     TSearchExpr expr,
     (TSearchExpr, TResultExpr)[] searchResultPairs,
     TResultExpr @default)
-    where TSearchExpr : IExpr
-    where TResultExpr : IExpr
+    where TSearchExpr : IDataTypeExpr
+    where TResultExpr : IDataTypeExpr
 {
     private readonly TSearchExpr _expr = expr;
     private readonly (TSearchExpr, TResultExpr)[] _searchResultPairs = searchResultPairs;
