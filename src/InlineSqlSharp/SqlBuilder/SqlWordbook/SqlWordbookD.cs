@@ -21,13 +21,13 @@ public static partial class SqlWordbook
         object expr,
         (object search, object result)[] searchResultPairs,
         char @default) =>
-        new(expr, searchResultPairs, @default);
+        new(expr, searchResultPairs, new CharacterBindValue(@default));
 
     public static CharacterDecodeFunction DECODE(
         object expr,
         (object search, object result)[] searchResultPairs,
         string @default) =>
-        new(expr, searchResultPairs, @default);
+        new(expr, searchResultPairs, new CharacterBindValue(@default));
 
     public static DateTimeDecodeFunction DECODE(
         object expr,
@@ -39,7 +39,7 @@ public static partial class SqlWordbook
         object expr,
         (object search, object result)[] searchResultPairs,
         DateTime @default) =>
-        new(expr, searchResultPairs, @default);
+        new(expr, searchResultPairs, new DateTimeBindValue(@default));
 
     public static NumericDecodeFunction<decimal> DECODE(
         object expr,
@@ -50,8 +50,8 @@ public static partial class SqlWordbook
     public static NumericDecodeFunction<TDefault> DECODE<TDefault>(
         object expr,
         (object search, object result)[] searchResultPairs,
-        INumber<TDefault> @default) where TDefault : INumber<TDefault> =>
-        new(expr, searchResultPairs, @default);
+        TDefault @default) where TDefault : INumber<TDefault> =>
+        new(expr, searchResultPairs, new NumericBindValue<TDefault>(@default));
 
     public static IDeleteBuilderDelete DELETE_FROM(AbstractTable table)
         => new DeleteBuilder(new DeleteClause(table));

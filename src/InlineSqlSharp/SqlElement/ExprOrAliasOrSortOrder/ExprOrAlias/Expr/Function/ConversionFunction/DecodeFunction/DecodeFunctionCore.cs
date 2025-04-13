@@ -1,13 +1,13 @@
 namespace InlineSqlSharp;
 
-internal sealed class DecodeFunctionCore(
+internal sealed class DecodeFunctionCore<TDefault>(
     object expr,
     (object, object)[] searchResultPairs,
-    object @default)
+    TDefault @default) where TDefault : IExpr
 {
     private readonly object _expr = expr;
     private readonly (object, object)[] _searchResultPairs = searchResultPairs;
-    private readonly object _default = @default;
+    private readonly TDefault _default = @default;
 
     internal void FormatSql(SqlBuildingBuffer buffer)
     {
