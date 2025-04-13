@@ -1,10 +1,8 @@
 ﻿namespace InlineSqlSharp;
-public sealed class CaseElseExpr<TReturnExpr>(TReturnExpr elseExpr) :
-    ISqlElement
-    where TReturnExpr : IExpr
+public sealed class CaseElseExpr<TElse>(TElse elseExpr) : ISqlElement
+    where TElse : IExpr
 {
-    private readonly TReturnExpr _elseExpr = elseExpr;
+    private readonly TElse _elseExpr = elseExpr;
 
-    public void FormatSql(SqlBuildingBuffer buffer) =>
-        _elseExpr.FormatSql(buffer);
+    public void FormatSql(SqlBuildingBuffer buffer) => buffer.Append(_elseExpr);
 }

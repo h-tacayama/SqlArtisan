@@ -1,7 +1,7 @@
 ﻿namespace InlineSqlSharp;
 
 public sealed class DateTimeSearchedCaseExpr(
-    SearchedCaseWhenClause<DateTimeExpr>[] whenClauses,
+    SearchedCaseWhenClause[] whenClauses,
     CaseElseExpr<DateTimeExpr> elseClause) :
     DateTimeExpr,
     ISearchedCaseExpression

@@ -1,13 +1,11 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class SimpleCaseWhenClause<TWhenExpr, TReturnExpr>(
-    SimpleCaseWhenExpr<TWhenExpr> whenExpr,
-    CaseThenExpr<TReturnExpr> thenExpr) : ISqlElement
-    where TWhenExpr : IExpr
-    where TReturnExpr : IExpr
+public sealed class SimpleCaseWhenClause(
+    SimpleCaseWhenExpr whenExpr,
+    CaseThenExpr thenExpr) : ISqlElement
 {
-    private readonly SimpleCaseWhenExpr<TWhenExpr> _whenExpr = whenExpr;
-    private readonly CaseThenExpr<TReturnExpr> _thenExpr = thenExpr;
+    private readonly SimpleCaseWhenExpr _whenExpr = whenExpr;
+    private readonly CaseThenExpr _thenExpr = thenExpr;
 
     public void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.WHEN)

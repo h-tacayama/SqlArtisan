@@ -1,12 +1,11 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class SearchedCaseWhenClause<TReturnExpr>(
+public sealed class SearchedCaseWhenClause(
     SearchedCaseWhenCondition whenCondition,
-    CaseThenExpr<TReturnExpr> thenExpr) : ISqlElement
-    where TReturnExpr : IExpr
+    CaseThenExpr thenExpr) : ISqlElement
 {
     private readonly SearchedCaseWhenCondition _whenCondition = whenCondition;
-    private readonly CaseThenExpr<TReturnExpr> _thenExpr = thenExpr;
+    private readonly CaseThenExpr _thenExpr = thenExpr;
 
     public void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.WHEN)

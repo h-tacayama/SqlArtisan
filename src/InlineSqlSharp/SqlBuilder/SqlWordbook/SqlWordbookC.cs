@@ -3,40 +3,37 @@
 public static partial class SqlWordbook
 {
     public static CharacterSearchedCaseExpr CASE(
-        SearchedCaseWhenClause<CharacterExpr>[] whenClauses,
+        SearchedCaseWhenClause[] whenClauses,
         CaseElseExpr<CharacterExpr> elseExpr) =>
         new(whenClauses, elseExpr);
 
     public static DateTimeSearchedCaseExpr CASE(
-        SearchedCaseWhenClause<DateTimeExpr>[] whenClauses,
+        SearchedCaseWhenClause[] whenClauses,
         CaseElseExpr<DateTimeExpr> elseExpr) =>
         new(whenClauses, elseExpr);
 
     public static NumericSearchedCaseExpr CASE(
-        SearchedCaseWhenClause<NumericExpr>[] whenClauses,
+        SearchedCaseWhenClause[] whenClauses,
         CaseElseExpr<NumericExpr> elseExpr) =>
         new(whenClauses, elseExpr);
 
-    public static CharacterSimpleCaseExpr<TComparisonExpr> CASE<TComparisonExpr>(
-        TComparisonExpr expr,
-        SimpleCaseWhenClause<TComparisonExpr, CharacterExpr>[] whenClauses,
-        CaseElseExpr<CharacterExpr> elseExpr)
-        where TComparisonExpr : IExpr =>
-            new(expr, whenClauses, elseExpr);
+    public static CharacterSimpleCaseExpr CASE(
+        object expr,
+        SimpleCaseWhenClause[] whenClauses,
+        CaseElseExpr<CharacterExpr> elseExpr) =>
+        new(expr, whenClauses, elseExpr);
 
-    public static DateTimeSimpleCaseExpr<TComparisonExpr> CASE<TComparisonExpr>(
-        TComparisonExpr expr,
-        SimpleCaseWhenClause<TComparisonExpr, DateTimeExpr>[] whenClauses,
-        CaseElseExpr<DateTimeExpr> elseExpr)
-        where TComparisonExpr : IExpr =>
-            new(expr, whenClauses, elseExpr);
+    public static DateTimeSimpleCaseExpr CASE(
+        object expr,
+        SimpleCaseWhenClause[] whenClauses,
+        CaseElseExpr<DateTimeExpr> elseExpr) =>
+        new(expr, whenClauses, elseExpr);
 
-    public static NumericSimpleCaseExpr<TComparisonExpr> CASE<TComparisonExpr>(
-        TComparisonExpr expr,
-        SimpleCaseWhenClause<TComparisonExpr, NumericExpr>[] whenClauses,
-        CaseElseExpr<NumericExpr> elseExpr)
-        where TComparisonExpr : IExpr =>
-            new(expr, whenClauses, elseExpr);
+    public static NumericSimpleCaseExpr CASE(
+        object expr,
+        SimpleCaseWhenClause[] whenClauses,
+        CaseElseExpr<NumericExpr> elseExpr) =>
+        new(expr, whenClauses, elseExpr);
 
     public static ConcatFunction CONCAT(
         CharacterExpr primary,

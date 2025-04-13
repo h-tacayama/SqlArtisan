@@ -1,15 +1,14 @@
 ﻿namespace InlineSqlSharp;
 
-internal sealed class SimpleCaseExprCore<TComparisonExpr, TReturnExpr>(
-    TComparisonExpr expr,
-    SimpleCaseWhenClause<TComparisonExpr, TReturnExpr>[] whenClauses,
-    CaseElseExpr<TReturnExpr> elseClause)
-    where TComparisonExpr : IExpr
-    where TReturnExpr : IExpr
+internal sealed class SimpleCaseExprCore<TElse>(
+    object expr,
+    SimpleCaseWhenClause[] whenClauses,
+    CaseElseExpr<TElse> elseClause)
+    where TElse : IExpr
 {
-    private readonly TComparisonExpr _expr = expr;
-    private readonly SimpleCaseWhenClause<TComparisonExpr, TReturnExpr>[] _whenClauses = whenClauses;
-    private readonly CaseElseExpr<TReturnExpr> _elseClause = elseClause;
+    private readonly object _expr = expr;
+    private readonly SimpleCaseWhenClause[] _whenClauses = whenClauses;
+    private readonly CaseElseExpr<TElse> _elseClause = elseClause;
 
     internal void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.CASE)

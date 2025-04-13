@@ -1,12 +1,11 @@
 ﻿namespace InlineSqlSharp;
 
-internal sealed class SearchedCaseExprCore<TReturnExpr>(
-    SearchedCaseWhenClause<TReturnExpr>[] whenClauses,
-    CaseElseExpr<TReturnExpr> elseClause)
-    where TReturnExpr : IExpr
+internal sealed class SearchedCaseExprCore<TElse>(
+    SearchedCaseWhenClause[] whenClauses,
+    CaseElseExpr<TElse> elseClause) where TElse : IExpr
 {
-    private readonly SearchedCaseWhenClause<TReturnExpr>[] _whenClauses = whenClauses;
-    private readonly CaseElseExpr<TReturnExpr> _elseClause = elseClause;
+    private readonly SearchedCaseWhenClause[] _whenClauses = whenClauses;
+    private readonly CaseElseExpr<TElse> _elseClause = elseClause;
 
     internal void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.CASE)

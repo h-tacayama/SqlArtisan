@@ -1,7 +1,7 @@
 ﻿namespace InlineSqlSharp;
 
 public sealed class CharacterSearchedCaseExpr(
-    SearchedCaseWhenClause<CharacterExpr>[] whenClauses,
+    SearchedCaseWhenClause[] whenClauses,
     CaseElseExpr<CharacterExpr> elseClause) :
     CharacterExpr,
     ISearchedCaseExpression

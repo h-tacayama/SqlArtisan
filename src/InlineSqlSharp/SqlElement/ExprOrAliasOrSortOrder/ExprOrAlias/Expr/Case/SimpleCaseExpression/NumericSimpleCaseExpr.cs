@@ -1,14 +1,13 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class NumericSimpleCaseExpr<TComparisonExpr>(
-    TComparisonExpr expr,
-    SimpleCaseWhenClause<TComparisonExpr, NumericExpr>[] whenClauses,
+public sealed class NumericSimpleCaseExpr(
+    object expr,
+    SimpleCaseWhenClause[] whenClauses,
     CaseElseExpr<NumericExpr> elseClause) :
     NumericExpr,
     ISimpleCaseExpression
-    where TComparisonExpr : IExpr
 {
-    private readonly SimpleCaseExprCore<TComparisonExpr, NumericExpr> _core =
+    private readonly SimpleCaseExprCore<NumericExpr> _core =
         new(expr, whenClauses, elseClause);
 
     public override void FormatSql(SqlBuildingBuffer buffer) =>

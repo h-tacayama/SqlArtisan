@@ -92,6 +92,13 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
+    internal SqlBuildingBuffer AppendSpace(object value)
+    {
+        ExprOrBindValue(value).FormatSql(this);
+        _text.Append(" ");
+        return this;
+    }
+
     internal SqlBuildingBuffer AppendSpace(string? value = null)
     {
         _text.Append(value);

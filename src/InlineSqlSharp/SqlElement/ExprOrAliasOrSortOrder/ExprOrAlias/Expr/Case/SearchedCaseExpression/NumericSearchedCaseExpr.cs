@@ -1,7 +1,7 @@
 ﻿namespace InlineSqlSharp;
 
 public sealed class NumericSearchedCaseExpr(
-    SearchedCaseWhenClause<NumericExpr>[] whenClauses,
+    SearchedCaseWhenClause[] whenClauses,
     CaseElseExpr<NumericExpr> elseClause) :
     NumericExpr,
     ISearchedCaseExpression
