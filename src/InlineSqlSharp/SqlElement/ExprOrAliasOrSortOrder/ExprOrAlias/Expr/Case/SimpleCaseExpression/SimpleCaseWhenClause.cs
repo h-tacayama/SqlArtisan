@@ -3,8 +3,8 @@
 public sealed class SimpleCaseWhenClause<TWhenExpr, TReturnExpr>(
     SimpleCaseWhenExpr<TWhenExpr> whenExpr,
     CaseThenExpr<TReturnExpr> thenExpr) : ISqlElement
-    where TWhenExpr : IDataTypeExpr
-    where TReturnExpr : IDataTypeExpr
+    where TWhenExpr : IExpr
+    where TReturnExpr : IExpr
 {
     private readonly SimpleCaseWhenExpr<TWhenExpr> _whenExpr = whenExpr;
     private readonly CaseThenExpr<TReturnExpr> _thenExpr = thenExpr;

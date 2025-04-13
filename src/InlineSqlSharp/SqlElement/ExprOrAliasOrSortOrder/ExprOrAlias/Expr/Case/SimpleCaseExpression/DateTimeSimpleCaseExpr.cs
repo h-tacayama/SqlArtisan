@@ -6,7 +6,7 @@ public sealed class DateTimeSimpleCaseExpr<TComparisonExpr>(
     CaseElseExpr<DateTimeExpr> elseClause) :
     DateTimeExpr,
     ISimpleCaseExpression
-    where TComparisonExpr : IDataTypeExpr
+    where TComparisonExpr : IExpr
 {
     private readonly SimpleCaseExprCore<TComparisonExpr, DateTimeExpr> _core =
         new(expr, whenClauses, elseClause);

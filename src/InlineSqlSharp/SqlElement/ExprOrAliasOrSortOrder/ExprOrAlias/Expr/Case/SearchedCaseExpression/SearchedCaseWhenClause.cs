@@ -3,7 +3,7 @@
 public sealed class SearchedCaseWhenClause<TReturnExpr>(
     SearchedCaseWhenCondition whenCondition,
     CaseThenExpr<TReturnExpr> thenExpr) : ISqlElement
-    where TReturnExpr : IDataTypeExpr
+    where TReturnExpr : IExpr
 {
     private readonly SearchedCaseWhenCondition _whenCondition = whenCondition;
     private readonly CaseThenExpr<TReturnExpr> _thenExpr = thenExpr;

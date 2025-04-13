@@ -2,7 +2,7 @@
 
 public sealed class SimpleCaseWhenExpr<TWhenExpr>(TWhenExpr whenExpr) :
     ISqlElement
-    where TWhenExpr : IDataTypeExpr
+    where TWhenExpr : IExpr
 {
     private readonly TWhenExpr _whenExpr = whenExpr;
 

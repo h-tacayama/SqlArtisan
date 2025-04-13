@@ -4,7 +4,7 @@ public sealed class NumericDecodeFunction<TSearchExpr>(
     TSearchExpr expr,
     (TSearchExpr, NumericExpr)[] searchResultPairs,
     NumericExpr @default) : NumericExpr
-    where TSearchExpr : IDataTypeExpr
+    where TSearchExpr : IExpr
 {
     private readonly DecodeFunctionCore<TSearchExpr, NumericExpr> _core =
         new(expr, searchResultPairs, @default);
