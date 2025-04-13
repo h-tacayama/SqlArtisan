@@ -13,6 +13,12 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
+    internal SqlBuildingBuffer Append(object value)
+    {
+        ExprOrBindValue(value).FormatSql(this);
+        return this;
+    }
+
     internal SqlBuildingBuffer Append(string? value)
     {
         _text.Append(value);
@@ -231,6 +237,13 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
+    internal SqlBuildingBuffer PrependComma(object value)
+    {
+        _text.Append(", ");
+        ExprOrBindValue(value).FormatSql(this);
+        return this;
+    }
+
     internal SqlBuildingBuffer PrependComma(string value)
     {
         _text.Append(", ");
@@ -299,4 +312,7 @@ public sealed class SqlBuildingBuffer()
     internal SqlStatement ToSqlStatement() =>
         // Return a clone of _parameters to avoid keeping references
         new(_text.ToString(), [.. _parameters]);
+
+    private IExpr ExprOrBindValue(object value) =>
+        value is IExpr expr ? expr : BindValueFactory.CreateOrException(value);
 }

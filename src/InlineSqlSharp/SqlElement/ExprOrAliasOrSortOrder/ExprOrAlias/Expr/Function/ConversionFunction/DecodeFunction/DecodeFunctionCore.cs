@@ -13,27 +13,15 @@ internal sealed class DecodeFunctionCore(
     {
         buffer.Append(Keywords.DECODE)
             .OpenParenthesis()
-            .Append(ExprOrBindValue(_expr));
+            .Append(_expr);
 
         foreach ((object, object) pair in _searchResultPairs)
         {
-            buffer.PrependComma(ExprOrBindValue(pair.Item1))
-                .PrependComma(ExprOrBindValue(pair.Item2));
+            buffer.PrependComma(pair.Item1)
+                .PrependComma(pair.Item2);
         }
 
-        buffer.PrependComma(ExprOrBindValue(_default))
+        buffer.PrependComma(_default)
             .CloseParenthesis();
-    }
-
-    private IExpr ExprOrBindValue(object value)
-    {
-        if (value is IExpr expr)
-        {
-            return expr;
-        }
-        else
-        {
-            return BindValueFactory.CreateOrException(value);
-        }
     }
 }
