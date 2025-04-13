@@ -41,6 +41,11 @@ public abstract class DateTimeExpr : IAliasable, IExpr, ISortable
         DateTime rightSide) =>
         new EqualityCondition(@this, new DateTimeBindValue(rightSide));
 
+    public static IAssignment operator ==(
+        DateTimeExpr @this,
+        NullExpr rightSide) =>
+        new EqualityCondition(@this, rightSide);
+
     public static IEqualityCondition operator !=(
         DateTimeExpr @this,
         DateTimeExpr rightSide) =>
@@ -50,6 +55,11 @@ public abstract class DateTimeExpr : IAliasable, IExpr, ISortable
         DateTimeExpr @this,
         DateTime rightSide) =>
         new InequalityCondition(@this, new DateTimeBindValue(rightSide));
+
+    public static IAssignment operator !=(
+        DateTimeExpr @this,
+        NullExpr rightSide) =>
+        new InequalityCondition(@this, rightSide);
 
     public static IComparisonCondition operator <(
         DateTimeExpr @this,

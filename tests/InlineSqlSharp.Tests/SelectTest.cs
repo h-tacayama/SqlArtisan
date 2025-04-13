@@ -130,8 +130,8 @@ public class SelectTest
     {
         SqlStatement sql =
             SELECT(
-                NULL_AS_NUMERIC,
-                NULL_AS_NUMERIC.AS("e"))
+                NULL,
+                NULL.AS("e"))
             .Build();
 
         StringBuilder expected = new();

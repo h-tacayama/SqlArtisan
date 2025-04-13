@@ -170,15 +170,15 @@ public partial class FunctionTest
                 DECODE(
                     _t.code,
                     [
-                        (1, L(10)),
-                        (2, L(20)),
+                        (1, NULL),
+                        (NULL, L(20)),
                     ],
                     999.9))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("DECODE(\"t\".code, :0, 10, :1, 20, :2)");
+        expected.Append("DECODE(\"t\".code, :0, NULL, NULL, 20, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

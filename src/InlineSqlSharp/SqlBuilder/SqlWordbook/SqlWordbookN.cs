@@ -5,13 +5,7 @@ namespace InlineSqlSharp;
 public static partial class SqlWordbook
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static CharacterNull NULL_AS_CHARACTER => new();
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static DateTimeNull NULL_AS_DATETIME => new();
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static NumericNull NULL_AS_NUMERIC => new();
+    public static NullExpr NULL => new();
 
     public static NotCondition NOT(ICondition condition) => new(condition);
 

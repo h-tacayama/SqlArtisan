@@ -42,9 +42,9 @@ public class InsertTest
         SqlStatement sql =
             INSERT_INTO(_t)
             .SET(
-                _t.code == NULL_AS_NUMERIC,
-                _t.name == NULL_AS_CHARACTER,
-                _t.created_at == NULL_AS_DATETIME)
+                _t.code == NULL,
+                _t.name == NULL,
+                _t.created_at == NULL)
             .Build();
 
         StringBuilder expected = new();
@@ -72,7 +72,7 @@ public class InsertTest
         {
             INSERT_INTO(_t)
             .SET(
-                _t.code != L(1))
+                _t.code != NULL)
             .Build();
         });
     }
