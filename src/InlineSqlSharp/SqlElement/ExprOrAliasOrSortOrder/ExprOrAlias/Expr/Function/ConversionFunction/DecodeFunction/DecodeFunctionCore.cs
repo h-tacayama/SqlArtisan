@@ -1,29 +1,39 @@
 namespace InlineSqlSharp;
 
-internal sealed class DecodeFunctionCore<TSearchExpr, TResultExpr>(
-    TSearchExpr expr,
-    (TSearchExpr, TResultExpr)[] searchResultPairs,
-    TResultExpr @default)
-    where TSearchExpr : IExpr
-    where TResultExpr : IExpr
+internal sealed class DecodeFunctionCore(
+    object expr,
+    (object, object)[] searchResultPairs,
+    object @default)
 {
-    private readonly TSearchExpr _expr = expr;
-    private readonly (TSearchExpr, TResultExpr)[] _searchResultPairs = searchResultPairs;
-    private readonly TResultExpr _default = @default;
+    private readonly object _expr = expr;
+    private readonly (object, object)[] _searchResultPairs = searchResultPairs;
+    private readonly object _default = @default;
 
     internal void FormatSql(SqlBuildingBuffer buffer)
     {
         buffer.Append(Keywords.DECODE)
             .OpenParenthesis()
-            .Append(_expr);
+            .Append(ExprOrBindValue(_expr));
 
-        foreach ((TSearchExpr, TResultExpr) pair in _searchResultPairs)
+        foreach ((object, object) pair in _searchResultPairs)
         {
-            buffer.PrependComma(pair.Item1)
-                .PrependComma(pair.Item2);
+            buffer.PrependComma(ExprOrBindValue(pair.Item1))
+                .PrependComma(ExprOrBindValue(pair.Item2));
         }
 
-        buffer.PrependComma(_default)
+        buffer.PrependComma(ExprOrBindValue(_default))
             .CloseParenthesis();
+    }
+
+    private IExpr ExprOrBindValue(object value)
+    {
+        if (value is IExpr expr)
+        {
+            return expr;
+        }
+        else
+        {
+            return BindValueFactory.CreateOrException(value);
+        }
     }
 }
