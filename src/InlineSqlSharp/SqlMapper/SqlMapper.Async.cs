@@ -2,11 +2,11 @@
 using Dapper;
 using static Dapper.SqlMapper;
 
-namespace InlineSqlSharp.DapperExtensions;
+namespace InlineSqlSharp;
 
 public static partial class SqlMapper
 {
-    public static int Execute(
+    public static Task<int> ExecuteAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -14,15 +14,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.Execute(
+        return cnn.ExecuteAsync(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static object? ExecuteScalar(
+    public static Task<object?> ExecuteScalarAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -30,15 +30,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.ExecuteScalar(
+        return cnn.ExecuteScalarAsync(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static T? ExecuteScalar<T>(
+    public static Task<T?> ExecuteScalarAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -46,15 +46,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.ExecuteScalar<T>(
+        return cnn.ExecuteScalarAsync<T>(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static object QuerySingle(
+    public static Task<object> QuerySingleAsync(
         this IDbConnection cnn,
         Type type,
         ISqlBuilder sqlBuilder,
@@ -63,16 +63,16 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QuerySingle(
+        return cnn.QuerySingleAsync(
             type,
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static dynamic QuerySingle(
+    public static Task<dynamic> QuerySingleAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -80,15 +80,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QuerySingle(
+        return cnn.QuerySingleAsync(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static T QuerySingle<T>(
+    public static Task<T> QuerySingleAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -96,15 +96,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QuerySingle<T>(
+        return cnn.QuerySingleAsync<T>(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static object? QuerySingleOrDefault(
+    public static Task<object?> QuerySingleOrDefaultAsync(
         this IDbConnection cnn,
         Type type,
         ISqlBuilder sqlBuilder,
@@ -113,16 +113,16 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QuerySingleOrDefault(
+        return cnn.QuerySingleOrDefaultAsync(
             type,
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static dynamic? QuerySingleOrDefault(
+    public static Task<dynamic?> QuerySingleOrDefaultAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -130,15 +130,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QuerySingleOrDefault(
+        return cnn.QuerySingleOrDefaultAsync(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static T? QuerySingleOrDefault<T>(
+    public static Task<T?> QuerySingleOrDefaultAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -146,15 +146,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QuerySingleOrDefault<T>(
+        return cnn.QuerySingleOrDefaultAsync<T>(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static object QueryFirst(
+    public static Task<object> QueryFirstAsync(
         this IDbConnection cnn,
         Type type,
         ISqlBuilder sqlBuilder,
@@ -163,16 +163,16 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QueryFirst(
+        return cnn.QueryFirstAsync(
             type,
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static dynamic QueryFirst(
+    public static Task<dynamic> QueryFirstAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -180,15 +180,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QueryFirst(
+        return cnn.QueryFirstAsync(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static T QueryFirst<T>(
+    public static Task<T> QueryFirstAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -196,15 +196,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QueryFirst<T>(
+        return cnn.QueryFirstAsync<T>(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static object? QueryFirstOrDefault(
+    public static Task<object?> QueryFirstOrDefaultAsync(
         this IDbConnection cnn,
         Type type,
         ISqlBuilder sqlBuilder,
@@ -213,16 +213,16 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QueryFirstOrDefault(
+        return cnn.QueryFirstOrDefaultAsync(
             type,
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static dynamic? QueryFirstOrDefault(
+    public static Task<dynamic?> QueryFirstOrDefaultAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -230,15 +230,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QueryFirstOrDefault(
+        return cnn.QueryFirstOrDefaultAsync(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static T? QueryFirstOrDefault<T>(
+    public static Task<T?> QueryFirstOrDefaultAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -246,71 +246,33 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QueryFirstOrDefault<T>(
+        return cnn.QueryFirstOrDefaultAsync<T>(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static IEnumerable<object> Query(
+    public static Task<IEnumerable<object>> QueryAsync(
         this IDbConnection cnn,
         Type type,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
-        bool buffered = true,
         int? commandTimeout = null,
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.Query(
+        return cnn.QueryAsync(
             type,
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
-            buffered,
             commandTimeout,
             commandType);
     }
 
-    public static IEnumerable<dynamic> Query(
-        this IDbConnection cnn,
-        ISqlBuilder sqlBuilder,
-        IDbTransaction? transaction = null,
-        bool buffered = true,
-        int? commandTimeout = null,
-        CommandType? commandType = null)
-    {
-        SqlStatement sql = sqlBuilder.Build();
-        return cnn.Query<dynamic>(
-            sql.Text,
-            sql.GetDynamicParameters(),
-            transaction,
-            buffered,
-            commandTimeout,
-            commandType);
-    }
-
-    public static IEnumerable<T> Query<T>(
-        this IDbConnection cnn,
-        ISqlBuilder sqlBuilder,
-        IDbTransaction? transaction = null,
-        bool buffered = true,
-        int? commandTimeout = null,
-        CommandType? commandType = null)
-    {
-        SqlStatement sql = sqlBuilder.Build();
-        return cnn.Query<T>(
-            sql.Text,
-            sql.GetDynamicParameters(),
-            transaction,
-            buffered,
-            commandTimeout,
-            commandType);
-    }
-
-    public static GridReader QueryMultiple(
+    public static Task<IEnumerable<dynamic>> QueryAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -318,15 +280,15 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.QueryMultiple(
+        return cnn.QueryAsync(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);
     }
 
-    public static IDataReader ExecuteReader(
+    public static Task<IEnumerable<T>> QueryAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
@@ -334,9 +296,41 @@ public static partial class SqlMapper
         CommandType? commandType = null)
     {
         SqlStatement sql = sqlBuilder.Build();
-        return cnn.ExecuteReader(
+        return cnn.QueryAsync<T>(
             sql.Text,
-            sql.GetDynamicParameters(),
+            sql.Parameters,
+            transaction,
+            commandTimeout,
+            commandType);
+    }
+
+    public static Task<GridReader> QueryMultipleAsync(
+        this IDbConnection cnn,
+        ISqlBuilder sqlBuilder,
+        IDbTransaction? transaction = null,
+        int? commandTimeout = null,
+        CommandType? commandType = null)
+    {
+        SqlStatement sql = sqlBuilder.Build();
+        return cnn.QueryMultipleAsync(
+            sql.Text,
+            sql.Parameters,
+            transaction,
+            commandTimeout,
+            commandType);
+    }
+
+    public static Task<IDataReader> ExecuteReaderAsync(
+        this IDbConnection cnn,
+        ISqlBuilder sqlBuilder,
+        IDbTransaction? transaction = null,
+        int? commandTimeout = null,
+        CommandType? commandType = null)
+    {
+        SqlStatement sql = sqlBuilder.Build();
+        return cnn.ExecuteReaderAsync(
+            sql.Text,
+            sql.Parameters,
             transaction,
             commandTimeout,
             commandType);

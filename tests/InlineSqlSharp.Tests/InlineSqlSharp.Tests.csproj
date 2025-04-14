@@ -16,7 +16,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\InlineSqlSharp.DapperExtensions\InlineSqlSharp.DapperExtensions.csproj" />
     <ProjectReference Include="..\..\src\InlineSqlSharp\InlineSqlSharp.csproj" />
   </ItemGroup>
   <ItemGroup>

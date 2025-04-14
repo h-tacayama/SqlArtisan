@@ -15,8 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InlineSqlSharp.Benchmark", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InlineSqlSharp.TableClassGen", "src\InlineSqlSharp.TableClassGen\InlineSqlSharp.TableClassGen.csproj", "{0CF476C5-8765-4117-B6AF-438BF78A1D8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InlineSqlSharp.DapperExtensions", "src\InlineSqlSharp.DapperExtensions\InlineSqlSharp.DapperExtensions.csproj", "{03C62E85-8570-4FDD-A8A5-B2210C2B9BB2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,10 +37,6 @@ Global
 		{0CF476C5-8765-4117-B6AF-438BF78A1D8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CF476C5-8765-4117-B6AF-438BF78A1D8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CF476C5-8765-4117-B6AF-438BF78A1D8C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{03C62E85-8570-4FDD-A8A5-B2210C2B9BB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{03C62E85-8570-4FDD-A8A5-B2210C2B9BB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{03C62E85-8570-4FDD-A8A5-B2210C2B9BB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{03C62E85-8570-4FDD-A8A5-B2210C2B9BB2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,6 +46,5 @@ Global
 		{F17149F9-833B-4526-A613-33486394FFF7} = {F29CB8EE-C83F-493D-9F22-2EE7EFCC209D}
 		{F3E96DB7-F2CC-467D-A38E-73D696B5B5FD} = {F29CB8EE-C83F-493D-9F22-2EE7EFCC209D}
 		{0CF476C5-8765-4117-B6AF-438BF78A1D8C} = {A36260A0-5AEB-46AA-A77F-9CE7ABF74AA4}
-		{03C62E85-8570-4FDD-A8A5-B2210C2B9BB2} = {A36260A0-5AEB-46AA-A77F-9CE7ABF74AA4}
 	EndGlobalSection
 EndGlobal

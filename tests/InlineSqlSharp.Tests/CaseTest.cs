@@ -31,11 +31,11 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(4, sql.Parameters.Count);
-        Assert.Equal("b", sql.Parameters[0].Value);
-        Assert.Equal("B", sql.Parameters[1].Value);
-        Assert.Equal("c", sql.Parameters[2].Value);
-        Assert.Equal("C", sql.Parameters[3].Value);
+        Assert.Equal(4, sql.ParameterCount);
+        Assert.Equal("b", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("B", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("c", sql.Parameters.Get<string>(":2"));
+        Assert.Equal("C", sql.Parameters.Get<string>(":3"));
     }
 
     [Fact]
@@ -58,8 +58,8 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Single(sql.Parameters);
-        Assert.Equal("z", sql.Parameters[0].Value);
+        Assert.Equal(1, sql.ParameterCount);
+        Assert.Equal("z", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]
@@ -82,8 +82,8 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Single(sql.Parameters);
-        Assert.Equal("z", sql.Parameters[0].Value);
+        Assert.Equal(1, sql.ParameterCount);
+        Assert.Equal("z", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]
@@ -108,8 +108,8 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Single(sql.Parameters);
-        Assert.Equal(new DateTime(2004, 5, 6), sql.Parameters[0].Value);
+        Assert.Equal(1, sql.ParameterCount);
+        Assert.Equal(new DateTime(2004, 5, 6), sql.Parameters.Get<DateTime>(":0"));
     }
 
     [Fact]
@@ -132,8 +132,8 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Single(sql.Parameters);
-        Assert.Equal(new DateTime(2007, 8, 9), sql.Parameters[0].Value);
+        Assert.Equal(1, sql.ParameterCount);
+        Assert.Equal(new DateTime(2007, 8, 9), sql.Parameters.Get<DateTime>(":0"));
     }
 
     [Fact]
@@ -158,8 +158,8 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Single(sql.Parameters);
-        Assert.Equal(4, sql.Parameters[0].Value);
+        Assert.Equal(1, sql.ParameterCount);
+        Assert.Equal(4, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]
@@ -182,8 +182,8 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Single(sql.Parameters);
-        Assert.Equal(99, sql.Parameters[0].Value);
+        Assert.Equal(1, sql.ParameterCount);
+        Assert.Equal(99, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]
@@ -212,11 +212,11 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(4, sql.Parameters.Count);
-        Assert.Equal("b", sql.Parameters[0].Value);
-        Assert.Equal("B", sql.Parameters[1].Value);
-        Assert.Equal("c", sql.Parameters[2].Value);
-        Assert.Equal("C", sql.Parameters[3].Value);
+        Assert.Equal(4, sql.ParameterCount);
+        Assert.Equal("b", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("B", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("c", sql.Parameters.Get<string>(":2"));
+        Assert.Equal("C", sql.Parameters.Get<string>(":3"));
     }
 
     [Fact]
@@ -243,9 +243,9 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(2, sql.Parameters.Count);
-        Assert.Equal(new DateTime(2007, 8, 9), sql.Parameters[0].Value);
-        Assert.Equal(new DateTime(2010, 11, 12), sql.Parameters[1].Value);
+        Assert.Equal(2, sql.ParameterCount);
+        Assert.Equal(new DateTime(2007, 8, 9), sql.Parameters.Get<DateTime>(":0"));
+        Assert.Equal(new DateTime(2010, 11, 12), sql.Parameters.Get<DateTime>(":1"));
     }
 
     [Fact]
@@ -272,8 +272,8 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(2, sql.Parameters.Count);
-        Assert.Equal(2, sql.Parameters[0].Value);
-        Assert.Equal(20, sql.Parameters[1].Value);
+        Assert.Equal(2, sql.ParameterCount);
+        Assert.Equal(2, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(20, sql.Parameters.Get<int>(":1"));
     }
 }

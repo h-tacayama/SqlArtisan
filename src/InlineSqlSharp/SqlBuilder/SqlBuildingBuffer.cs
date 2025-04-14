@@ -1,11 +1,12 @@
 ﻿using System.Text;
+using Dapper;
 
 namespace InlineSqlSharp;
 
 public sealed class SqlBuildingBuffer()
 {
     private readonly StringBuilder _text = new();
-    private readonly List<BindParameter> _parameters = [];
+    private readonly DynamicParameters _parameters = new();
 
     internal SqlBuildingBuffer Append(ISqlElement element)
     {
@@ -159,10 +160,12 @@ public sealed class SqlBuildingBuffer()
 
     internal SqlBuildingBuffer AddParameter(IBindValue bindValue)
     {
-        int index = _parameters.Count;
-        BindParameter parameter = new($":{index}", bindValue);
-        _parameters.Add(parameter);
-        _text.Append(parameter.Name);
+        string name = $":{_parameters.ParameterNames.Count()}";
+        _text.Append(name);
+
+        // Dapper uses default values if DbType and Direction are null.
+        _parameters.Add(name, bindValue.Value, bindValue.DbType, bindValue.Direction);
+
         return this;
     }
 
@@ -316,9 +319,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlStatement ToSqlStatement() =>
-        // Return a clone of _parameters to avoid keeping references
-        new(_text.ToString(), [.. _parameters]);
+    internal SqlStatement ToSqlStatement() => new(_text.ToString(), _parameters);
 
     private IExpr ExprOrBindValue(object value) =>
         value is IExpr expr ? expr : BindValueFactory.CreateOrException(value);

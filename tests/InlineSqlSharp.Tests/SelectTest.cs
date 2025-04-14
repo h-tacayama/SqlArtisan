@@ -179,20 +179,20 @@ public class SelectTest
         expected.Append(":13");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal("a", sql.Parameters[0].Value);
-        Assert.Equal("O''Reilly", sql.Parameters[1].Value);
-        Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters[2].Value);
-        Assert.Equal((sbyte)1, sql.Parameters[3].Value);
-        Assert.Equal((byte)2, sql.Parameters[4].Value);
-        Assert.Equal((short)3, sql.Parameters[5].Value);
-        Assert.Equal((ushort)4, sql.Parameters[6].Value);
-        Assert.Equal((int)5, sql.Parameters[7].Value);
-        Assert.Equal((uint)6, sql.Parameters[8].Value);
-        Assert.Equal((long)7, sql.Parameters[9].Value);
-        Assert.Equal((ulong)8, sql.Parameters[10].Value);
-        Assert.Equal((float)9.9, sql.Parameters[11].Value);
-        Assert.Equal((double)10.1, sql.Parameters[12].Value);
-        Assert.Equal((decimal)11.11, sql.Parameters[13].Value);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("O''Reilly", sql.Parameters.Get<string>(":1"));
+        Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters.Get<DateTime>(":2"));
+        Assert.Equal((sbyte)1, sql.Parameters.Get<sbyte>(":3"));
+        Assert.Equal((byte)2, sql.Parameters.Get<byte>(":4"));
+        Assert.Equal((short)3, sql.Parameters.Get<short>(":5"));
+        Assert.Equal((ushort)4, sql.Parameters.Get<ushort>(":6"));
+        Assert.Equal((int)5, sql.Parameters.Get<int>(":7"));
+        Assert.Equal((uint)6, sql.Parameters.Get<uint>(":8"));
+        Assert.Equal((long)7, sql.Parameters.Get<long>(":9"));
+        Assert.Equal((ulong)8, sql.Parameters.Get<ulong>(":10"));
+        Assert.Equal((float)9.9, sql.Parameters.Get<float>(":11"));
+        Assert.Equal((double)10.1, sql.Parameters.Get<double>(":12"));
+        Assert.Equal((decimal)11.11, sql.Parameters.Get<decimal>(":13"));
     }
 
     [Fact]

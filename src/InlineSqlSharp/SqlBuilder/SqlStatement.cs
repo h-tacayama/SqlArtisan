@@ -1,10 +1,12 @@
-﻿namespace InlineSqlSharp;
+﻿using Dapper;
 
-public sealed class SqlStatement(
-    string text,
-    IReadOnlyList<BindParameter> parameters)
+namespace InlineSqlSharp;
+
+public sealed class SqlStatement(string text, DynamicParameters parameters)
 {
     public string Text => text;
 
-    public IReadOnlyList<BindParameter> Parameters => parameters;
+    public DynamicParameters Parameters => parameters;
+
+    public int ParameterCount => parameters.ParameterNames.Count();
 }

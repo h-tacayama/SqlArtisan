@@ -13,7 +13,7 @@ public class BindValueFactoryTest
                     new DateTime(2000, 1, 2),
                     [
                         ('a', "b"),
-                        ((byte)1, (sbyte)2),
+                        ((sbyte)1, (byte)2),
                         ((short)3, (ushort)4),
                         ((int)5, (uint)6),
                         ((long)7, (ulong)8),
@@ -22,36 +22,21 @@ public class BindValueFactoryTest
                     (decimal)11))
             .Build();
 
-        Assert.Equal(14, sql.Parameters.Count);
-        Assert.IsType<DateTime>(sql.Parameters[0].Value);
-        Assert.IsType<string>(sql.Parameters[1].Value);
-        Assert.IsType<string>(sql.Parameters[2].Value);
-        Assert.IsType<byte>(sql.Parameters[3].Value);
-        Assert.IsType<sbyte>(sql.Parameters[4].Value);
-        Assert.IsType<short>(sql.Parameters[5].Value);
-        Assert.IsType<ushort>(sql.Parameters[6].Value);
-        Assert.IsType<int>(sql.Parameters[7].Value);
-        Assert.IsType<uint>(sql.Parameters[8].Value);
-        Assert.IsType<long>(sql.Parameters[9].Value);
-        Assert.IsType<ulong>(sql.Parameters[10].Value);
-        Assert.IsType<float>(sql.Parameters[11].Value);
-        Assert.IsType<double>(sql.Parameters[12].Value);
-        Assert.IsType<decimal>(sql.Parameters[13].Value);
-
-        Assert.Equal(new DateTime(2000, 1, 2), sql.Parameters[0].Value);
-        Assert.Equal("a", sql.Parameters[1].Value);
-        Assert.Equal("b", sql.Parameters[2].Value);
-        Assert.Equal((byte)1, sql.Parameters[3].Value);
-        Assert.Equal((sbyte)2, sql.Parameters[4].Value);
-        Assert.Equal((short)3, sql.Parameters[5].Value);
-        Assert.Equal((ushort)4, sql.Parameters[6].Value);
-        Assert.Equal((int)5, sql.Parameters[7].Value);
-        Assert.Equal((uint)6, sql.Parameters[8].Value);
-        Assert.Equal((long)7, sql.Parameters[9].Value);
-        Assert.Equal((ulong)8, sql.Parameters[10].Value);
-        Assert.Equal((float)9, sql.Parameters[11].Value);
-        Assert.Equal((double)10, sql.Parameters[12].Value);
-        Assert.Equal((decimal)11, sql.Parameters[13].Value);
+        Assert.Equal(14, sql.ParameterCount);
+        Assert.Equal(new DateTime(2000, 1, 2), sql.Parameters.Get<DateTime>(":0"));
+        Assert.Equal("a", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("b", sql.Parameters.Get<string>(":2"));
+        Assert.Equal((sbyte)1, sql.Parameters.Get<sbyte>(":3"));
+        Assert.Equal((byte)2, sql.Parameters.Get<byte>(":4"));
+        Assert.Equal((short)3, sql.Parameters.Get<short>(":5"));
+        Assert.Equal((ushort)4, sql.Parameters.Get<ushort>(":6"));
+        Assert.Equal((int)5, sql.Parameters.Get<int>(":7"));
+        Assert.Equal((uint)6, sql.Parameters.Get<uint>(":8"));
+        Assert.Equal((long)7, sql.Parameters.Get<long>(":9"));
+        Assert.Equal((ulong)8, sql.Parameters.Get<ulong>(":10"));
+        Assert.Equal((float)9, sql.Parameters.Get<float>(":11"));
+        Assert.Equal((double)10, sql.Parameters.Get<double>(":12"));
+        Assert.Equal((decimal)11, sql.Parameters.Get<decimal>(":13"));
     }
 
     [Fact]

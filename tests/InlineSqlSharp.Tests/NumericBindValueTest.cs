@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace InlineSqlSharp.Tests;
+﻿namespace InlineSqlSharp.Tests;
 
 public class NumericBindValueTest
 {
@@ -9,7 +7,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<sbyte> bindValue = new(1);
         Assert.Equal((sbyte)1, bindValue.Value);
-        Assert.Equal(DbType.SByte, bindValue.DbType);
     }
 
     [Fact]
@@ -17,7 +14,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<byte> bindValue = new(1);
         Assert.Equal((byte)1, bindValue.Value);
-        Assert.Equal(DbType.Byte, bindValue.DbType);
     }
 
     [Fact]
@@ -25,7 +21,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<short> bindValue = new(1);
         Assert.Equal((short)1, bindValue.Value);
-        Assert.Equal(DbType.Int16, bindValue.DbType);
     }
 
     [Fact]
@@ -33,7 +28,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<ushort> bindValue = new(1);
         Assert.Equal((ushort)1, bindValue.Value);
-        Assert.Equal(DbType.UInt16, bindValue.DbType);
     }
 
     [Fact]
@@ -41,7 +35,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<int> bindValue = new(1);
         Assert.Equal(1, bindValue.Value);
-        Assert.Equal(DbType.Int32, bindValue.DbType);
     }
 
     [Fact]
@@ -49,7 +42,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<uint> bindValue = new(1);
         Assert.Equal((uint)1, bindValue.Value);
-        Assert.Equal(DbType.UInt32, bindValue.DbType);
     }
 
     [Fact]
@@ -57,7 +49,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<long> bindValue = new(1);
         Assert.Equal((long)1, bindValue.Value);
-        Assert.Equal(DbType.Int64, bindValue.DbType);
     }
 
     [Fact]
@@ -65,7 +56,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<ulong> bindValue = new(1);
         Assert.Equal((ulong)1, bindValue.Value);
-        Assert.Equal(DbType.UInt64, bindValue.DbType);
     }
 
     [Fact]
@@ -73,7 +63,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<float> bindValue = new(1);
         Assert.Equal((float)1, bindValue.Value);
-        Assert.Equal(DbType.Single, bindValue.DbType);
     }
 
     [Fact]
@@ -81,7 +70,6 @@ public class NumericBindValueTest
     {
         NumericBindValue<double> bindValue = new(1);
         Assert.Equal((double)1, bindValue.Value);
-        Assert.Equal(DbType.Double, bindValue.DbType);
     }
 
     [Fact]
@@ -89,6 +77,5 @@ public class NumericBindValueTest
     {
         NumericBindValue<decimal> bindValue = new(1);
         Assert.Equal((decimal)1, bindValue.Value);
-        Assert.Equal(DbType.Decimal, bindValue.DbType);
     }
 }

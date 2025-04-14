@@ -51,9 +51,9 @@ public class UpdateTest
         expected.Append("\"t\".created_at = :2");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(1, sql.Parameters[0].Value);
-        Assert.Equal("Test1", sql.Parameters[1].Value);
-        Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters[2].Value);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("Test1", sql.Parameters.Get<string>(":1"));
+        Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters.Get<DateTime>(":2"));
     }
 
     [Fact]

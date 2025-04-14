@@ -28,27 +28,24 @@ internal sealed class PgSqlTableInfoRepository(
 
         List<DbTableInfo> tables = new();
 
-        using (IDbCommand command = conn.CreateCommand(sql))
+        List<string> tableNames = new();
+        using (IDataReader reader = conn.ExecuteReader(sql))
         {
-            List<string> tableNames = new();
-            using (IDataReader reader = command.ExecuteReader())
+            while (reader.Read())
             {
-                while (reader.Read())
-                {
-                    string tableName = _lowercaseNames
-                        ? reader.GetString(0).ToLower()
-                        : reader.GetString(0);
-                    tableNames.Add(tableName);
-                }
+                string tableName = _lowercaseNames
+                    ? reader.GetString(0).ToLower()
+                    : reader.GetString(0);
+                tableNames.Add(tableName);
             }
+        }
 
-            foreach (string tableName in tableNames)
+        foreach (string tableName in tableNames)
+        {
+            if (TryGetTableInfo(conn, tableName, out DbTableInfo? table)
+                && table is not null)
             {
-                if (TryGetTableInfo(conn, tableName, out DbTableInfo? table)
-                    && table is not null)
-                {
-                    tables.Add(table);
-                }
+                tables.Add(table);
             }
         }
 
@@ -87,18 +84,15 @@ internal sealed class PgSqlTableInfoRepository(
 
         List<DbColumnInfo> columns = new();
 
-        using (IDbCommand command = conn.CreateCommand(sql2))
+        using (IDataReader reader = conn.ExecuteReader(sql2))
         {
-            using (IDataReader reader = command.ExecuteReader())
+            while (reader.Read())
             {
-                while (reader.Read())
-                {
-                    string columnName = _lowercaseNames
-                        ? reader.GetString(0).ToLower()
-                        : reader.GetString(0);
-                    string dataType = reader.GetString(1);
-                    columns.Add(new DbColumnInfo(columnName, dataType));
-                }
+                string columnName = _lowercaseNames
+                    ? reader.GetString(0).ToLower()
+                    : reader.GetString(0);
+                string dataType = reader.GetString(1);
+                columns.Add(new DbColumnInfo(columnName, dataType));
             }
         }
 
@@ -124,10 +118,7 @@ internal sealed class PgSqlTableInfoRepository(
                     t.table_name == P(tableName),
                     t.table_type == L("BASE TABLE")));
 
-        using (IDbCommand checkCommand = conn.CreateCommand(sql))
-        {
-            long tableCount = Convert.ToInt64(checkCommand.ExecuteScalar());
-            return tableCount > 0;
-        }
+        long tableCount = Convert.ToInt64(conn.ExecuteScalar(sql));
+        return tableCount > 0;
     }
 }

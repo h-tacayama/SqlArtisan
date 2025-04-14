@@ -28,11 +28,11 @@ internal sealed class ConditionTestAssert(test_table t)
         expected.Append(expectedSql);
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(expectedBindCount, sql.Parameters.Count);
+        Assert.Equal(expectedBindCount, sql.ParameterCount);
 
         for (int i = 0; i < bindValues.Length; i++)
         {
-            Assert.Equal(bindValues[i], sql.Parameters[i].Value);
+            Assert.Equal(bindValues[i], sql.Parameters.Get<object>($":{i}"));
         }
     }
 }

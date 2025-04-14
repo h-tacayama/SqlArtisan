@@ -4,20 +4,22 @@ namespace InlineSqlSharp;
 
 public sealed class CharacterBindValue(
     string value,
-    ParameterDirection direction = ParameterDirection.Input) :
+    DbType? dbType = null,
+    ParameterDirection? direction = null) :
     CharacterExpr,
     IBindValue
 {
     public CharacterBindValue(
         char value,
-        ParameterDirection direction = ParameterDirection.Input)
-        : this(value.ToString(), direction) { }
+        DbType? dbType = null,
+        ParameterDirection? direction = null)
+        : this(value.ToString(), dbType, direction) { }
 
-    public object Value { get; } = value;
+    public object Value => value;
 
-    public DbType DbType { get; } = DbType.String;
+    public DbType? DbType => dbType;
 
-    public ParameterDirection Direction { get; } = direction;
+    public ParameterDirection? Direction => direction;
 
     public override void FormatSql(SqlBuildingBuffer buffer) =>
         buffer.AddParameter(this);
