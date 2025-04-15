@@ -107,12 +107,12 @@ public partial class FunctionTest
     public void TO_DATE_CharacterValueWithStringFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_DATE(L("2001/02/03"), "YYYY/MM/DD"))
+            SELECT(TO_DATE("2001/02/03", "YYYY/MM/DD"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TO_DATE('2001/02/03', 'YYYY/MM/DD')");
+        expected.Append("TO_DATE(:0, 'YYYY/MM/DD')");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
