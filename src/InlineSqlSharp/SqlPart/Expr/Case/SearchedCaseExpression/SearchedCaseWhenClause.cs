@@ -1,11 +1,17 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class SearchedCaseWhenClause(
-    SearchedCaseWhenCondition whenCondition,
-    CaseThenExpr thenExpr) : AbstractSqlPart
+public sealed class SearchedCaseWhenClause : AbstractSqlPart
 {
-    private readonly SearchedCaseWhenCondition _whenCondition = whenCondition;
-    private readonly CaseThenExpr _thenExpr = thenExpr;
+    private readonly SearchedCaseWhenCondition _whenCondition;
+    private readonly CaseThenExpr _thenExpr;
+
+    internal SearchedCaseWhenClause(
+        SearchedCaseWhenCondition whenCondition,
+        CaseThenExpr thenExpr)
+    {
+        _whenCondition = whenCondition;
+        _thenExpr = thenExpr;
+    }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.WHEN)

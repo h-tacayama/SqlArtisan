@@ -1,7 +1,9 @@
 namespace InlineSqlSharp;
 
-public sealed class AnalyticRowNumberFunction() : AbstractAnalyticFunction
+public sealed class AnalyticRowNumberFunction : AbstractAnalyticFunction
 {
+    internal AnalyticRowNumberFunction() { }
+
     public WindowFunction OVER(PartitionByAndOrderBy partitionByAndOrderBy) =>
         new(this, OverClause.Of(partitionByAndOrderBy));
 

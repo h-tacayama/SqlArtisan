@@ -4,7 +4,7 @@ namespace InlineSqlSharp;
 
 public sealed class Sequence
 {
-    public Sequence(string name)
+    internal Sequence(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {

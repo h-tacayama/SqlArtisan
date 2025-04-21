@@ -1,13 +1,20 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class SimpleCaseExpr(
-    AbstractExpr expr,
-    SimpleCaseWhenClause[] whenClauses,
-    CaseElseExpr elseClause) : AbstractExpr
+public sealed class SimpleCaseExpr : AbstractExpr
 {
-    private readonly AbstractExpr _expr = expr;
-    private readonly SimpleCaseWhenClause[] _whenClauses = whenClauses;
-    private readonly CaseElseExpr _elseClause = elseClause;
+    private readonly AbstractExpr _expr;
+    private readonly SimpleCaseWhenClause[] _whenClauses;
+    private readonly CaseElseExpr _elseClause;
+
+    internal SimpleCaseExpr(
+        AbstractExpr expr,
+        SimpleCaseWhenClause[] whenClauses,
+        CaseElseExpr elseClause)
+    {
+        _expr = expr;
+        _whenClauses = whenClauses;
+        _elseClause = elseClause;
+    }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.CASE)

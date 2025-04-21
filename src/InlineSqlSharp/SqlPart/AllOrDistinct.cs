@@ -1,12 +1,17 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class AllOrDistinct(bool isDistinct) : AbstractSqlPart
+public sealed class AllOrDistinct : AbstractSqlPart
 {
-    internal bool IsDistinct => isDistinct;
+    internal AllOrDistinct(bool isDistinct)
+    {
+        IsDistinct = isDistinct;
+    }
 
-    public static AllOrDistinct All => new(false);
+    internal bool IsDistinct { get; }
 
-    public static AllOrDistinct Distinct => new(true);
+    internal static AllOrDistinct All => new(false);
+
+    internal static AllOrDistinct Distinct => new(true);
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
         buffer.AppendIf(IsDistinct, Keywords.DISTINCT);

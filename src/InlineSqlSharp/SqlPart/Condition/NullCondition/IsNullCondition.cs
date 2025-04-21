@@ -1,8 +1,13 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class IsNullCondition(AbstractExpr leftSide) : AbstractCondition
+public sealed class IsNullCondition : AbstractCondition
 {
-    private readonly AbstractExpr _leftSide = leftSide;
+    private readonly AbstractExpr _leftSide;
+
+    internal IsNullCondition(AbstractExpr leftSide)
+    {
+        _leftSide = leftSide;
+    }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(_leftSide)

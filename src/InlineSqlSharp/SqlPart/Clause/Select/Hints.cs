@@ -1,9 +1,17 @@
-﻿namespace InlineSqlSharp;
+﻿using System.Diagnostics;
 
-public sealed class Hints(string hints) : AbstractSqlPart
+namespace InlineSqlSharp;
+
+public sealed class Hints : AbstractSqlPart
 {
-    private readonly string _hints = hints;
+    private readonly string _hints;
 
+    internal Hints(string hints)
+    {
+        _hints = hints;
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static Hints None => new(string.Empty);
 
     public bool IsSome => !IsNone;

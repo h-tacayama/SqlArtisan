@@ -3,7 +3,7 @@ using Dapper;
 
 namespace InlineSqlSharp;
 
-public sealed class SqlBuildingBuffer()
+internal sealed class SqlBuildingBuffer
 {
     private readonly StringBuilder _text = new();
     private readonly DynamicParameters _parameters = new();

@@ -1,8 +1,13 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class SimpleCaseWhenExpr(AbstractExpr whenExpr) : AbstractSqlPart
+public sealed class SimpleCaseWhenExpr : AbstractSqlPart
 {
-    private readonly AbstractExpr _whenExpr = whenExpr;
+    private readonly AbstractExpr _whenExpr;
+
+    internal SimpleCaseWhenExpr(AbstractExpr whenExpr)
+    {
+        _whenExpr = whenExpr;
+    }
 
     public SimpleCaseWhenClause THEN(object thenExpr) =>
         new(this, new CaseThenExpr(ExprResolver.Resolve(thenExpr)));

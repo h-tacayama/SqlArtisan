@@ -1,8 +1,13 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class MinFunction(AbstractExpr expr) : AbstractExpr
+public sealed class MinFunction : AbstractExpr
 {
-    readonly UnaryFunctionCore _core = new(Keywords.MIN, expr);
+    private readonly UnaryFunctionCore _core;
+
+    internal MinFunction(AbstractExpr expr)
+    {
+        _core = new UnaryFunctionCore(Keywords.MIN, expr);
+    }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
         _core.FormatSql(buffer);

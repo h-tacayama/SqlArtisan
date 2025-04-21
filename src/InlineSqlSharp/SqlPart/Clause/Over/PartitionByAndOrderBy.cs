@@ -1,11 +1,17 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class PartitionByAndOrderBy(
-    PartitionByClause partitionByClause,
-    OrderByClause orderByClause) : AbstractSqlPart
+public sealed class PartitionByAndOrderBy : AbstractSqlPart
 {
-    private readonly PartitionByClause _partitionByClause = partitionByClause;
-    private readonly OrderByClause _orderByClause = orderByClause;
+    private readonly PartitionByClause _partitionByClause;
+    private readonly OrderByClause _orderByClause;
+
+    internal PartitionByAndOrderBy(
+        PartitionByClause partitionByClause,
+        OrderByClause orderByClause)
+    {
+        _partitionByClause = partitionByClause;
+        _orderByClause = orderByClause;
+    }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpaceIfNotNull(_partitionByClause)

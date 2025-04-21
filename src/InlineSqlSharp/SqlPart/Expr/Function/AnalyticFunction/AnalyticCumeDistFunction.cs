@@ -1,7 +1,9 @@
 namespace InlineSqlSharp;
 
-public sealed class AnalyticCumeDistFunction() : AbstractAnalyticFunction
+public sealed class AnalyticCumeDistFunction : AbstractAnalyticFunction
 {
+    internal AnalyticCumeDistFunction() { }
+
     public WindowFunction OVER(PartitionByAndOrderBy partitionByAndOrderBy) =>
         new(this, OverClause.Of(partitionByAndOrderBy));
 

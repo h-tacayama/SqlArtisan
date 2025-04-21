@@ -1,8 +1,13 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class CaseThenExpr(AbstractExpr thenExpr) : AbstractExpr
+public sealed class CaseThenExpr : AbstractExpr
 {
-    private readonly AbstractExpr _thenExpr = thenExpr;
+    private readonly AbstractExpr _thenExpr;
+
+    internal CaseThenExpr(AbstractExpr thenExpr)
+    {
+        _thenExpr = thenExpr;
+    }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
         buffer.Append(_thenExpr);

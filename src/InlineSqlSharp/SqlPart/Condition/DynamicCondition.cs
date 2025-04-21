@@ -1,12 +1,16 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class DynamicCondition(
-    bool addIf,
-    AbstractCondition condition) : AbstractCondition
+public sealed class DynamicCondition : AbstractCondition
 {
-    private readonly AbstractCondition _condition = condition;
+    private readonly AbstractCondition _condition;
 
-    internal bool AddIf { get; } = addIf;
+    internal DynamicCondition(bool addIf, AbstractCondition condition)
+    {
+        AddIf = addIf;
+        _condition = condition;
+    }
+
+    internal bool AddIf { get; }
 
     internal override void FormatSql(SqlBuildingBuffer buffer)
     {

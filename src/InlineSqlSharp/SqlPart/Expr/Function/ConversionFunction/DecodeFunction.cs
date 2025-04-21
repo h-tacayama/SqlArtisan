@@ -1,14 +1,20 @@
 namespace InlineSqlSharp;
 
-public sealed class DecodeFunction(
-    AbstractExpr expr,
-    (AbstractExpr, AbstractExpr)[] searchResultPairs,
-    AbstractExpr @default) : AbstractExpr
+public sealed class DecodeFunction : AbstractExpr
 {
-    private readonly AbstractExpr _expr = expr;
-    private readonly (AbstractExpr, AbstractExpr)[] _searchResultPairs =
-        searchResultPairs;
-    private readonly AbstractExpr _default = @default;
+    private readonly AbstractExpr _expr;
+    private readonly (AbstractExpr, AbstractExpr)[] _searchResultPairs;
+    private readonly AbstractExpr _default;
+
+    internal DecodeFunction(
+        AbstractExpr expr,
+        (AbstractExpr, AbstractExpr)[] searchResultPairs,
+        AbstractExpr @default)
+    {
+        _expr = expr;
+        _searchResultPairs = searchResultPairs;
+        _default = @default;
+    }
 
     internal override void FormatSql(SqlBuildingBuffer buffer)
     {

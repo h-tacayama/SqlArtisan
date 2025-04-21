@@ -2,12 +2,16 @@
 
 namespace InlineSqlSharp;
 
-public sealed class ExprAlias(AbstractExpr expr, string alias) :
-    AbstractSqlPart,
-    ISortable
+public sealed class ExprAlias : AbstractSqlPart, ISortable
 {
-    private readonly AbstractExpr _expr = expr;
-    private readonly string _alias = alias;
+    private readonly AbstractExpr _expr;
+    private readonly string _alias;
+
+    internal ExprAlias(AbstractExpr expr, string alias)
+    {
+        _expr = expr;
+        _alias = alias;
+    }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder ASC => new SortOrder(this, SortDirection.Asc);

@@ -2,11 +2,17 @@
 
 namespace InlineSqlSharp;
 
-public sealed class SqlStatement(string text, DynamicParameters parameters)
+public sealed class SqlStatement
 {
-    public string Text => text;
+    internal SqlStatement(string text, DynamicParameters parameters)
+    {
+        Text = text;
+        Parameters = parameters;
+    }
 
-    public DynamicParameters Parameters => parameters;
+    public string Text { get; }
 
-    public int ParameterCount => parameters.ParameterNames.Count();
+    public DynamicParameters Parameters { get; }
+
+    public int ParameterCount => Parameters.ParameterNames.Count();
 }

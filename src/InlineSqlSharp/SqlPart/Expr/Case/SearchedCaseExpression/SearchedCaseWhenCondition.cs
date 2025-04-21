@@ -1,9 +1,13 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class SearchedCaseWhenCondition(AbstractCondition whenCondition) :
-    AbstractSqlPart
+public sealed class SearchedCaseWhenCondition : AbstractSqlPart
 {
-    private readonly AbstractCondition _whenCondition = whenCondition;
+    private readonly AbstractCondition _whenCondition;
+
+    internal SearchedCaseWhenCondition(AbstractCondition whenCondition)
+    {
+        _whenCondition = whenCondition;
+    }
 
     public SearchedCaseWhenClause THEN(object thenExpr) =>
         new(this, new CaseThenExpr(ExprResolver.Resolve(thenExpr)));

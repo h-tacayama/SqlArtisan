@@ -1,8 +1,13 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class DeleteClause(AbstractTable table) : AbstractSqlPart
+public sealed class DeleteClause : AbstractSqlPart
 {
-    private readonly AbstractTable _table = table;
+    private readonly AbstractTable _table;
+
+    internal DeleteClause(AbstractTable table)
+    {
+        _table = table;
+    }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.DELETE)
