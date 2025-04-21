@@ -6,48 +6,6 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void TO_DATE_CharacterValueWithFormat_CorrectSql()
-    {
-        SqlStatement sql =
-            SELECT(TO_DATE("2001/02/03", "YYYY/MM/DD"))
-            .Build();
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("TO_DATE(:0, :1)");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void TRIM_CharacterValue_CorrectSql()
-    {
-        SqlStatement sql =
-            SELECT(TRIM(_t.name))
-            .Build();
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("TRIM(\"t\".name)");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void TRIM_CharacterValueWithTrimChar_CorrectSql()
-    {
-        SqlStatement sql =
-            SELECT(TRIM(_t.name, "a"))
-            .Build();
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("TRIM(BOTH :0 FROM \"t\".name)");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
     public void TO_CHAR_DateTimeValue_CorrectSql()
     {
         SqlStatement sql =
@@ -104,7 +62,7 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TO_DATE_CharacterValueWithStringFormat_CorrectSql()
+    public void TO_DATE_CharacterValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
             SELECT(TO_DATE("2001/02/03", "YYYY/MM/DD"))
@@ -112,7 +70,7 @@ public partial class FunctionTest
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TO_DATE(:0, 'YYYY/MM/DD')");
+        expected.Append("TO_DATE(:0, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -141,6 +99,34 @@ public partial class FunctionTest
         StringBuilder expected = new();
         expected.Append("SELECT ");
         expected.Append("TO_NUMBER(:0, :1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void TRIM_CharacterValue_CorrectSql()
+    {
+        SqlStatement sql =
+            SELECT(TRIM(_t.name))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TRIM(\"t\".name)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void TRIM_CharacterValueWithTrimChar_CorrectSql()
+    {
+        SqlStatement sql =
+            SELECT(TRIM(_t.name, "a"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TRIM(BOTH :0 FROM \"t\".name)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
