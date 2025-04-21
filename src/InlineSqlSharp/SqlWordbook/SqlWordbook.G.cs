@@ -1,4 +1,4 @@
-using static InlineSqlSharp.ExprRsolver;
+using static InlineSqlSharp.ExprResolver;
 
 namespace InlineSqlSharp;
 

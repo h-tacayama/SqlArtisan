@@ -2,7 +2,7 @@
 
 namespace InlineSqlSharp;
 
-internal static class ExprRsolver
+internal static class ExprResolver
 {
     internal static (AbstractExpr, AbstractExpr)[] Resolve(
         (object, object)[] pairs) =>

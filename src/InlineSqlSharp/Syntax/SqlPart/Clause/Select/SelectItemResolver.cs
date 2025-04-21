@@ -15,7 +15,7 @@ internal static class SelectItemResolver
         {
             return new(alias);
         }
-        else if (ExprRsolver.IsBindable(item))
+        else if (ExprResolver.IsBindable(item))
         {
             return new(new BindValue(item));
         }

@@ -19,11 +19,11 @@ internal static class OrderByItemResolver
         {
             return new(sortOrder);
         }
-        else if (ExprRsolver.IsNumeric(item))
+        else if (ExprResolver.IsNumeric(item))
         {
             return new(new Literal(item.ToString() ?? ""));
         }
-        else if (ExprRsolver.IsBindable(item))
+        else if (ExprResolver.IsBindable(item))
         {
             return new(new BindValue(item));
         }
