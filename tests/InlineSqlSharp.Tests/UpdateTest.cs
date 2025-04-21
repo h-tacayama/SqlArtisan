@@ -13,8 +13,8 @@ public class UpdateTest
         SqlStatement sql =
             UPDATE(_t)
             .SET(
-                _t.code == L(1),
-                _t.name == L("a"),
+                _t.code == 1,
+                _t.name == "a",
                 _t.created_at == SYSDATE)
             .Build();
 
@@ -22,8 +22,8 @@ public class UpdateTest
         expected.Append("UPDATE ");
         expected.Append("test_table \"t\" ");
         expected.Append("SET ");
-        expected.Append("\"t\".code = 1, ");
-        expected.Append("\"t\".name = 'a', ");
+        expected.Append("\"t\".code = :0, ");
+        expected.Append("\"t\".name = :1, ");
         expected.Append("\"t\".created_at = SYSDATE");
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -63,7 +63,7 @@ public class UpdateTest
         {
             UPDATE(_t)
             .SET(
-                _t.code != L(1))
+                _t.code != 1)
             .Build();
         });
     }

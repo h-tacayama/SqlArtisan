@@ -26,14 +26,14 @@ public class DeleteTest
     {
         SqlStatement sql =
             DELETE_FROM(_t)
-            .WHERE(_t.code == L(1))
+            .WHERE(_t.code == 1)
             .Build();
 
         StringBuilder expected = new();
         expected.Append("DELETE FROM ");
         expected.Append("test_table \"t\" ");
         expected.Append("WHERE ");
-        expected.Append("\"t\".code = 1");
+        expected.Append("\"t\".code = :0");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

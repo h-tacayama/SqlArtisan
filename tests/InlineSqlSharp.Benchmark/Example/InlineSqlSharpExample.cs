@@ -15,7 +15,7 @@ public static class InlineSqlSharpExample
             .FROM(a)
             .INNER_JOIN(b)
             .ON(a.Id == b.AuthorId)
-            .WHERE(b.Rating > L(2.5))
+            .WHERE(b.Rating > 2.5)
             .GROUP_BY(a.Id)
             .ORDER_BY(a.Id.DESC)
             .Build();

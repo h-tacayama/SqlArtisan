@@ -4,17 +4,17 @@ internal sealed class Books : AbstractTable
 {
     public Books(string alias) : base(alias)
     {
-        Id = new NumericColumn(alias, "Id");
-        Name = new CharacterColumn(alias, "Name");
-        AuthorId = new NumericColumn(alias, "AuthorId");
-        Rating = new NumericColumn(alias, "Rating");
+        Id = new Column(alias, "Id");
+        Name = new Column(alias, "Name");
+        AuthorId = new Column(alias, "AuthorId");
+        Rating = new Column(alias, "Rating");
     }
 
-    public NumericColumn Id { get; }
+    public Column Id { get; }
 
-    public CharacterColumn Name { get; }
+    public Column Name { get; }
 
-    public NumericColumn AuthorId { get; }
+    public Column AuthorId { get; }
 
-    public NumericColumn Rating { get; }
+    public Column Rating { get; }
 }

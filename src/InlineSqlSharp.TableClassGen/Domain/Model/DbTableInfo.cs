@@ -24,7 +24,7 @@ internal sealed class DbTableInfo(
 
         foreach (DbColumnInfo column in Columns)
         {
-            code.AppendLine($"\t\t{column.Name} = new {column.GetCSharpType()}(alias, nameof({column.Name}));");
+            code.AppendLine($"\t\t{column.Name} = new Column(alias, nameof({column.Name}));");
         }
 
         code.AppendLine("\t}");
@@ -32,7 +32,7 @@ internal sealed class DbTableInfo(
         foreach (DbColumnInfo column in Columns)
         {
             code.AppendLine();
-            code.AppendLine($"\tpublic {column.GetCSharpType()} {column.Name} {{ get; }}");
+            code.AppendLine($"\tpublic Column {column.Name} {{ get; }}");
         }
 
         code.AppendLine("}");

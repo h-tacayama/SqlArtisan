@@ -20,47 +20,15 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void LEAST_CharacterValues_CorrectSql()
-    {
-        SqlStatement sql =
-            SELECT(LEAST(_t.name, L("test"), _t.name))
-            .Build();
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("LEAST(\"t\".name, 'test', \"t\".name)");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void LEAST_DateTimeValues_CorrectSql()
-    {
-        SqlStatement sql =
-            SELECT(
-                LEAST(
-                    _t.created_at,
-                    TO_DATE(L("2000/01/01"), L("YYYY/MM/DD")),
-                    _t.created_at))
-            .Build();
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("LEAST(\"t\".created_at, TO_DATE('2000/01/01', 'YYYY/MM/DD'), \"t\".created_at)");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
     public void LEAST_NumericValues_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LEAST(_t.code, L(10), _t.code))
+            SELECT(LEAST(_t.code, 10, _t.code))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("LEAST(\"t\".code, 10, \"t\".code)");
+        expected.Append("LEAST(\"t\".code, :0, \"t\".code)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -111,12 +79,12 @@ public partial class FunctionTest
     public void LPAD_CharacterAndLength_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LPAD(_t.name, L(10)))
+            SELECT(LPAD(_t.name, 10))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("LPAD(\"t\".name, 10)");
+        expected.Append("LPAD(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -125,12 +93,12 @@ public partial class FunctionTest
     public void LPAD_CharacterLengthAndPadding_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LPAD(_t.name, L(10), L("a")))
+            SELECT(LPAD(_t.name, 10, "a"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("LPAD(\"t\".name, 10, 'a')");
+        expected.Append("LPAD(\"t\".name, :0, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -153,12 +121,12 @@ public partial class FunctionTest
     public void LTRIM_CharacterAndTrimChars_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LTRIM(_t.name, L("a")))
+            SELECT(LTRIM(_t.name, "a"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("LTRIM(\"t\".name, 'a')");
+        expected.Append("LTRIM(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

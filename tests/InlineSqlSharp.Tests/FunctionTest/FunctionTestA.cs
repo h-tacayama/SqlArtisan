@@ -25,12 +25,12 @@ public partial class FunctionTest
     public void ADD_MONTHS_DateTimeAndNumeric_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(ADD_MONTHS(_t.created_at, L(3)))
+            SELECT(ADD_MONTHS(_t.created_at, 3))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("ADD_MONTHS(\"t\".created_at, 3)");
+        expected.Append("ADD_MONTHS(\"t\".created_at, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

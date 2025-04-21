@@ -73,9 +73,9 @@ public abstract class AbstractSqlMapperTest : IDisposable
         ISqlBuilder sql =
             INSERT_INTO(t)
             .SET(
-                t.code == P(code),
-                t.name == P(name),
-                t.created_at == TO_DATE(L(createdAt.ToString("yyyy/MM/dd")), L("yyyy/mm/dd")));
+                t.code == code,
+                t.name == name,
+                t.created_at == TO_DATE(createdAt.ToString("yyyy/MM/dd"), "yyyy/mm/dd"));
 
         int rows = _conn.Execute(sql);
     }

@@ -11,17 +11,17 @@ public class UnionTest
     public void UNION_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(L(1))
+            SELECT(1)
             .UNION
-            .SELECT(L(2))
+            .SELECT(2)
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("1 ");
+        expected.Append(":0 ");
         expected.Append("UNION ");
         expected.Append("SELECT ");
-        expected.Append("2");
+        expected.Append(":1");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -33,7 +33,7 @@ public class UnionTest
             SELECT(_t.code)
             .FROM(_t)
             .UNION
-            .SELECT(L(2))
+            .SELECT(2)
             .Build();
 
         StringBuilder expected = new();
@@ -43,7 +43,7 @@ public class UnionTest
         expected.Append("test_table \"t\" ");
         expected.Append("UNION ");
         expected.Append("SELECT ");
-        expected.Append("2");
+        expected.Append(":0");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -54,9 +54,9 @@ public class UnionTest
         SqlStatement sql =
             SELECT(_t.code)
             .FROM(_t)
-            .WHERE(_t.code == L(1))
+            .WHERE(_t.code == 1)
             .UNION
-            .SELECT(L(2))
+            .SELECT(2)
             .Build();
 
         StringBuilder expected = new();
@@ -65,10 +65,10 @@ public class UnionTest
         expected.Append("FROM ");
         expected.Append("test_table \"t\" ");
         expected.Append("WHERE ");
-        expected.Append("\"t\".code = 1 ");
+        expected.Append("\"t\".code = :0 ");
         expected.Append("UNION ");
         expected.Append("SELECT ");
-        expected.Append("2");
+        expected.Append(":1");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -79,10 +79,10 @@ public class UnionTest
         SqlStatement sql =
             SELECT(_t.code)
             .FROM(_t)
-            .WHERE(_t.code == L(1))
+            .WHERE(_t.code == 1)
             .GROUP_BY(_t.code)
             .UNION
-            .SELECT(L(2))
+            .SELECT(2)
             .Build();
 
         StringBuilder expected = new();
@@ -91,12 +91,12 @@ public class UnionTest
         expected.Append("FROM ");
         expected.Append("test_table \"t\" ");
         expected.Append("WHERE ");
-        expected.Append("\"t\".code = 1 ");
+        expected.Append("\"t\".code = :0 ");
         expected.Append("GROUP BY ");
         expected.Append("\"t\".code ");
         expected.Append("UNION ");
         expected.Append("SELECT ");
-        expected.Append("2");
+        expected.Append(":1");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -107,11 +107,11 @@ public class UnionTest
         SqlStatement sql =
             SELECT(_t.code)
             .FROM(_t)
-            .WHERE(_t.code == L(1))
+            .WHERE(_t.code == 1)
             .GROUP_BY(_t.code)
-            .HAVING(COUNT(_t.code) > L(0))
+            .HAVING(COUNT(_t.code) > 0)
             .UNION
-            .SELECT(L(2))
+            .SELECT(2)
             .Build();
 
         StringBuilder expected = new();
@@ -120,14 +120,14 @@ public class UnionTest
         expected.Append("FROM ");
         expected.Append("test_table \"t\" ");
         expected.Append("WHERE ");
-        expected.Append("\"t\".code = 1 ");
+        expected.Append("\"t\".code = :0 ");
         expected.Append("GROUP BY ");
         expected.Append("\"t\".code ");
         expected.Append("HAVING ");
-        expected.Append("COUNT(\"t\".code) > 0 ");
+        expected.Append("COUNT(\"t\".code) > :1 ");
         expected.Append("UNION ");
         expected.Append("SELECT ");
-        expected.Append("2");
+        expected.Append(":2");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -136,17 +136,17 @@ public class UnionTest
     public void UNION_ALL_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(L(1))
+            SELECT(1)
             .UNION_ALL
-            .SELECT(L(2))
+            .SELECT(2)
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("1 ");
+        expected.Append(":0 ");
         expected.Append("UNION ALL ");
         expected.Append("SELECT ");
-        expected.Append("2");
+        expected.Append(":1");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

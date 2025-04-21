@@ -9,12 +9,12 @@ public partial class FunctionTest
     public void SUBSTR_CharacterPosition_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(SUBSTR(_t.name, L(1)))
+            SELECT(SUBSTR(_t.name, 1))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("SUBSTR(\"t\".name, 1)");
+        expected.Append("SUBSTR(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -23,12 +23,12 @@ public partial class FunctionTest
     public void SUBSTR_CharacterPositionLength_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(SUBSTR(_t.name, L(1), L(3)))
+            SELECT(SUBSTR(_t.name, 1, 3))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("SUBSTR(\"t\".name, 1, 3)");
+        expected.Append("SUBSTR(\"t\".name, :0, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -37,12 +37,12 @@ public partial class FunctionTest
     public void SUBSTRB_CharacterPosition_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(SUBSTRB(_t.name, L(1)))
+            SELECT(SUBSTRB(_t.name, 1))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("SUBSTRB(\"t\".name, 1)");
+        expected.Append("SUBSTRB(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -51,12 +51,12 @@ public partial class FunctionTest
     public void SUBSTRB_CharacterPositionLength_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(SUBSTRB(_t.name, L(1), L(3)))
+            SELECT(SUBSTRB(_t.name, 1, 3))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("SUBSTRB(\"t\".name, 1, 3)");
+        expected.Append("SUBSTRB(\"t\".name, :0, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

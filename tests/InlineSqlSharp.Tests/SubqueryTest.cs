@@ -79,12 +79,13 @@ public class SubqueryTest
         expected.Append("FROM ");
         expected.Append("test_table \"s\" ");
         expected.Append("WHERE ");
-        expected.Append("\"s\".code > 1");
+        expected.Append("\"s\".code > :0");
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.IN(SELECT(_s.code).FROM(_s).WHERE(_s.code > L(1))),
-            expected.ToString());
+            _t.code.IN(SELECT(_s.code).FROM(_s).WHERE(_s.code > 2)),
+            expected.ToString(),
+            1, 2);
     }
 
     [Fact]

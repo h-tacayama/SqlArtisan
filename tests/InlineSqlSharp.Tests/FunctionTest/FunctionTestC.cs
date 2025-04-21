@@ -9,12 +9,12 @@ public partial class FunctionTest
     public void CONCAT_MultipleValues_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(CONCAT(_t.name, L("a"), L("b")))
+            SELECT(CONCAT(_t.name, "a", "b"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("CONCAT(\"t\".name, 'a', 'b')");
+        expected.Append("CONCAT(\"t\".name, :0, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

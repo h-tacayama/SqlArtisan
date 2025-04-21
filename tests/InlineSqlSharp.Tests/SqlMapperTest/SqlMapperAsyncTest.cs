@@ -15,7 +15,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
         ISqlBuilder sql =
             SELECT(_t.code)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object? result = await _conn.ExecuteScalarAsync(sql);
 
@@ -28,7 +28,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
         ISqlBuilder sql =
             SELECT(_t.code)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         int result = await _conn.ExecuteScalarAsync<int>(sql);
 
@@ -41,7 +41,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
         ISqlBuilder sql =
             SELECT(_t.name)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         string? result = await _conn.ExecuteScalarAsync<string>(sql);
 
@@ -54,7 +54,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
         ISqlBuilder sql =
             SELECT(_t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         DateTime result = await _conn.ExecuteScalarAsync<DateTime>(sql);
 
@@ -70,7 +70,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object result = await _conn.QuerySingleAsync(typeof(TestTableDto), sql);
         TestTableDto dto = ((TestTableDto)result);
@@ -89,7 +89,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         dynamic result = await _conn.QuerySingleAsync(sql);
         IDictionary<string, object> row = (IDictionary<string, object>)result;
@@ -108,7 +108,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         TestTableDto result = await _conn.QuerySingleAsync<TestTableDto>(sql);
 
@@ -126,7 +126,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object? result = await _conn.QuerySingleOrDefaultAsync(typeof(TestTableDto), sql);
         TestTableDto? dto = result as TestTableDto;
@@ -145,7 +145,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         object? result = await _conn.QuerySingleOrDefaultAsync(typeof(TestTableDto), sql);
 
@@ -161,7 +161,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         dynamic? result = await _conn.QuerySingleOrDefaultAsync(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -180,7 +180,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         dynamic? result = await _conn.QuerySingleOrDefaultAsync(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -197,7 +197,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         TestTableDto? result = await _conn.QuerySingleOrDefaultAsync<TestTableDto>(sql);
 
@@ -215,7 +215,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         TestTableDto? result = await _conn.QuerySingleOrDefaultAsync<TestTableDto>(sql);
 
@@ -231,7 +231,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object result = await _conn.QueryFirstAsync(typeof(TestTableDto), sql);
         TestTableDto dto = ((TestTableDto)result);
@@ -250,7 +250,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         dynamic result = await _conn.QueryFirstAsync(sql);
         IDictionary<string, object> row = (IDictionary<string, object>)result;
@@ -269,7 +269,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         TestTableDto result = await _conn.QueryFirstAsync<TestTableDto>(sql);
 
@@ -287,7 +287,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object? result = await _conn.QueryFirstOrDefaultAsync(typeof(TestTableDto), sql);
         TestTableDto? dto = result as TestTableDto;
@@ -306,7 +306,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         object? result = await _conn.QueryFirstOrDefaultAsync(typeof(TestTableDto), sql);
 
@@ -322,7 +322,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         dynamic? result = await _conn.QueryFirstOrDefaultAsync(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -341,7 +341,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         dynamic? result = await _conn.QueryFirstOrDefaultAsync(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -358,7 +358,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         TestTableDto? result = await _conn.QueryFirstOrDefaultAsync<TestTableDto>(sql);
 
@@ -376,7 +376,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         TestTableDto? result = await _conn.QueryFirstOrDefaultAsync<TestTableDto>(sql);
 
@@ -392,7 +392,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         IEnumerable<object> result = await _conn.QueryAsync(typeof(TestTableDto), sql);
 
@@ -408,7 +408,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         IEnumerable<dynamic> result = await _conn.QueryAsync(sql);
 
@@ -424,7 +424,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         IEnumerable<TestTableDto> result = await _conn.QueryAsync<TestTableDto>(sql);
 
@@ -440,7 +440,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         using (GridReader result = await _conn.QueryMultipleAsync(sql))
         {
@@ -458,7 +458,7 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         using (IDataReader result = await _conn.ExecuteReaderAsync(sql))
         {

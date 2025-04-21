@@ -14,7 +14,7 @@ public class HavingTest
             SELECT(_t.name)
             .FROM(_t)
             .GROUP_BY(_t.name)
-            .HAVING(COUNT(_t.name) > L(1))
+            .HAVING(COUNT(_t.name) > 1)
             .Build();
 
         StringBuilder expected = new();
@@ -25,7 +25,7 @@ public class HavingTest
         expected.Append("GROUP BY ");
         expected.Append("\"t\".name ");
         expected.Append("HAVING ");
-        expected.Append("COUNT(\"t\".name) > 1");
+        expected.Append("COUNT(\"t\".name) > :0");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

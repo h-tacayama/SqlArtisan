@@ -21,12 +21,13 @@ public class ExistsTest
         expected.Append("EXISTS ");
         expected.Append("(");
         expected.Append("SELECT ");
-        expected.Append("1");
+        expected.Append(":0");
         expected.Append(")");
 
         _assert.Equal(
-            EXISTS(SELECT(L(1))),
-            expected.ToString());
+            EXISTS(SELECT(2)),
+            expected.ToString(),
+            1, 2);
     }
 
     [Fact]
@@ -70,12 +71,11 @@ public class ExistsTest
         expected.Append("\"t\".code = :2");
         expected.Append(")");
 
-        // Check if parameter indexes are correctly incremented
         _assert.Equal(
             AND(
-                _t.code == P(1),
-                EXISTS(SELECT(_t.code).FROM(_t).WHERE(_t.name == P("a"))),
-                _t.code == P(2)),
+                _t.code == 1,
+                EXISTS(SELECT(_t.code).FROM(_t).WHERE(_t.name == "a")),
+                _t.code == 2),
             expected.ToString(),
             3, 1, "a", 2);
     }
@@ -95,8 +95,8 @@ public class ExistsTest
         expected.Append(")");
 
         _assert.Equal(
-            NOT_EXISTS(SELECT(_t.code).FROM(_t).WHERE(_t.code == P(1))),
+            NOT_EXISTS(SELECT(_t.code).FROM(_t).WHERE(_t.code == 2)),
             expected.ToString(),
-            1, 1);
+            1, 2);
     }
 }

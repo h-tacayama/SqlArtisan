@@ -4,11 +4,11 @@ internal sealed class Authors : AbstractTable
 {
     public Authors(string alias) : base(alias)
     {
-        Id = new NumericColumn(alias, "Id");
-        Name = new CharacterColumn(alias, "Name");
+        Id = new Column(alias, "Id");
+        Name = new Column(alias, "Name");
     }
 
-    public NumericColumn Id { get; }
+    public Column Id { get; }
 
-    public CharacterColumn Name { get; }
+    public Column Name { get; }
 }

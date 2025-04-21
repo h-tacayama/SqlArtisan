@@ -9,12 +9,12 @@ public partial class FunctionTest
     public void TO_DATE_CharacterValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_DATE(L("2001/02/03"), L("YYYY/MM/DD")))
+            SELECT(TO_DATE("2001/02/03", "YYYY/MM/DD"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TO_DATE('2001/02/03', 'YYYY/MM/DD')");
+        expected.Append("TO_DATE(:0, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -37,12 +37,12 @@ public partial class FunctionTest
     public void TRIM_CharacterValueWithTrimChar_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TRIM(_t.name, L("a")))
+            SELECT(TRIM(_t.name, "a"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TRIM(BOTH 'a' FROM \"t\".name)");
+        expected.Append("TRIM(BOTH :0 FROM \"t\".name)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -65,12 +65,12 @@ public partial class FunctionTest
     public void TO_CHAR_DateTimValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_CHAR(_t.created_at, L("YYYY-MM-DD")))
+            SELECT(TO_CHAR(_t.created_at, "YYYY-MM-DD"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TO_CHAR(\"t\".created_at, 'YYYY-MM-DD')");
+        expected.Append("TO_CHAR(\"t\".created_at, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -93,12 +93,12 @@ public partial class FunctionTest
     public void TO_CHAR_NumericValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_CHAR(_t.code, L("999")))
+            SELECT(TO_CHAR(_t.code, "999"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TO_CHAR(\"t\".code, '999')");
+        expected.Append("TO_CHAR(\"t\".code, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -107,12 +107,12 @@ public partial class FunctionTest
     public void TO_NUMBER_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_NUMBER(L("01")))
+            SELECT(TO_NUMBER("01"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TO_NUMBER('01')");
+        expected.Append("TO_NUMBER(:0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -121,12 +121,12 @@ public partial class FunctionTest
     public void TO_NUMBER_CharacterValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_NUMBER(L("100.00"), L("9G999D99")))
+            SELECT(TO_NUMBER("100.00", "9G999D99"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TO_NUMBER('100.00', '9G999D99')");
+        expected.Append("TO_NUMBER(:0, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -149,12 +149,12 @@ public partial class FunctionTest
     public void TRUNC_DateTimeValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TRUNC(_t.created_at, L("MONTH")))
+            SELECT(TRUNC(_t.created_at, "MONTH"))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TRUNC(\"t\".created_at, 'MONTH')");
+        expected.Append("TRUNC(\"t\".created_at, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -177,12 +177,12 @@ public partial class FunctionTest
     public void TRUNC_NumericValueWithDecimalPlaces_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TRUNC(_t.code, L(2)))
+            SELECT(TRUNC(_t.code, 2))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("TRUNC(\"t\".code, 2)");
+        expected.Append("TRUNC(\"t\".code, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

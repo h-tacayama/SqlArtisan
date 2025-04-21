@@ -12,26 +12,10 @@ public class NullConditionTest
     }
 
     [Fact]
-    public void IS_NULL_CharacterValues_CorrectSql() =>
+    public void IS_NULL_Column_CorrectSql() =>
         _assert.Equal(_t.name.IS_NULL, "\"t\".name IS NULL");
 
     [Fact]
-    public void IS_NOT_NULL_CharacterValues_CorrectSql() =>
+    public void IS_NOT_NULL_Column_CorrectSql() =>
         _assert.Equal(_t.name.IS_NOT_NULL, "\"t\".name IS NOT NULL");
-
-    [Fact]
-    public void IS_NULL_DateTimeValues_CorrectSql() =>
-        _assert.Equal(_t.created_at.IS_NULL, "\"t\".created_at IS NULL");
-
-    [Fact]
-    public void IS_NOT_NULL_DateTimeValues_CorrectSql() =>
-        _assert.Equal(_t.created_at.IS_NOT_NULL, "\"t\".created_at IS NOT NULL");
-
-    [Fact]
-    public void IS_NULL_NumericValues_CorrectSql() =>
-        _assert.Equal(_t.code.IS_NULL, "\"t\".code IS NULL");
-
-    [Fact]
-    public void IS_NOT_NULL_NumericValues_CorrectSql() =>
-        _assert.Equal(_t.code.IS_NOT_NULL, "\"t\".code IS NOT NULL");
 }
