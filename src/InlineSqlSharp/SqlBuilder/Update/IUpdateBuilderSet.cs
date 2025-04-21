@@ -2,5 +2,5 @@
 
 public interface IUpdateBuilderSet : ISqlBuilder
 {
-    IUpdateBuilderWhere WHERE(ICondition condition);
+    IUpdateBuilderWhere WHERE(AbstractCondition condition);
 }

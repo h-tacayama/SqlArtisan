@@ -4,14 +4,14 @@ internal sealed class test_table : AbstractTable
 {
     public test_table(string alias) : base(alias)
     {
-        code = new NumericColumn(alias, "code");
-        name = new CharacterColumn(alias, "name");
-        created_at = new(alias, "created_at");
+        code = new Column(alias, "code");
+        name = new Column(alias, "name");
+        created_at = new Column(alias, "created_at");
     }
 
-    public NumericColumn code { get; }
+    public Column code { get; }
 
-    public CharacterColumn name { get; }
+    public Column name { get; }
 
-    public DateTimeColumn created_at { get; }
+    public Column created_at { get; }
 }

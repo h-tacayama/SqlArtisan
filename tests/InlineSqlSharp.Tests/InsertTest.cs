@@ -13,8 +13,8 @@ public class InsertTest
         SqlStatement sql =
             INSERT_INTO(_t)
             .SET(
-                _t.code == L(1),
-                _t.name == L("a"),
+                _t.code == 1,
+                _t.name == "a",
                 _t.created_at == SYSDATE)
             .Build();
 
@@ -28,8 +28,8 @@ public class InsertTest
         expected.Append(") ");
         expected.Append("VALUES ");
         expected.Append("(");
-        expected.Append("1, ");
-        expected.Append("'a', ");
+        expected.Append(":0, ");
+        expected.Append(":1, ");
         expected.Append("SYSDATE");
         expected.Append(")");
 

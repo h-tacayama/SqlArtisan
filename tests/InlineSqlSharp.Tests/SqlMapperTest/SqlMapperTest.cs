@@ -15,7 +15,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
         ISqlBuilder sql =
             SELECT(_t.code)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object? result = _conn.ExecuteScalar(sql);
 
@@ -28,7 +28,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
         ISqlBuilder sql =
             SELECT(_t.code)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         int result = _conn.ExecuteScalar<int>(sql);
 
@@ -41,7 +41,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
         ISqlBuilder sql =
             SELECT(_t.name)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         string? result = _conn.ExecuteScalar<string>(sql);
 
@@ -54,7 +54,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
         ISqlBuilder sql =
             SELECT(_t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         DateTime result = _conn.ExecuteScalar<DateTime>(sql);
 
@@ -70,7 +70,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object result = _conn.QuerySingle(typeof(TestTableDto), sql);
         TestTableDto dto = ((TestTableDto)result);
@@ -89,7 +89,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         dynamic result = _conn.QuerySingle(sql);
         IDictionary<string, object> row = (IDictionary<string, object>)result;
@@ -108,7 +108,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         TestTableDto result = _conn.QuerySingle<TestTableDto>(sql);
 
@@ -126,7 +126,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object? result = _conn.QuerySingleOrDefault(typeof(TestTableDto), sql);
         TestTableDto? dto = result as TestTableDto;
@@ -145,7 +145,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         object? result = _conn.QuerySingleOrDefault(typeof(TestTableDto), sql);
 
@@ -161,7 +161,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         dynamic? result = _conn.QuerySingleOrDefault(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -180,7 +180,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         dynamic? result = _conn.QuerySingleOrDefault(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -197,7 +197,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         TestTableDto? result = _conn.QuerySingleOrDefault<TestTableDto>(sql);
 
@@ -215,7 +215,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         TestTableDto? result = _conn.QuerySingleOrDefault<TestTableDto>(sql);
 
@@ -231,7 +231,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object result = _conn.QueryFirst(typeof(TestTableDto), sql);
         TestTableDto dto = ((TestTableDto)result);
@@ -250,7 +250,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         dynamic result = _conn.QueryFirst(sql);
         IDictionary<string, object> row = (IDictionary<string, object>)result;
@@ -269,7 +269,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         TestTableDto result = _conn.QueryFirst<TestTableDto>(sql);
 
@@ -287,7 +287,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         object? result = _conn.QueryFirstOrDefault(typeof(TestTableDto), sql);
         TestTableDto? dto = result as TestTableDto;
@@ -306,7 +306,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         object? result = _conn.QueryFirstOrDefault(typeof(TestTableDto), sql);
 
@@ -322,7 +322,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         dynamic? result = _conn.QueryFirstOrDefault(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -341,7 +341,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         dynamic? result = _conn.QueryFirstOrDefault(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -358,7 +358,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(1));
+            .WHERE(_t.code == 1);
 
         TestTableDto? result = _conn.QueryFirstOrDefault<TestTableDto>(sql);
 
@@ -376,7 +376,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code == P(999));
+            .WHERE(_t.code == 999);
 
         TestTableDto? result = _conn.QueryFirstOrDefault<TestTableDto>(sql);
 
@@ -392,7 +392,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         IEnumerable<object> result = _conn.Query(typeof(TestTableDto), sql);
 
@@ -408,7 +408,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         IEnumerable<dynamic> result = _conn.Query(sql);
 
@@ -424,7 +424,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         IEnumerable<TestTableDto> result = _conn.Query<TestTableDto>(sql);
 
@@ -440,7 +440,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         using (GridReader result = _conn.QueryMultiple(sql))
         {
@@ -458,7 +458,7 @@ public class SqlMapperTest : AbstractSqlMapperTest
                 _t.name,
                 _t.created_at)
             .FROM(_t)
-            .WHERE(_t.code >= P(1));
+            .WHERE(_t.code >= 1);
 
         using (IDataReader result = _conn.ExecuteReader(sql))
         {

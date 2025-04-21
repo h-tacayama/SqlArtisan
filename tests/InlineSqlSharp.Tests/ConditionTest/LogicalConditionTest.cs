@@ -19,16 +19,17 @@ public class LogicalConditionTest
     {
         StringBuilder expected = new();
         expected.Append("(");
-        expected.Append("\"t\".code = 1");
+        expected.Append("\"t\".code = :0");
         expected.Append(") ");
         expected.Append("AND ");
         expected.Append("(");
-        expected.Append("\"t\".code = 2");
+        expected.Append("\"t\".code = :1");
         expected.Append(")");
 
         _assert.Equal(
-            AND(_t.code == L(1), _t.code == L(2)),
-            expected.ToString());
+            AND(_t.code == 1, _t.code == 2),
+            expected.ToString(),
+            2, 1, 2);
     }
 
     [Fact]
@@ -36,16 +37,17 @@ public class LogicalConditionTest
     {
         StringBuilder expected = new();
         expected.Append("(");
-        expected.Append("\"t\".code = 1");
+        expected.Append("\"t\".code = :0");
         expected.Append(") ");
         expected.Append("OR ");
         expected.Append("(");
-        expected.Append("\"t\".code = 2");
+        expected.Append("\"t\".code = :1");
         expected.Append(")");
 
         _assert.Equal(
-            OR(_t.code == L(1), _t.code == L(2)),
-            expected.ToString());
+            OR(_t.code == 1, _t.code == 2),
+            expected.ToString(),
+            2, 1, 2);
     }
 
     [Fact]
@@ -54,29 +56,30 @@ public class LogicalConditionTest
         StringBuilder expected = new();
         expected.Append("(");
         expected.Append("(");
-        expected.Append("\"t\".code = 1");
+        expected.Append("\"t\".code = :0");
         expected.Append(") ");
         expected.Append("OR ");
         expected.Append("(");
-        expected.Append("\"t\".code = 2");
+        expected.Append("\"t\".code = :1");
         expected.Append(")");
         expected.Append(") ");
         expected.Append("AND ");
         expected.Append("(");
         expected.Append("(");
-        expected.Append("\"t\".code = 3");
+        expected.Append("\"t\".code = :2");
         expected.Append(") ");
         expected.Append("OR ");
         expected.Append("(");
-        expected.Append("\"t\".code = 4");
+        expected.Append("\"t\".code = :3");
         expected.Append(")");
         expected.Append(")");
 
         _assert.Equal(
             AND(
-                OR(_t.code == L(1), _t.code == L(2)),
-                OR(_t.code == L(3), _t.code == L(4))),
-            expected.ToString());
+                OR(_t.code == 1, _t.code == 2),
+                OR(_t.code == 3, _t.code == 4)),
+            expected.ToString(),
+            4, 1, 2, 3, 4);
     }
 
     [Fact]
@@ -85,29 +88,30 @@ public class LogicalConditionTest
         StringBuilder expected = new();
         expected.Append("(");
         expected.Append("(");
-        expected.Append("\"t\".code = 1");
+        expected.Append("\"t\".code = :0");
         expected.Append(") ");
         expected.Append("AND ");
         expected.Append("(");
-        expected.Append("\"t\".code = 2");
+        expected.Append("\"t\".code = :1");
         expected.Append(")");
         expected.Append(") ");
         expected.Append("OR ");
         expected.Append("(");
         expected.Append("(");
-        expected.Append("\"t\".code = 3");
+        expected.Append("\"t\".code = :2");
         expected.Append(") ");
         expected.Append("AND ");
         expected.Append("(");
-        expected.Append("\"t\".code = 4");
+        expected.Append("\"t\".code = :3");
         expected.Append(")");
         expected.Append(")");
 
         _assert.Equal(
             OR(
-                AND(_t.code == L(1), _t.code == L(2)),
-                AND(_t.code == L(3), _t.code == L(4))),
-            expected.ToString());
+                AND(_t.code == 1, _t.code == 2),
+                AND(_t.code == 3, _t.code == 4)),
+            expected.ToString(),
+            4, 1, 2, 3, 4);
     }
 
     [Fact]
@@ -116,11 +120,12 @@ public class LogicalConditionTest
         StringBuilder expected = new();
         expected.Append("NOT ");
         expected.Append("(");
-        expected.Append("\"t\".code = 1");
+        expected.Append("\"t\".code = :0");
         expected.Append(")");
 
         _assert.Equal(
-            NOT(_t.code == L(1)),
-            expected.ToString());
+            NOT(_t.code == 1),
+            expected.ToString(),
+            1, 1);
     }
 }

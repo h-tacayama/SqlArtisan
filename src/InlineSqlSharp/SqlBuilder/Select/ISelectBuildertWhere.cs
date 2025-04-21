@@ -1,9 +1,8 @@
 ﻿namespace InlineSqlSharp;
 
-public interface ISelectBuildertWhere : ISqlBuilder, ISubquery, ISetOperator
+public interface ISelectBuildertWhere : ISqlBuilder, ISetOperator, ISubquery
 {
-    ISelectBuilderGroupBy GROUP_BY(params IExpr[] groupingExpressions);
+    ISelectBuilderGroupBy GROUP_BY(params object[] groupByItems);
 
-    ISelectBuilderOrderBy ORDER_BY(
-        params IExprOrAliasOrSortOrder[] sortExpressions);
+    ISelectBuilderOrderBy ORDER_BY(params object[] orderByItems);
 }

@@ -42,7 +42,7 @@ public class InnerJoinTest
                 AND(
                     _t.code == _s.code,
                     _t.name == _s.name))
-            .WHERE(_t.code > L(1))
+            .WHERE(_t.code > 1)
             .Build();
 
         StringBuilder expected = new();
@@ -61,7 +61,7 @@ public class InnerJoinTest
         expected.Append("\"t\".name = \"s\".name");
         expected.Append(") ");
         expected.Append("WHERE ");
-        expected.Append("\"t\".code > 1");
+        expected.Append("\"t\".code > :0");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

@@ -1,0 +1,23 @@
+﻿using System.Diagnostics;
+
+namespace InlineSqlSharp;
+
+public sealed class Hints : AbstractSqlPart
+{
+    private readonly string _hints;
+
+    internal Hints(string hints)
+    {
+        _hints = hints;
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static Hints None => new(string.Empty);
+
+    public bool IsSome => !IsNone;
+
+    public bool IsNone => string.IsNullOrEmpty(_hints);
+
+    internal override void FormatSql(SqlBuildingBuffer buffer) =>
+        buffer.Append(_hints);
+}

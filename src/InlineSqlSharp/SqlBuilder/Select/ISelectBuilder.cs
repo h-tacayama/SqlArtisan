@@ -2,16 +2,19 @@
 
 public interface ISelectBuilder
 {
-    ISelectBuilderSelect SELECT(params IExprOrAlias[] selectList);
+    ISelectBuilderSelect SELECT(
+        params object[] selectItems);
 
     ISelectBuilderSelect SELECT(
         AllOrDistinct allOrDistinct,
-        params IExprOrAlias[] selectList);
+        params object[] selectItems);
 
-    ISelectBuilderSelect SELECT(Hints hints, params IExprOrAlias[] selectList);
+    ISelectBuilderSelect SELECT(
+        Hints hints,
+        params object[] selectItems);
 
     ISelectBuilderSelect SELECT(
         Hints hints,
         AllOrDistinct allOrDistinct,
-        params IExprOrAlias[] selectList);
+        params object[] selectItems);
 }

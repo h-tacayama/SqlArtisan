@@ -1,9 +1,9 @@
 ﻿namespace InlineSqlSharp;
 
-public interface ISelectBuilderGroupBy : ISqlBuilder, ISubquery, ISetOperator
+public interface ISelectBuilderGroupBy : ISqlBuilder, ISetOperator, ISubquery
 {
-    ISelectBuilderHaving HAVING(ICondition condition);
+    ISelectBuilderHaving HAVING(AbstractCondition condition);
 
     ISelectBuilderOrderBy ORDER_BY(
-        params IExprOrAliasOrSortOrder[] sortExpressions);
+        params object[] orderByItems);
 }

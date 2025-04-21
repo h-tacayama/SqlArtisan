@@ -1,6 +1,6 @@
 ﻿namespace InlineSqlSharp;
 
-public interface ISelectBuilderSelect : ISqlBuilder, ISubquery, ISetOperator
+public interface ISelectBuilderSelect : ISqlBuilder, ISetOperator, ISubquery
 {
-    ISelectBuilderFrom FROM(params ITableReference[] tables);
+    ISelectBuilderFrom FROM(params AbstractTableReference[] tables);
 }

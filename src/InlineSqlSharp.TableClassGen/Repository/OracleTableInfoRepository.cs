@@ -20,7 +20,7 @@ internal sealed class OracleTableInfoRepository(
         ISqlBuilder sql =
             SELECT(t.TABLE_NAME)
             .FROM(t)
-            .WHERE(t.OWNER == P(_connInfo.Schema.ToUpper()))
+            .WHERE(t.OWNER == _connInfo.Schema.ToUpper())
             .ORDER_BY(t.TABLE_NAME);
 
         List<DbTableInfo> tables = new();
@@ -75,8 +75,8 @@ internal sealed class OracleTableInfoRepository(
             .FROM(atc)
             .WHERE(
                 AND(
-                    atc.OWNER == P(_connInfo.Schema.ToUpper()),
-                    atc.TABLE_NAME == P(tableName.ToUpper())));
+                    atc.OWNER == _connInfo.Schema.ToUpper(),
+                    atc.TABLE_NAME == tableName.ToUpper()));
 
         List<DbColumnInfo> columns = new();
 
@@ -114,8 +114,8 @@ internal sealed class OracleTableInfoRepository(
             .FROM(t)
             .WHERE(
                 AND(
-                    t.OWNER == P(_connInfo.Schema.ToUpper()),
-                    t.TABLE_NAME == P(tableName.ToUpper())));
+                    t.OWNER == _connInfo.Schema.ToUpper(),
+                    t.TABLE_NAME == tableName.ToUpper()));
 
         int tableCount = Convert.ToInt32(conn.ExecuteScalar(sql));
         return tableCount > 0;

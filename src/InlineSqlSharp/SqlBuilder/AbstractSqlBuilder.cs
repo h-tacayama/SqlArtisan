@@ -1,23 +1,18 @@
 ﻿namespace InlineSqlSharp;
 
-public abstract class AbstractSqlBuilder
+internal abstract class AbstractSqlBuilder(AbstractSqlPart clause)
 {
-    private readonly List<ISqlElement> _elements;
+    private readonly List<AbstractSqlPart> _clauses = [clause];
 
-    public AbstractSqlBuilder(ISqlElement element)
+    protected void AddElement(AbstractSqlPart part)
     {
-        _elements = [element];
+        _clauses.Add(part);
     }
-
-    protected void AddElement(ISqlElement element)
-    {
-        _elements.Add(element);
-    }
-
-    public void FormatAsSubquery(ref SqlBuildingBuffer buffer) =>
-        buffer.AppendSpaceSeparated(_elements.ToArray());
 
     protected SqlStatement BuildCore() => new SqlBuildingBuffer()
-        .AppendSpaceSeparated(_elements.ToArray())
+        .AppendSpaceSeparated(_clauses.ToArray())
         .ToSqlStatement();
+
+    internal void FormatSql(SqlBuildingBuffer buffer) =>
+        buffer.AppendSpaceSeparated([.. _clauses]);
 }

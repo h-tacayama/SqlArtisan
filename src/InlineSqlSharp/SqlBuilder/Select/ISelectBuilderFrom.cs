@@ -1,22 +1,22 @@
 ﻿namespace InlineSqlSharp;
 
-public interface ISelectBuilderFrom : ISqlBuilder, ISubquery, ISetOperator
+public interface ISelectBuilderFrom : ISqlBuilder, ISetOperator, ISubquery
 {
     // Subsequent SQL is the same as the FROM clause.
-    ISelectBuilderFrom CROSS_JOIN(ITableReference table);
+    ISelectBuilderFrom CROSS_JOIN(AbstractTableReference table);
 
-    ISelectBuilderJoin FULL_JOIN(ITableReference table);
+    ISelectBuilderJoin FULL_JOIN(AbstractTableReference table);
 
-    ISelectBuilderGroupBy GROUP_BY(params IExpr[] groupingExpressions);
+    ISelectBuilderGroupBy GROUP_BY(params object[] groupByItems);
 
-    ISelectBuilderJoin INNER_JOIN(ITableReference table);
+    ISelectBuilderJoin INNER_JOIN(AbstractTableReference table);
 
-    ISelectBuilderJoin LEFT_JOIN(ITableReference table);
+    ISelectBuilderJoin LEFT_JOIN(AbstractTableReference table);
 
     ISelectBuilderOrderBy ORDER_BY(
-        params IExprOrAliasOrSortOrder[] sortExpressions);
+        params object[] orderByItems);
 
-    ISelectBuilderJoin RIGHT_JOIN(ITableReference table);
+    ISelectBuilderJoin RIGHT_JOIN(AbstractTableReference table);
 
-    ISelectBuildertWhere WHERE(ICondition condition);
+    ISelectBuildertWhere WHERE(AbstractCondition condition);
 }

@@ -7,7 +7,7 @@ internal sealed class DeleteBuilder(DeleteClause deleteClause) :
 {
     public SqlStatement Build() => BuildCore();
 
-    public IDeleteBuilderWhere WHERE(ICondition condition)
+    public IDeleteBuilderWhere WHERE(AbstractCondition condition)
     {
         AddElement(new WhereClause(condition));
         return this;

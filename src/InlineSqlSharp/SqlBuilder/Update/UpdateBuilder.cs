@@ -8,13 +8,13 @@ internal sealed class UpdateBuilder(UpdateClause updateClause) :
 {
     public SqlStatement Build() => BuildCore();
 
-    public IUpdateBuilderSet SET(params IAssignment[] assignments)
+    public IUpdateBuilderSet SET(params AbstractEqualityCondition[] assignments)
     {
-        AddElement(new UpdateSetClause(assignments));
+        AddElement(UpdateSetClause.Parse(assignments));
         return this;
     }
 
-    public IUpdateBuilderWhere WHERE(ICondition condition)
+    public IUpdateBuilderWhere WHERE(AbstractCondition condition)
     {
         AddElement(new WhereClause(condition));
         return this;

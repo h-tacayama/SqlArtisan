@@ -3,20 +3,14 @@ using Dapper;
 
 namespace InlineSqlSharp;
 
-public sealed class SqlBuildingBuffer()
+internal sealed class SqlBuildingBuffer
 {
     private readonly StringBuilder _text = new();
     private readonly DynamicParameters _parameters = new();
 
-    internal SqlBuildingBuffer Append(ISqlElement element)
+    internal SqlBuildingBuffer Append(AbstractSqlPart element)
     {
         element.FormatSql(this);
-        return this;
-    }
-
-    internal SqlBuildingBuffer Append(object value)
-    {
-        ExprOrBindValue(value).FormatSql(this);
         return this;
     }
 
@@ -26,7 +20,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer AppendComma(ISqlElement element)
+    internal SqlBuildingBuffer AppendComma(AbstractSqlPart element)
     {
         element.FormatSql(this);
         _text.Append(", ");
@@ -40,7 +34,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer AppendCsv(ISqlElement[] elements)
+    internal SqlBuildingBuffer AppendCsv(AbstractSqlPart[] elements)
     {
         if (elements.Length == 0)
         {
@@ -68,34 +62,27 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSelectList(IExprOrAlias[] selectList)
+    internal SqlBuildingBuffer AppendSelectList(SelectItem[] selectList)
     {
         if (selectList.Length == 0)
         {
             return this;
         }
 
-        selectList[0].FormatAsSelect(this);
+        selectList[0].FormatSql(this);
 
         for (int i = 1; i < selectList.Length; i++)
         {
             _text.Append(", ");
-            selectList[i].FormatAsSelect(this);
+            selectList[i].FormatSql(this);
         }
 
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpace(ISqlElement element)
+    internal SqlBuildingBuffer AppendSpace(AbstractSqlPart element)
     {
         element.FormatSql(this);
-        _text.Append(" ");
-        return this;
-    }
-
-    internal SqlBuildingBuffer AppendSpace(object value)
-    {
-        ExprOrBindValue(value).FormatSql(this);
         _text.Append(" ");
         return this;
     }
@@ -107,7 +94,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpaceIf(bool condition, ISqlElement element)
+    internal SqlBuildingBuffer AppendSpaceIf(bool condition, AbstractSqlPart element)
     {
         if (condition)
         {
@@ -129,7 +116,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpaceIfNotNull(ISqlElement? element)
+    internal SqlBuildingBuffer AppendSpaceIfNotNull(AbstractSqlPart? element)
     {
         if (element is not null)
         {
@@ -140,7 +127,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpaceSeparated(ISqlElement[] elements)
+    internal SqlBuildingBuffer AppendSpaceSeparated(AbstractSqlPart[] elements)
     {
         if (elements.Length == 0)
         {
@@ -158,7 +145,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer AddParameter(IBindValue bindValue)
+    internal SqlBuildingBuffer AddParameter(BindValue bindValue)
     {
         string name = $":{_parameters.ParameterNames.Count()}";
         _text.Append(name);
@@ -169,7 +156,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer CloseParenthesis(ISqlElement? element = null)
+    internal SqlBuildingBuffer CloseParenthesis(AbstractSqlPart? element = null)
     {
         if (element != null)
         {
@@ -188,7 +175,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer EncloseInParentheses(ISqlElement element)
+    internal SqlBuildingBuffer EncloseInParentheses(AbstractSqlPart element)
     {
         _text.Append("(");
         element.FormatSql(this);
@@ -196,7 +183,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer EncloseInSingleQuotes(ISqlElement element)
+    internal SqlBuildingBuffer EncloseInSingleQuotes(AbstractSqlPart element)
     {
         _text.Append("'");
         element.FormatSql(this);
@@ -212,7 +199,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer EncloseInSpaces(ISqlElement element)
+    internal SqlBuildingBuffer EncloseInSpaces(AbstractSqlPart element)
     {
         _text.Append(" ");
         element.FormatSql(this);
@@ -228,7 +215,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer OpenParenthesis(ISqlElement? element = null)
+    internal SqlBuildingBuffer OpenParenthesis(AbstractSqlPart? element = null)
     {
         _text.Append("(");
 
@@ -240,17 +227,10 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer PrependComma(ISqlElement element)
+    internal SqlBuildingBuffer PrependComma(AbstractSqlPart element)
     {
         _text.Append(", ");
         element.FormatSql(this);
-        return this;
-    }
-
-    internal SqlBuildingBuffer PrependComma(object value)
-    {
-        _text.Append(", ");
-        ExprOrBindValue(value).FormatSql(this);
         return this;
     }
 
@@ -261,7 +241,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer PrependCommaIf(bool condition, ISqlElement element)
+    internal SqlBuildingBuffer PrependCommaIf(bool condition, AbstractSqlPart element)
     {
         if (condition)
         {
@@ -283,7 +263,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer PrependCommaIfNotNull(ISqlElement? element)
+    internal SqlBuildingBuffer PrependCommaIfNotNull(AbstractSqlPart? element)
     {
         if (element is not null)
         {
@@ -294,7 +274,7 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlBuildingBuffer PrependSpace(ISqlElement element)
+    internal SqlBuildingBuffer PrependSpace(AbstractSqlPart element)
     {
         _text.Append(" ");
         element.FormatSql(this);
@@ -319,8 +299,6 @@ public sealed class SqlBuildingBuffer()
         return this;
     }
 
-    internal SqlStatement ToSqlStatement() => new(_text.ToString(), _parameters);
-
-    private IExpr ExprOrBindValue(object value) =>
-        value is IExpr expr ? expr : BindValueFactory.CreateOrException(value);
+    internal SqlStatement ToSqlStatement() =>
+        new(_text.ToString(), _parameters);
 }

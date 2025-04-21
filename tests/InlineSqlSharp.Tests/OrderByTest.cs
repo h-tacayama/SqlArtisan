@@ -8,81 +8,7 @@ public class OrderByTest
     private readonly test_table _t = new("t");
 
     [Fact]
-    public void ORDER_BY_CharacterColumns_CorrectSql()
-    {
-        SqlStatement sql =
-            SELECT(_t.name)
-            .FROM(_t)
-            .ORDER_BY(
-                _t.name,
-                _t.name.ASC,
-                _t.name.DESC,
-                _t.name.NULLS_FIRST,
-                _t.name.ASC.NULLS_FIRST,
-                _t.name.DESC.NULLS_FIRST,
-                _t.name.NULLS_LAST,
-                _t.name.ASC.NULLS_LAST,
-                _t.name.DESC.NULLS_LAST)
-            .Build();
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("\"t\".name ");
-        expected.Append("FROM ");
-        expected.Append("test_table \"t\" ");
-        expected.Append("ORDER BY ");
-        expected.Append("\"t\".name, ");
-        expected.Append("\"t\".name ASC, ");
-        expected.Append("\"t\".name DESC, ");
-        expected.Append("\"t\".name NULLS FIRST, ");
-        expected.Append("\"t\".name ASC NULLS FIRST, ");
-        expected.Append("\"t\".name DESC NULLS FIRST, ");
-        expected.Append("\"t\".name NULLS LAST, ");
-        expected.Append("\"t\".name ASC NULLS LAST, ");
-        expected.Append("\"t\".name DESC NULLS LAST");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void ORDER_BY_DateTimeColumns_CorrectSql()
-    {
-        SqlStatement sql =
-            SELECT(_t.created_at)
-            .FROM(_t)
-            .ORDER_BY(
-                _t.created_at,
-                _t.created_at.ASC,
-                _t.created_at.DESC,
-                _t.created_at.NULLS_FIRST,
-                _t.created_at.ASC.NULLS_FIRST,
-                _t.created_at.DESC.NULLS_FIRST,
-                _t.created_at.NULLS_LAST,
-                _t.created_at.ASC.NULLS_LAST,
-                _t.created_at.DESC.NULLS_LAST)
-            .Build();
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("\"t\".created_at ");
-        expected.Append("FROM ");
-        expected.Append("test_table \"t\" ");
-        expected.Append("ORDER BY ");
-        expected.Append("\"t\".created_at, ");
-        expected.Append("\"t\".created_at ASC, ");
-        expected.Append("\"t\".created_at DESC, ");
-        expected.Append("\"t\".created_at NULLS FIRST, ");
-        expected.Append("\"t\".created_at ASC NULLS FIRST, ");
-        expected.Append("\"t\".created_at DESC NULLS FIRST, ");
-        expected.Append("\"t\".created_at NULLS LAST, ");
-        expected.Append("\"t\".created_at ASC NULLS LAST, ");
-        expected.Append("\"t\".created_at DESC NULLS LAST");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void ORDER_BY_NumericColumns_CorrectSql()
+    public void ORDER_BY_WithColumns_CorrectSql()
     {
         SqlStatement sql =
             SELECT(_t.code)
@@ -119,7 +45,7 @@ public class OrderByTest
     }
 
     [Fact]
-    public void ORDER_BY_ColumnAliases_CorrectSql()
+    public void ORDER_BY_WithColumnAliases_CorrectSql()
     {
         SqlStatement sql =
             SELECT(_t.code)
@@ -143,6 +69,28 @@ public class OrderByTest
         expected.Append("\"c\" DESC, ");
         expected.Append("\"d\" NULLS FIRST, ");
         expected.Append("\"e\" NULLS LAST");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ORDER_BY_WithColumnNo_CorrectSql()
+    {
+        SqlStatement sql =
+            SELECT(_t.code, _t.name)
+            .FROM(_t)
+            .ORDER_BY(1, 2)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".code, ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("ORDER BY ");
+        // SortOrder cannot be used when ORDER BY is specified with column numbers
+        expected.Append("1, 2");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

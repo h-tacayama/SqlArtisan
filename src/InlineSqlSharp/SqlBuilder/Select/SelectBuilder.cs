@@ -2,8 +2,8 @@
 
 namespace InlineSqlSharp;
 
-internal class SelectBuilder :
-    AbstractSqlBuilder,
+internal class SelectBuilder(AbstractSqlPart part) :
+    AbstractSqlBuilder(part),
     ISelectBuilderFrom,
     ISelectBuilderGroupBy,
     ISelectBuilderHaving,
@@ -13,14 +13,6 @@ internal class SelectBuilder :
     ISelectBuilderSelect,
     ISelectBuildertWhere
 {
-    internal SelectBuilder(ISqlElement sqlElement) : base(sqlElement)
-    {
-    }
-
-    internal SelectBuilder(SelectClause selectClause) : base(selectClause)
-    {
-    }
-
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public ISelectBuilderSetOperator EXCEPT
     {
@@ -101,104 +93,125 @@ internal class SelectBuilder :
         }
     }
 
-    public void FormatSql(SqlBuildingBuffer buffer) =>
-        FormatAsSubquery(ref buffer);
+    public new void FormatSql(SqlBuildingBuffer buffer) =>
+        base.FormatSql(buffer);
 
     public SqlStatement Build() => BuildCore();
 
-    public ISelectBuilderFrom CROSS_JOIN(ITableReference table)
+    public ISelectBuilderFrom CROSS_JOIN(AbstractTableReference table)
     {
         AddElement(new CrossJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderFrom FROM(params ITableReference[] tables)
+    public ISelectBuilderFrom FROM(params AbstractTableReference[] tables)
     {
         AddElement(new FromClause(tables));
         return this;
     }
 
-    public ISelectBuilderJoin FULL_JOIN(ITableReference table)
+    public ISelectBuilderJoin FULL_JOIN(AbstractTableReference table)
     {
         AddElement(new FullJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderGroupBy GROUP_BY(params IExpr[] groupingExpressions)
+    public ISelectBuilderGroupBy GROUP_BY(params object[] groupByItems)
     {
-        AddElement(new GroupByClause(groupingExpressions));
+        AddElement(GroupByClause.Parse(groupByItems));
         return this;
     }
 
-    public ISelectBuilderHaving HAVING(ICondition condition)
+    public ISelectBuilderHaving HAVING(AbstractCondition condition)
     {
         AddElement(new HavingClause(condition));
         return this;
     }
 
-    public ISelectBuilderJoin INNER_JOIN(ITableReference table)
+    public ISelectBuilderJoin INNER_JOIN(AbstractTableReference table)
     {
         AddElement(new InnerJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderJoin LEFT_JOIN(ITableReference table)
+    public ISelectBuilderJoin LEFT_JOIN(AbstractTableReference table)
     {
         AddElement(new LeftJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderJoin RIGHT_JOIN(ITableReference table)
+    public ISelectBuilderJoin RIGHT_JOIN(AbstractTableReference table)
     {
         AddElement(new RightJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderFrom ON(ICondition condition)
+    public ISelectBuilderFrom ON(AbstractCondition condition)
     {
         AddElement(new OnClause(condition));
         return this;
     }
 
     public ISelectBuilderOrderBy ORDER_BY(
-        params IExprOrAliasOrSortOrder[] sortExpressions)
+        params object[] orderByItems)
     {
-        AddElement(new OrderByClause(sortExpressions));
+        AddElement(OrderByClause.Parse(orderByItems));
         return this;
     }
 
-    public ISelectBuilderSelect SELECT(params IExprOrAlias[] selectList)
+    public ISelectBuilderSelect SELECT(
+        params object[] selectItems)
     {
-        AddElement(new SelectClause(Hints.None, AllOrDistinct.All, selectList));
+        AddElement(
+            SelectClause.Parse(
+                Hints.None,
+                AllOrDistinct.All,
+                selectItems));
+
         return this;
     }
 
     public ISelectBuilderSelect SELECT(
         AllOrDistinct allOrDistinct,
-        params IExprOrAlias[] selectList)
+        params object[] selectItems)
     {
-        AddElement(new SelectClause(Hints.None, allOrDistinct, selectList));
+        AddElement(
+            SelectClause.Parse(
+                Hints.None,
+                allOrDistinct,
+                selectItems));
+
         return this;
     }
 
     public ISelectBuilderSelect SELECT(
         Hints hints,
-        params IExprOrAlias[] selectList)
+        params object[] selectItems)
     {
-        AddElement(new SelectClause(hints, AllOrDistinct.All, selectList));
+        AddElement(
+            SelectClause.Parse(
+                hints,
+                AllOrDistinct.All,
+                selectItems));
+
         return this;
     }
 
     public ISelectBuilderSelect SELECT(
         Hints hints,
         AllOrDistinct allOrDistinct,
-        params IExprOrAlias[] selectList)
+        params object[] selectList)
     {
-        AddElement(new SelectClause(hints, allOrDistinct, selectList));
+        AddElement(
+            SelectClause.Parse(
+                hints,
+                allOrDistinct,
+                selectList));
+
         return this;
     }
 
-    public ISelectBuildertWhere WHERE(ICondition condition)
+    public ISelectBuildertWhere WHERE(AbstractCondition condition)
     {
         AddElement(new WhereClause(condition));
         return this;
