@@ -13,7 +13,7 @@ internal sealed class MultiLogicalConditionCore(
 
         for (int i = 0; i < _conditions.Length; i++)
         {
-            if (_conditions[i] is DynamicCondition dc && !dc.AddIf)
+            if (_conditions[i] is EmptyCondition)
             {
                 continue;
             }

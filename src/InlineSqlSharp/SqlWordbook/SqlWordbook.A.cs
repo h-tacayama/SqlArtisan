@@ -6,9 +6,10 @@ public static partial class SqlWordbook
 {
     public static AbsFunction ABS(object expr) => new(Resolve(expr));
 
-    public static DynamicCondition AddConditionIf(
+    public static AbstractCondition AddConditionIf(
         bool addIf,
-        AbstractCondition condition) => new(addIf, condition);
+        AbstractCondition condition) =>
+        addIf ? condition : new EmptyCondition();
 
     public static AddMonthsFunction ADD_MONTHS(
         object dateTime,

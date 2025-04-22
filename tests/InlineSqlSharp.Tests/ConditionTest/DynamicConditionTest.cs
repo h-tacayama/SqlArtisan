@@ -22,4 +22,13 @@ public class DynamicConditionTest
     [Fact]
     public void AddConditionIf_WhenConditionIsFalse_ReturnsEmpty() =>
         _assert.Equal(AddConditionIf(false, _t.code == 1), string.Empty);
+
+    [Fact]
+    public void AddConditionIf_MultiEmptyCondition_ReturnsEmpty() =>
+        _assert.Equal(
+            AND(
+                AddConditionIf(false, _t.code == 1),
+                AddConditionIf(false, _t.code == 2),
+                AddConditionIf(true, _t.code == 3)),
+            "(\"t\".code = :0)", 1, 3);
 }
