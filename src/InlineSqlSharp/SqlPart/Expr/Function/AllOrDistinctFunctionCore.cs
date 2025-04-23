@@ -2,17 +2,17 @@
 
 internal sealed class AllOrDistinctFunctionCore(
     string functionName,
-    AllOrDistinct allOrDistinct,
+    Distinct? distinct,
     AbstractSqlPart expr)
 {
     private readonly string _functionName = functionName;
-    private readonly AllOrDistinct _allOrDistinct = allOrDistinct;
+    private readonly Distinct? _distinct = distinct;
     private readonly AbstractSqlPart _expr = expr;
 
     internal void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append(_functionName)
         .OpenParenthesis()
-        .AppendSpaceIf(_allOrDistinct.IsDistinct, _allOrDistinct)
+        .AppendSpaceIfNotNull(_distinct)
         .Append(_expr)
         .CloseParenthesis();
 }

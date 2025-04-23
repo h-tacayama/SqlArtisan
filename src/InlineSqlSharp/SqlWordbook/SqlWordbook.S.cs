@@ -9,17 +9,17 @@ public static partial class SqlWordbook
         params object[] selectItems) =>
         new SelectBuilder(
             SelectClause.Parse(
-                Hints.None,
-                AllOrDistinct.All,
+                null,
+                null,
                 selectItems));
 
     public static ISelectBuilderSelect SELECT(
-        AllOrDistinct allOrAistinct,
+        Distinct distinct,
         params object[] selectItems) =>
         new SelectBuilder(
             SelectClause.Parse(
-                Hints.None,
-                allOrAistinct,
+                null,
+                distinct,
                 selectItems));
 
     public static ISelectBuilderSelect SELECT(
@@ -28,17 +28,17 @@ public static partial class SqlWordbook
         new SelectBuilder(
             SelectClause.Parse(
                 hints,
-                AllOrDistinct.All,
+                null,
                 selectItems));
 
     public static ISelectBuilderSelect SELECT(
         Hints hints,
-        AllOrDistinct allOrAistinct,
+        Distinct distinct,
         params object[] selectItems) =>
         new SelectBuilder(
             SelectClause.Parse(
                 hints,
-                allOrAistinct,
+                distinct,
                 selectItems));
 
     public static Sequence SEQUENCE(string name) => new(name);
@@ -72,10 +72,10 @@ public static partial class SqlWordbook
             Resolve(length));
 
     public static SumFunction SUM(object expr) =>
-        new(AllOrDistinct.All, Resolve(expr));
+        new(null, Resolve(expr));
 
-    public static SumFunction SUM(AllOrDistinct allOrDistinct, object expr) =>
-        new(allOrDistinct, Resolve(expr));
+    public static SumFunction SUM(Distinct distinct, object expr) =>
+        new(distinct, Resolve(expr));
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static SysdateFunction SYSDATE => new();

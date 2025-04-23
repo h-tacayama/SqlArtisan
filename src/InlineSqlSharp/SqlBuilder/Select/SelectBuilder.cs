@@ -164,21 +164,21 @@ internal class SelectBuilder(AbstractSqlPart part) :
     {
         AddElement(
             SelectClause.Parse(
-                Hints.None,
-                AllOrDistinct.All,
+                null,
+                null,
                 selectItems));
 
         return this;
     }
 
     public ISelectBuilderSelect SELECT(
-        AllOrDistinct allOrDistinct,
+        Distinct distinct,
         params object[] selectItems)
     {
         AddElement(
             SelectClause.Parse(
-                Hints.None,
-                allOrDistinct,
+                null,
+                distinct,
                 selectItems));
 
         return this;
@@ -191,7 +191,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
         AddElement(
             SelectClause.Parse(
                 hints,
-                AllOrDistinct.All,
+                null,
                 selectItems));
 
         return this;
@@ -199,13 +199,13 @@ internal class SelectBuilder(AbstractSqlPart part) :
 
     public ISelectBuilderSelect SELECT(
         Hints hints,
-        AllOrDistinct allOrDistinct,
+        Distinct distinct,
         params object[] selectList)
     {
         AddElement(
             SelectClause.Parse(
                 hints,
-                allOrDistinct,
+                distinct,
                 selectList));
 
         return this;

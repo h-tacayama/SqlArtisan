@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace InlineSqlSharp;
+﻿namespace InlineSqlSharp;
 
 public sealed class Hints : AbstractSqlPart
 {
@@ -10,13 +8,6 @@ public sealed class Hints : AbstractSqlPart
     {
         _hints = hints;
     }
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static Hints None => new(string.Empty);
-
-    public bool IsSome => !IsNone;
-
-    public bool IsNone => string.IsNullOrEmpty(_hints);
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
         buffer.Append(_hints);

@@ -26,10 +26,10 @@ public static partial class SqlWordbook
             Resolve(others));
 
     public static CountFunction COUNT(object expr) =>
-        new(AllOrDistinct.All, Resolve(expr));
+        new(null, Resolve(expr));
 
-    public static CountFunction COUNT(AllOrDistinct allOrDistinct, object expr) =>
-        new(allOrDistinct, Resolve(expr));
+    public static CountFunction COUNT(Distinct distinct, object expr) =>
+        new(distinct, Resolve(expr));
 
     public static AnalyticCumeDistFunction CUME_DIST() => new();
 }

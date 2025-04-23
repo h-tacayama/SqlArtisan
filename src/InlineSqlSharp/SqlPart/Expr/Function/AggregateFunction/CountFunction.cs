@@ -4,11 +4,9 @@ public sealed class CountFunction : AbstractExpr
 {
     private readonly AllOrDistinctFunctionCore _core;
 
-    internal CountFunction(
-        AllOrDistinct allOrDistinct,
-        AbstractExpr expr)
+    internal CountFunction(Distinct? distinct, AbstractExpr expr)
     {
-        _core = new(Keywords.COUNT, allOrDistinct, expr);
+        _core = new(Keywords.COUNT, distinct, expr);
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>

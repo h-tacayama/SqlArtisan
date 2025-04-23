@@ -6,7 +6,7 @@ public interface ISelectBuilder
         params object[] selectItems);
 
     ISelectBuilderSelect SELECT(
-        AllOrDistinct allOrDistinct,
+        Distinct distinct,
         params object[] selectItems);
 
     ISelectBuilderSelect SELECT(
@@ -15,6 +15,6 @@ public interface ISelectBuilder
 
     ISelectBuilderSelect SELECT(
         Hints hints,
-        AllOrDistinct allOrDistinct,
+        Distinct distinct,
         params object[] selectItems);
 }

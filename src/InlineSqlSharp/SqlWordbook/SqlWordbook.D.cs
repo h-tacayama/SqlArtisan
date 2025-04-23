@@ -6,7 +6,7 @@ namespace InlineSqlSharp;
 public static partial class SqlWordbook
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static AllOrDistinct DISTINCT => AllOrDistinct.Distinct;
+    public static Distinct DISTINCT => new();
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static DualTable DUAL => new();

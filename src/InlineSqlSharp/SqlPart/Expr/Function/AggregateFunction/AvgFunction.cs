@@ -4,9 +4,9 @@ public sealed class AvgFunction : AbstractExpr
 {
     private readonly AllOrDistinctFunctionCore _core;
 
-    internal AvgFunction(AllOrDistinct allOrDistinct, AbstractExpr expr)
+    internal AvgFunction(Distinct? distinct, AbstractExpr expr)
     {
-        _core = new(Keywords.AVG, allOrDistinct, expr);
+        _core = new(Keywords.AVG, distinct, expr);
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
