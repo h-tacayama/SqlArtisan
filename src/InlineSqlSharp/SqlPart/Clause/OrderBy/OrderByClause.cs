@@ -2,18 +2,18 @@
 
 public sealed class OrderByClause : AbstractSqlPart
 {
-    private readonly OrderByItem[] _items;
+    private readonly AbstractSqlPart[] _orderByItems;
 
-    private OrderByClause(OrderByItem[] items)
+    private OrderByClause(AbstractSqlPart[] orderByItems)
     {
-        _items = items;
+        _orderByItems = orderByItems;
     }
 
-    internal static OrderByClause Parse(object[] items) =>
-        new(OrderByItemResolver.Resolve(items));
+    internal static OrderByClause Parse(object[] orderByItems) =>
+        new(OrderByItemResolver.Resolve(orderByItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.ORDER)
         .AppendSpace(Keywords.BY)
-        .AppendCsv(_items);
+        .AppendCsv(_orderByItems);
 }

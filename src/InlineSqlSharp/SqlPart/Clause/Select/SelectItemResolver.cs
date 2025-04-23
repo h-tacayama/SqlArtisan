@@ -2,27 +2,27 @@
 
 internal static class SelectItemResolver
 {
-    internal static SelectItem[] Resolve(object[] items) =>
-        items.Select(Resolve).ToArray();
+    internal static AbstractSqlPart[] Resolve(object[] selectItems) =>
+        selectItems.Select(Resolve).ToArray();
 
-    internal static SelectItem Resolve(object item)
+    internal static AbstractSqlPart Resolve(object selectItem)
     {
-        if (item is AbstractExpr expr)
+        if (selectItem is AbstractExpr expr)
         {
-            return new(expr);
+            return expr;
         }
-        else if (item is ExprAlias alias)
+        else if (selectItem is ExprAlias alias)
         {
-            return new(alias);
+            return alias;
         }
-        else if (ExprResolver.IsBindable(item))
+        else if (ExprResolver.IsBindable(selectItem))
         {
-            return new(new BindValue(item));
+            return new BindValue(selectItem);
         }
         else
         {
             throw new ArgumentException(
-                $"Invalid type for SelectItem: {item.GetType()}");
+                $"Invalid type for SelectItem: {selectItem.GetType()}");
         }
     }
 }

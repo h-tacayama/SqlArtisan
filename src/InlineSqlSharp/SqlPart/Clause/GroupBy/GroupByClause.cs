@@ -2,18 +2,18 @@
 
 internal sealed class GroupByClause : AbstractSqlPart
 {
-    private readonly GroupByItem[] _items;
+    private readonly AbstractSqlPart[] _groupByItems;
 
-    private GroupByClause(GroupByItem[] items)
+    private GroupByClause(AbstractSqlPart[] groupByItems)
     {
-        _items = items;
+        _groupByItems = groupByItems;
     }
 
-    internal static GroupByClause Parse(object[] items) =>
-        new(GroupByItemResolver.Resolve(items));
+    internal static GroupByClause Parse(object[] groupByItems) =>
+        new(GroupByItemResolver.Resolve(groupByItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.GROUP)
         .AppendSpace(Keywords.BY)
-        .AppendCsv(_items);
+        .AppendCsv(_groupByItems);
 }

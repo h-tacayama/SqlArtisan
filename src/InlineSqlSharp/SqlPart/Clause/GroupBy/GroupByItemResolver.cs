@@ -2,19 +2,19 @@
 
 internal static class GroupByItemResolver
 {
-    internal static GroupByItem[] Resolve(object[] items) =>
-        items.Select(Resolve).ToArray();
+    internal static AbstractSqlPart[] Resolve(object[] groupByItems) =>
+        groupByItems.Select(Resolve).ToArray();
 
-    internal static GroupByItem Resolve(object item)
+    internal static AbstractSqlPart Resolve(object groupByItem)
     {
-        if (item is AbstractExpr expr)
+        if (groupByItem is AbstractExpr expr)
         {
-            return new(expr);
+            return expr;
         }
         else
         {
             throw new ArgumentException(
-                $"Invalid type for GroupByItem: {item.GetType()}");
+                $"Invalid type for GroupByItem: {groupByItem.GetType()}");
         }
     }
 }

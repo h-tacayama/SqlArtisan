@@ -62,19 +62,19 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSelectList(SelectItem[] selectList)
+    internal SqlBuildingBuffer AppendSelectItems(AbstractSqlPart[] selectItems)
     {
-        if (selectList.Length == 0)
+        if (selectItems.Length == 0)
         {
             return this;
         }
 
-        selectList[0].FormatSql(this);
+        AppendSelectItem(selectItems[0]);
 
-        for (int i = 1; i < selectList.Length; i++)
+        for (int i = 1; i < selectItems.Length; i++)
         {
             _text.Append(", ");
-            selectList[i].FormatSql(this);
+            AppendSelectItem(selectItems[i]);
         }
 
         return this;
@@ -301,4 +301,16 @@ internal sealed class SqlBuildingBuffer
 
     internal SqlStatement ToSqlStatement() =>
         new(_text.ToString(), _parameters);
+
+    private void AppendSelectItem(AbstractSqlPart selectItem)
+    {
+        if (selectItem is ExprAlias alias)
+        {
+            alias.FormatAsSelect(this);
+        }
+        else
+        {
+            selectItem.FormatSql(this);
+        }
+    }
 }

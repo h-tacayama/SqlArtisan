@@ -2,35 +2,35 @@
 
 internal static class OrderByItemResolver
 {
-    internal static OrderByItem[] Resolve(object[] items) =>
-        items.Select(Resolve).ToArray();
+    internal static AbstractSqlPart[] Resolve(object[] orderByItems) =>
+        orderByItems.Select(Resolve).ToArray();
 
-    internal static OrderByItem Resolve(object item)
+    internal static AbstractSqlPart Resolve(object orderByItem)
     {
-        if (item is AbstractExpr expr)
+        if (orderByItem is AbstractExpr expr)
         {
-            return new(expr);
+            return expr;
         }
-        else if (item is ExprAlias alias)
+        else if (orderByItem is ExprAlias alias)
         {
-            return new(alias);
+            return alias;
         }
-        else if (item is SortOrder sortOrder)
+        else if (orderByItem is SortOrder sortOrder)
         {
-            return new(sortOrder);
+            return sortOrder;
         }
-        else if (ExprResolver.IsNumeric(item))
+        else if (ExprResolver.IsNumeric(orderByItem))
         {
-            return new(new Literal(item.ToString() ?? ""));
+            return new Literal(orderByItem.ToString() ?? "");
         }
-        else if (ExprResolver.IsBindable(item))
+        else if (ExprResolver.IsBindable(orderByItem))
         {
-            return new(new BindValue(item));
+            return new BindValue(orderByItem);
         }
         else
         {
             throw new ArgumentException(
-                $"Invalid type for OrderByItem: {item.GetType()}");
+                $"Invalid type for OrderByItem: {orderByItem.GetType()}");
         }
     }
 }

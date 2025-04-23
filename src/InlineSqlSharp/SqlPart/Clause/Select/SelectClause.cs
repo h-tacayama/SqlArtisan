@@ -4,29 +4,29 @@ internal sealed class SelectClause : AbstractSqlPart
 {
     private readonly Hints? _hints;
     private readonly Distinct? _distinct;
-    private readonly SelectItem[] _selectList;
+    private readonly AbstractSqlPart[] _selectItems;
 
     private SelectClause(
         Hints? hints,
         Distinct? distinct,
-        SelectItem[] selectItems)
+        AbstractSqlPart[] selectItems)
     {
         _hints = hints;
         _distinct = distinct;
-        _selectList = selectItems;
+        _selectItems = selectItems;
     }
 
     internal static SelectClause Parse(
         Hints? hints,
         Distinct? distinct,
-        object[] items) => new(
+        object[] selectItems) => new(
             hints,
             distinct,
-            SelectItemResolver.Resolve(items));
+            SelectItemResolver.Resolve(selectItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(Keywords.SELECT)
         .AppendSpaceIfNotNull(_hints)
         .AppendSpaceIfNotNull(_distinct)
-        .AppendSelectList(_selectList);
+        .AppendSelectItems(_selectItems);
 }
