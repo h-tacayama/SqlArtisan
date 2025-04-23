@@ -20,20 +20,6 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer AppendComma(AbstractSqlPart element)
-    {
-        element.FormatSql(this);
-        _text.Append(", ");
-        return this;
-    }
-
-    internal SqlBuildingBuffer AppendComma(string? value = null)
-    {
-        _text.Append(value);
-        _text.Append(", ");
-        return this;
-    }
-
     internal SqlBuildingBuffer AppendCsv(AbstractSqlPart[] elements)
     {
         if (elements.Length == 0)
@@ -47,16 +33,6 @@ internal sealed class SqlBuildingBuffer
         {
             _text.Append(", ");
             elements[i].FormatSql(this);
-        }
-
-        return this;
-    }
-
-    internal SqlBuildingBuffer AppendIf(bool condition, string? value)
-    {
-        if (condition)
-        {
-            _text.Append(value);
         }
 
         return this;
@@ -91,17 +67,6 @@ internal sealed class SqlBuildingBuffer
     {
         _text.Append(value);
         _text.Append(" ");
-        return this;
-    }
-
-    internal SqlBuildingBuffer AppendSpaceIf(bool condition, AbstractSqlPart element)
-    {
-        if (condition)
-        {
-            element.FormatSql(this);
-            _text.Append(" ");
-        }
-
         return this;
     }
 
@@ -183,30 +148,6 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer EncloseInSingleQuotes(AbstractSqlPart element)
-    {
-        _text.Append("'");
-        element.FormatSql(this);
-        _text.Append("'");
-        return this;
-    }
-
-    internal SqlBuildingBuffer EncloseInSingleQuotes(string value)
-    {
-        _text.Append("'");
-        _text.Append(value);
-        _text.Append("'");
-        return this;
-    }
-
-    internal SqlBuildingBuffer EncloseInSpaces(AbstractSqlPart element)
-    {
-        _text.Append(" ");
-        element.FormatSql(this);
-        _text.Append(" ");
-        return this;
-    }
-
     internal SqlBuildingBuffer EncloseInSpaces(string value)
     {
         _text.Append(" ");
@@ -234,35 +175,6 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer PrependComma(string value)
-    {
-        _text.Append(", ");
-        _text.Append(value);
-        return this;
-    }
-
-    internal SqlBuildingBuffer PrependCommaIf(bool condition, AbstractSqlPart element)
-    {
-        if (condition)
-        {
-            _text.Append(", ");
-            element.FormatSql(this);
-        }
-
-        return this;
-    }
-
-    internal SqlBuildingBuffer PrependCommaIf(bool condition, string value)
-    {
-        if (condition)
-        {
-            _text.Append(", ");
-            _text.Append(value);
-        }
-
-        return this;
-    }
-
     internal SqlBuildingBuffer PrependCommaIfNotNull(AbstractSqlPart? element)
     {
         if (element is not null)
@@ -271,13 +183,6 @@ internal sealed class SqlBuildingBuffer
             element.FormatSql(this);
         }
 
-        return this;
-    }
-
-    internal SqlBuildingBuffer PrependSpace(AbstractSqlPart element)
-    {
-        _text.Append(" ");
-        element.FormatSql(this);
         return this;
     }
 
