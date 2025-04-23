@@ -24,4 +24,7 @@ public class Benchmarker
 
     [Benchmark]
     public void InlineSqlSharp() => InlineSqlSharpExample.Do();
+
+    [Benchmark]
+    public void StringBuilderTest() => StringBuilderExample.Do();
 }
