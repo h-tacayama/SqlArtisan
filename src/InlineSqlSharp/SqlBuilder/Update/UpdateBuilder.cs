@@ -10,13 +10,13 @@ internal sealed class UpdateBuilder(UpdateClause updateClause) :
 
     public IUpdateBuilderSet SET(params AbstractEqualityCondition[] assignments)
     {
-        AddElement(UpdateSetClause.Parse(assignments));
+        AddPart(UpdateSetClause.Parse(assignments));
         return this;
     }
 
     public IUpdateBuilderWhere WHERE(AbstractCondition condition)
     {
-        AddElement(new WhereClause(condition));
+        AddPart(new WhereClause(condition));
         return this;
     }
 }

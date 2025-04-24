@@ -17,7 +17,7 @@ internal sealed class InsertBuilder :
 
     public IInsertBuilderSet SET(params AbstractEqualityCondition[] assignments)
     {
-        AddElement(InsertSetClause.Parse(assignments));
+        AddPart(InsertSetClause.Parse(assignments));
         return this;
     }
 }

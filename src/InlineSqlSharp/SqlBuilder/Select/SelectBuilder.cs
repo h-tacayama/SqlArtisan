@@ -18,7 +18,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     {
         get
         {
-            AddElement(new ExceptOperator(false));
+            AddPart(new ExceptOperator(false));
             return this;
         }
     }
@@ -28,7 +28,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     {
         get
         {
-            AddElement(new ExceptOperator(true));
+            AddPart(new ExceptOperator(true));
             return this;
         }
     }
@@ -38,7 +38,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     {
         get
         {
-            AddElement(new IntersectOperator(false));
+            AddPart(new IntersectOperator(false));
             return this;
         }
     }
@@ -48,7 +48,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     {
         get
         {
-            AddElement(new IntersectOperator(true));
+            AddPart(new IntersectOperator(true));
             return this;
         }
     }
@@ -58,7 +58,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     {
         get
         {
-            AddElement(new MinusOperator(false));
+            AddPart(new MinusOperator(false));
             return this;
         }
     }
@@ -68,7 +68,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     {
         get
         {
-            AddElement(new MinusOperator(true));
+            AddPart(new MinusOperator(true));
             return this;
         }
     }
@@ -78,7 +78,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     {
         get
         {
-            AddElement(new UnionOperator(false));
+            AddPart(new UnionOperator(false));
             return this;
         }
     }
@@ -88,7 +88,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     {
         get
         {
-            AddElement(new UnionOperator(true));
+            AddPart(new UnionOperator(true));
             return this;
         }
     }
@@ -100,69 +100,69 @@ internal class SelectBuilder(AbstractSqlPart part) :
 
     public ISelectBuilderFrom CROSS_JOIN(AbstractTableReference table)
     {
-        AddElement(new CrossJoinClause(table));
+        AddPart(new CrossJoinClause(table));
         return this;
     }
 
     public ISelectBuilderFrom FROM(params AbstractTableReference[] tables)
     {
-        AddElement(new FromClause(tables));
+        AddPart(new FromClause(tables));
         return this;
     }
 
     public ISelectBuilderJoin FULL_JOIN(AbstractTableReference table)
     {
-        AddElement(new FullJoinClause(table));
+        AddPart(new FullJoinClause(table));
         return this;
     }
 
     public ISelectBuilderGroupBy GROUP_BY(params object[] groupByItems)
     {
-        AddElement(GroupByClause.Parse(groupByItems));
+        AddPart(GroupByClause.Parse(groupByItems));
         return this;
     }
 
     public ISelectBuilderHaving HAVING(AbstractCondition condition)
     {
-        AddElement(new HavingClause(condition));
+        AddPart(new HavingClause(condition));
         return this;
     }
 
     public ISelectBuilderJoin INNER_JOIN(AbstractTableReference table)
     {
-        AddElement(new InnerJoinClause(table));
+        AddPart(new InnerJoinClause(table));
         return this;
     }
 
     public ISelectBuilderJoin LEFT_JOIN(AbstractTableReference table)
     {
-        AddElement(new LeftJoinClause(table));
+        AddPart(new LeftJoinClause(table));
         return this;
     }
 
     public ISelectBuilderJoin RIGHT_JOIN(AbstractTableReference table)
     {
-        AddElement(new RightJoinClause(table));
+        AddPart(new RightJoinClause(table));
         return this;
     }
 
     public ISelectBuilderFrom ON(AbstractCondition condition)
     {
-        AddElement(new OnClause(condition));
+        AddPart(new OnClause(condition));
         return this;
     }
 
     public ISelectBuilderOrderBy ORDER_BY(
         params object[] orderByItems)
     {
-        AddElement(OrderByClause.Parse(orderByItems));
+        AddPart(OrderByClause.Parse(orderByItems));
         return this;
     }
 
     public ISelectBuilderSelect SELECT(
         params object[] selectItems)
     {
-        AddElement(
+        AddPart(
             SelectClause.Parse(
                 null,
                 null,
@@ -175,7 +175,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
         Distinct distinct,
         params object[] selectItems)
     {
-        AddElement(
+        AddPart(
             SelectClause.Parse(
                 null,
                 distinct,
@@ -188,7 +188,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
         Hints hints,
         params object[] selectItems)
     {
-        AddElement(
+        AddPart(
             SelectClause.Parse(
                 hints,
                 null,
@@ -202,7 +202,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
         Distinct distinct,
         params object[] selectList)
     {
-        AddElement(
+        AddPart(
             SelectClause.Parse(
                 hints,
                 distinct,
@@ -213,7 +213,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
 
     public ISelectBuildertWhere WHERE(AbstractCondition condition)
     {
-        AddElement(new WhereClause(condition));
+        AddPart(new WhereClause(condition));
         return this;
     }
 }

@@ -9,7 +9,7 @@ internal sealed class DeleteBuilder(DeleteClause deleteClause) :
 
     public IDeleteBuilderWhere WHERE(AbstractCondition condition)
     {
-        AddElement(new WhereClause(condition));
+        AddPart(new WhereClause(condition));
         return this;
     }
 }

@@ -8,9 +8,9 @@ internal sealed class SqlBuildingBuffer
     private readonly StringBuilder _text = new();
     private readonly DynamicParameters _parameters = new();
 
-    internal SqlBuildingBuffer Append(AbstractSqlPart element)
+    internal SqlBuildingBuffer Append(AbstractSqlPart part)
     {
-        element.FormatSql(this);
+        part.FormatSql(this);
         return this;
     }
 
@@ -20,19 +20,19 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer AppendCsv(AbstractSqlPart[] elements)
+    internal SqlBuildingBuffer AppendCsv(AbstractSqlPart[] parts)
     {
-        if (elements.Length == 0)
+        if (parts.Length == 0)
         {
             return this;
         }
 
-        elements[0].FormatSql(this);
+        parts[0].FormatSql(this);
 
-        for (int i = 1; i < elements.Length; i++)
+        for (int i = 1; i < parts.Length; i++)
         {
             _text.Append(", ");
-            elements[i].FormatSql(this);
+            parts[i].FormatSql(this);
         }
 
         return this;
@@ -56,9 +56,9 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpace(AbstractSqlPart element)
+    internal SqlBuildingBuffer AppendSpace(AbstractSqlPart part)
     {
-        element.FormatSql(this);
+        part.FormatSql(this);
         _text.Append(" ");
         return this;
     }
@@ -81,30 +81,30 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpaceIfNotNull(AbstractSqlPart? element)
+    internal SqlBuildingBuffer AppendSpaceIfNotNull(AbstractSqlPart? part)
     {
-        if (element is not null)
+        if (part is not null)
         {
-            element.FormatSql(this);
+            part.FormatSql(this);
             _text.Append(" ");
         }
 
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpaceSeparated(AbstractSqlPart[] elements)
+    internal SqlBuildingBuffer AppendSpaceSeparated(IList<AbstractSqlPart> parts)
     {
-        if (elements.Length == 0)
+        if (parts.Count == 0)
         {
             return this;
         }
 
-        elements[0].FormatSql(this);
+        parts[0].FormatSql(this);
 
-        for (int i = 1; i < elements.Length; i++)
+        for (int i = 1; i < parts.Count; i++)
         {
             _text.Append(" ");
-            elements[i].FormatSql(this);
+            parts[i].FormatSql(this);
         }
 
         return this;
@@ -121,11 +121,11 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer CloseParenthesis(AbstractSqlPart? element = null)
+    internal SqlBuildingBuffer CloseParenthesis(AbstractSqlPart? part = null)
     {
-        if (element != null)
+        if (part != null)
         {
-            element.FormatSql(this);
+            part.FormatSql(this);
         }
 
         _text.Append(")");
@@ -140,10 +140,10 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer EncloseInParentheses(AbstractSqlPart element)
+    internal SqlBuildingBuffer EncloseInParentheses(AbstractSqlPart part)
     {
         _text.Append("(");
-        element.FormatSql(this);
+        part.FormatSql(this);
         _text.Append(")");
         return this;
     }
@@ -156,31 +156,31 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer OpenParenthesis(AbstractSqlPart? element = null)
+    internal SqlBuildingBuffer OpenParenthesis(AbstractSqlPart? part = null)
     {
         _text.Append("(");
 
-        if (element != null)
+        if (part != null)
         {
-            element.FormatSql(this);
+            part.FormatSql(this);
         }
 
         return this;
     }
 
-    internal SqlBuildingBuffer PrependComma(AbstractSqlPart element)
+    internal SqlBuildingBuffer PrependComma(AbstractSqlPart part)
     {
         _text.Append(", ");
-        element.FormatSql(this);
+        part.FormatSql(this);
         return this;
     }
 
-    internal SqlBuildingBuffer PrependCommaIfNotNull(AbstractSqlPart? element)
+    internal SqlBuildingBuffer PrependCommaIfNotNull(AbstractSqlPart? part)
     {
-        if (element is not null)
+        if (part is not null)
         {
             _text.Append(", ");
-            element.FormatSql(this);
+            part.FormatSql(this);
         }
 
         return this;

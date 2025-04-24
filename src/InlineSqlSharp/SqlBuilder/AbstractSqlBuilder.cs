@@ -4,7 +4,7 @@ internal abstract class AbstractSqlBuilder(AbstractSqlPart clause)
 {
     private readonly List<AbstractSqlPart> _clauses = [clause];
 
-    protected void AddElement(AbstractSqlPart part)
+    protected void AddPart(AbstractSqlPart part)
     {
         _clauses.Add(part);
     }
