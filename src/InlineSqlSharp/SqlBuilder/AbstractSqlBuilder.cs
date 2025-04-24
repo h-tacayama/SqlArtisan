@@ -9,10 +9,11 @@ internal abstract class AbstractSqlBuilder(AbstractSqlPart clause)
         _clauses.Add(part);
     }
 
-    protected SqlStatement BuildCore() => new SqlBuildingBuffer()
-        .AppendSpaceSeparated(_clauses.ToArray())
+    protected SqlStatement BuildCore() =>
+        new SqlBuildingBuffer()
+        .AppendSpaceSeparated(_clauses)
         .ToSqlStatement();
 
     internal void FormatSql(SqlBuildingBuffer buffer) =>
-        buffer.AppendSpaceSeparated([.. _clauses]);
+        buffer.AppendSpaceSeparated(_clauses);
 }

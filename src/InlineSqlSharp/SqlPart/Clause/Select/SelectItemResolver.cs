@@ -2,8 +2,17 @@
 
 internal static class SelectItemResolver
 {
-    internal static AbstractSqlPart[] Resolve(object[] selectItems) =>
-        selectItems.Select(Resolve).ToArray();
+    internal static AbstractSqlPart[] Resolve(object[] selectItems)
+    {
+        var resolved = new AbstractSqlPart[selectItems.Length];
+
+        for (int i = 0; i < selectItems.Length; i++)
+        {
+            resolved[i] = Resolve(selectItems[i]);
+        }
+
+        return resolved;
+    }
 
     internal static AbstractSqlPart Resolve(object selectItem)
     {

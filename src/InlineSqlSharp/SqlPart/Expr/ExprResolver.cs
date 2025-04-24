@@ -4,14 +4,29 @@ namespace InlineSqlSharp;
 
 internal static class ExprResolver
 {
-    internal static (AbstractExpr, AbstractExpr)[] Resolve(
-        (object, object)[] pairs) =>
-        pairs.Select(pair =>
-        (Resolve(pair.Item1),
-        Resolve(pair.Item2))).ToArray();
+    internal static (AbstractExpr, AbstractExpr)[] Resolve((object, object)[] pairs)
+    {
+        var resolved = new (AbstractExpr, AbstractExpr)[pairs.Length];
 
-    internal static AbstractExpr[] Resolve(object[] items) =>
-        items.Select(Resolve).ToArray();
+        for (int i = 0; i < pairs.Length; i++)
+        {
+            resolved[i] = (Resolve(pairs[i].Item1), Resolve(pairs[i].Item2));
+        }
+
+        return resolved;
+    }
+
+    internal static AbstractExpr[] Resolve(object[] items)
+    {
+        var resolved = new AbstractExpr[items.Length];
+
+        for (int i = 0; i < items.Length; i++)
+        {
+            resolved[i] = Resolve(items[i]);
+        }
+
+        return resolved;
+    }
 
     internal static AbstractExpr Resolve(object item)
     {

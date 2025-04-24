@@ -2,8 +2,17 @@
 
 internal static class OrderByItemResolver
 {
-    internal static AbstractSqlPart[] Resolve(object[] orderByItems) =>
-        orderByItems.Select(Resolve).ToArray();
+    internal static AbstractSqlPart[] Resolve(object[] orderByItems)
+    {
+        var resolved = new AbstractSqlPart[orderByItems.Length];
+
+        for (int i = 0; i < orderByItems.Length; i++)
+        {
+            resolved[i] = Resolve(orderByItems[i]);
+        }
+
+        return resolved;
+    }
 
     internal static AbstractSqlPart Resolve(object orderByItem)
     {
