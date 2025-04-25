@@ -2,16 +2,25 @@
 
 public sealed class LpadFunction : AbstractExpr
 {
-    private readonly VariadicFunctionCore _core;
+    private readonly AbstractSqlPart _source;
+    private readonly AbstractSqlPart _length;
+    private readonly AbstractSqlPart? _padding;
 
     internal LpadFunction(
         AbstractExpr source,
         AbstractExpr length,
         AbstractExpr? padding = null)
     {
-        _core = new(Keywords.LPAD, source, length, padding);
+        _source = source;
+        _length = length;
+        _padding = padding;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.LPAD)
+        .OpenParenthesis()
+        .Append(_source)
+        .PrependComma(_length)
+        .PrependCommaIfNotNull(_padding)
+        .CloseParenthesis();
 }
