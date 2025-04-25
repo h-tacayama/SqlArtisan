@@ -2,13 +2,16 @@
 
 public sealed class SumFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _expr;
 
     internal SumFunction(AbstractExpr expr)
     {
-        _core = new(Keywords.SUM, expr);
+        _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.SUM)
+        .OpenParenthesis()
+        .Append(_expr)
+        .CloseParenthesis();
 }

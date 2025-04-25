@@ -2,13 +2,16 @@
 
 public sealed class LowerFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _source;
 
     internal LowerFunction(AbstractExpr source)
     {
-        _core = new UnaryFunctionCore(Keywords.LOWER, source);
+        _source = source;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.LOWER)
+        .OpenParenthesis()
+        .Append(_source)
+        .CloseParenthesis();
 }

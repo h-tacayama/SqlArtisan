@@ -2,13 +2,16 @@
 
 public sealed class UpperFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _source;
 
     internal UpperFunction(AbstractExpr source)
     {
-        _core = new(Keywords.UPPER, source);
+        _source = source;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.UPPER)
+        .OpenParenthesis()
+        .Append(_source)
+        .CloseParenthesis();
 }

@@ -2,13 +2,16 @@
 
 public sealed class AvgFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _expr;
 
     internal AvgFunction(AbstractExpr expr)
     {
-        _core = new(Keywords.AVG, expr);
+        _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.AVG)
+        .OpenParenthesis()
+        .Append(_expr)
+        .CloseParenthesis();
 }

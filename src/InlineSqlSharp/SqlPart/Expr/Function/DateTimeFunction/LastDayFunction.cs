@@ -2,13 +2,16 @@ namespace InlineSqlSharp;
 
 public sealed class LastDayFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _date;
 
     internal LastDayFunction(AbstractExpr date)
     {
-        _core = new(Keywords.LAST_DAY, date);
+        _date = date;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.LAST_DAY)
+        .OpenParenthesis()
+        .Append(_date)
+        .CloseParenthesis();
 }

@@ -2,13 +2,16 @@
 
 public sealed class MinFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _expr;
 
     internal MinFunction(AbstractExpr expr)
     {
-        _core = new UnaryFunctionCore(Keywords.MIN, expr);
+        _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.MIN)
+        .OpenParenthesis()
+        .Append(_expr)
+        .CloseParenthesis();
 }

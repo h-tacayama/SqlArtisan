@@ -2,13 +2,16 @@
 
 public sealed class CountFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _expr;
 
     internal CountFunction(AbstractExpr expr)
     {
-        _core = new(Keywords.COUNT, expr);
+        _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.COUNT)
+        .OpenParenthesis()
+        .Append(_expr)
+        .CloseParenthesis();
 }

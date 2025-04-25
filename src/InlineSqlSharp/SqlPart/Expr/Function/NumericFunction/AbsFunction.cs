@@ -2,13 +2,16 @@ namespace InlineSqlSharp;
 
 public sealed class AbsFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _expr;
 
     internal AbsFunction(AbstractExpr expr)
     {
-        _core = new(Keywords.ABS, expr);
+        _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.ABS)
+        .OpenParenthesis()
+        .Append(_expr)
+        .CloseParenthesis();
 }

@@ -2,13 +2,16 @@
 
 public sealed class LengthFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _source;
 
     internal LengthFunction(AbstractExpr source)
     {
-        _core = new(Keywords.LENGTH, source);
+        _source = source;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.LENGTH)
+        .OpenParenthesis()
+        .Append(_source)
+        .CloseParenthesis();
 }

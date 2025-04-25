@@ -2,13 +2,16 @@ namespace InlineSqlSharp;
 
 public sealed class LengthBFunction : AbstractExpr
 {
-    private readonly UnaryFunctionCore _core;
+    private readonly AbstractSqlPart _source;
 
     internal LengthBFunction(AbstractExpr source)
     {
-        _core = new(Keywords.LENGTHB, source);
+        _source = source;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.LENGTHB)
+        .OpenParenthesis()
+        .Append(_source)
+        .CloseParenthesis();
 }
