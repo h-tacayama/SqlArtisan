@@ -2,15 +2,21 @@ namespace InlineSqlSharp;
 
 public sealed class ToCharFunction : AbstractExpr
 {
-    private readonly VariadicFunctionCore _core;
+    private readonly AbstractSqlPart _expr;
+    private readonly AbstractSqlPart? _format;
 
     internal ToCharFunction(
         AbstractExpr expr,
         AbstractExpr? format = null)
     {
-        _core = new(Keywords.TO_CHAR, expr, format);
+        _expr = expr;
+        _format = format;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.TO_CHAR)
+        .OpenParenthesis()
+        .Append(_expr)
+        .PrependCommaIfNotNull(_format)
+        .CloseParenthesis();
 }
