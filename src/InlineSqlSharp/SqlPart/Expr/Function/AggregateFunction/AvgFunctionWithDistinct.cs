@@ -2,13 +2,19 @@
 
 public sealed class AvgFunctionWithDistinct : AbstractExpr
 {
-    private readonly UnaryFunctionWithDistinct _core;
+    private readonly Distinct _distinct;
+    private readonly AbstractSqlPart _expr;
 
     internal AvgFunctionWithDistinct(Distinct distinct, AbstractExpr expr)
     {
-        _core = new(Keywords.AVG, distinct, expr);
+        _distinct = distinct;
+        _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.AVG)
+        .OpenParenthesis()
+        .AppendSpace(_distinct)
+        .Append(_expr)
+        .CloseParenthesis();
 }

@@ -2,13 +2,19 @@
 
 public sealed class CountFunctionWithDistinct : AbstractExpr
 {
-    private readonly UnaryFunctionWithDistinct _core;
+    private readonly Distinct _distinct;
+    private readonly AbstractSqlPart _expr;
 
     internal CountFunctionWithDistinct(Distinct distinct, AbstractExpr expr)
     {
-        _core = new(Keywords.COUNT, distinct, expr);
+        _distinct = distinct;
+        _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.COUNT)
+        .OpenParenthesis()
+        .AppendSpace(_distinct)
+        .Append(_expr)
+        .CloseParenthesis();
 }
