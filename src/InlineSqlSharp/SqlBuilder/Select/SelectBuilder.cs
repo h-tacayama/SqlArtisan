@@ -162,12 +162,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     public ISelectBuilderSelect SELECT(
         params object[] selectItems)
     {
-        AddPart(
-            SelectClause.Parse(
-                null,
-                null,
-                selectItems));
-
+        AddPart(SelectClause.Parse(selectItems));
         return this;
     }
 
@@ -176,8 +171,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
         params object[] selectItems)
     {
         AddPart(
-            SelectClause.Parse(
-                null,
+            SelectClauseWithDistinct.Parse(
                 distinct,
                 selectItems));
 
@@ -189,9 +183,8 @@ internal class SelectBuilder(AbstractSqlPart part) :
         params object[] selectItems)
     {
         AddPart(
-            SelectClause.Parse(
+            SelectClauseWithHints.Parse(
                 hints,
-                null,
                 selectItems));
 
         return this;
@@ -203,7 +196,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
         params object[] selectList)
     {
         AddPart(
-            SelectClause.Parse(
+            SelectClauseWithOptions.Parse(
                 hints,
                 distinct,
                 selectList));

@@ -7,18 +7,13 @@ public static partial class SqlWordbook
 {
     public static ISelectBuilderSelect SELECT(
         params object[] selectItems) =>
-        new SelectBuilder(
-            SelectClause.Parse(
-                null,
-                null,
-                selectItems));
+        new SelectBuilder(SelectClause.Parse(selectItems));
 
     public static ISelectBuilderSelect SELECT(
         Distinct distinct,
         params object[] selectItems) =>
         new SelectBuilder(
-            SelectClause.Parse(
-                null,
+            SelectClauseWithDistinct.Parse(
                 distinct,
                 selectItems));
 
@@ -26,9 +21,8 @@ public static partial class SqlWordbook
         Hints hints,
         params object[] selectItems) =>
         new SelectBuilder(
-            SelectClause.Parse(
+            SelectClauseWithHints.Parse(
                 hints,
-                null,
                 selectItems));
 
     public static ISelectBuilderSelect SELECT(
@@ -36,7 +30,7 @@ public static partial class SqlWordbook
         Distinct distinct,
         params object[] selectItems) =>
         new SelectBuilder(
-            SelectClause.Parse(
+            SelectClauseWithOptions.Parse(
                 hints,
                 distinct,
                 selectItems));
