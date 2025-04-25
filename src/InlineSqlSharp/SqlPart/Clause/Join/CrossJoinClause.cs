@@ -3,8 +3,10 @@
 internal sealed class CrossJoinClause(AbstractTableReference table) :
     AbstractSqlPart
 {
-    private readonly JoinClauseCore _core = new(Keywords.CROSS, table);
+    private readonly AbstractTableReference _table = table;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(Keywords.CROSS)
+        .AppendSpace(Keywords.JOIN)
+        .Append(_table);
 }
