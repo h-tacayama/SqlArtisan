@@ -2,13 +2,19 @@ namespace InlineSqlSharp;
 
 public sealed class MonthsBetweenFunction : AbstractExpr
 {
-    private readonly BinaryFunctionCore _core;
+    private readonly AbstractSqlPart _date1;
+    private readonly AbstractSqlPart _date2;
 
     internal MonthsBetweenFunction(AbstractExpr date1, AbstractExpr date2)
     {
-        _core = new(Keywords.MONTHS_BETWEEN, date1, date2);
+        _date1 = date1;
+        _date2 = date2;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.MONTHS_BETWEEN)
+        .OpenParenthesis()
+        .Append(_date1)
+        .PrependComma(_date2)
+        .CloseParenthesis();
 }

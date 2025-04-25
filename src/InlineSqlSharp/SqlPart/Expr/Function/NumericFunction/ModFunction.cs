@@ -2,13 +2,19 @@ namespace InlineSqlSharp;
 
 public sealed class ModFunction : AbstractExpr
 {
-    private readonly BinaryFunctionCore _core;
+    private readonly AbstractSqlPart _dividend;
+    private readonly AbstractSqlPart _divisor;
 
     internal ModFunction(AbstractExpr dividend, AbstractExpr divisor)
     {
-        _core = new(Keywords.MOD, dividend, divisor);
+        _dividend = dividend;
+        _divisor = divisor;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.MOD)
+        .OpenParenthesis()
+        .Append(_dividend)
+        .PrependComma(_divisor)
+        .CloseParenthesis();
 }
