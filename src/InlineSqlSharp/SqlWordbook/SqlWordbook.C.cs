@@ -28,7 +28,7 @@ public static partial class SqlWordbook
     public static CountFunction COUNT(object expr) =>
         new(Resolve(expr));
 
-    public static CountFunctionWithDistinct COUNT(Distinct distinct, object expr) =>
+    public static CountFunction COUNT(Distinct distinct, object expr) =>
         new(distinct, Resolve(expr));
 
     public static AnalyticCumeDistFunction CUME_DIST() => new();

@@ -23,6 +23,6 @@ public static partial class SqlWordbook
     public static AvgFunction AVG(object expr) =>
         new(Resolve(expr));
 
-    public static AvgFunctionWithDistinct AVG(Distinct distinct, object expr) =>
+    public static AvgFunction AVG(Distinct distinct, object expr) =>
         new(distinct, Resolve(expr));
 }

@@ -68,7 +68,7 @@ public static partial class SqlWordbook
     public static SumFunction SUM(object expr) =>
         new(Resolve(expr));
 
-    public static SumFunctionWithDistinct SUM(Distinct distinct, object expr) =>
+    public static SumFunction SUM(Distinct distinct, object expr) =>
         new(distinct, Resolve(expr));
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
