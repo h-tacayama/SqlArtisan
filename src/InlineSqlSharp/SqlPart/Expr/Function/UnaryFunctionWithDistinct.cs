@@ -1,12 +1,12 @@
 ﻿namespace InlineSqlSharp;
 
-internal sealed class AllOrDistinctFunctionCore(
+internal sealed class UnaryFunctionWithDistinct(
     string functionName,
-    Distinct? distinct,
+    Distinct distinct,
     AbstractSqlPart expr)
 {
     private readonly string _functionName = functionName;
-    private readonly Distinct? _distinct = distinct;
+    private readonly Distinct _distinct = distinct;
     private readonly AbstractSqlPart _expr = expr;
 
     internal void FormatSql(SqlBuildingBuffer buffer) => buffer

@@ -2,11 +2,11 @@
 
 public sealed class CountFunction : AbstractExpr
 {
-    private readonly AllOrDistinctFunctionCore _core;
+    private readonly UnaryFunctionCore _core;
 
-    internal CountFunction(Distinct? distinct, AbstractExpr expr)
+    internal CountFunction(AbstractExpr expr)
     {
-        _core = new(Keywords.COUNT, distinct, expr);
+        _core = new(Keywords.COUNT, expr);
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>

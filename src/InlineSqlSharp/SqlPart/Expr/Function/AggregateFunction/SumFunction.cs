@@ -2,11 +2,11 @@
 
 public sealed class SumFunction : AbstractExpr
 {
-    private readonly AllOrDistinctFunctionCore _core;
+    private readonly UnaryFunctionCore _core;
 
-    internal SumFunction(Distinct? distinct, AbstractExpr expr)
+    internal SumFunction(AbstractExpr expr)
     {
-        _core = new(Keywords.SUM, distinct, expr);
+        _core = new(Keywords.SUM, expr);
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
