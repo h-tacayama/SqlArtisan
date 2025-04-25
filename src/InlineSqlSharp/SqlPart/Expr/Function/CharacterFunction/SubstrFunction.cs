@@ -2,16 +2,25 @@ namespace InlineSqlSharp;
 
 public sealed class SubstrFunction : AbstractExpr
 {
-    private readonly VariadicFunctionCore _core;
+    private readonly AbstractSqlPart _source;
+    private readonly AbstractSqlPart _position;
+    private readonly AbstractSqlPart? _length;
 
     internal SubstrFunction(
         AbstractExpr source,
         AbstractExpr position,
         AbstractExpr? length = null)
     {
-        _core = new(Keywords.SUBSTR, source, position, length);
+        _source = source;
+        _position = position;
+        _length = length;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.SUBSTR)
+        .OpenParenthesis()
+        .Append(_source)
+        .PrependComma(_position)
+        .PrependCommaIfNotNull(_length)
+        .CloseParenthesis();
 }
