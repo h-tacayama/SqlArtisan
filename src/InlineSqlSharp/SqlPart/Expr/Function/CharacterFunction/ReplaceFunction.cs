@@ -2,16 +2,26 @@ namespace InlineSqlSharp;
 
 public sealed class ReplaceFunction : AbstractExpr
 {
-    private readonly TernaryFunctionCore _core;
+    private readonly AbstractSqlPart _source;
+    private readonly AbstractSqlPart _search;
+    private readonly AbstractSqlPart _replacement;
 
     internal ReplaceFunction(
         AbstractExpr source,
         AbstractExpr search,
         AbstractExpr replacement)
     {
-        _core = new(Keywords.REPLACE, source, search, replacement);
+
+        _source = source;
+        _search = search;
+        _replacement = replacement;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.REPLACE)
+        .OpenParenthesis()
+        .Append(_source)
+        .PrependComma(_search)
+        .PrependComma(_replacement)
+        .CloseParenthesis();
 }
