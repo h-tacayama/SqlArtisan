@@ -2,13 +2,19 @@
 
 public sealed class InCondition : AbstractCondition
 {
-    private readonly InConditionCore _core;
+    private readonly AbstractExpr _leftSide;
+    private readonly AbstractExpr[] _expressions;
 
     internal InCondition(AbstractExpr leftSide, AbstractExpr[] expressions)
     {
-        _core = new(false, leftSide, expressions);
+        _leftSide = leftSide;
+        _expressions = expressions;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_leftSide)
+        .AppendSpace(Keywords.IN)
+        .OpenParenthesis()
+        .AppendCsv(_expressions)
+        .CloseParenthesis();
 }

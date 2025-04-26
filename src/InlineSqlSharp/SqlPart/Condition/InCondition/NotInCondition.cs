@@ -2,13 +2,20 @@
 
 public sealed class NotInCondition : AbstractCondition
 {
-    private readonly InConditionCore _core;
+    private readonly AbstractExpr _leftSide;
+    private readonly AbstractExpr[] _expressions;
 
     internal NotInCondition(AbstractExpr leftSide, AbstractExpr[] expressions)
     {
-        _core = new(true, leftSide, expressions);
+        _leftSide = leftSide;
+        _expressions = expressions;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_leftSide)
+        .AppendSpace(Keywords.NOT)
+        .AppendSpace(Keywords.IN)
+        .OpenParenthesis()
+        .AppendCsv(_expressions)
+        .CloseParenthesis();
 }
