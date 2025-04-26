@@ -2,13 +2,31 @@
 
 public sealed class AndCondition : AbstractCondition
 {
-    private readonly MultiLogicalConditionCore _core;
+    private readonly AbstractCondition[] _conditions;
 
     internal AndCondition(AbstractCondition[] conditions)
     {
-        _core = new(Keywords.AND, conditions);
+        _conditions = conditions;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer)
+    {
+        bool added = false;
+
+        for (int i = 0; i < _conditions.Length; i++)
+        {
+            if (_conditions[i] is EmptyCondition)
+            {
+                continue;
+            }
+
+            if (added)
+            {
+                buffer.EncloseInSpaces(Keywords.AND);
+            }
+
+            buffer.EncloseInParentheses(_conditions[i]);
+            added = true;
+        }
+    }
 }
