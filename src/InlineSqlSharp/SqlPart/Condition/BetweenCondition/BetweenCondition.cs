@@ -2,16 +2,24 @@
 
 public sealed class BetweenCondition : AbstractCondition
 {
-    private readonly BetweenConditionCore _core;
+    private readonly AbstractExpr _leftSide;
+    private readonly AbstractExpr _rightSide1;
+    private readonly AbstractExpr _rightSide2;
 
     internal BetweenCondition(
         AbstractExpr leftSide,
         AbstractExpr rightSide1,
         AbstractExpr rightSide2)
     {
-        _core = new(false, leftSide, rightSide1, rightSide2);
+        _leftSide = leftSide;
+        _rightSide1 = rightSide1;
+        _rightSide2 = rightSide2;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_leftSide)
+        .AppendSpace(Keywords.BETWEEN)
+        .AppendSpace(_rightSide1)
+        .AppendSpace(Keywords.AND)
+        .Append(_rightSide2);
 }
