@@ -2,13 +2,18 @@
 
 public sealed class NotLikeCondition : AbstractCondition
 {
-    private readonly LikeConditionCore _core;
+    private readonly AbstractExpr _leftSide;
+    private readonly AbstractExpr _rightSide;
 
     internal NotLikeCondition(AbstractExpr leftSide, AbstractExpr rightSide)
     {
-        _core = new(true, leftSide, rightSide);
+        _leftSide = leftSide;
+        _rightSide = rightSide;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_leftSide)
+        .AppendSpace(Keywords.NOT)
+        .AppendSpace(Keywords.LIKE)
+        .Append(_rightSide);
 }

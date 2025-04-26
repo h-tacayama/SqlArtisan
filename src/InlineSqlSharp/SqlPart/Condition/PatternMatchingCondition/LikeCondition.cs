@@ -2,13 +2,17 @@
 
 public sealed class LikeCondition : AbstractCondition
 {
-    private readonly LikeConditionCore _core;
+    private readonly AbstractExpr _leftSide;
+    private readonly AbstractExpr _rightSide;
 
     internal LikeCondition(AbstractExpr leftSide, AbstractExpr rightSide)
     {
-        _core = new(false, leftSide, rightSide);
+        _leftSide = leftSide;
+        _rightSide = rightSide;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_leftSide)
+        .AppendSpace(Keywords.LIKE)
+        .Append(_rightSide);
 }
