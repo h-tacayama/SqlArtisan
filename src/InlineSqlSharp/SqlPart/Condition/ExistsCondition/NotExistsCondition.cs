@@ -2,13 +2,15 @@
 
 public sealed class NotExistsCondition : AbstractCondition
 {
-    private readonly ExistsConditionCore _core;
+    private readonly SqlPartAgent _subquery;
 
     internal NotExistsCondition(ISubquery subquery)
     {
-        _core = new(true, subquery);
+        _subquery = new(subquery.FormatSql);
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(Keywords.NOT)
+        .AppendSpace(Keywords.EXISTS)
+        .EncloseInParentheses(_subquery);
 }
