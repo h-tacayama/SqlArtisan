@@ -1,20 +1,15 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class EqualityCondition : AbstractEqualityCondition
+public sealed class EqualityCondition(
+    AbstractExpr leftSide,
+    AbstractExpr rightSide) : AbstractEqualityCondition
 {
-    private readonly ComparisonConditionCore _core;
+    internal override AbstractExpr LeftSide => leftSide;
 
-    internal EqualityCondition(AbstractExpr leftSide, AbstractExpr rightSide)
-    {
-        _core = new(leftSide, Operators.Equality, rightSide);
-        LeftSide = leftSide;
-        RightSide = rightSide;
-    }
+    internal override AbstractExpr RightSide => rightSide;
 
-    internal override AbstractExpr LeftSide { get; }
-
-    internal override AbstractExpr RightSide { get; }
-
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(LeftSide)
+        .AppendSpace(Operators.Equality)
+        .Append(RightSide);
 }

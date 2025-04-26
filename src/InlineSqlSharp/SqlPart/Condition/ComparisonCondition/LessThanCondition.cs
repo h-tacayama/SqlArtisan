@@ -4,9 +4,11 @@ internal sealed class LessThanCondition(
     AbstractExpr leftSide,
     AbstractExpr rightSide) : AbstractCondition
 {
-    private readonly ComparisonConditionCore _core =
-        new(leftSide, Operators.LessThan, rightSide);
+    private readonly AbstractExpr _leftSide = leftSide;
+    private readonly AbstractExpr _rightSide = rightSide;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_leftSide)
+        .AppendSpace(Operators.LessThan)
+        .Append(_rightSide);
 }

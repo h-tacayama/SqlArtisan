@@ -4,9 +4,11 @@ internal sealed class GreaterThanCondition(
     AbstractExpr leftSide,
     AbstractExpr rightSide) : AbstractCondition
 {
-    private readonly ComparisonConditionCore _core =
-        new(leftSide, Operators.GreaterThan, rightSide);
+    private readonly AbstractExpr _leftSide = leftSide;
+    private readonly AbstractExpr _rightSide = rightSide;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .AppendSpace(_leftSide)
+        .AppendSpace(Operators.GreaterThan)
+        .Append(_rightSide);
 }
