@@ -9,7 +9,7 @@ public sealed class EqualityCondition(
     internal override AbstractExpr RightSide => rightSide;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(LeftSide)
-        .AppendSpace(Operators.Equality)
+        .Append(LeftSide)
+        .Append($" {Operators.Equality} ")
         .Append(RightSide);
 }

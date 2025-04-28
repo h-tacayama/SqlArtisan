@@ -46,20 +46,20 @@ public sealed class SortOrder : AbstractSqlPart
         switch (_direction)
         {
             case SortDirection.Asc:
-                buffer.PrependSpace(Keywords.Asc);
+                buffer.Append($" {Keywords.Asc}");
                 break;
             case SortDirection.Desc:
-                buffer.PrependSpace(Keywords.Desc);
+                buffer.Append($" {Keywords.Desc}");
                 break;
         }
 
         switch (_nullOrdering)
         {
             case NullOrdering.NullsFirst:
-                buffer.PrependSpace(Keywords.NullsFirst);
+                buffer.Append($" {Keywords.NullsFirst}");
                 break;
             case NullOrdering.NullsLast:
-                buffer.PrependSpace(Keywords.NullsLast);
+                buffer.Append($" {Keywords.NullsLast}");
                 break;
         }
     }

@@ -10,7 +10,6 @@ public sealed class IsNullCondition : AbstractCondition
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(_leftSide)
-        .AppendSpace(Keywords.Is)
-        .Append(Keywords.Null);
+        .Append(_leftSide)
+        .Append($" {Keywords.Is} {Keywords.Null}");
 }

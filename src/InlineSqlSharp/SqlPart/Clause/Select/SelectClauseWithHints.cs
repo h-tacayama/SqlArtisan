@@ -20,7 +20,7 @@ internal sealed class SelectClauseWithHints : AbstractSqlPart
             SelectItemResolver.Resolve(selectItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Select)
-        .AppendSpaceIfNotNull(_hints)
+        .Append($"{Keywords.Select} ")
+        .AppendSpace(_hints)
         .AppendSelectItems(_selectItems);
 }

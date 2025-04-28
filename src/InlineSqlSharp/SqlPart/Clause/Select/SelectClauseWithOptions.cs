@@ -25,8 +25,8 @@ internal sealed class SelectClauseWithOptions : AbstractSqlPart
             SelectItemResolver.Resolve(selectItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Select)
-        .AppendSpaceIfNotNull(_hints)
-        .AppendSpaceIfNotNull(_distinct)
+        .Append($"{Keywords.Select} ")
+        .AppendSpace(_hints)
+        .AppendSpace(_distinct)
         .AppendSelectItems(_selectItems);
 }

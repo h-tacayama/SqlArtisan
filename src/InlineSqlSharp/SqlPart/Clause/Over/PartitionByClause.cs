@@ -10,8 +10,7 @@ public sealed class PartitionByClause : AbstractSqlPart
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Partition)
-        .AppendSpace(Keywords.By)
+        .Append($"{Keywords.Partition} {Keywords.By} ")
         .AppendCsv(_expressions);
 
     public PartitionByAndOrderBy OrderBy(

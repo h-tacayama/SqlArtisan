@@ -10,7 +10,6 @@ public sealed class DeleteClause : AbstractSqlPart
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Delete)
-        .AppendSpace(Keywords.From)
+        .Append($"{Keywords.Delete} {Keywords.From} ")
         .Append(_table);
 }

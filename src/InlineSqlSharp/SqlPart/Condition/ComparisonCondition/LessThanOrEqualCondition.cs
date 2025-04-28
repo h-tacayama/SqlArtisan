@@ -8,7 +8,7 @@ internal sealed class LessThanOrEqualCondition(
     private readonly AbstractExpr _rightSide = rightSide;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(_leftSide)
-        .AppendSpace(Operators.LessThanOrEqual)
+        .Append(_leftSide)
+        .Append($" {Operators.LessThanOrEqual} ")
         .Append(_rightSide);
 }

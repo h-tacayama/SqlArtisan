@@ -20,9 +20,9 @@ public sealed class TrimFunction : AbstractExpr
 
         if (_trimChar is not null)
         {
-            buffer.AppendSpace(Keywords.Both)
-                .AppendSpace(_trimChar)
-                .AppendSpace(Keywords.From);
+            buffer.Append($"{Keywords.Both} ")
+                .Append(_trimChar)
+                .Append($" {Keywords.From} ");
         }
 
         buffer.Append(_source)

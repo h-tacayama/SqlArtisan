@@ -6,7 +6,6 @@ internal sealed class FullJoinClause(AbstractTableReference table) :
     private readonly AbstractTableReference _table = table;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Full)
-        .AppendSpace(Keywords.Join)
+        .Append($"{Keywords.Full} {Keywords.Join} ")
         .Append(_table);
 }

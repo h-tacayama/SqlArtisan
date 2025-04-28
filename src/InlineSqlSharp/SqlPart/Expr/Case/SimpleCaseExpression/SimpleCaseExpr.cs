@@ -17,11 +17,10 @@ public sealed class SimpleCaseExpr : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Case)
+        .Append($"{Keywords.Case} ")
         .AppendSpace(_expr)
         .AppendSpaceSeparated(_whenClauses)
-        .AppendSpace()
-        .AppendSpace(Keywords.Else)
-        .AppendSpace(_elseClause)
-        .Append(Keywords.End);
+        .Append($" {Keywords.Else} ")
+        .Append(_elseClause)
+        .Append($" {Keywords.End}");
 }

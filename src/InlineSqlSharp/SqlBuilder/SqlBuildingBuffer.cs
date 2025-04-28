@@ -38,6 +38,16 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
+    internal SqlBuildingBuffer AppendIf(bool when, string? value)
+    {
+        if (when)
+        {
+            _text.Append(value);
+        }
+
+        return this;
+    }
+
     internal SqlBuildingBuffer AppendSelectItems(AbstractSqlPart[] selectItems)
     {
         if (selectItems.Length == 0)
@@ -56,28 +66,16 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
+    internal SqlBuildingBuffer AppendSpace()
+    {
+        _text.Append(" ");
+        return this;
+    }
+
     internal SqlBuildingBuffer AppendSpace(AbstractSqlPart part)
     {
         part.FormatSql(this);
         _text.Append(" ");
-        return this;
-    }
-
-    internal SqlBuildingBuffer AppendSpace(string? value = null)
-    {
-        _text.Append(value);
-        _text.Append(" ");
-        return this;
-    }
-
-    internal SqlBuildingBuffer AppendSpaceIf(bool condition, string? value = null)
-    {
-        if (condition)
-        {
-            _text.Append(value);
-            _text.Append(" ");
-        }
-
         return this;
     }
 
@@ -181,24 +179,6 @@ internal sealed class SqlBuildingBuffer
         {
             _text.Append(", ");
             part.FormatSql(this);
-        }
-
-        return this;
-    }
-
-    internal SqlBuildingBuffer PrependSpace(string value)
-    {
-        _text.Append(" ");
-        _text.Append(value);
-        return this;
-    }
-
-    internal SqlBuildingBuffer PrependSpaceIf(bool condition, string value)
-    {
-        if (condition)
-        {
-            _text.Append(" ");
-            _text.Append(value);
         }
 
         return this;

@@ -12,8 +12,7 @@ public sealed class NotLikeCondition : AbstractCondition
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(_leftSide)
-        .AppendSpace(Keywords.Not)
-        .AppendSpace(Keywords.Like)
+        .Append(_leftSide)
+        .Append($" {Keywords.Not} {Keywords.Like} ")
         .Append(_rightSide);
 }

@@ -29,7 +29,7 @@ public sealed class ExprAlias : AbstractSqlPart, ISortable
         buffer.EncloseInDoubleQuotes(_alias);
 
     internal void FormatAsSelect(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(_expr)
-        .AppendSpace(Keywords.As)
+        .Append(_expr)
+        .Append($" {Keywords.As} ")
         .EncloseInDoubleQuotes(_alias);
 }

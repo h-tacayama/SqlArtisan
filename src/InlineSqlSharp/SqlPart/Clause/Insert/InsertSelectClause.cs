@@ -7,8 +7,7 @@ internal sealed class InsertSelectClause(AbstractTable table, Column[] columns) 
     private readonly Column[] _columns = columns;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Insert)
-        .AppendSpace(Keywords.Into)
+        .Append($"{Keywords.Insert} {Keywords.Into} ")
         .AppendSpace(_table)
         .OpenParenthesis()
         .AppendCsv(_columns)

@@ -8,7 +8,7 @@ internal sealed class GreaterThanOrEqualCondition(
     private readonly AbstractExpr _rightSide = rightSide;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(_leftSide)
-        .AppendSpace(Operators.GreaterThanOrEqual)
+        .Append(_leftSide)
+        .Append($" {Operators.GreaterThanOrEqual} ")
         .Append(_rightSide);
 }

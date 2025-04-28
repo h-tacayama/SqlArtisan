@@ -14,10 +14,9 @@ public sealed class SearchedCaseExpr : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Case)
+        .Append($"{Keywords.Case} ")
         .AppendSpaceSeparated(_whenClauses)
-        .AppendSpace()
-        .AppendSpace(Keywords.Else)
-        .AppendSpace(_elseClause)
-        .Append(Keywords.End);
+        .Append($" {Keywords.Else} ")
+        .Append(_elseClause)
+        .Append($" {Keywords.End}");
 }

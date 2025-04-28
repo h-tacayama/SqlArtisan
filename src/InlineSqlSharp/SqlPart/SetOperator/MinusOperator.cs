@@ -6,5 +6,5 @@ internal sealed class MinusOperator(bool all) : AbstractSqlPart
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Minus)
-        .PrependSpaceIf(_all, Keywords.All);
+        .AppendIf(_all, $" {Keywords.All}");
 }

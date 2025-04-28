@@ -6,6 +6,6 @@ internal sealed class FromClause(AbstractTableReference[] tables) :
     private readonly AbstractTableReference[] _tables = tables;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.From)
+        .Append($"{Keywords.From} ")
         .AppendCsv(_tables);
 }

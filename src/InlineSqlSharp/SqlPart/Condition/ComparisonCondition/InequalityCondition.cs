@@ -9,7 +9,7 @@ internal sealed class InequalityCondition(
     internal override AbstractExpr RightSide => rightSide;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(LeftSide)
-        .AppendSpace(Operators.Inequality)
+        .Append(LeftSide)
+        .Append($" {Operators.Inequality} ")
         .Append(RightSide);
 }

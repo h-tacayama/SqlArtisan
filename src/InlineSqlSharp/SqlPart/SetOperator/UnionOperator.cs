@@ -6,5 +6,5 @@ internal sealed class UnionOperator(bool all) : AbstractSqlPart
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Union)
-        .PrependSpaceIf(_all, Keywords.All);
+        .AppendIf(_all, $" {Keywords.All}");
 }

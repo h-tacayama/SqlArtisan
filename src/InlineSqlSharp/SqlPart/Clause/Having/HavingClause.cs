@@ -5,6 +5,6 @@ internal sealed class HavingClause(AbstractCondition condition) : AbstractSqlPar
     private readonly AbstractCondition _condition = condition;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Having)
+        .Append($"{Keywords.Having} ")
         .Append(_condition);
 }

@@ -12,8 +12,7 @@ public sealed class NotInSubqueryCondition : AbstractCondition
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(_leftSide)
-        .AppendSpace(Keywords.Not)
-        .AppendSpace(Keywords.In)
+        .Append(_leftSide)
+        .Append($" {Keywords.Not} {Keywords.In} ")
         .EncloseInParentheses(_subquery);
 }

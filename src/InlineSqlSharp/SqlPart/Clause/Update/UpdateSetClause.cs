@@ -28,6 +28,6 @@ internal sealed class UpdateSetClause : AbstractSqlPart
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Set)
+        .Append($"{Keywords.Set} ")
         .AppendCsv(_assignments);
 }

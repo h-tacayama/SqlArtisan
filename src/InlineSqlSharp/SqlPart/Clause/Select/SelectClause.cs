@@ -13,6 +13,6 @@ internal sealed class SelectClause : AbstractSqlPart
         new(SelectItemResolver.Resolve(selectItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Select)
+        .Append($"{Keywords.Select} ")
         .AppendSelectItems(_selectItems);
 }

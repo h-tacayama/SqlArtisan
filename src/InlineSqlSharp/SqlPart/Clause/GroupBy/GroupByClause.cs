@@ -13,7 +13,6 @@ internal sealed class GroupByClause : AbstractSqlPart
         new(GroupByItemResolver.Resolve(groupByItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.Group)
-        .AppendSpace(Keywords.By)
+        .Append($"{Keywords.Group} {Keywords.By} ")
         .AppendCsv(_groupByItems);
 }
