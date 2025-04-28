@@ -4,25 +4,25 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-    public static AbsFunction ABS(object expr) => new(Resolve(expr));
+    public static AbsFunction Abs(object expr) => new(Resolve(expr));
 
-    public static AbstractCondition AddConditionIf(
-        bool addIf,
+    public static AbstractCondition ConditionIf(
+        bool when,
         AbstractCondition condition) =>
-        addIf ? condition : new EmptyCondition();
+        when ? condition : new EmptyCondition();
 
-    public static AddMonthsFunction ADD_MONTHS(
+    public static AddMonthsFunction AddMonths(
         object dateTime,
         object months) => new(
             Resolve(dateTime),
             Resolve(months));
 
-    public static AndCondition AND(params AbstractCondition[] conditions) =>
+    public static AndCondition And(params AbstractCondition[] conditions) =>
         new(conditions);
 
-    public static AvgFunction AVG(object expr) =>
+    public static AvgFunction Avg(object expr) =>
         new(Resolve(expr));
 
-    public static AvgFunction AVG(Distinct distinct, object expr) =>
+    public static AvgFunction Avg(DistinctKeyword distinct, object expr) =>
         new(distinct, Resolve(expr));
 }

@@ -5,15 +5,15 @@ namespace InlineSqlSharp.Tests;
 
 public class ExceptTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void EXCEPT_SimpleSelect_CorrectSql()
+    public void Except_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(1)
-            .EXCEPT
-            .SELECT(2)
+            Select(1)
+            .Except
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -27,13 +27,13 @@ public class ExceptTest
     }
 
     [Fact]
-    public void EXCEPT_SelectWithFrom_CorrectSql()
+    public void Except_SelectWithFrom_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .EXCEPT
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Except
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -49,14 +49,14 @@ public class ExceptTest
     }
 
     [Fact]
-    public void EXCEPT_SelectWithFromWhere_CorrectSql()
+    public void Except_SelectWithFromWhere_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .EXCEPT
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .Except
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -74,15 +74,15 @@ public class ExceptTest
     }
 
     [Fact]
-    public void EXCEPT_SelectWithFromWhereGroupBy_CorrectSql()
+    public void Except_SelectWithFromWhereGroupBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .GROUP_BY(_t.code)
-            .EXCEPT
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .GroupBy(_t.Code)
+            .Except
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -102,16 +102,16 @@ public class ExceptTest
     }
 
     [Fact]
-    public void EXCEPT_SelectWithFromWhereGroupByHaving_CorrectSql()
+    public void Except_SelectWithFromWhereGroupByHaving_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .GROUP_BY(_t.code)
-            .HAVING(COUNT(_t.code) > 0)
-            .EXCEPT
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .GroupBy(_t.Code)
+            .Having(Count(_t.Code) > 0)
+            .Except
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -133,12 +133,12 @@ public class ExceptTest
     }
 
     [Fact]
-    public void EXCEPT_ALL_SimpleSelect_CorrectSql()
+    public void ExceptAll_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(1)
-            .EXCEPT_ALL
-            .SELECT(2)
+            Select(1)
+            .ExceptAll
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();

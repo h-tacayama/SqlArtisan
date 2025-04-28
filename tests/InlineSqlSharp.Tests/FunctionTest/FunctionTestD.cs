@@ -6,12 +6,12 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void DECODE_WithIntDefault_CorrectSql()
+    public void Decode_WithIntDefault_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                DECODE(
-                    _t.code,
+            Select(
+                Decode(
+                    _t.Code,
                     [
                         (1, 10),
                         (2, 20),
@@ -27,15 +27,15 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void DECODE_WithDoubleDefault_CorrectSql()
+    public void Decode_WithDoubleDefault_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                DECODE(
-                    _t.code,
+            Select(
+                Decode(
+                    _t.Code,
                     [
-                        (1, NULL),
-                        (NULL, 20),
+                        (1, Null),
+                        (Null, 20),
                     ],
                     999.9))
             .Build();

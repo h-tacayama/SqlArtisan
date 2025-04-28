@@ -5,15 +5,15 @@ namespace InlineSqlSharp.Tests;
 
 public class MinusTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void MINUS_SimpleSelect_CorrectSql()
+    public void Minus_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(1)
-            .MINUS
-            .SELECT(2)
+            Select(1)
+            .Minus
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -27,13 +27,13 @@ public class MinusTest
     }
 
     [Fact]
-    public void MINUS_SelectWithFrom_CorrectSql()
+    public void Minus_SelectWithFrom_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .MINUS
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Minus
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -49,14 +49,14 @@ public class MinusTest
     }
 
     [Fact]
-    public void MINUS_SelectWithFromWhere_CorrectSql()
+    public void Minus_SelectWithFromWhere_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .MINUS
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .Minus
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -74,15 +74,15 @@ public class MinusTest
     }
 
     [Fact]
-    public void MINUS_SelectWithFromWhereGroupBy_CorrectSql()
+    public void Minus_SelectWithFromWhereGroupBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .GROUP_BY(_t.code)
-            .MINUS
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .GroupBy(_t.Code)
+            .Minus
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -102,16 +102,16 @@ public class MinusTest
     }
 
     [Fact]
-    public void MINUS_SelectWithFromWhereGroupByHaving_CorrectSql()
+    public void Minus_SelectWithFromWhereGroupByHaving_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .GROUP_BY(_t.code)
-            .HAVING(COUNT(_t.code) > 0)
-            .MINUS
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .GroupBy(_t.Code)
+            .Having(Count(_t.Code) > 0)
+            .Minus
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -133,12 +133,12 @@ public class MinusTest
     }
 
     [Fact]
-    public void MINUS_ALL_SimpleSelect_CorrectSql()
+    public void MinusAll_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(1)
-            .MINUS_ALL
-            .SELECT(2)
+            Select(1)
+            .MinusAll
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();

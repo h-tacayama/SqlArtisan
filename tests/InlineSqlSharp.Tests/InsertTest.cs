@@ -5,17 +5,17 @@ namespace InlineSqlSharp.Tests;
 
 public class InsertTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void INSERT_INTO_WithSetClause_CorrectSql()
+    public void InsertInto_WithSetClause_CorrectSql()
     {
         SqlStatement sql =
-            INSERT_INTO(_t)
-            .SET(
-                _t.code == 1,
-                _t.name == "a",
-                _t.created_at == SYSDATE)
+            InsertInto(_t)
+            .Set(
+                _t.Code == 1,
+                _t.Name == "a",
+                _t.CreatedAt == SysDate)
             .Build();
 
         StringBuilder expected = new();
@@ -37,14 +37,14 @@ public class InsertTest
     }
 
     [Fact]
-    public void INSERT_INTO_WithNull_CorrectSql()
+    public void InsertInto_WithNull_CorrectSql()
     {
         SqlStatement sql =
-            INSERT_INTO(_t)
-            .SET(
-                _t.code == NULL,
-                _t.name == NULL,
-                _t.created_at == NULL)
+            InsertInto(_t)
+            .Set(
+                _t.Code == Null,
+                _t.Name == Null,
+                _t.CreatedAt == Null)
             .Build();
 
         StringBuilder expected = new();
@@ -66,26 +66,26 @@ public class InsertTest
     }
 
     [Fact]
-    public void INSERT_INTO_WithInequality_ThrowsArgumentException()
+    public void InsertInto_WithInequality_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
         {
-            INSERT_INTO(_t)
-            .SET(
-                _t.code != NULL)
+            InsertInto(_t)
+            .Set(
+                _t.Code != Null)
             .Build();
         });
     }
 
     [Fact]
-    public void INSERT_INTO_WithSelectClause_CorrectSql()
+    public void InsertInto_WithSelectClause_CorrectSql()
     {
-        test_table s = new("s");
+        TestTable s = new("s");
 
         SqlStatement sql =
-            INSERT_INTO(_t, _t.code, _t.name, _t.created_at)
-            .SELECT(s.code, s.name, s.created_at)
-            .FROM(s)
+            InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
+            .Select(s.Code, s.Name, s.CreatedAt)
+            .From(s)
             .Build();
 
         StringBuilder expected = new();

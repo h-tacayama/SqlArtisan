@@ -5,16 +5,16 @@ namespace InlineSqlSharp.Tests;
 
 public partial class WindowCumeDistTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void CUME_DIST_OVER_PartitionByOrderBy_CorrectSql()
+    public void CumeDist_Over_PartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                CUME_DIST().OVER(
-                    PARTITION_BY(_t.code, _t.name)
-                    .ORDER_BY(_t.code.ASC, _t.name.DESC)))
+            Select(
+                CumeDist().Over(
+                    PartitionBy(_t.Code, _t.Name)
+                    .OrderBy(_t.Code.Asc, _t.Name.Desc)))
             .Build();
 
         StringBuilder expected = new();
@@ -34,12 +34,12 @@ public partial class WindowCumeDistTest
     }
 
     [Fact]
-    public void CUME_DIST_OVER_OrderBy_CorrectSql()
+    public void CumeDist_Over_OrderBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                CUME_DIST().OVER(
-                    ORDER_BY(_t.code, _t.name)))
+            Select(
+                CumeDist().Over(
+                    OrderBy(_t.Code, _t.Name)))
             .Build();
 
         StringBuilder expected = new();

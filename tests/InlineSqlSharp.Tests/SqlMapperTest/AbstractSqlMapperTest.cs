@@ -55,8 +55,8 @@ public abstract class AbstractSqlMapperTest : IDisposable
     {
         try
         {
-            test_table t = new("t");
-            ISqlBuilder sql = SELECT(COUNT(t.code)).FROM(t);
+            TestTable t = new("t");
+            ISqlBuilder sql = Select(Count(t.Code)).From(t);
             _conn.ExecuteScalar<int>(sql);
             return true;
         }
@@ -68,14 +68,14 @@ public abstract class AbstractSqlMapperTest : IDisposable
 
     private void InsertTestData(int code, string name, DateTime createdAt)
     {
-        test_table t = new("t");
+        TestTable t = new("t");
 
         ISqlBuilder sql =
-            INSERT_INTO(t)
-            .SET(
-                t.code == code,
-                t.name == name,
-                t.created_at == TO_DATE(createdAt.ToString("yyyy/MM/dd"), "yyyy/mm/dd"));
+            InsertInto(t)
+            .Set(
+                t.Code == code,
+                t.Name == name,
+                t.CreatedAt == ToDate(createdAt.ToString("yyyy/MM/dd"), "yyyy/mm/dd"));
 
         int rows = _conn.Execute(sql);
     }

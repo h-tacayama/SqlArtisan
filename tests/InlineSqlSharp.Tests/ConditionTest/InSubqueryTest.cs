@@ -5,19 +5,19 @@ namespace InlineSqlSharp.Tests;
 
 public class InSubqueryTest
 {
-    private readonly test_table _t;
-    private readonly test_table _s;
+    private readonly TestTable _t;
+    private readonly TestTable _s;
     private readonly ConditionTestAssert _assert;
 
     public InSubqueryTest()
     {
-        _t = new test_table("t");
-        _s = new test_table("s");
+        _t = new TestTable("t");
+        _s = new TestTable("s");
         _assert = new(_t);
     }
 
     [Fact]
-    public void IN_Subquery_CorrectSql()
+    public void In_Subquery_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("\"t\".code IN ");
@@ -29,12 +29,12 @@ public class InSubqueryTest
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.IN(SELECT(_s.code).FROM(_s)),
+            _t.Code.In(Select(_s.Code).From(_s)),
             expected.ToString());
     }
 
     [Fact]
-    public void NOT_IN_Subquery_CorrectSql()
+    public void NotIn_Subquery_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("\"t\".code NOT IN ");
@@ -46,7 +46,7 @@ public class InSubqueryTest
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.NOT_IN(SELECT(_s.code).FROM(_s)),
+            _t.Code.NotIn(Select(_s.Code).From(_s)),
             expected.ToString());
     }
 }

@@ -12,7 +12,7 @@ public sealed class NvlFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.NVL)
+        .Append(Keywords.Nvl)
         .OpenParenthesis()
         .Append(_expr1)
         .PrependComma(_expr2)

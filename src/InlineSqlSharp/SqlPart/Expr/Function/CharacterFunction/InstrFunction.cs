@@ -10,7 +10,7 @@ public sealed class InstrFunction : AbstractExpr
         AbstractExpr? position = null,
         AbstractExpr? occurrence = null)
     {
-        _core = new(Keywords.INSTR, source, substring, position, occurrence);
+        _core = new(Keywords.Instr, source, substring, position, occurrence);
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>

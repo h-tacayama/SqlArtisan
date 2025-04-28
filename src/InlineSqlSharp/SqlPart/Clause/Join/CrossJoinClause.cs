@@ -6,7 +6,7 @@ internal sealed class CrossJoinClause(AbstractTableReference table) :
     private readonly AbstractTableReference _table = table;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.CROSS)
-        .AppendSpace(Keywords.JOIN)
+        .AppendSpace(Keywords.Cross)
+        .AppendSpace(Keywords.Join)
         .Append(_table);
 }

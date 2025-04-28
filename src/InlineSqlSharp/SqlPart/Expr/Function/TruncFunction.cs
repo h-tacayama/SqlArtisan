@@ -12,7 +12,7 @@ public sealed class TruncFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.TRUNC)
+        .Append(Keywords.Trunc)
         .OpenParenthesis()
         .Append(_expr)
         .PrependCommaIfNotNull(_format)

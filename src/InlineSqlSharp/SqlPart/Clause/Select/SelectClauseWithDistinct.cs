@@ -2,11 +2,11 @@
 
 internal sealed class SelectClauseWithDistinct : AbstractSqlPart
 {
-    private readonly Distinct _distinct;
+    private readonly DistinctKeyword _distinct;
     private readonly AbstractSqlPart[] _selectItems;
 
     private SelectClauseWithDistinct(
-        Distinct distinct,
+        DistinctKeyword distinct,
         AbstractSqlPart[] selectItems)
     {
         _distinct = distinct;
@@ -14,13 +14,13 @@ internal sealed class SelectClauseWithDistinct : AbstractSqlPart
     }
 
     internal static SelectClauseWithDistinct Parse(
-        Distinct distinct,
+        DistinctKeyword distinct,
         object[] selectItems) => new(
             distinct,
             SelectItemResolver.Resolve(selectItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.SELECT)
+        .AppendSpace(Keywords.Select)
         .AppendSpaceIfNotNull(_distinct)
         .AppendSelectItems(_selectItems);
 }

@@ -5,17 +5,17 @@ namespace InlineSqlSharp.Tests;
 
 public class InnerJoinTest
 {
-    private readonly test_table _t = new("t");
-    private readonly test_table _s = new("s");
+    private readonly TestTable _t = new("t");
+    private readonly TestTable _s = new("s");
 
     [Fact]
-    public void INNER_JOIN_SimpleCondition_CorrectSql()
+    public void InnerJoin_SimpleCondition_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.name)
-            .FROM(_t)
-            .INNER_JOIN(_s)
-            .ON(_t.code == _s.code)
+            Select(_t.Name)
+            .From(_t)
+            .InnerJoin(_s)
+            .On(_t.Code == _s.Code)
             .Build();
 
         StringBuilder expected = new();
@@ -32,17 +32,17 @@ public class InnerJoinTest
     }
 
     [Fact]
-    public void INNER_JOIN_ComplexConditionWithWhere_CorrectSql()
+    public void InnerJoin_ComplexConditionWithWhere_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.name)
-            .FROM(_t)
-            .INNER_JOIN(_s)
-            .ON(
-                AND(
-                    _t.code == _s.code,
-                    _t.name == _s.name))
-            .WHERE(_t.code > 1)
+            Select(_t.Name)
+            .From(_t)
+            .InnerJoin(_s)
+            .On(
+                And(
+                    _t.Code == _s.Code,
+                    _t.Name == _s.Name))
+            .Where(_t.Code > 1)
             .Build();
 
         StringBuilder expected = new();

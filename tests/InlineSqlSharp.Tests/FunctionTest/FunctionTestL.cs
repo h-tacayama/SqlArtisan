@@ -6,10 +6,10 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void LAST_DAY_DateTimeValue_CorrectSql()
+    public void LastDay_DateTimeValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LAST_DAY(_t.created_at))
+            Select(LastDay(_t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();
@@ -20,10 +20,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void LEAST_NumericValues_CorrectSql()
+    public void Least_NumericValues_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LEAST(_t.code, 10, _t.code))
+            Select(Least(_t.Code, 10, _t.Code))
             .Build();
 
         StringBuilder expected = new();
@@ -34,10 +34,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void LENGTH_CharacterValue_CorrectSql()
+    public void Length_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LENGTH(_t.name))
+            Select(Length(_t.Name))
             .Build();
 
         StringBuilder expected = new();
@@ -48,10 +48,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void LENGTHB_CharacterValue_CorrectSql()
+    public void LengthB_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LENGTHB(_t.name))
+            Select(LengthB(_t.Name))
             .Build();
 
         StringBuilder expected = new();
@@ -62,10 +62,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void LOWER_CharacterValue_CorrectSql()
+    public void Lower_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LOWER(_t.name))
+            Select(Lower(_t.Name))
             .Build();
 
         StringBuilder expected = new();
@@ -76,10 +76,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void LPAD_CharacterAndLength_CorrectSql()
+    public void LPad_CharacterAndLength_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LPAD(_t.name, 10))
+            Select(LPad(_t.Name, 10))
             .Build();
 
         StringBuilder expected = new();
@@ -90,10 +90,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void LPAD_CharacterLengthAndPadding_CorrectSql()
+    public void LPad_CharacterLengthAndPadding_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LPAD(_t.name, 10, "a"))
+            Select(LPad(_t.Name, 10, "a"))
             .Build();
 
         StringBuilder expected = new();
@@ -107,7 +107,7 @@ public partial class FunctionTest
     public void LTRIM_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LTRIM(_t.name))
+            Select(LTrim(_t.Name))
             .Build();
 
         StringBuilder expected = new();
@@ -118,10 +118,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void LTRIM_CharacterAndTrimChars_CorrectSql()
+    public void LTrim_CharacterAndTrimChars_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(LTRIM(_t.name, "a"))
+            Select(LTrim(_t.Name, "a"))
             .Build();
 
         StringBuilder expected = new();

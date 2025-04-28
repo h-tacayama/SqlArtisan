@@ -11,7 +11,7 @@ public sealed class IsNotNullCondition : AbstractCondition
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(_leftSide)
-        .AppendSpace(Keywords.IS)
-        .AppendSpace(Keywords.NOT)
-        .Append(Keywords.NULL);
+        .AppendSpace(Keywords.Is)
+        .AppendSpace(Keywords.Not)
+        .Append(Keywords.Null);
 }

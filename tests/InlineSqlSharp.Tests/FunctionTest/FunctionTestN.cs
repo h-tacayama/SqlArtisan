@@ -6,10 +6,10 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void NVL_CharacterValue_CorrectSql()
+    public void Nvl_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(NVL(_t.name, "Unknown"))
+            Select(Nvl(_t.Name, "Unknown"))
             .Build();
 
         StringBuilder expected = new();

@@ -5,15 +5,15 @@ namespace InlineSqlSharp.Tests;
 
 public class IntersectTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void INTERSECT_SimpleSelect_CorrectSql()
+    public void Intersect_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(1)
-            .INTERSECT
-            .SELECT(2)
+            Select(1)
+            .Intersect
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -27,13 +27,13 @@ public class IntersectTest
     }
 
     [Fact]
-    public void INTERSECT_SelectWithFrom_CorrectSql()
+    public void Intersect_SelectWithFrom_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .INTERSECT
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Intersect
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -49,14 +49,14 @@ public class IntersectTest
     }
 
     [Fact]
-    public void INTERSECT_SelectWithFromWhere_CorrectSql()
+    public void Intersect_SelectWithFromWhere_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .INTERSECT
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .Intersect
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -74,15 +74,15 @@ public class IntersectTest
     }
 
     [Fact]
-    public void INTERSECT_SelectWithFromWhereGroupBy_CorrectSql()
+    public void Intersect_SelectWithFromWhereGroupBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .GROUP_BY(_t.code)
-            .INTERSECT
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .GroupBy(_t.Code)
+            .Intersect
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -102,16 +102,16 @@ public class IntersectTest
     }
 
     [Fact]
-    public void INTERSECT_SelectWithFromWhereGroupByHaving_CorrectSql()
+    public void Intersect_SelectWithFromWhereGroupByHaving_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .GROUP_BY(_t.code)
-            .HAVING(COUNT(_t.code) > 0)
-            .INTERSECT
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .GroupBy(_t.Code)
+            .Having(Count(_t.Code) > 0)
+            .Intersect
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -133,12 +133,12 @@ public class IntersectTest
     }
 
     [Fact]
-    public void INTERSECT_ALL_SimpleSelect_CorrectSql()
+    public void IntersectAll_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(1)
-            .INTERSECT_ALL
-            .SELECT(2)
+            Select(1)
+            .IntersectAll
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();

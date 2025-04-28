@@ -5,16 +5,16 @@ namespace InlineSqlSharp.Tests;
 
 public partial class WindowRowNumberTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void ROW_NUMBER_OVER_PartitionByOrderBy_CorrectSql()
+    public void RowNumber_Over_PartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                ROW_NUMBER().OVER(
-                    PARTITION_BY(_t.code, _t.name)
-                    .ORDER_BY(_t.code.ASC, _t.name.DESC)))
+            Select(
+                RowNumber().Over(
+                    PartitionBy(_t.Code, _t.Name)
+                    .OrderBy(_t.Code.Asc, _t.Name.Desc)))
             .Build();
 
         StringBuilder expected = new();
@@ -34,10 +34,10 @@ public partial class WindowRowNumberTest
     }
 
     [Fact]
-    public void ROW_NUMBER_OVER_OrderBy_CorrectSql()
+    public void RowNumber_Over_OrderBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(ROW_NUMBER().OVER(ORDER_BY(_t.code, _t.name)))
+            Select(RowNumber().Over(OrderBy(_t.Code, _t.Name)))
             .Build();
 
         StringBuilder expected = new();

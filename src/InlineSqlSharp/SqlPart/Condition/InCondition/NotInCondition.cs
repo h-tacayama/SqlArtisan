@@ -13,8 +13,8 @@ public sealed class NotInCondition : AbstractCondition
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(_leftSide)
-        .AppendSpace(Keywords.NOT)
-        .AppendSpace(Keywords.IN)
+        .AppendSpace(Keywords.Not)
+        .AppendSpace(Keywords.In)
         .OpenParenthesis()
         .AppendCsv(_expressions)
         .CloseParenthesis();

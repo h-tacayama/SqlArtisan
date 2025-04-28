@@ -4,17 +4,17 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-    public static AnalyticRankFunction RANK() => new();
+    public static AnalyticRankFunction Rank() => new();
 
-    public static AnalyticRowNumberFunction ROW_NUMBER() => new();
+    public static AnalyticRowNumberFunction RowNumber() => new();
 
-    public static RegexpCountFunction REGEXP_COUNT(
+    public static RegexpCountFunction RegexpCount(
         object source,
         object pattern) => new(
             Resolve(source),
             Resolve(pattern));
 
-    public static RegexpCountFunction REGEXP_COUNT(
+    public static RegexpCountFunction RegexpCount(
         object source,
         object pattern,
         object position) => new(
@@ -22,7 +22,7 @@ public static partial class SqlWordbook
             Resolve(pattern),
             Resolve(position));
 
-    public static RegexpCountFunction REGEXP_COUNT(
+    public static RegexpCountFunction RegexpCount(
         object source,
         object pattern,
         object position,
@@ -32,13 +32,13 @@ public static partial class SqlWordbook
             Resolve(position),
             options);
 
-    public static RegexpLikeCondition REGEXP_LIKE(
+    public static RegexpLikeCondition RegexpLike(
         object source,
         object pattern) => new(
             Resolve(source),
             Resolve(pattern));
 
-    public static RegexpLikeCondition REGEXP_LIKE(
+    public static RegexpLikeCondition RegexpLike(
         object source,
         object pattern,
         RegexpOptions options) => new(
@@ -46,7 +46,7 @@ public static partial class SqlWordbook
             Resolve(pattern),
             options);
 
-    public static RegexpReplaceFunction REGEXP_REPLACE(
+    public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
         object replacement) => new(
@@ -54,7 +54,7 @@ public static partial class SqlWordbook
             Resolve(pattern),
             Resolve(replacement));
 
-    public static RegexpReplaceFunction REGEXP_REPLACE(
+    public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
         object replacement,
@@ -64,7 +64,7 @@ public static partial class SqlWordbook
             Resolve(replacement),
             Resolve(position));
 
-    public static RegexpReplaceFunction REGEXP_REPLACE(
+    public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
         object replacement,
@@ -76,7 +76,7 @@ public static partial class SqlWordbook
             Resolve(position),
             Resolve(occurrence));
 
-    public static RegexpReplaceFunction REGEXP_REPLACE(
+    public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
         object replacement,
@@ -90,7 +90,7 @@ public static partial class SqlWordbook
             Resolve(occurrence),
             options);
 
-    public static ReplaceFunction REPLACE(
+    public static ReplaceFunction Replace(
         object source,
         object search,
         object replacement) => new(
@@ -98,13 +98,13 @@ public static partial class SqlWordbook
             Resolve(search),
             Resolve(replacement));
 
-    public static RpadFunction RPAD(
+    public static RPadFunction RPad(
         object source,
         object length) => new(
             Resolve(source),
             Resolve(length));
 
-    public static RpadFunction RPAD(
+    public static RPadFunction RPad(
         object source,
         object length,
         object padding) => new(
@@ -112,22 +112,22 @@ public static partial class SqlWordbook
             Resolve(length),
             Resolve(padding));
 
-    public static RtrimFunction RTRIM(object source) =>
+    public static RTrimFunction RTrim(object source) =>
         new(Resolve(source));
 
-    public static RtrimFunction RTRIM(
+    public static RTrimFunction RTrim(
         object source,
         object trimChars) => new(
             Resolve(source),
             Resolve(trimChars));
 
-    public static RegexpSubstrFunction REGEXP_SUBSTR(
+    public static RegexpSubstrFunction RegexpSubstr(
         object source,
         object pattern) => new(
             Resolve(source),
             Resolve(pattern));
 
-    public static RegexpSubstrFunction REGEXP_SUBSTR(
+    public static RegexpSubstrFunction RegexpSubstr(
         object source,
         object pattern,
         object position) => new(
@@ -135,7 +135,7 @@ public static partial class SqlWordbook
             Resolve(pattern),
             Resolve(position));
 
-    public static RegexpSubstrFunction REGEXP_SUBSTR(
+    public static RegexpSubstrFunction RegexpSubstr(
         object source,
         object pattern,
         object position,
@@ -145,7 +145,7 @@ public static partial class SqlWordbook
             Resolve(position),
             Resolve(occurrence));
 
-    public static RegexpSubstrFunction REGEXP_SUBSTR(
+    public static RegexpSubstrFunction RegexpSubstr(
         object source,
         object pattern,
         object position,
@@ -157,7 +157,7 @@ public static partial class SqlWordbook
             Resolve(occurrence),
             options);
 
-    public static RegexpSubstrFunction REGEXP_SUBSTR(
+    public static RegexpSubstrFunction RegexpSubstr(
         object source,
         object pattern,
         object position,

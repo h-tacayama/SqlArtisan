@@ -9,7 +9,7 @@ public sealed class SimpleCaseWhenExpr : AbstractSqlPart
         _whenExpr = whenExpr;
     }
 
-    public SimpleCaseWhenClause THEN(object thenExpr) =>
+    public SimpleCaseWhenClause Then(object thenExpr) =>
         new(this, new CaseThenExpr(ExprResolver.Resolve(thenExpr)));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>

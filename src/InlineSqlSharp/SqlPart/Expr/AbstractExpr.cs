@@ -6,22 +6,22 @@ namespace InlineSqlSharp;
 public abstract class AbstractExpr : AbstractSqlPart
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder ASC => new(this, SortDirection.Asc);
+    public SortOrder Asc => new(this, SortDirection.Asc);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder DESC => new(this, SortDirection.Desc);
+    public SortOrder Desc => new(this, SortDirection.Desc);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public IsNullCondition IS_NULL => new(this);
+    public IsNullCondition IsNull => new(this);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public IsNotNullCondition IS_NOT_NULL => new(this);
+    public IsNotNullCondition IsNotNull => new(this);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NULLS_FIRST => new(this, NullOrdering.NullsFirst);
+    public SortOrder NullsFirst => new(this, NullOrdering.NullsFirst);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NULLS_LAST => new(this, NullOrdering.NullsLast);
+    public SortOrder NullsLast => new(this, NullOrdering.NullsLast);
 
     public override bool Equals(object? obj) => base.Equals(obj);
 
@@ -82,31 +82,31 @@ public abstract class AbstractExpr : AbstractSqlPart
         object rightSide) =>
         new ModulusOperator(@this, Resolve(rightSide));
 
-    public ExprAlias AS(string alias) => new(this, alias);
+    public ExprAlias As(string alias) => new(this, alias);
 
-    public BetweenCondition BETWEEN(
+    public BetweenCondition Between(
         object rightSide1,
         object rightSide2) => new(this, Resolve(rightSide1), Resolve(rightSide2));
 
-    public NotBetweenCondition NOT_BETWEEN(
+    public NotBetweenCondition NotBetween(
         object rightSide1,
         object rightSide2) => new(this, Resolve(rightSide1), Resolve(rightSide2));
 
-    public InCondition IN(params object[] expressions) =>
+    public InCondition In(params object[] expressions) =>
         new(this, Resolve(expressions));
 
-    public InSubqueryCondition IN(ISubquery subquery) =>
+    public InSubqueryCondition In(ISubquery subquery) =>
         new(this, subquery);
 
-    public NotInCondition NOT_IN(params object[] expressions) =>
+    public NotInCondition NotIn(params object[] expressions) =>
         new(this, Resolve(expressions));
 
-    public NotInSubqueryCondition NOT_IN(ISubquery subquery) =>
+    public NotInSubqueryCondition NotIn(ISubquery subquery) =>
         new(this, subquery);
 
-    public LikeCondition LIKE(
+    public LikeCondition Like(
         object rightSide) => new(this, Resolve(rightSide));
 
-    public NotLikeCondition NOT_LIKE(
+    public NotLikeCondition NotLike(
         object rightSide) => new(this, Resolve(rightSide));
 }

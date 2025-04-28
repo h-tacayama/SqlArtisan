@@ -6,7 +6,7 @@ internal sealed class LeftJoinClause(AbstractTableReference table) :
     private readonly AbstractTableReference _table = table;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.LEFT)
-        .AppendSpace(Keywords.JOIN)
+        .AppendSpace(Keywords.Left)
+        .AppendSpace(Keywords.Join)
         .Append(_table);
 }

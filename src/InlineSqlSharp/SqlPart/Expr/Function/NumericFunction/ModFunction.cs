@@ -12,7 +12,7 @@ public sealed class ModFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.MOD)
+        .Append(Keywords.Mod)
         .OpenParenthesis()
         .Append(_dividend)
         .PrependComma(_divisor)

@@ -2,9 +2,9 @@
 
 namespace InlineSqlSharp;
 
-public sealed class Sequence
+public sealed class SequenceObject
 {
-    internal Sequence(string name)
+    internal SequenceObject(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -19,8 +19,8 @@ public sealed class Sequence
     public string Name { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SequenceCurrval CURRVAL => new(this);
+    public SequenceCurrVal CurrVal => new(this);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SequenceNextval NEXTVAL => new(this);
+    public SequenceNextVal NextVal => new(this);
 }

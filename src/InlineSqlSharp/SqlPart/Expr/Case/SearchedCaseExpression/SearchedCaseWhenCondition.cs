@@ -9,7 +9,7 @@ public sealed class SearchedCaseWhenCondition : AbstractSqlPart
         _whenCondition = whenCondition;
     }
 
-    public SearchedCaseWhenClause THEN(object thenExpr) =>
+    public SearchedCaseWhenClause Then(object thenExpr) =>
         new(this, new CaseThenExpr(ExprResolver.Resolve(thenExpr)));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>

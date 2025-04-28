@@ -10,7 +10,7 @@ public sealed class LastDayFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.LAST_DAY)
+        .Append(Keywords.LastDay)
         .OpenParenthesis()
         .Append(_date)
         .CloseParenthesis();

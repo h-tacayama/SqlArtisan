@@ -13,7 +13,7 @@ public sealed class InCondition : AbstractCondition
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(_leftSide)
-        .AppendSpace(Keywords.IN)
+        .AppendSpace(Keywords.In)
         .OpenParenthesis()
         .AppendCsv(_expressions)
         .CloseParenthesis();

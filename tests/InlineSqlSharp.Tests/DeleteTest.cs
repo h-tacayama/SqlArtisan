@@ -5,13 +5,13 @@ namespace InlineSqlSharp.Tests;
 
 public class DeleteTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void DELETE_FROM_SimpleTable_CorrectSql()
+    public void DeleteFrom_SimpleTable_CorrectSql()
     {
         SqlStatement sql =
-            DELETE_FROM(_t)
+            DeleteFrom(_t)
             .Build();
 
         StringBuilder expected = new();
@@ -22,11 +22,11 @@ public class DeleteTest
     }
 
     [Fact]
-    public void DELETE_FROM_WithWhereClause_CorrectSql()
+    public void DeleteFrom_WithWhereClause_CorrectSql()
     {
         SqlStatement sql =
-            DELETE_FROM(_t)
-            .WHERE(_t.code == 1)
+            DeleteFrom(_t)
+            .Where(_t.Code == 1)
             .Build();
 
         StringBuilder expected = new();

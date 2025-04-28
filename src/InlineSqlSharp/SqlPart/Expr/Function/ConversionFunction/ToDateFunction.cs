@@ -12,7 +12,7 @@ public sealed class ToDateFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.TO_DATE)
+        .Append(Keywords.ToDate)
         .OpenParenthesis()
         .Append(_text)
         .PrependComma(_format)

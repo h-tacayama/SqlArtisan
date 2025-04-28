@@ -11,13 +11,13 @@ public static class InlineSqlSharpExample
         Books b = new("b");
 
         SqlStatement sql =
-            SELECT(a.Id, COUNT(a.Id).AS("Count"))
-            .FROM(a)
-            .INNER_JOIN(b)
-            .ON(a.Id == b.AuthorId)
-            .WHERE(b.Rating > 2.5)
-            .GROUP_BY(a.Id)
-            .ORDER_BY(a.Id.DESC)
+            Select(a.Id, Count(a.Id).As("Count"))
+            .From(a)
+            .InnerJoin(b)
+            .On(a.Id == b.AuthorId)
+            .Where(b.Rating > 2.5)
+            .GroupBy(a.Id)
+            .OrderBy(a.Id.Desc)
             .Build();
     }
 }

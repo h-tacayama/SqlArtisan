@@ -6,10 +6,10 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void CONCAT_MultipleValues_CorrectSql()
+    public void Concat_MultipleValues_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(CONCAT(_t.name, "a", "b"))
+            Select(Concat(_t.Name, "a", "b"))
             .Build();
 
         StringBuilder expected = new();
@@ -20,10 +20,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void COUNT_ColumnValue_CorrectSql()
+    public void Count_ColumnValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(COUNT(_t.code))
+            Select(Count(_t.Code))
             .Build();
 
         StringBuilder expected = new();
@@ -34,10 +34,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void COUNT_DISTINCT_ColumnValue_CorrectSql()
+    public void Count_Distinct_ColumnValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(COUNT(DISTINCT, _t.code))
+            Select(Count(Distinct, _t.Code))
             .Build();
 
         StringBuilder expected = new();

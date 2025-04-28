@@ -5,16 +5,16 @@ namespace InlineSqlSharp.Tests;
 
 public partial class WindowRankTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void RANK_OVER_PartitionByOrderBy_CorrectSql()
+    public void Rank_Over_PartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                RANK().OVER(
-                    PARTITION_BY(_t.code, _t.name)
-                    .ORDER_BY(_t.code.ASC, _t.name.DESC)))
+            Select(
+                Rank().Over(
+                    PartitionBy(_t.Code, _t.Name)
+                    .OrderBy(_t.Code.Asc, _t.Name.Desc)))
             .Build();
 
         StringBuilder expected = new();
@@ -34,12 +34,12 @@ public partial class WindowRankTest
     }
 
     [Fact]
-    public void RANK_OVER_OrderBy_CorrectSql()
+    public void Rank_Over_OrderBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                RANK().OVER(
-                    ORDER_BY(_t.code, _t.name)))
+            Select(
+                Rank().Over(
+                    OrderBy(_t.Code, _t.Name)))
             .Build();
 
         StringBuilder expected = new();

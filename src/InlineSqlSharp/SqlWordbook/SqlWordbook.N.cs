@@ -6,14 +6,14 @@ namespace InlineSqlSharp;
 public static partial class SqlWordbook
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static Null NULL => new();
+    public static NullExpr Null => new();
 
-    public static NotCondition NOT(AbstractCondition condition) => new(condition);
+    public static NotCondition Not(AbstractCondition condition) => new(condition);
 
-    public static NotExistsCondition NOT_EXISTS(ISubquery subquery) =>
+    public static NotExistsCondition NotExists(ISubquery subquery) =>
         new(subquery);
 
-    public static NvlFunction NVL(
+    public static NvlFunction Nvl(
         object expr1,
         object expr2) => new(Resolve(expr1), Resolve(expr2));
 }

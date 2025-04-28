@@ -3,9 +3,9 @@ using static InlineSqlSharp.SqlWordbook;
 
 namespace InlineSqlSharp.Tests;
 
-internal sealed class ConditionTestAssert(test_table t)
+internal sealed class ConditionTestAssert(TestTable t)
 {
-    private readonly test_table _t = t;
+    private readonly TestTable _t = t;
 
     internal void Equal(
         AbstractCondition testCondition,
@@ -14,9 +14,9 @@ internal sealed class ConditionTestAssert(test_table t)
         params object[] bindValues)
     {
         SqlStatement sql =
-            SELECT(_t.name)
-            .FROM(_t)
-            .WHERE(testCondition)
+            Select(_t.Name)
+            .From(_t)
+            .Where(testCondition)
             .Build();
 
         StringBuilder expected = new();

@@ -5,17 +5,17 @@ namespace InlineSqlSharp.Tests;
 
 public class FullJoinTest
 {
-    private readonly test_table _t = new("t");
-    private readonly test_table _s = new("s");
+    private readonly TestTable _t = new("t");
+    private readonly TestTable _s = new("s");
 
     [Fact]
-    public void FULL_JOIN_SimpleCondition_CorrectSql()
+    public void FullJoin_SimpleCondition_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.name)
-            .FROM(_t)
-            .FULL_JOIN(_s)
-            .ON(_t.code == _s.code)
+            Select(_t.Name)
+            .From(_t)
+            .FullJoin(_s)
+            .On(_t.Code == _s.Code)
             .Build();
 
         StringBuilder expected = new();

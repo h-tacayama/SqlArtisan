@@ -18,7 +18,7 @@ public sealed class ReplaceFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.REPLACE)
+        .Append(Keywords.Replace)
         .OpenParenthesis()
         .Append(_source)
         .PrependComma(_search)

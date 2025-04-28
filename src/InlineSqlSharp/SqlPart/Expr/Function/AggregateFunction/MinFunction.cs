@@ -10,7 +10,7 @@ public sealed class MinFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.MIN)
+        .Append(Keywords.Min)
         .OpenParenthesis()
         .Append(_expr)
         .CloseParenthesis();

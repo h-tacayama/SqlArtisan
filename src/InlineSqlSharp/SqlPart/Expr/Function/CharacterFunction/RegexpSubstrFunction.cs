@@ -13,7 +13,7 @@ public sealed class RegexpSubstrFunction : AbstractExpr
         AbstractExpr? subPatternPos = null)
     {
         _core = new(
-            Keywords.REGEXP_SUBSTR,
+            Keywords.RegexpSubstr,
             source,
             pattern,
             position,

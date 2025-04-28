@@ -2,13 +2,13 @@
 
 internal sealed class SelectClauseWithOptions : AbstractSqlPart
 {
-    private readonly Hints _hints;
-    private readonly Distinct _distinct;
+    private readonly SqlHints _hints;
+    private readonly DistinctKeyword _distinct;
     private readonly AbstractSqlPart[] _selectItems;
 
     private SelectClauseWithOptions(
-        Hints hints,
-        Distinct distinct,
+        SqlHints hints,
+        DistinctKeyword distinct,
         AbstractSqlPart[] selectItems)
     {
         _hints = hints;
@@ -17,15 +17,15 @@ internal sealed class SelectClauseWithOptions : AbstractSqlPart
     }
 
     internal static SelectClauseWithOptions Parse(
-        Hints hints,
-        Distinct distinct,
+        SqlHints hints,
+        DistinctKeyword distinct,
         object[] selectItems) => new(
             hints,
             distinct,
             SelectItemResolver.Resolve(selectItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.SELECT)
+        .AppendSpace(Keywords.Select)
         .AppendSpaceIfNotNull(_hints)
         .AppendSpaceIfNotNull(_distinct)
         .AppendSelectItems(_selectItems);

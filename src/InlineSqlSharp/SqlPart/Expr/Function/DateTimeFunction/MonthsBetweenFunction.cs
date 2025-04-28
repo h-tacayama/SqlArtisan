@@ -12,7 +12,7 @@ public sealed class MonthsBetweenFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.MONTHS_BETWEEN)
+        .Append(Keywords.MonthsBetween)
         .OpenParenthesis()
         .Append(_date1)
         .PrependComma(_date2)

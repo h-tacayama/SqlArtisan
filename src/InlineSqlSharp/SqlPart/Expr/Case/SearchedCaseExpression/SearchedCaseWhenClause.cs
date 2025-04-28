@@ -14,10 +14,10 @@ public sealed class SearchedCaseWhenClause : AbstractSqlPart
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.WHEN)
+        .AppendSpace(Keywords.When)
         .OpenParenthesis()
         .Append(_whenCondition)
         .CloseParenthesis()
-        .EncloseInSpaces(Keywords.THEN)
+        .EncloseInSpaces(Keywords.Then)
         .Append(_thenExpr);
 }

@@ -4,8 +4,8 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-    public static PartitionByClause PARTITION_BY(
+    public static PartitionByClause PartitionBy(
         params object[] expressions) => new(Resolve(expressions));
 
-    public static AnalyticPercentRankFunction PERCENT_RANK() => new();
+    public static AnalyticPercentRankFunction PercentRank() => new();
 }

@@ -14,7 +14,7 @@ public sealed class ToCharFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.TO_CHAR)
+        .Append(Keywords.ToChar)
         .OpenParenthesis()
         .Append(_expr)
         .PrependCommaIfNotNull(_format)

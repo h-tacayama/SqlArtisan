@@ -15,13 +15,13 @@ internal sealed class OracleTableInfoRepository(
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
 
-        ALL_TABLES t = new("t");
+        AllTables t = new("t");
 
         ISqlBuilder sql =
-            SELECT(t.TABLE_NAME)
-            .FROM(t)
-            .WHERE(t.OWNER == _connInfo.Schema.ToUpper())
-            .ORDER_BY(t.TABLE_NAME);
+            Select(t.TableName)
+            .From(t)
+            .Where(t.Owner == _connInfo.Schema.ToUpper())
+            .OrderBy(t.TableName);
 
         List<DbTableInfo> tables = new();
 
@@ -66,17 +66,17 @@ internal sealed class OracleTableInfoRepository(
             return false;
         }
 
-        ALL_TAB_COLUMNS atc = new("atc");
+        AllTabColumns atc = new("atc");
 
         ISqlBuilder sql =
-            SELECT(
-                atc.COLUMN_NAME,
-                atc.DATA_TYPE)
-            .FROM(atc)
-            .WHERE(
-                AND(
-                    atc.OWNER == _connInfo.Schema.ToUpper(),
-                    atc.TABLE_NAME == tableName.ToUpper()));
+            Select(
+                atc.ColumnName,
+                atc.DataType)
+            .From(atc)
+            .Where(
+                And(
+                    atc.Owner == _connInfo.Schema.ToUpper(),
+                    atc.TableName == tableName.ToUpper()));
 
         List<DbColumnInfo> columns = new();
 
@@ -107,15 +107,15 @@ internal sealed class OracleTableInfoRepository(
 
     private bool ExistsTable(IDbConnection conn, string tableName)
     {
-        ALL_TABLES t = new("t");
+        AllTables t = new("t");
 
         ISqlBuilder sql =
-            SELECT(COUNT(t.TABLE_NAME))
-            .FROM(t)
-            .WHERE(
-                AND(
-                    t.OWNER == _connInfo.Schema.ToUpper(),
-                    t.TABLE_NAME == tableName.ToUpper()));
+            Select(Count(t.TableName))
+            .From(t)
+            .Where(
+                And(
+                    t.Owner == _connInfo.Schema.ToUpper(),
+                    t.TableName == tableName.ToUpper()));
 
         int tableCount = Convert.ToInt32(conn.ExecuteScalar(sql));
         return tableCount > 0;

@@ -10,6 +10,6 @@ public sealed class NotCondition : AbstractCondition
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.NOT)
+        .AppendSpace(Keywords.Not)
         .EncloseInParentheses(_condition);
 }

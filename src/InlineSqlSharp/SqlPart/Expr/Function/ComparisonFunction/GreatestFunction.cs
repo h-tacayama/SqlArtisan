@@ -6,7 +6,7 @@ public sealed class GreatestFunction : AbstractExpr
 
     internal GreatestFunction(AbstractExpr[] expressions)
     {
-        _core = new(Keywords.GREATEST, expressions);
+        _core = new(Keywords.Greatest, expressions);
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>

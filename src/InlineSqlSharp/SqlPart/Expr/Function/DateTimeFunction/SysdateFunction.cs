@@ -1,9 +1,9 @@
 namespace InlineSqlSharp;
 
-public sealed class SysdateFunction : AbstractExpr
+public sealed class SysDateFunction : AbstractExpr
 {
-    internal SysdateFunction() { }
+    internal SysDateFunction() { }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        buffer.Append(Keywords.SYSDATE);
+        buffer.Append(Keywords.SysDate);
 }

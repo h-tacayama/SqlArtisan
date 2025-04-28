@@ -2,19 +2,19 @@
 
 public interface ISelectBuilder
 {
-    ISelectBuilderSelect SELECT(
+    ISelectBuilderSelect Select(
         params object[] selectItems);
 
-    ISelectBuilderSelect SELECT(
-        Distinct distinct,
+    ISelectBuilderSelect Select(
+        DistinctKeyword distinct,
         params object[] selectItems);
 
-    ISelectBuilderSelect SELECT(
-        Hints hints,
+    ISelectBuilderSelect Select(
+        SqlHints hints,
         params object[] selectItems);
 
-    ISelectBuilderSelect SELECT(
-        Hints hints,
-        Distinct distinct,
+    ISelectBuilderSelect Select(
+        SqlHints hints,
+        DistinctKeyword distinct,
         params object[] selectItems);
 }

@@ -8,23 +8,27 @@ internal sealed class DbTableInfo(
 {
     public string Name => name;
 
+    public string PascalCaseName => CaseConverter.SnakeToPascalCase(name);
+
     public IReadOnlyList<DbColumnInfo> Columns => columns;
 
     public string GenerateCode(string @namespace)
     {
         StringBuilder code = new();
 
+        code.AppendLine("using InlineSqlSharp;");
+        code.AppendLine();
         code.AppendLine($"namespace {@namespace};");
         code.AppendLine();
-        code.AppendLine($"internal sealed class {Name} : Table");
+        code.AppendLine($"internal sealed class {PascalCaseName} : AbstractTable");
         code.AppendLine("{");
 
-        code.AppendLine($"\tpublic {Name}(string alias) : base(alias)");
+        code.AppendLine($"\tpublic {PascalCaseName}(string tableAlias) : base(\"{Name}\", tableAlias)");
         code.AppendLine("\t{");
 
         foreach (DbColumnInfo column in Columns)
         {
-            code.AppendLine($"\t\t{column.Name} = new Column(alias, nameof({column.Name}));");
+            code.AppendLine($"\t\t{column.PascalCaseName} = new Column(tableAlias, \"{column.Name}\");");
         }
 
         code.AppendLine("\t}");
@@ -32,7 +36,7 @@ internal sealed class DbTableInfo(
         foreach (DbColumnInfo column in Columns)
         {
             code.AppendLine();
-            code.AppendLine($"\tpublic Column {column.Name} {{ get; }}");
+            code.AppendLine($"\tpublic Column {column.PascalCaseName} {{ get; }}");
         }
 
         code.AppendLine("}");

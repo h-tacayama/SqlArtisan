@@ -6,10 +6,10 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void MAX_DateTimeValue_CorrectSql()
+    public void Max_DateTimeValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(MAX(_t.created_at))
+            Select(Max(_t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();
@@ -20,10 +20,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void MIN_DateTimeValue_CorrectSql()
+    public void Min_DateTimeValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(MIN(_t.created_at))
+            Select(Min(_t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();
@@ -34,10 +34,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void MOD_NumericValues_CorrectSql()
+    public void Mod_NumericValues_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(MOD(_t.code, 3))
+            Select(Mod(_t.Code, 3))
             .Build();
 
         StringBuilder expected = new();
@@ -48,13 +48,13 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void MONTHS_BETWEEN_DateTimeValues_CorrectSql()
+    public void MonthsBetween_DateTimeValues_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                MONTHS_BETWEEN(
-                    TO_DATE("2001/02/03", "YYYY/MM/DD"),
-                    TO_DATE("2004/05/06", "YYYY/MM/DD")))
+            Select(
+                MonthsBetween(
+                    ToDate("2001/02/03", "YYYY/MM/DD"),
+                    ToDate("2004/05/06", "YYYY/MM/DD")))
             .Build();
 
         StringBuilder expected = new();

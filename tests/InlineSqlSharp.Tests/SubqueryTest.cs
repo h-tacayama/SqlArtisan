@@ -5,16 +5,16 @@ namespace InlineSqlSharp.Tests;
 
 public class SubqueryTest
 {
-    private readonly test_table _t;
-    private readonly test_table _s;
-    private readonly test_table _r;
+    private readonly TestTable _t;
+    private readonly TestTable _s;
+    private readonly TestTable _r;
     private readonly ConditionTestAssert _assert;
 
     public SubqueryTest()
     {
-        _t = new test_table("t");
-        _s = new test_table("s");
-        _r = new test_table("r");
+        _t = new TestTable("t");
+        _s = new TestTable("s");
+        _r = new TestTable("r");
         _assert = new(_t);
     }
 
@@ -29,7 +29,7 @@ public class SubqueryTest
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.IN(SELECT(_s.code)),
+            _t.Code.In(Select(_s.Code)),
             expected.ToString());
     }
 
@@ -46,7 +46,7 @@ public class SubqueryTest
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.IN(SELECT(_s.code).FROM(_s)),
+            _t.Code.In(Select(_s.Code).From(_s)),
             expected.ToString());
     }
 
@@ -64,7 +64,7 @@ public class SubqueryTest
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.IN(SELECT(DISTINCT, _s.code).FROM(_s)),
+            _t.Code.In(Select(Distinct, _s.Code).From(_s)),
             expected.ToString());
     }
 
@@ -83,7 +83,7 @@ public class SubqueryTest
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.IN(SELECT(_s.code).FROM(_s).WHERE(_s.code > 2)),
+            _t.Code.In(Select(_s.Code).From(_s).Where(_s.Code > 2)),
             expected.ToString(),
             1, 2);
     }
@@ -105,7 +105,7 @@ public class SubqueryTest
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.IN(SELECT(_s.code).FROM(_s).INNER_JOIN(_r).ON(_s.code == _r.code)),
+            _t.Code.In(Select(_s.Code).From(_s).InnerJoin(_r).On(_s.Code == _r.Code)),
             expected.ToString());
     }
 
@@ -121,7 +121,7 @@ public class SubqueryTest
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.IN(SELECT(HINTS("/*+ ANY HINT */"), _s.code)),
+            _t.Code.In(Select(Hints("/*+ ANY HINT */"), _s.Code)),
             expected.ToString());
     }
 
@@ -138,7 +138,7 @@ public class SubqueryTest
         expected.Append(")");
 
         _assert.Equal(
-            _t.code.IN(SELECT(HINTS("/*+ ANY HINT */"), DISTINCT, _s.code)),
+            _t.Code.In(Select(Hints("/*+ ANY HINT */"), Distinct, _s.Code)),
             expected.ToString());
     }
 }

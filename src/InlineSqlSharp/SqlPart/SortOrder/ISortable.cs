@@ -5,14 +5,14 @@ namespace InlineSqlSharp;
 internal interface ISortable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder ASC { get; }
+    public SortOrder Asc { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder DESC { get; }
+    public SortOrder Desc { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NULLS_FIRST { get; }
+    public SortOrder NullsFirst { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NULLS_LAST { get; }
+    public SortOrder NullsLast { get; }
 }

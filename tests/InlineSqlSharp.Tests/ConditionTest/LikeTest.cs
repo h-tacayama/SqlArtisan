@@ -2,20 +2,20 @@
 
 public class LikeTest
 {
-    private readonly test_table _t;
+    private readonly TestTable _t;
     private readonly ConditionTestAssert _assert;
 
     public LikeTest()
     {
-        _t = new test_table("t");
+        _t = new TestTable("t");
         _assert = new(_t);
     }
 
     [Fact]
-    public void LIKE_String_CorrectSql() =>
-        _assert.Equal(_t.name.LIKE("%abc%"), "\"t\".name LIKE :0", 1, "%abc%");
+    public void Like_String_CorrectSql() =>
+        _assert.Equal(_t.Name.Like("%abc%"), "\"t\".name LIKE :0", 1, "%abc%");
 
     [Fact]
-    public void NOT_LIKE_String_CorrectSql() =>
-        _assert.Equal(_t.name.NOT_LIKE("%abc%"), "\"t\".name NOT LIKE :0", 1, "%abc%");
+    public void NotLike_String_CorrectSql() =>
+        _assert.Equal(_t.Name.NotLike("%abc%"), "\"t\".name NOT LIKE :0", 1, "%abc%");
 }

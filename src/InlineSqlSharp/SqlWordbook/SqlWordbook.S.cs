@@ -5,29 +5,29 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-    public static ISelectBuilderSelect SELECT(
+    public static ISelectBuilderSelect Select(
         params object[] selectItems) =>
         new SelectBuilder(SelectClause.Parse(selectItems));
 
-    public static ISelectBuilderSelect SELECT(
-        Distinct distinct,
+    public static ISelectBuilderSelect Select(
+        DistinctKeyword distinct,
         params object[] selectItems) =>
         new SelectBuilder(
             SelectClauseWithDistinct.Parse(
                 distinct,
                 selectItems));
 
-    public static ISelectBuilderSelect SELECT(
-        Hints hints,
+    public static ISelectBuilderSelect Select(
+        SqlHints hints,
         params object[] selectItems) =>
         new SelectBuilder(
             SelectClauseWithHints.Parse(
                 hints,
                 selectItems));
 
-    public static ISelectBuilderSelect SELECT(
-        Hints hints,
-        Distinct distinct,
+    public static ISelectBuilderSelect Select(
+        SqlHints hints,
+        DistinctKeyword distinct,
         params object[] selectItems) =>
         new SelectBuilder(
             SelectClauseWithOptions.Parse(
@@ -35,15 +35,15 @@ public static partial class SqlWordbook
                 distinct,
                 selectItems));
 
-    public static Sequence SEQUENCE(string name) => new(name);
+    public static SequenceObject Sequence(string name) => new(name);
 
-    public static SubstrFunction SUBSTR(
+    public static SubstrFunction Substr(
         object source,
         object position) => new(
             Resolve(source),
             Resolve(position));
 
-    public static SubstrFunction SUBSTR(
+    public static SubstrFunction Substr(
         object source,
         object position,
         object length) => new(
@@ -51,13 +51,13 @@ public static partial class SqlWordbook
             Resolve(position),
             Resolve(length));
 
-    public static SubstrbFunction SUBSTRB(
+    public static SubstrBFunction SubstrB(
         object source,
         object position) => new(
             Resolve(source),
             Resolve(position));
 
-    public static SubstrbFunction SUBSTRB(
+    public static SubstrBFunction SubstrB(
         object source,
         object position,
         object length) => new(
@@ -65,15 +65,15 @@ public static partial class SqlWordbook
             Resolve(position),
             Resolve(length));
 
-    public static SumFunction SUM(object expr) =>
+    public static SumFunction Sum(object expr) =>
         new(Resolve(expr));
 
-    public static SumFunction SUM(Distinct distinct, object expr) =>
+    public static SumFunction Sum(DistinctKeyword distinct, object expr) =>
         new(distinct, Resolve(expr));
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static SysdateFunction SYSDATE => new();
+    public static SysDateFunction SysDate => new();
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static SystimestampFunction SYSTIMESTAMP => new();
+    public static SysTimestampFunction SysTimestamp => new();
 }

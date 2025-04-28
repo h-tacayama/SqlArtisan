@@ -5,16 +5,16 @@ namespace InlineSqlSharp.Tests;
 
 public partial class WindowDenseRankTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void DENSE_RANK_OVER_PartitionByOrderBy_CorrectSql()
+    public void DenseRank_Over_PartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                DENSE_RANK().OVER(
-                    PARTITION_BY(_t.code, _t.name)
-                    .ORDER_BY(_t.code.ASC, _t.name.DESC)))
+            Select(
+                DenseRank().Over(
+                    PartitionBy(_t.Code, _t.Name)
+                    .OrderBy(_t.Code.Asc, _t.Name.Desc)))
             .Build();
 
         StringBuilder expected = new();
@@ -34,10 +34,10 @@ public partial class WindowDenseRankTest
     }
 
     [Fact]
-    public void DENSE_RANK_OVER_OrderBy_CorrectSql()
+    public void DenseRank_Over_OrderBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(DENSE_RANK().OVER(ORDER_BY(_t.code, _t.name)))
+            Select(DenseRank().Over(OrderBy(_t.Code, _t.Name)))
             .Build();
 
         StringBuilder expected = new();

@@ -26,7 +26,7 @@ internal sealed class AllTablesClassGenerator(
         foreach (DbTableInfo table in tables)
         {
             string code = table.GenerateCode(_settings.OutputNamespace);
-            string outputPath = _settings.CreateOutputFilePath(table.Name);
+            string outputPath = _settings.CreateOutputFilePath(table.PascalCaseName);
 
             try
             {

@@ -5,17 +5,17 @@ namespace InlineSqlSharp.Tests;
 
 public class LogicalConditionTest
 {
-    private readonly test_table _t;
+    private readonly TestTable _t;
     private readonly ConditionTestAssert _assert;
 
     public LogicalConditionTest()
     {
-        _t = new test_table("t");
+        _t = new TestTable("t");
         _assert = new(_t);
     }
 
     [Fact]
-    public void AND_MultipleConditions_CorrectSql()
+    public void And_MultipleConditions_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("(");
@@ -27,13 +27,13 @@ public class LogicalConditionTest
         expected.Append(")");
 
         _assert.Equal(
-            AND(_t.code == 1, _t.code == 2),
+            And(_t.Code == 1, _t.Code == 2),
             expected.ToString(),
             2, 1, 2);
     }
 
     [Fact]
-    public void OR_MultipleConditions_CorrectSql()
+    public void Or_MultipleConditions_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("(");
@@ -45,13 +45,13 @@ public class LogicalConditionTest
         expected.Append(")");
 
         _assert.Equal(
-            OR(_t.code == 1, _t.code == 2),
+            Or(_t.Code == 1, _t.Code == 2),
             expected.ToString(),
             2, 1, 2);
     }
 
     [Fact]
-    public void AND_WithNestedORConditions_CorrectSql()
+    public void And_WithNestedOrConditions_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("(");
@@ -75,15 +75,15 @@ public class LogicalConditionTest
         expected.Append(")");
 
         _assert.Equal(
-            AND(
-                OR(_t.code == 1, _t.code == 2),
-                OR(_t.code == 3, _t.code == 4)),
+            And(
+                Or(_t.Code == 1, _t.Code == 2),
+                Or(_t.Code == 3, _t.Code == 4)),
             expected.ToString(),
             4, 1, 2, 3, 4);
     }
 
     [Fact]
-    public void OR_WithNestedANDConditions_CorrectSql()
+    public void Or_WithNestedAndConditions_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("(");
@@ -107,15 +107,15 @@ public class LogicalConditionTest
         expected.Append(")");
 
         _assert.Equal(
-            OR(
-                AND(_t.code == 1, _t.code == 2),
-                AND(_t.code == 3, _t.code == 4)),
+            Or(
+                And(_t.Code == 1, _t.Code == 2),
+                And(_t.Code == 3, _t.Code == 4)),
             expected.ToString(),
             4, 1, 2, 3, 4);
     }
 
     [Fact]
-    public void NOT_SingleCondition_CorrectSql()
+    public void Not_SingleCondition_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("NOT ");
@@ -124,7 +124,7 @@ public class LogicalConditionTest
         expected.Append(")");
 
         _assert.Equal(
-            NOT(_t.code == 1),
+            Not(_t.Code == 1),
             expected.ToString(),
             1, 1);
     }

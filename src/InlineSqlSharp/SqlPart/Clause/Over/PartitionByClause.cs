@@ -10,11 +10,11 @@ public sealed class PartitionByClause : AbstractSqlPart
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.PARTITION)
-        .AppendSpace(Keywords.BY)
+        .AppendSpace(Keywords.Partition)
+        .AppendSpace(Keywords.By)
         .AppendCsv(_expressions);
 
-    public PartitionByAndOrderBy ORDER_BY(
+    public PartitionByAndOrderBy OrderBy(
         params object[] orderByItems) =>
         new(this, OrderByClause.Parse(orderByItems));
 }

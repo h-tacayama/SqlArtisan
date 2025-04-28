@@ -17,7 +17,7 @@ public sealed class SubstrFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.SUBSTR)
+        .Append(Keywords.Substr)
         .OpenParenthesis()
         .Append(_source)
         .PrependComma(_position)

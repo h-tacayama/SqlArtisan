@@ -5,13 +5,13 @@ namespace InlineSqlSharp.Tests;
 
 public partial class FunctionTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void ABS_NumericValue_CorrectSql()
+    public void Abs_NumericValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(ABS(_t.code))
+            Select(Abs(_t.Code))
             .Build();
 
         StringBuilder expected = new();
@@ -22,10 +22,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void ADD_MONTHS_DateTimeAndNumeric_CorrectSql()
+    public void AddMonths_DateTimeAndNumeric_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(ADD_MONTHS(_t.created_at, 3))
+            Select(AddMonths(_t.CreatedAt, 3))
             .Build();
 
         StringBuilder expected = new();
@@ -36,10 +36,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void AVG_NumericValue_CorrectSql()
+    public void Avg_NumericValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(AVG(_t.code))
+            Select(Avg(_t.Code))
             .Build();
 
         StringBuilder expected = new();
@@ -50,10 +50,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void AVG_DISTINCT_NumericValue_CorrectSql()
+    public void Avg_Distinct_NumericValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(AVG(DISTINCT, _t.code))
+            Select(Avg(Distinct, _t.Code))
             .Build();
 
         StringBuilder expected = new();

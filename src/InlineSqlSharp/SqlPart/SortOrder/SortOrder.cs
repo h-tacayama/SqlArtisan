@@ -34,10 +34,10 @@ public sealed class SortOrder : AbstractSqlPart
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NULLS_FIRST => SetNullOrdering(NullOrdering.NullsFirst);
+    public SortOrder NullsFirst => SetNullOrdering(NullOrdering.NullsFirst);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NULLS_LAST => SetNullOrdering(NullOrdering.NullsLast);
+    public SortOrder NullsLast => SetNullOrdering(NullOrdering.NullsLast);
 
     internal override void FormatSql(SqlBuildingBuffer buffer)
     {
@@ -46,20 +46,20 @@ public sealed class SortOrder : AbstractSqlPart
         switch (_direction)
         {
             case SortDirection.Asc:
-                buffer.PrependSpace(Keywords.ASC);
+                buffer.PrependSpace(Keywords.Asc);
                 break;
             case SortDirection.Desc:
-                buffer.PrependSpace(Keywords.DESC);
+                buffer.PrependSpace(Keywords.Desc);
                 break;
         }
 
         switch (_nullOrdering)
         {
             case NullOrdering.NullsFirst:
-                buffer.PrependSpace(Keywords.NULLS_FIRST);
+                buffer.PrependSpace(Keywords.NullsFirst);
                 break;
             case NullOrdering.NullsLast:
-                buffer.PrependSpace(Keywords.NULLS_LAST);
+                buffer.PrependSpace(Keywords.NullsLast);
                 break;
         }
     }

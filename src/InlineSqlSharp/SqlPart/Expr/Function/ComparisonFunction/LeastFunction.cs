@@ -6,7 +6,7 @@ public sealed class LeastFunction : AbstractExpr
 
     internal LeastFunction(AbstractExpr[] expressions)
     {
-        _core = new(Keywords.LEAST, expressions);
+        _core = new(Keywords.Least, expressions);
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>

@@ -18,8 +18,8 @@ public sealed class BetweenCondition : AbstractCondition
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(_leftSide)
-        .AppendSpace(Keywords.BETWEEN)
+        .AppendSpace(Keywords.Between)
         .AppendSpace(_rightSide1)
-        .AppendSpace(Keywords.AND)
+        .AppendSpace(Keywords.And)
         .Append(_rightSide2);
 }

@@ -6,10 +6,10 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void INSTR_BasicPattern_CorrectSql()
+    public void Instr_BasicPattern_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(INSTR(_t.name, "abc"))
+            Select(Instr(_t.Name, "abc"))
             .Build();
 
         StringBuilder expected = new();
@@ -20,10 +20,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void INSTR_WithPosition_CorrectSql()
+    public void Instr_WithPosition_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(INSTR(_t.name, "abc", 1))
+            Select(Instr(_t.Name, "abc", 1))
             .Build();
 
         StringBuilder expected = new();
@@ -34,10 +34,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void INSTR_WithOccurrence_CorrectSql()
+    public void Instr_WithOccurrence_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(INSTR(_t.name, "abc", 1, 2))
+            Select(Instr(_t.Name, "abc", 1, 2))
             .Build();
 
         StringBuilder expected = new();

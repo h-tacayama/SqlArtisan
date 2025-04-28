@@ -2,5 +2,5 @@
 
 public static partial class SqlWordbook
 {
-    public static Hints HINTS(string hitns) => new(hitns);
+    public static SqlHints Hints(string hints) => new(hints);
 }

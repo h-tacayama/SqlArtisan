@@ -1,10 +1,10 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class SequenceNextval : AbstractExpr
+public sealed class SequenceNextVal : AbstractExpr
 {
-    private readonly Sequence _sequence;
+    private readonly SequenceObject _sequence;
 
-    internal SequenceNextval(Sequence sequence)
+    internal SequenceNextVal(SequenceObject sequence)
     {
         _sequence = sequence;
     }
@@ -12,5 +12,5 @@ public sealed class SequenceNextval : AbstractExpr
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append(_sequence.Name)
         .Append(".")
-        .Append(Keywords.NEXTVAL);
+        .Append(Keywords.NextVal);
 }

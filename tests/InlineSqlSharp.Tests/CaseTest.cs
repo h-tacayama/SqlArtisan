@@ -5,20 +5,20 @@ namespace InlineSqlSharp.Tests;
 
 public class CaseTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void CASE_SearchCaseWithCharacterExpr_CorrectSql()
+    public void Case_SearchCaseWithCharacterExpr_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                CASE(
+            Select(
+                Case(
                     [
-                        WHEN(_t.name == "a").THEN("A"),
-                        WHEN(_t.name == 'b').THEN('B'),
-                        WHEN(_t.name == "c").THEN("C"),
+                        When(_t.Name == "a").Then("A"),
+                        When(_t.Name == 'b').Then('B'),
+                        When(_t.Name == "c").Then("C"),
                     ],
-                    ELSE("Z")))
+                    Else("Z")))
             .Build();
 
         StringBuilder expected = new();
@@ -42,18 +42,18 @@ public class CaseTest
     }
 
     [Fact]
-    public void CASE_SimpleCaseWithCharacterExpr_CorrectSql()
+    public void Case_SimpleCaseWithCharacterExpr_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                CASE(
-                    _t.name,
+            Select(
+                Case(
+                    _t.Name,
                     [
-                        WHEN("a").THEN("A"),
-                        WHEN('b').THEN('B'),
-                        WHEN("c").THEN("C"),
+                        When("a").Then("A"),
+                        When('b').Then('B'),
+                        When("c").Then("C"),
                     ],
-                    ELSE("Z")))
+                    Else("Z")))
             .Build();
 
         StringBuilder expected = new();

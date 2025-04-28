@@ -5,17 +5,17 @@ namespace InlineSqlSharp.Tests;
 
 public class CrossJoinTest
 {
-    private readonly test_table _t = new("t");
-    private readonly test_table _s = new("s");
+    private readonly TestTable _t = new("t");
+    private readonly TestTable _s = new("s");
 
     [Fact]
-    public void CROSS_JOIN_SimpleCondition_CorrectSql()
+    public void CrossJoin_SimpleCondition_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.name)
-            .FROM(_t)
-            .CROSS_JOIN(_s)
-            .WHERE(_t.code == _s.code)
+            Select(_t.Name)
+            .From(_t)
+            .CrossJoin(_s)
+            .Where(_t.Code == _s.Code)
             .Build();
 
         StringBuilder expected = new();

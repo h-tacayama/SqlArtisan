@@ -6,10 +6,10 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void UPPER_CharacterValue_CorrectSql()
+    public void Upper_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(UPPER(_t.name))
+            Select(Upper(_t.Name))
             .Build();
 
         StringBuilder expected = new();

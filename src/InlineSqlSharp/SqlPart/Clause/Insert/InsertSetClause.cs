@@ -36,7 +36,7 @@ internal sealed class InsertSetClause : AbstractSqlPart
         .OpenParenthesis()
         .AppendCsv(_columns)
         .CloseParenthesis()
-        .EncloseInSpaces(Keywords.VALUES)
+        .EncloseInSpaces(Keywords.Values)
         .OpenParenthesis()
         .AppendCsv(_values)
         .CloseParenthesis();

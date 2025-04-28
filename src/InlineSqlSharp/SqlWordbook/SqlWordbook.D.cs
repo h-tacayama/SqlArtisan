@@ -6,12 +6,12 @@ namespace InlineSqlSharp;
 public static partial class SqlWordbook
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static Distinct DISTINCT => new();
+    public static DistinctKeyword Distinct => new();
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static DualTable DUAL => new();
+    public static DualTable Dual => new();
 
-    public static DecodeFunction DECODE(
+    public static DecodeFunction Decode(
         object expr,
         (object search, object result)[] searchResultPairs,
         object @default) => new(
@@ -19,8 +19,8 @@ public static partial class SqlWordbook
             Resolve(searchResultPairs),
             Resolve(@default));
 
-    public static IDeleteBuilderDelete DELETE_FROM(AbstractTable table)
+    public static IDeleteBuilderDelete DeleteFrom(AbstractTable table)
         => new DeleteBuilder(new DeleteClause(table));
 
-    public static AnalyticDenseRankFunction DENSE_RANK() => new();
+    public static AnalyticDenseRankFunction DenseRank() => new();
 }

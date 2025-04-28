@@ -1,9 +1,9 @@
 namespace InlineSqlSharp;
 
-public sealed class SystimestampFunction : AbstractExpr
+public sealed class SysTimestampFunction : AbstractExpr
 {
-    internal SystimestampFunction() { }
+    internal SysTimestampFunction() { }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        buffer.Append(Keywords.SYSTIMESTAMP);
+        buffer.Append(Keywords.SysTimestamp);
 }

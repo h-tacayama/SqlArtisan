@@ -2,8 +2,8 @@
 
 public interface ISelectBuilderGroupBy : ISqlBuilder, ISetOperator, ISubquery
 {
-    ISelectBuilderHaving HAVING(AbstractCondition condition);
+    ISelectBuilderHaving Having(AbstractCondition condition);
 
-    ISelectBuilderOrderBy ORDER_BY(
+    ISelectBuilderOrderBy OrderBy(
         params object[] orderByItems);
 }

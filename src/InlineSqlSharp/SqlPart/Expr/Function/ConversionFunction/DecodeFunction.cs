@@ -18,7 +18,7 @@ public sealed class DecodeFunction : AbstractExpr
 
     internal override void FormatSql(SqlBuildingBuffer buffer)
     {
-        buffer.Append(Keywords.DECODE)
+        buffer.Append(Keywords.Decode)
             .OpenParenthesis()
             .Append(_expr);
 

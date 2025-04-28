@@ -17,7 +17,7 @@ public sealed class RegexpLikeCondition : AbstractCondition
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.REGEXP_LIKE)
+        .Append(Keywords.RegexpLike)
         .OpenParenthesis()
         .Append(_source)
         .PrependComma(_pattern)

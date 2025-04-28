@@ -2,22 +2,22 @@
 
 public abstract class AbstractTable : AbstractTableReference
 {
-    private readonly string _alias;
+    private readonly string _tableAlias;
 
-    public AbstractTable(string alias)
+    public AbstractTable(string tableAlias)
     {
-        _alias = alias;
+        _tableAlias = tableAlias;
     }
 
-    public AbstractTable(string name, string alias) : base(name)
+    public AbstractTable(string tableName, string tableAlias) : base(tableName)
     {
-        _alias = alias;
+        _tableAlias = tableAlias;
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer)
     {
         base.FormatSql(buffer);
         buffer.AppendSpace();
-        buffer.EncloseInDoubleQuotes(_alias);
+        buffer.EncloseInDoubleQuotes(_tableAlias);
     }
 }

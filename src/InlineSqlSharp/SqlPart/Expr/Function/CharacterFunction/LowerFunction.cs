@@ -10,7 +10,7 @@ public sealed class LowerFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.LOWER)
+        .Append(Keywords.Lower)
         .OpenParenthesis()
         .Append(_source)
         .CloseParenthesis();

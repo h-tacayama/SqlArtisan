@@ -14,7 +14,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     ISelectBuildertWhere
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator EXCEPT
+    public ISelectBuilderSetOperator Except
     {
         get
         {
@@ -24,7 +24,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator EXCEPT_ALL
+    public ISelectBuilderSetOperator ExceptAll
     {
         get
         {
@@ -34,7 +34,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator INTERSECT
+    public ISelectBuilderSetOperator Intersect
     {
         get
         {
@@ -44,7 +44,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator INTERSECT_ALL
+    public ISelectBuilderSetOperator IntersectAll
     {
         get
         {
@@ -54,7 +54,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator MINUS
+    public ISelectBuilderSetOperator Minus
     {
         get
         {
@@ -64,7 +64,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator MINUS_ALL
+    public ISelectBuilderSetOperator MinusAll
     {
         get
         {
@@ -74,7 +74,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator UNION
+    public ISelectBuilderSetOperator Union
     {
         get
         {
@@ -84,7 +84,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public ISelectBuilderSetOperator UNION_ALL
+    public ISelectBuilderSetOperator UnionAll
     {
         get
         {
@@ -98,76 +98,76 @@ internal class SelectBuilder(AbstractSqlPart part) :
 
     public SqlStatement Build() => BuildCore();
 
-    public ISelectBuilderFrom CROSS_JOIN(AbstractTableReference table)
+    public ISelectBuilderFrom CrossJoin(AbstractTableReference table)
     {
         AddPart(new CrossJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderFrom FROM(params AbstractTableReference[] tables)
+    public ISelectBuilderFrom From(params AbstractTableReference[] tables)
     {
         AddPart(new FromClause(tables));
         return this;
     }
 
-    public ISelectBuilderJoin FULL_JOIN(AbstractTableReference table)
+    public ISelectBuilderJoin FullJoin(AbstractTableReference table)
     {
         AddPart(new FullJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderGroupBy GROUP_BY(params object[] groupByItems)
+    public ISelectBuilderGroupBy GroupBy(params object[] groupByItems)
     {
         AddPart(GroupByClause.Parse(groupByItems));
         return this;
     }
 
-    public ISelectBuilderHaving HAVING(AbstractCondition condition)
+    public ISelectBuilderHaving Having(AbstractCondition condition)
     {
         AddPart(new HavingClause(condition));
         return this;
     }
 
-    public ISelectBuilderJoin INNER_JOIN(AbstractTableReference table)
+    public ISelectBuilderJoin InnerJoin(AbstractTableReference table)
     {
         AddPart(new InnerJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderJoin LEFT_JOIN(AbstractTableReference table)
+    public ISelectBuilderJoin LeftJoin(AbstractTableReference table)
     {
         AddPart(new LeftJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderJoin RIGHT_JOIN(AbstractTableReference table)
+    public ISelectBuilderJoin RightJoin(AbstractTableReference table)
     {
         AddPart(new RightJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderFrom ON(AbstractCondition condition)
+    public ISelectBuilderFrom On(AbstractCondition condition)
     {
         AddPart(new OnClause(condition));
         return this;
     }
 
-    public ISelectBuilderOrderBy ORDER_BY(
+    public ISelectBuilderOrderBy OrderBy(
         params object[] orderByItems)
     {
         AddPart(OrderByClause.Parse(orderByItems));
         return this;
     }
 
-    public ISelectBuilderSelect SELECT(
+    public ISelectBuilderSelect Select(
         params object[] selectItems)
     {
         AddPart(SelectClause.Parse(selectItems));
         return this;
     }
 
-    public ISelectBuilderSelect SELECT(
-        Distinct distinct,
+    public ISelectBuilderSelect Select(
+        DistinctKeyword distinct,
         params object[] selectItems)
     {
         AddPart(
@@ -178,8 +178,8 @@ internal class SelectBuilder(AbstractSqlPart part) :
         return this;
     }
 
-    public ISelectBuilderSelect SELECT(
-        Hints hints,
+    public ISelectBuilderSelect Select(
+        SqlHints hints,
         params object[] selectItems)
     {
         AddPart(
@@ -190,9 +190,9 @@ internal class SelectBuilder(AbstractSqlPart part) :
         return this;
     }
 
-    public ISelectBuilderSelect SELECT(
-        Hints hints,
-        Distinct distinct,
+    public ISelectBuilderSelect Select(
+        SqlHints hints,
+        DistinctKeyword distinct,
         params object[] selectList)
     {
         AddPart(
@@ -204,7 +204,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
         return this;
     }
 
-    public ISelectBuildertWhere WHERE(AbstractCondition condition)
+    public ISelectBuildertWhere Where(AbstractCondition condition)
     {
         AddPart(new WhereClause(condition));
         return this;

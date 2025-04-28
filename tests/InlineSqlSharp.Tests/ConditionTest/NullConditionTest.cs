@@ -2,20 +2,20 @@
 
 public class NullConditionTest
 {
-    private readonly test_table _t;
+    private readonly TestTable _t;
     private readonly ConditionTestAssert _assert;
 
     public NullConditionTest()
     {
-        _t = new test_table("t");
+        _t = new TestTable("t");
         _assert = new(_t);
     }
 
     [Fact]
-    public void IS_NULL_Column_CorrectSql() =>
-        _assert.Equal(_t.name.IS_NULL, "\"t\".name IS NULL");
+    public void IsNull_Column_CorrectSql() =>
+        _assert.Equal(_t.Name.IsNull, "\"t\".name IS NULL");
 
     [Fact]
-    public void IS_NOT_NULL_Column_CorrectSql() =>
-        _assert.Equal(_t.name.IS_NOT_NULL, "\"t\".name IS NOT NULL");
+    public void IsNotNull_Column_CorrectSql() =>
+        _assert.Equal(_t.Name.IsNotNull, "\"t\".name IS NOT NULL");
 }

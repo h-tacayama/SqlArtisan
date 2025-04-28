@@ -2,14 +2,14 @@
 
 namespace InlineSqlSharp.Tests;
 
-public class ExprRsolverTest
+public class ExprResolverTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
     public void Resolve_WithColumn_DoesNotBindParameter()
     {
-        SqlStatement sql = SELECT(ABS(_t.code)).Build();
+        SqlStatement sql = Select(Abs(_t.Code)).Build();
 
         Assert.Equal(0, sql.ParameterCount);
         Assert.Equal("SELECT ABS(\"t\".code)", sql.Text);
@@ -19,9 +19,9 @@ public class ExprRsolverTest
     public void Resolve_WithCharacterLiteral_BindsAsCharacter()
     {
         SqlStatement sql =
-            SELECT(
-                ABS('a'),
-                ABS("b"))
+            Select(
+                Abs('a'),
+                Abs("b"))
             .Build();
 
         Assert.Equal('a', sql.Parameters.Get<char>(":0"));
@@ -32,10 +32,10 @@ public class ExprRsolverTest
     public void Resolve_WithDateTimeLiteral_BindsAsDateTime()
     {
         SqlStatement sql =
-            SELECT(
-                ABS(new DateTime(2001, 2, 3)),
-                ABS(new DateOnly(2004, 5, 6)),
-                ABS(new TimeOnly(7, 8, 9)))
+            Select(
+                Abs(new DateTime(2001, 2, 3)),
+                Abs(new DateOnly(2004, 5, 6)),
+                Abs(new TimeOnly(7, 8, 9)))
             .Build();
 
         Assert.Equal(new DateTime(2001, 2, 3), sql.Parameters.Get<DateTime>(":0"));
@@ -47,18 +47,18 @@ public class ExprRsolverTest
     public void Resolve_WithNumberLiteral_BindsAsNumber()
     {
         SqlStatement sql =
-            SELECT(
-                ABS((sbyte)1),
-                ABS((byte)2),
-                ABS((short)3),
-                ABS((ushort)4),
-                ABS((int)5),
-                ABS((uint)6),
-                ABS((long)7),
-                ABS((ulong)8),
-                ABS((float)9.9),
-                ABS((double)10.10),
-                ABS((decimal)11.11))
+            Select(
+                Abs((sbyte)1),
+                Abs((byte)2),
+                Abs((short)3),
+                Abs((ushort)4),
+                Abs((int)5),
+                Abs((uint)6),
+                Abs((long)7),
+                Abs((ulong)8),
+                Abs((float)9.9),
+                Abs((double)10.10),
+                Abs((decimal)11.11))
             .Build();
 
         Assert.Equal((sbyte)1, sql.Parameters.Get<sbyte>(":0"));
@@ -79,7 +79,7 @@ public class ExprRsolverTest
     {
         Assert.Throws<ArgumentException>(() =>
         {
-            SqlStatement sql = SELECT(_t.code.ASC).Build();
+            SqlStatement sql = Select(_t.Code.Asc).Build();
         });
     }
 }

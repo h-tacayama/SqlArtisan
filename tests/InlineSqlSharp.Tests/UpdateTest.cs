@@ -5,17 +5,17 @@ namespace InlineSqlSharp.Tests;
 
 public class UpdateTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void UPDATE_SetLiterals_CorrectSql()
+    public void Update_SetLiterals_CorrectSql()
     {
         SqlStatement sql =
-            UPDATE(_t)
-            .SET(
-                _t.code == 1,
-                _t.name == "a",
-                _t.created_at == SYSDATE)
+            Update(_t)
+            .Set(
+                _t.Code == 1,
+                _t.Name == "a",
+                _t.CreatedAt == SysDate)
             .Build();
 
         StringBuilder expected = new();
@@ -30,16 +30,16 @@ public class UpdateTest
     }
 
     [Fact]
-    public void UPDATE_SetMultipleVariables_CorrectSql()
+    public void Update_SetMultipleVariables_CorrectSql()
     {
         TestTableDto dto = new(1, "Test1", new DateTime(2001, 2, 3));
 
         SqlStatement sql =
-            UPDATE(_t)
-            .SET(
-                _t.code == dto.Code,
-                _t.name == dto.Name,
-                _t.created_at == dto.CreatedAt)
+            Update(_t)
+            .Set(
+                _t.Code == dto.Code,
+                _t.Name == dto.Name,
+                _t.CreatedAt == dto.CreatedAt)
             .Build();
 
         StringBuilder expected = new();
@@ -57,13 +57,13 @@ public class UpdateTest
     }
 
     [Fact]
-    public void UPDATE_SetWithInequality_ThrowsArgumentException()
+    public void Update_SetWithInequality_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
         {
-            UPDATE(_t)
-            .SET(
-                _t.code != 1)
+            Update(_t)
+            .Set(
+                _t.Code != 1)
             .Build();
         });
     }

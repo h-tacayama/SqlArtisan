@@ -11,7 +11,7 @@ public sealed class RegexpCountFunction : AbstractExpr
         RegexpOptions? options = null)
     {
         _core = new(
-            Keywords.REGEXP_COUNT,
+            Keywords.RegexpCount,
             source,
             pattern,
             position,

@@ -13,7 +13,7 @@ public sealed class OrderByClause : AbstractSqlPart
         new(OrderByItemResolver.Resolve(orderByItems));
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.ORDER)
-        .AppendSpace(Keywords.BY)
+        .AppendSpace(Keywords.Order)
+        .AppendSpace(Keywords.By)
         .AppendCsv(_orderByItems);
 }

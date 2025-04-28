@@ -13,6 +13,6 @@ public sealed class LikeCondition : AbstractCondition
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(_leftSide)
-        .AppendSpace(Keywords.LIKE)
+        .AppendSpace(Keywords.Like)
         .Append(_rightSide);
 }

@@ -5,15 +5,15 @@ namespace InlineSqlSharp.Tests;
 
 public class UnionTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void UNION_SimpleSelect_CorrectSql()
+    public void Union_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(1)
-            .UNION
-            .SELECT(2)
+            Select(1)
+            .Union
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -27,13 +27,13 @@ public class UnionTest
     }
 
     [Fact]
-    public void UNION_SelectWithFrom_CorrectSql()
+    public void Union_SelectWithFrom_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .UNION
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Union
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -49,14 +49,14 @@ public class UnionTest
     }
 
     [Fact]
-    public void UNION_SelectWithFromWhere_CorrectSql()
+    public void Union_SelectWithFromWhere_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .UNION
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .Union
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -74,15 +74,15 @@ public class UnionTest
     }
 
     [Fact]
-    public void UNION_SelectWithFromWhereGroupBy_CorrectSql()
+    public void Union_SelectWithFromWhereGroupBy_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .GROUP_BY(_t.code)
-            .UNION
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .GroupBy(_t.Code)
+            .Union
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -102,16 +102,16 @@ public class UnionTest
     }
 
     [Fact]
-    public void UNION_SelectWithFromWhereGroupByHaving_CorrectSql()
+    public void Union_SelectWithFromWhereGroupByHaving_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1)
-            .GROUP_BY(_t.code)
-            .HAVING(COUNT(_t.code) > 0)
-            .UNION
-            .SELECT(2)
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .GroupBy(_t.Code)
+            .Having(Count(_t.Code) > 0)
+            .Union
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();
@@ -133,12 +133,12 @@ public class UnionTest
     }
 
     [Fact]
-    public void UNION_ALL_SimpleSelect_CorrectSql()
+    public void UnionAll_SimpleSelect_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(1)
-            .UNION_ALL
-            .SELECT(2)
+            Select(1)
+            .UnionAll
+            .Select(2)
             .Build();
 
         StringBuilder expected = new();

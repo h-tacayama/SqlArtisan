@@ -1,10 +1,10 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class Hints : AbstractSqlPart
+public sealed class SqlHints : AbstractSqlPart
 {
     private readonly string _hints;
 
-    internal Hints(string hints)
+    internal SqlHints(string hints)
     {
         _hints = hints;
     }

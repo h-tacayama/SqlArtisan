@@ -5,24 +5,24 @@ namespace InlineSqlSharp.Tests;
 
 public class OrderByTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void ORDER_BY_WithColumns_CorrectSql()
+    public void OrderBy_WithColumns_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .ORDER_BY(
-                _t.code,
-                _t.code.ASC,
-                _t.code.DESC,
-                _t.code.NULLS_FIRST,
-                _t.code.ASC.NULLS_FIRST,
-                _t.code.DESC.NULLS_FIRST,
-                _t.code.NULLS_LAST,
-                _t.code.ASC.NULLS_LAST,
-                _t.code.DESC.NULLS_LAST)
+            Select(_t.Code)
+            .From(_t)
+            .OrderBy(
+                _t.Code,
+                _t.Code.Asc,
+                _t.Code.Desc,
+                _t.Code.NullsFirst,
+                _t.Code.Asc.NullsFirst,
+                _t.Code.Desc.NullsFirst,
+                _t.Code.NullsLast,
+                _t.Code.Asc.NullsLast,
+                _t.Code.Desc.NullsLast)
             .Build();
 
         StringBuilder expected = new();
@@ -45,17 +45,17 @@ public class OrderByTest
     }
 
     [Fact]
-    public void ORDER_BY_WithColumnAliases_CorrectSql()
+    public void OrderBy_WithColumnAliases_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .ORDER_BY(
-                _t.name.AS("a"),
-                _t.created_at.AS("b").ASC,
-                _t.code.AS("c").DESC,
-                _t.name.AS("d").NULLS_FIRST,
-                _t.created_at.AS("e").NULLS_LAST)
+            Select(_t.Code)
+            .From(_t)
+            .OrderBy(
+                _t.Name.As("a"),
+                _t.CreatedAt.As("b").Asc,
+                _t.Code.As("c").Desc,
+                _t.Name.As("d").NullsFirst,
+                _t.CreatedAt.As("e").NullsLast)
             .Build();
 
         StringBuilder expected = new();
@@ -74,12 +74,12 @@ public class OrderByTest
     }
 
     [Fact]
-    public void ORDER_BY_WithColumnNo_CorrectSql()
+    public void OrderBy_WithColumnNo_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.code, _t.name)
-            .FROM(_t)
-            .ORDER_BY(1, 2)
+            Select(_t.Code, _t.Name)
+            .From(_t)
+            .OrderBy(1, 2)
             .Build();
 
         StringBuilder expected = new();

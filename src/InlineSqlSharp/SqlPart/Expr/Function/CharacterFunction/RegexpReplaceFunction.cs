@@ -13,7 +13,7 @@ public sealed class RegexpReplaceFunction : AbstractExpr
         RegexpOptions? options = null)
     {
         _core = new(
-            Keywords.REGEXP_REPLACE,
+            Keywords.RegexpReplace,
             source,
             pattern,
             replacement,

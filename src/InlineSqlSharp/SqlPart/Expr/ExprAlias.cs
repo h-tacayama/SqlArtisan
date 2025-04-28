@@ -14,22 +14,22 @@ public sealed class ExprAlias : AbstractSqlPart, ISortable
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder ASC => new SortOrder(this, SortDirection.Asc);
+    public SortOrder Asc => new SortOrder(this, SortDirection.Asc);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder DESC => new SortOrder(this, SortDirection.Desc);
+    public SortOrder Desc => new SortOrder(this, SortDirection.Desc);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NULLS_FIRST => new SortOrder(this, NullOrdering.NullsFirst);
+    public SortOrder NullsFirst => new SortOrder(this, NullOrdering.NullsFirst);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NULLS_LAST => new SortOrder(this, NullOrdering.NullsLast);
+    public SortOrder NullsLast => new SortOrder(this, NullOrdering.NullsLast);
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
         buffer.EncloseInDoubleQuotes(_alias);
 
     internal void FormatAsSelect(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(_expr)
-        .AppendSpace(Keywords.AS)
+        .AppendSpace(Keywords.As)
         .EncloseInDoubleQuotes(_alias);
 }

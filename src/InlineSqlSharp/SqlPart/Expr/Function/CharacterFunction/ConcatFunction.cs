@@ -9,7 +9,7 @@ public sealed class ConcatFunction : AbstractExpr
         AbstractExpr secondary,
         AbstractExpr[] others)
     {
-        _core = new(Keywords.CONCAT, [primary, secondary, .. others]);
+        _core = new(Keywords.Concat, [primary, secondary, .. others]);
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>

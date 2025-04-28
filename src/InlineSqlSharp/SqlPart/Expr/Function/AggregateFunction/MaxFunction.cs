@@ -10,7 +10,7 @@ public sealed class MaxFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.MAX)
+        .Append(Keywords.Max)
         .OpenParenthesis()
         .Append(_expr)
         .CloseParenthesis();

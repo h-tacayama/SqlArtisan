@@ -5,17 +5,17 @@ namespace InlineSqlSharp.Tests;
 
 public class SelectTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void SELECT_ColumnAliases_CorrectSql()
+    public void Select_ColumnAliases_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                _t.code.AS("code"),
-                _t.name.AS("name"),
-                _t.created_at.AS("登録日"))
-            .FROM(_t)
+            Select(
+                _t.Code.As("code"),
+                _t.Name.As("name"),
+                _t.CreatedAt.As("登録日"))
+            .From(_t)
             .Build();
 
         StringBuilder expected = new();
@@ -30,11 +30,11 @@ public class SelectTest
     }
 
     [Fact]
-    public void SELECT_DistinctFromClause_CorrectSql()
+    public void Select_DistinctFromClause_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(DISTINCT, _t.code)
-            .FROM(_t)
+            Select(Distinct, _t.Code)
+            .From(_t)
             .Build();
 
         StringBuilder expected = new();
@@ -48,14 +48,14 @@ public class SelectTest
     }
 
     [Fact]
-    public void SELECT_FromClauseWithMultipleColumns_CorrectSql()
+    public void Select_FromClauseWithMultipleColumns_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
             .Build();
 
         StringBuilder expected = new();
@@ -70,11 +70,11 @@ public class SelectTest
     }
 
     [Fact]
-    public void SELECT_FromDualClause_CorrectSql()
+    public void Select_FromDualClause_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(SYSDATE)
-            .FROM(DUAL)
+            Select(SysDate)
+            .From(Dual)
             .Build();
 
         StringBuilder expected = new();
@@ -87,10 +87,10 @@ public class SelectTest
     }
 
     [Fact]
-    public void SELECT_Literals_CorrectSql()
+    public void Select_Literals_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
+            Select(
                 'a',
                 "O''Reilly",
                 new DateTime(2001, 2, 3),
@@ -142,12 +142,12 @@ public class SelectTest
     }
 
     [Fact]
-    public void SELECT_Null_CorrectSql()
+    public void Select_Null_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                NULL,
-                NULL.AS("e"))
+            Select(
+                Null,
+                Null.As("e"))
             .Build();
 
         StringBuilder expected = new();
@@ -157,12 +157,12 @@ public class SelectTest
     }
 
     [Fact]
-    public void SELECT_SequenceValues_CorrectSql()
+    public void Select_SequenceValues_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                SEQUENCE("seq").CURRVAL,
-                SEQUENCE("seq").NEXTVAL)
+            Select(
+                Sequence("seq").CurrVal,
+                Sequence("seq").NextVal)
             .Build();
 
         StringBuilder expected = new();
@@ -174,13 +174,13 @@ public class SelectTest
     }
 
     [Fact]
-    public void SELECT_TableAliasWithDoubleQuotes_CorrectSql()
+    public void Select_TableAliasWithDoubleQuotes_CorrectSql()
     {
-        test_table _t = new("t s");
+        TestTable _t = new("t s");
 
         SqlStatement sql =
-            SELECT(_t.code)
-            .FROM(_t)
+            Select(_t.Code)
+            .From(_t)
             .Build();
 
         StringBuilder expected = new();
@@ -193,12 +193,12 @@ public class SelectTest
     }
 
     [Fact]
-    public void SELECT_WithHints_CorrectSql()
+    public void Select_WithHints_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                HINTS("/*+ ANY HINT */"),
-                _t.code)
+            Select(
+                Hints("/*+ ANY HINT */"),
+                _t.Code)
             .Build();
 
         StringBuilder expected = new();
@@ -210,13 +210,13 @@ public class SelectTest
     }
 
     [Fact]
-    public void SELECT_WithHintsAndDistinct_CorrectSql()
+    public void Select_WithHintsAndDistinct_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                HINTS("/*+ ANY HINT */"),
-                DISTINCT,
-                _t.code)
+            Select(
+                Hints("/*+ ANY HINT */"),
+                Distinct,
+                _t.Code)
             .Build();
 
         StringBuilder expected = new();

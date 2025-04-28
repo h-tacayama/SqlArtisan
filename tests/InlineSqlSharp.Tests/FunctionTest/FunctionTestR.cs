@@ -6,10 +6,10 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void REGEXP_COUNT_Pattern_CorrectSql()
+    public void RegexpCount_Pattern_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_COUNT(_t.name, "[abc]"))
+            Select(RegexpCount(_t.Name, "[abc]"))
             .Build();
 
         StringBuilder expected = new();
@@ -20,10 +20,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_COUNT_PatternPosition_CorrectSql()
+    public void RegexpCount_PatternPosition_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_COUNT(_t.name, "[abc]", 2))
+            Select(RegexpCount(_t.Name, "[abc]", 2))
             .Build();
 
         StringBuilder expected = new();
@@ -34,10 +34,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_COUNT_PatternPositionOptions_CorrectSql()
+    public void RegexpCount_PatternPositionOptions_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_COUNT(_t.name, "[abc]", 2, RegexpOptions.CaseInsensitive))
+            Select(RegexpCount(_t.Name, "[abc]", 2, RegexpOptions.CaseInsensitive))
             .Build();
 
         StringBuilder expected = new();
@@ -48,10 +48,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_REPLACE_PatternReplacement_CorrectSql()
+    public void RegexpReplace_PatternReplacement_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_REPLACE(_t.name, "[abc]", "x"))
+            Select(RegexpReplace(_t.Name, "[abc]", "x"))
             .Build();
 
         StringBuilder expected = new();
@@ -62,10 +62,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_REPLACE_PatternReplacementPosition_CorrectSql()
+    public void RegexpReplace_PatternReplacementPosition_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_REPLACE(_t.name, "[abc]", "x", 2))
+            Select(RegexpReplace(_t.Name, "[abc]", "x", 2))
             .Build();
 
         StringBuilder expected = new();
@@ -76,10 +76,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_REPLACE_PatternReplacementPositionOccurrence_CorrectSql()
+    public void RegexpReplace_PatternReplacementPositionOccurrence_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_REPLACE(_t.name, "[abc]", "x", 2, 3))
+            Select(RegexpReplace(_t.Name, "[abc]", "x", 2, 3))
             .Build();
 
         StringBuilder expected = new();
@@ -90,10 +90,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_REPLACE_PatternReplacementPositionOccurrenceOptions_CorrectSql()
+    public void RegexpReplace_PatternReplacementPositionOccurrenceOptions_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_REPLACE(_t.name, "[abc]", "x", 2, 3, RegexpOptions.CaseInsensitive))
+            Select(RegexpReplace(_t.Name, "[abc]", "x", 2, 3, RegexpOptions.CaseInsensitive))
             .Build();
 
         StringBuilder expected = new();
@@ -104,10 +104,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_SUBSTR_Pattern_CorrectSql()
+    public void RegexpSubstr_Pattern_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_SUBSTR(_t.name, "[abc]"))
+            Select(RegexpSubstr(_t.Name, "[abc]"))
             .Build();
 
         StringBuilder expected = new();
@@ -118,10 +118,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_SUBSTR_PatternPosition_CorrectSql()
+    public void RegexpSubstr_PatternPosition_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_SUBSTR(_t.name, "[abc]", 2))
+            Select(RegexpSubstr(_t.Name, "[abc]", 2))
             .Build();
 
         StringBuilder expected = new();
@@ -132,10 +132,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_SUBSTR_PatternPositionOccurrence_CorrectSql()
+    public void RegexpSubstr_PatternPositionOccurrence_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_SUBSTR(_t.name, "[abc]", 2, 3))
+            Select(RegexpSubstr(_t.Name, "[abc]", 2, 3))
             .Build();
 
         StringBuilder expected = new();
@@ -146,10 +146,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_SUBSTR_PatternPositionOccurrenceOptions_CorrectSql()
+    public void RegexpSubstr_PatternPositionOccurrenceOptions_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_SUBSTR(_t.name, "[abc]", 2, 3, RegexpOptions.CaseInsensitive))
+            Select(RegexpSubstr(_t.Name, "[abc]", 2, 3, RegexpOptions.CaseInsensitive))
             .Build();
 
         StringBuilder expected = new();
@@ -160,10 +160,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REGEXP_SUBSTR_PatternPositionOccurrenceOptionsSubPattern_CorrectSql()
+    public void RegexpSubstr_PatternPositionOccurrenceOptionsSubPattern_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REGEXP_SUBSTR(_t.name, "[abc]", 2, 3, RegexpOptions.None, 4))
+            Select(RegexpSubstr(_t.Name, "[abc]", 2, 3, RegexpOptions.None, 4))
             .Build();
 
         StringBuilder expected = new();
@@ -174,10 +174,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void REPLACE_CharacterSearchAndReplacement_CorrectSql()
+    public void Replace_CharacterSearchAndReplacement_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(REPLACE(_t.name, "a", "b"))
+            Select(Replace(_t.Name, "a", "b"))
             .Build();
 
         StringBuilder expected = new();
@@ -188,10 +188,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void RPAD_CharacterLength_CorrectSql()
+    public void RPad_CharacterLength_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(RPAD(_t.name, 10))
+            Select(RPad(_t.Name, 10))
             .Build();
 
         StringBuilder expected = new();
@@ -202,10 +202,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void RPAD_CharacterLengthPadding_CorrectSql()
+    public void RPad_CharacterLengthPadding_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(RPAD(_t.name, 10, "a"))
+            Select(RPad(_t.Name, 10, "a"))
             .Build();
 
         StringBuilder expected = new();
@@ -216,10 +216,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void RTRIM_Character_CorrectSql()
+    public void RTrim_Character_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(RTRIM(_t.name))
+            Select(RTrim(_t.Name))
             .Build();
 
         StringBuilder expected = new();
@@ -230,10 +230,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void RTRIM_CharacterTrimChars_CorrectSql()
+    public void RTrim_CharacterTrimChars_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(RTRIM(_t.name, "a"))
+            Select(RTrim(_t.Name, "a"))
             .Build();
 
         StringBuilder expected = new();

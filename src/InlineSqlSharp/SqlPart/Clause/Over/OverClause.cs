@@ -29,7 +29,7 @@ public sealed class OverClause : AbstractSqlPart
 
     internal override void FormatSql(SqlBuildingBuffer buffer)
     {
-        buffer.Append(Keywords.OVER);
+        buffer.Append(Keywords.Over);
 
         if (_partitionByClause is null
             && _partitionByAndOrderBy is null

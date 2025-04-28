@@ -5,26 +5,26 @@ namespace InlineSqlSharp;
 public interface ISetOperator
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ISelectBuilderSetOperator EXCEPT { get; }
+    ISelectBuilderSetOperator Except { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ISelectBuilderSetOperator EXCEPT_ALL { get; }
+    ISelectBuilderSetOperator ExceptAll { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ISelectBuilderSetOperator INTERSECT { get; }
+    ISelectBuilderSetOperator Intersect { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ISelectBuilderSetOperator INTERSECT_ALL { get; }
+    ISelectBuilderSetOperator IntersectAll { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ISelectBuilderSetOperator MINUS { get; }
+    ISelectBuilderSetOperator Minus { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ISelectBuilderSetOperator MINUS_ALL { get; }
+    ISelectBuilderSetOperator MinusAll { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ISelectBuilderSetOperator UNION { get; }
+    ISelectBuilderSetOperator Union { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    ISelectBuilderSetOperator UNION_ALL { get; }
+    ISelectBuilderSetOperator UnionAll { get; }
 }

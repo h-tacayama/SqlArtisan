@@ -1,10 +1,10 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class SequenceCurrval : AbstractExpr
+public sealed class SequenceCurrVal : AbstractExpr
 {
-    private readonly Sequence _sequence;
+    private readonly SequenceObject _sequence;
 
-    internal SequenceCurrval(Sequence sequence)
+    internal SequenceCurrVal(SequenceObject sequence)
     {
         _sequence = sequence;
     }
@@ -12,5 +12,5 @@ public sealed class SequenceCurrval : AbstractExpr
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append(_sequence.Name)
         .Append(".")
-        .Append(Keywords.CURRVAL);
+        .Append(Keywords.CurrVal);
 }

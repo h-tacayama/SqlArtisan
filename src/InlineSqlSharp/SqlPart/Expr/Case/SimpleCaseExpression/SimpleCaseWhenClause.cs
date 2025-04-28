@@ -14,8 +14,8 @@ public sealed class SimpleCaseWhenClause : AbstractSqlPart
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.WHEN)
+        .AppendSpace(Keywords.When)
         .AppendSpace(_whenExpr)
-        .AppendSpace(Keywords.THEN)
+        .AppendSpace(Keywords.Then)
         .Append(_thenExpr);
 }

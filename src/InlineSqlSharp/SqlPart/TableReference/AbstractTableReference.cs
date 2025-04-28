@@ -2,18 +2,18 @@
 
 public abstract class AbstractTableReference : AbstractSqlPart
 {
-    private readonly string _name;
+    private readonly string _tableName;
 
     public AbstractTableReference()
     {
-        _name = GetType().Name;
+        _tableName = GetType().Name;
     }
 
-    public AbstractTableReference(string name)
+    public AbstractTableReference(string tableName)
     {
-        _name = name;
+        _tableName = tableName;
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        buffer.Append(_name);
+        buffer.Append(_tableName);
 }

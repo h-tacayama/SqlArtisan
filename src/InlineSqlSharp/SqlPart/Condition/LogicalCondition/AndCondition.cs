@@ -22,7 +22,7 @@ public sealed class AndCondition : AbstractCondition
 
             if (added)
             {
-                buffer.EncloseInSpaces(Keywords.AND);
+                buffer.EncloseInSpaces(Keywords.And);
             }
 
             buffer.EncloseInParentheses(_conditions[i]);

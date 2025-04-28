@@ -22,7 +22,7 @@ public sealed class OrCondition : AbstractCondition
 
             if (added)
             {
-                buffer.EncloseInSpaces(Keywords.OR);
+                buffer.EncloseInSpaces(Keywords.Or);
             }
 
             buffer.EncloseInParentheses(_conditions[i]);

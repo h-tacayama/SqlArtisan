@@ -15,14 +15,14 @@ public sealed class TrimFunction : AbstractExpr
 
     internal override void FormatSql(SqlBuildingBuffer buffer)
     {
-        buffer.Append(Keywords.TRIM)
+        buffer.Append(Keywords.Trim)
             .OpenParenthesis();
 
         if (_trimChar is not null)
         {
-            buffer.AppendSpace(Keywords.BOTH)
+            buffer.AppendSpace(Keywords.Both)
                 .AppendSpace(_trimChar)
-                .AppendSpace(Keywords.FROM);
+                .AppendSpace(Keywords.From);
         }
 
         buffer.Append(_source)

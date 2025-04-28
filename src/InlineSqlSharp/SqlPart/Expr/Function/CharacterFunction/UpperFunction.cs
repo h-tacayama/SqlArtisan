@@ -10,7 +10,7 @@ public sealed class UpperFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.UPPER)
+        .Append(Keywords.Upper)
         .OpenParenthesis()
         .Append(_source)
         .CloseParenthesis();

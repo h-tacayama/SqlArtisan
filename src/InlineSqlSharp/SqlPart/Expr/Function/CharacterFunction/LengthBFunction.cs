@@ -10,7 +10,7 @@ public sealed class LengthBFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.LENGTHB)
+        .Append(Keywords.LengthB)
         .OpenParenthesis()
         .Append(_source)
         .CloseParenthesis();

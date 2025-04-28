@@ -6,10 +6,10 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void GREATEST_NumericValues_CorrectSql()
+    public void Greatest_NumericValues_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(GREATEST(_t.code, 10, _t.code))
+            Select(Greatest(_t.Code, 10, _t.Code))
             .Build();
 
         StringBuilder expected = new();

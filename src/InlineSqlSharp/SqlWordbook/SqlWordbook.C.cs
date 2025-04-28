@@ -4,12 +4,12 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-    public static SearchedCaseExpr CASE(
+    public static SearchedCaseExpr Case(
         SearchedCaseWhenClause[] whenClauses,
         CaseElseExpr elseExpr) =>
         new(whenClauses, elseExpr);
 
-    public static SimpleCaseExpr CASE(
+    public static SimpleCaseExpr Case(
         object expr,
         SimpleCaseWhenClause[] whenClauses,
         CaseElseExpr elseExpr) => new(
@@ -17,7 +17,7 @@ public static partial class SqlWordbook
             whenClauses,
             elseExpr);
 
-    public static ConcatFunction CONCAT(
+    public static ConcatFunction Concat(
         object primary,
         object secondary,
         params object[] others) => new(
@@ -25,11 +25,11 @@ public static partial class SqlWordbook
             Resolve(secondary),
             Resolve(others));
 
-    public static CountFunction COUNT(object expr) =>
+    public static CountFunction Count(object expr) =>
         new(Resolve(expr));
 
-    public static CountFunction COUNT(Distinct distinct, object expr) =>
+    public static CountFunction Count(DistinctKeyword distinct, object expr) =>
         new(distinct, Resolve(expr));
 
-    public static AnalyticCumeDistFunction CUME_DIST() => new();
+    public static AnalyticCumeDistFunction CumeDist() => new();
 }

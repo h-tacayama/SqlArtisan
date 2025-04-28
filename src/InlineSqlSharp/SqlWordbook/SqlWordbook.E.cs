@@ -4,8 +4,8 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-    public static CaseElseExpr ELSE(object thenExpr) =>
+    public static CaseElseExpr Else(object thenExpr) =>
         new(Resolve(thenExpr));
 
-    public static ExistsCondition EXISTS(ISubquery subquery) => new(subquery);
+    public static ExistsCondition Exists(ISubquery subquery) => new(subquery);
 }

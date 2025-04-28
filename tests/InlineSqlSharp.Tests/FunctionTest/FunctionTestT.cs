@@ -6,10 +6,10 @@ namespace InlineSqlSharp.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void TO_CHAR_DateTimeValue_CorrectSql()
+    public void ToChar_DateTimeValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_CHAR(_t.created_at))
+            Select(ToChar(_t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();
@@ -20,10 +20,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TO_CHAR_DateTimValueWithFormat_CorrectSql()
+    public void ToChar_DateTimeValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_CHAR(_t.created_at, "YYYY-MM-DD"))
+            Select(ToChar(_t.CreatedAt, "YYYY-MM-DD"))
             .Build();
 
         StringBuilder expected = new();
@@ -34,10 +34,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TO_CHAR_NumericValue_CorrectSql()
+    public void ToChar_NumericValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_CHAR(_t.code))
+            Select(ToChar(_t.Code))
             .Build();
 
         StringBuilder expected = new();
@@ -48,10 +48,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TO_CHAR_NumericValueWithFormat_CorrectSql()
+    public void ToChar_NumericValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_CHAR(_t.code, "999"))
+            Select(ToChar(_t.Code, "999"))
             .Build();
 
         StringBuilder expected = new();
@@ -62,10 +62,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TO_DATE_CharacterValueWithFormat_CorrectSql()
+    public void ToDate_CharacterValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_DATE("2001/02/03", "YYYY/MM/DD"))
+            Select(ToDate("2001/02/03", "YYYY/MM/DD"))
             .Build();
 
         StringBuilder expected = new();
@@ -76,10 +76,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TO_NUMBER_CharacterValue_CorrectSql()
+    public void ToNumber_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_NUMBER("01"))
+            Select(ToNumber("01"))
             .Build();
 
         StringBuilder expected = new();
@@ -90,10 +90,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TO_NUMBER_CharacterValueWithFormat_CorrectSql()
+    public void ToNumber_CharacterValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TO_NUMBER("100.00", "9G999D99"))
+            Select(ToNumber("100.00", "9G999D99"))
             .Build();
 
         StringBuilder expected = new();
@@ -104,10 +104,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TRIM_CharacterValue_CorrectSql()
+    public void Trim_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TRIM(_t.name))
+            Select(Trim(_t.Name))
             .Build();
 
         StringBuilder expected = new();
@@ -118,10 +118,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TRIM_CharacterValueWithTrimChar_CorrectSql()
+    public void Trim_CharacterValueWithTrimChar_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TRIM(_t.name, "a"))
+            Select(Trim(_t.Name, "a"))
             .Build();
 
         StringBuilder expected = new();
@@ -132,10 +132,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TRUNC_DateTimeValue_CorrectSql()
+    public void Trunc_DateTimeValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TRUNC(_t.created_at))
+            Select(Trunc(_t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();
@@ -146,10 +146,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TRUNC_DateTimeValueWithFormat_CorrectSql()
+    public void Trunc_DateTimeValueWithFormat_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TRUNC(_t.created_at, "MONTH"))
+            Select(Trunc(_t.CreatedAt, "MONTH"))
             .Build();
 
         StringBuilder expected = new();
@@ -160,10 +160,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TRUNC_NumericValue_CorrectSql()
+    public void Trunc_NumericValue_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TRUNC(_t.code))
+            Select(Trunc(_t.Code))
             .Build();
 
         StringBuilder expected = new();
@@ -174,10 +174,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void TRUNC_NumericValueWithDecimalPlaces_CorrectSql()
+    public void Trunc_NumericValueWithDecimalPlaces_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(TRUNC(_t.code, 2))
+            Select(Trunc(_t.Code, 2))
             .Build();
 
         StringBuilder expected = new();

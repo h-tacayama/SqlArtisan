@@ -6,7 +6,7 @@ internal sealed class InnerJoinClause(AbstractTableReference table) :
     private readonly AbstractTableReference _table = table;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.INNER)
-        .AppendSpace(Keywords.JOIN)
+        .AppendSpace(Keywords.Inner)
+        .AppendSpace(Keywords.Join)
         .Append(_table);
 }

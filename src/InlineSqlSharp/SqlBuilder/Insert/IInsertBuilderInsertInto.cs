@@ -2,5 +2,5 @@
 
 public interface IInsertBuilderInsertInto : ISqlBuilder
 {
-    IInsertBuilderSet SET(params AbstractEqualityCondition[] assignments);
+    IInsertBuilderSet Set(params AbstractEqualityCondition[] assignments);
 }

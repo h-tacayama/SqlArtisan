@@ -2,7 +2,7 @@
 
 public sealed class SumFunction : AbstractExpr
 {
-    private readonly Distinct? _distinct;
+    private readonly DistinctKeyword? _distinct;
     private readonly AbstractSqlPart _expr;
 
     internal SumFunction(AbstractExpr expr)
@@ -11,14 +11,14 @@ public sealed class SumFunction : AbstractExpr
         _expr = expr;
     }
 
-    internal SumFunction(Distinct distinct, AbstractExpr expr)
+    internal SumFunction(DistinctKeyword distinct, AbstractExpr expr)
     {
         _distinct = distinct;
         _expr = expr;
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.SUM)
+        .Append(Keywords.Sum)
         .OpenParenthesis()
         .AppendSpaceIfNotNull(_distinct)
         .Append(_expr)

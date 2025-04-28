@@ -5,15 +5,15 @@ namespace InlineSqlSharp.Tests;
 
 public class GroupByTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
-    public void GROUP_BY_SingleColumn_CorrectSql()
+    public void GroupBy_SingleColumn_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(_t.name)
-            .FROM(_t)
-            .GROUP_BY(_t.name)
+            Select(_t.Name)
+            .From(_t)
+            .GroupBy(_t.Name)
             .Build();
 
         StringBuilder expected = new();
@@ -28,16 +28,16 @@ public class GroupByTest
     }
 
     [Fact]
-    public void GROUP_BY_MultipleColumns_CorrectSql()
+    public void GroupBy_MultipleColumns_CorrectSql()
     {
         SqlStatement sql =
-            SELECT(
-                _t.code,
-                _t.name)
-            .FROM(_t)
-            .GROUP_BY(
-                _t.code,
-                _t.name)
+            Select(
+                _t.Code,
+                _t.Name)
+            .From(_t)
+            .GroupBy(
+                _t.Code,
+                _t.Name)
             .Build();
 
         StringBuilder expected = new();

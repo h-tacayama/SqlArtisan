@@ -23,7 +23,7 @@ internal sealed class TableClassGenerator(ConsoleUI ui)
         foreach (DbTableInfo table in tables)
         {
             string code = table.GenerateCode(settings.OutputNamespace);
-            string outputPath = settings.CreateOutputFilePath(table.Name);
+            string outputPath = settings.CreateOutputFilePath(table.PascalCaseName);
 
             try
             {

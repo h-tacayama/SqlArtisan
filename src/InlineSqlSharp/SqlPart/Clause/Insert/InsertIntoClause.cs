@@ -5,7 +5,7 @@ internal sealed class InsertIntoClause(AbstractTable table) : AbstractSqlPart
     private readonly AbstractTable _table = table;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.INSERT)
-        .AppendSpace(Keywords.INTO)
+        .AppendSpace(Keywords.Insert)
+        .AppendSpace(Keywords.Into)
         .Append(_table);
 }

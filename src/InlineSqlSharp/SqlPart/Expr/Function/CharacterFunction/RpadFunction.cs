@@ -1,12 +1,12 @@
 ﻿namespace InlineSqlSharp;
 
-public sealed class RpadFunction : AbstractExpr
+public sealed class RPadFunction : AbstractExpr
 {
     private readonly AbstractSqlPart _source;
     private readonly AbstractSqlPart _length;
     private readonly AbstractSqlPart? _padding;
 
-    internal RpadFunction(
+    internal RPadFunction(
         AbstractExpr source,
         AbstractExpr length,
         AbstractExpr? padding = null)
@@ -17,7 +17,7 @@ public sealed class RpadFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.RPAD)
+        .Append(Keywords.RPad)
         .OpenParenthesis()
         .Append(_source)
         .PrependComma(_length)

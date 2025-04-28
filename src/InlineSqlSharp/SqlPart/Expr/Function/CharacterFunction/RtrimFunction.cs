@@ -1,11 +1,11 @@
 namespace InlineSqlSharp;
 
-public sealed class RtrimFunction : AbstractExpr
+public sealed class RTrimFunction : AbstractExpr
 {
     private readonly AbstractSqlPart _source;
     private readonly AbstractSqlPart? _trimChars;
 
-    internal RtrimFunction(
+    internal RTrimFunction(
         AbstractExpr source,
         AbstractExpr? trimChars = null)
     {
@@ -14,7 +14,7 @@ public sealed class RtrimFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.RTRIM)
+        .Append(Keywords.RTrim)
         .OpenParenthesis()
         .Append(_source)
         .PrependCommaIfNotNull(_trimChars)

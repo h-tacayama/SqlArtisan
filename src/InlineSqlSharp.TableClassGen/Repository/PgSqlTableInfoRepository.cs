@@ -15,16 +15,16 @@ internal sealed class PgSqlTableInfoRepository(
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
 
-        information_schema_tables t = new("t");
+        InformationSchemaTables t = new("t");
 
         ISqlBuilder sql =
-            SELECT(t.table_name)
-            .FROM(t)
-            .WHERE(
-                AND(
-                    t.table_schema == _connInfo.Schema,
-                    t.table_type == "BASE TABLE"))
-            .ORDER_BY(t.table_name);
+            Select(t.TableName)
+            .From(t)
+            .Where(
+                And(
+                    t.TableSchema == _connInfo.Schema,
+                    t.TableType == "BASE TABLE"))
+            .OrderBy(t.TableName);
 
         List<DbTableInfo> tables = new();
 
@@ -69,18 +69,18 @@ internal sealed class PgSqlTableInfoRepository(
             return false;
         }
 
-        information_schema_columns c = new("c");
+        InformationSchemaColumns c = new("c");
 
         ISqlBuilder sql2 =
-            SELECT(
-                c.column_name,
-                c.data_type)
-            .FROM(c)
-            .WHERE(
-                AND(
-                    c.table_schema == _connInfo.Schema,
-                    c.table_name == tableName))
-            .ORDER_BY(c.ordinal_position);
+            Select(
+                c.ColumnName,
+                c.DataType)
+            .From(c)
+            .Where(
+                And(
+                    c.TableSchema == _connInfo.Schema,
+                    c.TableName == tableName))
+            .OrderBy(c.OrdinalPosition);
 
         List<DbColumnInfo> columns = new();
 
@@ -107,16 +107,16 @@ internal sealed class PgSqlTableInfoRepository(
 
     private bool ExistsTable(IDbConnection conn, string tableName)
     {
-        information_schema_tables t = new("t");
+        InformationSchemaTables t = new("t");
 
         ISqlBuilder sql =
-            SELECT(COUNT(t.table_name))
-            .FROM(t)
-            .WHERE(
-                AND(
-                    t.table_schema == _connInfo.Schema,
-                    t.table_name == tableName,
-                    t.table_type == "BASE TABLE"));
+            Select(Count(t.TableName))
+            .From(t)
+            .Where(
+                And(
+                    t.TableSchema == _connInfo.Schema,
+                    t.TableName == tableName,
+                    t.TableType == "BASE TABLE"));
 
         long tableCount = Convert.ToInt64(conn.ExecuteScalar(sql));
         return tableCount > 0;

@@ -4,17 +4,17 @@ namespace InlineSqlSharp.Tests;
 
 public class InTest
 {
-    private readonly test_table _t;
+    private readonly TestTable _t;
     private readonly ConditionTestAssert _assert;
 
     public InTest()
     {
-        _t = new test_table("t");
+        _t = new TestTable("t");
         _assert = new(_t);
     }
 
     [Fact]
-    public void IN_SingleInt_CorrectSql()
+    public void In_SingleInt_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("\"t\".code IN ");
@@ -22,11 +22,11 @@ public class InTest
         expected.Append(":0");
         expected.Append(")");
 
-        _assert.Equal(_t.code.IN(2), expected.ToString(), 1, 2);
+        _assert.Equal(_t.Code.In(2), expected.ToString(), 1, 2);
     }
 
     [Fact]
-    public void IN_MultipleInts_CorrectSql()
+    public void In_MultipleInts_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("\"t\".code IN ");
@@ -36,13 +36,13 @@ public class InTest
         expected.Append(":2");
         expected.Append(")");
 
-        _assert.Equal(_t.code.IN(1, 2, 3),
+        _assert.Equal(_t.Code.In(1, 2, 3),
             expected.ToString(),
             3, 1, 2, 3);
     }
 
     [Fact]
-    public void NOT_IN_MultipleEnums_CorrectSql()
+    public void NotIn_MultipleEnums_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("\"t\".code NOT IN ");
@@ -52,7 +52,7 @@ public class InTest
         expected.Append(":2");
         expected.Append(")");
 
-        _assert.Equal(_t.code.NOT_IN(TestEnum.One, TestEnum.Two, TestEnum.Three),
+        _assert.Equal(_t.Code.NotIn(TestEnum.One, TestEnum.Two, TestEnum.Three),
             expected.ToString(),
             3, TestEnum.One, TestEnum.Two, TestEnum.Three);
     }

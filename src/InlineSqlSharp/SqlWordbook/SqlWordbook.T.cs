@@ -3,46 +3,43 @@
 namespace InlineSqlSharp;
 public static partial class SqlWordbook
 {
-    public static CaseThenExpr THEN(object thenExpr) =>
-        new(Resolve(thenExpr));
-
-    public static ToDateFunction TO_DATE(
+    public static ToDateFunction ToDate(
         object text,
         object format) => new(
             Resolve(text),
             Resolve(format));
 
-    public static TrimFunction TRIM(object source) =>
+    public static TrimFunction Trim(object source) =>
         new(Resolve(source));
 
-    public static TrimFunction TRIM(
+    public static TrimFunction Trim(
         object source,
         object trimChar) => new(
             Resolve(source),
             Resolve(trimChar));
 
-    public static ToCharFunction TO_CHAR(object expr) =>
+    public static ToCharFunction ToChar(object expr) =>
         new(Resolve(expr));
 
-    public static ToCharFunction TO_CHAR(
+    public static ToCharFunction ToChar(
         object expr,
         object format) => new(
             Resolve(expr),
             Resolve(format));
 
-    public static ToNumberFunction TO_NUMBER(object expr) =>
+    public static ToNumberFunction ToNumber(object expr) =>
         new(Resolve(expr));
 
-    public static ToNumberFunction TO_NUMBER(
+    public static ToNumberFunction ToNumber(
         object expr,
         object numericFormat) => new(
             Resolve(expr),
             Resolve(numericFormat));
 
-    public static TruncFunction TRUNC(object expr) =>
+    public static TruncFunction Trunc(object expr) =>
         new(Resolve(expr));
 
-    public static TruncFunction TRUNC(
+    public static TruncFunction Trunc(
         object expr,
         object format) => new(
             Resolve(expr),

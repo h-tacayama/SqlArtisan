@@ -12,7 +12,7 @@ public sealed class AddMonthsFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.ADD_MONTHS)
+        .Append(Keywords.AddMonths)
         .OpenParenthesis()
         .Append(_dateTime)
         .PrependComma(_months)

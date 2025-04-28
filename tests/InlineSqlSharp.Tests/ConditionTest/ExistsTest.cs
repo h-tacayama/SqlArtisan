@@ -5,17 +5,17 @@ namespace InlineSqlSharp.Tests;
 
 public class ExistsTest
 {
-    private readonly test_table _t;
+    private readonly TestTable _t;
     private readonly ConditionTestAssert _assert;
 
     public ExistsTest()
     {
-        _t = new test_table("t");
+        _t = new TestTable("t");
         _assert = new(_t);
     }
 
     [Fact]
-    public void EXISTS_WithSimpleSelect_CorrectSql()
+    public void Exists_WithSimpleSelect_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("EXISTS ");
@@ -25,13 +25,13 @@ public class ExistsTest
         expected.Append(")");
 
         _assert.Equal(
-            EXISTS(SELECT(2)),
+            Exists(Select(2)),
             expected.ToString(),
             1, 2);
     }
 
     [Fact]
-    public void EXISTS_WithSelectFrom_CorrectSql()
+    public void Exists_WithSelectFrom_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("EXISTS ");
@@ -43,12 +43,12 @@ public class ExistsTest
         expected.Append(")");
 
         _assert.Equal(
-            EXISTS(SELECT(_t.code).FROM(_t)),
+            Exists(Select(_t.Code).From(_t)),
             expected.ToString());
     }
 
     [Fact]
-    public void EXISTS_WithSelectFromWhere_CorrectSql()
+    public void Exists_WithSelectFromWhere_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("(");
@@ -72,16 +72,16 @@ public class ExistsTest
         expected.Append(")");
 
         _assert.Equal(
-            AND(
-                _t.code == 1,
-                EXISTS(SELECT(_t.code).FROM(_t).WHERE(_t.name == "a")),
-                _t.code == 2),
+            And(
+                _t.Code == 1,
+                Exists(Select(_t.Code).From(_t).Where(_t.Name == "a")),
+                _t.Code == 2),
             expected.ToString(),
             3, 1, "a", 2);
     }
 
     [Fact]
-    public void NOT_EXISTS_WithSelectFromWhere_CorrectSql()
+    public void NotExists_WithSelectFromWhere_CorrectSql()
     {
         StringBuilder expected = new();
         expected.Append("NOT EXISTS ");
@@ -95,7 +95,7 @@ public class ExistsTest
         expected.Append(")");
 
         _assert.Equal(
-            NOT_EXISTS(SELECT(_t.code).FROM(_t).WHERE(_t.code == 2)),
+            NotExists(Select(_t.Code).From(_t).Where(_t.Code == 2)),
             expected.ToString(),
             1, 2);
     }

@@ -10,7 +10,7 @@ public sealed class NotExistsCondition : AbstractCondition
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(Keywords.NOT)
-        .AppendSpace(Keywords.EXISTS)
+        .AppendSpace(Keywords.Not)
+        .AppendSpace(Keywords.Exists)
         .EncloseInParentheses(_subquery);
 }

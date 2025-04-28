@@ -1,12 +1,12 @@
 namespace InlineSqlSharp;
 
-public sealed class SubstrbFunction : AbstractExpr
+public sealed class SubstrBFunction : AbstractExpr
 {
     private readonly AbstractSqlPart _source;
     private readonly AbstractSqlPart _position;
     private readonly AbstractSqlPart? _length;
 
-    internal SubstrbFunction(
+    internal SubstrBFunction(
         AbstractExpr source,
         AbstractExpr position,
         AbstractExpr? length = null)
@@ -17,7 +17,7 @@ public sealed class SubstrbFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.SUBSTRB)
+        .Append(Keywords.SubstrB)
         .OpenParenthesis()
         .Append(_source)
         .PrependComma(_position)

@@ -4,28 +4,28 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-    public static LastDayFunction LAST_DAY(object date) =>
+    public static LastDayFunction LastDay(object date) =>
         new(Resolve(date));
 
-    public static LeastFunction LEAST(params object[] expressions) =>
+    public static LeastFunction Least(params object[] expressions) =>
         new(Resolve(expressions));
 
-    public static LengthFunction LENGTH(object source) =>
+    public static LengthFunction Length(object source) =>
         new(Resolve(source));
 
-    public static LengthBFunction LENGTHB(object source) =>
+    public static LengthBFunction LengthB(object source) =>
         new(Resolve(source));
 
-    public static LowerFunction LOWER(object source) =>
+    public static LowerFunction Lower(object source) =>
         new(Resolve(source));
 
-    public static LpadFunction LPAD(
+    public static LPadFunction LPad(
         object source,
         object length) => new(
             Resolve(source),
             Resolve(length));
 
-    public static LpadFunction LPAD(
+    public static LPadFunction LPad(
         object source,
         object length,
         object padding) => new(
@@ -33,10 +33,10 @@ public static partial class SqlWordbook
             Resolve(length),
             Resolve(padding));
 
-    public static LtrimFunction LTRIM(object source) =>
+    public static LTrimFunction LTrim(object source) =>
         new(Resolve(source));
 
-    public static LtrimFunction LTRIM(
+    public static LTrimFunction LTrim(
         object source,
         object trimChars) => new(
             Resolve(source),

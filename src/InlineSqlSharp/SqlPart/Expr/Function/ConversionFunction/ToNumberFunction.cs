@@ -14,7 +14,7 @@ public sealed class ToNumberFunction : AbstractExpr
     }
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.TO_NUMBER)
+        .Append(Keywords.ToNumber)
         .OpenParenthesis()
         .Append(_expr)
         .PrependCommaIfNotNull(_format)

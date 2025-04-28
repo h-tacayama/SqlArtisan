@@ -4,9 +4,9 @@ namespace InlineSqlSharp;
 
 public static partial class SqlWordbook
 {
-    public static SearchedCaseWhenCondition WHEN(
+    public static SearchedCaseWhenCondition When(
         AbstractCondition whenCondition) => new(whenCondition);
 
-    public static SimpleCaseWhenExpr WHEN(object whenExpr) =>
+    public static SimpleCaseWhenExpr When(object whenExpr) =>
         new(Resolve(whenExpr));
 }
