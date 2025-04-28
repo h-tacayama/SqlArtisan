@@ -13,7 +13,7 @@ public static class DapperQbNetExample
         var query = Qb.Select("a.Id, COUNT(*) AS Count")
             .From(a)
             .JoinInner(a, b, JoinCond.Fields("Id", "AuthorId"))
-            .Where(Cond.Greater("b.Rating", 2.5))
+            .Where(Cond.Greater("b.Rating", 2.5), Cond.LessOrEqual("b.Rating", 5))
             .GroupBy("a.Id")
             .OrderBy("a.Id", OrderByDir.Desc);
 

@@ -11,6 +11,7 @@ public static class SqlKataExample
             .From("Authors a")
             .Join("Books b", j => j.On("a.Id", "b.AuthorId"))
             .Where("b.Rating", ">", 2.5)
+            .Where("b.Rating", "<=", 5)
             .GroupBy("a.Id")
             .OrderByDesc("a.Id");
 

@@ -15,7 +15,7 @@ public static class InlineSqlSharpExample
             .From(a)
             .InnerJoin(b)
             .On(a.Id == b.AuthorId)
-            .Where(b.Rating > 2.5)
+            .Where(And(b.Rating > 2.5, b.Rating <= 5))
             .GroupBy(a.Id)
             .OrderBy(a.Id.Desc)
             .Build();

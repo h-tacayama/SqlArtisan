@@ -17,6 +17,7 @@ public static class DapperSqlBuilderExample
         var builder = new Dapper.SqlBuilder()
             .InnerJoin("Books b ON b.AuthorId = a.Id")
             .Where("b.Rating > @p1", new { p1 = 2.5 })
+            .Where("b.Rating <= @p2", new { p2 = 5 })
             .GroupBy("a.Id")
             .OrderBy("a.Id DESC");
 

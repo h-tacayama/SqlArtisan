@@ -17,7 +17,7 @@ public static class SqExpressExample
             Count(a.Id).As("Count"))
             .From(a)
             .InnerJoin(b, a.Id == b.AuthorId)
-            .Where(b.Rating > 2.5)
+            .Where(b.Rating > 2.5 & b.Rating <= 5)
             .GroupBy(a.Id)
             .OrderBy(Desc(a.Id));
 

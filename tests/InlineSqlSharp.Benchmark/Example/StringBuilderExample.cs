@@ -20,12 +20,15 @@ public static class StringBuilderExample
         query.Append("a.Id = b.AuthorId ");
         query.Append("WHERE ");
         query.Append("b.Rating > @0 ");
+        query.Append("AND b.Rating <= @1 ");
         query.Append("GROUP BY ");
         query.Append("a.Id ");
         query.Append("ORDER BY ");
         query.Append("a.Id");
 
-        SqlParameter param = new SqlParameter("@0", SqlDbType.Float);
-        param.Value = 2.5;
+        SqlParameter param0 = new SqlParameter("@0", SqlDbType.Float);
+        param0.Value = 2.5;
+        SqlParameter param1 = new SqlParameter("@1", SqlDbType.Int);
+        param1.Value = 5;
     }
 }

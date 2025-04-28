@@ -16,6 +16,7 @@ public static class SqlifyExample
             .From(a)
             .Join(b, a.Id == b.AuthorId)
             .Where(b.Rating > 2.5)
+            .Where(b.Rating <= 5)
             .GroupBy(a.Id)
             .OrderByDesc(a.Id);
 
