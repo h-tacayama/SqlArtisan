@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp;
+﻿namespace SqlArtisan;
 
 public sealed class NotBetweenCondition : AbstractCondition
 {

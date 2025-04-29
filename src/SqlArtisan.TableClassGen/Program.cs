@@ -1,4 +1,4 @@
-using InlineSqlSharp.TableClassGen;
+using SqlArtisan.TableClassGen;
 
 TableClassGenUseCase useCase = new();
 useCase.Execute();

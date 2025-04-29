@@ -1,21 +1,21 @@
 #if SQL_MAPPER_TEST
 using System.Data;
 using static Dapper.SqlMapper;
-using static InlineSqlSharp.SqlWordbook;
+using static SqlArtisan.SqlWordbook;
 
-namespace InlineSqlSharp.Tests;
+namespace SqlArtisan.Tests;
 
 public class SqlMapperAsyncTest : AbstractSqlMapperTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
     public async void ExecuteScalarAsync_NoTypeParameter_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object? result = await _conn.ExecuteScalarAsync(sql);
 
@@ -26,9 +26,9 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void ExecuteScalarAsync_IntTypeParameter_ReturnsIntValue()
     {
         ISqlBuilder sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         int result = await _conn.ExecuteScalarAsync<int>(sql);
 
@@ -39,9 +39,9 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void ExecuteScalarAsync_StringTypeParameter_ReturnsStringValue()
     {
         ISqlBuilder sql =
-            SELECT(_t.name)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         string? result = await _conn.ExecuteScalarAsync<string>(sql);
 
@@ -52,9 +52,9 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void ExecuteScalarAsync_DateTimeTypeParameter_ReturnsDateTimeValue()
     {
         ISqlBuilder sql =
-            SELECT(_t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(_t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         DateTime result = await _conn.ExecuteScalarAsync<DateTime>(sql);
 
@@ -65,12 +65,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QuerySingleAsync_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object result = await _conn.QuerySingleAsync(typeof(TestTableDto), sql);
         TestTableDto dto = ((TestTableDto)result);
@@ -84,12 +84,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QuerySingleAsync_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         dynamic result = await _conn.QuerySingleAsync(sql);
         IDictionary<string, object> row = (IDictionary<string, object>)result;
@@ -103,12 +103,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QuerySingleAsync_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         TestTableDto result = await _conn.QuerySingleAsync<TestTableDto>(sql);
 
@@ -121,12 +121,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QuerySingleOrDefaultAsync_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object? result = await _conn.QuerySingleOrDefaultAsync(typeof(TestTableDto), sql);
         TestTableDto? dto = result as TestTableDto;
@@ -140,12 +140,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QuerySingleOrDefaultAsync_NoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         object? result = await _conn.QuerySingleOrDefaultAsync(typeof(TestTableDto), sql);
 
@@ -156,12 +156,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QuerySingleOrDefaultAsync_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         dynamic? result = await _conn.QuerySingleOrDefaultAsync(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -175,12 +175,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QuerySingleOrDefaultAsync_NoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         dynamic? result = await _conn.QuerySingleOrDefaultAsync(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -192,12 +192,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QuerySingleOrDefaultAsync_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         TestTableDto? result = await _conn.QuerySingleOrDefaultAsync<TestTableDto>(sql);
 
@@ -210,12 +210,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QuerySingleOrDefaultAsync_TestTableDtoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         TestTableDto? result = await _conn.QuerySingleOrDefaultAsync<TestTableDto>(sql);
 
@@ -226,12 +226,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryFirstAsync_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object result = await _conn.QueryFirstAsync(typeof(TestTableDto), sql);
         TestTableDto dto = ((TestTableDto)result);
@@ -245,12 +245,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryFirstAsync_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         dynamic result = await _conn.QueryFirstAsync(sql);
         IDictionary<string, object> row = (IDictionary<string, object>)result;
@@ -264,12 +264,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryFirstAsync_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         TestTableDto result = await _conn.QueryFirstAsync<TestTableDto>(sql);
 
@@ -282,12 +282,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryFirstOrDefaultAsync_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object? result = await _conn.QueryFirstOrDefaultAsync(typeof(TestTableDto), sql);
         TestTableDto? dto = result as TestTableDto;
@@ -301,12 +301,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryFirstOrDefaultAsync_NoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         object? result = await _conn.QueryFirstOrDefaultAsync(typeof(TestTableDto), sql);
 
@@ -317,12 +317,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryFirstOrDefaultAsync_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         dynamic? result = await _conn.QueryFirstOrDefaultAsync(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -336,12 +336,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryFirstOrDefaultAsync_NoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         dynamic? result = await _conn.QueryFirstOrDefaultAsync(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -353,12 +353,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryFirstOrDefaultAsync_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         TestTableDto? result = await _conn.QueryFirstOrDefaultAsync<TestTableDto>(sql);
 
@@ -371,12 +371,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryFirstOrDefaultAsync_TestTableDtoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         TestTableDto? result = await _conn.QueryFirstOrDefaultAsync<TestTableDto>(sql);
 
@@ -387,12 +387,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryAsync_TestTableDtoType_ReturnsObjectCollection()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         IEnumerable<object> result = await _conn.QueryAsync(typeof(TestTableDto), sql);
 
@@ -403,12 +403,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryAsync_NoType_ReturnsDynamicCollection()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         IEnumerable<dynamic> result = await _conn.QueryAsync(sql);
 
@@ -419,12 +419,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryAsync_TestTableDtoType_ReturnsTestTableDtoCollection()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         IEnumerable<TestTableDto> result = await _conn.QueryAsync<TestTableDto>(sql);
 
@@ -435,12 +435,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void QueryMultipleAsync_MatchesTwoRecords_ReturnsGridReader()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         using (GridReader result = await _conn.QueryMultipleAsync(sql))
         {
@@ -453,12 +453,12 @@ public class SqlMapperAsyncTest : AbstractSqlMapperTest
     public async void ExecuteReaderAsync_MatchesTwoRecords_ReturnsIDataReader()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         using (IDataReader result = await _conn.ExecuteReaderAsync(sql))
         {

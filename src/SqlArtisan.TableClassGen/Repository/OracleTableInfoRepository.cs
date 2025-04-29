@@ -1,7 +1,7 @@
 using System.Data;
-using static InlineSqlSharp.SqlWordbook;
+using static SqlArtisan.SqlWordbook;
 
-namespace InlineSqlSharp.TableClassGen;
+namespace SqlArtisan.TableClassGen;
 
 internal sealed class OracleTableInfoRepository(
     DbConnectionInfo connInfo,

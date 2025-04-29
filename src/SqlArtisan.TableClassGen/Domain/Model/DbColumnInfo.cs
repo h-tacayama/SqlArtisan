@@ -1,4 +1,4 @@
-namespace InlineSqlSharp.TableClassGen;
+namespace SqlArtisan.TableClassGen;
 
 internal sealed class DbColumnInfo(string name, string dataType)
 {

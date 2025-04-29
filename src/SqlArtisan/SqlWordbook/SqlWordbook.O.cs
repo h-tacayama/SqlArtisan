@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp;
+﻿namespace SqlArtisan;
 public static partial class SqlWordbook
 {
     public static OrCondition Or(params AbstractCondition[] conditions) =>

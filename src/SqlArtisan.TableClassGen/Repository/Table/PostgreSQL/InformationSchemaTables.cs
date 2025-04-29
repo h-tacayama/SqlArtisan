@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp.TableClassGen;
+﻿namespace SqlArtisan.TableClassGen;
 
 internal sealed class InformationSchemaTables : AbstractTable
 {

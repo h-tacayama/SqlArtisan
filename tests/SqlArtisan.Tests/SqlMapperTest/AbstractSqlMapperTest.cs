@@ -1,8 +1,8 @@
 using System.Data;
 using Oracle.ManagedDataAccess.Client;
-using static InlineSqlSharp.SqlWordbook;
+using static SqlArtisan.SqlWordbook;
 
-namespace InlineSqlSharp.Tests;
+namespace SqlArtisan.Tests;
 
 public abstract class AbstractSqlMapperTest : IDisposable
 {
@@ -31,7 +31,7 @@ public abstract class AbstractSqlMapperTest : IDisposable
                 name VARCHAR2(100),
                 created_at DATE
             )
-            TABLESPACE TS_TBL_02";
+            TABLESPACE USERS";
         createCommand.ExecuteNonQuery();
 
         try

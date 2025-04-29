@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp.Tests;
+﻿namespace SqlArtisan.Tests;
 
 internal enum TestEnum
 {

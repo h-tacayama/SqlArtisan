@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp;
+﻿namespace SqlArtisan;
 
 internal abstract class ArithmeticOperator(
     AbstractExpr leftSide,

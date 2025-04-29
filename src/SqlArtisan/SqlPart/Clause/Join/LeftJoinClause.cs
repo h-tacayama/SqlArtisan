@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp;
+﻿namespace SqlArtisan;
 
 internal sealed class LeftJoinClause(AbstractTableReference table) :
     AbstractSqlPart

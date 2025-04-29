@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace InlineSqlSharp.Tests;
+namespace SqlArtisan.Tests;
 
 public class InTest
 {

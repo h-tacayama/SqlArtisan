@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace InlineSqlSharp.TableClassGen;
+namespace SqlArtisan.TableClassGen;
 
 internal sealed class DbTableInfo(
     string name,
@@ -16,7 +16,7 @@ internal sealed class DbTableInfo(
     {
         StringBuilder code = new();
 
-        code.AppendLine("using InlineSqlSharp;");
+        code.AppendLine("using SqlArtisan;");
         code.AppendLine();
         code.AppendLine($"namespace {@namespace};");
         code.AppendLine();

@@ -1,7 +1,7 @@
 ﻿using Sqlify.Core;
 using Sqlify.Core.Expressions;
 
-namespace InlineSqlSharp.Benchmark.SqlifyTable;
+namespace SqlArtisan.Benchmark.SqlifyTable;
 
 public interface IBooks : ITable
 {

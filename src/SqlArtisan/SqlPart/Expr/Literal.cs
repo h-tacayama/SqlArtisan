@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 internal sealed class Literal(string value) : AbstractExpr
 {

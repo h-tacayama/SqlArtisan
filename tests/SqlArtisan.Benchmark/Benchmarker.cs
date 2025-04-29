@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 
-namespace InlineSqlSharp.Benchmark;
+namespace SqlArtisan.Benchmark;
 
 [MemoryDiagnoser]
 [ShortRunJob]

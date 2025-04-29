@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using static InlineSqlSharp.SqlWordbook;
+using static SqlArtisan.SqlWordbook;
 
-namespace InlineSqlSharp.Tests;
+namespace SqlArtisan.Tests;
 
 internal sealed class ConditionTestAssert(TestTable t)
 {

@@ -1,7 +1,7 @@
-﻿namespace InlineSqlSharp.Benchmark;
+﻿namespace SqlArtisan.Benchmark;
 
-using InlineSqlSharp.Benchmark.InlineSqlSharpTable;
-using static InlineSqlSharp.SqlWordbook;
+using SqlArtisan.Benchmark.SqlArtisanTable;
+using static SqlArtisan.SqlWordbook;
 
 public static class SqlArtisanExample
 {

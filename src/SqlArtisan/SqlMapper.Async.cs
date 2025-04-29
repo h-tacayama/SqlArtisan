@@ -2,7 +2,7 @@
 using Dapper;
 using static Dapper.SqlMapper;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 public static partial class SqlMapper
 {

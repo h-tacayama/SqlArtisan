@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Dapper;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 internal sealed class SqlBuildingBuffer
 {

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 internal class SelectBuilder(AbstractSqlPart part) :
     AbstractSqlBuilder(part),

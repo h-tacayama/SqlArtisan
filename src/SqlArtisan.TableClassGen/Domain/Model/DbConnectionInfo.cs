@@ -2,7 +2,7 @@ using System.Data;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 
-namespace InlineSqlSharp.TableClassGen;
+namespace SqlArtisan.TableClassGen;
 
 internal sealed class DbConnectionInfo(
     DbmsType databaseType,

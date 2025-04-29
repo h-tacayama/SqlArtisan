@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 public sealed class SequenceObject
 {

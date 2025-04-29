@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 internal static class RegexpOptionsExtensions
 {

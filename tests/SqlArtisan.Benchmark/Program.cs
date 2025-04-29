@@ -1,4 +1,4 @@
 ﻿using BenchmarkDotNet.Running;
-using InlineSqlSharp.Benchmark;
+using SqlArtisan.Benchmark;
 
 BenchmarkRunner.Run<Benchmarker>();

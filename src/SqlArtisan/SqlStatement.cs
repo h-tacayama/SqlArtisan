@@ -1,6 +1,6 @@
 ﻿using Dapper;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 public sealed class SqlStatement
 {

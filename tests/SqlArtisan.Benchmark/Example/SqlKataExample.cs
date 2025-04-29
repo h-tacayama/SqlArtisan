@@ -1,6 +1,6 @@
 ﻿using SqlKata;
 
-namespace InlineSqlSharp.Benchmark;
+namespace SqlArtisan.Benchmark;
 
 public static class SqlKataExample
 {

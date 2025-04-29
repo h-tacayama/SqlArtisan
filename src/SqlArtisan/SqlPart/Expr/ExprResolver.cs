@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 internal static class ExprResolver
 {

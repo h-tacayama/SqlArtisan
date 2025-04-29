@@ -1,6 +1,6 @@
 ﻿using SqExpress;
 
-namespace InlineSqlSharp.Benchmark.SqExpressTable;
+namespace SqlArtisan.Benchmark.SqExpressTable;
 
 public class Books : TableBase
 {

@@ -1,9 +1,9 @@
-﻿using InlineSqlSharp.Benchmark.SqExpressTable;
-using SqExpress;
+﻿using SqExpress;
 using SqExpress.SqlExport;
+using SqlArtisan.Benchmark.SqExpressTable;
 using static SqExpress.SqQueryBuilder;
 
-namespace InlineSqlSharp.Benchmark;
+namespace SqlArtisan.Benchmark;
 
 public static class SqExpressExample
 {

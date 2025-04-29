@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp;
+﻿namespace SqlArtisan;
 
 public interface ISelectBuilderSelect : ISqlBuilder, ISetOperator, ISubquery
 {

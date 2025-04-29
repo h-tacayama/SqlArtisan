@@ -1,4 +1,4 @@
-namespace InlineSqlSharp.TableClassGen;
+namespace SqlArtisan.TableClassGen;
 
 internal sealed class ConsoleUI
 {
@@ -52,7 +52,7 @@ internal sealed class ConsoleUI
         Console.WriteLine("Please enter code generation settings.");
 
         Console.Write("Namespace: ");
-        string @namespace = Console.ReadLine() ?? "InlineSqlSharp.TableDefinitions";
+        string @namespace = Console.ReadLine() ?? "SqlArtisan.TableDefinitions";
 
         Console.Write("Convert object names to lowercase (y/n): ");
         string lowercaseNamesStr = Console.ReadLine() ?? "n";

@@ -1,8 +1,8 @@
-﻿using InlineSqlSharp.Benchmark.SqlifyTable;
+﻿using SqlArtisan.Benchmark.SqlifyTable;
 using Sqlify.Core;
 using static Sqlify.Sql;
 
-namespace InlineSqlSharp.Benchmark;
+namespace SqlArtisan.Benchmark;
 
 public static class SqlifyExample
 {

@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp.Tests;
+﻿namespace SqlArtisan.Tests;
 
 public class ComparisonTest
 {

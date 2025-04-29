@@ -1,7 +1,7 @@
 ﻿using Viten.QueryBuilder;
 using Viten.QueryBuilder.Renderer;
 
-namespace InlineSqlSharp.Benchmark;
+namespace SqlArtisan.Benchmark;
 
 public static class DapperQbNetExample
 {

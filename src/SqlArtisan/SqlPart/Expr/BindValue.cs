@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 internal sealed class BindValue(
     object value,

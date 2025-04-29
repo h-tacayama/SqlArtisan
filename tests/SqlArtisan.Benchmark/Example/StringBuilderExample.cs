@@ -2,7 +2,7 @@
 using System.Data.SqlClient;
 using System.Text;
 
-namespace InlineSqlSharp.Benchmark;
+namespace SqlArtisan.Benchmark;
 
 public static class StringBuilderExample
 {

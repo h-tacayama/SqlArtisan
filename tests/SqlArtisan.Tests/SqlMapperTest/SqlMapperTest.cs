@@ -1,21 +1,21 @@
 #if SQL_MAPPER_TEST
 using System.Data;
 using static Dapper.SqlMapper;
-using static InlineSqlSharp.SqlWordbook;
+using static SqlArtisan.SqlWordbook;
 
-namespace InlineSqlSharp.Tests;
+namespace SqlArtisan.Tests;
 
 public class SqlMapperTest : AbstractSqlMapperTest
 {
-    private readonly test_table _t = new("t");
+    private readonly TestTable _t = new("t");
 
     [Fact]
     public void ExecuteScalar_NoTypeParameter_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object? result = _conn.ExecuteScalar(sql);
 
@@ -26,9 +26,9 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void ExecuteScalar_IntTypeParameter_ReturnsIntValue()
     {
         ISqlBuilder sql =
-            SELECT(_t.code)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         int result = _conn.ExecuteScalar<int>(sql);
 
@@ -39,9 +39,9 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void ExecuteScalar_StringTypeParameter_ReturnsStringValue()
     {
         ISqlBuilder sql =
-            SELECT(_t.name)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         string? result = _conn.ExecuteScalar<string>(sql);
 
@@ -52,9 +52,9 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void ExecuteScalar_DateTimeTypeParameter_ReturnsDateTimeValue()
     {
         ISqlBuilder sql =
-            SELECT(_t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(_t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         DateTime result = _conn.ExecuteScalar<DateTime>(sql);
 
@@ -65,12 +65,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QuerySingle_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object result = _conn.QuerySingle(typeof(TestTableDto), sql);
         TestTableDto dto = ((TestTableDto)result);
@@ -84,12 +84,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QuerySingle_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         dynamic result = _conn.QuerySingle(sql);
         IDictionary<string, object> row = (IDictionary<string, object>)result;
@@ -103,12 +103,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QuerySingle_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         TestTableDto result = _conn.QuerySingle<TestTableDto>(sql);
 
@@ -121,12 +121,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QuerySingleOrDefault_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object? result = _conn.QuerySingleOrDefault(typeof(TestTableDto), sql);
         TestTableDto? dto = result as TestTableDto;
@@ -140,12 +140,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QuerySingleOrDefault_NoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         object? result = _conn.QuerySingleOrDefault(typeof(TestTableDto), sql);
 
@@ -156,12 +156,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QuerySingleOrDefault_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         dynamic? result = _conn.QuerySingleOrDefault(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -175,12 +175,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QuerySingleOrDefault_NoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         dynamic? result = _conn.QuerySingleOrDefault(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -192,12 +192,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QuerySingleOrDefault_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         TestTableDto? result = _conn.QuerySingleOrDefault<TestTableDto>(sql);
 
@@ -210,12 +210,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QuerySingleOrDefault_TestTableDtoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         TestTableDto? result = _conn.QuerySingleOrDefault<TestTableDto>(sql);
 
@@ -226,12 +226,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryFirst_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object result = _conn.QueryFirst(typeof(TestTableDto), sql);
         TestTableDto dto = ((TestTableDto)result);
@@ -245,12 +245,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryFirst_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         dynamic result = _conn.QueryFirst(sql);
         IDictionary<string, object> row = (IDictionary<string, object>)result;
@@ -264,12 +264,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryFirst_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         TestTableDto result = _conn.QueryFirst<TestTableDto>(sql);
 
@@ -282,12 +282,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryFirstOrDefault_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         object? result = _conn.QueryFirstOrDefault(typeof(TestTableDto), sql);
         TestTableDto? dto = result as TestTableDto;
@@ -301,12 +301,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryFirstOrDefault_NoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         object? result = _conn.QueryFirstOrDefault(typeof(TestTableDto), sql);
 
@@ -317,12 +317,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryFirstOrDefault_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         dynamic? result = _conn.QueryFirstOrDefault(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -336,12 +336,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryFirstOrDefault_NoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         dynamic? result = _conn.QueryFirstOrDefault(sql);
         IDictionary<string, object>? row = result as IDictionary<string, object>;
@@ -353,12 +353,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryFirstOrDefault_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 1);
 
         TestTableDto? result = _conn.QueryFirstOrDefault<TestTableDto>(sql);
 
@@ -371,12 +371,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryFirstOrDefault_TestTableDtoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code == 999);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code == 999);
 
         TestTableDto? result = _conn.QueryFirstOrDefault<TestTableDto>(sql);
 
@@ -387,12 +387,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void Query_TestTableDtoType_ReturnsObjectCollection()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         IEnumerable<object> result = _conn.Query(typeof(TestTableDto), sql);
 
@@ -403,12 +403,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void Query_NoType_ReturnsDynamicCollection()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         IEnumerable<dynamic> result = _conn.Query(sql);
 
@@ -419,12 +419,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void Query_TestTableDtoType_ReturnsTestTableDtoCollection()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         IEnumerable<TestTableDto> result = _conn.Query<TestTableDto>(sql);
 
@@ -435,12 +435,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void QueryMultiple_MatchesTwoRecords_ReturnsGridReader()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         using (GridReader result = _conn.QueryMultiple(sql))
         {
@@ -453,12 +453,12 @@ public class SqlMapperTest : AbstractSqlMapperTest
     public void ExecuteReader_MatchesTwoRecords_ReturnsIDataReader()
     {
         ISqlBuilder sql =
-            SELECT(
-                _t.code,
-                _t.name,
-                _t.created_at)
-            .FROM(_t)
-            .WHERE(_t.code >= 1);
+            Select(
+                _t.Code,
+                _t.Name,
+                _t.CreatedAt)
+            .From(_t)
+            .Where(_t.Code >= 1);
 
         using (IDataReader result = _conn.ExecuteReader(sql))
         {

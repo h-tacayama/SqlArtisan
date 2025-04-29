@@ -1,4 +1,4 @@
-﻿namespace InlineSqlSharp.Benchmark.InlineSqlSharpTable;
+﻿namespace SqlArtisan.Benchmark.SqlArtisanTable;
 
 internal sealed class Books : AbstractTable
 {

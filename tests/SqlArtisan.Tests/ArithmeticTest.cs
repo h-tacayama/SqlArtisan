@@ -1,6 +1,6 @@
-﻿using static InlineSqlSharp.SqlWordbook;
+﻿using static SqlArtisan.SqlWordbook;
 
-namespace InlineSqlSharp.Tests;
+namespace SqlArtisan.Tests;
 
 public class ArithmeticTest
 {

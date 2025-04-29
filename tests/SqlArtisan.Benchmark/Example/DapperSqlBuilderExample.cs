@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace InlineSqlSharp.Benchmark;
+namespace SqlArtisan.Benchmark;
 
 public static class DapperSqlBuilderExample
 {

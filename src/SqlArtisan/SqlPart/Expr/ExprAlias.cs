@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 public sealed class ExprAlias : AbstractSqlPart, ISortable
 {

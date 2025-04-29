@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
-using static InlineSqlSharp.ExprResolver;
+using static SqlArtisan.ExprResolver;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 public static partial class SqlWordbook
 {

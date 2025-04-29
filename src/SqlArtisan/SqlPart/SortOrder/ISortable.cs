@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace InlineSqlSharp;
+namespace SqlArtisan;
 
 internal interface ISortable
 {
