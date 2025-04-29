@@ -3,7 +3,7 @@
 using InlineSqlSharp.Benchmark.InlineSqlSharpTable;
 using static InlineSqlSharp.SqlWordbook;
 
-public static class InlineSqlSharpExample
+public static class SqlArtisanExample
 {
     public static void Do()
     {

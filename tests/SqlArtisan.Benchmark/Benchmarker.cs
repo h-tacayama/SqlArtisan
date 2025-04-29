@@ -23,7 +23,7 @@ public class Benchmarker
     public void SqlKata() => SqlKataExample.Do();
 
     [Benchmark]
-    public void InlineSqlSharp() => InlineSqlSharpExample.Do();
+    public void SqlArtisan() => SqlArtisanExample.Do();
 
     [Benchmark]
     public void StringBuilderTest() => StringBuilderExample.Do();
