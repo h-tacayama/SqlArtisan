@@ -7,13 +7,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A36260A0-5AE
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F29CB8EE-C83F-493D-9F22-2EE7EFCC209D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InlineSqlSharp", "src\InlineSqlSharp\InlineSqlSharp.csproj", "{2681EAF1-8364-44FA-932E-C4225B9CD8B7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan", "src\SqlArtisan\SqlArtisan.csproj", "{2681EAF1-8364-44FA-932E-C4225B9CD8B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InlineSqlSharp.Tests", "tests\InlineSqlSharp.Tests\InlineSqlSharp.Tests.csproj", "{F17149F9-833B-4526-A613-33486394FFF7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.Tests", "tests\SqlArtisan.Tests\SqlArtisan.Tests.csproj", "{F17149F9-833B-4526-A613-33486394FFF7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InlineSqlSharp.Benchmark", "tests\InlineSqlSharp.Benchmark\InlineSqlSharp.Benchmark.csproj", "{F3E96DB7-F2CC-467D-A38E-73D696B5B5FD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.Benchmark", "tests\SqlArtisan.Benchmark\SqlArtisan.Benchmark.csproj", "{F3E96DB7-F2CC-467D-A38E-73D696B5B5FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InlineSqlSharp.TableClassGen", "src\InlineSqlSharp.TableClassGen\InlineSqlSharp.TableClassGen.csproj", "{0CF476C5-8765-4117-B6AF-438BF78A1D8C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.TableClassGen", "src\SqlArtisan.TableClassGen\SqlArtisan.TableClassGen.csproj", "{0CF476C5-8765-4117-B6AF-438BF78A1D8C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

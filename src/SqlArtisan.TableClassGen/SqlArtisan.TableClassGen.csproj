@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\InlineSqlSharp\InlineSqlSharp.csproj" />
+    <ProjectReference Include="..\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>
 
 </Project>
