@@ -1,0 +1,18 @@
+﻿namespace SqlArtisan;
+
+public sealed class LikeCondition : AbstractCondition
+{
+    private readonly AbstractExpr _leftSide;
+    private readonly AbstractExpr _rightSide;
+
+    internal LikeCondition(AbstractExpr leftSide, AbstractExpr rightSide)
+    {
+        _leftSide = leftSide;
+        _rightSide = rightSide;
+    }
+
+    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+        .Append(_leftSide)
+        .Append($" {Keywords.Like} ")
+        .Append(_rightSide);
+}

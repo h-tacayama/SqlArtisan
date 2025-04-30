@@ -1,6 +1,0 @@
-﻿namespace InlineSqlSharp;
-
-public abstract class AbstractSqlPart
-{
-    internal abstract void FormatSql(SqlBuildingBuffer buffer);
-}
