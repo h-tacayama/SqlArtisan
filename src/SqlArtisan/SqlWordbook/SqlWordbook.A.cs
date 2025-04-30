@@ -17,9 +17,6 @@ public static partial class SqlWordbook
             Resolve(dateTime),
             Resolve(months));
 
-    public static AndCondition And(params AbstractCondition[] conditions) =>
-        new(conditions);
-
     public static AvgFunction Avg(object expr) =>
         new(Resolve(expr));
 

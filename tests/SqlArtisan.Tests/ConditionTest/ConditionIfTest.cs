@@ -26,9 +26,8 @@ public class ConditionIfTest
     [Fact]
     public void ConditionIf_MultiEmptyCondition_ReturnsEmpty() =>
         _assert.Equal(
-            And(
-                ConditionIf(false, _t.Code == 1),
-                ConditionIf(false, _t.Code == 2),
-                ConditionIf(true, _t.Code == 3)),
+            ConditionIf(false, _t.Code == 1)
+            & ConditionIf(false, _t.Code == 2)
+            & ConditionIf(true, _t.Code == 3),
             "(\"t\".code = :0)", 1, 3);
 }

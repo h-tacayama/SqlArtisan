@@ -72,10 +72,9 @@ public class ExistsTest
         expected.Append(")");
 
         _assert.Equal(
-            And(
-                _t.Code == 1,
-                Exists(Select(_t.Code).From(_t).Where(_t.Name == "a")),
-                _t.Code == 2),
+            _t.Code == 1
+            & Exists(Select(_t.Code).From(_t).Where(_t.Name == "a"))
+            & _t.Code == 2,
             expected.ToString(),
             3, 1, "a", 2);
     }

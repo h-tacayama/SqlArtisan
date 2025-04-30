@@ -24,12 +24,18 @@ public class LogicalConditionTest
         expected.Append("AND ");
         expected.Append("(");
         expected.Append("\"t\".code = :1");
+        expected.Append(") ");
+        expected.Append("AND ");
+        expected.Append("(");
+        expected.Append("\"t\".code = :2");
         expected.Append(")");
 
+        // When more than two conditions are connected with '&', 
+        // the logic internally creates nested AndCondition objects.
         _assert.Equal(
-            And(_t.Code == 1, _t.Code == 2),
+            _t.Code == 1 & _t.Code == 2 & _t.Code == 3,
             expected.ToString(),
-            2, 1, 2);
+            3, 1, 2, 3);
     }
 
     [Fact]
@@ -42,12 +48,18 @@ public class LogicalConditionTest
         expected.Append("OR ");
         expected.Append("(");
         expected.Append("\"t\".code = :1");
+        expected.Append(") ");
+        expected.Append("OR ");
+        expected.Append("(");
+        expected.Append("\"t\".code = :2");
         expected.Append(")");
 
+        // When more than two conditions are connected with '|', 
+        // the logic internally creates nested OrCondition objects.
         _assert.Equal(
-            Or(_t.Code == 1, _t.Code == 2),
+            _t.Code == 1 | _t.Code == 2 | _t.Code == 3,
             expected.ToString(),
-            2, 1, 2);
+            3, 1, 2, 3);
     }
 
     [Fact]
@@ -75,9 +87,8 @@ public class LogicalConditionTest
         expected.Append(")");
 
         _assert.Equal(
-            And(
-                Or(_t.Code == 1, _t.Code == 2),
-                Or(_t.Code == 3, _t.Code == 4)),
+            (_t.Code == 1 | _t.Code == 2)
+            & (_t.Code == 3 | _t.Code == 4),
             expected.ToString(),
             4, 1, 2, 3, 4);
     }
@@ -107,9 +118,8 @@ public class LogicalConditionTest
         expected.Append(")");
 
         _assert.Equal(
-            Or(
-                And(_t.Code == 1, _t.Code == 2),
-                And(_t.Code == 3, _t.Code == 4)),
+            (_t.Code == 1 & _t.Code == 2)
+            | (_t.Code == 3 & _t.Code == 4),
             expected.ToString(),
             4, 1, 2, 3, 4);
     }

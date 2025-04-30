@@ -21,9 +21,8 @@ internal sealed class PgSqlTableInfoRepository(
             Select(t.TableName)
             .From(t)
             .Where(
-                And(
-                    t.TableSchema == _connInfo.Schema,
-                    t.TableType == "BASE TABLE"))
+                t.TableSchema == _connInfo.Schema
+                & t.TableType == "BASE TABLE")
             .OrderBy(t.TableName);
 
         List<DbTableInfo> tables = new();
@@ -77,9 +76,8 @@ internal sealed class PgSqlTableInfoRepository(
                 c.DataType)
             .From(c)
             .Where(
-                And(
-                    c.TableSchema == _connInfo.Schema,
-                    c.TableName == tableName))
+                c.TableSchema == _connInfo.Schema
+                & c.TableName == tableName)
             .OrderBy(c.OrdinalPosition);
 
         List<DbColumnInfo> columns = new();
@@ -113,10 +111,9 @@ internal sealed class PgSqlTableInfoRepository(
             Select(Count(t.TableName))
             .From(t)
             .Where(
-                And(
-                    t.TableSchema == _connInfo.Schema,
-                    t.TableName == tableName,
-                    t.TableType == "BASE TABLE"));
+                t.TableSchema == _connInfo.Schema
+                & t.TableName == tableName
+                & t.TableType == "BASE TABLE");
 
         long tableCount = Convert.ToInt64(conn.ExecuteScalar(sql));
         return tableCount > 0;

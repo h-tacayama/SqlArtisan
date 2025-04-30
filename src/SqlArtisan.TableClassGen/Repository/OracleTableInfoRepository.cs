@@ -74,9 +74,8 @@ internal sealed class OracleTableInfoRepository(
                 atc.DataType)
             .From(atc)
             .Where(
-                And(
-                    atc.Owner == _connInfo.Schema.ToUpper(),
-                    atc.TableName == tableName.ToUpper()));
+                atc.Owner == _connInfo.Schema.ToUpper()
+                & atc.TableName == tableName.ToUpper());
 
         List<DbColumnInfo> columns = new();
 
@@ -113,9 +112,8 @@ internal sealed class OracleTableInfoRepository(
             Select(Count(t.TableName))
             .From(t)
             .Where(
-                And(
-                    t.Owner == _connInfo.Schema.ToUpper(),
-                    t.TableName == tableName.ToUpper()));
+                t.Owner == _connInfo.Schema.ToUpper()
+                & t.TableName == tableName.ToUpper());
 
         int tableCount = Convert.ToInt32(conn.ExecuteScalar(sql));
         return tableCount > 0;

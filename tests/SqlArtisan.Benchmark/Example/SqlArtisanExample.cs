@@ -15,7 +15,7 @@ public static class SqlArtisanExample
             .From(a)
             .InnerJoin(b)
             .On(a.Id == b.AuthorId)
-            .Where(And(b.Rating > 2.5, b.Rating <= 5))
+            .Where(b.Rating > 2.5 & b.Rating <= 5)
             .GroupBy(a.Id)
             .OrderBy(a.Id.Desc)
             .Build();

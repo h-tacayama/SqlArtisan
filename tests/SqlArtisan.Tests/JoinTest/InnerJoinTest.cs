@@ -38,10 +38,7 @@ public class InnerJoinTest
             Select(_t.Name)
             .From(_t)
             .InnerJoin(_s)
-            .On(
-                And(
-                    _t.Code == _s.Code,
-                    _t.Name == _s.Name))
+            .On(_t.Code == _s.Code & _t.Name == _s.Name)
             .Where(_t.Code > 1)
             .Build();
 
