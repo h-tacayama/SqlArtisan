@@ -5,6 +5,12 @@ using static SqlArtisan.SqlWordbook;
 
 namespace SqlArtisan.Tests;
 
+[CollectionDefinition("SequentialTests")]
+public class SequentialCollectionDefinition
+{
+    // This class serves as a marker and holds collection settings.
+}
+
 public abstract class AbstractSqlMapperTest : IDisposable
 {
     protected readonly IDbConnection _conn;
