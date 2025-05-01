@@ -23,6 +23,7 @@ public static class DapperSqlBuilderExample
 
         var query = builder.AddTemplate(template.ToString());
         var sql = query.RawSql;
+        // Parameters is DynamicParameters
         var parameters = query.Parameters;
     }
 }

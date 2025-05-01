@@ -31,7 +31,7 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(7, sql.ParameterCount);
+        Assert.Equal(7, sql.Parameters.Count);
         Assert.Equal("a", sql.Parameters.Get<string>(":0"));
         Assert.Equal("A", sql.Parameters.Get<string>(":1"));
         Assert.Equal('b', sql.Parameters.Get<char>(":2"));
@@ -67,7 +67,7 @@ public class CaseTest
         expected.Append("END");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(7, sql.ParameterCount);
+        Assert.Equal(7, sql.Parameters.Count);
         Assert.Equal("a", sql.Parameters.Get<string>(":0"));
         Assert.Equal("A", sql.Parameters.Get<string>(":1"));
         Assert.Equal('b', sql.Parameters.Get<char>(":2"));

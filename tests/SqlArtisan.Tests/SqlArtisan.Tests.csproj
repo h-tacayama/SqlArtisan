@@ -16,6 +16,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\SqlArtisan.DapperExtensions\SqlArtisan.DapperExtensions.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>
   <ItemGroup>

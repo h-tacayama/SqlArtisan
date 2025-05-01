@@ -1,5 +1,6 @@
 using System.Data;
 using Oracle.ManagedDataAccess.Client;
+using SqlArtisan.DapperExtensions;
 using static SqlArtisan.SqlWordbook;
 
 namespace SqlArtisan.Tests;

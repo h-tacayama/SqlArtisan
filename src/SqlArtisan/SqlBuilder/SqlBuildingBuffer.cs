@@ -1,12 +1,11 @@
 ﻿using System.Text;
-using Dapper;
 
 namespace SqlArtisan;
 
 internal sealed class SqlBuildingBuffer
 {
     private readonly StringBuilder _text = new();
-    private readonly DynamicParameters _parameters = new();
+    private readonly Dictionary<string, BindValue> _parameters = new();
 
     internal SqlBuildingBuffer Append(AbstractSqlPart part)
     {
@@ -110,12 +109,9 @@ internal sealed class SqlBuildingBuffer
 
     internal SqlBuildingBuffer AddParameter(BindValue bindValue)
     {
-        string name = $":{_parameters.ParameterNames.Count()}";
+        string name = $":{_parameters.Count}";
         _text.Append(name);
-
-        // Dapper uses default values if DbType and Direction are null.
-        _parameters.Add(name, bindValue.Value, bindValue.DbType, bindValue.Direction);
-
+        _parameters.Add(name, bindValue);
         return this;
     }
 

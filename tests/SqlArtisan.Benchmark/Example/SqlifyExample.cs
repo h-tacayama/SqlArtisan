@@ -23,5 +23,6 @@ public static class SqlifyExample
         var writer = new SqlWriter();
         selectQuery.Format(writer);
         var sql = writer.GetCommand();
+        // Parameters is Dictionary<string, object>
     }
 }

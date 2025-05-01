@@ -17,5 +17,7 @@ public static class SqlKataExample
 
         var compiler = new SqlKata.Compilers.PostgresCompiler();
         var sql = compiler.Compile(query);
+        // Parameters is List<object>
+        var parameters = sql.Bindings;
     }
 }

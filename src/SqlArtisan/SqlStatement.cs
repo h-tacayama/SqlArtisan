@@ -1,18 +1,14 @@
-﻿using Dapper;
-
-namespace SqlArtisan;
+﻿namespace SqlArtisan;
 
 public sealed class SqlStatement
 {
-    internal SqlStatement(string text, DynamicParameters parameters)
+    internal SqlStatement(string text, Dictionary<string, BindValue> parameters)
     {
         Text = text;
-        Parameters = parameters;
+        Parameters = new(parameters);
     }
 
     public string Text { get; }
 
-    public DynamicParameters Parameters { get; }
-
-    public int ParameterCount => Parameters.ParameterNames.Count();
+    public SqlParameters Parameters { get; }
 }

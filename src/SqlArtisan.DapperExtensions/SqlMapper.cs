@@ -2,7 +2,7 @@
 using Dapper;
 using static Dapper.SqlMapper;
 
-namespace SqlArtisan;
+namespace SqlArtisan.DapperExtensions;
 
 public static partial class SqlMapper
 {
@@ -16,7 +16,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.Execute(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -32,7 +32,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.ExecuteScalar(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -48,7 +48,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.ExecuteScalar<T>(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -66,7 +66,7 @@ public static partial class SqlMapper
         return cnn.QuerySingle(
             type,
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -82,7 +82,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.QuerySingle(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -98,7 +98,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.QuerySingle<T>(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -116,7 +116,7 @@ public static partial class SqlMapper
         return cnn.QuerySingleOrDefault(
             type,
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -132,7 +132,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.QuerySingleOrDefault(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -148,7 +148,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.QuerySingleOrDefault<T>(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -166,7 +166,7 @@ public static partial class SqlMapper
         return cnn.QueryFirst(
             type,
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -182,7 +182,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.QueryFirst(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -198,7 +198,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.QueryFirst<T>(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -216,7 +216,7 @@ public static partial class SqlMapper
         return cnn.QueryFirstOrDefault(
             type,
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -232,7 +232,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.QueryFirstOrDefault(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -248,7 +248,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.QueryFirstOrDefault<T>(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -267,7 +267,7 @@ public static partial class SqlMapper
         return cnn.Query(
             type,
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             buffered,
             commandTimeout,
@@ -285,7 +285,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.Query<dynamic>(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             buffered,
             commandTimeout,
@@ -303,7 +303,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.Query<T>(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             buffered,
             commandTimeout,
@@ -320,7 +320,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.QueryMultiple(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
@@ -336,7 +336,7 @@ public static partial class SqlMapper
         SqlStatement sql = sqlBuilder.Build();
         return cnn.ExecuteReader(
             sql.Text,
-            sql.Parameters,
+            sql.Parameters.ToDynamicParameters(),
             transaction,
             commandTimeout,
             commandType);
