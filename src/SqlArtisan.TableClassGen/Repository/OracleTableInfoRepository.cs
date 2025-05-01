@@ -1,4 +1,5 @@
 using System.Data;
+using SqlArtisan.DapperExtensions;
 using static SqlArtisan.SqlWordbook;
 
 namespace SqlArtisan.TableClassGen;

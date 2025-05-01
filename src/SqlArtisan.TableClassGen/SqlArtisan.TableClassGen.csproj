@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SqlArtisan.DapperExtensions\SqlArtisan.DapperExtensions.csproj" />
     <ProjectReference Include="..\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>
 

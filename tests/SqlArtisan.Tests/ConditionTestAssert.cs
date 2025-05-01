@@ -28,7 +28,7 @@ internal sealed class ConditionTestAssert(TestTable t)
         expected.Append(expectedSql);
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(expectedBindCount, sql.ParameterCount);
+        Assert.Equal(expectedBindCount, sql.Parameters.Count);
 
         for (int i = 0; i < bindValues.Length; i++)
         {

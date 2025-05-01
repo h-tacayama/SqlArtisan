@@ -1,9 +1,10 @@
 ﻿using SqlArtisan.Benchmark.SqlArtisanTable;
+using SqlArtisan.DapperExtensions;
 using static SqlArtisan.SqlWordbook;
 
 namespace SqlArtisan.Benchmark;
 
-public static class SqlArtisanExample
+public static class SqlArtisanDapperExtensionsExample
 {
     public static void Do()
     {
@@ -20,7 +21,6 @@ public static class SqlArtisanExample
             .OrderBy(a.Id.Desc)
             .Build();
         var sqlText = sql.Text;
-        // Parameters is Dictionary<string, BindValue>
-        var parameters = sql.Parameters;
+        var dynamicParameters = sql.Parameters.ToDynamicParameters();
     }
 }

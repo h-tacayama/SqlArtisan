@@ -22,5 +22,6 @@ public static class SqExpressExample
             .OrderBy(Desc(a.Id));
 
         var sql = query.ToSql(PgSqlExporter.Default);
+        // No parameters
     }
 }

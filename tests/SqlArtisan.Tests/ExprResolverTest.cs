@@ -11,7 +11,7 @@ public class ExprResolverTest
     {
         SqlStatement sql = Select(Abs(_t.Code)).Build();
 
-        Assert.Equal(0, sql.ParameterCount);
+        Assert.Equal(0, sql.Parameters.Count);
         Assert.Equal("SELECT ABS(\"t\".code)", sql.Text);
     }
 

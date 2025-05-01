@@ -19,5 +19,6 @@ public static class DapperQbNetExample
 
         var pg = new PostgreSqlRenderer();
         var sql = pg.RenderSelect(query);
+        // No parameters
     }
 }
