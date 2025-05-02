@@ -1,8 +1,8 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class InsertIntoClause(AbstractTable table) : AbstractSqlPart
+internal sealed class InsertIntoClause(DbTableBase table) : SqlPart
 {
-    private readonly AbstractTable _table = table;
+    private readonly DbTableBase _table = table;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Insert} {Keywords.Into} ")

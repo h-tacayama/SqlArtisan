@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class ExceptOperator(bool all) : AbstractSqlPart
+internal sealed class ExceptOperator(bool all) : SqlPart
 {
     private readonly bool _all = all;
 

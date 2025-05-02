@@ -1,15 +1,15 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class SelectClauseWithOptions : AbstractSqlPart
+internal sealed class SelectClauseWithOptions : SqlPart
 {
     private readonly SqlHints _hints;
     private readonly DistinctKeyword _distinct;
-    private readonly AbstractSqlPart[] _selectItems;
+    private readonly SqlPart[] _selectItems;
 
     private SelectClauseWithOptions(
         SqlHints hints,
         DistinctKeyword distinct,
-        AbstractSqlPart[] selectItems)
+        SqlPart[] selectItems)
     {
         _hints = hints;
         _distinct = distinct;

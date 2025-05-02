@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public sealed class NotExistsCondition : AbstractCondition
+public sealed class NotExistsCondition : SqlCondition
 {
     private readonly SqlPartAgent _subquery;
 

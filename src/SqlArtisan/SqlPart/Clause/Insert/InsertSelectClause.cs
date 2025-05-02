@@ -1,10 +1,10 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class InsertSelectClause(AbstractTable table, Column[] columns) :
-    AbstractSqlPart
+internal sealed class InsertSelectClause(DbTableBase table, DbColumn[] columns) :
+    SqlPart
 {
-    private readonly AbstractTable _table = table;
-    private readonly Column[] _columns = columns;
+    private readonly DbTableBase _table = table;
+    private readonly DbColumn[] _columns = columns;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Insert} {Keywords.Into} ")

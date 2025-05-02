@@ -2,8 +2,8 @@
 
 namespace SqlArtisan;
 
-internal class SelectBuilder(AbstractSqlPart part) :
-    AbstractSqlBuilder(part),
+internal class SelectBuilder(SqlPart part) :
+    SqlBuilderBase(part),
     ISelectBuilderFrom,
     ISelectBuilderGroupBy,
     ISelectBuilderHaving,
@@ -98,19 +98,19 @@ internal class SelectBuilder(AbstractSqlPart part) :
 
     public SqlStatement Build() => BuildCore();
 
-    public ISelectBuilderFrom CrossJoin(AbstractTableReference table)
+    public ISelectBuilderFrom CrossJoin(TableReference table)
     {
         AddPart(new CrossJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderFrom From(params AbstractTableReference[] tables)
+    public ISelectBuilderFrom From(params TableReference[] tables)
     {
         AddPart(new FromClause(tables));
         return this;
     }
 
-    public ISelectBuilderJoin FullJoin(AbstractTableReference table)
+    public ISelectBuilderJoin FullJoin(TableReference table)
     {
         AddPart(new FullJoinClause(table));
         return this;
@@ -122,31 +122,31 @@ internal class SelectBuilder(AbstractSqlPart part) :
         return this;
     }
 
-    public ISelectBuilderHaving Having(AbstractCondition condition)
+    public ISelectBuilderHaving Having(SqlCondition condition)
     {
         AddPart(new HavingClause(condition));
         return this;
     }
 
-    public ISelectBuilderJoin InnerJoin(AbstractTableReference table)
+    public ISelectBuilderJoin InnerJoin(TableReference table)
     {
         AddPart(new InnerJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderJoin LeftJoin(AbstractTableReference table)
+    public ISelectBuilderJoin LeftJoin(TableReference table)
     {
         AddPart(new LeftJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderJoin RightJoin(AbstractTableReference table)
+    public ISelectBuilderJoin RightJoin(TableReference table)
     {
         AddPart(new RightJoinClause(table));
         return this;
     }
 
-    public ISelectBuilderFrom On(AbstractCondition condition)
+    public ISelectBuilderFrom On(SqlCondition condition)
     {
         AddPart(new OnClause(condition));
         return this;
@@ -204,7 +204,7 @@ internal class SelectBuilder(AbstractSqlPart part) :
         return this;
     }
 
-    public ISelectBuildertWhere Where(AbstractCondition condition)
+    public ISelectBuildertWhere Where(SqlCondition condition)
     {
         AddPart(new WhereClause(condition));
         return this;

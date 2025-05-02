@@ -1,0 +1,23 @@
+namespace SqlArtisan;
+
+public sealed class RegexpCountFunction : SqlExpression
+{
+    private readonly VariadicFunctionCore _core;
+
+    internal RegexpCountFunction(
+        SqlExpression source,
+        SqlExpression pattern,
+        SqlExpression? position = null,
+        RegexpOptions? options = null)
+    {
+        _core = new(
+            Keywords.RegexpCount,
+            source,
+            pattern,
+            position,
+            options?.ToValue());
+    }
+
+    internal override void FormatSql(SqlBuildingBuffer buffer) =>
+        _core.FormatSql(buffer);
+}

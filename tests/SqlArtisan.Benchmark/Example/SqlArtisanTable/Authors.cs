@@ -1,14 +1,14 @@
 ﻿namespace SqlArtisan.Benchmark.SqlArtisanTable;
 
-internal sealed class Authors : AbstractTable
+internal sealed class Authors : DbTableBase
 {
     public Authors(string alias) : base(alias)
     {
-        Id = new Column(alias, "Id");
-        Name = new Column(alias, "Name");
+        Id = new DbColumn(alias, "Id");
+        Name = new DbColumn(alias, "Name");
     }
 
-    public Column Id { get; }
+    public DbColumn Id { get; }
 
-    public Column Name { get; }
+    public DbColumn Name { get; }
 }

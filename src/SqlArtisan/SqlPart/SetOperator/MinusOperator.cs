@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class MinusOperator(bool all) : AbstractSqlPart
+internal sealed class MinusOperator(bool all) : SqlPart
 {
     private readonly bool _all = all;
 

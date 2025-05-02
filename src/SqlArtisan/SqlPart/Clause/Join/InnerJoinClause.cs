@@ -1,9 +1,8 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class InnerJoinClause(AbstractTableReference table) :
-    AbstractSqlPart
+internal sealed class InnerJoinClause(TableReference table) : SqlPart
 {
-    private readonly AbstractTableReference _table = table;
+    private readonly TableReference _table = table;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Inner} {Keywords.Join} ")

@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public sealed class SqlHints : AbstractSqlPart
+public sealed class SqlHints : SqlPart
 {
     private readonly string _hints;
 

@@ -1,8 +1,8 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class WhereClause(AbstractCondition condition) : AbstractSqlPart
+internal sealed class WhereClause(SqlCondition condition) : SqlPart
 {
-    private readonly AbstractCondition _condition = condition;
+    private readonly SqlCondition _condition = condition;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Where} ")

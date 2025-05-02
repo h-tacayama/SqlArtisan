@@ -1,13 +1,13 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class SelectClauseWithDistinct : AbstractSqlPart
+internal sealed class SelectClauseWithDistinct : SqlPart
 {
     private readonly DistinctKeyword _distinct;
-    private readonly AbstractSqlPart[] _selectItems;
+    private readonly SqlPart[] _selectItems;
 
     private SelectClauseWithDistinct(
         DistinctKeyword distinct,
-        AbstractSqlPart[] selectItems)
+        SqlPart[] selectItems)
     {
         _distinct = distinct;
         _selectItems = selectItems;

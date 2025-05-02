@@ -1,10 +1,10 @@
 ﻿namespace SqlArtisan;
 
-public sealed class DeleteClause : AbstractSqlPart
+public sealed class DeleteClause : SqlPart
 {
-    private readonly AbstractTable _table;
+    private readonly DbTableBase _table;
 
-    internal DeleteClause(AbstractTable table)
+    internal DeleteClause(DbTableBase table)
     {
         _table = table;
     }

@@ -1,10 +1,10 @@
-﻿using static SqlArtisan.ExprResolver;
+﻿using static SqlArtisan.ExpressionResolver;
 
 namespace SqlArtisan;
 
 public static partial class SqlWordbook
 {
-    public static IUpdateBuilderUpdate Update(AbstractTable table) =>
+    public static IUpdateBuilderUpdate Update(DbTableBase table) =>
         new UpdateBuilder(new UpdateClause(table));
 
     public static UpperFunction Upper(object source) =>

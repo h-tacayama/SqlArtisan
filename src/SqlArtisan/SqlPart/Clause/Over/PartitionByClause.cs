@@ -1,10 +1,10 @@
 ﻿namespace SqlArtisan;
 
-public sealed class PartitionByClause : AbstractSqlPart
+public sealed class PartitionByClause : SqlPart
 {
-    private readonly AbstractExpr[] _expressions;
+    private readonly SqlExpression[] _expressions;
 
-    internal PartitionByClause(AbstractExpr[] expressions)
+    internal PartitionByClause(SqlExpression[] expressions)
     {
         _expressions = expressions;
     }

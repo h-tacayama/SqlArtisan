@@ -8,7 +8,7 @@ internal sealed class ConditionTestAssert(TestTable t)
     private readonly TestTable _t = t;
 
     internal void Equal(
-        AbstractCondition testCondition,
+        SqlCondition testCondition,
         string expectedSql,
         int expectedBindCount = 0,
         params object[] bindValues)

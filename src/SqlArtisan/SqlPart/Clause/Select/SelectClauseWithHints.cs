@@ -1,13 +1,13 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class SelectClauseWithHints : AbstractSqlPart
+internal sealed class SelectClauseWithHints : SqlPart
 {
     private readonly SqlHints _hints;
-    private readonly AbstractSqlPart[] _selectItems;
+    private readonly SqlPart[] _selectItems;
 
     private SelectClauseWithHints(
         SqlHints hints,
-        AbstractSqlPart[] selectItems)
+        SqlPart[] selectItems)
     {
         _hints = hints;
         _selectItems = selectItems;

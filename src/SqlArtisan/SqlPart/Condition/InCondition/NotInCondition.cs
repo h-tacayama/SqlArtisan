@@ -1,11 +1,11 @@
 ﻿namespace SqlArtisan;
 
-public sealed class NotInCondition : AbstractCondition
+public sealed class NotInCondition : SqlCondition
 {
-    private readonly AbstractExpr _leftSide;
-    private readonly AbstractExpr[] _expressions;
+    private readonly SqlExpression _leftSide;
+    private readonly SqlExpression[] _expressions;
 
-    internal NotInCondition(AbstractExpr leftSide, AbstractExpr[] expressions)
+    internal NotInCondition(SqlExpression leftSide, SqlExpression[] expressions)
     {
         _leftSide = leftSide;
         _expressions = expressions;

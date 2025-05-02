@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public sealed class OverClause : AbstractSqlPart
+public sealed class OverClause : SqlPart
 {
     private readonly PartitionByClause? _partitionByClause;
     private readonly OrderByClause? _orderByClause;

@@ -1,9 +1,8 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class FullJoinClause(AbstractTableReference table) :
-    AbstractSqlPart
+internal sealed class FullJoinClause(TableReference table) : SqlPart
 {
-    private readonly AbstractTableReference _table = table;
+    private readonly TableReference _table = table;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Full} {Keywords.Join} ")

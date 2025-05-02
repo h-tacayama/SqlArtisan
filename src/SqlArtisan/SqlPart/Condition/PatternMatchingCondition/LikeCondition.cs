@@ -1,11 +1,11 @@
 ﻿namespace SqlArtisan;
 
-public sealed class LikeCondition : AbstractCondition
+public sealed class LikeCondition : SqlCondition
 {
-    private readonly AbstractExpr _leftSide;
-    private readonly AbstractExpr _rightSide;
+    private readonly SqlExpression _leftSide;
+    private readonly SqlExpression _rightSide;
 
-    internal LikeCondition(AbstractExpr leftSide, AbstractExpr rightSide)
+    internal LikeCondition(SqlExpression leftSide, SqlExpression rightSide)
     {
         _leftSide = leftSide;
         _rightSide = rightSide;

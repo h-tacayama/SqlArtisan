@@ -1,18 +1,18 @@
-﻿using static SqlArtisan.ExprResolver;
+﻿using static SqlArtisan.ExpressionResolver;
 
 namespace SqlArtisan;
 
 public static partial class SqlWordbook
 {
-    public static SearchedCaseExpr Case(
+    public static SearchedCaseExpression Case(
         SearchedCaseWhenClause[] whenClauses,
-        CaseElseExpr elseExpr) =>
+        CaseElseExpression elseExpr) =>
         new(whenClauses, elseExpr);
 
-    public static SimpleCaseExpr Case(
+    public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause[] whenClauses,
-        CaseElseExpr elseExpr) => new(
+        CaseElseExpression elseExpr) => new(
             Resolve(expr),
             whenClauses,
             elseExpr);

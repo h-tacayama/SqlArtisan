@@ -2,5 +2,5 @@
 
 public interface ISelectBuilderSelect : ISqlBuilder, ISetOperator, ISubquery
 {
-    ISelectBuilderFrom From(params AbstractTableReference[] tables);
+    ISelectBuilderFrom From(params TableReference[] tables);
 }

@@ -1,7 +1,6 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class SqlPartAgent(Action<SqlBuildingBuffer> formatSql) :
-    AbstractSqlPart
+internal sealed class SqlPartAgent(Action<SqlBuildingBuffer> formatSql) : SqlPart
 {
     private readonly Action<SqlBuildingBuffer> _formatSql = formatSql;
 

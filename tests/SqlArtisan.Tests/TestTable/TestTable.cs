@@ -1,17 +1,17 @@
 ﻿namespace SqlArtisan.Tests;
 
-internal sealed class TestTable : AbstractTable
+internal sealed class TestTable : DbTableBase
 {
     public TestTable(string alias) : base("test_table", alias)
     {
-        Code = new Column(alias, "code");
-        Name = new Column(alias, "name");
-        CreatedAt = new Column(alias, "created_at");
+        Code = new DbColumn(alias, "code");
+        Name = new DbColumn(alias, "name");
+        CreatedAt = new DbColumn(alias, "created_at");
     }
 
-    public Column Code { get; }
+    public DbColumn Code { get; }
 
-    public Column Name { get; }
+    public DbColumn Name { get; }
 
-    public Column CreatedAt { get; }
+    public DbColumn CreatedAt { get; }
 }

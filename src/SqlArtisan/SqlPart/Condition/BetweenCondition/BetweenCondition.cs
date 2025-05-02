@@ -1,15 +1,15 @@
 ﻿namespace SqlArtisan;
 
-public sealed class BetweenCondition : AbstractCondition
+public sealed class BetweenCondition : SqlCondition
 {
-    private readonly AbstractExpr _leftSide;
-    private readonly AbstractExpr _rightSide1;
-    private readonly AbstractExpr _rightSide2;
+    private readonly SqlExpression _leftSide;
+    private readonly SqlExpression _rightSide1;
+    private readonly SqlExpression _rightSide2;
 
     internal BetweenCondition(
-        AbstractExpr leftSide,
-        AbstractExpr rightSide1,
-        AbstractExpr rightSide2)
+        SqlExpression leftSide,
+        SqlExpression rightSide1,
+        SqlExpression rightSide2)
     {
         _leftSide = leftSide;
         _rightSide1 = rightSide1;

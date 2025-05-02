@@ -1,10 +1,10 @@
 ﻿namespace SqlArtisan;
 
-public sealed class IsNotNullCondition : AbstractCondition
+public sealed class IsNotNullCondition : SqlCondition
 {
-    private readonly AbstractExpr _leftSide;
+    private readonly SqlExpression _leftSide;
 
-    internal IsNotNullCondition(AbstractExpr leftSide)
+    internal IsNotNullCondition(SqlExpression leftSide)
     {
         _leftSide = leftSide;
     }

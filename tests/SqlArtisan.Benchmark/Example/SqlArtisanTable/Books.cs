@@ -1,20 +1,20 @@
 ﻿namespace SqlArtisan.Benchmark.SqlArtisanTable;
 
-internal sealed class Books : AbstractTable
+internal sealed class Books : DbTableBase
 {
     public Books(string alias) : base(alias)
     {
-        Id = new Column(alias, "Id");
-        Name = new Column(alias, "Name");
-        AuthorId = new Column(alias, "AuthorId");
-        Rating = new Column(alias, "Rating");
+        Id = new DbColumn(alias, "Id");
+        Name = new DbColumn(alias, "Name");
+        AuthorId = new DbColumn(alias, "AuthorId");
+        Rating = new DbColumn(alias, "Rating");
     }
 
-    public Column Id { get; }
+    public DbColumn Id { get; }
 
-    public Column Name { get; }
+    public DbColumn Name { get; }
 
-    public Column AuthorId { get; }
+    public DbColumn AuthorId { get; }
 
-    public Column Rating { get; }
+    public DbColumn Rating { get; }
 }

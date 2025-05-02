@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class UnionOperator(bool all) : AbstractSqlPart
+internal sealed class UnionOperator(bool all) : SqlPart
 {
     private readonly bool _all = all;
 

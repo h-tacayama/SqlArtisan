@@ -1,20 +1,20 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class InsertSetClause : AbstractSqlPart
+internal sealed class InsertSetClause : SqlPart
 {
-    private readonly AbstractExpr[] _columns;
-    private readonly AbstractExpr[] _values;
+    private readonly SqlExpression[] _columns;
+    private readonly SqlExpression[] _values;
 
-    private InsertSetClause(AbstractExpr[] columns, AbstractExpr[] values)
+    private InsertSetClause(SqlExpression[] columns, SqlExpression[] values)
     {
         _columns = columns;
         _values = values;
     }
 
-    internal static InsertSetClause Parse(AbstractEqualityCondition[] items)
+    internal static InsertSetClause Parse(EqualityBasedCondition[] items)
     {
-        var columns = new AbstractExpr[items.Length];
-        var values = new AbstractExpr[items.Length];
+        var columns = new SqlExpression[items.Length];
+        var values = new SqlExpression[items.Length];
 
         for (int i = 0; i < items.Length; i++)
         {

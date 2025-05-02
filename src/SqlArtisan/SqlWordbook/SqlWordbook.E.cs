@@ -1,10 +1,10 @@
-﻿using static SqlArtisan.ExprResolver;
+﻿using static SqlArtisan.ExpressionResolver;
 
 namespace SqlArtisan;
 
 public static partial class SqlWordbook
 {
-    public static CaseElseExpr Else(object thenExpr) =>
+    public static CaseElseExpression Else(object thenExpr) =>
         new(Resolve(thenExpr));
 
     public static ExistsCondition Exists(ISubquery subquery) => new(subquery);

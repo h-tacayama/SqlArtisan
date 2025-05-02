@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using static SqlArtisan.ExprResolver;
+using static SqlArtisan.ExpressionResolver;
 
 namespace SqlArtisan;
 
@@ -19,7 +19,7 @@ public static partial class SqlWordbook
             Resolve(searchResultPairs),
             Resolve(@default));
 
-    public static IDeleteBuilderDelete DeleteFrom(AbstractTable table)
+    public static IDeleteBuilderDelete DeleteFrom(DbTableBase table)
         => new DeleteBuilder(new DeleteClause(table));
 
     public static AnalyticDenseRankFunction DenseRank() => new();

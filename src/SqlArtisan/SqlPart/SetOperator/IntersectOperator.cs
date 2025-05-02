@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class IntersectOperator(bool all) : AbstractSqlPart
+internal sealed class IntersectOperator(bool all) : SqlPart
 {
     private readonly bool _all = all;
 

@@ -1,11 +1,11 @@
 ﻿namespace SqlArtisan;
 
-public sealed class InSubqueryCondition : AbstractCondition
+public sealed class InSubqueryCondition : SqlCondition
 {
-    private readonly AbstractExpr _leftSide;
+    private readonly SqlExpression _leftSide;
     private readonly SqlPartAgent _subquery;
 
-    internal InSubqueryCondition(AbstractExpr leftSide, ISubquery subquey)
+    internal InSubqueryCondition(SqlExpression leftSide, ISubquery subquey)
     {
         _leftSide = leftSide;
         _subquery = new(subquey.FormatSql);

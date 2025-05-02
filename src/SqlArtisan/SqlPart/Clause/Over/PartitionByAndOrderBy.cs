@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public sealed class PartitionByAndOrderBy : AbstractSqlPart
+public sealed class PartitionByAndOrderBy : SqlPart
 {
     private readonly PartitionByClause _partitionByClause;
     private readonly OrderByClause _orderByClause;

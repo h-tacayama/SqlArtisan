@@ -1,15 +1,15 @@
-﻿using static SqlArtisan.ExprResolver;
+﻿using static SqlArtisan.ExpressionResolver;
 
 namespace SqlArtisan;
 
 public static partial class SqlWordbook
 {
-    public static IInsertBuilderInsertInto InsertInto(AbstractTable table) =>
+    public static IInsertBuilderInsertInto InsertInto(DbTableBase table) =>
         new InsertBuilder(new InsertIntoClause(table));
 
     public static IInsertBuilderSelect InsertInto(
-        AbstractTable table,
-        params Column[] columns) =>
+        DbTableBase table,
+        params DbColumn[] columns) =>
         new InsertBuilder(new InsertSelectClause(table, columns));
 
     public static InstrFunction Instr(

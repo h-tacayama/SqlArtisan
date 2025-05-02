@@ -2,9 +2,9 @@
 
 internal static class GroupByItemResolver
 {
-    internal static AbstractSqlPart[] Resolve(object[] groupByItems)
+    internal static SqlPart[] Resolve(object[] groupByItems)
     {
-        var resolved = new AbstractSqlPart[groupByItems.Length];
+        var resolved = new SqlPart[groupByItems.Length];
 
         for (int i = 0; i < groupByItems.Length; i++)
         {
@@ -14,9 +14,9 @@ internal static class GroupByItemResolver
         return resolved;
     }
 
-    internal static AbstractSqlPart Resolve(object groupByItem)
+    internal static SqlPart Resolve(object groupByItem)
     {
-        if (groupByItem is AbstractExpr expr)
+        if (groupByItem is SqlExpression expr)
         {
             return expr;
         }

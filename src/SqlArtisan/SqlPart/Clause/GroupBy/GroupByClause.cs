@@ -1,10 +1,10 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class GroupByClause : AbstractSqlPart
+internal sealed class GroupByClause : SqlPart
 {
-    private readonly AbstractSqlPart[] _groupByItems;
+    private readonly SqlPart[] _groupByItems;
 
-    private GroupByClause(AbstractSqlPart[] groupByItems)
+    private GroupByClause(SqlPart[] groupByItems)
     {
         _groupByItems = groupByItems;
     }

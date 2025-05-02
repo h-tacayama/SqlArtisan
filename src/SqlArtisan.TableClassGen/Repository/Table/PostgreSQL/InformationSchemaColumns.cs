@@ -1,24 +1,24 @@
 ﻿namespace SqlArtisan.TableClassGen;
 
-internal sealed class InformationSchemaColumns : AbstractTable
+internal sealed class InformationSchemaColumns : DbTableBase
 {
     public InformationSchemaColumns(string alias)
         : base("information_schema.columns", alias)
     {
-        TableSchema = new Column(alias, "table_schema");
-        TableName = new Column(alias, "table_name");
-        ColumnName = new Column(alias, "column_name");
-        OrdinalPosition = new Column(alias, "ordinal_position");
-        DataType = new Column(alias, "data_type");
+        TableSchema = new DbColumn(alias, "table_schema");
+        TableName = new DbColumn(alias, "table_name");
+        ColumnName = new DbColumn(alias, "column_name");
+        OrdinalPosition = new DbColumn(alias, "ordinal_position");
+        DataType = new DbColumn(alias, "data_type");
     }
 
-    public Column TableSchema { get; }
+    public DbColumn TableSchema { get; }
 
-    public Column TableName { get; }
+    public DbColumn TableName { get; }
 
-    public Column ColumnName { get; }
+    public DbColumn ColumnName { get; }
 
-    public Column OrdinalPosition { get; }
+    public DbColumn OrdinalPosition { get; }
 
-    public Column DataType { get; }
+    public DbColumn DataType { get; }
 }

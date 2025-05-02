@@ -1,10 +1,10 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class SelectClause : AbstractSqlPart
+internal sealed class SelectClause : SqlPart
 {
-    private readonly AbstractSqlPart[] _selectItems;
+    private readonly SqlPart[] _selectItems;
 
-    private SelectClause(AbstractSqlPart[] selectItems)
+    private SelectClause(SqlPart[] selectItems)
     {
         _selectItems = selectItems;
     }

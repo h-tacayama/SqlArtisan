@@ -1,11 +1,11 @@
 ﻿namespace SqlArtisan;
 
 internal sealed class GreaterThanCondition(
-    AbstractExpr leftSide,
-    AbstractExpr rightSide) : AbstractCondition
+    SqlExpression leftSide,
+    SqlExpression rightSide) : SqlCondition
 {
-    private readonly AbstractExpr _leftSide = leftSide;
-    private readonly AbstractExpr _rightSide = rightSide;
+    private readonly SqlExpression _leftSide = leftSide;
+    private readonly SqlExpression _rightSide = rightSide;
 
     internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)

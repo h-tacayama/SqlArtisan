@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using static SqlArtisan.ExprResolver;
+using static SqlArtisan.ExpressionResolver;
 
 namespace SqlArtisan;
 
@@ -35,7 +35,7 @@ public static partial class SqlWordbook
                 distinct,
                 selectItems));
 
-    public static SequenceObject Sequence(string name) => new(name);
+    public static DbSequence Sequence(string name) => new(name);
 
     public static SubstrFunction Substr(
         object source,

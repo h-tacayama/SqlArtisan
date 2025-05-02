@@ -1,20 +1,20 @@
 ﻿namespace SqlArtisan;
 
 internal sealed class UpdateBuilder(UpdateClause updateClause) :
-    AbstractSqlBuilder(updateClause),
+    SqlBuilderBase(updateClause),
     IUpdateBuilderSet,
     IUpdateBuilderUpdate,
     IUpdateBuilderWhere
 {
     public SqlStatement Build() => BuildCore();
 
-    public IUpdateBuilderSet Set(params AbstractEqualityCondition[] assignments)
+    public IUpdateBuilderSet Set(params EqualityBasedCondition[] assignments)
     {
         AddPart(UpdateSetClause.Parse(assignments));
         return this;
     }
 
-    public IUpdateBuilderWhere Where(AbstractCondition condition)
+    public IUpdateBuilderWhere Where(SqlCondition condition)
     {
         AddPart(new WhereClause(condition));
         return this;

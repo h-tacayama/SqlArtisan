@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public sealed class DistinctKeyword : AbstractSqlPart
+public sealed class DistinctKeyword : SqlPart
 {
     internal DistinctKeyword() { }
 
