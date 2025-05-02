@@ -8,7 +8,7 @@ public sealed class EqualityCondition(
 
     internal override SqlExpression RightSide => rightSide;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(LeftSide)
         .Append($" {Operators.Equality} ")
         .Append(RightSide);

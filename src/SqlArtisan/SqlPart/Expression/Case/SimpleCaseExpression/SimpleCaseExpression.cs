@@ -16,7 +16,7 @@ public sealed class SimpleCaseExpression : SqlExpression
         _elseClause = elseClause;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Case} ")
         .AppendSpace(_expr)
         .AppendSpaceSeparated(_whenClauses)

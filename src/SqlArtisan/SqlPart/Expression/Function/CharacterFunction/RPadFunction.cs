@@ -16,7 +16,7 @@ public sealed class RPadFunction : SqlExpression
         _padding = padding;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.RPad)
         .OpenParenthesis()
         .Append(_source)

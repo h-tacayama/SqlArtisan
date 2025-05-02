@@ -9,7 +9,7 @@ internal sealed class SqlBuildingBuffer
 
     internal SqlBuildingBuffer Append(SqlPart part)
     {
-        part.FormatSql(this);
+        part.Format(this);
         return this;
     }
 
@@ -26,12 +26,12 @@ internal sealed class SqlBuildingBuffer
             return this;
         }
 
-        parts[0].FormatSql(this);
+        parts[0].Format(this);
 
         for (int i = 1; i < parts.Length; i++)
         {
             _text.Append(", ");
-            parts[i].FormatSql(this);
+            parts[i].Format(this);
         }
 
         return this;
@@ -73,7 +73,7 @@ internal sealed class SqlBuildingBuffer
 
     internal SqlBuildingBuffer AppendSpace(SqlPart part)
     {
-        part.FormatSql(this);
+        part.Format(this);
         _text.Append(" ");
         return this;
     }
@@ -82,7 +82,7 @@ internal sealed class SqlBuildingBuffer
     {
         if (part is not null)
         {
-            part.FormatSql(this);
+            part.Format(this);
             _text.Append(" ");
         }
 
@@ -96,12 +96,12 @@ internal sealed class SqlBuildingBuffer
             return this;
         }
 
-        parts[0].FormatSql(this);
+        parts[0].Format(this);
 
         for (int i = 1; i < parts.Count; i++)
         {
             _text.Append(" ");
-            parts[i].FormatSql(this);
+            parts[i].Format(this);
         }
 
         return this;
@@ -119,7 +119,7 @@ internal sealed class SqlBuildingBuffer
     {
         if (part != null)
         {
-            part.FormatSql(this);
+            part.Format(this);
         }
 
         _text.Append(")");
@@ -137,7 +137,7 @@ internal sealed class SqlBuildingBuffer
     internal SqlBuildingBuffer EncloseInParentheses(SqlPart part)
     {
         _text.Append("(");
-        part.FormatSql(this);
+        part.Format(this);
         _text.Append(")");
         return this;
     }
@@ -156,7 +156,7 @@ internal sealed class SqlBuildingBuffer
 
         if (part != null)
         {
-            part.FormatSql(this);
+            part.Format(this);
         }
 
         return this;
@@ -165,7 +165,7 @@ internal sealed class SqlBuildingBuffer
     internal SqlBuildingBuffer PrependComma(SqlPart part)
     {
         _text.Append(", ");
-        part.FormatSql(this);
+        part.Format(this);
         return this;
     }
 
@@ -174,7 +174,7 @@ internal sealed class SqlBuildingBuffer
         if (part is not null)
         {
             _text.Append(", ");
-            part.FormatSql(this);
+            part.Format(this);
         }
 
         return this;
@@ -191,7 +191,7 @@ internal sealed class SqlBuildingBuffer
         }
         else
         {
-            selectItem.FormatSql(this);
+            selectItem.Format(this);
         }
     }
 }

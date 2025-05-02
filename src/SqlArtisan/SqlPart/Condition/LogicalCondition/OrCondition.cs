@@ -13,7 +13,7 @@ public sealed class OrCondition : SqlCondition
         };
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer)
+    internal override void Format(SqlBuildingBuffer buffer)
     {
         bool added = false;
 

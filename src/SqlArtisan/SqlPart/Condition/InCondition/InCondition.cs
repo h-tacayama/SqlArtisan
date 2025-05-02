@@ -11,7 +11,7 @@ public sealed class InCondition : SqlCondition
         _expressions = expressions;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
         .Append($" {Keywords.In} ")
         .OpenParenthesis()

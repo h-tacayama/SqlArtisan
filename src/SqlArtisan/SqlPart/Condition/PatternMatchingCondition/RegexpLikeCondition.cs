@@ -16,7 +16,7 @@ public sealed class RegexpLikeCondition : SqlCondition
         _options = options?.ToValue();
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.RegexpLike)
         .OpenParenthesis()
         .Append(_source)

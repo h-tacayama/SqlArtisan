@@ -13,7 +13,7 @@ public sealed class SearchedCaseWhenClause : SqlPart
         _thenExpr = thenExpr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.When} ")
         .OpenParenthesis()
         .Append(_whenCondition)

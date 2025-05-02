@@ -9,6 +9,6 @@ public sealed class CaseThenExpression : SqlExpression
         _thenExpr = thenExpr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        buffer.Append(_thenExpr);
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        _thenExpr.Format(buffer);
 }

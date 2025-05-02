@@ -16,7 +16,7 @@ public sealed class DecodeFunction : SqlExpression
         _default = @default;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer)
+    internal override void Format(SqlBuildingBuffer buffer)
     {
         buffer.Append(Keywords.Decode)
             .OpenParenthesis()

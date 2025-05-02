@@ -6,7 +6,7 @@ internal sealed class InsertSelectClause(DbTableBase table, DbColumn[] columns) 
     private readonly DbTableBase _table = table;
     private readonly DbColumn[] _columns = columns;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Insert} {Keywords.Into} ")
         .AppendSpace(_table)
         .OpenParenthesis()

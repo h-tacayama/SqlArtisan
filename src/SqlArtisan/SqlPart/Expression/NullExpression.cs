@@ -4,6 +4,6 @@ public sealed class NullExpression : SqlExpression
 {
     internal NullExpression() { }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
+    internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.Append(Keywords.Null);
 }

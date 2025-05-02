@@ -2,5 +2,5 @@
 
 public interface ISubquery
 {
-    internal void FormatSql(SqlBuildingBuffer buffer);
+    internal void Format(SqlBuildingBuffer buffer);
 }

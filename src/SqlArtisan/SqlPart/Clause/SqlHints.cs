@@ -9,6 +9,6 @@ public sealed class SqlHints : SqlPart
         _hints = hints;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
+    internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.Append(_hints);
 }

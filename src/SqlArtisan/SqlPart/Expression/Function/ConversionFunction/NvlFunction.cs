@@ -11,7 +11,7 @@ public sealed class NvlFunction : SqlExpression
         _expr2 = expr2;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Nvl)
         .OpenParenthesis()
         .Append(_expr1)

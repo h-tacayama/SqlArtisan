@@ -7,7 +7,7 @@ internal sealed class VariadicFunctionCore(
     private readonly string _functionName = functionName;
     private readonly SqlPart?[] _args = args;
 
-    internal void FormatSql(SqlBuildingBuffer buffer)
+    internal void Format(SqlBuildingBuffer buffer)
     {
         buffer.Append(_functionName)
             .OpenParenthesis();
@@ -15,7 +15,7 @@ internal sealed class VariadicFunctionCore(
         if (_args.Length > 0
             && _args[0] is not null)
         {
-            _args[0]?.FormatSql(buffer);
+            _args[0]?.Format(buffer);
 
             for (int i = 1; i < _args.Length; i++)
             {
@@ -25,7 +25,7 @@ internal sealed class VariadicFunctionCore(
                 }
 
                 buffer.Append(", ");
-                _args[i]?.FormatSql(buffer);
+                _args[i]?.Format(buffer);
             }
         }
 

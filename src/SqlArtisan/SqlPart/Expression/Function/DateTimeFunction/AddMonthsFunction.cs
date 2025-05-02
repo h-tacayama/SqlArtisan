@@ -11,7 +11,7 @@ public sealed class AddMonthsFunction : SqlExpression
         _months = months;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.AddMonths)
         .OpenParenthesis()
         .Append(_dateTime)

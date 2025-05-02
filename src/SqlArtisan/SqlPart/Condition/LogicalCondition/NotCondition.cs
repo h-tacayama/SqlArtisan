@@ -9,7 +9,7 @@ public sealed class NotCondition : SqlCondition
         _condition = condition;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Not} ")
         .EncloseInParentheses(_condition);
 }

@@ -14,9 +14,9 @@ public abstract class DbTableBase : TableReference
         _tableAlias = tableAlias;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer)
+    internal override void Format(SqlBuildingBuffer buffer)
     {
-        base.FormatSql(buffer);
+        base.Format(buffer);
         buffer.AppendSpace();
         buffer.EncloseInDoubleQuotes(_tableAlias);
     }

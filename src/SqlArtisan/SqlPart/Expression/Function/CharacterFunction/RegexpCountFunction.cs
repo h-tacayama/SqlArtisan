@@ -18,6 +18,6 @@ public sealed class RegexpCountFunction : SqlExpression
             options?.ToValue());
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        _core.Format(buffer);
 }

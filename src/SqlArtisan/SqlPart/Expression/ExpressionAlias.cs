@@ -25,7 +25,7 @@ public sealed class ExpressionAlias : SqlPart, ISortable
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsLast => new SortOrder(this, NullOrdering.NullsLast);
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
+    internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.EncloseInDoubleQuotes(_alias);
 
     internal void FormatAsSelect(SqlBuildingBuffer buffer) => buffer

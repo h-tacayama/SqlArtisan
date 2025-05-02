@@ -13,7 +13,7 @@ public sealed class ToNumberFunction : SqlExpression
         _format = format;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.ToNumber)
         .OpenParenthesis()
         .Append(_expr)

@@ -16,7 +16,7 @@ public sealed class SubstrBFunction : SqlExpression
         _length = length;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.SubstrB)
         .OpenParenthesis()
         .Append(_source)

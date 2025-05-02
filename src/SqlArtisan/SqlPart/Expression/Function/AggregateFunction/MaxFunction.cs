@@ -9,7 +9,7 @@ public sealed class MaxFunction : SqlExpression
         _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Max)
         .OpenParenthesis()
         .Append(_expr)

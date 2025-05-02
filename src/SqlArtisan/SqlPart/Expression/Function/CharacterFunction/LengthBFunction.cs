@@ -9,7 +9,7 @@ public sealed class LengthBFunction : SqlExpression
         _source = source;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.LengthB)
         .OpenParenthesis()
         .Append(_source)

@@ -12,6 +12,6 @@ public sealed class ConcatFunction : SqlExpression
         _core = new(Keywords.Concat, [primary, secondary, .. others]);
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        _core.Format(buffer);
 }

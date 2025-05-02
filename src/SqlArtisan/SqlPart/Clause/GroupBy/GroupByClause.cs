@@ -12,7 +12,7 @@ internal sealed class GroupByClause : SqlPart
     internal static GroupByClause Parse(object[] groupByItems) =>
         new(GroupByItemResolver.Resolve(groupByItems));
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Group} {Keywords.By} ")
         .AppendCsv(_groupByItems);
 }

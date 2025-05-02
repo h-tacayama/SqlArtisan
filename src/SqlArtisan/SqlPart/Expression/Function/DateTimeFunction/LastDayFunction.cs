@@ -9,7 +9,7 @@ public sealed class LastDayFunction : SqlExpression
         _date = date;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.LastDay)
         .OpenParenthesis()
         .Append(_date)

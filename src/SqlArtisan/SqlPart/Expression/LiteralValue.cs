@@ -14,6 +14,6 @@ internal sealed class LiteralValue(string value) : SqlExpression
         where TValue : notnull, INumber<TValue> =>
         new(value?.ToString() ?? string.Empty);
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
+    internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.Append(_value);
 }

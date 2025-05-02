@@ -13,7 +13,7 @@ public sealed class SearchedCaseExpression : SqlExpression
         _elseClause = elseClause;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Case} ")
         .AppendSpaceSeparated(_whenClauses)
         .Append($" {Keywords.Else} ")

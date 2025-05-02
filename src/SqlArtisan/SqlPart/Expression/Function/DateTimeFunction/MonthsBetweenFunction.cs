@@ -11,7 +11,7 @@ public sealed class MonthsBetweenFunction : SqlExpression
         _date2 = date2;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.MonthsBetween)
         .OpenParenthesis()
         .Append(_date1)

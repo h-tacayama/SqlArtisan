@@ -9,7 +9,7 @@ public abstract class ArithmeticOperator(
     private readonly string _operator = @operator;
     private readonly SqlExpression _rightSide = rightSide;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .OpenParenthesis(_leftSide)
         .EncloseInSpaces(_operator)
         .CloseParenthesis(_rightSide);

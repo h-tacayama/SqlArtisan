@@ -16,7 +16,7 @@ public sealed class BetweenCondition : SqlCondition
         _rightSide2 = rightSide2;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
         .Append($" {Keywords.Between} ")
         .Append(_rightSide1)

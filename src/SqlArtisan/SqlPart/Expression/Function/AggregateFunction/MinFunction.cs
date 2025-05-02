@@ -9,7 +9,7 @@ public sealed class MinFunction : SqlExpression
         _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Min)
         .OpenParenthesis()
         .Append(_expr)

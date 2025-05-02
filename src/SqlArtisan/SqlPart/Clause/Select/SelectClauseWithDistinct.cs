@@ -19,7 +19,7 @@ internal sealed class SelectClauseWithDistinct : SqlPart
             distinct,
             SelectItemResolver.Resolve(selectItems));
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Select} ")
         .AppendSpace(_distinct)
         .AppendSelectItems(_selectItems);

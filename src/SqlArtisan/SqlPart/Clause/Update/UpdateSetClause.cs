@@ -27,7 +27,7 @@ internal sealed class UpdateSetClause : SqlPart
         return new(assignments);
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Set} ")
         .AppendCsv(_assignments);
 }

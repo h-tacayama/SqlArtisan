@@ -17,7 +17,7 @@ public sealed class AvgFunction : SqlExpression
         _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Avg)
         .OpenParenthesis()
         .AppendSpaceIfNotNull(_distinct)

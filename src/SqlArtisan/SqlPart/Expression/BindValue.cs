@@ -16,6 +16,6 @@ public sealed class BindValue(
 
     public int? Size => size;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
+    internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.AddParameter(this);
 }

@@ -9,7 +9,7 @@ public sealed class AbsFunction : SqlExpression
         _expr = expr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Abs)
         .OpenParenthesis()
         .Append(_expr)

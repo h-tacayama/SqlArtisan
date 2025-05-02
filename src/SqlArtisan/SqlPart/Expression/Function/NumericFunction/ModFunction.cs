@@ -11,7 +11,7 @@ public sealed class ModFunction : SqlExpression
         _divisor = divisor;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Mod)
         .OpenParenthesis()
         .Append(_dividend)

@@ -14,6 +14,6 @@ public sealed class SimpleCaseWhenExpression : SqlPart
     public SimpleCaseWhenClause Then(object thenExpr) =>
         new(this, new CaseThenExpression(Resolve(thenExpr)));
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        buffer.Append(_whenExpr);
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        _whenExpr.Format(buffer);
 }

@@ -13,7 +13,7 @@ public sealed class WindowFunction : SqlExpression
         _overClause = overClause;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(_analyticFunction)
         .Append(_overClause);
 }

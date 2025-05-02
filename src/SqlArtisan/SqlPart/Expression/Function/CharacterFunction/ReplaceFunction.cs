@@ -17,7 +17,7 @@ public sealed class ReplaceFunction : SqlExpression
         _replacement = replacement;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Replace)
         .OpenParenthesis()
         .Append(_source)

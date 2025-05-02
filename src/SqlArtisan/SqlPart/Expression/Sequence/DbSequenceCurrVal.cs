@@ -9,6 +9,6 @@ public sealed class DbSequenceCurrVal : SqlExpression
         _sequence = sequence;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{_sequence.Name}.{Keywords.CurrVal}");
 }

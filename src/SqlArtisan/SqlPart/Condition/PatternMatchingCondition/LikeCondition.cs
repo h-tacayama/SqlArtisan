@@ -11,7 +11,7 @@ public sealed class LikeCondition : SqlCondition
         _rightSide = rightSide;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
         .Append($" {Keywords.Like} ")
         .Append(_rightSide);

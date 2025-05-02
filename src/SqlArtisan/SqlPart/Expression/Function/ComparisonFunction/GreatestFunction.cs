@@ -9,6 +9,6 @@ public sealed class GreatestFunction : SqlExpression
         _core = new(Keywords.Greatest, expressions);
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        _core.Format(buffer);
 }

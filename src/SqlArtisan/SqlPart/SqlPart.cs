@@ -2,5 +2,5 @@
 
 public abstract class SqlPart
 {
-    internal abstract void FormatSql(SqlBuildingBuffer buffer);
+    internal abstract void Format(SqlBuildingBuffer buffer);
 }

@@ -9,7 +9,7 @@ public sealed class IsNullCondition : SqlCondition
         _leftSide = leftSide;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
         .Append($" {Keywords.Is} {Keywords.Null}");
 }

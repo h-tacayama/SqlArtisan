@@ -11,7 +11,7 @@ public sealed class TruncFunction : SqlExpression
         _format = format;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Trunc)
         .OpenParenthesis()
         .Append(_expr)

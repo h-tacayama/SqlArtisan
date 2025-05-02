@@ -4,5 +4,5 @@ public sealed class EmptyCondition : SqlCondition
 {
 	internal EmptyCondition() { }
 
-	internal override void FormatSql(SqlBuildingBuffer buffer) { }
+	internal override void Format(SqlBuildingBuffer buffer) { }
 }

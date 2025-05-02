@@ -14,6 +14,6 @@ public abstract class TableReference : SqlPart
         _tableName = tableName;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
+    internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.Append(_tableName);
 }

@@ -13,6 +13,6 @@ public sealed class InstrFunction : SqlExpression
         _core = new(Keywords.Instr, source, substring, position, occurrence);
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        _core.Format(buffer);
 }

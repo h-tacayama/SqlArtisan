@@ -6,10 +6,10 @@ public sealed class NotExistsCondition : SqlCondition
 
     internal NotExistsCondition(ISubquery subquery)
     {
-        _subquery = new(subquery.FormatSql);
+        _subquery = new(subquery.Format);
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Not} {Keywords.Exists} ")
         .EncloseInParentheses(_subquery);
 }

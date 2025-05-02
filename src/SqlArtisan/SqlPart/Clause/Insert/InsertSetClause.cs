@@ -32,7 +32,7 @@ internal sealed class InsertSetClause : SqlPart
     }
 
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .OpenParenthesis()
         .AppendCsv(_columns)
         .CloseParenthesis()

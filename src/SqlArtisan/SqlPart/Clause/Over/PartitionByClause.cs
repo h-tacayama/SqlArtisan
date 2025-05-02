@@ -9,7 +9,7 @@ public sealed class PartitionByClause : SqlPart
         _expressions = expressions;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Partition} {Keywords.By} ")
         .AppendCsv(_expressions);
 

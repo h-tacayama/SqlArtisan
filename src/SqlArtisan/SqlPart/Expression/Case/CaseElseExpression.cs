@@ -9,6 +9,6 @@ public sealed class CaseElseExpression : SqlExpression
         _elseExpr = elseExpr;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        buffer.Append(_elseExpr);
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        _elseExpr.Format(buffer);
 }

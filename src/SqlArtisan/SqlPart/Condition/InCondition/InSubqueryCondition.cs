@@ -8,10 +8,10 @@ public sealed class InSubqueryCondition : SqlCondition
     internal InSubqueryCondition(SqlExpression leftSide, ISubquery subquey)
     {
         _leftSide = leftSide;
-        _subquery = new(subquey.FormatSql);
+        _subquery = new(subquey.Format);
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
         .Append($" {Keywords.In} ")
         .EncloseInParentheses(_subquery);

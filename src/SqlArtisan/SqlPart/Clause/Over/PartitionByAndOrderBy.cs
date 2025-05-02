@@ -13,7 +13,7 @@ public sealed class PartitionByAndOrderBy : SqlPart
         _orderByClause = orderByClause;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .AppendSpaceIfNotNull(_partitionByClause)
         .Append(_orderByClause);
 }

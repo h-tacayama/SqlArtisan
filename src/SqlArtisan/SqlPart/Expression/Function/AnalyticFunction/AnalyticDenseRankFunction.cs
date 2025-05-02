@@ -10,7 +10,7 @@ public sealed class AnalyticDenseRankFunction : AnalyticFunction
     public WindowFunction Over(OrderByClause orderByClause) =>
         new(this, OverClause.Of(orderByClause));
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.DenseRank)
         .OpenParenthesis()
         .CloseParenthesis();

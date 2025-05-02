@@ -39,9 +39,9 @@ public sealed class SortOrder : SqlPart
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsLast => SetNullOrdering(NullOrdering.NullsLast);
 
-    internal override void FormatSql(SqlBuildingBuffer buffer)
+    internal override void Format(SqlBuildingBuffer buffer)
     {
-        _exprOrAlias.FormatSql(buffer);
+        _exprOrAlias.Format(buffer);
 
         switch (_direction)
         {

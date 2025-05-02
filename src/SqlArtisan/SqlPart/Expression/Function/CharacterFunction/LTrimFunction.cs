@@ -13,7 +13,7 @@ public sealed class LTrimFunction : SqlExpression
         _trimChars = trimChars;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.LTrim)
         .OpenParenthesis()
         .Append(_source)

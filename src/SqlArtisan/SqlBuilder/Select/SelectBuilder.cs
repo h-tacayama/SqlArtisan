@@ -93,8 +93,8 @@ internal class SelectBuilder(SqlPart part) :
         }
     }
 
-    public new void FormatSql(SqlBuildingBuffer buffer) =>
-        base.FormatSql(buffer);
+    public new void Format(SqlBuildingBuffer buffer) =>
+        base.Format(buffer);
 
     public SqlStatement Build() => BuildCore();
 

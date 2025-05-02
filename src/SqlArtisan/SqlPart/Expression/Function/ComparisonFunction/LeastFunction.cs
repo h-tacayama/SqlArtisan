@@ -9,6 +9,6 @@ public sealed class LeastFunction : SqlExpression
         _core = new(Keywords.Least, expressions);
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _core.FormatSql(buffer);
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        _core.Format(buffer);
 }

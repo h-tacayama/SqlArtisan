@@ -12,7 +12,7 @@ internal sealed class SelectClause : SqlPart
     internal static SelectClause Parse(object[] selectItems) =>
         new(SelectItemResolver.Resolve(selectItems));
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Select} ")
         .AppendSelectItems(_selectItems);
 }

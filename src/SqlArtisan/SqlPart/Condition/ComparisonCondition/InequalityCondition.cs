@@ -8,7 +8,7 @@ internal sealed class InequalityCondition(
 
     internal override SqlExpression RightSide => rightSide;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(LeftSide)
         .Append($" {Operators.Inequality} ")
         .Append(RightSide);
