@@ -1,14 +1,14 @@
 ﻿namespace SqlArtisan;
 
-public sealed class RegexpLikeCondition : AbstractCondition
+public sealed class RegexpLikeCondition : SqlCondition
 {
-    private readonly AbstractExpr _source;
-    private readonly AbstractExpr _pattern;
+    private readonly SqlExpression _source;
+    private readonly SqlExpression _pattern;
     private readonly RegexpOptionsValue? _options;
 
     internal RegexpLikeCondition(
-        AbstractExpr source,
-        AbstractExpr pattern,
+        SqlExpression source,
+        SqlExpression pattern,
         RegexpOptions? options = null)
     {
         _source = source;
@@ -16,7 +16,7 @@ public sealed class RegexpLikeCondition : AbstractCondition
         _options = options?.ToValue();
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.RegexpLike)
         .OpenParenthesis()
         .Append(_source)

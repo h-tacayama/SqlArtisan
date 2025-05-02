@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public sealed class SqlHints : AbstractSqlPart
+public sealed class SqlHints : SqlPart
 {
     private readonly string _hints;
 
@@ -9,6 +9,6 @@ public sealed class SqlHints : AbstractSqlPart
         _hints = hints;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
+    internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.Append(_hints);
 }

@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public sealed class OverClause : AbstractSqlPart
+public sealed class OverClause : SqlPart
 {
     private readonly PartitionByClause? _partitionByClause;
     private readonly OrderByClause? _orderByClause;
@@ -27,7 +27,7 @@ public sealed class OverClause : AbstractSqlPart
     internal static OverClause Of(OrderByClause orderByClause) =>
         new(null, null, orderByClause);
 
-    internal override void FormatSql(SqlBuildingBuffer buffer)
+    internal override void Format(SqlBuildingBuffer buffer)
     {
         buffer.Append(Keywords.Over);
 
@@ -45,15 +45,15 @@ public sealed class OverClause : AbstractSqlPart
 
         if (_partitionByAndOrderBy is not null)
         {
-            _partitionByAndOrderBy.FormatSql(buffer);
+            _partitionByAndOrderBy.Format(buffer);
         }
         else if (_partitionByClause is not null)
         {
-            _partitionByClause.FormatSql(buffer);
+            _partitionByClause.Format(buffer);
         }
         else if (_orderByClause is not null)
         {
-            _orderByClause.FormatSql(buffer);
+            _orderByClause.Format(buffer);
         }
 
         buffer.CloseParenthesis();

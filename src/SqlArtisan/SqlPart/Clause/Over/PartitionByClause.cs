@@ -1,15 +1,15 @@
 ﻿namespace SqlArtisan;
 
-public sealed class PartitionByClause : AbstractSqlPart
+public sealed class PartitionByClause : SqlPart
 {
-    private readonly AbstractExpr[] _expressions;
+    private readonly SqlExpression[] _expressions;
 
-    internal PartitionByClause(AbstractExpr[] expressions)
+    internal PartitionByClause(SqlExpression[] expressions)
     {
         _expressions = expressions;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Partition} {Keywords.By} ")
         .AppendCsv(_expressions);
 

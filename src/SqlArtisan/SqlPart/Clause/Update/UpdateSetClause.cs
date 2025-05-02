@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class UpdateSetClause : AbstractSqlPart
+internal sealed class UpdateSetClause : SqlPart
 {
     private readonly EqualityCondition[] _assignments;
 
@@ -9,7 +9,7 @@ internal sealed class UpdateSetClause : AbstractSqlPart
         _assignments = assignments;
     }
 
-    internal static UpdateSetClause Parse(AbstractEqualityCondition[] items)
+    internal static UpdateSetClause Parse(EqualityBasedCondition[] items)
     {
         var assignments = new EqualityCondition[items.Length];
 
@@ -27,7 +27,7 @@ internal sealed class UpdateSetClause : AbstractSqlPart
         return new(assignments);
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Set} ")
         .AppendCsv(_assignments);
 }

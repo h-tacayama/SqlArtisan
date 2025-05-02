@@ -7,9 +7,9 @@ internal sealed class SqlBuildingBuffer
     private readonly StringBuilder _text = new();
     private readonly Dictionary<string, BindValue> _parameters = new();
 
-    internal SqlBuildingBuffer Append(AbstractSqlPart part)
+    internal SqlBuildingBuffer Append(SqlPart part)
     {
-        part.FormatSql(this);
+        part.Format(this);
         return this;
     }
 
@@ -19,19 +19,19 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer AppendCsv(AbstractSqlPart[] parts)
+    internal SqlBuildingBuffer AppendCsv(SqlPart[] parts)
     {
         if (parts.Length == 0)
         {
             return this;
         }
 
-        parts[0].FormatSql(this);
+        parts[0].Format(this);
 
         for (int i = 1; i < parts.Length; i++)
         {
             _text.Append(", ");
-            parts[i].FormatSql(this);
+            parts[i].Format(this);
         }
 
         return this;
@@ -47,7 +47,7 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSelectItems(AbstractSqlPart[] selectItems)
+    internal SqlBuildingBuffer AppendSelectItems(SqlPart[] selectItems)
     {
         if (selectItems.Length == 0)
         {
@@ -71,37 +71,37 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpace(AbstractSqlPart part)
+    internal SqlBuildingBuffer AppendSpace(SqlPart part)
     {
-        part.FormatSql(this);
+        part.Format(this);
         _text.Append(" ");
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpaceIfNotNull(AbstractSqlPart? part)
+    internal SqlBuildingBuffer AppendSpaceIfNotNull(SqlPart? part)
     {
         if (part is not null)
         {
-            part.FormatSql(this);
+            part.Format(this);
             _text.Append(" ");
         }
 
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpaceSeparated(IList<AbstractSqlPart> parts)
+    internal SqlBuildingBuffer AppendSpaceSeparated(IList<SqlPart> parts)
     {
         if (parts.Count == 0)
         {
             return this;
         }
 
-        parts[0].FormatSql(this);
+        parts[0].Format(this);
 
         for (int i = 1; i < parts.Count; i++)
         {
             _text.Append(" ");
-            parts[i].FormatSql(this);
+            parts[i].Format(this);
         }
 
         return this;
@@ -115,11 +115,11 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer CloseParenthesis(AbstractSqlPart? part = null)
+    internal SqlBuildingBuffer CloseParenthesis(SqlPart? part = null)
     {
         if (part != null)
         {
-            part.FormatSql(this);
+            part.Format(this);
         }
 
         _text.Append(")");
@@ -134,10 +134,10 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer EncloseInParentheses(AbstractSqlPart part)
+    internal SqlBuildingBuffer EncloseInParentheses(SqlPart part)
     {
         _text.Append("(");
-        part.FormatSql(this);
+        part.Format(this);
         _text.Append(")");
         return this;
     }
@@ -150,31 +150,31 @@ internal sealed class SqlBuildingBuffer
         return this;
     }
 
-    internal SqlBuildingBuffer OpenParenthesis(AbstractSqlPart? part = null)
+    internal SqlBuildingBuffer OpenParenthesis(SqlPart? part = null)
     {
         _text.Append("(");
 
         if (part != null)
         {
-            part.FormatSql(this);
+            part.Format(this);
         }
 
         return this;
     }
 
-    internal SqlBuildingBuffer PrependComma(AbstractSqlPart part)
+    internal SqlBuildingBuffer PrependComma(SqlPart part)
     {
         _text.Append(", ");
-        part.FormatSql(this);
+        part.Format(this);
         return this;
     }
 
-    internal SqlBuildingBuffer PrependCommaIfNotNull(AbstractSqlPart? part)
+    internal SqlBuildingBuffer PrependCommaIfNotNull(SqlPart? part)
     {
         if (part is not null)
         {
             _text.Append(", ");
-            part.FormatSql(this);
+            part.Format(this);
         }
 
         return this;
@@ -183,15 +183,15 @@ internal sealed class SqlBuildingBuffer
     internal SqlStatement ToSqlStatement() =>
         new(_text.ToString(), _parameters);
 
-    private void AppendSelectItem(AbstractSqlPart selectItem)
+    private void AppendSelectItem(SqlPart selectItem)
     {
-        if (selectItem is ExprAlias alias)
+        if (selectItem is ExpressionAlias alias)
         {
             alias.FormatAsSelect(this);
         }
         else
         {
-            selectItem.FormatSql(this);
+            selectItem.Format(this);
         }
     }
 }

@@ -1,10 +1,10 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class GroupByClause : AbstractSqlPart
+internal sealed class GroupByClause : SqlPart
 {
-    private readonly AbstractSqlPart[] _groupByItems;
+    private readonly SqlPart[] _groupByItems;
 
-    private GroupByClause(AbstractSqlPart[] groupByItems)
+    private GroupByClause(SqlPart[] groupByItems)
     {
         _groupByItems = groupByItems;
     }
@@ -12,7 +12,7 @@ internal sealed class GroupByClause : AbstractSqlPart
     internal static GroupByClause Parse(object[] groupByItems) =>
         new(GroupByItemResolver.Resolve(groupByItems));
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Group} {Keywords.By} ")
         .AppendCsv(_groupByItems);
 }

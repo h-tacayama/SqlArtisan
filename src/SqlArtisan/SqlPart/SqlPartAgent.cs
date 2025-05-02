@@ -1,10 +1,9 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class SqlPartAgent(Action<SqlBuildingBuffer> formatSql) :
-    AbstractSqlPart
+internal sealed class SqlPartAgent(Action<SqlBuildingBuffer> formatAction) : SqlPart
 {
-    private readonly Action<SqlBuildingBuffer> _formatSql = formatSql;
+    private readonly Action<SqlBuildingBuffer> _formatAction = formatAction;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) =>
-        _formatSql.Invoke(buffer);
+    internal override void Format(SqlBuildingBuffer buffer) =>
+        _formatAction.Invoke(buffer);
 }

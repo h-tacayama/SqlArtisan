@@ -1,19 +1,19 @@
 ﻿namespace SqlArtisan;
 
-public sealed class AndCondition : AbstractCondition
+public sealed class AndCondition : SqlCondition
 {
-    private readonly List<AbstractCondition> _conditions;
+    private readonly List<SqlCondition> _conditions;
 
-    internal AndCondition(AbstractCondition leftSide, AbstractCondition rightRide)
+    internal AndCondition(SqlCondition leftSide, SqlCondition rightRide)
     {
-        _conditions = new List<AbstractCondition>
+        _conditions = new List<SqlCondition>
         {
             leftSide,
             rightRide
         };
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer)
+    internal override void Format(SqlBuildingBuffer buffer)
     {
         bool added = false;
 
@@ -34,7 +34,7 @@ public sealed class AndCondition : AbstractCondition
         }
     }
 
-    internal void Add(AbstractCondition condition)
+    internal void Add(SqlCondition condition)
     {
         _conditions.Add(condition);
     }

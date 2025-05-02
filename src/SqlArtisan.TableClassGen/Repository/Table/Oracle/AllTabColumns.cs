@@ -1,23 +1,23 @@
 ﻿namespace SqlArtisan.TableClassGen;
 
-internal sealed class AllTabColumns : AbstractTable
+internal sealed class AllTabColumns : DbTableBase
 {
     public AllTabColumns(string alias) : base("all_tab_columns", alias)
     {
-        Owner = new Column(alias, "owner");
-        TableName = new Column(alias, "table_name");
-        ColumnName = new Column(alias, "column_name");
-        DataType = new Column(alias, "data_type");
-        ColumnId = new Column(alias, "column_id");
+        Owner = new DbColumn(alias, "owner");
+        TableName = new DbColumn(alias, "table_name");
+        ColumnName = new DbColumn(alias, "column_name");
+        DataType = new DbColumn(alias, "data_type");
+        ColumnId = new DbColumn(alias, "column_id");
     }
 
-    public Column Owner { get; }
+    public DbColumn Owner { get; }
 
-    public Column TableName { get; }
+    public DbColumn TableName { get; }
 
-    public Column ColumnName { get; }
+    public DbColumn ColumnName { get; }
 
-    public Column DataType { get; }
+    public DbColumn DataType { get; }
 
-    public Column ColumnId { get; }
+    public DbColumn ColumnId { get; }
 }

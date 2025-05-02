@@ -8,7 +8,7 @@ namespace SqlArtisan.Benchmark;
 public class Benchmarker
 {
     [Benchmark(Baseline = true)]
-    public void StringBuilder_BaseLine() => StringBuilderExample.Do();
+    public void StringBuilder_DynamicParameters() => StringBuilderExample.Do();
 
     [Benchmark]
     public void DapperQbNet_NoParameters() => DapperQbNetExample.Do();

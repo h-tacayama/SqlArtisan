@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics;
-using static SqlArtisan.ExprResolver;
+using static SqlArtisan.ExpressionResolver;
 
 namespace SqlArtisan;
 
 public static partial class SqlWordbook
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static NullExpr Null => new();
+    public static NullExpression Null => new();
 
-    public static NotCondition Not(AbstractCondition condition) => new(condition);
+    public static NotCondition Not(SqlCondition condition) => new(condition);
 
     public static NotExistsCondition NotExists(ISubquery subquery) =>
         new(subquery);

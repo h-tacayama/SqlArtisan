@@ -2,5 +2,5 @@
 
 public interface IUpdateBuilderUpdate : ISqlBuilder
 {
-    IUpdateBuilderSet Set(params AbstractEqualityCondition[] assignments);
+    IUpdateBuilderSet Set(params EqualityBasedCondition[] assignments);
 }

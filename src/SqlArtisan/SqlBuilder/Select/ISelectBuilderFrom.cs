@@ -3,20 +3,20 @@
 public interface ISelectBuilderFrom : ISqlBuilder, ISetOperator, ISubquery
 {
     // Subsequent SQL is the same as the FROM clause.
-    ISelectBuilderFrom CrossJoin(AbstractTableReference table);
+    ISelectBuilderFrom CrossJoin(TableReference table);
 
-    ISelectBuilderJoin FullJoin(AbstractTableReference table);
+    ISelectBuilderJoin FullJoin(TableReference table);
 
     ISelectBuilderGroupBy GroupBy(params object[] groupByItems);
 
-    ISelectBuilderJoin InnerJoin(AbstractTableReference table);
+    ISelectBuilderJoin InnerJoin(TableReference table);
 
-    ISelectBuilderJoin LeftJoin(AbstractTableReference table);
+    ISelectBuilderJoin LeftJoin(TableReference table);
 
     ISelectBuilderOrderBy OrderBy(
         params object[] orderByItems);
 
-    ISelectBuilderJoin RightJoin(AbstractTableReference table);
+    ISelectBuilderJoin RightJoin(TableReference table);
 
-    ISelectBuildertWhere Where(AbstractCondition condition);
+    ISelectBuildertWhere Where(SqlCondition condition);
 }

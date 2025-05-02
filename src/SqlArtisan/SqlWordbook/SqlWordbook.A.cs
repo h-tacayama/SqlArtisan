@@ -1,4 +1,4 @@
-﻿using static SqlArtisan.ExprResolver;
+﻿using static SqlArtisan.ExpressionResolver;
 
 namespace SqlArtisan;
 
@@ -6,9 +6,9 @@ public static partial class SqlWordbook
 {
     public static AbsFunction Abs(object expr) => new(Resolve(expr));
 
-    public static AbstractCondition ConditionIf(
+    public static SqlCondition ConditionIf(
         bool when,
-        AbstractCondition condition) =>
+        SqlCondition condition) =>
         when ? condition : new EmptyCondition();
 
     public static AddMonthsFunction AddMonths(

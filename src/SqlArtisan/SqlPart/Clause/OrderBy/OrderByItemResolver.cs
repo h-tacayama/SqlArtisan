@@ -1,10 +1,12 @@
-﻿namespace SqlArtisan;
+﻿using static SqlArtisan.ExpressionResolver;
+
+namespace SqlArtisan;
 
 internal static class OrderByItemResolver
 {
-    internal static AbstractSqlPart[] Resolve(object[] orderByItems)
+    internal static SqlPart[] Resolve(object[] orderByItems)
     {
-        var resolved = new AbstractSqlPart[orderByItems.Length];
+        var resolved = new SqlPart[orderByItems.Length];
 
         for (int i = 0; i < orderByItems.Length; i++)
         {
@@ -14,13 +16,13 @@ internal static class OrderByItemResolver
         return resolved;
     }
 
-    internal static AbstractSqlPart Resolve(object orderByItem)
+    internal static SqlPart Resolve(object orderByItem)
     {
-        if (orderByItem is AbstractExpr expr)
+        if (orderByItem is SqlExpression expr)
         {
             return expr;
         }
-        else if (orderByItem is ExprAlias alias)
+        else if (orderByItem is ExpressionAlias alias)
         {
             return alias;
         }
@@ -28,11 +30,11 @@ internal static class OrderByItemResolver
         {
             return sortOrder;
         }
-        else if (ExprResolver.IsNumeric(orderByItem))
+        else if (IsNumeric(orderByItem))
         {
-            return new Literal(orderByItem.ToString() ?? "");
+            return new LiteralValue(orderByItem.ToString() ?? "");
         }
-        else if (ExprResolver.IsBindable(orderByItem))
+        else if (IsBindable(orderByItem))
         {
             return new BindValue(orderByItem);
         }

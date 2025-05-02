@@ -1,10 +1,12 @@
-﻿namespace SqlArtisan;
+﻿using static SqlArtisan.ExpressionResolver;
+
+namespace SqlArtisan;
 
 internal static class SelectItemResolver
 {
-    internal static AbstractSqlPart[] Resolve(object[] selectItems)
+    internal static SqlPart[] Resolve(object[] selectItems)
     {
-        var resolved = new AbstractSqlPart[selectItems.Length];
+        var resolved = new SqlPart[selectItems.Length];
 
         for (int i = 0; i < selectItems.Length; i++)
         {
@@ -14,17 +16,17 @@ internal static class SelectItemResolver
         return resolved;
     }
 
-    internal static AbstractSqlPart Resolve(object selectItem)
+    internal static SqlPart Resolve(object selectItem)
     {
-        if (selectItem is AbstractExpr expr)
+        if (selectItem is SqlExpression expr)
         {
             return expr;
         }
-        else if (selectItem is ExprAlias alias)
+        else if (selectItem is ExpressionAlias alias)
         {
             return alias;
         }
-        else if (ExprResolver.IsBindable(selectItem))
+        else if (IsBindable(selectItem))
         {
             return new BindValue(selectItem);
         }

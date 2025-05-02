@@ -2,29 +2,29 @@
 
 namespace SqlArtisan;
 
-public sealed class SortOrder : AbstractSqlPart
+public sealed class SortOrder : SqlPart
 {
-    private readonly AbstractSqlPart _exprOrAlias;
+    private readonly SqlPart _exprOrAlias;
     private readonly SortDirection _direction;
     private NullOrdering _nullOrdering;
 
-    internal SortOrder(AbstractSqlPart exprOrAlias)
+    internal SortOrder(SqlPart exprOrAlias)
         : this(exprOrAlias, SortDirection.None, NullOrdering.None)
     {
     }
 
-    internal SortOrder(AbstractSqlPart exprOrAlias, SortDirection direction)
+    internal SortOrder(SqlPart exprOrAlias, SortDirection direction)
         : this(exprOrAlias, direction, NullOrdering.None)
     {
     }
 
-    internal SortOrder(AbstractSqlPart exprOrAlias, NullOrdering nullOrdering)
+    internal SortOrder(SqlPart exprOrAlias, NullOrdering nullOrdering)
         : this(exprOrAlias, SortDirection.None, nullOrdering)
     {
     }
 
     internal SortOrder(
-        AbstractSqlPart exprOrAlias,
+        SqlPart exprOrAlias,
         SortDirection direction,
         NullOrdering nullOrdering)
     {
@@ -39,9 +39,9 @@ public sealed class SortOrder : AbstractSqlPart
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsLast => SetNullOrdering(NullOrdering.NullsLast);
 
-    internal override void FormatSql(SqlBuildingBuffer buffer)
+    internal override void Format(SqlBuildingBuffer buffer)
     {
-        _exprOrAlias.FormatSql(buffer);
+        _exprOrAlias.Format(buffer);
 
         switch (_direction)
         {

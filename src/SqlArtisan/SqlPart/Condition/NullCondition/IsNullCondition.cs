@@ -1,15 +1,15 @@
 ﻿namespace SqlArtisan;
 
-public sealed class IsNullCondition : AbstractCondition
+public sealed class IsNullCondition : SqlCondition
 {
-    private readonly AbstractExpr _leftSide;
+    private readonly SqlExpression _leftSide;
 
-    internal IsNullCondition(AbstractExpr leftSide)
+    internal IsNullCondition(SqlExpression leftSide)
     {
         _leftSide = leftSide;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
         .Append($" {Keywords.Is} {Keywords.Null}");
 }

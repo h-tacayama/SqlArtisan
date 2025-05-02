@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public sealed class PartitionByAndOrderBy : AbstractSqlPart
+public sealed class PartitionByAndOrderBy : SqlPart
 {
     private readonly PartitionByClause _partitionByClause;
     private readonly OrderByClause _orderByClause;
@@ -13,7 +13,7 @@ public sealed class PartitionByAndOrderBy : AbstractSqlPart
         _orderByClause = orderByClause;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .AppendSpaceIfNotNull(_partitionByClause)
         .Append(_orderByClause);
 }

@@ -1,14 +1,14 @@
 ﻿namespace SqlArtisan;
 
 public sealed class EqualityCondition(
-    AbstractExpr leftSide,
-    AbstractExpr rightSide) : AbstractEqualityCondition
+    SqlExpression leftSide,
+    SqlExpression rightSide) : EqualityBasedCondition
 {
-    internal override AbstractExpr LeftSide => leftSide;
+    internal override SqlExpression LeftSide => leftSide;
 
-    internal override AbstractExpr RightSide => rightSide;
+    internal override SqlExpression RightSide => rightSide;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(LeftSide)
         .Append($" {Operators.Equality} ")
         .Append(RightSide);

@@ -1,15 +1,15 @@
 ﻿namespace SqlArtisan;
 
-public sealed class NotCondition : AbstractCondition
+public sealed class NotCondition : SqlCondition
 {
-    private readonly AbstractCondition _condition;
+    private readonly SqlCondition _condition;
 
-    internal NotCondition(AbstractCondition condition)
+    internal NotCondition(SqlCondition condition)
     {
         _condition = condition;
     }
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Not} ")
         .EncloseInParentheses(_condition);
 }

@@ -1,11 +1,10 @@
 ﻿namespace SqlArtisan;
 
-internal sealed class FromClause(AbstractTableReference[] tables) :
-    AbstractSqlPart
+internal sealed class FromClause(TableReference[] tables) : SqlPart
 {
-    private readonly AbstractTableReference[] _tables = tables;
+    private readonly TableReference[] _tables = tables;
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.From} ")
         .AppendCsv(_tables);
 }

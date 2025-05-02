@@ -1,6 +1,5 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using System.Text;
+﻿using System.Text;
+using Dapper;
 
 namespace SqlArtisan.Benchmark;
 
@@ -26,9 +25,8 @@ public static class StringBuilderExample
         query.Append("ORDER BY ");
         query.Append("a.Id");
 
-        SqlParameter param0 = new SqlParameter("@0", SqlDbType.Float);
-        param0.Value = 2.5;
-        SqlParameter param1 = new SqlParameter("@1", SqlDbType.Int);
-        param1.Value = 5;
+        DynamicParameters parameters = new DynamicParameters();
+        parameters.Add("@0", 2.5);
+        parameters.Add("@1", 5);
     }
 }

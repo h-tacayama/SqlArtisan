@@ -1,14 +1,14 @@
 ﻿namespace SqlArtisan.TableClassGen;
 
-internal sealed class AllTables : AbstractTable
+internal sealed class AllTables : DbTableBase
 {
     public AllTables(string alias) : base("all_tables", alias)
     {
-        Owner = new Column(alias, "owner");
-        TableName = new Column(alias, "table_name");
+        Owner = new DbColumn(alias, "owner");
+        TableName = new DbColumn(alias, "table_name");
     }
 
-    public Column Owner { get; }
+    public DbColumn Owner { get; }
 
-    public Column TableName { get; }
+    public DbColumn TableName { get; }
 }

@@ -1,10 +1,10 @@
 ﻿namespace SqlArtisan;
 
-public sealed class OrderByClause : AbstractSqlPart
+public sealed class OrderByClause : SqlPart
 {
-    private readonly AbstractSqlPart[] _orderByItems;
+    private readonly SqlPart[] _orderByItems;
 
-    private OrderByClause(AbstractSqlPart[] orderByItems)
+    private OrderByClause(SqlPart[] orderByItems)
     {
         _orderByItems = orderByItems;
     }
@@ -12,7 +12,7 @@ public sealed class OrderByClause : AbstractSqlPart
     internal static OrderByClause Parse(object[] orderByItems) =>
         new(OrderByItemResolver.Resolve(orderByItems));
 
-    internal override void FormatSql(SqlBuildingBuffer buffer) => buffer
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Order} {Keywords.By} ")
         .AppendCsv(_orderByItems);
 }
