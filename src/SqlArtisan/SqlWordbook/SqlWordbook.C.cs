@@ -17,6 +17,14 @@ public static partial class SqlWordbook
             whenClauses,
             elseExpr);
 
+    public static CoalesceFunction Coalesce(
+        object primary,
+        object secondary,
+        params object[] others) => new(
+            Resolve(primary),
+            Resolve(secondary),
+            Resolve(others));
+
     public static ConcatFunction Concat(
         object primary,
         object secondary,

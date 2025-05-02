@@ -6,6 +6,20 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTest
 {
     [Fact]
+    public void Coalesce_MultipleValues_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Coalesce(_t.Code, _t.Name, "other"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("COALESCE(\"t\".code, \"t\".name, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Concat_MultipleValues_CorrectSql()
     {
         SqlStatement sql =

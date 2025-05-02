@@ -14,6 +14,7 @@ internal static class Keywords
     internal const string Both = "BOTH";
     internal const string By = "BY";
     internal const string Case = "CASE";
+    internal const string Coalesce = "COALESCE";
     internal const string Concat = "CONCAT";
     internal const string Count = "COUNT";
     internal const string Cross = "CROSS";
