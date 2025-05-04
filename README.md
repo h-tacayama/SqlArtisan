@@ -4,6 +4,7 @@
 This project is currently under **active development**. It should be considered **unstable**, and breaking changes may occur without notice as the API evolves. **Use in production environments is strongly discouraged at this stage.**
 
 [![Lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://github.com/h-tacayama/SqlArtisan)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
