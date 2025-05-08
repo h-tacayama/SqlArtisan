@@ -5,9 +5,9 @@ using static SqExpress.SqQueryBuilder;
 
 namespace SqlArtisan.Benchmark;
 
-public static class SqExpressExample
+public static class SqExpressBenchmark
 {
-    public static void Do()
+    public static void Run()
     {
         var a = new Authors("a");
         var b = new Books("b");

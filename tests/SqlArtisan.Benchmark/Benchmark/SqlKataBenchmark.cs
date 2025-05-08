@@ -2,9 +2,9 @@
 
 namespace SqlArtisan.Benchmark;
 
-public static class SqlKataExample
+public static class SqlKataBenchmark
 {
-    public static void Do()
+    public static void Run()
     {
         var query = new Query()
             .Select("a.Id", "COUNT(*) AS Count")

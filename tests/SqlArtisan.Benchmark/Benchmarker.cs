@@ -8,26 +8,34 @@ namespace SqlArtisan.Benchmark;
 public class Benchmarker
 {
     [Benchmark(Baseline = true)]
-    public void StringBuilder_DynamicParameters() => StringBuilderExample.Do();
+    public void StringBuilder_WithDynamicParameters() =>
+        StringBuilderBenchmark.Run();
 
     [Benchmark]
-    public void DapperQbNet_NoParameters() => DapperQbNetExample.Do();
+    public void DapperQbNet_WithNoParameters() =>
+        DapperQbNetBenchmark.Run();
 
     [Benchmark]
-    public void DapperSqlBuilder_DynamicParameters() => DapperSqlBuilderExample.Do();
+    public void DapperSqlBuilder_WithDynamicParameters() =>
+        DapperSqlBuilderBenchmark.Run();
 
     [Benchmark]
-    public void SqExpress_NoParameters() => SqExpressExample.Do();
+    public void SqExpress_WithNoParameters() =>
+        SqExpressBenchmark.Run();
 
     [Benchmark]
-    public void Sqlify_DictionaryOfStringObject() => SqlifyExample.Do();
+    public void Sqlify_WithParametersAsObject() =>
+        SqlifyBenchmark.Run();
 
     [Benchmark]
-    public void SqlKata_ListOfObject() => SqlKataExample.Do();
+    public void SqlKata_WithParametersAsObject() =>
+        SqlKataBenchmark.Run();
 
     [Benchmark]
-    public void SqlArtisan_DictionaryOfStringBindValue() => SqlArtisanExample.Do();
+    public void SqlArtisan_WithParametersAsBindValue() =>
+        SqlArtisanBenchmark.Run();
 
     [Benchmark]
-    public void SqlArtisan_DynamicParameters() => SqlArtisanDapperExtensionsExample.Do();
+    public void SqlArtisan_WithDynamicParameters() =>
+        SqlArtisanDapperBenchmark.Run();
 }

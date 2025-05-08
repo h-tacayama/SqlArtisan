@@ -3,9 +3,9 @@ using Viten.QueryBuilder.Renderer;
 
 namespace SqlArtisan.Benchmark;
 
-public static class DapperQbNetExample
+public static class DapperQbNetBenchmark
 {
-    public static void Do()
+    public static void Run()
     {
         var a = From.Table("Authors", "a");
         var b = From.Table("Books", "b");

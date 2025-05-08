@@ -2,9 +2,9 @@
 
 namespace SqlArtisan.Benchmark;
 
-public static class DapperSqlBuilderExample
+public static class DapperSqlBuilderBenchmark
 {
-    public static void Do()
+    public static void Run()
     {
         var template = new StringBuilder();
         template.AppendLine("SELECT a.Id, COUNT(*) AS Count");

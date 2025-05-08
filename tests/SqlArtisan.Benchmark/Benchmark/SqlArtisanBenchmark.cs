@@ -3,9 +3,9 @@ using static SqlArtisan.SqlWordbook;
 
 namespace SqlArtisan.Benchmark;
 
-public static class SqlArtisanExample
+public static class SqlArtisanBenchmark
 {
-    public static void Do()
+    public static void Run()
     {
         Authors a = new("a");
         Books b = new("b");
