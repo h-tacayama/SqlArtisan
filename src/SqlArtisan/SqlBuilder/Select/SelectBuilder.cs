@@ -93,10 +93,9 @@ internal class SelectBuilder(SqlPart part) :
         }
     }
 
-    public new void Format(SqlBuildingBuffer buffer) =>
-        base.Format(buffer);
-
     public SqlStatement Build() => BuildCore();
+
+    public void Format(SqlBuildingBuffer buffer) => FormatCore(buffer);
 
     public ISelectBuilderFrom CrossJoin(TableReference table)
     {

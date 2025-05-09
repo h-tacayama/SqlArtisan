@@ -17,6 +17,6 @@ internal abstract class SqlBuilderBase(SqlPart part)
             .ToSqlStatement();
     }
 
-    internal void Format(SqlBuildingBuffer buffer) =>
+    internal void FormatCore(SqlBuildingBuffer buffer) =>
         buffer.AppendSpaceSeparated(_parts);
 }
