@@ -4,9 +4,9 @@ using static Sqlify.Sql;
 
 namespace SqlArtisan.Benchmark;
 
-public static class SqlifyExample
+public static class SqlifyBenchmark
 {
-    public static void Do()
+    public static void Run()
     {
         var a = Table<IAuthors>("a");
         var b = Table<IBooks>("b");

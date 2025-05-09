@@ -3,9 +3,9 @@ using Dapper;
 
 namespace SqlArtisan.Benchmark;
 
-public static class StringBuilderExample
+public static class StringBuilderBenchmark
 {
-    public static void Do()
+    public static void Run()
     {
         StringBuilder query = new();
         query.Append("SELECT");

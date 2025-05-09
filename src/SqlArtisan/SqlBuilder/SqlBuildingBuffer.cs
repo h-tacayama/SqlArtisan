@@ -1,11 +1,31 @@
-﻿using System.Text;
+﻿using System.Buffers;
 
 namespace SqlArtisan;
 
-internal sealed class SqlBuildingBuffer
+internal sealed class SqlBuildingBuffer : IDisposable
 {
-    private readonly StringBuilder _text = new();
-    private readonly Dictionary<string, BindValue> _parameters = new();
+    private const int InitialCapacity = 2048;
+    private char[] _buffer;
+    private int _position;
+    private Dictionary<string, BindValue> _parameters = new();
+    private bool _disposed = false;
+
+    internal SqlBuildingBuffer()
+    {
+        _buffer = ArrayPool<char>.Shared.Rent(InitialCapacity);
+        _position = 0;
+    }
+
+    ~SqlBuildingBuffer()
+    {
+        Dispose(false);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
     internal SqlBuildingBuffer Append(SqlPart part)
     {
@@ -15,7 +35,12 @@ internal sealed class SqlBuildingBuffer
 
     internal SqlBuildingBuffer Append(string? value)
     {
-        _text.Append(value);
+        if (string.IsNullOrEmpty(value))
+        {
+            return this;
+        }
+
+        Append(value.AsSpan());
         return this;
     }
 
@@ -30,7 +55,7 @@ internal sealed class SqlBuildingBuffer
 
         for (int i = 1; i < parts.Length; i++)
         {
-            _text.Append(", ");
+            Append(", ");
             parts[i].Format(this);
         }
 
@@ -41,7 +66,7 @@ internal sealed class SqlBuildingBuffer
     {
         if (when)
         {
-            _text.Append(value);
+            Append(value);
         }
 
         return this;
@@ -58,7 +83,7 @@ internal sealed class SqlBuildingBuffer
 
         for (int i = 1; i < selectItems.Length; i++)
         {
-            _text.Append(", ");
+            Append(", ");
             AppendSelectItem(selectItems[i]);
         }
 
@@ -67,14 +92,14 @@ internal sealed class SqlBuildingBuffer
 
     internal SqlBuildingBuffer AppendSpace()
     {
-        _text.Append(" ");
+        Append(" ");
         return this;
     }
 
     internal SqlBuildingBuffer AppendSpace(SqlPart part)
     {
         part.Format(this);
-        _text.Append(" ");
+        AppendSpace();
         return this;
     }
 
@@ -83,7 +108,7 @@ internal sealed class SqlBuildingBuffer
         if (part is not null)
         {
             part.Format(this);
-            _text.Append(" ");
+            AppendSpace();
         }
 
         return this;
@@ -100,71 +125,54 @@ internal sealed class SqlBuildingBuffer
 
         for (int i = 1; i < parts.Count; i++)
         {
-            _text.Append(" ");
+            AppendSpace();
             parts[i].Format(this);
         }
 
         return this;
     }
 
-    internal SqlBuildingBuffer AddParameter(BindValue bindValue)
-    {
-        string name = $":{_parameters.Count}";
-        _text.Append(name);
-        _parameters.Add(name, bindValue);
-        return this;
-    }
-
     internal SqlBuildingBuffer CloseParenthesis(SqlPart? part = null)
     {
-        if (part != null)
-        {
-            part.Format(this);
-        }
-
-        _text.Append(")");
+        part?.Format(this);
+        Append(")");
         return this;
     }
 
     internal SqlBuildingBuffer EncloseInDoubleQuotes(string value)
     {
-        _text.Append("\"");
-        _text.Append(value);
-        _text.Append("\"");
+        Append("\"");
+        Append(value);
+        Append("\"");
         return this;
     }
 
     internal SqlBuildingBuffer EncloseInParentheses(SqlPart part)
     {
-        _text.Append("(");
+        Append("(");
         part.Format(this);
-        _text.Append(")");
+        Append(")");
         return this;
     }
 
     internal SqlBuildingBuffer EncloseInSpaces(string value)
     {
-        _text.Append(" ");
-        _text.Append(value);
-        _text.Append(" ");
+        Append(" ");
+        Append(value);
+        Append(" ");
         return this;
     }
 
     internal SqlBuildingBuffer OpenParenthesis(SqlPart? part = null)
     {
-        _text.Append("(");
-
-        if (part != null)
-        {
-            part.Format(this);
-        }
-
+        Append("(");
+        part?.Format(this);
         return this;
     }
 
     internal SqlBuildingBuffer PrependComma(SqlPart part)
     {
-        _text.Append(", ");
+        Append(", ");
         part.Format(this);
         return this;
     }
@@ -173,15 +181,53 @@ internal sealed class SqlBuildingBuffer
     {
         if (part is not null)
         {
-            _text.Append(", ");
+            Append(", ");
             part.Format(this);
         }
 
         return this;
     }
 
-    internal SqlStatement ToSqlStatement() =>
-        new(_text.ToString(), _parameters);
+    internal SqlBuildingBuffer AddParameter(BindValue bindValue)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string name = $":{_parameters.Count}";
+        Append(name);
+        _parameters.Add(name, bindValue);
+        return this;
+    }
+
+    internal SqlStatement ToSqlStatement()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        // Pass a copy of _parameter to ensure
+        // the original reference is not retained by the caller.
+        string sql = new(_buffer, 0, _position);
+        Dictionary<string, BindValue> parametersCopy = new(_parameters);
+        return new(sql, parametersCopy);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                if (_buffer != null)
+                {
+                    ArrayPool<char>.Shared.Return(_buffer);
+                    _buffer = null!;
+                }
+
+                _parameters.Clear();
+                _parameters = null!;
+            }
+
+            _disposed = true;
+        }
+    }
 
     private void AppendSelectItem(SqlPart selectItem)
     {
@@ -192,6 +238,34 @@ internal sealed class SqlBuildingBuffer
         else
         {
             selectItem.Format(this);
+        }
+    }
+
+    private SqlBuildingBuffer Append(ReadOnlySpan<char> value)
+    {
+        if (value.IsEmpty)
+        {
+            return this;
+        }
+
+        EnsureCapacity(value.Length);
+        value.CopyTo(_buffer.AsSpan(_position));
+        _position += value.Length;
+        return this;
+    }
+
+    private void EnsureCapacity(int additionalChars)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (_position + additionalChars > _buffer.Length)
+        {
+            int requiredCapacity = _position + additionalChars;
+            int newSize = Math.Max(_buffer.Length * 2, requiredCapacity);
+            char[] newBuffer = ArrayPool<char>.Shared.Rent(newSize);
+            _buffer.AsSpan(0, _position).CopyTo(newBuffer);
+            ArrayPool<char>.Shared.Return(_buffer);
+            _buffer = newBuffer;
         }
     }
 }

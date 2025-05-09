@@ -4,9 +4,9 @@ using static SqlArtisan.SqlWordbook;
 
 namespace SqlArtisan.Benchmark;
 
-public static class SqlArtisanDapperExtensionsExample
+public static class SqlArtisanDapperBenchmark
 {
-    public static void Do()
+    public static void Run()
     {
         Authors a = new("a");
         Books b = new("b");
