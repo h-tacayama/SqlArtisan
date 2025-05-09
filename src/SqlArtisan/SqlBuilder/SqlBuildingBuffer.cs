@@ -4,7 +4,7 @@ namespace SqlArtisan;
 
 internal sealed class SqlBuildingBuffer : IDisposable
 {
-    private const int InitialCapacity = 256;
+    private const int InitialCapacity = 2048;
     private char[] _buffer;
     private int _position;
     private Dictionary<string, BindValue> _parameters = new();
