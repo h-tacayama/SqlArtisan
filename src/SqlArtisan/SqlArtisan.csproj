@@ -9,7 +9,6 @@
     <VersionSuffix>alpha.3</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>h.tacayama</Authors>
     <Description>A query builder featuring an intuitive interface that closely mimics SQL syntax. Ideal for developers who prefer writing SQL directly, providing a clear alternative to common fluent or abstract interfaces.</Description>
     <PackageTags>database sql sqlbuilder sql-builder query querybuilder query-builder dapper oracle postgresql</PackageTags>
