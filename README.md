@@ -12,4 +12,11 @@ This project is currently under **active development**. It should be considered 
 
 SqlArtisan is a C# library for building SQL queries. It features a straightforward interface, intentionally designed to mimic SQL syntax closely. Ideal for developers who prefer writing SQL directly, this library serves as a clear alternative to the fluent and more abstract interfaces found elsewhere.
 
-**Note:** While SqlArtisan focuses on building SQL queries, it does not handle execution itself. For seamless integration with Dapper, including parameter binding and execution helpers, we recommend using the dedicated SqlArtisan.DapperExtensions library.
+## Key Features
+
+- **SQL-like API**: Write queries naturally, mirroring SQL syntax and structure.
+- **Schema IntelliSense**: Provides code completion for table/column names via definition classes, improving development speed and accuracy.
+- **Automatic Parameterization**: Converts literals to bind variables, boosting security (SQLi prevention) and query performance.
+- **Dynamic Query Building**: Dynamically include or exclude specific conditions, especially in WHERE clauses, based on application logic or user input.
+- **Low-Allocation Design**: Minimizes heap allocations and GC load for superior performance.
+- **Seamless Dapper Integration**: The optional `SqlArtisan.DapperExtensions` library offers Dapper extensions for direct use with query builders.
