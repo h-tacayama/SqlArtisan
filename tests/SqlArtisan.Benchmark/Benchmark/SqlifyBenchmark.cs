@@ -8,17 +8,21 @@ public static class SqlifyBenchmark
 {
     public static void Run()
     {
-        var a = Table<IAuthors>("a");
-        var b = Table<IBooks>("b");
+        var u = Table<IUsers>("u");
+        var o = Table<IOrders>("o");
 
         var selectQuery =
-            Select(a.Id, Count().As("Count"))
-            .From(a)
-            .Join(b, a.Id == b.AuthorId)
-            .Where(b.Rating > 2.5)
-            .Where(b.Rating <= 5)
-            .GroupBy(a.Id)
-            .OrderByDesc(a.Id);
+            Select(
+                u.Id.As("user_id"),
+                u.Name.As("user_name"),
+                Count().As("order_count"))
+            .From(u)
+            .Join(o, u.Id == o.UserId)
+            .Where(o.OrderDate >= new DateTime(2024, 1, 1))
+            .Where(o.OrderDate < new DateTime(2025, 1, 1))
+            .GroupBy(u.Id)
+            .GroupBy(u.Name)
+            .OrderByDesc(Count());
 
         var writer = new SqlWriter();
         selectQuery.Format(writer);

@@ -8,25 +8,26 @@ public static class StringBuilderBenchmark
     public static void Run()
     {
         StringBuilder query = new();
-        query.Append("SELECT");
-        query.Append("a.Id, ");
-        query.Append("COUNT(*) AS Count ");
+        query.Append("SELECT ");
+        query.Append("u.id AS user_id, ");
+        query.Append("u.name AS user_name, ");
+        query.Append("COUNT(o.id) AS order_count ");
         query.Append("FROM ");
-        query.Append("Authors a ");
+        query.Append("users u ");
         query.Append("JOIN ");
-        query.Append("Books b ");
+        query.Append("orders o ");
         query.Append("ON ");
-        query.Append("a.Id = b.AuthorId ");
+        query.Append("u.id = o.user_id ");
         query.Append("WHERE ");
-        query.Append("b.Rating > @0 ");
-        query.Append("AND b.Rating <= @1 ");
+        query.Append("o.order_date >= @0 ");
+        query.Append("AND o.order_date < @1 ");
         query.Append("GROUP BY ");
-        query.Append("a.Id ");
+        query.Append("u.id, u.name ");
         query.Append("ORDER BY ");
-        query.Append("a.Id");
+        query.Append("order_count DESC");
 
         DynamicParameters parameters = new DynamicParameters();
-        parameters.Add("@0", 2.5);
-        parameters.Add("@1", 5);
+        parameters.Add("@0", new DateTime(2024, 1, 1));
+        parameters.Add("@1", new DateTime(2025, 1, 1));
     }
 }
