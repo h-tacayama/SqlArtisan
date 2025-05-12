@@ -104,6 +104,20 @@ public partial class FunctionTest
     }
 
     [Fact]
+    public void ToTimestamp_CharacterValueWithFormat_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(ToTimestamp("2001/02/03 04:05:06", "YYYY-MM-DD HH24:MI:SS"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TO_TIMESTAMP(:0, :1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Trim_CharacterValue_CorrectSql()
     {
         SqlStatement sql =

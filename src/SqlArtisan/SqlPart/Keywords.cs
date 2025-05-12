@@ -91,6 +91,7 @@ internal static class Keywords
     internal const string ToChar = "TO_CHAR";
     internal const string ToDate = "TO_DATE";
     internal const string ToNumber = "TO_NUMBER";
+    internal const string ToTimestamp = "TO_TIMESTAMP";
     internal const string Trim = "TRIM";
     internal const string Trunc = "TRUNC";
     internal const string Union = "UNION";
