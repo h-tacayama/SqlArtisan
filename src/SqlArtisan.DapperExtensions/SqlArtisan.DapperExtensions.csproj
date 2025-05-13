@@ -1,9 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>alpha.2</VersionSuffix>
+    <Copyright>Copyright (c) h.tacayama 2025</Copyright>
+
+    <Authors>h.tacayama</Authors>
+    <Description>Dapper integration for SqlArtisan. Enables effortless execution of your SqlArtisan queries.</Description>
+    <PackageTags>database sql sqlbuilder sql-builder query querybuilder query-builder dapper oracle postgresql</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+ 
+    <PackageProjectUrl>https://github.com/h-tacayama/SqlArtisan</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/h-tacayama/SqlArtisan</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
