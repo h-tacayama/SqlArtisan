@@ -6,11 +6,11 @@
     <Nullable>enable</Nullable>
 
     <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>alpha.4</VersionSuffix>
+    <VersionSuffix>alpha.5</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
-    <Description>A query builder featuring an intuitive interface that closely mimics SQL syntax. Ideal for developers who prefer writing SQL directly, providing a clear alternative to common fluent or abstract interfaces.</Description>
+    <Description>Write SQL, in C#. This library provides a SQL-like query building experience, designed for developers who value the clarity and control of direct SQL syntax.</Description>
     <PackageTags>database sql sqlbuilder sql-builder query querybuilder query-builder dapper oracle postgresql</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

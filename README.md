@@ -10,7 +10,7 @@ This project is currently under **active development**. It should be considered 
 
 ---
 
-**SqlArtisan**: Write SQL, in C#. This library provides a SQL-like query building experience, designed for developers who value the clarity and control of direct SQL syntax.
+Write SQL, in C#. This library provides a SQL-like query building experience, designed for developers who value the clarity and control of direct SQL syntax.
 
 ## Key Features
 
@@ -21,9 +21,39 @@ This project is currently under **active development**. It should be considered 
 - **Low-Allocation Design**: Minimizes heap allocations and GC load for superior performance.
 - **Seamless Dapper Integration**: The optional `SqlArtisan.DapperExtensions` library provides Dapper extensions that enable effortless SQL execution.
 
+## Getting Started
+
+### Prerequisites
+
+- .NET 8.0 or later.
+- SqlArtisan is currently verified with PostgreSQL and Oracle.
+- (Optional) To use the Dapper integration features (as shown in examples), install the `SqlArtisan.DapperExtensions` package.
+
+### Installation
+
+You can install SqlArtisan and its optional Dapper integration library via NuGet Package Manager.
+*(Note: These packages are currently in their pre-release phase, so use the --prerelease flag when installing.)**
+
+For the core query building functionality:
+
+```bash
+dotnet add package SqlArtisan --prerelease
+```
+
+For seamless execution with Dapper (recommended):
+
+```bash
+dotnet add package SqlArtisan.DapperExtensions --prerelease
+```
+
 ## Performance
-**SqlArtisan** is engineered for efficient performance, primarily by keeping heap memory allocations low.
+
+SqlArtisan is engineered for efficient performance, primarily by keeping heap memory allocations low.
 
 Our core strategy is efficient buffer management using ArrayPool<T>. Internal buffers, particularly for string construction, are recycled from a shared pool, avoiding repeated heap allocations.
 
 This approach leads to fewer garbage collection (GC) pauses, better application throughput as more CPU power is available for your core tasks, and efficient memory use because buffers are reused.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for the full license text.
