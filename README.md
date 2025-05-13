@@ -32,7 +32,7 @@ Write SQL, in C#. This library provides a SQL-like query building experience, de
 ### Installation
 
 You can install SqlArtisan and its optional Dapper integration library via NuGet Package Manager.
-*(Note: These packages are currently in their pre-release phase, so use the --prerelease flag when installing.)**
+*(Note: These packages are currently in their pre-release phase, so use the --prerelease flag when installing.)*
 
 For the core query building functionality:
 
