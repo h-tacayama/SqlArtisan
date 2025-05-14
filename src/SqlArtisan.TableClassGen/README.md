@@ -69,3 +69,7 @@ internal sealed class Category : AbstractTable
 	public Column LastUpdate { get; }
 }
 ```
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](../../LICENSE) file for the full license text.
