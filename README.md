@@ -10,7 +10,7 @@ This project is currently under **active development**. It should be considered 
 
 ---
 
-Write SQL, in C#. This library provides a SQL-like query building experience, designed for developers who value the clarity and control of direct SQL syntax.
+**SqlArtisan**: Write SQL, in C#. A SQL query builder that provides a SQL-like experience, designed for developers who value the clarity and control of direct SQL syntax.
 
 ## Key Features
 

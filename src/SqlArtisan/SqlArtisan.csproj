@@ -10,7 +10,7 @@
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
-    <Description>Write SQL, in C#. This library provides a SQL-like query building experience, designed for developers who value the clarity and control of direct SQL syntax.</Description>
+    <Description>Write SQL, in C#. A SQL query builder that provides a SQL-like experience, designed for developers who value the clarity and control of direct SQL syntax.</Description>
     <PackageTags>database sql sqlbuilder sql-builder query querybuilder query-builder dapper oracle postgresql</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
