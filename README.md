@@ -50,7 +50,7 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
 
 1. Define your Table Schema Class
 
-    Create C# classes for your database tables to enable IntelliSense and prevent typos in names. You can write these manually (see example below) or generate them from an existing database with the SqlArtisan.TableClassGen tool.
+    Create C# classes for your database tables to enable IntelliSense and prevent typos in names. You can write these manually (see example below) or generate them from an existing database with the `SqlArtisan.TableClassGen` tool.
 
     ```csharp
     using SqlArtisan;
