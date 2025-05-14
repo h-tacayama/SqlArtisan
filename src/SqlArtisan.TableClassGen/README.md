@@ -31,13 +31,13 @@ Host: localhost
 Port: 5432
 Service name (or database name): myservice
 Schema: myschema
-Username: postgres
+Username: myuser
 Password: *****
 
 Please enter code generation settings.
 Namespace: MyAppNamespace
 Convert object names to lowercase (y/n): y
-Output directory: c:\out
+Output directory: c:\output
 Create subfolders by table name initial (y/n): y
 Specific table name (leave empty for all tables):
 
