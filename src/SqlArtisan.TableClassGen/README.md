@@ -1,6 +1,6 @@
 ﻿# SqlArtisan.TableClassGen
 
-Generate C# table schema classes from your database for SqlArtisan, enabling robust type-safety and IntelliSense in your query building.
+Generate C# table schema classes from your database for `SqlArtisan`, enabling robust type-safety and IntelliSense in your query building.
 
 ## Installation
 
