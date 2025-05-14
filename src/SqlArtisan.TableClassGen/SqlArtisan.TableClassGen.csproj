@@ -9,7 +9,7 @@
     <IsPublishable>true</IsPublishable>
 
     <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>alpha.1</VersionSuffix>
+    <VersionSuffix>alpha.2</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
@@ -20,18 +20,10 @@
 
     <PackageProjectUrl>https://github.com/h-tacayama/SqlArtisan</PackageProjectUrl>
     <RepositoryUrl>https://github.com/h-tacayama/SqlArtisan</RepositoryUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <PackAsTool>True</PackAsTool>
     <ToolCommandName>sa-tableclassgen</ToolCommandName>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.130" />

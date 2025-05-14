@@ -46,6 +46,67 @@ For seamless execution with Dapper (recommended):
 dotnet add package SqlArtisan.DapperExtensions --prerelease
 ```
 
+### Quick Start
+
+1. Define your Table Schema Class
+
+Create C# classes for your database tables to enable IntelliSense and prevent typos in names. You can write these manually (see example below) or generate them from an existing database with the SqlArtisan.TableClassGen tool.
+
+```csharp
+using SqlArtisan;
+```
+```csharp
+internal sealed class Users : DbTableBase
+{
+    public Users(string tableAlias) : base("users", tableAlias)
+    {
+        Id = new DbColumn(tableAlias, "id");
+        Name = new DbColumn(tableAlias, "name");
+        CreatedAt = new DbColumn(tableAlias, "created_at");
+    }
+
+    public DbColumn Id { get; }
+    public DbColumn Name { get; }
+    public DbColumn CreatedAt { get; }
+}
+```
+
+2. Define your DTO Class
+
+Create a Data Transfer Object (DTO) class. This class will be used to map the results of your SQL query.
+
+```csharp
+internal sealed class UserDto(int id, string name, DateTime createdAt)
+{
+    public int Id => id;
+    public string Name => name;
+    public DateTime CreatedAt => createdAt;
+}
+```
+
+3. Build and Execute your Query
+
+Use SqlArtisan's SQL-like API to construct your query, then execute it. This example uses Dapper with `SqlArtisan.DapperExtensions` for execution.
+
+```csharp
+using SqlArtisan;
+using SqlArtisan.DapperExtensions;
+using static SqlArtisan.SqlWordbook;
+```
+```csharp
+Users u = new("u");
+
+ISqlBuilder sql =
+    Select(u.Id, u.Name, u.CreatedAt)
+    .From(u)
+    .Where(u.Id > 0 & u.Name.Like("G%"))
+    .OrderBy(u.Id);
+
+// Dapper: Set true to map snake_case columns to PascalCase/ camelCase C# members
+Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+IEnumerable<UserDto> users = await _conn.QueryAsync<UserDto>(sql);
+```
+
 ## Performance
 
 SqlArtisan is engineered for efficient performance, primarily by keeping heap memory allocations low.
