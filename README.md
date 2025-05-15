@@ -56,9 +56,9 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     using SqlArtisan;
     ```
     ```csharp
-    internal sealed class Users : DbTableBase
+    internal sealed class UsersTable : DbTableBase
     {
-        public Users(string tableAlias) : base("users", tableAlias)
+        public UsersTable(string tableAlias) : base("users", tableAlias)
         {
             Id = new DbColumn(tableAlias, "id");
             Name = new DbColumn(tableAlias, "name");
@@ -94,7 +94,7 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     using static SqlArtisan.SqlWordbook;
     ```
     ```csharp
-    Users u = new("u");
+    UsersTable u = new("u");
 
     ISqlBuilder sql =
         Select(u.Id, u.Name, u.CreatedAt)
@@ -102,9 +102,36 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
         .Where(u.Id > 0 & u.Name.Like("G%"))
         .OrderBy(u.Id);
 
-    // Dapper: Set true to map snake_case columns to PascalCase/ camelCase C# members
+    // Dapper: Set true to map snake_case columns to PascalCase/camelCase C# members
     Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
     IEnumerable<UserDto> users = await _conn.QueryAsync<UserDto>(sql);
+    ```
+
+    **Alternative: Manual Execution (Accessing SQL and Parameters)**
+
+    While SqlArtisan.DapperExtensions provides convenience, you can also directly access the generated SQL string and parameters. This allows you to use SqlArtisan with raw ADO.NET, other micro-ORMs, or for debugging purposes.
+
+    ```csharp
+    UsersTable u = new("u");
+
+    SqlStatement sql =
+        Select(u.Id, u.Name, u.CreatedAt)
+        .From(u)
+        .Where(u.Id > 0 & u.Name.Like("G%"))
+        .OrderBy(u.Id)
+        .Build();
+
+    string sqlText = sql.Text;
+    // SELECT "u".id, "u".name, "u".created_at
+    // FROM users "u"
+    // WHERE ("u".id > :0) AND ("u".name LIKE :1)
+    // ORDER BY "u".id
+
+    int param1 = sql.Parameters.Get<int>(":0");
+    // param1 = 0
+
+    string? param2 = sql.Parameters.Get<string>(":1");
+    // param2 = "G%"
     ```
 
 ## Performance
