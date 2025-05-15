@@ -60,4 +60,25 @@ public partial class FunctionTest
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void CurrentDate_NoParameters_CorrectSql()
+    {
+        SqlStatement sql = Select(CurrentDate).Build();
+        Assert.Equal("SELECT CURRENT_DATE", sql.Text);
+    }
+
+    [Fact]
+    public void CurrentTime_NoParameters_CorrectSql()
+    {
+        SqlStatement sql = Select(CurrentTime).Build();
+        Assert.Equal("SELECT CURRENT_TIME", sql.Text);
+    }
+
+    [Fact]
+    public void CurrentTimestamp_NoParameters_CorrectSql()
+    {
+        SqlStatement sql = Select(CurrentTimestamp).Build();
+        Assert.Equal("SELECT CURRENT_TIMESTAMP", sql.Text);
+    }
 }

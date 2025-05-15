@@ -1,4 +1,5 @@
-﻿using static SqlArtisan.ExpressionResolver;
+﻿using System.Diagnostics;
+using static SqlArtisan.ExpressionResolver;
 
 namespace SqlArtisan;
 
@@ -40,4 +41,13 @@ public static partial class SqlWordbook
         new(distinct, Resolve(expr));
 
     public static AnalyticCumeDistFunction CumeDist() => new();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static CurrentDateFunction CurrentDate => new();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static CurrentTimeFunction CurrentTime => new();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static CurrentTimestampFunction CurrentTimestamp => new();
 }

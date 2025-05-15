@@ -19,6 +19,9 @@ internal static class Keywords
     internal const string Count = "COUNT";
     internal const string Cross = "CROSS";
     internal const string CumeDist = "CUME_DIST";
+    internal const string CurrentDate = "CURRENT_DATE";
+    internal const string CurrentTime = "CURRENT_TIME";
+    internal const string CurrentTimestamp = "CURRENT_TIMESTAMP";
     internal const string CurrVal = "CURRVAL";
     internal const string Decode = "DECODE";
     internal const string Delete = "DELETE";
