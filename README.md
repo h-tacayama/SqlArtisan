@@ -109,7 +109,7 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
 
     **Alternative: Manual Execution (Accessing SQL and Parameters)**
 
-    While SqlArtisan.DapperExtensions provides convenience, you can also directly access the generated SQL string and parameters. This allows you to use SqlArtisan with raw ADO.NET, other micro-ORMs, or for debugging purposes.
+    While `SqlArtisan.DapperExtensions` provides convenience, you can also directly access the generated SQL string and parameters. This allows you to use SqlArtisan with raw ADO.NET, other micro-ORMs, or for debugging purposes.
 
     ```csharp
     UsersTable u = new("u");
@@ -117,7 +117,7 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     SqlStatement sql =
         Select(u.Id, u.Name, u.CreatedAt)
         .From(u)
-        .Where(u.Id > 0 & u.Name.Like("G%"))
+        .Where(u.Id > 0 & u.Name.Like("a%"))
         .OrderBy(u.Id)
         .Build();
 
@@ -131,8 +131,336 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     // param1 = 0
 
     string? param2 = sql.Parameters.Get<string>(":1");
-    // param2 = "G%"
+    // param2 = "a%"
     ```
+
+## Usage Examples
+
+SqlArtisan allows you to construct a wide variety of SQL queries in a type-safe and intuitive manner. Below are examples demonstrating common SQL operations and how to achieve them with SqlArtisan.
+
+### SELECT Query
+
+#### Column Aliases
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(u.Id.As("user_id"))
+    .From(u)
+    .Build();
+
+// SELECT "u".id AS "user_id" FROM users "u"
+```
+
+#### DISTINCT
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(Distinct, u.Id)
+    .From(u)
+    .Build();
+
+// SELECT DISTINCT "u".id FROM users "u"
+```
+
+#### Hints
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(Hints("/*+ INDEX(u users_ix) */"), u.Id)
+    .From(u)
+    .Build();
+
+// SELECT /*+ INDEX(u users_ix) */ "u".id FROM users "u"
+```
+
+#### From Clause
+
+##### FROM-less Queries
+```csharp
+SqlStatement sql =
+    Select(CurrentTimestamp)
+    .Build();
+
+// SELECT CURRENT_TIMESTAMP
+```
+
+##### Using DUAL (Oracle)
+```csharp
+SqlStatement sql =
+    Select(SysDate)
+    .From(Dual)
+    .Build();
+
+// SELECT SYSDATE FROM DUAL
+```
+
+#### WHERE Clause
+
+##### Comparison Condition
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id == 1
+        & u.Id != 2
+        & u.Id > 3
+        & u.Id >= 4
+        & u.Id < 5
+        & u.Id <= 6)
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE ("u".id = :0)
+// AND ("u".id <> :1)
+// AND ("u".id > :2)
+// AND ("u".id >= :3)
+// AND ("u".id < :4)
+// AND ("u".id <= :5)
+```
+
+##### Logical Condition
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        (u.Id == 1 & u.Id == 2)
+        | (u.Id == 3 & Not(u.Id == 4)))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE (("u".id = :0) AND ("u".id = :1))
+// OR (("u".id = :2) AND (NOT ("u".id = :3)))
+```
+
+##### NULL Condition
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Id.IsNull | u.Id.IsNotNull)
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE ("u".id IS NULL)
+// OR ("u".id IS NOT NULL)
+```
+
+##### Pattern Matching Condition
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Name.Like("%a")
+        | u.Name.NotLike("%b")
+        | RegexpLike(u.Name, "%c"))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE ("u".name LIKE :0)
+// OR ("u".name NOT LIKE :1)
+// OR (REGEXP_LIKE("u".name, :2))
+```
+
+##### BETWEEN Condition
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id.Between(1, 2)
+        | u.Id.NotBetween(3, 4))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE ("u".id BETWEEN :0 AND :1)
+// OR ("u".id NOT BETWEEN :2 AND :3)
+```
+
+##### IN Condition
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id.In(1, 2, 3)
+        | u.Id.NotIn(4, 5, 6))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE ("u".id IN (:0, :1, :2))
+// OR ("u".id NOT IN (:3, :4, :5))
+```
+
+##### EXISTS Condition
+```csharp
+UsersTable u = new("u");
+UsersTable s = new("s");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        Exists(Select(s.Id).From(s)))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE EXISTS (SELECT "s".id FROM users "s")
+```
+
+#### JOIN Clause
+
+##### INNER JOIN
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .InnerJoin(o)
+    .On(u.Id == o.UserId)
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// INNER JOIN orders "o"
+// ON "u".id = "o".user_id
+```
+
+##### LEFT OUTER JOIN
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .LeftJoin(o)
+    .On(u.Id == o.UserId)
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// LEFT JOIN orders "o"
+// ON "u".id = "o".user_id
+```
+
+##### RIGHT OUTER JOIN
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .RightJoin(o)
+    .On(u.Id == o.UserId)
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// RIGHT JOIN orders "o"
+// ON "u".id = "o".user_id
+```
+
+##### FULL JOIN
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .FullJoin(o)
+    .On(u.Id == o.UserId)
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// FULL JOIN orders "o"
+// ON "u".id = "o".user_id
+```
+
+##### CROSS JOIN
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .CrossJoin(o)
+    //.On(u.Id == o.UserId) // Compiler error
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// CROSS JOIN orders "o"
+```
+
+#### ORDER BY Clause
+
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .OrderBy(
+        1,
+        u.Id,
+        u.Id.NullsFirst,
+        u.Id.NullsLast,
+        u.Id.Asc,
+        u.Id.Asc.NullsFirst,
+        u.Id.Asc.NullsLast,
+        u.Id.Desc,
+        u.Id.Desc.NullsFirst,
+        u.Id.Desc.NullsLast)
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// ORDER BY 1,
+// "u".id,
+// "u".id NULLS FIRST,
+// "u".id NULLS LAST,
+// "u".id ASC,
+// "u".id ASC NULLS FIRST,
+// "u".id ASC NULLS LAST,
+// "u".id DESC,
+// "u".id DESC NULLS FIRST,
+// "u".id DESC NULLS LAST
+```
+
+#### GROUP BY and HAVING Clause
+
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(
+        u.Id,
+        u.Name,
+        Count(u.Id))
+    .From(u)
+    .GroupBy(u.Id, u.Name)
+    .Having(Count(u.Id) > 1)
+    .Build();
+
+// SELECT "u".id, "u".name, COUNT("u".id)
+// FROM users "u"
+// GROUP BY "u".id, "u".name
+// HAVING COUNT("u".id) > :0
+```
 
 ## Performance
 
