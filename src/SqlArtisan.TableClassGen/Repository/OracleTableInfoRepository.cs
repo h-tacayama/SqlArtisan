@@ -16,7 +16,7 @@ internal sealed class OracleTableInfoRepository(
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
 
-        AllTables t = new("t");
+        AllTables t = new();
 
         ISqlBuilder sql =
             Select(t.TableName)
@@ -67,7 +67,7 @@ internal sealed class OracleTableInfoRepository(
             return false;
         }
 
-        AllTabColumns atc = new("atc");
+        AllTabColumns atc = new();
 
         ISqlBuilder sql =
             Select(
@@ -107,7 +107,7 @@ internal sealed class OracleTableInfoRepository(
 
     private bool ExistsTable(IDbConnection conn, string tableName)
     {
-        AllTables t = new("t");
+        AllTables t = new();
 
         ISqlBuilder sql =
             Select(Count(t.TableName))

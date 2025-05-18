@@ -2,7 +2,7 @@
 
 internal sealed class TestTable : DbTableBase
 {
-    public TestTable(string alias) : base("test_table", alias)
+    public TestTable(string alias = "") : base("test_table", alias)
     {
         Code = new DbColumn(alias, "code");
         Name = new DbColumn(alias, "name");

@@ -23,7 +23,7 @@ internal sealed class DbTableInfo(
         code.AppendLine($"internal sealed class {PascalCaseName} : AbstractTable");
         code.AppendLine("{");
 
-        code.AppendLine($"\tpublic {PascalCaseName}(string tableAlias) : base(\"{Name}\", tableAlias)");
+        code.AppendLine($"\tpublic {PascalCaseName}(string tableAlias = \"\") : base(\"{Name}\", tableAlias)");
         code.AppendLine("\t{");
 
         foreach (DbColumnInfo column in Columns)

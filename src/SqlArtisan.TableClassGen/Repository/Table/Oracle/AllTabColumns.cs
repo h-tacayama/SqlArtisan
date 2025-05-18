@@ -2,7 +2,7 @@
 
 internal sealed class AllTabColumns : DbTableBase
 {
-    public AllTabColumns(string alias) : base("all_tab_columns", alias)
+    public AllTabColumns(string alias = "") : base("all_tab_columns", alias)
     {
         Owner = new DbColumn(alias, "owner");
         TableName = new DbColumn(alias, "table_name");

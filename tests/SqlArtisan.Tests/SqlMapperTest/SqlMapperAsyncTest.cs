@@ -9,7 +9,7 @@ namespace SqlArtisan.Tests;
 [Collection("SequentialTests")]
 public class SqlMapperAsyncTest : SqlMapperTestBase
 {
-    private readonly TestTable _t = new("t");
+    private readonly TestTable _t = new();
 
     [Fact]
     public async void ExecuteScalarAsync_NoTypeParameter_ReturnsObjectValue()
