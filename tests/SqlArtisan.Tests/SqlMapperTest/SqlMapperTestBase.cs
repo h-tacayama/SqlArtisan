@@ -75,7 +75,7 @@ public abstract class SqlMapperTestBase : IDisposable
 
     private void InsertTestData(int code, string name, DateTime createdAt)
     {
-        TestTable t = new("t");
+        TestTable t = new();
 
         ISqlBuilder sql =
             InsertInto(t, t.Code, t.Name, t.CreatedAt)

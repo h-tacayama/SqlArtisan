@@ -17,7 +17,11 @@ public abstract class DbTableBase : TableReference
     internal override void Format(SqlBuildingBuffer buffer)
     {
         base.Format(buffer);
-        buffer.AppendSpace();
-        buffer.EncloseInDoubleQuotes(_tableAlias);
+
+        if (!string.IsNullOrEmpty(_tableAlias))
+        {
+            buffer.AppendSpace();
+            buffer.EncloseInDoubleQuotes(_tableAlias);
+        }
     }
 }

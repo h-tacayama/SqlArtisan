@@ -16,7 +16,7 @@ internal sealed class PgSqlTableInfoRepository(
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
 
-        InformationSchemaTables t = new("t");
+        InformationSchemaTables t = new();
 
         ISqlBuilder sql =
             Select(t.TableName)
@@ -69,7 +69,7 @@ internal sealed class PgSqlTableInfoRepository(
             return false;
         }
 
-        InformationSchemaColumns c = new("c");
+        InformationSchemaColumns c = new();
 
         ISqlBuilder sql2 =
             Select(
@@ -106,7 +106,7 @@ internal sealed class PgSqlTableInfoRepository(
 
     private bool ExistsTable(IDbConnection conn, string tableName)
     {
-        InformationSchemaTables t = new("t");
+        InformationSchemaTables t = new();
 
         ISqlBuilder sql =
             Select(Count(t.TableName))

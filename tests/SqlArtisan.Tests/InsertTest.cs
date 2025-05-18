@@ -5,8 +5,6 @@ namespace SqlArtisan.Tests;
 
 public class InsertTest
 {
-    private readonly TestTable _t = new("t");
-
     [Fact]
     public void InsertInto_WithoutColumnList_SqlWithValuesOnly()
     {
@@ -31,18 +29,19 @@ public class InsertTest
     [Fact]
     public void InsertInto_WithColumnList_SqlWithColumnsAndValues()
     {
+        TestTable t = new();
         SqlStatement sql =
-            InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
+            InsertInto(t, t.Code, t.Name, t.CreatedAt)
             .Values(1, "a", SysDate)
             .Build();
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
-        expected.Append("test_table \"t\" ");
+        expected.Append("test_table ");
         expected.Append("(");
-        expected.Append("\"t\".code, ");
-        expected.Append("\"t\".name, ");
-        expected.Append("\"t\".created_at");
+        expected.Append("code, ");
+        expected.Append("name, ");
+        expected.Append("created_at");
         expected.Append(") ");
         expected.Append("VALUES ");
         expected.Append("(");
@@ -57,18 +56,19 @@ public class InsertTest
     [Fact]
     public void InsertInto_WithNull_CorrectSql()
     {
+        TestTable t = new();
         SqlStatement sql =
-            InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
+            InsertInto(t, t.Code, t.Name, t.CreatedAt)
             .Values(Null, Null, Null)
             .Build();
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
-        expected.Append("test_table \"t\" ");
+        expected.Append("test_table ");
         expected.Append("(");
-        expected.Append("\"t\".code, ");
-        expected.Append("\"t\".name, ");
-        expected.Append("\"t\".created_at");
+        expected.Append("code, ");
+        expected.Append("name, ");
+        expected.Append("created_at");
         expected.Append(") ");
         expected.Append("VALUES ");
         expected.Append("(");
@@ -83,10 +83,11 @@ public class InsertTest
     [Fact]
     public void InsertInto_WithSelectClause_CorrectSql()
     {
+        TestTable t = new("t");
         TestTable s = new("s");
 
         SqlStatement sql =
-            InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
+            InsertInto(t, t.Code, t.Name, t.CreatedAt)
             .Select(s.Code, s.Name, s.CreatedAt)
             .From(s)
             .Build();

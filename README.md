@@ -59,7 +59,7 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     ```csharp
     internal sealed class UsersTable : DbTableBase
     {
-        public UsersTable(string tableAlias) : base("users", tableAlias)
+        public UsersTable(string tableAlias = "") : base("users", tableAlias)
         {
             Id = new DbColumn(tableAlias, "id");
             Name = new DbColumn(tableAlias, "name");
@@ -95,15 +95,15 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     using static SqlArtisan.SqlWordbook;
     ```
     ```csharp
-    UsersTable u = new("u");
+    UsersTable u = new();
 
     ISqlBuilder sql =
         Select(u.Id, u.Name, u.CreatedAt)
         .From(u)
-        .Where(u.Id > 0 & u.Name.Like("G%"))
+        .Where(u.Id > 0 & u.Name.Like("A%"))
         .OrderBy(u.Id);
 
-    // Dapper: Set true to map snake_case columns to PascalCase/camelCase C# members
+    // Dapper: Set true to map snake_case columns to PascalCase/camelCase C# members.
     Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
     IEnumerable<UserDto> users = await _conn.QueryAsync<UserDto>(sql);
     ```
@@ -113,26 +113,26 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     While `SqlArtisan.DapperExtensions` provides convenience, you can also directly access the generated SQL string and parameters. This allows you to use SqlArtisan with raw ADO.NET, other micro-ORMs, or for debugging purposes.
 
     ```csharp
-    UsersTable u = new("u");
+    UsersTable u = new();
 
     SqlStatement sql =
         Select(u.Id, u.Name, u.CreatedAt)
         .From(u)
-        .Where(u.Id > 0 & u.Name.Like("a%"))
+        .Where(u.Id > 0 & u.Name.Like("A%"))
         .OrderBy(u.Id)
         .Build();
 
     string sqlText = sql.Text;
-    // SELECT "u".id, "u".name, "u".created_at
-    // FROM users "u"
-    // WHERE ("u".id > :0) AND ("u".name LIKE :1)
-    // ORDER BY "u".id
+    // SELECT id, name, created_at
+    // FROM users
+    // WHERE (id > :0) AND (name LIKE :1)
+    // ORDER BY id
 
     int param1 = sql.Parameters.Get<int>(":0");
     // param1 = 0
 
     string? param2 = sql.Parameters.Get<string>(":1");
-    // param2 = "a%"
+    // param2 = "A%"
     ```
 
 ## Usage Examples
@@ -143,30 +143,31 @@ SqlArtisan allows you to construct a wide variety of SQL queries in a type-safe 
 
 #### Column Aliases
 ```csharp
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(u.Id.As("user_id"))
     .From(u)
     .Build();
 
-// SELECT "u".id AS "user_id"
-// FROM users "u"
+// SELECT id AS "user_id"
+// FROM users
 ```
 
 #### DISTINCT
 ```csharp
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(Distinct, u.Id)
     .From(u)
     .Build();
 
-// SELECT DISTINCT "u".id
-// FROM users "u"
+// SELECT DISTINCT id
+// FROM users
 ```
 
 #### Hints
 ```csharp
+// The hint below refers to this alias "u".
 UsersTable u = new("u");
 SqlStatement sql =
     Select(Hints("/*+ INDEX(u users_ix) */"), u.Id)
@@ -200,9 +201,28 @@ SqlStatement sql =
 
 #### WHERE Clause
 
+##### Logical Condition
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        (u.Id == 1 & u.Id == 2)
+        | (u.Id == 3 & Not(u.Id == 4)))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE ((id = :0) AND (id = :1))
+// OR ((id = :2) AND (NOT (id = :3)))
+```
+
+**Note:** SqlArtisan's `Where()` clauses use `&` for SQL `AND` and `|` for SQL `OR`, unlike their standard C# meanings (bitwise or non-short-circuiting logic).
+
 ##### Comparison Condition
 ```csharp
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
@@ -215,51 +235,34 @@ SqlStatement sql =
         & u.Id <= 6)
     .Build();
 
-// SELECT "u".name
-// FROM users "u"
-// WHERE ("u".id = :0)
-// AND ("u".id <> :1)
-// AND ("u".id > :2)
-// AND ("u".id >= :3)
-// AND ("u".id < :4)
-// AND ("u".id <= :5)
-```
-
-##### Logical Condition
-```csharp
-UsersTable u = new("u");
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(
-        (u.Id == 1 & u.Id == 2)
-        | (u.Id == 3 & Not(u.Id == 4)))
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// WHERE (("u".id = :0) AND ("u".id = :1))
-// OR (("u".id = :2) AND (NOT ("u".id = :3)))
+// SELECT name
+// FROM users
+// WHERE (id = :0)
+// AND (id <> :1)
+// AND (id > :2)
+// AND (id >= :3)
+// AND (id < :4)
+// AND (id <= :5)
 ```
 
 ##### NULL Condition
 ```csharp
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
     .Where(u.Id.IsNull | u.Id.IsNotNull)
     .Build();
 
-// SELECT "u".name
-// FROM users "u"
-// WHERE ("u".id IS NULL)
-// OR ("u".id IS NOT NULL)
+// SELECT name
+// FROM users
+// WHERE (id IS NULL)
+// OR (id IS NOT NULL)
 ```
 
 ##### Pattern Matching Condition
 ```csharp
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
@@ -269,16 +272,16 @@ SqlStatement sql =
         | RegexpLike(u.Name, "%c"))
     .Build();
 
-// SELECT "u".name
-// FROM users "u"
-// WHERE ("u".name LIKE :0)
-// OR ("u".name NOT LIKE :1)
-// OR (REGEXP_LIKE("u".name, :2))
+// SELECT name
+// FROM users
+// WHERE (name LIKE :0)
+// OR (name NOT LIKE :1)
+// OR (REGEXP_LIKE(name, :2))
 ```
 
 ##### BETWEEN Condition
 ```csharp
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
@@ -287,15 +290,15 @@ SqlStatement sql =
         | u.Id.NotBetween(3, 4))
     .Build();
 
-// SELECT "u".name
-// FROM users "u"
-// WHERE ("u".id BETWEEN :0 AND :1)
-// OR ("u".id NOT BETWEEN :2 AND :3)
+// SELECT name
+// FROM users
+// WHERE (id BETWEEN :0 AND :1)
+// OR (id NOT BETWEEN :2 AND :3)
 ```
 
 ##### IN Condition
 ```csharp
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
@@ -304,26 +307,26 @@ SqlStatement sql =
         | u.Id.NotIn(4, 5, 6))
     .Build();
 
-// SELECT "u".name
-// FROM users "u"
-// WHERE ("u".id IN (:0, :1, :2))
-// OR ("u".id NOT IN (:3, :4, :5))
+// SELECT name
+// FROM users
+// WHERE (id IN (:0, :1, :2))
+// OR (id NOT IN (:3, :4, :5))
 ```
 
 ##### EXISTS Condition
 ```csharp
-UsersTable u = new("u");
-UsersTable s = new("s");
+UsersTable a = new("a");
+UsersTable b = new("b");
 SqlStatement sql =
-    Select(u.Name)
-    .From(u)
+    Select(a.Name)
+    .From(a)
     .Where(
-        Exists(Select(s.Id).From(s)))
+        Exists(Select(b.Id).From(b)))
     .Build();
 
-// SELECT "u".name
-// FROM users "u"
-// WHERE EXISTS (SELECT "s".id FROM users "s")
+// SELECT "a".name
+// FROM users "a"
+// WHERE EXISTS (SELECT "b".id FROM users "b")
 ```
 
 #### JOIN Clause
@@ -415,7 +418,7 @@ SqlStatement sql =
 #### ORDER BY Clause
 
 ```csharp
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
@@ -432,24 +435,25 @@ SqlStatement sql =
         u.Id.Desc.NullsLast)
     .Build();
 
-// SELECT "u".name
-// FROM users "u"
-// ORDER BY 1,
-// "u".id,
-// "u".id NULLS FIRST,
-// "u".id NULLS LAST,
-// "u".id ASC,
-// "u".id ASC NULLS FIRST,
-// "u".id ASC NULLS LAST,
-// "u".id DESC,
-// "u".id DESC NULLS FIRST,
-// "u".id DESC NULLS LAST
+// SELECT name
+// FROM users
+// ORDER BY
+// 1,
+// id,
+// id NULLS FIRST,
+// id NULLS LAST,
+// id ASC,
+// id ASC NULLS FIRST,
+// id ASC NULLS LAST,
+// id DESC,
+// id DESC NULLS FIRST,
+// id DESC NULLS LAST
 ```
 
 #### GROUP BY and HAVING Clause
 
 ```csharp
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(
         u.Id,
@@ -460,10 +464,55 @@ SqlStatement sql =
     .Having(Count(u.Id) > 1)
     .Build();
 
-// SELECT "u".id, "u".name, COUNT("u".id)
-// FROM users "u"
-// GROUP BY "u".id, "u".name
-// HAVING COUNT("u".id) > :0
+// SELECT id, name, COUNT(id)
+// FROM users
+// GROUP BY id, name
+// HAVING COUNT(id) > :0
+```
+
+### INSERT Statement
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    InsertInto(u, u.Id, u.Name, u.CreatedAt)
+    .Values(1, "newName", SysDate)
+    .Build();
+
+// INSERT INTO users
+// (id, name, created_at)
+// VALUES
+// (:0, :1, SYSDATE)
+```
+
+### UPDATE Statement
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Update(u)
+    .Set(
+        u.Name == "newName",
+        u.CreatedAt == SysDate)
+    .Where(u.Id == 1)
+    .Build();
+
+// UPDATE users
+// SET name = :0,
+// created_at = SYSDATE
+// WHERE id = :1
+```
+
+**Note:** SqlArtisan's `Set()` method uses `Column == Value` for SQL-like assignment, unlike standard C# `==` (comparison). In `Where()` clauses, `==` is used for comparison as expected.
+
+### DELETE Statement
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    DeleteFrom(u)
+    .Where(u.Id == 1)
+    .Build();
+
+// DELETE FROM users
+// WHERE id = :0
 ```
 
 ## Performance
