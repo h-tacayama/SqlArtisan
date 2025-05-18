@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public interface IInsertBuilderInsertInto : ISqlBuilder
+public interface IInsertBuilderInsertInto : ISqlBuilder, ISelectBuilder
 {
-    IInsertBuilderSet Set(params EqualityBasedCondition[] assignments);
+    IInsertBuilderValues Values(params object[] values);
 }

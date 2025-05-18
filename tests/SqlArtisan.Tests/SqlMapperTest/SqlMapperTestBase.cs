@@ -78,11 +78,8 @@ public abstract class SqlMapperTestBase : IDisposable
         TestTable t = new("t");
 
         ISqlBuilder sql =
-            InsertInto(t)
-            .Set(
-                t.Code == code,
-                t.Name == name,
-                t.CreatedAt == ToDate(createdAt.ToString("yyyy/MM/dd"), "yyyy/mm/dd"));
+            InsertInto(t, t.Code, t.Name, t.CreatedAt)
+            .Values(code, name, ToDate(createdAt.ToString("yyyy/MM/dd"), "yyyy/mm/dd"));
 
         int rows = _conn.Execute(sql);
     }
