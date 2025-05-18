@@ -8,14 +8,15 @@ public class InsertTest
     [Fact]
     public void InsertInto_WithoutColumnList_SqlWithValuesOnly()
     {
+        TestTable t = new();
         SqlStatement sql =
-            InsertInto(_t)
+            InsertInto(t)
             .Values(1, "a", SysDate)
             .Build();
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
-        expected.Append("test_table \"t\" ");
+        expected.Append("test_table ");
         expected.Append("VALUES ");
         expected.Append("(");
         expected.Append(":0, ");
