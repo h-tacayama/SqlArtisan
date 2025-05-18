@@ -8,7 +8,28 @@ public class InsertTest
     private readonly TestTable _t = new("t");
 
     [Fact]
-    public void InsertInto_WithValuesClause_CorrectSql()
+    public void InsertInto_WithoutColumnList_SqlWithValuesOnly()
+    {
+        SqlStatement sql =
+            InsertInto(_t)
+            .Values(1, "a", SysDate)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("VALUES ");
+        expected.Append("(");
+        expected.Append(":0, ");
+        expected.Append(":1, ");
+        expected.Append("SYSDATE");
+        expected.Append(")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void InsertInto_WithColumnList_SqlWithColumnsAndValues()
     {
         SqlStatement sql =
             InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
