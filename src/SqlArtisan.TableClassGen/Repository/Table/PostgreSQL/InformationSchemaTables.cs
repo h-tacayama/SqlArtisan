@@ -2,7 +2,7 @@
 
 internal sealed class InformationSchemaTables : DbTableBase
 {
-    public InformationSchemaTables(string alias)
+    public InformationSchemaTables(string alias = "")
         : base("information_schema.tables", alias)
     {
         TableSchema = new DbColumn(alias, "table_schema");

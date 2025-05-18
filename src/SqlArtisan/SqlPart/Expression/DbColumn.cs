@@ -5,7 +5,14 @@ public sealed class DbColumn(string tableAlias, string columnName) : SqlExpressi
     private readonly string _tableAlias = tableAlias;
     private readonly string _columnName = columnName;
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .EncloseInDoubleQuotes(_tableAlias)
-        .Append($".{_columnName}");
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        if (!string.IsNullOrEmpty(_tableAlias))
+        {
+            buffer.EncloseInDoubleQuotes(_tableAlias);
+            buffer.Append(".");
+        }
+
+        buffer.Append(_columnName);
+    }
 }

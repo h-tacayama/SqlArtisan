@@ -8,6 +8,29 @@ public class SelectTest
     private readonly TestTable _t = new("t");
 
     [Fact]
+    public void Select_WithoutTableAlias_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            Select(
+                t.Code,
+                t.Name,
+                t.CreatedAt)
+            .From(t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("code, ");
+        expected.Append("name, ");
+        expected.Append("created_at ");
+        expected.Append("FROM ");
+        expected.Append("test_table");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Select_ColumnAliases_CorrectSql()
     {
         SqlStatement sql =

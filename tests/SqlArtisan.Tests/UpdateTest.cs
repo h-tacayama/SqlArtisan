@@ -5,7 +5,7 @@ namespace SqlArtisan.Tests;
 
 public class UpdateTest
 {
-    private readonly TestTable _t = new("t");
+    private readonly TestTable _t = new();
 
     [Fact]
     public void Update_SetLiterals_CorrectSql()
@@ -20,11 +20,11 @@ public class UpdateTest
 
         StringBuilder expected = new();
         expected.Append("UPDATE ");
-        expected.Append("test_table \"t\" ");
+        expected.Append("test_table ");
         expected.Append("SET ");
-        expected.Append("\"t\".code = :0, ");
-        expected.Append("\"t\".name = :1, ");
-        expected.Append("\"t\".created_at = SYSDATE");
+        expected.Append("code = :0, ");
+        expected.Append("name = :1, ");
+        expected.Append("created_at = SYSDATE");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -44,11 +44,11 @@ public class UpdateTest
 
         StringBuilder expected = new();
         expected.Append("UPDATE ");
-        expected.Append("test_table \"t\" ");
+        expected.Append("test_table ");
         expected.Append("SET ");
-        expected.Append("\"t\".code = :0, ");
-        expected.Append("\"t\".name = :1, ");
-        expected.Append("\"t\".created_at = :2");
+        expected.Append("code = :0, ");
+        expected.Append("name = :1, ");
+        expected.Append("created_at = :2");
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(1, sql.Parameters.Get<int>(":0"));

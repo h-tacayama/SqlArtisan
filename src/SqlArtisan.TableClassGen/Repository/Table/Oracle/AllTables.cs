@@ -2,7 +2,7 @@
 
 internal sealed class AllTables : DbTableBase
 {
-    public AllTables(string alias) : base("all_tables", alias)
+    public AllTables(string alias = "") : base("all_tables", alias)
     {
         Owner = new DbColumn(alias, "owner");
         TableName = new DbColumn(alias, "table_name");
