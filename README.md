@@ -26,12 +26,13 @@ This project is currently under **active development**. It should be considered 
 ### Prerequisites
 
 - .NET 8.0 or later.
-- SqlArtisan is currently verified with PostgreSQL and Oracle.
+- SqlArtisan is currently verified with Oracle and PostgreSQL.
 - (Optional) To use the Dapper integration features (as shown in examples), install the `SqlArtisan.DapperExtensions` package.
 
 ### Installation
 
 You can install SqlArtisan and its optional Dapper integration library via NuGet Package Manager.
+
 *(Note: These packages are currently in their pre-release phase, so use the --prerelease flag when installing.)*
 
 For the core query building functionality:
@@ -148,7 +149,8 @@ SqlStatement sql =
     .From(u)
     .Build();
 
-// SELECT "u".id AS "user_id" FROM users "u"
+// SELECT "u".id AS "user_id"
+// FROM users "u"
 ```
 
 #### DISTINCT
@@ -159,7 +161,8 @@ SqlStatement sql =
     .From(u)
     .Build();
 
-// SELECT DISTINCT "u".id FROM users "u"
+// SELECT DISTINCT "u".id
+// FROM users "u"
 ```
 
 #### Hints
@@ -170,7 +173,8 @@ SqlStatement sql =
     .From(u)
     .Build();
 
-// SELECT /*+ INDEX(u users_ix) */ "u".id FROM users "u"
+// SELECT /*+ INDEX(u users_ix) */ "u".id
+// FROM users "u"
 ```
 
 #### From Clause
