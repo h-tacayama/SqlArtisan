@@ -7,7 +7,7 @@ using static SqlArtisan.SqlWordbook;
 namespace SqlArtisan.Tests;
 
 [Collection("SequentialTests")]
-public class SqlMapperTest : AbstractSqlMapperTest
+public class SqlMapperTest : SqlMapperTestBase
 {
     private readonly TestTable _t = new("t");
 

@@ -2,22 +2,16 @@
 internal sealed class InsertBuilder :
     SelectBuilder,
     IInsertBuilderInsertInto,
-    IInsertBuilderSelect,
-    IInsertBuilderSet
+    IInsertBuilderValues
 {
     internal InsertBuilder(InsertIntoClause insertIntoClause)
         : base(insertIntoClause)
     {
     }
 
-    internal InsertBuilder(InsertSelectClause insertSelectClause)
-        : base(insertSelectClause)
+    public IInsertBuilderValues Values(params object[] values)
     {
-    }
-
-    public IInsertBuilderSet Set(params EqualityBasedCondition[] assignments)
-    {
-        AddPart(InsertSetClause.Parse(assignments));
+        AddPart(InsertValuesClause.Parse(values));
         return this;
     }
 }

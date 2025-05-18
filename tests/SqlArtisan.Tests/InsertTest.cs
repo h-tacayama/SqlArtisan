@@ -8,14 +8,11 @@ public class InsertTest
     private readonly TestTable _t = new("t");
 
     [Fact]
-    public void InsertInto_WithSetClause_CorrectSql()
+    public void InsertInto_WithValuesClause_CorrectSql()
     {
         SqlStatement sql =
-            InsertInto(_t)
-            .Set(
-                _t.Code == 1,
-                _t.Name == "a",
-                _t.CreatedAt == SysDate)
+            InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
+            .Values(1, "a", SysDate)
             .Build();
 
         StringBuilder expected = new();
@@ -40,11 +37,8 @@ public class InsertTest
     public void InsertInto_WithNull_CorrectSql()
     {
         SqlStatement sql =
-            InsertInto(_t)
-            .Set(
-                _t.Code == Null,
-                _t.Name == Null,
-                _t.CreatedAt == Null)
+            InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
+            .Values(Null, Null, Null)
             .Build();
 
         StringBuilder expected = new();
@@ -63,18 +57,6 @@ public class InsertTest
         expected.Append(")");
 
         Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void InsertInto_WithInequality_ThrowsArgumentException()
-    {
-        Assert.Throws<ArgumentException>(() =>
-        {
-            InsertInto(_t)
-            .Set(
-                _t.Code != Null)
-            .Build();
-        });
     }
 
     [Fact]
