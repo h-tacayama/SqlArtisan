@@ -1,12 +1,15 @@
 ﻿namespace SqlArtisan;
-internal sealed class InsertBuilder :
-    SelectBuilder,
-    IInsertBuilderInsertInto,
+internal sealed class InsertBuilder(InsertIntoClause insertIntoClause) :
+    SelectBuilder(insertIntoClause),
+    IInsertBuilderColumns,
+    IInsertBuilderSet,
+    IInsertBuilderTable,
     IInsertBuilderValues
 {
-    internal InsertBuilder(InsertIntoClause insertIntoClause)
-        : base(insertIntoClause)
+    public IInsertBuilderSet Set(params EqualityBasedCondition[] assignments)
     {
+        AddPart(InsertSetClause.Parse(assignments));
+        return this;
     }
 
     public IInsertBuilderValues Values(params object[] values)
