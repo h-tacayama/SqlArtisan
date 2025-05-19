@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 
     <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>alpha.8</VersionSuffix>
+    <VersionSuffix>alpha.9</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
@@ -18,13 +18,6 @@
     <PackageProjectUrl>https://github.com/h-tacayama/SqlArtisan</PackageProjectUrl>
     <RepositoryUrl>https://github.com/h-tacayama/SqlArtisan</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-
-    <PackageReleaseNotes>
-      - Make table alias optional for table name.
-      Breaking Changes:
-      - Align INSERT statement API with common SQL INSERT patterns.
-    </PackageReleaseNotes>
-    
   </PropertyGroup>
 
   <ItemGroup>
