@@ -5,6 +5,11 @@ internal sealed class InsertIntoClause(DbTableBase table, DbColumn[] columns) : 
     private readonly DbTableBase _table = table;
     private readonly DbColumn[] _columns = columns;
 
+    internal InsertIntoClause(DbTableBase table)
+        : this(table, Array.Empty<DbColumn>())
+    {
+    }
+
     internal override void Format(SqlBuildingBuffer buffer)
     {
         buffer.Append($"{Keywords.Insert} {Keywords.Into} ")
