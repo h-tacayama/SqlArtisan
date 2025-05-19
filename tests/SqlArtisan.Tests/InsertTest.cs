@@ -82,6 +82,36 @@ public class InsertTest
     }
 
     [Fact]
+    public void InsertInto_WithSetClause_SqlWithColumnsAndValues()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            InsertInto(t)
+            .Set(
+                t.Code == 1,
+                t.Name == "a",
+                t.CreatedAt == SysDate)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO ");
+        expected.Append("test_table ");
+        expected.Append("(");
+        expected.Append("code, ");
+        expected.Append("name, ");
+        expected.Append("created_at");
+        expected.Append(") ");
+        expected.Append("VALUES ");
+        expected.Append("(");
+        expected.Append(":0, ");
+        expected.Append(":1, ");
+        expected.Append("SYSDATE");
+        expected.Append(")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void InsertInto_WithSelectClause_CorrectSql()
     {
         TestTable t = new("t");

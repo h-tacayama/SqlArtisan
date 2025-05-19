@@ -4,7 +4,10 @@ namespace SqlArtisan;
 
 public static partial class SqlWordbook
 {
-    public static IInsertBuilderInsertInto InsertInto(
+    public static IInsertBuilderTable InsertInto(DbTableBase table) =>
+        new InsertBuilder(new InsertIntoClause(table));
+
+    public static IInsertBuilderColumns InsertInto(
         DbTableBase table,
         params DbColumn[] columns) =>
         new InsertBuilder(new InsertIntoClause(table, columns));
