@@ -23,11 +23,6 @@
 
     <PackAsTool>True</PackAsTool>
     <ToolCommandName>sa-tableclassgen</ToolCommandName>
-
-    <PackageReleaseNotes>
-      - Make table alias optional for table name.
-    </PackageReleaseNotes>
-    
   </PropertyGroup>
 
   <ItemGroup>
