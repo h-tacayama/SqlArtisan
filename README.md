@@ -470,18 +470,16 @@ SqlStatement sql =
 // HAVING COUNT(id) > :0
 ```
 
-### INSERT Statement
+### DELETE Statement
 ```csharp
 UsersTable u = new();
 SqlStatement sql =
-    InsertInto(u, u.Id, u.Name, u.CreatedAt)
-    .Values(1, "newName", SysDate)
+    DeleteFrom(u)
+    .Where(u.Id == 1)
     .Build();
 
-// INSERT INTO users
-// (id, name, created_at)
-// VALUES
-// (:0, :1, SYSDATE)
+// DELETE FROM users
+// WHERE id = :0
 ```
 
 ### UPDATE Statement
@@ -503,17 +501,42 @@ SqlStatement sql =
 
 **Note:** SqlArtisan's `Set()` method uses `Column == Value` for SQL-like assignment, unlike standard C# `==` (comparison). In `Where()` clauses, `==` is used for comparison as expected.
 
-### DELETE Statement
+### INSERT Statement
+
 ```csharp
 UsersTable u = new();
 SqlStatement sql =
-    DeleteFrom(u)
-    .Where(u.Id == 1)
+    InsertInto(u, u.Id, u.Name, u.CreatedAt)
+    .Values(1, "newName", SysDate)
     .Build();
 
-// DELETE FROM users
-// WHERE id = :0
+// INSERT INTO users
+// (id, name, created_at)
+// VALUES
+// (:0, :1, SYSDATE)
 ```
+
+**Alternative: Column-Value Pairing Syntax (SET-like)**
+
+SqlArtisan also offers an alternative `INSERT` syntax, similar to `UPDATE`'s `Set()` method, for clearer column-value pairing.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    InsertInto(u)
+    .Set(
+        u.Id == 1,
+        u.Name == "newName",
+        u.CreatedAt == SysDate)
+    .Build();
+
+// INSERT INTO users
+// (id, name, created_at)
+// VALUES
+// (:0, :1, SYSDATE)
+```
+
+**Note:** Generates standard `INSERT INTO ... (columns) VALUES (values)` SQL, not MySQL's `INSERT ... SET ...`, for broad database compatibility.
 
 ## Performance
 
