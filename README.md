@@ -126,7 +126,9 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
 
 3. Build and Execute your Query
 
-    Use SqlArtisan's SQL-like API to construct your query, then execute it. This example uses Dapper with `SqlArtisan.DapperExtensions` for execution.
+    Construct your query using SqlArtisan's SQL-like API. For convenient access to entry point methods like `Select()` or `InsertInto()`, add a static using for `SqlArtisan.SqlWordbook`, which provides these static helper methods.
+
+    Once built, execute the query. This example uses Dapper with `SqlArtisan.DapperExtensions`.
 
     ```csharp
     using SqlArtisan;
@@ -438,11 +440,11 @@ SqlStatement sql =
 ```
 ##### Supported JOIN APIs
 
-- `InnerJoin(table)` for `INNER JOIN`
-- `LeftJoin(table)` for `LEFT OUTER JOIN`
-- `RightJoin(table)` for `RIGHT OUTER JOIN`
-- `FullJoin(table)` for `FULL OUTER JOIN`
-- `CrossJoin(table)` for `CROSS JOIN`
+- `InnerJoin()` for `INNER JOIN`
+- `LeftJoin()` for `LEFT OUTER JOIN`
+- `RightJoin()` for `RIGHT OUTER JOIN`
+- `FullJoin()` for `FULL OUTER JOIN`
+- `CrossJoin()` for `CROSS JOIN`
 
 #### ORDER BY Clause
 
