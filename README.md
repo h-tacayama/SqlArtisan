@@ -12,6 +12,45 @@ This project is currently under **active development**. It should be considered 
 
 **SqlArtisan**: Write SQL, in C#. A SQL query builder that provides a SQL-like experience, designed for developers who value the clarity and control of direct SQL syntax.
 
+## Table of Contents
+
+- [Key Features](#key-features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Quick Start](#quick-start)
+- [Usage Examples](#usage-examples)
+  - [SELECT Query](#select-query)
+    - [SELECT Clause](#select-clause)
+        - [Column Aliases](#column-aliases)
+        - [DISTINCT](#distinct)
+        - [Hints](#hints)
+    - [FROM Clause](#from-clause)
+      - [FROM-less Queries](#from-less-queries)
+      - [Using DUAL (Oracle)](#using-dual-oracle)
+    - [WHERE Clause](#where-clause)
+      - [Logical Condition](#logical-condition)
+      - [Comparison Condition](#comparison-condition)
+      - [NULL Condition](#null-condition)
+      - [Pattern Matching Condition](#pattern-matching-condition)
+      - [BETWEEN Condition](#between-condition)
+      - [IN Condition](#in-condition)
+      - [EXISTS Condition](#exists-condition)
+      - [Dynamic Conditions](#dynamic-conditions)
+    - [JOIN Clause](#join-clause)
+      - [Example using INNER JOIN](#example-using-inner-join)
+      - [Supported JOIN APIs](#supported-join-apis)
+    - [ORDER BY Clause](#order-by-clause)
+    - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
+  - [DELETE Statement](#delete-statement)
+  - [UPDATE Statement](#update-statement)
+  - [INSERT Statement](#insert-statement)
+    - [Standard Syntax](#standard-syntax)
+    - [Alternative Syntax (SET-like)](#alternative-syntax-set-like)
+    - [INSERT ... SELECT Syntax](#insert.select-syntax)
+- [Performance](#performance)
+- [License](#license)
+
 ## Key Features
 
 - **SQL-like API**: Write queries naturally, mirroring SQL syntax and structure.
@@ -105,6 +144,8 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
 
     // Dapper: Set true to map snake_case columns to PascalCase/camelCase C# members.
     Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+
+    // Assume '_conn' is an already open IDbConnection to your database.
     IEnumerable<UserDto> users = await _conn.QueryAsync<UserDto>(sql);
     ```
 
@@ -141,7 +182,9 @@ SqlArtisan allows you to construct a wide variety of SQL queries in a type-safe 
 
 ### SELECT Query
 
-#### Column Aliases
+#### SELECT Clause
+
+##### Column Aliases
 ```csharp
 UsersTable u = new();
 SqlStatement sql =
@@ -153,7 +196,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-#### DISTINCT
+##### DISTINCT
 ```csharp
 UsersTable u = new();
 SqlStatement sql =
@@ -165,7 +208,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-#### Hints
+##### Hints
 ```csharp
 // The hint below refers to this alias "u".
 UsersTable u = new("u");
@@ -178,7 +221,7 @@ SqlStatement sql =
 // FROM users "u"
 ```
 
-#### From Clause
+#### FROM Clause
 
 ##### FROM-less Queries
 ```csharp
@@ -316,22 +359,68 @@ SqlStatement sql =
 ##### EXISTS Condition
 ```csharp
 UsersTable a = new("a");
-UsersTable b = new("b");
+        UsersTable b = new("b");
+        UsersTable c = new("c");
+        SqlStatement sql =
+            Select(a.Name)
+            .From(a)
+            .Where(
+                Exists(Select(b.Id).From(b))
+                & NotExists(Select(c.Id).From(c)))
+            .Build();
+
+        // SELECT "a".name
+        // FROM users "a"
+        // WHERE (EXISTS (SELECT "b".id FROM users "b"))
+        // AND (NOT EXISTS (SELECT "c".id FROM users "c"))
+```
+
+##### Dynamic Conditions
+
+SqlArtisan allows you to dynamically include or exclude conditions using a helper like `ConditionIf`. This is useful when parts of your `WHERE` clause depend on runtime logic.
+
+###### Case 1: Condition is Included 
+
+```csharp
+bool futureOnly = true;
+
+UsersTable u = new("u");
 SqlStatement sql =
-    Select(a.Name)
-    .From(a)
+    Select(u.Name)
+    .From(u)
     .Where(
-        Exists(Select(b.Id).From(b)))
+        u.Id > 0
+        & ConditionIf(futureOnly, u.CreatedAt > SysDate))
     .Build();
 
-// SELECT "a".name
-// FROM users "a"
-// WHERE EXISTS (SELECT "b".id FROM users "b")
+// SELECT "u".name
+// FROM users "u"
+// WHERE ("u".id > :0)
+// AND ("u".created_at > SYSDATE)
+```
+
+###### Case 2: Condition is Excluded
+
+```csharp
+bool futureOnly = false;
+
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id > 0
+        & ConditionIf(futureOnly, u.CreatedAt > SysDate))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE ("u".id > :0)
 ```
 
 #### JOIN Clause
 
-##### INNER JOIN
+##### Example using INNER JOIN
 ```csharp
 UsersTable u = new("u");
 OrdersTable o = new("o");
@@ -347,73 +436,13 @@ SqlStatement sql =
 // INNER JOIN orders "o"
 // ON "u".id = "o".user_id
 ```
+##### Supported JOIN APIs
 
-##### LEFT OUTER JOIN
-```csharp
-UsersTable u = new("u");
-OrdersTable o = new("o");
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .LeftJoin(o)
-    .On(u.Id == o.UserId)
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// LEFT JOIN orders "o"
-// ON "u".id = "o".user_id
-```
-
-##### RIGHT OUTER JOIN
-```csharp
-UsersTable u = new("u");
-OrdersTable o = new("o");
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .RightJoin(o)
-    .On(u.Id == o.UserId)
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// RIGHT JOIN orders "o"
-// ON "u".id = "o".user_id
-```
-
-##### FULL JOIN
-```csharp
-UsersTable u = new("u");
-OrdersTable o = new("o");
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .FullJoin(o)
-    .On(u.Id == o.UserId)
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// FULL JOIN orders "o"
-// ON "u".id = "o".user_id
-```
-
-##### CROSS JOIN
-```csharp
-UsersTable u = new("u");
-OrdersTable o = new("o");
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .CrossJoin(o)
-    //.On(u.Id == o.UserId) // Compiler error
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// CROSS JOIN orders "o"
-```
+- `InnerJoin(table)` for `INNER JOIN`
+- `LeftJoin(table)` for `LEFT OUTER JOIN`
+- `RightJoin(table)` for `RIGHT OUTER JOIN`
+- `FullJoin(table)` for `FULL OUTER JOIN`
+- `CrossJoin(table)` for `CROSS JOIN`
 
 #### ORDER BY Clause
 
@@ -503,6 +532,8 @@ SqlStatement sql =
 
 ### INSERT Statement
 
+#### Standard Syntax
+
 ```csharp
 UsersTable u = new();
 SqlStatement sql =
@@ -516,7 +547,7 @@ SqlStatement sql =
 // (:0, :1, SYSDATE)
 ```
 
-**Alternative: Column-Value Pairing Syntax (SET-like)**
+#### Alternative Syntax (SET-like)
 
 SqlArtisan also offers an alternative `INSERT` syntax, similar to `UPDATE`'s `Set()` method, for clearer column-value pairing.
 
@@ -537,6 +568,24 @@ SqlStatement sql =
 ```
 
 **Note:** Generates standard `INSERT INTO ... (columns) VALUES (values)` SQL, not MySQL's `INSERT ... SET ...`, for broad database compatibility.
+
+#### INSERT ... SELECT Syntax
+
+```csharp
+UsersTable a = new("a");
+UsersTable b = new("b");
+
+SqlStatement sql =
+    InsertInto(a, a.Id, a.Name, a.CreatedAt)
+    .Select(b.Id, b.Name, b.CreatedAt)
+    .From(b)
+    .Build();
+
+// INSERT INTO users "a"
+// ("a".id, "a".name, "a".created_at)
+// SELECT "b".id, "b".name, "b".created_at
+// FROM users "b"
+```
 
 ## Performance
 
