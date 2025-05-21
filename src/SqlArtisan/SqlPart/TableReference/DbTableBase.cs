@@ -1,4 +1,6 @@
-﻿namespace SqlArtisan;
+﻿using SqlArtisan.Internal;
+
+namespace SqlArtisan;
 
 public abstract class DbTableBase : TableReference
 {

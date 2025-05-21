@@ -1,4 +1,6 @@
-﻿namespace SqlArtisan;
+﻿using SqlArtisan.Internal;
+
+namespace SqlArtisan;
 
 public static partial class SqlWordbook
 {

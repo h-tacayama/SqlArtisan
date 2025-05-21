@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.SqlWordbook;
 
 namespace SqlArtisan.Tests;
