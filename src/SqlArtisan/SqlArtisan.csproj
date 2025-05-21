@@ -18,8 +18,7 @@
     <PackageProjectUrl>https://github.com/h-tacayama/SqlArtisan</PackageProjectUrl>
     <RepositoryUrl>https://github.com/h-tacayama/SqlArtisan</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>CHANGELOG.md</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

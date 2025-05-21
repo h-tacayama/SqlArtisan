@@ -1,4 +1,6 @@
-﻿namespace SqlArtisan;
+﻿using SqlArtisan.Internal;
+
+namespace SqlArtisan;
 
 public sealed class DbColumn(string tableAlias, string columnName) : SqlExpression
 {

@@ -1,4 +1,7 @@
-﻿namespace SqlArtisan;
+﻿using SqlArtisan.Internal;
+
+namespace SqlArtisan;
+
 public static partial class SqlWordbook
 {
     public static OrderByClause OrderBy(
