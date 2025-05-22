@@ -12,7 +12,8 @@ This project is currently under **active development**. It should be considered 
 
 **SqlArtisan**: Write SQL, in C#. A SQL query builder that provides a SQL-like experience, designed for developers who value the clarity and control of direct SQL syntax.
 
-## Table of Contents
+<details>
+<summary>Table of Contents</summary>
 
 - [Key Features](#key-features)
 - [Getting Started](#getting-started)
@@ -50,6 +51,8 @@ This project is currently under **active development**. It should be considered 
     - [INSERT ... SELECT Syntax](#insert.select-syntax)
 - [Performance](#performance)
 - [License](#license)
+
+</details>
 
 ## Key Features
 
@@ -377,7 +380,7 @@ UsersTable a = new("a");
         // AND (NOT EXISTS (SELECT "c".id FROM users "c"))
 ```
 
-##### Dynamic Conditions
+##### Dynamic Condition
 
 SqlArtisan allows you to dynamically include or exclude conditions using a helper like `ConditionIf`. This is useful when parts of your `WHERE` clause depend on runtime logic.
 
@@ -593,9 +596,13 @@ SqlStatement sql =
 
 SqlArtisan is engineered for efficient performance, primarily by keeping heap memory allocations low.
 
-Our core strategy is efficient buffer management using ArrayPool<T>. Internal buffers, particularly for string construction, are recycled from a shared pool, avoiding repeated heap allocations.
+Our core strategy is efficient buffer management using `ArrayPool<T>`. Internal buffers, particularly for string construction, are recycled from a shared pool, avoiding repeated heap allocations.
 
 This approach leads to fewer garbage collection (GC) pauses, better application throughput as more CPU power is available for your core tasks, and efficient memory use because buffers are reused.
+
+## Changelog
+
+For a detailed history of changes, new features, and bug fixes in each version, please see the [CHANGELOG.md](CHANGELOG.md) file.
 
 ## License
 
