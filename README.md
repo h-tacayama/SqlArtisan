@@ -37,7 +37,7 @@ This project is currently under **active development**. It should be considered 
       - [BETWEEN Condition](#between-condition)
       - [IN Condition](#in-condition)
       - [EXISTS Condition](#exists-condition)
-      - [Dynamic Conditions](#dynamic-conditions)
+      - [Dynamic Condition](#dynamic-condition)
     - [JOIN Clause](#join-clause)
       - [Example using INNER JOIN](#example-using-inner-join)
       - [Supported JOIN APIs](#supported-join-apis)
@@ -60,7 +60,7 @@ This project is currently under **active development**. It should be considered 
 - **SQL-like API**: Write queries naturally, mirroring SQL syntax and structure.
 - **Schema IntelliSense**: Provides code completion for table/column names via definition classes, improving development speed and accuracy.
 - **Automatic Parameterization**: Converts literals to bind variables, boosting security (SQLi prevention) and query performance.
-- **Dynamic Query Building**: Dynamically include or exclude specific conditions, especially in WHERE clauses, based on application logic or user input.
+- **Dynamic Query Conditions**: Dynamically include or exclude `WHERE` conditions (and other query parts) using simple helpers like `ConditionIf`.
 - **Low-Allocation Design**: Minimizes heap allocations and GC load for superior performance.
 - **Seamless Dapper Integration**: The optional `SqlArtisan.DapperExtensions` library provides Dapper extensions that enable effortless SQL execution.
 
