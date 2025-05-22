@@ -50,6 +50,7 @@ This project is currently under **active development**. It should be considered 
     - [Alternative Syntax (SET-like)](#alternative-syntax-set-like)
     - [INSERT ... SELECT Syntax](#insert.select-syntax)
 - [Performance](#performance)
+- [Changelog](#changelog)
 - [License](#license)
 
 </details>
