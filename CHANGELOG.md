@@ -5,9 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.1.0-alpha.11] - 2025-05-23
+### Added
+- Add support for CURRVAL and NEXTVAL functions (#19).
 ### Changed
 - Improved API discoverability by moving secondary public types (required by public interfaces) to sub-namespaces (#17).
-- Add support for CURRVAL and NEXTVAL functions (#19).
 
 ## [0.1.0-alpha.10] - 2025-05-20
 ### Changed
