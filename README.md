@@ -606,8 +606,8 @@ This approach leads to fewer garbage collection (GC) pauses, better application 
 
 ## Changelog
 
-For a detailed history of changes, new features, and bug fixes in each version, please see the [CHANGELOG.md](CHANGELOG.md) file.
+For a detailed history of changes, new features, and bug fixes in each version, please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md) file.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for the full license text.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/h-tacayama/SqlArtisan/blob/main/LICENSE) file for the full license text.
