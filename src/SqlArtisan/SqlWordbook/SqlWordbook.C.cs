@@ -51,4 +51,7 @@ public static partial class SqlWordbook
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentTimestampFunction CurrentTimestamp => new();
+
+    public static CurrValFunction CurrVal(string sequenceName) =>
+        new(sequenceName);
 }

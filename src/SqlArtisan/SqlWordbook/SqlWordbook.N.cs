@@ -9,6 +9,9 @@ public static partial class SqlWordbook
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static NullExpression Null => new();
 
+    public static NextValFunction NextVal(string sequenceName) =>
+        new(sequenceName);
+
     public static NotCondition Not(SqlCondition condition) => new(condition);
 
     public static NotExistsCondition NotExists(ISubquery subquery) =>

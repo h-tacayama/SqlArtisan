@@ -81,4 +81,18 @@ public partial class FunctionTest
         SqlStatement sql = Select(CurrentTimestamp).Build();
         Assert.Equal("SELECT CURRENT_TIMESTAMP", sql.Text);
     }
+
+    [Fact]
+    public void CurrVal_SequenceName_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(CurrVal("seq_test"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CURRVAL('seq_test')");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }
