@@ -69,7 +69,7 @@ This project is currently under **active development**. It should be considered 
 ### Prerequisites
 
 - .NET 8.0 or later.
-- SqlArtisan is currently verified with Oracle and PostgreSQL.
+- SqlArtisan is currently verified with Oracle, PostgreSQL, and SQLite.
 - (Optional) To use the Dapper integration features (as shown in examples), install the `SqlArtisan.DapperExtensions` package.
 
 ### Installation
