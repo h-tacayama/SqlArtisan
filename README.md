@@ -58,7 +58,7 @@ This project is currently under **active development**. It should be considered 
 ## Key Features
 
 - **SQL-like API**: Write queries naturally, mirroring SQL syntax and structure.
-- **Schema IntelliSense**: Provides code completion for table/column names via definition classes, improving development speed and accuracy.
+- **Schema IntelliSense**: Provides code completion for table/column names via **table schema classes**, improving development speed and accuracy.
 - **Automatic Parameterization**: Converts literals to bind variables, boosting security (SQLi prevention) and query performance.
 - **Dynamic Query Conditions**: Dynamically include or exclude `WHERE` conditions (and other query parts) using simple helpers like `ConditionIf`.
 - **Low-Allocation Design**: Minimizes heap allocations and GC load for superior performance.
@@ -194,11 +194,14 @@ SqlArtisan allows you to construct a wide variety of SQL queries in a type-safe 
 ```csharp
 UsersTable u = new();
 SqlStatement sql =
-    Select(u.Id.As("user_id"))
+    Select(
+        u.Id.As("user_id"),
+        u.Name.As("user_name"))
     .From(u)
     .Build();
 
-// SELECT id AS "user_id"
+// SELECT id AS "user_id",
+// name AS "user_name"
 // FROM users
 ```
 
@@ -365,20 +368,20 @@ SqlStatement sql =
 ##### EXISTS Condition
 ```csharp
 UsersTable a = new("a");
-        UsersTable b = new("b");
-        UsersTable c = new("c");
-        SqlStatement sql =
-            Select(a.Name)
-            .From(a)
-            .Where(
-                Exists(Select(b.Id).From(b))
-                & NotExists(Select(c.Id).From(c)))
-            .Build();
+UsersTable b = new("b");
+UsersTable c = new("c");
+SqlStatement sql =
+    Select(a.Name)
+    .From(a)
+    .Where(
+        Exists(Select(b.Id).From(b))
+        & NotExists(Select(c.Id).From(c)))
+    .Build();
 
-        // SELECT "a".name
-        // FROM users "a"
-        // WHERE (EXISTS (SELECT "b".id FROM users "b"))
-        // AND (NOT EXISTS (SELECT "c".id FROM users "c"))
+// SELECT "a".name
+// FROM users "a"
+// WHERE (EXISTS (SELECT "b".id FROM users "b"))
+// AND (NOT EXISTS (SELECT "c".id FROM users "c"))
 ```
 
 ##### Dynamic Condition
