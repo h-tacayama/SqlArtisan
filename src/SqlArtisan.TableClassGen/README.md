@@ -5,6 +5,7 @@ Generate C# table schema classes from your database for `SqlArtisan`, enabling r
 ## Installation
 
 Install `sa-tableclassgen` as a .NET global tool to make it accessible from any location:
+
 *(Note: These packages are currently in their pre-release phase, so use the --prerelease flag when installing.)*
 
 ```bash
@@ -55,18 +56,18 @@ using SqlArtisan;
 
 namespace MyAppNamespace;
 
-internal sealed class Category : AbstractTable
+internal sealed class UsersTable : DbTableBase
 {
-	public Category(string tableAlias) : base("category", tableAlias)
-	{
-		CategoryId = new Column(tableAlias, "category_id");
-		Name = new Column(tableAlias, "name");
-		LastUpdate = new Column(tableAlias, "last_update");
-	}
+    public UsersTable(string tableAlias = "") : base("users", tableAlias)
+    {
+        Id = new DbColumn(tableAlias, "id");
+        Name = new DbColumn(tableAlias, "name");
+        CreatedAt = new DbColumn(tableAlias, "created_at");
+    }
 
-	public Column CategoryId { get; }
-	public Column Name { get; }
-	public Column LastUpdate { get; }
+    public DbColumn Id { get; }
+    public DbColumn Name { get; }
+    public DbColumn CreatedAt { get; }
 }
 ```
 

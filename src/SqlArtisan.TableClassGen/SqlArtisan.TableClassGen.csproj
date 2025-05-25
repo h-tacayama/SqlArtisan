@@ -20,6 +20,7 @@
 
     <PackageProjectUrl>https://github.com/h-tacayama/SqlArtisan</PackageProjectUrl>
     <RepositoryUrl>https://github.com/h-tacayama/SqlArtisan</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <PackAsTool>True</PackAsTool>
     <ToolCommandName>sa-tableclassgen</ToolCommandName>
