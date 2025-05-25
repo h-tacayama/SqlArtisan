@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -34,6 +34,13 @@
   <ItemGroup>
     <ProjectReference Include="..\SqlArtisan.DapperExtensions\SqlArtisan.DapperExtensions.csproj" />
     <ProjectReference Include="..\SqlArtisan\SqlArtisan.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
