@@ -3,7 +3,7 @@ using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan;
 
-public static partial class SqlWordbook
+public static partial class Sql
 {
     public static IInsertBuilderTable InsertInto(DbTableBase table) =>
         new InsertBuilder(new InsertIntoClause(table));

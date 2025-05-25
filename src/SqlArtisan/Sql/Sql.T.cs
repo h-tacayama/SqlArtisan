@@ -2,7 +2,7 @@
 using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan;
-public static partial class SqlWordbook
+public static partial class Sql
 {
     public static ToCharFunction ToChar(object expr) =>
         new(Resolve(expr));

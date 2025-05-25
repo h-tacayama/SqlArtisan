@@ -2,7 +2,7 @@
 using System.Data;
 using SqlArtisan.DapperExtensions;
 using static Dapper.SqlMapper;
-using static SqlArtisan.SqlWordbook;
+using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 

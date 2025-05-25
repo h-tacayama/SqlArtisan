@@ -4,7 +4,7 @@ using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan;
 
-public static partial class SqlWordbook
+public static partial class Sql
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static NullExpression Null => new();
