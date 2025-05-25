@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0-alpha.12] - 2025-05-26
+### Changed
+- **BREAKING:** Rename `SqlWordbook` to `Sql` for conciseness and appropriateness (#21).
+
 ## [0.1.0-alpha.11] - 2025-05-23
 ### Added
 - Add support for CURRVAL and NEXTVAL functions (#19).

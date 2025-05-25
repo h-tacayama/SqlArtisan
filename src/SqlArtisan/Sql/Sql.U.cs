@@ -3,7 +3,7 @@ using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan;
 
-public static partial class SqlWordbook
+public static partial class Sql
 {
     public static IUpdateBuilderUpdate Update(DbTableBase table) =>
         new UpdateBuilder(new UpdateClause(table));

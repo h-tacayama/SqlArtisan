@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 
     <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>alpha.11</VersionSuffix>
+    <VersionSuffix>alpha.12</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>

@@ -139,14 +139,14 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
 
 3. Build and Execute your Query
 
-    Construct your query using SqlArtisan's SQL-like API. For convenient access to entry point methods like `Select()` or `InsertInto()`, add a static using for `SqlArtisan.SqlWordbook`, which provides these static helper methods.
+    Construct your query using SqlArtisan's SQL-like API. For convenient access to entry point methods like `Select()` or `InsertInto()`, add a static using for `SqlArtisan.Sql`, which provides these static helper methods.
 
     Once built, execute the query. This example uses Dapper with `SqlArtisan.DapperExtensions`.
 
     ```csharp
     using SqlArtisan;
     using SqlArtisan.DapperExtensions;
-    using static SqlArtisan.SqlWordbook;
+    using static SqlArtisan.Sql;
     ```
     ```csharp
     UsersTable u = new();

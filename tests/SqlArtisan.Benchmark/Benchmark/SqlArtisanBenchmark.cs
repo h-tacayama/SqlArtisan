@@ -1,5 +1,5 @@
 ﻿using SqlArtisan.Benchmark.SqlArtisanTable;
-using static SqlArtisan.SqlWordbook;
+using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Benchmark;
 

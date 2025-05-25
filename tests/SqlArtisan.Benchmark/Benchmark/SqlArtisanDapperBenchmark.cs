@@ -1,6 +1,6 @@
 ﻿using SqlArtisan.Benchmark.SqlArtisanTable;
 using SqlArtisan.DapperExtensions;
-using static SqlArtisan.SqlWordbook;
+using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Benchmark;
 

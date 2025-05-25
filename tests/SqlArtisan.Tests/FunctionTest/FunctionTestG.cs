@@ -1,5 +1,5 @@
 using System.Text;
-using static SqlArtisan.SqlWordbook;
+using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 

@@ -2,7 +2,7 @@
 
 namespace SqlArtisan;
 
-public static partial class SqlWordbook
+public static partial class Sql
 {
     public static OrderByClause OrderBy(
         params object[] orderByItems) =>
