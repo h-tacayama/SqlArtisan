@@ -73,4 +73,4 @@ internal sealed class UsersTable : DbTableBase
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](../../LICENSE) file for the full license text.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/h-tacayama/SqlArtisan/blob/main/LICENSE) file for the full license text.

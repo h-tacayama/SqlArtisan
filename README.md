@@ -12,8 +12,7 @@ This project is currently under **active development**. It should be considered 
 
 **SqlArtisan**: Write SQL, in C#. A SQL query builder that provides a SQL-like experience, designed for developers who value the clarity and control of direct SQL syntax.
 
-<details>
-<summary>Table of Contents</summary>
+## Table of Contents
 
 - [Packages](#packages)
 - [Key Features](#key-features)
@@ -53,8 +52,6 @@ This project is currently under **active development**. It should be considered 
 - [Performance](#performance)
 - [Changelog](#changelog)
 - [License](#license)
-
-</details>
 
 ## Packages
 
