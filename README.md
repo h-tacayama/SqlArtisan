@@ -48,7 +48,7 @@ This project is currently under **active development**. It should be considered 
   - [INSERT Statement](#insert-statement)
     - [Standard Syntax](#standard-syntax)
     - [Alternative Syntax (SET-like)](#alternative-syntax-set-like)
-    - [INSERT ... SELECT Syntax](#insert.select-syntax)
+    - [INSERT SELECT Syntax](#insert-select-syntax)
 - [Performance](#performance)
 - [Changelog](#changelog)
 - [License](#license)
@@ -391,40 +391,40 @@ SqlArtisan allows you to dynamically include or exclude conditions using a helpe
 ###### Case 1: Condition is Included 
 
 ```csharp
-bool futureOnly = true;
+bool filterUnderTen = true;
 
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
     .Where(
         u.Id > 0
-        & ConditionIf(futureOnly, u.CreatedAt > SysDate))
+        & ConditionIf(filterUnderTen, u.Id < 10))
     .Build();
 
-// SELECT "u".name
-// FROM users "u"
-// WHERE ("u".id > :0)
-// AND ("u".created_at > SYSDATE)
+// SELECT name
+// FROM users
+// WHERE (id > :0)
+// AND (id < :1)
 ```
 
 ###### Case 2: Condition is Excluded
 
 ```csharp
-bool futureOnly = false;
+bool filterUnderTen = false;
 
-UsersTable u = new("u");
+UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
     .Where(
         u.Id > 0
-        & ConditionIf(futureOnly, u.CreatedAt > SysDate))
+        & ConditionIf(filterUnderTen, u.Id < 10))
     .Build();
 
-// SELECT "u".name
-// FROM users "u"
-// WHERE ("u".id > :0)
+// SELECT name
+// FROM users
+// WHERE (id > :0)
 ```
 
 #### JOIN Clause
@@ -578,7 +578,7 @@ SqlStatement sql =
 
 **Note:** Generates standard `INSERT INTO ... (columns) VALUES (values)` SQL, not MySQL's `INSERT ... SET ...`, for broad database compatibility.
 
-#### INSERT ... SELECT Syntax
+#### INSERT SELECT Syntax
 
 ```csharp
 UsersTable a = new("a");
