@@ -12,17 +12,10 @@ This project is currently under **active development**. It should be considered 
 
 **SqlArtisan**: Write SQL, in C#. A SQL query builder that provides a SQL-like experience, designed for developers who value the clarity and control of direct SQL syntax.
 
-## Packages
-
-| Package                          | Description                                                                                                                              | NuGet                                                                                                                                                  |
-| :------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SqlArtisan`                     | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                                  | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan/)                                   |
-| `SqlArtisan.DapperExtensions`    | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                               | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.DapperExtensions.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan.DapperExtensions/) |
-| `SqlArtisan.TableClassGen`       | A .NET tool that generates C# table schema classes from your database, enabling IntelliSense and type-safety with SqlArtisan.            | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/)       |
-
 <details>
 <summary>Table of Contents</summary>
 
+- [Packages](#packages)
 - [Key Features](#key-features)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
@@ -62,6 +55,14 @@ This project is currently under **active development**. It should be considered 
 - [License](#license)
 
 </details>
+
+## Packages
+
+| Package                          | Description                                                                                                                              | NuGet                                                                                                                                                  |
+| :------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SqlArtisan`                     | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                                  | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan/)                                   |
+| `SqlArtisan.DapperExtensions`    | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                               | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.DapperExtensions.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan.DapperExtensions/) |
+| `SqlArtisan.TableClassGen`       | A .NET tool that generates C# table schema classes from your database, enabling IntelliSense and type-safety with SqlArtisan.            | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/)       |
 
 ## Key Features
 
