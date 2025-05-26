@@ -74,9 +74,10 @@ This project is currently under **active development**. It should be considered 
 
 ### Prerequisites
 
-- .NET 8.0 or later.
-- SqlArtisan is currently verified with Oracle, PostgreSQL, and SQLite.
-- (Optional) To use the Dapper integration features (as shown in examples), install the `SqlArtisan.DapperExtensions` package.
+- **.NET Version:** .NET 8.0 or later.
+- **Dialect-Specific API Usage:** SqlArtisan provides dialect-specific C# APIs that map to DBMS features. For example, use `SysTimestamp` for Oracle's `SYSTIMESTAMP` and `CurrentTimestamp` for PostgreSQL's `CURRENT_TIMESTAMP`. Developers should select the C# API appropriate for their target database.
+- **Bind Parameter Prefix:** SqlArtisan currently uses the colon (`:`) as the prefix for all bind parameters. This works well with Oracle, PostgreSQL, and SQLite.
+- **(Optional) Dapper Integration:** To use Dapper integration features (as shown in examples), install the `SqlArtisan.DapperExtensions` package.
 
 ### Installation
 
