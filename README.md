@@ -310,7 +310,8 @@ UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
-    .Where(u.Id.IsNull | u.Id.IsNotNull)
+    .Where(u.Id.IsNull
+        | u.Id.IsNotNull)
     .Build();
 
 // SELECT name
@@ -588,19 +589,19 @@ SqlStatement sql =
 #### INSERT SELECT Syntax
 
 ```csharp
-UsersTable a = new("a");
-UsersTable b = new("b");
+UsersTable u = new();
+UsersBackupTable b = new();
 
 SqlStatement sql =
-    InsertInto(a, a.Id, a.Name, a.CreatedAt)
-    .Select(b.Id, b.Name, b.CreatedAt)
-    .From(b)
+    InsertInto(b, b.Id, b.Name, b.CreatedAt)
+    .Select(u.Id, u.Name, u.CreatedAt)
+    .From(u)
     .Build();
 
-// INSERT INTO users "a"
-// ("a".id, "a".name, "a".created_at)
-// SELECT "b".id, "b".name, "b".created_at
-// FROM users "b"
+// INSERT INTO users_backup
+// (id, name, created_at)
+// SELECT id, name, created_at
+// FROM users
 ```
 
 ## Performance
