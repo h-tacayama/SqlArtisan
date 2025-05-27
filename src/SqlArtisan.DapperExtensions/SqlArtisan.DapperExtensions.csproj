@@ -11,7 +11,7 @@
 
     <Authors>h.tacayama</Authors>
     <Description>Dapper integration for SqlArtisan. Enables effortless execution of your SqlArtisan queries.</Description>
-    <PackageTags>database sql sqlbuilder sql-builder query querybuilder query-builder dapper oracle postgresql</PackageTags>
+    <PackageTags>database sql sqlbuilder sql-builder query querybuilder query-builder dapper oracle postgresql sqlite</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
  

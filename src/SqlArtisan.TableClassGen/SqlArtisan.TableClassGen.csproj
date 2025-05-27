@@ -14,7 +14,7 @@
 
     <Authors>h.tacayama</Authors>
     <Description>Generate C# table schema classes from your database for SqlArtisan, enabling robust type-safety and IntelliSense in your query building.</Description>
-    <PackageTags>database sql sqlbuilder sql-builder query querybuilder query-builder dapper oracle postgresql</PackageTags>
+    <PackageTags>database sql sqlbuilder sql-builder query querybuilder query-builder dapper oracle postgresql sqlite</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 
