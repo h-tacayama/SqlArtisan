@@ -9,9 +9,10 @@ internal abstract class SqlBuilderBase(SqlPart part)
         _parts.Add(part);
     }
 
-    protected SqlStatement BuildCore()
+    protected SqlStatement BuildCore(Dbms dbms)
     {
-        using SqlBuildingBuffer buffer = new();
+        IDbmsDialect dialect = DbmsDialectFactory.Create(dbms);
+        using SqlBuildingBuffer buffer = new(dialect);
         return buffer
             .AppendSpaceSeparated(_parts)
             .ToSqlStatement();

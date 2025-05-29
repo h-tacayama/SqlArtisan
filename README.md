@@ -76,8 +76,8 @@ This project is currently under **active development**. It should be considered 
 
 - **.NET Version:** .NET 8.0 or later.
 - **Dialect-Specific API Usage:** SqlArtisan provides dialect-specific C# APIs that map to DBMS features. For example, use `SysTimestamp` for Oracle's `SYSTIMESTAMP` and `CurrentTimestamp` for PostgreSQL's `CURRENT_TIMESTAMP`. Developers should select the C# API appropriate for their target database.
-- **Bind Parameter Prefix:** SqlArtisan currently uses the colon (`:`) as the prefix for all bind parameters. This works well with Oracle, PostgreSQL, and SQLite.
-- **(Optional) Dapper Integration:** To use Dapper integration features (as shown in examples), install the `SqlArtisan.DapperExtensions` package.
+- **Bind Parameter Handling:** SqlArtisan adjusts bind parameter prefixes (e.g., `:` or `@`) to suit the target DBMS. Currently, this behavior is verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
+- **(Optional) Dapper Integration:** Install `SqlArtisan.DapperExtensions` for seamless Dapper execution. It auto-detects the dialect from your `IDbConnection` to apply correct settings (like bind parameter prefixes) and provides helpful execution methods.
 
 ### Installation
 

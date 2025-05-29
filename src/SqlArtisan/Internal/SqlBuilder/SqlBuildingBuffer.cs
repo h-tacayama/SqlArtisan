@@ -1,17 +1,19 @@
-﻿using System.Buffers;
+using System.Buffers;
 
 namespace SqlArtisan.Internal;
 
 internal sealed class SqlBuildingBuffer : IDisposable
 {
     private const int InitialCapacity = 2048;
+    private IDbmsDialect _dialect;
     private char[] _buffer;
     private int _position;
     private Dictionary<string, BindValue> _parameters = new();
     private bool _disposed = false;
 
-    internal SqlBuildingBuffer()
+    internal SqlBuildingBuffer(IDbmsDialect dialect)
     {
+        _dialect = dialect;
         _buffer = ArrayPool<char>.Shared.Rent(InitialCapacity);
         _position = 0;
     }
@@ -192,7 +194,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        string name = $":{_parameters.Count}";
+        string name = _dialect.GetParameterName(_parameters.Count);
         Append(name);
         _parameters.Add(name, bindValue);
         return this;
