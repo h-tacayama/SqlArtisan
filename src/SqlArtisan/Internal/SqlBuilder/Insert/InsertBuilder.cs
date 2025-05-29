@@ -1,4 +1,5 @@
 ﻿namespace SqlArtisan.Internal;
+
 internal sealed class InsertBuilder(InsertIntoClause insertIntoClause) :
     SelectBuilder(insertIntoClause),
     IInsertBuilderColumns,

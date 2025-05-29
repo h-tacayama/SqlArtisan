@@ -1,10 +1,15 @@
-﻿# Change Log
+# Change Log
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.1.0-alpha.13] - 2025-05-29
+### Added
+- Added bind parameter prefix support for MySQL and SQL Server (#23).
+- `SqlArtisan.DapperExtensions` now auto-detects the DBMS from `IDbConnection` to ensure correct bind parameter prefixes are used (#23).
 
 ## [0.1.0-alpha.12] - 2025-05-26
 ### Changed

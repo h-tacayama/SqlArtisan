@@ -93,7 +93,8 @@ internal class SelectBuilder(SqlPart part) :
         }
     }
 
-    public SqlStatement Build() => BuildCore();
+    public SqlStatement Build(Dbms dbms) =>
+        BuildCore(dbms);
 
     public void Format(SqlBuildingBuffer buffer) => FormatCore(buffer);
 

@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 namespace SqlArtisan.Internal;
 
@@ -30,6 +30,7 @@ internal static class ExpressionResolver
 
     internal static SqlExpression Resolve(object item)
     {
+#pragma warning disable IDE0046
         if (item is SqlExpression expr)
         {
             return expr;
@@ -43,6 +44,7 @@ internal static class ExpressionResolver
             throw new ArgumentException(
                 $"Invalid type for SqlExpression: {item.GetType()}");
         }
+#pragma warning restore IDE0046
     }
 
     internal static bool IsBindable(object value) =>

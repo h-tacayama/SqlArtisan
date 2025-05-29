@@ -1,4 +1,4 @@
-﻿using SqlArtisan.Internal;
+using SqlArtisan.Internal;
 
 namespace SqlArtisan;
 
@@ -6,10 +6,8 @@ public sealed class SqlParameters
 {
     private readonly Dictionary<string, BindValue> _parameters;
 
-    internal SqlParameters(Dictionary<string, BindValue> parameters)
-    {
+    internal SqlParameters(Dictionary<string, BindValue> parameters) =>
         _parameters = parameters;
-    }
 
     public int Count => _parameters.Count;
 
@@ -17,19 +15,14 @@ public sealed class SqlParameters
 
     public void ForEach(Action<string, BindValue> action)
     {
-        foreach (var parameter in _parameters)
+        foreach (KeyValuePair<string, BindValue> parameter in _parameters)
         {
             action(parameter.Key, parameter.Value);
         }
     }
 
-    public T? Get<T>(string name)
-    {
-        if (_parameters.TryGetValue(name, out BindValue? value))
-        {
-            return (T?)value.Value;
-        }
-
-        return default;
-    }
+    public T? Get<T>(string name) =>
+        _parameters.TryGetValue(name, out BindValue? value)
+        ? (T?)value.Value
+        : default;
 }

@@ -25,8 +25,10 @@ public static class SqlArtisanBenchmark
             .OrderBy(Count(o.Id).As("order_count").Desc)
             .Build();
 
-        var sqlText = sql.Text;
+#pragma warning disable IDE0059
+        string sqlText = sql.Text;
         // Parameters is Dictionary<string, BindValue>
-        var parameters = sql.Parameters;
+        SqlParameters parameters = sql.Parameters;
+#pragma warning restore IDE0059
     }
 }

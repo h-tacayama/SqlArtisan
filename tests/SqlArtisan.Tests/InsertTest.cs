@@ -18,11 +18,11 @@ public class InsertTest
         expected.Append("INSERT INTO ");
         expected.Append("test_table ");
         expected.Append("VALUES ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append(":0, ");
         expected.Append(":1, ");
         expected.Append("SYSDATE");
-        expected.Append(")");
+        expected.Append(')');
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -39,17 +39,17 @@ public class InsertTest
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
         expected.Append("test_table ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append("code, ");
         expected.Append("name, ");
         expected.Append("created_at");
         expected.Append(") ");
         expected.Append("VALUES ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append(":0, ");
         expected.Append(":1, ");
         expected.Append("SYSDATE");
-        expected.Append(")");
+        expected.Append(')');
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -66,17 +66,17 @@ public class InsertTest
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
         expected.Append("test_table ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append("code, ");
         expected.Append("name, ");
         expected.Append("created_at");
         expected.Append(") ");
         expected.Append("VALUES ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append("NULL, ");
         expected.Append("NULL, ");
         expected.Append("NULL");
-        expected.Append(")");
+        expected.Append(')');
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -96,17 +96,17 @@ public class InsertTest
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
         expected.Append("test_table ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append("code, ");
         expected.Append("name, ");
         expected.Append("created_at");
         expected.Append(") ");
         expected.Append("VALUES ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append(":0, ");
         expected.Append(":1, ");
         expected.Append("SYSDATE");
-        expected.Append(")");
+        expected.Append(')');
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -126,7 +126,7 @@ public class InsertTest
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
         expected.Append("test_table \"t\" ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append("\"t\".code, ");
         expected.Append("\"t\".name, ");
         expected.Append("\"t\".created_at");
