@@ -1,8 +1,8 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 public sealed class EmptyCondition : SqlCondition
 {
-	internal EmptyCondition() { }
+    internal EmptyCondition() { }
 
-	internal override void Format(SqlBuildingBuffer buffer) { }
+    internal override void Format(SqlBuildingBuffer buffer) { }
 }
