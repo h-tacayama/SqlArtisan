@@ -5,7 +5,7 @@ namespace SqlArtisan;
 
 public static class DbmsResolver
 {
-    private static readonly ConcurrentDictionary<string, Dbms> _providerMap =
+    private static readonly ConcurrentDictionary<string, Dbms> s_providerMap =
         new(StringComparer.OrdinalIgnoreCase);
 
     static DbmsResolver()
@@ -32,7 +32,7 @@ public static class DbmsResolver
             throw new ArgumentNullException(nameof(typeFullName));
         }
 
-        _providerMap.TryAdd(typeFullName, dbms);
+        s_providerMap.TryAdd(typeFullName, dbms);
     }
 
     public static Dbms Resolve(IDbConnection connection)
@@ -43,7 +43,7 @@ public static class DbmsResolver
         }
 
         string typeFullName = connection.GetType()?.FullName ?? string.Empty;
-        _providerMap.TryGetValue(typeFullName, out Dbms identified);
+        s_providerMap.TryGetValue(typeFullName, out Dbms identified);
 
         return identified;
     }

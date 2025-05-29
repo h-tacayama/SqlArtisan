@@ -26,7 +26,9 @@ public static class SqlArtisanDapperBenchmark
             .OrderBy(Count(o.Id).As("order_count").Desc)
             .Build();
 
-        var sqlText = sql.Text;
+#pragma warning disable IDE0059
+        string sqlText = sql.Text;
         var dynamicParameters = sql.Parameters.ToDynamicParameters();
+#pragma warning restore IDE0059
     }
 }

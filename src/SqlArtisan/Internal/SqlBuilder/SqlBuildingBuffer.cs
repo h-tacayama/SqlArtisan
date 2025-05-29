@@ -5,10 +5,10 @@ namespace SqlArtisan.Internal;
 internal sealed class SqlBuildingBuffer : IDisposable
 {
     private const int InitialCapacity = 2048;
-    private IDbmsDialect _dialect;
+    private readonly IDbmsDialect _dialect;
     private char[] _buffer;
     private int _position;
-    private Dictionary<string, BindValue> _parameters = new();
+    private Dictionary<string, BindValue> _parameters = [];
     private bool _disposed = false;
 
     internal SqlBuildingBuffer(IDbmsDialect dialect)
