@@ -159,34 +159,55 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
     // Assume '_conn' is an already open IDbConnection to your database.
+    // SqlArtisan automatically detects the DBMS type (MySQL, Oracle, PostgreSQL, SQLite, or SQL Server)
+    // from the provided IDbConnection and applies the appropriate bind parameter prefix (e.g., ':' or '@').
     IEnumerable<UserDto> users = await _conn.QueryAsync<UserDto>(sql);
     ```
 
     **Alternative: Manual Execution (Accessing SQL and Parameters)**
 
-    While `SqlArtisan.DapperExtensions` provides convenience, you can also directly access the generated SQL string and parameters. This allows you to use SqlArtisan with raw ADO.NET, other micro-ORMs, or for debugging purposes.
+    Alternatively, access the SQL string and parameters directly for use with raw ADO.NET, other micro-ORMs, or for debugging, instead of using `SqlArtisan.DapperExtensions`.
 
+    `ISqlBuilder.Build()` accepts an optional `Dbms` argument (defaulting to `Dbms.PostgreSql`) to specify the SQL dialect. This affects features like the bind parameter prefix (e.g., `:` for PostgreSQL, `@` for SQL Server).
+
+    **Example (Default - PostgreSQL):**
     ```csharp
     UsersTable u = new();
 
+    // No args; defaults to Dbms.PostgreSql, uses ':' prefix
     SqlStatement sql =
-        Select(u.Id, u.Name, u.CreatedAt)
+        Select(u.Id, u.Name)
         .From(u)
-        .Where(u.Id > 0 & u.Name.Like("A%"))
-        .OrderBy(u.Id)
+        .Where(u.Id == 10 & u.Name == "Alice")
         .Build();
 
-    string sqlText = sql.Text;
-    // SELECT id, name, created_at
+    // sql.Text:
+    // SELECT id, name
     // FROM users
-    // WHERE (id > :0) AND (name LIKE :1)
-    // ORDER BY id
+    // WHERE (id = :0) AND (name = :1)
+    //
+    // sql.Parameters.Get<int>(":0") is 10
+    // sql.Parameters.Get<string>(":1") is "Alice"
+    ```
 
-    int param1 = sql.Parameters.Get<int>(":0");
-    // param1 = 0
+    **Example (Specifying SQL Server):**
+    ```csharp
+    UsersTable u = new();
 
-    string? param2 = sql.Parameters.Get<string>(":1");
-    // param2 = "A%"
+    // With Dbms.SqlServer; uses '@' prefix
+    SqlStatement sql =
+        Select(u.Id, u.Name)
+        .From(u)
+        .Where(u.Id == 20 & u.Name == "Bob")
+        .Build(Dbms.SqlServer);
+
+    // sql.Text:
+    // SELECT id, name
+    // FROM users
+    // WHERE (id = @0) AND (name = @1)
+    //
+    // sql.Parameters.Get<int>("@0") is 20
+    // sql.Parameters.Get<string>("@1") is "Bob"
     ```
 
 ## Usage Examples
