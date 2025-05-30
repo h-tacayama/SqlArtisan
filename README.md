@@ -158,9 +158,9 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     // Dapper: Set true to map snake_case columns to PascalCase/camelCase C# members.
     Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
-    // Assume '_conn' is an already open IDbConnection to your database.
-    // SqlArtisan automatically detects the DBMS type (MySQL, Oracle, PostgreSQL, SQLite, or SQL Server)
-    // from the provided IDbConnection and applies the appropriate bind parameter prefix (e.g., ':' or '@').
+    // '_conn' is your IDbConnection. SqlArtisan auto-detects the DBMS
+    // (MySQL, Oracle, PostgreSQL, SQLite, SQL Server) & applies
+    // the correct bind parameter prefix (e.g., ':' or '@').
     IEnumerable<UserDto> users = await _conn.QueryAsync<UserDto>(sql);
     ```
 
@@ -181,7 +181,7 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
         .Where(u.Id == 10 & u.Name == "Alice")
         .Build();
 
-    // sql.Text:
+    // sql.Text is
     // SELECT id, name
     // FROM users
     // WHERE (id = :0) AND (name = :1)
@@ -201,7 +201,7 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
         .Where(u.Id == 20 & u.Name == "Bob")
         .Build(Dbms.SqlServer);
 
-    // sql.Text:
+    // sql.Text is
     // SELECT id, name
     // FROM users
     // WHERE (id = @0) AND (name = @1)
