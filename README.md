@@ -109,8 +109,8 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
 
     ```csharp
     using SqlArtisan;
-    ```
-    ```csharp
+    // ...
+
     internal sealed class UsersTable : DbTableBase
     {
         public UsersTable(string tableAlias = "") : base("users", tableAlias)
@@ -149,8 +149,8 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     using SqlArtisan;
     using SqlArtisan.DapperExtensions;
     using static SqlArtisan.Sql;
-    ```
-    ```csharp
+    // ...
+
     UsersTable u = new();
 
     ISqlBuilder sql =
