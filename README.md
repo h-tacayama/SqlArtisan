@@ -14,6 +14,7 @@ This project is currently under **active development**. It should be considered 
 
 ## Table of Contents
 
+- [Changelog](#changelog)
 - [Packages](#packages)
 - [Key Features](#key-features)
 - [Getting Started](#getting-started)
@@ -50,8 +51,11 @@ This project is currently under **active development**. It should be considered 
     - [Alternative Syntax (SET-like)](#alternative-syntax-set-like)
     - [INSERT SELECT Syntax](#insert-select-syntax)
 - [Performance](#performance)
-- [Changelog](#changelog)
 - [License](#license)
+
+## Changelog
+
+For a detailed history of changes, new features, and bug fixes in each version, please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md) file.
 
 ## Packages
 
@@ -632,10 +636,6 @@ SqlArtisan is engineered for efficient performance, primarily by keeping heap me
 Our core strategy is efficient buffer management using `ArrayPool<T>`. Internal buffers, particularly for string construction, are recycled from a shared pool, avoiding repeated heap allocations.
 
 This approach leads to fewer garbage collection (GC) pauses, better application throughput as more CPU power is available for your core tasks, and efficient memory use because buffers are reused.
-
-## Changelog
-
-For a detailed history of changes, new features, and bug fixes in each version, please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md) file.
 
 ## License
 
