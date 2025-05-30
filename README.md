@@ -21,6 +21,7 @@ This project is currently under **active development**. It should be considered 
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Quick Start](#quick-start)
+- [Performance](#performance)
 - [Usage Examples](#usage-examples)
   - [SELECT Query](#select-query)
     - [SELECT Clause](#select-clause)
@@ -50,7 +51,6 @@ This project is currently under **active development**. It should be considered 
     - [Standard Syntax](#standard-syntax)
     - [Alternative Syntax (SET-like)](#alternative-syntax-set-like)
     - [INSERT SELECT Syntax](#insert-select-syntax)
-- [Performance](#performance)
 - [License](#license)
 
 ## Changelog
@@ -213,6 +213,14 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     // sql.Parameters.Get<int>("@0") is 20
     // sql.Parameters.Get<string>("@1") is "Bob"
     ```
+
+## Performance
+
+SqlArtisan is engineered for efficient performance, primarily by keeping heap memory allocations low.
+
+Our core strategy is efficient buffer management using `ArrayPool<T>`. Internal buffers, particularly for string construction, are recycled from a shared pool, avoiding repeated heap allocations.
+
+This approach leads to fewer garbage collection (GC) pauses, better application throughput as more CPU power is available for your core tasks, and efficient memory use because buffers are reused.
 
 ## Usage Examples
 
@@ -628,14 +636,6 @@ SqlStatement sql =
 // SELECT id, name, created_at
 // FROM users
 ```
-
-## Performance
-
-SqlArtisan is engineered for efficient performance, primarily by keeping heap memory allocations low.
-
-Our core strategy is efficient buffer management using `ArrayPool<T>`. Internal buffers, particularly for string construction, are recycled from a shared pool, avoiding repeated heap allocations.
-
-This approach leads to fewer garbage collection (GC) pauses, better application throughput as more CPU power is available for your core tasks, and efficient memory use because buffers are reused.
 
 ## License
 
