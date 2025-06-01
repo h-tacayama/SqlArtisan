@@ -37,7 +37,7 @@ This project is currently under **active development**. It should be considered 
 
 ## Changelog
 
-For a detailed history of changes, new features, and bug fixes in each version, please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md) file.
+Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md) file for all notable changes.
 
 ## Packages
 
