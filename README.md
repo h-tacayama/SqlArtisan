@@ -24,15 +24,15 @@ This project is currently under **active development**. It should be considered 
 - [Performance](#performance)
 - [Usage Examples](#usage-examples)
   - [SELECT Query](#select-query)
-    - [SELECT Clause](#select-clause): `AS` (Aliases), `DISTINCT`, `Hints`
+    - [SELECT Clause](#select-clause): `AS` (Aliases), `DISTINCT`, Hints
     - [FROM Clause](#from-clause): FROM-less, `DUAL`
-    - [WHERE Clause](#where-clause): Logical, Comparison, `NULL`, `LIKE`, `BETWEEN`, `IN`, `EXISTS`, Dynamic Conditions
+    - [WHERE Clause](#where-clause): Logical, Comparison, `NULL`, `LIKE`, `REGEXP_LIKE`, `BETWEEN`, `IN`, `EXISTS`, Dynamic Conditions
     - [JOIN Clause](#join-clause): `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, `FULL JOIN`, `CROSS JOIN`
-    - [ORDER BY Clause](#order-by-clause): `ORDER BY`, `ASC`, `DESC`, `NULLS FIRST/LAST`
+    - [ORDER BY Clause](#order-by-clause): `ASC`, `DESC`, `NULLS FIRST/LAST`
     - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
-  - [INSERT Statement](#insert-statement): Standard, `SET`-like, `INSERT SELECT`
+  - [INSERT Statement](#insert-statement): Standard, SET-like, `INSERT SELECT`
 - [License](#license)
 
 ## Changelog
