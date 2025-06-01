@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Updated README:
+  - Reorganized the Table of Contents to improve navigation.
+  - Clarified bind parameter prefix handling in "Quick Start".
 
 ## [0.1.0-alpha.13] - 2025-05-29
 ### Added
