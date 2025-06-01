@@ -11,7 +11,7 @@ public static class DapperQbNetBenchmark
         var u = From.Table("users", "u");
         var o = From.Table("orders ", "o");
 
-        var query =
+        Select query =
             Select(
                 Column.New("id", u, "user_id"),
                 Column.New("name", u, "user_name"),
@@ -25,8 +25,10 @@ public static class DapperQbNetBenchmark
             .GroupBy("u.name")
             .OrderBy("order_count", OrderByDir.Desc);
 
-        var pg = new PostgreSqlRenderer();
-        var sql = pg.RenderSelect(query);
+        PostgreSqlRenderer pg = new();
+#pragma warning disable IDE0059
+        string sql = pg.RenderSelect(query);
         // No parameters
+#pragma warning restore IDE0059
     }
 }

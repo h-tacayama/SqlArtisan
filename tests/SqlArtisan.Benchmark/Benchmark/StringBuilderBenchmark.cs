@@ -26,7 +26,7 @@ public static class StringBuilderBenchmark
         query.Append("ORDER BY ");
         query.Append("order_count DESC");
 
-        DynamicParameters parameters = new DynamicParameters();
+        DynamicParameters parameters = new();
         parameters.Add("@0", new DateTime(2024, 1, 1));
         parameters.Add("@1", new DateTime(2025, 1, 1));
     }

@@ -1,4 +1,5 @@
 ﻿using SqExpress;
+using SqExpress.QueryBuilders.Select;
 using SqExpress.SqlExport;
 using SqlArtisan.Benchmark.SqExpressTable;
 using static SqExpress.SqQueryBuilder;
@@ -12,9 +13,9 @@ public static class SqExpressBenchmark
         var u = new Users("u");
         var o = new Orders("o");
 
-        var order_count = CustomColumnFactory.Int32("order_count");
+        Int32CustomColumn order_count = CustomColumnFactory.Int32("order_count");
 
-        var query =
+        ISelectBuilder query =
             Select(
                 u.Id.As("user_id"),
                 u.Name.As("user_name"),
@@ -27,7 +28,9 @@ public static class SqExpressBenchmark
             .GroupBy(u.Id, u.Name)
             .OrderBy(order_count);
 
-        var sql = query.ToSql(PgSqlExporter.Default);
+#pragma warning disable IDE0059
+        string sql = query.ToSql(PgSqlExporter.Default);
         // No parameters
+#pragma warning restore IDE0059
     }
 }

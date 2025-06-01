@@ -8,12 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.0" />
     <PackageReference Include="Dapper.Qb.Net" Version="0.20.5" />
-    <PackageReference Include="Dapper.SqlBuilder" Version="2.0.78" />
+    <PackageReference Include="Dapper.SqlBuilder" Version="2.1.66" />
+    <PackageReference Include="InterpolatedSql" Version="2.4.0" />
     <PackageReference Include="SqExpress" Version="1.1.1" />
     <PackageReference Include="Sqlify" Version="0.3.14" />
-    <PackageReference Include="SqlKata" Version="2.4.0" />
+    <PackageReference Include="SqlKata" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>

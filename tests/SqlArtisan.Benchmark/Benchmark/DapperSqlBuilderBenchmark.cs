@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Dapper;
 
 namespace SqlArtisan.Benchmark;
 
@@ -14,16 +15,18 @@ public static class DapperSqlBuilderBenchmark
         template.Append("/**groupby**/");
         template.Append("/**orderby**/");
 
-        var builder = new Dapper.SqlBuilder()
+        SqlBuilder builder = new Dapper.SqlBuilder()
             .InnerJoin("orders o ON u.id = o.user_id")
             .Where("o.order_date >= @p0", new { p0 = new DateTime(2024, 1, 1) })
             .Where("o.order_date < @p1", new { p1 = new DateTime(2025, 1, 1) })
             .GroupBy("u.id, u.name")
             .OrderBy("order_count DESC");
 
-        var query = builder.AddTemplate(template.ToString());
-        var sql = query.RawSql;
-        // Parameters is DynamicParameters
-        var parameters = query.Parameters;
+        SqlBuilder.Template query = builder.AddTemplate(template.ToString());
+
+#pragma warning disable IDE0059
+        string sql = query.RawSql;
+        DynamicParameters parameters = (DynamicParameters)query.Parameters;
+#pragma warning restore IDE0059
     }
 }

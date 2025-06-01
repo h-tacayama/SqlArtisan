@@ -1,4 +1,5 @@
-﻿using SqlArtisan.Benchmark.SqlArtisanTable;
+﻿using Dapper;
+using SqlArtisan.Benchmark.SqlArtisanTable;
 using SqlArtisan.DapperExtensions;
 using static SqlArtisan.Sql;
 
@@ -28,7 +29,8 @@ public static class SqlArtisanDapperBenchmark
 
 #pragma warning disable IDE0059
         string sqlText = sql.Text;
-        var dynamicParameters = sql.Parameters.ToDynamicParameters();
+        DynamicParameters dynamicParameters =
+            sql.Parameters.ToDynamicParameters();
 #pragma warning restore IDE0059
     }
 }

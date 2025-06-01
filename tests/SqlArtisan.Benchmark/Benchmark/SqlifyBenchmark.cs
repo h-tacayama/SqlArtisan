@@ -8,10 +8,10 @@ public static class SqlifyBenchmark
 {
     public static void Run()
     {
-        var u = Table<IUsers>("u");
-        var o = Table<IOrders>("o");
+        IUsers u = Table<IUsers>("u");
+        IOrders o = Table<IOrders>("o");
 
-        var selectQuery =
+        Sqlify.SelectQuery selectQuery =
             Select(
                 u.Id.As("user_id"),
                 u.Name.As("user_name"),
@@ -24,9 +24,12 @@ public static class SqlifyBenchmark
             .GroupBy(u.Name)
             .OrderByDesc(Count());
 
-        var writer = new SqlWriter();
+        SqlWriter writer = new();
         selectQuery.Format(writer);
-        var sql = writer.GetCommand();
-        // Parameters is Dictionary<string, object>
+
+#pragma warning disable IDE0059
+        string sql = writer.GetCommand();
+        // parameters is Dictionary<string, object>
+#pragma warning restore IDE0059
     }
 }
