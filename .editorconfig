@@ -155,6 +155,9 @@ csharp_space_between_square_brackets = false
 # License header
 file_header_template =
 
+# Suppress specific diagnostics (C#)
+dotnet_diagnostic.IDE0130.severity = none
+
 # C++ Files
 [*.{cpp,h,in}]
 curly_bracket_next_line = true
