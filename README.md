@@ -24,33 +24,15 @@ This project is currently under **active development**. It should be considered 
 - [Performance](#performance)
 - [Usage Examples](#usage-examples)
   - [SELECT Query](#select-query)
-    - [SELECT Clause](#select-clause)
-        - [Column Aliases](#column-aliases)
-        - [DISTINCT](#distinct)
-        - [Hints](#hints)
-    - [FROM Clause](#from-clause)
-      - [FROM-less Queries](#from-less-queries)
-      - [Using DUAL (Oracle)](#using-dual-oracle)
-    - [WHERE Clause](#where-clause)
-      - [Logical Condition](#logical-condition)
-      - [Comparison Condition](#comparison-condition)
-      - [NULL Condition](#null-condition)
-      - [Pattern Matching Condition](#pattern-matching-condition)
-      - [BETWEEN Condition](#between-condition)
-      - [IN Condition](#in-condition)
-      - [EXISTS Condition](#exists-condition)
-      - [Dynamic Condition](#dynamic-condition)
-    - [JOIN Clause](#join-clause)
-      - [Example using INNER JOIN](#example-using-inner-join)
-      - [Supported JOIN APIs](#supported-join-apis)
-    - [ORDER BY Clause](#order-by-clause)
+    - [SELECT Clause](#select-clause): `AS` (Aliases), `DISTINCT`, `Hints`
+    - [FROM Clause](#from-clause): FROM-less, `DUAL`
+    - [WHERE Clause](#where-clause): Logical, Comparison, `NULL`, `LIKE`, `BETWEEN`, `IN`, `EXISTS`, Dynamic Conditions
+    - [JOIN Clause](#join-clause): `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, `FULL JOIN`, `CROSS JOIN`
+    - [ORDER BY Clause](#order-by-clause): `ORDER BY`, `ASC`, `DESC`, `NULLS FIRST/LAST`
     - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
-  - [INSERT Statement](#insert-statement)
-    - [Standard Syntax](#standard-syntax)
-    - [Alternative Syntax (SET-like)](#alternative-syntax-set-like)
-    - [INSERT SELECT Syntax](#insert-select-syntax)
+  - [INSERT Statement](#insert-statement): Standard, `SET`-like, `INSERT SELECT`
 - [License](#license)
 
 ## Changelog
@@ -162,10 +144,10 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
     // Dapper: Set true to map snake_case columns to PascalCase/camelCase C# members.
     Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
-    // '_conn' is your IDbConnection. SqlArtisan auto-detects the DBMS
+    // 'connection' is your IDbConnection. SqlArtisan auto-detects the DBMS
     // (MySQL, Oracle, PostgreSQL, SQLite, SQL Server) & applies
     // the correct bind parameter prefix (e.g., ':' or '@').
-    IEnumerable<UserDto> users = await _conn.QueryAsync<UserDto>(sql);
+    IEnumerable<UserDto> users = await connection.QueryAsync<UserDto>(sql);
     ```
 
     **Alternative: Manual Execution (Accessing SQL and Parameters)**
