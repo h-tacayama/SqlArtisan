@@ -1,5 +1,5 @@
 using System.Data;
-using SqlArtisan.DapperExtensions;
+using SqlArtisan.Dapper;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.TableClassGen;
@@ -24,9 +24,9 @@ internal sealed class OracleTableInfoRepository(
             .Where(t.Owner == _connInfo.Schema.ToUpper())
             .OrderBy(t.TableName);
 
-        List<DbTableInfo> tables = new();
+        List<DbTableInfo> tables = [];
 
-        List<string> tableNames = new();
+        List<string> tableNames = [];
         using (IDataReader reader = conn.ExecuteReader(sql))
         {
             while (reader.Read())
@@ -78,7 +78,7 @@ internal sealed class OracleTableInfoRepository(
                 atc.Owner == _connInfo.Schema.ToUpper()
                 & atc.TableName == tableName.ToUpper());
 
-        List<DbColumnInfo> columns = new();
+        List<DbColumnInfo> columns = [];
 
         using (IDataReader reader = conn.ExecuteReader(sql))
         {

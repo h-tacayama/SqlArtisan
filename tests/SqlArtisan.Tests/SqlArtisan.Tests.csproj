@@ -20,14 +20,14 @@
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.8.0" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.0">
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SqlArtisan.DapperExtensions\SqlArtisan.DapperExtensions.csproj" />
+    <ProjectReference Include="..\..\src\SqlArtisan.Dapper\SqlArtisan.Dapper.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>
   <ItemGroup>

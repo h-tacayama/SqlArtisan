@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,28 +6,33 @@
     <Nullable>enable</Nullable>
 
     <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>alpha.14</VersionSuffix>
+    <VersionSuffix>alpha.1</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
-    <Description>Write SQL, in C#. A SQL query builder that provides a SQL-like experience, designed for developers who value the clarity and control of direct SQL syntax.</Description>
+    <Description>Dapper integration for SqlArtisan. Enables effortless execution of your SqlArtisan queries.</Description>
     <PackageTags>database sql sqlbuilder query querybuilder mysql oracle postgresql sqlite sqlserver dapper</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    
+
     <PackageProjectUrl>https://github.com/h-tacayama/SqlArtisan</PackageProjectUrl>
     <RepositoryUrl>https://github.com/h-tacayama/SqlArtisan</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Please see https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md for details.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" />
-    <None Include="..\..\LICENSE" Link="LICENSE" />
     <None Include="..\..\README.md" Link="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.66" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>
 
 </Project>

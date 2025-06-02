@@ -1,5 +1,5 @@
 using System.Data;
-using SqlArtisan.DapperExtensions;
+using SqlArtisan.Dapper;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.TableClassGen;
@@ -26,9 +26,9 @@ internal sealed class PgSqlTableInfoRepository(
                 & t.TableType == "BASE TABLE")
             .OrderBy(t.TableName);
 
-        List<DbTableInfo> tables = new();
+        List<DbTableInfo> tables = [];
 
-        List<string> tableNames = new();
+        List<string> tableNames = [];
         using (IDataReader reader = conn.ExecuteReader(sql))
         {
             while (reader.Read())
@@ -81,7 +81,7 @@ internal sealed class PgSqlTableInfoRepository(
                 & c.TableName == tableName)
             .OrderBy(c.OrdinalPosition);
 
-        List<DbColumnInfo> columns = new();
+        List<DbColumnInfo> columns = [];
 
         using (IDataReader reader = conn.ExecuteReader(sql2))
         {

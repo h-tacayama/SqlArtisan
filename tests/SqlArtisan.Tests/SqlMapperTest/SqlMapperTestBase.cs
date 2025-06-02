@@ -1,12 +1,13 @@
 using System.Data;
 using Oracle.ManagedDataAccess.Client;
-using SqlArtisan.DapperExtensions;
+using SqlArtisan.Dapper;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
 [CollectionDefinition("SequentialTests")]
-public class SequentialCollectionDefinition
+public class SequentialCollectionDefinition :
+    ICollectionFixture<SequentialCollectionDefinition>
 {
     // This class serves as a marker and holds collection settings.
 }
@@ -81,6 +82,6 @@ public abstract class SqlMapperTestBase : IDisposable
             InsertInto(t, t.Code, t.Name, t.CreatedAt)
             .Values(code, name, ToDate(createdAt.ToString("yyyy/MM/dd"), "yyyy/mm/dd"));
 
-        int rows = _conn.Execute(sql);
+        _conn.Execute(sql);
     }
 }

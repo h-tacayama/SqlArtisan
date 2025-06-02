@@ -5,10 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.1.0-alpha.14] - 2025-06-02
+### Added
+- Introduced `SqlArtisan.Dapper` as the new, recommended Dapper integration package.
 ### Changed
+- `SqlArtisan.TableClassGen` now depends on the new `SqlArtisan.Dapper` package.
 - Updated README:
   - Reorganized the Table of Contents to improve navigation.
   - Clarified bind parameter prefix handling in "Quick Start".
+### Deprecated
+- `SqlArtisan.DapperExtensions` is now deprecated and will be removed in a future release. Users should migrate to `SqlArtisan.Dapper`.
 
 ## [0.1.0-alpha.13] - 2025-05-29
 ### Added

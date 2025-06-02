@@ -9,7 +9,7 @@
     <IsPublishable>true</IsPublishable>
 
     <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>alpha.4</VersionSuffix>
+    <VersionSuffix>alpha.5</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
@@ -27,12 +27,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.130" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.8.0" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SqlArtisan.DapperExtensions\SqlArtisan.DapperExtensions.csproj" />
+    <ProjectReference Include="..\SqlArtisan.Dapper\SqlArtisan.Dapper.csproj" />
     <ProjectReference Include="..\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>
 
