@@ -1,6 +1,6 @@
 #if SQL_MAPPER_TEST
 using System.Data;
-using SqlArtisan.DapperExtensions;
+using SqlArtisan.Dapper;
 using static Dapper.SqlMapper;
 using static SqlArtisan.Sql;
 

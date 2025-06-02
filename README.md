@@ -44,8 +44,13 @@ Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main
 | Package                          | Description                                                                                                                              | NuGet                                                                                                                                                  |
 | :------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SqlArtisan`                     | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                                  | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan/)                                   |
-| `SqlArtisan.DapperExtensions`    | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                               | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.DapperExtensions.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan.DapperExtensions/) |
+| `SqlArtisan.Dapper`              | **(Recommended)** Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper. **Supersedes `SqlArtisan.DapperExtensions`.** | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan.Dapper/)                     |
+| `SqlArtisan.DapperExtensions`    | **(Legacy)** Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper. **Please migrate to `SqlArtisan.Dapper`.** | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.DapperExtensions.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan.DapperExtensions/) |
 | `SqlArtisan.TableClassGen`       | A .NET tool that generates C# table schema classes from your database, enabling IntelliSense and type-safety with SqlArtisan.            | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg?label=NuGet)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/)       |
+
+**Note on `SqlArtisan.Dapper` and `SqlArtisan.DapperExtensions`:**
+
+The `SqlArtisan.Dapper` package is the new, recommended package for Dapper integration. It replaces the older `SqlArtisan.DapperExtensions` package. While `SqlArtisan.DapperExtensions` will remain available for a transition period, we strongly encourage all users to migrate to `SqlArtisan.Dapper` for future updates and support.
 
 ## Key Features
 
@@ -54,7 +59,7 @@ Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main
 - **Automatic Parameterization**: Converts literals to bind variables, boosting security (SQLi prevention) and query performance.
 - **Dynamic Query Conditions**: Dynamically include or exclude `WHERE` conditions (and other query parts) using simple helpers like `ConditionIf`.
 - **Low-Allocation Design**: Minimizes heap allocations and GC load for superior performance.
-- **Seamless Dapper Integration**: The optional `SqlArtisan.DapperExtensions` library provides Dapper extensions that enable effortless SQL execution.
+- **Seamless Dapper Integration**: The optional `SqlArtisan.Dapper` library provides Dapper extensions that enable effortless SQL execution.
 
 ## Getting Started
 
@@ -63,7 +68,7 @@ Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main
 - **.NET Version:** .NET 8.0 or later.
 - **Dialect-Specific API Usage:** SqlArtisan provides dialect-specific C# APIs that map to DBMS features. For example, use `SysTimestamp` for Oracle's `SYSTIMESTAMP` and `CurrentTimestamp` for PostgreSQL's `CURRENT_TIMESTAMP`. Developers should select the C# API appropriate for their target database.
 - **Bind Parameter Handling:** SqlArtisan adjusts bind parameter prefixes (e.g., `:` or `@`) to suit the target DBMS. Currently, this behavior is verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
-- **(Optional) Dapper Integration:** Install `SqlArtisan.DapperExtensions` for seamless Dapper execution. It auto-detects the dialect from your `IDbConnection` to apply correct settings (like bind parameter prefixes) and provides helpful execution methods.
+- **(Optional) Dapper Integration:** Install `SqlArtisan.Dapper` for seamless Dapper execution. It auto-detects the dialect from your `IDbConnection` to apply correct settings (like bind parameter prefixes) and provides helpful execution methods.
 
 ### Installation
 
@@ -80,7 +85,7 @@ dotnet add package SqlArtisan --prerelease
 For seamless execution with Dapper (recommended):
 
 ```bash
-dotnet add package SqlArtisan.DapperExtensions --prerelease
+dotnet add package SqlArtisan.Dapper --prerelease
 ```
 
 ### Quick Start
@@ -125,11 +130,11 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
 
     Construct your query using SqlArtisan's SQL-like API. For convenient access to entry point methods like `Select()` or `InsertInto()`, add a static using for `SqlArtisan.Sql`, which provides these static helper methods.
 
-    Once built, execute the query. This example uses Dapper with `SqlArtisan.DapperExtensions`.
+    Once built, execute the query. This example uses Dapper with `SqlArtisan.Dapper`.
 
     ```csharp
     using SqlArtisan;
-    using SqlArtisan.DapperExtensions;
+    using SqlArtisan.Dapper;
     using static SqlArtisan.Sql;
     // ...
 
@@ -152,7 +157,7 @@ dotnet add package SqlArtisan.DapperExtensions --prerelease
 
     **Alternative: Manual Execution (Accessing SQL and Parameters)**
 
-    Alternatively, access the SQL string and parameters directly for use with raw ADO.NET, other micro-ORMs, or for debugging, instead of using `SqlArtisan.DapperExtensions`.
+    Alternatively, access the SQL string and parameters directly for use with raw ADO.NET, other micro-ORMs, or for debugging, instead of using `SqlArtisan.Dapper`.
 
     `ISqlBuilder.Build()` accepts an optional `Dbms` argument (defaulting to `Dbms.PostgreSql`) to specify the SQL dialect. This affects features like the bind parameter prefix (e.g., `:` for PostgreSQL, `@` for SQL Server).
 

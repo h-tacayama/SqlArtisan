@@ -1,6 +1,6 @@
 #if SQL_MAPPER_TEST
 using System.Data;
-using SqlArtisan.DapperExtensions;
+using SqlArtisan.Dapper;
 using static Dapper.SqlMapper;
 using static SqlArtisan.Sql;
 
@@ -12,7 +12,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     private readonly TestTable _t = new();
 
     [Fact]
-    public async void ExecuteScalarAsync_NoTypeParameter_ReturnsObjectValue()
+    public async Task ExecuteScalarAsync_NoTypeParameter_ReturnsObjectValue()
     {
         ISqlBuilder sql =
             Select(_t.Code)
@@ -25,7 +25,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void ExecuteScalarAsync_IntTypeParameter_ReturnsIntValue()
+    public async Task ExecuteScalarAsync_IntTypeParameter_ReturnsIntValue()
     {
         ISqlBuilder sql =
             Select(_t.Code)
@@ -38,7 +38,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void ExecuteScalarAsync_StringTypeParameter_ReturnsStringValue()
+    public async Task ExecuteScalarAsync_StringTypeParameter_ReturnsStringValue()
     {
         ISqlBuilder sql =
             Select(_t.Name)
@@ -51,7 +51,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void ExecuteScalarAsync_DateTimeTypeParameter_ReturnsDateTimeValue()
+    public async Task ExecuteScalarAsync_DateTimeTypeParameter_ReturnsDateTimeValue()
     {
         ISqlBuilder sql =
             Select(_t.CreatedAt)
@@ -64,7 +64,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QuerySingleAsync_TestTableDtoType_ReturnsObjectValue()
+    public async Task QuerySingleAsync_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
             Select(
@@ -83,7 +83,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QuerySingleAsync_NoType_ReturnsDynamicValue()
+    public async Task QuerySingleAsync_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
             Select(
@@ -102,7 +102,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QuerySingleAsync_TestTableDtoType_ReturnsTestTableDtoValue()
+    public async Task QuerySingleAsync_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
             Select(
@@ -120,7 +120,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QuerySingleOrDefaultAsync_TestTableDtoType_ReturnsObjectValue()
+    public async Task QuerySingleOrDefaultAsync_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
             Select(
@@ -139,7 +139,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QuerySingleOrDefaultAsync_NoMatch_ReturnsNull()
+    public async Task QuerySingleOrDefaultAsync_NoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
             Select(
@@ -155,7 +155,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QuerySingleOrDefaultAsync_NoType_ReturnsDynamicValue()
+    public async Task QuerySingleOrDefaultAsync_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
             Select(
@@ -174,7 +174,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QuerySingleOrDefaultAsync_NoTypeNoMatch_ReturnsNull()
+    public async Task QuerySingleOrDefaultAsync_NoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
             Select(
@@ -191,7 +191,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QuerySingleOrDefaultAsync_TestTableDtoType_ReturnsTestTableDtoValue()
+    public async Task QuerySingleOrDefaultAsync_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
             Select(
@@ -209,7 +209,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QuerySingleOrDefaultAsync_TestTableDtoTypeNoMatch_ReturnsNull()
+    public async Task QuerySingleOrDefaultAsync_TestTableDtoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
             Select(
@@ -225,7 +225,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryFirstAsync_TestTableDtoType_ReturnsObjectValue()
+    public async Task QueryFirstAsync_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
             Select(
@@ -244,7 +244,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryFirstAsync_NoType_ReturnsDynamicValue()
+    public async Task QueryFirstAsync_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
             Select(
@@ -263,7 +263,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryFirstAsync_TestTableDtoType_ReturnsTestTableDtoValue()
+    public async Task QueryFirstAsync_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
             Select(
@@ -281,7 +281,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryFirstOrDefaultAsync_TestTableDtoType_ReturnsObjectValue()
+    public async Task QueryFirstOrDefaultAsync_TestTableDtoType_ReturnsObjectValue()
     {
         ISqlBuilder sql =
             Select(
@@ -300,7 +300,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryFirstOrDefaultAsync_NoMatch_ReturnsNull()
+    public async Task QueryFirstOrDefaultAsync_NoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
             Select(
@@ -316,7 +316,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryFirstOrDefaultAsync_NoType_ReturnsDynamicValue()
+    public async Task QueryFirstOrDefaultAsync_NoType_ReturnsDynamicValue()
     {
         ISqlBuilder sql =
             Select(
@@ -335,7 +335,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryFirstOrDefaultAsync_NoTypeNoMatch_ReturnsNull()
+    public async Task QueryFirstOrDefaultAsync_NoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
             Select(
@@ -352,7 +352,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryFirstOrDefaultAsync_TestTableDtoType_ReturnsTestTableDtoValue()
+    public async Task QueryFirstOrDefaultAsync_TestTableDtoType_ReturnsTestTableDtoValue()
     {
         ISqlBuilder sql =
             Select(
@@ -370,7 +370,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryFirstOrDefaultAsync_TestTableDtoTypeNoMatch_ReturnsNull()
+    public async Task QueryFirstOrDefaultAsync_TestTableDtoTypeNoMatch_ReturnsNull()
     {
         ISqlBuilder sql =
             Select(
@@ -386,7 +386,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryAsync_TestTableDtoType_ReturnsObjectCollection()
+    public async Task QueryAsync_TestTableDtoType_ReturnsObjectCollection()
     {
         ISqlBuilder sql =
             Select(
@@ -402,7 +402,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryAsync_NoType_ReturnsDynamicCollection()
+    public async Task QueryAsync_NoType_ReturnsDynamicCollection()
     {
         ISqlBuilder sql =
             Select(
@@ -417,8 +417,9 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
         Assert.Equal(2, result.Count());
     }
 
+
     [Fact]
-    public async void QueryAsync_TestTableDtoType_ReturnsTestTableDtoCollection()
+    public async Task QueryAsync_TestTableDtoType_ReturnsTestTableDtoCollection()
     {
         ISqlBuilder sql =
             Select(
@@ -434,7 +435,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void QueryMultipleAsync_MatchesTwoRecords_ReturnsGridReader()
+    public async Task QueryMultipleAsync_MatchesTwoRecords_ReturnsGridReader()
     {
         ISqlBuilder sql =
             Select(
@@ -452,7 +453,7 @@ public class SqlMapperAsyncTest : SqlMapperTestBase
     }
 
     [Fact]
-    public async void ExecuteReaderAsync_MatchesTwoRecords_ReturnsIDataReader()
+    public async Task ExecuteReaderAsync_MatchesTwoRecords_ReturnsIDataReader()
     {
         ISqlBuilder sql =
             Select(
