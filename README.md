@@ -203,11 +203,36 @@ dotnet add package SqlArtisan.Dapper --prerelease
 
 ## Performance
 
-SqlArtisan is engineered for efficient performance, primarily by keeping heap memory allocations low.
+SqlArtisan is engineered for efficient performance, primarily by minimizing heap allocations. Our core strategy is efficient buffer management using `ArrayPool<T>`: internal buffers, particularly for string construction, are recycled from a shared pool. This approach leads to fewer garbage collection (GC) pauses and improved application throughput.
 
-Our core strategy is efficient buffer management using `ArrayPool<T>`. Internal buffers, particularly for string construction, are recycled from a shared pool, avoiding repeated heap allocations.
+To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string building against common approaches using [BenchmarkDotNet](https://benchmarkdotnet.org/).
 
-This approach leads to fewer garbage collection (GC) pauses, better application throughput as more CPU power is available for your core tasks, and efficient memory use because buffers are reused.
+**Benchmark Details:**
+
+- Environment:
+  - .NET Version: .NET 8
+  - CPU: Intel Core i5-1135G7 @ 2.40GHz
+  - RAM: 16 GB
+  - OS: Windows 11 Pro 24H2
+- Source Code: Benchmark code is available at [Benchmark Source Code](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark). We encourage review and custom testing.
+
+**Benchmark Result:**
+
+| Method                                 | Mean           | Allocated   |
+| :------------------------------------- | -------------: | ----------: |
+| `StringBuilder_DapperDynamicParams`    | 605.4 ns       | 1.38 KB     |
+| `DapperQbNet_NoParams`                 | 10,030.2 ns    | 7.47 KB     |
+| `DapperSqlBuilder_DapperDynamicParams` | 3,039.8 ns     | 5.12 KB     |
+| `InterpolatedSql_SpecificParams`       | 3,063.5 ns     | 5.17 KB     |
+| `SqExpress_NoParams`                   | 4,116.8 ns     | 4.56 KB     |
+| `Sqlify_SpecificParams`                | 2,324.4 ns     | 3.13 KB     |
+| `SqlKata_SpecificParams`               | 93,022.2 ns    | 40.54 KB    |
+| **`SqlArtisan_SpecificParams`**        | **3,190.5 ns** | **2.68 KB** |
+| **`SqlArtisan_DapperDynamicParams`**   | **3,981.6 ns** | **3.24 KB** |
+
+**Disclaimer:**
+
+This benchmark highlights the memory efficiency of a specific internal operation within SqlArtisan by comparing it to fundamental string handling techniques. It is not intended as a direct, comprehensive performance benchmark against other SQL builder libraries, as each library has different design goals, features, and may perform optimally under different conditions or workloads. 
 
 ## Usage Examples
 
