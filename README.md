@@ -22,6 +22,9 @@ This project is currently under **active development**. It should be considered 
   - [Installation](#installation)
   - [Quick Start](#quick-start)
 - [Performance](#performance)
+  - [Benchmark Details](#benchmark-details)
+  - [Benchmark Result](#benchmark-result)
+  - [Disclaimer](#disclaimer)
 - [Usage Examples](#usage-examples)
   - [SELECT Query](#select-query)
     - [SELECT Clause](#select-clause): `AS` (Aliases), `DISTINCT`, Hints
