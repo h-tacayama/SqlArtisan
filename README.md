@@ -33,6 +33,7 @@ This project is currently under **active development**. It should be considered 
     - [JOIN Clause](#join-clause): `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, `FULL JOIN`, `CROSS JOIN`
     - [ORDER BY Clause](#order-by-clause): `ASC`, `DESC`, `NULLS FIRST/LAST`
     - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
+    - [Set Operators](#set-operators): `UNION [ALL]`, `EXCEPT [ALL]`, `MINUS [ALL]`, `INTERSECT [ALL]`
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): Standard, SET-like, `INSERT SELECT`
@@ -564,6 +565,59 @@ SqlStatement sql =
 // HAVING COUNT(id) > :0
 ```
 
+#### Set Operators
+
+##### Example using UNION
+```csharp
+UsersTable u = new();
+ArchivedUsersTable a = new();
+
+SqlStatement sql =
+    Select(u.Id, u.Name, u.CreatedAt)
+    .From(u)
+    .Union
+    .Select(a.Id, a.Name, a.CreatedAt)
+    .From(a)
+    .Build();
+
+// SELECT id, name, created_at
+// FROM users
+// UNION
+// SELECT id, name, created_at
+// FROM archived_users
+```
+
+##### Example using UNION ALL
+```csharp
+UsersTable u = new();
+ArchivedUsersTable a = new();
+
+SqlStatement sql =
+Select(u.Id, u.Name, u.CreatedAt)
+.From(u)
+.UnionAll
+.Select(a.Id, a.Name, a.CreatedAt)
+.From(a)
+.Build();
+
+// SELECT id, name, created_at
+// FROM users
+// UNION ALL
+// SELECT id, name, created_at
+// FROM archived_users
+```
+
+##### Supported Set Operators
+
+- `Union` for `UNION`
+- `UnionAll` for `UNION ALL`
+- `Except` for `EXCEPT`
+- `ExceptAll` for `EXCEPT ALL`
+- `Minus` for `MINUS`
+- `MinusAll` for `MINUS ALL`
+- `Intersect` for `INTERSECT`
+- `IntersectAll` for `INTERSECT ALL`
+
 ### DELETE Statement
 ```csharp
 UsersTable u = new();
@@ -644,7 +698,7 @@ SqlStatement sql =
     InsertInto(a, a.Id, a.Name, a.CreatedAt)
     .Select(u.Id, u.Name, u.CreatedAt)
     .From(u)
-    .Build(Dbms.Oracle);
+    .Build();
 
 // INSERT INTO archived_users
 // (id, name, created_at)
