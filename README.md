@@ -638,15 +638,15 @@ SqlStatement sql =
 
 ```csharp
 UsersTable u = new();
-UsersBackupTable b = new();
+ArchivedUsersTable a = new();
 
 SqlStatement sql =
-    InsertInto(b, b.Id, b.Name, b.CreatedAt)
+    InsertInto(a, a.Id, a.Name, a.CreatedAt)
     .Select(u.Id, u.Name, u.CreatedAt)
     .From(u)
-    .Build();
+    .Build(Dbms.Oracle);
 
-// INSERT INTO users_backup
+// INSERT INTO archived_users
 // (id, name, created_at)
 // SELECT id, name, created_at
 // FROM users
