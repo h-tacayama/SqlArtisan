@@ -748,8 +748,7 @@ SqlStatement sql =
             When(u.Age < 18).Then("Minor"),
             When(u.Age >= 18 & u.Age < 65).Then("Adult"),
             Else("Senior"))
-        .As("AgeGroup")
-    )
+        .As("AgeGroup"))
     .From(u)
     .Build();
 
