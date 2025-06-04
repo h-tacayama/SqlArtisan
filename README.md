@@ -573,17 +573,17 @@ UsersTable u = new();
 ArchivedUsersTable a = new();
 
 SqlStatement sql =
-    Select(u.Id, u.Name, u.CreatedAt)
+    Select(u.Id, u.Name)
     .From(u)
     .Union
-    .Select(a.Id, a.Name, a.CreatedAt)
+    .Select(a.Id, a.Name)
     .From(a)
     .Build();
 
-// SELECT id, name, created_at
+// SELECT id, name
 // FROM users
 // UNION
-// SELECT id, name, created_at
+// SELECT id, name
 // FROM archived_users
 ```
 
@@ -593,21 +593,21 @@ UsersTable u = new();
 ArchivedUsersTable a = new();
 
 SqlStatement sql =
-Select(u.Id, u.Name, u.CreatedAt)
-.From(u)
-.UnionAll
-.Select(a.Id, a.Name, a.CreatedAt)
-.From(a)
-.Build();
+    Select(u.Id, u.Name)
+    .From(u)
+    .UnionAll
+    .Select(a.Id, a.Name)
+    .From(a)
+    .Build();
 
-// SELECT id, name, created_at
+// SELECT id, name
 // FROM users
 // UNION ALL
-// SELECT id, name, created_at
+// SELECT id, name
 // FROM archived_users
 ```
 
-##### Supported Set Operators
+##### Supported Set Operators APIs
 
 - `Union` for `UNION`
 - `UnionAll` for `UNION ALL`
