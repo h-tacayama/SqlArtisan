@@ -37,7 +37,8 @@ This project is currently under **active development**. It should be considered 
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): Standard, SET-like, `INSERT SELECT`
-- [License](#license)
+  - [Expressions](#expressions)
+    - [CASE Expressions](#case-expressions): Simple CASE, Searched CASE
 
 ## Changelog
 
@@ -703,6 +704,60 @@ SqlStatement sql =
 // INSERT INTO archived_users
 // (id, name, created_at)
 // SELECT id, name, created_at
+// FROM users
+```
+
+### Expressions
+
+#### CASE Expressions
+
+##### Simple CASE Expression
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Id,
+        u.Name,
+        Case(u.StatusId,
+            When(1).Then("Active"),
+            When(2).Then("Inactive"),
+            When(3).Then("Pending"),
+            Else("Unknown"))
+        .As("StatusDescription"))
+    .From(u)
+    .Build();
+
+// SELECT id, name,
+// CASE status_id
+// WHEN :0 THEN :1
+// WHEN :2 THEN :3
+// WHEN :4 THEN :5
+// ELSE :6 END AS "StatusDescription"
+// FROM users
+```
+
+
+##### Searched CASE Expression
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Id,
+        u.Name,
+        Case(
+            When(u.Age < 18).Then("Minor"),
+            When(u.Age >= 18 & u.Age < 65).Then("Adult"),
+            Else("Senior"))
+        .As("AgeGroup")
+    )
+    .From(u)
+    .Build();
+
+// SELECT id, name,
+// CASE WHEN (age < :0) THEN :1
+// WHEN ((age >= :2) AND (age < :3)) THEN :4
+// ELSE :5
+// END AS "AgeGroup"
 // FROM users
 ```
 
