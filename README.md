@@ -718,7 +718,8 @@ SqlStatement sql =
     Select(
         u.Id,
         u.Name,
-        Case(u.StatusId,
+        Case(
+            u.StatusId,
             When(1).Then("Active"),
             When(2).Then("Inactive"),
             When(3).Then("Pending"),
