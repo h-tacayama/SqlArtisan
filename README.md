@@ -749,6 +749,7 @@ SqlStatement sql =
         u.Age * 3,
         u.Age / 4,
         u.Age % 5)
+    .From(u)
     .Build();
 
 // SELECT
@@ -757,6 +758,7 @@ SqlStatement sql =
 // (age * :2),
 // (age / :3),
 // (age % :4)
+// FROM users
 ```
 
 #### CASE Expressions
