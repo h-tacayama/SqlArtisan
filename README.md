@@ -38,6 +38,7 @@ This project is currently under **active development**. It should be considered 
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): Standard, SET-like, `INSERT SELECT`
   - [Expressions](#expressions)
+    - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`
     - [CASE Expressions](#case-expressions): Simple CASE, Searched CASE
 
 ## Changelog
@@ -709,6 +710,34 @@ SqlStatement sql =
 
 ### Expressions
 
+#### Sequence
+
+##### PostgreSQL Example
+```csharp
+SqlStatement sql =
+    Select(
+        CurrVal("users_id_seq"),
+        NextVal("users_id_seq"))
+    .Build();
+
+// SELECT
+// CURRVAL('users_id_seq'),
+// NEXTVAL('users_id_seq')
+```
+
+##### Oracle Example
+```csharp
+SqlStatement sql =
+    Select(
+        Sequence("users_id_seq").CurrVal,
+        Sequence("users_id_seq").NextVal)
+    .Build();
+
+// SELECT
+// users_id_seq.CURRVAL,
+// users_id_seq.NEXTVAL
+```
+
 #### CASE Expressions
 
 ##### Simple CASE Expression
@@ -736,7 +765,6 @@ SqlStatement sql =
 // ELSE :6 END AS "StatusDescription"
 // FROM users
 ```
-
 
 ##### Searched CASE Expression
 ```csharp
