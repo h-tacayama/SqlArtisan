@@ -39,6 +39,7 @@ This project is currently under **active development**. It should be considered 
   - [INSERT Statement](#insert-statement): Standard, SET-like, `INSERT SELECT`
   - [Expressions](#expressions)
     - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`
+    - [Arithmetic Operators](#arithmetic-operators): `+`, `-`, `*`, `/`, `%`
     - [CASE Expressions](#case-expressions): Simple CASE, Searched CASE
 
 ## Changelog
@@ -736,6 +737,26 @@ SqlStatement sql =
 // SELECT
 // users_id_seq.CURRVAL,
 // users_id_seq.NEXTVAL
+```
+
+#### Arithmetic Operators
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Age + 1,
+        u.Age - 2,
+        u.Age * 3,
+        u.Age / 4,
+        u.Age % 5)
+    .Build();
+
+// SELECT
+// (age + :0),
+// (age - :1),
+// (age * :2),
+// (age / :3),
+// (age % :4)
 ```
 
 #### CASE Expressions

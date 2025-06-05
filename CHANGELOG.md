@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Updated README:
   - Added examples for Set Operators (`UNION`, `EXCEPT`, `MINUS`, `INTERSECT` and their `ALL` versions) in "Usage Examples".
   - Added examples for Sequence (`CURRVAL`, `NEXTVAL`) in "Usage Examples".
+  - Added examples for Arithmetic Operators (`+`, `-`, `*`, `/`, `%`) in "Usage Examples".
   - Added examples for `CASE` expressions (Simple CASE and Searched CASE) in "Usage Examples".
 ### Removed
 - `SqlArtisan.DapperExtensions` has been removed. Users should migrate to `SqlArtisan.Dapper`.
