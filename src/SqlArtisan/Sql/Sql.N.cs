@@ -12,6 +12,9 @@ public static partial class Sql
     public static NextValFunction NextVal(string sequenceName) =>
         new(sequenceName);
 
+    public static NextValueForFunction NextValueFor(string sequenceName) =>
+        new(sequenceName);
+
     public static NotCondition Not(SqlCondition condition) => new(condition);
 
     public static NotExistsCondition NotExists(ISubquery subquery) =>

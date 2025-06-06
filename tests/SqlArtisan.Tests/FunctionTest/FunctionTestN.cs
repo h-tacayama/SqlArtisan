@@ -20,6 +20,20 @@ public partial class FunctionTest
     }
 
     [Fact]
+    public void NextValueFor_SequenceName_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(NextValueFor("seq_test"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("NEXT VALUE FOR seq_test");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Nvl_CharacterValue_CorrectSql()
     {
         SqlStatement sql =

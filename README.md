@@ -38,7 +38,7 @@ This project is currently under **active development**. It should be considered 
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): Standard, SET-like, `INSERT SELECT`
   - [Expressions](#expressions)
-    - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`
+    - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`
     - [Arithmetic Operators](#arithmetic-operators): `+`, `-`, `*`, `/`, `%`
     - [CASE Expressions](#case-expressions): Simple CASE, Searched CASE
 
@@ -713,6 +713,19 @@ SqlStatement sql =
 
 #### Sequence
 
+##### Oracle Example
+```csharp
+SqlStatement sql =
+    Select(
+        Sequence("users_id_seq").CurrVal,
+        Sequence("users_id_seq").NextVal)
+    .Build();
+
+// SELECT
+// users_id_seq.CURRVAL,
+// users_id_seq.NEXTVAL
+```
+
 ##### PostgreSQL Example
 ```csharp
 SqlStatement sql =
@@ -726,17 +739,15 @@ SqlStatement sql =
 // NEXTVAL('users_id_seq')
 ```
 
-##### Oracle Example
+#### SQL Server Example
 ```csharp
 SqlStatement sql =
     Select(
-        Sequence("users_id_seq").CurrVal,
-        Sequence("users_id_seq").NextVal)
+        NextValueFor("users_id_seq"))
     .Build();
 
 // SELECT
-// users_id_seq.CURRVAL,
-// users_id_seq.NEXTVAL
+// NEXT VALUE FOR users_id_seq
 ```
 
 #### Arithmetic Operators

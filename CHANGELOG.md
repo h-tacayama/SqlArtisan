@@ -5,14 +5,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.1.0-alpha.15] - 2025-06-06
 ### Added
+- Add support for SQL Server `NEXT VALUE FOR` sequence.
 - Added `Sql.Case` overloads for more flexible `WHEN` clause definitions in Simple CASE and Searched CASE expressions.
 ### Changed
 - Updated README:
   - Added examples for Set Operators (`UNION`, `EXCEPT`, `MINUS`, `INTERSECT` and their `ALL` versions) in "Usage Examples".
-  - Added examples for Sequence (`CURRVAL`, `NEXTVAL`) in "Usage Examples".
+  - Added examples for Sequence (`CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`) in "Usage Examples".
   - Added examples for Arithmetic Operators (`+`, `-`, `*`, `/`, `%`) in "Usage Examples".
   - Added examples for `CASE` expressions (Simple CASE and Searched CASE) in "Usage Examples".
+  
 ### Removed
 - `SqlArtisan.DapperExtensions` has been removed. Users should migrate to `SqlArtisan.Dapper`.
 

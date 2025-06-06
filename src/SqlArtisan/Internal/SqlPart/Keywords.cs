@@ -33,6 +33,7 @@ internal static class Keywords
     internal const string End = "END";
     internal const string Except = "EXCEPT";
     internal const string Exists = "EXISTS";
+    internal const string For = "FOR";
     internal const string From = "FROM";
     internal const string Full = "FULL";
     internal const string Greatest = "GREATEST";
@@ -60,6 +61,7 @@ internal static class Keywords
     internal const string Minus = "MINUS";
     internal const string Mod = "MOD";
     internal const string MonthsBetween = "MONTHS_BETWEEN";
+    internal const string Next = "NEXT";
     internal const string NextVal = "NEXTVAL";
     internal const string Not = "NOT";
     internal const string Null = "NULL";
@@ -100,6 +102,7 @@ internal static class Keywords
     internal const string Union = "UNION";
     internal const string Update = "UPDATE";
     internal const string Upper = "UPPER";
+    internal const string Value = "VALUE";
     internal const string Values = "VALUES";
     internal const string Where = "WHERE";
     internal const string When = "WHEN";
