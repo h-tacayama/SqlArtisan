@@ -739,7 +739,7 @@ SqlStatement sql =
 // NEXTVAL('users_id_seq')
 ```
 
-#### SQL Server Example
+##### SQL Server Example
 ```csharp
 SqlStatement sql =
     Select(
