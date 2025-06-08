@@ -43,9 +43,9 @@ public class SelectTest
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("\"t\".code AS \"code\", ");
-        expected.Append("\"t\".name AS \"name\", ");
-        expected.Append("\"t\".created_at AS \"登録日\" ");
+        expected.Append("\"t\".code \"code\", ");
+        expected.Append("\"t\".name \"name\", ");
+        expected.Append("\"t\".created_at \"登録日\" ");
         expected.Append("FROM ");
         expected.Append("test_table \"t\"");
 
@@ -174,7 +174,7 @@ public class SelectTest
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("SELECT NULL, NULL AS \"e\"");
+        expected.Append("SELECT NULL, NULL \"e\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
