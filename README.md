@@ -228,15 +228,15 @@ To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string buil
 
 | Method                               |            Mean |     Allocated |
 | :----------------------------------- | --------------: | ------------: |
-| StringBuilder_DapperDynamicParams    |      223.4 ns   |     1.38 KB   |
-| DapperQbNet_NoParams                 |    2,697.6 ns   |     7.47 KB   |
-| DapperSqlBuilder_DapperDynamicParams |    1,389.3 ns   |     5.12 KB   |
-| InterpolatedSql_SpecificParams       |    1,624.4 ns   |     5.17 KB   |
-| SqExpress_NoParams                   |    2,148.0 ns   |     4.56 KB   |
-| Sqlify_SpecificParams                |    1,028.0 ns   |     3.13 KB   |
-| SqlKata_SpecificParams               |   30,181.3 ns   |    40.54 KB   |
-| **SqlArtisan_SpecificParams**        |  **1,521.7 ns** |   **2.68 KB** |
-| **SqlArtisan_DapperDynamicParams**   |  **1,703.2 ns** |   **3.24 KB** |
+| StringBuilder_DapperDynamicParams    |      206.5 ns   |     1.38 KB   |
+| DapperQbNet_NoParams                 |    2,700.3 ns   |     7.47 KB   |
+| DapperSqlBuilder_DapperDynamicParams |    1,333.3 ns   |     5.12 KB   |
+| InterpolatedSql_SpecificParams       |    1,568.4 ns   |     5.17 KB   |
+| SqExpress_NoParams                   |    2,091.0 ns   |     4.56 KB   |
+| Sqlify_SpecificParams                |    1,001.6 ns   |     3.13 KB   |
+| SqlKata_SpecificParams               |   29,072.0 ns   |    40.54 KB   |
+| **SqlArtisan_SpecificParams**        |  **1,433.0 ns** |   **2.66 KB** |
+| **SqlArtisan_DapperDynamicParams**   |  **1,568.5 ns** |   **3.23 KB** |
 
 ### Disclaimer
 
@@ -260,8 +260,8 @@ SqlStatement sql =
     .From(u)
     .Build();
 
-// SELECT id AS "user_id",
-// name AS "user_name"
+// SELECT id "user_id",
+// name "user_name"
 // FROM users
 ```
 
@@ -777,7 +777,8 @@ SqlStatement sql =
 // WHEN :0 THEN :1
 // WHEN :2 THEN :3
 // WHEN :4 THEN :5
-// ELSE :6 END AS "StatusDescription"
+// ELSE :6
+// END "StatusDescription"
 // FROM users
 ```
 
@@ -797,10 +798,11 @@ SqlStatement sql =
     .Build();
 
 // SELECT id, name,
-// CASE WHEN (age < :0) THEN :1
+// CASE
+// WHEN (age < :0) THEN :1
 // WHEN ((age >= :2) AND (age < :3)) THEN :4
 // ELSE :5
-// END AS "AgeGroup"
+// END "AgeGroup"
 // FROM users
 ```
 
