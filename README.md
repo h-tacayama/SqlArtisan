@@ -27,20 +27,21 @@ This project is currently under **active development**. It should be considered 
   - [Disclaimer](#disclaimer)
 - [Usage Examples](#usage-examples)
   - [SELECT Query](#select-query)
-    - [SELECT Clause](#select-clause): `AS` (Aliases), `DISTINCT`, Hints
-    - [FROM Clause](#from-clause): FROM-less, `DUAL`
-    - [WHERE Clause](#where-clause): Logical, Comparison, `NULL`, `LIKE`, `REGEXP_LIKE`, `BETWEEN`, `IN`, `EXISTS`, Dynamic Conditions
+    - [SELECT Clause](#select-clause): **Column Aliases**, `DISTINCT`, **Hints**
+    - [FROM Clause](#from-clause): **FROM-less**, `DUAL`
+    - [WHERE Clause](#where-clause)
     - [JOIN Clause](#join-clause): `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, `FULL JOIN`, `CROSS JOIN`
     - [ORDER BY Clause](#order-by-clause): `ASC`, `DESC`, `NULLS FIRST/LAST`
     - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
     - [Set Operators](#set-operators): `UNION [ALL]`, `EXCEPT [ALL]`, `MINUS [ALL]`, `INTERSECT [ALL]`
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
-  - [INSERT Statement](#insert-statement): Standard, SET-like, `INSERT SELECT`
+  - [INSERT Statement](#insert-statement): **Standard**, **SET-like**, `INSERT SELECT`
   - [Expressions](#expressions)
-    - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`
     - [Arithmetic Operators](#arithmetic-operators): `+`, `-`, `*`, `/`, `%`
-    - [CASE Expressions](#case-expressions): Simple CASE, Searched CASE
+    - [Conditions](#conditions): **Logical**, **Comparison**, `NULL`, `LIKE`, `REGEXP_LIKE`, `BETWEEN`, `IN`, `EXISTS`, **Dynamic Conditions**
+    - [CASE Expressions](#case-expressions): **Simple CASE**, **Searched CASE**
+    - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`
 
 ## Changelog
 
@@ -312,180 +313,22 @@ SqlStatement sql =
 
 #### WHERE Clause
 
-##### Logical Condition
+##### Example
+
 ```csharp
 UsersTable u = new();
 SqlStatement sql =
     Select(u.Name)
     .From(u)
-    .Where(
-        (u.Id == 1 & u.Id == 2)
-        | (u.Id == 3 & Not(u.Id == 4)))
+    .Where(u.Id == 1)
     .Build();
 
 // SELECT name
 // FROM users
-// WHERE ((id = :0) AND (id = :1))
-// OR ((id = :2) AND (NOT (id = :3)))
+// WHERE id = :0
 ```
 
-**Note:** SqlArtisan's `Where()` clauses use `&` for SQL `AND` and `|` for SQL `OR`, unlike their standard C# meanings (bitwise or non-short-circuiting logic).
-
-##### Comparison Condition
-```csharp
-UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(
-        u.Id == 1
-        & u.Id != 2
-        & u.Id > 3
-        & u.Id >= 4
-        & u.Id < 5
-        & u.Id <= 6)
-    .Build();
-
-// SELECT name
-// FROM users
-// WHERE (id = :0)
-// AND (id <> :1)
-// AND (id > :2)
-// AND (id >= :3)
-// AND (id < :4)
-// AND (id <= :5)
-```
-
-##### NULL Condition
-```csharp
-UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(u.Id.IsNull
-        | u.Id.IsNotNull)
-    .Build();
-
-// SELECT name
-// FROM users
-// WHERE (id IS NULL)
-// OR (id IS NOT NULL)
-```
-
-##### Pattern Matching Condition
-```csharp
-UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(
-        u.Name.Like("%a")
-        | u.Name.NotLike("%b")
-        | RegexpLike(u.Name, "%c"))
-    .Build();
-
-// SELECT name
-// FROM users
-// WHERE (name LIKE :0)
-// OR (name NOT LIKE :1)
-// OR (REGEXP_LIKE(name, :2))
-```
-
-##### BETWEEN Condition
-```csharp
-UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(
-        u.Id.Between(1, 2)
-        | u.Id.NotBetween(3, 4))
-    .Build();
-
-// SELECT name
-// FROM users
-// WHERE (id BETWEEN :0 AND :1)
-// OR (id NOT BETWEEN :2 AND :3)
-```
-
-##### IN Condition
-```csharp
-UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(
-        u.Id.In(1, 2, 3)
-        | u.Id.NotIn(4, 5, 6))
-    .Build();
-
-// SELECT name
-// FROM users
-// WHERE (id IN (:0, :1, :2))
-// OR (id NOT IN (:3, :4, :5))
-```
-
-##### EXISTS Condition
-```csharp
-UsersTable a = new("a");
-UsersTable b = new("b");
-UsersTable c = new("c");
-SqlStatement sql =
-    Select(a.Name)
-    .From(a)
-    .Where(
-        Exists(Select(b.Id).From(b))
-        & NotExists(Select(c.Id).From(c)))
-    .Build();
-
-// SELECT "a".name
-// FROM users "a"
-// WHERE (EXISTS (SELECT "b".id FROM users "b"))
-// AND (NOT EXISTS (SELECT "c".id FROM users "c"))
-```
-
-##### Dynamic Condition
-
-SqlArtisan allows you to dynamically include or exclude conditions using a helper like `ConditionIf`. This is useful when parts of your `WHERE` clause depend on runtime logic.
-
-###### Case 1: Condition is Included 
-
-```csharp
-bool filterUnderTen = true;
-
-UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(
-        u.Id > 0
-        & ConditionIf(filterUnderTen, u.Id < 10))
-    .Build();
-
-// SELECT name
-// FROM users
-// WHERE (id > :0)
-// AND (id < :1)
-```
-
-###### Case 2: Condition is Excluded
-
-```csharp
-bool filterUnderTen = false;
-
-UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(
-        u.Id > 0
-        & ConditionIf(filterUnderTen, u.Id < 10))
-    .Build();
-
-// SELECT name
-// FROM users
-// WHERE (id > :0)
-```
+For a detailed guide on constructing various types of conditions (like **Logical**, **Comparison**, `NULL`, **Pattern Matching**, `BETWEEN`, `IN`, `EXISTS`), including how to use **Dynamic Conditions** (`ConditionIf`), check out the [Expressions: Conditions](#conditions) section.
 
 #### JOIN Clause
 
@@ -711,45 +554,6 @@ SqlStatement sql =
 
 ### Expressions
 
-#### Sequence
-
-##### Oracle Example
-```csharp
-SqlStatement sql =
-    Select(
-        Sequence("users_id_seq").CurrVal,
-        Sequence("users_id_seq").NextVal)
-    .Build();
-
-// SELECT
-// users_id_seq.CURRVAL,
-// users_id_seq.NEXTVAL
-```
-
-##### PostgreSQL Example
-```csharp
-SqlStatement sql =
-    Select(
-        CurrVal("users_id_seq"),
-        NextVal("users_id_seq"))
-    .Build();
-
-// SELECT
-// CURRVAL('users_id_seq'),
-// NEXTVAL('users_id_seq')
-```
-
-##### SQL Server Example
-```csharp
-SqlStatement sql =
-    Select(
-        NextValueFor("users_id_seq"))
-    .Build();
-
-// SELECT
-// NEXT VALUE FOR users_id_seq
-```
-
 #### Arithmetic Operators
 ```csharp
 UsersTable u = new();
@@ -770,6 +574,183 @@ SqlStatement sql =
 // (age / :3),
 // (age % :4)
 // FROM users
+```
+
+#### Conditions
+
+##### Logical Condition
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        (u.Id == 1 & u.Id == 2)
+        | (u.Id == 3 & Not(u.Id == 4)))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE ((id = :0) AND (id = :1))
+// OR ((id = :2) AND (NOT (id = :3)))
+```
+
+**Note:** SqlArtisan's logical conditions use `&` for SQL `AND` and `|` for SQL `OR`, unlike their standard C# meanings (bitwise or non-short-circuiting logic).
+
+##### Comparison Condition
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id == 1
+        & u.Id != 2
+        & u.Id > 3
+        & u.Id >= 4
+        & u.Id < 5
+        & u.Id <= 6)
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE (id = :0)
+// AND (id <> :1)
+// AND (id > :2)
+// AND (id >= :3)
+// AND (id < :4)
+// AND (id <= :5)
+```
+
+##### NULL Condition
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Id.IsNull
+        | u.Id.IsNotNull)
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE (id IS NULL)
+// OR (id IS NOT NULL)
+```
+
+##### Pattern Matching Condition
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Name.Like("%a")
+        | u.Name.NotLike("%b")
+        | RegexpLike(u.Name, "%c"))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE (name LIKE :0)
+// OR (name NOT LIKE :1)
+// OR (REGEXP_LIKE(name, :2))
+```
+
+##### BETWEEN Condition
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id.Between(1, 2)
+        | u.Id.NotBetween(3, 4))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE (id BETWEEN :0 AND :1)
+// OR (id NOT BETWEEN :2 AND :3)
+```
+
+##### IN Condition
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id.In(1, 2, 3)
+        | u.Id.NotIn(4, 5, 6))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE (id IN (:0, :1, :2))
+// OR (id NOT IN (:3, :4, :5))
+```
+
+##### EXISTS Condition
+```csharp
+UsersTable a = new("a");
+UsersTable b = new("b");
+UsersTable c = new("c");
+SqlStatement sql =
+    Select(a.Name)
+    .From(a)
+    .Where(
+        Exists(Select(b.Id).From(b))
+        & NotExists(Select(c.Id).From(c)))
+    .Build();
+
+// SELECT "a".name
+// FROM users "a"
+// WHERE (EXISTS (SELECT "b".id FROM users "b"))
+// AND (NOT EXISTS (SELECT "c".id FROM users "c"))
+```
+
+##### Dynamic Condition
+
+SqlArtisan allows you to dynamically include or exclude conditions using a helper like `ConditionIf`. This is useful when parts of your `WHERE` clause depend on runtime logic.
+
+###### Case 1: Condition is Included 
+
+```csharp
+bool filterUnderTen = true;
+
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id > 0
+        & ConditionIf(filterUnderTen, u.Id < 10))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE (id > :0)
+// AND (id < :1)
+```
+
+###### Case 2: Condition is Excluded
+
+```csharp
+bool filterUnderTen = false;
+
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id > 0
+        & ConditionIf(filterUnderTen, u.Id < 10))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE (id > :0)
 ```
 
 #### CASE Expressions
@@ -821,6 +802,45 @@ SqlStatement sql =
 // ELSE :5
 // END AS "AgeGroup"
 // FROM users
+```
+
+#### Sequence
+
+##### Oracle Example
+```csharp
+SqlStatement sql =
+    Select(
+        Sequence("users_id_seq").CurrVal,
+        Sequence("users_id_seq").NextVal)
+    .Build();
+
+// SELECT
+// users_id_seq.CURRVAL,
+// users_id_seq.NEXTVAL
+```
+
+##### PostgreSQL Example
+```csharp
+SqlStatement sql =
+    Select(
+        CurrVal("users_id_seq"),
+        NextVal("users_id_seq"))
+    .Build();
+
+// SELECT
+// CURRVAL('users_id_seq'),
+// NEXTVAL('users_id_seq')
+```
+
+##### SQL Server Example
+```csharp
+SqlStatement sql =
+    Select(
+        NextValueFor("users_id_seq"))
+    .Build();
+
+// SELECT
+// NEXT VALUE FOR users_id_seq
 ```
 
 ## License
