@@ -48,10 +48,14 @@ internal static class ExpressionResolver
     }
 
     internal static bool IsBindable(object value) =>
-        IsCharacter(value)
+        IsBoolean(value)
+        || IsCharacter(value)
         || IsDateTime(value)
         || IsNumeric(value)
         || IsEnum(value);
+
+    internal static bool IsBoolean(object value) =>
+        value is bool;
 
     internal static bool IsCharacter(object value) =>
         value is char
