@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Added support for boolean bind parameters.
+- Added documentation for Bind Parameter Types in the README.
 ### Changed
 - Omitted the optional `AS` keyword from column aliases in the generated SQL to minimize memory allocations.
 - Updated benchmark results in the README to reflect the latest performance improvements.

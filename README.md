@@ -25,6 +25,7 @@ This project is currently under **active development**. It should be considered 
   - [Benchmark Details](#benchmark-details)
   - [Benchmark Result](#benchmark-result)
   - [Disclaimer](#disclaimer)
+- [Bind Parameter Types](#bind-parameter-types)]
 - [Usage Examples](#usage-examples)
   - [SELECT Query](#select-query)
     - [SELECT Clause](#select-clause): **Column Aliases**, `DISTINCT`, **Hints**
@@ -241,6 +242,16 @@ To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string buil
 ### Disclaimer
 
 This benchmark highlights the memory efficiency of a specific internal operation within SqlArtisan by comparing it to fundamental string handling techniques. It is not intended as a direct, comprehensive performance benchmark against other SQL builder libraries, as each library has different design goals, features, and may perform optimally under different conditions or workloads. 
+
+## Bind Parameter Types
+
+SqlArtisan automatically converts C# literal values into bind parameters. Supported types are as follows:
+
+* **Boolean**: `bool`
+* **Character/String**: `char`, `string`
+* **Date/Time**: `DateTime`, `DateOnly`, `TimeOnly`
+* **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
+* **Enum**: Any `enum` type
 
 ## Usage Examples
 
