@@ -39,6 +39,7 @@ This project is currently under **active development**. It should be considered 
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): **Standard**, **SET-like**, `INSERT SELECT`
   - [Expressions](#expressions)
+    - [NULL Literal](#null-literal)
     - [Arithmetic Operators](#arithmetic-operators): `+`, `-`, `*`, `/`, `%`
     - [Conditions](#conditions): **Logical**, **Comparison**, `NULL`, `LIKE`, `REGEXP_LIKE`, `BETWEEN`, `IN`, `EXISTS`, **Dynamic Conditions**
     - [CASE Expressions](#case-expressions): **Simple CASE**, **Searched CASE**
@@ -564,6 +565,19 @@ SqlStatement sql =
 ```
 
 ### Expressions
+
+#### NULL Literal
+```csharp
+SqlStatement sql =
+    Select(
+        Null,
+        Null.As("NoValue"))
+    .Build();
+
+// SELECT
+// NULL,
+// NULL "NoValue"
+```
 
 #### Arithmetic Operators
 ```csharp
