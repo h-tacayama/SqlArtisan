@@ -25,7 +25,7 @@ This project is currently under **active development**. It should be considered 
   - [Benchmark Details](#benchmark-details)
   - [Benchmark Result](#benchmark-result)
   - [Disclaimer](#disclaimer)
-- [Bind Parameter Types](#bind-parameter-types)]
+- [Bind Parameter Types](#bind-parameter-types)
 - [Usage Examples](#usage-examples)
   - [SELECT Query](#select-query)
     - [SELECT Clause](#select-clause): **Column Aliases**, `DISTINCT`, **Hints**
