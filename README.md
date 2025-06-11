@@ -95,8 +95,6 @@ The `SqlArtisan.Dapper` package is the new, recommended package for Dapper integ
 - **Bind Parameter Handling:** SqlArtisan adjusts bind parameter prefixes (e.g., `:` or `@`) to suit the target DBMS. Currently, this behavior is verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
 - **(Optional) Dapper Integration:** Install `SqlArtisan.Dapper` for seamless Dapper execution. It auto-detects the dialect from your `IDbConnection` to apply correct settings (like bind parameter prefixes) and provides helpful execution methods.
 
----
-
 ### Installation
 
 You can install SqlArtisan and its optional Dapper integration library via NuGet Package Manager.
@@ -114,8 +112,6 @@ For seamless execution with Dapper (recommended):
 ```bash
 dotnet add package SqlArtisan.Dapper --prerelease
 ```
-
----
 
 ### Quick Start
 
@@ -238,8 +234,6 @@ SqlArtisan is engineered for efficient performance, primarily by minimizing heap
 
 To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string building against common approaches using [BenchmarkDotNet](https://benchmarkdotnet.org/).
 
----
-
 ### Benchmark Details
 
 - Environment:
@@ -248,8 +242,6 @@ To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string buil
   - RAM: 16 GB
   - OS: Windows 11 Pro 24H2
 - Source Code: Benchmark code is available at [Benchmark Source Code](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark). We encourage review and custom testing.
-
----
 
 ### Benchmark Result
 
@@ -265,8 +257,6 @@ To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string buil
 | **SqlArtisan_SpecificParams**        |  **1,433.0 ns** |   **2.66 KB** |
 | **SqlArtisan_DapperDynamicParams**   |  **1,568.5 ns** |   **3.23 KB** |
 
----
-
 ### Disclaimer
 
 This benchmark highlights the memory efficiency of a specific internal operation within SqlArtisan by comparing it to fundamental string handling techniques. It is not intended as a direct, comprehensive performance benchmark against other SQL builder libraries, as each library has different design goals, features, and may perform optimally under different conditions or workloads. 
@@ -276,8 +266,6 @@ This benchmark highlights the memory efficiency of a specific internal operation
 ## Usage Examples
 
 SqlArtisan allows you to construct a wide variety of SQL queries in a type-safe and intuitive manner. Below are examples demonstrating common SQL operations and how to achieve them with SqlArtisan.
-
----
 
 ### SELECT Query
 
@@ -929,8 +917,6 @@ SqlStatement sql =
 
 This section provides supplementary information on specific elements and features within SqlArtisan that offer fine-grained control and enhance query expressiveness. These details build upon the fundamental query structures covered in the [Usage Examples](#usage-examples) section.
 
----
-
 ### Bind Parameter Types
 
 SqlArtisan automatically converts C# literal values into bind parameters. Supported types are as follows:
@@ -1010,6 +996,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Max()` for `MAX`
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
+
+---
 
 ## License
 
