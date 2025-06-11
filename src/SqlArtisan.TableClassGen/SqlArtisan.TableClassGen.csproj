@@ -9,7 +9,7 @@
     <IsPublishable>true</IsPublishable>
 
     <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>alpha.5</VersionSuffix>
+    <VersionSuffix>alpha.6</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
