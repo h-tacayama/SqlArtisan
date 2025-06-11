@@ -46,11 +46,11 @@ This project is currently under **active development**. It should be considered 
 - [Additional Query Details](#additional-query-details)
   - [Bind Parameter Types](#bind-parameter-types-1)
   - [Functions](#functions)
-    - [Numeric Functions](#numeric-functions)
-    - [Character Functions](#character-functions)
-    - [Date and Time Functions](#date-and-time-functions)
-    - [Conversion Functions](#conversion-functions)
-    - [Aggregate Functions](#aggregate-functions)
+    - [Numeric Functions](#numeric-functions): `ABS`, `MOD`, `TRUNC`
+    - [Character Functions](#character-functions): `CONCAT`, `INSTR`, `LPAD`, `LTRIM`, `LENGTH`, `LENGTHB`, `LOWER`, `RPAD`, `RTRIM`, `REGEXP_COUNT`, `REGEXP_REPLACE`, `REGEXP_SUBSTR`, `REPLACE`, `SUBSTR`, `SUBSTRB`, `TRIM`, `UPPER`
+    - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
+    - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
+    - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
 
 ---
 
