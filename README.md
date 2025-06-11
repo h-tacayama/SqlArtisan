@@ -25,7 +25,6 @@ This project is currently under **active development**. It should be considered 
   - [Benchmark Details](#benchmark-details)
   - [Benchmark Result](#benchmark-result)
   - [Disclaimer](#disclaimer)
-- [Bind Parameter Types](#bind-parameter-types)
 - [Usage Examples](#usage-examples)
   - [SELECT Query](#select-query)
     - [SELECT Clause](#select-clause): **Column Aliases**, `DISTINCT`, **Hints**
@@ -44,10 +43,22 @@ This project is currently under **active development**. It should be considered 
     - [Conditions](#conditions): **Logical**, **Comparison**, `NULL`, `LIKE`, `REGEXP_LIKE`, `BETWEEN`, `IN`, `EXISTS`, **Dynamic Conditions**
     - [CASE Expressions](#case-expressions): **Simple CASE**, **Searched CASE**
     - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`
+- [Additional Query Details](#additional-query-details)
+  - [Bind Parameter Types](#bind-parameter-types-1)
+  - [Functions](#functions)
+    - [Numeric Functions](#numeric-functions)
+    - [Character Functions](#character-functions)
+    - [Date and Time Functions](#date-and-time-functions)
+    - [Conversion Functions](#conversion-functions)
+    - [Aggregate Functions](#aggregate-functions)
+
+---
 
 ## Changelog
 
 Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md) file for all notable changes.
+
+---
 
 ## Packages
 
@@ -62,6 +73,8 @@ Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main
 
 The `SqlArtisan.Dapper` package is the new, recommended package for Dapper integration. It replaces the older `SqlArtisan.DapperExtensions` package. While `SqlArtisan.DapperExtensions` will remain available for a transition period, we strongly encourage all users to migrate to `SqlArtisan.Dapper` for future updates and support.
 
+---
+
 ## Key Features
 
 - **SQL-like API**: Write queries naturally, mirroring SQL syntax and structure.
@@ -71,6 +84,8 @@ The `SqlArtisan.Dapper` package is the new, recommended package for Dapper integ
 - **Low-Allocation Design**: Minimizes heap allocations and GC load for superior performance.
 - **Seamless Dapper Integration**: The optional `SqlArtisan.Dapper` library provides Dapper extensions that enable effortless SQL execution.
 
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -79,6 +94,8 @@ The `SqlArtisan.Dapper` package is the new, recommended package for Dapper integ
 - **Dialect-Specific API Usage:** SqlArtisan provides dialect-specific C# APIs that map to DBMS features. For example, use `SysTimestamp` for Oracle's `SYSTIMESTAMP` and `CurrentTimestamp` for PostgreSQL's `CURRENT_TIMESTAMP`. Developers should select the C# API appropriate for their target database.
 - **Bind Parameter Handling:** SqlArtisan adjusts bind parameter prefixes (e.g., `:` or `@`) to suit the target DBMS. Currently, this behavior is verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
 - **(Optional) Dapper Integration:** Install `SqlArtisan.Dapper` for seamless Dapper execution. It auto-detects the dialect from your `IDbConnection` to apply correct settings (like bind parameter prefixes) and provides helpful execution methods.
+
+---
 
 ### Installation
 
@@ -97,6 +114,8 @@ For seamless execution with Dapper (recommended):
 ```bash
 dotnet add package SqlArtisan.Dapper --prerelease
 ```
+
+---
 
 ### Quick Start
 
@@ -211,11 +230,15 @@ dotnet add package SqlArtisan.Dapper --prerelease
     // sql.Parameters.Get<string>("@1") is "Bob"
     ```
 
+---
+
 ## Performance
 
 SqlArtisan is engineered for efficient performance, primarily by minimizing heap allocations. Our core strategy is efficient buffer management using `ArrayPool<T>`: internal buffers, particularly for string construction, are recycled from a shared pool. This approach leads to fewer garbage collection (GC) pauses and improved application throughput.
 
 To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string building against common approaches using [BenchmarkDotNet](https://benchmarkdotnet.org/).
+
+---
 
 ### Benchmark Details
 
@@ -225,6 +248,8 @@ To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string buil
   - RAM: 16 GB
   - OS: Windows 11 Pro 24H2
 - Source Code: Benchmark code is available at [Benchmark Source Code](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark). We encourage review and custom testing.
+
+---
 
 ### Benchmark Result
 
@@ -240,23 +265,19 @@ To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string buil
 | **SqlArtisan_SpecificParams**        |  **1,433.0 ns** |   **2.66 KB** |
 | **SqlArtisan_DapperDynamicParams**   |  **1,568.5 ns** |   **3.23 KB** |
 
+---
+
 ### Disclaimer
 
 This benchmark highlights the memory efficiency of a specific internal operation within SqlArtisan by comparing it to fundamental string handling techniques. It is not intended as a direct, comprehensive performance benchmark against other SQL builder libraries, as each library has different design goals, features, and may perform optimally under different conditions or workloads. 
 
-## Bind Parameter Types
-
-SqlArtisan automatically converts C# literal values into bind parameters. Supported types are as follows:
-
-* **Boolean**: `bool`
-* **Character/String**: `char`, `string`
-* **Date/Time**: `DateTime`, `DateOnly`, `TimeOnly`
-* **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
-* **Enum**: Any `enum` type
+---
 
 ## Usage Examples
 
 SqlArtisan allows you to construct a wide variety of SQL queries in a type-safe and intuitive manner. Below are examples demonstrating common SQL operations and how to achieve them with SqlArtisan.
+
+---
 
 ### SELECT Query
 
@@ -302,6 +323,8 @@ SqlStatement sql =
 // FROM users "u"
 ```
 
+---
+
 #### FROM Clause
 
 ##### FROM-less Queries
@@ -323,6 +346,8 @@ SqlStatement sql =
 // SELECT SYSDATE FROM DUAL
 ```
 
+---
+
 #### WHERE Clause
 
 ##### Example
@@ -341,6 +366,8 @@ SqlStatement sql =
 ```
 
 For a detailed guide on constructing various types of conditions (like **Logical**, **Comparison**, `NULL`, **Pattern Matching**, `BETWEEN`, `IN`, `EXISTS`), including how to use **Dynamic Conditions** (`ConditionIf`), check out the [Expressions: Conditions](#conditions) section.
+
+---
 
 #### JOIN Clause
 
@@ -367,6 +394,8 @@ SqlStatement sql =
 - `RightJoin()` for `RIGHT OUTER JOIN`
 - `FullJoin()` for `FULL OUTER JOIN`
 - `CrossJoin()` for `CROSS JOIN`
+
+---
 
 #### ORDER BY Clause
 
@@ -403,6 +432,8 @@ SqlStatement sql =
 // id DESC NULLS LAST
 ```
 
+---
+
 #### GROUP BY and HAVING Clause
 
 ```csharp
@@ -422,6 +453,8 @@ SqlStatement sql =
 // GROUP BY id, name
 // HAVING COUNT(id) > :0
 ```
+
+---
 
 #### Set Operators
 
@@ -476,6 +509,8 @@ SqlStatement sql =
 - `Intersect` for `INTERSECT`
 - `IntersectAll` for `INTERSECT ALL`
 
+---
+
 ### DELETE Statement
 ```csharp
 UsersTable u = new();
@@ -487,6 +522,8 @@ SqlStatement sql =
 // DELETE FROM users
 // WHERE id = :0
 ```
+
+---
 
 ### UPDATE Statement
 ```csharp
@@ -507,6 +544,8 @@ SqlStatement sql =
 
 **Note:** SqlArtisan's `Set()` method uses `Column == Value` for SQL-like assignment, unlike standard C# `==` (comparison). In `Where()` clauses, `==` is used for comparison as expected.
 
+---
+
 ### INSERT Statement
 
 #### Standard Syntax
@@ -523,6 +562,8 @@ SqlStatement sql =
 // VALUES
 // (:0, :1, SYSDATE)
 ```
+
+---
 
 #### Alternative Syntax (SET-like)
 
@@ -546,6 +587,8 @@ SqlStatement sql =
 
 **Note:** Generates standard `INSERT INTO ... (columns) VALUES (values)` SQL, not MySQL's `INSERT ... SET ...`, for broad database compatibility.
 
+---
+
 #### INSERT SELECT Syntax
 
 ```csharp
@@ -564,6 +607,8 @@ SqlStatement sql =
 // FROM users
 ```
 
+---
+
 ### Expressions
 
 #### NULL Literal
@@ -578,6 +623,8 @@ SqlStatement sql =
 // NULL,
 // NULL "NoValue"
 ```
+
+---
 
 #### Arithmetic Operators
 ```csharp
@@ -600,6 +647,8 @@ SqlStatement sql =
 // (age % :4)
 // FROM users
 ```
+
+---
 
 #### Conditions
 
@@ -778,6 +827,8 @@ SqlStatement sql =
 // WHERE (id > :0)
 ```
 
+---
+
 #### CASE Expressions
 
 ##### Simple CASE Expression
@@ -831,6 +882,8 @@ SqlStatement sql =
 // FROM users
 ```
 
+---
+
 #### Sequence
 
 ##### Oracle Example
@@ -869,6 +922,94 @@ SqlStatement sql =
 // SELECT
 // NEXT VALUE FOR users_id_seq
 ```
+
+---
+
+## Additional Query Details
+
+This section provides supplementary information on specific elements and features within SqlArtisan that offer fine-grained control and enhance query expressiveness. These details build upon the fundamental query structures covered in the [Usage Examples](#usage-examples) section.
+
+---
+
+### Bind Parameter Types
+
+SqlArtisan automatically converts C# literal values into bind parameters. Supported types are as follows:
+
+- **Boolean**: `bool`
+- **Character/String**: `char`, `string`
+- **Date/Time**: `DateTime`, `DateOnly`, `TimeOnly`
+- **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
+- **Enum**: Any `enum` type
+
+---
+
+### Functions
+
+SqlArtisan provides C# APIs that map to various SQL functions, enabling you to use them seamlessly within your queries. Here's a list of supported functions by category:
+
+#### Numeric Functions
+
+- `Abs()` for `ABS`
+- `Mod()` for `MOD`
+- `Trunc()` for `TRUNC` (Numeric Overload)
+
+---
+
+#### Character Functions
+
+- `Concat()` for `CONCAT`
+- `Instr()` for `INSTR`
+- `LPad()` for `LPAD`
+- `LTrim()` for `LTRIM`
+- `Length()` for `LENGTH`
+- `LengthB()` for `LENGTHB`
+- `Lower()` for `LOWER`
+- `RPad()` for `RPAD`
+- `RTrim()` for `RTRIM`
+- `RegexpCount()` for `REGEXP_COUNT`
+- `RegexpReplace()` for `REGEXP_REPLACE`
+- `RegexpSubstr()` for `REGEXP_SUBSTR`
+- `Replace()` for `REPLACE`
+- `Substr()` for `SUBSTR`
+- `SubstrB()` for `SUBSTRB`
+- `Trim()` for `TRIM`
+- `Upper()` for `UPPER`
+
+---
+
+#### Date and Time Functions
+
+- `AddMonths()` for `ADD_MONTHS`
+- `CurrentDate` for `CURRENT_DATE`
+- `CurrentTime` for `CURRENT_TIME`
+- `CurrentTimestamp` for `CURRENT_TIMESTAMP`
+- `LastDay()` for `LAST_DAY`
+- `MonthsBetween()` for `MONTHS_BETWEEN`
+- `SysDate` for `SYSDATE`
+- `SysTimestamp` for `SYSTIMESTAMP`
+- `Trunc()` for `TRUNC` (Date/Time Overload)
+
+---
+
+#### Conversion Functions
+
+- `Coalesce()` for `COALESCE`
+- `Decode()` for `DECODE`
+- `Nvl()` for `NVL`
+- `ToChar()` for `TO_CHAR`
+- `ToDate()` for `TO_DATE`
+- `ToNumber()` for `TO_NUMBER`
+- `ToTimestamp()` for `TO_TIMESTAMP`
+
+---
+
+#### Aggregate Functions
+
+- `Avg()` for `AVG`
+- `Count()` for `COUNT`
+- `Max()` for `MAX`
+- `Min()` for `MIN`
+- `Sum()` for `SUM`
 
 ## License
 
