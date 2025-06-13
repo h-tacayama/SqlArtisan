@@ -9,4 +9,7 @@ public static partial class Sql
         new(Resolve(thenExpr));
 
     public static ExistsCondition Exists(ISubquery subquery) => new(subquery);
+
+    public static ExtractFunction Extract(DatePart datePart, object source) =>
+        new(datePart, Resolve(source));
 }

@@ -33,6 +33,7 @@ internal static class Keywords
     internal const string End = "END";
     internal const string Except = "EXCEPT";
     internal const string Exists = "EXISTS";
+    internal const string Extract = "EXTRACT";
     internal const string For = "FOR";
     internal const string From = "FROM";
     internal const string Full = "FULL";
