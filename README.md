@@ -12,6 +12,28 @@ This project is currently under **active development**. It should be considered 
 
 **SqlArtisan**: Write SQL, in C#. A SQL query builder that provides a SQL-like experience, designed for developers who value the clarity and control of direct SQL syntax.
 
+## Why SqlArtisan?
+
+Does this sound familiar?
+
+> - You write raw SQL strings by hand when your ORM can't handle a query.
+> - You build dynamic queries by stitching strings together, cluttering your core application logic.
+> - You write boilerplate code for `DbParameter` objects, a process prone to subtle bugs and type errors.
+
+SqlArtisan is designed to resolve these frustrations. It lets you write that same SQL directly in C# with a SQL-like API, automatic parameters, and IntelliSense on your schema—like this:
+
+```csharp
+UsersTable u = new();
+
+ISqlBuilder sql =
+    Select(u.Id, u.Name, u.CreatedAt)
+    .From(u)
+    .Where(u.Id > 0 & u.Name.Like("A%"))
+    .OrderBy(u.Id);
+```
+
+So you can focus on the query logic, not the boilerplate. That’s why SqlArtisan.
+
 ## Table of Contents
 
 - [Changelog](#changelog)

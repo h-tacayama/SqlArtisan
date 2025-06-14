@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - Added support for `EXTRACT` function.
+- Added a "Why SqlArtisan?" section to the README.
 
 ## [0.1.0-alpha.16] - 2025-06-11
 ### Added
