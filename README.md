@@ -20,15 +20,23 @@ Does this sound familiar?
 > - You build dynamic queries by stitching strings together, cluttering your core application logic.
 > - You write boilerplate code for `DbParameter` objects, a process prone to subtle bugs and type errors.
 
-SqlArtisan is designed to resolve these frustrations. It lets you write that same SQL directly in C# with a SQL-like API, automatic parameters, and IntelliSense on your schema—like this:
+SqlArtisan is designed to resolve these frustrations. It lets you write that same SQL directly in C# with a SQL-like API, a clean way to build dynamic queries, and automatic parameters—like this:
 
 ```csharp
+bool onlyActive = true;
+
 UsersTable u = new();
 
 ISqlBuilder sql =
-    Select(u.Id, u.Name, u.CreatedAt)
+    Select(
+        u.Id,
+        u.Name,
+        u.CreatedAt)
     .From(u)
-    .Where(u.Id > 0 & u.Name.Like("A%"))
+    .Where(
+        u.Id > 0
+        & u.Name.Like("A%")
+        & ConditionIf(onlyActive, u.StatusId == 1))
     .OrderBy(u.Id);
 ```
 
