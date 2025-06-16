@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Text;
 
 namespace SqlArtisan.Internal;
 
@@ -131,6 +132,34 @@ internal sealed class SqlBuildingBuffer : IDisposable
             parts[i].Format(this);
         }
 
+        return this;
+    }
+
+    internal SqlBuildingBuffer AppendUpperSnakeCase(Enum value) =>
+        AppendUpperSnakeCase(value.ToString());
+
+    internal SqlBuildingBuffer AppendUpperSnakeCase(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return this;
+        }
+
+        StringBuilder builder = new();
+
+        for (int i = 0; i < text.Length; i++)
+        {
+            char c = text[i];
+
+            if (i > 0 && char.IsUpper(c))
+            {
+                builder.Append('_');
+            }
+
+            builder.Append(char.ToUpper(c));
+        }
+
+        Append(builder.ToString());
         return this;
     }
 

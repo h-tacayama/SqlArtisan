@@ -1,21 +1,20 @@
 namespace SqlArtisan.Internal;
 
-public sealed class ExtractFunction : SqlExpression
+public sealed class DatePartFunction : SqlExpression
 {
     private readonly DatePart _datePart;
     private readonly SqlExpression _source;
 
-    internal ExtractFunction(DatePart datePart, SqlExpression source)
+    internal DatePartFunction(DatePart datePart, SqlExpression source)
     {
         _datePart = datePart;
         _source = source;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.Extract)
+        .Append(Keywords.DatePart)
         .OpenParenthesis()
         .AppendUpperSnakeCase(_datePart)
-        .EncloseInSpaces(Keywords.From)
-        .Append(_source)
+        .PrependComma(_source)
         .CloseParenthesis();
 }

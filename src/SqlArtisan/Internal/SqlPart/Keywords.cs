@@ -23,6 +23,7 @@ internal static class Keywords
     internal const string CurrentTime = "CURRENT_TIME";
     internal const string CurrentTimestamp = "CURRENT_TIMESTAMP";
     internal const string CurrVal = "CURRVAL";
+    internal const string DatePart = "DATEPART";
     internal const string Decode = "DECODE";
     internal const string Delete = "DELETE";
     internal const string DenseRank = "DENSE_RANK";

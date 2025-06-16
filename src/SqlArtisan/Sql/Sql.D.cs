@@ -6,11 +6,8 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static DistinctKeyword Distinct => new();
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static DualTable Dual => new();
+    public static DatePartFunction DatePart(DatePart datePart, object source) =>
+        new(datePart, Resolve(source));
 
     public static DecodeFunction Decode(
         object expr,
@@ -24,4 +21,10 @@ public static partial class Sql
         => new DeleteBuilder(new DeleteClause(table));
 
     public static AnalyticDenseRankFunction DenseRank() => new();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static DistinctKeyword Distinct => new();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static DualTable Dual => new();
 }
