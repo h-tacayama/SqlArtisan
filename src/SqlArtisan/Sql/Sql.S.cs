@@ -52,13 +52,13 @@ public static partial class Sql
             Resolve(position),
             Resolve(length));
 
-    public static SubstrBFunction SubstrB(
+    public static SubstrbFunction Substrb(
         object source,
         object position) => new(
             Resolve(source),
             Resolve(position));
 
-    public static SubstrBFunction SubstrB(
+    public static SubstrbFunction Substrb(
         object source,
         object position,
         object length) => new(
@@ -73,8 +73,8 @@ public static partial class Sql
         new(distinct, Resolve(expr));
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static SysDateFunction SysDate => new();
+    public static SysdateFunction Sysdate => new();
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static SysTimestampFunction SysTimestamp => new();
+    public static SystimestampFunction Systimestamp => new();
 }

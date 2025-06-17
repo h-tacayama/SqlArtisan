@@ -92,16 +92,11 @@ Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main
 
 ## Packages
 
-| Package                       | Description                                                                                                                                                | NuGet                                                                                                                                | Downloads                                                                                                                      |
-| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| `SqlArtisan`                  | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg)](https://www.nuget.org/packages/SqlArtisan/)                             | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan)](https://www.nuget.org/packages/SqlArtisan/)                             |
-| `SqlArtisan.Dapper`           | **(Recommended)** Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper. **Supersedes `SqlArtisan.DapperExtensions`.** | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.Dapper)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               |
-| `SqlArtisan.DapperExtensions` | **(Legacy)** Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper. **Please migrate to `SqlArtisan.Dapper`.**         |                                                                                                                                      |                                                                                                                                |
-| `SqlArtisan.TableClassGen`    | A .NET tool that generates C# table schema classes from your database, enabling IntelliSense and type-safety with SqlArtisan.                              | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
-
-**Note on `SqlArtisan.Dapper` and `SqlArtisan.DapperExtensions`:**
-
-The `SqlArtisan.Dapper` package is the new, recommended package for Dapper integration. It replaces the older `SqlArtisan.DapperExtensions` package. While `SqlArtisan.DapperExtensions` will remain available for a transition period, we strongly encourage all users to migrate to `SqlArtisan.Dapper` for future updates and support.
+| Package                    | Description                                                                                                                   | NuGet                                                                                                                                | Downloads                                                                                                                      |
+| :------------------------- | :---------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
+| `SqlArtisan`               | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                       | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg)](https://www.nuget.org/packages/SqlArtisan/)                             | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan)](https://www.nuget.org/packages/SqlArtisan/)                             |
+| `SqlArtisan.Dapper`        | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.Dapper)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               |
+| `SqlArtisan.TableClassGen` | A .NET tool that generates C# table schema classes from your database, enabling IntelliSense and type-safety with SqlArtisan. | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
 
 ---
 
@@ -121,7 +116,7 @@ The `SqlArtisan.Dapper` package is the new, recommended package for Dapper integ
 ### Prerequisites
 
 - **.NET Version:** .NET 8.0 or later.
-- **Dialect-Specific API Usage:** SqlArtisan provides dialect-specific C# APIs that map to DBMS features. For example, use `SysTimestamp` for Oracle's `SYSTIMESTAMP` and `CurrentTimestamp` for PostgreSQL's `CURRENT_TIMESTAMP`. Developers should select the C# API appropriate for their target database.
+- **Dialect-Specific API Usage:** SqlArtisan provides dialect-specific C# APIs that map to DBMS features. For example, use `Systimestamp` for Oracle's `SYSTIMESTAMP` and `CurrentTimestamp` for PostgreSQL's `CURRENT_TIMESTAMP`. Developers should select the C# API appropriate for their target database.
 - **Bind Parameter Handling:** SqlArtisan adjusts bind parameter prefixes (e.g., `:` or `@`) to suit the target DBMS. Currently, this behavior is verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
 - **(Optional) Dapper Integration:** Install `SqlArtisan.Dapper` for seamless Dapper execution. It auto-detects the dialect from your `IDbConnection` to apply correct settings (like bind parameter prefixes) and provides helpful execution methods.
 
@@ -357,7 +352,7 @@ SqlStatement sql =
 ##### Using DUAL (Oracle)
 ```csharp
 SqlStatement sql =
-    Select(SysDate)
+    Select(Sysdate)
     .From(Dual)
     .Build();
 
@@ -550,7 +545,7 @@ SqlStatement sql =
     Update(u)
     .Set(
         u.Name == "newName",
-        u.CreatedAt == SysDate)
+        u.CreatedAt == Sysdate)
     .Where(u.Id == 1)
     .Build();
 
@@ -572,7 +567,7 @@ SqlStatement sql =
 UsersTable u = new();
 SqlStatement sql =
     InsertInto(u, u.Id, u.Name, u.CreatedAt)
-    .Values(1, "newName", SysDate)
+    .Values(1, "newName", Sysdate)
     .Build();
 
 // INSERT INTO users
@@ -594,7 +589,7 @@ SqlStatement sql =
     .Set(
         u.Id == 1,
         u.Name == "newName",
-        u.CreatedAt == SysDate)
+        u.CreatedAt == Sysdate)
     .Build();
 
 // INSERT INTO users
@@ -908,8 +903,8 @@ SqlStatement sql =
 ```csharp
 SqlStatement sql =
     Select(
-        Sequence("users_id_seq").CurrVal,
-        Sequence("users_id_seq").NextVal)
+        Sequence("users_id_seq").Currval,
+        Sequence("users_id_seq").Nextval)
     .Build();
 
 // SELECT
@@ -921,8 +916,8 @@ SqlStatement sql =
 ```csharp
 SqlStatement sql =
     Select(
-        CurrVal("users_id_seq"),
-        NextVal("users_id_seq"))
+        Currval("users_id_seq"),
+        Nextval("users_id_seq"))
     .Build();
 
 // SELECT
@@ -975,19 +970,19 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 - `Concat()` for `CONCAT`
 - `Instr()` for `INSTR`
-- `LPad()` for `LPAD`
-- `LTrim()` for `LTRIM`
+- `Lpad()` for `LPAD`
+- `Ltrim()` for `LTRIM`
 - `Length()` for `LENGTH`
-- `LengthB()` for `LENGTHB`
+- `Lengthb()` for `LENGTHB`
 - `Lower()` for `LOWER`
-- `RPad()` for `RPAD`
-- `RTrim()` for `RTRIM`
+- `Rpad()` for `RPAD`
+- `Rtrim()` for `RTRIM`
 - `RegexpCount()` for `REGEXP_COUNT`
 - `RegexpReplace()` for `REGEXP_REPLACE`
 - `RegexpSubstr()` for `REGEXP_SUBSTR`
 - `Replace()` for `REPLACE`
 - `Substr()` for `SUBSTR`
-- `SubstrB()` for `SUBSTRB`
+- `Substrb()` for `SUBSTRB`
 - `Trim()` for `TRIM`
 - `Upper()` for `UPPER`
 
@@ -999,11 +994,12 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentDate` for `CURRENT_DATE`
 - `CurrentTime` for `CURRENT_TIME`
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
+- `Datepart` for `DATEPART`
 - `Extract()` for `EXTRACT` (Date/Time Overload)
 - `LastDay()` for `LAST_DAY`
 - `MonthsBetween()` for `MONTHS_BETWEEN`
-- `SysDate` for `SYSDATE`
-- `SysTimestamp` for `SYSTIMESTAMP`
+- `Sysdate` for `SYSDATE`
+- `Systimestamp` for `SYSTIMESTAMP`
 - `Trunc()` for `TRUNC` (Date/Time Overload)
 
 ---

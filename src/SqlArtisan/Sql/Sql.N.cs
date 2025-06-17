@@ -9,7 +9,7 @@ public static partial class Sql
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static NullExpression Null => new();
 
-    public static NextValFunction NextVal(string sequenceName) =>
+    public static NextvalFunction Nextval(string sequenceName) =>
         new(sequenceName);
 
     public static NextValueForFunction NextValueFor(string sequenceName) =>

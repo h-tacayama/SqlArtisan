@@ -1,12 +1,12 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SubstrBFunction : SqlExpression
+public sealed class SubstrbFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression _position;
     private readonly SqlExpression? _length;
 
-    internal SubstrBFunction(
+    internal SubstrbFunction(
         SqlExpression source,
         SqlExpression position,
         SqlExpression? length = null)
@@ -17,7 +17,7 @@ public sealed class SubstrBFunction : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.SubstrB)
+        .Append(Keywords.Substrb)
         .OpenParenthesis()
         .Append(_source)
         .PrependComma(_position)

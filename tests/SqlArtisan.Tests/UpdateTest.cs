@@ -15,7 +15,7 @@ public class UpdateTest
             .Set(
                 _t.Code == 1,
                 _t.Name == "a",
-                _t.CreatedAt == SysDate)
+                _t.CreatedAt == Sysdate)
             .Build();
 
         StringBuilder expected = new();

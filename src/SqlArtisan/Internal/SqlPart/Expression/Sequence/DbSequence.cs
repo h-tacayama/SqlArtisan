@@ -19,8 +19,8 @@ public sealed class DbSequence
     public string Name { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public DbSequenceCurrVal CurrVal => new(this);
+    public DbSequenceCurrval Currval => new(this);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public DbSequenceNextVal NextVal => new(this);
+    public DbSequenceNextval Nextval => new(this);
 }

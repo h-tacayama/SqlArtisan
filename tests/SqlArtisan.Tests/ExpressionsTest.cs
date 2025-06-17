@@ -86,8 +86,8 @@ public class ExpressionsTest
     {
         SqlStatement sql =
             Select(
-                Sequence("seq").CurrVal,
-                Sequence("seq").NextVal)
+                Sequence("seq").Currval,
+                Sequence("seq").Nextval)
             .Build();
 
         StringBuilder expected = new();

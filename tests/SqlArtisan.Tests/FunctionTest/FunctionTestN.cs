@@ -6,10 +6,10 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void NextVal_SequenceName_CorrectSql()
+    public void Nextval_SequenceName_CorrectSql()
     {
         SqlStatement sql =
-            Select(NextVal("seq_test"))
+            Select(Nextval("seq_test"))
             .Build();
 
         StringBuilder expected = new();

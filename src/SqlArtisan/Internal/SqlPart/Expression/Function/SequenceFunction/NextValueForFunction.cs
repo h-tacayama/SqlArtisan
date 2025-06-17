@@ -1,5 +1,6 @@
-﻿namespace SqlArtisan.Internal;
-using static SqlArtisan.Internal.Keywords;
+﻿using static SqlArtisan.Internal.Keywords;
+
+namespace SqlArtisan.Internal;
 
 public sealed class NextValueForFunction : SqlExpression
 {

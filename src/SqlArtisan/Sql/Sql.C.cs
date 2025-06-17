@@ -409,6 +409,6 @@ public static partial class Sql
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentTimestampFunction CurrentTimestamp => new();
 
-    public static CurrValFunction CurrVal(string sequenceName) =>
+    public static CurrvalFunction Currval(string sequenceName) =>
         new(sequenceName);
 }

@@ -1,12 +1,12 @@
 ﻿namespace SqlArtisan.Internal;
 
-public sealed class LPadFunction : SqlExpression
+public sealed class RpadFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression _length;
     private readonly SqlExpression? _padding;
 
-    internal LPadFunction(
+    internal RpadFunction(
         SqlExpression source,
         SqlExpression length,
         SqlExpression? padding = null)
@@ -17,7 +17,7 @@ public sealed class LPadFunction : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.LPad)
+        .Append(Keywords.Rpad)
         .OpenParenthesis()
         .Append(_source)
         .PrependComma(_length)

@@ -6,25 +6,25 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTest
 {
     [Fact]
-    public void DatePart_SqlServer_CorrectSql()
+    public void Datepart_SqlServer_CorrectSql()
     {
         SqlStatement sql =
             Select(
-                DatePart(DatePart.Year, CurrentTimestamp),
-                DatePart(DatePart.Quarter, CurrentTimestamp),
-                DatePart(DatePart.Month, CurrentTimestamp),
-                DatePart(DatePart.Dayofyear, CurrentTimestamp),
-                DatePart(DatePart.Day, CurrentTimestamp),
-                DatePart(DatePart.Week, CurrentTimestamp),
-                DatePart(DatePart.Weekday, CurrentTimestamp),
-                DatePart(DatePart.Hour, CurrentTimestamp),
-                DatePart(DatePart.Minute, CurrentTimestamp),
-                DatePart(DatePart.Second, CurrentTimestamp),
-                DatePart(DatePart.Millisecond, CurrentTimestamp),
-                DatePart(DatePart.Microsecond, CurrentTimestamp),
-                DatePart(DatePart.Nanosecond, CurrentTimestamp),
-                DatePart(DatePart.Tzoffset, CurrentTimestamp),
-                DatePart(DatePart.IsoWeek, CurrentTimestamp))
+                Datepart(Datepart.Year, CurrentTimestamp),
+                Datepart(Datepart.Quarter, CurrentTimestamp),
+                Datepart(Datepart.Month, CurrentTimestamp),
+                Datepart(Datepart.Dayofyear, CurrentTimestamp),
+                Datepart(Datepart.Day, CurrentTimestamp),
+                Datepart(Datepart.Week, CurrentTimestamp),
+                Datepart(Datepart.Weekday, CurrentTimestamp),
+                Datepart(Datepart.Hour, CurrentTimestamp),
+                Datepart(Datepart.Minute, CurrentTimestamp),
+                Datepart(Datepart.Second, CurrentTimestamp),
+                Datepart(Datepart.Millisecond, CurrentTimestamp),
+                Datepart(Datepart.Microsecond, CurrentTimestamp),
+                Datepart(Datepart.Nanosecond, CurrentTimestamp),
+                Datepart(Datepart.Tzoffset, CurrentTimestamp),
+                Datepart(Datepart.IsoWeek, CurrentTimestamp))
             .Build();
 
         StringBuilder expected = new StringBuilder()

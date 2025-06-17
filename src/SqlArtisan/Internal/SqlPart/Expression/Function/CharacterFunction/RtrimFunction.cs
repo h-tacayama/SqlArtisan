@@ -1,11 +1,11 @@
 namespace SqlArtisan.Internal;
 
-public sealed class LTrimFunction : SqlExpression
+public sealed class RtrimFunction : SqlExpression
 {
     private readonly SqlExpression _source;
     private readonly SqlExpression? _trimChars;
 
-    internal LTrimFunction(
+    internal RtrimFunction(
         SqlExpression source,
         SqlExpression? trimChars = null)
     {
@@ -14,7 +14,7 @@ public sealed class LTrimFunction : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.LTrim)
+        .Append(Keywords.Rtrim)
         .OpenParenthesis()
         .Append(_source)
         .PrependCommaIfNotNull(_trimChars)

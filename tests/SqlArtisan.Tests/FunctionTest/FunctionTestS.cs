@@ -34,10 +34,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void SubstrB_CharacterPosition_CorrectSql()
+    public void Substrb_CharacterPosition_CorrectSql()
     {
         SqlStatement sql =
-            Select(SubstrB(_t.Name, 1))
+            Select(Substrb(_t.Name, 1))
             .Build();
 
         StringBuilder expected = new();
@@ -48,10 +48,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void SubstrB_CharacterPositionLength_CorrectSql()
+    public void Substrb_CharacterPositionLength_CorrectSql()
     {
         SqlStatement sql =
-            Select(SubstrB(_t.Name, 1, 3))
+            Select(Substrb(_t.Name, 1, 3))
             .Build();
 
         StringBuilder expected = new();
@@ -90,10 +90,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void SysDate_NoParameters_CorrectSql()
+    public void Sysdate_NoParameters_CorrectSql()
     {
         SqlStatement sql =
-            Select(SysDate)
+            Select(Sysdate)
             .Build();
 
         StringBuilder expected = new();
@@ -104,10 +104,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void SysTimestamp_NoParameters_CorrectSql()
+    public void Systimestamp_NoParameters_CorrectSql()
     {
         SqlStatement sql =
-            Select(SysTimestamp)
+            Select(Systimestamp)
             .Build();
 
         StringBuilder expected = new();

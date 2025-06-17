@@ -6,8 +6,8 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
-    public static DatePartFunction DatePart(DatePart datePart, object source) =>
-        new(datePart, Resolve(source));
+    public static DatepartFunction Datepart(Datepart datepart, object source) =>
+        new(datepart, Resolve(source));
 
     public static DecodeFunction Decode(
         object expr,
