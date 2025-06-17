@@ -10,26 +10,26 @@ public partial class FunctionTest
     {
         SqlStatement sql =
             Select(
-                Extract(DatePart.Microsecond, CurrentTimestamp),
-                Extract(DatePart.Second, CurrentTimestamp),
-                Extract(DatePart.Minute, CurrentTimestamp),
-                Extract(DatePart.Hour, CurrentTimestamp),
-                Extract(DatePart.Day, CurrentTimestamp),
-                Extract(DatePart.Week, CurrentTimestamp),
-                Extract(DatePart.Month, CurrentTimestamp),
-                Extract(DatePart.Quarter, CurrentTimestamp),
-                Extract(DatePart.Year, CurrentTimestamp),
-                Extract(DatePart.SecondMicrosecond, CurrentTimestamp),
-                Extract(DatePart.MinuteMicrosecond, CurrentTimestamp),
-                Extract(DatePart.MinuteSecond, CurrentTimestamp),
-                Extract(DatePart.HourMicrosecond, CurrentTimestamp),
-                Extract(DatePart.HourSecond, CurrentTimestamp),
-                Extract(DatePart.HourMinute, CurrentTimestamp),
-                Extract(DatePart.DayMicrosecond, CurrentTimestamp),
-                Extract(DatePart.DaySecond, CurrentTimestamp),
-                Extract(DatePart.DayMinute, CurrentTimestamp),
-                Extract(DatePart.DayHour, CurrentTimestamp),
-                Extract(DatePart.YearMonth, CurrentTimestamp)
+                Extract(Datepart.Microsecond, CurrentTimestamp),
+                Extract(Datepart.Second, CurrentTimestamp),
+                Extract(Datepart.Minute, CurrentTimestamp),
+                Extract(Datepart.Hour, CurrentTimestamp),
+                Extract(Datepart.Day, CurrentTimestamp),
+                Extract(Datepart.Week, CurrentTimestamp),
+                Extract(Datepart.Month, CurrentTimestamp),
+                Extract(Datepart.Quarter, CurrentTimestamp),
+                Extract(Datepart.Year, CurrentTimestamp),
+                Extract(Datepart.SecondMicrosecond, CurrentTimestamp),
+                Extract(Datepart.MinuteMicrosecond, CurrentTimestamp),
+                Extract(Datepart.MinuteSecond, CurrentTimestamp),
+                Extract(Datepart.HourMicrosecond, CurrentTimestamp),
+                Extract(Datepart.HourSecond, CurrentTimestamp),
+                Extract(Datepart.HourMinute, CurrentTimestamp),
+                Extract(Datepart.DayMicrosecond, CurrentTimestamp),
+                Extract(Datepart.DaySecond, CurrentTimestamp),
+                Extract(Datepart.DayMinute, CurrentTimestamp),
+                Extract(Datepart.DayHour, CurrentTimestamp),
+                Extract(Datepart.YearMonth, CurrentTimestamp)
             )
             .Build();
 
@@ -64,16 +64,16 @@ public partial class FunctionTest
     {
         SqlStatement sql =
             Select(
-                Extract(DatePart.Year, SysTimestamp),
-                Extract(DatePart.Month, SysTimestamp),
-                Extract(DatePart.Day, SysTimestamp),
-                Extract(DatePart.Hour, SysTimestamp),
-                Extract(DatePart.Minute, SysTimestamp),
-                Extract(DatePart.Second, SysTimestamp),
-                Extract(DatePart.TimezoneHour, SysTimestamp),
-                Extract(DatePart.TimezoneMinute, SysTimestamp),
-                Extract(DatePart.TimezoneRegion, SysTimestamp),
-                Extract(DatePart.TimezoneAbbr, SysTimestamp))
+                Extract(Datepart.Year, Systimestamp),
+                Extract(Datepart.Month, Systimestamp),
+                Extract(Datepart.Day, Systimestamp),
+                Extract(Datepart.Hour, Systimestamp),
+                Extract(Datepart.Minute, Systimestamp),
+                Extract(Datepart.Second, Systimestamp),
+                Extract(Datepart.TimezoneHour, Systimestamp),
+                Extract(Datepart.TimezoneMinute, Systimestamp),
+                Extract(Datepart.TimezoneRegion, Systimestamp),
+                Extract(Datepart.TimezoneAbbr, Systimestamp))
             .From(Dual)
             .Build();
 
@@ -99,28 +99,28 @@ public partial class FunctionTest
     {
         SqlStatement sql =
             Select(
-                Extract(DatePart.Century, CurrentTimestamp),
-                Extract(DatePart.Day, CurrentTimestamp),
-                Extract(DatePart.Decade, CurrentTimestamp),
-                Extract(DatePart.Dow, CurrentTimestamp),
-                Extract(DatePart.Doy, CurrentTimestamp),
-                Extract(DatePart.Epoch, CurrentTimestamp),
-                Extract(DatePart.Hour, CurrentTimestamp),
-                Extract(DatePart.Isodow, CurrentTimestamp),
-                Extract(DatePart.Isoyear, CurrentTimestamp),
-                Extract(DatePart.Julian, CurrentTimestamp),
-                Extract(DatePart.Microseconds, CurrentTimestamp),
-                Extract(DatePart.Millennium, CurrentTimestamp),
-                Extract(DatePart.Milliseconds, CurrentTimestamp),
-                Extract(DatePart.Minute, CurrentTimestamp),
-                Extract(DatePart.Month, CurrentTimestamp),
-                Extract(DatePart.Quarter, CurrentTimestamp),
-                Extract(DatePart.Second, CurrentTimestamp),
-                Extract(DatePart.Timezone, CurrentTimestamp),
-                Extract(DatePart.TimezoneHour, CurrentTimestamp),
-                Extract(DatePart.TimezoneMinute, CurrentTimestamp),
-                Extract(DatePart.Week, CurrentTimestamp),
-                Extract(DatePart.Year, CurrentTimestamp)
+                Extract(Datepart.Century, CurrentTimestamp),
+                Extract(Datepart.Day, CurrentTimestamp),
+                Extract(Datepart.Decade, CurrentTimestamp),
+                Extract(Datepart.Dow, CurrentTimestamp),
+                Extract(Datepart.Doy, CurrentTimestamp),
+                Extract(Datepart.Epoch, CurrentTimestamp),
+                Extract(Datepart.Hour, CurrentTimestamp),
+                Extract(Datepart.Isodow, CurrentTimestamp),
+                Extract(Datepart.Isoyear, CurrentTimestamp),
+                Extract(Datepart.Julian, CurrentTimestamp),
+                Extract(Datepart.Microseconds, CurrentTimestamp),
+                Extract(Datepart.Millennium, CurrentTimestamp),
+                Extract(Datepart.Milliseconds, CurrentTimestamp),
+                Extract(Datepart.Minute, CurrentTimestamp),
+                Extract(Datepart.Month, CurrentTimestamp),
+                Extract(Datepart.Quarter, CurrentTimestamp),
+                Extract(Datepart.Second, CurrentTimestamp),
+                Extract(Datepart.Timezone, CurrentTimestamp),
+                Extract(Datepart.TimezoneHour, CurrentTimestamp),
+                Extract(Datepart.TimezoneMinute, CurrentTimestamp),
+                Extract(Datepart.Week, CurrentTimestamp),
+                Extract(Datepart.Year, CurrentTimestamp)
             )
             .Build();
 

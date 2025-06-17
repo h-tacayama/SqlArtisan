@@ -11,7 +11,7 @@ public class InsertTest
         TestTable t = new();
         SqlStatement sql =
             InsertInto(t)
-            .Values(1, "a", SysDate)
+            .Values(1, "a", Sysdate)
             .Build();
 
         StringBuilder expected = new();
@@ -33,7 +33,7 @@ public class InsertTest
         TestTable t = new();
         SqlStatement sql =
             InsertInto(t, t.Code, t.Name, t.CreatedAt)
-            .Values(1, "a", SysDate)
+            .Values(1, "a", Sysdate)
             .Build();
 
         StringBuilder expected = new();
@@ -90,7 +90,7 @@ public class InsertTest
             .Set(
                 t.Code == 1,
                 t.Name == "a",
-                t.CreatedAt == SysDate)
+                t.CreatedAt == Sysdate)
             .Build();
 
         StringBuilder expected = new();

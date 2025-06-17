@@ -188,10 +188,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void RPad_CharacterLength_CorrectSql()
+    public void Rpad_CharacterLength_CorrectSql()
     {
         SqlStatement sql =
-            Select(RPad(_t.Name, 10))
+            Select(Rpad(_t.Name, 10))
             .Build();
 
         StringBuilder expected = new();
@@ -202,10 +202,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void RPad_CharacterLengthPadding_CorrectSql()
+    public void Rpad_CharacterLengthPadding_CorrectSql()
     {
         SqlStatement sql =
-            Select(RPad(_t.Name, 10, "a"))
+            Select(Rpad(_t.Name, 10, "a"))
             .Build();
 
         StringBuilder expected = new();
@@ -216,10 +216,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void RTrim_Character_CorrectSql()
+    public void Rtrim_Character_CorrectSql()
     {
         SqlStatement sql =
-            Select(RTrim(_t.Name))
+            Select(Rtrim(_t.Name))
             .Build();
 
         StringBuilder expected = new();
@@ -230,10 +230,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void RTrim_CharacterTrimChars_CorrectSql()
+    public void Rtrim_CharacterTrimChars_CorrectSql()
     {
         SqlStatement sql =
-            Select(RTrim(_t.Name, "a"))
+            Select(Rtrim(_t.Name, "a"))
             .Build();
 
         StringBuilder expected = new();

@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- **[BREAKING CHANGE]** Unified the C# API naming convention. (#27)
+  - **New Rule:** Remove underscores from the SQL keyword and convert to PascalCase.
+  - **Example:** `SysTimestamp` has been renamed to `Systimestamp`, and `LPad` has been renamed to `Lpad`.
 
 ## [0.1.0-alpha.17] - 2025-06-16
 ### Added
@@ -53,7 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.1.0-alpha.12] - 2025-05-26
 ### Changed
-- **BREAKING:** Rename `SqlWordbook` to `Sql` for conciseness and appropriateness (#21).
+- **[BREAKING CHANGE]** Rename `SqlWordbook` to `Sql` for conciseness and appropriateness (#21).
 
 ## [0.1.0-alpha.11] - 2025-05-23
 ### Added

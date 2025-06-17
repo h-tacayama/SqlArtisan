@@ -83,10 +83,10 @@ public partial class FunctionTest
     }
 
     [Fact]
-    public void CurrVal_SequenceName_CorrectSql()
+    public void Currval_SequenceName_CorrectSql()
     {
         SqlStatement sql =
-            Select(CurrVal("seq_test"))
+            Select(Currval("seq_test"))
             .Build();
 
         StringBuilder expected = new();

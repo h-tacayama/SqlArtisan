@@ -14,19 +14,19 @@ public static partial class Sql
     public static LengthFunction Length(object source) =>
         new(Resolve(source));
 
-    public static LengthBFunction LengthB(object source) =>
+    public static LengthbFunction Lengthb(object source) =>
         new(Resolve(source));
 
     public static LowerFunction Lower(object source) =>
         new(Resolve(source));
 
-    public static LPadFunction LPad(
+    public static LpadFunction Lpad(
         object source,
         object length) => new(
             Resolve(source),
             Resolve(length));
 
-    public static LPadFunction LPad(
+    public static LpadFunction Lpad(
         object source,
         object length,
         object padding) => new(
@@ -34,10 +34,10 @@ public static partial class Sql
             Resolve(length),
             Resolve(padding));
 
-    public static LTrimFunction LTrim(object source) =>
+    public static LtrimFunction Ltrim(object source) =>
         new(Resolve(source));
 
-    public static LTrimFunction LTrim(
+    public static LtrimFunction Ltrim(
         object source,
         object trimChars) => new(
             Resolve(source),

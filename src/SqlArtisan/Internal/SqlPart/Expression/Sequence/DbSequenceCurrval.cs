@@ -1,14 +1,14 @@
 ﻿namespace SqlArtisan.Internal;
 
-public sealed class DbSequenceCurrVal : SqlExpression
+public sealed class DbSequenceCurrval : SqlExpression
 {
     private readonly DbSequence _sequence;
 
-    internal DbSequenceCurrVal(DbSequence sequence)
+    internal DbSequenceCurrval(DbSequence sequence)
     {
         _sequence = sequence;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{_sequence.Name}.{Keywords.CurrVal}");
+        .Append($"{_sequence.Name}.{Keywords.Currval}");
 }

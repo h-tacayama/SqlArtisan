@@ -1,14 +1,14 @@
 ﻿namespace SqlArtisan.Internal;
 
-public sealed class CurrValFunction : SqlExpression
+public sealed class NextvalFunction : SqlExpression
 {
     private readonly string _sequenceName;
 
-    internal CurrValFunction(string sequenceName)
+    internal NextvalFunction(string sequenceName)
     {
         _sequenceName = sequenceName;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.CurrVal}('{_sequenceName}')");
+        .Append($"{Keywords.Nextval}('{_sequenceName}')");
 }

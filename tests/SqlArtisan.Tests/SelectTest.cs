@@ -96,7 +96,7 @@ public class SelectTest
     public void Select_FromDualClause_CorrectSql()
     {
         SqlStatement sql =
-            Select(SysDate)
+            Select(Sysdate)
             .From(Dual)
             .Build();
 

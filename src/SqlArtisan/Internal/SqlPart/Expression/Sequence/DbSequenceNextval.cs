@@ -1,14 +1,14 @@
 ﻿namespace SqlArtisan.Internal;
 
-public sealed class DbSequenceNextVal : SqlExpression
+public sealed class DbSequenceNextval : SqlExpression
 {
     private readonly DbSequence _sequence;
 
-    internal DbSequenceNextVal(DbSequence sequence)
+    internal DbSequenceNextval(DbSequence sequence)
     {
         _sequence = sequence;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{_sequence.Name}.{Keywords.NextVal}");
+        .Append($"{_sequence.Name}.{Keywords.Nextval}");
 }

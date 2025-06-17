@@ -99,13 +99,13 @@ public static partial class Sql
             Resolve(search),
             Resolve(replacement));
 
-    public static RPadFunction RPad(
+    public static RpadFunction Rpad(
         object source,
         object length) => new(
             Resolve(source),
             Resolve(length));
 
-    public static RPadFunction RPad(
+    public static RpadFunction Rpad(
         object source,
         object length,
         object padding) => new(
@@ -113,10 +113,10 @@ public static partial class Sql
             Resolve(length),
             Resolve(padding));
 
-    public static RTrimFunction RTrim(object source) =>
+    public static RtrimFunction Rtrim(object source) =>
         new(Resolve(source));
 
-    public static RTrimFunction RTrim(
+    public static RtrimFunction Rtrim(
         object source,
         object trimChars) => new(
             Resolve(source),
