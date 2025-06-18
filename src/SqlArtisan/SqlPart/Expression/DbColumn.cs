@@ -11,7 +11,7 @@ public sealed class DbColumn(string tableAlias, string columnName) : SqlExpressi
     {
         if (!string.IsNullOrEmpty(_tableAlias))
         {
-            buffer.EncloseInDoubleQuotes(_tableAlias);
+            buffer.EncloseInAliasQuotes(_tableAlias);
             buffer.Append(".");
         }
 

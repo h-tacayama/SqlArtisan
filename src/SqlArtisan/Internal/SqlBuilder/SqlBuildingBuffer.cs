@@ -170,11 +170,11 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    internal SqlBuildingBuffer EncloseInDoubleQuotes(string value)
+    internal SqlBuildingBuffer EncloseInAliasQuotes(string value)
     {
-        Append("\"");
+        Append(_dialect.AliasQuote);
         Append(value);
-        Append("\"");
+        Append(_dialect.AliasQuote);
         return this;
     }
 
@@ -223,7 +223,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        string name = _dialect.GetParameterName(_parameters.Count);
+        string name = $"{_dialect.ParameterMarker}{_parameters.Count}";
         Append(name);
         _parameters.Add(name, bindValue);
         return this;
