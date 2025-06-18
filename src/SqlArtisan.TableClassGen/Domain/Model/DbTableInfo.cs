@@ -3,12 +3,12 @@ using System.Text;
 namespace SqlArtisan.TableClassGen;
 
 internal sealed class DbTableInfo(
-    string name,
+    string tableName,
     IReadOnlyList<DbColumnInfo> columns)
 {
-    public string Name => name;
+    public string TableName => tableName;
 
-    public string PascalCaseName => CaseConverter.SnakeToPascalCase(name);
+    public string ClassName => $"{CaseConverter.SnakeToPascalCase(tableName)}Table";
 
     public IReadOnlyList<DbColumnInfo> Columns => columns;
 
@@ -20,15 +20,15 @@ internal sealed class DbTableInfo(
         code.AppendLine();
         code.AppendLine($"namespace {@namespace};");
         code.AppendLine();
-        code.AppendLine($"internal sealed class {PascalCaseName} : AbstractTable");
+        code.AppendLine($"internal sealed class {ClassName} : DbTableBase");
         code.AppendLine("{");
 
-        code.AppendLine($"\tpublic {PascalCaseName}(string tableAlias = \"\") : base(\"{Name}\", tableAlias)");
+        code.AppendLine($"\tpublic {ClassName}(string tableAlias = \"\") : base(\"{TableName}\", tableAlias)");
         code.AppendLine("\t{");
 
         foreach (DbColumnInfo column in Columns)
         {
-            code.AppendLine($"\t\t{column.PascalCaseName} = new Column(tableAlias, \"{column.Name}\");");
+            code.AppendLine($"\t\t{column.PascalCaseName} = new DbColumn(tableAlias, \"{column.Name}\");");
         }
 
         code.AppendLine("\t}");
@@ -36,7 +36,7 @@ internal sealed class DbTableInfo(
         foreach (DbColumnInfo column in Columns)
         {
             code.AppendLine();
-            code.AppendLine($"\tpublic Column {column.PascalCaseName} {{ get; }}");
+            code.AppendLine($"\tpublic DbColumn {column.PascalCaseName} {{ get; }}");
         }
 
         code.AppendLine("}");

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **[BREAKING CHANGE]** Unified the C# API naming convention. (#27)
   - **New Rule:** Remove underscores from the SQL keyword and convert to PascalCase.
   - **Example:** `SysTimestamp` has been renamed to `Systimestamp`, and `LPad` has been renamed to `Lpad`.
+### Fixed
+- **SqlArtisan.TableClassGen**: Fixed the generated base class to be `DbTableBase` instead of the incorrect `AbstractTable`. (#29)
 
 ## [0.1.0-alpha.17] - 2025-06-16
 ### Added

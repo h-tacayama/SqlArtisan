@@ -26,7 +26,7 @@ internal sealed class AllTablesClassGenerator(
         foreach (DbTableInfo table in tables)
         {
             string code = table.GenerateCode(_settings.OutputNamespace);
-            string outputPath = _settings.CreateOutputFilePath(table.PascalCaseName);
+            string outputPath = _settings.CreateOutputFilePath(table.ClassName);
 
             try
             {
@@ -35,7 +35,7 @@ internal sealed class AllTablesClassGenerator(
             }
             catch (Exception ex)
             {
-                _ui.ShowError($"Failed to write file for table {table.Name}: {ex.Message}");
+                _ui.ShowError($"Failed to write file for table {table.TableName}: {ex.Message}");
             }
         }
 
