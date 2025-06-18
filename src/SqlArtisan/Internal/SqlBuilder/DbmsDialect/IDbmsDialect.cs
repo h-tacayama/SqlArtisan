@@ -2,5 +2,7 @@ namespace SqlArtisan;
 
 internal interface IDbmsDialect
 {
-    string GetParameterName(int index);
+    string AliasQuote { get; }
+
+    string ParameterMarker { get; }
 }

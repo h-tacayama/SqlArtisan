@@ -23,7 +23,7 @@ public abstract class DbTableBase : TableReference
         if (!string.IsNullOrEmpty(_tableAlias))
         {
             buffer.AppendSpace();
-            buffer.EncloseInDoubleQuotes(_tableAlias);
+            buffer.EncloseInAliasQuotes(_tableAlias);
         }
     }
 }

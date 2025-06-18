@@ -19,11 +19,11 @@ public class BuildTest
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("\"t\".name ");
+        expected.Append("`t`.name ");
         expected.Append("FROM ");
-        expected.Append("test_table \"t\" ");
+        expected.Append("test_table `t` ");
         expected.Append("WHERE ");
-        expected.Append("\"t\".code = ?0");
+        expected.Append("`t`.code = ?0");
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
