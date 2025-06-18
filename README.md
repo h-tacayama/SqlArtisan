@@ -403,9 +403,9 @@ SqlStatement sql =
 ##### Supported JOIN APIs
 
 - `InnerJoin()` for `INNER JOIN`
-- `LeftJoin()` for `LEFT OUTER JOIN`
-- `RightJoin()` for `RIGHT OUTER JOIN`
-- `FullJoin()` for `FULL OUTER JOIN`
+- `LeftJoin()` for `LEFT JOIN`
+- `RightJoin()` for `RIGHT JOIN`
+- `FullJoin()` for `FULL JOIN`
 - `CrossJoin()` for `CROSS JOIN`
 
 ---
@@ -734,7 +734,7 @@ SqlStatement sql =
     .Where(
         u.Name.Like("%a")
         | u.Name.NotLike("%b")
-        | RegexpLike(u.Name, "%c"))
+        | RegexpLike(u.Name, "^.*c$"))
     .Build();
 
 // SELECT name
@@ -994,7 +994,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentDate` for `CURRENT_DATE`
 - `CurrentTime` for `CURRENT_TIME`
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
-- `Datepart` for `DATEPART`
+- `Datepart()` for `DATEPART`
 - `Extract()` for `EXTRACT` (Date/Time Overload)
 - `LastDay()` for `LAST_DAY`
 - `MonthsBetween()` for `MONTHS_BETWEEN`
