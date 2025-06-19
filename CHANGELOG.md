@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.2.0-alpha.1] - 2025-06-19
 ### Changed
 - **[BREAKING CHANGE]** Unified the C# API naming convention. (#27)
   - **New Rule:** Remove underscores from the SQL keyword and convert to PascalCase.
