@@ -1054,6 +1054,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
 
+---
+
 #### Window Functions
 
 - `CumeDist()` for `CUME_DIST()`
