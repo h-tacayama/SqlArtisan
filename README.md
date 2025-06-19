@@ -72,6 +72,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Arithmetic Operators](#arithmetic-operators): `+`, `-`, `*`, `/`, `%`
     - [Conditions](#conditions): **Logical**, **Comparison**, `NULL`, `LIKE`, `REGEXP_LIKE`, `BETWEEN`, `IN`, `EXISTS`, **Dynamic Conditions**
     - [CASE Expressions](#case-expressions): **Simple CASE**, **Searched CASE**
+    - [Window Functions](#window-functions)
     - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`
 - [Additional Query Details](#additional-query-details)
   - [Bind Parameter Types](#bind-parameter-types-1)
@@ -81,6 +82,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
     - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
     - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
+    - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
 
 ---
 
@@ -897,6 +899,34 @@ SqlStatement sql =
 
 ---
 
+#### Window Functions
+
+##### Example using ROW_NUMBER
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Id,
+        u.Name,
+        u.DepartmentId,
+        RowNumber().Over(
+            PartitionBy(u.DepartmentId)
+            .OrderBy(u.Salary.Desc)))
+    .From(u)
+    .Build();
+
+// SELECT id, name, department_id,
+// ROW_NUMBER() OVER (
+// PARTITION BY department_id
+// ORDER BY salary DESC)
+// FROM users
+```
+
+For a comprehensive list of all available window functions, please refer to the [Additional Query Details: Window Functions](#window-functions-1) section.
+
+---
+
 #### Sequence
 
 ##### Oracle Example
@@ -1023,6 +1053,14 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Max()` for `MAX`
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
+
+#### Window Functions
+
+- `CumeDist()` for `CUME_DIST()`
+- `DenseRank()` for `DENSE_RANK()`
+- `PercentRank()` for `PERCENT_RANK()`
+- `Rank()` for `RANK()`
+- `RowNumber()` for `ROW_NUMBER()`
 
 ---
 
