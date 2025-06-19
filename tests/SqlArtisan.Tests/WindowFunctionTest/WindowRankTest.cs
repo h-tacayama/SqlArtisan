@@ -21,14 +21,14 @@ public partial class WindowRankTest
         expected.Append("SELECT ");
         expected.Append("RANK() ");
         expected.Append("OVER ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append("PARTITION BY ");
         expected.Append("\"t\".code, ");
         expected.Append("\"t\".name ");
         expected.Append("ORDER BY ");
         expected.Append("\"t\".code ASC, ");
         expected.Append("\"t\".name DESC");
-        expected.Append(")");
+        expected.Append(')');
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -46,11 +46,11 @@ public partial class WindowRankTest
         expected.Append("SELECT ");
         expected.Append("RANK() ");
         expected.Append("OVER ");
-        expected.Append("(");
+        expected.Append('(');
         expected.Append("ORDER BY ");
         expected.Append("\"t\".code, ");
         expected.Append("\"t\".name");
-        expected.Append(")");
+        expected.Append(')');
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
