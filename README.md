@@ -83,6 +83,8 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
     - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
     - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
@@ -1063,6 +1065,14 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `PercentRank()` for `PERCENT_RANK()`
 - `Rank()` for `RANK()`
 - `RowNumber()` for `ROW_NUMBER()`
+
+---
+
+## Contributing
+
+We welcome your feedback, suggestions, and bug reports!
+
+If you encounter any issues, have ideas for new features, or want to suggest improvements, please open an issue on our [GitHub Issues page](https://github.com/h-tacayama/SqlArtisan/issues). Your contributions help make SqlArtisan better for everyone.
 
 ---
 

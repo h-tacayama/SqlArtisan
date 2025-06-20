@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Updated README:
+  - Added "Contributing" section to the README, providing guidance for feedback and issue reporting.
 
 ## [0.2.0-alpha.1] - 2025-06-19
 ### Changed
