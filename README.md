@@ -1073,7 +1073,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 We welcome your feedback, suggestions, and bug reports! Your contributions help make SqlArtisan better for everyone.
 
 * **For bug reports or specific feature requests:** Please open an [issue on our GitHub Issues page](https://github.com/h-tacayama/SqlArtisan/issues).
-* **For general questions, discussions about ideas, or seeking help:** Please start a new topic on our [GitHub Discussions page](https://github.com/h-tacayama/SqlArtisan/discussions). (Please note: You may need to enable Discussions for your repository if not already active.)
+* **For general questions, discussions about ideas, or seeking help:** Please start a new topic on our [GitHub Discussions page](https://github.com/h-tacayama/SqlArtisan/discussions).
 
 Your collaboration is greatly appreciated!
 
