@@ -689,8 +689,8 @@ SqlStatement sql =
 
 SqlArtisan also supports more advanced WITH clause scenarios, including:
 
-- Recursive CTEs using the WithRecursive() method.
-- CTEs with DML statements (INSERT, UPDATE, and DELETE).
+- Recursive CTEs using the `WithRecursive()` method.
+- CTEs with DML statements (`INSERT`, `UPDATE`, and `DELETE`).
 
 ---
 
