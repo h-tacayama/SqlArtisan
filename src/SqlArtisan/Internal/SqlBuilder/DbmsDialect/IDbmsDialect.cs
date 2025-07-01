@@ -1,4 +1,4 @@
-namespace SqlArtisan;
+namespace SqlArtisan.Internal;
 
 internal interface IDbmsDialect
 {

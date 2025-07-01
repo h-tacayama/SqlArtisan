@@ -1,8 +1,8 @@
 namespace SqlArtisan.Internal;
 
-internal abstract class SqlBuilderBase(SqlPart part)
+internal abstract class SqlBuilderBase(SqlPart[] rootParts)
 {
-    private readonly List<SqlPart> _parts = [part];
+    private readonly List<SqlPart> _parts = [.. rootParts];
 
     protected void AddPart(SqlPart part) => _parts.Add(part);
 

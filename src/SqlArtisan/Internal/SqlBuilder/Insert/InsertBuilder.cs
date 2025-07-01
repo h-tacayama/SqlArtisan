@@ -1,7 +1,7 @@
 ﻿namespace SqlArtisan.Internal;
 
-internal sealed class InsertBuilder(InsertIntoClause insertIntoClause) :
-    SelectBuilder(insertIntoClause),
+internal sealed class InsertBuilder(params SqlPart[] rootParts) :
+    SelectBuilder(rootParts),
     IInsertBuilderColumns,
     IInsertBuilderSet,
     IInsertBuilderTable,
@@ -16,6 +16,18 @@ internal sealed class InsertBuilder(InsertIntoClause insertIntoClause) :
     public IInsertBuilderValues Values(params object[] values)
     {
         AddPart(InsertValuesClause.Parse(values));
+        return this;
+    }
+
+    public ISelectBuilder With(params CommonTableExpression[] ctes)
+    {
+        AddPart(new WithClause(ctes));
+        return this;
+    }
+
+    public ISelectBuilder WithRecursive(params CommonTableExpression[] ctes)
+    {
+        AddPart(new WithRecursiveClause(ctes));
         return this;
     }
 }

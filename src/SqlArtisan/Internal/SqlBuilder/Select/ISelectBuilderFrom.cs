@@ -18,5 +18,5 @@ public interface ISelectBuilderFrom : ISqlBuilder, ISetOperator, ISubquery
 
     ISelectBuilderJoin RightJoin(TableReference table);
 
-    ISelectBuildertWhere Where(SqlCondition condition);
+    ISelectBuilderWhere Where(SqlCondition condition);
 }
