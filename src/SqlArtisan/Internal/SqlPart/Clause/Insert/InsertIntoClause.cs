@@ -6,7 +6,7 @@ internal sealed class InsertIntoClause(DbTableBase table, DbColumn[] columns) : 
     private readonly DbColumn[] _columns = columns;
 
     internal InsertIntoClause(DbTableBase table)
-        : this(table, Array.Empty<DbColumn>())
+        : this(table, [])
     {
     }
 

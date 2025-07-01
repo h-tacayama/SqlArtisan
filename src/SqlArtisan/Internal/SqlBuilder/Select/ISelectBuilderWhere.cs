@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface ISelectBuildertWhere : ISqlBuilder, ISetOperator, ISubquery
+public interface ISelectBuilderWhere : ISqlBuilder, ISetOperator, ISubquery
 {
     ISelectBuilderGroupBy GroupBy(params object[] groupByItems);
 

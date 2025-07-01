@@ -67,6 +67,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): **Standard**, **SET-like**, `INSERT SELECT`
+  - [WITH Clause (Common Table Expressions)](#with-clause-common-table-expressions): `WITH`, `WITH RECURSIVE`, **CTEs with DML**
   - [Expressions](#expressions)
     - [NULL Literal](#null-literal)
     - [Arithmetic Operators](#arithmetic-operators): `+`, `-`, `*`, `/`, `%`
@@ -623,6 +624,73 @@ SqlStatement sql =
 // SELECT id, name, created_at
 // FROM users
 ```
+
+#### WITH Clause (Common Table Expressions)
+
+1. Define your CTE Schema Class
+```csharp
+internal sealed class SeniorUsersCte : CteSchemaBase
+{
+    public SeniorUsersCte(string name) : base(name)
+    {
+        SeniorId = new DbColumn(name, "senior_id");
+        SeniorName = new DbColumn(name, "senior_name");
+        SeniorAge = new DbColumn(name, "senior_age");
+    }
+
+    public DbColumn SeniorId { get; }
+    public DbColumn SeniorName { get; }
+    public DbColumn SeniorAge { get; }
+}
+```
+
+2. Build the Query
+
+```csharp
+UsersTable users = new("users");
+SeniorUsersCte seniors = new("seniors");
+OrdersTable orders = new("orders");
+
+SqlStatement sql =
+    With(
+        seniors.As(
+            Select(
+                users.Id.As(seniors.SeniorId),
+                users.Name.As(seniors.SeniorName),
+                users.Age.As(seniors.SeniorAge))
+            .From(users)
+            .Where(users.Age > 40)))
+    .Select(
+        orders.Id,
+        orders.OrderDate,
+        seniors.SeniorId,
+        seniors.SeniorName,
+        seniors.SeniorAge
+    )
+    .From(orders)
+    .InnerJoin(seniors)
+    .On(orders.UserId == seniors.SeniorId)
+    .Build();
+
+// WITH seniors AS
+// (SELECT "users".id "senior_id",
+// "users".name "senior_name",
+// "users".age "senior_age"
+// FROM users "users" WHERE "users".age > :0)
+// SELECT "orders".id,
+// "orders".order_date,
+// "seniors".senior_id,
+// "seniors".senior_name,
+// "seniors".senior_age
+// FROM orders "orders"
+// INNER JOIN seniors
+// ON "orders".user_id = "seniors".senior_id
+```
+
+SqlArtisan also supports more advanced WITH clause scenarios, including:
+
+- Recursive CTEs using the WithRecursive() method.
+- CTEs with DML statements (INSERT, UPDATE, and DELETE).
 
 ---
 

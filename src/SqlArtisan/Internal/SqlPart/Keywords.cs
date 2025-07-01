@@ -77,6 +77,7 @@ internal static class Keywords
     internal const string Partition = "PARTITION";
     internal const string PercentRank = "PERCENT_RANK";
     internal const string Rank = "RANK";
+    internal const string Recursive = "RECURSIVE";
     internal const string RegexpCount = "REGEXP_COUNT";
     internal const string RegexpLike = "REGEXP_LIKE";
     internal const string RegexpReplace = "REGEXP_REPLACE";

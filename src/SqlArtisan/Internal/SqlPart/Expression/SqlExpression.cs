@@ -78,6 +78,7 @@ public abstract class SqlExpression : SqlPart
         object rightSide) => new(@this, Resolve(rightSide));
 
     public ExpressionAlias As(string alias) => new(this, alias);
+    public ExpressionAlias As(DbColumn column) => new(this, column.Name);
 
     public BetweenCondition Between(
         object rightSide1,

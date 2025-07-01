@@ -1,7 +1,7 @@
 ﻿namespace SqlArtisan.Internal;
 
-internal sealed class UpdateBuilder(UpdateClause updateClause) :
-    SqlBuilderBase(updateClause),
+internal sealed class UpdateBuilder(params SqlPart[] rootParts) :
+    SqlBuilderBase(rootParts),
     IUpdateBuilderSet,
     IUpdateBuilderUpdate,
     IUpdateBuilderWhere

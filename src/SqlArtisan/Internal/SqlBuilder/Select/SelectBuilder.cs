@@ -2,8 +2,8 @@
 
 namespace SqlArtisan.Internal;
 
-internal class SelectBuilder(SqlPart part) :
-    SqlBuilderBase(part),
+internal class SelectBuilder(params SqlPart[] rootParts) :
+    SqlBuilderBase(rootParts),
     ISelectBuilderFrom,
     ISelectBuilderGroupBy,
     ISelectBuilderHaving,
@@ -11,7 +11,7 @@ internal class SelectBuilder(SqlPart part) :
     ISelectBuilderJoin,
     ISelectBuilderOrderBy,
     ISelectBuilderSelect,
-    ISelectBuildertWhere
+    ISelectBuilderWhere
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public ISelectBuilderSetOperator Except
@@ -204,7 +204,7 @@ internal class SelectBuilder(SqlPart part) :
         return this;
     }
 
-    public ISelectBuildertWhere Where(SqlCondition condition)
+    public ISelectBuilderWhere Where(SqlCondition condition)
     {
         AddPart(new WhereClause(condition));
         return this;

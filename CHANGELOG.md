@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.2.0-alpha.2] - 2025-07-01
+### Added
+- Added support for the `WITH` clause (Common Table Expressions).
 ### Changed
 - Updated README:
   - Added "Contributing" section to the README, providing guidance for feedback and issue reporting.

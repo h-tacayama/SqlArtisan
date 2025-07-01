@@ -10,4 +10,12 @@ public static partial class Sql
 
     public static SimpleCaseWhenExpression When(object whenExpr) =>
         new(Resolve(whenExpr));
+
+    public static IWithBuilderWith With(
+        params CommonTableExpression[] ctes) =>
+        new WithBuilder(new WithClause(ctes));
+
+    public static IWithBuilderWith WithRecursive(
+        params CommonTableExpression[] ctes) =>
+        new WithBuilder(new WithRecursiveClause(ctes));
 }

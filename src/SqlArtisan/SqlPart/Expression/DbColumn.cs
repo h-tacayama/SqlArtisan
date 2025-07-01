@@ -5,7 +5,7 @@ namespace SqlArtisan;
 public sealed class DbColumn(string tableAlias, string columnName) : SqlExpression
 {
     private readonly string _tableAlias = tableAlias;
-    private readonly string _columnName = columnName;
+    internal string Name => columnName;
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
@@ -15,6 +15,6 @@ public sealed class DbColumn(string tableAlias, string columnName) : SqlExpressi
             buffer.Append(".");
         }
 
-        buffer.Append(_columnName);
+        buffer.Append(Name);
     }
 }
