@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ## [0.2.0-beta.1] - 2025-07-11
+### Changed
 - Promoted the project to Beta, removing the "Unstable" warning from the README.
 
 ## [0.2.0-alpha.2] - 2025-07-01
