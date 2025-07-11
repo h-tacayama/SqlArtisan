@@ -844,6 +844,25 @@ SqlStatement sql =
 // OR (id NOT IN (:3, :4, :5))
 ```
 
+##### IN Condition with Subquery
+```csharp
+UsersTable a = new("a");
+UsersTable b = new("b");
+UsersTable c = new("c");
+SqlStatement sql =
+    Select(a.Name)
+    .From(a)
+    .Where(
+        a.Id.In(Select(b.Id).From(b))
+        | a.Id.NotIn(Select(c.Id).From(c)))
+    .Build();
+
+// SELECT "a".name
+// FROM users "a"
+// WHERE ("a".id IN (SELECT "b".id FROM users "b"))
+// OR ("a".id NOT IN (SELECT "c".id FROM users "c"))
+```
+
 ##### EXISTS Condition
 ```csharp
 UsersTable a = new("a");
