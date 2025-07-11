@@ -544,13 +544,13 @@ SqlStatement sql =
     Update(u)
     .Set(
         u.Name == "newName",
-        u.CreatedAt == Sysdate)
+        u.CreatedAt == CurrentTimestamp)
     .Where(u.Id == 1)
     .Build();
 
 // UPDATE users
 // SET name = :0,
-// created_at = SYSDATE
+// created_at = CURRENT_TIMESTAMP
 // WHERE id = :1
 ```
 
@@ -566,13 +566,13 @@ SqlStatement sql =
 UsersTable u = new();
 SqlStatement sql =
     InsertInto(u, u.Id, u.Name, u.CreatedAt)
-    .Values(1, "newName", Sysdate)
+    .Values(1, "newName", CurrentTimestamp)
     .Build();
 
 // INSERT INTO users
 // (id, name, created_at)
 // VALUES
-// (:0, :1, SYSDATE)
+// (:0, :1, CURRENT_TIMESTAMP)
 ```
 
 ---
@@ -588,13 +588,13 @@ SqlStatement sql =
     .Set(
         u.Id == 1,
         u.Name == "newName",
-        u.CreatedAt == Sysdate)
+        u.CreatedAt == CurrentTimestamp)
     .Build();
 
 // INSERT INTO users
 // (id, name, created_at)
 // VALUES
-// (:0, :1, SYSDATE)
+// (:0, :1, CURRENT_TIMESTAMP)
 ```
 
 **Note:** Generates standard `INSERT INTO ... (columns) VALUES (values)` SQL, not MySQL's `INSERT ... SET ...`, for broad database compatibility.
