@@ -270,7 +270,7 @@ SqlArtisanConfig.SetDefaultDbms(Dbms.SqlServer);
 SqlStatement sql = Select(u.Name).From(u).Build();
 ```
 
-**Note:** SqlArtisanConfig is not thread-safe and should be configured only once at application startup.
+**Note:** `SqlArtisanConfig` is not thread-safe and should be configured only once at application startup.
 
 ---
 
