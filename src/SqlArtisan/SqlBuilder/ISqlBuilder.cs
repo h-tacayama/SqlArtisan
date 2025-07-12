@@ -2,5 +2,7 @@ namespace SqlArtisan;
 
 public interface ISqlBuilder
 {
-    SqlStatement Build(Dbms dbms = Dbms.PostgreSql);
+    SqlStatement Build();
+
+    SqlStatement Build(Dbms dbms);
 }
