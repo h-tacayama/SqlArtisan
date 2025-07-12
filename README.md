@@ -45,6 +45,8 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Quick Start](#quick-start)
+- [Configuration](#configuration)
+  - [Setting the Default DBMS](#setting-the-default-dbms)
 - [Performance](#performance)
   - [Benchmark Details](#benchmark-details)
   - [Benchmark Result](#benchmark-result)
@@ -70,7 +72,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Window Functions](#window-functions)
     - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`
 - [Additional Query Details](#additional-query-details)
-  - [Bind Parameter Types](#bind-parameter-types-1)
+  - [Bind Parameter Types](#bind-parameter-types)
   - [Functions](#functions)
     - [Numeric Functions](#numeric-functions): `ABS`, `MOD`, `TRUNC`
     - [Character Functions](#character-functions): `CONCAT`, `INSTR`, `LPAD`, `LTRIM`, `LENGTH`, `LENGTHB`, `LOWER`, `RPAD`, `RTRIM`, `REGEXP_COUNT`, `REGEXP_REPLACE`, `REGEXP_SUBSTR`, `REPLACE`, `SUBSTR`, `SUBSTRB`, `TRIM`, `UPPER`
@@ -249,6 +251,25 @@ dotnet add package SqlArtisan.Dapper --prerelease
     // sql.Parameters.Get<int>("@0") is 20
     // sql.Parameters.Get<string>("@1") is "Bob"
     ```
+
+---
+
+## Configuration
+
+### Setting the Default DBMS
+
+As shown in the Quick Start, the `Build()` method can accept a `Dbms` argument. However, its default is PostgreSQL. To avoid specifying the DBMS in every call, you can set a global default once at application startup.
+
+**Example:**
+```csharp
+// At application startup
+SqlArtisanConfig.SetDefaultDbms(Dbms.SqlServer);
+
+// Now, Build() without arguments will generate SQL Server-compatible SQL
+SqlStatement sql = Select(u.Name).From(u).Build();
+```
+
+**Note:** SqlArtisanConfig is not thread-safe and should be configured only once at application startup.
 
 ---
 

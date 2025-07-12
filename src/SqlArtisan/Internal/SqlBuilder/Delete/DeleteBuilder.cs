@@ -5,6 +5,9 @@ internal class DeleteBuilder(params SqlPart[] rootParts) :
     IDeleteBuilderDelete,
     IDeleteBuilderWhere
 {
+    public SqlStatement Build() =>
+        BuildCore(SqlArtisanConfig.DefaultDbms);
+
     public SqlStatement Build(Dbms dbms) =>
         BuildCore(dbms);
 

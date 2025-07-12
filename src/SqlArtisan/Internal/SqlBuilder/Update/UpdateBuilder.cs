@@ -6,8 +6,11 @@ internal sealed class UpdateBuilder(params SqlPart[] rootParts) :
     IUpdateBuilderUpdate,
     IUpdateBuilderWhere
 {
-    public SqlStatement Build(Dbms dbmsType) =>
-        BuildCore(dbmsType);
+    public SqlStatement Build() =>
+        BuildCore(SqlArtisanConfig.DefaultDbms);
+
+    public SqlStatement Build(Dbms dbms) =>
+        BuildCore(dbms);
 
     public IUpdateBuilderSet Set(params EqualityBasedCondition[] assignments)
     {

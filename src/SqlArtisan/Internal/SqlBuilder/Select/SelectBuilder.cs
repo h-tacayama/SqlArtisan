@@ -93,6 +93,9 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         }
     }
 
+    public SqlStatement Build() =>
+        BuildCore(SqlArtisanConfig.DefaultDbms);
+
     public SqlStatement Build(Dbms dbms) =>
         BuildCore(dbms);
 
