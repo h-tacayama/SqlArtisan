@@ -55,6 +55,7 @@ internal static class Keywords
     internal const string Length = "LENGTH";
     internal const string Lengthb = "LENGTHB";
     internal const string Like = "LIKE";
+    internal const string Locked = "LOCKED";
     internal const string Lower = "LOWER";
     internal const string Lpad = "LPAD";
     internal const string Ltrim = "LTRIM";
@@ -66,10 +67,12 @@ internal static class Keywords
     internal const string Next = "NEXT";
     internal const string Nextval = "NEXTVAL";
     internal const string Not = "NOT";
+    internal const string Nowait = "NOWAIT";
     internal const string Null = "NULL";
     internal const string NullsFirst = "NULLS FIRST";
     internal const string NullsLast = "NULLS LAST";
     internal const string Nvl = "NVL";
+    internal const string Of = "OF";
     internal const string On = "ON";
     internal const string Or = "OR";
     internal const string Order = "ORDER";
@@ -90,6 +93,7 @@ internal static class Keywords
     internal const string Rtrim = "RTRIM";
     internal const string Select = "SELECT";
     internal const string Set = "SET";
+    internal const string Skip = "SKIP";
     internal const string Substr = "SUBSTR";
     internal const string Substrb = "SUBSTRB";
     internal const string Sum = "SUM";
@@ -107,7 +111,8 @@ internal static class Keywords
     internal const string Upper = "UPPER";
     internal const string Value = "VALUE";
     internal const string Values = "VALUES";
-    internal const string Where = "WHERE";
+    internal const string Wait = "WAIT";
     internal const string When = "WHEN";
+    internal const string Where = "WHERE";
     internal const string With = "WITH";
 }

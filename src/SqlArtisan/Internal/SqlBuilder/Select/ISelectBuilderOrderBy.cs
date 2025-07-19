@@ -1,5 +1,5 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface ISelectBuilderOrderBy : ISqlBuilder, ISubquery
+public interface ISelectBuilderOrderBy : ISqlBuilder, IForUpdate, ISubquery
 {
 }
