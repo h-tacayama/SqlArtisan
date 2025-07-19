@@ -38,6 +38,9 @@ public static partial class Sql
 
     public static DbSequence Sequence(string name) => new(name);
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static SkipLockedBehavior SkipLocked => new();
+
     public static SubstrFunction Substr(
         object source,
         object position) => new(

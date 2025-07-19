@@ -101,6 +101,20 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public void Format(SqlBuildingBuffer buffer) => FormatCore(buffer);
 
+    public ISqlBuilder ForUpdate(LockBehaviorBase? lockBehavior = null)
+    {
+        AddPart(new ForUpdateClause(lockBehavior));
+        return this;
+    }
+
+    public ISqlBuilder ForUpdate(
+        OfClause ofClause,
+        LockBehaviorBase? lockBehavior = null)
+    {
+        AddPart(new ForUpdateClause(ofClause, lockBehavior));
+        return this;
+    }
+
     public ISelectBuilderFrom CrossJoin(TableReference table)
     {
         AddPart(new CrossJoinClause(table));

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - Added the ability to configure a global default DBMS. (#35)
+- Added support for the `FOR UPDATE` clause to lock selected rows. (#37)
 
 ## [0.2.0-beta.1] - 2025-07-11
 ### Changed

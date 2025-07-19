@@ -219,6 +219,24 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    internal SqlBuildingBuffer PrependSpace(SqlPart part)
+    {
+        AppendSpace();
+        part.Format(this);
+        return this;
+    }
+
+    internal SqlBuildingBuffer PrependSpaceIfNotNull(SqlPart? part)
+    {
+        if (part is not null)
+        {
+            AppendSpace();
+            part.Format(this);
+        }
+
+        return this;
+    }
+
     internal SqlBuildingBuffer AddParameter(BindValue bindValue)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

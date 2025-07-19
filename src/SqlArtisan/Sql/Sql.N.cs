@@ -6,9 +6,6 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static NullExpression Null => new();
-
     public static NextvalFunction Nextval(string sequenceName) =>
         new(sequenceName);
 
@@ -19,6 +16,12 @@ public static partial class Sql
 
     public static NotExistsCondition NotExists(ISubquery subquery) =>
         new(subquery);
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static NowaitBehavior Nowait => new();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static NullExpression Null => new();
 
     public static NvlFunction Nvl(
         object expr1,

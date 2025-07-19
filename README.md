@@ -60,6 +60,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [ORDER BY Clause](#order-by-clause): `ASC`, `DESC`, `NULLS FIRST/LAST`
     - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
     - [Set Operators](#set-operators): `UNION [ALL]`, `EXCEPT [ALL]`, `MINUS [ALL]`, `INTERSECT [ALL]`
+    - [FOR UPDATE Clause](#for-update-clause)
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): **Standard**, **SET-like**, `INSERT SELECT`
@@ -541,6 +542,53 @@ SqlStatement sql =
 - `MinusAll` for `MINUS ALL`
 - `Intersect` for `INTERSECT`
 - `IntersectAll` for `INTERSECT ALL`
+
+---
+
+#### FOR UPDATE Clause
+
+##### Basic Example
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Id == 1)
+    .ForUpdate()
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE id = :0
+// FOR UPDATE
+```
+
+##### Example with Options
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    Select(u.Id, o.Id)
+    .From(u)
+    .InnerJoin(o)
+    .On(u.Id == o.UserId)
+    .Where(u.Id == 1)
+    .ForUpdate(Of(u.Id), Wait(5))
+    .Build();
+
+// SELECT "u".id, "o".id
+// FROM users "u"
+// INNER JOIN orders "o"
+// ON "u".id = "o".user_id
+// WHERE "u".id = :0
+// FOR UPDATE OF "u".id WAIT 5
+```
+
+##### Supported Options
+- `Of()` for `OF`
+- `Nowait` for `NOWAIT`
+- `SkipLocked` for `SKIP LOCKED`
+- `Wait()` for `WAIT`
 
 ---
 

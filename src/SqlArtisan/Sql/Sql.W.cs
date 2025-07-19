@@ -5,6 +5,8 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
+    public static WaitBehavior Wait(int seconds) => new(seconds);
+
     public static SearchedCaseWhenCondition When(
         SqlCondition whenCondition) => new(whenCondition);
 
