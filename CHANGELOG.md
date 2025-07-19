@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.2.0-beta.2] - 2025-07-19
 ### Added
 - Added the ability to configure a global default DBMS. (#35)
 - Added support for the `FOR UPDATE` clause to lock selected rows. (#37)
