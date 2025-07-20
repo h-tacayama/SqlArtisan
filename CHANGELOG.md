@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Added overloads to the `Decode` method to remove the array requirement. (#39)
 
 ## [0.2.0-beta.2] - 2025-07-19
 ### Added
