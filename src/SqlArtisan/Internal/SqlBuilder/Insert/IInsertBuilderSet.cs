@@ -1,5 +1,5 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface IInsertBuilderSet : ISqlBuilder
+public interface IInsertBuilderSet : ISqlBuilder, IReturning
 {
 }

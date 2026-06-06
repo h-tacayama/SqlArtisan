@@ -1,5 +1,5 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface IUpdateBuilderWhere : ISqlBuilder
+public interface IUpdateBuilderWhere : ISqlBuilder, IReturning
 {
 }

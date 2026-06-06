@@ -7,6 +7,9 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
     IInsertBuilderTable,
     IInsertBuilderValues
 {
+    public IReturningBuilder Returning(params object[] expressions) =>
+        ReturningBuilder.Create(this, expressions);
+
     public IInsertBuilderSet Set(params EqualityBasedCondition[] assignments)
     {
         AddPart(InsertSetClause.Parse(assignments));

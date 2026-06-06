@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Data;
 using System.Text;
 
 namespace SqlArtisan.Internal;
@@ -244,6 +245,25 @@ internal sealed class SqlBuildingBuffer : IDisposable
         string name = $"{_dialect.ParameterMarker}{_parameters.Count}";
         Append(name);
         _parameters.Add(name, bindValue);
+        return this;
+    }
+
+    internal SqlBuildingBuffer AddOutParameter(string variable)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        string name = $"{_dialect.ParameterMarker}{variable}";
+
+        if (_parameters.ContainsKey(name))
+        {
+            throw new ArgumentException(
+                $"Duplicate variable name '{variable}' in RETURNING INTO clause. Each variable name must be unique.");
+        }
+
+        Append(name);
+        _parameters.Add(name, new BindValue(
+            DBNull.Value,
+            direction: ParameterDirection.Output));
         return this;
     }
 

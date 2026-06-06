@@ -1,0 +1,279 @@
+using System.Data;
+using System.Text;
+using SqlArtisan.Internal;
+using static SqlArtisan.Sql;
+
+namespace SqlArtisan.Tests;
+
+public class ReturningTest
+{
+    private readonly TestTable _t = new();
+
+    // ── plain RETURNING ────────────────────────────────────────────────
+
+    [Fact]
+    public void Returning_OnInsertWithValues_CorrectSql()
+    {
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .Returning(_t.Code, _t.Name)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO ");
+        expected.Append("test_table (code, name) ");
+        expected.Append("VALUES (:0, :1) ");
+        expected.Append("RETURNING code, name");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Returning_OnInsertWithSet_CorrectSql()
+    {
+        SqlStatement sql =
+            InsertInto(_t)
+            .Set(_t.Code == 1, _t.Name == "a")
+            .Returning(_t.Code, _t.Name)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO ");
+        expected.Append("test_table (code, name) ");
+        expected.Append("VALUES (:0, :1) ");
+        expected.Append("RETURNING code, name");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Returning_OnDelete_CorrectSql()
+    {
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Returning(_t.Code, _t.Name)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table ");
+        expected.Append("RETURNING code, name");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Returning_OnDeleteWithWhere_CorrectSql()
+    {
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Where(_t.Code == 1)
+            .Returning(_t.Code, _t.Name)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table ");
+        expected.Append("WHERE code = :0 ");
+        expected.Append("RETURNING code, name");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Returning_OnUpdate_CorrectSql()
+    {
+        SqlStatement sql =
+            Update(_t)
+            .Set(_t.Code == 1, _t.Name == "a")
+            .Returning(_t.Code, _t.Name)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table ");
+        expected.Append("SET code = :0, name = :1 ");
+        expected.Append("RETURNING code, name");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Returning_OnUpdateWithWhere_CorrectSql()
+    {
+        SqlStatement sql =
+            Update(_t)
+            .Set(_t.Code == 1, _t.Name == "a")
+            .Where(_t.Code > 0)
+            .Returning(_t.Code, _t.Name)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table ");
+        expected.Append("SET code = :0, name = :1 ");
+        expected.Append("WHERE code > :2 ");
+        expected.Append("RETURNING code, name");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // ── RETURNING INTO ────────────────────────────────────────────────
+
+    [Fact]
+    public void ReturningInto_OnDelete_CorrectSql()
+    {
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Returning(_t.Code, _t.Name)
+            .Into("b", "c")
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table ");
+        expected.Append("RETURNING code, name ");
+        expected.Append("INTO :b, :c");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ReturningInto_OnDeleteWithWhere_CorrectSql()
+    {
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Where(_t.Code == 1)
+            .Returning(_t.Code, _t.Name)
+            .Into("b", "c")
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table ");
+        expected.Append("WHERE code = :0 ");
+        expected.Append("RETURNING code, name ");
+        expected.Append("INTO :b, :c");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ReturningInto_OnInsert_CorrectSql()
+    {
+        SqlStatement sql =
+            InsertInto(_t)
+            .Set(_t.Code == 1, _t.Name == "a")
+            .Returning(_t.Code, _t.Name)
+            .Into("b", "c")
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO ");
+        expected.Append("test_table (code, name) ");
+        expected.Append("VALUES (:0, :1) ");
+        expected.Append("RETURNING code, name ");
+        expected.Append("INTO :b, :c");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ReturningInto_OnUpdate_CorrectSql()
+    {
+        SqlStatement sql =
+            Update(_t)
+            .Set(_t.Code == 1, _t.Name == "a")
+            .Returning(_t.Code, _t.Name)
+            .Into("b", "c")
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table ");
+        expected.Append("SET code = :0, name = :1 ");
+        expected.Append("RETURNING code, name ");
+        expected.Append("INTO :b, :c");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // ── validation ────────────────────────────────────────────────────
+
+    [Fact]
+    public void Returning_NoArguments_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(_t)
+            .Returning([])
+            .Build());
+    }
+
+    [Fact]
+    public void Returning_WithExpressionAlias_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(_t)
+            .Returning(_t.Code.As("b"))
+            .Build());
+    }
+
+    [Fact]
+    public void ReturningInto_NoArguments_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(_t)
+            .Returning(_t.Code, _t.Name)
+            .Into());
+    }
+
+    [Fact]
+    public void ReturningInto_VariableCountMismatch_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(_t)
+            .Returning(_t.Code, _t.Name)
+            .Into("b")
+            .Build());
+    }
+
+    [Fact]
+    public void ReturningInto_DuplicateVariableName_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(_t)
+            .Returning(_t.Code, _t.Name)
+            .Into("b", "b")
+            .Build());
+    }
+
+    // ── output parameters ─────────────────────────────────────────────
+
+    [Fact]
+    public void ReturningInto_RegistersOutputParameters()
+    {
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Returning(_t.Code, _t.Name)
+            .Into("b", "c")
+            .Build();
+
+        Dictionary<string, BindValue> parameters = new();
+        sql.Parameters.ForEach((name, bind) => parameters.Add(name, bind));
+
+        Assert.Equal(ParameterDirection.Output, parameters[":b"].Direction);
+        Assert.Equal(ParameterDirection.Output, parameters[":c"].Direction);
+    }
+
+    [Fact]
+    public void ReturningInto_UsesDialectParameterMarker()
+    {
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Returning(_t.Code, _t.Name)
+            .Into("b", "c")
+            .Build(Dbms.SqlServer);
+
+        Assert.Contains("INTO @b, @c", sql.Text);
+        Assert.Contains("@b", sql.Parameters.ParameterNames);
+        Assert.Contains("@c", sql.Parameters.ParameterNames);
+    }
+}
