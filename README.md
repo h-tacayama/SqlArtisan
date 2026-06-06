@@ -65,6 +65,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): **Standard**, **SET-like**, `INSERT SELECT`
   - [WITH Clause (Common Table Expressions)](#with-clause-common-table-expressions): `WITH`, `WITH RECURSIVE`, **CTEs with DML**
+  - [RETURNING Clause](#returning-clause): `RETURNING`, `RETURNING INTO` (Oracle)
   - [Expressions](#expressions)
     - [NULL Literal](#null-literal)
     - [Arithmetic Operators](#arithmetic-operators): `+`, `-`, `*`, `/`, `%`
@@ -754,6 +755,63 @@ SqlArtisan also supports more advanced WITH clause scenarios, including:
 
 - Recursive CTEs using the `WithRecursive()` method.
 - CTEs with DML statements (`INSERT`, `UPDATE`, and `DELETE`).
+
+---
+
+### RETURNING Clause
+
+The `Returning()` method appends a `RETURNING` clause to `INSERT`, `UPDATE`, and `DELETE` statements, letting you read back the affected rows.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    DeleteFrom(u)
+    .Where(u.Id == 1)
+    .Returning(u.Id, u.Name)
+    .Build();
+
+// DELETE FROM users
+// WHERE id = :0
+// RETURNING id, name
+```
+
+It is also available on `INSERT` and `UPDATE`:
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Update(u)
+    .Set(u.Name == "newName")
+    .Where(u.Id == 1)
+    .Returning(u.Id, u.Name)
+    .Build();
+
+// UPDATE users
+// SET name = :0
+// WHERE id = :1
+// RETURNING id, name
+```
+
+#### RETURNING INTO (Oracle)
+
+For Oracle, chain `Into()` after `Returning()` to bind the returned columns into output parameters. The number of variables must match the number of returned expressions, and each variable name must be unique. The output parameters are registered with `ParameterDirection.Output` so you can read their values after execution.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    DeleteFrom(u)
+    .Where(u.Id == 1)
+    .Returning(u.Id, u.Name)
+    .Into("outId", "outName")
+    .Build(Dbms.Oracle);
+
+// DELETE FROM users
+// WHERE id = :0
+// RETURNING id, name
+// INTO :outId, :outName
+```
+
+**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (3.35+). It is not supported by SQL Server (which uses `OUTPUT`) or MySQL. The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
 
 ---
 

@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface IUpdateBuilderSet : ISqlBuilder
+public interface IUpdateBuilderSet : ISqlBuilder, IReturning
 {
     IUpdateBuilderWhere Where(SqlCondition condition);
 }

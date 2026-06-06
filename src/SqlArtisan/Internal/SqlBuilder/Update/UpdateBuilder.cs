@@ -12,6 +12,9 @@ internal sealed class UpdateBuilder(params SqlPart[] rootParts) :
     public SqlStatement Build(Dbms dbms) =>
         BuildCore(dbms);
 
+    public IReturningBuilder Returning(params object[] expressions) =>
+        ReturningBuilder.Create(this, expressions);
+
     public IUpdateBuilderSet Set(params EqualityBasedCondition[] assignments)
     {
         AddPart(UpdateSetClause.Parse(assignments));

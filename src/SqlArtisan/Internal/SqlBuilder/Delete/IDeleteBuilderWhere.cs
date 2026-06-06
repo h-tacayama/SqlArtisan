@@ -1,5 +1,5 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface IDeleteBuilderWhere : ISqlBuilder
+public interface IDeleteBuilderWhere : ISqlBuilder, IReturning
 {
 }
