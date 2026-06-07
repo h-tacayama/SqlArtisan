@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface ISelectBuilderFrom : ISqlBuilder, ISetOperator, IForUpdate, ISubquery
+public interface ISelectBuilderFrom : ISqlBuilder, ISetOperator, IForUpdate, ISubquery, IPagination
 {
     // Subsequent SQL is the same as the FROM clause.
     ISelectBuilderFrom CrossJoin(TableReference table);

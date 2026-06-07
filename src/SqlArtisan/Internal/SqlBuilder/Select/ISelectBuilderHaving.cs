@@ -1,5 +1,5 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface ISelectBuilderHaving : ISqlBuilder, ISetOperator, ISubquery
+public interface ISelectBuilderHaving : ISqlBuilder, ISetOperator, ISubquery, IPagination
 {
 }

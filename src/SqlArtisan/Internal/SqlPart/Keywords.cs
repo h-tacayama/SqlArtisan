@@ -35,6 +35,8 @@ internal static class Keywords
     internal const string Except = "EXCEPT";
     internal const string Exists = "EXISTS";
     internal const string Extract = "EXTRACT";
+    internal const string Fetch = "FETCH";
+    internal const string First = "FIRST";
     internal const string For = "FOR";
     internal const string From = "FROM";
     internal const string Full = "FULL";
@@ -55,6 +57,7 @@ internal static class Keywords
     internal const string Length = "LENGTH";
     internal const string Lengthb = "LENGTHB";
     internal const string Like = "LIKE";
+    internal const string Limit = "LIMIT";
     internal const string Locked = "LOCKED";
     internal const string Lower = "LOWER";
     internal const string Lpad = "LPAD";
@@ -73,7 +76,9 @@ internal static class Keywords
     internal const string NullsLast = "NULLS LAST";
     internal const string Nvl = "NVL";
     internal const string Of = "OF";
+    internal const string Offset = "OFFSET";
     internal const string On = "ON";
+    internal const string Only = "ONLY";
     internal const string Or = "OR";
     internal const string Order = "ORDER";
     internal const string Over = "OVER";
@@ -89,6 +94,7 @@ internal static class Keywords
     internal const string Returning = "RETURNING";
     internal const string Right = "RIGHT";
     internal const string RowNumber = "ROW_NUMBER";
+    internal const string Rows = "ROWS";
     internal const string Rpad = "RPAD";
     internal const string Rtrim = "RTRIM";
     internal const string Select = "SELECT";
