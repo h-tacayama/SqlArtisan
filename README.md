@@ -635,7 +635,7 @@ SqlStatement sql =
 // LIMIT :0 OFFSET :1
 ```
 
-`Limit()` and `Offset()` can be used together or independently.
+`Limit()` and `Offset()` can be combined as `LIMIT n OFFSET m`. Note that a standalone `Offset()` (without `Limit()`) is only valid on PostgreSQL; MySQL and SQLite require `OFFSET` to be paired with `LIMIT`.
 
 ##### OFFSET/FETCH family (Oracle 12c+ / SQL Server 2012+)
 
@@ -655,9 +655,9 @@ SqlStatement sql =
 // OFFSET :0 ROWS FETCH NEXT :1 ROWS ONLY
 ```
 
-- Use `FetchFirst(n)` for `FETCH FIRST n ROWS ONLY` (no offset).
 - Use `OffsetRows(m)` alone for `OFFSET m ROWS`.
-- This form requires `ORDER BY` on SQL Server, and is available on Oracle 12c+ / SQL Server 2012+.
+- Use `FetchFirst(n)` for `FETCH FIRST n ROWS ONLY` (no offset). This standalone form is valid on **Oracle** (and PostgreSQL); **SQL Server requires an `OFFSET`**, so on SQL Server use `OffsetRows(0).FetchNext(n)` instead.
+- This clause requires `ORDER BY` on SQL Server, and is available on Oracle 12c+ / SQL Server 2012+.
 
 The row counts are parameterized like other literals, so the bind-parameter prefix follows the target dialect (`:` / `@` / `?`).
 
