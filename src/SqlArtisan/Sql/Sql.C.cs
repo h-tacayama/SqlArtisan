@@ -409,6 +409,14 @@ public static partial class Sql
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentTimestampFunction CurrentTimestamp => new();
 
+    /// <summary>
+    /// Gets the current value of a sequence using the PostgreSQL syntax
+    /// <c>CURRVAL('sequenceName')</c>.
+    /// </summary>
+    /// <remarks>
+    /// Dialect-specific (PostgreSQL). For Oracle use <see cref="Sequence(string)"/>
+    /// with <c>.Currval</c>.
+    /// </remarks>
     public static CurrvalFunction Currval(string sequenceName) =>
         new(sequenceName);
 }

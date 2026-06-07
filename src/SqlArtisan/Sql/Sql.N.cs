@@ -6,9 +6,25 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
+    /// <summary>
+    /// Gets the next value of a sequence using the PostgreSQL syntax
+    /// <c>NEXTVAL('sequenceName')</c>.
+    /// </summary>
+    /// <remarks>
+    /// Dialect-specific (PostgreSQL). For Oracle use <see cref="Sequence(string)"/>
+    /// with <c>.Nextval</c>; for SQL Server use <see cref="NextValueFor(string)"/>.
+    /// </remarks>
     public static NextvalFunction Nextval(string sequenceName) =>
         new(sequenceName);
 
+    /// <summary>
+    /// Gets the next value of a sequence using the SQL Server syntax
+    /// <c>NEXT VALUE FOR sequenceName</c>.
+    /// </summary>
+    /// <remarks>
+    /// Dialect-specific (SQL Server). For Oracle use <see cref="Sequence(string)"/>
+    /// with <c>.Nextval</c>; for PostgreSQL use <see cref="Nextval(string)"/>.
+    /// </remarks>
     public static NextValueForFunction NextValueFor(string sequenceName) =>
         new(sequenceName);
 
