@@ -36,6 +36,14 @@ public static partial class Sql
                 distinct,
                 selectItems));
 
+    /// <summary>
+    /// Creates a reference to a sequence using the Oracle dotted syntax,
+    /// e.g. <c>name.NEXTVAL</c> / <c>name.CURRVAL</c> via <c>.Nextval</c> / <c>.Currval</c>.
+    /// </summary>
+    /// <remarks>
+    /// Dialect-specific (Oracle). For PostgreSQL use <see cref="Nextval(string)"/> /
+    /// <see cref="Currval(string)"/>; for SQL Server use <see cref="NextValueFor(string)"/>.
+    /// </remarks>
     public static DbSequence Sequence(string name) => new(name);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -75,9 +83,17 @@ public static partial class Sql
     public static SumFunction Sum(DistinctKeyword distinct, object expr) =>
         new(distinct, Resolve(expr));
 
+    /// <summary>
+    /// The <c>SYSDATE</c> function. Dialect-specific (Oracle). For the standard
+    /// current date/time use <see cref="CurrentTimestamp"/> or <see cref="CurrentDate"/>.
+    /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static SysdateFunction Sysdate => new();
 
+    /// <summary>
+    /// The <c>SYSTIMESTAMP</c> function. Dialect-specific (Oracle). For the standard
+    /// current timestamp use <see cref="CurrentTimestamp"/>.
+    /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static SystimestampFunction Systimestamp => new();
 }

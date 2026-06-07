@@ -41,6 +41,10 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
 - [Changelog](#changelog)
 - [Packages](#packages)
 - [Key Features](#key-features)
+- [Design Philosophy](#design-philosophy)
+  - [What SqlArtisan Does and Doesn't Abstract](#what-sqlartisan-does-and-doesnt-abstract)
+  - [Non-Goals](#non-goals)
+  - [Dialect Support](#dialect-support)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -111,6 +115,49 @@ Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main
 - **Dynamic Query Conditions**: Dynamically include or exclude `WHERE` conditions (and other query parts) using simple helpers like `ConditionIf`.
 - **Low-Allocation Design**: Minimizes heap allocations and GC load for superior performance.
 - **Seamless Dapper Integration**: The optional `SqlArtisan.Dapper` library provides Dapper extensions that enable effortless SQL execution.
+
+---
+
+## Design Philosophy
+
+SqlArtisan is built on a single principle: **what you write is what you get.** It generates SQL faithfully and transparently, so the C# you write maps directly and predictably to the SQL that runs—there is no translation layer second-guessing your intent.
+
+This is a deliberate position. Full ORMs hide SQL behind object graphs; portability-focused query builders rewrite your query for each database. SqlArtisan instead serves developers who *want* to write SQL—who know their database and value clarity and control—but want to do it type-safely and composably in C# rather than with error-prone string concatenation.
+
+### What SqlArtisan Does and Doesn't Abstract
+
+SqlArtisan draws a deliberate line between *lexical* and *grammatical* concerns:
+
+- **Normalized (lexical):** Purely mechanical details with a single unambiguous rendering per database are handled for you—bind-parameter markers (`:0` vs `@0`) and identifier quoting. These are plumbing, not the SQL you mean to write.
+- **Never translated (grammar / semantics):** Where databases diverge in SQL grammar or semantics (for example `LIMIT` vs `FETCH FIRST`, or `NEXTVAL` vs `NEXT VALUE FOR`), SqlArtisan does **not** silently rewrite your query. Instead it exposes distinct, dialect-faithful APIs, and you choose the one matching your target database.
+
+For example, "the next value of a sequence" is expressed with a different API per dialect, each producing that database's exact syntax:
+
+```csharp
+Sequence("users_id_seq").Nextval   // Oracle:      users_id_seq.NEXTVAL
+Nextval("users_id_seq")            // PostgreSQL:  NEXTVAL('users_id_seq')
+NextValueFor("users_id_seq")       // SQL Server:  NEXT VALUE FOR users_id_seq
+```
+
+This keeps generated SQL predictable and gives you first-class access to database-specific features, instead of limiting you to a lowest-common-denominator dialect.
+
+### Non-Goals
+
+- **Cross-DBMS portability is not a goal.** SqlArtisan does not aim to let one query body run unchanged across every database. Dialect-divergent constructs are surfaced as explicit, dialect-specific APIs. If you target Oracle, you write Oracle SQL; if you target PostgreSQL, you write PostgreSQL SQL—faithfully, in C#.
+
+### Dialect Support
+
+Because dialect-divergent SQL is exposed as distinct APIs, selecting the one appropriate for your target database is the developer's responsibility. The table below summarizes the major dialect-specific constructs:
+
+| Construct                | MySQL | Oracle | PostgreSQL | SQLite | SQL Server | API |
+| :----------------------- | :---: | :----: | :--------: | :----: | :--------: | :--- |
+| Bind parameter marker    | `?`   | `:`    | `:`        | `:`    | `@`        | (automatic) |
+| Sequence — next value    | —     | ✅     | ✅         | —      | ✅         | `Sequence(name).Nextval` (Oracle), `Nextval(name)` (PostgreSQL), `NextValueFor(name)` (SQL Server) |
+| Sequence — current value | —     | ✅     | ✅         | —      | —          | `Sequence(name).Currval` (Oracle), `Currval(name)` (PostgreSQL) |
+| `RETURNING`              | —     | ✅     | ✅         | ✅     | —          | `Returning(...)` |
+| `RETURNING ... INTO`     | —     | ✅     | —          | —      | —          | `Returning(...).Into(...)` |
+
+Individual dialect-specific functions (e.g. `Sysdate`, `Systimestamp`) note their target DBMS in their XML doc comments, visible via IntelliSense.
 
 ---
 

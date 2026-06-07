@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Changed
 - Improved `SqlBuildingBuffer` memory efficiency and throughput. (#45)
+- Documented the design philosophy and non-goals, and surfaced dialect-specific features in the README and via XML doc comments. (#47)
 
 ## [0.2.0-beta.3] - 2026-06-07
 ### Added
