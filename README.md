@@ -62,7 +62,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
     - [Set Operators](#set-operators): `UNION [ALL]`, `EXCEPT [ALL]`, `MINUS [ALL]`, `INTERSECT [ALL]`
     - [FOR UPDATE Clause](#for-update-clause)
-    - [Pagination (LIMIT / OFFSET / FETCH)](#pagination-limit--offset--fetch)
+    - [Pagination](#pagination): `LIMIT`, `OFFSET`, `FETCH`
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): **Standard**, **SET-like**, `INSERT SELECT`
@@ -613,7 +613,7 @@ SqlStatement sql =
 
 ---
 
-#### Pagination (LIMIT / OFFSET / FETCH)
+#### Pagination
 
 Row limiting is dialect-divergent, so SqlArtisan exposes two faithful families and you choose the one for your target database (see [Design Philosophy](#design-philosophy)).
 
