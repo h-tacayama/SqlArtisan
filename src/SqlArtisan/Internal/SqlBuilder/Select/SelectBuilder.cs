@@ -11,7 +11,9 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     ISelectBuilderJoin,
     ISelectBuilderOrderBy,
     ISelectBuilderSelect,
-    ISelectBuilderWhere
+    ISelectBuilderWhere,
+    ILimitOffsetBuilder,
+    IOffsetFetchBuilder
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public ISelectBuilderSetOperator Except
@@ -112,6 +114,36 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         LockBehaviorBase? lockBehavior = null)
     {
         AddPart(new ForUpdateClause(ofClause, lockBehavior));
+        return this;
+    }
+
+    public ILimitOffsetBuilder Limit(int count)
+    {
+        AddPart(new LimitClause(count));
+        return this;
+    }
+
+    public ISqlBuilder Offset(int start)
+    {
+        AddPart(new OffsetClause(start));
+        return this;
+    }
+
+    public IOffsetFetchBuilder OffsetRows(int start)
+    {
+        AddPart(new OffsetRowsClause(start));
+        return this;
+    }
+
+    public ISqlBuilder FetchFirst(int count)
+    {
+        AddPart(new FetchClause(count, first: true));
+        return this;
+    }
+
+    public ISqlBuilder FetchNext(int count)
+    {
+        AddPart(new FetchClause(count, first: false));
         return this;
     }
 

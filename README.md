@@ -62,6 +62,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
     - [Set Operators](#set-operators): `UNION [ALL]`, `EXCEPT [ALL]`, `MINUS [ALL]`, `INTERSECT [ALL]`
     - [FOR UPDATE Clause](#for-update-clause)
+    - [Pagination](#pagination): `LIMIT`, `OFFSET`, `FETCH`
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): **Standard**, **SET-like**, `INSERT SELECT`
@@ -609,6 +610,56 @@ SqlStatement sql =
 - `Nowait` for `NOWAIT`
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
+
+---
+
+#### Pagination
+
+Row limiting is dialect-divergent, so SqlArtisan exposes two faithful families and you choose the one for your target database (see [Design Philosophy](#design-philosophy)).
+
+##### LIMIT family (PostgreSQL / MySQL / SQLite)
+
+```csharp
+TestTable t = new();
+SqlStatement sql =
+    Select(t.Code)
+    .From(t)
+    .OrderBy(t.Code)
+    .Limit(10)
+    .Offset(20)
+    .Build();
+
+// SELECT code
+// FROM test_table
+// ORDER BY code
+// LIMIT :0 OFFSET :1
+```
+
+`Limit()` and `Offset()` can be combined as `LIMIT n OFFSET m`. Note that a standalone `Offset()` (without `Limit()`) is only valid on PostgreSQL; MySQL and SQLite require `OFFSET` to be paired with `LIMIT`.
+
+##### OFFSET/FETCH family (Oracle 12c+ / SQL Server 2012+)
+
+```csharp
+TestTable t = new();
+SqlStatement sql =
+    Select(t.Code)
+    .From(t)
+    .OrderBy(t.Code)
+    .OffsetRows(20)
+    .FetchNext(10)
+    .Build(Dbms.Oracle);
+
+// SELECT code
+// FROM test_table
+// ORDER BY code
+// OFFSET :0 ROWS FETCH NEXT :1 ROWS ONLY
+```
+
+- Use `OffsetRows(m)` alone for `OFFSET m ROWS`.
+- Use `FetchFirst(n)` for `FETCH FIRST n ROWS ONLY` (no offset). This standalone form is valid on **Oracle** (and PostgreSQL); **SQL Server requires an `OFFSET`**, so on SQL Server use `OffsetRows(0).FetchNext(n)` instead.
+- This clause requires `ORDER BY` on SQL Server, and is available on Oracle 12c+ / SQL Server 2012+.
+
+The row counts are parameterized like other literals, so the bind-parameter prefix follows the target dialect (`:` / `@` / `?`).
 
 ---
 
