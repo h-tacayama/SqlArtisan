@@ -8,7 +8,7 @@ public partial class WindowDenseRankTests
     private readonly TestTable _t = new("t");
 
     [Fact]
-    public void DenseRank_Over_PartitionByOrderBy_CorrectSql()
+    public void DenseRank_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(
@@ -34,7 +34,7 @@ public partial class WindowDenseRankTests
     }
 
     [Fact]
-    public void DenseRank_Over_OrderBy_CorrectSql()
+    public void DenseRank_OverOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(DenseRank().Over(OrderBy(_t.Code, _t.Name)))

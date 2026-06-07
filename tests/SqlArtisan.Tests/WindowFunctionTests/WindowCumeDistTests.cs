@@ -8,7 +8,7 @@ public partial class WindowCumeDistTests
     private readonly TestTable _t = new("t");
 
     [Fact]
-    public void CumeDist_Over_PartitionByOrderBy_CorrectSql()
+    public void CumeDist_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(
@@ -34,7 +34,7 @@ public partial class WindowCumeDistTests
     }
 
     [Fact]
-    public void CumeDist_Over_OrderBy_CorrectSql()
+    public void CumeDist_OverOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(

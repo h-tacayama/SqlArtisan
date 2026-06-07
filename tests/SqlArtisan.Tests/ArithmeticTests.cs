@@ -27,7 +27,7 @@ public class ArithmeticTests
         Assert.Equal("SELECT (\"t\".code % :0)", Select(_t.Code % 2).Build().Text);
 
     [Fact]
-    public void SubtractionAndAddition_nesting_CorrectSql() =>
+    public void SubtractionAndAddition_Nesting_CorrectSql() =>
         Assert.Equal(
             "SELECT ((\"t\".created_at - \"t\".created_at) + :0)",
             Select((_t.CreatedAt - _t.CreatedAt) + 1).Build().Text);
