@@ -48,7 +48,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Count_Distinct_ColumnValue_CorrectSql()
+    public void Count_DistinctColumnValue_CorrectSql()
     {
         SqlStatement sql =
             Select(Count(Distinct, _t.Code))

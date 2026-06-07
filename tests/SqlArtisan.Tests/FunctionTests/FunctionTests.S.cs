@@ -76,7 +76,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Sum_Distinct_NumericValue_CorrectSql()
+    public void Sum_DistinctNumericValue_CorrectSql()
     {
         SqlStatement sql =
             Select(Sum(Distinct, _t.Code))

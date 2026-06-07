@@ -8,7 +8,7 @@ public partial class WindowPercentRankTests
     private readonly TestTable _t = new("t");
 
     [Fact]
-    public void PercentRank_Over_PartitionByOrderBy_CorrectSql()
+    public void PercentRank_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(
@@ -34,7 +34,7 @@ public partial class WindowPercentRankTests
     }
 
     [Fact]
-    public void PercentRank_Over_OrderBy_CorrectSql()
+    public void PercentRank_OverOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(

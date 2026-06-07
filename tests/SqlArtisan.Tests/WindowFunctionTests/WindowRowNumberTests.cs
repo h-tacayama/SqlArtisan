@@ -8,7 +8,7 @@ public partial class WindowRowNumberTests
     private readonly TestTable _t = new("t");
 
     [Fact]
-    public void RowNumber_Over_PartitionByOrderBy_CorrectSql()
+    public void RowNumber_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(
@@ -34,7 +34,7 @@ public partial class WindowRowNumberTests
     }
 
     [Fact]
-    public void RowNumber_Over_OrderBy_CorrectSql()
+    public void RowNumber_OverOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(RowNumber().Over(OrderBy(_t.Code, _t.Name)))

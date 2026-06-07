@@ -248,7 +248,7 @@ public class ReturningTests
     // ── output parameters ─────────────────────────────────────────────
 
     [Fact]
-    public void ReturningInto_RegistersOutputParameters()
+    public void ReturningInto_OnDelete_RegistersOutputParameters()
     {
         SqlStatement sql =
             DeleteFrom(_t)
@@ -264,7 +264,7 @@ public class ReturningTests
     }
 
     [Fact]
-    public void ReturningInto_UsesDialectParameterMarker()
+    public void ReturningInto_OnSqlServer_UsesDialectParameterMarker()
     {
         SqlStatement sql =
             DeleteFrom(_t)

@@ -50,7 +50,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Avg_Distinct_NumericValue_CorrectSql()
+    public void Avg_DistinctNumericValue_CorrectSql()
     {
         SqlStatement sql =
             Select(Avg(Distinct, _t.Code))

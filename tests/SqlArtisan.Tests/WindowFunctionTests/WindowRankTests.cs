@@ -8,7 +8,7 @@ public partial class WindowRankTests
     private readonly TestTable _t = new("t");
 
     [Fact]
-    public void Rank_Over_PartitionByOrderBy_CorrectSql()
+    public void Rank_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(
@@ -34,7 +34,7 @@ public partial class WindowRankTests
     }
 
     [Fact]
-    public void Rank_Over_OrderBy_CorrectSql()
+    public void Rank_OverOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(
