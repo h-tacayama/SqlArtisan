@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Data;
-using System.Text;
 
 namespace SqlArtisan.Internal;
 
@@ -20,15 +19,21 @@ internal sealed class SqlBuildingBuffer : IDisposable
         _position = 0;
     }
 
-    ~SqlBuildingBuffer()
-    {
-        Dispose(false);
-    }
-
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (_buffer != null)
+        {
+            ArrayPool<char>.Shared.Return(_buffer);
+            _buffer = null!;
+        }
+
+        _parameters = null!;
+        _disposed = true;
     }
 
     internal SqlBuildingBuffer Append(SqlPart part)
@@ -96,7 +101,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal SqlBuildingBuffer AppendSpace()
     {
-        Append(" ");
+        Append(' ');
         return this;
     }
 
@@ -146,28 +151,25 @@ internal sealed class SqlBuildingBuffer : IDisposable
             return this;
         }
 
-        StringBuilder builder = new();
-
         for (int i = 0; i < text.Length; i++)
         {
             char c = text[i];
 
             if (i > 0 && char.IsUpper(c))
             {
-                builder.Append('_');
+                Append('_');
             }
 
-            builder.Append(char.ToUpper(c));
+            Append(char.ToUpperInvariant(c));
         }
 
-        Append(builder.ToString());
         return this;
     }
 
     internal SqlBuildingBuffer CloseParenthesis(SqlPart? part = null)
     {
         part?.Format(this);
-        Append(")");
+        Append(')');
         return this;
     }
 
@@ -181,23 +183,23 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal SqlBuildingBuffer EncloseInParentheses(SqlPart part)
     {
-        Append("(");
+        Append('(');
         part.Format(this);
-        Append(")");
+        Append(')');
         return this;
     }
 
     internal SqlBuildingBuffer EncloseInSpaces(string value)
     {
-        Append(" ");
+        Append(' ');
         Append(value);
-        Append(" ");
+        Append(' ');
         return this;
     }
 
     internal SqlBuildingBuffer OpenParenthesis(SqlPart? part = null)
     {
-        Append("(");
+        Append('(');
         part?.Format(this);
         return this;
     }
@@ -271,31 +273,13 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // Pass a copy of _parameter to ensure
-        // the original reference is not retained by the caller.
+        // Transfer ownership of the parameter dictionary to the SqlStatement.
+        // The buffer relinquishes its reference so the caller's instance is
+        // never mutated after this point (Dispose only returns the char buffer).
         string sql = new(_buffer, 0, _position);
-        Dictionary<string, BindValue> parametersCopy = new(_parameters);
-        return new(sql, parametersCopy);
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                if (_buffer != null)
-                {
-                    ArrayPool<char>.Shared.Return(_buffer);
-                    _buffer = null!;
-                }
-
-                _parameters.Clear();
-                _parameters = null!;
-            }
-
-            _disposed = true;
-        }
+        Dictionary<string, BindValue> parameters = _parameters;
+        _parameters = null!;
+        return new(sql, parameters);
     }
 
     private void AppendSelectItem(SqlPart selectItem)
@@ -308,6 +292,13 @@ internal sealed class SqlBuildingBuffer : IDisposable
         {
             selectItem.Format(this);
         }
+    }
+
+    private SqlBuildingBuffer Append(char value)
+    {
+        EnsureCapacity(1);
+        _buffer[_position++] = value;
+        return this;
     }
 
     private SqlBuildingBuffer Append(ReadOnlySpan<char> value)
