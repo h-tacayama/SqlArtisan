@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
-using SqlArtisan.Benchmark;
 
-BenchmarkRunner.Run<SqlBuilderBenchmarks>();
+BenchmarkSwitcher
+    .FromAssembly(typeof(Program).Assembly)
+    .Run(args);

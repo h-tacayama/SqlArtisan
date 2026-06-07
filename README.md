@@ -294,15 +294,15 @@ To illustrate this, we benchmarked our `ArrayPool<T>`-based internal string buil
 
 | Method                               |            Mean |     Allocated |
 | :----------------------------------- | --------------: | ------------: |
-| StringBuilder_DapperDynamicParams    |      206.5 ns   |     1.38 KB   |
-| DapperQbNet_NoParams                 |    2,700.3 ns   |     7.47 KB   |
-| DapperSqlBuilder_DapperDynamicParams |    1,333.3 ns   |     5.12 KB   |
-| InterpolatedSql_SpecificParams       |    1,568.4 ns   |     5.17 KB   |
-| SqExpress_NoParams                   |    2,091.0 ns   |     4.56 KB   |
-| Sqlify_SpecificParams                |    1,001.6 ns   |     3.13 KB   |
-| SqlKata_SpecificParams               |   29,072.0 ns   |    40.54 KB   |
-| **SqlArtisan_SpecificParams**        |  **1,433.0 ns** |   **2.66 KB** |
-| **SqlArtisan_DapperDynamicParams**   |  **1,568.5 ns** |   **3.23 KB** |
+| StringBuilder_DapperDynamicParams    |      208.2 ns   |     1.38 KB   |
+| DapperQbNet_NoParams                 |    2,699.1 ns   |     7.47 KB   |
+| DapperSqlBuilder_DapperDynamicParams |    1,317.4 ns   |     5.12 KB   |
+| InterpolatedSql_SpecificParams       |    1,599.4 ns   |     5.17 KB   |
+| SqExpress_NoParams                   |    2,263.3 ns   |     4.65 KB   |
+| Sqlify_SpecificParams                |      987.5 ns   |     3.13 KB   |
+| SqlKata_SpecificParams               |   29,736.3 ns   |    40.54 KB   |
+| **SqlArtisan_SpecificParams**        |  **1,344.6 ns** |   **2.46 KB** |
+| **SqlArtisan_DapperDynamicParams**   |  **1,444.3 ns** |   **3.02 KB** |
 
 ### Disclaimer
 
