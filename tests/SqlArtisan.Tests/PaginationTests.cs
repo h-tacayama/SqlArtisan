@@ -10,7 +10,7 @@ public class PaginationTests
     // ── LIMIT family (PostgreSQL / MySQL / SQLite) ────────────────────
 
     [Fact]
-    public void Limit_CorrectSql()
+    public void Limit_WithOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(_t.Code)
@@ -29,7 +29,7 @@ public class PaginationTests
     }
 
     [Fact]
-    public void Offset_CorrectSql()
+    public void Offset_WithOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(_t.Code)
@@ -48,7 +48,7 @@ public class PaginationTests
     }
 
     [Fact]
-    public void LimitOffset_CorrectSql()
+    public void LimitOffset_WithOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(_t.Code)
@@ -109,7 +109,7 @@ public class PaginationTests
     // ── OFFSET/FETCH family (Oracle 12c+ / SQL Server 2012+) ──────────
 
     [Fact]
-    public void FetchFirst_CorrectSql()
+    public void FetchFirst_WithOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(_t.Code)
@@ -128,7 +128,7 @@ public class PaginationTests
     }
 
     [Fact]
-    public void OffsetRows_CorrectSql()
+    public void OffsetRows_WithOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(_t.Code)
@@ -147,7 +147,7 @@ public class PaginationTests
     }
 
     [Fact]
-    public void OffsetRowsFetchNext_CorrectSql()
+    public void OffsetRowsFetchNext_WithOrderBy_CorrectSql()
     {
         SqlStatement sql =
             Select(_t.Code)
@@ -167,7 +167,7 @@ public class PaginationTests
     }
 
     [Fact]
-    public void FetchFirst_UsesDialectParameterMarker()
+    public void OffsetRowsFetchNext_OnSqlServer_UsesDialectParameterMarker()
     {
         SqlStatement sql =
             Select(_t.Code)
