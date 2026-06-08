@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
-public sealed class MaxFunction : SqlExpression
+public sealed class MaxFunction : AggregateFunction
 {
     private readonly SqlPart _expr;
 

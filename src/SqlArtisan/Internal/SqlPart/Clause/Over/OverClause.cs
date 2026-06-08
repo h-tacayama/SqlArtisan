@@ -29,18 +29,8 @@ public sealed class OverClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append(Keywords.Over);
-
-        if (_partitionByClause is null
-            && _partitionByAndOrderBy is null
-            && _orderByClause is null)
-        {
-            buffer.OpenParenthesis()
-                .CloseParenthesis();
-            return;
-        }
-
-        buffer.AppendSpace()
+        buffer.Append(Keywords.Over)
+            .AppendSpace()
             .OpenParenthesis();
 
         if (_partitionByAndOrderBy is not null)

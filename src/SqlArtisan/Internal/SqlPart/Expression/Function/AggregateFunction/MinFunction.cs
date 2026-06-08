@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
-public sealed class MinFunction : SqlExpression
+public sealed class MinFunction : AggregateFunction
 {
     private readonly SqlPart _expr;
 

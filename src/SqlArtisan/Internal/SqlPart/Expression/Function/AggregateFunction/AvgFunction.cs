@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
-public sealed class AvgFunction : SqlExpression
+public sealed class AvgFunction : AggregateFunction
 {
     private readonly DistinctKeyword? _distinct;
     private readonly SqlPart _expr;
