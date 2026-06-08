@@ -84,4 +84,13 @@ public class MultiRowInsertTests
         // Assert
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Values_MismatchedRowLength_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .Values(2));
+    }
 }
