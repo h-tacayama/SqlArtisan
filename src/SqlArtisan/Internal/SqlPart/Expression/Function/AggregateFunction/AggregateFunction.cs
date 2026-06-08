@@ -1,5 +1,15 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
+/// <summary>
+/// Base class for aggregate functions (<c>SUM</c>, <c>COUNT</c>, <c>AVG</c>,
+/// <c>MAX</c>, <c>MIN</c>) that can also be used as window functions via
+/// <c>Over(...)</c>.
+/// </summary>
+/// <remarks>
+/// Note: most databases do not support <c>DISTINCT</c> in a windowed aggregate
+/// (e.g. <c>SUM(DISTINCT x) OVER (...)</c>), so combining a distinct aggregate
+/// with <c>Over(...)</c> generates SQL that the database will reject.
+/// </remarks>
 public abstract class AggregateFunction : SqlExpression
 {
     /// <summary>

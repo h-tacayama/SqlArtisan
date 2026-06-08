@@ -1269,6 +1269,8 @@ SqlStatement sql =
 
 `Over()` supports the whole result set (`OVER ()`), `PartitionBy(...)`, `OrderBy(...)`, and `PartitionBy(...).OrderBy(...)`.
 
+**Note:** Most databases do not allow `DISTINCT` in a windowed aggregate (e.g. `SUM(DISTINCT x) OVER (...)`), so avoid combining a distinct aggregate with `Over(...)`.
+
 ---
 
 #### Sequence
