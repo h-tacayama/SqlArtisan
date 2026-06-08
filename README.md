@@ -65,7 +65,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Pagination](#pagination): `LIMIT`, `OFFSET`, `FETCH`
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
-  - [INSERT Statement](#insert-statement): **Standard**, **SET-like**, `INSERT SELECT`
+  - [INSERT Statement](#insert-statement): **Standard**, **Multiple Rows**, **SET-like**, `INSERT SELECT`
   - [WITH Clause (Common Table Expressions)](#with-clause-common-table-expressions): `WITH`, `WITH RECURSIVE`, **CTEs with DML**
   - [RETURNING Clause](#returning-clause): `RETURNING`, `RETURNING INTO` (Oracle)
   - [Expressions](#expressions)
@@ -715,6 +715,29 @@ SqlStatement sql =
 // VALUES
 // (:0, :1, CURRENT_TIMESTAMP)
 ```
+
+---
+
+#### Multiple Rows
+
+Chain `Values()` to insert multiple rows in a single statement.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    InsertInto(u, u.Id, u.Name)
+    .Values(1, "Alice")
+    .Values(2, "Bob")
+    .Values(3, "Carol")
+    .Build();
+
+// INSERT INTO users
+// (id, name)
+// VALUES
+// (:0, :1), (:2, :3), (:4, :5)
+```
+
+**Note:** Multi-row `VALUES` is supported by PostgreSQL, MySQL, SQLite, and SQL Server (2008+). Oracle does not support multi-row `VALUES`; it uses `INSERT ALL` instead.
 
 ---
 

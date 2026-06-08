@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Added support for pagination: `Limit`/`Offset` (PostgreSQL/MySQL/SQLite) and `OffsetRows`/`FetchFirst`/`FetchNext` (Oracle 12c+/SQL Server 2012+). (#49)
 - Added support for the ANSI `CAST(expr AS type)` expression. (#52)
+- Added support for multi-row `INSERT ... VALUES` by chaining `Values()`. (#54)
 
 ### Changed
 - Improved `SqlBuildingBuffer` memory efficiency and throughput. (#45)

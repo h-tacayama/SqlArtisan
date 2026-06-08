@@ -7,6 +7,8 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
     IInsertBuilderTable,
     IInsertBuilderValues
 {
+    private InsertValuesClause? _valuesClause;
+
     public IReturningBuilder Returning(params object[] expressions) =>
         ReturningBuilder.Create(this, expressions);
 
@@ -18,7 +20,16 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
 
     public IInsertBuilderValues Values(params object[] values)
     {
-        AddPart(InsertValuesClause.Parse(values));
+        if (_valuesClause is null)
+        {
+            _valuesClause = InsertValuesClause.Parse(values);
+            AddPart(_valuesClause);
+        }
+        else
+        {
+            _valuesClause.AddRow(values);
+        }
+
         return this;
     }
 
