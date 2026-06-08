@@ -376,6 +376,14 @@ public static partial class Sql
             whenClauses,
             elseExpr);
 
+    /// <summary>
+    /// The ANSI <c>CAST(expr AS type)</c> expression. The target <paramref name="type"/>
+    /// is emitted verbatim, so supply the exact SQL data type for your target database
+    /// (for example <c>"VARCHAR2(10)"</c> on Oracle, <c>"NVARCHAR(10)"</c> on SQL Server).
+    /// </summary>
+    public static CastExpression Cast(object expr, string type) =>
+        new(Resolve(expr), type);
+
     public static CoalesceFunction Coalesce(
         object primary,
         object secondary,
