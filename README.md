@@ -1248,6 +1248,29 @@ SqlStatement sql =
 
 For a comprehensive list of all available window functions, please refer to the [Additional Query Details: Window Functions](#window-functions-1) section.
 
+##### Example using an Aggregate
+
+Aggregate functions (`Sum`, `Count`, `Avg`, `Max`, `Min`) can also be used as window functions via `Over(...)`.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Id,
+        u.Salary,
+        Sum(u.Salary).Over(PartitionBy(u.DepartmentId)).As("dept_total"))
+    .From(u)
+    .Build();
+
+// SELECT id, salary,
+// SUM(salary) OVER (PARTITION BY department_id) "dept_total"
+// FROM users
+```
+
+`Over()` supports the whole result set (`OVER ()`), `PartitionBy(...)`, `OrderBy(...)`, and `PartitionBy(...).OrderBy(...)`.
+
+**Note:** Most databases do not allow `DISTINCT` in a windowed aggregate (e.g. `SUM(DISTINCT x) OVER (...)`), so avoid combining a distinct aggregate with `Over(...)`.
+
 ---
 
 #### Sequence

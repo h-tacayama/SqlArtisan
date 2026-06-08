@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
-public sealed class CountFunction : SqlExpression
+public sealed class CountFunction : AggregateFunction
 {
     private readonly DistinctKeyword? _distinct;
     private readonly SqlPart _expr;

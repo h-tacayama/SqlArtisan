@@ -2,18 +2,18 @@
 
 public sealed class WindowFunction : SqlExpression
 {
-    private readonly AnalyticFunction _analyticFunction;
+    private readonly SqlExpression _function;
     private readonly OverClause _overClause;
 
     internal WindowFunction(
-        AnalyticFunction analyticFunction,
+        SqlExpression function,
         OverClause overClause)
     {
-        _analyticFunction = analyticFunction;
+        _function = function;
         _overClause = overClause;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .AppendSpace(_analyticFunction)
+        .AppendSpace(_function)
         .Append(_overClause);
 }
