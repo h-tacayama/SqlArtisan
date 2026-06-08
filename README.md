@@ -73,6 +73,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Arithmetic Operators](#arithmetic-operators): `+`, `-`, `*`, `/`, `%`
     - [Conditions](#conditions): **Logical**, **Comparison**, `NULL`, `LIKE`, `REGEXP_LIKE`, `BETWEEN`, `IN`, `EXISTS`, **Dynamic Conditions**
     - [CASE Expressions](#case-expressions): **Simple CASE**, **Searched CASE**
+    - [CAST](#cast)
     - [Window Functions](#window-functions)
     - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`
 - [Additional Query Details](#additional-query-details)
@@ -1176,6 +1177,25 @@ SqlStatement sql =
 // END "AgeGroup"
 // FROM users
 ```
+
+---
+
+#### CAST
+
+The ANSI `CAST(expr AS type)` expression converts a value to another type. It is supported with the same syntax on every dialect.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(Cast(u.Id, "VARCHAR(10)").As("id_text"))
+    .From(u)
+    .Build();
+
+// SELECT CAST(id AS VARCHAR(10)) "id_text"
+// FROM users
+```
+
+The target type is emitted verbatim, so write the exact SQL data type for your target database (for example `VARCHAR2(10)` on Oracle, `NVARCHAR(10)` on SQL Server). Consistent with the [Design Philosophy](#design-philosophy), SqlArtisan does not abstract or translate dialect-specific type names.
 
 ---
 
