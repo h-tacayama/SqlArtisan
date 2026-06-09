@@ -7,16 +7,16 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// The <c>UNBOUNDED FOLLOWING</c> window-frame bound.
-    /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static FrameBound UnboundedFollowing => FrameBound.UnboundedFollowing();
-
-    /// <summary>
     /// The <c>UNBOUNDED PRECEDING</c> window-frame bound.
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static FrameBound UnboundedPreceding => FrameBound.UnboundedPreceding();
+
+    /// <summary>
+    /// The <c>UNBOUNDED FOLLOWING</c> window-frame bound.
+    /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static FrameBound UnboundedFollowing => FrameBound.UnboundedFollowing();
 
     public static IUpdateBuilderUpdate Update(DbTableBase table) =>
         new UpdateBuilder(new UpdateClause(table));

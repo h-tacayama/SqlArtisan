@@ -16,17 +16,17 @@ public sealed class FrameBound : SqlPart
     internal static FrameBound UnboundedPreceding() =>
         new($"{Keywords.Unbounded} {Keywords.Preceding}");
 
-    internal static FrameBound CurrentRow() =>
-        new($"{Keywords.Current} {Keywords.Row}");
-
-    internal static FrameBound UnboundedFollowing() =>
-        new($"{Keywords.Unbounded} {Keywords.Following}");
-
     internal static FrameBound Preceding(int offset) =>
         new($"{offset} {Keywords.Preceding}");
 
+    internal static FrameBound CurrentRow() =>
+        new($"{Keywords.Current} {Keywords.Row}");
+
     internal static FrameBound Following(int offset) =>
         new($"{offset} {Keywords.Following}");
+
+    internal static FrameBound UnboundedFollowing() =>
+        new($"{Keywords.Unbounded} {Keywords.Following}");
 
     internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.Append(_text);
