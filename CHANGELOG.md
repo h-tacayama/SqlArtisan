@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added support for the ANSI `CAST(expr AS type)` expression. (#52)
 - Added support for multi-row `INSERT ... VALUES` by chaining `Values()`. (#54)
 - Added support for aggregate window functions (`Sum`/`Count`/`Avg`/`Max`/`Min` with `Over(...)`). (#56)
+- Added support for window frames (`ROWS` / `RANGE`) via `Rows(...)` / `Range(...)`. (#58)
 
 ### Changed
 - Improved `SqlBuildingBuffer` memory efficiency and throughput. (#45)

@@ -411,6 +411,12 @@ public static partial class Sql
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentDateFunction CurrentDate => new();
 
+    /// <summary>
+    /// The <c>CURRENT ROW</c> window-frame bound.
+    /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static FrameBound CurrentRow => FrameBound.CurrentRow();
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentTimeFunction CurrentTime => new();
 

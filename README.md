@@ -1271,6 +1271,29 @@ SqlStatement sql =
 
 **Note:** Most databases do not allow `DISTINCT` in a windowed aggregate (e.g. `SUM(DISTINCT x) OVER (...)`), so avoid combining a distinct aggregate with `Over(...)`.
 
+###### Window Frames (ROWS / RANGE)
+
+Attach a frame to an ordered window with `Rows(...)` / `Range(...)` for moving or cumulative calculations.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Id,
+        Avg(u.Amount).Over(OrderBy(u.Date).Rows(Preceding(4))).As("moving_avg"))
+    .From(u)
+    .Build();
+
+// SELECT id,
+// AVG(amount) OVER (ORDER BY date ROWS 4 PRECEDING) "moving_avg"
+// FROM users
+```
+
+- Bounds: `UnboundedPreceding`, `CurrentRow`, `UnboundedFollowing`, `Preceding(n)`, `Following(n)`.
+- A single bound uses `Rows(bound)` / `Range(bound)` (e.g. `Rows(UnboundedPreceding)`); `RowsBetween(start, end)` / `RangeBetween(start, end)` produce `ROWS/RANGE BETWEEN ... AND ...`.
+- A frame requires `ORDER BY`, so `Rows(...)` / `Range(...)` are available only after `OrderBy(...)` (optionally with `PartitionBy(...)`).
+- Requires PostgreSQL, Oracle, MySQL 8.0+, SQLite 3.25+, or SQL Server 2012+.
+
 ---
 
 #### Sequence

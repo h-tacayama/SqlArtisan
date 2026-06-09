@@ -27,6 +27,13 @@ public abstract class AggregateFunction : SqlExpression
         new(this, OverClause.Of(partitionByClause));
 
     /// <summary>
+    /// Turns the aggregate into a window function ordered over the whole result
+    /// set: <c>OVER (ORDER BY ...)</c>.
+    /// </summary>
+    public WindowFunction Over(OrderByClause orderByClause) =>
+        new(this, OverClause.Of(orderByClause));
+
+    /// <summary>
     /// Turns the aggregate into a window function partitioned and ordered:
     /// <c>OVER (PARTITION BY ... ORDER BY ...)</c>.
     /// </summary>
@@ -34,9 +41,9 @@ public abstract class AggregateFunction : SqlExpression
         new(this, OverClause.Of(partitionByAndOrderBy));
 
     /// <summary>
-    /// Turns the aggregate into a window function ordered over the whole result
-    /// set: <c>OVER (ORDER BY ...)</c>.
+    /// Turns the aggregate into a window function with an explicit frame:
+    /// <c>OVER (... ROWS/RANGE ...)</c>.
     /// </summary>
-    public WindowFunction Over(OrderByClause orderByClause) =>
-        new(this, OverClause.Of(orderByClause));
+    public WindowFunction Over(WindowFrameClause windowFrameClause) =>
+        new(this, OverClause.Of(windowFrameClause));
 }

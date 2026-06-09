@@ -2,30 +2,26 @@
 
 public sealed class OverClause : SqlPart
 {
-    private readonly PartitionByClause? _partitionByClause;
-    private readonly OrderByClause? _orderByClause;
-    private readonly PartitionByAndOrderBy? _partitionByAndOrderBy;
+    private readonly SqlPart? _content;
 
-    private OverClause(
-        PartitionByClause? partitionByClause = null,
-        PartitionByAndOrderBy? partitionByAndOrderBy = null,
-        OrderByClause? orderByClause = null)
+    private OverClause(SqlPart? content = null)
     {
-        _partitionByClause = partitionByClause;
-        _partitionByAndOrderBy = partitionByAndOrderBy;
-        _orderByClause = orderByClause;
+        _content = content;
     }
 
     internal static OverClause Of() => new();
 
-    internal static OverClause Of(PartitionByClause partitionByClause) =>
-        new(partitionByClause);
+    internal static OverClause Of(PartitionByClause content) =>
+        new(content);
 
-    internal static OverClause Of(PartitionByAndOrderBy partitionByAndOrderBy) =>
-        new(null, partitionByAndOrderBy);
+    internal static OverClause Of(OrderByClause content) =>
+        new(content);
 
-    internal static OverClause Of(OrderByClause orderByClause) =>
-        new(null, null, orderByClause);
+    internal static OverClause Of(PartitionByAndOrderBy content) =>
+        new(content);
+
+    internal static OverClause Of(WindowFrameClause content) =>
+        new(content);
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
@@ -33,18 +29,7 @@ public sealed class OverClause : SqlPart
             .AppendSpace()
             .OpenParenthesis();
 
-        if (_partitionByAndOrderBy is not null)
-        {
-            _partitionByAndOrderBy.Format(buffer);
-        }
-        else if (_partitionByClause is not null)
-        {
-            _partitionByClause.Format(buffer);
-        }
-        else if (_orderByClause is not null)
-        {
-            _orderByClause.Format(buffer);
-        }
+        _content?.Format(buffer);
 
         buffer.CloseParenthesis();
     }
