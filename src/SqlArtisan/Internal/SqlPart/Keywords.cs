@@ -20,6 +20,7 @@ internal static class Keywords
     internal const string Count = "COUNT";
     internal const string Cross = "CROSS";
     internal const string CumeDist = "CUME_DIST";
+    internal const string Current = "CURRENT";
     internal const string CurrentDate = "CURRENT_DATE";
     internal const string CurrentTime = "CURRENT_TIME";
     internal const string CurrentTimestamp = "CURRENT_TIMESTAMP";
@@ -38,6 +39,7 @@ internal static class Keywords
     internal const string Extract = "EXTRACT";
     internal const string Fetch = "FETCH";
     internal const string First = "FIRST";
+    internal const string Following = "FOLLOWING";
     internal const string For = "FOR";
     internal const string From = "FROM";
     internal const string Full = "FULL";
@@ -85,6 +87,8 @@ internal static class Keywords
     internal const string Over = "OVER";
     internal const string Partition = "PARTITION";
     internal const string PercentRank = "PERCENT_RANK";
+    internal const string Preceding = "PRECEDING";
+    internal const string Range = "RANGE";
     internal const string Rank = "RANK";
     internal const string Recursive = "RECURSIVE";
     internal const string RegexpCount = "REGEXP_COUNT";
@@ -94,6 +98,7 @@ internal static class Keywords
     internal const string Replace = "REPLACE";
     internal const string Returning = "RETURNING";
     internal const string Right = "RIGHT";
+    internal const string Row = "ROW";
     internal const string RowNumber = "ROW_NUMBER";
     internal const string Rows = "ROWS";
     internal const string Rpad = "RPAD";
@@ -113,6 +118,7 @@ internal static class Keywords
     internal const string ToTimestamp = "TO_TIMESTAMP";
     internal const string Trim = "TRIM";
     internal const string Trunc = "TRUNC";
+    internal const string Unbounded = "UNBOUNDED";
     internal const string Union = "UNION";
     internal const string Update = "UPDATE";
     internal const string Upper = "UPPER";

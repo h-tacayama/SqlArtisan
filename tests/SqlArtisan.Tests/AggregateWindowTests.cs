@@ -33,6 +33,19 @@ public class AggregateWindowTests
     }
 
     [Fact]
+    public void Sum_OverOrderBy_CorrectSql()
+    {
+        // Arrange
+        string expected = "SELECT SUM(code) OVER (ORDER BY code)";
+
+        // Act
+        SqlStatement sql = Select(Sum(_t.Code).Over(OrderBy(_t.Code))).Build();
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
     public void Sum_OverPartitionByOrderBy_CorrectSql()
     {
         // Arrange
@@ -42,19 +55,6 @@ public class AggregateWindowTests
         SqlStatement sql =
             Select(Sum(_t.Code).Over(PartitionBy(_t.Name).OrderBy(_t.Code)))
             .Build();
-
-        // Assert
-        Assert.Equal(expected, sql.Text);
-    }
-
-    [Fact]
-    public void Sum_OverOrderBy_CorrectSql()
-    {
-        // Arrange
-        string expected = "SELECT SUM(code) OVER (ORDER BY code)";
-
-        // Act
-        SqlStatement sql = Select(Sum(_t.Code).Over(OrderBy(_t.Code))).Build();
 
         // Assert
         Assert.Equal(expected, sql.Text);
