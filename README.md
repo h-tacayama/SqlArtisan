@@ -84,7 +84,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
     - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
     - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
-    - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
+    - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `LAG`, `LEAD`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -1248,6 +1248,29 @@ SqlStatement sql =
 
 For a comprehensive list of all available window functions, please refer to the [Additional Query Details: Window Functions](#window-functions-1) section.
 
+##### Example using LAG / LEAD
+
+`Lag(...)` / `Lead(...)` read a value from a row a given number of rows behind or ahead of the current row. The offset defaults to `1`, and an optional default value fills the gap at the edge of the window.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Id,
+        u.Salary,
+        Lag(u.Salary).Over(OrderBy(u.Id)).As("prev_salary"),
+        Lead(u.Salary, 1, 0).Over(OrderBy(u.Id)).As("next_salary"))
+    .From(u)
+    .Build();
+
+// SELECT id, salary,
+// LAG(salary) OVER (ORDER BY id) "prev_salary",
+// LEAD(salary, 1, :0) OVER (ORDER BY id) "next_salary"
+// FROM users
+```
+
+Both require an `OrderBy(...)` (optionally with `PartitionBy(...)`). The offset is emitted as a literal so the SQL stays portable (MySQL requires a literal here), while the default value is parameterized.
+
 ##### Example using an Aggregate
 
 Aggregate functions (`Sum`, `Count`, `Avg`, `Max`, `Min`) can also be used as window functions via `Over(...)`.
@@ -1429,6 +1452,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 - `CumeDist()` for `CUME_DIST()`
 - `DenseRank()` for `DENSE_RANK()`
+- `Lag(expr[, offset[, default]])` for `LAG(...)`
+- `Lead(expr[, offset[, default]])` for `LEAD(...)`
 - `PercentRank()` for `PERCENT_RANK()`
 - `Rank()` for `RANK()`
 - `RowNumber()` for `ROW_NUMBER()`

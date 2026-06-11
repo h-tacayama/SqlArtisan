@@ -11,10 +11,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added support for multi-row `INSERT ... VALUES` by chaining `Values()`. (#54)
 - Added support for aggregate window functions (`Sum`/`Count`/`Avg`/`Max`/`Min` with `Over(...)`). (#56)
 - Added support for window frames (`ROWS` / `RANGE`) via `Rows(...)` / `Range(...)`. (#58)
+- Added support for the `LAG` / `LEAD` offset window functions. (#60)
 
 ### Changed
 - Improved `SqlBuildingBuffer` memory efficiency and throughput. (#45)
 - Documented the design philosophy and non-goals, and surfaced dialect-specific features in the README and via XML doc comments. (#47)
+- Consolidated the ranking window functions' shared `Over(...)` overloads onto the `AnalyticFunction` base class (non-breaking). (#60)
 
 ## [0.2.0-beta.3] - 2026-06-07
 ### Added
