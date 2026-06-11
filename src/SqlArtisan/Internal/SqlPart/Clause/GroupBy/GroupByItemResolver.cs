@@ -4,6 +4,12 @@ internal static class GroupByItemResolver
 {
     internal static SqlPart[] Resolve(object[] groupByItems)
     {
+        if (groupByItems is null)
+        {
+            throw new ArgumentNullException(
+                nameof(groupByItems), ExpressionResolver.NullValueMessage);
+        }
+
         var resolved = new SqlPart[groupByItems.Length];
 
         for (int i = 0; i < groupByItems.Length; i++)
