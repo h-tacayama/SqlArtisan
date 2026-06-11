@@ -36,6 +36,14 @@ public static partial class Sql
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static NowaitBehavior Nowait => new();
 
+    /// <summary>
+    /// The <c>NTILE(buckets)</c> analytic function: distributes the ordered rows
+    /// of each window partition into <paramref name="buckets"/> ranked groups.
+    /// The bucket count is emitted as an integer literal (not a bind parameter),
+    /// because some databases require a constant.
+    /// </summary>
+    public static AnalyticNtileFunction Ntile(int buckets) => new(buckets);
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static NullExpression Null => new();
 

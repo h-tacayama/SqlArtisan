@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added support for aggregate window functions (`Sum`/`Count`/`Avg`/`Max`/`Min` with `Over(...)`). (#56)
 - Added support for window frames (`ROWS` / `RANGE`) via `Rows(...)` / `Range(...)`. (#58)
 - Added support for the `LAG` / `LEAD` offset window functions. (#60)
+- Added support for the `NTILE(n)` window function. (#64)
 
 ### Changed
 - Improved `SqlBuildingBuffer` memory efficiency and throughput. (#45)

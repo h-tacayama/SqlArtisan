@@ -76,6 +76,7 @@ internal static class Keywords
     internal const string Nextval = "NEXTVAL";
     internal const string Not = "NOT";
     internal const string Nowait = "NOWAIT";
+    internal const string Ntile = "NTILE";
     internal const string Null = "NULL";
     internal const string NullsFirst = "NULLS FIRST";
     internal const string NullsLast = "NULLS LAST";
