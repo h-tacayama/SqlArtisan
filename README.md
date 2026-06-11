@@ -84,7 +84,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
     - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
     - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
-    - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `LAG`, `LEAD`, `NTILE`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
+    - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `LAG`, `LEAD`, `NTILE`, `PERCENTILE_CONT`, `PERCENTILE_DISC`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -1317,6 +1317,32 @@ SqlStatement sql =
 - A frame requires `ORDER BY`, so `Rows(...)` / `Range(...)` are available only after `OrderBy(...)` (optionally with `PartitionBy(...)`).
 - Requires PostgreSQL, Oracle, MySQL 8.0+, SQLite 3.25+, or SQL Server 2012+.
 
+##### Example using PERCENTILE_CONT / PERCENTILE_DISC
+
+`PercentileCont(...)` and `PercentileDisc(...)` are ordered-set aggregates that compute a percentile over an ordered group via `WITHIN GROUP (ORDER BY ...)`. The fraction (0..1) is emitted as a literal.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Salary)).As("median"))
+    .From(u)
+    .Build();
+
+// SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary) "median" FROM users
+```
+
+Attach `.Over(...)` for the windowed form — `Over()` over the whole result set, or `Over(PartitionBy(...))`:
+
+```csharp
+PercentileCont(0.5).WithinGroup(OrderBy(u.Salary)).Over()
+// PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary) OVER ()
+
+PercentileCont(0.5).WithinGroup(OrderBy(u.Salary)).Over(PartitionBy(u.DepartmentId))
+// PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary) OVER (PARTITION BY department_id)
+```
+
+- Dialect support is split: Oracle allows both forms; PostgreSQL only the plain `WITHIN GROUP` form; SQL Server only the windowed `.Over(PartitionBy(...))` form. MySQL and SQLite do not support these functions.
+
 ---
 
 #### Sequence
@@ -1455,6 +1481,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Lag(expr[, offset[, default]])` for `LAG(...)`
 - `Lead(expr[, offset[, default]])` for `LEAD(...)`
 - `Ntile(buckets)` for `NTILE(n)`
+- `PercentileCont(fraction).WithinGroup(OrderBy(...))` for `PERCENTILE_CONT(fraction) WITHIN GROUP (ORDER BY ...)`
+- `PercentileDisc(fraction).WithinGroup(OrderBy(...))` for `PERCENTILE_DISC(fraction) WITHIN GROUP (ORDER BY ...)`
 - `PercentRank()` for `PERCENT_RANK()`
 - `Rank()` for `RANK()`
 - `RowNumber()` for `ROW_NUMBER()`
