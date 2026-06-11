@@ -92,6 +92,8 @@ internal static class Keywords
     internal const string Order = "ORDER";
     internal const string Over = "OVER";
     internal const string Partition = "PARTITION";
+    internal const string PercentileCont = "PERCENTILE_CONT";
+    internal const string PercentileDisc = "PERCENTILE_DISC";
     internal const string PercentRank = "PERCENT_RANK";
     internal const string Preceding = "PRECEDING";
     internal const string Range = "RANGE";
@@ -134,4 +136,5 @@ internal static class Keywords
     internal const string When = "WHEN";
     internal const string Where = "WHERE";
     internal const string With = "WITH";
+    internal const string WithinGroup = "WITHIN GROUP";
 }
