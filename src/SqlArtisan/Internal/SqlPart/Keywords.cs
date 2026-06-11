@@ -39,6 +39,7 @@ internal static class Keywords
     internal const string Extract = "EXTRACT";
     internal const string Fetch = "FETCH";
     internal const string First = "FIRST";
+    internal const string FirstValue = "FIRST_VALUE";
     internal const string Following = "FOLLOWING";
     internal const string For = "FOR";
     internal const string From = "FROM";
@@ -56,6 +57,7 @@ internal static class Keywords
     internal const string Join = "JOIN";
     internal const string Lag = "LAG";
     internal const string LastDay = "LAST_DAY";
+    internal const string LastValue = "LAST_VALUE";
     internal const string Lead = "LEAD";
     internal const string Least = "LEAST";
     internal const string Left = "LEFT";
@@ -76,6 +78,7 @@ internal static class Keywords
     internal const string Nextval = "NEXTVAL";
     internal const string Not = "NOT";
     internal const string Nowait = "NOWAIT";
+    internal const string NthValue = "NTH_VALUE";
     internal const string Ntile = "NTILE";
     internal const string Null = "NULL";
     internal const string NullsFirst = "NULLS FIRST";

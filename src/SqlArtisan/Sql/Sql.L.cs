@@ -42,6 +42,16 @@ public static partial class Sql
         new(Resolve(date));
 
     /// <summary>
+    /// The <c>LAST_VALUE(expr)</c> analytic function: the value of
+    /// <paramref name="expr"/> from the last row of the window frame. Note the
+    /// default frame ends at the current row, so an explicit frame (e.g.
+    /// <c>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</c>) is
+    /// usually intended.
+    /// </summary>
+    public static AnalyticLastValueFunction LastValue(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
     /// The <c>LEAD(expr)</c> analytic function: the value of
     /// <paramref name="expr"/> from the row one position after the current row
     /// in the window.

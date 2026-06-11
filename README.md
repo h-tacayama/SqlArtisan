@@ -84,7 +84,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
     - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
     - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
-    - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `LAG`, `LEAD`, `NTILE`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
+    - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `FIRST_VALUE`, `LAG`, `LAST_VALUE`, `LEAD`, `NTH_VALUE`, `NTILE`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -1271,6 +1271,29 @@ SqlStatement sql =
 
 Both require an `OrderBy(...)` (optionally with `PartitionBy(...)`). The offset is emitted as a literal so the SQL stays portable (MySQL requires a literal here), while the default value is parameterized.
 
+##### Example using FIRST_VALUE / LAST_VALUE / NTH_VALUE
+
+`FirstValue(...)`, `LastValue(...)`, and `NthValue(...)` read a value from a specific row of the window. Unlike the ranking and offset functions, they can be scoped by an explicit frame (`Rows(...)` / `Range(...)`).
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Id,
+        FirstValue(u.Salary)
+            .Over(PartitionBy(u.DepartmentId).OrderBy(u.Salary.Desc))
+            .As("top_salary"))
+    .From(u)
+    .Build();
+
+// SELECT id,
+// FIRST_VALUE(salary) OVER (PARTITION BY department_id ORDER BY salary DESC) "top_salary"
+// FROM users
+```
+
+- `LastValue` is frame-sensitive: the default frame ends at the current row, so pair it with an explicit frame such as `RowsBetween(UnboundedPreceding, UnboundedFollowing)` to read the last row of the whole partition.
+- `NthValue`'s position is emitted as an integer literal, and is **not supported by SQL Server**.
+
 ##### Example using an Aggregate
 
 Aggregate functions (`Sum`, `Count`, `Avg`, `Max`, `Min`) can also be used as window functions via `Over(...)`.
@@ -1452,8 +1475,11 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 - `CumeDist()` for `CUME_DIST()`
 - `DenseRank()` for `DENSE_RANK()`
+- `FirstValue(expr)` for `FIRST_VALUE(expr)`
 - `Lag(expr[, offset[, default]])` for `LAG(...)`
+- `LastValue(expr)` for `LAST_VALUE(expr)`
 - `Lead(expr[, offset[, default]])` for `LEAD(...)`
+- `NthValue(expr, n)` for `NTH_VALUE(expr, n)` (not supported by SQL Server)
 - `Ntile(buckets)` for `NTILE(n)`
 - `PercentRank()` for `PERCENT_RANK()`
 - `Rank()` for `RANK()`

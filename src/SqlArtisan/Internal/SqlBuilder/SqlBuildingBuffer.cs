@@ -211,6 +211,13 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    internal SqlBuildingBuffer PrependComma(string value)
+    {
+        Append(", ");
+        Append(value);
+        return this;
+    }
+
     internal SqlBuildingBuffer PrependCommaIfNotNull(SqlPart? part)
     {
         if (part is not null)
