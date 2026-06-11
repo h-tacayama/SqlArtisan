@@ -1,3 +1,4 @@
+using System.Globalization;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -92,5 +93,33 @@ public class WindowFrameTests
 
         // Assert
         Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void Preceding_NegativeOffsetUnderNonAsciiNegativeSignCulture_RendersInvariantSql()
+    {
+        // Arrange
+        CultureInfo original = CultureInfo.CurrentCulture;
+        CultureInfo culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+        culture.NumberFormat.NegativeSign = "\u2212";
+        CultureInfo.CurrentCulture = culture;
+
+        try
+        {
+            string expected =
+                "SELECT SUM(code) OVER (ORDER BY code ROWS -1 PRECEDING)";
+
+            // Act
+            SqlStatement sql =
+                Select(Sum(_t.Code).Over(OrderBy(_t.Code).Rows(Preceding(-1))))
+                .Build();
+
+            // Assert
+            Assert.Equal(expected, sql.Text);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
     }
 }

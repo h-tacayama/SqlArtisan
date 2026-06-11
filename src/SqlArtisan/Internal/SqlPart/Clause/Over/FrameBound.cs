@@ -17,13 +17,13 @@ public sealed class FrameBound : SqlPart
         new($"{Keywords.Unbounded} {Keywords.Preceding}");
 
     internal static FrameBound Preceding(int offset) =>
-        new($"{offset} {Keywords.Preceding}");
+        new($"{offset.ToInvariantString()} {Keywords.Preceding}");
 
     internal static FrameBound CurrentRow() =>
         new($"{Keywords.Current} {Keywords.Row}");
 
     internal static FrameBound Following(int offset) =>
-        new($"{offset} {Keywords.Following}");
+        new($"{offset.ToInvariantString()} {Keywords.Following}");
 
     internal static FrameBound UnboundedFollowing() =>
         new($"{Keywords.Unbounded} {Keywords.Following}");
