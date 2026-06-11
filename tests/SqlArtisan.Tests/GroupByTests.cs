@@ -52,4 +52,19 @@ public class GroupByTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void GroupBy_WithNoItems_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => Select(_t.Code).From(_t).GroupBy());
+    }
+
+    [Fact]
+    public void GroupBy_WithNullItems_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() =>
+            Select(_t.Code).From(_t).GroupBy(null!));
+    }
 }

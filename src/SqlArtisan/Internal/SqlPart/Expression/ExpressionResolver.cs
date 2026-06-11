@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 
 internal static class ExpressionResolver
 {
-    private const string NullValueMessage =
+    internal const string NullValueMessage =
         "Value cannot be null. Use Sql.Null to represent SQL NULL.";
 
     internal static (SqlExpression, SqlExpression)[] Resolve((object, object)[] pairs)

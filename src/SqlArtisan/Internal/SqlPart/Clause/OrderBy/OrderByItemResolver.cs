@@ -6,6 +6,12 @@ internal static class OrderByItemResolver
 {
     internal static SqlPart[] Resolve(object[] orderByItems)
     {
+        if (orderByItems is null)
+        {
+            throw new ArgumentNullException(
+                nameof(orderByItems), ExpressionResolver.NullValueMessage);
+        }
+
         var resolved = new SqlPart[orderByItems.Length];
 
         for (int i = 0; i < orderByItems.Length; i++)

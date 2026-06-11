@@ -6,6 +6,12 @@ public sealed class OrderByClause : SqlPart
 
     private OrderByClause(SqlPart[] orderByItems)
     {
+        if (orderByItems.Length == 0)
+        {
+            throw new ArgumentException(
+                "ORDER BY requires at least one item.");
+        }
+
         _orderByItems = orderByItems;
     }
 

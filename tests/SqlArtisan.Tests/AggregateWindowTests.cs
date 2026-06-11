@@ -111,4 +111,18 @@ public class AggregateWindowTests
         // Assert
         Assert.Equal(expected, sql.Text);
     }
+
+    [Fact]
+    public void PartitionBy_WithNoExpressions_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => PartitionBy());
+    }
+
+    [Fact]
+    public void PartitionBy_WithNullExpressions_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => PartitionBy(null!));
+    }
 }

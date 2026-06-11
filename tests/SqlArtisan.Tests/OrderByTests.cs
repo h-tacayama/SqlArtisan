@@ -94,4 +94,18 @@ public class OrderByTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void OrderBy_WithNoItems_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => OrderBy());
+    }
+
+    [Fact]
+    public void OrderBy_WithNullItems_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => OrderBy(null!));
+    }
 }
