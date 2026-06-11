@@ -84,7 +84,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
     - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
     - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
-    - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `LAG`, `LEAD`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
+    - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `LAG`, `LEAD`, `NTILE`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -1454,6 +1454,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `DenseRank()` for `DENSE_RANK()`
 - `Lag(expr[, offset[, default]])` for `LAG(...)`
 - `Lead(expr[, offset[, default]])` for `LEAD(...)`
+- `Ntile(buckets)` for `NTILE(n)`
 - `PercentRank()` for `PERCENT_RANK()`
 - `Rank()` for `RANK()`
 - `RowNumber()` for `ROW_NUMBER()`
