@@ -37,6 +37,16 @@ public static partial class Sql
     public static NowaitBehavior Nowait => new();
 
     /// <summary>
+    /// The <c>NTH_VALUE(expr, n)</c> analytic function: the value of
+    /// <paramref name="expr"/> from the <paramref name="n"/>th row of the window
+    /// frame. The position is emitted as an integer literal (not a bind
+    /// parameter), because some databases require a constant. Not supported by
+    /// SQL Server.
+    /// </summary>
+    public static AnalyticNthValueFunction NthValue(object expr, int n) =>
+        new(Resolve(expr), n);
+
+    /// <summary>
     /// The <c>NTILE(buckets)</c> analytic function: distributes the ordered rows
     /// of each window partition into <paramref name="buckets"/> ranked groups.
     /// The bucket count is emitted as an integer literal (not a bind parameter),
