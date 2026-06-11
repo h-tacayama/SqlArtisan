@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added support for window frames (`ROWS` / `RANGE`) via `Rows(...)` / `Range(...)`. (#58)
 - Added support for the `LAG` / `LEAD` offset window functions. (#60)
 - Added support for the `NTILE(n)` window function. (#64)
+- Added support for the `FIRST_VALUE` / `LAST_VALUE` / `NTH_VALUE` window functions. (#65)
 
 ### Changed
 - Improved `SqlBuildingBuffer` memory efficiency and throughput. (#45)
