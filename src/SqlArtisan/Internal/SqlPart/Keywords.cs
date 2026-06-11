@@ -54,7 +54,9 @@ internal static class Keywords
     internal const string Into = "INTO";
     internal const string Is = "IS";
     internal const string Join = "JOIN";
+    internal const string Lag = "LAG";
     internal const string LastDay = "LAST_DAY";
+    internal const string Lead = "LEAD";
     internal const string Least = "LEAST";
     internal const string Left = "LEFT";
     internal const string Length = "LENGTH";

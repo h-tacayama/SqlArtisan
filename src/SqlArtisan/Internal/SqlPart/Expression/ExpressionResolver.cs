@@ -4,8 +4,16 @@ namespace SqlArtisan.Internal;
 
 internal static class ExpressionResolver
 {
+    private const string NullValueMessage =
+        "Value cannot be null. Use Sql.Null to represent SQL NULL.";
+
     internal static (SqlExpression, SqlExpression)[] Resolve((object, object)[] pairs)
     {
+        if (pairs is null)
+        {
+            throw new ArgumentNullException(nameof(pairs), NullValueMessage);
+        }
+
         var resolved = new (SqlExpression, SqlExpression)[pairs.Length];
 
         for (int i = 0; i < pairs.Length; i++)
@@ -18,6 +26,11 @@ internal static class ExpressionResolver
 
     internal static SqlExpression[] Resolve(object[] items)
     {
+        if (items is null)
+        {
+            throw new ArgumentNullException(nameof(items), NullValueMessage);
+        }
+
         var resolved = new SqlExpression[items.Length];
 
         for (int i = 0; i < items.Length; i++)
@@ -30,6 +43,11 @@ internal static class ExpressionResolver
 
     internal static SqlExpression Resolve(object item)
     {
+        if (item is null)
+        {
+            throw new ArgumentNullException(nameof(item), NullValueMessage);
+        }
+
 #pragma warning disable IDE0046
         if (item is SqlExpression expr)
         {

@@ -82,4 +82,22 @@ public class ExpressionResolverTests
             SqlStatement sql = Select(_t.Code.Asc).Build();
         });
     }
+
+    [Fact]
+    public void Resolve_WithNull_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            SqlStatement sql = Select(Abs(null!)).Build();
+        });
+    }
+
+    [Fact]
+    public void Resolve_WithNullArray_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+        {
+            SqlStatement sql = Select(Least(null!)).Build();
+        });
+    }
 }
