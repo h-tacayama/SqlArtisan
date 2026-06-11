@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.2.0-beta.4] - 2026-06-12
 ### Added
 - Added support for pagination: `Limit`/`Offset` (PostgreSQL/MySQL/SQLite) and `OffsetRows`/`FetchFirst`/`FetchNext` (Oracle 12c+/SQL Server 2012+). (#49)
 - Added support for the ANSI `CAST(expr AS type)` expression. (#52)
@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Improved `SqlBuildingBuffer` memory efficiency and throughput. (#45)
 - Documented the design philosophy and non-goals, and surfaced dialect-specific features in the README and via XML doc comments. (#47)
 - Consolidated the ranking window functions' shared `Over(...)` overloads onto the `AnalyticFunction` base class (non-breaking). (#60)
+
+### Fixed
+- `PartitionBy` / `OrderBy` / `GroupBy` with no items (or a null array) now throw a clear exception at build time instead of generating invalid SQL such as `ORDER BY `. (#69)
 
 ## [0.2.0-beta.3] - 2026-06-07
 ### Added
