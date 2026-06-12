@@ -80,3 +80,7 @@ reference implementations.
 ## Git
 
 Develop on the assigned feature branch. Do not open a PR unless explicitly asked.
+
+Commit messages follow **Conventional Commits**: `<type>: <summary>`, where
+`<type>` is one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`,
+or `chore` (e.g. `feat: Add support for CAST(expr AS type)`).
