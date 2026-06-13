@@ -138,16 +138,16 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpaceSeparated(IList<SqlPart> parts)
+    internal SqlBuildingBuffer AppendSpaceSeparated(ReadOnlySpan<SqlPart> parts)
     {
-        if (parts.Count == 0)
+        if (parts.Length == 0)
         {
             return this;
         }
 
         parts[0].Format(this);
 
-        for (int i = 1; i < parts.Count; i++)
+        for (int i = 1; i < parts.Length; i++)
         {
             AppendSpace();
             parts[i].Format(this);

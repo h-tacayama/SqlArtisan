@@ -22,7 +22,7 @@ public sealed class SearchedCaseExpression : SqlExpression
     internal override void Format(SqlBuildingBuffer buffer)
     {
         buffer.Append($"{Keywords.Case} ")
-            .AppendSpaceSeparated(_whenClauses);
+            .AppendSpaceSeparated((SqlPart[])_whenClauses);
 
         if (_elseClause is not null)
         {

@@ -29,7 +29,7 @@ public sealed class SimpleCaseExpression : SqlExpression
     {
         buffer.Append($"{Keywords.Case} ")
             .AppendSpace(_expr)
-            .AppendSpaceSeparated(_whenClauses);
+            .AppendSpaceSeparated((SqlPart[])_whenClauses);
 
         if (_elseClause is not null)
         {
