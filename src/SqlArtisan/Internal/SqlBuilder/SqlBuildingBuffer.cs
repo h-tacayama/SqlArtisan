@@ -10,7 +10,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     private char[] _buffer;
     private int _position;
     private Dictionary<string, BindValue> _parameters = [];
-    private bool _disposed = false;
+    private bool _disposed;
 
     internal SqlBuildingBuffer(IDbmsDialect dialect)
     {
