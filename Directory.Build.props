@@ -1,0 +1,13 @@
+<Project>
+
+  <!--
+    Enable the broader "Recommended" set of .NET code-quality analyzers for the
+    shipped core library. Warnings only (never errors): analyzer rule sets differ
+    across SDK builds, so promoting them to errors would make CI non-deterministic.
+    Other projects (tests, benchmark, tooling) keep the SDK defaults.
+  -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SqlArtisan'">
+    <AnalysisMode>Recommended</AnalysisMode>
+  </PropertyGroup>
+
+</Project>

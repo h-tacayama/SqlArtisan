@@ -157,6 +157,9 @@ file_header_template =
 
 # Suppress specific diagnostics (C#)
 dotnet_diagnostic.IDE0130.severity = none
+# CA1716: the fluent SQL DSL deliberately uses names that match language keywords
+# (e.g. In, As). Allow them.
+dotnet_diagnostic.CA1716.severity = none
 
 # C++ Files
 [*.{cpp,h,in}]
