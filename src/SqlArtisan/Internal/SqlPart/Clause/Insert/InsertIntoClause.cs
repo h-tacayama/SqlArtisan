@@ -17,7 +17,7 @@ internal sealed class InsertIntoClause(DbTableBase table, DbColumn[] columns) : 
 
         if (_columns.Length > 0)
         {
-            buffer.Append(" ")
+            buffer.AppendSpace()
                 .OpenParenthesis()
                 .AppendCsv(_columns)
                 .CloseParenthesis();

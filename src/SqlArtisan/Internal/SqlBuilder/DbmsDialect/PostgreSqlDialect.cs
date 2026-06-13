@@ -2,7 +2,7 @@ namespace SqlArtisan.Internal;
 
 internal sealed class PostgreSqlDialect : IDbmsDialect
 {
-    public string AliasQuote => "\"";
+    public char AliasQuote => '"';
 
-    public string ParameterMarker => ":";
+    public char ParameterMarker => ':';
 }

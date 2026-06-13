@@ -2,7 +2,7 @@ namespace SqlArtisan.Internal;
 
 internal sealed class SqlServerDialect : IDbmsDialect
 {
-    public string AliasQuote => "\"";
+    public char AliasQuote => '"';
 
-    public string ParameterMarker => "@";
+    public char ParameterMarker => '@';
 }
