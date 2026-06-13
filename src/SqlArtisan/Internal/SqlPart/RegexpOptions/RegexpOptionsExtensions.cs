@@ -10,34 +10,34 @@ internal static class RegexpOptionsExtensions
     internal static string ToSql(this RegexpOptions options)
     {
         StringBuilder result = new();
-        result.Append("'");
+        result.Append('\'');
 
         if (options.HasFlag(RegexpOptions.CaseSensitive))
         {
-            result.Append("c");
+            result.Append('c');
         }
 
         if (options.HasFlag(RegexpOptions.CaseInsensitive))
         {
-            result.Append("i");
+            result.Append('i');
         }
 
         if (options.HasFlag(RegexpOptions.MultipleLines))
         {
-            result.Append("m");
+            result.Append('m');
         }
 
         if (options.HasFlag(RegexpOptions.NewLine))
         {
-            result.Append("n");
+            result.Append('n');
         }
 
         if (options.HasFlag(RegexpOptions.ExcludingWhiteSpace))
         {
-            result.Append("x");
+            result.Append('x');
         }
 
-        result.Append("'");
+        result.Append('\'');
         return result.ToString();
     }
 }

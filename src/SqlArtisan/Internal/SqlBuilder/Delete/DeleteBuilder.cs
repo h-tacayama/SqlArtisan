@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
-internal class DeleteBuilder(params SqlPart[] rootParts) :
+internal sealed class DeleteBuilder(params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
     IDeleteBuilderDelete,
     IDeleteBuilderWhere
