@@ -278,7 +278,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         _parameters ??= new();
-        string name = $"{_dialect.ParameterMarker}{_parameters.Count}";
+        string name = ParameterNameCache.Get(_dialect.ParameterMarker, _parameters.Count);
         Append(name);
         _parameters.Add(new(name, bindValue));
         return this;
