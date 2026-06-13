@@ -22,7 +22,8 @@ public static partial class Sql
         CaseElseExpression elseExpr) =>
         new([
             whenClause1,
-            whenClause2,],
+            whenClause2,
+        ],
             elseExpr);
 
     public static SearchedCaseExpression Case(
@@ -33,7 +34,8 @@ public static partial class Sql
         new([
             whenClause1,
             whenClause2,
-            whenClause3,],
+            whenClause3,
+        ],
             elseExpr);
 
     public static SearchedCaseExpression Case(
@@ -46,7 +48,8 @@ public static partial class Sql
             whenClause1,
             whenClause2,
             whenClause3,
-            whenClause4,],
+            whenClause4,
+        ],
             elseExpr);
 
     public static SearchedCaseExpression Case(
@@ -61,7 +64,8 @@ public static partial class Sql
             whenClause2,
             whenClause3,
             whenClause4,
-            whenClause5,],
+            whenClause5,
+        ],
             elseExpr);
 
     public static SearchedCaseExpression Case(
@@ -78,7 +82,8 @@ public static partial class Sql
             whenClause3,
             whenClause4,
             whenClause5,
-            whenClause6,],
+            whenClause6,
+        ],
             elseExpr);
 
     public static SearchedCaseExpression Case(
@@ -97,7 +102,8 @@ public static partial class Sql
             whenClause4,
             whenClause5,
             whenClause6,
-            whenClause7,],
+            whenClause7,
+        ],
             elseExpr);
 
     public static SearchedCaseExpression Case(
@@ -118,7 +124,8 @@ public static partial class Sql
             whenClause5,
             whenClause6,
             whenClause7,
-            whenClause8,],
+            whenClause8,
+        ],
             elseExpr);
 
     public static SearchedCaseExpression Case(
@@ -141,7 +148,8 @@ public static partial class Sql
             whenClause6,
             whenClause7,
             whenClause8,
-            whenClause9,],
+            whenClause9,
+        ],
             elseExpr);
 
     public static SearchedCaseExpression Case(
@@ -166,7 +174,8 @@ public static partial class Sql
             whenClause7,
             whenClause8,
             whenClause9,
-            whenClause10,],
+            whenClause10,
+        ],
             elseExpr);
 
     public static SearchedCaseExpression Case(

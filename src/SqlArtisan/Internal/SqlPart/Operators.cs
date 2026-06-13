@@ -1,4 +1,5 @@
 ﻿namespace SqlArtisan.Internal;
+
 internal static class Operators
 {
     internal const string Asterisk = "*";

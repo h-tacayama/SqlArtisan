@@ -13,7 +13,7 @@ public sealed class ExpressionAlias : SqlPart, ISortable
         _alias = alias;
     }
 
-[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder Asc => new(this, SortDirection.Asc);
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
