@@ -61,6 +61,13 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    internal SqlBuildingBuffer Append(char value)
+    {
+        EnsureCapacity(1);
+        _buffer[_position++] = value;
+        return this;
+    }
+
     internal SqlBuildingBuffer AppendCsv(SqlPart[] parts)
     {
         if (parts.Length == 0)
@@ -338,13 +345,6 @@ internal sealed class SqlBuildingBuffer : IDisposable
         {
             selectItem.Format(this);
         }
-    }
-
-    private SqlBuildingBuffer Append(char value)
-    {
-        EnsureCapacity(1);
-        _buffer[_position++] = value;
-        return this;
     }
 
     private SqlBuildingBuffer Append(ReadOnlySpan<char> value)
