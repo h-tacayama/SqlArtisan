@@ -6,10 +6,16 @@ namespace SqlArtisan.Internal;
 internal sealed class SqlBuildingBuffer : IDisposable
 {
     private const int InitialCapacity = 2048;
+
+    // Shared, never-mutated instance handed to parameterless statements so they
+    // don't each allocate an empty dictionary. SqlParameters only ever reads it.
+    private static readonly Dictionary<string, BindValue> s_emptyParameters = new();
+
     private readonly IDbmsDialect _dialect;
     private char[] _buffer;
     private int _position;
-    private Dictionary<string, BindValue> _parameters = [];
+    // Allocated lazily on the first parameter; parameterless statements keep this null.
+    private Dictionary<string, BindValue>? _parameters;
     private bool _disposed;
 
     internal SqlBuildingBuffer(IDbmsDialect dialect)
@@ -32,7 +38,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
             _buffer = null!;
         }
 
-        _parameters = null!;
+        _parameters = null;
         _disposed = true;
     }
 
@@ -262,6 +268,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        _parameters ??= new();
         string name = $"{_dialect.ParameterMarker}{_parameters.Count}";
         Append(name);
         _parameters.Add(name, bindValue);
@@ -272,6 +279,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        _parameters ??= new();
         string name = $"{_dialect.ParameterMarker}{variable}";
 
         if (_parameters.ContainsKey(name))
@@ -295,8 +303,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
         // The buffer relinquishes its reference so the caller's instance is
         // never mutated after this point (Dispose only returns the char buffer).
         string sql = new(_buffer, 0, _position);
-        Dictionary<string, BindValue> parameters = _parameters;
-        _parameters = null!;
+        Dictionary<string, BindValue> parameters = _parameters ?? s_emptyParameters;
+        _parameters = null;
         return new(sql, parameters);
     }
 
