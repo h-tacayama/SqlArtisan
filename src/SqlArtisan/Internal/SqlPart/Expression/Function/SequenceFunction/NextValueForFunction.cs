@@ -12,5 +12,6 @@ public sealed class NextValueForFunction : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Next} {Value} {For} {_sequenceName}");
+        .Append($"{Next} {Value} {For} ")
+        .Append(_sequenceName);
 }
