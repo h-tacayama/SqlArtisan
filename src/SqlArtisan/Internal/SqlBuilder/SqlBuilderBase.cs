@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace SqlArtisan.Internal;
 
 internal abstract class SqlBuilderBase
@@ -38,10 +40,10 @@ internal abstract class SqlBuilderBase
         IDbmsDialect dialect = DbmsDialectFactory.Create(dbms);
         using SqlBuildingBuffer buffer = new(dialect);
         return buffer
-            .AppendSpaceSeparated(_parts)
+            .AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts))
             .ToSqlStatement();
     }
 
     internal void FormatCore(SqlBuildingBuffer buffer) =>
-        buffer.AppendSpaceSeparated(_parts);
+        buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
 }

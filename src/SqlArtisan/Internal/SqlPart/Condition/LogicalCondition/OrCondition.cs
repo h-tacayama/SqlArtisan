@@ -1,41 +1,58 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 public sealed class OrCondition : SqlCondition
 {
-    private readonly List<SqlCondition> _conditions;
+    private readonly SqlCondition _first;
+    private readonly SqlCondition _second;
 
-    internal OrCondition(SqlCondition leftSide, SqlCondition rightRide)
+    // Third and later operands of a chained `a | b | c` only; the common binary
+    // OR keeps this null and allocates no list.
+    private List<SqlCondition>? _rest;
+
+    internal OrCondition(SqlCondition leftSide, SqlCondition rightSide)
     {
-        _conditions = new List<SqlCondition>
-        {
-            leftSide,
-            rightRide
-        };
+        _first = leftSide;
+        _second = rightSide;
     }
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
         bool added = false;
 
-        for (int i = 0; i < _conditions.Count; i++)
+        FormatOperand(buffer, _first, ref added);
+        FormatOperand(buffer, _second, ref added);
+
+        if (_rest is not null)
         {
-            if (_conditions[i] is EmptyCondition)
+            for (int i = 0; i < _rest.Count; i++)
             {
-                continue;
+                FormatOperand(buffer, _rest[i], ref added);
             }
-
-            if (added)
-            {
-                buffer.EncloseInSpaces(Keywords.Or);
-            }
-
-            buffer.EncloseInParentheses(_conditions[i]);
-            added = true;
         }
     }
 
     internal void Add(SqlCondition condition)
     {
-        _conditions.Add(condition);
+        _rest ??= [];
+        _rest.Add(condition);
+    }
+
+    private static void FormatOperand(
+        SqlBuildingBuffer buffer,
+        SqlCondition condition,
+        ref bool added)
+    {
+        if (condition is EmptyCondition)
+        {
+            return;
+        }
+
+        if (added)
+        {
+            buffer.EncloseInSpaces(Keywords.Or);
+        }
+
+        buffer.EncloseInParentheses(condition);
+        added = true;
     }
 }

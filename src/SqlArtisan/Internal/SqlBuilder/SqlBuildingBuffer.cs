@@ -138,16 +138,16 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    internal SqlBuildingBuffer AppendSpaceSeparated(IList<SqlPart> parts)
+    internal SqlBuildingBuffer AppendSpaceSeparated(ReadOnlySpan<SqlPart> parts)
     {
-        if (parts.Count == 0)
+        if (parts.Length == 0)
         {
             return this;
         }
 
         parts[0].Format(this);
 
-        for (int i = 1; i < parts.Count; i++)
+        for (int i = 1; i < parts.Length; i++)
         {
             AppendSpace();
             parts[i].Format(this);
@@ -360,10 +360,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    // No disposed check here: this runs on every append (the hottest path) and
+    // the buffer's lifecycle is internal (built, finalized via ToSqlStatement,
+    // then disposed). Disposal is still guarded at the entry points
+    // (AddParameter / AddOutParameter / ToSqlStatement).
     private void EnsureCapacity(int additionalChars)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
         if (_position + additionalChars > _buffer.Length)
         {
             int requiredCapacity = _position + additionalChars;
