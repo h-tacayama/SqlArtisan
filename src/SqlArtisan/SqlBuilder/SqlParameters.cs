@@ -4,9 +4,9 @@ namespace SqlArtisan;
 
 public sealed class SqlParameters
 {
-    private readonly Dictionary<string, BindValue> _parameters;
+    private readonly List<KeyValuePair<string, BindValue>> _parameters;
 
-    internal SqlParameters(Dictionary<string, BindValue> parameters) =>
+    internal SqlParameters(List<KeyValuePair<string, BindValue>> parameters) =>
         _parameters = parameters;
 
     public int Count => _parameters.Count;
@@ -21,8 +21,16 @@ public sealed class SqlParameters
         }
     }
 
-    public T? Get<T>(string name) =>
-        _parameters.TryGetValue(name, out BindValue? value)
-        ? (T?)value.Value
-        : default;
+    public T? Get<T>(string name)
+    {
+        foreach (KeyValuePair<string, BindValue> parameter in _parameters)
+        {
+            if (parameter.Key == name)
+            {
+                return (T?)parameter.Value.Value;
+            }
+        }
+
+        return default;
+    }
 }

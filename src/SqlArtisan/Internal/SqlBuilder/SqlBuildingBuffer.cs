@@ -6,10 +6,18 @@ namespace SqlArtisan.Internal;
 internal sealed class SqlBuildingBuffer : IDisposable
 {
     private const int InitialCapacity = 2048;
+
+    // Shared, never-mutated instance handed to parameterless statements so they
+    // don't each allocate a list. SqlParameters only ever reads it.
+    private static readonly List<KeyValuePair<string, BindValue>> s_emptyParameters = new();
+
     private readonly IDbmsDialect _dialect;
     private char[] _buffer;
     private int _position;
-    private Dictionary<string, BindValue> _parameters = [];
+    // Allocated lazily on the first parameter; parameterless statements keep this null.
+    // A list (insertion-ordered) is used over a dictionary: parameter counts are
+    // small, so linear lookup is cheap and it allocates less than a hash table.
+    private List<KeyValuePair<string, BindValue>>? _parameters;
     private bool _disposed;
 
     internal SqlBuildingBuffer(IDbmsDialect dialect)
@@ -32,7 +40,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
             _buffer = null!;
         }
 
-        _parameters = null!;
+        _parameters = null;
         _disposed = true;
     }
 
@@ -262,9 +270,10 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        _parameters ??= new();
         string name = $"{_dialect.ParameterMarker}{_parameters.Count}";
         Append(name);
-        _parameters.Add(name, bindValue);
+        _parameters.Add(new(name, bindValue));
         return this;
     }
 
@@ -272,18 +281,19 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        _parameters ??= new();
         string name = $"{_dialect.ParameterMarker}{variable}";
 
-        if (_parameters.ContainsKey(name))
+        if (ContainsParameterName(name))
         {
             throw new ArgumentException(
                 $"Duplicate variable name '{variable}' in RETURNING INTO clause. Each variable name must be unique.");
         }
 
         Append(name);
-        _parameters.Add(name, new BindValue(
+        _parameters.Add(new(name, new BindValue(
             DBNull.Value,
-            direction: ParameterDirection.Output));
+            direction: ParameterDirection.Output)));
         return this;
     }
 
@@ -295,9 +305,27 @@ internal sealed class SqlBuildingBuffer : IDisposable
         // The buffer relinquishes its reference so the caller's instance is
         // never mutated after this point (Dispose only returns the char buffer).
         string sql = new(_buffer, 0, _position);
-        Dictionary<string, BindValue> parameters = _parameters;
-        _parameters = null!;
+        List<KeyValuePair<string, BindValue>> parameters = _parameters ?? s_emptyParameters;
+        _parameters = null;
         return new(sql, parameters);
+    }
+
+    private bool ContainsParameterName(string name)
+    {
+        if (_parameters is null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < _parameters.Count; i++)
+        {
+            if (_parameters[i].Key == name)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void AppendSelectItem(SqlPart selectItem)

@@ -4,7 +4,7 @@ namespace SqlArtisan;
 
 public sealed class SqlStatement
 {
-    internal SqlStatement(string text, Dictionary<string, BindValue> parameters)
+    internal SqlStatement(string text, List<KeyValuePair<string, BindValue>> parameters)
     {
         Text = text;
         Parameters = new(parameters);
