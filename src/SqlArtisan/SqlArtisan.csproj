@@ -10,7 +10,7 @@
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
-    <Description>Write SQL, in C#. A type-safe SQL query builder where the SQL you write is the SQL that runs—cross-database portability is a deliberate non-goal.</Description>
+    <Description>Write SQL, in C#. A type-safe SQL query builder where the SQL you write is the SQL that runs—allocation-light, fast, and automatically parameterized.</Description>
     <PackageTags>database sql sqlbuilder query querybuilder mysql oracle postgresql sqlite sqlserver dapper</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
