@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Data;
+using System.Runtime.CompilerServices;
 
 namespace SqlArtisan.Internal;
 
@@ -50,6 +51,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal SqlBuildingBuffer Append(string? value)
     {
         if (string.IsNullOrEmpty(value))
@@ -61,6 +63,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal SqlBuildingBuffer Append(char value)
     {
         EnsureCapacity(1);
@@ -322,6 +325,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SqlBuildingBuffer Append(ReadOnlySpan<char> value)
     {
         if (value.IsEmpty)
@@ -339,16 +343,25 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // the buffer's lifecycle is internal (built, finalized via ToSqlStatement,
     // then disposed). Disposal is still guarded at the entry points
     // (AddParameter / AddOutParameter / ToSqlStatement).
+    // The common case (no growth) is a single bounds check so it inlines into
+    // the Append callers; the rare growth is a separate, non-inlined method.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCapacity(int additionalChars)
     {
         if (_position + additionalChars > _buffer.Length)
         {
-            int requiredCapacity = _position + additionalChars;
-            int newSize = Math.Max(_buffer.Length * 2, requiredCapacity);
-            char[] newBuffer = ArrayPool<char>.Shared.Rent(newSize);
-            _buffer.AsSpan(0, _position).CopyTo(newBuffer);
-            ArrayPool<char>.Shared.Return(_buffer);
-            _buffer = newBuffer;
+            Grow(additionalChars);
         }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void Grow(int additionalChars)
+    {
+        int requiredCapacity = _position + additionalChars;
+        int newSize = Math.Max(_buffer.Length * 2, requiredCapacity);
+        char[] newBuffer = ArrayPool<char>.Shared.Rent(newSize);
+        _buffer.AsSpan(0, _position).CopyTo(newBuffer);
+        ArrayPool<char>.Shared.Return(_buffer);
+        _buffer = newBuffer;
     }
 }
