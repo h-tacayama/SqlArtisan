@@ -156,31 +156,6 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    internal SqlBuildingBuffer AppendUpperSnakeCase(Enum value) =>
-        AppendUpperSnakeCase(value.ToString());
-
-    internal SqlBuildingBuffer AppendUpperSnakeCase(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return this;
-        }
-
-        for (int i = 0; i < text.Length; i++)
-        {
-            char c = text[i];
-
-            if (i > 0 && char.IsUpper(c))
-            {
-                Append('_');
-            }
-
-            Append(char.ToUpperInvariant(c));
-        }
-
-        return this;
-    }
-
     internal SqlBuildingBuffer CloseParenthesis(SqlPart? part = null)
     {
         part?.Format(this);

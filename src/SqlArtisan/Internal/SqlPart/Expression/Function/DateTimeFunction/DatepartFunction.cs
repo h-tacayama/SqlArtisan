@@ -14,7 +14,7 @@ public sealed class DatepartFunction : SqlExpression
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Datepart)
         .OpenParenthesis()
-        .AppendUpperSnakeCase(_datepart)
+        .Append(DatepartKeywords.Of(_datepart))
         .PrependComma(_source)
         .CloseParenthesis();
 }

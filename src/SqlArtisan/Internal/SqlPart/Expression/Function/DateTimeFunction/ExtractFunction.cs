@@ -14,7 +14,7 @@ public sealed class ExtractFunction : SqlExpression
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Extract)
         .OpenParenthesis()
-        .AppendUpperSnakeCase(_datepart)
+        .Append(DatepartKeywords.Of(_datepart))
         .EncloseInSpaces(Keywords.From)
         .Append(_source)
         .CloseParenthesis();

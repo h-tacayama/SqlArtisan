@@ -20,11 +20,14 @@ internal sealed class ReturningBuilder : IReturningBuilder
 
         SqlPart[] resolved = SelectItemResolver.Resolve(expressions);
 
-        if (resolved.Any(p => p is ExpressionAlias))
+        for (int i = 0; i < resolved.Length; i++)
         {
-            throw new ArgumentException(
-                "Use plain column expressions in Returning(). " +
-                "To specify INTO variables, chain .Into(\"var1\", \"var2\").");
+            if (resolved[i] is ExpressionAlias)
+            {
+                throw new ArgumentException(
+                    "Use plain column expressions in Returning(). " +
+                    "To specify INTO variables, chain .Into(\"var1\", \"var2\").");
+            }
         }
 
         return new ReturningBuilder(inner, resolved);
