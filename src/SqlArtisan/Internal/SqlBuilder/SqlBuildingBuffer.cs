@@ -360,10 +360,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    // No disposed check here: this runs on every append (the hottest path) and
+    // the buffer's lifecycle is internal (built, finalized via ToSqlStatement,
+    // then disposed). Disposal is still guarded at the entry points
+    // (AddParameter / AddOutParameter / ToSqlStatement).
     private void EnsureCapacity(int additionalChars)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
         if (_position + additionalChars > _buffer.Length)
         {
             int requiredCapacity = _position + additionalChars;
