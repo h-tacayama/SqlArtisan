@@ -40,10 +40,13 @@ Default DBMS is `PostgreSql` (`SqlArtisanConfig.DefaultDbms`).
 dotnet restore
 dotnet build SqlArtisan.sln
 dotnet test tests/SqlArtisan.Tests          # unit tests (xUnit)
+dotnet format SqlArtisan.sln --verify-no-changes   # .editorconfig style gate (CI enforces this)
 ```
 
 Always run `dotnet test` after changing `src/`. Tests assert the **exact** SQL
-string, so any output change will surface here.
+string, so any output change will surface here. Also run
+`dotnet format SqlArtisan.sln` before pushing — CI fails on any `.editorconfig`
+violation.
 
 ## How to add a new SQL function (the most common task)
 
