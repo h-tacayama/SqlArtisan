@@ -6,6 +6,76 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
+    public void Ceil_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Ceil(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CEIL(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Ceil_MySql_EmitsCeil()
+    {
+        SqlStatement sql =
+            Select(Ceil(_t.Code))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CEIL(`t`.code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Ceil_Oracle_EmitsCeil()
+    {
+        SqlStatement sql =
+            Select(Ceil(_t.Code))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CEIL(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Ceil_Sqlite_EmitsCeil()
+    {
+        SqlStatement sql =
+            Select(Ceil(_t.Code))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CEIL(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Ceil_SqlServer_EmitsCeiling()
+    {
+        SqlStatement sql =
+            Select(Ceil(_t.Code))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CEILING(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Coalesce_MultipleValues_CorrectSql()
     {
         SqlStatement sql =

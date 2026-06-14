@@ -34,6 +34,16 @@ public static partial class Sql
     public static AnalyticPercentRankFunction PercentRank() => new();
 
     /// <summary>
+    /// The <c>POWER(base, exponent)</c> function: <paramref name="base"/> raised
+    /// to the power of <paramref name="exponent"/>.
+    /// </summary>
+    public static PowerFunction Power(
+        object @base,
+        object exponent) => new(
+            Resolve(@base),
+            Resolve(exponent));
+
+    /// <summary>
     /// A <c>n PRECEDING</c> window-frame bound (offset rows/range before the
     /// current row).
     /// </summary>

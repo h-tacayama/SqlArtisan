@@ -79,10 +79,10 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
 - [Additional Query Details](#additional-query-details)
   - [Bind Parameter Types](#bind-parameter-types)
   - [Functions](#functions)
-    - [Numeric Functions](#numeric-functions): `ABS`, `MOD`, `TRUNC`
+    - [Numeric Functions](#numeric-functions): `ABS`, `CEIL`/`CEILING`, `FLOOR`, `MOD`, `POWER`, `ROUND`, `SIGN`, `SQRT`, `TRUNC`
     - [Character Functions](#character-functions): `CONCAT`, `INSTR`, `LPAD`, `LTRIM`, `LENGTH`, `LENGTHB`, `LOWER`, `RPAD`, `RTRIM`, `REGEXP_COUNT`, `REGEXP_REPLACE`, `REGEXP_SUBSTR`, `REPLACE`, `SUBSTR`, `SUBSTRB`, `TRIM`, `UPPER`
     - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
-    - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
+    - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NULLIF`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
     - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
     - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `FIRST_VALUE`, `LAG`, `LAST_VALUE`, `LEAD`, `NTH_VALUE`, `NTILE`, `PERCENTILE_CONT`, `PERCENTILE_DISC`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
 - [Contributing](#contributing)
@@ -1432,7 +1432,13 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 #### Numeric Functions
 
 - `Abs()` for `ABS`
+- `Ceil()` for `CEIL` (emitted as `CEILING` on SQL Server)
+- `Floor()` for `FLOOR`
 - `Mod()` for `MOD`
+- `Power()` for `POWER`
+- `Round()` for `ROUND`
+- `Sign()` for `SIGN`
+- `Sqrt()` for `SQRT`
 - `Trunc()` for `TRUNC` (Numeric Overload)
 
 ---
@@ -1479,6 +1485,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 - `Coalesce()` for `COALESCE`
 - `Decode()` for `DECODE`
+- `Nullif()` for `NULLIF`
 - `Nvl()` for `NVL`
 - `ToChar()` for `TO_CHAR`
 - `ToDate()` for `TO_DATE`

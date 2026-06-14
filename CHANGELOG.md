@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- Added support for the scalar functions `NULLIF`, `ROUND`, `CEIL`/`CEILING`, `FLOOR`, `POWER`, `SQRT`, and `SIGN`. `CEIL` is emitted as `CEILING` on SQL Server. (#84)
+
 ## [0.2.0-beta.4] - 2026-06-12
 ### Added
 - Added support for pagination: `Limit`/`Offset` (PostgreSQL/MySQL/SQLite) and `OffsetRows`/`FetchFirst`/`FetchNext` (Oracle 12c+/SQL Server 2012+). (#49)

@@ -393,6 +393,14 @@ public static partial class Sql
     public static CastExpression Cast(object expr, string type) =>
         new(Resolve(expr), type);
 
+    /// <summary>
+    /// The <c>CEIL(expr)</c> function (smallest integer not less than
+    /// <paramref name="expr"/>). Emitted as <c>CEILING</c> on SQL Server and
+    /// <c>CEIL</c> on the other DBMS.
+    /// </summary>
+    public static CeilFunction Ceil(object expr) =>
+        new(Resolve(expr));
+
     public static CoalesceFunction Coalesce(
         object primary,
         object secondary,

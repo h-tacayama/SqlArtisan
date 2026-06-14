@@ -13,6 +13,13 @@ public static partial class Sql
         new(Resolve(expr));
 
     /// <summary>
+    /// The <c>FLOOR(expr)</c> function (largest integer not greater than
+    /// <paramref name="expr"/>).
+    /// </summary>
+    public static FloorFunction Floor(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
     /// A <c>n FOLLOWING</c> window-frame bound (offset rows/range after the
     /// current row).
     /// </summary>

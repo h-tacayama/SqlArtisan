@@ -57,6 +57,14 @@ public static partial class Sql
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static NullExpression Null => new();
 
+    /// <summary>
+    /// The <c>NULLIF(expr1, expr2)</c> function: returns <c>NULL</c> when the two
+    /// expressions are equal, otherwise <paramref name="expr1"/>.
+    /// </summary>
+    public static NullifFunction Nullif(
+        object expr1,
+        object expr2) => new(Resolve(expr1), Resolve(expr2));
+
     public static NvlFunction Nvl(
         object expr1,
         object expr2) => new(Resolve(expr1), Resolve(expr2));

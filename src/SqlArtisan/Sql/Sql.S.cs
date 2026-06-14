@@ -46,8 +46,21 @@ public static partial class Sql
     /// </remarks>
     public static DbSequence Sequence(string name) => new(name);
 
+    /// <summary>
+    /// The <c>SIGN(expr)</c> function: the sign of <paramref name="expr"/>
+    /// (-1, 0, or 1).
+    /// </summary>
+    public static SignFunction Sign(object expr) =>
+        new(Resolve(expr));
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static SkipLockedBehavior SkipLocked => new();
+
+    /// <summary>
+    /// The <c>SQRT(expr)</c> function: the square root of <paramref name="expr"/>.
+    /// </summary>
+    public static SqrtFunction Sqrt(object expr) =>
+        new(Resolve(expr));
 
     public static SubstrFunction Substr(
         object source,
