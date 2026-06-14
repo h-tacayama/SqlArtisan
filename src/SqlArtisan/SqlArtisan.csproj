@@ -5,6 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
+    <!-- Spike: persist generated facades under obj/.../generated for inspection. -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+
     <VersionPrefix>0.2.0</VersionPrefix>
     <VersionSuffix>beta.4</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
@@ -28,6 +31,17 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+  </ItemGroup>
+
+  <!-- Per-DBMS facade source generator (spike) + its single-source catalog. -->
+  <ItemGroup>
+    <ProjectReference Include="..\SqlArtisan.Generator\SqlArtisan.Generator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PerDbms\NumericFunctions.catalog.tsv" />
   </ItemGroup>
 
 </Project>

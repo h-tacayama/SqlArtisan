@@ -1,0 +1,6 @@
+# Per-DBMS numeric function catalog (single source of truth for the generator).
+# Columns are TAB-separated: name\tnode-type\tsupported-dbms(csv)
+# Universal rows list all 5; diverging rows list only where the spelling is valid.
+Abs	AbsFunction	MySql,Oracle,PostgreSql,Sqlite,SqlServer
+Ceil	CeilFunction	MySql,Oracle,PostgreSql,Sqlite
+Ceiling	CeilingFunction	MySql,PostgreSql,Sqlite,SqlServer

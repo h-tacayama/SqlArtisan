@@ -225,6 +225,56 @@ identifiers). No driver shadowing, no `global::` workaround needed; the
 Lesson for ③: the prefix segment must be vetted against (a) vendor driver
 namespaces and (b) existing `Keywords`/type identifiers before adoption.
 
+## Step 3 — generator PoC: one catalog → N facades (validated)
+
+The open risk after Step 2 was *scale*: hand-maintaining a facade per DBMS is the
+trap that defeated this idea before. Step 3 replaces the hand-written facades
+with **generated** ones and proves the duplication cost collapses to a single
+data file.
+
+Wired into the real build:
+
+| Piece | Location |
+|-------|----------|
+| Incremental source generator | `src/SqlArtisan.Generator/PerDbmsFacadeGenerator.cs` |
+| Single-source catalog (TSV, `AdditionalFiles`) | `src/SqlArtisan/PerDbms/NumericFunctions.catalog.tsv` |
+| Analyzer reference + `AdditionalFiles` wiring | `src/SqlArtisan/SqlArtisan.csproj` |
+| Hand-written `PerDbms/Oracle|SqlServer/Sql.cs` | **deleted** — now generated |
+
+The catalog is three lines:
+
+```
+Abs      AbsFunction      MySql,Oracle,PostgreSql,Sqlite,SqlServer
+Ceil     CeilFunction     MySql,Oracle,PostgreSql,Sqlite
+Ceiling  CeilingFunction  MySql,PostgreSql,Sqlite,SqlServer
+```
+
+From it the generator emits **five** `SqlArtisan.Databases.<Dbms>.Sql` facades
+(snapshot in `generator/generated-output-snapshot/`):
+
+- `Oracle` → `Ceil`, no `Ceiling`
+- `SqlServer` → `Ceiling`, no `Ceil`
+- `MySql` / `PostgreSql` / `Sqlite` → both
+
+**The decisive result:** the hand-written facades were deleted and the suite —
+which already exercises `SqlArtisan.Databases.Oracle/SqlServer` through the real
+pipeline — **still passes 353/353, `dotnet format` clean.** The generated code is
+provably correct because the same tests that validated the hand-written slice now
+validate the generated one, unchanged.
+
+What this establishes about *scale*:
+
+- Adding a DBMS = adding it to a catalog row (and a dialect). No new facade file.
+- A universal function = one catalog row → emitted into all five facades for
+  free; the 80% common surface stops being a duplication burden.
+- A diverging function (`Ceil`/`Ceiling`) = list only the DBMS where it is valid;
+  filtering falls out of the catalog automatically.
+
+Remaining engineering (not feasibility) for production: multi-arity functions and
+overloads (only arity-1 is in this PoC), generating the full catalog across all
+categories, and deciding whether the catalog stays TSV or moves to a typed
+source (attributes/JSON). The mechanism itself is proven.
+
 ## Findings & recommendation (after the spike)
 
 1. **Feasible, and the philosophy fits.** Per-DBMS namespaces are the logical
