@@ -15,7 +15,7 @@
 using SqlArtisan.Internal;
 using static SqlArtisan.Internal.ExpressionResolver;
 
-namespace SqlArtisan.Oracle;
+namespace SqlArtisan.Databases.Oracle;
 
 public static partial class Sql
 {

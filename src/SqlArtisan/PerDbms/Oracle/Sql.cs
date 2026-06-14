@@ -1,14 +1,17 @@
 using SqlArtisan.Internal;
 using static SqlArtisan.Internal.ExpressionResolver;
 
-namespace SqlArtisan.Oracle;
+namespace SqlArtisan.Databases.Oracle;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Thin slice of the ③ direction wired into the real library: a per-DBMS facade
-// exposing only Oracle's numeric syntax. `using SqlArtisan.Oracle;` surfaces
+// exposing only Oracle's numeric syntax. `using SqlArtisan.Databases.Oracle;` surfaces
 // Ceil (no Ceiling) in IntelliSense; the DBMS is folded in so Build() needs no
 // argument; nodes are tagged Dbms.Oracle so reuse in another DBMS's build is
 // caught (see SqlBuildingBuffer.Append).
+//
+// The "Databases" segment keeps the leaf from shadowing the Oracle.ManagedDataAccess
+// driver namespace (see the spike README's namespace-naming finding).
 //
 // Only Abs/Ceil are sliced here to validate integration without breaking the
 // existing test suite. The full surface would be code-generated from the

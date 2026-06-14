@@ -17,7 +17,7 @@
 using SqlArtisan.Internal;
 using static SqlArtisan.Internal.ExpressionResolver;
 
-namespace SqlArtisan.SqlServer;
+namespace SqlArtisan.Databases.SqlServer;
 
 public static partial class Sql
 {

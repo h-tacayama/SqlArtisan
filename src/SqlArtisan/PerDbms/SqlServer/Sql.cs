@@ -1,10 +1,10 @@
 using SqlArtisan.Internal;
 using static SqlArtisan.Internal.ExpressionResolver;
 
-namespace SqlArtisan.SqlServer;
+namespace SqlArtisan.Databases.SqlServer;
 
-// Mirror of SqlArtisan.Oracle for SQL Server: same catalog, different surface.
-// `using SqlArtisan.SqlServer;` surfaces Ceiling (no Ceil) in IntelliSense.
+// Mirror of SqlArtisan.Databases.Oracle for SQL Server: same catalog, different
+// surface. `using SqlArtisan.Databases.SqlServer;` surfaces Ceiling (no Ceil).
 public static class Sql
 {
     /// <summary>Starts a SELECT bound to SQL Server; <see cref="SqlServerQuery.Build"/>

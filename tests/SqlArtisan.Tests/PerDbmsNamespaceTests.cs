@@ -1,11 +1,9 @@
 using System.Reflection;
 using SqlArtisan.Internal;
 
-// The two per-DBMS facades, aliased so they can sit side by side. Aliases avoid
-// the namespace-vs-type ambiguity that a bare `using SqlArtisan.Oracle;` would
-// create against the `SqlArtisan.Oracle` namespace itself.
-using OracleSql = SqlArtisan.Oracle.Sql;
-using SqlServerSql = SqlArtisan.SqlServer.Sql;
+// The two per-DBMS facades, aliased so they can sit side by side in one test.
+using OracleSql = SqlArtisan.Databases.Oracle.Sql;
+using SqlServerSql = SqlArtisan.Databases.SqlServer.Sql;
 
 namespace SqlArtisan.Tests;
 
@@ -33,8 +31,8 @@ public class PerDbmsNamespaceTests
     [Fact]
     public void Facades_Expose_Only_Their_Dialects_Spelling()
     {
-        Type oracle = typeof(SqlArtisan.Oracle.Sql);
-        Type sqlServer = typeof(SqlArtisan.SqlServer.Sql);
+        Type oracle = typeof(SqlArtisan.Databases.Oracle.Sql);
+        Type sqlServer = typeof(SqlArtisan.Databases.SqlServer.Sql);
 
         Assert.NotNull(oracle.GetMethod("Ceil", BindingFlags.Public | BindingFlags.Static));
         Assert.Null(oracle.GetMethod("Ceiling", BindingFlags.Public | BindingFlags.Static));
