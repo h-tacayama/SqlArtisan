@@ -182,4 +182,56 @@ public class PerDbmsNamespaceTests
         Assert.Null(typeof(OracleSql).GetMethod("InsertInto"));
         Assert.NotNull(typeof(PgSql).GetMethod("InsertInto"));
     }
+
+    // ── Clause-level experiment, 3rd shape (#88 string aggregation) ───────────
+    // A divergent *function* (SELECT-list expression), not a fluent statement.
+    // Each namespace exposes its own spelling and emits its own structure.
+
+    [Fact]
+    public void PostgreSql_Namespace_StringAgg_InlineOrderBy()
+    {
+        TestTable t = new();
+        SqlStatement sql = PgSql.Select(PgSql.StringAgg(t.Name, ", ", t.Code)).Build();
+        Assert.Equal("SELECT STRING_AGG(name, :0 ORDER BY code)", sql.Text);
+    }
+
+    [Fact]
+    public void SqlServer_Namespace_StringAgg_WithinGroup()
+    {
+        TestTable t = new();
+        SqlStatement sql = SqlServerSql.Select(SqlServerSql.StringAgg(t.Name, ", ", t.Code)).Build();
+        Assert.Equal("SELECT STRING_AGG(name, @0) WITHIN GROUP (ORDER BY code)", sql.Text);
+    }
+
+    [Fact]
+    public void Oracle_Namespace_Listagg_WithinGroup()
+    {
+        TestTable t = new();
+        SqlStatement sql = OracleSql.Select(OracleSql.Listagg(t.Name, ", ", t.Code)).Build();
+        Assert.Equal("SELECT LISTAGG(name, :0) WITHIN GROUP (ORDER BY code)", sql.Text);
+    }
+
+    [Fact]
+    public void MySql_Namespace_GroupConcat_InlineSeparatorLiteral()
+    {
+        TestTable t = new();
+        SqlStatement sql = MySqlSql.Select(MySqlSql.GroupConcat(t.Name, t.Code, ", ")).Build();
+        Assert.Equal("SELECT GROUP_CONCAT(name ORDER BY code SEPARATOR ', ')", sql.Text);
+    }
+
+    // Each namespace exposes only its dialect's spelling — and, unlike MERGE/UPSERT,
+    // there are NO wrapper types: the per-DBMS cost is one factory method (depth 0).
+    [Fact]
+    public void Namespaces_Expose_Only_Their_StringAggSpelling()
+    {
+        Assert.NotNull(typeof(PgSql).GetMethod("StringAgg"));
+        Assert.Null(typeof(PgSql).GetMethod("Listagg"));
+        Assert.Null(typeof(PgSql).GetMethod("GroupConcat"));
+
+        Assert.NotNull(typeof(OracleSql).GetMethod("Listagg"));
+        Assert.Null(typeof(OracleSql).GetMethod("StringAgg"));
+
+        Assert.NotNull(typeof(MySqlSql).GetMethod("GroupConcat"));
+        Assert.Null(typeof(MySqlSql).GetMethod("StringAgg"));
+    }
 }

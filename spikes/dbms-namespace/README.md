@@ -275,7 +275,7 @@ overloads (only arity-1 is in this PoC), generating the full catalog across all
 categories, and deciding whether the catalog stays TSV or moves to a typed
 source (attributes/JSON). The mechanism itself is proven.
 
-## Step 4 — clause-level decision experiments (#85 UPSERT, #89 MERGE): feasible, but a different cost curve
+## Step 4 — clause-level decision experiments (#85 UPSERT, #89 MERGE, #88 string-agg): cost is driven by fluent depth, not divergence
 
 Steps 1–3 validated namespace separation on **scalar functions** (the easy case).
 The real prize and the real risk are **clause-level** features (UPSERT, MERGE,
@@ -355,47 +355,95 @@ namespaces, MERGE only in Oracle/SqlServer — the five DBMS are **cleanly
 partitioned by upsert mechanism**, with no namespace exposing a verb it can't run
 (test `Namespaces_Partition_Upsert_And_Merge_By_Dialect`).
 
-### The cost, generalised (two samples)
+### Third sample — #88 string aggregation (the most syntactically divergent feature)
 
-For a clause feature, the namespace layer's marginal cost ≈
+#88 was picked as the stress test: per its own issue it is "the most syntactically
+divergent feature in scope." Crucially it is a **function** (a SELECT-list
+expression), not a fluent statement — a third shape. Built the same way (suite now
+**370/370**):
+
+- **Shared core** (~106 LOC, paid once): three fixed-form nodes —
+  `StringAggFunction` (PostgreSQL inline `ORDER BY`), `WithinGroupAggFunction`
+  (Oracle `LISTAGG` / SQL Server `STRING_AGG`, `WITHIN GROUP` — *one* node serving
+  both, name passed in), `GroupConcatFunction` (MySQL inline `ORDER BY` +
+  `SEPARATOR`). No node branches on `Dbms`.
+- **Namespace layer**: `PgSql.StringAgg`, `SqlServerSql.StringAgg`,
+  `OracleSql.Listagg`, `MySqlSql.GroupConcat` — **one factory method each,
+  ZERO wrapper types** (`grep` confirms 0 classes). ~13 LOC per DBMS, mostly
+  comments.
+
+Two sharp findings:
+- **`STRING_AGG` is the same name for PG and SQL Server yet needs two different
+  nodes** (inline `ORDER BY` vs `WITHIN GROUP`). Sharing by name alone is
+  impossible — the structure, not the name, is the unit of divergence.
+- **MySQL's `SEPARATOR` must be a string literal, not a bind parameter.** The
+  `GroupConcat` factory takes `string` (not `object`) and emits it inline. This is
+  a real *correctness* divergence the namespace surfaces but cannot fix — more
+  evidence that namespaces buy *discoverability*, not *correctness*.
+
+And the decisive contrast: **the most syntactically divergent feature in scope is
+*cheap* under namespaces** (one method per DBMS, no wrappers) because it is
+**depth 0**. Raw syntactic divergence is NOT the cost driver — *fluent depth* is.
+
+### The cost, generalised (three samples)
+
+The namespace layer's marginal cost for a feature ≈
 
 > **Σ over supporting DBMS of (number of fluent states)** hand-written wrapper
 > types — none reusable across namespaces, none covered by the Step-3 generator.
+> A flat function (depth 0) costs **one factory method per DBMS and no wrappers**,
+> regardless of how divergent its *syntax* is.
 
-| Feature | Fluent depth | DBMS | Namespace wrapper types | Generated? |
-|---------|-------------|------|-------------------------|------------|
-| Scalar fn (Step 3) | 0 (flat) | 5 | 0 (just list entries) | **yes** |
-| UPSERT (#85) | 2–3 | 3 | ~8 | no |
-| MERGE (#89) | 4 | 2 | 8 | no |
+| Feature | Shape | Fluent depth | DBMS | Namespace wrapper types | Generatable? |
+|---------|-------|-------------|------|-------------------------|------------|
+| Scalar fn (Step 3) | function, name-only divergence | 0 | 5 | 0 | **yes** (catalog) |
+| String agg (#88) | function, structural divergence | 0 | 4 | **0** (4 factory methods) | no (hand node) |
+| UPSERT (#85) | INSERT-tail clause | 2–3 | 3 | ~8 | no |
+| MERGE (#89) | full statement | 4 | 2 | 8 | no |
 
-Scalars sit at depth 0 and are generated → ~free. Every clause feature on the
-roadmap (#85/#86/#88/#89) sits at depth ≥ 2 and is **hand-written per DBMS**. The
-shared core (~96–148 LOC each) is owed regardless — it *is* the feature; the
-namespace layer is pure additive boilerplate whose size grows with chain depth.
+So there are **three** cost tiers, set by *fluent depth*, not by syntactic
+divergence:
+1. **Depth 0, name-only** (scalars): generated, ~free.
+2. **Depth 0, structural** (string agg): hand-written node + one factory per DBMS,
+   **no wrappers** — and here the namespace approach is actually *cleaner than
+   neutral*: each namespace uses a fixed-form node, whereas a single neutral
+   `Sql.StringAgg` would have to push the structural variance into the dialect
+   layer (a richer `IDbmsDialect` contract, brushing against "don't rewrite the
+   user's SQL"). This **inverts** the clause finding.
+3. **Depth ≥ 2** (UPSERT/MERGE): per-DBMS wrapper state machines, the expensive
+   tier; neutral (one builder) is cheaper than namespaces here.
 
 ### What this means for the Q3 decision
 
-- **For scalars, namespaces are nearly free** (generated) and genuinely polished.
-- **For clauses, namespaces cost ~N× hand-written state machines** for a *modest*
-  marginal benefit over the roadmap's already-chosen "per-dialect methods in one
-  namespace": the difference is *"wrong verb absent"* vs *"wrong verb present but
-  named for another dialect."* Both reach the same shared core.
+The relative cost of namespaces-vs-neutral is **feature-shape-dependent**, which
+is exactly the case for a hybrid:
+
+- **Functions (depth 0), whether name-only or structural:** namespaces are cheap
+  and often *cleaner* than neutral. Worth doing.
+- **Fluent clauses (depth ≥ 2):** namespaces cost ~N× wrapper machines for a
+  *modest* benefit over per-dialect methods (*"wrong verb absent"* vs *"present
+  but named for another dialect"*). Neutral wins.
 
 Three honest options, in increasing investment:
 
-1. **Per-dialect methods only (roadmap #91 as-is).** Ship `OnConflict` /
-   `OnDuplicateKeyUpdate` on one builder (Approach A). No namespace layer for
-   clauses. Lowest cost; the wrong verb is discoverable-but-present.
-2. **Hybrid.** Namespaces for scalar functions (generated, cheap); per-dialect
-   methods for clause features. Best cost/benefit, but two mental models.
+1. **Per-dialect methods only (roadmap #91 as-is).** All divergence (functions and
+   clauses) lives as differently-named methods on one `Sql` (Approach A). No
+   namespaces. Lowest cost; the wrong call is discoverable-but-present.
+2. **Hybrid, split by shape (now the sharpest line).** Namespaces for **all
+   functions** — depth 0, cheap, often *cleaner* than neutral (scalars generated;
+   divergent functions like string-agg = one factory each). Per-dialect **methods**
+   for **fluent clauses** (UPSERT/MERGE) where namespaces cost ~N× wrapper
+   machines. The two mental models map cleanly onto "function vs statement".
 3. **Namespaces everywhere.** Requires extending the generator to emit fluent
    state machines (modeling transitions, not flat lists) — real engineering — or
    accepting the per-DBMS wrapper boilerplate forever.
 
-**Recommendation:** the scalar PoC's "③ is great" does **not** transfer
-unconditionally to clauses. Lean **option 2 (hybrid)** — or **option 1** if a
-single mental model is valued over the compile-time guarantee. Reserve full
-option 3 for after a fluent-builder generator exists. Decide before 1.0.
+**Recommendation:** three samples show the cost is driven by **fluent depth**, not
+syntactic divergence, and that namespaces *win for functions* but *lose for fluent
+clauses*. That is a textbook case for **option 2 (hybrid)**: namespaces for the
+whole function surface, per-dialect methods for statement-level clauses — or
+**option 1** if one mental model outweighs the compile-time guarantee. Reserve
+option 3 until a fluent-builder generator exists. Decide before 1.0.
 
 ## Findings & recommendation (after the spike)
 

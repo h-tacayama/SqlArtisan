@@ -49,6 +49,7 @@ internal static class Keywords
     internal const string Full = "FULL";
     internal const string Greatest = "GREATEST";
     internal const string Group = "GROUP";
+    internal const string GroupConcat = "GROUP_CONCAT";
     internal const string Having = "HAVING";
     internal const string In = "IN";
     internal const string Inner = "INNER";
@@ -69,6 +70,7 @@ internal static class Keywords
     internal const string Lengthb = "LENGTHB";
     internal const string Like = "LIKE";
     internal const string Limit = "LIMIT";
+    internal const string Listagg = "LISTAGG";
     internal const string Locked = "LOCKED";
     internal const string Lower = "LOWER";
     internal const string Lpad = "LPAD";
@@ -120,8 +122,10 @@ internal static class Keywords
     internal const string Rpad = "RPAD";
     internal const string Rtrim = "RTRIM";
     internal const string Select = "SELECT";
+    internal const string Separator = "SEPARATOR";
     internal const string Set = "SET";
     internal const string Skip = "SKIP";
+    internal const string StringAgg = "STRING_AGG";
     internal const string Substr = "SUBSTR";
     internal const string Substrb = "SUBSTRB";
     internal const string Sum = "SUM";
