@@ -178,6 +178,61 @@ https://blog.jooq.org/the-many-flavours-of-the-arcane-sql-merge-statement/
 
 ---
 
+## 4.5 追補 — ゼロベース発見的調査(最初の提案が見落とした需要)
+
+初回調査は「既出候補(UPSERT/ROUND/NULLIF 等)の需要検証」に偏っており(確証バイアス)、
+未考慮カテゴリの発見にはなっていなかった。これを是正するため、**候補リストを除外指定した白紙調査**を
+別途実施し、コードベースと突き合わせて「本当に未実装の新カテゴリ」だけを抽出した。
+
+### 4.5.1 発見されたが実は実装済み(誤検出 — 重要な較正)
+
+discovery で「ギャップ」として挙がったが、コード確認の結果**既にカバー済み**だったもの:
+
+| 項目 | 実態 |
+|------|------|
+| クエリ/テーブルヒント | `SelectClauseWithHints` / `Sql.H` で実装済み |
+| 動的な任意フィルタ合成 | `ConditionIf`(Sql.A)で実装済み = README の看板機能 |
+| REGEXP マッチング述語 | `RegexpLikeCondition` で実装済み |
+| 動的 IN リスト(C# コレクション→複数マーカー展開) | `In(params object[])` で実装済み(`AppendCsv` で展開) |
+
+→ これらは再提案しない。SqlArtisan は当初想定より広くカバーしている。
+
+### 4.5.2 最初の提案が完全に見落としていた本物のギャップ
+
+| 機能 | 需要 | 方言差 | コード現状 | 出典 |
+|------|------|:------:|------------|------|
+| **日付/期間演算**(DATEADD/DATEDIFF/DATE_TRUNC/INTERVAL) | 非常に高(レポート/時系列の定番) | **最大**(引数順すら反転) | 部分のみ(AddMonths/Extract/MonthsBetween はあるが汎用演算なし) | https://docs.getdbt.com/sql-reference/datediff , https://docs.getdbt.com/sql-reference/date-trunc |
+| **全文検索**(to_tsvector@@ / MATCH AGAINST / CONTAINS / FTS5) | 高(ほぼ全アプリ) | 最大(5者で全く別言語) | 無 | https://www.instaclustr.com/blog/postgresql-full-text-search/ |
+| **PostgreSQL 配列演算子**(`= ANY`, `@>`, `&&`, `unnest`) | 高(PG中心アプリ・EF8 が投資) | PG 専用 | 無 | https://www.roji.org/queryable-pg-arrays-in-ef8 |
+| **集約の FILTER (WHERE ...)** | 中〜高(ダッシュボード) | 中(PG/SQLite のみ。他は CASE) | 無 | https://www.datacamp.com/doc/postgresql/filter |
+| **pgvector 類似検索**(`<->`,`<=>`,`<#>`) | 上昇中(AI/RAG) | PG 専用 | 無 | https://github.com/pgvector/pgvector |
+| **DISTINCT ON**(PG) | 中(group 内最新行) | PG 専用(他は Window で代替) | 無 | https://github.com/dotnet/efcore/issues/27470 |
+
+### 4.5.3 スコープ外と判断(SQL 文字列生成器の本分から外れる)
+
+- ストアドプロシージャ実行(EXEC/CALL)、Bulk 実行(SqlBulkCopy)、列名マッピング(snake_case)、
+  型ハンドラ/サイレント型変換 — いずれも「実行・マテリアライズ」レイヤーの話で、SqlArtisan の領域外。
+
+### 4.5.4 較正後の総合所見
+
+- **最大の見落としは「日付/期間演算の汎用サーフェス」**。需要が広く方言差が最悪だが、これは
+  まさに「構文だけが違う/意味は同じ」= dialect 層の本来の守備範囲で、設計哲学とも矛盾しない。
+- **全文検索・PG配列・pgvector**は需要は高いが、いずれも方言/PG専用色が強く、
+  「方言別ヘルパーを素直に並べる」方針で出すのが適切(単一抽象化は哲学違反)。
+- **FILTER / DISTINCT ON** は「他方言で CASE / Window に書き換える」と意味的リライト(非目標)になるため、
+  対応するなら**ネイティブ構文をそのまま出す + 代替手段を文書化**に留めるべき。
+
+### 較正後の優先度(初回 + 発見を統合)
+
+1. UPSERT/MERGE(最大需要・方言別 API)
+2. NULLIF + スカラー数値関数(安価・確実)
+3. **日付/期間演算の汎用化(DATEADD/DATEDIFF/DATE_TRUNC/INTERVAL)** ← 発見で昇格
+4. 文字列集約(方言別)
+5. 全文検索 / PG配列 / pgvector(いずれも方言別ヘルパー)← 発見で新規
+6. FILTER / DISTINCT ON / GROUPING SETS / LATERAL(ニッチ・哲学的注意)
+
+---
+
 ## 5. 調査の限界
 
 - WebFetch が多くの一次サイトで 403。定量値(reaction 数等)は検索スニペット経由で、確定値は各 URL 要確認。
