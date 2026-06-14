@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SPIKE PROOF — a self-contained, compiling, test-backed vertical slice that
+    validates the ③ direction (per-DBMS namespaces + DBMS-tagged nodes + build-
+    time mixing validation, with the DBMS folded into the namespace so Build()
+    takes no argument).
+
+    It is NOT part of SqlArtisan.sln and does not reference the real library, so
+    it cannot destabilise production code. The pipeline below deliberately
+    mirrors the real architecture 1:1 (SqlExpression.Format(buffer) ->
+    SqlBuildingBuffer with an IDbmsDialect that knows its Dbms) so the result
+    maps directly onto src/SqlArtisan.
+
+    Run:  dotnet test spikes/dbms-namespace/proof
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

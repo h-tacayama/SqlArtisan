@@ -29,7 +29,7 @@ This is the breaking-change-allowed destination we converged on:
 4. the universal `SqlArtisan.Sql` facade and the `Build(Dbms)` overload are
    **removed** (breaking).
 
-The three artifacts below correspond to (1), (2), (3):
+The artifacts below correspond to (1), (2), (3):
 
 | File | Role |
 |------|------|
@@ -37,6 +37,39 @@ The three artifacts below correspond to (1), (2), (3):
 | `generated/Oracle.Sql.Numeric.g.cs` | (2) "generated image" — Oracle facade |
 | `generated/SqlServer.Sql.Numeric.g.cs` | (2) "generated image" — SQL Server facade |
 | `prototype/DbmsAffinity.cs` | (3) tag + Build-time validation, riding on the existing `Format` traversal |
+| **`proof/`** | **a compiling, test-backed vertical slice that runs all of the above end to end** |
+
+### `proof/` — does ③ actually work? (run it)
+
+`catalog/`, `generated/`, `prototype/` are illustrative (not compiled). `proof/`
+is the opposite: a self-contained xUnit project with a faithful miniature of the
+real pipeline (`SqlExpression.Format(buffer)` → `SqlBuildingBuffer` →
+`IDbmsDialect`), proving the mechanism rather than describing it.
+
+```bash
+dotnet test spikes/dbms-namespace/proof      # 7 passed
+```
+
+It is **not** in `SqlArtisan.sln` and does **not** reference the real library,
+so it cannot destabilise production code. The miniature maps 1:1 onto
+`src/SqlArtisan`; the entire production-side footprint of ③'s tag mechanism is
+**two new members** (`SqlExpression.AuthoredFor`, `IDbmsDialect.Dbms`) and **one
+new line** (the affinity check in `SqlBuildingBuffer.Append(SqlPart)`).
+
+What the 7 passing tests establish:
+
+| Claim | Test |
+|-------|------|
+| DBMS folded into namespace; `Build()` takes no arg and emits that DBMS's SQL | `Oracle_Ceil_BuildsCeil`, `SqlServer_Ceiling_BuildsCeiling` |
+| IntelliSense filtering is real — the invalid function does not exist (proven by reflection; uncommenting it fails to compile) | `Oracle_Facade_Has_Ceil_But_Not_Ceiling`, `SqlServer_Facade_Has_Ceiling_But_Not_Ceil` |
+| Tag validation catches the cross-namespace **mixing** hole at build time | `Mixing_OracleNode_Into_SqlServerBuild_Throws` |
+| Portable nodes (columns) and universal functions are **not** over-restricted (no false positives) | `PortableColumn_BuildsOnAnyDbms`, `Universal_Abs_NoFalsePositive` |
+
+**Verdict: ③ is viable.** The C# namespace filtering, the DBMS-folded entry
+point, and the near-zero-cost mixing guard all work as designed against a
+faithful pipeline. No blocker found that would argue against committing to ③.
+The remaining work is *engineering scale* (the generator + the verified matrix
+across all categories), not *feasibility*.
 
 ---
 
