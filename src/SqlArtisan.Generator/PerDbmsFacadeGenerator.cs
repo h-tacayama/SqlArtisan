@@ -96,7 +96,11 @@ public sealed class PerDbmsFacadeGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine($"namespace SqlArtisan.Databases.{dbms};");
         sb.AppendLine();
-        sb.AppendLine("public static class Sql");
+        // `partial` so hand-written clause-level builders (e.g. UPSERT) can be
+        // added per DBMS alongside the generated scalar functions. Scalars are
+        // catalog-generated; fluent clause state machines are (for now) authored
+        // by hand — that split is a key finding of the clause-level experiment.
+        sb.AppendLine("public static partial class Sql");
         sb.AppendLine("{");
         sb.AppendLine($"    public static {dbms}Query Select(params object[] selectItems) =>");
         sb.AppendLine("        new((ISqlBuilder)global::SqlArtisan.Sql.Select(selectItems));");

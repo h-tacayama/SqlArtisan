@@ -202,6 +202,17 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    // Emits the dialect's ON CONFLICT pseudo-table reference, e.g. EXCLUDED.col
+    // (PostgreSQL) or excluded.col (SQLite). Mirrors EncloseInAliasQuotes: the
+    // dialect owns the spelling, the buffer owns the emission.
+    internal SqlBuildingBuffer AppendExcludedReference(string columnName)
+    {
+        Append(_dialect.OnConflictExcludedAlias);
+        Append('.');
+        Append(columnName);
+        return this;
+    }
+
     internal SqlBuildingBuffer EncloseInParentheses(SqlPart part)
     {
         Append('(');

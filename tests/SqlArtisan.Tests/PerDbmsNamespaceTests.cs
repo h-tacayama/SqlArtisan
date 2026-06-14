@@ -1,8 +1,9 @@
 using System.Reflection;
 using SqlArtisan.Internal;
-
-// The two per-DBMS facades, aliased so they can sit side by side in one test.
+using MySqlSql = SqlArtisan.Databases.MySql.Sql;
+// The per-DBMS facades, aliased so they can sit side by side in one test.
 using OracleSql = SqlArtisan.Databases.Oracle.Sql;
+using PgSql = SqlArtisan.Databases.PostgreSql.Sql;
 using SqlServerSql = SqlArtisan.Databases.SqlServer.Sql;
 
 namespace SqlArtisan.Tests;
@@ -66,5 +67,59 @@ public class PerDbmsNamespaceTests
 
         Assert.Equal("SELECT ABS(:0)", pg.Text);
         Assert.Equal("SELECT ABS(:0)", ora.Text);
+    }
+
+    // ── Clause-level experiment (#85 UPSERT through per-DBMS namespaces) ──────
+
+    // The PostgreSQL namespace builds ON CONFLICT end-to-end with no DBMS arg.
+    [Fact]
+    public void PostgreSql_Namespace_Upsert_BuildsOnConflict()
+    {
+        SqlStatement sql =
+            PgSql.InsertInto(new TestTable(), new TestTable().Code, new TestTable().Name)
+            .Values(1, "a")
+            .OnConflict(new TestTable().Code)
+            .DoUpdateSet(new TestTable().Name)
+            .Build();
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (:0, :1) " +
+            "ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name",
+            sql.Text);
+    }
+
+    // The MySQL namespace builds ON DUPLICATE KEY UPDATE end-to-end, no DBMS arg.
+    [Fact]
+    public void MySql_Namespace_Upsert_BuildsOnDuplicateKeyUpdate()
+    {
+        SqlStatement sql =
+            MySqlSql.InsertInto(new TestTable(), new TestTable().Code, new TestTable().Name)
+            .Values(1, "a")
+            .OnDuplicateKeyUpdate(new TestTable().Name)
+            .Build();
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (?0, ?1) " +
+            "AS new ON DUPLICATE KEY UPDATE name = new.name",
+            sql.Text);
+    }
+
+    // The clause-level filtering is real: each namespace's post-Values state type
+    // exposes only its own dialect's conflict transition. Reflection is the
+    // runnable proof; the commented calls would fail to compile (CS0117).
+    [Fact]
+    public void Namespace_Insert_Exposes_Only_Its_Dialects_Upsert()
+    {
+        Type pgValues = typeof(SqlArtisan.Databases.PostgreSql.PostgreSqlInsertValues);
+        Type mySqlValues = typeof(SqlArtisan.Databases.MySql.MySqlInsertValues);
+
+        Assert.NotNull(pgValues.GetMethod("OnConflict"));
+        Assert.Null(pgValues.GetMethod("OnDuplicateKeyUpdate"));
+
+        Assert.NotNull(mySqlValues.GetMethod("OnDuplicateKeyUpdate"));
+        Assert.Null(mySqlValues.GetMethod("OnConflict"));
+
+        // pgValues:    .OnDuplicateKeyUpdate(...)  // CS0117
+        // mySqlValues: .OnConflict(...)            // CS0117
     }
 }

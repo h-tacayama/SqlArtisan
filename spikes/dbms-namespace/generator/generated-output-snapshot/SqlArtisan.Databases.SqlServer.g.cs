@@ -5,7 +5,7 @@ using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan.Databases.SqlServer;
 
-public static class Sql
+public static partial class Sql
 {
     public static SqlServerQuery Select(params object[] selectItems) =>
         new((ISqlBuilder)global::SqlArtisan.Sql.Select(selectItems));

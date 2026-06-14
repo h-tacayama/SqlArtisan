@@ -5,9 +5,35 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
     IInsertBuilderColumns,
     IInsertBuilderSet,
     IInsertBuilderTable,
-    IInsertBuilderValues
+    IInsertBuilderValues,
+    IOnConflictBuilder
 {
     private InsertValuesClause? _valuesClause;
+    private DbColumn[] _conflictTarget = [];
+
+    public IOnConflictBuilder OnConflict(params DbColumn[] conflictTarget)
+    {
+        _conflictTarget = conflictTarget;
+        return this;
+    }
+
+    public ISqlBuilder DoNothing()
+    {
+        AddPart(new OnConflictClause(_conflictTarget, updateColumns: null));
+        return this;
+    }
+
+    public ISqlBuilder DoUpdateSet(params DbColumn[] updateColumns)
+    {
+        AddPart(new OnConflictClause(_conflictTarget, updateColumns));
+        return this;
+    }
+
+    public ISqlBuilder OnDuplicateKeyUpdate(params DbColumn[] updateColumns)
+    {
+        AddPart(new OnDuplicateKeyUpdateClause(updateColumns));
+        return this;
+    }
 
     public IReturningBuilder Returning(params object[] expressions) =>
         ReturningBuilder.Create(this, expressions);

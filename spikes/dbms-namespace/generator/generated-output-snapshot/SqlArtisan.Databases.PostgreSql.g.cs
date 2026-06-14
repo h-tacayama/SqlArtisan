@@ -5,7 +5,7 @@ using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan.Databases.PostgreSql;
 
-public static class Sql
+public static partial class Sql
 {
     public static PostgreSqlQuery Select(params object[] selectItems) =>
         new((ISqlBuilder)global::SqlArtisan.Sql.Select(selectItems));

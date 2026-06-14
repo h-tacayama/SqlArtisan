@@ -275,6 +275,87 @@ overloads (only arity-1 is in this PoC), generating the full catalog across all
 categories, and deciding whether the catalog stays TSV or moves to a typed
 source (attributes/JSON). The mechanism itself is proven.
 
+## Step 4 — clause-level decision experiment (#85 UPSERT): feasible, but a different cost curve
+
+Steps 1–3 validated namespace separation on **scalar functions** (the easy case).
+The real prize and the real risk are **clause-level** features (UPSERT, MERGE,
+string-agg, date arithmetic). #85 (UPSERT) was implemented as the decisive test,
+in two layers, both wired into the real library and the suite (now **360/360**).
+
+### What was built
+
+**Shared core (Approach A — neutral API, also real #85 progress, ~96 LOC, paid once):**
+
+- `OnConflictClause` / `OnDuplicateKeyUpdateClause` (`Internal/.../Insert/`)
+- `IDbmsDialect.OnConflictExcludedAlias` (`EXCLUDED` / `excluded`) + buffer
+  `AppendExcludedReference` — the dialect owns the spelling, no node branches on `Dbms`
+- `IInsertBuilderValues.OnConflict/OnDuplicateKeyUpdate` + `IOnConflictBuilder`
+- six keywords
+
+This serves **all** DBMS via `Build(Dbms)`; one builder exposes both verbs.
+Exact-SQL tests pin PostgreSQL (`EXCLUDED`), SQLite (`excluded`), MySQL
+(`AS new ... new.col`) — `tests/.../UpsertTests.cs`.
+
+**Namespace layer (Approach B — per-DBMS filtering, ~92 LOC for *2* DBMS, *not* generated):**
+
+- `SqlArtisan.Databases.PostgreSql` exposes `InsertInto…Values…OnConflict…DoUpdateSet/DoNothing`
+- `SqlArtisan.Databases.MySql` exposes `…Values…OnDuplicateKeyUpdate`
+- each builds with **no DBMS argument**; the wrong dialect's verb is **absent at
+  compile time** (proven by reflection + commented CS0117 in `PerDbmsNamespaceTests`)
+
+### Feasibility verdict: ✅ yes, it works at the clause level too
+
+End-to-end through the real pipeline: PG `ON CONFLICT` and MySQL `ON DUPLICATE KEY
+UPDATE` build with no `Dbms` arg, the `EXCLUDED`/`excluded` divergence is handled
+in the dialect layer, MySQL's structural `AS new` insertion is absorbed by the
+clause (no mutation of the VALUES clause), and each namespace omits the other's
+verb. No blocker.
+
+### But the maintenance cost is a *different curve* from scalars
+
+| | Scalar functions (Step 3) | Clause features (this step) |
+|---|---|---|
+| Unit of divergence | one method name | a fluent **state machine** (Values → OnConflict → DoUpdate…) |
+| Per-DBMS facade | **generated** from a 1-line catalog row | **hand-written**: each state is its own type, return types are DBMS-specific → no reuse across namespaces |
+| Marginal cost of one DBMS | +1 CSV token | +N wrapper types (one per fluent state) |
+| Covered by the Step-3 generator? | yes | **no** (it emits flat method lists, not state machines) |
+
+Concretely: ON CONFLICT for **PostgreSQL alone** needed **3** wrapper types
+(`…InsertColumns/InsertValues/OnConflict`). SQLite (also ON CONFLICT) would need
+3 more — identical shape, different return types, **zero reuse**. MySQL's variant
+needed 2. So **one** UPSERT feature across 3 DBMS ≈ **8 hand-written wrapper
+types** on top of the shared core — and #86/#88/#89 are all clause-shaped too.
+
+Two smaller costs also showed up:
+- `IDbmsDialect` now carries `OnConflictExcludedAlias`, **unused by 3 of 5**
+  dialects. Each divergent construct tends to add such partial-coverage members.
+- The neutral API (Approach A) is unavoidable regardless — it's just #85. The
+  namespace layer is **additive cost on top**, not a replacement.
+
+### What this means for the Q3 decision
+
+- **For scalars, namespaces are nearly free** (generated) and genuinely polished.
+- **For clauses, namespaces cost ~N× hand-written state machines** for a *modest*
+  marginal benefit over the roadmap's already-chosen "per-dialect methods in one
+  namespace": the difference is *"wrong verb absent"* vs *"wrong verb present but
+  named for another dialect."* Both reach the same shared core.
+
+Three honest options, in increasing investment:
+
+1. **Per-dialect methods only (roadmap #91 as-is).** Ship `OnConflict` /
+   `OnDuplicateKeyUpdate` on one builder (Approach A). No namespace layer for
+   clauses. Lowest cost; the wrong verb is discoverable-but-present.
+2. **Hybrid.** Namespaces for scalar functions (generated, cheap); per-dialect
+   methods for clause features. Best cost/benefit, but two mental models.
+3. **Namespaces everywhere.** Requires extending the generator to emit fluent
+   state machines (modeling transitions, not flat lists) — real engineering — or
+   accepting the per-DBMS wrapper boilerplate forever.
+
+**Recommendation:** the scalar PoC's "③ is great" does **not** transfer
+unconditionally to clauses. Lean **option 2 (hybrid)** — or **option 1** if a
+single mental model is valued over the compile-time guarantee. Reserve full
+option 3 for after a fluent-builder generator exists. Decide before 1.0.
+
 ## Findings & recommendation (after the spike)
 
 1. **Feasible, and the philosophy fits.** Per-DBMS namespaces are the logical

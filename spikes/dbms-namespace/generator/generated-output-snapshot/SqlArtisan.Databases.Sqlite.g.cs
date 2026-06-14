@@ -5,7 +5,7 @@ using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan.Databases.Sqlite;
 
-public static class Sql
+public static partial class Sql
 {
     public static SqliteQuery Select(params object[] selectItems) =>
         new((ISqlBuilder)global::SqlArtisan.Sql.Select(selectItems));

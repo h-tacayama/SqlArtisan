@@ -7,4 +7,7 @@ internal sealed class OracleDialect : IDbmsDialect
     public char AliasQuote => '"';
 
     public char ParameterMarker => ':';
+
+    // Unused: Oracle UPSERT is MERGE, not ON CONFLICT.
+    public string OnConflictExcludedAlias => "EXCLUDED";
 }

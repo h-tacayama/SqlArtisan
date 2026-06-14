@@ -7,4 +7,7 @@ internal sealed class MySqlDialect : IDbmsDialect
     public char AliasQuote => '`';
 
     public char ParameterMarker => '?';
+
+    // Unused: MySQL UPSERT is ON DUPLICATE KEY UPDATE, not ON CONFLICT.
+    public string OnConflictExcludedAlias => "EXCLUDED";
 }
