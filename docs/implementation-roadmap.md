@@ -3,6 +3,12 @@
 策定日: 2026-06-14
 前提資料: `docs/feature-demand-research.md`(競合 + Web + ゼロベース発見調査)
 
+> **トラッキング:** この計画は GitHub issue 化済み。全体像は **Epic #91**、
+> 個別は #84(スカラー関数)/ #85(UPSERT)/ #86(日付演算)/ #87(Bulk コア)/
+> #88(文字列集約)/ #89(MERGE)/ #90(BulkCopy パッケージ)。
+> 低需要の項目(FILTER/PG配列/DISTINCT ON/pgvector/全文検索/GROUPING SETS/LATERAL)は
+> Epic 内の「Future / Deferred」に記載し、standalone issue にはしていない。
+
 本計画は **需要(調査で実証)** と **実装容易性(本リポジトリのアーキテクチャ基準)** の
 2 軸でスコアリングし、ROI の高い順に段階化したもの。**需要の低い機能は明示的に後回し/不採用**とする。
 
