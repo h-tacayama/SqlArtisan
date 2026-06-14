@@ -10,4 +10,6 @@ internal sealed class MySqlDialect : IDbmsDialect
 
     // Unused: MySQL UPSERT is ON DUPLICATE KEY UPDATE, not ON CONFLICT.
     public string OnConflictExcludedAlias => "EXCLUDED";
+
+    public string StatementTerminator => "";
 }

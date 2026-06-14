@@ -122,4 +122,64 @@ public class PerDbmsNamespaceTests
         // pgValues:    .OnDuplicateKeyUpdate(...)  // CS0117
         // mySqlValues: .OnConflict(...)            // CS0117
     }
+
+    // ── Clause-level experiment, 2nd shape (#89 MERGE, a full statement) ──────
+
+    // MERGE is exposed by the Oracle/SqlServer namespaces (the inverse of UPSERT:
+    // PG/MySql/SQLite have no MERGE). Oracle builds with no trailing semicolon.
+    [Fact]
+    public void Oracle_Namespace_Merge_BuildsWithoutSemicolon()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        TestTable c = new();
+
+        SqlStatement sql =
+            OracleSql.MergeInto(t)
+            .Using(s)
+            .On(t.Code == s.Code)
+            .WhenMatchedThenUpdateSet(t.Name == s.Name)
+            .WhenNotMatchedThenInsert(c.Code, c.Name)
+            .Values(s.Code, s.Name)
+            .Build();
+
+        Assert.EndsWith("VALUES (\"s\".code, \"s\".name)", sql.Text);
+        Assert.StartsWith("MERGE INTO test_table \"t\" USING test_table \"s\"", sql.Text);
+    }
+
+    // The SqlServer namespace folds in the mandatory trailing semicolon.
+    [Fact]
+    public void SqlServer_Namespace_Merge_BuildsWithSemicolon()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        TestTable c = new();
+
+        SqlStatement sql =
+            SqlServerSql.MergeInto(t)
+            .Using(s)
+            .On(t.Code == s.Code)
+            .WhenMatchedThenUpdateSet(t.Name == s.Name)
+            .WhenNotMatchedThenInsert(c.Code, c.Name)
+            .Values(s.Code, s.Name)
+            .Build();
+
+        Assert.EndsWith(";", sql.Text);
+    }
+
+    // MERGE is present only in the Oracle/SqlServer namespaces; UPSERT verbs are
+    // present only in PG/MySql. The five DBMS are cleanly partitioned by upsert
+    // mechanism, with no overlap — the symmetry the namespace approach buys.
+    [Fact]
+    public void Namespaces_Partition_Upsert_And_Merge_By_Dialect()
+    {
+        Assert.NotNull(typeof(OracleSql).GetMethod("MergeInto"));
+        Assert.NotNull(typeof(SqlServerSql).GetMethod("MergeInto"));
+        Assert.Null(typeof(PgSql).GetMethod("MergeInto"));
+        Assert.Null(typeof(MySqlSql).GetMethod("MergeInto"));
+
+        // Inversely, the UPSERT entry points live only on PG/MySql:
+        Assert.Null(typeof(OracleSql).GetMethod("InsertInto"));
+        Assert.NotNull(typeof(PgSql).GetMethod("InsertInto"));
+    }
 }

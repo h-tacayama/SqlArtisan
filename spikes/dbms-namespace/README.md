@@ -275,7 +275,7 @@ overloads (only arity-1 is in this PoC), generating the full catalog across all
 categories, and deciding whether the catalog stays TSV or moves to a typed
 source (attributes/JSON). The mechanism itself is proven.
 
-## Step 4 — clause-level decision experiment (#85 UPSERT): feasible, but a different cost curve
+## Step 4 — clause-level decision experiments (#85 UPSERT, #89 MERGE): feasible, but a different cost curve
 
 Steps 1–3 validated namespace separation on **scalar functions** (the easy case).
 The real prize and the real risk are **clause-level** features (UPSERT, MERGE,
@@ -331,6 +331,47 @@ Two smaller costs also showed up:
   dialects. Each divergent construct tends to add such partial-coverage members.
 - The neutral API (Approach A) is unavoidable regardless — it's just #85. The
   namespace layer is **additive cost on top**, not a replacement.
+
+### Second sample — #89 MERGE (a full statement, deeper chain)
+
+To check the UPSERT numbers generalise rather than being a one-off, #89 (MERGE,
+Oracle / SQL Server) was built the same way (suite now **365/365**).
+
+- **Shared core** (~148 LOC, paid once): `MergeBuilder` + `MergeClauses` +
+  `IMergeBuilder` + the `Sql.MergeInto` factory. New dialect divergence: the
+  **trailing semicolon** (SQL Server requires it, Oracle forbids it), captured as
+  `IDbmsDialect.StatementTerminator` — a **second** partial-coverage member
+  (meaningful for 1 of 5). It also forced MERGE to bypass the shared
+  `BuildCore` so the `;` abuts the final clause: clause features can perturb even
+  the build path, not just add parts.
+- **Namespace layer** (~110 LOC for 2 DBMS, not generated): `Oracle.Merge.cs` and
+  `SqlServer.Merge.cs`, **4 wrapper types each** (Using → On → When → Insert; the
+  terminal reuses the generated `<Dbms>Query`). MERGE's chain is *deeper* than
+  UPSERT's, so it costs *more* wrapper types per DBMS — confirming the cost
+  scales with **fluent depth**, exactly as predicted.
+
+Pleasant symmetry it also demonstrates: UPSERT lives only in PG/MySql/SQLite
+namespaces, MERGE only in Oracle/SqlServer — the five DBMS are **cleanly
+partitioned by upsert mechanism**, with no namespace exposing a verb it can't run
+(test `Namespaces_Partition_Upsert_And_Merge_By_Dialect`).
+
+### The cost, generalised (two samples)
+
+For a clause feature, the namespace layer's marginal cost ≈
+
+> **Σ over supporting DBMS of (number of fluent states)** hand-written wrapper
+> types — none reusable across namespaces, none covered by the Step-3 generator.
+
+| Feature | Fluent depth | DBMS | Namespace wrapper types | Generated? |
+|---------|-------------|------|-------------------------|------------|
+| Scalar fn (Step 3) | 0 (flat) | 5 | 0 (just list entries) | **yes** |
+| UPSERT (#85) | 2–3 | 3 | ~8 | no |
+| MERGE (#89) | 4 | 2 | 8 | no |
+
+Scalars sit at depth 0 and are generated → ~free. Every clause feature on the
+roadmap (#85/#86/#88/#89) sits at depth ≥ 2 and is **hand-written per DBMS**. The
+shared core (~96–148 LOC each) is owed regardless — it *is* the feature; the
+namespace layer is pure additive boilerplate whose size grows with chain depth.
 
 ### What this means for the Q3 decision
 

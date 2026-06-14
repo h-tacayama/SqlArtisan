@@ -9,4 +9,6 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
     public char ParameterMarker => ':';
 
     public string OnConflictExcludedAlias => "EXCLUDED";
+
+    public string StatementTerminator => "";
 }

@@ -15,4 +15,10 @@ internal interface IDbmsDialect
     // ON DUPLICATE KEY UPDATE or MERGE). That three-of-five dialects carry an
     // unused member is itself a data point for the namespace-cost write-up.
     string OnConflictExcludedAlias { get; }
+
+    // The statement terminator. SQL Server's MERGE *requires* a trailing
+    // semicolon; the other dialects need none. Like OnConflictExcludedAlias,
+    // this is a partial-coverage member (meaningful for one dialect, empty for
+    // four) — another accreting cost as clause features grow.
+    string StatementTerminator { get; }
 }

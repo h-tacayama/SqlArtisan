@@ -9,4 +9,6 @@ internal sealed class SqliteDialect : IDbmsDialect
     public char ParameterMarker => ':';
 
     public string OnConflictExcludedAlias => "excluded";
+
+    public string StatementTerminator => "";
 }

@@ -10,4 +10,7 @@ internal sealed class SqlServerDialect : IDbmsDialect
 
     // Unused: SQL Server UPSERT is MERGE, not ON CONFLICT.
     public string OnConflictExcludedAlias => "EXCLUDED";
+
+    // SQL Server's MERGE requires a terminating semicolon.
+    public string StatementTerminator => ";";
 }
