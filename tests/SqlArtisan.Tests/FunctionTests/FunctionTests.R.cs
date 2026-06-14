@@ -188,6 +188,34 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Round_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Round(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("ROUND(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Round_NumericValueDecimals_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Round(_t.Code, 2))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("ROUND(\"t\".code, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Rpad_CharacterLength_CorrectSql()
     {
         SqlStatement sql =

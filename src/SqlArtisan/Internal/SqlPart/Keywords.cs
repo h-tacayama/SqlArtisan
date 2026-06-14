@@ -15,6 +15,8 @@ internal static class Keywords
     internal const string By = "BY";
     internal const string Case = "CASE";
     internal const string Cast = "CAST";
+    internal const string Ceil = "CEIL";
+    internal const string Ceiling = "CEILING";
     internal const string Coalesce = "COALESCE";
     internal const string Concat = "CONCAT";
     internal const string Count = "COUNT";
@@ -40,6 +42,7 @@ internal static class Keywords
     internal const string Fetch = "FETCH";
     internal const string First = "FIRST";
     internal const string FirstValue = "FIRST_VALUE";
+    internal const string Floor = "FLOOR";
     internal const string Following = "FOLLOWING";
     internal const string For = "FOR";
     internal const string From = "FROM";
@@ -81,6 +84,7 @@ internal static class Keywords
     internal const string NthValue = "NTH_VALUE";
     internal const string Ntile = "NTILE";
     internal const string Null = "NULL";
+    internal const string Nullif = "NULLIF";
     internal const string NullsFirst = "NULLS FIRST";
     internal const string NullsLast = "NULLS LAST";
     internal const string Nvl = "NVL";
@@ -95,6 +99,7 @@ internal static class Keywords
     internal const string PercentileCont = "PERCENTILE_CONT";
     internal const string PercentileDisc = "PERCENTILE_DISC";
     internal const string PercentRank = "PERCENT_RANK";
+    internal const string Power = "POWER";
     internal const string Preceding = "PRECEDING";
     internal const string Range = "RANGE";
     internal const string Rank = "RANK";
@@ -106,6 +111,7 @@ internal static class Keywords
     internal const string Replace = "REPLACE";
     internal const string Returning = "RETURNING";
     internal const string Right = "RIGHT";
+    internal const string Round = "ROUND";
     internal const string Row = "ROW";
     internal const string RowNumber = "ROW_NUMBER";
     internal const string Rows = "ROWS";
@@ -113,7 +119,9 @@ internal static class Keywords
     internal const string Rtrim = "RTRIM";
     internal const string Select = "SELECT";
     internal const string Set = "SET";
+    internal const string Sign = "SIGN";
     internal const string Skip = "SKIP";
+    internal const string Sqrt = "SQRT";
     internal const string Substr = "SUBSTR";
     internal const string Substrb = "SUBSTRB";
     internal const string Sum = "SUM";

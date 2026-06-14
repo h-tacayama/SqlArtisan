@@ -6,6 +6,34 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
+    public void Sign_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Sign(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("SIGN(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Sqrt_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Sqrt(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("SQRT(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Substr_CharacterPosition_CorrectSql()
     {
         SqlStatement sql =

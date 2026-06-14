@@ -99,6 +99,23 @@ public static partial class Sql
             Resolve(search),
             Resolve(replacement));
 
+    /// <summary>
+    /// The <c>ROUND(expr)</c> function: rounds <paramref name="expr"/> to the
+    /// nearest integer.
+    /// </summary>
+    public static RoundFunction Round(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>ROUND(expr, decimals)</c> function: rounds <paramref name="expr"/>
+    /// to <paramref name="decimals"/> decimal places.
+    /// </summary>
+    public static RoundFunction Round(
+        object expr,
+        object decimals) => new(
+            Resolve(expr),
+            Resolve(decimals));
+
     public static RpadFunction Rpad(
         object source,
         object length) => new(

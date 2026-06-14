@@ -34,6 +34,20 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Nullif_ColumnAndValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Nullif(_t.Code, 0))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("NULLIF(\"t\".code, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Nvl_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
