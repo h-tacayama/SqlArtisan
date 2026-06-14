@@ -2,54 +2,29 @@ using SqlArtisan.Internal;
 
 namespace SqlArtisan.Databases.PostgreSql;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Approach B at the CLAUSE level: the PostgreSQL namespace exposes only ON
-// CONFLICT (not ON DUPLICATE KEY UPDATE, not MERGE). Unlike the scalar facades —
-// which the generator emits from the catalog — a fluent clause API cannot be a
-// flat list of methods: each intermediate state (after Values, after OnConflict)
-// is its own type, and every per-DBMS namespace must mirror that whole state
-// machine. These wrappers delegate to the shared InsertBuilder; their only job
-// is to narrow which transitions are reachable. The boilerplate below — three
-// wrapper types for one statement shape, one DBMS — IS the maintenance-cost
-// measurement (see the spike README write-up).
-// ─────────────────────────────────────────────────────────────────────────────
+// EXTENSION-based ③ for UPSERT (replaces the earlier per-DBMS wrapper version).
+// The entry is gated per namespace; the verbs are namespace-scoped extension
+// methods on the shared verb-less surface (IExtUpsertValues / IExtConflictAction),
+// so `using SqlArtisan.Databases.PostgreSql;` surfaces OnConflict but never MySQL's
+// OnDuplicateKeyUpdate — with NO per-DBMS wrapper state machine. Terminals return
+// PostgreSqlQuery so Build() folds the DBMS with no argument.
 public static partial class Sql
 {
-    public static PostgreSqlInsertColumns InsertInto(DbTableBase table, params DbColumn[] columns) =>
-        new(global::SqlArtisan.Sql.InsertInto(table, columns));
+    public static IExtUpsertColumns InsertInto(DbTableBase table, params DbColumn[] columns) =>
+        new ExtUpsertBuilder(new InsertBuilder(new InsertIntoClause(table, columns)));
 }
 
-public sealed class PostgreSqlInsertColumns
+public static class PostgreSqlUpsertExtensions
 {
-    private readonly IInsertBuilderColumns _inner;
+    public static IExtConflictAction OnConflict(this IExtUpsertValues values, params DbColumn[] conflictTarget)
+    {
+        ((ExtUpsertBuilder)values).Inner.OnConflict(conflictTarget);
+        return (ExtUpsertBuilder)values;
+    }
 
-    internal PostgreSqlInsertColumns(IInsertBuilderColumns inner) => _inner = inner;
+    public static PostgreSqlQuery DoUpdateSet(this IExtConflictAction action, params DbColumn[] updateColumns) =>
+        new(((ExtUpsertBuilder)action).Inner.DoUpdateSet(updateColumns));
 
-    public PostgreSqlInsertValues Values(params object[] values) =>
-        new(_inner.Values(values));
-}
-
-public sealed class PostgreSqlInsertValues
-{
-    private readonly IInsertBuilderValues _inner;
-
-    internal PostgreSqlInsertValues(IInsertBuilderValues inner) => _inner = inner;
-
-    public PostgreSqlOnConflict OnConflict(params DbColumn[] conflictTarget) =>
-        new(_inner.OnConflict(conflictTarget));
-
-    // No OnDuplicateKeyUpdate here: that is the namespace filtering in action.
-    public PostgreSqlQuery Build() => new(_inner);
-}
-
-public sealed class PostgreSqlOnConflict
-{
-    private readonly IOnConflictBuilder _inner;
-
-    internal PostgreSqlOnConflict(IOnConflictBuilder inner) => _inner = inner;
-
-    public PostgreSqlQuery DoNothing() => new(_inner.DoNothing());
-
-    public PostgreSqlQuery DoUpdateSet(params DbColumn[] updateColumns) =>
-        new(_inner.DoUpdateSet(updateColumns));
+    public static PostgreSqlQuery DoNothing(this IExtConflictAction action) =>
+        new(((ExtUpsertBuilder)action).Inner.DoNothing());
 }

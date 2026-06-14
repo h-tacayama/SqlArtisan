@@ -320,11 +320,14 @@ verb. No blocker.
 | Marginal cost of one DBMS | +1 CSV token | +N wrapper types (one per fluent state) |
 | Covered by the Step-3 generator? | yes | **no** (it emits flat method lists, not state machines) |
 
-Concretely: ON CONFLICT for **PostgreSQL alone** needed **3** wrapper types
-(`…InsertColumns/InsertValues/OnConflict`). SQLite (also ON CONFLICT) would need
-3 more — identical shape, different return types, **zero reuse**. MySQL's variant
-needed 2. So **one** UPSERT feature across 3 DBMS ≈ **8 hand-written wrapper
-types** on top of the shared core — and #86/#88/#89 are all clause-shaped too.
+Concretely (this was the *first* implementation; see the re-measurement below for
+a much cheaper one): ON CONFLICT for **PostgreSQL alone** needed **3** wrapper
+types (`…InsertColumns/InsertValues/OnConflict`). SQLite (also ON CONFLICT) would
+need 3 more — identical shape, different return types, **zero reuse**. MySQL's
+variant needed 2. So **one** UPSERT feature across 3 DBMS ≈ **8 hand-written
+wrapper types** on top of the shared core. **⚠️ This wrapper count was later shown
+to be an artifact of the implementation, not inherent to ③ — see "Re-measurement"
+below, where extension methods collapse it to 1 shared type + 7 small methods.**
 
 Two smaller costs also showed up:
 - `IDbmsDialect` now carries `OnConflictExcludedAlias`, **unused by 3 of 5**
@@ -398,8 +401,51 @@ The namespace layer's marginal cost for a feature ≈
 |---------|-------|-------------|------|-------------------------|------------|
 | Scalar fn (Step 3) | function, name-only divergence | 0 | 5 | 0 | **yes** (catalog) |
 | String agg (#88) | function, structural divergence | 0 | 4 | **0** (4 factory methods) | no (hand node) |
-| UPSERT (#85) | INSERT-tail clause | 2–3 | 3 | ~8 | no |
+| UPSERT (#85), wrappers | INSERT-tail clause | 2–3 | 3 | ~8 | no |
+| UPSERT (#85), **extensions** | INSERT-tail clause | 2–3 | 3 | **1 shared** + 7 ext methods | no |
 | MERGE (#89) | full statement | 4 | 2 | 8 | no |
+
+### Re-measurement (correction): extension-method ③ collapses the wrapper cost
+
+The wrapper counts above measured *one implementation* of ③. A reviewer asked
+whether gating the **entry** per namespace and using **namespace-scoped extension
+methods** for the mid-chain verbs would absorb the divergence far more cheaply.
+It does — the UPSERT namespace layer was re-implemented that way and remeasured:
+
+- The shared builder (`IExtUpsertValues`/`IExtConflictAction`) carries **no
+  verbs** (an instance method would shadow a same-named extension). `OnConflict`
+  /`DoUpdateSet`/`DoNothing` live as extensions in `…PostgreSql` and `…Sqlite`;
+  `OnDuplicateKeyUpdate` in `…MySql`. Terminals return `<Dbms>Query`, so `Build()`
+  still folds the DBMS with no argument.
+- **Wrapper types: 8 → 1** (a single shared `ExtUpsertBuilder`). Per-DBMS cost is
+  now just **7 tiny extension methods** (PG 3 + SQLite 3 + MySQL 1), not bespoke
+  state-machine types.
+
+Two claims were verified by actually compiling, not asserted:
+
+- **Filtering is real.** Under `using …PostgreSql;` only, calling the MySQL verb
+  fails with **`CS1061` … no accessible extension method 'OnDuplicateKeyUpdate'
+  … are you missing a using directive**. (Proof: `UpsertNamespacePostgreSqlTests`.)
+- **Multi-import is a real cost.** Importing both `…PostgreSql` and `…Sqlite`
+  (which share an `OnConflict`) makes the call **`CS0121` ambiguous** — so a file
+  that targets two ON-CONFLICT dialects at once cannot use the unqualified verb.
+
+Residual costs of extension-③ that keep it *above* the neutral baseline:
+- **No neutral API.** The verbs exist only as per-namespace extensions; you must
+  import a DBMS namespace to write an upsert at all.
+- **No-arg `Build()` couples the terminal per DBMS.** `DoUpdateSet`/`DoNothing`
+  must return `PostgreSqlQuery` vs `SqliteQuery`, so the ON CONFLICT family is
+  **duplicated** across PG and SQLite (hence the CS0121 ambiguity above). Drop
+  no-arg `Build()` (use `Build(Dbms)`) and the family collapses to one shared set
+  — trading ergonomics for less duplication.
+- The shared interfaces must stay **verb-less**, i.e. a parallel surface to the
+  neutral builder.
+
+So the earlier "③ ≈ 8 wrapper types" overstated ③'s clause cost; **extension-③ is
+~`1 shared type + one small method per (verb × dialect)`** — close to, but still
+above, ②'s ~4 *shared* methods (which reuse one builder and fold the DBMS at
+`Build(Dbms)`, dialect handling `EXCLUDED`/`excluded`). For fluent clauses the
+ranking is now **② < ③-extensions ≪ ③-wrappers**, a much narrower gap than before.
 
 So there are **three** cost tiers, set by *fluent depth*, not by syntactic
 divergence:
@@ -410,8 +456,9 @@ divergence:
    `Sql.StringAgg` would have to push the structural variance into the dialect
    layer (a richer `IDbmsDialect` contract, brushing against "don't rewrite the
    user's SQL"). This **inverts** the clause finding.
-3. **Depth ≥ 2** (UPSERT/MERGE): per-DBMS wrapper state machines, the expensive
-   tier; neutral (one builder) is cheaper than namespaces here.
+3. **Depth ≥ 2** (UPSERT/MERGE): with extension methods the per-DBMS cost is a
+   handful of small methods (not state machines), but neutral is still slightly
+   cheaper and keeps a portable API.
 
 ### What this means for the Q3 decision
 
@@ -420,9 +467,11 @@ is exactly the case for a hybrid:
 
 - **Functions (depth 0), whether name-only or structural:** namespaces are cheap
   and often *cleaner* than neutral. Worth doing.
-- **Fluent clauses (depth ≥ 2):** namespaces cost ~N× wrapper machines for a
-  *modest* benefit over per-dialect methods (*"wrong verb absent"* vs *"present
-  but named for another dialect"*). Neutral wins.
+- **Fluent clauses (depth ≥ 2):** ② (per-dialect methods) is the cheapest and
+  keeps a neutral API, but **③ via extension methods is now a close, legitimate
+  alternative** if the *compile-time* guarantee (wrong verb absent, not merely
+  present-but-mis-named) is valued — its cost is small methods, not wrapper
+  machines. ③-via-wrappers is the only clearly-dominated option.
 
 Three honest options, in increasing investment:
 
@@ -434,16 +483,24 @@ Three honest options, in increasing investment:
    divergent functions like string-agg = one factory each). Per-dialect **methods**
    for **fluent clauses** (UPSERT/MERGE) where namespaces cost ~N× wrapper
    machines. The two mental models map cleanly onto "function vs statement".
-3. **Namespaces everywhere.** Requires extending the generator to emit fluent
-   state machines (modeling transitions, not flat lists) — real engineering — or
-   accepting the per-DBMS wrapper boilerplate forever.
+3. **Namespaces everywhere — via extension methods (re-measured), not wrappers.**
+   Entry gated per namespace + mid-chain verbs as namespace-scoped extension
+   methods. Cost is small methods, not state machines (UPSERT: 1 shared type + 7
+   methods). Gives a *compile-time* wrong-verb guarantee. Costs: no neutral API,
+   per-DBMS terminal duplication for no-arg `Build()`, and multi-import ambiguity
+   (CS0121) when two same-verb dialects are imported together. The old
+   "needs a fluent-builder generator" objection was specific to the *wrapper*
+   implementation and no longer applies.
 
-**Recommendation:** three samples show the cost is driven by **fluent depth**, not
-syntactic divergence, and that namespaces *win for functions* but *lose for fluent
-clauses*. That is a textbook case for **option 2 (hybrid)**: namespaces for the
-whole function surface, per-dialect methods for statement-level clauses — or
-**option 1** if one mental model outweighs the compile-time guarantee. Reserve
-option 3 until a fluent-builder generator exists. Decide before 1.0.
+**Recommendation:** four samples show the cost is driven by **fluent depth**, not
+syntactic divergence, and that namespaces *win for functions* outright. For fluent
+clauses the gap narrowed once ③ was re-measured with extension methods:
+**② (hybrid) remains the lowest-cost and keeps a neutral API**, but **③-extensions
+is a close, defensible alternative** when the compile-time guarantee is prized.
+Net: lean **option 2 (hybrid)** — namespaces for the whole function surface,
+per-dialect methods for statement-level clauses — adopting **③-extensions for a
+clause only where the compile-time guard is worth the lost neutral API**. Reserve
+the wrapper form (the dominated option) for never. Decide before 1.0.
 
 ## Findings & recommendation (after the spike)
 
