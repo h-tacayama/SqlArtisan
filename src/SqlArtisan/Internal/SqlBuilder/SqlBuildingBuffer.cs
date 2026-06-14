@@ -47,8 +47,36 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal SqlBuildingBuffer Append(SqlPart part)
     {
-        part.Format(this);
+        Write(part);
         return this;
+    }
+
+    // Single chokepoint through which every SqlPart is formatted. The per-DBMS
+    // affinity guard lives here so it covers all paths (projection items,
+    // clauses, function arguments) without scattering checks. It rides on the
+    // traversal Format already performs: one comparison per part, no extra walk.
+    // Portable nodes (AuthoredFor == null) pass unconditionally.
+    private void Write(SqlPart part)
+    {
+        if (part is SqlExpression expression
+            && expression.AuthoredFor is Dbms authored
+            && authored != _dialect.Dbms)
+        {
+            throw new InvalidOperationException(
+                $"This expression was authored with SqlArtisan.{authored} but the " +
+                $"query is being built for {_dialect.Dbms}. Build it through the " +
+                $"namespace that matches its DBMS, or rebuild it for {_dialect.Dbms}.");
+        }
+
+        part.Format(this);
+    }
+
+    private void WriteNullable(SqlPart? part)
+    {
+        if (part is not null)
+        {
+            Write(part);
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -78,12 +106,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
             return this;
         }
 
-        parts[0].Format(this);
+        Write(parts[0]);
 
         for (int i = 1; i < parts.Length; i++)
         {
             Append(", ");
-            parts[i].Format(this);
+            Write(parts[i]);
         }
 
         return this;
@@ -125,7 +153,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal SqlBuildingBuffer AppendSpace(SqlPart part)
     {
-        part.Format(this);
+        Write(part);
         AppendSpace();
         return this;
     }
@@ -134,7 +162,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         if (part is not null)
         {
-            part.Format(this);
+            Write(part);
             AppendSpace();
         }
 
@@ -148,12 +176,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
             return this;
         }
 
-        parts[0].Format(this);
+        Write(parts[0]);
 
         for (int i = 1; i < parts.Length; i++)
         {
             AppendSpace();
-            parts[i].Format(this);
+            Write(parts[i]);
         }
 
         return this;
@@ -161,7 +189,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal SqlBuildingBuffer CloseParenthesis(SqlPart? part = null)
     {
-        part?.Format(this);
+        WriteNullable(part);
         Append(')');
         return this;
     }
@@ -177,7 +205,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     internal SqlBuildingBuffer EncloseInParentheses(SqlPart part)
     {
         Append('(');
-        part.Format(this);
+        Write(part);
         Append(')');
         return this;
     }
@@ -193,14 +221,14 @@ internal sealed class SqlBuildingBuffer : IDisposable
     internal SqlBuildingBuffer OpenParenthesis(SqlPart? part = null)
     {
         Append('(');
-        part?.Format(this);
+        WriteNullable(part);
         return this;
     }
 
     internal SqlBuildingBuffer PrependComma(SqlPart part)
     {
         Append(", ");
-        part.Format(this);
+        Write(part);
         return this;
     }
 
@@ -216,7 +244,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         if (part is not null)
         {
             Append(", ");
-            part.Format(this);
+            Write(part);
         }
 
         return this;
@@ -236,7 +264,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     internal SqlBuildingBuffer PrependSpace(SqlPart part)
     {
         AppendSpace();
-        part.Format(this);
+        Write(part);
         return this;
     }
 
@@ -245,7 +273,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         if (part is not null)
         {
             AppendSpace();
-            part.Format(this);
+            Write(part);
         }
 
         return this;
@@ -321,7 +349,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         }
         else
         {
-            selectItem.Format(this);
+            Write(selectItem);
         }
     }
 

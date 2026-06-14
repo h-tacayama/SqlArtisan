@@ -23,7 +23,9 @@ public class DbmsResolverTests
     [Fact]
     public void Resolve_OracleConnection_ReturnsOracle()
     {
-        IDbConnection conn = new Oracle.ManagedDataAccess.Client.OracleConnection();
+        // global:: is required because the per-DBMS namespace SqlArtisan.Oracle
+        // (spike) shadows the Oracle.ManagedDataAccess driver namespace here.
+        IDbConnection conn = new global::Oracle.ManagedDataAccess.Client.OracleConnection();
         Dbms dbms = DbmsResolver.Resolve(conn);
         Assert.Equal(Dbms.Oracle, dbms);
     }

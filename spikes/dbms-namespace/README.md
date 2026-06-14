@@ -181,6 +181,48 @@ user's responsibility, by design.
 
 ---
 
+## Step 2 — thin integration into the REAL library (validated)
+
+The `proof/` slice ran against a miniature. The next validation wired the same
+mechanism into `src/SqlArtisan` itself, scoped to `Abs`/`Ceil`/`Ceiling`, to
+answer: *does ③ drop into the real codebase without breaking the existing
+suite?* Result: **yes — 353/353 tests green, `dotnet format` clean.**
+
+Production-side footprint (all additive):
+
+| Change | File(s) |
+|--------|---------|
+| `Dbms? AuthoredFor` on the node base (defaults null via the implicit `base()` call, so every existing node is unchanged/portable) | `Internal/.../SqlExpression.cs` |
+| `Dbms Dbms { get; }` on the dialect + 5 impls | `Internal/.../DbmsDialect/*` |
+| Affinity guard centralised in one `Write(SqlPart)` chokepoint, with every in-buffer `Format(this)` routed through it | `Internal/.../SqlBuildingBuffer.cs` |
+| Tagged `CeilFunction`/`CeilingFunction` + tagged `AbsFunction` ctor | `Internal/.../NumericFunction/*` |
+| `SqlArtisan.Oracle` / `SqlArtisan.SqlServer` facades (numeric slice, DBMS-folded `Build()`) | `PerDbms/**` |
+| New tests | `tests/.../PerDbmsNamespaceTests.cs` |
+
+New tests prove against the **real** pipeline: `SqlArtisan.Oracle.Sql.Select(Sql.Ceil(1)).Build()`
+→ `SELECT CEIL(:0)`; the SQL Server mirror → `SELECT CEILING(@0)`; reflection
+confirms `Ceil`/`Ceiling` mutual absence; and reusing an Oracle node in the
+default (PostgreSql) build throws.
+
+### ⚠️ Key finding: the namespace name collides with vendor driver namespaces
+
+Introducing `SqlArtisan.Oracle` **shadowed `Oracle.ManagedDataAccess`** in an
+existing test (`DbmsResolverTests`) that has `using SqlArtisan;` in scope — the
+build broke until it was qualified as `global::Oracle.ManagedDataAccess`. The
+same hazard exists for `MySql.*`, and for user code that references both
+SqlArtisan and a vendor driver in one file.
+
+This is a real cost of the `SqlArtisan.Oracle` naming and must be decided before
+③ ships. Options:
+- **Distinct prefix** — `SqlArtisan.For.Oracle` / `SqlArtisan.Dialects.Oracle`
+  (no collision; slightly longer `using`). **Leaning here.**
+- Keep `SqlArtisan.Oracle` and document the `global::` workaround (pushes a
+  papercut onto users).
+- Avoid DBMS-name leaves entirely (e.g. `SqlArtisan.Ora`, `SqlArtisan.Mssql`).
+
+It does not change feasibility, but it is a naming decision the maintainer
+should make deliberately. (Added to the open questions below.)
+
 ## Findings & recommendation (after the spike)
 
 1. **Feasible, and the philosophy fits.** Per-DBMS namespaces are the logical
@@ -210,3 +252,7 @@ user's responsibility, by design.
   repetition?
 - Is build-time (throwing) mixing-validation acceptable, or must it be
   compile-time (→ phantom types, with the ergonomic cost)?
+- **Namespace naming** (raised by Step 2): `SqlArtisan.Oracle` collides with the
+  `Oracle.ManagedDataAccess` driver namespace. Use a distinct prefix
+  (`SqlArtisan.For.Oracle`?), or keep the DBMS-name leaf and accept the
+  `global::` papercut?

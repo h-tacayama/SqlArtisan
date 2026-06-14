@@ -5,6 +5,16 @@ namespace SqlArtisan.Internal;
 
 public abstract class SqlExpression : SqlPart
 {
+    // The DBMS this expression was authored for (e.g. via a per-DBMS namespace
+    // such as SqlArtisan.Oracle), or null when portable (columns, literals, and
+    // every function created through the DBMS-neutral Sql.* API). Existing
+    // subclasses use the implicit base() call and so default to null, leaving
+    // their behaviour unchanged.
+    internal Dbms? AuthoredFor { get; }
+
+    private protected SqlExpression(Dbms? authoredFor = null) =>
+        AuthoredFor = authoredFor;
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder Asc => new(this, SortDirection.Asc);
 

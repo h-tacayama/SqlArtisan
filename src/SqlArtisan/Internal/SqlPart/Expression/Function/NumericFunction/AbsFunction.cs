@@ -9,6 +9,12 @@ public sealed class AbsFunction : SqlExpression
         _expr = expr;
     }
 
+    // Tagged overload used by the per-DBMS namespaces (e.g. SqlArtisan.Oracle).
+    internal AbsFunction(SqlExpression expr, Dbms dbms) : base(dbms)
+    {
+        _expr = expr;
+    }
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Abs)
         .OpenParenthesis()
