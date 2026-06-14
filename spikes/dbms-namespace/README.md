@@ -502,6 +502,101 @@ per-dialect methods for statement-level clauses — adopting **③-extensions fo
 clause only where the compile-time guard is worth the lost neutral API**. Reserve
 the wrapper form (the dominated option) for never. Decide before 1.0.
 
+## Step 5 — phantom types: the safety ceiling (compile-time mixing, single namespace)
+
+Every option so far catches cross-DBMS **mixing** only at *runtime* (the
+`AuthoredFor` affinity guard). The question: can the type system catch it at
+*compile time*, and does that let us keep a **single namespace** (the "earlier
+form")? Built a slice (`src/SqlArtisan/Typed/`) where the DBMS is a **type
+parameter**, not a namespace (suite now **378/378**):
+
+- Marker types `Oracle`/`SqlServer`/`PostgreSql` (pure phantoms) declare support
+  via capability interfaces (`ISupportsCeil`, `ISupportsCeiling`).
+- `Expr<TDbms>` tags an expression; `Sql.Select<TDbms>(params Expr<TDbms>[])`
+  forces every item to share one `TDbms`; `TypedQuery<TDbms>.Build()` folds the
+  DBMS (no arg). One facade, one namespace.
+- Divergent functions carry a constraint: `Ceil<TDbms>(...) where TDbms : ISupportsCeil`.
+
+Two guarantees, both verified by *compiling*, not asserting:
+
+| Misuse | Result | Class |
+|--------|--------|-------|
+| Mix Oracle + SqlServer exprs in one `Select` | **CS0411** (TDbms can't unify) | **mixing — compile-time** ✅ |
+| `Ceil<SqlServer>` (no CEIL on SQL Server) | **CS0311** (no conversion to `ISupportsCeil`) | **existence — compile-time** ✅ |
+
+This is the **only** option that makes mixing a compile error, and it does so
+**without splitting namespaces** — reviving single-namespace as a viable, *safe*
+shape. But the ergonomic tax is real and was felt immediately in the slice:
+
+- **Per-call generics.** Every call needs `<Oracle>`: `Sql.Ceil<Oracle>(x)`.
+  Fixing it once via an instance facade `SqlFor<TDbms>` removes the per-call arg
+  **but loses per-method capability constraints** (existence), so you'd keep
+  mixing-safety and drop existence-safety. You can't have both *and* terse calls.
+- **Capability-interface matrix.** One marker interface per divergent capability;
+  every DBMS marker implements its whole set. The verified matrix becomes a web
+  of interfaces + `where` clauses, not a data table.
+- **Portability tax.** A portable value (column/literal) carries no `TDbms`, so it
+  must be **lifted** (`Sql.Of<Oracle>(col)`) into each query's DBMS and cannot be
+  shared across two `TDbms` without re-lifting.
+- **Cryptic errors.** Mixing without an explicit `TDbms` surfaces as
+  "cannot be inferred" (CS0411), not "type mismatch" — worse diagnostics.
+- **Marker naming collides** with driver namespaces (`Oracle` shadows
+  `Oracle.ManagedDataAccess`), the same hazard as ③ — markers need qualification
+  or a prefix.
+- **Whole-surface retrofit.** The real expression tree is non-generic; the slice
+  wrapped it in `Expr<TDbms>`. Going all-in means a generic wrapper layer over the
+  entire public API — pervasive "generic pollution".
+
+## Consolidated decision matrix (all options)
+
+| Option | Existence wrong-verb | Cross-DBMS mixing | Neutral / single-ns API | Per-call ergonomics | Relative cost |
+|--------|----------------------|-------------------|-------------------------|---------------------|---------------|
+| **① single ns, untyped** (roughly today) | ❌ none (clauses) | ⚠️ runtime guard | ✅ yes | ✅ clean | lowest |
+| **② hybrid** (ns functions + per-dialect clause methods) | ✅ compile (fn) / ❌ clauses* | ⚠️ runtime guard | ✅ yes | ✅ clean | low |
+| **③ namespaces everywhere** (clauses = extensions) | ✅ compile (per-file import) | ⚠️ runtime guard | ❌ no | ✅ clean (1 ns/file) | low–med |
+| **④ phantom types** (single ns) | ✅ compile (capability) | ✅ **compile** | ✅ yes (one facade) | ❌ generics everywhere | med–high + retrofit |
+
+\* ②'s clause hole closes if you add a runtime clause-affinity guard (throws at
+`Build(Dbms)`), matching ①/③'s mixing protection level.
+
+What **no** option prevents (the constant boundary): semantic/behavioural
+divergence (rounding mode, `GROUP_CONCAT` truncation), DB-side constraints (PG
+numeric-only 2-arg `ROUND`), and target-vs-actual-connection mismatch. Arity is
+encodable everywhere via per-DBMS overloads, but not automatic.
+
+### Reading the matrix
+
+- **Only ④ closes mixing at compile time.** If "you literally cannot write
+  wrong-DBMS SQL" (existence **and** mixing, statically) is the goal, ④ is the
+  sole option — and it keeps a single namespace. Its price is generics through the
+  whole API and the portability tax.
+- **③ and ② reach existence-compile-time** but leave mixing to the runtime guard;
+  ③ drops the neutral API, ② keeps it (with the clause hole, closable by a guard).
+- **① is cheapest** and most familiar but leaves the most to runtime/discipline.
+
+### Recommendation (with the single-namespace form kept on the table)
+
+The decision reduces to **how much safety must be static vs. runtime**, traded
+against **ergonomics** and **keeping one namespace**:
+
+- If a **single namespace** is a hard requirement and you want **maximum static
+  safety**, **④ phantom types** is the only fit — accept the generics tax (or use
+  the `SqlFor<TDbms>` instance form and drop static *existence*, keeping static
+  *mixing*).
+- If a single namespace is wanted but the generics tax is unacceptable, **① +
+  runtime affinity guards** (extend the guard to clauses) keeps one clean API and
+  pushes all safety to runtime throws — pragmatic and cheap.
+- If a single namespace is **not** required and you want static existence with
+  clean calls, **② hybrid** (cheapest static-existence) or **③** (uniform, no
+  neutral API) — both still need the runtime guard for mixing.
+
+My lean is unchanged in spirit but now precisely placeable: **② hybrid + a runtime
+clause-affinity guard** is the best *cost/safety* balance for most users; **④
+phantom** is the answer *only if* a single namespace with compile-time mixing
+safety is a stated priority. Decide which of those two properties (single-ns +
+static-mixing vs. low-ergonomic-cost) matters more — that single choice picks the
+option. Settle it before 1.0.
+
 ## Findings & recommendation (after the spike)
 
 1. **Feasible, and the philosophy fits.** Per-DBMS namespaces are the logical
