@@ -1,0 +1,179 @@
+# Spike: Per-DBMS namespaces (`SqlArtisan.Oracle` / `SqlArtisan.SqlServer` / …)
+
+> **Status:** exploratory prototype. Nothing here is wired into the solution or
+> compiled by any `.csproj`. It exists to make the design discussion concrete
+> before committing to (or rejecting) the approach.
+>
+> **Scope of this spike:** the **numeric function** category only, across all
+> five supported DBMS. Enough to feel the real cost/benefit; small enough to
+> verify by hand.
+
+## Goal being prototyped
+
+A SqlArtisan user who targets, say, Oracle should see **only Oracle's syntax**
+in IntelliSense:
+
+```csharp
+using SqlArtisan.Oracle;          // pick your DBMS once, here
+
+Select(Sql.Ceil(t.Price))         // ✅ offered
+Select(Sql.Ceiling(t.Price))      // ❌ does not exist in SqlArtisan.Oracle
+```
+
+This is the breaking-change-allowed destination we converged on:
+
+1. a **single source of truth** (the applicability *matrix* / catalog),
+2. **code generation** of one `Sql` facade per DBMS from that catalog,
+3. **DBMS-tagged nodes** validated at `Build()` time, to close the "mixing"
+   hole that pure namespace filtering leaves open,
+4. the universal `SqlArtisan.Sql` facade and the `Build(Dbms)` overload are
+   **removed** (breaking).
+
+The three artifacts below correspond to (1), (2), (3):
+
+| File | Role |
+|------|------|
+| `catalog/NumericFunctionCatalog.cs` | (1) single source of truth |
+| `generated/Oracle.Sql.Numeric.g.cs` | (2) "generated image" — Oracle facade |
+| `generated/SqlServer.Sql.Numeric.g.cs` | (2) "generated image" — SQL Server facade |
+| `prototype/DbmsAffinity.cs` | (3) tag + Build-time validation, riding on the existing `Format` traversal |
+
+---
+
+## 1. The applicability matrix (numeric functions)
+
+> ⚠️ **VERIFICATION REQUIRED.** This matrix is AI-drafted from general SQL
+> knowledge. A wrong matrix is *worse than none* (it gives false confidence),
+> so every cell must be checked against each vendor's current documentation
+> before it is trusted. Cells I am least sure about are marked 🔶.
+
+Canonical name = the name SqlArtisan would expose. "—" = not available under
+any name (an operator or a different construct is used instead).
+
+| Canonical | MySQL | Oracle | PostgreSQL | SQLite¹ | SQL Server | Divergence |
+|-----------|-------|--------|------------|---------|------------|------------|
+| `Abs(x)`        | `ABS`            | `ABS`  | `ABS`              | `ABS`            | `ABS`            | none — **universal** |
+| `Sign(x)`       | `SIGN`           | `SIGN` | `SIGN`             | `SIGN`           | `SIGN`           | none — **universal** |
+| `Floor(x)`      | `FLOOR`          | `FLOOR`| `FLOOR`            | `FLOOR`¹         | `FLOOR`          | none |
+| `Sqrt(x)`       | `SQRT`           | `SQRT` | `SQRT`             | `SQRT`¹          | `SQRT`           | none |
+| `Power(x,y)`    | `POWER` (also `POW`) | `POWER` | `POWER`        | `POW`/`POWER`¹   | `POWER`          | spelling only |
+| `Ceil(x)`       | `CEIL`           | `CEIL` | `CEIL`            | `CEIL`¹          | **—** 🔶        | **existence**: no `CEIL` on SQL Server |
+| `Ceiling(x)`    | `CEILING`        | **—**  | `CEILING`         | `CEILING`¹       | `CEILING`        | **existence**: no `CEILING` on Oracle |
+| `Mod(x,y)`      | `MOD` (also `%`) | `MOD`  | `MOD`             | **—** (use `%`)  | **—** (use `%`)  | **existence**: operator-only on SQLite/SQL Server |
+| `Round(x)`      | `ROUND`          | `ROUND`| `ROUND`           | `ROUND`          | **—** ²         | **arity**: 2nd arg required on SQL Server |
+| `Round(x,n)`    | `ROUND`          | `ROUND`| `ROUND` (numeric only) ³ | `ROUND`   | `ROUND`          | **semantics** (see ³ and rounding-mode note) |
+| `Trunc(x[,n])`  | **—** ⁴          | `TRUNC`| `TRUNC`           | `TRUNC`¹         | **—** ⁵         | **name/existence**: `TRUNCATE` on MySQL, absent on SQL Server |
+
+**Footnotes**
+
+1. SQLite's built-in math functions (`CEIL`, `FLOOR`, `POW`, `SQRT`, `TRUNC`, …)
+   require the library to be compiled with `SQLITE_ENABLE_MATH_FUNCTIONS`. This
+   is on by default in the amalgamation since 3.35.0 (2021-03) but is **not
+   guaranteed** on every distro/driver build. `ABS`, `SIGN`, `ROUND` are core
+   and always present. 🔶
+2. SQL Server `ROUND` **requires** the length argument: `ROUND(x)` is a syntax
+   error; you must write `ROUND(x, 0)`. So the single-arg overload must not be
+   generated for `SqlArtisan.SqlServer`.
+3. PostgreSQL defines two-arg `ROUND(v, s)` only for `numeric`, **not** for
+   `double precision`. `ROUND(2.5::double precision, 0)` is an error. 🔶
+4. MySQL spells truncation `TRUNCATE(x, d)` and **requires both arguments** — a
+   different name *and* a different arity from `TRUNC`.
+5. SQL Server has no `TRUNC`; truncation is `ROUND(x, n, 1)` (non-zero third
+   arg). This is a *construct* difference, not a renamed function.
+
+### What the matrix already proves
+
+- **The value is concentrated.** 5 of 11 functions (`Abs`, `Sign`, `Floor`,
+  `Sqrt`, `Power`) are universal — filtering them per DBMS yields *nothing*; it
+  is pure duplication. The entire benefit lives in the other 6 (`Ceil`,
+  `Ceiling`, `Mod`, `Round`, `Trunc`). This is the cost/value asymmetry from the
+  analysis, now visible in one category.
+- **Existence-filtering is necessary but not sufficient.** Even a perfect
+  show/hide split does **not** capture:
+  - rounding mode — Oracle/MySQL/SQL Server round half *away from zero*;
+    PostgreSQL rounds half *to even* for `double precision`. Same `Round`
+    signature, different result. 🔶
+  - the PG `double precision` vs `numeric` restriction on two-arg `Round`.
+  - `Mod` vs `%`, `Trunc` vs `ROUND(...,1)` — "absent" really means "spell it a
+    different way", which the namespace can guide but not auto-translate
+    (translating would violate the project's core philosophy).
+
+  → The per-DBMS namespace is a **discoverability guardrail, not a correctness
+  guarantee.** That conclusion survives contact with real data.
+
+---
+
+## 2. Generation (the "5× duplication" answer)
+
+Hand-maintaining five facades is the trap that defeated this idea before. The
+prototype shows the alternative: **one catalog, N generated facades.**
+
+`catalog/NumericFunctionCatalog.cs` lists each function once with its per-DBMS
+availability and spelling. A generator (source generator or T4 — out of scope
+for this spike) emits, for each `Dbms`, only the methods whose catalog entry
+includes that `Dbms`. The two `*.g.cs` files are what the generator *would*
+produce — written by hand here so we can read them.
+
+Diff the two generated facades to see the filtering working:
+
+- `Oracle.Sql.Numeric.g.cs` has `Ceil`, `Mod`, `Round(x)`, `Round(x,n)`,
+  `Trunc` — and **no** `Ceiling`.
+- `SqlServer.Sql.Numeric.g.cs` has `Ceiling` — and **no** `Ceil`, **no** `Mod`
+  (operator only), **no** single-arg `Round`, **no** `Trunc`.
+
+The universal five appear in both, generated identically. That is the
+duplication; generation makes its marginal cost ~zero, which is the whole
+premise.
+
+---
+
+## 3. DBMS-tagged nodes + Build-time validation
+
+Namespace filtering only governs what you can *type*. It cannot stop you from
+reusing an Oracle-authored subexpression inside a SQL Server build (e.g. a
+shared helper that returns a `SqlExpression`). `prototype/DbmsAffinity.cs`
+sketches the cheap closing of that hole:
+
+- every function node records the `Dbms` it was authored for (universal nodes
+  record `null`);
+- validation **rides on the traversal that already happens** during `Format`:
+  `SqlBuildingBuffer` already visits every `SqlPart`, and it already knows its
+  dialect's `Dbms`. Adding one check in `Append(SqlPart)` catches a foreign
+  node with **no extra tree walk** and near-zero overhead.
+
+This upgrades "authoring guardrail" → "build-time guarantee against mixing",
+without the viral generics of a phantom-type (`SqlExpression<TDbms>`) design.
+It still does **not** catch the semantic divergences in §1 — those remain the
+user's responsibility, by design.
+
+---
+
+## Findings & recommendation (after the spike)
+
+1. **Feasible, and the philosophy fits.** Per-DBMS namespaces are the logical
+   endpoint of "you write for one DBMS." Generation removes the maintenance
+   blocker; tagging closes the mixing hole cheaply.
+2. **The matrix is the real deliverable and the real risk.** It is the
+   foundation for *both* this approach and a cheaper Roslyn-analyzer approach.
+   Build it first; verify every cell against vendor docs; cover it with tests.
+3. **Sequence the bet, don't leap.** Recommended path:
+   - **(a)** Finish the matrix for all categories (this spike = 1 of ~6).
+   - **(b)** Ship a **Roslyn analyzer** over the *existing* single `Sql` first
+     — non-breaking, validates the matrix against real code, ~90% of the
+     correctness benefit at a fraction of the cost.
+   - **(c)** Only if the filtered-IntelliSense UX is still wanted, add the
+     generator + per-DBMS namespaces + tag validation, and remove `SqlArtisan.Sql`
+     / `Build(Dbms)` (breaking).
+4. **Set expectations honestly in docs:** this is *discoverability*, not
+   *portability* and not full *correctness*. Semantic divergences (rounding
+   mode, type restrictions, operator-vs-function) are out of scope by design.
+
+## Open questions for the maintainer
+
+- Where is the per-project DBMS declared for the analyzer in (b)? (`.csproj`
+  property? assembly-level attribute? `SqlArtisanConfig`?)
+- Do we keep a `SqlArtisan.Common` facade for the universal functions to cut
+  duplication, or is a flat per-DBMS list more discoverable even at the cost of
+  repetition?
+- Is build-time (throwing) mixing-validation acceptable, or must it be
+  compile-time (→ phantom types, with the ergonomic cost)?
