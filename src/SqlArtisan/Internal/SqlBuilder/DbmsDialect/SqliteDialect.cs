@@ -5,6 +5,4 @@ internal sealed class SqliteDialect : IDbmsDialect
     public char AliasQuote => '"';
 
     public char ParameterMarker => ':';
-
-    public string CeilFunctionName => Keywords.Ceil;
 }

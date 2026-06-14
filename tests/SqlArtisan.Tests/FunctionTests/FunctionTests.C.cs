@@ -19,54 +19,44 @@ public partial class FunctionTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // Ceil() emits CEIL verbatim on every DBMS: the SQL you write is the SQL
+    // that runs. It is not rewritten to CEILING on SQL Server.
     [Fact]
-    public void Ceil_MySql_EmitsCeil()
-    {
-        SqlStatement sql =
-            Select(Ceil(_t.Code))
-            .Build(Dbms.MySql);
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("CEIL(`t`.code)");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void Ceil_Oracle_EmitsCeil()
-    {
-        SqlStatement sql =
-            Select(Ceil(_t.Code))
-            .Build(Dbms.Oracle);
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("CEIL(\"t\".code)");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void Ceil_Sqlite_EmitsCeil()
-    {
-        SqlStatement sql =
-            Select(Ceil(_t.Code))
-            .Build(Dbms.Sqlite);
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("CEIL(\"t\".code)");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void Ceil_SqlServer_EmitsCeiling()
+    public void Ceil_SqlServer_StillEmitsCeil()
     {
         SqlStatement sql =
             Select(Ceil(_t.Code))
             .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CEIL(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Ceiling_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Ceiling(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CEILING(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // Ceiling() emits CEILING verbatim on every DBMS, including Oracle, where it
+    // is spelled CEIL: the choice of spelling is the caller's, not the dialect's.
+    [Fact]
+    public void Ceiling_Oracle_StillEmitsCeiling()
+    {
+        SqlStatement sql =
+            Select(Ceiling(_t.Code))
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

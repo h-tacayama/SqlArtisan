@@ -5,6 +5,4 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
     public char AliasQuote => '"';
 
     public char ParameterMarker => ':';
-
-    public string CeilFunctionName => Keywords.Ceil;
 }

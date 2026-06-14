@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- Added support for the scalar functions `NULLIF`, `ROUND`, `CEIL`/`CEILING`, `FLOOR`, `POWER`, `SQRT`, and `SIGN`. `CEIL` is emitted as `CEILING` on SQL Server. (#84)
+- Added support for the scalar functions `NULLIF`, `ROUND`, `CEIL`, `CEILING`, `FLOOR`, `POWER`, `SQRT`, and `SIGN`. `CEIL` and `CEILING` are exposed as distinct functions (`Ceil()` / `Ceiling()`), each emitted verbatim, so the caller picks the spelling their target DBMS requires. (#84)
 
 ## [0.2.0-beta.4] - 2026-06-12
 ### Added

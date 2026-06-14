@@ -71,14 +71,6 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    // Emits the ceiling function's name for the active dialect (CEIL or CEILING).
-    // Function nodes never branch on Dbms; the choice lives in the dialect layer.
-    internal SqlBuildingBuffer AppendCeilFunctionName()
-    {
-        Append(_dialect.CeilFunctionName);
-        return this;
-    }
-
     internal SqlBuildingBuffer AppendCsv(SqlPart[] parts)
     {
         if (parts.Length == 0)

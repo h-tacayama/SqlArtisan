@@ -395,10 +395,26 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>CEIL(expr)</c> function (smallest integer not less than
-    /// <paramref name="expr"/>). Emitted as <c>CEILING</c> on SQL Server and
-    /// <c>CEIL</c> on the other DBMS.
+    /// <paramref name="expr"/>).
     /// </summary>
+    /// <remarks>
+    /// Emitted verbatim as <c>CEIL</c> on every DBMS. SQL Server spells this
+    /// function <c>CEILING</c>; use <see cref="Ceiling(object)"/> for that
+    /// target. MySQL and PostgreSQL accept both spellings.
+    /// </remarks>
     public static CeilFunction Ceil(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>CEILING(expr)</c> function (smallest integer not less than
+    /// <paramref name="expr"/>).
+    /// </summary>
+    /// <remarks>
+    /// Emitted verbatim as <c>CEILING</c> on every DBMS. Oracle and SQLite spell
+    /// this function <c>CEIL</c>; use <see cref="Ceil(object)"/> for those
+    /// targets. MySQL and PostgreSQL accept both spellings.
+    /// </remarks>
+    public static CeilingFunction Ceiling(object expr) =>
         new(Resolve(expr));
 
     public static CoalesceFunction Coalesce(

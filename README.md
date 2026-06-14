@@ -79,7 +79,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
 - [Additional Query Details](#additional-query-details)
   - [Bind Parameter Types](#bind-parameter-types)
   - [Functions](#functions)
-    - [Numeric Functions](#numeric-functions): `ABS`, `CEIL`/`CEILING`, `FLOOR`, `MOD`, `POWER`, `ROUND`, `SIGN`, `SQRT`, `TRUNC`
+    - [Numeric Functions](#numeric-functions): `ABS`, `CEIL`, `CEILING`, `FLOOR`, `MOD`, `POWER`, `ROUND`, `SIGN`, `SQRT`, `TRUNC`
     - [Character Functions](#character-functions): `CONCAT`, `INSTR`, `LPAD`, `LTRIM`, `LENGTH`, `LENGTHB`, `LOWER`, `RPAD`, `RTRIM`, `REGEXP_COUNT`, `REGEXP_REPLACE`, `REGEXP_SUBSTR`, `REPLACE`, `SUBSTR`, `SUBSTRB`, `TRIM`, `UPPER`
     - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
     - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NULLIF`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
@@ -1432,7 +1432,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 #### Numeric Functions
 
 - `Abs()` for `ABS`
-- `Ceil()` for `CEIL` (emitted as `CEILING` on SQL Server)
+- `Ceil()` for `CEIL` (Oracle/SQLite; MySQL/PostgreSQL accept both spellings)
+- `Ceiling()` for `CEILING` (SQL Server; MySQL/PostgreSQL accept both spellings)
 - `Floor()` for `FLOOR`
 - `Mod()` for `MOD`
 - `Power()` for `POWER`
