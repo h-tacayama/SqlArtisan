@@ -130,6 +130,37 @@
 
 ---
 
+## Bulk Insert 方針(確定)
+
+「Bulk Insert」は性質の異なる2種に分け、DBMS ごとに最適手段を割り当てる。
+判断軸は「性能が本当に改善するか」。複数行 VALUES は1行ループ比で大きく改善するが
+bulk-copy のスループットには届かず、パラメータ上限で頭打ちになる。
+
+### DBMS 別の手段割り当て
+
+| DBMS | 複数行 VALUES | 採用手段 | 配置 | 備考 |
+|------|:---:|------|------|------|
+| PostgreSQL / MySQL / SQLite / SQL Server | ○ | 複数行 INSERT(SQL構文) | **コア** | 数百〜数千行をカバー。哲学準拠・依存ゼロ |
+| Oracle | ✕(VALUES 不可) | bulk-copy / 配列バインド | **別パッケージ** | VALUES が無いため高速化は bulk-copy 一択 |
+
+### コア側(選択肢1+2)
+
+- `.Values(IEnumerable<T>)` でコレクション駆動の複数行 INSERT を生成、方言別パラメータ上限で自動チャンク。
+- Oracle は `INSERT ALL` も SQL 構文としては出せるが**高速用途では非採用**(遅く上限あり)。
+- `ON CONFLICT` と組み合わせて複数行 UPSERT へ発展。
+
+### 別パッケージ側(選択肢3 = `SqlArtisan.BulkCopy` 仮)
+
+- **「Oracle 専用」ではなく拡張可能な器**として設計。将来 SQL Server 等で 10万行超が要れば `SqlBulkCopy` を追加できる構造に。
+- **Oracle の実装方式は要検証**:
+  - 基本線 = **配列バインド**(`OracleCommand.ArrayBindCount`)。全 ODP.NET で確実、bulk-copy 匹敵速度、依存リスク低。
+  - 切替 = **`OracleBulkCopy`**(最速級だが `Oracle.ManagedDataAccess.Core` での可否を要確認)。
+- **存在意義 = schema クラス(TableClassGen 生成)による「POCO→列」自動マッピング**。
+  これが無ければ生 ODP.NET 直書きと変わらず、別パッケージ化の意味が薄い。
+- 検証は実 DB 統合テストが必要(コアの「Text 完全一致」モデルが使えない)。
+
+---
+
 ## まとめ(着手順の推奨)
 
 ```
