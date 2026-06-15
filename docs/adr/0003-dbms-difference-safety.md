@@ -1,4 +1,4 @@
-# 0005 — DBMS-difference safety: permissive API + opt-in analyzer
+# 0003 — DBMS-difference safety: permissive API + opt-in analyzer
 
 **Status:** Accepted — product implementation deferred; **analyzer required for 1.0**.
 Discussion/tracking: GitHub issue #93.

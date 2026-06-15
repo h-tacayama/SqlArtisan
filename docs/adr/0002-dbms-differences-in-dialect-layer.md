@@ -1,4 +1,4 @@
-# 0003 — Handling DBMS differences: token syntax in the dialect layer, divergent constructs as per-dialect APIs
+# 0002 — Handling DBMS differences: token syntax in the dialect layer, divergent constructs as per-dialect APIs
 
 **Status:** Accepted
 
@@ -46,7 +46,7 @@ the single `OnConflict` method emits `EXCLUDED`/`excluded` per dialect.
 - Token divergence is **centralised and testable** in one place per DBMS; nodes
   stay DBMS-agnostic, and adding a DBMS is largely one new `IDbmsDialect`.
 - Construct divergence makes the **public surface grow per dialect** for those
-  features — accepted, and what makes opt-in guidance (ADR 0005) tractable (the
+  features — accepted, and what makes opt-in guidance (ADR 0003) tractable (the
   analyzer flags the wrong dialect's method per the verified matrix).
 - A genuinely divergent construct may add an `IDbmsDialect` member only some
   dialects use — a visible, accepted signal of real divergence.

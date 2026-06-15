@@ -21,7 +21,7 @@ deliberate non-goal.**
 - No semantic rewriting of the user's SQL to "make it portable".
 - DBMS differences are honoured **only where the *syntax* genuinely differs**
   (identifier/alias quoting, parameter markers, pagination, etc.), via the
-  dialect layer (see ADR 0003) — never by changing what the query means.
+  dialect layer (see ADR 0002) — never by changing what the query means.
 - Where a construct exists under different spellings or shapes per DBMS, the
   library exposes those per dialect rather than inventing one unified rewrite.
 
@@ -30,7 +30,7 @@ deliberate non-goal.**
 - **Predictable, inspectable output**: the produced `SqlStatement.Text` matches
   the author's intent; tests assert exact SQL strings.
 - **The user owns DBMS correctness.** This is the deliberate trade for fidelity;
-  guidance for it is a separate, opt-in concern (see ADR 0005), not a rewrite.
+  guidance for it is a separate, opt-in concern (see ADR 0003), not a rewrite.
 - **No false portability promise** — clearer expectations than abstraction-heavy
   ORMs/builders.
 - Features whose only purpose is to run one query unchanged across DBMS are out of

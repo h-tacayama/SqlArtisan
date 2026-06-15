@@ -12,7 +12,7 @@ safe path the default one.
 
 - Literal values passed to the API are **bound as parameters**, not inlined. A
   built `SqlStatement` carries both the SQL **text** and its **parameters**.
-- Parameter markers are dialect-correct (see ADR 0003): PostgreSQL/Oracle/SQLite
+- Parameter markers are dialect-correct (see ADR 0002): PostgreSQL/Oracle/SQLite
   `:`, SQL Server `@`, MySQL `?`, with stable generated names.
 
 ## Consequences

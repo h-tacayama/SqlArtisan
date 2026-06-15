@@ -1,4 +1,4 @@
-# 0002 — Public API lives only in `Sql.*.cs` and `SqlBuilder/`; `Internal/` is implementation detail
+# 0005 — Public API lives only in `Sql.*.cs` and `SqlBuilder/`; `Internal/` is implementation detail
 
 **Status:** Accepted
 
