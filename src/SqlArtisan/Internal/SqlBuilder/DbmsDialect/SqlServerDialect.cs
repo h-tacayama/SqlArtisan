@@ -5,4 +5,7 @@ internal sealed class SqlServerDialect : IDbmsDialect
     public char AliasQuote => '"';
 
     public char ParameterMarker => '@';
+
+    public string ExcludedReference => throw new NotSupportedException(
+        "SQL Server does not support ON CONFLICT / ON DUPLICATE KEY UPDATE. Use MERGE instead.");
 }

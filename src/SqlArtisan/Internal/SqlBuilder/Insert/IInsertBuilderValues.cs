@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface IInsertBuilderValues : ISqlBuilder, IReturning
+public interface IInsertBuilderValues : ISqlBuilder, IReturning, IInsertBuilderUpsertable
 {
     /// <summary>
     /// Appends another row to the <c>VALUES</c> clause, producing a multi-row

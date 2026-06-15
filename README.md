@@ -65,7 +65,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Pagination](#pagination): `LIMIT`, `OFFSET`, `FETCH`
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
-  - [INSERT Statement](#insert-statement): **Standard**, **Multiple Rows**, **SET-like**, `INSERT SELECT`
+  - [INSERT Statement](#insert-statement): **Standard**, **Multiple Rows**, **SET-like**, `INSERT SELECT`, **UPSERT** (`ON CONFLICT` / `ON DUPLICATE KEY UPDATE`)
   - [WITH Clause (Common Table Expressions)](#with-clause-common-table-expressions): `WITH`, `WITH RECURSIVE`, **CTEs with DML**
   - [RETURNING Clause](#returning-clause): `RETURNING`, `RETURNING INTO` (Oracle)
   - [Expressions](#expressions)
@@ -782,6 +782,73 @@ SqlStatement sql =
 // SELECT id, name, created_at
 // FROM users
 ```
+
+---
+
+#### UPSERT (Insert or Update)
+
+SqlArtisan exposes UPSERT through **per-dialect methods** rather than a single
+rewritten abstraction — the SQL you pick is the SQL that runs.
+
+**PostgreSQL / SQLite — `ON CONFLICT`**
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    InsertInto(u, u.Id, u.Name)
+    .Values(1, "newName")
+    .OnConflict(u.Id)
+    .DoUpdate(u.Name == Excluded(u.Name))
+    .Build(Dbms.PostgreSql);
+
+// INSERT INTO users (id, name)
+// VALUES (:0, :1)
+// ON CONFLICT (id)
+// DO UPDATE SET name = EXCLUDED.name
+```
+
+`Excluded(column)` references the row proposed for insertion. It is resolved by
+the dialect: `EXCLUDED` on PostgreSQL, lowercase `excluded` on SQLite, and the
+`new` row alias on MySQL. A conditional update is expressed with `Where(...)`,
+and `DoNothing()` skips conflicting rows:
+
+```csharp
+// ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name WHERE ...
+.OnConflict(u.Id).DoUpdate(u.Name == Excluded(u.Name)).Where(u.Id < 100)
+
+// ON CONFLICT (id) DO NOTHING
+.OnConflict(u.Id).DoNothing()
+
+// ON CONFLICT DO NOTHING   (no explicit conflict target)
+.OnConflict().DoNothing()
+```
+
+**MySQL — `ON DUPLICATE KEY UPDATE`**
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    InsertInto(u, u.Id, u.Name)
+    .Values(1, "newName")
+    .OnDuplicateKeyUpdate(u.Name == Excluded(u.Name))
+    .Build(Dbms.MySql);
+
+// INSERT INTO users (id, name)
+// VALUES (?0, ?1)
+// AS new
+// ON DUPLICATE KEY UPDATE name = new.name
+```
+
+MySQL keys off any unique index implicitly (no conflict target). SqlArtisan
+emits the 8.0.19+ row-alias form (`AS new` … `new.column`) to avoid the
+deprecated `VALUES()` function.
+
+**Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`
+is MySQL-only. Oracle and SQL Server use `MERGE` (tracked separately).
+SqlArtisan does not validate feature support, so ensure the clause is valid for
+your target DBMS.
+
+---
 
 #### WITH Clause (Common Table Expressions)
 

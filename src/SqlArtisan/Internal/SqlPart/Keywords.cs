@@ -19,6 +19,7 @@ internal static class Keywords
     internal const string Ceiling = "CEILING";
     internal const string Coalesce = "COALESCE";
     internal const string Concat = "CONCAT";
+    internal const string Conflict = "CONFLICT";
     internal const string Count = "COUNT";
     internal const string Cross = "CROSS";
     internal const string CumeDist = "CUME_DIST";
@@ -33,7 +34,9 @@ internal static class Keywords
     internal const string DenseRank = "DENSE_RANK";
     internal const string Desc = "DESC";
     internal const string Distinct = "DISTINCT";
+    internal const string Do = "DO";
     internal const string Dual = "DUAL";
+    internal const string Duplicate = "DUPLICATE";
     internal const string Else = "ELSE";
     internal const string End = "END";
     internal const string Except = "EXCEPT";
@@ -58,6 +61,7 @@ internal static class Keywords
     internal const string Into = "INTO";
     internal const string Is = "IS";
     internal const string Join = "JOIN";
+    internal const string Key = "KEY";
     internal const string Lag = "LAG";
     internal const string LastDay = "LAST_DAY";
     internal const string LastValue = "LAST_VALUE";
@@ -80,6 +84,7 @@ internal static class Keywords
     internal const string Next = "NEXT";
     internal const string Nextval = "NEXTVAL";
     internal const string Not = "NOT";
+    internal const string Nothing = "NOTHING";
     internal const string Nowait = "NOWAIT";
     internal const string NthValue = "NTH_VALUE";
     internal const string Ntile = "NTILE";
