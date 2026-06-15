@@ -77,12 +77,17 @@ public class UpsertTests
     public void OnConflict_DoUpdateSet_WithWhere_CorrectSql()
     {
         // Arrange
+        // In DO UPDATE ... WHERE, both the target row and EXCLUDED are in scope,
+        // so a target column must be qualified with the table name; PostgreSQL
+        // rejects an unqualified column here as ambiguous.
+        DbColumn targetCode = new("test_table", "code");
+
         StringBuilder expected = new();
         expected.Append("INSERT INTO test_table (code, name) ");
         expected.Append("VALUES (:0, :1) ");
         expected.Append("ON CONFLICT (code) ");
         expected.Append("DO UPDATE SET name = EXCLUDED.name ");
-        expected.Append("WHERE code < :2");
+        expected.Append("WHERE \"test_table\".code < :2");
 
         // Act
         SqlStatement sql =
@@ -90,7 +95,7 @@ public class UpsertTests
             .Values(1, "a")
             .OnConflict(_t.Code)
             .DoUpdateSet(_t.Name == Excluded(_t.Name))
-            .Where(_t.Code < 100)
+            .Where(targetCode < 100)
             .Build(Dbms.PostgreSql);
 
         // Assert
