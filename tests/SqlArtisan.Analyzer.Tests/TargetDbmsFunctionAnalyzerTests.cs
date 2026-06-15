@@ -59,4 +59,45 @@ namespace SqlArtisan
         var diagnostics = await AnalyzerHarness.RunAsync(Usage("SqlArtisan.Sql.Ceiling(1)"), "SqlServer");
         Assert.Empty(diagnostics);
     }
+
+    // Per-file .editorconfig scoping: two files in ONE compilation pin different
+    // DBMS, and each is checked against its own target — the Oracle file flags
+    // Ceiling, the SqlServer file flags Ceil, in the same build.
+    [Fact]
+    public async Task PerFile_EditorConfig_Scopes_Each_File_To_Its_Own_Dbms()
+    {
+        string oracleFile = "namespace A1 { class C { void M() { var _ = SqlArtisan.Sql.Ceiling(1); } } }";
+        string sqlServerFile = "namespace A2 { class C { void M() { var _ = SqlArtisan.Sql.Ceil(1); } } }";
+
+        var diagnostics = await AnalyzerHarness.RunPerFileAsync(
+            Stub,
+            (oracleFile, "oracle"),        // Oracle has no CEILING -> flagged here
+            (sqlServerFile, "sqlserver")); // SQL Server has no CEIL -> flagged here
+
+        Assert.Equal(2, diagnostics.Length);
+
+        Assert.Contains(diagnostics, d =>
+            d.GetMessage().Contains("'Ceiling'") && d.GetMessage().Contains("oracle")
+            && d.Location.GetLineSpan().Path == "File0.cs");
+
+        Assert.Contains(diagnostics, d =>
+            d.GetMessage().Contains("'Ceil'") && d.GetMessage().Contains("sqlserver")
+            && d.Location.GetLineSpan().Path == "File1.cs");
+    }
+
+    // The flip side: each file's *supported* spelling is NOT flagged, proving the
+    // scoping is real (not a global pass/fail).
+    [Fact]
+    public async Task PerFile_Supported_Spelling_Is_Not_Flagged()
+    {
+        string oracleFile = "namespace A1 { class C { void M() { var _ = SqlArtisan.Sql.Ceil(1); } } }";
+        string sqlServerFile = "namespace A2 { class C { void M() { var _ = SqlArtisan.Sql.Ceiling(1); } } }";
+
+        var diagnostics = await AnalyzerHarness.RunPerFileAsync(
+            Stub,
+            (oracleFile, "oracle"),        // Oracle supports CEIL
+            (sqlServerFile, "sqlserver")); // SQL Server supports CEILING
+
+        Assert.Empty(diagnostics);
+    }
 }

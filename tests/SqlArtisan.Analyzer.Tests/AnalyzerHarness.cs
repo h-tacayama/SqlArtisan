@@ -43,6 +43,70 @@ internal static class AnalyzerHarness
         return await withAnalyzers.GetAnalyzerDiagnosticsAsync();
     }
 
+    // Runs over several files in ONE compilation, each with its own per-file
+    // .editorconfig target — proving per-folder scoping within a single project.
+    public static async Task<ImmutableArray<Diagnostic>> RunPerFileAsync(
+        string sharedStub,
+        params (string source, string? editorConfigTarget)[] files)
+    {
+        Dictionary<SyntaxTree, AnalyzerConfigOptions> byTree = new();
+        List<SyntaxTree> trees = new();
+
+        SyntaxTree stub = CSharpSyntaxTree.ParseText(sharedStub, path: "Stub.cs");
+        trees.Add(stub);
+        byTree[stub] = new Options(ImmutableDictionary<string, string>.Empty);
+
+        for (int i = 0; i < files.Length; i++)
+        {
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(files[i].source, path: $"File{i}.cs");
+            trees.Add(tree);
+
+            ImmutableDictionary<string, string> values = ImmutableDictionary<string, string>.Empty;
+            if (files[i].editorConfigTarget is not null)
+            {
+                values = values.Add("sqlartisan_target_dbms", files[i].editorConfigTarget!);
+            }
+
+            byTree[tree] = new Options(values);
+        }
+
+        IEnumerable<MetadataReference> references =
+            ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+            .Split(Path.PathSeparator)
+            .Where(path => path.Length > 0)
+            .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path));
+
+        CSharpCompilation compilation = CSharpCompilation.Create(
+            "AnalyzerTestAssembly",
+            trees,
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        AnalyzerOptions options = new(
+            ImmutableArray<AdditionalText>.Empty,
+            new PerTreeOptionsProvider(byTree));
+
+        CompilationWithAnalyzers withAnalyzers = compilation.WithAnalyzers(
+            ImmutableArray.Create<DiagnosticAnalyzer>(new TargetDbmsFunctionAnalyzer()),
+            options);
+
+        return await withAnalyzers.GetAnalyzerDiagnosticsAsync();
+    }
+
+    private sealed class PerTreeOptionsProvider(Dictionary<SyntaxTree, AnalyzerConfigOptions> byTree)
+        : AnalyzerConfigOptionsProvider
+    {
+        private static readonly AnalyzerConfigOptions Empty =
+            new Options(ImmutableDictionary<string, string>.Empty);
+
+        public override AnalyzerConfigOptions GlobalOptions => Empty;
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) =>
+            byTree.TryGetValue(tree, out AnalyzerConfigOptions? o) ? o : Empty;
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) => Empty;
+    }
+
     private sealed class OptionsProvider(ImmutableDictionary<string, string> values) : AnalyzerConfigOptionsProvider
     {
         private readonly AnalyzerConfigOptions _options = new Options(values);

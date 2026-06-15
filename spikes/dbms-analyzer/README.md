@@ -21,7 +21,20 @@ one clean, permissive API ("any DBMS's SQL is writable"), and offer
 | MSBuild opt-in property wiring | `src/SqlArtisan.Analyzer/build/SqlArtisan.Analyzer.props` |
 | In-memory test harness + tests | `tests/SqlArtisan.Analyzer.Tests/` |
 
-A consuming project opts in:
+A consuming project opts in, **per file/folder via `.editorconfig`** (preferred —
+analyzer config lives there, and it scopes by path):
+
+```ini
+[*.cs]
+sqlartisan_target_dbms = postgresql            # default for the project
+
+[src/Integrations/Oracle/**.cs]
+sqlartisan_target_dbms = oracle                # this folder is checked against Oracle
+
+dotnet_diagnostic.SQLA0001.severity = warning  # severity lives here too
+```
+
+…or project-wide via an MSBuild property (fallback):
 
 ```xml
 <PropertyGroup>
@@ -29,7 +42,9 @@ A consuming project opts in:
 </PropertyGroup>
 ```
 
-Then `Sql.Ceiling(...)` (no `CEILING` on Oracle) yields a **warning**:
+The analyzer resolves the target **per file** (`.editorconfig` glob) first, then
+the project-wide MSBuild property. Then `Sql.Ceiling(...)` (no `CEILING` on Oracle)
+yields a **warning**:
 
 ```
 SQLA0001: 'Ceiling' is not available on Oracle; it is supported on: MySql, PostgreSql, Sqlite, SqlServer
@@ -57,10 +72,26 @@ SQLA0001: 'Ceiling' is not available on Oracle; it is supported on: MySql, Postg
 | Never flags universal functions | `Does_Not_Flag_Universal_Abs` |
 | Off until opted in | `Is_Silent_When_No_Target_Configured` |
 | Correct per target | `Does_Not_Flag_Ceiling_When_Target_Is_SqlServer` |
+| **Per-file `.editorconfig` scoping** (one project, many DBMS) | `PerFile_EditorConfig_Scopes_Each_File_To_Its_Own_Dbms` |
+| …and the supported spelling per file is allowed | `PerFile_Supported_Spelling_Is_Not_Flagged` |
 
 ```bash
-dotnet test tests/SqlArtisan.Analyzer.Tests   # 5 passed
+dotnet test tests/SqlArtisan.Analyzer.Tests   # 7 passed
 ```
+
+### Mixing multiple DBMS in one project
+
+`.editorconfig` scopes by **file path**, so a single project that targets several
+DBMS can restrict each **folder/file individually** (verified: in one compilation,
+an Oracle-scoped file flags `Ceiling` while a SqlServer-scoped file flags `Ceil`,
+at the same time). The granularity is **per file** — the analyzer reads the target
+from each file's effective `.editorconfig`.
+
+What it **cannot** do: distinguish two DBMS **within the same file** (one path → one
+target). True per-*call-site* discrimination in a mixed file is only achievable by
+encoding the DBMS in the code itself — i.e. **phantom types** (`Ceil<Oracle>(...)`,
+see the `claude/dbms-namespace-spike` Step 5). In practice multi-DBMS code is
+usually separated by folder/module, which `.editorconfig` handles cleanly.
 
 ## Scope / what it deliberately does NOT do
 
