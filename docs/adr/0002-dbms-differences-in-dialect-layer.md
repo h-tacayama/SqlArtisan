@@ -31,8 +31,10 @@ A per-dialect API still relies on the dialect layer for its own tokens.
 
 - Token divergence is centralised and testable; adding a DBMS is largely one new
   `IDbmsDialect`.
-- The public surface grows per dialect for divergent constructs — accepted, and
-  what makes the opt-in guidance of ADR 0003 possible.
-- This upholds ADR 0001 (syntax differs, semantics do not) and governs the
-  divergent features on the roadmap (UPSERT, MERGE, string aggregation, date
-  arithmetic).
+- The public surface grows per dialect for divergent constructs. Distinct,
+  dialect-named methods are also what let the ADR 0003 analyzer help: it can see
+  which DBMS a call targets and warn on a mismatch — a single "portable" method
+  would give it nothing to check.
+- This is the rule for the roadmap's divergent features (UPSERT, MERGE, string
+  aggregation, date arithmetic): design the per-dialect methods; do not invent a
+  unifying abstraction.
