@@ -1,15 +1,15 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class DoUpdateClause : SqlPart
+internal sealed class DoUpdateSetClause : SqlPart
 {
     private readonly EqualityCondition[] _assignments;
 
-    private DoUpdateClause(EqualityCondition[] assignments)
+    private DoUpdateSetClause(EqualityCondition[] assignments)
     {
         _assignments = assignments;
     }
 
-    internal static DoUpdateClause Parse(EqualityBasedCondition[] items) =>
+    internal static DoUpdateSetClause Parse(EqualityBasedCondition[] items) =>
         new(UpsertAssignmentResolver.Resolve(items));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

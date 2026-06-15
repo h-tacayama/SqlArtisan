@@ -8,7 +8,7 @@ public class UpsertTests
     private readonly TestTable _t = new();
 
     [Fact]
-    public void OnConflict_DoUpdate_PostgreSql_UsesUppercaseExcluded()
+    public void OnConflict_DoUpdateSet_PostgreSql_UsesUppercaseExcluded()
     {
         // Arrange
         StringBuilder expected = new();
@@ -22,7 +22,7 @@ public class UpsertTests
             InsertInto(_t, _t.Code, _t.Name)
             .Values(1, "a")
             .OnConflict(_t.Code)
-            .DoUpdate(_t.Name == Excluded(_t.Name))
+            .DoUpdateSet(_t.Name == Excluded(_t.Name))
             .Build(Dbms.PostgreSql);
 
         // Assert
@@ -30,7 +30,7 @@ public class UpsertTests
     }
 
     [Fact]
-    public void OnConflict_DoUpdate_Sqlite_UsesLowercaseExcluded()
+    public void OnConflict_DoUpdateSet_Sqlite_UsesLowercaseExcluded()
     {
         // Arrange
         StringBuilder expected = new();
@@ -44,7 +44,7 @@ public class UpsertTests
             InsertInto(_t, _t.Code, _t.Name)
             .Values(1, "a")
             .OnConflict(_t.Code)
-            .DoUpdate(_t.Name == Excluded(_t.Name))
+            .DoUpdateSet(_t.Name == Excluded(_t.Name))
             .Build(Dbms.Sqlite);
 
         // Assert
@@ -52,7 +52,7 @@ public class UpsertTests
     }
 
     [Fact]
-    public void OnConflict_DoUpdate_MultipleTargetColumns_CorrectSql()
+    public void OnConflict_DoUpdateSet_MultipleTargetColumns_CorrectSql()
     {
         // Arrange
         StringBuilder expected = new();
@@ -66,7 +66,7 @@ public class UpsertTests
             InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
             .Values(1, "a", Sysdate)
             .OnConflict(_t.Code, _t.Name)
-            .DoUpdate(_t.CreatedAt == Excluded(_t.CreatedAt))
+            .DoUpdateSet(_t.CreatedAt == Excluded(_t.CreatedAt))
             .Build(Dbms.PostgreSql);
 
         // Assert
@@ -74,7 +74,7 @@ public class UpsertTests
     }
 
     [Fact]
-    public void OnConflict_DoUpdate_WithWhere_CorrectSql()
+    public void OnConflict_DoUpdateSet_WithWhere_CorrectSql()
     {
         // Arrange
         StringBuilder expected = new();
@@ -89,7 +89,7 @@ public class UpsertTests
             InsertInto(_t, _t.Code, _t.Name)
             .Values(1, "a")
             .OnConflict(_t.Code)
-            .DoUpdate(_t.Name == Excluded(_t.Name))
+            .DoUpdateSet(_t.Name == Excluded(_t.Name))
             .Where(_t.Code < 100)
             .Build(Dbms.PostgreSql);
 
@@ -142,7 +142,7 @@ public class UpsertTests
     }
 
     [Fact]
-    public void OnConflict_DoUpdate_WithReturning_CorrectSql()
+    public void OnConflict_DoUpdateSet_WithReturning_CorrectSql()
     {
         // Arrange
         StringBuilder expected = new();
@@ -157,7 +157,7 @@ public class UpsertTests
             InsertInto(_t, _t.Code, _t.Name)
             .Values(1, "a")
             .OnConflict(_t.Code)
-            .DoUpdate(_t.Name == Excluded(_t.Name))
+            .DoUpdateSet(_t.Name == Excluded(_t.Name))
             .Returning(_t.Code)
             .Build(Dbms.PostgreSql);
 
@@ -210,7 +210,7 @@ public class UpsertTests
     }
 
     [Fact]
-    public void OnConflict_DoUpdate_MultiRowValues_CorrectSql()
+    public void OnConflict_DoUpdateSet_MultiRowValues_CorrectSql()
     {
         // Arrange
         StringBuilder expected = new();
@@ -225,7 +225,7 @@ public class UpsertTests
             .Values(1, "a")
             .Values(2, "b")
             .OnConflict(_t.Code)
-            .DoUpdate(_t.Name == Excluded(_t.Name))
+            .DoUpdateSet(_t.Name == Excluded(_t.Name))
             .Build(Dbms.PostgreSql);
 
         // Assert

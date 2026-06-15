@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- Added support for UPSERT on the `INSERT` builder via per-dialect methods: `OnConflict(...).DoUpdate(...)` / `.DoNothing()` with an optional `Where(...)` (PostgreSQL/SQLite `ON CONFLICT`), and `OnDuplicateKeyUpdate(...)` (MySQL `ON DUPLICATE KEY UPDATE`). Reference the proposed row with `Sql.Excluded(column)`, which resolves to `EXCLUDED` (PostgreSQL), `excluded` (SQLite), or the `new` row alias (MySQL 8.0.19+). (#85)
+- Added support for UPSERT on the `INSERT` builder via per-dialect methods: `OnConflict(...).DoUpdateSet(...)` / `.DoNothing()` with an optional `Where(...)` (PostgreSQL/SQLite `ON CONFLICT`), and `OnDuplicateKeyUpdate(...)` (MySQL `ON DUPLICATE KEY UPDATE`). Reference the proposed row with `Sql.Excluded(column)`, which resolves to `EXCLUDED` (PostgreSQL), `excluded` (SQLite), or the `new` row alias (MySQL 8.0.19+). (#85)
 - Added support for the scalar functions `NULLIF`, `ROUND`, `CEIL`, `CEILING`, `FLOOR`, `POWER`, `SQRT`, and `SIGN`. `CEIL` and `CEILING` are exposed as distinct functions (`Ceil()` / `Ceiling()`), each emitted verbatim, so the caller picks the spelling their target DBMS requires. (#84)
 
 ## [0.2.0-beta.4] - 2026-06-12

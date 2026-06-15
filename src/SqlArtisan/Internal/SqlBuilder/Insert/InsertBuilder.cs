@@ -7,7 +7,7 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
     IInsertBuilderTable,
     IInsertBuilderValues,
     IInsertBuilderOnConflict,
-    IInsertBuilderDoUpdate
+    IInsertBuilderDoUpdateSet
 {
     private InsertValuesClause? _valuesClause;
 
@@ -23,9 +23,9 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public IInsertBuilderDoUpdate DoUpdate(params EqualityBasedCondition[] assignments)
+    public IInsertBuilderDoUpdateSet DoUpdateSet(params EqualityBasedCondition[] assignments)
     {
-        AddPart(DoUpdateClause.Parse(assignments));
+        AddPart(DoUpdateSetClause.Parse(assignments));
         return this;
     }
 
@@ -36,10 +36,10 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    // The DO UPDATE WHERE filter. Explicit implementation keeps this distinct
+    // The DO UPDATE SET WHERE filter. Explicit implementation keeps this distinct
     // from the inherited SelectBuilder.Where (which returns a SELECT builder);
     // both add the same WhereClause, but this preserves the UPSERT chain.
-    IInsertBuilderUpsert IInsertBuilderDoUpdate.Where(SqlCondition condition)
+    IInsertBuilderUpsert IInsertBuilderDoUpdateSet.Where(SqlCondition condition)
     {
         AddPart(new WhereClause(condition));
         return this;

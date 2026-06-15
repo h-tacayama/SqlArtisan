@@ -798,7 +798,7 @@ SqlStatement sql =
     InsertInto(u, u.Id, u.Name)
     .Values(1, "newName")
     .OnConflict(u.Id)
-    .DoUpdate(u.Name == Excluded(u.Name))
+    .DoUpdateSet(u.Name == Excluded(u.Name))
     .Build(Dbms.PostgreSql);
 
 // INSERT INTO users (id, name)
@@ -814,7 +814,7 @@ and `DoNothing()` skips conflicting rows:
 
 ```csharp
 // ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name WHERE ...
-.OnConflict(u.Id).DoUpdate(u.Name == Excluded(u.Name)).Where(u.Id < 100)
+.OnConflict(u.Id).DoUpdateSet(u.Name == Excluded(u.Name)).Where(u.Id < 100)
 
 // ON CONFLICT (id) DO NOTHING
 .OnConflict(u.Id).DoNothing()

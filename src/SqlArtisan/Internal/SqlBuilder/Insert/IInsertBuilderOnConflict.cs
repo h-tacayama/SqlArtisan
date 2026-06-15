@@ -8,5 +8,5 @@ public interface IInsertBuilderOnConflict
 {
     IInsertBuilderUpsert DoNothing();
 
-    IInsertBuilderDoUpdate DoUpdate(params EqualityBasedCondition[] assignments);
+    IInsertBuilderDoUpdateSet DoUpdateSet(params EqualityBasedCondition[] assignments);
 }
