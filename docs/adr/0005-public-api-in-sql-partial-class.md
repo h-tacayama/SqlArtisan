@@ -1,32 +1,24 @@
-# 0005 — Public API lives only in `Sql.*.cs` and `SqlBuilder/`; `Internal/` is implementation detail
+# 0005 — Public API lives only in `Sql.*.cs` and `SqlBuilder/`
 
 **Status:** Accepted
 
 ## Context
 
-A library's public surface is its contract: it must be discoverable, stable, and
-clearly separated from internals that are free to change. SqlArtisan exposes a
-large and growing set of SQL functions and builders, so the surface needs a
-predictable organising principle.
+The public surface is the library's contract: it must be discoverable and clearly
+separated from internals that are free to change.
 
 ## Decision
 
-- The public API is a single **`public static partial class Sql`**, split across
-  **`src/SqlArtisan/Sql/Sql.{A..W}.cs`**, **one file per leading letter** of the
-  function name (e.g. `Abs` lives in `Sql.A.cs`).
-- The remaining public surface lives under **`src/SqlArtisan/SqlBuilder/`**
-  (`Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`,
-  `ISqlBuilder`, …).
-- **Everything under `Internal/` is implementation detail** and not part of the
-  public contract, even where a type must be `public` for technical reasons.
+- The public API is one **`public static partial class Sql`**, split across
+  `src/SqlArtisan/Sql/Sql.{A..W}.cs` — one file per leading letter of the function
+  name.
+- The remaining public surface lives under `src/SqlArtisan/SqlBuilder/`.
+- **Everything under `Internal/` is implementation detail**, even where a type is
+  `public` for technical reasons.
 
 ## Consequences
 
-- **Discoverability**: a user types `Sql.` and finds everything; the
-  letter-partitioned files keep each source file small and navigable.
-- **Clear contract boundary**: internals (nodes, builders, `SqlBuildingBuffer`,
-  dialects) can be refactored freely without breaking consumers.
-- **Convention cost**: contributors must place factories in the correct
-  letter-file and keep entries alphabetical (enforced by review/conventions).
-- New SQL functions follow a fixed four-touch recipe (node, keyword, `Sql.<L>.cs`
-  factory, test) — see `CLAUDE.md`.
+- Discoverable: `Sql.` surfaces the whole function API, in small per-letter files.
+- Internals refactor freely without breaking consumers.
+- Contributors keep factories in the right letter-file; the per-function recipe is
+  in `CLAUDE.md`.

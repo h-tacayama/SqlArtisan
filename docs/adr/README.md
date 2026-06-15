@@ -19,8 +19,8 @@ DBMS divergence, then the output/structure decisions that follow from it.
 | ADR | Title | Status |
 |-----|-------|--------|
 | [0001](0001-faithful-sql-output.md) | The SQL you write is the SQL that runs; portability is a non-goal | Accepted |
-| [0002](0002-dbms-differences-in-dialect-layer.md) | Handling DBMS differences: token syntax in the dialect layer, divergent constructs as per-dialect APIs | Accepted |
+| [0002](0002-dbms-differences-in-dialect-layer.md) | Handling DBMS differences: tokens in the dialect layer, constructs as per-dialect APIs | Accepted |
 | [0003](0003-dbms-difference-safety.md) | DBMS-difference safety: permissive API + opt-in analyzer | Accepted (impl deferred; required for 1.0) |
 | [0004](0004-automatic-parameterization.md) | Values are automatically parameterized | Accepted |
-| [0005](0005-public-api-in-sql-partial-class.md) | Public API lives only in `Sql.*.cs` and `SqlBuilder/`; `Internal/` is implementation detail | Accepted |
-| [0006](0006-performance-allocation-light.md) | Performance is a feature: allocation-light, fast building | Accepted |
+| [0005](0005-public-api-in-sql-partial-class.md) | Public API lives only in `Sql.*.cs` and `SqlBuilder/` | Accepted |
+| [0006](0006-performance-allocation-light.md) | Performance is a feature: allocation-light building | Accepted |

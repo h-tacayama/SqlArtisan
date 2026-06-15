@@ -4,25 +4,18 @@
 
 ## Context
 
-Inlining literal values into SQL text invites SQL injection and defeats statement
-caching/plan reuse. A query builder that produces "the SQL you run" must make the
-safe path the default one.
+Inlining literal values invites SQL injection and defeats statement caching. A
+builder that produces runnable SQL must make the safe path the default.
 
 ## Decision
 
-- Literal values passed to the API are **bound as parameters**, not inlined. A
-  built `SqlStatement` carries both the SQL **text** and its **parameters**.
-- Parameter markers are dialect-correct (see ADR 0002): PostgreSQL/Oracle/SQLite
-  `:`, SQL Server `@`, MySQL `?`, with stable generated names.
+Literal values are **bound as parameters**, not inlined; a built `SqlStatement`
+carries the SQL text and its parameters. Parameter markers follow the dialect
+(ADR 0002).
 
 ## Consequences
 
-- **Safe by default**; the common path produces parameterized SQL with no extra
-  effort.
-- **Cache-friendly** SQL text (values do not vary the string).
-- **Known exceptions** must be handled deliberately: a few constructs *require* a
-  literal and reject a bind parameter (e.g. MySQL `GROUP_CONCAT ... SEPARATOR`
-  takes a string literal). Such cases emit a literal by design and are documented
-  at the API.
-- Output remains faithful (ADR 0001): parameterization changes value *binding*,
-  not the meaning of the query.
+- Safe by default, and cache-friendly (values do not vary the SQL text).
+- A few constructs *require* a literal and reject a parameter (e.g. MySQL
+  `GROUP_CONCAT ... SEPARATOR`); these emit a literal by design.
+- This affects value *binding* only, not the meaning of the query (ADR 0001).
