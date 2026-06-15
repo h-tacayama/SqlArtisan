@@ -8,53 +8,93 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace SqlArtisan.Analyzer;
 
-// Opt-in dialect check over the permissive SqlArtisan.Sql API. The target DBMS is
-// resolved PER FILE from .editorconfig (sqlartisan_target_dbms), falling back to a
-// project-wide MSBuild property (build_property.SqlArtisanTargetDbms). Per-file
-// resolution is what lets one project pin different DBMS to different folders via
-// .editorconfig globs. It NEVER blocks: Warning severity, and functions absent
-// from the catalog are ignored (permissive default).
+// Opt-in dialect checks over the permissive SqlArtisan API. The target DBMS is
+// resolved per file from .editorconfig (sqlartisan_target_dbms), falling back to
+// the project-wide MSBuild property (build_property.SqlArtisanTargetDbms). Three
+// diagnostics, all Warning, all silent until a target is configured:
+//   SQLA0001 — function/verb not available on the target DBMS
+//   SQLA0002 — the configured target DBMS value is not recognised
+//   SQLA0003 — function needs more arguments on the target DBMS (e.g. SS ROUND)
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class TargetDbmsFunctionAnalyzer : DiagnosticAnalyzer
 {
-    public const string DiagnosticId = "SQLA0001";
+    public const string UnsupportedId = "SQLA0001";
+    public const string UnknownTargetId = "SQLA0002";
+    public const string ArityId = "SQLA0003";
 
-    // .editorconfig key (per file/folder) and MSBuild fallback (project-wide).
     private const string EditorConfigKey = "sqlartisan_target_dbms";
     private const string MsBuildKey = "build_property.SqlArtisanTargetDbms";
     private const string RootNamespace = "SqlArtisan";
 
-    // Catalog: scalar functions AND clause-level verbs, case-insensitive on DBMS
-    // name. Functions absent here are never flagged.
-    private static readonly ImmutableDictionary<string, ImmutableHashSet<string>> Catalog =
+    // Accepted target values (case-insensitive) → canonical DBMS name. Anything
+    // not here triggers SQLA0002 instead of a flood of false SQLA0001s.
+    private static readonly ImmutableDictionary<string, string> Canonical =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["mysql"] = "MySql",
+            ["oracle"] = "Oracle",
+            ["postgresql"] = "PostgreSql",
+            ["postgres"] = "PostgreSql",
+            ["pg"] = "PostgreSql",
+            ["sqlite"] = "Sqlite",
+            ["sqlserver"] = "SqlServer",
+            ["mssql"] = "SqlServer",
+        }.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+
+    private const string KnownDbms = "MySql, Oracle, PostgreSql, Sqlite, SqlServer";
+
+    // Existence catalog: scalar functions AND clause verbs. Absent names = ignored.
+    private static readonly ImmutableDictionary<string, ImmutableHashSet<string>> Supported =
         new Dictionary<string, ImmutableHashSet<string>>
         {
-            // Scalar functions (on the Sql facade).
-            ["Abs"] = Dbms("MySql", "Oracle", "PostgreSql", "Sqlite", "SqlServer"),
-            ["Sign"] = Dbms("MySql", "Oracle", "PostgreSql", "Sqlite", "SqlServer"),
-            ["Ceil"] = Dbms("MySql", "Oracle", "PostgreSql", "Sqlite"),
-            ["Ceiling"] = Dbms("MySql", "PostgreSql", "Sqlite", "SqlServer"),
-            ["Trunc"] = Dbms("Oracle", "PostgreSql", "Sqlite"),
-
-            // Clause-level verbs. These are fluent-builder methods, not on the Sql
-            // facade — exactly the divergence that namespace option ② leaves
-            // visible-but-invalid at runtime; the analyzer flags it at build time.
-            ["MergeInto"] = Dbms("Oracle", "SqlServer"),
-            ["OnConflict"] = Dbms("PostgreSql", "Sqlite"),
-            ["OnDuplicateKeyUpdate"] = Dbms("MySql"),
+            ["Abs"] = D("MySql", "Oracle", "PostgreSql", "Sqlite", "SqlServer"),
+            ["Sign"] = D("MySql", "Oracle", "PostgreSql", "Sqlite", "SqlServer"),
+            ["Ceil"] = D("MySql", "Oracle", "PostgreSql", "Sqlite"),
+            ["Ceiling"] = D("MySql", "PostgreSql", "Sqlite", "SqlServer"),
+            ["Trunc"] = D("Oracle", "PostgreSql", "Sqlite"),
+            ["Round"] = D("MySql", "Oracle", "PostgreSql", "Sqlite", "SqlServer"),
+            ["MergeInto"] = D("Oracle", "SqlServer"),
+            ["OnConflict"] = D("PostgreSql", "Sqlite"),
+            ["OnDuplicateKeyUpdate"] = D("MySql"),
         }.ToImmutableDictionary();
 
-    private static readonly DiagnosticDescriptor Rule = new(
-        DiagnosticId,
-        title: "SQL function not available on the target DBMS",
-        messageFormat: "'{0}' is not available on {1}; it is supported on: {2}",
-        category: "SqlArtisan.Dialect",
-        defaultSeverity: DiagnosticSeverity.Warning,
+    // Arity rules: (function, canonical DBMS) → minimum argument count required.
+    // SQL Server's ROUND(x) is a syntax error — it needs the length argument.
+    private static readonly ImmutableDictionary<(string Function, string Dbms), int> MinArgs =
+        new Dictionary<(string, string), int>
+        {
+            [("Round", "SqlServer")] = 2,
+        }.ToImmutableDictionary();
+
+    private static readonly DiagnosticDescriptor UnsupportedRule = new(
+        UnsupportedId,
+        "SQL function not available on the target DBMS",
+        "'{0}' is not available on {1}; it is supported on: {2}",
+        "SqlArtisan.Dialect",
+        DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Set sqlartisan_target_dbms (.editorconfig) or <SqlArtisanTargetDbms> to flag unsupported functions.");
 
+    private static readonly DiagnosticDescriptor UnknownTargetRule = new(
+        UnknownTargetId,
+        "Unknown SqlArtisan target DBMS",
+        "Unknown target DBMS '{0}'; expected one of: " + KnownDbms,
+        "SqlArtisan.Dialect",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "sqlartisan_target_dbms / <SqlArtisanTargetDbms> must name a supported DBMS.");
+
+    private static readonly DiagnosticDescriptor ArityRule = new(
+        ArityId,
+        "SQL function needs more arguments on the target DBMS",
+        "'{0}' requires at least {1} argument(s) on {2}",
+        "SqlArtisan.Dialect",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "Some functions require more arguments on certain DBMS (e.g. ROUND on SQL Server).");
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        ImmutableArray.Create(Rule);
+        ImmutableArray.Create(UnsupportedRule, UnknownTargetRule, ArityRule);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -73,27 +113,45 @@ public sealed class TargetDbmsFunctionAnalyzer : DiagnosticAnalyzer
         IInvocationOperation invocation = (IInvocationOperation)context.Operation;
         IMethodSymbol method = invocation.TargetMethod;
 
-        // Recognise SqlArtisan members (the Sql facade AND the builder interfaces,
-        // which live under SqlArtisan.Internal) by namespace + catalog name.
         if (!IsSqlArtisanMember(method)
-            || !Catalog.TryGetValue(method.Name, out ImmutableHashSet<string>? supported))
+            || !Supported.TryGetValue(method.Name, out ImmutableHashSet<string>? supported))
         {
             return;
         }
 
-        string? target = ResolveTarget(provider, invocation.Syntax.SyntaxTree);
-        if (string.IsNullOrWhiteSpace(target)   // opt-in: silent for files with no target
-            || supported.Contains(target!))     // case-insensitive
+        string? configured = ResolveTarget(provider, invocation.Syntax.SyntaxTree);
+        if (string.IsNullOrWhiteSpace(configured))
         {
+            return;   // opt-in: silent until a target is configured
+        }
+
+        Location location = invocation.Syntax.GetLocation();
+
+        if (!Canonical.TryGetValue(configured!, out string? dbms))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(UnknownTargetRule, location, configured));
             return;
         }
 
-        context.ReportDiagnostic(Diagnostic.Create(
-            Rule,
-            invocation.Syntax.GetLocation(),
-            method.Name,
-            target,
-            string.Join(", ", supported.OrderBy(s => s, StringComparer.Ordinal))));
+        if (!supported.Contains(dbms))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                UnsupportedRule, location, method.Name, dbms,
+                string.Join(", ", supported.OrderBy(s => s, StringComparer.Ordinal))));
+            return;
+        }
+
+        if (MinArgs.TryGetValue((method.Name, dbms), out int min) && invocation.Arguments.Length < min)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(ArityRule, location, method.Name, min, dbms));
+        }
+    }
+
+    private static bool IsSqlArtisanMember(IMethodSymbol method)
+    {
+        string? ns = method.ContainingType?.ContainingNamespace?.ToDisplayString();
+        return ns is not null
+            && (ns == RootNamespace || ns.StartsWith(RootNamespace + ".", StringComparison.Ordinal));
     }
 
     // Per-file .editorconfig wins; project-wide MSBuild property is the fallback.
@@ -114,13 +172,6 @@ public sealed class TargetDbmsFunctionAnalyzer : DiagnosticAnalyzer
         return null;
     }
 
-    private static bool IsSqlArtisanMember(IMethodSymbol method)
-    {
-        string? ns = method.ContainingType?.ContainingNamespace?.ToDisplayString();
-        return ns is not null
-            && (ns == RootNamespace || ns.StartsWith(RootNamespace + ".", StringComparison.Ordinal));
-    }
-
-    private static ImmutableHashSet<string> Dbms(params string[] values) =>
-        ImmutableHashSet.CreateRange(StringComparer.OrdinalIgnoreCase, values);
+    private static ImmutableHashSet<string> D(params string[] values) =>
+        ImmutableHashSet.CreateRange(StringComparer.Ordinal, values);
 }

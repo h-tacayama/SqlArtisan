@@ -13,6 +13,8 @@ namespace SqlArtisan
         public static object Abs(object x) => x;
         public static object Ceil(object x) => x;
         public static object Ceiling(object x) => x;
+        public static object Round(object x) => x;
+        public static object Round(object x, object n) => x;
     }
 }
 ";
@@ -49,7 +51,7 @@ namespace SqlArtisan
     public async Task Is_Silent_When_No_Target_Configured()
     {
         // Opt-in: with no <SqlArtisanTargetDbms>, the analyzer does nothing.
-        var diagnostics = await AnalyzerHarness.RunAsync(Usage("SqlArtisan.Sql.Ceiling(1)"), targetDbms: null);
+        var diagnostics = await AnalyzerHarness.RunAsync(Usage("SqlArtisan.Sql.Ceiling(1)"), msbuildTarget: null);
         Assert.Empty(diagnostics);
     }
 
@@ -77,11 +79,11 @@ namespace SqlArtisan
         Assert.Equal(2, diagnostics.Length);
 
         Assert.Contains(diagnostics, d =>
-            d.GetMessage().Contains("'Ceiling'") && d.GetMessage().Contains("oracle")
+            d.GetMessage().Contains("'Ceiling'") && d.GetMessage().Contains("Oracle")
             && d.Location.GetLineSpan().Path == "File0.cs");
 
         Assert.Contains(diagnostics, d =>
-            d.GetMessage().Contains("'Ceil'") && d.GetMessage().Contains("sqlserver")
+            d.GetMessage().Contains("'Ceil'") && d.GetMessage().Contains("SqlServer")
             && d.Location.GetLineSpan().Path == "File1.cs");
     }
 
@@ -170,5 +172,90 @@ namespace SqlArtisan
         var diagnostics = await AnalyzerHarness.RunAsync(
             BuilderUsage("SqlArtisan.Sql.InsertInto().OnConflict()"), "PostgreSql");
         Assert.Empty(diagnostics);
+    }
+
+    // ── Arity (SQLA0003): SQL Server's ROUND requires the length argument ─────
+
+    [Fact]
+    public async Task Flags_SingleArg_Round_On_SqlServer()
+    {
+        var diagnostics = await AnalyzerHarness.RunAsync(Usage("SqlArtisan.Sql.Round(1)"), "SqlServer");
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("SQLA0003", diagnostic.Id);
+        Assert.Contains("Round", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task Does_Not_Flag_TwoArg_Round_On_SqlServer()
+    {
+        var diagnostics = await AnalyzerHarness.RunAsync(Usage("SqlArtisan.Sql.Round(1, 2)"), "SqlServer");
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Does_Not_Flag_SingleArg_Round_On_Oracle()
+    {
+        // Oracle allows ROUND(x); the arity rule is SQL-Server-specific.
+        var diagnostics = await AnalyzerHarness.RunAsync(Usage("SqlArtisan.Sql.Round(1)"), "Oracle");
+        Assert.Empty(diagnostics);
+    }
+
+    // ── Unknown target (SQLA0002) + aliases ──────────────────────────────────
+
+    [Fact]
+    public async Task Flags_Unknown_Target_Value()
+    {
+        // A typo'd target must not silently flag everything — it's its own error.
+        var diagnostics = await AnalyzerHarness.RunAsync(Usage("SqlArtisan.Sql.Abs(1)"), "Oracel");
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("SQLA0002", diagnostic.Id);
+        Assert.Contains("Oracel", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task Accepts_Alias_Mssql_As_SqlServer()
+    {
+        // 'mssql' resolves to SqlServer, which has no CEIL -> SQLA0001 (proves the alias).
+        var diagnostics = await AnalyzerHarness.RunAsync(Usage("SqlArtisan.Sql.Ceil(1)"), "mssql");
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("SQLA0001", diagnostic.Id);
+    }
+
+    [Fact]
+    public async Task Target_Is_Case_Insensitive()
+    {
+        var diagnostics = await AnalyzerHarness.RunAsync(Usage("SqlArtisan.Sql.Ceiling(1)"), "ORACLE");
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("SQLA0001", diagnostic.Id);
+    }
+
+    // ── Config precedence: .editorconfig overrides the MSBuild property ───────
+
+    [Fact]
+    public async Task EditorConfig_Overrides_MsBuild_Property()
+    {
+        // MSBuild says SqlServer (Ceil invalid), .editorconfig says Oracle (Ceil ok).
+        // If .editorconfig wins, there is no diagnostic.
+        var diagnostics = await AnalyzerHarness.RunAsync(
+            Usage("SqlArtisan.Sql.Ceil(1)"),
+            msbuildTarget: "SqlServer",
+            editorConfigTarget: "Oracle");
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task MsBuild_Property_Used_As_Fallback_When_No_EditorConfig()
+    {
+        var diagnostics = await AnalyzerHarness.RunAsync(
+            Usage("SqlArtisan.Sql.Ceil(1)"),
+            msbuildTarget: "SqlServer");
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("SQLA0001", diagnostic.Id);   // Ceil not on SqlServer
     }
 }

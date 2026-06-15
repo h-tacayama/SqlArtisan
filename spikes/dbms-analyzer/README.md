@@ -77,9 +77,13 @@ SQLA0001: 'Ceiling' is not available on Oracle; it is supported on: MySql, Postg
 | **Clause verb: `MergeInto`** flagged off Oracle/SqlServer | `Flags_MergeInto_When_Target_Has_No_Merge` / `Does_Not_Flag_MergeInto_On_Oracle` |
 | **Clause verb: `OnDuplicateKeyUpdate`** flagged off MySQL | `Flags_OnDuplicateKeyUpdate_On_PostgreSql` |
 | **Clause verb: `OnConflict`** flagged off PG/SQLite | `Flags_OnConflict_On_MySql` / `Does_Not_Flag_OnConflict_On_PostgreSql` |
+| **Arity (`SQLA0003`)**: SQL Server `ROUND(x)` flagged, `ROUND(x,n)` ok | `Flags_SingleArg_Round_On_SqlServer` / `Does_Not_Flag_TwoArg_Round_On_SqlServer` |
+| **Unknown target (`SQLA0002`)** for a typo'd value | `Flags_Unknown_Target_Value` |
+| **Aliases / case-insensitive** (`mssql`, `ORACLE`) | `Accepts_Alias_Mssql_As_SqlServer` / `Target_Is_Case_Insensitive` |
+| **Config precedence**: `.editorconfig` over MSBuild; MSBuild fallback | `EditorConfig_Overrides_MsBuild_Property` / `MsBuild_Property_Used_As_Fallback_When_No_EditorConfig` |
 
 ```bash
-dotnet test tests/SqlArtisan.Analyzer.Tests   # 12 passed
+dotnet test tests/SqlArtisan.Analyzer.Tests   # 20 passed
 ```
 
 ### Clause-level verbs (UPSERT / MERGE), not just facade functions
@@ -146,13 +150,34 @@ auto-import).
 best discoverability). Keep the separate-package option only if the maintainer
 wants analyzer versioning fully decoupled from the library.
 
+## Completeness pass (three diagnostics, robust config)
+
+To make the layer credible rather than a toy, the PoC now covers:
+
+- **`SQLA0001` — existence**: function/clause-verb not available on the target
+  (scalars, structural functions, and UPSERT/MERGE verbs).
+- **`SQLA0003` — arity**: a function that needs more arguments on the target,
+  e.g. SQL Server `ROUND(x)` is a syntax error (needs `ROUND(x, n)`). This shows
+  the analyzer reaches *beyond pure existence* where the matrix encodes it.
+- **`SQLA0002` — unknown target**: a typo'd `sqlartisan_target_dbms` (e.g.
+  `Oracel`) is reported as its own error instead of silently flagging *everything*
+  — the obvious footgun of config-driven checks, closed.
+- **Target normalisation**: case-insensitive, with aliases (`postgres`/`pg` →
+  PostgreSql, `mssql` → SqlServer); diagnostics print the canonical name.
+- **Config precedence proven**: per-file `.editorconfig` overrides the project-wide
+  MSBuild property (test `EditorConfig_Overrides_MsBuild_Property`); MSBuild is the
+  fallback when no `.editorconfig` value applies.
+- **Analyzer release tracking** (`AnalyzerReleases.*.md`) — the RS2008 suppression
+  was removed; the analyzer is now production-shaped.
+
 ## Scope / what it deliberately does NOT do
 
-- **Existence only.** Like every option in the namespace spike, it cannot catch
-  *semantic* divergence (rounding mode, `GROUP_CONCAT` truncation, PG numeric-only
-  2-arg `ROUND`) or a target-vs-actual-connection mismatch.
-- **Catalog is a 5-row numeric stub.** The real version consumes the verified
-  full matrix (the same artifact every option needs).
+- **No deep semantics.** It cannot catch *behavioural* divergence (rounding mode,
+  `GROUP_CONCAT` truncation, PG's numeric-only 2-arg `ROUND` restriction) or a
+  target-vs-actual-connection mismatch. Existence + arity are covered; meaning is
+  not.
+- **Catalog is a small numeric/clause stub.** The real version consumes the
+  verified full matrix (the same artifact every option needs).
 - **Name + namespace matching** (PoC heuristic). It flags catalog names on any
   `SqlArtisan.*` member; the production version would match the resolved symbols
   precisely. Both facade functions and clause verbs (UPSERT/MERGE) are covered.

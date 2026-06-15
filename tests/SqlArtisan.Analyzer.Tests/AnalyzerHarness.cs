@@ -5,52 +5,43 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SqlArtisan.Analyzer.Tests;
 
-// Runs TargetDbmsFunctionAnalyzer over an in-memory compilation, supplying the
-// target DBMS through a fake AnalyzerConfigOptions (the same channel MSBuild's
-// <SqlArtisanTargetDbms> would use). Returns only analyzer diagnostics.
+// Runs TargetDbmsFunctionAnalyzer over an in-memory compilation. The MSBuild
+// target goes through GlobalOptions (build_property.*) and the .editorconfig
+// target through per-file options (sqlartisan_target_dbms) — the same two channels
+// real projects use — so precedence can be tested.
 internal static class AnalyzerHarness
 {
-    public static async Task<ImmutableArray<Diagnostic>> RunAsync(string source, string? targetDbms)
+    public static Task<ImmutableArray<Diagnostic>> RunAsync(
+        string source,
+        string? msbuildTarget = null,
+        string? editorConfigTarget = null)
     {
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(source);
-
-        IEnumerable<MetadataReference> references =
-            ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
-            .Split(Path.PathSeparator)
-            .Where(path => path.Length > 0)
-            .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path));
-
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            "AnalyzerTestAssembly",
-            new[] { tree },
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "File0.cs");
 
         ImmutableDictionary<string, string> global = ImmutableDictionary<string, string>.Empty;
-        if (targetDbms is not null)
+        if (msbuildTarget is not null)
         {
-            global = global.Add("build_property.SqlArtisanTargetDbms", targetDbms);
+            global = global.Add("build_property.SqlArtisanTargetDbms", msbuildTarget);
         }
 
-        AnalyzerOptions options = new(
-            ImmutableArray<AdditionalText>.Empty,
-            new OptionsProvider(global));
+        ImmutableDictionary<string, string> perFile = ImmutableDictionary<string, string>.Empty;
+        if (editorConfigTarget is not null)
+        {
+            perFile = perFile.Add("sqlartisan_target_dbms", editorConfigTarget);
+        }
 
-        CompilationWithAnalyzers withAnalyzers = compilation.WithAnalyzers(
-            ImmutableArray.Create<DiagnosticAnalyzer>(new TargetDbmsFunctionAnalyzer()),
-            options);
-
-        return await withAnalyzers.GetAnalyzerDiagnosticsAsync();
+        Dictionary<SyntaxTree, AnalyzerConfigOptions> byTree = new() { [tree] = new Options(perFile) };
+        return RunAsync(new[] { tree }, byTree, new Options(global));
     }
 
-    // Runs over several files in ONE compilation, each with its own per-file
-    // .editorconfig target — proving per-folder scoping within a single project.
-    public static async Task<ImmutableArray<Diagnostic>> RunPerFileAsync(
+    // Several files in ONE compilation, each with its own per-file .editorconfig
+    // target — proves per-folder scoping within a single project.
+    public static Task<ImmutableArray<Diagnostic>> RunPerFileAsync(
         string sharedStub,
         params (string source, string? editorConfigTarget)[] files)
     {
-        Dictionary<SyntaxTree, AnalyzerConfigOptions> byTree = new();
         List<SyntaxTree> trees = new();
+        Dictionary<SyntaxTree, AnalyzerConfigOptions> byTree = new();
 
         SyntaxTree stub = CSharpSyntaxTree.ParseText(sharedStub, path: "Stub.cs");
         trees.Add(stub);
@@ -70,6 +61,14 @@ internal static class AnalyzerHarness
             byTree[tree] = new Options(values);
         }
 
+        return RunAsync(trees, byTree, new Options(ImmutableDictionary<string, string>.Empty));
+    }
+
+    private static async Task<ImmutableArray<Diagnostic>> RunAsync(
+        IEnumerable<SyntaxTree> trees,
+        Dictionary<SyntaxTree, AnalyzerConfigOptions> byTree,
+        AnalyzerConfigOptions global)
+    {
         IEnumerable<MetadataReference> references =
             ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
             .Split(Path.PathSeparator)
@@ -84,7 +83,7 @@ internal static class AnalyzerHarness
 
         AnalyzerOptions options = new(
             ImmutableArray<AdditionalText>.Empty,
-            new PerTreeOptionsProvider(byTree));
+            new PerTreeOptionsProvider(byTree, global));
 
         CompilationWithAnalyzers withAnalyzers = compilation.WithAnalyzers(
             ImmutableArray.Create<DiagnosticAnalyzer>(new TargetDbmsFunctionAnalyzer()),
@@ -93,29 +92,16 @@ internal static class AnalyzerHarness
         return await withAnalyzers.GetAnalyzerDiagnosticsAsync();
     }
 
-    private sealed class PerTreeOptionsProvider(Dictionary<SyntaxTree, AnalyzerConfigOptions> byTree)
-        : AnalyzerConfigOptionsProvider
+    private sealed class PerTreeOptionsProvider(
+        Dictionary<SyntaxTree, AnalyzerConfigOptions> byTree,
+        AnalyzerConfigOptions global) : AnalyzerConfigOptionsProvider
     {
-        private static readonly AnalyzerConfigOptions Empty =
-            new Options(ImmutableDictionary<string, string>.Empty);
-
-        public override AnalyzerConfigOptions GlobalOptions => Empty;
+        public override AnalyzerConfigOptions GlobalOptions => global;
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) =>
-            byTree.TryGetValue(tree, out AnalyzerConfigOptions? o) ? o : Empty;
+            byTree.TryGetValue(tree, out AnalyzerConfigOptions? o) ? o : global;
 
-        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) => Empty;
-    }
-
-    private sealed class OptionsProvider(ImmutableDictionary<string, string> values) : AnalyzerConfigOptionsProvider
-    {
-        private readonly AnalyzerConfigOptions _options = new Options(values);
-
-        public override AnalyzerConfigOptions GlobalOptions => _options;
-
-        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) => _options;
-
-        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) => _options;
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) => global;
     }
 
     private sealed class Options(ImmutableDictionary<string, string> values) : AnalyzerConfigOptions
