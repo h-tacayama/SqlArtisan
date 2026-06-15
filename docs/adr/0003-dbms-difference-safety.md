@@ -1,6 +1,6 @@
 # ADR 0003 — DBMS-difference safety: permissive API + opt-in analyzer
 
-**Status:** Accepted — implementation deferred, **required for 1.0**. Tracking: #93.
+**Status:** Accepted — not yet implemented.
 
 ## Context
 
@@ -11,15 +11,15 @@ approaches were explored (the `claude/dbms-*` spike branches):
 
 | Approach | Wrong usage caught | Cross-DBMS mixing | API cost |
 |----------|--------------------|-------------------|----------|
-| ① permissive, untyped | no (clauses) | runtime | none |
-| ② namespaces for functions, methods for clauses | compile (functions) | runtime | namespaces |
-| ③ per-DBMS namespaces everywhere | compile (per file) | runtime | namespaces; no neutral API |
-| ④ phantom types | compile | **compile** | generics everywhere |
-| **⑤ permissive + opt-in analyzer** | **build-time warning** | not caught | **none** |
+| ① Permissive, untyped (no guidance) | none | not caught | none |
+| ② Namespaces for functions, plain methods for clauses | functions: compile | runtime guard | per-DBMS namespaces |
+| ③ Per-DBMS namespaces throughout | compile (per file) | runtime guard | namespaces; no neutral API |
+| ④ DBMS as a type parameter (phantom types) | compile | **compile** | generics throughout |
+| **⑤ Permissive + opt-in analyzer** | **build warning** | not caught | **none** |
 
 Only ④ catches *mixing* at compile time, but its pervasive generics suit neither
-the philosophy nor the audience. Namespace cost is driven by fluent depth, not by
-how divergent the syntax is.
+the philosophy nor the audience. ⑤ adds wrong-usage warnings to the otherwise
+untouched permissive API.
 
 ## Decision
 
@@ -45,14 +45,7 @@ library-wide guard.)
 - Out of scope for *every* approach: behavioural divergence (rounding mode,
   truncation, type restrictions), connection-vs-target mismatch, and per-call
   mixing within one file — covered by docs, not the analyzer.
-- The analyzer's value rests on a verified per-DBMS matrix. It is degradable —
-  only verified entries warn — so an incomplete matrix never produces a false
-  positive.
-
-## Plan
-
-1. Build out SQL coverage on the permissive API, recording dialect divergence into
-   the matrix as each feature lands.
-2. Freeze the 1.0 surface, then verify the matrix for exactly that surface.
-3. Ship the analyzer with the verified matrix — a **1.0 requirement**, so the
-   matrix is the 1.0 critical path (bounded by the frozen surface).
+- The analyzer's value rests on a verified per-DBMS matrix; it is degradable (only
+  verified entries warn), so an incomplete matrix never yields a false positive.
+- Required for 1.0: building and verifying that matrix for the (frozen) 1.0 surface
+  is the release's critical path.
