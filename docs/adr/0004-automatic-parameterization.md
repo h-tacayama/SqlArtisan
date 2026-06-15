@@ -1,4 +1,4 @@
-# 0004 — Values are automatically parameterized
+# ADR 0004 — Values are automatically parameterized
 
 **Status:** Accepted
 

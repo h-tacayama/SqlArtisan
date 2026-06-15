@@ -1,4 +1,4 @@
-# 0005 — Public API lives only in `Sql.*.cs` and `SqlBuilder/`
+# ADR 0005 — Public API lives only in `Sql.*.cs` and `SqlBuilder/`
 
 **Status:** Accepted
 

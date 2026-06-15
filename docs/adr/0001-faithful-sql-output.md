@@ -1,4 +1,4 @@
-# 0001 — The SQL you write is the SQL that runs; portability is a non-goal
+# ADR 0001 — The SQL you write is the SQL that runs; portability is a non-goal
 
 **Status:** Accepted
 

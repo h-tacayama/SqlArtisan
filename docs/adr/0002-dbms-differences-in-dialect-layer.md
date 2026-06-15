@@ -1,4 +1,4 @@
-# 0002 — Handling DBMS differences: tokens in the dialect layer, constructs as per-dialect APIs
+# ADR 0002 — Handling DBMS differences: tokens in the dialect layer, constructs as per-dialect APIs
 
 **Status:** Accepted
 

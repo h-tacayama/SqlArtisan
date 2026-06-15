@@ -1,4 +1,4 @@
-# 0006 — Performance is a feature: allocation-light building
+# ADR 0006 — Performance is a feature: allocation-light building
 
 **Status:** Accepted
 

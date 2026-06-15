@@ -1,4 +1,4 @@
-# 0003 — DBMS-difference safety: permissive API + opt-in analyzer
+# ADR 0003 — DBMS-difference safety: permissive API + opt-in analyzer
 
 **Status:** Accepted — implementation deferred, **required for 1.0**. Tracking: #93.
 
