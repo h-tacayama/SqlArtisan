@@ -20,3 +20,6 @@ code.
 | [0003](0003-dbms-differences-in-dialect-layer.md) | DBMS-specific syntax lives only in the dialect layer; nodes never branch on `Dbms` | Accepted |
 | [0004](0004-automatic-parameterization.md) | Values are automatically parameterized | Accepted |
 | [0005](0005-dbms-difference-safety.md) | DBMS-difference safety: permissive API + opt-in analyzer | Accepted (impl deferred; required for 1.0) |
+| [0006](0006-performance-allocation-light.md) | Performance is a feature: allocation-light, fast building | Accepted |
+| [0007](0007-thin-core-separate-integration-packages.md) | Thin core; integration/execution in separate opt-in packages | Accepted |
+| [0008](0008-per-dialect-apis-for-divergent-features.md) | Divergent features exposed as per-dialect APIs, not a unified rewrite | Accepted |
