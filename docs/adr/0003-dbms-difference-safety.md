@@ -19,7 +19,7 @@ Five options were prototyped and measured (spike branches
 | ② hybrid (ns functions + per-dialect clause methods) | compile (fn) / hole (clauses) | runtime guard | yes | clean |
 | ③ namespaces everywhere (clauses = extension methods) | compile (per-file import) | runtime guard | no | clean |
 | ④ phantom types | compile | **compile** | yes | generics everywhere |
-| **B permissive + opt-in analyzer** | **build-time warning** | not caught | yes | clean, no API change |
+| **⑤ permissive + opt-in analyzer** | **build-time warning** | not caught | yes | clean, no API change |
 
 Key finding: the cost of namespace/wrapper schemes is driven by **fluent depth**,
 not syntactic divergence — functions (depth 0) are cheap, fluent clauses
@@ -28,7 +28,7 @@ of pervasive generics and a portability tax unsuited to SqlArtisan's audience.
 
 ## Decision
 
-Adopt **option B: a permissive single API plus an opt-in Roslyn analyzer.**
+Adopt **option ⑤: a permissive single API plus an opt-in Roslyn analyzer.**
 
 - The analyzer (PoC: `claude/dbms-analyzer-poc`, all tests passing) flags, against
   a configured target DBMS:
@@ -47,7 +47,7 @@ Adopt **option B: a permissive single API plus an opt-in Roslyn analyzer.**
   honours ADR 0001 and the lightweight-runtime goal.
 - **Reversible/additive**: options ③/④ could be layered later if positioning ever
   shifts toward "compile-time-safe multi-DBMS".
-- **Out of scope for any option** (so also for B): behavioural/semantic divergence
+- **Out of scope for any option** (so also for ⑤): behavioural/semantic divergence
   (rounding mode, `GROUP_CONCAT` truncation, PG numeric-only 2-arg `ROUND`),
   target-vs-actual-connection mismatch, and per-call-site mixing within one file.
   These are addressed by docs + the verified matrix, not by the analyzer.
