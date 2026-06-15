@@ -93,6 +93,47 @@ encoding the DBMS in the code itself — i.e. **phantom types** (`Ceil<Oracle>(.
 see the `claude/dbms-namespace-spike` Step 5). In practice multi-DBMS code is
 usually separated by folder/module, which `.editorconfig` handles cleanly.
 
+## Delivery: how users get it
+
+A Roslyn analyzer ships **inside a NuGet package** under `analyzers/dotnet/cs/`;
+the compiler loads it automatically for any project that references the package.
+Two delivery models:
+
+1. **Bundled into the existing `SqlArtisan` package (recommended, proven here).**
+   Anyone who installs `SqlArtisan` gets dialect checking with no extra step —
+   and because it's *opt-in-silent*, it does nothing until a target DBMS is set.
+   Crucially, an analyzer is **build-time only**: it lives in `analyzers/`, never
+   `lib/`, so it adds **zero runtime weight** — the "lightweight core" value
+   (about runtime/allocations) is fully preserved.
+2. **Separate `SqlArtisan.Analyzer` companion package** (the "thin core, separate
+   integration" pattern, like `SqlArtisan.Dapper`). Opt-in at install time.
+
+Because the analyzer carries no runtime dependency, bundling does **not** make the
+runtime library heavier — the usual reason to split a package does not apply here.
+
+### Proven includable in the current library
+
+`src/SqlArtisan/SqlArtisan.csproj` was wired to bundle the analyzer, and
+`dotnet pack -c Release` produced a package containing:
+
+```
+lib/net8.0/SqlArtisan.dll                    (runtime — unchanged)
+analyzers/dotnet/cs/SqlArtisan.Analyzer.dll  (build-time only)
+build/SqlArtisan.props                        (<SqlArtisanTargetDbms> wiring)
+buildTransitive/SqlArtisan.props              (flows to transitive consumers)
+```
+
+Wiring used: a `ProjectReference` with `ReferenceOutputAssembly="false"
+OutputItemType="Analyzer"` (builds + applies the analyzer without adding it to the
+library's dependency graph), a `TargetsForTfmSpecificBuildOutput` target placing
+the DLL under `analyzers/dotnet/cs/`, and the props packed to
+`build/buildTransitive` as `SqlArtisan.props` (name must match the package id to
+auto-import).
+
+**Recommendation:** bundle into `SqlArtisan` (zero runtime cost + opt-in-silent +
+best discoverability). Keep the separate-package option only if the maintainer
+wants analyzer versioning fully decoupled from the library.
+
 ## Scope / what it deliberately does NOT do
 
 - **Existence only.** Like every option in the namespace spike, it cannot catch

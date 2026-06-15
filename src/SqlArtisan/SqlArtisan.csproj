@@ -30,4 +30,36 @@
     </None>
   </ItemGroup>
 
+  <!--
+    Bundle the opt-in dialect analyzer INTO this package. The analyzer is
+    build-time only: it ships under analyzers/dotnet/cs/ and is never part of the
+    consumer's runtime output, so the runtime library stays just as lightweight.
+    ReferenceOutputAssembly=false keeps it out of the library's dependency graph.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\SqlArtisan.Analyzer\SqlArtisan.Analyzer.csproj"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_BundleSqlArtisanAnalyzer</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <Target Name="_BundleSqlArtisanAnalyzer">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)..\SqlArtisan.Analyzer\bin\$(Configuration)\netstandard2.0\SqlArtisan.Analyzer.dll"
+                              PackagePath="analyzers/dotnet/cs" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Ship the CompilerVisibleProperty wiring so <SqlArtisanTargetDbms> reaches
+       the analyzer; buildTransitive carries it to transitive consumers too. -->
+  <ItemGroup>
+    <None Include="..\SqlArtisan.Analyzer\build\SqlArtisan.Analyzer.props"
+          Pack="true"
+          PackagePath="build\SqlArtisan.props;buildTransitive\SqlArtisan.props"
+          Visible="false" />
+  </ItemGroup>
+
 </Project>
