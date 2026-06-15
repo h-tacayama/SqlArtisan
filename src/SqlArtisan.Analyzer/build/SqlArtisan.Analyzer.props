@@ -1,0 +1,15 @@
+<Project>
+
+  <!--
+    Shipped with the analyzer package so a consuming project can opt in with:
+      <PropertyGroup>
+        <SqlArtisanTargetDbms>Oracle</SqlArtisanTargetDbms>
+      </PropertyGroup>
+    CompilerVisibleProperty surfaces it to the analyzer as
+    build_property.SqlArtisanTargetDbms.
+  -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="SqlArtisanTargetDbms" />
+  </ItemGroup>
+
+</Project>
