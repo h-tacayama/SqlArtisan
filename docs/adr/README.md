@@ -1,0 +1,22 @@
+# Architecture Decision Records (ADRs)
+
+This folder holds SqlArtisan's **architecture decision records** — the canonical,
+versioned account of *why* the library is shaped the way it is. ADRs live in the
+source tree (not only in issues) so they are reviewed via PR and travel with the
+code.
+
+- A GitHub **issue** is for discussion and tracking; an **ADR** is the durable
+  record of the decision it reached. They cross-link.
+- Format: lightweight — **Status / Context / Decision / Consequences**.
+- ADRs are immutable once Accepted; to change a decision, add a new ADR that
+  supersedes the old one (note it in both).
+
+## Index
+
+| ADR | Title | Status |
+|-----|-------|--------|
+| [0001](0001-faithful-sql-output.md) | The SQL you write is the SQL that runs; portability is a non-goal | Accepted |
+| [0002](0002-public-api-in-sql-partial-class.md) | Public API lives only in `Sql.*.cs` and `SqlBuilder/`; `Internal/` is implementation detail | Accepted |
+| [0003](0003-dbms-differences-in-dialect-layer.md) | DBMS-specific syntax lives only in the dialect layer; nodes never branch on `Dbms` | Accepted |
+| [0004](0004-automatic-parameterization.md) | Values are automatically parameterized | Accepted |
+| [0005](0005-dbms-difference-safety.md) | DBMS-difference safety: permissive API + opt-in analyzer | Accepted (impl deferred; required for 1.0) |
