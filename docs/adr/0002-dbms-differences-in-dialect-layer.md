@@ -29,8 +29,9 @@ A per-dialect API still relies on the dialect layer for its own tokens.
 
 ## Consequences
 
-- Token divergence is centralised and testable; adding a DBMS is largely one new
-  `IDbmsDialect`.
-- The public surface grows per dialect for divergent constructs. Distinct,
-  dialect-named methods are also what let the ADR 0003 analyzer help: it can see
-  which DBMS a call targets and warn on a mismatch.
+- Token differences stay centralised and testable in the dialect layer; adding a
+  DBMS is largely one new `IDbmsDialect`.
+- Divergent constructs grow the public surface per dialect — the cost of being
+  explicit. In return, those distinct, dialect-named methods give the ADR 0003
+  analyzer something to check: it can tell which DBMS a call targets and warn on a
+  mismatch.
