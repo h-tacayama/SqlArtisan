@@ -100,4 +100,75 @@ namespace SqlArtisan
 
         Assert.Empty(diagnostics);
     }
+
+    // ── Clause-level verbs (UPSERT / MERGE), not just Sql-facade functions ────
+
+    // A fluent-builder shape mimicking the real API: the verbs live on builder
+    // types (here under SqlArtisan), reached via a chain — exactly what the
+    // analyzer must now recognise beyond the Sql facade.
+    private const string BuilderStub = @"
+namespace SqlArtisan
+{
+    public static class Sql
+    {
+        public static IInsert InsertInto() => null!;
+        public static IMerge MergeInto() => null!;
+    }
+    public interface IInsert { IConflict OnConflict(); object OnDuplicateKeyUpdate(); }
+    public interface IConflict { object DoUpdateSet(); }
+    public interface IMerge { object Using(); }
+}
+";
+
+    private static string BuilderUsage(string call) =>
+        BuilderStub + "namespace App { class C { void M() { var _ = " + call + "; } } }";
+
+    [Fact]
+    public async Task Flags_MergeInto_When_Target_Has_No_Merge()
+    {
+        // MERGE is Oracle/SqlServer only; PostgreSQL must be flagged.
+        var diagnostics = await AnalyzerHarness.RunAsync(BuilderUsage("SqlArtisan.Sql.MergeInto()"), "PostgreSql");
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("SQLA0001", diagnostic.Id);
+        Assert.Contains("MergeInto", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task Does_Not_Flag_MergeInto_On_Oracle()
+    {
+        var diagnostics = await AnalyzerHarness.RunAsync(BuilderUsage("SqlArtisan.Sql.MergeInto()"), "Oracle");
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Flags_OnDuplicateKeyUpdate_On_PostgreSql()
+    {
+        // ON DUPLICATE KEY UPDATE is MySQL-only — the verb-mismatch hole that
+        // option ② leaves silent at runtime is caught here at build time.
+        var diagnostics = await AnalyzerHarness.RunAsync(
+            BuilderUsage("SqlArtisan.Sql.InsertInto().OnDuplicateKeyUpdate()"), "PostgreSql");
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Contains("OnDuplicateKeyUpdate", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task Flags_OnConflict_On_MySql()
+    {
+        // ON CONFLICT is PostgreSQL/SQLite only.
+        var diagnostics = await AnalyzerHarness.RunAsync(
+            BuilderUsage("SqlArtisan.Sql.InsertInto().OnConflict()"), "MySql");
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Contains("OnConflict", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task Does_Not_Flag_OnConflict_On_PostgreSql()
+    {
+        var diagnostics = await AnalyzerHarness.RunAsync(
+            BuilderUsage("SqlArtisan.Sql.InsertInto().OnConflict()"), "PostgreSql");
+        Assert.Empty(diagnostics);
+    }
 }

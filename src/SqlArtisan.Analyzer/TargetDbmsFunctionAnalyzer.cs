@@ -22,17 +22,26 @@ public sealed class TargetDbmsFunctionAnalyzer : DiagnosticAnalyzer
     // .editorconfig key (per file/folder) and MSBuild fallback (project-wide).
     private const string EditorConfigKey = "sqlartisan_target_dbms";
     private const string MsBuildKey = "build_property.SqlArtisanTargetDbms";
-    private const string SqlFacadeType = "SqlArtisan.Sql";
+    private const string RootNamespace = "SqlArtisan";
 
-    // Minimal numeric matrix (the opt-in catalog), case-insensitive on DBMS name.
+    // Catalog: scalar functions AND clause-level verbs, case-insensitive on DBMS
+    // name. Functions absent here are never flagged.
     private static readonly ImmutableDictionary<string, ImmutableHashSet<string>> Catalog =
         new Dictionary<string, ImmutableHashSet<string>>
         {
+            // Scalar functions (on the Sql facade).
             ["Abs"] = Dbms("MySql", "Oracle", "PostgreSql", "Sqlite", "SqlServer"),
             ["Sign"] = Dbms("MySql", "Oracle", "PostgreSql", "Sqlite", "SqlServer"),
             ["Ceil"] = Dbms("MySql", "Oracle", "PostgreSql", "Sqlite"),
             ["Ceiling"] = Dbms("MySql", "PostgreSql", "Sqlite", "SqlServer"),
             ["Trunc"] = Dbms("Oracle", "PostgreSql", "Sqlite"),
+
+            // Clause-level verbs. These are fluent-builder methods, not on the Sql
+            // facade — exactly the divergence that namespace option ② leaves
+            // visible-but-invalid at runtime; the analyzer flags it at build time.
+            ["MergeInto"] = Dbms("Oracle", "SqlServer"),
+            ["OnConflict"] = Dbms("PostgreSql", "Sqlite"),
+            ["OnDuplicateKeyUpdate"] = Dbms("MySql"),
         }.ToImmutableDictionary();
 
     private static readonly DiagnosticDescriptor Rule = new(
@@ -64,7 +73,9 @@ public sealed class TargetDbmsFunctionAnalyzer : DiagnosticAnalyzer
         IInvocationOperation invocation = (IInvocationOperation)context.Operation;
         IMethodSymbol method = invocation.TargetMethod;
 
-        if (method.ContainingType?.ToDisplayString() != SqlFacadeType
+        // Recognise SqlArtisan members (the Sql facade AND the builder interfaces,
+        // which live under SqlArtisan.Internal) by namespace + catalog name.
+        if (!IsSqlArtisanMember(method)
             || !Catalog.TryGetValue(method.Name, out ImmutableHashSet<string>? supported))
         {
             return;
@@ -101,6 +112,13 @@ public sealed class TargetDbmsFunctionAnalyzer : DiagnosticAnalyzer
         }
 
         return null;
+    }
+
+    private static bool IsSqlArtisanMember(IMethodSymbol method)
+    {
+        string? ns = method.ContainingType?.ContainingNamespace?.ToDisplayString();
+        return ns is not null
+            && (ns == RootNamespace || ns.StartsWith(RootNamespace + ".", StringComparison.Ordinal));
     }
 
     private static ImmutableHashSet<string> Dbms(params string[] values) =>

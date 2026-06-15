@@ -74,10 +74,22 @@ SQLA0001: 'Ceiling' is not available on Oracle; it is supported on: MySql, Postg
 | Correct per target | `Does_Not_Flag_Ceiling_When_Target_Is_SqlServer` |
 | **Per-file `.editorconfig` scoping** (one project, many DBMS) | `PerFile_EditorConfig_Scopes_Each_File_To_Its_Own_Dbms` |
 | …and the supported spelling per file is allowed | `PerFile_Supported_Spelling_Is_Not_Flagged` |
+| **Clause verb: `MergeInto`** flagged off Oracle/SqlServer | `Flags_MergeInto_When_Target_Has_No_Merge` / `Does_Not_Flag_MergeInto_On_Oracle` |
+| **Clause verb: `OnDuplicateKeyUpdate`** flagged off MySQL | `Flags_OnDuplicateKeyUpdate_On_PostgreSql` |
+| **Clause verb: `OnConflict`** flagged off PG/SQLite | `Flags_OnConflict_On_MySql` / `Does_Not_Flag_OnConflict_On_PostgreSql` |
 
 ```bash
-dotnet test tests/SqlArtisan.Analyzer.Tests   # 7 passed
+dotnet test tests/SqlArtisan.Analyzer.Tests   # 12 passed
 ```
+
+### Clause-level verbs (UPSERT / MERGE), not just facade functions
+
+The analyzer recognises both the `Sql` facade functions **and the fluent-builder
+verbs** (`OnConflict`, `OnDuplicateKeyUpdate`, `MergeInto`) by matching any member
+under the `SqlArtisan` namespace against the catalog. This directly closes the
+hole that namespace option ② leaves open: in ②, `…OnDuplicateKeyUpdate().Build(Dbms.PostgreSql)`
+is visible and emits invalid SQL silently at runtime — here it is a **build-time
+warning**, with no API change and no generics.
 
 ### Mixing multiple DBMS in one project
 
@@ -141,8 +153,9 @@ wants analyzer versioning fully decoupled from the library.
   2-arg `ROUND`) or a target-vs-actual-connection mismatch.
 - **Catalog is a 5-row numeric stub.** The real version consumes the verified
   full matrix (the same artifact every option needs).
-- **Function calls only.** Extending to clause-level verbs (UPSERT/MERGE) is
-  straightforward (match the builder method names) but not in this PoC.
+- **Name + namespace matching** (PoC heuristic). It flags catalog names on any
+  `SqlArtisan.*` member; the production version would match the resolved symbols
+  precisely. Both facade functions and clause verbs (UPSERT/MERGE) are covered.
 
 ## How it compares to the namespace options
 
