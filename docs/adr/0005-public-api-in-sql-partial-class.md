@@ -20,5 +20,3 @@ separated from internals that are free to change.
 
 - Discoverable: `Sql.` surfaces the whole function API, in small per-letter files.
 - Internals refactor freely without breaking consumers.
-- Contributors keep factories in the right letter-file; the per-function recipe is
-  in `CLAUDE.md`.
