@@ -31,10 +31,8 @@ clauses, wrong arity, and an unrecognised target. The target is set via
 only, and ships in the package as a build-time analyzer (no runtime cost).
 Mechanics live with the analyzer source.
 
-This analyzer is the *only* DBMS-difference check: SqlArtisan adds no mandatory
-runtime guard in `Build(Dbms)`, which emits faithfully (ADR 0001). (A specific
-feature may still validate its own arguments, but that is a feature concern, not a
-library-wide guard.)
+DBMS-difference checking is the analyzer's job; `Build(Dbms)` does none of it and
+emits faithfully (ADR 0001).
 
 ## Consequences
 
@@ -47,5 +45,3 @@ library-wide guard.)
   mixing within one file — covered by docs, not the analyzer.
 - The analyzer's value rests on a verified per-DBMS matrix; it is degradable (only
   verified entries warn), so an incomplete matrix never yields a false positive.
-- Required for 1.0: building and verifying that matrix for the (frozen) 1.0 surface
-  is the release's critical path.
