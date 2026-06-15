@@ -1,6 +1,6 @@
 # ADR 0003 — DBMS-difference safety: permissive API + opt-in analyzer
 
-**Status:** Accepted — not yet implemented.
+**Status:** Accepted — not yet implemented
 
 ## Context
 
@@ -29,7 +29,6 @@ Given a configured target DBMS, the analyzer warns on unsupported functions and
 clauses, wrong arity, and an unrecognised target. The target is set via
 `.editorconfig` or an MSBuild property; it is opt-in (silent until set), warnings
 only, and ships in the package as a build-time analyzer (no runtime cost).
-Mechanics live with the analyzer source.
 
 DBMS-difference checking is the analyzer's job; `Build(Dbms)` does none of it and
 emits faithfully (ADR 0001).

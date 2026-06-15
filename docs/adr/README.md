@@ -13,8 +13,8 @@ code.
 
 ## Index
 
-ADRs are ordered as a narrative: the philosophy first, then how it deals with
-DBMS divergence, then the output/structure decisions that follow from it.
+ADRs are ordered as a narrative: the philosophy first, then handling DBMS
+divergence, then the output, API, and performance decisions.
 
 | ADR | Title | Status |
 |-----|-------|--------|

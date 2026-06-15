@@ -14,8 +14,7 @@ deliberate, predictable SQL in C#.
 
 **SqlArtisan emits the SQL you wrote, faithfully; cross-database portability is a
 deliberate non-goal.** The library never rewrites the meaning of a query. DBMS
-differences are honoured only where the *syntax* genuinely differs, handled as in
-ADR 0002.
+differences are honoured only where the *syntax* genuinely differs (see ADR 0002).
 
 ## Consequences
 
