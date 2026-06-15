@@ -31,6 +31,11 @@ clauses, wrong arity, and an unrecognised target. The target is set via
 only, and ships in the package as a build-time analyzer (no runtime cost).
 Mechanics live with the analyzer source.
 
+This analyzer is the *only* DBMS-difference check: SqlArtisan adds no mandatory
+runtime guard in `Build(Dbms)`, which emits faithfully (ADR 0001). (A specific
+feature may still validate its own arguments, but that is a feature concern, not a
+library-wide guard.)
+
 ## Consequences
 
 - No public API change, no generics, unified docs — lowest adoption friction;

@@ -23,7 +23,7 @@ differences as per-dialect public APIs. Neither rewrites semantics.**
   `Build(Dbms)` yields the right tokens.
 - **Constructs → per-dialect APIs, explicit.** Expose distinct, dialect-named
   methods (the Drizzle/Kysely approach), never one "portable" method that silently
-  rewrites. Where a dialect cannot express an operation, fail at build time.
+  rewrites.
 
 A per-dialect API still relies on the dialect layer for its own tokens.
 
