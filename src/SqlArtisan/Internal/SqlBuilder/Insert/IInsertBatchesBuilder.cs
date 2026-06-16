@@ -17,7 +17,7 @@ namespace SqlArtisan.Internal;
 /// margin below the cap if you add one. Oracle has no multi-row <c>VALUES</c> and
 /// is rejected with a <see cref="System.NotSupportedException"/>.
 /// </remarks>
-public interface IMultiRowInsert
+public interface IInsertBatchesBuilder
 {
     /// <summary>
     /// Builds the batched statements for the default DBMS

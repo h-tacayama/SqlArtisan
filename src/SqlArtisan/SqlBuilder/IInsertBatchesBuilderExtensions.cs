@@ -3,13 +3,13 @@ using SqlArtisan.Internal;
 
 namespace SqlArtisan;
 
-public static class IMultiRowInsertExtensions
+public static class IInsertBatchesBuilderExtensions
 {
     public static IReadOnlyList<SqlStatement> BuildBatches(
-        this IMultiRowInsert multiRowInsert,
+        this IInsertBatchesBuilder insertBatchesBuilder,
         IDbConnection cnn)
     {
         Dbms dbms = DbmsResolver.Resolve(cnn);
-        return multiRowInsert.BuildBatches(dbms);
+        return insertBatchesBuilder.BuildBatches(dbms);
     }
 }
