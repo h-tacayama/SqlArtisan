@@ -81,7 +81,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
   - [Functions](#functions)
     - [Numeric Functions](#numeric-functions): `ABS`, `CEIL`, `CEILING`, `FLOOR`, `MOD`, `POWER`, `ROUND`, `SIGN`, `SQRT`, `TRUNC`
     - [Character Functions](#character-functions): `CONCAT`, `INSTR`, `LPAD`, `LTRIM`, `LENGTH`, `LENGTHB`, `LOWER`, `RPAD`, `RTRIM`, `REGEXP_COUNT`, `REGEXP_REPLACE`, `REGEXP_SUBSTR`, `REPLACE`, `SUBSTR`, `SUBSTRB`, `TRIM`, `UPPER`
-    - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
+    - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `DATEADD`, `DATEDIFF`, `DATEPART`, `DATE_TRUNC`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
     - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NULLIF`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
     - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
     - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `FIRST_VALUE`, `LAG`, `LAST_VALUE`, `LEAD`, `NTH_VALUE`, `NTILE`, `PERCENTILE_CONT`, `PERCENTILE_DISC`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
@@ -1539,7 +1539,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentDate` for `CURRENT_DATE`
 - `CurrentTime` for `CURRENT_TIME`
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
-- `Datepart()` for `DATEPART`
+- `Dateadd()` for `DATEADD` (SQL Server)
+- `Datediff()` for `DATEDIFF` (SQL Server)
+- `Datepart()` for `DATEPART` (SQL Server)
+- `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
 - `Extract()` for `EXTRACT` (Date/Time Overload)
 - `LastDay()` for `LAST_DAY`
 - `MonthsBetween()` for `MONTHS_BETWEEN`

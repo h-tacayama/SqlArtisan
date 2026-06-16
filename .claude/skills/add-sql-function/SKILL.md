@@ -21,7 +21,13 @@ Before starting, decide the **category** and **name**:
   `AggregateFunction`, `AnalyticFunction`, `CharacterFunction`,
   `ComparisonFunction`, `ConversionFunction`, `DateTimeFunction`,
   `NumericFunction`, `OrderedSetAggregateFunction`, `SequenceFunction`.
-- `<Name>` is PascalCase of the SQL function (e.g. `AddMonths` for `ADD_MONTHS`).
+- `<Name>` is derived from the SQL token by treating **underscores as the only
+  word boundaries**: capitalize the first letter of each underscore-delimited
+  segment and lowercase the rest. A token with **no** underscore becomes a
+  single capitalized word — do **not** invent internal capitals.
+  - `ADD_MONTHS` → `AddMonths`, `ROW_NUMBER` → `RowNumber`, `DATE_TRUNC` → `DateTrunc`
+  - `DATEPART` → `Datepart`, `CURRVAL` → `Currval`, `SYSTIMESTAMP` → `Systimestamp`
+  - `DATEADD` → `Dateadd`, `DATEDIFF` → `Datediff` (no underscore ⇒ no internal capital)
 - `<Letter>` is the leading letter of `<Name>`.
 
 ## 1. Node class

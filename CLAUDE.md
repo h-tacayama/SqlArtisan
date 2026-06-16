@@ -75,6 +75,12 @@ reference implementations.
   function nodes.
 - Public API lives only in `Sql.*.cs` and `src/SqlArtisan/SqlBuilder/`;
   everything under `Internal/` is implementation detail.
+- Name a function (factory method, `*Function` node, keyword constant) after its
+  SQL token, treating **underscores as the only word boundaries**: each
+  underscore-delimited segment gets one leading capital, the rest lowercase; a
+  token with no underscore stays a single word — never invent internal capitals.
+  So `ADD_MONTHS`→`AddMonths`, `DATE_TRUNC`→`DateTrunc`, but `DATEPART`→`Datepart`,
+  `CURRVAL`→`Currval`, and `DATEADD`/`DATEDIFF`→`Dateadd`/`Datediff`.
 - Tests build expected SQL with a `StringBuilder` and assert equality — mirror
   that pattern.
 - Update `CHANGELOG.md` for user-visible changes; the README is the canonical
