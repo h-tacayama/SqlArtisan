@@ -6,6 +6,50 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
+    public void DateAdd_SqlServer_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DateAdd(Datepart.Month, 3, _t.CreatedAt))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATEADD(MONTH, :0, \"t\".created_at)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(3, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void DateAdd_NegativeNumberSubtracts_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DateAdd(Datepart.Day, -7, _t.CreatedAt))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATEADD(DAY, :0, \"t\".created_at)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(-7, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void DateDiff_SqlServer_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DateDiff(Datepart.Day, _t.CreatedAt, CurrentTimestamp))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATEDIFF(DAY, \"t\".created_at, CURRENT_TIMESTAMP)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Datepart_SqlServer_CorrectSql()
     {
         SqlStatement sql =
@@ -44,6 +88,20 @@ public partial class FunctionTests
             .Append("DATEPART(NANOSECOND, CURRENT_TIMESTAMP), ")
             .Append("DATEPART(TZOFFSET, CURRENT_TIMESTAMP), ")
             .Append("DATEPART(ISO_WEEK, CURRENT_TIMESTAMP)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DateTrunc_PostgreSql_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DateTrunc(Datepart.Month, _t.CreatedAt))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATE_TRUNC('MONTH', \"t\".created_at)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

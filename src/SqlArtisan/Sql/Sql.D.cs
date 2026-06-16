@@ -6,8 +6,49 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
+    /// <summary>
+    /// Adds <paramref name="number"/> units of <paramref name="datepart"/> to
+    /// <paramref name="dateTime"/>, emitting SQL Server's
+    /// <c>DATEADD(datepart, number, date)</c>. Pass a negative
+    /// <paramref name="number"/> to subtract. For Oracle use
+    /// <see cref="AddMonths(object, object)"/>; PostgreSQL/MySQL use interval
+    /// arithmetic native to those dialects.
+    /// </summary>
+    public static DateAddFunction DateAdd(
+        Datepart datepart,
+        object number,
+        object dateTime) => new(
+            datepart,
+            Resolve(number),
+            Resolve(dateTime));
+
+    /// <summary>
+    /// Returns the number of <paramref name="datepart"/> boundaries crossed
+    /// between <paramref name="startDate"/> and <paramref name="endDate"/>,
+    /// emitting SQL Server's <c>DATEDIFF(datepart, startdate, enddate)</c>.
+    /// Argument order and supported units are vendor-specific; this is the SQL
+    /// Server form.
+    /// </summary>
+    public static DateDiffFunction DateDiff(
+        Datepart datepart,
+        object startDate,
+        object endDate) => new(
+            datepart,
+            Resolve(startDate),
+            Resolve(endDate));
+
     public static DatepartFunction Datepart(Datepart datepart, object source) =>
         new(datepart, Resolve(source));
+
+    /// <summary>
+    /// Truncates <paramref name="source"/> down to <paramref name="datepart"/>
+    /// precision, emitting PostgreSQL's <c>DATE_TRUNC('datepart', source)</c>.
+    /// For Oracle use the date/time overload of <see cref="Trunc(object, object)"/>
+    /// (<c>TRUNC(date, fmt)</c>).
+    /// </summary>
+    public static DateTruncFunction DateTrunc(
+        Datepart datepart,
+        object source) => new(datepart, Resolve(source));
 
     public static DecodeFunction Decode(
         object expr,
