@@ -10,7 +10,7 @@ internal sealed class OracleDialect : IDbmsDialect
     // reading this; the value exists only to satisfy the interface.
     public int MaxParameters => 65535;
 
-    public bool SupportsMultiRowInsert => false;
+    public bool SupportsMultiRowValues => false;
 
     // Oracle has no ON CONFLICT / ON DUPLICATE KEY UPDATE construct, so reaching
     // this is wrong-DBMS usage. Emit the canonical token faithfully (ADR 0001) and

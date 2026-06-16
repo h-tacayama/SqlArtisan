@@ -16,13 +16,13 @@ internal interface IDbmsDialect
     int MaxParameters { get; }
 
     /// <summary>
-    /// Whether the DBMS supports multi-row <c>VALUES (...),(...)</c>, the form
-    /// the collection-driven bulk <c>INSERT</c> (<c>BuildBatches</c>) emits.
-    /// True for PostgreSQL, MySQL, SQLite, and SQL Server; false for Oracle,
-    /// which has no multi-row <c>VALUES</c> and is handled by array binding
-    /// (bulk copy) instead.
+    /// Whether the DBMS supports the multi-row <c>VALUES (...),(...)</c> table
+    /// value constructor — the form the collection-driven bulk <c>INSERT</c>
+    /// (<c>BuildBatches</c>) emits. True for PostgreSQL, MySQL, SQLite, and SQL
+    /// Server; false for Oracle, which has no multi-row <c>VALUES</c> (it can
+    /// still bulk-insert via array binding / <c>INSERT ALL</c>, handled elsewhere).
     /// </summary>
-    bool SupportsMultiRowInsert { get; }
+    bool SupportsMultiRowValues { get; }
 
     /// <summary>
     /// The name that refers to the row proposed for insertion inside an

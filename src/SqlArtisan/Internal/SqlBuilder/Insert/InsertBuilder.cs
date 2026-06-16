@@ -18,7 +18,7 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
     {
         IDbmsDialect dialect = DbmsDialectFactory.Create(dbms);
 
-        if (!dialect.SupportsMultiRowInsert)
+        if (!dialect.SupportsMultiRowValues)
         {
             throw new NotSupportedException(
                 $"{dbms} does not support multi-row VALUES, so batched bulk INSERT " +
