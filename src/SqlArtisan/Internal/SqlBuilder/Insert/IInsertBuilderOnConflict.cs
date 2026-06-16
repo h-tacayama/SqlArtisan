@@ -6,7 +6,7 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public interface IInsertBuilderOnConflict
 {
-    IReturning DoNothing();
+    IInsertReturning DoNothing();
 
     IInsertBuilderDoUpdateSet DoUpdateSet(params EqualityBasedCondition[] assignments);
 }

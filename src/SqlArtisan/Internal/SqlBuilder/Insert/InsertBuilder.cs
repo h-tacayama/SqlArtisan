@@ -11,13 +11,62 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
 {
     private InsertValuesClause? _valuesClause;
 
+    public IReadOnlyList<SqlStatement> BuildBatches() =>
+        BuildBatches(SqlArtisanConfig.DefaultDbms);
+
+    public IReadOnlyList<SqlStatement> BuildBatches(Dbms dbms)
+    {
+        if (dbms == Dbms.Oracle)
+        {
+            throw new NotSupportedException(
+                "Oracle does not support multi-row VALUES, so batched bulk INSERT " +
+                "is not available. Use Oracle array binding (bulk copy) instead.");
+        }
+
+        if (_valuesClause is null)
+        {
+            throw new InvalidOperationException(
+                "BuildBatches requires at least one Values(...) row.");
+        }
+
+        int columnsPerRow = _valuesClause.ColumnCount;
+        int maxParameters = DbmsDialectFactory.Create(dbms).MaxParameters;
+
+        if (columnsPerRow > maxParameters)
+        {
+            throw new InvalidOperationException(
+                $"A single row carries {columnsPerRow} parameters, which exceeds the " +
+                $"{dbms} limit of {maxParameters}; it cannot be batched.");
+        }
+
+        int rowCount = _valuesClause.RowCount;
+        int rowsPerBatch = maxParameters / columnsPerRow;
+        var batches = new List<SqlStatement>((rowCount + rowsPerBatch - 1) / rowsPerBatch);
+
+        try
+        {
+            for (int offset = 0; offset < rowCount; offset += rowsPerBatch)
+            {
+                int length = Math.Min(rowsPerBatch, rowCount - offset);
+                _valuesClause.SetWindow(offset, length);
+                batches.Add(BuildCore(dbms));
+            }
+        }
+        finally
+        {
+            _valuesClause.ClearWindow();
+        }
+
+        return batches;
+    }
+
     public IInsertBuilderOnConflict OnConflict(params DbColumn[] conflictTarget)
     {
         AddPart(new OnConflictClause(conflictTarget));
         return this;
     }
 
-    public IReturning DoNothing()
+    public IInsertReturning DoNothing()
     {
         AddPart(new DoNothingClause());
         return this;
@@ -29,7 +78,7 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public IReturning OnDuplicateKeyUpdate(params EqualityBasedCondition[] assignments)
+    public IInsertReturning OnDuplicateKeyUpdate(params EqualityBasedCondition[] assignments)
     {
         AddPart(new RowAliasClause());
         AddPart(OnDuplicateKeyUpdateClause.Parse(assignments));
@@ -39,7 +88,7 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
     // The DO UPDATE SET WHERE filter. Explicit implementation keeps this distinct
     // from the inherited SelectBuilder.Where (which returns a SELECT builder);
     // both add the same WhereClause, but this preserves the UPSERT chain.
-    IReturning IInsertBuilderDoUpdateSet.Where(SqlCondition condition)
+    IInsertReturning IInsertBuilderDoUpdateSet.Where(SqlCondition condition)
     {
         AddPart(new WhereClause(condition));
         return this;

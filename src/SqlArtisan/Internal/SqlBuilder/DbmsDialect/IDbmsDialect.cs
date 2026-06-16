@@ -7,6 +7,15 @@ internal interface IDbmsDialect
     char ParameterMarker { get; }
 
     /// <summary>
+    /// The maximum number of bind parameters a single statement may carry, used
+    /// to split a collection-driven bulk <c>INSERT</c> into multiple batches
+    /// (<c>BuildBatches</c>): SQL Server 2100, SQLite 999, PostgreSQL/MySQL
+    /// 65535. Oracle has no multi-row <c>VALUES</c>, so its value is unused —
+    /// the bulk path throws before consulting it.
+    /// </summary>
+    int MaxParameters { get; }
+
+    /// <summary>
     /// The name that refers to the row proposed for insertion inside an
     /// UPSERT update clause: <c>EXCLUDED</c> (PostgreSQL), <c>excluded</c>
     /// (SQLite), or the row alias <c>new</c> (MySQL). Oracle and SQL Server have

@@ -741,6 +741,40 @@ SqlStatement sql =
 
 ---
 
+#### Bulk Insert (Automatic Batching)
+
+A single multi-row `INSERT` can exceed a database's bind-parameter cap (SQL Server allows 2100, SQLite 999, PostgreSQL/MySQL 65535). Build the rows from a collection and call `BuildBatches(...)` to split them into the fewest statements that each stay under the cap. It returns an `IReadOnlyList<SqlStatement>`; execute every element.
+
+```csharp
+UsersTable u = new();
+
+IInsertBuilderValues insert = InsertInto(u, u.Id, u.Name).Values(rows[0]);
+foreach (object[] row in rows.Skip(1))
+{
+    insert = insert.Values(row);
+}
+
+IReadOnlyList<SqlStatement> batches = insert.BuildBatches(Dbms.SqlServer);
+
+foreach (SqlStatement batch in batches)
+{
+    // execute batch.Text with batch.Parameters
+}
+```
+
+Any UPSERT clause is repeated on every batch, so multi-row UPSERT works unchanged:
+
+```csharp
+insert
+    .OnConflict(u.Id)
+    .DoUpdateSet(u.Name == Excluded(u.Name))
+    .BuildBatches(Dbms.PostgreSql);
+```
+
+**Note:** Splitting counts the rows' parameters; a fixed-parameter UPSERT tail (e.g. `DO UPDATE SET col = :p`) is not counted, so leave a small margin below the cap if you add one. Oracle has no multi-row `VALUES` and throws `NotSupportedException`.
+
+---
+
 #### Alternative Syntax (SET-like)
 
 SqlArtisan also offers an alternative `INSERT` syntax, similar to `UPDATE`'s `Set()` method, for clearer column-value pairing.

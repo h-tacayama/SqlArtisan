@@ -17,5 +17,5 @@ public interface IUpsert
     /// MySQL <c>ON DUPLICATE KEY UPDATE</c>. The proposed row is exposed via the
     /// 8.0.19+ row alias (<c>AS new</c>); reference it with <see cref="ExcludedColumn"/>.
     /// </summary>
-    IReturning OnDuplicateKeyUpdate(params EqualityBasedCondition[] assignments);
+    IInsertReturning OnDuplicateKeyUpdate(params EqualityBasedCondition[] assignments);
 }
