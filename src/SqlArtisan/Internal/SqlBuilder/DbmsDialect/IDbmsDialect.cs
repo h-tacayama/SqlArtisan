@@ -10,8 +10,9 @@ internal interface IDbmsDialect
     /// The maximum number of bind parameters a single statement may carry, used
     /// to split a collection-driven bulk <c>INSERT</c> into multiple batches
     /// (<c>BuildBatches</c>): SQL Server 2100, SQLite 999, PostgreSQL/MySQL
-    /// 65535. Oracle has no multi-row <c>VALUES</c>, so its value is unused —
-    /// the bulk path throws before consulting it.
+    /// 65535. Oracle has no multi-row <c>VALUES</c>, so its value is unused — the
+    /// bulk path throws before consulting it, and Oracle returns an inert <c>0</c>
+    /// sentinel rather than a real limit.
     /// </summary>
     int MaxParameters { get; }
 

@@ -6,9 +6,10 @@ internal sealed class OracleDialect : IDbmsDialect
 
     public char ParameterMarker => ':';
 
-    // Oracle has no multi-row VALUES, so the bulk-insert path rejects it before
-    // reading this; the value exists only to satisfy the interface.
-    public int MaxParameters => 65535;
+    // Unused, inert sentinel — not a real Oracle limit. Oracle has no multi-row
+    // VALUES, so the bulk-insert path rejects it (SupportsMultiRowValues is false)
+    // before ever reading this; zero exists only to satisfy the interface.
+    public int MaxParameters => 0;
 
     public bool SupportsMultiRowValues => false;
 
