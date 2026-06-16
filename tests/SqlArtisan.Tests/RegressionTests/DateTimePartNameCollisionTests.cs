@@ -4,7 +4,7 @@ using static SqlArtisan.Sql;
 // Compile-time guard for issue #99.
 //
 // The public Sql.Datepart(...) factory method once shared a simple name with the
-// date/time-field enum. Under the README-recommended `using static
+// Datepart enum. Under the README-recommended `using static
 // SqlArtisan.Sql;`, writing any enum member in expression position bound the name
 // to the imported method instead of the type, failing to compile with CS0119.
 // The enum has since been renamed to DateTimePart, removing the collision.
