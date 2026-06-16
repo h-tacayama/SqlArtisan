@@ -166,6 +166,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    internal SqlBuildingBuffer AppendExcludedName()
+    {
+        Append(_dialect.ExcludedName);
+        return this;
+    }
+
     internal SqlBuildingBuffer EncloseInAliasQuotes(string value)
     {
         Append(_dialect.AliasQuote);
