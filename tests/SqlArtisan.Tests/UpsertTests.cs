@@ -236,4 +236,29 @@ public class UpsertTests
         // Assert
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void OnConflict_BuiltForOracle_EmitsFaithfullyWithoutThrowing()
+    {
+        // Arrange
+        // Oracle has no ON CONFLICT construct, so this is wrong-DBMS usage. Faithful
+        // output (ADR 0001) emits the canonical EXCLUDED token and leaves rejection
+        // to the database; Build must not throw.
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO test_table (code, name) ");
+        expected.Append("VALUES (:0, :1) ");
+        expected.Append("ON CONFLICT (code) ");
+        expected.Append("DO UPDATE SET name = EXCLUDED.name");
+
+        // Act
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnConflict(_t.Code)
+            .DoUpdateSet(_t.Name == Excluded(_t.Name))
+            .Build(Dbms.Oracle);
+
+        // Assert
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }
