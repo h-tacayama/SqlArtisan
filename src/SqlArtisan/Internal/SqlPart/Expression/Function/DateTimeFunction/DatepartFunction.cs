@@ -5,9 +5,9 @@ public sealed class DatepartFunction : SqlExpression
     private readonly DateTimeField _datepart;
     private readonly SqlExpression _source;
 
-    internal DatepartFunction(DateTimeField datePart, SqlExpression source)
+    internal DatepartFunction(DateTimeField datepart, SqlExpression source)
     {
-        _datepart = datePart;
+        _datepart = datepart;
         _source = source;
     }
 

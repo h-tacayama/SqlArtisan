@@ -5,9 +5,9 @@ public sealed class ExtractFunction : SqlExpression
     private readonly DateTimeField _datepart;
     private readonly SqlExpression _source;
 
-    internal ExtractFunction(DateTimeField datePart, SqlExpression source)
+    internal ExtractFunction(DateTimeField datepart, SqlExpression source)
     {
-        _datepart = datePart;
+        _datepart = datepart;
         _source = source;
     }
 
