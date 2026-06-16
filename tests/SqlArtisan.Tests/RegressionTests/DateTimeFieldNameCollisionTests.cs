@@ -20,7 +20,7 @@ using static SqlArtisan.Sql;
 // already covered exhaustively by FunctionTests.D/E, so no output is asserted here.
 namespace SqlArtisanRegressionTests;
 
-public class Issue99DateTimeFieldCollisionTests
+public class DateTimeFieldNameCollisionTests
 {
     [Fact]
     public void DateTimeFieldEnum_InExpressionPosition_WithStaticUsing_Compiles()
