@@ -94,6 +94,15 @@ public class BulkInsertTests
             .BuildBatches(Dbms.Oracle));
     }
 
+    [Fact]
+    public void BuildBatches_RowWithNoValues_ThrowsInvalidOperation()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            InsertInto(_t, _t.Code)
+            .Values()
+            .BuildBatches(Dbms.SqlServer));
+    }
+
     // Builds the exact text of one batch. Parameter indices restart at zero per
     // batch because each batch is built independently.
     private static string ExpectedBatch(int rowCount, char marker, string suffix)

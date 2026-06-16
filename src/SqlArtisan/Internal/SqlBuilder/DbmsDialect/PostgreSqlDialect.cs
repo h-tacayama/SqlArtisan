@@ -9,5 +9,7 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
     // PostgreSQL's wire protocol caps parameters at 65535 (16-bit count).
     public int MaxParameters => 65535;
 
+    public bool SupportsMultiRowValues => true;
+
     public string ExcludedName => "EXCLUDED";
 }

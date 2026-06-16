@@ -16,11 +16,13 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
 
     public IReadOnlyList<SqlStatement> BuildBatches(Dbms dbms)
     {
-        if (dbms == Dbms.Oracle)
+        IDbmsDialect dialect = DbmsDialectFactory.Create(dbms);
+
+        if (!dialect.SupportsMultiRowValues)
         {
             throw new NotSupportedException(
-                "Oracle does not support multi-row VALUES, so batched bulk INSERT " +
-                "is not available. Use Oracle array binding (bulk copy) instead.");
+                $"{dbms} does not support multi-row VALUES, so batched bulk INSERT " +
+                "is not available. Use array binding (bulk copy) instead.");
         }
 
         if (_valuesClause is null)
@@ -30,7 +32,14 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
         }
 
         int columnsPerRow = _valuesClause.ColumnCount;
-        int maxParameters = DbmsDialectFactory.Create(dbms).MaxParameters;
+
+        if (columnsPerRow == 0)
+        {
+            throw new InvalidOperationException(
+                "BuildBatches requires each row to have at least one value.");
+        }
+
+        int maxParameters = dialect.MaxParameters;
 
         if (columnsPerRow > maxParameters)
         {

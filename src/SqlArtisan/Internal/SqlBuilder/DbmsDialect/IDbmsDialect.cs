@@ -16,6 +16,15 @@ internal interface IDbmsDialect
     int MaxParameters { get; }
 
     /// <summary>
+    /// Whether the DBMS supports multi-row <c>VALUES (...),(...)</c>, the form
+    /// the collection-driven bulk <c>INSERT</c> (<c>BuildBatches</c>) emits.
+    /// True for PostgreSQL, MySQL, SQLite, and SQL Server; false for Oracle,
+    /// which has no multi-row <c>VALUES</c> and is handled by array binding
+    /// (bulk copy) instead.
+    /// </summary>
+    bool SupportsMultiRowValues { get; }
+
+    /// <summary>
     /// The name that refers to the row proposed for insertion inside an
     /// UPSERT update clause: <c>EXCLUDED</c> (PostgreSQL), <c>excluded</c>
     /// (SQLite), or the row alias <c>new</c> (MySQL). Oracle and SQL Server have
