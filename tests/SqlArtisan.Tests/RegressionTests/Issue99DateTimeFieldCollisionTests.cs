@@ -1,7 +1,7 @@
 using SqlArtisan;
 using static SqlArtisan.Sql;
 
-// Regression test for issue #99.
+// Compile-time guard for issue #99.
 //
 // The public Sql.Datepart(...) factory method once shared a simple name with the
 // date/time-field enum. Under the README-recommended `using static
@@ -10,27 +10,30 @@ using static SqlArtisan.Sql;
 // The enum has since been renamed to DateTimeField, removing the collision.
 //
 // This file deliberately lives OUTSIDE the SqlArtisan namespace: the in-namespace
-// FunctionTests cannot reproduce the bug because they can resolve the enum via the
+// FunctionTests cannot reproduce the bug because they resolve the enum via the
 // enclosing SqlArtisan namespace, which outranks `using static` imports. Here the
 // enum is reachable only through the imports above — the exact real-world setup.
-// If the collision is ever reintroduced, this file stops compiling.
+//
+// Its value is that it COMPILES: using DateTimeField in expression position across
+// every function that takes it proves the collision is gone. If the collision is
+// ever reintroduced, this file stops compiling. The SQL each function emits is
+// already covered exhaustively by FunctionTests.D/E, so no output is asserted here.
 namespace SqlArtisanRegressionTests;
 
 public class Issue99DateTimeFieldCollisionTests
 {
     [Fact]
-    public void DateTimeFieldEnum_InExpressionPosition_WithStaticUsing_CompilesAndBuilds()
+    public void DateTimeFieldEnum_InExpressionPosition_WithStaticUsing_Compiles()
     {
-        SqlStatement extract =
-            Select(Extract(DateTimeField.Year, CurrentTimestamp)).Build();
-        SqlStatement datepart =
-            Select(Datepart(DateTimeField.Year, CurrentTimestamp)).Build();
-        SqlStatement dateadd =
-            Select(Dateadd(DateTimeField.Month, 1, CurrentTimestamp)).Build();
+        SqlStatement[] statements =
+        [
+            Select(Extract(DateTimeField.Year, CurrentTimestamp)).Build(),
+            Select(Datepart(DateTimeField.Year, CurrentTimestamp)).Build(),
+            Select(Dateadd(DateTimeField.Month, 1, CurrentTimestamp)).Build(),
+            Select(Datediff(DateTimeField.Day, CurrentTimestamp, CurrentTimestamp)).Build(),
+            Select(DateTrunc(DateTimeField.Month, CurrentTimestamp)).Build(),
+        ];
 
-        Assert.Equal("SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP)", extract.Text);
-        Assert.Equal("SELECT DATEPART(YEAR, CURRENT_TIMESTAMP)", datepart.Text);
-        Assert.Equal("SELECT DATEADD(MONTH, :0, CURRENT_TIMESTAMP)", dateadd.Text);
-        Assert.Equal(1, dateadd.Parameters.Get<int>(":0"));
+        Assert.All(statements, statement => Assert.False(string.IsNullOrEmpty(statement.Text)));
     }
 }
