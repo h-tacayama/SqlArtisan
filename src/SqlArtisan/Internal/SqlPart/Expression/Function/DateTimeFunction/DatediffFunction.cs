@@ -1,12 +1,12 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DateDiffFunction : SqlExpression
+public sealed class DatediffFunction : SqlExpression
 {
     private readonly Datepart _datepart;
     private readonly SqlExpression _startDate;
     private readonly SqlExpression _endDate;
 
-    internal DateDiffFunction(
+    internal DatediffFunction(
         Datepart datepart,
         SqlExpression startDate,
         SqlExpression endDate)
@@ -17,7 +17,7 @@ public sealed class DateDiffFunction : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.DateDiff)
+        .Append(Keywords.Datediff)
         .OpenParenthesis()
         .Append(DatepartKeywords.Of(_datepart))
         .PrependComma(_startDate)

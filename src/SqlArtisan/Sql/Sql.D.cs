@@ -16,7 +16,7 @@ public static partial class Sql
     /// <para><see cref="Datepart"/> is a superset shared with EXTRACT/DATEPART;
     /// only the dateparts SQL Server's <c>DATEADD</c> accepts are valid here.</para>
     /// </summary>
-    public static DateAddFunction DateAdd(
+    public static DateaddFunction Dateadd(
         Datepart datepart,
         object number,
         object dateTime) => new(
@@ -33,7 +33,7 @@ public static partial class Sql
     /// <para><see cref="Datepart"/> is a superset shared with EXTRACT/DATEPART;
     /// only the dateparts SQL Server's <c>DATEDIFF</c> accepts are valid here.</para>
     /// </summary>
-    public static DateDiffFunction DateDiff(
+    public static DatediffFunction Datediff(
         Datepart datepart,
         object startDate,
         object endDate) => new(

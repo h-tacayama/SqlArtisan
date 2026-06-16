@@ -6,10 +6,10 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
-    public void DateAdd_SqlServer_CorrectSql()
+    public void Dateadd_SqlServer_CorrectSql()
     {
         SqlStatement sql =
-            Select(DateAdd(Datepart.Month, 3, _t.CreatedAt))
+            Select(Dateadd(Datepart.Month, 3, _t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();
@@ -21,10 +21,10 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void DateAdd_NegativeNumberSubtracts_CorrectSql()
+    public void Dateadd_NegativeNumberSubtracts_CorrectSql()
     {
         SqlStatement sql =
-            Select(DateAdd(Datepart.Day, -7, _t.CreatedAt))
+            Select(Dateadd(Datepart.Day, -7, _t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();
@@ -36,10 +36,10 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void DateDiff_SqlServer_CorrectSql()
+    public void Datediff_SqlServer_CorrectSql()
     {
         SqlStatement sql =
-            Select(DateDiff(Datepart.Day, _t.CreatedAt, CurrentTimestamp))
+            Select(Datediff(Datepart.Day, _t.CreatedAt, CurrentTimestamp))
             .Build();
 
         StringBuilder expected = new();

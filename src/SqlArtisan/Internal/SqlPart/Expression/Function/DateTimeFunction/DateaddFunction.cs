@@ -1,12 +1,12 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DateAddFunction : SqlExpression
+public sealed class DateaddFunction : SqlExpression
 {
     private readonly Datepart _datepart;
     private readonly SqlExpression _number;
     private readonly SqlExpression _dateTime;
 
-    internal DateAddFunction(
+    internal DateaddFunction(
         Datepart datepart,
         SqlExpression number,
         SqlExpression dateTime)
@@ -17,7 +17,7 @@ public sealed class DateAddFunction : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.DateAdd)
+        .Append(Keywords.Dateadd)
         .OpenParenthesis()
         .Append(DatepartKeywords.Of(_datepart))
         .PrependComma(_number)

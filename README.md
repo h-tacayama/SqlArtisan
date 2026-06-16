@@ -1539,8 +1539,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentDate` for `CURRENT_DATE`
 - `CurrentTime` for `CURRENT_TIME`
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
-- `DateAdd()` for `DATEADD` (SQL Server)
-- `DateDiff()` for `DATEDIFF` (SQL Server)
+- `Dateadd()` for `DATEADD` (SQL Server)
+- `Datediff()` for `DATEDIFF` (SQL Server)
 - `Datepart()` for `DATEPART` (SQL Server)
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
 - `Extract()` for `EXTRACT` (Date/Time Overload)
