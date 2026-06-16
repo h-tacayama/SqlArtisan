@@ -2,12 +2,12 @@ namespace SqlArtisan.Internal;
 
 public sealed class ExtractFunction : SqlExpression
 {
-    private readonly Datepart _datepart;
+    private readonly DateTimePart _datepart;
     private readonly SqlExpression _source;
 
-    internal ExtractFunction(Datepart datePart, SqlExpression source)
+    internal ExtractFunction(DateTimePart datepart, SqlExpression source)
     {
-        _datepart = datePart;
+        _datepart = datepart;
         _source = source;
     }
 

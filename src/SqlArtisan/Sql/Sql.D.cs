@@ -13,11 +13,11 @@ public static partial class Sql
     /// <paramref name="number"/> to subtract. For Oracle use
     /// <see cref="AddMonths(object, object)"/>; PostgreSQL/MySQL use interval
     /// arithmetic native to those dialects.
-    /// <para><see cref="Datepart"/> is a superset shared with EXTRACT/DATEPART;
+    /// <para><see cref="DateTimePart"/> is a superset shared with EXTRACT/DATEPART;
     /// only the dateparts SQL Server's <c>DATEADD</c> accepts are valid here.</para>
     /// </summary>
     public static DateaddFunction Dateadd(
-        Datepart datepart,
+        DateTimePart datepart,
         object number,
         object dateTime) => new(
             datepart,
@@ -30,18 +30,18 @@ public static partial class Sql
     /// emitting SQL Server's <c>DATEDIFF(datepart, startdate, enddate)</c>.
     /// Argument order and supported units are vendor-specific; this is the SQL
     /// Server form.
-    /// <para><see cref="Datepart"/> is a superset shared with EXTRACT/DATEPART;
+    /// <para><see cref="DateTimePart"/> is a superset shared with EXTRACT/DATEPART;
     /// only the dateparts SQL Server's <c>DATEDIFF</c> accepts are valid here.</para>
     /// </summary>
     public static DatediffFunction Datediff(
-        Datepart datepart,
+        DateTimePart datepart,
         object startDate,
         object endDate) => new(
             datepart,
             Resolve(startDate),
             Resolve(endDate));
 
-    public static DatepartFunction Datepart(Datepart datepart, object source) =>
+    public static DatepartFunction Datepart(DateTimePart datepart, object source) =>
         new(datepart, Resolve(source));
 
     /// <summary>
@@ -49,11 +49,11 @@ public static partial class Sql
     /// precision, emitting PostgreSQL's <c>DATE_TRUNC('datepart', source)</c>.
     /// For Oracle use the date/time overload of <see cref="Trunc(object, object)"/>
     /// (<c>TRUNC(date, fmt)</c>).
-    /// <para><see cref="Datepart"/> is a superset shared with EXTRACT/DATEPART;
+    /// <para><see cref="DateTimePart"/> is a superset shared with EXTRACT/DATEPART;
     /// only the fields PostgreSQL's <c>date_trunc</c> accepts are valid here.</para>
     /// </summary>
     public static DateTruncFunction DateTrunc(
-        Datepart datepart,
+        DateTimePart datepart,
         object source) => new(datepart, Resolve(source));
 
     public static DecodeFunction Decode(
