@@ -6,6 +6,6 @@ internal sealed class SqlServerDialect : IDbmsDialect
 
     public char ParameterMarker => '@';
 
-    public string ExcludedReference => throw new NotSupportedException(
+    public string ExcludedName => throw new NotSupportedException(
         "SQL Server does not support ON CONFLICT / ON DUPLICATE KEY UPDATE. Use MERGE instead.");
 }

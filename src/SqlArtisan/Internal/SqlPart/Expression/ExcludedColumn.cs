@@ -16,7 +16,7 @@ public sealed class ExcludedColumn : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .AppendExcludedReference()
+        .AppendExcludedName()
         .Append('.')
         .Append(_columnName);
 }

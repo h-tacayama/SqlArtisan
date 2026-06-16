@@ -166,9 +166,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    internal SqlBuildingBuffer AppendExcludedReference()
+    internal SqlBuildingBuffer AppendExcludedName()
     {
-        Append(_dialect.ExcludedReference);
+        Append(_dialect.ExcludedName);
         return this;
     }
 

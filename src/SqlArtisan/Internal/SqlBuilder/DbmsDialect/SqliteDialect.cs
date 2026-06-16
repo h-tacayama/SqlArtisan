@@ -6,5 +6,5 @@ internal sealed class SqliteDialect : IDbmsDialect
 
     public char ParameterMarker => ':';
 
-    public string ExcludedReference => "excluded";
+    public string ExcludedName => "excluded";
 }
