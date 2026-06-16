@@ -2,12 +2,12 @@ namespace SqlArtisan.Internal;
 
 public sealed class DateaddFunction : SqlExpression
 {
-    private readonly DateTimeField _datepart;
+    private readonly DateTimePart _datepart;
     private readonly SqlExpression _number;
     private readonly SqlExpression _dateTime;
 
     internal DateaddFunction(
-        DateTimeField datepart,
+        DateTimePart datepart,
         SqlExpression number,
         SqlExpression dateTime)
     {

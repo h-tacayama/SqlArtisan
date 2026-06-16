@@ -2,12 +2,12 @@ namespace SqlArtisan.Internal;
 
 public sealed class DatediffFunction : SqlExpression
 {
-    private readonly DateTimeField _datepart;
+    private readonly DateTimePart _datepart;
     private readonly SqlExpression _startDate;
     private readonly SqlExpression _endDate;
 
     internal DatediffFunction(
-        DateTimeField datepart,
+        DateTimePart datepart,
         SqlExpression startDate,
         SqlExpression endDate)
     {

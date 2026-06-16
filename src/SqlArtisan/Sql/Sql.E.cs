@@ -16,6 +16,6 @@ public static partial class Sql
 
     public static ExistsCondition Exists(ISubquery subquery) => new(subquery);
 
-    public static ExtractFunction Extract(DateTimeField datepart, object source) =>
+    public static ExtractFunction Extract(DateTimePart datepart, object source) =>
         new(datepart, Resolve(source));
 }
