@@ -22,7 +22,7 @@ internal interface IDbmsDialect
     /// which has no multi-row <c>VALUES</c> and is handled by array binding
     /// (bulk copy) instead.
     /// </summary>
-    bool SupportsMultiRowValues { get; }
+    bool SupportsMultiRowInsert { get; }
 
     /// <summary>
     /// The name that refers to the row proposed for insertion inside an

@@ -10,7 +10,7 @@ internal sealed class SqliteDialect : IDbmsDialect
     // many distro builds since); the conservative value avoids a hard error.
     public int MaxParameters => 999;
 
-    public bool SupportsMultiRowValues => true;
+    public bool SupportsMultiRowInsert => true;
 
     public string ExcludedName => "excluded";
 }
