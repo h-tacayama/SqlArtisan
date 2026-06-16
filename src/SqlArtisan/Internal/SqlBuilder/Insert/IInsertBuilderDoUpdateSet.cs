@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// A <c>DO UPDATE SET ...</c> action that can be narrowed with a
 /// <c>WHERE</c> predicate (PostgreSQL/SQLite).
 /// </summary>
-public interface IInsertBuilderDoUpdateSet : IInsertBuilderUpsert
+public interface IInsertBuilderDoUpdateSet : IReturning
 {
-    IInsertBuilderUpsert Where(SqlCondition condition);
+    IReturning Where(SqlCondition condition);
 }
