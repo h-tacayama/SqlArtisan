@@ -9,7 +9,7 @@ public partial class FunctionTests
     public void Dateadd_SqlServer_CorrectSql()
     {
         SqlStatement sql =
-            Select(Dateadd(Datepart.Month, 3, _t.CreatedAt))
+            Select(Dateadd(DateTimeField.Month, 3, _t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();
@@ -24,7 +24,7 @@ public partial class FunctionTests
     public void Dateadd_NegativeNumberSubtracts_CorrectSql()
     {
         SqlStatement sql =
-            Select(Dateadd(Datepart.Day, -7, _t.CreatedAt))
+            Select(Dateadd(DateTimeField.Day, -7, _t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();
@@ -39,7 +39,7 @@ public partial class FunctionTests
     public void Datediff_SqlServer_CorrectSql()
     {
         SqlStatement sql =
-            Select(Datediff(Datepart.Day, _t.CreatedAt, CurrentTimestamp))
+            Select(Datediff(DateTimeField.Day, _t.CreatedAt, CurrentTimestamp))
             .Build();
 
         StringBuilder expected = new();
@@ -54,21 +54,21 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(
-                Datepart(Datepart.Year, CurrentTimestamp),
-                Datepart(Datepart.Quarter, CurrentTimestamp),
-                Datepart(Datepart.Month, CurrentTimestamp),
-                Datepart(Datepart.Dayofyear, CurrentTimestamp),
-                Datepart(Datepart.Day, CurrentTimestamp),
-                Datepart(Datepart.Week, CurrentTimestamp),
-                Datepart(Datepart.Weekday, CurrentTimestamp),
-                Datepart(Datepart.Hour, CurrentTimestamp),
-                Datepart(Datepart.Minute, CurrentTimestamp),
-                Datepart(Datepart.Second, CurrentTimestamp),
-                Datepart(Datepart.Millisecond, CurrentTimestamp),
-                Datepart(Datepart.Microsecond, CurrentTimestamp),
-                Datepart(Datepart.Nanosecond, CurrentTimestamp),
-                Datepart(Datepart.Tzoffset, CurrentTimestamp),
-                Datepart(Datepart.IsoWeek, CurrentTimestamp))
+                Datepart(DateTimeField.Year, CurrentTimestamp),
+                Datepart(DateTimeField.Quarter, CurrentTimestamp),
+                Datepart(DateTimeField.Month, CurrentTimestamp),
+                Datepart(DateTimeField.Dayofyear, CurrentTimestamp),
+                Datepart(DateTimeField.Day, CurrentTimestamp),
+                Datepart(DateTimeField.Week, CurrentTimestamp),
+                Datepart(DateTimeField.Weekday, CurrentTimestamp),
+                Datepart(DateTimeField.Hour, CurrentTimestamp),
+                Datepart(DateTimeField.Minute, CurrentTimestamp),
+                Datepart(DateTimeField.Second, CurrentTimestamp),
+                Datepart(DateTimeField.Millisecond, CurrentTimestamp),
+                Datepart(DateTimeField.Microsecond, CurrentTimestamp),
+                Datepart(DateTimeField.Nanosecond, CurrentTimestamp),
+                Datepart(DateTimeField.Tzoffset, CurrentTimestamp),
+                Datepart(DateTimeField.IsoWeek, CurrentTimestamp))
             .Build();
 
         StringBuilder expected = new StringBuilder()
@@ -96,7 +96,7 @@ public partial class FunctionTests
     public void DateTrunc_PostgreSql_CorrectSql()
     {
         SqlStatement sql =
-            Select(DateTrunc(Datepart.Month, _t.CreatedAt))
+            Select(DateTrunc(DateTimeField.Month, _t.CreatedAt))
             .Build();
 
         StringBuilder expected = new();

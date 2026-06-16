@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan;
 
-public enum Datepart
+public enum DateTimeField
 {
     Century,
     Day,

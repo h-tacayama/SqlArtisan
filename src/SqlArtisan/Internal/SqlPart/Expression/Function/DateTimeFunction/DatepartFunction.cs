@@ -2,10 +2,10 @@ namespace SqlArtisan.Internal;
 
 public sealed class DatepartFunction : SqlExpression
 {
-    private readonly Datepart _datepart;
+    private readonly DateTimeField _datepart;
     private readonly SqlExpression _source;
 
-    internal DatepartFunction(Datepart datePart, SqlExpression source)
+    internal DatepartFunction(DateTimeField datePart, SqlExpression source)
     {
         _datepart = datePart;
         _source = source;

@@ -2,21 +2,21 @@ using System.Text;
 
 namespace SqlArtisan.Internal;
 
-// Datepart SQL keywords (e.g. Datepart.DayHour -> "DAY_HOUR") are fixed, so they
-// are computed once and reused instead of formatting the enum name (which calls
-// the relatively expensive Enum.ToString) on every Format.
+// Datepart SQL keywords (e.g. DateTimeField.DayHour -> "DAY_HOUR") are fixed, so
+// they are computed once and reused instead of formatting the enum name (which
+// calls the relatively expensive Enum.ToString) on every Format.
 internal static class DatepartKeywords
 {
     private static readonly string[] s_keywords = Build();
 
-    internal static string Of(Datepart datepart) => s_keywords[(int)datepart];
+    internal static string Of(DateTimeField datepart) => s_keywords[(int)datepart];
 
     private static string[] Build()
     {
-        Datepart[] values = Enum.GetValues<Datepart>();
+        DateTimeField[] values = Enum.GetValues<DateTimeField>();
         string[] keywords = new string[values.Length];
 
-        foreach (Datepart value in values)
+        foreach (DateTimeField value in values)
         {
             keywords[(int)value] = ToUpperSnakeCase(value.ToString());
         }
