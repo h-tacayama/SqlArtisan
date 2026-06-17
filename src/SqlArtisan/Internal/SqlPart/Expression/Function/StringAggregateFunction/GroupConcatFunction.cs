@@ -18,7 +18,7 @@ public sealed class GroupConcatFunction : SqlExpression
     private readonly DistinctKeyword? _distinct;
     private readonly SqlExpression _expr;
     private readonly SqlExpression? _positionalSeparator;
-    private readonly OrderByClause? _orderBy;
+    private readonly OrderByClause? _orderByClause;
     private readonly SeparatorClause? _separatorClause;
 
     internal GroupConcatFunction(
@@ -31,7 +31,7 @@ public sealed class GroupConcatFunction : SqlExpression
         _expr = expr;
         _distinct = distinct;
         _positionalSeparator = positionalSeparator;
-        _orderBy = orderByClause;
+        _orderByClause = orderByClause;
         _separatorClause = separatorClause;
     }
 
@@ -41,7 +41,7 @@ public sealed class GroupConcatFunction : SqlExpression
         .AppendSpaceIfNotNull(_distinct)
         .Append(_expr)
         .PrependCommaIfNotNull(_positionalSeparator)
-        .PrependSpaceIfNotNull(_orderBy)
+        .PrependSpaceIfNotNull(_orderByClause)
         .PrependSpaceIfNotNull(_separatorClause)
         .CloseParenthesis();
 }

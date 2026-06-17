@@ -33,11 +33,11 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr SEPARATOR separator)</c> string aggregate
-    /// (MySQL), where <paramref name="separator"/> is built with
+    /// (MySQL), where <paramref name="separatorClause"/> is built with
     /// <c>Sql.Separator(...)</c>.
     /// </summary>
-    public static GroupConcatFunction GroupConcat(object expr, SeparatorClause separator) =>
-        new(Resolve(expr), separatorClause: separator);
+    public static GroupConcatFunction GroupConcat(object expr, SeparatorClause separatorClause) =>
+        new(Resolve(expr), separatorClause: separatorClause);
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr ORDER BY ... SEPARATOR separator)</c> string
@@ -47,8 +47,8 @@ public static partial class Sql
     public static GroupConcatFunction GroupConcat(
         object expr,
         OrderByClause orderByClause,
-        SeparatorClause separator) =>
-        new(Resolve(expr), orderByClause: orderByClause, separatorClause: separator);
+        SeparatorClause separatorClause) =>
+        new(Resolve(expr), orderByClause: orderByClause, separatorClause: separatorClause);
 
     /// <summary>
     /// The <c>GROUP_CONCAT(DISTINCT expr)</c> string aggregate (MySQL, or SQLite
@@ -69,14 +69,14 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>GROUP_CONCAT(DISTINCT expr SEPARATOR separator)</c> string
-    /// aggregate (MySQL), where <paramref name="separator"/> is built with
+    /// aggregate (MySQL), where <paramref name="separatorClause"/> is built with
     /// <c>Sql.Separator(...)</c>.
     /// </summary>
     public static GroupConcatFunction GroupConcat(
         DistinctKeyword distinct,
         object expr,
-        SeparatorClause separator) =>
-        new(Resolve(expr), distinct: distinct, separatorClause: separator);
+        SeparatorClause separatorClause) =>
+        new(Resolve(expr), distinct: distinct, separatorClause: separatorClause);
 
     /// <summary>
     /// The <c>GROUP_CONCAT(DISTINCT expr ORDER BY ... SEPARATOR separator)</c>
@@ -87,6 +87,6 @@ public static partial class Sql
         DistinctKeyword distinct,
         object expr,
         OrderByClause orderByClause,
-        SeparatorClause separator) =>
-        new(Resolve(expr), distinct: distinct, orderByClause: orderByClause, separatorClause: separator);
+        SeparatorClause separatorClause) =>
+        new(Resolve(expr), distinct: distinct, orderByClause: orderByClause, separatorClause: separatorClause);
 }

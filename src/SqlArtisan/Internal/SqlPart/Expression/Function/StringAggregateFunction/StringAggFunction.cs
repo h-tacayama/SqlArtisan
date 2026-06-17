@@ -11,8 +11,8 @@ public sealed class StringAggFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly SqlExpression _separator;
-    private readonly OrderByClause? _orderBy;
-    private WithinGroupClause? _withinGroup;
+    private readonly OrderByClause? _orderByClause;
+    private WithinGroupClause? _withinGroupClause;
 
     internal StringAggFunction(
         SqlExpression expr,
@@ -21,7 +21,7 @@ public sealed class StringAggFunction : SqlExpression
     {
         _expr = expr;
         _separator = separator;
-        _orderBy = orderByClause;
+        _orderByClause = orderByClause;
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public sealed class StringAggFunction : SqlExpression
     /// </summary>
     public StringAggFunction WithinGroup(OrderByClause orderByClause)
     {
-        _withinGroup = new WithinGroupClause(orderByClause);
+        _withinGroupClause = new WithinGroupClause(orderByClause);
         return this;
     }
 
@@ -39,7 +39,7 @@ public sealed class StringAggFunction : SqlExpression
         .OpenParenthesis()
         .Append(_expr)
         .PrependComma(_separator)
-        .PrependSpaceIfNotNull(_orderBy)
+        .PrependSpaceIfNotNull(_orderByClause)
         .CloseParenthesis()
-        .PrependSpaceIfNotNull(_withinGroup);
+        .PrependSpaceIfNotNull(_withinGroupClause);
 }
