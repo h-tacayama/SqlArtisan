@@ -25,13 +25,13 @@ public sealed class GroupConcatFunction : SqlExpression
         SqlExpression expr,
         DistinctKeyword? distinct = null,
         SqlExpression? positionalSeparator = null,
-        OrderByClause? orderBy = null,
+        OrderByClause? orderByClause = null,
         SeparatorClause? separatorClause = null)
     {
         _expr = expr;
         _distinct = distinct;
         _positionalSeparator = positionalSeparator;
-        _orderBy = orderBy;
+        _orderBy = orderByClause;
         _separatorClause = separatorClause;
     }
 

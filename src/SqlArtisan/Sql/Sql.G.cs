@@ -28,8 +28,8 @@ public static partial class Sql
     /// inline ordering and the default comma separator. The <c>ORDER BY</c> sits
     /// inside the call, so it is passed as an <c>Sql.OrderBy(...)</c> argument.
     /// </summary>
-    public static GroupConcatFunction GroupConcat(object expr, OrderByClause orderBy) =>
-        new(Resolve(expr), orderBy: orderBy);
+    public static GroupConcatFunction GroupConcat(object expr, OrderByClause orderByClause) =>
+        new(Resolve(expr), orderByClause: orderByClause);
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr SEPARATOR separator)</c> string aggregate
@@ -46,9 +46,9 @@ public static partial class Sql
     /// </summary>
     public static GroupConcatFunction GroupConcat(
         object expr,
-        OrderByClause orderBy,
+        OrderByClause orderByClause,
         SeparatorClause separator) =>
-        new(Resolve(expr), orderBy: orderBy, separatorClause: separator);
+        new(Resolve(expr), orderByClause: orderByClause, separatorClause: separator);
 
     /// <summary>
     /// The <c>GROUP_CONCAT(DISTINCT expr)</c> string aggregate (MySQL, or SQLite
@@ -64,8 +64,8 @@ public static partial class Sql
     public static GroupConcatFunction GroupConcat(
         DistinctKeyword distinct,
         object expr,
-        OrderByClause orderBy) =>
-        new(Resolve(expr), distinct: distinct, orderBy: orderBy);
+        OrderByClause orderByClause) =>
+        new(Resolve(expr), distinct: distinct, orderByClause: orderByClause);
 
     /// <summary>
     /// The <c>GROUP_CONCAT(DISTINCT expr SEPARATOR separator)</c> string
@@ -86,7 +86,7 @@ public static partial class Sql
     public static GroupConcatFunction GroupConcat(
         DistinctKeyword distinct,
         object expr,
-        OrderByClause orderBy,
+        OrderByClause orderByClause,
         SeparatorClause separator) =>
-        new(Resolve(expr), distinct: distinct, orderBy: orderBy, separatorClause: separator);
+        new(Resolve(expr), distinct: distinct, orderByClause: orderByClause, separatorClause: separator);
 }
