@@ -37,6 +37,15 @@ public static partial class Sql
                 selectItems));
 
     /// <summary>
+    /// Wraps a <c>GROUP_CONCAT</c> separator in MySQL's <c>SEPARATOR</c> keyword
+    /// form, distinguishing it from SQLite's positional separator argument.
+    /// MySQL requires a string literal here, so <paramref name="separator"/> is
+    /// emitted inline as an escaped literal rather than a bind parameter.
+    /// </summary>
+    public static SeparatorClause Separator(string separator) =>
+        new(separator);
+
+    /// <summary>
     /// Creates a reference to a sequence using the Oracle dotted syntax,
     /// e.g. <c>name.NEXTVAL</c> / <c>name.CURRVAL</c> via <c>.Nextval</c> / <c>.Currval</c>.
     /// </summary>

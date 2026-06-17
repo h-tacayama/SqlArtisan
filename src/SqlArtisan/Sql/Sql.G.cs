@@ -89,13 +89,4 @@ public static partial class Sql
         OrderByClause orderBy,
         SeparatorClause separator) =>
         new(Resolve(expr), distinct: distinct, orderBy: orderBy, separatorClause: separator);
-
-    /// <summary>
-    /// Wraps a <c>GROUP_CONCAT</c> separator in MySQL's <c>SEPARATOR</c> keyword
-    /// form, distinguishing it from SQLite's positional separator argument.
-    /// MySQL requires a string literal here, so <paramref name="separator"/> is
-    /// emitted inline as an escaped literal rather than a bind parameter.
-    /// </summary>
-    public static SeparatorClause Separator(string separator) =>
-        new(separator);
 }
