@@ -1481,8 +1481,10 @@ Select(GroupConcat(u.Name, ", "))
 Select(GroupConcat(Distinct, u.Name, Separator(", ")).OrderBy(u.Name.Desc))
     .From(u)
     .Build(Dbms.MySql);
-// SELECT GROUP_CONCAT(DISTINCT name ORDER BY name DESC SEPARATOR ?0) FROM users   [?0 = ", "]
+// SELECT GROUP_CONCAT(DISTINCT name ORDER BY name DESC SEPARATOR ', ') FROM users
 ```
+
+MySQL's grammar requires the `SEPARATOR` value to be a string literal (a bind parameter is a syntax error there), so `Sql.Separator(...)` emits it inline as a single-quote-escaped literal. SQLite's positional separator (`GroupConcat(expr, sep)`) remains a bind parameter.
 
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable (e.g. `SET SESSION group_concat_max_len = 1000000;`) when a group can exceed it.
@@ -1637,7 +1639,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `Listagg(expr, sep).WithinGroup(OrderBy(...))` for `LISTAGG(expr, sep) WITHIN GROUP (ORDER BY ...)` (Oracle)
 - `GroupConcat(expr)` for `GROUP_CONCAT(expr)` (MySQL/SQLite)
 - `GroupConcat(expr, sep)` for `GROUP_CONCAT(expr, sep)` (SQLite, positional separator)
-- `GroupConcat(expr, Separator(sep))` for `GROUP_CONCAT(expr SEPARATOR sep)` (MySQL). Also accepts `.OrderBy(...)` and a `Distinct` overload
+- `GroupConcat(expr, Separator(sep))` for `GROUP_CONCAT(expr SEPARATOR 'sep')` (MySQL); `sep` is emitted as an inline escaped string literal (MySQL requires a literal here). Also accepts `.OrderBy(...)` and a `Distinct` overload
 
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable for large groups.

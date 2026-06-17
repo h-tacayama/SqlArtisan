@@ -50,7 +50,9 @@ public static partial class Sql
     /// <summary>
     /// Wraps a <c>GROUP_CONCAT</c> separator in MySQL's <c>SEPARATOR</c> keyword
     /// form, distinguishing it from SQLite's positional separator argument.
+    /// MySQL requires a string literal here, so <paramref name="separator"/> is
+    /// emitted inline as an escaped literal rather than a bind parameter.
     /// </summary>
-    public static SeparatorClause Separator(object separator) =>
-        new(Resolve(separator));
+    public static SeparatorClause Separator(string separator) =>
+        new(separator);
 }

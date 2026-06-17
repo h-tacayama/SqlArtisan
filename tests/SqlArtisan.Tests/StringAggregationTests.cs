@@ -119,7 +119,7 @@ public class StringAggregationTests
     public void GroupConcat_SeparatorKeyword_MySql_CorrectSql()
     {
         // Arrange
-        string expected = "SELECT GROUP_CONCAT(name SEPARATOR ?0)";
+        string expected = "SELECT GROUP_CONCAT(name SEPARATOR ', ')";
 
         // Act
         SqlStatement sql =
@@ -127,7 +127,22 @@ public class StringAggregationTests
 
         // Assert
         Assert.Equal(expected, sql.Text);
-        Assert.Equal(", ", sql.Parameters.Get<string>("?0"));
+        Assert.Equal(0, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void GroupConcat_SeparatorWithQuote_MySql_EscapesLiteral()
+    {
+        // Arrange
+        string expected = @"SELECT GROUP_CONCAT(name SEPARATOR ''' \\')";
+
+        // Act
+        SqlStatement sql =
+            Select(GroupConcat(_t.Name, Separator(@"' \"))).Build(Dbms.MySql);
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
     }
 
     [Fact]
@@ -135,7 +150,7 @@ public class StringAggregationTests
     {
         // Arrange
         string expected =
-            "SELECT GROUP_CONCAT(name ORDER BY name DESC SEPARATOR ?0)";
+            "SELECT GROUP_CONCAT(name ORDER BY name DESC SEPARATOR ', ')";
 
         // Act
         SqlStatement sql =
@@ -164,7 +179,7 @@ public class StringAggregationTests
     public void GroupConcat_DistinctSeparator_MySql_CorrectSql()
     {
         // Arrange
-        string expected = "SELECT GROUP_CONCAT(DISTINCT name SEPARATOR ?0)";
+        string expected = "SELECT GROUP_CONCAT(DISTINCT name SEPARATOR ' | ')";
 
         // Act
         SqlStatement sql =
