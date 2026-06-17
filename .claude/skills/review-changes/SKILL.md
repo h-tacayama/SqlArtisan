@@ -85,54 +85,17 @@ check the diff against each:
 
 ## 5. Verify empirically with a throwaway harness
 
-Build a console app in `/tmp` that references the project and **run it**. This is
-what catches grammar bugs, missing enforcement, and allocation regressions that
-static reading misses.
-
-```bash
-mkdir -p /tmp/sa-review && cd /tmp/sa-review
-cat > Demo.csproj <<'XML'
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
-  <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
-  <ItemGroup><ProjectReference Include="/home/user/SqlArtisan/src/SqlArtisan/SqlArtisan.csproj" /></ItemGroup>
-</Project>
-XML
-# write Program.cs (see patterns below), then:
-dotnet run -c Release
-```
-
-Define a table inline:
-```csharp
-internal sealed class T : DbTableBase
-{
-    public T() : base("users", "") { Name = new DbColumn("", "name"); }
-    public DbColumn Name { get; }
-}
-```
-
-Three checks worth running:
+Static reading misses grammar bugs, missing enforcement, and allocation
+regressions. **Build a throwaway console and run it** — use the
+`run-sql-harness` skill, which has the full setup and templates. The three checks
+to run for a review:
 
 - **SQL per dialect** — `Build(Dbms.X)` for every DBMS the construct targets;
-  print `sql.Text` and confirm it is valid for *that* DBMS's grammar. Print
-  parameters via `sql.Parameters.ForEach((n,v) => ...)`.
-- **Negative / enforcement** — a misuse should fail loudly, not emit invalid SQL.
-  e.g. a mandatory clause omitted should throw `ArgumentException` from
-  `Select(...)`:
-  ```csharp
-  try { var s = Select(Listagg(u.Name, ", ")).From(u).Build(Dbms.Oracle);
-        Console.WriteLine("LEAK: " + s.Text); }
-  catch (Exception ex) { Console.WriteLine($"GUARD: {ex.GetType().Name}"); }
-  ```
-- **Allocation** — for ADR 0006, measure with the thread allocation counter
-  (quick probe; the formal suite is BenchmarkDotNet):
-  ```csharp
-  static long Alloc(Action a, int n){ a(); long b=GC.GetAllocatedBytesForCurrentThread();
-      for(int i=0;i<n;i++)a(); return (GC.GetAllocatedBytesForCurrentThread()-b)/n; }
-  ```
-  Useful facts confirmed this way: `string.Replace` returns the same ref (0 B)
-  when there is no match; `char.ToString()` costs ~24 B; the literal-separator
-  build path is lighter than the bound-parameter path.
+  confirm `sql.Text` is valid for *that* DBMS's grammar (§6).
+- **Negative / enforcement** — a misuse (e.g. a mandatory clause omitted) must
+  throw, not emit invalid SQL.
+- **Allocation** — probe with `GC.GetAllocatedBytesForCurrentThread` to back any
+  ADR 0006 claim; the formal suite is `tests/SqlArtisan.Benchmark`.
 
 ## 6. Don't trust memory on DBMS grammar
 
