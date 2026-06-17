@@ -1468,7 +1468,7 @@ Select(Listagg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
 
 ##### GROUP_CONCAT (MySQL / SQLite)
 
-The separator diverges: SQLite takes a positional second argument, while MySQL uses a `SEPARATOR` keyword selected with `Sql.Separator(...)`. MySQL additionally supports `DISTINCT` and an inline `ORDER BY`.
+The separator diverges: SQLite takes a positional second argument, while MySQL uses a `SEPARATOR` keyword selected with `Sql.Separator(...)`. `DISTINCT` is supported by both (SQLite only in the single-argument form, without a separator), while the inline `ORDER BY` is MySQL-only.
 
 ```csharp
 // SQLite: positional separator
