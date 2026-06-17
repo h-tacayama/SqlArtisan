@@ -24,20 +24,20 @@ public static partial class Sql
         new(Resolve(expr), positionalSeparator: Resolve(separator));
 
     /// <summary>
-    /// The <c>GROUP_CONCAT(expr SEPARATOR separator)</c> string aggregate
-    /// (MySQL), where <paramref name="separator"/> is built with
-    /// <c>Sql.Separator(...)</c>.
-    /// </summary>
-    public static GroupConcatFunction GroupConcat(object expr, SeparatorClause separator) =>
-        new(Resolve(expr), separatorClause: separator);
-
-    /// <summary>
     /// The <c>GROUP_CONCAT(expr ORDER BY ...)</c> string aggregate (MySQL) with
     /// inline ordering and the default comma separator. The <c>ORDER BY</c> sits
     /// inside the call, so it is passed as an <c>Sql.OrderBy(...)</c> argument.
     /// </summary>
     public static GroupConcatFunction GroupConcat(object expr, OrderByClause orderBy) =>
         new(Resolve(expr), orderBy: orderBy);
+
+    /// <summary>
+    /// The <c>GROUP_CONCAT(expr SEPARATOR separator)</c> string aggregate
+    /// (MySQL), where <paramref name="separator"/> is built with
+    /// <c>Sql.Separator(...)</c>.
+    /// </summary>
+    public static GroupConcatFunction GroupConcat(object expr, SeparatorClause separator) =>
+        new(Resolve(expr), separatorClause: separator);
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr ORDER BY ... SEPARATOR separator)</c> string
@@ -58,6 +58,16 @@ public static partial class Sql
         new(Resolve(expr), distinct: distinct);
 
     /// <summary>
+    /// The <c>GROUP_CONCAT(DISTINCT expr ORDER BY ...)</c> string aggregate
+    /// (MySQL) with inline ordering and the default comma separator.
+    /// </summary>
+    public static GroupConcatFunction GroupConcat(
+        DistinctKeyword distinct,
+        object expr,
+        OrderByClause orderBy) =>
+        new(Resolve(expr), distinct: distinct, orderBy: orderBy);
+
+    /// <summary>
     /// The <c>GROUP_CONCAT(DISTINCT expr SEPARATOR separator)</c> string
     /// aggregate (MySQL), where <paramref name="separator"/> is built with
     /// <c>Sql.Separator(...)</c>.
@@ -67,16 +77,6 @@ public static partial class Sql
         object expr,
         SeparatorClause separator) =>
         new(Resolve(expr), distinct: distinct, separatorClause: separator);
-
-    /// <summary>
-    /// The <c>GROUP_CONCAT(DISTINCT expr ORDER BY ...)</c> string aggregate
-    /// (MySQL) with inline ordering and the default comma separator.
-    /// </summary>
-    public static GroupConcatFunction GroupConcat(
-        DistinctKeyword distinct,
-        object expr,
-        OrderByClause orderBy) =>
-        new(Resolve(expr), distinct: distinct, orderBy: orderBy);
 
     /// <summary>
     /// The <c>GROUP_CONCAT(DISTINCT expr ORDER BY ... SEPARATOR separator)</c>
