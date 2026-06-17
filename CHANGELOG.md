@@ -6,9 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- Added support for the date/time arithmetic functions `DATEADD`, `DATEDIFF` (SQL Server) and `DATE_TRUNC` (PostgreSQL), exposed as distinct per-dialect methods (`Dateadd()` / `Datediff()` / `DateTrunc()`), each emitted verbatim so the caller picks the form their target DBMS requires. Units reuse the `DateTimePart` enum. Oracle's `TRUNC(date, fmt)` truncation remains available via the date/time overload of `Trunc()`. (#86)
-- Added support for UPSERT on the `INSERT` builder via per-dialect methods: `OnConflict(...).DoUpdateSet(...)` / `.DoNothing()` with an optional `Where(...)` (PostgreSQL/SQLite `ON CONFLICT`), and `OnDuplicateKeyUpdate(...)` (MySQL `ON DUPLICATE KEY UPDATE`). Reference the proposed row with `Sql.Excluded(column)`, which resolves to `EXCLUDED` (PostgreSQL), `excluded` (SQLite), or the `new` row alias (MySQL 8.0.19+). (#85)
-- Added support for the scalar functions `NULLIF`, `ROUND`, `CEIL`, `CEILING`, `FLOOR`, `POWER`, `SQRT`, and `SIGN`. `CEIL` and `CEILING` are exposed as distinct functions (`Ceil()` / `Ceiling()`), each emitted verbatim, so the caller picks the spelling their target DBMS requires. (#84)
+- Added support for the per-dialect date/time functions `DATEADD` / `DATEDIFF` (SQL Server) and `DATE_TRUNC` (PostgreSQL), with units from the `DateTimePart` enum. (#86)
+- Added support for UPSERT on the `INSERT` builder: `OnConflict(...).DoUpdateSet(...)`/`.DoNothing()` (PostgreSQL/SQLite) and `OnDuplicateKeyUpdate(...)` (MySQL), referencing the proposed row with `Sql.Excluded(column)`. (#85)
+- Added support for the scalar functions `NULLIF`, `ROUND`, `CEIL`, `CEILING`, `FLOOR`, `POWER`, `SQRT`, and `SIGN`. (#84)
 
 ### Changed
 - **Breaking:** Renamed the `Datepart` enum to `DateTimePart`. The previous name collided with the `Sql.Datepart()` factory method, so any enum member written in expression position under the recommended `using static SqlArtisan.Sql;` failed to compile with `CS0119` (this affected `Extract`, `Datepart`, `Dateadd`, `Datediff`, and `DateTrunc`). The enum members and the emitted SQL are unchanged; callers update only the type name (e.g. `Datepart.Year` → `DateTimePart.Year`). (#99)
