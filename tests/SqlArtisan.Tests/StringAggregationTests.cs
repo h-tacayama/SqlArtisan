@@ -31,7 +31,7 @@ public class StringAggregationTests
 
         // Act
         SqlStatement sql =
-            Select(StringAgg(_t.Name, ", ").OrderBy(_t.Name)).Build(Dbms.PostgreSql);
+            Select(StringAgg(_t.Name, ", ", OrderBy(_t.Name))).Build(Dbms.PostgreSql);
 
         // Assert
         Assert.Equal(expected, sql.Text);
@@ -141,7 +141,7 @@ public class StringAggregationTests
 
         // Act
         SqlStatement sql =
-            Select(GroupConcat(_t.Name, Separator(", ")).OrderBy(_t.Name.Desc))
+            Select(GroupConcat(_t.Name, OrderBy(_t.Name.Desc), Separator(", ")))
             .Build(Dbms.MySql);
 
         // Assert
@@ -171,6 +171,36 @@ public class StringAggregationTests
         // Act
         SqlStatement sql =
             Select(GroupConcat(Distinct, _t.Name, Separator(" | ")))
+            .Build(Dbms.MySql);
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void GroupConcat_OrderByDefaultSeparator_MySql_CorrectSql()
+    {
+        // Arrange
+        string expected = "SELECT GROUP_CONCAT(name ORDER BY name)";
+
+        // Act
+        SqlStatement sql =
+            Select(GroupConcat(_t.Name, OrderBy(_t.Name))).Build(Dbms.MySql);
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void GroupConcat_DistinctOrderBySeparator_MySql_CorrectSql()
+    {
+        // Arrange
+        string expected =
+            "SELECT GROUP_CONCAT(DISTINCT name ORDER BY name DESC SEPARATOR ', ')";
+
+        // Act
+        SqlStatement sql =
+            Select(GroupConcat(Distinct, _t.Name, OrderBy(_t.Name.Desc), Separator(", ")))
             .Build(Dbms.MySql);
 
         // Assert

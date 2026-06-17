@@ -1444,8 +1444,8 @@ String aggregation flattens the values of a group into one delimited string. Thi
 ##### STRING_AGG (PostgreSQL / SQL Server)
 
 ```csharp
-// PostgreSQL: ordering is inline inside the call
-Select(StringAgg(u.Name, ", ").OrderBy(u.Name))
+// PostgreSQL: ordering is inline inside the call, so pass OrderBy(...) as an argument
+Select(StringAgg(u.Name, ", ", OrderBy(u.Name)))
     .From(u)
     .Build(Dbms.PostgreSql);
 // SELECT STRING_AGG(name, :0 ORDER BY name) FROM users   [:0 = ", "]
@@ -1468,7 +1468,7 @@ Select(Listagg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
 
 ##### GROUP_CONCAT (MySQL / SQLite)
 
-The separator diverges: SQLite takes a positional second argument, while MySQL uses a `SEPARATOR` keyword selected with `Sql.Separator(...)`. `DISTINCT` is supported by both (SQLite only in the single-argument form, without a separator), while the inline `ORDER BY` is MySQL-only.
+The separator diverges: SQLite takes a positional second argument, while MySQL uses a `SEPARATOR` keyword selected with `Sql.Separator(...)`. `DISTINCT` is supported by both (SQLite only in the single-argument form, without a separator). MySQL also accepts an inline `ORDER BY`, passed as an `OrderBy(...)` argument because it sits inside the call.
 
 ```csharp
 // SQLite: positional separator
@@ -1477,8 +1477,8 @@ Select(GroupConcat(u.Name, ", "))
     .Build(Dbms.Sqlite);
 // SELECT GROUP_CONCAT(name, :0) FROM users   [:0 = ", "]
 
-// MySQL: SEPARATOR keyword, with DISTINCT and ORDER BY
-Select(GroupConcat(Distinct, u.Name, Separator(", ")).OrderBy(u.Name.Desc))
+// MySQL: SEPARATOR keyword, with DISTINCT and an inline ORDER BY argument
+Select(GroupConcat(Distinct, u.Name, OrderBy(u.Name.Desc), Separator(", ")))
     .From(u)
     .Build(Dbms.MySql);
 // SELECT GROUP_CONCAT(DISTINCT name ORDER BY name DESC SEPARATOR ', ') FROM users
@@ -1635,11 +1635,11 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 Exposed per dialect (no unified rewrite); each emits its dialect-native syntax verbatim.
 
-- `StringAgg(expr, sep)` for `STRING_AGG(expr, sep)` (PostgreSQL/SQL Server). Order with `.OrderBy(...)` (PostgreSQL, inline) or `.WithinGroup(OrderBy(...))` (SQL Server)
+- `StringAgg(expr, sep)` for `STRING_AGG(expr, sep)` (PostgreSQL/SQL Server). Order with an `OrderBy(...)` argument — `StringAgg(expr, sep, OrderBy(...))` (PostgreSQL, inline) — or chain `.WithinGroup(OrderBy(...))` (SQL Server)
 - `Listagg(expr, sep).WithinGroup(OrderBy(...))` for `LISTAGG(expr, sep) WITHIN GROUP (ORDER BY ...)` (Oracle)
 - `GroupConcat(expr)` for `GROUP_CONCAT(expr)` (MySQL/SQLite)
 - `GroupConcat(expr, sep)` for `GROUP_CONCAT(expr, sep)` (SQLite, positional separator)
-- `GroupConcat(expr, Separator(sep))` for `GROUP_CONCAT(expr SEPARATOR 'sep')` (MySQL); `sep` is emitted as an inline escaped string literal (MySQL requires a literal here). Chain `.OrderBy(...)` to order the values (MySQL)
+- `GroupConcat(expr, Separator(sep))` for `GROUP_CONCAT(expr SEPARATOR 'sep')` (MySQL); `sep` is emitted as an inline escaped string literal (MySQL requires a literal here). Pass an `OrderBy(...)` argument to order the values — `GroupConcat(expr, OrderBy(...), Separator(sep))` (MySQL)
 - `GroupConcat(Distinct, expr)` / `GroupConcat(Distinct, expr, Separator(sep))` for `GROUP_CONCAT(DISTINCT ...)`; `DISTINCT` works on both (SQLite only in the single-argument form)
 
 > [!NOTE]
