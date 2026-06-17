@@ -62,6 +62,15 @@ public static partial class Sql
     public static SqrtFunction Sqrt(object expr) =>
         new(Resolve(expr));
 
+    /// <summary>
+    /// The <c>STRING_AGG(expr, separator)</c> string aggregate (PostgreSQL and
+    /// SQL Server). Order the values per dialect: <c>.OrderBy(...)</c> for
+    /// PostgreSQL's inline form, or <c>.WithinGroup(OrderBy(...))</c> for
+    /// SQL Server's <c>WITHIN GROUP</c> form.
+    /// </summary>
+    public static StringAggFunction StringAgg(object expr, object separator) =>
+        new(Resolve(expr), Resolve(separator));
+
     public static SubstrFunction Substr(
         object source,
         object position) => new(

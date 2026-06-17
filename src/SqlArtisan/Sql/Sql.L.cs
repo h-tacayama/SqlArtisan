@@ -93,6 +93,14 @@ public static partial class Sql
     public static LengthbFunction Lengthb(object source) =>
         new(Resolve(source));
 
+    /// <summary>
+    /// The <c>LISTAGG(expr, separator)</c> string aggregate (Oracle). Complete
+    /// it with <c>.WithinGroup(OrderBy(...))</c> to supply Oracle's mandatory
+    /// ordering.
+    /// </summary>
+    public static ListaggFunction Listagg(object expr, object separator) =>
+        new(Resolve(expr), Resolve(separator));
+
     public static LowerFunction Lower(object source) =>
         new(Resolve(source));
 

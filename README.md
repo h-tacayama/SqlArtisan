@@ -75,6 +75,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [CASE Expressions](#case-expressions): **Simple CASE**, **Searched CASE**
     - [CAST](#cast)
     - [Window Functions](#window-functions)
+    - [String Aggregation](#string-aggregation): `STRING_AGG`, `LISTAGG`, `GROUP_CONCAT`
     - [Sequence](#sequence): `CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`
 - [Additional Query Details](#additional-query-details)
   - [Bind Parameter Types](#bind-parameter-types)
@@ -84,6 +85,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [Date and Time Functions](#date-and-time-functions): `ADD_MONTHS`, `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_TIMESTAMP`, `DATEADD`, `DATEDIFF`, `DATEPART`, `DATE_TRUNC`, `EXTRACT`, `LAST_DAY`, `MONTHS_BETWEEN`, `SYSDATE`, `SYSTIMESTAMP`, `TRUNC`
     - [Conversion Functions](#conversion-functions): `COALESCE`, `DECODE`, `NULLIF`, `NVL`, `TO_CHAR`, `TO_DATE`, `TO_NUMBER`, `TO_TIMESTAMP`
     - [Aggregate Functions](#aggregate-functions): `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`
+    - [String Aggregation Functions](#string-aggregation-functions): `STRING_AGG`, `LISTAGG`, `GROUP_CONCAT`
     - [Window Functions](#window-functions-1): `CUME_DIST`, `DENSE_RANK`, `FIRST_VALUE`, `LAG`, `LAST_VALUE`, `LEAD`, `NTH_VALUE`, `NTILE`, `PERCENTILE_CONT`, `PERCENTILE_DISC`, `PERCENT_RANK`, `RANK`, `ROW_NUMBER`
 - [Contributing](#contributing)
 - [License](#license)
@@ -1435,6 +1437,58 @@ PercentileCont(0.5).WithinGroup(OrderBy(u.Salary)).Over(PartitionBy(u.Department
 
 ---
 
+#### String Aggregation
+
+String aggregation flattens the values of a group into one delimited string. This is the most syntactically divergent feature in scope, so SqlArtisan exposes it per dialect (no unified rewrite): you call the function your target DBMS supports, and the SQL you write is the SQL that runs.
+
+##### STRING_AGG (PostgreSQL / SQL Server)
+
+```csharp
+// PostgreSQL: ordering is inline inside the call
+Select(StringAgg(u.Name, ", ").OrderBy(u.Name))
+    .From(u)
+    .Build(Dbms.PostgreSql);
+// SELECT STRING_AGG(name, :0 ORDER BY name) FROM users   [:0 = ", "]
+
+// SQL Server: ordering uses WITHIN GROUP
+Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
+    .From(u)
+    .Build(Dbms.SqlServer);
+// SELECT STRING_AGG(name, @0) WITHIN GROUP (ORDER BY name) FROM users   [@0 = ", "]
+```
+
+##### LISTAGG (Oracle)
+
+```csharp
+Select(Listagg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
+    .From(u)
+    .Build(Dbms.Oracle);
+// SELECT LISTAGG(name, :0) WITHIN GROUP (ORDER BY name) FROM users   [:0 = ", "]
+```
+
+##### GROUP_CONCAT (MySQL / SQLite)
+
+The separator diverges: SQLite takes a positional second argument, while MySQL uses a `SEPARATOR` keyword selected with `Sql.Separator(...)`. MySQL additionally supports `DISTINCT` and an inline `ORDER BY`.
+
+```csharp
+// SQLite: positional separator
+Select(GroupConcat(u.Name, ", "))
+    .From(u)
+    .Build(Dbms.Sqlite);
+// SELECT GROUP_CONCAT(name, :0) FROM users   [:0 = ", "]
+
+// MySQL: SEPARATOR keyword, with DISTINCT and ORDER BY
+Select(GroupConcat(Distinct, u.Name, Separator(", ")).OrderBy(u.Name.Desc))
+    .From(u)
+    .Build(Dbms.MySql);
+// SELECT GROUP_CONCAT(DISTINCT name ORDER BY name DESC SEPARATOR ?0) FROM users   [?0 = ", "]
+```
+
+> [!NOTE]
+> MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable (e.g. `SET SESSION group_concat_max_len = 1000000;`) when a group can exceed it.
+
+---
+
 #### Sequence
 
 ##### Oracle Example
@@ -1572,6 +1626,21 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Max()` for `MAX`
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
+
+---
+
+#### String Aggregation Functions
+
+Exposed per dialect (no unified rewrite); each emits its dialect-native syntax verbatim.
+
+- `StringAgg(expr, sep)` for `STRING_AGG(expr, sep)` (PostgreSQL/SQL Server). Order with `.OrderBy(...)` (PostgreSQL, inline) or `.WithinGroup(OrderBy(...))` (SQL Server)
+- `Listagg(expr, sep).WithinGroup(OrderBy(...))` for `LISTAGG(expr, sep) WITHIN GROUP (ORDER BY ...)` (Oracle)
+- `GroupConcat(expr)` for `GROUP_CONCAT(expr)` (MySQL/SQLite)
+- `GroupConcat(expr, sep)` for `GROUP_CONCAT(expr, sep)` (SQLite, positional separator)
+- `GroupConcat(expr, Separator(sep))` for `GROUP_CONCAT(expr SEPARATOR sep)` (MySQL). Also accepts `.OrderBy(...)` and a `Distinct` overload
+
+> [!NOTE]
+> MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable for large groups.
 
 ---
 

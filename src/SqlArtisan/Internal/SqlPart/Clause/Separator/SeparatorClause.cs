@@ -1,0 +1,20 @@
+﻿namespace SqlArtisan.Internal;
+
+/// <summary>
+/// The MySQL <c>SEPARATOR &lt;value&gt;</c> clause of <c>GROUP_CONCAT</c>. Use
+/// <c>Sql.Separator(...)</c> to select MySQL's keyword form over SQLite's
+/// positional separator argument.
+/// </summary>
+public sealed class SeparatorClause : SqlPart
+{
+    private readonly SqlExpression _separator;
+
+    internal SeparatorClause(SqlExpression separator)
+    {
+        _separator = separator;
+    }
+
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
+        .Append(Keywords.Separator)
+        .PrependSpace(_separator);
+}
