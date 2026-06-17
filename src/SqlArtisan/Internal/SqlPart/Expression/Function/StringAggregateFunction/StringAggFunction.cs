@@ -17,11 +17,11 @@ public sealed class StringAggFunction : SqlExpression
     internal StringAggFunction(
         SqlExpression expr,
         SqlExpression separator,
-        OrderByClause? orderBy = null)
+        OrderByClause? orderByClause = null)
     {
         _expr = expr;
         _separator = separator;
-        _orderBy = orderBy;
+        _orderBy = orderByClause;
     }
 
     /// <summary>

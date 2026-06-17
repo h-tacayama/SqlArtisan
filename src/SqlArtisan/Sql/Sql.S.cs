@@ -87,7 +87,7 @@ public static partial class Sql
     public static StringAggFunction StringAgg(
         object expr,
         object separator,
-        OrderByClause orderBy) => new(Resolve(expr), Resolve(separator), orderBy);
+        OrderByClause orderByClause) => new(Resolve(expr), Resolve(separator), orderByClause);
 
     public static SubstrFunction Substr(
         object source,
