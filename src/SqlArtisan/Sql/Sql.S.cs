@@ -37,6 +37,15 @@ public static partial class Sql
                 selectItems));
 
     /// <summary>
+    /// Wraps a <c>GROUP_CONCAT</c> separator in MySQL's <c>SEPARATOR</c> keyword
+    /// form, distinguishing it from SQLite's positional separator argument.
+    /// MySQL requires a string literal here, so <paramref name="separator"/> is
+    /// emitted inline as an escaped literal rather than a bind parameter.
+    /// </summary>
+    public static SeparatorClause Separator(string separator) =>
+        new(separator);
+
+    /// <summary>
     /// Creates a reference to a sequence using the Oracle dotted syntax,
     /// e.g. <c>name.NEXTVAL</c> / <c>name.CURRVAL</c> via <c>.Nextval</c> / <c>.Currval</c>.
     /// </summary>
@@ -61,6 +70,24 @@ public static partial class Sql
     /// </summary>
     public static SqrtFunction Sqrt(object expr) =>
         new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>STRING_AGG(expr, separator)</c> string aggregate (PostgreSQL and
+    /// SQL Server). Order the values per dialect: pass <c>OrderBy(...)</c> as an
+    /// argument for PostgreSQL's inline form, or chain
+    /// <c>.WithinGroup(OrderBy(...))</c> for SQL Server's <c>WITHIN GROUP</c> form.
+    /// </summary>
+    public static StringAggFunction StringAgg(object expr, object separator) =>
+        new(Resolve(expr), Resolve(separator));
+
+    /// <summary>
+    /// The <c>STRING_AGG(expr, separator ORDER BY ...)</c> string aggregate with
+    /// PostgreSQL's inline ordering (the <c>ORDER BY</c> sits inside the call).
+    /// </summary>
+    public static StringAggFunction StringAgg(
+        object expr,
+        object separator,
+        OrderByClause orderByClause) => new(Resolve(expr), Resolve(separator), orderByClause);
 
     public static SubstrFunction Substr(
         object source,

@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- Added support for per-dialect string aggregation: `StringAgg()` (PostgreSQL/SQL Server), `Listagg()` (Oracle), and `GroupConcat()` (MySQL/SQLite). Note: MySQL's `GROUP_CONCAT` silently truncates at `group_concat_max_len` (1024 bytes by default). (#88)
 - Added support for the date/time arithmetic functions `DATEADD`, `DATEDIFF` (SQL Server) and `DATE_TRUNC` (PostgreSQL), exposed as distinct per-dialect methods (`Dateadd()` / `Datediff()` / `DateTrunc()`), each emitted verbatim so the caller picks the form their target DBMS requires. Units reuse the `DateTimePart` enum. Oracle's `TRUNC(date, fmt)` truncation remains available via the date/time overload of `Trunc()`. (#86)
 - Added support for UPSERT on the `INSERT` builder via per-dialect methods: `OnConflict(...).DoUpdateSet(...)` / `.DoNothing()` with an optional `Where(...)` (PostgreSQL/SQLite `ON CONFLICT`), and `OnDuplicateKeyUpdate(...)` (MySQL `ON DUPLICATE KEY UPDATE`). Reference the proposed row with `Sql.Excluded(column)`, which resolves to `EXCLUDED` (PostgreSQL), `excluded` (SQLite), or the `new` row alias (MySQL 8.0.19+). (#85)
 - Added support for the scalar functions `NULLIF`, `ROUND`, `CEIL`, `CEILING`, `FLOOR`, `POWER`, `SQRT`, and `SIGN`. `CEIL` and `CEILING` are exposed as distinct functions (`Ceil()` / `Ceiling()`), each emitted verbatim, so the caller picks the spelling their target DBMS requires. (#84)

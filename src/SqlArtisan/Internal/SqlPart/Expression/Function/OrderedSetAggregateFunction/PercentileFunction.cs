@@ -10,16 +10,16 @@ public sealed class PercentileFunction : SqlExpression
 {
     private readonly string _function;
     private readonly double _fraction;
-    private readonly WithinGroupClause _withinGroup;
+    private readonly WithinGroupClause _withinGroupClause;
 
     internal PercentileFunction(
         string function,
         double fraction,
-        WithinGroupClause withinGroup)
+        WithinGroupClause withinGroupClause)
     {
         _function = function;
         _fraction = fraction;
-        _withinGroup = withinGroup;
+        _withinGroupClause = withinGroupClause;
     }
 
     /// <summary>
@@ -40,5 +40,5 @@ public sealed class PercentileFunction : SqlExpression
         .OpenParenthesis()
         .Append(_fraction.ToInvariantString())
         .CloseParenthesis()
-        .PrependSpace(_withinGroup);
+        .PrependSpace(_withinGroupClause);
 }
