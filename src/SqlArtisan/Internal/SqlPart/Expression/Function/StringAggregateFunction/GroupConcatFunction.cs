@@ -4,8 +4,9 @@
 /// The <c>GROUP_CONCAT(expr)</c> string aggregate (MySQL and SQLite). The two
 /// dialects diverge on the separator: SQLite takes a positional second argument
 /// (<c>GROUP_CONCAT(expr, sep)</c>), while MySQL uses a <c>SEPARATOR</c> keyword
-/// supplied via <c>Sql.Separator(...)</c>. MySQL additionally supports
-/// <c>DISTINCT</c> and an inline <c>ORDER BY</c> (<see cref="OrderBy(object[])"/>).
+/// supplied via <c>Sql.Separator(...)</c>. <c>DISTINCT</c> is supported by both
+/// (SQLite only in the single-argument form, without a separator), whereas the
+/// inline <c>ORDER BY</c> (<see cref="OrderBy(object[])"/>) is MySQL-only.
 /// </summary>
 /// <remarks>
 /// MySQL silently truncates the result at <c>group_concat_max_len</c> (1024

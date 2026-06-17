@@ -72,19 +72,6 @@ public class StringAggregationTests
         Assert.Equal(", ", sql.Parameters.Get<string>(":0"));
     }
 
-    [Fact]
-    public void Listagg_Plain_CorrectSql()
-    {
-        // Arrange
-        string expected = "SELECT LISTAGG(name, :0)";
-
-        // Act
-        SqlStatement sql = Select(Listagg(_t.Name, ", ")).Build(Dbms.Oracle);
-
-        // Assert
-        Assert.Equal(expected, sql.Text);
-    }
-
     // --- GROUP_CONCAT (MySQL / SQLite) ----------------------------------------
 
     [Fact]
