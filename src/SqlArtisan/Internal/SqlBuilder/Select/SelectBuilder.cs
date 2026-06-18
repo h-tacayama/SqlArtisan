@@ -4,16 +4,16 @@ namespace SqlArtisan.Internal;
 
 internal class SelectBuilder(params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
+    ILimitOffsetBuilder,
+    IOffsetFetchBuilder,
     ISelectBuilderFrom,
     ISelectBuilderGroupBy,
     ISelectBuilderHaving,
-    ISelectBuilderSetOperator,
     ISelectBuilderJoin,
     ISelectBuilderOrderBy,
     ISelectBuilderSelect,
-    ISelectBuilderWhere,
-    ILimitOffsetBuilder,
-    IOffsetFetchBuilder
+    ISelectBuilderSetOperator,
+    ISelectBuilderWhere
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public ISelectBuilderSetOperator Except
@@ -101,37 +101,9 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     public SqlStatement Build(Dbms dbms) =>
         BuildCore(dbms);
 
-    public void Format(SqlBuildingBuffer buffer) => FormatCore(buffer);
-
-    public ISqlBuilder ForUpdate(LockBehaviorBase? lockBehavior = null)
+    public ISelectBuilderFrom CrossJoin(TableReference table)
     {
-        AddPart(new ForUpdateClause(lockBehavior));
-        return this;
-    }
-
-    public ISqlBuilder ForUpdate(
-        OfClause ofClause,
-        LockBehaviorBase? lockBehavior = null)
-    {
-        AddPart(new ForUpdateClause(ofClause, lockBehavior));
-        return this;
-    }
-
-    public ILimitOffsetBuilder Limit(int count)
-    {
-        AddPart(new LimitClause(count));
-        return this;
-    }
-
-    public ISqlBuilder Offset(int start)
-    {
-        AddPart(new OffsetClause(start));
-        return this;
-    }
-
-    public IOffsetFetchBuilder OffsetRows(int start)
-    {
-        AddPart(new OffsetRowsClause(start));
+        AddPart(new CrossJoinClause(table));
         return this;
     }
 
@@ -147,9 +119,19 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderFrom CrossJoin(TableReference table)
+    public void Format(SqlBuildingBuffer buffer) => FormatCore(buffer);
+
+    public ISqlBuilder ForUpdate(LockBehaviorBase? lockBehavior = null)
     {
-        AddPart(new CrossJoinClause(table));
+        AddPart(new ForUpdateClause(lockBehavior));
+        return this;
+    }
+
+    public ISqlBuilder ForUpdate(
+        OfClause ofClause,
+        LockBehaviorBase? lockBehavior = null)
+    {
+        AddPart(new ForUpdateClause(ofClause, lockBehavior));
         return this;
     }
 
@@ -189,9 +171,21 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderJoin RightJoin(TableReference table)
+    public ILimitOffsetBuilder Limit(int count)
     {
-        AddPart(new RightJoinClause(table));
+        AddPart(new LimitClause(count));
+        return this;
+    }
+
+    public ISqlBuilder Offset(int start)
+    {
+        AddPart(new OffsetClause(start));
+        return this;
+    }
+
+    public IOffsetFetchBuilder OffsetRows(int start)
+    {
+        AddPart(new OffsetRowsClause(start));
         return this;
     }
 
@@ -205,6 +199,12 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         params object[] orderByItems)
     {
         AddPart(OrderByClause.Parse(orderByItems));
+        return this;
+    }
+
+    public ISelectBuilderJoin RightJoin(TableReference table)
+    {
+        AddPart(new RightJoinClause(table));
         return this;
     }
 
