@@ -14,4 +14,13 @@ internal interface IDbmsDialect
     /// the (wrong-DBMS) statement for the database to reject.
     /// </summary>
     string ExcludedName { get; }
+
+    /// <summary>
+    /// The token appended after a <c>MERGE</c> statement. SQL Server's <c>MERGE</c>
+    /// syntactically requires a trailing semicolon (<c>;</c>); every other dialect
+    /// needs none and leaves this empty. This is specific to <c>MERGE</c> —
+    /// SqlArtisan does not otherwise terminate statements, deferring that to the
+    /// caller or driver.
+    /// </summary>
+    string MergeTerminator { get; }
 }

@@ -81,7 +81,9 @@ internal static class Keywords
     internal const string Lower = "LOWER";
     internal const string Lpad = "LPAD";
     internal const string Ltrim = "LTRIM";
+    internal const string Matched = "MATCHED";
     internal const string Max = "MAX";
+    internal const string Merge = "MERGE";
     internal const string Min = "MIN";
     internal const string Minus = "MINUS";
     internal const string Mod = "MOD";
@@ -132,6 +134,7 @@ internal static class Keywords
     internal const string Set = "SET";
     internal const string Sign = "SIGN";
     internal const string Skip = "SKIP";
+    internal const string Source = "SOURCE";
     internal const string Sqrt = "SQRT";
     internal const string StringAgg = "STRING_AGG";
     internal const string Substr = "SUBSTR";
@@ -139,6 +142,7 @@ internal static class Keywords
     internal const string Sum = "SUM";
     internal const string Sysdate = "SYSDATE";
     internal const string Systimestamp = "SYSTIMESTAMP";
+    internal const string Target = "TARGET";
     internal const string Then = "THEN";
     internal const string ToChar = "TO_CHAR";
     internal const string ToDate = "TO_DATE";
@@ -150,6 +154,7 @@ internal static class Keywords
     internal const string Union = "UNION";
     internal const string Update = "UPDATE";
     internal const string Upper = "UPPER";
+    internal const string Using = "USING";
     internal const string Value = "VALUE";
     internal const string Values = "VALUES";
     internal const string Wait = "WAIT";

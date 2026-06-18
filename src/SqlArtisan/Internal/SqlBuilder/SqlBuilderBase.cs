@@ -39,9 +39,16 @@ internal abstract class SqlBuilderBase
     {
         IDbmsDialect dialect = DbmsDialectFactory.Create(dbms);
         using SqlBuildingBuffer buffer = new(dialect);
-        return buffer
-            .AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts))
-            .ToSqlStatement();
+        buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
+        AppendTrailing(buffer);
+        return buffer.ToSqlStatement();
+    }
+
+    // Hook for statements that need a trailing token after all clauses (e.g. the
+    // SQL Server MERGE terminating semicolon). The default emits nothing, leaving
+    // every other statement's output untouched.
+    protected virtual void AppendTrailing(SqlBuildingBuffer buffer)
+    {
     }
 
     internal void FormatCore(SqlBuildingBuffer buffer) =>

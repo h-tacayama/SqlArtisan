@@ -10,4 +10,7 @@ internal sealed class MySqlDialect : IDbmsDialect
     // the deprecated VALUES() function. The builder emits `... AS new` so the
     // update clause can read it as `new.column`.
     public string ExcludedName => "new";
+
+    // MySQL has no MERGE statement, so no terminating token applies.
+    public string MergeTerminator => "";
 }
