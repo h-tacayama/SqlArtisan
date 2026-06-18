@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 // Emits `WHEN NOT MATCHED [AND <condition>] THEN`. The INSERT action follows as a
 // separate, space-separated part.

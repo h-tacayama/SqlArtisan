@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 // Emits `WHEN MATCHED [AND <condition>] THEN`. The action (UPDATE SET / DELETE)
 // follows as a separate, space-separated part.

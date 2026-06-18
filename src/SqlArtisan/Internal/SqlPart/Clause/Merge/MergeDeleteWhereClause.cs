@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 // Oracle's in-clause `DELETE WHERE <condition>`, appended to a WHEN MATCHED
 // UPDATE SET action to remove the just-updated rows that satisfy the condition.

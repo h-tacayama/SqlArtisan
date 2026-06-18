@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 // The `INSERT (col, ...)` action of a MERGE WHEN NOT MATCHED clause. The VALUES
 // list follows as a separate part (reusing InsertValuesClause).

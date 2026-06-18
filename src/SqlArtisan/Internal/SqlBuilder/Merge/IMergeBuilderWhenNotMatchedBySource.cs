@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The state after a SQL Server <c>WHEN NOT MATCHED BY SOURCE [AND ...] THEN</c>:

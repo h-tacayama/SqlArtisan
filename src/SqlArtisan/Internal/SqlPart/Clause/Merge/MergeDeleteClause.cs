@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 // The standalone `DELETE` action of a MERGE WHEN clause (SQL Server).
 internal sealed class MergeDeleteClause : SqlPart

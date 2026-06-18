@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The state after <c>WHEN NOT MATCHED [AND ...] THEN</c>: insert a new row. Name

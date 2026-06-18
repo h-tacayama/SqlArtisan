@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 // The MERGE join condition. Unlike a JOIN's ON clause, the condition is wrapped
 // in parentheses: Oracle requires them, and SQL Server / PostgreSQL accept them.

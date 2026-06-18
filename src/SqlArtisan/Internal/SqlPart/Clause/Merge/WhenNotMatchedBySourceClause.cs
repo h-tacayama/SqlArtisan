@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 // Emits `WHEN NOT MATCHED BY SOURCE [AND <condition>] THEN`. This is a SQL Server
 // extension; the action (UPDATE SET / DELETE) follows as a separate part.
