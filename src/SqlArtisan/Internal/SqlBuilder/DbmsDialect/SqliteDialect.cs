@@ -7,4 +7,6 @@ internal sealed class SqliteDialect : IDbmsDialect
     public char ParameterMarker => ':';
 
     public string ExcludedName => "excluded";
+
+    public string StatementTerminator => "";
 }

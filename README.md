@@ -66,6 +66,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
   - [DELETE Statement](#delete-statement)
   - [UPDATE Statement](#update-statement)
   - [INSERT Statement](#insert-statement): **Standard**, **Multiple Rows**, **SET-like**, `INSERT SELECT`, **UPSERT** (`ON CONFLICT` / `ON DUPLICATE KEY UPDATE`)
+  - [MERGE Statement](#merge-statement): `MERGE` upsert for Oracle / SQL Server (and PostgreSQL 15+)
   - [WITH Clause (Common Table Expressions)](#with-clause-common-table-expressions): `WITH`, `WITH RECURSIVE`, **CTEs with DML**
   - [RETURNING Clause](#returning-clause): `RETURNING`, `RETURNING INTO` (Oracle)
   - [Expressions](#expressions)
@@ -846,9 +847,71 @@ emits the 8.0.19+ row-alias form (`AS new` … `new.column`) to avoid the
 deprecated `VALUES()` function.
 
 **Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`
-is MySQL-only. Oracle and SQL Server use `MERGE` (tracked separately).
+is MySQL-only. Oracle and SQL Server use [`MERGE`](#merge-statement) instead.
 SqlArtisan does not validate feature support, so ensure the clause is valid for
 your target DBMS.
+
+---
+
+#### MERGE Statement
+
+`MERGE` is the native UPSERT path for **Oracle** and **SQL Server** (and
+**PostgreSQL 15+**), which have no `ON CONFLICT` / `ON DUPLICATE KEY UPDATE`.
+Start with `MergeInto(target)`, name the data source with `Using(...)`, match
+rows with `On(...)`, then add one or more `WhenMatched` / `WhenNotMatched`
+branches. As elsewhere, the SQL you write is the SQL that runs — the branches
+are per-dialect and SqlArtisan does not rewrite them.
+
+```csharp
+UsersTable t = new("t");   // target, aliased
+UsersTable s = new("s");   // source, aliased
+UsersTable c = new();      // unaliased, for the INSERT column list
+
+SqlStatement sql =
+    MergeInto(t)
+    .Using(s)
+    .On(t.Id == s.Id)
+    .WhenMatched().ThenUpdateSet(t.Name == s.Name)
+    .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Id, s.Name)
+    .Build(Dbms.SqlServer);
+
+// MERGE INTO users "t"
+// USING users "s"
+// ON ("t".id = "s".id)
+// WHEN MATCHED THEN UPDATE SET "t".name = "s".name
+// WHEN NOT MATCHED THEN INSERT (id, name) VALUES ("s".id, "s".name);
+```
+
+The `INSERT` column list names target columns and must **not** be
+alias-qualified (pass columns from an unaliased table instance, as `c` above).
+
+**Per-dialect branches and pitfalls:**
+
+```csharp
+// WHEN MATCHED AND <cond> THEN ...   (filtered branch)
+.WhenMatched(s.Status == "active").ThenUpdateSet(t.Name == s.Name)
+
+// Oracle in-clause DELETE: WHEN MATCHED THEN UPDATE SET ... DELETE WHERE ...
+.WhenMatched().ThenUpdateSet(t.Name == s.Name).DeleteWhere(t.Name.IsNull)
+
+// SQL Server only: WHEN MATCHED THEN DELETE
+.WhenMatched().ThenDelete()
+
+// SQL Server only: WHEN NOT MATCHED BY SOURCE THEN UPDATE/DELETE
+.WhenNotMatchedBySource().ThenUpdateSet(t.Name == "archived")
+.WhenNotMatchedBySource(t.Name.IsNull).ThenDelete()
+```
+
+> [!IMPORTANT]
+> **SQL Server `MERGE` caveats.** SqlArtisan appends the **required terminating
+> semicolon** automatically when you `Build(Dbms.SqlServer)` (other dialects omit
+> it). `MERGE` performs its `INSERT`/`UPDATE`/`DELETE` actions independently, so
+> for concurrency safety you should take a serializable lock on the target —
+> `MERGE target WITH (HOLDLOCK) ...` (add the hint to your target table source;
+> SqlArtisan does not inject it). SQL Server's `MERGE` also has a history of
+> bugs and surprising behavior; Microsoft and the community recommend caution,
+> especially with a `DELETE` action or temporal tables. Prefer separate
+> statements if you do not need atomic upsert semantics.
 
 ---
 

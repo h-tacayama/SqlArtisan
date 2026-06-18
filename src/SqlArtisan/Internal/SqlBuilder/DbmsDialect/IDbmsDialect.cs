@@ -14,4 +14,12 @@ internal interface IDbmsDialect
     /// the (wrong-DBMS) statement for the database to reject.
     /// </summary>
     string ExcludedName { get; }
+
+    /// <summary>
+    /// The token appended at the very end of a statement that requires explicit
+    /// termination. SQL Server's <c>MERGE</c> mandates a trailing semicolon
+    /// (<c>;</c>); every other dialect leaves this empty and lets the caller or
+    /// driver delimit statements.
+    /// </summary>
+    string StatementTerminator { get; }
 }

@@ -7,4 +7,6 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
     public char ParameterMarker => ':';
 
     public string ExcludedName => "EXCLUDED";
+
+    public string StatementTerminator => "";
 }
