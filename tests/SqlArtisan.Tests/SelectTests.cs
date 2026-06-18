@@ -98,7 +98,7 @@ public class SelectTests
         SqlStatement sql =
             Select(Sysdate)
             .From(Dual)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

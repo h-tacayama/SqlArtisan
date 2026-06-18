@@ -14,7 +14,7 @@ public class MinusTests
             Select(1)
             .Minus
             .Select(2)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -34,7 +34,7 @@ public class MinusTests
             .From(_t)
             .Minus
             .Select(2)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -57,7 +57,7 @@ public class MinusTests
             .Where(_t.Code == 1)
             .Minus
             .Select(2)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -83,7 +83,7 @@ public class MinusTests
             .GroupBy(_t.Code)
             .Minus
             .Select(2)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -112,7 +112,7 @@ public class MinusTests
             .Having(Count(_t.Code) > 0)
             .Minus
             .Select(2)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -139,7 +139,7 @@ public class MinusTests
             Select(1)
             .MinusAll
             .Select(2)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

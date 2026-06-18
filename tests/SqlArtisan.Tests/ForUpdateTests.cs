@@ -15,7 +15,7 @@ public class ForUpdateTests
             Select(t.Name)
             .From(t)
             .ForUpdate()
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -35,7 +35,7 @@ public class ForUpdateTests
             Select(t.Name)
             .From(t)
             .ForUpdate(Nowait)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -55,7 +55,7 @@ public class ForUpdateTests
             Select(t.Name)
             .From(t)
             .ForUpdate(SkipLocked)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -75,7 +75,7 @@ public class ForUpdateTests
             Select(t.Name)
             .From(t)
             .ForUpdate(Wait(5))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -95,7 +95,7 @@ public class ForUpdateTests
             Select(t.Name)
             .From(t)
             .ForUpdate(Of(t.Code))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -115,7 +115,7 @@ public class ForUpdateTests
             Select(t.Name)
             .From(t)
             .ForUpdate(Of(t.Code), Nowait)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -135,7 +135,7 @@ public class ForUpdateTests
             Select(t.Name)
             .From(t)
             .ForUpdate(Of(t.Code), SkipLocked)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -155,7 +155,7 @@ public class ForUpdateTests
             Select(t.Name)
             .From(t)
             .ForUpdate(Of(t.Code), Wait(5))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

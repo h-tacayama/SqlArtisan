@@ -10,7 +10,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Instr(_t.Name, "abc"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -24,7 +24,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Instr(_t.Name, "abc", 1))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -38,7 +38,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Instr(_t.Name, "abc", 1, 2))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

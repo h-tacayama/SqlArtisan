@@ -10,14 +10,14 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Dateadd(DateTimePart.Month, 3, _t.CreatedAt))
-            .Build();
+            .Build(Dbms.SqlServer);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("DATEADD(MONTH, :0, \"t\".created_at)");
+        expected.Append("DATEADD(MONTH, @0, \"t\".created_at)");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(3, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(3, sql.Parameters.Get<int>("@0"));
     }
 
     [Fact]
@@ -25,14 +25,14 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Dateadd(DateTimePart.Day, -7, _t.CreatedAt))
-            .Build();
+            .Build(Dbms.SqlServer);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("DATEADD(DAY, :0, \"t\".created_at)");
+        expected.Append("DATEADD(DAY, @0, \"t\".created_at)");
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(-7, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(-7, sql.Parameters.Get<int>("@0"));
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Datediff(DateTimePart.Day, _t.CreatedAt, CurrentTimestamp))
-            .Build();
+            .Build(Dbms.SqlServer);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -69,7 +69,7 @@ public partial class FunctionTests
                 Datepart(DateTimePart.Nanosecond, CurrentTimestamp),
                 Datepart(DateTimePart.Tzoffset, CurrentTimestamp),
                 Datepart(DateTimePart.IsoWeek, CurrentTimestamp))
-            .Build();
+            .Build(Dbms.SqlServer);
 
         StringBuilder expected = new StringBuilder()
             .Append("SELECT ")
@@ -118,7 +118,7 @@ public partial class FunctionTests
                         (2, 20),
                     ],
                     999))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -145,7 +145,7 @@ public partial class FunctionTests
                         (Null, 20),
                     ],
                     999.9))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -167,7 +167,7 @@ public partial class FunctionTests
                     _t.Code,
                     (1, "a"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -190,7 +190,7 @@ public partial class FunctionTests
                     (1, "a"),
                     (2, "b"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -216,7 +216,7 @@ public partial class FunctionTests
                     (2, "b"),
                     (3, "c"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -245,7 +245,7 @@ public partial class FunctionTests
                     (3, "c"),
                     (4, "d"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -277,7 +277,7 @@ public partial class FunctionTests
                     (4, "d"),
                     (5, "e"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -312,7 +312,7 @@ public partial class FunctionTests
                     (5, "e"),
                     (6, "f"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -350,7 +350,7 @@ public partial class FunctionTests
                     (6, "f"),
                     (7, "g"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -391,7 +391,7 @@ public partial class FunctionTests
                     (7, "g"),
                     (8, "h"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -435,7 +435,7 @@ public partial class FunctionTests
                     (8, "h"),
                     (9, "i"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -482,7 +482,7 @@ public partial class FunctionTests
                     (9, "i"),
                     (10, "j"),
                     "z"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
