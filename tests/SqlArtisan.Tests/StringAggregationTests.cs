@@ -24,7 +24,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void StringAgg_InlineOrderBy_PostgreSql_CorrectSql()
+    public void StringAgg_PostgreSql_InlineOrderBy_CorrectSql()
     {
         // Arrange
         string expected = "SELECT STRING_AGG(name, :0 ORDER BY name)";
@@ -38,7 +38,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void StringAgg_WithinGroup_SqlServer_CorrectSql()
+    public void StringAgg_SqlServer_WithinGroup_CorrectSql()
     {
         // Arrange
         string expected =
@@ -56,7 +56,7 @@ public class StringAggregationTests
     // --- LISTAGG (Oracle) -----------------------------------------------------
 
     [Fact]
-    public void Listagg_WithinGroup_Oracle_CorrectSql()
+    public void Listagg_Oracle_WithinGroup_CorrectSql()
     {
         // Arrange
         string expected =
@@ -88,7 +88,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void GroupConcat_PositionalSeparator_Sqlite_CorrectSql()
+    public void GroupConcat_Sqlite_PositionalSeparator_CorrectSql()
     {
         // Arrange
         string expected = "SELECT GROUP_CONCAT(name, :0)";
@@ -103,7 +103,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void GroupConcat_SeparatorKeyword_MySql_CorrectSql()
+    public void GroupConcat_MySql_SeparatorKeyword_CorrectSql()
     {
         // Arrange
         string expected = "SELECT GROUP_CONCAT(name SEPARATOR ', ')";
@@ -118,7 +118,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void GroupConcat_SeparatorWithQuote_MySql_EscapesLiteral()
+    public void GroupConcat_MySql_SeparatorWithQuote_EscapesLiteral()
     {
         // Arrange
         string expected = @"SELECT GROUP_CONCAT(name SEPARATOR ''' \\')";
@@ -133,7 +133,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void GroupConcat_OrderBySeparator_MySql_CorrectSql()
+    public void GroupConcat_MySql_OrderBySeparator_CorrectSql()
     {
         // Arrange
         string expected =
@@ -149,7 +149,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void GroupConcat_Distinct_MySql_CorrectSql()
+    public void GroupConcat_MySql_Distinct_CorrectSql()
     {
         // Arrange
         string expected = "SELECT GROUP_CONCAT(DISTINCT name)";
@@ -163,7 +163,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void GroupConcat_DistinctSeparator_MySql_CorrectSql()
+    public void GroupConcat_MySql_DistinctSeparator_CorrectSql()
     {
         // Arrange
         string expected = "SELECT GROUP_CONCAT(DISTINCT name SEPARATOR ' | ')";
@@ -178,7 +178,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void GroupConcat_OrderByDefaultSeparator_MySql_CorrectSql()
+    public void GroupConcat_MySql_OrderByDefaultSeparator_CorrectSql()
     {
         // Arrange
         string expected = "SELECT GROUP_CONCAT(name ORDER BY name)";
@@ -192,7 +192,7 @@ public class StringAggregationTests
     }
 
     [Fact]
-    public void GroupConcat_DistinctOrderBySeparator_MySql_CorrectSql()
+    public void GroupConcat_MySql_DistinctOrderBySeparator_CorrectSql()
     {
         // Arrange
         string expected =

@@ -6,7 +6,7 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
-    public void Extract_MySQL_CorrectSql()
+    public void Extract_MySql_CorrectSql()
     {
         SqlStatement sql =
             Select(
@@ -95,7 +95,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Extract_PostgreSQL_CorrectSql()
+    public void Extract_PostgreSql_CorrectSql()
     {
         SqlStatement sql =
             Select(

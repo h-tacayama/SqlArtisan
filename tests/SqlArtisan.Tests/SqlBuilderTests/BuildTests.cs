@@ -9,7 +9,7 @@ public class BuildTests
     private readonly TestTable _t = new("t");
 
     [Fact]
-    public void Build_ForMySql_QuestionMarkParameterPrefix()
+    public void Build_MySql_QuestionMarkParameterPrefix()
     {
         SqlStatement sql =
             Select(_t.Name)
@@ -28,7 +28,7 @@ public class BuildTests
     }
 
     [Fact]
-    public void Build_ForOracle_ColonParameterPrefix()
+    public void Build_Oracle_ColonParameterPrefix()
     {
         SqlStatement sql =
             Select(_t.Name)
@@ -47,7 +47,7 @@ public class BuildTests
     }
 
     [Fact]
-    public void Build_ForPostgreSql_ColonParameterPrefix()
+    public void Build_PostgreSql_ColonParameterPrefix()
     {
         SqlStatement sql =
             Select(_t.Name)
@@ -66,7 +66,7 @@ public class BuildTests
     }
 
     [Fact]
-    public void Build_ForSQLite_ColonParameterPrefix()
+    public void Build_Sqlite_ColonParameterPrefix()
     {
         SqlStatement sql =
             Select(_t.Name)
@@ -85,7 +85,7 @@ public class BuildTests
     }
 
     [Fact]
-    public void Build_ForSqlServer_AtSignParameterPrefix()
+    public void Build_SqlServer_AtSignParameterPrefix()
     {
         SqlStatement sql =
             Select(_t.Name)
