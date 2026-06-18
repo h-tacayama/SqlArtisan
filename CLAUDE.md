@@ -81,6 +81,12 @@ reference implementations.
   token with no underscore stays a single word — never invent internal capitals.
   So `ADD_MONTHS`→`AddMonths`, `DATE_TRUNC`→`DateTrunc`, but `DATEPART`→`Datepart`,
   `CURRVAL`→`Currval`, and `DATEADD`/`DATEDIFF`→`Dateadd`/`Datediff`.
+- Order a statement builder's **implemented-interface list** and its **member
+  methods** alphabetically by name (e.g. `DeleteBuilder`, `UpdateBuilder`).
+  Properties precede methods and the `protected` build hook trails; overloads
+  stay adjacent and explicit interface implementations sort by their simple
+  name. Within an interface definition, declare members alphabetically too. This
+  is mechanical and keeps builders consistent as they grow.
 - Tests build expected SQL with a `StringBuilder` and assert equality — mirror
   that pattern.
 - Update `CHANGELOG.md` for user-visible changes; the README is the canonical

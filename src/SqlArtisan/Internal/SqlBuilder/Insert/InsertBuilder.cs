@@ -3,19 +3,13 @@
 internal sealed class InsertBuilder(params SqlPart[] rootParts) :
     SelectBuilder(rootParts),
     IInsertBuilderColumns,
+    IInsertBuilderDoUpdateSet,
+    IInsertBuilderOnConflict,
     IInsertBuilderSet,
     IInsertBuilderTable,
-    IInsertBuilderValues,
-    IInsertBuilderOnConflict,
-    IInsertBuilderDoUpdateSet
+    IInsertBuilderValues
 {
     private InsertValuesClause? _valuesClause;
-
-    public IInsertBuilderOnConflict OnConflict(params DbColumn[] conflictTarget)
-    {
-        AddPart(new OnConflictClause(conflictTarget));
-        return this;
-    }
 
     public IReturning DoNothing()
     {
@@ -29,19 +23,16 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    public IInsertBuilderOnConflict OnConflict(params DbColumn[] conflictTarget)
+    {
+        AddPart(new OnConflictClause(conflictTarget));
+        return this;
+    }
+
     public IReturning OnDuplicateKeyUpdate(params EqualityBasedCondition[] assignments)
     {
         AddPart(new RowAliasClause());
         AddPart(OnDuplicateKeyUpdateClause.Parse(assignments));
-        return this;
-    }
-
-    // The DO UPDATE SET WHERE filter. Explicit implementation keeps this distinct
-    // from the inherited SelectBuilder.Where (which returns a SELECT builder);
-    // both add the same WhereClause, but this preserves the UPSERT chain.
-    IReturning IInsertBuilderDoUpdateSet.Where(SqlCondition condition)
-    {
-        AddPart(new WhereClause(condition));
         return this;
     }
 
@@ -66,6 +57,15 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
             _valuesClause.AddRow(values);
         }
 
+        return this;
+    }
+
+    // The DO UPDATE SET WHERE filter. Explicit implementation keeps this distinct
+    // from the inherited SelectBuilder.Where (which returns a SELECT builder);
+    // both add the same WhereClause, but this preserves the UPSERT chain.
+    IReturning IInsertBuilderDoUpdateSet.Where(SqlCondition condition)
+    {
+        AddPart(new WhereClause(condition));
         return this;
     }
 
