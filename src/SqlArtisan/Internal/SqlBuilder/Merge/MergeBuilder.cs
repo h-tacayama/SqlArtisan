@@ -2,13 +2,13 @@
 
 internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
-    IMergeBuilderTarget,
-    IMergeBuilderUsing,
     IMergeBuilderOn,
-    IMergeBuilderWhenMatched,
-    IMergeBuilderThenUpdateSet,
-    IMergeBuilderWhenNotMatched,
+    IMergeBuilderTarget,
     IMergeBuilderThenInsert,
+    IMergeBuilderThenUpdateSet,
+    IMergeBuilderUsing,
+    IMergeBuilderWhenMatched,
+    IMergeBuilderWhenNotMatched,
     IMergeBuilderWhenNotMatchedBySource
 {
     public SqlStatement Build() => BuildCore(SqlArtisanConfig.DefaultDbms);
