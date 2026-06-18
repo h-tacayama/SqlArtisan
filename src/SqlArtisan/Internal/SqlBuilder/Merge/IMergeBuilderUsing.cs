@@ -1,11 +1,10 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The step after <c>MERGE INTO target</c>: name the data source with
-/// <c>USING source</c>. The source is any table reference; alias the target and
-/// source so the <c>ON</c> condition can disambiguate their columns.
+/// The state after <c>USING source</c>: supply the match condition with
+/// <c>ON (condition)</c>. The condition is always emitted in parentheses.
 /// </summary>
 public interface IMergeBuilderUsing
 {
-    IMergeBuilderOn Using(TableReference source);
+    IMergeBuilderOn On(SqlCondition condition);
 }

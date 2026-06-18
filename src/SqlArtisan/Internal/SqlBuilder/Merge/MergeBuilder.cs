@@ -2,88 +2,88 @@ namespace SqlArtisan.Internal;
 
 internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
+    IMergeBuilderTarget,
     IMergeBuilderUsing,
     IMergeBuilderOn,
-    IMergeBuilderWhen,
-    IMergeMatchedThen,
-    IMergeMatchedUpdateAction,
-    IMergeNotMatchedThen,
-    IMergeInsertValues,
-    IMergeNotMatchedBySourceThen
+    IMergeBuilderWhenMatched,
+    IMergeBuilderThenUpdateSet,
+    IMergeBuilderWhenNotMatched,
+    IMergeBuilderThenInsert,
+    IMergeBuilderWhenNotMatchedBySource
 {
     public SqlStatement Build() => BuildCore(SqlArtisanConfig.DefaultDbms);
 
     public SqlStatement Build(Dbms dbms) => BuildCore(dbms);
 
-    public IMergeBuilderOn Using(TableReference source)
+    public IMergeBuilderUsing Using(TableReference source)
     {
         AddPart(new MergeUsingClause(source));
         return this;
     }
 
-    public IMergeBuilderWhen On(SqlCondition condition)
+    public IMergeBuilderOn On(SqlCondition condition)
     {
         AddPart(new MergeOnClause(condition));
         return this;
     }
 
-    public IMergeMatchedThen WhenMatched()
+    public IMergeBuilderWhenMatched WhenMatched()
     {
         AddPart(new WhenMatchedClause(null));
         return this;
     }
 
-    public IMergeMatchedThen WhenMatched(SqlCondition extraCondition)
+    public IMergeBuilderWhenMatched WhenMatched(SqlCondition extraCondition)
     {
         AddPart(new WhenMatchedClause(extraCondition));
         return this;
     }
 
-    public IMergeNotMatchedThen WhenNotMatched()
+    public IMergeBuilderWhenNotMatched WhenNotMatched()
     {
         AddPart(new WhenNotMatchedClause(null));
         return this;
     }
 
-    public IMergeNotMatchedThen WhenNotMatched(SqlCondition extraCondition)
+    public IMergeBuilderWhenNotMatched WhenNotMatched(SqlCondition extraCondition)
     {
         AddPart(new WhenNotMatchedClause(extraCondition));
         return this;
     }
 
-    public IMergeNotMatchedBySourceThen WhenNotMatchedBySource()
+    public IMergeBuilderWhenNotMatchedBySource WhenNotMatchedBySource()
     {
         AddPart(new WhenNotMatchedBySourceClause(null));
         return this;
     }
 
-    public IMergeNotMatchedBySourceThen WhenNotMatchedBySource(SqlCondition extraCondition)
+    public IMergeBuilderWhenNotMatchedBySource WhenNotMatchedBySource(SqlCondition extraCondition)
     {
         AddPart(new WhenNotMatchedBySourceClause(extraCondition));
         return this;
     }
 
-    public IMergeBuilderWhen DeleteWhere(SqlCondition condition)
+    public IMergeBuilderOn DeleteWhere(SqlCondition condition)
     {
         AddPart(new MergeDeleteWhereClause(condition));
         return this;
     }
 
-    public IMergeInsertValues ThenInsert(params DbColumn[] columns)
+    public IMergeBuilderThenInsert ThenInsert(params DbColumn[] columns)
     {
         AddPart(new MergeInsertClause(columns));
         return this;
     }
 
-    public IMergeBuilderWhen Values(params object[] values)
+    public IMergeBuilderOn Values(params object[] values)
     {
         AddPart(InsertValuesClause.Parse(values));
         return this;
     }
 
-    // Shared by IMergeMatchedThen and IMergeNotMatchedBySourceThen (same signature
-    // and return type), so one implementation satisfies both.
-    public IMergeBuilderWhen ThenDelete()
+    // Shared by IMergeBuilderWhenMatched and IMergeBuilderWhenNotMatchedBySource
+    // (same signature and return type), so one implementation satisfies both.
+    public IMergeBuilderOn ThenDelete()
     {
         AddPart(new MergeDeleteClause());
         return this;
@@ -91,14 +91,14 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
 
     // ThenUpdateSet differs only by return type between the two branch interfaces,
     // so each is implemented explicitly.
-    IMergeMatchedUpdateAction IMergeMatchedThen.ThenUpdateSet(
+    IMergeBuilderThenUpdateSet IMergeBuilderWhenMatched.ThenUpdateSet(
         params EqualityBasedCondition[] assignments)
     {
         AddPart(MergeUpdateSetClause.Parse(assignments));
         return this;
     }
 
-    IMergeBuilderWhen IMergeNotMatchedBySourceThen.ThenUpdateSet(
+    IMergeBuilderOn IMergeBuilderWhenNotMatchedBySource.ThenUpdateSet(
         params EqualityBasedCondition[] assignments)
     {
         AddPart(MergeUpdateSetClause.Parse(assignments));

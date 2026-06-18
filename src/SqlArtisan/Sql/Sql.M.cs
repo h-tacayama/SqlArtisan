@@ -12,7 +12,7 @@ public static partial class Sql
     /// per-dialect by design — for example, SQL Server appends the required
     /// terminating semicolon and supports <c>WHEN NOT MATCHED BY SOURCE</c>.
     /// </summary>
-    public static IMergeBuilderUsing MergeInto(DbTableBase target) =>
+    public static IMergeBuilderTarget MergeInto(DbTableBase target) =>
         new MergeBuilder(new MergeIntoClause(target));
 
     public static MaxFunction Max(object expr) => new(Resolve(expr));
