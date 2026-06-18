@@ -8,5 +8,6 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
 
     public string ExcludedName => "EXCLUDED";
 
-    public string StatementTerminator => "";
+    // PostgreSQL's MERGE (15+) needs no terminating token.
+    public string MergeTerminator => "";
 }

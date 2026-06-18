@@ -13,5 +13,5 @@ internal sealed class SqlServerDialect : IDbmsDialect
 
     // SQL Server requires a MERGE statement to be terminated with a semicolon;
     // omitting it raises a syntax error when the statement is executed.
-    public string StatementTerminator => ";";
+    public string MergeTerminator => ";";
 }

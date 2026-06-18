@@ -8,5 +8,6 @@ internal sealed class SqliteDialect : IDbmsDialect
 
     public string ExcludedName => "excluded";
 
-    public string StatementTerminator => "";
+    // SQLite has no MERGE statement, so no terminating token applies.
+    public string MergeTerminator => "";
 }

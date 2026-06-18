@@ -172,12 +172,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    // Appends the dialect's statement terminator directly (no leading space), so
-    // a SQL Server MERGE ends in `...;` rather than `... ;`. Other dialects supply
+    // Appends the dialect's MERGE terminator directly (no leading space), so a
+    // SQL Server MERGE ends in `...;` rather than `... ;`. Other dialects supply
     // an empty terminator, making this a no-op.
-    internal SqlBuildingBuffer AppendStatementTerminator()
+    internal SqlBuildingBuffer AppendMergeTerminator()
     {
-        Append(_dialect.StatementTerminator);
+        Append(_dialect.MergeTerminator);
         return this;
     }
 

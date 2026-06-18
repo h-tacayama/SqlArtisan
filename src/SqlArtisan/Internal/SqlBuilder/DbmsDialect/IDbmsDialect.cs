@@ -16,10 +16,11 @@ internal interface IDbmsDialect
     string ExcludedName { get; }
 
     /// <summary>
-    /// The token appended at the very end of a statement that requires explicit
-    /// termination. SQL Server's <c>MERGE</c> mandates a trailing semicolon
-    /// (<c>;</c>); every other dialect leaves this empty and lets the caller or
-    /// driver delimit statements.
+    /// The token appended after a <c>MERGE</c> statement. SQL Server's <c>MERGE</c>
+    /// syntactically requires a trailing semicolon (<c>;</c>); every other dialect
+    /// needs none and leaves this empty. This is specific to <c>MERGE</c> —
+    /// SqlArtisan does not otherwise terminate statements, deferring that to the
+    /// caller or driver.
     /// </summary>
-    string StatementTerminator { get; }
+    string MergeTerminator { get; }
 }

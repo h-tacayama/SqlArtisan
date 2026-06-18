@@ -11,5 +11,6 @@ internal sealed class MySqlDialect : IDbmsDialect
     // update clause can read it as `new.column`.
     public string ExcludedName => "new";
 
-    public string StatementTerminator => "";
+    // MySQL has no MERGE statement, so no terminating token applies.
+    public string MergeTerminator => "";
 }
