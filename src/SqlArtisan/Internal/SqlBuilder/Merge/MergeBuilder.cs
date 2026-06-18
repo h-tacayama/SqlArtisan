@@ -1,14 +1,17 @@
 ﻿namespace SqlArtisan.Internal;
 
+// Interfaces and members are ordered to follow the fluent construction flow
+// (MERGE INTO -> USING -> ON -> WHEN branches), so the class reads top-to-bottom
+// in the order a caller uses it and each WHEN branch sits next to its actions.
 internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
-    IMergeBuilderOn,
     IMergeBuilderTarget,
-    IMergeBuilderThenInsert,
-    IMergeBuilderThenUpdateSet,
     IMergeBuilderUsing,
+    IMergeBuilderOn,
     IMergeBuilderWhenMatched,
+    IMergeBuilderThenUpdateSet,
     IMergeBuilderWhenNotMatched,
+    IMergeBuilderThenInsert,
     IMergeBuilderWhenNotMatchedBySource
 {
     public SqlStatement Build() => BuildCore(SqlArtisanConfig.DefaultDbms);
@@ -39,6 +42,29 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    // ThenUpdateSet differs only by return type between the two branch interfaces,
+    // so each is implemented explicitly (here for the WHEN MATCHED branch).
+    IMergeBuilderThenUpdateSet IMergeBuilderWhenMatched.ThenUpdateSet(
+        params EqualityBasedCondition[] assignments)
+    {
+        AddPart(MergeUpdateSetClause.Parse(assignments));
+        return this;
+    }
+
+    public IMergeBuilderOn DeleteWhere(SqlCondition condition)
+    {
+        AddPart(new MergeDeleteWhereClause(condition));
+        return this;
+    }
+
+    // Shared by IMergeBuilderWhenMatched and IMergeBuilderWhenNotMatchedBySource
+    // (same signature and return type), so one implementation satisfies both.
+    public IMergeBuilderOn ThenDelete()
+    {
+        AddPart(new MergeDeleteClause());
+        return this;
+    }
+
     public IMergeBuilderWhenNotMatched WhenNotMatched()
     {
         AddPart(new WhenNotMatchedClause(null));
@@ -48,24 +74,6 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     public IMergeBuilderWhenNotMatched WhenNotMatched(SqlCondition extraCondition)
     {
         AddPart(new WhenNotMatchedClause(extraCondition));
-        return this;
-    }
-
-    public IMergeBuilderWhenNotMatchedBySource WhenNotMatchedBySource()
-    {
-        AddPart(new WhenNotMatchedBySourceClause(null));
-        return this;
-    }
-
-    public IMergeBuilderWhenNotMatchedBySource WhenNotMatchedBySource(SqlCondition extraCondition)
-    {
-        AddPart(new WhenNotMatchedBySourceClause(extraCondition));
-        return this;
-    }
-
-    public IMergeBuilderOn DeleteWhere(SqlCondition condition)
-    {
-        AddPart(new MergeDeleteWhereClause(condition));
         return this;
     }
 
@@ -81,20 +89,15 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    // Shared by IMergeBuilderWhenMatched and IMergeBuilderWhenNotMatchedBySource
-    // (same signature and return type), so one implementation satisfies both.
-    public IMergeBuilderOn ThenDelete()
+    public IMergeBuilderWhenNotMatchedBySource WhenNotMatchedBySource()
     {
-        AddPart(new MergeDeleteClause());
+        AddPart(new WhenNotMatchedBySourceClause(null));
         return this;
     }
 
-    // ThenUpdateSet differs only by return type between the two branch interfaces,
-    // so each is implemented explicitly.
-    IMergeBuilderThenUpdateSet IMergeBuilderWhenMatched.ThenUpdateSet(
-        params EqualityBasedCondition[] assignments)
+    public IMergeBuilderWhenNotMatchedBySource WhenNotMatchedBySource(SqlCondition extraCondition)
     {
-        AddPart(MergeUpdateSetClause.Parse(assignments));
+        AddPart(new WhenNotMatchedBySourceClause(extraCondition));
         return this;
     }
 
