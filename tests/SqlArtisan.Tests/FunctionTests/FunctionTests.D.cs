@@ -21,7 +21,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Dateadd_NegativeNumberSubtracts_CorrectSql()
+    public void Dateadd_SqlServer_NegativeNumberSubtracts()
     {
         SqlStatement sql =
             Select(Dateadd(DateTimePart.Day, -7, _t.CreatedAt))
