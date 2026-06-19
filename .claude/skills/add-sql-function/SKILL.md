@@ -132,30 +132,10 @@ public void <Name>_<Scenario>_CorrectSql()
 }
 ```
 
-If the function emits **dialect-specific** tokens (e.g. Oracle `SYSDATE`,
-SQL Server `DATEADD`), build with the matching dialect and name the test
-`<Name>_<Dbms>_<Scenario>` — the default `.Build()` is PostgreSql and would
-assert SQL that cannot run on the nominal dialect:
-
-```csharp
-[Fact]
-public void <Name>_Oracle_CorrectSql()
-{
-    SqlStatement sql =
-        Select(<Name>(_t.CreatedAt))
-        .Build(Dbms.Oracle);
-
-    StringBuilder expected = new();
-    expected.Append("SELECT ");
-    expected.Append("<SQL_TOKEN>(\"t\".created_at)");
-
-    Assert.Equal(expected.ToString(), sql.Text);
-}
-```
-
-Cover: the basic case, each overload (e.g. multi-arg, `DISTINCT`, optional arg
-present/absent), and assert `sql.Parameters` when a literal becomes a bind value
-(literals render as `:0`, `:1`, … and land in `Parameters`).
+Cover the basic case and each overload (e.g. multi-arg, `DISTINCT`, optional arg
+present/absent). For dialect-specific tokens (e.g. Oracle `SYSDATE`, SQL Server
+`DATEADD`), the rule's "build with the dialect the SQL targets" section applies —
+use `.Build(Dbms.X)` and the `<Name>_<Dbms>_<Scenario>` name.
 
 ## DBMS-specific syntax
 
