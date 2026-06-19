@@ -89,6 +89,48 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    // Renders a comma-separated list of assignments (`a = 1, b = 2`) with each
+    // target column unqualified. Used by SET / DO UPDATE SET / ON DUPLICATE KEY
+    // UPDATE, where the left side must not carry a table-alias qualifier.
+    internal SqlBuildingBuffer AppendAssignmentsCsv(EqualityCondition[] assignments)
+    {
+        if (assignments.Length == 0)
+        {
+            return this;
+        }
+
+        assignments[0].FormatAsAssignment(this);
+
+        for (int i = 1; i < assignments.Length; i++)
+        {
+            Append(", ");
+            assignments[i].FormatAsAssignment(this);
+        }
+
+        return this;
+    }
+
+    // Renders a comma-separated list of column names with no table-alias
+    // qualifier — the INSERT column list and the ON CONFLICT target. DbColumn[]
+    // binds here via array covariance.
+    internal SqlBuildingBuffer AppendUnqualifiedColumnsCsv(SqlExpression[] columns)
+    {
+        if (columns.Length == 0)
+        {
+            return this;
+        }
+
+        AppendUnqualifiedColumn(columns[0]);
+
+        for (int i = 1; i < columns.Length; i++)
+        {
+            Append(", ");
+            AppendUnqualifiedColumn(columns[i]);
+        }
+
+        return this;
+    }
+
     internal SqlBuildingBuffer AppendIf(bool when, string? value)
     {
         if (when)
@@ -178,6 +220,16 @@ internal sealed class SqlBuildingBuffer : IDisposable
     internal SqlBuildingBuffer AppendMergeTerminator()
     {
         Append(_dialect.MergeTerminator);
+        return this;
+    }
+
+    // Appends a DML table alias to a target already written, e.g. ` AS "x"`
+    // (PostgreSQL/SQLite/MySQL/SQL Server) or ` "x"` (Oracle, which rejects AS on
+    // table aliases). The presence of AS is a dialect token (ADR 0002).
+    internal SqlBuildingBuffer AppendDmlTableAlias(string alias)
+    {
+        Append(_dialect.DmlTableAliasSeparator);
+        EncloseInAliasQuotes(alias);
         return this;
     }
 
@@ -326,6 +378,21 @@ internal sealed class SqlBuildingBuffer : IDisposable
         }
 
         return false;
+    }
+
+    // A DbColumn is rendered as its bare name, dropping any table-alias
+    // qualifier it carries (column-name positions forbid qualification); any
+    // other expression formats normally.
+    private void AppendUnqualifiedColumn(SqlExpression column)
+    {
+        if (column is DbColumn dbColumn)
+        {
+            dbColumn.FormatUnqualified(this);
+        }
+        else
+        {
+            column.Format(this);
+        }
     }
 
     private void AppendSelectItem(SqlPart selectItem)

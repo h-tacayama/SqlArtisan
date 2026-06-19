@@ -34,7 +34,7 @@ internal sealed class InsertSetClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .OpenParenthesis()
-        .AppendCsv(_columns)
+        .AppendUnqualifiedColumnsCsv(_columns)
         .CloseParenthesis()
         .EncloseInSpaces(Keywords.Values)
         .OpenParenthesis()

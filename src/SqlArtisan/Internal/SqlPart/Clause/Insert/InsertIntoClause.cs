@@ -12,14 +12,14 @@ internal sealed class InsertIntoClause(DbTableBase table, DbColumn[] columns) : 
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append($"{Keywords.Insert} {Keywords.Into} ")
-            .Append(_table);
+        buffer.Append($"{Keywords.Insert} {Keywords.Into} ");
+        _table.FormatAsDmlTarget(buffer);
 
         if (_columns.Length > 0)
         {
             buffer.AppendSpace()
                 .OpenParenthesis()
-                .AppendCsv(_columns)
+                .AppendUnqualifiedColumnsCsv(_columns)
                 .CloseParenthesis();
         }
     }

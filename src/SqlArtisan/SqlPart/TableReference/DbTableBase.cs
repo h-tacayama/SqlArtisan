@@ -26,4 +26,18 @@ public abstract class DbTableBase : TableReference
             buffer.EncloseInAliasQuotes(_tableAlias);
         }
     }
+
+    // Renders the table as a DML target (INSERT / UPDATE / DELETE). The base
+    // SELECT/FROM rendering separates the alias with a bare space; DML instead
+    // uses the dialect's alias separator (` AS ` for most engines, ` ` for
+    // Oracle), since several engines require AS where the FROM clause forbids it.
+    internal void FormatAsDmlTarget(SqlBuildingBuffer buffer)
+    {
+        base.Format(buffer);
+
+        if (!string.IsNullOrEmpty(_tableAlias))
+        {
+            buffer.AppendDmlTableAlias(_tableAlias);
+        }
+    }
 }

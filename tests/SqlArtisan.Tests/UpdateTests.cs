@@ -57,6 +57,55 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_WithAlias_CorrectSql()
+    {
+        // An aliased UPDATE declares the alias with AS on the target; the SET
+        // left side stays unqualified (PostgreSQL rejects `SET x.col = ...`),
+        // while the WHERE predicate qualifies through the alias.
+        TestTable t = new("t");
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "a")
+            .Where(t.Code == 1)
+            .Build(Dbms.PostgreSql);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE ");
+        expected.Append("test_table AS \"t\" ");
+        expected.Append("SET ");
+        expected.Append("name = :0 ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code = :1");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Update_Oracle_WithAlias_CorrectSql()
+    {
+        // Oracle rejects AS on a table alias (ORA-00933): the alias follows the
+        // table name with only a space.
+        TestTable t = new("t");
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "a")
+            .Where(t.Code == 1)
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("SET ");
+        expected.Append("name = :0 ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code = :1");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Update_SetWithInequality_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>

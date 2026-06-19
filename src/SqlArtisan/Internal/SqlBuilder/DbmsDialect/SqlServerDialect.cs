@@ -4,6 +4,8 @@ internal sealed class SqlServerDialect : IDbmsDialect
 {
     public char AliasQuote => '"';
 
+    public string DmlTableAliasSeparator => " AS ";
+
     public char ParameterMarker => '@';
 
     // SQL Server has no ON CONFLICT / ON DUPLICATE KEY UPDATE construct, so reaching

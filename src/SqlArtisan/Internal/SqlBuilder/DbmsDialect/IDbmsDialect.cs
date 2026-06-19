@@ -4,6 +4,17 @@ internal interface IDbmsDialect
 {
     char AliasQuote { get; }
 
+    /// <summary>
+    /// The separator between a DML target table and its alias: <c> AS </c>
+    /// (PostgreSQL / SQLite / MySQL / SQL Server) or a single space
+    /// (Oracle, which rejects <c>AS</c> on a table alias — ORA-00933). This is
+    /// distinct from the SELECT/FROM alias, which stays AS-less for every dialect
+    /// because Oracle forbids <c>AS</c> there too; only DML requires <c>AS</c>
+    /// where the other engines accept it (e.g. PostgreSQL's
+    /// <c>INSERT INTO t AS x</c> UPSERT form).
+    /// </summary>
+    string DmlTableAliasSeparator { get; }
+
     char ParameterMarker { get; }
 
     /// <summary>

@@ -78,24 +78,26 @@ public class UpsertTests
     {
         // Arrange
         // In DO UPDATE ... WHERE, both the target row and EXCLUDED are in scope,
-        // so a target column must be qualified with the table name; PostgreSQL
-        // rejects an unqualified column here as ambiguous.
-        DbColumn targetCode = new("test_table", "code");
+        // so a target column must be qualified. The table alias declared on the
+        // INSERT target (INSERT INTO ... AS "d") supplies that qualifier
+        // naturally — no manual table-name qualification needed. The column list,
+        // ON CONFLICT target, and SET left side stay unqualified.
+        TestTable d = new("d");
 
         StringBuilder expected = new();
-        expected.Append("INSERT INTO test_table (code, name) ");
+        expected.Append("INSERT INTO test_table AS \"d\" (code, name) ");
         expected.Append("VALUES (:0, :1) ");
         expected.Append("ON CONFLICT (code) ");
         expected.Append("DO UPDATE SET name = EXCLUDED.name ");
-        expected.Append("WHERE \"test_table\".code < :2");
+        expected.Append("WHERE \"d\".code < :2");
 
         // Act
         SqlStatement sql =
-            InsertInto(_t, _t.Code, _t.Name)
+            InsertInto(d, d.Code, d.Name)
             .Values(1, "a")
-            .OnConflict(_t.Code)
-            .DoUpdateSet(_t.Name == Excluded(_t.Name))
-            .Where(targetCode < 100)
+            .OnConflict(d.Code)
+            .DoUpdateSet(d.Name == Excluded(d.Name))
+            .Where(d.Code < 100)
             .Build(Dbms.PostgreSql);
 
         // Assert

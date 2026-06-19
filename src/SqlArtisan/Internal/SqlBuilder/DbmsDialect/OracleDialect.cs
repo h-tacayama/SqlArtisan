@@ -4,6 +4,10 @@ internal sealed class OracleDialect : IDbmsDialect
 {
     public char AliasQuote => '"';
 
+    // Oracle rejects AS on a table alias (ORA-00933), so the alias follows the
+    // table name separated only by a space.
+    public string DmlTableAliasSeparator => " ";
+
     public char ParameterMarker => ':';
 
     // Oracle has no ON CONFLICT / ON DUPLICATE KEY UPDATE construct, so reaching

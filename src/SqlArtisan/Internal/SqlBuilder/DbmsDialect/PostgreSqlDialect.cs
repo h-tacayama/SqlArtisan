@@ -4,6 +4,8 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
 {
     public char AliasQuote => '"';
 
+    public string DmlTableAliasSeparator => " AS ";
+
     public char ParameterMarker => ':';
 
     public string ExcludedName => "EXCLUDED";
