@@ -9,7 +9,9 @@ public sealed class DeleteClause : SqlPart
         _table = table;
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Delete} {Keywords.From} ")
-        .Append(_table);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        buffer.Append($"{Keywords.Delete} {Keywords.From} ");
+        _table.FormatAsDmlTarget(buffer);
+    }
 }

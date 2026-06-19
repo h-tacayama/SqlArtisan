@@ -112,6 +112,58 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_WithAlias_CorrectSql()
+    {
+        TestTable t = new("t");
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name)
+            .Values(1, "a")
+            .Build(Dbms.PostgreSql);
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO ");
+        expected.Append("test_table AS \"t\" ");
+        expected.Append('(');
+        expected.Append("code, ");
+        expected.Append("name");
+        expected.Append(") ");
+        expected.Append("VALUES ");
+        expected.Append('(');
+        expected.Append(":0, ");
+        expected.Append(":1");
+        expected.Append(')');
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void InsertInto_Oracle_WithAlias_CorrectSql()
+    {
+        // Oracle rejects AS on a table alias (ORA-00933): the alias follows the
+        // table name with only a space.
+        TestTable t = new("t");
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name)
+            .Values(1, "a")
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO ");
+        expected.Append("test_table \"t\" ");
+        expected.Append('(');
+        expected.Append("code, ");
+        expected.Append("name");
+        expected.Append(") ");
+        expected.Append("VALUES ");
+        expected.Append('(');
+        expected.Append(":0, ");
+        expected.Append(":1");
+        expected.Append(')');
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void InsertInto_WithSelectClause_CorrectSql()
     {
         TestTable t = new("t");
@@ -125,11 +177,11 @@ public class InsertTests
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
-        expected.Append("test_table \"t\" ");
+        expected.Append("test_table AS \"t\" ");
         expected.Append('(');
-        expected.Append("\"t\".code, ");
-        expected.Append("\"t\".name, ");
-        expected.Append("\"t\".created_at");
+        expected.Append("code, ");
+        expected.Append("name, ");
+        expected.Append("created_at");
         expected.Append(") ");
         expected.Append("SELECT ");
         expected.Append("\"s\".code, ");

@@ -14,5 +14,5 @@ internal sealed class OnDuplicateKeyUpdateClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.On} {Keywords.Duplicate} {Keywords.Key} {Keywords.Update} ")
-        .AppendCsv(_assignments);
+        .AppendAssignmentsCsv(_assignments);
 }

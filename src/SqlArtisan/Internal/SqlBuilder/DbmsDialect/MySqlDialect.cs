@@ -4,6 +4,8 @@ internal sealed class MySqlDialect : IDbmsDialect
 {
     public char AliasQuote => '`';
 
+    public string DmlTableAliasSeparator => " AS ";
+
     public char ParameterMarker => '?';
 
     // MySQL 8.0.19+ references the proposed row through a row alias rather than

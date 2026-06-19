@@ -14,5 +14,5 @@ internal sealed class DoUpdateSetClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Do} {Keywords.Update} {Keywords.Set} ")
-        .AppendCsv(_assignments);
+        .AppendAssignmentsCsv(_assignments);
 }

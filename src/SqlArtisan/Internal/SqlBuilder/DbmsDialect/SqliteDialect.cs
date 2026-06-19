@@ -4,6 +4,8 @@ internal sealed class SqliteDialect : IDbmsDialect
 {
     public char AliasQuote => '"';
 
+    public string DmlTableAliasSeparator => " AS ";
+
     public char ParameterMarker => ':';
 
     public string ExcludedName => "excluded";

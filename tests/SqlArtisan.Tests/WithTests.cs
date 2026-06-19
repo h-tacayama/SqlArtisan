@@ -318,7 +318,7 @@ public class WithTests
         expected.Append("(SELECT \"a\".code \"cte_code\" ");
         expected.Append("FROM test_table \"a\" ");
         expected.Append("WHERE \"a\".code = :0) ");
-        expected.Append("DELETE FROM test_table \"b\" ");
+        expected.Append("DELETE FROM test_table AS \"b\" ");
         expected.Append("WHERE \"b\".code IN ");
         expected.Append("(SELECT \"cte\".cte_code FROM cte)");
 
@@ -431,10 +431,10 @@ public class WithTests
         expected.Append("\"a\".created_at \"cte_created_at\" ");
         expected.Append("FROM test_table \"a\" ");
         expected.Append("WHERE \"a\".code = :0) ");
-        expected.Append("UPDATE test_table \"b\" ");
-        expected.Append("SET \"b\".code = :1, ");
-        expected.Append("\"b\".name = :2, ");
-        expected.Append("\"b\".created_at = SYSDATE ");
+        expected.Append("UPDATE test_table AS \"b\" ");
+        expected.Append("SET code = :1, ");
+        expected.Append("name = :2, ");
+        expected.Append("created_at = SYSDATE ");
         expected.Append("WHERE \"b\".code IN ");
         expected.Append("(SELECT \"cte\".cte_code FROM cte)");
 
