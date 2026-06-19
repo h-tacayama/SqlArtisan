@@ -87,8 +87,9 @@ reference implementations.
   stay adjacent and explicit interface implementations sort by their simple
   name. Within an interface definition, declare members alphabetically too. This
   is mechanical and keeps builders consistent as they grow.
-- Tests build expected SQL with a `StringBuilder` and assert equality — mirror
-  that pattern.
+- Unit test conventions (naming grammar, dialect-specific `Build`, exact-SQL
+  assertions) live in `.claude/rules/unit-tests.md` — auto-loaded when editing
+  `tests/**`.
 - Update `CHANGELOG.md` for user-visible changes; the README is the canonical
   user-facing documentation.
 

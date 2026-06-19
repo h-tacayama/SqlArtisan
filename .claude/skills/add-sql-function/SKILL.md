@@ -113,7 +113,8 @@ Rules:
 Add `[Fact]`(s) to `tests/SqlArtisan.Tests/FunctionTests/FunctionTests.<Letter>.cs`
 (create it as `public partial class FunctionTests` if missing). Build the expected
 SQL with a `StringBuilder` and assert the **exact** string — mirror the existing
-tests:
+tests. Follow the full test conventions in `.claude/rules/unit-tests.md`
+(naming grammar, dialect-specific `Build`, parameter assertions):
 
 ```csharp
 [Fact]
@@ -126,6 +127,27 @@ public void <Name>_<Scenario>_CorrectSql()
     StringBuilder expected = new();
     expected.Append("SELECT ");
     expected.Append("<SQL_TOKEN>(\"t\".code)");
+
+    Assert.Equal(expected.ToString(), sql.Text);
+}
+```
+
+If the function emits **dialect-specific** tokens (e.g. Oracle `SYSDATE`,
+SQL Server `DATEADD`), build with the matching dialect and name the test
+`<Name>_<Dbms>_<Scenario>` — the default `.Build()` is PostgreSql and would
+assert SQL that cannot run on the nominal dialect:
+
+```csharp
+[Fact]
+public void <Name>_Oracle_CorrectSql()
+{
+    SqlStatement sql =
+        Select(<Name>(_t.CreatedAt))
+        .Build(Dbms.Oracle);
+
+    StringBuilder expected = new();
+    expected.Append("SELECT ");
+    expected.Append("<SQL_TOKEN>(\"t\".created_at)");
 
     Assert.Equal(expected.ToString(), sql.Text);
 }
