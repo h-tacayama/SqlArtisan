@@ -110,30 +110,11 @@ Rules:
 
 ## 4. Test
 
-Add `[Fact]`(s) to `tests/SqlArtisan.Tests/FunctionTests/FunctionTests.<Letter>.cs`
-(create it as `public partial class FunctionTests` if missing). Build the expected
-SQL with a `StringBuilder` and assert the **exact** string — mirror the existing
-tests:
-
-```csharp
-[Fact]
-public void <Name>_<Scenario>_CorrectSql()
-{
-    SqlStatement sql =
-        Select(<Name>(_t.Code))
-        .Build();
-
-    StringBuilder expected = new();
-    expected.Append("SELECT ");
-    expected.Append("<SQL_TOKEN>(\"t\".code)");
-
-    Assert.Equal(expected.ToString(), sql.Text);
-}
-```
-
-Cover: the basic case, each overload (e.g. multi-arg, `DISTINCT`, optional arg
-present/absent), and assert `sql.Parameters` when a literal becomes a bind value
-(literals render as `:0`, `:1`, … and land in `Parameters`).
+Add `[Fact]`(s) to `FunctionTests.<Letter>.cs` (a `public partial class
+FunctionTests`) covering the basic case and each overload (multi-arg, `DISTINCT`,
+optional arg present/absent). Mirror the existing tests and follow
+`.claude/rules/unit-tests.md` for the conventions — naming, dialect-specific
+`Build(Dbms.X)`, and exact-SQL `StringBuilder` + `Parameters` assertions.
 
 ## DBMS-specific syntax
 

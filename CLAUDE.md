@@ -50,21 +50,12 @@ violation.
 
 ## How to add a new SQL function (the most common task)
 
-Touch all four, keeping the alphabetical convention:
-
-1. **Node class** — `src/SqlArtisan/Internal/SqlPart/Expression/Function/<Category>/<Name>Function.cs`:
-   `public sealed class <Name>Function : SqlExpression`, `internal` constructor,
-   `internal override void Format(SqlBuildingBuffer buffer)` that emits via the
-   fluent buffer (`.Append`, `.OpenParenthesis()`, `.PrependComma()`, etc.).
-2. **Keyword** — add the SQL token to `Keywords.cs` (keep alphabetical).
-3. **Public factory** — add a `public static <Name>Function <Name>(object ...)`
-   method to `Sql.<Letter>.cs`, wrapping args with
-   `ExpressionResolver.Resolve(...)`.
-4. **Test** — add `[Fact]`s to `FunctionTests.<Letter>.cs` asserting the exact
-   `SqlStatement.Text` (and parameters where relevant).
-
-Follow `AbsFunction` (single arg) and `AddMonthsFunction` (multi arg) as
-reference implementations.
+Adding a function touches **four** places, all kept alphabetical: the node class
+(`Internal/SqlPart/Expression/Function/<Category>/<Name>Function.cs`), the keyword
+in `Keywords.cs`, the public factory in `Sql.<Letter>.cs`, and the test in
+`FunctionTests.<Letter>.cs`. The **`add-sql-function` skill** walks through all
+four with templates and reference implementations (`AbsFunction`,
+`AddMonthsFunction`, …) — follow it for the full procedure.
 
 ## Conventions
 
@@ -87,8 +78,9 @@ reference implementations.
   stay adjacent and explicit interface implementations sort by their simple
   name. Within an interface definition, declare members alphabetically too. This
   is mechanical and keeps builders consistent as they grow.
-- Tests build expected SQL with a `StringBuilder` and assert equality — mirror
-  that pattern.
+- Unit test conventions (naming grammar, dialect-specific `Build`, exact-SQL
+  assertions) live in `.claude/rules/unit-tests.md` — auto-loaded when editing
+  `tests/**`.
 - Update `CHANGELOG.md` for user-visible changes; the README is the canonical
   user-facing documentation.
 
