@@ -31,7 +31,7 @@ public partial class FunctionTests
                 Extract(DateTimePart.DayHour, CurrentTimestamp),
                 Extract(DateTimePart.YearMonth, CurrentTimestamp)
             )
-            .Build();
+            .Build(Dbms.MySql);
 
         StringBuilder expected = new StringBuilder()
             .Append("SELECT ")
@@ -75,7 +75,7 @@ public partial class FunctionTests
                 Extract(DateTimePart.TimezoneRegion, Systimestamp),
                 Extract(DateTimePart.TimezoneAbbr, Systimestamp))
             .From(Dual)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new StringBuilder()
             .Append("SELECT ")

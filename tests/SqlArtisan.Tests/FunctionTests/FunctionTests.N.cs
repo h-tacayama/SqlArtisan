@@ -24,7 +24,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(NextValueFor("seq_test"))
-            .Build();
+            .Build(Dbms.SqlServer);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -52,7 +52,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Nvl(_t.Name, "Unknown"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

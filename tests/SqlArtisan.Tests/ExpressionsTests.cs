@@ -88,7 +88,7 @@ public class ExpressionsTests
             Select(
                 Sequence("seq").Currval,
                 Sequence("seq").Nextval)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

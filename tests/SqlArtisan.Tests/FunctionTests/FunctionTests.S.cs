@@ -66,7 +66,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Substrb(_t.Name, 1))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -80,7 +80,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Substrb(_t.Name, 1, 3))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -122,7 +122,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -136,7 +136,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Systimestamp)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

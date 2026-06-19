@@ -55,7 +55,7 @@ public partial class FunctionTests
                 MonthsBetween(
                     ToDate("2001/02/03", "YYYY/MM/DD"),
                     ToDate("2004/05/06", "YYYY/MM/DD")))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

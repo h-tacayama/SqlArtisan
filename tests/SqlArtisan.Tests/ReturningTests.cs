@@ -126,7 +126,7 @@ public class ReturningTests
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
             .Into("b", "c")
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("DELETE FROM ");
@@ -145,7 +145,7 @@ public class ReturningTests
             .Where(_t.Code == 1)
             .Returning(_t.Code, _t.Name)
             .Into("b", "c")
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("DELETE FROM ");
@@ -165,7 +165,7 @@ public class ReturningTests
             .Set(_t.Code == 1, _t.Name == "a")
             .Returning(_t.Code, _t.Name)
             .Into("b", "c")
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
@@ -185,7 +185,7 @@ public class ReturningTests
             .Set(_t.Code == 1, _t.Name == "a")
             .Returning(_t.Code, _t.Name)
             .Into("b", "c")
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("UPDATE test_table ");
@@ -254,7 +254,7 @@ public class ReturningTests
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
             .Into("b", "c")
-            .Build();
+            .Build(Dbms.Oracle);
 
         Dictionary<string, BindValue> parameters = new();
         sql.Parameters.ForEach((name, bind) => parameters.Add(name, bind));

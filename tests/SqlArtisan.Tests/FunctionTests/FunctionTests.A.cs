@@ -26,7 +26,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(AddMonths(_t.CreatedAt, 3))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

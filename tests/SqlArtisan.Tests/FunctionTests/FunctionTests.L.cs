@@ -10,7 +10,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(LastDay(_t.CreatedAt))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -52,7 +52,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Lengthb(_t.Name))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

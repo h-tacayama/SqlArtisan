@@ -150,7 +150,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Trunc(_t.CreatedAt))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -164,7 +164,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(Trunc(_t.CreatedAt, "MONTH"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
