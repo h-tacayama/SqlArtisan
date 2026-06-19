@@ -8,7 +8,7 @@ public class UpsertTests
     private readonly TestTable _t = new();
 
     [Fact]
-    public void OnConflict_DoUpdateSet_PostgreSql_UsesUppercaseExcluded()
+    public void OnConflict_PostgreSql_DoUpdateSet_UsesUppercaseExcluded()
     {
         // Arrange
         StringBuilder expected = new();
@@ -30,7 +30,7 @@ public class UpsertTests
     }
 
     [Fact]
-    public void OnConflict_DoUpdateSet_Sqlite_UsesLowercaseExcluded()
+    public void OnConflict_Sqlite_DoUpdateSet_UsesLowercaseExcluded()
     {
         // Arrange
         StringBuilder expected = new();
