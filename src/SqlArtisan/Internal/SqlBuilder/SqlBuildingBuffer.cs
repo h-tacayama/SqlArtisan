@@ -113,19 +113,19 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // Renders a comma-separated list of column names with no table-alias
     // qualifier — the INSERT column list and the ON CONFLICT target. DbColumn[]
     // binds here via array covariance.
-    internal SqlBuildingBuffer AppendColumnNamesCsv(SqlExpression[] columns)
+    internal SqlBuildingBuffer AppendUnqualifiedColumnsCsv(SqlExpression[] columns)
     {
         if (columns.Length == 0)
         {
             return this;
         }
 
-        AppendColumnName(columns[0]);
+        AppendUnqualifiedColumn(columns[0]);
 
         for (int i = 1; i < columns.Length; i++)
         {
             Append(", ");
-            AppendColumnName(columns[i]);
+            AppendUnqualifiedColumn(columns[i]);
         }
 
         return this;
@@ -380,7 +380,10 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return false;
     }
 
-    private void AppendColumnName(SqlExpression column)
+    // A DbColumn is rendered as its bare name, dropping any table-alias
+    // qualifier it carries (column-name positions forbid qualification); any
+    // other expression formats normally.
+    private void AppendUnqualifiedColumn(SqlExpression column)
     {
         if (column is DbColumn dbColumn)
         {

@@ -12,7 +12,7 @@ internal sealed class OnConflictClause(DbColumn[] conflictTarget) : SqlPart
         {
             buffer.AppendSpace()
                 .OpenParenthesis()
-                .AppendColumnNamesCsv(_conflictTarget)
+                .AppendUnqualifiedColumnsCsv(_conflictTarget)
                 .CloseParenthesis();
         }
     }

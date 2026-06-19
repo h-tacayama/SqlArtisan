@@ -19,7 +19,7 @@ internal sealed class InsertIntoClause(DbTableBase table, DbColumn[] columns) : 
         {
             buffer.AppendSpace()
                 .OpenParenthesis()
-                .AppendColumnNamesCsv(_columns)
+                .AppendUnqualifiedColumnsCsv(_columns)
                 .CloseParenthesis();
         }
     }
