@@ -5,6 +5,7 @@
       "Bash(dotnet test:*)",
       "Bash(dotnet restore:*)",
       "Bash(dotnet format:*)",
+      "Bash(dotnet run:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
