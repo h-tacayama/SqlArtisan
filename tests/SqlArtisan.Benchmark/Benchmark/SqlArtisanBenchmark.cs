@@ -5,7 +5,7 @@ namespace SqlArtisan.Benchmark;
 
 public static class SqlArtisanBenchmark
 {
-    public static void Run()
+    public static (string Sql, int ParameterCount) Run()
     {
         Users u = new("u");
         Orders o = new("o");
@@ -25,10 +25,10 @@ public static class SqlArtisanBenchmark
             .OrderBy(Count(o.Id).As("order_count").Desc)
             .Build();
 
-#pragma warning disable IDE0059
         string sqlText = sql.Text;
         // Parameters is Dictionary<string, BindValue>
         SqlParameters parameters = sql.Parameters;
-#pragma warning restore IDE0059
+
+        return (sqlText, parameters.Count);
     }
 }
