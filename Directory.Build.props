@@ -1,6 +1,16 @@
 <Project>
 
   <!--
+    Single source of truth for the shipped package version. Bump here only; the
+    three packable projects (SqlArtisan / SqlArtisan.Dapper / SqlArtisan.TableClassGen)
+    inherit it, so a release never drifts between packages. (#118)
+  -->
+  <PropertyGroup>
+    <VersionPrefix>0.3.0</VersionPrefix>
+    <VersionSuffix>beta.1</VersionSuffix>
+  </PropertyGroup>
+
+  <!--
     Enable the broader "Recommended" set of .NET code-quality analyzers for the
     shipped core library. Warnings only (never errors): analyzer rule sets differ
     across SDK builds, so promoting them to errors would make CI non-deterministic.
