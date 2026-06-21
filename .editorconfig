@@ -194,3 +194,9 @@ indent_size = 2
 end_of_line = lf
 [*.{cmd,bat}]
 end_of_line = crlf
+
+# BenchmarkDotNet requires [Benchmark] methods (and their [GlobalSetup] /
+# [GlobalCleanup] hooks) to be instance methods, so CA1822 ("mark members as
+# static") cannot apply to the benchmark entrants.
+[tests/SqlArtisan.Benchmark/**.cs]
+dotnet_diagnostic.CA1822.severity = none

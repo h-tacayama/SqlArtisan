@@ -14,5 +14,5 @@ public sealed class User
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
 
-    public List<Order> Orders { get; set; } = new();
+    public List<Order> Orders { get; set; } = [];
 }
