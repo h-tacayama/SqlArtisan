@@ -8,8 +8,6 @@
     <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
     <IsPublishable>true</IsPublishable>
 
-    <VersionPrefix>0.2.0</VersionPrefix>
-    <VersionSuffix>beta.1</VersionSuffix>
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
