@@ -42,6 +42,7 @@ internal static class Keywords
     internal const string Duplicate = "DUPLICATE";
     internal const string Else = "ELSE";
     internal const string End = "END";
+    internal const string Escape = "ESCAPE";
     internal const string Except = "EXCEPT";
     internal const string Exists = "EXISTS";
     internal const string Extract = "EXTRACT";
