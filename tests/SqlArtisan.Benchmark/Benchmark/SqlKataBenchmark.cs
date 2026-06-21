@@ -4,7 +4,7 @@ namespace SqlArtisan.Benchmark;
 
 public static class SqlKataBenchmark
 {
-    public static void Run()
+    public static (string Sql, int ParameterCount) Run()
     {
         Query query = new Query()
             .Select("users.id AS user_id", "users.name AS user_name", "COUNT(orders.id) AS order_count")
@@ -19,5 +19,7 @@ public static class SqlKataBenchmark
 
         SqlResult sql = compiler.Compile(query);
         List<object> parameters = sql.Bindings;
+
+        return (sql.Sql, parameters.Count);
     }
 }

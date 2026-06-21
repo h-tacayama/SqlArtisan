@@ -5,7 +5,7 @@ namespace SqlArtisan.Benchmark;
 
 public static class StringBuilderBenchmark
 {
-    public static void Run()
+    public static (string Sql, int ParameterCount) Run()
     {
         StringBuilder query = new();
         query.Append("SELECT ");
@@ -29,5 +29,7 @@ public static class StringBuilderBenchmark
         DynamicParameters parameters = new();
         parameters.Add("@0", new DateTime(2024, 1, 1));
         parameters.Add("@1", new DateTime(2025, 1, 1));
+
+        return (query.ToString(), parameters.ParameterNames.Count());
     }
 }

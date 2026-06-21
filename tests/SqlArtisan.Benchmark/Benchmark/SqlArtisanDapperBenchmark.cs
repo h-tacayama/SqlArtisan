@@ -7,7 +7,7 @@ namespace SqlArtisan.Benchmark;
 
 public static class SqlArtisanDapperBenchmark
 {
-    public static void Run()
+    public static (string Sql, int ParameterCount) Run()
     {
         Users u = new("u");
         Orders o = new("o");
@@ -27,10 +27,9 @@ public static class SqlArtisanDapperBenchmark
             .OrderBy(Count(o.Id).As("order_count").Desc)
             .Build();
 
-#pragma warning disable IDE0059
         string sqlText = sql.Text;
-        DynamicParameters dynamicParameters =
-            sql.Parameters.ToDynamicParameters();
-#pragma warning restore IDE0059
+        DynamicParameters dynamicParameters = sql.Parameters.ToDynamicParameters();
+
+        return (sqlText, dynamicParameters.ParameterNames.Count());
     }
 }

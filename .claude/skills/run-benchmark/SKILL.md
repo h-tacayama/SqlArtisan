@@ -6,10 +6,21 @@ description: Build and run the SqlArtisan.Benchmark (BenchmarkDotNet) project to
 # Run the SqlArtisan benchmark suite
 
 `tests/SqlArtisan.Benchmark` is a BenchmarkDotNet console that pits SqlArtisan's
-build path against other C# query builders (Dapper.SqlBuilder, SqlKata,
-SqExpress, Sqlify, InterpolatedSql, …) and isolates the `.Build()` format path.
-This is the *official* benchmark cited in docs — prefer it over the ad-hoc
-allocation probe in the `run-sql-harness` skill for anything user-visible.
+build path against other C# query builders (Dapper.SqlBuilder, SqlKata, Sqlify,
+InterpolatedSql, linq2db, a hand-written `StringBuilder` floor, …), shows EF Core
+as a labeled ORM **reference**, and isolates the `.Build()` format path. This is
+the *official* benchmark cited in docs — prefer it over the ad-hoc allocation
+probe in the `run-sql-harness` skill for anything user-visible.
+
+Every entrant builds the SQL string **and** its bind-parameter collection for the
+same logical query (an INNER JOIN + GROUP BY aggregate with two date parameters),
+so the comparison is apples-to-apples. To confirm that equivalence cheaply before
+trusting a run, use the validation mode (no measured loop, exits non-zero on
+mismatch):
+
+```bash
+dotnet run -c Release --project tests/SqlArtisan.Benchmark -- validate
+```
 
 ## Read this before trusting the numbers
 
@@ -50,7 +61,7 @@ If `dotnet run` triggers a permission prompt, the run path needs
 
 | Class | What it isolates |
 |-------|------------------|
-| `SqlBuilderBenchmarks` | `[ShortRunJob]`, `[MemoryDiagnoser]`. One representative query built end-to-end by each builder, so you can compare SqlArtisan against the alternatives. Methods are named `<Builder>_<ParamStyle>` (e.g. `SqlArtisan_SpecificParams`, `SqlKata_SpecificParams`). |
+| `SqlBuilderBenchmarks` | Default Job, `[MemoryDiagnoser]`. One representative query built end-to-end by each builder, so you can compare SqlArtisan against the alternatives. Methods are named `<Builder>_<ParamStyle>` (e.g. `SqlArtisan_SpecificParams`, `SqlKata_SpecificParams`, `Linq2db_TypedParams`). Benchmarks are grouped by `[BenchmarkCategory]` into `Builders` and a separate `ORM reference` (the single `EfCore_Reference` method); linq2db and EF Core reuse a connection/context created once in `[GlobalSetup]` so the loop measures warm steady-state. |
 | `SqlBuildingBufferBenchmark` | The SqlPart tree is built once in `[GlobalSetup]`; only `.Build()` (dialect creation + buffer formatting + string + parameter dictionary) is timed. Use this to attribute a regression to the format path vs. tree construction. |
 
 ## Reading the output

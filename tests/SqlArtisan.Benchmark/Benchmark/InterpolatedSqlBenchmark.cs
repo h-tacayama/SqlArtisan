@@ -5,7 +5,7 @@ namespace SqlArtisan.Benchmark;
 
 public static class InterpolatedSqlBenchmark
 {
-    public static void Run()
+    public static (string Sql, int ParameterCount) Run()
     {
         IInterpolatedSql query = new SqlBuilder($@"SELECT u.id AS user_id,
 u.name AS user_name,
@@ -18,10 +18,9 @@ AND(o.order_date < {new DateTime(2025, 1, 1)})
 GROUP BY u.id, u.name
 ORDER BY order_count DESC").Build();
 
-#pragma warning disable IDE0059
         string sql = query.Sql;
-        IReadOnlyList<InterpolatedSqlParameter> parameters =
-            query.SqlParameters;
-#pragma warning restore IDE0059
+        IReadOnlyList<InterpolatedSqlParameter> parameters = query.SqlParameters;
+
+        return (sql, parameters.Count);
     }
 }
