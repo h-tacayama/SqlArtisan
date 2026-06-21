@@ -1171,6 +1171,21 @@ SqlStatement sql =
 // OR (REGEXP_LIKE(name, :2))
 ```
 
+To match a wildcard (`%` or `_`) literally, chain `.Escape(...)` onto a `Like` / `NotLike` condition to emit a standard `ESCAPE` clause (supported identically across all dialects):
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Name.Like("100%_off").Escape('!'))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE name LIKE :0 ESCAPE :1
+```
+
 ##### BETWEEN Condition
 ```csharp
 UsersTable u = new();
