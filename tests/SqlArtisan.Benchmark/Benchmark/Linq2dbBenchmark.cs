@@ -22,8 +22,8 @@ public static class Linq2dbBenchmark
 
     public static (string Sql, int ParameterCount) Run(DataConnection db)
     {
-        DateTime fromDate = new DateTime(2024, 1, 1);
-        DateTime toDate = new DateTime(2025, 1, 1);
+        DateTime fromDate = new(2024, 1, 1);
+        DateTime toDate = new(2025, 1, 1);
 
         var query =
             from u in db.GetTable<User>()

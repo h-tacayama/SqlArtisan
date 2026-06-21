@@ -15,8 +15,8 @@ public static class EfCoreBenchmark
 
     public static (string Sql, int ParameterCount) Run(BenchmarkDbContext db)
     {
-        DateTime fromDate = new DateTime(2024, 1, 1);
-        DateTime toDate = new DateTime(2025, 1, 1);
+        DateTime fromDate = new(2024, 1, 1);
+        DateTime toDate = new(2025, 1, 1);
 
         IQueryable<object> query = db.Orders
             .Where(o => o.OrderDate >= fromDate && o.OrderDate < toDate)
