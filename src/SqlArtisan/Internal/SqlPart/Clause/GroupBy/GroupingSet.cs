@@ -16,12 +16,6 @@ public sealed class GroupingSet : SqlPart
         _columns = columns;
     }
 
-    // True when the set renders with parentheses — an empty set `()` or a
-    // multi-column list `(a, b)`. A single column renders bare, so it is not
-    // composite. MySQL's `WITH ROLLUP` suffix form cannot express a composite
-    // grouping element, so AppendRollup rejects one on that dialect.
-    internal bool IsComposite => _columns.Length != 1;
-
     // A single column renders bare: `(a)` and `a` are equivalent groupings, so the
     // redundant parentheses are dropped. Two or more columns render as a
     // parenthesized list, and an empty set renders as `()`.

@@ -124,16 +124,30 @@ public class GroupByTests
     }
 
     [Fact]
-    public void Rollup_MySql_CompositeGroup_ThrowsNotSupportedException()
+    public void Rollup_MySql_CompositeGroup_CorrectSql()
     {
-        // MySQL's WITH ROLLUP suffix form cannot express a composite grouping
-        // element, so a multi-column Group(...) throws rather than emitting SQL
-        // MySQL would reinterpret.
-        Assert.Throws<NotSupportedException>(() =>
-            Select(_t.Code)
+        // The builder emits faithfully (ADR 0001); whether MySQL accepts a
+        // composite grouping element in its WITH ROLLUP suffix form is the
+        // author's responsibility and the analyzer's concern (ADR 0003), not a
+        // Build-time check.
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                _t.Name)
             .From(_t)
             .GroupBy(Rollup(Group(_t.Code, _t.Name), _t.CreatedAt))
-            .Build(Dbms.MySql));
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("`t`.code, ");
+        expected.Append("`t`.name ");
+        expected.Append("FROM ");
+        expected.Append("test_table `t` ");
+        expected.Append("GROUP BY ");
+        expected.Append("(`t`.code, `t`.name), `t`.created_at WITH ROLLUP");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]

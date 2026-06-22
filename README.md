@@ -542,7 +542,7 @@ SqlStatement sql =
 //   => GROUP BY GROUPING SETS((region, product), channel, ())
 ```
 
-PostgreSQL, Oracle, and SQL Server support all three. MySQL supports only `Rollup`, and only over plain columns, emitted in its native suffix form `GROUP BY region, product WITH ROLLUP`; a composite `Group(...)` inside a MySQL `Rollup` (the suffix form cannot express one), requesting `Cube` / `GroupingSets` on MySQL, or any extension on SQLite, throws a `NotSupportedException` at build time rather than silently rewriting the query.
+PostgreSQL, Oracle, and SQL Server support all three. MySQL supports only `Rollup`, emitted in its native suffix form `GROUP BY region, product WITH ROLLUP`; requesting `Cube` / `GroupingSets` on MySQL, or any extension on SQLite, throws a `NotSupportedException` at build time rather than silently rewriting the query.
 
 ---
 
