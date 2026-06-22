@@ -26,6 +26,10 @@ internal static class GroupByItemResolver
         {
             return expr;
         }
+        else if (groupByItem is GroupingElement grouping)
+        {
+            return grouping;
+        }
         else
         {
             throw new ArgumentException(

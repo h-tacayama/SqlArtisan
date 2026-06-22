@@ -100,6 +100,14 @@ public static partial class Sql
             Resolve(replacement));
 
     /// <summary>
+    /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Emitted as the standard
+    /// <c>ROLLUP(a, b)</c> on PostgreSQL / Oracle / SQL Server and as
+    /// <c>a, b WITH ROLLUP</c> on MySQL; SQLite throws at build time.
+    /// </summary>
+    public static RollupGrouping Rollup(object column, params object[] columns) =>
+        new(Resolve([column, .. columns]));
+
+    /// <summary>
     /// The <c>ROUND(expr)</c> function: rounds <paramref name="expr"/> to the
     /// nearest integer.
     /// </summary>

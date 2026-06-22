@@ -89,6 +89,64 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    // Renders a GROUP BY ROLLUP grouping. PostgreSQL / Oracle / SQL Server use the
+    // standard function form `ROLLUP(a, b)`; MySQL uses the suffix form
+    // `a, b WITH ROLLUP`. SQLite has no ROLLUP and throws (ADR 0001: never silently
+    // rewrite the author's SQL).
+    internal SqlBuildingBuffer AppendRollup(SqlPart[] items)
+    {
+        if (!_dialect.SupportsRollup)
+        {
+            throw GroupingExtensionNotSupported(Keywords.Rollup);
+        }
+
+        if (_dialect.UsesWithRollupSuffix)
+        {
+            AppendCsv(items);
+            Append($" {Keywords.With} {Keywords.Rollup}");
+            return this;
+        }
+
+        return Append(Keywords.Rollup)
+            .OpenParenthesis()
+            .AppendCsv(items)
+            .CloseParenthesis();
+    }
+
+    // Renders a GROUP BY CUBE grouping `CUBE(a, b)` (PostgreSQL / Oracle / SQL
+    // Server). MySQL and SQLite have no CUBE and throw.
+    internal SqlBuildingBuffer AppendCube(SqlPart[] items)
+    {
+        if (!_dialect.SupportsCube)
+        {
+            throw GroupingExtensionNotSupported(Keywords.Cube);
+        }
+
+        return Append(Keywords.Cube)
+            .OpenParenthesis()
+            .AppendCsv(items)
+            .CloseParenthesis();
+    }
+
+    // Renders a GROUP BY GROUPING SETS grouping `GROUPING SETS((a), (b), ())`
+    // (PostgreSQL / Oracle / SQL Server). MySQL and SQLite have no GROUPING SETS
+    // and throw.
+    internal SqlBuildingBuffer AppendGroupingSets(SqlPart[] sets)
+    {
+        if (!_dialect.SupportsGroupingSets)
+        {
+            throw GroupingExtensionNotSupported(Keywords.GroupingSets);
+        }
+
+        return Append(Keywords.GroupingSets)
+            .OpenParenthesis()
+            .AppendCsv(sets)
+            .CloseParenthesis();
+    }
+
+    private NotSupportedException GroupingExtensionNotSupported(string extension) =>
+        new($"{extension} is not supported by {_dialect.DbmsName}.");
+
     // Renders a comma-separated list of assignments (`a = 1, b = 2`) with each
     // target column unqualified. Used by SET / DO UPDATE SET / ON DUPLICATE KEY
     // UPDATE, where the left side must not carry a table-alias qualifier.

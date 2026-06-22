@@ -54,6 +54,156 @@ public class GroupByTests
     }
 
     [Fact]
+    public void Rollup_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                _t.Name)
+            .From(_t)
+            .GroupBy(Rollup(_t.Code, _t.Name))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".code, ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("GROUP BY ");
+        expected.Append("ROLLUP(\"t\".code, \"t\".name)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Rollup_MySql_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                _t.Name)
+            .From(_t)
+            .GroupBy(Rollup(_t.Code, _t.Name))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("`t`.code, ");
+        expected.Append("`t`.name ");
+        expected.Append("FROM ");
+        expected.Append("test_table `t` ");
+        expected.Append("GROUP BY ");
+        expected.Append("`t`.code, `t`.name WITH ROLLUP");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Rollup_Sqlite_ThrowsNotSupportedException()
+    {
+        // Act & Assert
+        Assert.Throws<NotSupportedException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .GroupBy(Rollup(_t.Code))
+            .Build(Dbms.Sqlite));
+    }
+
+    [Fact]
+    public void Cube_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                _t.Name)
+            .From(_t)
+            .GroupBy(Cube(_t.Code, _t.Name))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".code, ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("GROUP BY ");
+        expected.Append("CUBE(\"t\".code, \"t\".name)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Cube_MySql_ThrowsNotSupportedException()
+    {
+        // Act & Assert
+        Assert.Throws<NotSupportedException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .GroupBy(Cube(_t.Code, _t.Name))
+            .Build(Dbms.MySql));
+    }
+
+    [Fact]
+    public void Cube_Sqlite_ThrowsNotSupportedException()
+    {
+        // Act & Assert
+        Assert.Throws<NotSupportedException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .GroupBy(Cube(_t.Code, _t.Name))
+            .Build(Dbms.Sqlite));
+    }
+
+    [Fact]
+    public void GroupingSets_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                _t.Name)
+            .From(_t)
+            .GroupBy(GroupingSets(
+                Group(_t.Code),
+                Group(_t.Name),
+                Group()))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".code, ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("GROUP BY ");
+        expected.Append("GROUPING SETS((\"t\".code), (\"t\".name), ())");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void GroupingSets_MySql_ThrowsNotSupportedException()
+    {
+        // Act & Assert
+        Assert.Throws<NotSupportedException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .GroupBy(GroupingSets(Group(_t.Code), Group(_t.Name)))
+            .Build(Dbms.MySql));
+    }
+
+    [Fact]
+    public void GroupingSets_Sqlite_ThrowsNotSupportedException()
+    {
+        // Act & Assert
+        Assert.Throws<NotSupportedException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .GroupBy(GroupingSets(Group(_t.Code), Group(_t.Name)))
+            .Build(Dbms.Sqlite));
+    }
+
+    [Fact]
     public void GroupBy_WithNoItems_ThrowsArgumentException()
     {
         // Act & Assert

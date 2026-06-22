@@ -439,6 +439,14 @@ public static partial class Sql
     public static CountFunction Count(DistinctKeyword distinct, object expr) =>
         new(distinct, Resolve(expr));
 
+    /// <summary>
+    /// The <c>CUBE(...)</c> GROUP BY grouping extension, emitted as
+    /// <c>CUBE(a, b)</c> on PostgreSQL / Oracle / SQL Server; MySQL and SQLite
+    /// throw at build time.
+    /// </summary>
+    public static CubeGrouping Cube(object column, params object[] columns) =>
+        new(Resolve([column, .. columns]));
+
     public static AnalyticCumeDistFunction CumeDist() => new();
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
