@@ -9,7 +9,7 @@ internal static class CaseConverter
             return snakeCase;
         }
 
-        string[] parts = snakeCase.Split(['_'], StringSplitOptions.RemoveEmptyEntries);
+        string[] parts = snakeCase.Split('_', StringSplitOptions.RemoveEmptyEntries);
 
         if (parts.Length == 0)
         {
