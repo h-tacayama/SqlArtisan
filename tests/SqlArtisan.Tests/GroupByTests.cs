@@ -100,6 +100,43 @@ public class GroupByTests
     }
 
     [Fact]
+    public void Rollup_MySql_SingleColumnGroup_CorrectSql()
+    {
+        // A single-column Group renders bare, so the MySQL suffix form accepts it.
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                _t.Name)
+            .From(_t)
+            .GroupBy(Rollup(Group(_t.Code), _t.Name))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("`t`.code, ");
+        expected.Append("`t`.name ");
+        expected.Append("FROM ");
+        expected.Append("test_table `t` ");
+        expected.Append("GROUP BY ");
+        expected.Append("`t`.code, `t`.name WITH ROLLUP");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Rollup_MySql_CompositeGroup_ThrowsNotSupportedException()
+    {
+        // MySQL's WITH ROLLUP suffix form cannot express a composite grouping
+        // element, so a multi-column Group(...) throws rather than emitting SQL
+        // MySQL would reinterpret.
+        Assert.Throws<NotSupportedException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .GroupBy(Rollup(Group(_t.Code, _t.Name), _t.CreatedAt))
+            .Build(Dbms.MySql));
+    }
+
+    [Fact]
     public void Rollup_Sqlite_ThrowsNotSupportedException()
     {
         // Act & Assert

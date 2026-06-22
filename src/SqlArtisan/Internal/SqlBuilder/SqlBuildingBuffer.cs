@@ -102,6 +102,18 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
         if (_dialect.UsesWithRollupSuffix)
         {
+            // The suffix form is a flat column list with no way to express a
+            // composite grouping element, so reject one rather than silently
+            // emit a row constructor MySQL would reinterpret (ADR 0001).
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (items[i] is GroupingSet { IsComposite: true })
+                {
+                    throw new NotSupportedException(
+                        $"ROLLUP with a composite Group(...) is not supported by {_dialect.DbmsName}.");
+                }
+            }
+
             AppendCsv(items);
             Append($" {Keywords.With} {Keywords.Rollup}");
             return this;
