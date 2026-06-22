@@ -440,12 +440,14 @@ public static partial class Sql
         new(distinct, Resolve(expr));
 
     /// <summary>
-    /// The <c>CUBE(...)</c> GROUP BY grouping extension, emitted as
+    /// The <c>CUBE(...)</c> GROUP BY grouping extension. Each element is an ordinary
+    /// column or a <c>Sql.Group(...)</c> composite column (so
+    /// <c>Cube(Group(a, b), c)</c> emits <c>CUBE((a, b), c)</c>). Emitted as
     /// <c>CUBE(a, b)</c> on PostgreSQL / Oracle / SQL Server; MySQL and SQLite
     /// throw at build time.
     /// </summary>
-    public static CubeGrouping Cube(object column, params object[] columns) =>
-        new(Resolve([column, .. columns]));
+    public static CubeGrouping Cube(object element, params object[] elements) =>
+        new(GroupByItemResolver.ResolveElements([element, .. elements]));
 
     public static AnalyticCumeDistFunction CumeDist() => new();
 

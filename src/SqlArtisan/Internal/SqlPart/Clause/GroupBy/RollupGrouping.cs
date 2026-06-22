@@ -2,24 +2,25 @@
 
 /// <summary>
 /// The <c>ROLLUP(...)</c> grouping extension, built with <c>Sql.Rollup(...)</c>.
+/// Each element is an ordinary column or a <c>Sql.Group(...)</c> composite column.
 /// Emitted as the standard <c>ROLLUP(a, b)</c> on PostgreSQL / Oracle / SQL
 /// Server and as the suffix form <c>a, b WITH ROLLUP</c> on MySQL; SQLite has no
 /// ROLLUP and throws at build time.
 /// </summary>
 public sealed class RollupGrouping : GroupingElement
 {
-    private readonly SqlPart[] _columns;
+    private readonly SqlPart[] _elements;
 
-    internal RollupGrouping(SqlPart[] columns)
+    internal RollupGrouping(SqlPart[] elements)
     {
-        if (columns.Length == 0)
+        if (elements.Length == 0)
         {
-            throw new ArgumentException("ROLLUP requires at least one column.");
+            throw new ArgumentException("ROLLUP requires at least one element.");
         }
 
-        _columns = columns;
+        _elements = elements;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>
-        buffer.AppendRollup(_columns);
+        buffer.AppendRollup(_elements);
 }

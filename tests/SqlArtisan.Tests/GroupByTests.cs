@@ -176,7 +176,79 @@ public class GroupByTests
         expected.Append("FROM ");
         expected.Append("test_table \"t\" ");
         expected.Append("GROUP BY ");
-        expected.Append("GROUPING SETS((\"t\".code), (\"t\".name), ())");
+        expected.Append("GROUPING SETS(\"t\".code, \"t\".name, ())");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void GroupingSets_CompositeSet_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                _t.Name)
+            .From(_t)
+            .GroupBy(GroupingSets(
+                Group(_t.Code, _t.Name),
+                Group(_t.CreatedAt),
+                Group()))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".code, ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("GROUP BY ");
+        expected.Append("GROUPING SETS((\"t\".code, \"t\".name), \"t\".created_at, ())");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Rollup_CompositeGroup_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                _t.Name)
+            .From(_t)
+            .GroupBy(Rollup(Group(_t.Code, _t.Name), _t.CreatedAt))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".code, ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("GROUP BY ");
+        expected.Append("ROLLUP((\"t\".code, \"t\".name), \"t\".created_at)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Cube_CompositeGroup_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                _t.Name)
+            .From(_t)
+            .GroupBy(Cube(Group(_t.Code, _t.Name), _t.CreatedAt))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".code, ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("GROUP BY ");
+        expected.Append("CUBE((\"t\".code, \"t\".name), \"t\".created_at)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

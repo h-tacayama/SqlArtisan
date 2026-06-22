@@ -2,23 +2,24 @@
 
 /// <summary>
 /// The <c>CUBE(...)</c> grouping extension, built with <c>Sql.Cube(...)</c>.
+/// Each element is an ordinary column or a <c>Sql.Group(...)</c> composite column.
 /// Emitted as <c>CUBE(a, b)</c> on PostgreSQL / Oracle / SQL Server; MySQL and
 /// SQLite have no CUBE and throw at build time.
 /// </summary>
 public sealed class CubeGrouping : GroupingElement
 {
-    private readonly SqlPart[] _columns;
+    private readonly SqlPart[] _elements;
 
-    internal CubeGrouping(SqlPart[] columns)
+    internal CubeGrouping(SqlPart[] elements)
     {
-        if (columns.Length == 0)
+        if (elements.Length == 0)
         {
-            throw new ArgumentException("CUBE requires at least one column.");
+            throw new ArgumentException("CUBE requires at least one element.");
         }
 
-        _columns = columns;
+        _elements = elements;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>
-        buffer.AppendCube(_columns);
+        buffer.AppendCube(_elements);
 }

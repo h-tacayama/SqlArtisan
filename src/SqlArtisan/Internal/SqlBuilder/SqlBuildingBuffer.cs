@@ -128,7 +128,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
             .CloseParenthesis();
     }
 
-    // Renders a GROUP BY GROUPING SETS grouping `GROUPING SETS((a), (b), ())`
+    // Renders a GROUP BY GROUPING SETS grouping `GROUPING SETS((a, b), c, ())`
     // (PostgreSQL / Oracle / SQL Server). MySQL and SQLite have no GROUPING SETS
     // and throw.
     internal SqlBuildingBuffer AppendGroupingSets(SqlPart[] sets)

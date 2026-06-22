@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- Added support for the GROUP BY grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)` (the last built from `Group(...)` sets, `Group()` being the grand total). PostgreSQL / Oracle / SQL Server emit the standard forms; MySQL emits `ROLLUP` only, in its `... WITH ROLLUP` suffix form, and throws `NotSupportedException` for `CUBE` / `GROUPING SETS`; SQLite throws for all three. (#121)
+- Added support for the GROUP BY grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)`. `Group(...)` forms a composite grouping element — a multi-column set inside `GroupingSets(...)`, or a parenthesized composite column inside `Rollup(...)` / `Cube(...)` (e.g. `Rollup(Group(a, b), c)` → `ROLLUP((a, b), c)`) — with `Group()` being the grand total; a single-column `Group(x)` renders bare as `x`. PostgreSQL / Oracle / SQL Server emit the standard forms; MySQL emits `ROLLUP` only, in its `... WITH ROLLUP` suffix form, and throws `NotSupportedException` for `CUBE` / `GROUPING SETS`; SQLite throws for all three. (#121)
 - Added support for the `ESCAPE` clause on `LIKE` / `NOT LIKE`: chain `.Escape(escapeChar)` onto a `Like(...)` / `NotLike(...)` condition (e.g. `Like("100%_off").Escape('!')`) to match wildcards (`%`, `_`) literally, supported identically across all dialects. (#123)
 
 ### Changed

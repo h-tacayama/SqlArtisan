@@ -100,12 +100,14 @@ public static partial class Sql
             Resolve(replacement));
 
     /// <summary>
-    /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Emitted as the standard
-    /// <c>ROLLUP(a, b)</c> on PostgreSQL / Oracle / SQL Server and as
+    /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Each element is an
+    /// ordinary column or a <c>Sql.Group(...)</c> composite column (so
+    /// <c>Rollup(Group(a, b), c)</c> emits <c>ROLLUP((a, b), c)</c>). Emitted as the
+    /// standard <c>ROLLUP(a, b)</c> on PostgreSQL / Oracle / SQL Server and as
     /// <c>a, b WITH ROLLUP</c> on MySQL; SQLite throws at build time.
     /// </summary>
-    public static RollupGrouping Rollup(object column, params object[] columns) =>
-        new(Resolve([column, .. columns]));
+    public static RollupGrouping Rollup(object element, params object[] elements) =>
+        new(GroupByItemResolver.ResolveElements([element, .. elements]));
 
     /// <summary>
     /// The <c>ROUND(expr)</c> function: rounds <paramref name="expr"/> to the

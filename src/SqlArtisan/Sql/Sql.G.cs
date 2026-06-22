@@ -9,9 +9,11 @@ public static partial class Sql
         new(Resolve(expressions));
 
     /// <summary>
-    /// A single grouping set for <c>GroupingSets(...)</c>, rendered as
-    /// <c>(a, b)</c>. Call with no columns — <c>Group()</c> — for the empty set
-    /// <c>()</c> that produces the grand total.
+    /// A parenthesized grouping element for <c>GroupingSets(...)</c>,
+    /// <c>Rollup(...)</c>, or <c>Cube(...)</c>. Rendered as <c>(a, b)</c> for two or
+    /// more columns and as the bare column for a single column. Call with no
+    /// columns — <c>Group()</c> — for the empty set <c>()</c> that produces the
+    /// grand total.
     /// </summary>
     public static GroupingSet Group(params object[] columns) =>
         new(Resolve(columns));
@@ -100,7 +102,7 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>GROUPING SETS(...)</c> GROUP BY grouping extension, built from one or
-    /// more <c>Group(...)</c> sets and emitted as <c>GROUPING SETS((a), (b), ())</c>
+    /// more <c>Group(...)</c> sets and emitted as <c>GROUPING SETS((a, b), c, ())</c>
     /// on PostgreSQL / Oracle / SQL Server; MySQL and SQLite throw at build time.
     /// </summary>
     public static GroupingSetsGrouping GroupingSets(

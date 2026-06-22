@@ -521,7 +521,7 @@ SqlStatement sql =
 // HAVING COUNT(id) > :0
 ```
 
-For subtotal/grand-total reports, `GroupBy(...)` also accepts the grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)` (the latter built from `Group(...)` sets, where `Group()` with no columns is the grand total):
+For subtotal/grand-total reports, `GroupBy(...)` also accepts the grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)`. Wrap columns in `Group(...)` to form a composite grouping element — a multi-column set inside `GroupingSets(...)`, or a parenthesized composite column inside `Rollup(...)` / `Cube(...)` — and use `Group()` with no columns for the empty set (the grand total):
 
 ```csharp
 SalesTable s = new();
@@ -534,6 +534,12 @@ SqlStatement sql =
 // SELECT region, product, SUM(amount)
 // FROM sales
 // GROUP BY ROLLUP(region, product)
+
+// Composite grouping element via Group(...):
+//   .GroupBy(Rollup(Group(s.Region, s.Product), s.Channel))
+//   => GROUP BY ROLLUP((region, product), channel)
+//   .GroupBy(GroupingSets(Group(s.Region, s.Product), Group(s.Channel), Group()))
+//   => GROUP BY GROUPING SETS((region, product), channel, ())
 ```
 
 PostgreSQL, Oracle, and SQL Server support all three. MySQL supports only `Rollup`, emitted in its native suffix form `GROUP BY region, product WITH ROLLUP`; requesting `Cube` / `GroupingSets` on MySQL, or any extension on SQLite, throws a `NotSupportedException` at build time rather than silently rewriting the query.
