@@ -4,22 +4,14 @@ internal sealed class SqliteDialect : IDbmsDialect
 {
     public char AliasQuote => '"';
 
-    public string DbmsName => "SQLite";
-
     public string DmlTableAliasSeparator => " AS ";
 
     public char ParameterMarker => ':';
 
     public string ExcludedName => "excluded";
 
-    // SQLite supports no GROUP BY grouping extensions.
-    public bool SupportsRollup => false;
-
+    // SQLite renders ROLLUP in the standard function form (it has no suffix form).
     public bool UsesWithRollupSuffix => false;
-
-    public bool SupportsCube => false;
-
-    public bool SupportsGroupingSets => false;
 
     // SQLite has no MERGE statement, so no terminating token applies.
     public string MergeTerminator => "";

@@ -4,8 +4,6 @@ internal sealed class SqlServerDialect : IDbmsDialect
 {
     public char AliasQuote => '"';
 
-    public string DbmsName => "SQL Server";
-
     public string DmlTableAliasSeparator => " AS ";
 
     public char ParameterMarker => '@';
@@ -15,13 +13,7 @@ internal sealed class SqlServerDialect : IDbmsDialect
     // let the database reject the statement rather than throwing at build time.
     public string ExcludedName => "EXCLUDED";
 
-    public bool SupportsRollup => true;
-
     public bool UsesWithRollupSuffix => false;
-
-    public bool SupportsCube => true;
-
-    public bool SupportsGroupingSets => true;
 
     // SQL Server requires a MERGE statement to be terminated with a semicolon;
     // omitting it raises a syntax error when the statement is executed.

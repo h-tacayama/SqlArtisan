@@ -4,8 +4,6 @@ internal sealed class OracleDialect : IDbmsDialect
 {
     public char AliasQuote => '"';
 
-    public string DbmsName => "Oracle";
-
     // Oracle rejects AS on a table alias (ORA-00933), so the alias follows the
     // table name separated only by a space.
     public string DmlTableAliasSeparator => " ";
@@ -17,13 +15,7 @@ internal sealed class OracleDialect : IDbmsDialect
     // let the database reject the statement rather than throwing at build time.
     public string ExcludedName => "EXCLUDED";
 
-    public bool SupportsRollup => true;
-
     public bool UsesWithRollupSuffix => false;
-
-    public bool SupportsCube => true;
-
-    public bool SupportsGroupingSets => true;
 
     // Oracle's MERGE needs no terminating token.
     public string MergeTerminator => "";

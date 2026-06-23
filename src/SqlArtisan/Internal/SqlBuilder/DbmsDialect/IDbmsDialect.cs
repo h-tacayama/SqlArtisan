@@ -5,14 +5,6 @@ internal interface IDbmsDialect
     char AliasQuote { get; }
 
     /// <summary>
-    /// The human-readable DBMS name (<c>PostgreSQL</c>, <c>Oracle</c>,
-    /// <c>SQL Server</c>, <c>MySQL</c>, <c>SQLite</c>) used in diagnostics, e.g.
-    /// the message of a <see cref="NotSupportedException"/> thrown when a
-    /// construct is unavailable on the target DBMS.
-    /// </summary>
-    string DbmsName { get; }
-
-    /// <summary>
     /// The separator between a DML target table and its alias: <c> AS </c>
     /// (PostgreSQL / SQLite / MySQL / SQL Server) or a single space
     /// (Oracle, which rejects <c>AS</c> on a table alias — ORA-00933). This is
@@ -35,32 +27,11 @@ internal interface IDbmsDialect
     string ExcludedName { get; }
 
     /// <summary>
-    /// Whether the dialect supports the <c>GROUP BY ROLLUP</c> grouping extension
-    /// in any form. True for every DBMS except SQLite.
-    /// </summary>
-    bool SupportsRollup { get; }
-
-    /// <summary>
     /// Whether <c>ROLLUP</c> is emitted as the MySQL suffix form
     /// (<c>GROUP BY a, b WITH ROLLUP</c>) rather than the standard function form
-    /// (<c>GROUP BY ROLLUP(a, b)</c>). Only consulted when
-    /// <see cref="SupportsRollup"/> is true; MySQL alone uses the suffix form.
+    /// (<c>GROUP BY ROLLUP(a, b)</c>). MySQL alone uses the suffix form.
     /// </summary>
     bool UsesWithRollupSuffix { get; }
-
-    /// <summary>
-    /// Whether the dialect supports the <c>GROUP BY CUBE(...)</c> grouping
-    /// extension. True for PostgreSQL, Oracle, and SQL Server; false for MySQL and
-    /// SQLite.
-    /// </summary>
-    bool SupportsCube { get; }
-
-    /// <summary>
-    /// Whether the dialect supports the <c>GROUP BY GROUPING SETS(...)</c> grouping
-    /// extension. True for PostgreSQL, Oracle, and SQL Server; false for MySQL and
-    /// SQLite.
-    /// </summary>
-    bool SupportsGroupingSets { get; }
 
     /// <summary>
     /// The token appended after a <c>MERGE</c> statement. SQL Server's <c>MERGE</c>

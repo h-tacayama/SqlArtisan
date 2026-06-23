@@ -542,7 +542,7 @@ SqlStatement sql =
 //   => GROUP BY GROUPING SETS((region, product), channel, ())
 ```
 
-PostgreSQL, Oracle, and SQL Server support all three. MySQL supports only `Rollup`, emitted in its native suffix form `GROUP BY region, product WITH ROLLUP`; requesting `Cube` / `GroupingSets` on MySQL, or any extension on SQLite, throws a `NotSupportedException` at build time rather than silently rewriting the query.
+PostgreSQL, Oracle, and SQL Server support all three. MySQL supports only `Rollup`, which it renders in its native suffix form `GROUP BY region, product WITH ROLLUP`. `Build(Dbms)` emits every form faithfully and does not police DBMS availability — an unsupported combination such as `Cube` / `GroupingSets` on MySQL, or any extension on SQLite, is emitted as written, leaving it for the database (and the planned opt-in analyzer) to flag rather than silently rewriting the query.
 
 ---
 

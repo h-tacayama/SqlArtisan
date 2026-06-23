@@ -4,8 +4,6 @@ internal sealed class MySqlDialect : IDbmsDialect
 {
     public char AliasQuote => '`';
 
-    public string DbmsName => "MySQL";
-
     public string DmlTableAliasSeparator => " AS ";
 
     public char ParameterMarker => '?';
@@ -15,15 +13,9 @@ internal sealed class MySqlDialect : IDbmsDialect
     // update clause can read it as `new.column`.
     public string ExcludedName => "new";
 
-    // MySQL supports only ROLLUP, and in the suffix form
-    // `GROUP BY a, b WITH ROLLUP`; it has no CUBE or GROUPING SETS.
-    public bool SupportsRollup => true;
-
+    // MySQL renders ROLLUP in the suffix form `GROUP BY a, b WITH ROLLUP` rather
+    // than the standard function form.
     public bool UsesWithRollupSuffix => true;
-
-    public bool SupportsCube => false;
-
-    public bool SupportsGroupingSets => false;
 
     // MySQL has no MERGE statement, so no terminating token applies.
     public string MergeTerminator => "";
