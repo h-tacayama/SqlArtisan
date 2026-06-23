@@ -146,11 +146,13 @@ implemented-interface list and the members alphabetical (see CLAUDE.md).
 same builder and trust the caller not to misuse it — return a *narrowed*
 interface that omits the now-invalid methods:
 
-- A **one-shot** step (must not repeat — e.g. MySQL `WITH ROLLUP`): return an
-  interface that lacks the step. Define the broad step as the narrow one *plus*
-  the method — `ISelectBuilderGroupBy : ISelectBuilderWithRollup`, where
-  `WithRollup()` returns `ISelectBuilderWithRollup` (Having / OrderBy / pagination
-  / Build, but no `WithRollup()`). Then `.WithRollup().WithRollup()` is a compile
+- A **one-shot** step (must not repeat — e.g. MySQL `WITH ROLLUP`): have it return
+  a narrower step interface that omits the method. Follow the builder's flat
+  step-interface style (each interface inherits only capability bases like
+  `ISqlBuilder` / `IPagination` and declares its own forward methods — no
+  step-to-step inheritance): declare `ISelectBuilderWithRollup` with the valid
+  continuations (Having / OrderBy / pagination / Build) but no `WithRollup()`, and
+  have `WithRollup()` return it. Then `.WithRollup().WithRollup()` is a compile
   error while every valid continuation stays.
 - A **mandatory** trailing clause: use the two-type "pending" pattern — the
   pending type is **not** a `SqlExpression`, so omitting the clause fails at
