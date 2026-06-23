@@ -1,6 +1,6 @@
 ---
 name: write-xml-docs
-description: Write or revise XML doc comments (///) for SqlArtisan's public API. Use when adding/editing summaries on Sql.* factories, builder-step interfaces, or other user-facing surface — to match the project's terse, point-of-use house style (what it emits + when to use it, no design rationale) and the tag set the codebase actually uses.
+description: Write or revise XML doc comments (///) for SqlArtisan's public API. Use when adding/editing summaries on Sql.* factories, builder-step interfaces, or other user-facing surface — to match the project's terse, point-of-use house style (what it emits + when to use it, no design rationale) and its tag conventions.
 ---
 
 # Writing XML docs for SqlArtisan
@@ -14,14 +14,25 @@ the `ISelectBuilder*` / `SqlBuilder/` fluent API, public expression/clause types
 Skip a doc when the name already says everything (e.g. `Rank()`, `RowNumber()`
 carry none). Internal mechanics never need a doc.
 
+(Existing summaries predate these conventions — apply them to new and edited
+docs; no mass retrofit.)
+
 ## Include (point of use)
 
 - **The emitted SQL form**, shown in `<c>...</c>` — e.g. `<c>ROLLUP(a, b)</c>`,
-  `<c>CEIL(expr)</c>`. This is the highest-value line; it must equal what
-  `Format` actually emits.
-- **What a non-obvious argument means**, inline with `<paramref name="x"/>`.
-- **When to reach for it** — dialect availability or the sibling to use instead
-  (`SQL Server spells this <c>CEILING</c>; use <see cref="Ceiling(object)"/>`).
+  `<c>CEIL(expr)</c>`. The highest-value line; it must equal what `Format` emits.
+- **`<param name="x">`** for each argument — its meaning, accepted form, units, or
+  constraints (e.g. "the exact SQL data type" for `Cast`'s `type`). Write
+  information, not the name restated; if you add `<param>`, cover every parameter.
+- **`<returns>`** — the construct or builder state the call produces.
+- **`<exception cref="...">`** — the exceptions misuse raises. This API fails
+  loudly (empty `GroupBy()` / `Rollup()` → `ArgumentException`, a null value →
+  `ArgumentNullException`, a wrong item type → `ArgumentException`), and those are
+  part of the contract, so document them.
+- **When to reach for it** — dialect availability or the sibling to use instead,
+  in `<remarks>` (`SQL Server spells this <c>CEILING</c>; use
+  <see cref="Ceiling(object)"/>`). Reference a param inside prose with
+  `<paramref name="x"/>`.
 
 ## Leave out
 
@@ -47,17 +58,24 @@ Example — the trim that motivated this skill:
 /// use the standard <c>Sql.Rollup(...)</c> function form.
 ```
 
-## House style (match the codebase)
+## House style
 
-- Tags used: `<summary>`, `<c>` (SQL tokens / code), `<paramref name="x"/>`,
-  `<see cref="..."/>`, and `<remarks>` **only** for a genuine caveat or
-  cross-reference. Do **not** use `<param>`, `<returns>`, `<example>`, or `<list>`
-  — the codebase uses none; describe args inline with `<paramref>` instead.
+- Tags to use: `<summary>`, `<param>`, `<returns>`, `<exception cref>`,
+  `<paramref name="x"/>`, `<see cref>`, `<remarks>` (a genuine caveat or
+  cross-reference), and `<c>` for SQL tokens / code. Use `<typeparam name="T">`
+  for a generic member (e.g. `SqlParameters.Get<T>`).
 - The summary's **first sentence is a noun phrase naming the construct** — it
   shows in completion lists. "The `<c>CEIL(expr)</c>` function (smallest integer
   not less than <paramref name="expr"/>)."
-- Put dialect caveats and "use X instead" pointers in `<remarks>`; keep the
-  `<summary>` to the construct and its emitted form.
+- Keep the `<summary>` to the construct and its emitted form; put dialect caveats
+  and "use X instead" pointers in `<remarks>`.
+- **Document on the interface, not the implementation.** A builder step lives on
+  an `ISelectBuilder*` interface — put its doc there; the `SelectBuilder`
+  implementation needs none (the IDE shows the interface doc) or uses
+  `<inheritdoc/>`. Don't write the same doc twice.
+- **Keep runnable usage examples in the README** (the canonical user doc), not in
+  `<example>` blocks — two copies drift. `<seealso>` is optional sugar over an
+  inline `<see cref>`; `<list>` / `<para>` are rarely needed.
 
 Reference docs to copy from: `Sql.C.cs` — `Ceil`/`Ceiling` (`<remarks>` +
 `<see cref>` cross-reference) and `Cast` (`<paramref>` inside the summary).
