@@ -1,6 +1,6 @@
 ---
 name: add-sql-function
-description: Add a new SQL function to the SqlArtisan query builder. Use when the user wants to add/implement/expose a SQL function (e.g. ABS, COALESCE, TRIM, an aggregate, a date function) in the public `Sql` API. Walks through the four required touch points (node class, keyword, public factory, test) following the project's alphabetical-partial-class conventions.
+description: Add a new SQL function to the SqlArtisan query builder. Use when the user wants to add/implement/expose a SQL function (e.g. ABS, COALESCE, TRIM, an aggregate, a date function) in the public `Sql` API. Walks through the four required touch points (node class, keyword, public factory, test) following the project's alphabetical-partial-class conventions. Also covers adding a fluent builder step / clause modifier (e.g. a GROUP BY suffix) and the type-safety practice of narrowing the return interface so invalid chains fail to compile.
 ---
 
 # Add a new SQL function to SqlArtisan
@@ -125,6 +125,32 @@ per-DBMS dialect classes under
 buffer/dialect inside `Format`. Do **not** rewrite the user's SQL to make it
 portable — that is a deliberate non-goal. If a function simply doesn't exist on
 a DBMS, that's fine; SqlArtisan does not emulate it.
+
+## Adding a fluent builder step (not a function)
+
+Some additions are not `Sql.*` functions but **builder steps** — a clause or
+modifier chained on the statement builder (e.g. `.GroupBy(...).WithRollup()`).
+These touch the `ISelectBuilder*` interfaces and `SelectBuilder` under
+`src/SqlArtisan/Internal/SqlBuilder/Select/`, not the four function touch points;
+a new internal `*Clause : SqlPart` renders the tokens. Keep the
+implemented-interface list and the members alphabetical (see CLAUDE.md).
+
+**Make invalid chains uncompilable through the return type.** Don't return the
+same builder and trust the caller not to misuse it — return a *narrowed*
+interface that omits the now-invalid methods:
+
+- A **one-shot** step (must not repeat — e.g. MySQL `WITH ROLLUP`): return an
+  interface that lacks the step. Define the broad step as the narrow one *plus*
+  the method — `ISelectBuilderGroupBy : ISelectBuilderWithRollup`, where
+  `WithRollup()` returns `ISelectBuilderWithRollup` (Having / OrderBy / pagination
+  / Build, but no `WithRollup()`). Then `.WithRollup().WithRollup()` is a compile
+  error while every valid continuation stays.
+- A **mandatory** trailing clause: use the two-type "pending" pattern — the
+  pending type is **not** a `SqlExpression`, so omitting the clause fails at
+  `Select(...)` (e.g. `ListaggFunction` → `ListaggWithinGroupFunction`).
+
+Verify the guard the way you verify SQL: a throwaway with the bad chain behind
+`#if BAD` must fail to compile (CS1061), per the `run-sql-harness` skill.
 
 ## Validate
 
