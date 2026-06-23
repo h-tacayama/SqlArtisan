@@ -3,8 +3,8 @@
 /// <summary>
 /// The <c>CUBE(...)</c> grouping extension, built with <c>Sql.Cube(...)</c>.
 /// Each element is an ordinary column or a <c>Sql.Group(...)</c> composite column.
-/// Emitted as <c>CUBE(a, b)</c>. MySQL and SQLite have no CUBE, but Build emits it
-/// faithfully (ADR 0003: feasibility is the analyzer's concern, not Build's).
+/// Emitted as <c>CUBE(a, b)</c>. MySQL and SQLite have no CUBE; Build still emits
+/// it faithfully, leaving the unsupported statement for the database to reject.
 /// </summary>
 public sealed class CubeGrouping : GroupingElement
 {

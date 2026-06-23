@@ -4,8 +4,8 @@
 /// The <c>GROUPING SETS(...)</c> grouping extension, built with
 /// <c>Sql.GroupingSets(...)</c> from one or more <c>Sql.Group(...)</c> sets.
 /// Emitted as <c>GROUPING SETS((a, b), c, ())</c>. MySQL and SQLite have no
-/// GROUPING SETS, but Build emits it faithfully (ADR 0003: feasibility is the
-/// analyzer's concern, not Build's).
+/// GROUPING SETS; Build still emits it faithfully, leaving the unsupported
+/// statement for the database to reject.
 /// </summary>
 public sealed class GroupingSetsGrouping : GroupingElement
 {

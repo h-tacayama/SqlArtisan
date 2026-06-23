@@ -104,9 +104,9 @@ public static partial class Sql
     /// ordinary column or a <c>Sql.Group(...)</c> composite column (so
     /// <c>Rollup(Group(a, b), c)</c> emits <c>ROLLUP((a, b), c)</c>). Emitted as the
     /// standard <c>ROLLUP(a, b)</c> on PostgreSQL / Oracle / SQL Server and as
-    /// <c>a, b WITH ROLLUP</c> on MySQL. SQLite has no ROLLUP, but <c>Build</c>
-    /// emits it faithfully regardless — DBMS availability is the analyzer's
-    /// concern (ADR 0003), not a build-time check.
+    /// <c>a, b WITH ROLLUP</c> on MySQL. SQLite has no ROLLUP; <c>Build</c> still
+    /// emits it faithfully rather than rejecting it, leaving the unsupported
+    /// statement for the target database to reject.
     /// </summary>
     public static RollupGrouping Rollup(object element, params object[] elements) =>
         new(GroupByItemResolver.ResolveElements([element, .. elements]));

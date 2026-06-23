@@ -443,9 +443,9 @@ public static partial class Sql
     /// The <c>CUBE(...)</c> GROUP BY grouping extension. Each element is an ordinary
     /// column or a <c>Sql.Group(...)</c> composite column (so
     /// <c>Cube(Group(a, b), c)</c> emits <c>CUBE((a, b), c)</c>). Emitted as
-    /// <c>CUBE(a, b)</c>. MySQL and SQLite have no CUBE, but <c>Build</c> emits it
-    /// faithfully regardless — DBMS availability is the analyzer's concern
-    /// (ADR 0003), not a build-time check.
+    /// <c>CUBE(a, b)</c>. MySQL and SQLite have no CUBE; <c>Build</c> still emits it
+    /// faithfully rather than rejecting it, leaving the unsupported statement for
+    /// the target database to reject.
     /// </summary>
     public static CubeGrouping Cube(object element, params object[] elements) =>
         new(GroupByItemResolver.ResolveElements([element, .. elements]));
