@@ -126,6 +126,13 @@ buffer/dialect inside `Format`. Do **not** rewrite the user's SQL to make it
 portable — that is a deliberate non-goal. If a function simply doesn't exist on
 a DBMS, that's fine; SqlArtisan does not emulate it.
 
+A dialect flag is only for a **token** swap that doesn't change the statement's
+shape. If the per-dialect form composes differently or sits in a different
+position (a *construct*, not a token — e.g. `WITH ROLLUP` vs `ROLLUP(...)`),
+expose it as a separate per-dialect method instead of one rewritten call. The
+`dbms-differences` rule (auto-loaded when editing the dialect layer) has the test
+and the worked example.
+
 ## Adding a fluent builder step (not a function)
 
 Some additions are not `Sql.*` functions but **builder steps** — a clause or
