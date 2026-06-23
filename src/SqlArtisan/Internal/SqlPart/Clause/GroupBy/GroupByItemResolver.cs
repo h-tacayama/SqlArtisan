@@ -26,10 +26,30 @@ internal static class GroupByItemResolver
         {
             return expr;
         }
+        else if (groupByItem is GroupingElement grouping)
+        {
+            return grouping;
+        }
         else
         {
             throw new ArgumentException(
                 $"Invalid type for GroupByItem: {groupByItem.GetType()}");
         }
+    }
+
+    // Resolves the inner elements of ROLLUP(...) / CUBE(...): each element is
+    // either an ordinary grouping expression or a Sql.Group(...) composite column.
+    internal static SqlPart[] ResolveElements(object[] elements)
+    {
+        var resolved = new SqlPart[elements.Length];
+
+        for (int i = 0; i < elements.Length; i++)
+        {
+            resolved[i] = elements[i] is GroupingSet set
+                ? set
+                : ExpressionResolver.Resolve(elements[i]);
+        }
+
+        return resolved;
     }
 }

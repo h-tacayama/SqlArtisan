@@ -89,6 +89,35 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
+    // Renders a GROUP BY ROLLUP grouping `ROLLUP(a, b)` — the standard function
+    // form — on every dialect. MySQL accepts only its `... WITH ROLLUP` suffix,
+    // which is a separate construct (`.GroupBy(...).WithRollup()`); availability is
+    // the analyzer's concern, not Build's (ADR 0001: never silently rewrite the
+    // author's SQL into a different construct).
+    internal SqlBuildingBuffer AppendRollup(SqlPart[] items) =>
+        Append(Keywords.Rollup)
+            .OpenParenthesis()
+            .AppendCsv(items)
+            .CloseParenthesis();
+
+    // Renders a GROUP BY CUBE grouping `CUBE(a, b)`. Emitted faithfully on every
+    // dialect; where CUBE is unavailable (MySQL, SQLite) that is the analyzer's
+    // concern (ADR 0003), not Build's.
+    internal SqlBuildingBuffer AppendCube(SqlPart[] items) =>
+        Append(Keywords.Cube)
+            .OpenParenthesis()
+            .AppendCsv(items)
+            .CloseParenthesis();
+
+    // Renders a GROUP BY GROUPING SETS grouping `GROUPING SETS((a, b), c, ())`.
+    // Emitted faithfully on every dialect; where GROUPING SETS is unavailable
+    // (MySQL, SQLite) that is the analyzer's concern (ADR 0003), not Build's.
+    internal SqlBuildingBuffer AppendGroupingSets(SqlPart[] sets) =>
+        Append(Keywords.GroupingSets)
+            .OpenParenthesis()
+            .AppendCsv(sets)
+            .CloseParenthesis();
+
     // Renders a comma-separated list of assignments (`a = 1, b = 2`) with each
     // target column unqualified. Used by SET / DO UPDATE SET / ON DUPLICATE KEY
     // UPDATE, where the left side must not carry a table-alias qualifier.

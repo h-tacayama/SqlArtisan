@@ -78,6 +78,13 @@ four with templates and reference implementations (`AbsFunction`,
   stay adjacent and explicit interface implementations sort by their simple
   name. Within an interface definition, declare members alphabetically too. This
   is mechanical and keeps builders consistent as they grow.
+- Make invalid fluent chains uncompilable through the **return type**, rather than
+  returning the same builder and trusting the caller. A one-shot step returns a
+  *narrowed* interface that omits it (e.g. `WithRollup()` returns
+  `ISelectBuilderWithRollup`, so `.WithRollup().WithRollup()` is a compile error);
+  a mandatory trailing clause uses the two-type "pending" pattern (the pending
+  type is not a `SqlExpression`, so omitting it fails at `Select(...)`). The
+  `add-sql-function` skill has the full recipe.
 - Unit test conventions (naming grammar, dialect-specific `Build`, exact-SQL
   assertions) live in `.claude/rules/unit-tests.md` — auto-loaded when editing
   `tests/**`.

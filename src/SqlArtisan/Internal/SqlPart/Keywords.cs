@@ -22,6 +22,7 @@ internal static class Keywords
     internal const string Conflict = "CONFLICT";
     internal const string Count = "COUNT";
     internal const string Cross = "CROSS";
+    internal const string Cube = "CUBE";
     internal const string CumeDist = "CUME_DIST";
     internal const string Current = "CURRENT";
     internal const string CurrentDate = "CURRENT_DATE";
@@ -57,6 +58,7 @@ internal static class Keywords
     internal const string Greatest = "GREATEST";
     internal const string Group = "GROUP";
     internal const string GroupConcat = "GROUP_CONCAT";
+    internal const string GroupingSets = "GROUPING SETS";
     internal const string Having = "HAVING";
     internal const string In = "IN";
     internal const string Inner = "INNER";
@@ -124,6 +126,7 @@ internal static class Keywords
     internal const string Replace = "REPLACE";
     internal const string Returning = "RETURNING";
     internal const string Right = "RIGHT";
+    internal const string Rollup = "ROLLUP";
     internal const string Round = "ROUND";
     internal const string Row = "ROW";
     internal const string RowNumber = "ROW_NUMBER";

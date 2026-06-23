@@ -100,6 +100,18 @@ public static partial class Sql
             Resolve(replacement));
 
     /// <summary>
+    /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Each element is an
+    /// ordinary column or a <c>Sql.Group(...)</c> composite column (so
+    /// <c>Rollup(Group(a, b), c)</c> emits <c>ROLLUP((a, b), c)</c>). Emitted as the
+    /// standard function form <c>ROLLUP(a, b)</c> on every dialect. MySQL accepts
+    /// only its <c>WITH ROLLUP</c> suffix instead — use
+    /// <c>.GroupBy(...).WithRollup()</c> for that. An unsupported target is emitted
+    /// as written, leaving the statement for the database to reject.
+    /// </summary>
+    public static RollupGrouping Rollup(object element, params object[] elements) =>
+        new(GroupByItemResolver.ResolveElements([element, .. elements]));
+
+    /// <summary>
     /// The <c>ROUND(expr)</c> function: rounds <paramref name="expr"/> to the
     /// nearest integer.
     /// </summary>

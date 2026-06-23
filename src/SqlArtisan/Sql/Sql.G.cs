@@ -9,6 +9,16 @@ public static partial class Sql
         new(Resolve(expressions));
 
     /// <summary>
+    /// A parenthesized grouping element for <c>GroupingSets(...)</c>,
+    /// <c>Rollup(...)</c>, or <c>Cube(...)</c>. Rendered as <c>(a, b)</c> for two or
+    /// more columns and as the bare column for a single column. Call with no
+    /// columns — <c>Group()</c> — for the empty set <c>()</c> that produces the
+    /// grand total.
+    /// </summary>
+    public static GroupingSet Group(params object[] columns) =>
+        new(Resolve(columns));
+
+    /// <summary>
     /// The <c>GROUP_CONCAT(expr)</c> string aggregate (MySQL and SQLite), using
     /// each dialect's default comma separator.
     /// </summary>
@@ -89,4 +99,15 @@ public static partial class Sql
         OrderByClause orderByClause,
         SeparatorClause separatorClause) =>
         new(Resolve(expr), distinct: distinct, orderByClause: orderByClause, separatorClause: separatorClause);
+
+    /// <summary>
+    /// The <c>GROUPING SETS(...)</c> GROUP BY grouping extension, built from one or
+    /// more <c>Group(...)</c> sets and emitted as <c>GROUPING SETS((a, b), c, ())</c>.
+    /// PostgreSQL / Oracle / SQL Server support it; MySQL and SQLite do not, but
+    /// <c>Build</c> still emits it faithfully rather than rejecting it, leaving the
+    /// unsupported statement for the target database to reject.
+    /// </summary>
+    public static GroupingSetsGrouping GroupingSets(
+        GroupingSet set,
+        params GroupingSet[] sets) => new([set, .. sets]);
 }

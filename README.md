@@ -521,6 +521,41 @@ SqlStatement sql =
 // HAVING COUNT(id) > :0
 ```
 
+For subtotal/grand-total reports, `GroupBy(...)` also accepts the grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)`. Wrap columns in `Group(...)` to form a composite grouping element — a multi-column set inside `GroupingSets(...)`, or a parenthesized composite column inside `Rollup(...)` / `Cube(...)` — and use `Group()` with no columns for the empty set (the grand total):
+
+```csharp
+SalesTable s = new();
+SqlStatement sql =
+    Select(s.Region, s.Product, Sum(s.Amount))
+    .From(s)
+    .GroupBy(Rollup(s.Region, s.Product))
+    .Build();
+
+// SELECT region, product, SUM(amount)
+// FROM sales
+// GROUP BY ROLLUP(region, product)
+
+// Composite grouping element via Group(...):
+//   .GroupBy(Rollup(Group(s.Region, s.Product), s.Channel))
+//   => GROUP BY ROLLUP((region, product), channel)
+//   .GroupBy(GroupingSets(Group(s.Region, s.Product), Group(s.Channel), Group()))
+//   => GROUP BY GROUPING SETS((region, product), channel, ())
+```
+
+`Rollup(...)`, `Cube(...)`, and `GroupingSets(...)` always emit their standard function forms (`ROLLUP(...)`, `CUBE(...)`, `GROUPING SETS(...)`) on every dialect — PostgreSQL, Oracle, and SQL Server support all three. MySQL's own grouping syntax is instead the `WITH ROLLUP` suffix; chain `.WithRollup()` onto `GroupBy(...)` for it:
+
+```csharp
+// MySQL:
+Select(s.Region, s.Product, Sum(s.Amount))
+    .From(s)
+    .GroupBy(s.Region, s.Product)
+    .WithRollup()
+    .Build(Dbms.MySql);
+// GROUP BY region, product WITH ROLLUP
+```
+
+`Build(Dbms)` emits every form faithfully and does not police DBMS availability — an unsupported combination such as `Cube` / `GroupingSets` on MySQL, the function-form `Rollup(...)` on MySQL, or any extension on SQLite, is emitted as written, leaving it for the database (and the planned opt-in analyzer) to flag rather than silently rewriting the query.
+
 ---
 
 #### Set Operators
