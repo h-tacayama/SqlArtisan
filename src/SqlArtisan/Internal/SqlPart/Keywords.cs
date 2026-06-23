@@ -7,6 +7,7 @@ internal static class Keywords
     internal const string AddMonths = "ADD_MONTHS";
     internal const string All = "ALL";
     internal const string And = "AND";
+    internal const string Apply = "APPLY";
     internal const string As = "AS";
     internal const string Asc = "ASC";
     internal const string Avg = "AVG";
@@ -72,6 +73,7 @@ internal static class Keywords
     internal const string Lag = "LAG";
     internal const string LastDay = "LAST_DAY";
     internal const string LastValue = "LAST_VALUE";
+    internal const string Lateral = "LATERAL";
     internal const string Lead = "LEAD";
     internal const string Least = "LEAST";
     internal const string Left = "LEFT";
@@ -109,6 +111,7 @@ internal static class Keywords
     internal const string Only = "ONLY";
     internal const string Or = "OR";
     internal const string Order = "ORDER";
+    internal const string Outer = "OUTER";
     internal const string Over = "OVER";
     internal const string Partition = "PARTITION";
     internal const string PercentileCont = "PERCENTILE_CONT";
@@ -153,6 +156,7 @@ internal static class Keywords
     internal const string ToNumber = "TO_NUMBER";
     internal const string ToTimestamp = "TO_TIMESTAMP";
     internal const string Trim = "TRIM";
+    internal const string True = "true";
     internal const string Trunc = "TRUNC";
     internal const string Unbounded = "UNBOUNDED";
     internal const string Union = "UNION";

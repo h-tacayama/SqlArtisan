@@ -57,7 +57,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [SELECT Clause](#select-clause): **Column Aliases**, `DISTINCT`, **Hints**
     - [FROM Clause](#from-clause): **FROM-less**, `DUAL`
     - [WHERE Clause](#where-clause)
-    - [JOIN Clause](#join-clause): `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, `FULL JOIN`, `CROSS JOIN`
+    - [JOIN Clause](#join-clause): `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, `FULL JOIN`, `CROSS JOIN`, `APPLY` / `LATERAL`
     - [ORDER BY Clause](#order-by-clause): `ASC`, `DESC`, `NULLS FIRST/LAST`
     - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
     - [Set Operators](#set-operators): `UNION [ALL]`, `EXCEPT [ALL]`, `MINUS [ALL]`, `INTERSECT [ALL]`
@@ -461,6 +461,42 @@ SqlStatement sql =
 - `RightJoin()` for `RIGHT JOIN`
 - `FullJoin()` for `FULL JOIN`
 - `CrossJoin()` for `CROSS JOIN`
+
+##### Correlated joins: APPLY / LATERAL
+
+To join a correlated derived table (per-group Top-N, lateral function expansion,
+…), pass a subquery and its alias. Because `APPLY` and `LATERAL` are genuinely
+different grammars — not one construct spelled two ways — each is its own
+method emitting exactly what you write (no `Build(Dbms)` rewriting); pick the one
+your target DBMS speaks:
+
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .CrossApply(
+        Select(o.Id).From(o).Where(o.UserId == u.Id),
+        "x")
+    .Build(Dbms.SqlServer);
+
+// SELECT "u".name
+// FROM users "u"
+// CROSS APPLY (SELECT "o".id FROM orders "o" WHERE "o".user_id = "u".id) "x"
+```
+
+| Method | Emits | Typical DBMS |
+|---|---|---|
+| `CrossApply(subquery, alias)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
+| `OuterApply(subquery, alias)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
+| `CrossJoinLateral(subquery, alias)` | `CROSS JOIN LATERAL (...) alias` | PostgreSQL, MySQL, Oracle |
+| `LeftJoinLateral(subquery, alias)` | `LEFT JOIN LATERAL (...) alias ON true` | PostgreSQL, MySQL, Oracle |
+| `JoinLateral(subquery, alias).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL, Oracle |
+
+Availability is the target database's concern (and the opt-in analyzer's):
+SQLite supports neither, and `LATERAL` has no SQL Server equivalent. SqlArtisan
+emits the construct faithfully rather than gating it at build time.
 
 ---
 
