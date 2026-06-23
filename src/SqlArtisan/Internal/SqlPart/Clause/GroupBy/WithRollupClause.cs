@@ -1,12 +1,7 @@
 namespace SqlArtisan.Internal;
 
-/// <summary>
-/// The MySQL <c>WITH ROLLUP</c> suffix on a <c>GROUP BY</c> clause, added with
-/// <c>.GroupBy(...).WithRollup()</c>. It renders <c>WITH ROLLUP</c> immediately
-/// after the grouping list (<c>GROUP BY a, b WITH ROLLUP</c>). Only MySQL accepts
-/// this form; elsewhere the standard <c>Sql.Rollup(...)</c> function form is the
-/// portable spelling.
-/// </summary>
+// Renders MySQL's `WITH ROLLUP` GROUP BY suffix. The user-facing contract lives
+// on ISelectBuilderGroupBy.WithRollup(); this is the clause it appends.
 internal sealed class WithRollupClause : SqlPart
 {
     internal override void Format(SqlBuildingBuffer buffer) =>

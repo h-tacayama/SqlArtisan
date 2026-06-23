@@ -9,10 +9,18 @@ The reader is a SQL-savvy SqlArtisan user seeing this in IntelliSense while
 writing a query. Write for that moment: what the call **emits** and **when to
 use it** — nothing about how or why it is built.
 
-Document the user-facing public surface where it adds value: `Sql.*` factories,
-the `ISelectBuilder*` / `SqlBuilder/` fluent API, public expression/clause types.
-Skip a doc when the name already says everything (e.g. `Rank()`, `RowNumber()`
-carry none). Internal mechanics never need a doc.
+Document where it adds value: `Sql.*` factories, the `ISelectBuilder*` /
+`SqlBuilder/` fluent API, public expression/clause types. Skip a doc when the name
+already says everything (e.g. `Rank()`, `RowNumber()`, and most function nodes like
+`AbsFunction` carry none).
+
+**The access modifier does not decide this — value (non-obviousness) does.** A
+trivial *public* node needs no `///`; a non-obvious *internal* contract does get
+one (e.g. `IDbmsDialect`'s members, whose per-dialect meaning needs explaining for
+maintainers). Use a plain `//` comment for implementation how/why, `///` for a
+type/member description. Never repeat on an internal node a doc that already lives
+on the public method it backs (the `WithRollupClause` clause carries a `//` note,
+not a copy of `WithRollup()`'s `///`).
 
 (Existing summaries predate these conventions — apply them to new and edited
 docs; no mass retrofit.)
