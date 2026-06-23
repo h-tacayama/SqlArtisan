@@ -13,8 +13,6 @@ internal sealed class SqlServerDialect : IDbmsDialect
     // let the database reject the statement rather than throwing at build time.
     public string ExcludedName => "EXCLUDED";
 
-    public bool UsesWithRollupSuffix => false;
-
     // SQL Server requires a MERGE statement to be terminated with a semicolon;
     // omitting it raises a syntax error when the statement is executed.
     public string MergeTerminator => ";";

@@ -15,8 +15,6 @@ internal sealed class OracleDialect : IDbmsDialect
     // let the database reject the statement rather than throwing at build time.
     public string ExcludedName => "EXCLUDED";
 
-    public bool UsesWithRollupSuffix => false;
-
     // Oracle's MERGE needs no terminating token.
     public string MergeTerminator => "";
 }

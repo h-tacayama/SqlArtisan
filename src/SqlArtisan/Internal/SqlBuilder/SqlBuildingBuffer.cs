@@ -89,25 +89,16 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    // Renders a GROUP BY ROLLUP grouping. PostgreSQL / Oracle / SQL Server use the
-    // standard function form `ROLLUP(a, b)`; MySQL uses the suffix form
-    // `a, b WITH ROLLUP`. Where ROLLUP is unavailable (SQLite) the form is still
-    // emitted faithfully — DBMS feasibility is the analyzer's concern (ADR 0003),
-    // not Build's (ADR 0001: never silently rewrite the author's SQL).
-    internal SqlBuildingBuffer AppendRollup(SqlPart[] items)
-    {
-        if (_dialect.UsesWithRollupSuffix)
-        {
-            AppendCsv(items);
-            Append($" {Keywords.With} {Keywords.Rollup}");
-            return this;
-        }
-
-        return Append(Keywords.Rollup)
+    // Renders a GROUP BY ROLLUP grouping `ROLLUP(a, b)` — the standard function
+    // form — on every dialect. MySQL accepts only its `... WITH ROLLUP` suffix,
+    // which is a separate construct (`.GroupBy(...).WithRollup()`); availability is
+    // the analyzer's concern, not Build's (ADR 0001: never silently rewrite the
+    // author's SQL into a different construct).
+    internal SqlBuildingBuffer AppendRollup(SqlPart[] items) =>
+        Append(Keywords.Rollup)
             .OpenParenthesis()
             .AppendCsv(items)
             .CloseParenthesis();
-    }
 
     // Renders a GROUP BY CUBE grouping `CUBE(a, b)`. Emitted faithfully on every
     // dialect; where CUBE is unavailable (MySQL, SQLite) that is the analyzer's

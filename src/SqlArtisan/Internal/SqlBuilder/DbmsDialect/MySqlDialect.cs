@@ -13,10 +13,6 @@ internal sealed class MySqlDialect : IDbmsDialect
     // update clause can read it as `new.column`.
     public string ExcludedName => "new";
 
-    // MySQL renders ROLLUP in the suffix form `GROUP BY a, b WITH ROLLUP` rather
-    // than the standard function form.
-    public bool UsesWithRollupSuffix => true;
-
     // MySQL has no MERGE statement, so no terminating token applies.
     public string MergeTerminator => "";
 }

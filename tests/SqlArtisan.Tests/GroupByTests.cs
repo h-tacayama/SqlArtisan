@@ -79,6 +79,8 @@ public class GroupByTests
     [Fact]
     public void Rollup_MySql_CorrectSql()
     {
+        // Rollup(...) emits the standard function form on every dialect, MySQL
+        // included; MySQL's WITH ROLLUP suffix is the separate .WithRollup() API.
         SqlStatement sql =
             Select(
                 _t.Code,
@@ -94,21 +96,22 @@ public class GroupByTests
         expected.Append("FROM ");
         expected.Append("test_table `t` ");
         expected.Append("GROUP BY ");
-        expected.Append("`t`.code, `t`.name WITH ROLLUP");
+        expected.Append("ROLLUP(`t`.code, `t`.name)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
-    public void Rollup_MySql_SingleColumnGroup_CorrectSql()
+    public void WithRollup_MySql_CorrectSql()
     {
-        // A single-column Group renders bare, so the MySQL suffix form accepts it.
+        // MySQL's native grouping syntax: a WITH ROLLUP suffix on GROUP BY.
         SqlStatement sql =
             Select(
                 _t.Code,
                 _t.Name)
             .From(_t)
-            .GroupBy(Rollup(Group(_t.Code), _t.Name))
+            .GroupBy(_t.Code, _t.Name)
+            .WithRollup()
             .Build(Dbms.MySql);
 
         StringBuilder expected = new();
@@ -124,28 +127,26 @@ public class GroupByTests
     }
 
     [Fact]
-    public void Rollup_MySql_CompositeGroup_CorrectSql()
+    public void WithRollup_MySql_WithOrderBy_CorrectSql()
     {
-        // The builder emits faithfully (ADR 0001); whether MySQL accepts a
-        // composite grouping element in its WITH ROLLUP suffix form is the
-        // author's responsibility and the analyzer's concern (ADR 0003), not a
-        // Build-time check.
+        // WITH ROLLUP renders right after the grouping list, before later clauses.
         SqlStatement sql =
-            Select(
-                _t.Code,
-                _t.Name)
+            Select(_t.Code)
             .From(_t)
-            .GroupBy(Rollup(Group(_t.Code, _t.Name), _t.CreatedAt))
+            .GroupBy(_t.Code)
+            .WithRollup()
+            .OrderBy(_t.Code)
             .Build(Dbms.MySql);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("`t`.code, ");
-        expected.Append("`t`.name ");
+        expected.Append("`t`.code ");
         expected.Append("FROM ");
         expected.Append("test_table `t` ");
         expected.Append("GROUP BY ");
-        expected.Append("(`t`.code, `t`.name), `t`.created_at WITH ROLLUP");
+        expected.Append("`t`.code WITH ROLLUP ");
+        expected.Append("ORDER BY ");
+        expected.Append("`t`.code");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

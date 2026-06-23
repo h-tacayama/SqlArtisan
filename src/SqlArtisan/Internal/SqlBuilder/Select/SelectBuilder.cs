@@ -258,4 +258,10 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         AddPart(new WhereClause(condition));
         return this;
     }
+
+    public ISelectBuilderGroupBy WithRollup()
+    {
+        AddPart(new WithRollupClause());
+        return this;
+    }
 }

@@ -3,10 +3,10 @@
 /// <summary>
 /// The <c>ROLLUP(...)</c> grouping extension, built with <c>Sql.Rollup(...)</c>.
 /// Each element is an ordinary column or a <c>Sql.Group(...)</c> composite column.
-/// Emitted as the standard <c>ROLLUP(a, b)</c> on PostgreSQL / Oracle / SQL
-/// Server and as the suffix form <c>a, b WITH ROLLUP</c> on MySQL. SQLite has no
-/// ROLLUP; Build still emits it faithfully, leaving the unsupported statement for
-/// the database to reject.
+/// Emitted as the standard function form <c>ROLLUP(a, b)</c> on every dialect.
+/// MySQL's <c>WITH ROLLUP</c> suffix is a separate construct
+/// (<c>.GroupBy(...).WithRollup()</c>); an unsupported target is emitted as written
+/// for the database to reject.
 /// </summary>
 public sealed class RollupGrouping : GroupingElement
 {

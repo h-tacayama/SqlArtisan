@@ -27,13 +27,6 @@ internal interface IDbmsDialect
     string ExcludedName { get; }
 
     /// <summary>
-    /// Whether <c>ROLLUP</c> is emitted as the MySQL suffix form
-    /// (<c>GROUP BY a, b WITH ROLLUP</c>) rather than the standard function form
-    /// (<c>GROUP BY ROLLUP(a, b)</c>). MySQL alone uses the suffix form.
-    /// </summary>
-    bool UsesWithRollupSuffix { get; }
-
-    /// <summary>
     /// The token appended after a <c>MERGE</c> statement. SQL Server's <c>MERGE</c>
     /// syntactically requires a trailing semicolon (<c>;</c>); every other dialect
     /// needs none and leaves this empty. This is specific to <c>MERGE</c> —

@@ -542,7 +542,19 @@ SqlStatement sql =
 //   => GROUP BY GROUPING SETS((region, product), channel, ())
 ```
 
-PostgreSQL, Oracle, and SQL Server support all three. MySQL supports only `Rollup`, which it renders in its native suffix form `GROUP BY region, product WITH ROLLUP`. `Build(Dbms)` emits every form faithfully and does not police DBMS availability — an unsupported combination such as `Cube` / `GroupingSets` on MySQL, or any extension on SQLite, is emitted as written, leaving it for the database (and the planned opt-in analyzer) to flag rather than silently rewriting the query.
+`Rollup(...)`, `Cube(...)`, and `GroupingSets(...)` always emit their standard function forms (`ROLLUP(...)`, `CUBE(...)`, `GROUPING SETS(...)`) on every dialect — PostgreSQL, Oracle, and SQL Server support all three. MySQL's own grouping syntax is instead the `WITH ROLLUP` suffix; chain `.WithRollup()` onto `GroupBy(...)` for it:
+
+```csharp
+// MySQL:
+Select(s.Region, s.Product, Sum(s.Amount))
+    .From(s)
+    .GroupBy(s.Region, s.Product)
+    .WithRollup()
+    .Build(Dbms.MySql);
+// GROUP BY `region`, `product` WITH ROLLUP
+```
+
+`Build(Dbms)` emits every form faithfully and does not police DBMS availability — an unsupported combination such as `Cube` / `GroupingSets` on MySQL, the function-form `Rollup(...)` on MySQL, or any extension on SQLite, is emitted as written, leaving it for the database (and the planned opt-in analyzer) to flag rather than silently rewriting the query.
 
 ---
 
