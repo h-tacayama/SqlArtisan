@@ -102,8 +102,10 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>GROUPING SETS(...)</c> GROUP BY grouping extension, built from one or
-    /// more <c>Group(...)</c> sets and emitted as <c>GROUPING SETS((a, b), c, ())</c>
-    /// on PostgreSQL / Oracle / SQL Server; MySQL and SQLite throw at build time.
+    /// more <c>Group(...)</c> sets and emitted as <c>GROUPING SETS((a, b), c, ())</c>.
+    /// PostgreSQL / Oracle / SQL Server support it; MySQL and SQLite do not, but
+    /// <c>Build</c> emits it faithfully regardless — DBMS availability is the
+    /// analyzer's concern (ADR 0003), not a build-time check.
     /// </summary>
     public static GroupingSetsGrouping GroupingSets(
         GroupingSet set,
