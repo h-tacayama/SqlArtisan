@@ -13,7 +13,8 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     ISelectBuilderOrderBy,
     ISelectBuilderSelect,
     ISelectBuilderSetOperator,
-    ISelectBuilderWhere
+    ISelectBuilderWhere,
+    ISelectBuilderWithRollup
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public ISelectBuilderSetOperator Except
@@ -259,7 +260,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderGroupBy WithRollup()
+    public ISelectBuilderWithRollup WithRollup()
     {
         AddPart(new WithRollupClause());
         return this;

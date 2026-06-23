@@ -127,6 +127,35 @@ public class GroupByTests
     }
 
     [Fact]
+    public void WithRollup_MySql_WithHaving_CorrectSql()
+    {
+        // The narrowed ISelectBuilderWithRollup still exposes Having; the suffix
+        // renders right after the grouping list, before HAVING.
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                Count(_t.Name))
+            .From(_t)
+            .GroupBy(_t.Code)
+            .WithRollup()
+            .Having(Count(_t.Name) > 1)
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("`t`.code, ");
+        expected.Append("COUNT(`t`.name) ");
+        expected.Append("FROM ");
+        expected.Append("test_table `t` ");
+        expected.Append("GROUP BY ");
+        expected.Append("`t`.code WITH ROLLUP ");
+        expected.Append("HAVING ");
+        expected.Append("COUNT(`t`.name) > ?0");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void WithRollup_MySql_WithOrderBy_CorrectSql()
     {
         // WITH ROLLUP renders right after the grouping list, before later clauses.
