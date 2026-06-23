@@ -9,18 +9,29 @@ The reader is a SQL-savvy SqlArtisan user seeing this in IntelliSense while
 writing a query. Write for that moment: what the call **emits** and **when to
 use it** — nothing about how or why it is built.
 
-Document where it adds value: `Sql.*` factories, the `ISelectBuilder*` /
-`SqlBuilder/` fluent API, public expression/clause types. Skip a doc when the name
-already says everything (e.g. `Rank()`, `RowNumber()`, and most function nodes like
-`AbsFunction` carry none).
+## What to document — by accessibility (the .NET rule)
 
-**The access modifier does not decide this — value (non-obviousness) does.** A
-trivial *public* node needs no `///`; a non-obvious *internal* contract does get
-one (e.g. `IDbmsDialect`'s members, whose per-dialect meaning needs explaining for
-maintainers). Use a plain `//` comment for implementation how/why, `///` for a
-type/member description. Never repeat on an internal node a doc that already lives
-on the public method it backs (the `WithRollupClause` clause carries a `//` note,
-not a copy of `WithRollup()`'s `///`).
+The codebase is not fully documented yet; **do not treat that as the standard.**
+Follow the .NET convention, which keys off externally-visible accessibility
+(the compiler's "publicly visible" / CS1591 concept):
+
+- **`public` and `protected` members of `public` types — document all of them.**
+  They are the published contract that drives consumer IntelliSense and reference
+  docs. `GenerateDocumentationFile` enforces this as CS1591 (see "Shipping docs"),
+  and it does **not** exempt "obvious" members — even a one-line summary counts,
+  and an interface implementation can use `<inheritdoc/>`.
+- **`internal`, `private`, `private protected`, and every member of an `internal`
+  type — optional.** The compiler never requires a doc here. Add a `///` only when
+  a non-obvious contract helps a maintainer (e.g. `IDbmsDialect`'s members); a plain
+  `//` note is equally fine, and trivial internals need nothing. Don't copy a public
+  method's doc onto the internal type it backs.
+
+Caveat for this repo: some node types are `public` yet live in the `Internal`
+namespace (a `public` factory can't return an `internal` type), so by the .NET rule
+they are publicly visible and fall under "document them." If they are truly
+implementation detail, the cleaner alignment is to make them `internal` — have the
+factory return a public base such as `SqlExpression` — rather than leave a public
+type undocumented.
 
 (Existing summaries predate these conventions — apply them to new and edited
 docs; no mass retrofit.)
