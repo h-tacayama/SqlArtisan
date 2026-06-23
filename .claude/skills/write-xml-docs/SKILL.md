@@ -119,12 +119,13 @@ Reference docs to copy from: `Sql.C.cs` — `Ceil`/`Ceiling` (`<remarks>` +
 The packages are published (each csproj sets `<Description>`) but none set
 `<GenerateDocumentationFile>`, so no XML doc ships — consumers get no IntelliSense
 from the package, which a type-safety / IntelliSense-first library is expected to
-provide. Shipping it is the .NET-cultural default; the trade-off is that
-`GenerateDocumentationFile` turns on **CS1591** (warn on every undocumented public
-member), which conflicts with "skip the obvious": you would then document the
-whole public surface, leaning on `<inheritdoc/>` for implementations and a brief
-summary even on simple factories. Treat enabling it as a deliberate decision, not
-an incidental one.
+provide. Shipping it is the .NET-cultural default. Enabling it **enforces** the
+"document all public/protected" rule above via **CS1591** (warn on every
+undocumented publicly-visible member) — it doesn't change the rule, only surfaces
+its cost, since the existing public surface isn't fully documented yet. Budget for
+documenting the whole surface (brief summaries, `<inheritdoc/>` on implementations)
+and decide what to do with the public-in-`Internal` nodes. Treat enabling it as a
+deliberate decision.
 
 ## Validate
 
