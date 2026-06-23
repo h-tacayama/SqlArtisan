@@ -63,16 +63,22 @@ Example — the trim that motivated this skill:
 - Tags to use: `<summary>`, `<param>`, `<returns>`, `<exception cref>`,
   `<paramref name="x"/>`, `<see cref>`, `<remarks>` (a genuine caveat or
   cross-reference), and `<c>` for SQL tokens / code. Use `<typeparam name="T">`
-  for a generic member (e.g. `SqlParameters.Get<T>`).
-- The summary's **first sentence is a noun phrase naming the construct** — it
-  shows in completion lists. "The `<c>CEIL(expr)</c>` function (smallest integer
-  not less than <paramref name="expr"/>)."
+  for a generic member (e.g. `SqlParameters.Get<T>`) and `<value>` for a property.
+- Write language keywords as `<see langword="null"/>` / `true` / `false`, not
+  `<c>null</c>` — the modern .NET idiom. A boolean `<returns>` reads
+  `<see langword="true"/> if …; otherwise, <see langword="false"/>`.
+- **First sentence** shows in completion lists, so make it a complete, concise
+  description. For a `Sql.*` construct-producing factory use a noun phrase naming
+  the construct ("The `<c>CEIL(expr)</c>` function (smallest integer not less than
+  <paramref name="expr"/>)."); for an action-like member or property use the .NET
+  verb-first form ("Gets the current value of a sequence …").
 - Keep the `<summary>` to the construct and its emitted form; put dialect caveats
   and "use X instead" pointers in `<remarks>`.
-- **Document on the interface, not the implementation.** A builder step lives on
-  an `ISelectBuilder*` interface — put its doc there; the `SelectBuilder`
-  implementation needs none (the IDE shows the interface doc) or uses
-  `<inheritdoc/>`. Don't write the same doc twice.
+- **Document on the interface, not the implementation.** Put a builder step's doc
+  on its `ISelectBuilder*` interface. The IDE shows it on the implementation
+  automatically, but the *generated XML* and DocFX do not inherit it — so when
+  docs are shipped (see below) put `<inheritdoc/>` on the `SelectBuilder` method.
+  Either way, never write the doc twice.
 - **Keep runnable usage examples in the README** (the canonical user doc), not in
   `<example>` blocks — two copies drift. `<seealso>` is optional sugar over an
   inline `<see cref>`; `<list>` / `<para>` are rarely needed.
@@ -88,6 +94,18 @@ Reference docs to copy from: `Sql.C.cs` — `Ceil`/`Ceiling` (`<remarks>` +
   (e.g. "throws at build time" after the throw was removed) is a review finding.
 - Every `<see cref="..."/>` must resolve — unresolved crefs are CS1574 warnings,
   and the core lib builds at the **0-warning** bar.
+
+## Shipping docs (project policy)
+
+The packages are published (each csproj sets `<Description>`) but none set
+`<GenerateDocumentationFile>`, so no XML doc ships — consumers get no IntelliSense
+from the package, which a type-safety / IntelliSense-first library is expected to
+provide. Shipping it is the .NET-cultural default; the trade-off is that
+`GenerateDocumentationFile` turns on **CS1591** (warn on every undocumented public
+member), which conflicts with "skip the obvious": you would then document the
+whole public surface, leaning on `<inheritdoc/>` for implementations and a brief
+summary even on simple factories. Treat enabling it as a deliberate decision, not
+an incidental one.
 
 ## Validate
 
