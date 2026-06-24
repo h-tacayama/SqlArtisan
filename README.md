@@ -471,7 +471,9 @@ its own method emitting exactly what you write (no `Build(Dbms)` rewriting); pic
 the one your target DBMS speaks:
 
 The handle, a `DerivedTable`, names the derived table once and is reused to
-reference its columns by name via `Column(name)` — no repeated alias strings:
+reference its columns via `Column(...)` — by name, or type-safely from the
+projected column / `.As(...)` alias (`x.Column(o.Id)`, `x.Column(total)`) — so no
+alias strings are repeated:
 
 ```csharp
 UsersTable u = new("u");
