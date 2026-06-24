@@ -3,16 +3,16 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-public class AdHocSchemaTests
+public class UntypedSchemaTests
 {
     private readonly TestTable _t = new("t");
     private readonly TestTable _s = new("s");
     private readonly TestTable _a = new("a");
 
     [Fact]
-    public void AdHocDerivedTable_SqlServer_CrossApplyWithColumn_CorrectSql()
+    public void UntypedDerivedTable_SqlServer_CrossApplyWithColumn_CorrectSql()
     {
-        AdHocDerivedTable x = new("x");
+        UntypedDerivedTable x = new("x");
 
         SqlStatement sql =
             Select(_t.Name, x.Column("total"))
@@ -39,9 +39,9 @@ public class AdHocSchemaTests
     }
 
     [Fact]
-    public void AdHocCte_WithColumn_CorrectSql()
+    public void UntypedCte_WithColumn_CorrectSql()
     {
-        AdHocCte cte = new("cte");
+        UntypedCte cte = new("cte");
 
         SqlStatement sql =
             With(

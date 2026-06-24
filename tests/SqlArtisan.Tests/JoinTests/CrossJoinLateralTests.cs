@@ -7,7 +7,7 @@ public class CrossJoinLateralTests
 {
     private readonly TestTable _t = new("t");
     private readonly TestTable _s = new("s");
-    private readonly AdHocDerivedTable _x = new("x");
+    private readonly UntypedDerivedTable _x = new("x");
 
     [Fact]
     public void CrossJoinLateral_PostgreSql_CorrectSql()

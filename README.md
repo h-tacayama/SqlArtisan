@@ -470,13 +470,13 @@ are genuinely different grammars — not one construct spelled two ways — each
 its own method emitting exactly what you write (no `Build(Dbms)` rewriting); pick
 the one your target DBMS speaks:
 
-The handle, an `AdHocDerivedTable`, names the derived table once and is reused to
-reference its columns ad-hoc via `Column(name)` — no repeated alias strings:
+The handle, an `UntypedDerivedTable`, names the derived table once and is reused to
+reference its columns by name via `Column(name)` — no repeated alias strings:
 
 ```csharp
 UsersTable u = new("u");
 OrdersTable o = new("o");
-AdHocDerivedTable x = new("x");
+UntypedDerivedTable x = new("x");
 
 SqlStatement sql =
     Select(u.Name, x.Column("id"))
@@ -1004,11 +1004,11 @@ alias-qualified (pass columns from an unaliased table instance, as `c` above).
 
 #### WITH Clause (Common Table Expressions)
 
-For a one-off CTE you don't want to declare a class for, use the ad-hoc
-`AdHocCte` and read its columns with `Column(name)`:
+For a one-off CTE you don't want to declare a typed class for, use the
+`UntypedCte` and read its columns by name with `Column(name)`:
 
 ```csharp
-AdHocCte seniors = new("seniors");
+UntypedCte seniors = new("seniors");
 SqlStatement sql =
     With(seniors.As(Select(users.Id.As(seniors.Column("id"))).From(users).Where(users.Age > 40)))
     .Select(seniors.Column("id"))
