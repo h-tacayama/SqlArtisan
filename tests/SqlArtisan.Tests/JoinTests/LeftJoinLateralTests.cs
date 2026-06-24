@@ -7,7 +7,7 @@ public class LeftJoinLateralTests
 {
     private readonly TestTable _t = new("t");
     private readonly TestTable _s = new("s");
-    private readonly UntypedDerivedTable _x = new("x");
+    private readonly DerivedTable _x = new("x");
 
     [Fact]
     public void LeftJoinLateral_PostgreSql_CorrectSql()

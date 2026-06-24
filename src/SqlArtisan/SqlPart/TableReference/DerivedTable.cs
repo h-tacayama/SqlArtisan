@@ -3,16 +3,16 @@
 namespace SqlArtisan;
 
 /// <summary>
-/// An untyped derived-table handle: names a <c>CROSS APPLY</c> / <c>LATERAL</c>
-/// source (or any <c>FROM</c> / <c>JOIN</c> relation) without declaring a typed
+/// Names a derived table inline — a <c>CROSS APPLY</c> / <c>LATERAL</c> source
+/// (or any <c>FROM</c> / <c>JOIN</c> relation) — without declaring a dedicated
 /// schema class, and renders as that bare name. Its columns are referenced by
-/// name through <see cref="Column"/> rather than as statically-typed members.
+/// name through <see cref="Column"/>.
 /// </summary>
-public sealed class UntypedDerivedTable : TableReference
+public sealed class DerivedTable : TableReference
 {
     private readonly string _name;
 
-    public UntypedDerivedTable(string name) : base(name)
+    public DerivedTable(string name) : base(name)
     {
         _name = name;
     }

@@ -3,9 +3,9 @@
 internal sealed class CrossApplyClause : SqlPart
 {
     private readonly SqlPartAgent _subquery;
-    private readonly UntypedDerivedTable _alias;
+    private readonly DerivedTable _alias;
 
-    internal CrossApplyClause(ISubquery subquery, UntypedDerivedTable alias)
+    internal CrossApplyClause(ISubquery subquery, DerivedTable alias)
     {
         _subquery = new(subquery.Format);
         _alias = alias;

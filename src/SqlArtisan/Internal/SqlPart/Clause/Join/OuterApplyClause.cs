@@ -3,9 +3,9 @@
 internal sealed class OuterApplyClause : SqlPart
 {
     private readonly SqlPartAgent _subquery;
-    private readonly UntypedDerivedTable _alias;
+    private readonly DerivedTable _alias;
 
-    internal OuterApplyClause(ISubquery subquery, UntypedDerivedTable alias)
+    internal OuterApplyClause(ISubquery subquery, DerivedTable alias)
     {
         _subquery = new(subquery.Format);
         _alias = alias;
