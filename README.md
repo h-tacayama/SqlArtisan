@@ -465,33 +465,25 @@ SqlStatement sql =
 ##### Correlated joins: APPLY / LATERAL
 
 To join a correlated derived table (per-group Top-N, lateral function expansion,
-…), pass a subquery and a **derived-table schema**. Because `APPLY` and `LATERAL`
+…), pass a subquery and a **derived-table handle**. Because `APPLY` and `LATERAL`
 are genuinely different grammars — not one construct spelled two ways — each is
 its own method emitting exactly what you write (no `Build(Dbms)` rewriting); pick
 the one your target DBMS speaks:
 
-The schema is a `DerivedTableSchemaBase` subclass that names the derived table
-once and exposes its columns as typed `DbColumn` members (the same pattern as a
-CTE's `CteSchemaBase`). Use it both as the second argument and to reference the
-derived table's columns elsewhere in the query — no repeated alias strings:
+The handle names the derived table once and is reused to reference its columns —
+no repeated alias strings. For the common case use the general-purpose
+`DerivedTable` and read columns ad-hoc with `Column(name)`:
 
 ```csharp
-// Defined once: the derived table's alias + its columns.
-internal sealed class Latest : DerivedTableSchemaBase
-{
-    public Latest(string name) : base(name) { Id = new(name, "id"); }
-    public DbColumn Id { get; }
-}
-
 UsersTable u = new("u");
 OrdersTable o = new("o");
-Latest x = new("x");
+DerivedTable x = new("x");
 
 SqlStatement sql =
-    Select(u.Name, x.Id)
+    Select(u.Name, x.Column("id"))
     .From(u)
     .CrossApply(
-        Select(o.Id.As(x.Id)).From(o).Where(o.UserId == u.Id),
+        Select(o.Id.As(x.Column("id"))).From(o).Where(o.UserId == u.Id),
         x)
     .Build(Dbms.SqlServer);
 
@@ -500,16 +492,20 @@ SqlStatement sql =
 // CROSS APPLY (SELECT "o".id "id" FROM orders "o" WHERE "o".user_id = "u".id) x
 ```
 
+When you reference the same derived table's columns repeatedly, subclass
+`DerivedTableSchemaBase` and expose them as typed `DbColumn` members instead (the
+same pattern as a CTE's `CteSchemaBase`).
+
 | Method | Emits | Typical DBMS |
 |---|---|---|
-| `CrossApply(subquery, schema)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
-| `OuterApply(subquery, schema)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
-| `CrossJoinLateral(subquery, schema)` | `CROSS JOIN LATERAL (...) alias` | PostgreSQL, MySQL, Oracle |
-| `LeftJoinLateral(subquery, schema)` | `LEFT JOIN LATERAL (...) alias ON true` | PostgreSQL, MySQL, Oracle |
-| `JoinLateral(subquery, schema).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL, Oracle |
+| `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
+| `OuterApply(subquery, handle)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
+| `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | PostgreSQL, MySQL, Oracle |
+| `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON true` | PostgreSQL, MySQL, Oracle |
+| `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL, Oracle |
 
 The derived-table alias is emitted bare (`... ) x`), matching how a CTE name is
-written; column references through the schema are alias-quoted (`"x".id`).
+written; column references through the handle are alias-quoted (`"x".id`).
 
 Availability is the target database's concern (and the opt-in analyzer's):
 SQLite supports neither, and `LATERAL` has no SQL Server equivalent. SqlArtisan
@@ -1012,6 +1008,21 @@ alias-qualified (pass columns from an unaliased table instance, as `c` above).
 ---
 
 #### WITH Clause (Common Table Expressions)
+
+For a one-off CTE you don't want to declare a class for, use the
+general-purpose `Cte` and read its columns ad-hoc with `Column(name)`:
+
+```csharp
+Cte seniors = new("seniors");
+SqlStatement sql =
+    With(seniors.As(Select(users.Id.As(seniors.Column("id"))).From(users).Where(users.Age > 40)))
+    .Select(seniors.Column("id"))
+    .From(seniors)
+    .Build();
+```
+
+When you reference a CTE's columns repeatedly, declare a typed schema class
+instead:
 
 1. Define your CTE Schema Class
 ```csharp
