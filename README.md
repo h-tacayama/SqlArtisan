@@ -470,14 +470,13 @@ are genuinely different grammars — not one construct spelled two ways — each
 its own method emitting exactly what you write (no `Build(Dbms)` rewriting); pick
 the one your target DBMS speaks:
 
-The handle names the derived table once and is reused to reference its columns —
-no repeated alias strings. For the common case use the general-purpose
-`DerivedTable` and read columns ad-hoc with `Column(name)`:
+The handle, an `AdHocDerivedTable`, names the derived table once and is reused to
+reference its columns ad-hoc via `Column(name)` — no repeated alias strings:
 
 ```csharp
 UsersTable u = new("u");
 OrdersTable o = new("o");
-DerivedTable x = new("x");
+AdHocDerivedTable x = new("x");
 
 SqlStatement sql =
     Select(u.Name, x.Column("id"))
@@ -491,10 +490,6 @@ SqlStatement sql =
 // FROM users "u"
 // CROSS APPLY (SELECT "o".id "id" FROM orders "o" WHERE "o".user_id = "u".id) x
 ```
-
-When you reference the same derived table's columns repeatedly, subclass
-`DerivedTableSchemaBase` and expose them as typed `DbColumn` members instead (the
-same pattern as a CTE's `CteSchemaBase`).
 
 | Method | Emits | Typical DBMS |
 |---|---|---|
@@ -1009,11 +1004,11 @@ alias-qualified (pass columns from an unaliased table instance, as `c` above).
 
 #### WITH Clause (Common Table Expressions)
 
-For a one-off CTE you don't want to declare a class for, use the
-general-purpose `Cte` and read its columns ad-hoc with `Column(name)`:
+For a one-off CTE you don't want to declare a class for, use the ad-hoc
+`AdHocCte` and read its columns with `Column(name)`:
 
 ```csharp
-Cte seniors = new("seniors");
+AdHocCte seniors = new("seniors");
 SqlStatement sql =
     With(seniors.As(Select(users.Id.As(seniors.Column("id"))).From(users).Where(users.Age > 40)))
     .Select(seniors.Column("id"))

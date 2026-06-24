@@ -7,7 +7,7 @@ public class JoinLateralTests
 {
     private readonly TestTable _t = new("t");
     private readonly TestTable _s = new("s");
-    private readonly TestDerivedTable _x = new("x");
+    private readonly AdHocDerivedTable _x = new("x");
 
     [Fact]
     public void JoinLateral_PostgreSql_CorrectSql()
@@ -16,7 +16,7 @@ public class JoinLateralTests
             Select(_t.Name)
             .From(_t)
             .JoinLateral(Select(_s.Code).From(_s), _x)
-            .On(_t.Code == _x.Code)
+            .On(_t.Code == _x.Column("code"))
             .Build();
 
         StringBuilder expected = new();
@@ -42,7 +42,7 @@ public class JoinLateralTests
             Select(_t.Name)
             .From(_t)
             .JoinLateral(Select(_s.Code).From(_s), _x)
-            .On(_t.Code == _x.Code)
+            .On(_t.Code == _x.Column("code"))
             .Build(Dbms.MySql);
 
         StringBuilder expected = new();
@@ -68,7 +68,7 @@ public class JoinLateralTests
             Select(_t.Name)
             .From(_t)
             .JoinLateral(Select(_s.Code).From(_s), _x)
-            .On(_t.Code == _x.Code)
+            .On(_t.Code == _x.Column("code"))
             .Build(Dbms.Oracle);
 
         StringBuilder expected = new();

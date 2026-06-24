@@ -3,9 +3,9 @@
 internal sealed class CrossJoinLateralClause : SqlPart
 {
     private readonly SqlPartAgent _subquery;
-    private readonly DerivedTableSchemaBase _alias;
+    private readonly AdHocDerivedTable _alias;
 
-    internal CrossJoinLateralClause(ISubquery subquery, DerivedTableSchemaBase alias)
+    internal CrossJoinLateralClause(ISubquery subquery, AdHocDerivedTable alias)
     {
         _subquery = new(subquery.Format);
         _alias = alias;
