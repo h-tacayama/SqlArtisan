@@ -3,9 +3,9 @@
 internal sealed class OuterApplyClause : SqlPart
 {
     private readonly SqlPartAgent _subquery;
-    private readonly string _alias;
+    private readonly DerivedTableSchemaBase _alias;
 
-    internal OuterApplyClause(ISubquery subquery, string alias)
+    internal OuterApplyClause(ISubquery subquery, DerivedTableSchemaBase alias)
     {
         _subquery = new(subquery.Format);
         _alias = alias;
@@ -15,5 +15,5 @@ internal sealed class OuterApplyClause : SqlPart
         .Append($"{Keywords.Outer} {Keywords.Apply} ")
         .EncloseInParentheses(_subquery)
         .AppendSpace()
-        .EncloseInAliasQuotes(_alias);
+        .Append(_alias);
 }

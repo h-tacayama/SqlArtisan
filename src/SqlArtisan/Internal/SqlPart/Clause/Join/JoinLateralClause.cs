@@ -3,9 +3,9 @@
 internal sealed class JoinLateralClause : SqlPart
 {
     private readonly SqlPartAgent _subquery;
-    private readonly string _alias;
+    private readonly DerivedTableSchemaBase _alias;
 
-    internal JoinLateralClause(ISubquery subquery, string alias)
+    internal JoinLateralClause(ISubquery subquery, DerivedTableSchemaBase alias)
     {
         _subquery = new(subquery.Format);
         _alias = alias;
@@ -17,5 +17,5 @@ internal sealed class JoinLateralClause : SqlPart
         .Append($"{Keywords.Join} {Keywords.Lateral} ")
         .EncloseInParentheses(_subquery)
         .AppendSpace()
-        .EncloseInAliasQuotes(_alias);
+        .Append(_alias);
 }

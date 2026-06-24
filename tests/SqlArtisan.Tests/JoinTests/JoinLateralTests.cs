@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -7,7 +7,7 @@ public class JoinLateralTests
 {
     private readonly TestTable _t = new("t");
     private readonly TestTable _s = new("s");
-    private readonly TestTable _x = new("x");
+    private readonly TestDerivedTable _x = new("x");
 
     [Fact]
     public void JoinLateral_PostgreSql_CorrectSql()
@@ -15,7 +15,7 @@ public class JoinLateralTests
         SqlStatement sql =
             Select(_t.Name)
             .From(_t)
-            .JoinLateral(Select(_s.Code).From(_s), "x")
+            .JoinLateral(Select(_s.Code).From(_s), _x)
             .On(_t.Code == _x.Code)
             .Build();
 
@@ -28,7 +28,7 @@ public class JoinLateralTests
         expected.Append("(");
         expected.Append("SELECT \"s\".code FROM test_table \"s\"");
         expected.Append(") ");
-        expected.Append("\"x\" ");
+        expected.Append("x ");
         expected.Append("ON ");
         expected.Append("\"t\".code = \"x\".code");
 
@@ -41,7 +41,7 @@ public class JoinLateralTests
         SqlStatement sql =
             Select(_t.Name)
             .From(_t)
-            .JoinLateral(Select(_s.Code).From(_s), "x")
+            .JoinLateral(Select(_s.Code).From(_s), _x)
             .On(_t.Code == _x.Code)
             .Build(Dbms.MySql);
 
@@ -54,7 +54,7 @@ public class JoinLateralTests
         expected.Append("(");
         expected.Append("SELECT `s`.code FROM test_table `s`");
         expected.Append(") ");
-        expected.Append("`x` ");
+        expected.Append("x ");
         expected.Append("ON ");
         expected.Append("`t`.code = `x`.code");
 
@@ -67,7 +67,7 @@ public class JoinLateralTests
         SqlStatement sql =
             Select(_t.Name)
             .From(_t)
-            .JoinLateral(Select(_s.Code).From(_s), "x")
+            .JoinLateral(Select(_s.Code).From(_s), _x)
             .On(_t.Code == _x.Code)
             .Build(Dbms.Oracle);
 
@@ -80,7 +80,7 @@ public class JoinLateralTests
         expected.Append("(");
         expected.Append("SELECT \"s\".code FROM test_table \"s\"");
         expected.Append(") ");
-        expected.Append("\"x\" ");
+        expected.Append("x ");
         expected.Append("ON ");
         expected.Append("\"t\".code = \"x\".code");
 

@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -7,6 +7,7 @@ public class LeftJoinLateralTests
 {
     private readonly TestTable _t = new("t");
     private readonly TestTable _s = new("s");
+    private readonly TestDerivedTable _x = new("x");
 
     [Fact]
     public void LeftJoinLateral_PostgreSql_CorrectSql()
@@ -16,7 +17,7 @@ public class LeftJoinLateralTests
             .From(_t)
             .LeftJoinLateral(
                 Select(_s.Code).From(_s).Where(_s.Code == _t.Code),
-                "x")
+                _x)
             .Build();
 
         StringBuilder expected = new();
@@ -28,7 +29,7 @@ public class LeftJoinLateralTests
         expected.Append("(");
         expected.Append("SELECT \"s\".code FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
-        expected.Append("\"x\" ");
+        expected.Append("x ");
         expected.Append("ON true");
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -42,7 +43,7 @@ public class LeftJoinLateralTests
             .From(_t)
             .LeftJoinLateral(
                 Select(_s.Code).From(_s).Where(_s.Code == _t.Code),
-                "x")
+                _x)
             .Build(Dbms.MySql);
 
         StringBuilder expected = new();
@@ -54,7 +55,7 @@ public class LeftJoinLateralTests
         expected.Append("(");
         expected.Append("SELECT `s`.code FROM test_table `s` WHERE `s`.code = `t`.code");
         expected.Append(") ");
-        expected.Append("`x` ");
+        expected.Append("x ");
         expected.Append("ON true");
 
         Assert.Equal(expected.ToString(), sql.Text);

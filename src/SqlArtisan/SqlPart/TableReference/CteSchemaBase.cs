@@ -2,7 +2,7 @@
 
 namespace SqlArtisan;
 
-public abstract class CteSchemaBase(string name) : TableReference(name)
+public abstract class CteSchemaBase(string name) : DerivedTableSchemaBase(name)
 {
     private readonly string _name = name;
 

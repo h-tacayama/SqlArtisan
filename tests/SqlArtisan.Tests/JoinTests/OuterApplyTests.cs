@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -7,6 +7,7 @@ public class OuterApplyTests
 {
     private readonly TestTable _t = new("t");
     private readonly TestTable _s = new("s");
+    private readonly TestDerivedTable _x = new("x");
 
     [Fact]
     public void OuterApply_Oracle_CorrectSql()
@@ -16,7 +17,7 @@ public class OuterApplyTests
             .From(_t)
             .OuterApply(
                 Select(_s.Code).From(_s).Where(_s.Code == _t.Code),
-                "x")
+                _x)
             .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
@@ -28,7 +29,7 @@ public class OuterApplyTests
         expected.Append("(");
         expected.Append("SELECT \"s\".code FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
-        expected.Append("\"x\"");
+        expected.Append("x");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -41,7 +42,7 @@ public class OuterApplyTests
             .From(_t)
             .OuterApply(
                 Select(_s.Code).From(_s).Where(_s.Code == _t.Code),
-                "x")
+                _x)
             .Build(Dbms.SqlServer);
 
         StringBuilder expected = new();
@@ -53,7 +54,7 @@ public class OuterApplyTests
         expected.Append("(");
         expected.Append("SELECT \"s\".code FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
-        expected.Append("\"x\"");
+        expected.Append("x");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

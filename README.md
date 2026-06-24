@@ -465,34 +465,51 @@ SqlStatement sql =
 ##### Correlated joins: APPLY / LATERAL
 
 To join a correlated derived table (per-group Top-N, lateral function expansion,
-…), pass a subquery and its alias. Because `APPLY` and `LATERAL` are genuinely
-different grammars — not one construct spelled two ways — each is its own
-method emitting exactly what you write (no `Build(Dbms)` rewriting); pick the one
-your target DBMS speaks:
+…), pass a subquery and a **derived-table schema**. Because `APPLY` and `LATERAL`
+are genuinely different grammars — not one construct spelled two ways — each is
+its own method emitting exactly what you write (no `Build(Dbms)` rewriting); pick
+the one your target DBMS speaks:
+
+The schema is a `DerivedTableSchemaBase` subclass that names the derived table
+once and exposes its columns as typed `DbColumn` members (the same pattern as a
+CTE's `CteSchemaBase`). Use it both as the second argument and to reference the
+derived table's columns elsewhere in the query — no repeated alias strings:
 
 ```csharp
+// Defined once: the derived table's alias + its columns.
+internal sealed class Latest : DerivedTableSchemaBase
+{
+    public Latest(string name) : base(name) { Id = new(name, "id"); }
+    public DbColumn Id { get; }
+}
+
 UsersTable u = new("u");
 OrdersTable o = new("o");
+Latest x = new("x");
+
 SqlStatement sql =
-    Select(u.Name)
+    Select(u.Name, x.Id)
     .From(u)
     .CrossApply(
-        Select(o.Id).From(o).Where(o.UserId == u.Id),
-        "x")
+        Select(o.Id.As(x.Id)).From(o).Where(o.UserId == u.Id),
+        x)
     .Build(Dbms.SqlServer);
 
-// SELECT "u".name
+// SELECT "u".name, "x".id
 // FROM users "u"
-// CROSS APPLY (SELECT "o".id FROM orders "o" WHERE "o".user_id = "u".id) "x"
+// CROSS APPLY (SELECT "o".id "id" FROM orders "o" WHERE "o".user_id = "u".id) x
 ```
 
 | Method | Emits | Typical DBMS |
 |---|---|---|
-| `CrossApply(subquery, alias)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
-| `OuterApply(subquery, alias)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
-| `CrossJoinLateral(subquery, alias)` | `CROSS JOIN LATERAL (...) alias` | PostgreSQL, MySQL, Oracle |
-| `LeftJoinLateral(subquery, alias)` | `LEFT JOIN LATERAL (...) alias ON true` | PostgreSQL, MySQL, Oracle |
-| `JoinLateral(subquery, alias).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL, Oracle |
+| `CrossApply(subquery, schema)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
+| `OuterApply(subquery, schema)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
+| `CrossJoinLateral(subquery, schema)` | `CROSS JOIN LATERAL (...) alias` | PostgreSQL, MySQL, Oracle |
+| `LeftJoinLateral(subquery, schema)` | `LEFT JOIN LATERAL (...) alias ON true` | PostgreSQL, MySQL, Oracle |
+| `JoinLateral(subquery, schema).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL, Oracle |
+
+The derived-table alias is emitted bare (`... ) x`), matching how a CTE name is
+written; column references through the schema are alias-quoted (`"x".id`).
 
 Availability is the target database's concern (and the opt-in analyzer's):
 SQLite supports neither, and `LATERAL` has no SQL Server equivalent. SqlArtisan
