@@ -102,7 +102,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     public SqlStatement Build(Dbms dbms) =>
         BuildCore(dbms);
 
-    public ISelectBuilderFrom CrossApply(ISubquery subquery, DerivedTable alias)
+    public ISelectBuilderFrom CrossApply(ISubquery subquery, DerivedTableSchemaBase alias)
     {
         AddPart(new CrossApplyClause(subquery, alias));
         return this;
@@ -114,7 +114,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderFrom CrossJoinLateral(ISubquery subquery, DerivedTable alias)
+    public ISelectBuilderFrom CrossJoinLateral(ISubquery subquery, DerivedTableSchemaBase alias)
     {
         AddPart(new CrossJoinLateralClause(subquery, alias));
         return this;
@@ -178,7 +178,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderJoin JoinLateral(ISubquery subquery, DerivedTable alias)
+    public ISelectBuilderJoin JoinLateral(ISubquery subquery, DerivedTableSchemaBase alias)
     {
         AddPart(new JoinLateralClause(subquery, alias));
         return this;
@@ -190,7 +190,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTable alias)
+    public ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTableSchemaBase alias)
     {
         AddPart(new LeftJoinLateralClause(subquery, alias));
         return this;
@@ -227,7 +227,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderFrom OuterApply(ISubquery subquery, DerivedTable alias)
+    public ISelectBuilderFrom OuterApply(ISubquery subquery, DerivedTableSchemaBase alias)
     {
         AddPart(new OuterApplyClause(subquery, alias));
         return this;

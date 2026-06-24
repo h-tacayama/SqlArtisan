@@ -39,6 +39,35 @@ public class DerivedTableSchemaTests
     }
 
     [Fact]
+    public void DerivedTableSchema_SqlServer_CrossApplyTypedColumns_CorrectSql()
+    {
+        TestDerivedTable x = new("x");
+
+        SqlStatement sql =
+            Select(_t.Name, x.Total)
+            .From(_t)
+            .CrossApply(
+                Select(Sum(_s.Code).As(x.Total))
+                    .From(_s)
+                    .Where(_s.Code == _t.Code),
+                x)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name, \"x\".total ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("CROSS APPLY ");
+        expected.Append("(");
+        expected.Append("SELECT SUM(\"s\".code) \"total\" FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
+        expected.Append(") ");
+        expected.Append("x");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Cte_WithColumn_CorrectSql()
     {
         Cte cte = new("cte");

@@ -491,6 +491,10 @@ SqlStatement sql =
 // CROSS APPLY (SELECT "o".id "id" FROM orders "o" WHERE "o".user_id = "u".id) x
 ```
 
+When you reference the derived table's columns repeatedly, subclass
+`DerivedTableSchemaBase` and expose them as typed `DbColumn` members (the same
+pattern as a CTE's `CteSchemaBase`); pass that instance as the handle.
+
 | Method | Emits | Typical DBMS |
 |---|---|---|
 | `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |

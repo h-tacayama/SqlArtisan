@@ -3,9 +3,9 @@
 internal sealed class LeftJoinLateralClause : SqlPart
 {
     private readonly SqlPartAgent _subquery;
-    private readonly DerivedTable _alias;
+    private readonly DerivedTableSchemaBase _alias;
 
-    internal LeftJoinLateralClause(ISubquery subquery, DerivedTable alias)
+    internal LeftJoinLateralClause(ISubquery subquery, DerivedTableSchemaBase alias)
     {
         _subquery = new(subquery.Format);
         _alias = alias;
