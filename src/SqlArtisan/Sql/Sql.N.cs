@@ -28,11 +28,26 @@ public static partial class Sql
     public static NextValueForFunction NextValueFor(string sequenceName) =>
         new(sequenceName);
 
+    /// <summary>
+    /// The <c>NOT (condition)</c> predicate: negates <paramref name="condition"/>.
+    /// </summary>
+    /// <param name="condition">The condition to negate.</param>
+    /// <returns>A negated condition.</returns>
     public static NotCondition Not(SqlCondition condition) => new(condition);
 
+    /// <summary>
+    /// The <c>NOT EXISTS (subquery)</c> predicate: true when
+    /// <paramref name="subquery"/> returns no rows.
+    /// </summary>
+    /// <param name="subquery">The subquery to test for emptiness.</param>
+    /// <returns>A <c>NOT EXISTS</c> condition.</returns>
     public static NotExistsCondition NotExists(ISubquery subquery) =>
         new(subquery);
 
+    /// <summary>
+    /// The <c>NOWAIT</c> lock behavior for a <c>FOR UPDATE</c> clause: fail
+    /// immediately rather than block when a row is already locked.
+    /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static NowaitBehavior Nowait => new();
 
@@ -54,6 +69,9 @@ public static partial class Sql
     /// </summary>
     public static AnalyticNtileFunction Ntile(int buckets) => new(buckets);
 
+    /// <summary>
+    /// The SQL <c>NULL</c> literal.
+    /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static NullExpression Null => new();
 
@@ -61,10 +79,22 @@ public static partial class Sql
     /// The <c>NULLIF(expr1, expr2)</c> function: returns <c>NULL</c> when the two
     /// expressions are equal, otherwise <paramref name="expr1"/>.
     /// </summary>
+    /// <param name="expr1">The expression returned when the two differ.</param>
+    /// <param name="expr2">The expression compared against <paramref name="expr1"/>.</param>
+    /// <returns>A <c>NULLIF</c> function expression.</returns>
     public static NullifFunction Nullif(
         object expr1,
         object expr2) => new(Resolve(expr1), Resolve(expr2));
 
+    /// <summary>
+    /// The <c>NVL(expr1, expr2)</c> function: returns <paramref name="expr1"/> when
+    /// it is not <see langword="null"/>, otherwise <paramref name="expr2"/>.
+    /// </summary>
+    /// <param name="expr1">The expression returned when it is not <see langword="null"/>.</param>
+    /// <param name="expr2">The fallback returned when <paramref name="expr1"/> is <see langword="null"/>.</param>
+    /// <returns>An <c>NVL</c> function expression.</returns>
+    /// <remarks>Oracle syntax. For the standard equivalent use
+    /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
     public static NvlFunction Nvl(
         object expr1,
         object expr2) => new(Resolve(expr1), Resolve(expr2));

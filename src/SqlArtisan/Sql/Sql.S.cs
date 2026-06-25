@@ -6,10 +6,20 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
+    /// <summary>
+    /// Begins a <c>SELECT</c> statement projecting <paramref name="selectItems"/>.
+    /// Continue with <c>.From(...)</c> and the remaining clauses. Each item is a
+    /// column, expression, or <c>expr.As("alias")</c>.
+    /// </summary>
+    /// <param name="selectItems">The columns or expressions to project.</param>
+    /// <returns>A select builder positioned for <c>.From(...)</c>.</returns>
     public static ISelectBuilderSelect Select(
         params object[] selectItems) =>
         new SelectBuilder(SelectClause.Parse(selectItems));
 
+    /// <inheritdoc cref="Select(object[])"/>
+    /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Distinct"/>), emitting <c>SELECT DISTINCT</c>.</param>
+    /// <param name="selectItems">The columns or expressions to project.</param>
     public static ISelectBuilderSelect Select(
         DistinctKeyword distinct,
         params object[] selectItems) =>
@@ -18,6 +28,9 @@ public static partial class Sql
                 distinct,
                 selectItems));
 
+    /// <inheritdoc cref="Select(object[])"/>
+    /// <param name="hints">Optimizer hints (<see cref="Hints(string)"/>), emitted after <c>SELECT</c>.</param>
+    /// <param name="selectItems">The columns or expressions to project.</param>
     public static ISelectBuilderSelect Select(
         SqlHints hints,
         params object[] selectItems) =>
@@ -26,6 +39,10 @@ public static partial class Sql
                 hints,
                 selectItems));
 
+    /// <inheritdoc cref="Select(object[])"/>
+    /// <param name="hints">Optimizer hints (<see cref="Hints(string)"/>), emitted after <c>SELECT</c>.</param>
+    /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Distinct"/>), emitting <c>SELECT ... DISTINCT</c>.</param>
+    /// <param name="selectItems">The columns or expressions to project.</param>
     public static ISelectBuilderSelect Select(
         SqlHints hints,
         DistinctKeyword distinct,
@@ -62,6 +79,10 @@ public static partial class Sql
     public static SignFunction Sign(object expr) =>
         new(Resolve(expr));
 
+    /// <summary>
+    /// The <c>SKIP LOCKED</c> behavior for a <c>FOR UPDATE</c> clause: skip rows that
+    /// are already locked instead of blocking on them.
+    /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static SkipLockedBehavior SkipLocked => new();
 
@@ -89,12 +110,24 @@ public static partial class Sql
         object separator,
         OrderByClause orderByClause) => new(Resolve(expr), Resolve(separator), orderByClause);
 
+    /// <summary>
+    /// The <c>SUBSTR(source, position)</c> function: the substring of
+    /// <paramref name="source"/> from the 1-based <paramref name="position"/> to the
+    /// end.
+    /// </summary>
+    /// <param name="source">The string to slice.</param>
+    /// <param name="position">The 1-based start position.</param>
+    /// <returns>A <c>SUBSTR</c> function expression.</returns>
     public static SubstrFunction Substr(
         object source,
         object position) => new(
             Resolve(source),
             Resolve(position));
 
+    /// <inheritdoc cref="Substr(object, object)"/>
+    /// <param name="source">The string to slice.</param>
+    /// <param name="position">The 1-based start position.</param>
+    /// <param name="length">The number of characters to take.</param>
     public static SubstrFunction Substr(
         object source,
         object position,
@@ -103,12 +136,24 @@ public static partial class Sql
             Resolve(position),
             Resolve(length));
 
+    /// <summary>
+    /// The <c>SUBSTRB(source, position)</c> function: like <see cref="Substr(object, object)"/>
+    /// but with <paramref name="position"/> measured in bytes.
+    /// </summary>
+    /// <param name="source">The string to slice.</param>
+    /// <param name="position">The 1-based start position, in bytes.</param>
+    /// <returns>A <c>SUBSTRB</c> function expression.</returns>
+    /// <remarks>Oracle syntax.</remarks>
     public static SubstrbFunction Substrb(
         object source,
         object position) => new(
             Resolve(source),
             Resolve(position));
 
+    /// <inheritdoc cref="Substrb(object, object)"/>
+    /// <param name="source">The string to slice.</param>
+    /// <param name="position">The 1-based start position, in bytes.</param>
+    /// <param name="length">The number of bytes to take.</param>
     public static SubstrbFunction Substrb(
         object source,
         object position,
@@ -117,9 +162,18 @@ public static partial class Sql
             Resolve(position),
             Resolve(length));
 
+    /// <summary>
+    /// The <c>SUM(expr)</c> aggregate: the total of <paramref name="expr"/> over the
+    /// group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to total.</param>
+    /// <returns>A <c>SUM</c> aggregate expression.</returns>
     public static SumFunction Sum(object expr) =>
         new(Resolve(expr));
 
+    /// <inheritdoc cref="Sum(object)"/>
+    /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Distinct"/>), emitting <c>SUM(DISTINCT expr)</c>.</param>
+    /// <param name="expr">The numeric expression to total.</param>
     public static SumFunction Sum(DistinctKeyword distinct, object expr) =>
         new(distinct, Resolve(expr));
 

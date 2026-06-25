@@ -38,6 +38,13 @@ public static partial class Sql
             offset,
             Resolve(defaultValue));
 
+    /// <summary>
+    /// The <c>LAST_DAY(<paramref name="date"/>)</c> function (Oracle): the date
+    /// of the last day of the month containing <paramref name="date"/>.
+    /// </summary>
+    /// <param name="date">The date whose month's last day is returned.</param>
+    /// <returns>The LAST_DAY construct.</returns>
+    /// <remarks>Oracle syntax.</remarks>
     public static LastDayFunction LastDay(object date) =>
         new(Resolve(date));
 
@@ -84,12 +91,31 @@ public static partial class Sql
             offset,
             Resolve(defaultValue));
 
+    /// <summary>
+    /// The <c>LEAST(a, b, ...)</c> function: the smallest of its
+    /// <paramref name="expressions"/>.
+    /// </summary>
+    /// <param name="expressions">The values to compare.</param>
+    /// <returns>The LEAST construct.</returns>
     public static LeastFunction Least(params object[] expressions) =>
         new(Resolve(expressions));
 
+    /// <summary>
+    /// The <c>LENGTH(<paramref name="source"/>)</c> function: the number of
+    /// characters in <paramref name="source"/>.
+    /// </summary>
+    /// <param name="source">The string whose length is measured.</param>
+    /// <returns>The LENGTH construct.</returns>
     public static LengthFunction Length(object source) =>
         new(Resolve(source));
 
+    /// <summary>
+    /// The <c>LENGTHB(<paramref name="source"/>)</c> function (Oracle): the
+    /// length of <paramref name="source"/> in bytes.
+    /// </summary>
+    /// <param name="source">The string whose byte length is measured.</param>
+    /// <returns>The LENGTHB construct.</returns>
+    /// <remarks>Oracle syntax.</remarks>
     public static LengthbFunction Lengthb(object source) =>
         new(Resolve(source));
 
@@ -101,15 +127,33 @@ public static partial class Sql
     public static ListaggFunction Listagg(object expr, object separator) =>
         new(Resolve(expr), Resolve(separator));
 
+    /// <summary>
+    /// The <c>LOWER(<paramref name="source"/>)</c> function: lowercases
+    /// <paramref name="source"/>.
+    /// </summary>
+    /// <param name="source">The string to lowercase.</param>
+    /// <returns>The LOWER construct.</returns>
     public static LowerFunction Lower(object source) =>
         new(Resolve(source));
 
+    /// <summary>
+    /// The <c>LPAD(<paramref name="source"/>, <paramref name="length"/>)</c>
+    /// function: left-pads <paramref name="source"/> with spaces to
+    /// <paramref name="length"/> characters (truncating if longer).
+    /// </summary>
+    /// <param name="source">The string to pad.</param>
+    /// <param name="length">The target total length.</param>
+    /// <returns>The LPAD construct.</returns>
     public static LpadFunction Lpad(
         object source,
         object length) => new(
             Resolve(source),
             Resolve(length));
 
+    /// <inheritdoc cref="Lpad(object, object)"/>
+    /// <param name="source">The string to pad.</param>
+    /// <param name="length">The target total length.</param>
+    /// <param name="padding">The string to pad with instead of spaces.</param>
     public static LpadFunction Lpad(
         object source,
         object length,
@@ -118,9 +162,18 @@ public static partial class Sql
             Resolve(length),
             Resolve(padding));
 
+    /// <summary>
+    /// The <c>LTRIM(<paramref name="source"/>)</c> function: removes leading
+    /// whitespace from <paramref name="source"/>.
+    /// </summary>
+    /// <param name="source">The string to trim.</param>
+    /// <returns>The LTRIM construct.</returns>
     public static LtrimFunction Ltrim(object source) =>
         new(Resolve(source));
 
+    /// <inheritdoc cref="Ltrim(object)"/>
+    /// <param name="source">The string to trim.</param>
+    /// <param name="trimChars">The set of characters to strip from the left.</param>
     public static LtrimFunction Ltrim(
         object source,
         object trimChars) => new(

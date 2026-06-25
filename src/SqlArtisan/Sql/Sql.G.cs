@@ -5,6 +5,12 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
+    /// <summary>
+    /// The <c>GREATEST(a, b, ...)</c> function returning the largest of its
+    /// arguments.
+    /// </summary>
+    /// <param name="expressions">The values to compare.</param>
+    /// <returns>The <c>GREATEST</c> function expression.</returns>
     public static GreatestFunction Greatest(params object[] expressions) =>
         new(Resolve(expressions));
 

@@ -5,6 +5,12 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
+    /// <summary>
+    /// A <c>PARTITION BY</c> list for a window/analytic function's <c>OVER(...)</c>
+    /// clause, emitted as <c>PARTITION BY a, b</c>.
+    /// </summary>
+    /// <param name="expressions">The columns or expressions to partition by.</param>
+    /// <returns>A <c>PARTITION BY</c> clause.</returns>
     public static PartitionByClause PartitionBy(
         params object[] expressions) => new(Resolve(expressions));
 
@@ -31,6 +37,11 @@ public static partial class Sql
     public static PercentileDiscFunction PercentileDisc(double fraction) =>
         new(fraction);
 
+    /// <summary>
+    /// The <c>PERCENT_RANK()</c> analytic function: the relative rank of the current
+    /// row (0..1). Complete it with <c>.Over(...)</c>.
+    /// </summary>
+    /// <returns>A <c>PERCENT_RANK</c> analytic function expression.</returns>
     public static AnalyticPercentRankFunction PercentRank() => new();
 
     /// <summary>

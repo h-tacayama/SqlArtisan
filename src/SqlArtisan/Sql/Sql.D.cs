@@ -41,6 +41,17 @@ public static partial class Sql
             Resolve(startDate),
             Resolve(endDate));
 
+    /// <summary>
+    /// The <c>DATEPART(<paramref name="datepart"/>, <paramref name="source"/>)</c>
+    /// function returning a single date/time field as an integer.
+    /// </summary>
+    /// <param name="datepart">The field of <paramref name="source"/> to return.</param>
+    /// <param name="source">The date/time value to read the field from.</param>
+    /// <returns>The <c>DATEPART</c> function expression.</returns>
+    /// <remarks>
+    /// This is SQL Server's form. For PostgreSQL and the SQL standard use
+    /// <see cref="Extract(DateTimePart, object)"/>.
+    /// </remarks>
     public static DatepartFunction Datepart(DateTimePart datepart, object source) =>
         new(datepart, Resolve(source));
 
@@ -56,6 +67,16 @@ public static partial class Sql
         DateTimePart datepart,
         object source) => new(datepart, Resolve(source));
 
+    /// <summary>
+    /// The <c>DECODE(<paramref name="expr"/>, search, result, ..., <paramref name="default"/>)</c>
+    /// function: compares <paramref name="expr"/> against each search value and
+    /// returns the matching result, or <paramref name="default"/> when none match.
+    /// </summary>
+    /// <param name="expr">The value to compare against each search.</param>
+    /// <param name="searchResultPairs">The <c>(search, result)</c> pairs tested in order.</param>
+    /// <param name="default">The result when no search matches (the <c>default</c> keyword parameter).</param>
+    /// <returns>The <c>DECODE</c> function expression.</returns>
+    /// <remarks>This is Oracle's form.</remarks>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result)[] searchResultPairs,
@@ -64,6 +85,7 @@ public static partial class Sql
             Resolve(searchResultPairs),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair,
@@ -72,6 +94,7 @@ public static partial class Sql
             Resolve(new (object, object)[] { searchResultPair }),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -83,6 +106,7 @@ public static partial class Sql
                 searchResultPair2,}),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -96,6 +120,7 @@ public static partial class Sql
                 searchResultPair3,}),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -111,6 +136,7 @@ public static partial class Sql
                 searchResultPair4,}),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -128,6 +154,7 @@ public static partial class Sql
                 searchResultPair5,}),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -147,6 +174,7 @@ public static partial class Sql
                 searchResultPair6,}),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -168,6 +196,7 @@ public static partial class Sql
                 searchResultPair7,}),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -191,6 +220,7 @@ public static partial class Sql
                 searchResultPair8,}),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -216,6 +246,7 @@ public static partial class Sql
                 searchResultPair9,}),
             Resolve(@default));
 
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -243,14 +274,36 @@ public static partial class Sql
                 searchResultPair10,}),
             Resolve(@default));
 
+    /// <summary>
+    /// Begins a <c>DELETE FROM <paramref name="table"/></c> statement; continue
+    /// with <c>.Where(...)</c> to restrict the rows removed.
+    /// </summary>
+    /// <param name="table">The table to delete rows from.</param>
+    /// <returns>A delete builder positioned to accept a <c>WHERE</c> clause.</returns>
     public static IDeleteBuilderDelete DeleteFrom(DbTableBase table)
         => new DeleteBuilder(new DeleteClause(table));
 
+    /// <summary>
+    /// The <c>DENSE_RANK()</c> analytic function (rank within the window with no
+    /// gaps after ties). Complete the call with <c>.Over(...)</c>.
+    /// </summary>
+    /// <returns>The <c>DENSE_RANK()</c> analytic function expression.</returns>
     public static AnalyticDenseRankFunction DenseRank() => new();
 
+    /// <summary>
+    /// The <c>DISTINCT</c> keyword passed to an aggregate (<see cref="Count(object)"/>,
+    /// <see cref="Sum(object)"/>, <see cref="Avg(object)"/>,
+    /// <see cref="GroupConcat(DistinctKeyword, object)"/>) or to <c>Select(...)</c>
+    /// to deduplicate.
+    /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static DistinctKeyword Distinct => new();
 
+    /// <summary>
+    /// Oracle's <c>DUAL</c> dummy table, for selecting expressions without a real
+    /// table (<c>SELECT ... FROM DUAL</c>).
+    /// </summary>
+    /// <remarks>This is Oracle-specific.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static DualTable Dual => new();
 }
