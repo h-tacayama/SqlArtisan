@@ -9,5 +9,5 @@ internal interface IColumnAccessor
 
     DbColumn Column(DbColumn sourceColumn);
 
-    DbColumn Column(ExpressionAlias alias);
+    DbColumn Column(ExpressionAlias expressionAlias);
 }

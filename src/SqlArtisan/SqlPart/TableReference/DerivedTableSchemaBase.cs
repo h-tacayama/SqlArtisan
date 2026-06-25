@@ -12,8 +12,8 @@ public abstract class DerivedTableSchemaBase : TableReference
 {
     public DerivedTableSchemaBase(string name) : base(name)
     {
-        SchemaName = name;
+        Alias = name;
     }
 
-    protected string SchemaName { get; }
+    protected string Alias { get; }
 }
