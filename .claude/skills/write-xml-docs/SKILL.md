@@ -105,6 +105,63 @@ Example — the trim that motivated this skill:
 Reference docs to copy from: `Sql.C.cs` — `Ceil`/`Ceiling` (`<remarks>` +
 `<see cref>` cross-reference) and `Cast` (`<paramref>` inside the summary).
 
+## Overload families — share text, never paraphrase
+
+Most factories ship as overload families (`Case` ×N, `Trim` ×3, `Avg` ×2). Drift
+between near-identical overloads is the main consistency risk; eliminate it
+mechanically rather than by careful re-typing:
+
+- Pick the **canonical overload** (usually the simplest, or the `params` one) and
+  give it the full doc — summary with the emitted form, every `<param>`,
+  `<returns>`, `<exception>`, `<remarks>`.
+- **Sibling overloads** carry `/// <inheritdoc cref="Canonical(ArgTypes...)"/>`
+  so the summary/returns text is *literally the same string*, then add their own
+  `<param>` only for arguments the canonical one lacks. Do **not** re-write the
+  summary per overload — identical wording is the contract, and `<inheritdoc>`
+  guarantees it. The `cref` uses the overload's parameter type list to
+  disambiguate (`<inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>`).
+- When two overloads genuinely differ in behavior (not just arity), they are not
+  a family — document each in full.
+
+## Enum types and values
+
+- Document the **enum type** with a noun-phrase summary naming what it selects and
+  `<see cref>`-ing the factory that consumes it (e.g. `DateTimePart` →
+  <see cref="Sql.Extract"/>).
+- Document **every value** with a one-line `<summary>` — what the field selects,
+  plus the dialect nuance when the token is non-obvious (`Dow` = day of week,
+  Sunday = 0; `Isodow` = ISO day, Monday = 1; `Epoch` = seconds since 1970-01-01;
+  `Julian` = Julian day number). Plain English; no `<c>` SQL form unless the value
+  maps to a specific literal token. `<inheritdoc>` does not apply to enum fields —
+  write each.
+- For a `[Flags]` enum (`RegexpOptions`) state what each flag turns on and call
+  out mutually-exclusive pairs (`CaseSensitive` vs `CaseInsensitive`) and the
+  `None = 0` default in the type summary.
+
+## Skeletons (copy, then fill)
+
+```csharp
+// Sql.* construct-producing factory (canonical overload)
+/// <summary>The <c>CEIL(<paramref name="expr"/>)</c> function (smallest integer not less than the argument).</summary>
+/// <param name="expr">The numeric expression to round up.</param>
+/// <returns>A <c>CEIL</c> function expression.</returns>
+/// <remarks>SQL Server spells this <c>CEILING</c>; use <see cref="Ceiling(object)"/>.</remarks>
+
+// Sibling overload — share the text, add only the new parameter
+/// <inheritdoc cref="Trim(object)"/>
+/// <param name="characters">The set of characters to strip instead of spaces.</param>
+
+// Builder-step method — doc on the ISelectBuilder* interface, not SelectBuilder
+/// <summary>Appends MySQL's <c>WITH ROLLUP</c> suffix to the <c>GROUP BY</c> clause (<c>GROUP BY a, b WITH ROLLUP</c>).</summary>
+/// <returns>The builder, narrowed so the suffix cannot be applied twice.</returns>
+
+// Property
+/// <summary>Gets the bound parameter values, keyed by marker name.</summary>
+
+// Enum value
+/// <summary>The year component.</summary>
+```
+
 ## Accuracy (it must match the source)
 
 - The form in `<c>` equals real output. If a doc says `ROLLUP(a, b)`, a harness
@@ -127,8 +184,35 @@ documenting the whole surface (brief summaries, `<inheritdoc/>` on implementatio
 and decide what to do with the public-in-`Internal` nodes. Treat enabling it as a
 deliberate decision.
 
-## Validate
+## Done — the exit condition
 
-```bash
-dotnet build src/SqlArtisan/SqlArtisan.csproj -c Release   # 0 warnings (incl. cref CS1574)
-```
+A passing build does **not** prove completeness while `GenerateDocumentationFile`
+is off: an undocumented member is silent, so "0 warnings" can mean "nothing
+documented." Make the compiler enumerate the gap, then drive it to zero:
+
+1. Temporarily set `<GenerateDocumentationFile>true</GenerateDocumentationFile>`
+   in `src/SqlArtisan/SqlArtisan.csproj` (the project under documentation).
+2. `dotnet build src/SqlArtisan/SqlArtisan.csproj -c Release` — now every
+   undocumented publicly-visible member is a **CS1591** and every broken
+   `<see cref>` a **CS1574**. The list of CS1591s **is** the remaining work; the
+   batch is done when this build reports **0 warnings**.
+3. `dotnet format SqlArtisan.sln` — the `.editorconfig` gate CI enforces.
+4. `dotnet test tests/SqlArtisan.Tests` — docs never change emitted SQL, so the
+   suite must stay green; a failure means an edit touched code, not just `///`.
+
+Keeping `GenerateDocumentationFile` on is the issue-#120 shipping decision. If you
+are documenting only a subset, **revert it** after using it to count/verify, so CI
+does not fail on the not-yet-documented surface. When the whole surface is done,
+leave it on (that is the point of #120) and confirm the full
+`dotnet build SqlArtisan.sln` is still 0-warning.
+
+### Per-member checklist (precision bar)
+
+A publicly-visible member is "done" only when all that apply hold:
+- `<summary>` first sentence is a complete, completion-list-ready phrase.
+- The emitted SQL in `<c>` equals real `Format` output (harness-confirmed for any
+  dialect-specific or non-obvious form; obvious 1:1 tokens need no harness run).
+- Every parameter has a `<param>` (all-or-none), `<returns>` names the result,
+  and each failure mode has an `<exception cref>`.
+- Overload siblings use `<inheritdoc cref>`; no hand-retyped duplicate summary.
+- No CS1591 / CS1574 for the member in step 2.
