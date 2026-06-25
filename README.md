@@ -57,7 +57,7 @@ So you can focus on the query logic, not the boilerplate. That’s why SqlArtisa
     - [SELECT Clause](#select-clause): **Column Aliases**, `DISTINCT`, **Hints**
     - [FROM Clause](#from-clause): **FROM-less**, `DUAL`
     - [WHERE Clause](#where-clause)
-    - [JOIN Clause](#join-clause): `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, `FULL JOIN`, `CROSS JOIN`
+    - [JOIN Clause](#join-clause): `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, `FULL JOIN`, `CROSS JOIN`, `APPLY` / `LATERAL`
     - [ORDER BY Clause](#order-by-clause): `ASC`, `DESC`, `NULLS FIRST/LAST`
     - [GROUP BY and HAVING Clause](#group-by-and-having-clause)
     - [Set Operators](#set-operators): `UNION [ALL]`, `EXCEPT [ALL]`, `MINUS [ALL]`, `INTERSECT [ALL]`
@@ -461,6 +461,60 @@ SqlStatement sql =
 - `RightJoin()` for `RIGHT JOIN`
 - `FullJoin()` for `FULL JOIN`
 - `CrossJoin()` for `CROSS JOIN`
+
+##### Correlated joins: APPLY / LATERAL
+
+To join a correlated derived table (per-group Top-N, lateral function expansion,
+…), pass a subquery and a **derived-table handle**. Because `APPLY` and `LATERAL`
+are genuinely different grammars — not one construct spelled two ways — each is
+its own method emitting exactly what you write (no `Build(Dbms)` rewriting); pick
+the one your target DBMS speaks:
+
+The handle, a `DerivedTable`, names the derived table once and is reused to
+reference its columns via `Column(...)` — by name, or type-safely from the
+projected column / `.As(...)` alias (`x.Column(o.Id)`, `x.Column(total)`) — so no
+alias strings are repeated:
+
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+DerivedTable x = new("x");
+
+SqlStatement sql =
+    Select(u.Name, x.Column("id"))
+    .From(u)
+    .CrossApply(
+        Select(o.Id.As(x.Column("id"))).From(o).Where(o.UserId == u.Id),
+        x)
+    .Build(Dbms.SqlServer);
+
+// SELECT "u".name, "x".id
+// FROM users "u"
+// CROSS APPLY (SELECT "o".id "id" FROM orders "o" WHERE "o".user_id = "u".id) x
+```
+
+When you reference the derived table's columns repeatedly, subclass
+`DerivedTableBase` and expose them as typed `DbColumn` members (the same
+pattern as a CTE's `CteBase`); pass that instance as the handle.
+
+| Method | Emits | Typical DBMS |
+|---|---|---|
+| `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
+| `OuterApply(subquery, handle)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
+| `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | PostgreSQL, MySQL |
+| `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON TRUE` | PostgreSQL, MySQL |
+| `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL |
+
+The derived-table alias is emitted bare (`... ) x`), matching how a CTE name is
+written; column references through the handle are alias-quoted (`"x".id`).
+
+The DBMS column lists where each form is idiomatic, not the limit of what is
+emitted: availability is the target database's concern (and the opt-in
+analyzer's). SQLite supports neither family; `LATERAL` has no SQL Server form;
+and Oracle's correlated-derived-table join is `CROSS APPLY` / `OUTER APPLY`, so
+prefer those over the `LATERAL` forms there (the injected `ON TRUE` in particular
+relies on a boolean literal Oracle lacks before 23c). SqlArtisan emits the
+construct faithfully rather than gating it at build time.
 
 ---
 
@@ -960,9 +1014,24 @@ alias-qualified (pass columns from an unaliased table instance, as `c` above).
 
 #### WITH Clause (Common Table Expressions)
 
-1. Define your CTE Schema Class
+For a one-off CTE you don't want to declare a typed class for, use the
+`Cte` and read its columns by name with `Column(name)`:
+
 ```csharp
-internal sealed class SeniorUsersCte : CteSchemaBase
+Cte seniors = new("seniors");
+SqlStatement sql =
+    With(seniors.As(Select(users.Id.As(seniors.Column("id"))).From(users).Where(users.Age > 40)))
+    .Select(seniors.Column("id"))
+    .From(seniors)
+    .Build();
+```
+
+When you reference a CTE's columns repeatedly, declare a typed `CteBase`
+subclass instead:
+
+1. Define your CTE class
+```csharp
+internal sealed class SeniorUsersCte : CteBase
 {
     public SeniorUsersCte(string name) : base(name)
     {

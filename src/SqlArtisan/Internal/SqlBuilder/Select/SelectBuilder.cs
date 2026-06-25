@@ -102,9 +102,21 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     public SqlStatement Build(Dbms dbms) =>
         BuildCore(dbms);
 
+    public ISelectBuilderFrom CrossApply(ISubquery subquery, DerivedTableBase alias)
+    {
+        AddPart(new CrossApplyClause(subquery, alias));
+        return this;
+    }
+
     public ISelectBuilderFrom CrossJoin(TableReference table)
     {
         AddPart(new CrossJoinClause(table));
+        return this;
+    }
+
+    public ISelectBuilderFrom CrossJoinLateral(ISubquery subquery, DerivedTableBase alias)
+    {
+        AddPart(new CrossJoinLateralClause(subquery, alias));
         return this;
     }
 
@@ -166,9 +178,21 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    public ISelectBuilderJoin JoinLateral(ISubquery subquery, DerivedTableBase alias)
+    {
+        AddPart(new JoinLateralClause(subquery, alias));
+        return this;
+    }
+
     public ISelectBuilderJoin LeftJoin(TableReference table)
     {
         AddPart(new LeftJoinClause(table));
+        return this;
+    }
+
+    public ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTableBase alias)
+    {
+        AddPart(new LeftJoinLateralClause(subquery, alias));
         return this;
     }
 
@@ -200,6 +224,12 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         params object[] orderByItems)
     {
         AddPart(OrderByClause.Parse(orderByItems));
+        return this;
+    }
+
+    public ISelectBuilderFrom OuterApply(ISubquery subquery, DerivedTableBase alias)
+    {
+        AddPart(new OuterApplyClause(subquery, alias));
         return this;
     }
 

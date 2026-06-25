@@ -1,6 +1,6 @@
 ﻿namespace SqlArtisan.Tests;
 
-internal sealed class TestCte : CteSchemaBase
+internal sealed class TestCte : CteBase
 {
     public TestCte(string name) : base(name)
     {

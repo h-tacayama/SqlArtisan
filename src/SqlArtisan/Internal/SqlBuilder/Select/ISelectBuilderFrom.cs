@@ -1,22 +1,11 @@
 ﻿namespace SqlArtisan.Internal;
 
-public interface ISelectBuilderFrom : ISqlBuilder, ISetOperator, IForUpdate, ISubquery, IPagination
+public interface ISelectBuilderFrom : ISqlBuilder, IJoinOperator, ISetOperator, IForUpdate, ISubquery, IPagination
 {
-    // Subsequent SQL is the same as the FROM clause.
-    ISelectBuilderFrom CrossJoin(TableReference table);
-
-    ISelectBuilderJoin FullJoin(TableReference table);
-
     ISelectBuilderGroupBy GroupBy(params object[] groupByItems);
-
-    ISelectBuilderJoin InnerJoin(TableReference table);
-
-    ISelectBuilderJoin LeftJoin(TableReference table);
 
     ISelectBuilderOrderBy OrderBy(
         params object[] orderByItems);
-
-    ISelectBuilderJoin RightJoin(TableReference table);
 
     ISelectBuilderWhere Where(SqlCondition condition);
 }
