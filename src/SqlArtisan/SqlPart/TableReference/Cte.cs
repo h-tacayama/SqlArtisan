@@ -17,5 +17,5 @@ public sealed class Cte(string name) : CteSchemaBase(name), IColumnAccessor
     public DbColumn Column(DbColumn sourceColumn) => new(SchemaName, sourceColumn.Name);
 
     /// <summary>Returns this CTE's column for <paramref name="alias"/> — a SELECT-list <c>.As(...)</c> — qualified by this name.</summary>
-    public DbColumn Column(ExpressionAlias alias) => new(SchemaName, alias.Alias);
+    public DbColumn Column(ExpressionAlias alias) => new(SchemaName, alias.Name);
 }

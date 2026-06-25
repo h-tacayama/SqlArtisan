@@ -19,5 +19,5 @@ public sealed class DerivedTable(string name) : DerivedTableSchemaBase(name), IC
     public DbColumn Column(DbColumn sourceColumn) => new(SchemaName, sourceColumn.Name);
 
     /// <summary>Returns this derived table's column for <paramref name="alias"/> — a SELECT-list <c>.As(...)</c> — qualified by this alias.</summary>
-    public DbColumn Column(ExpressionAlias alias) => new(SchemaName, alias.Alias);
+    public DbColumn Column(ExpressionAlias alias) => new(SchemaName, alias.Name);
 }
