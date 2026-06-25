@@ -25,6 +25,11 @@ Follow the .NET convention, which keys off externally-visible accessibility
   a non-obvious contract helps a maintainer (e.g. `IDbmsDialect`'s members); a plain
   `//` note is equally fine, and trivial internals need nothing. Don't copy a public
   method's doc onto the internal type it backs.
+  - **Hygiene while editing:** when a batch touches a file, clean up stray `///`
+    on its internal members — downgrade to `//` if it captures real design intent,
+    delete it if it only restates the signature. A `///` on an internal compiles to
+    orphan XML and reads as a public contract the member does not have; `//` is the
+    right vehicle for internal design notes.
 
 Caveat for this repo: some node types are `public` yet live in the `Internal`
 namespace (a `public` factory can't return an `internal` type), so by the .NET rule
@@ -183,6 +188,29 @@ its cost, since the existing public surface isn't fully documented yet. Budget f
 documenting the whole surface (brief summaries, `<inheritdoc/>` on implementations)
 and decide what to do with the public-in-`Internal` nodes. Treat enabling it as a
 deliberate decision.
+
+## Per-batch cycle (bulk passes)
+
+Documenting a large surface goes area by area (or `Sql.<letter>` file by file).
+Run every batch through the same loop so precision and consistency hold:
+
+0. **Enable the detector.** Turn `GenerateDocumentationFile` on (see Done) so
+   CS1591 enumerates the batch's undocumented members — that list *is* the work.
+1. **Write** the batch's docs per this skill — skeletons, overload text-sharing
+   (`<inheritdoc cref>`), enum rules.
+2. **Reconcile existing docs.** Review any `///` already in the touched files
+   against this house style and fix drift; apply the internal-`///` hygiene rule
+   above (downgrade to `//` or delete).
+3. **Verify against source.** For every dialect-specific or non-obvious `<c>` form
+   or enum token, confirm the real output with the run-sql-harness skill — never
+   assert it from memory.
+4. **Re-review** the batch against the per-member checklist below.
+5. **Gate, then commit.** The batch is done only when its touched files raise no
+   CS1591/CS1574, `dotnet format` is clean, and `dotnet test` is green.
+
+Keep the cycle here in this skill rather than as a separate one — it is just the
+procedure for applying this house style at scale, and the exit condition and
+checklist below are its final step.
 
 ## Done — the exit condition
 
