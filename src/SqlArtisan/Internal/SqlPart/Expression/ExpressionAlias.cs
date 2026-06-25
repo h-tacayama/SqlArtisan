@@ -5,15 +5,14 @@ namespace SqlArtisan.Internal;
 public sealed class ExpressionAlias : SqlPart, ISortable
 {
     private readonly SqlExpression _expr;
-    private readonly string _name;
 
     internal ExpressionAlias(SqlExpression expr, string name)
     {
         _expr = expr;
-        _name = name;
+        Name = name;
     }
 
-    internal string Name => _name;
+    internal string Name { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder Asc => new(this, SortDirection.Asc);
@@ -28,9 +27,9 @@ public sealed class ExpressionAlias : SqlPart, ISortable
     public SortOrder NullsLast => new(this, NullOrdering.NullsLast);
 
     internal override void Format(SqlBuildingBuffer buffer) =>
-        buffer.EncloseInAliasQuotes(_name);
+        buffer.EncloseInAliasQuotes(Name);
 
     internal void FormatAsSelect(SqlBuildingBuffer buffer) => buffer
         .AppendSpace(_expr)
-        .EncloseInAliasQuotes(_name);
+        .EncloseInAliasQuotes(Name);
 }
