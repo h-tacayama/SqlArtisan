@@ -9,9 +9,9 @@ public abstract class TableReference : SqlPart
         _name = GetType().Name;
     }
 
-    public TableReference(string tableName)
+    public TableReference(string name)
     {
-        _name = tableName;
+        _name = name;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>
