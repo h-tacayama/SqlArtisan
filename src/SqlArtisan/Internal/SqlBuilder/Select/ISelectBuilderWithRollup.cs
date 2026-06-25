@@ -9,8 +9,10 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public interface ISelectBuilderWithRollup : ISqlBuilder, ISetOperator, ISubquery, IPagination
 {
+    /// <inheritdoc cref="ISelectBuilderGroupBy.Having(SqlCondition)"/>
     ISelectBuilderHaving Having(SqlCondition condition);
 
+    /// <inheritdoc cref="ISelectBuilderFrom.OrderBy(object[])"/>
     ISelectBuilderOrderBy OrderBy(
         params object[] orderByItems);
 }

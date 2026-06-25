@@ -7,5 +7,8 @@
 /// </summary>
 public interface IMergeBuilderTarget
 {
+    /// <summary>Appends <c>USING source</c>, naming the data source merged against the target.</summary>
+    /// <param name="source">The source table reference (a table, aliased table, derived table, or subquery).</param>
+    /// <returns>The builder positioned to supply the match condition with <c>On(...)</c>.</returns>
     IMergeBuilderUsing Using(TableReference source);
 }

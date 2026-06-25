@@ -1,5 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
+/// <summary>The set of join clauses that can follow a table reference: plain joins, lateral joins, and the SQL Server / Oracle <c>APPLY</c> forms.</summary>
 public interface IJoinOperator
 {
     /// <summary>
@@ -11,6 +12,9 @@ public interface IJoinOperator
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
     ISelectBuilderFrom CrossApply(ISubquery subquery, DerivedTableBase alias);
 
+    /// <summary>Appends <c>CROSS JOIN table</c> — the unfiltered Cartesian product, so no <c>ON</c> follows.</summary>
+    /// <param name="table">The table reference to cross-join.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; <c>CROSS JOIN</c> takes no <c>ON</c> predicate.</returns>
     ISelectBuilderFrom CrossJoin(TableReference table);
 
     /// <summary>
@@ -22,8 +26,14 @@ public interface IJoinOperator
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
     ISelectBuilderFrom CrossJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
+    /// <summary>Appends <c>FULL JOIN table</c>, keeping unmatched rows from both sides. The join predicate is supplied by the following <c>On(...)</c>.</summary>
+    /// <param name="table">The table reference to full-join.</param>
+    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
     ISelectBuilderJoin FullJoin(TableReference table);
 
+    /// <summary>Appends <c>INNER JOIN table</c>, keeping only matched rows. The join predicate is supplied by the following <c>On(...)</c>.</summary>
+    /// <param name="table">The table reference to inner-join.</param>
+    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
     ISelectBuilderJoin InnerJoin(TableReference table);
 
     /// <summary>
@@ -35,6 +45,9 @@ public interface IJoinOperator
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
     ISelectBuilderJoin JoinLateral(ISubquery subquery, DerivedTableBase alias);
 
+    /// <summary>Appends <c>LEFT JOIN table</c>, keeping all left-side rows. The join predicate is supplied by the following <c>On(...)</c>.</summary>
+    /// <param name="table">The table reference to left-join.</param>
+    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
     ISelectBuilderJoin LeftJoin(TableReference table);
 
     /// <summary>
@@ -55,5 +68,8 @@ public interface IJoinOperator
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
     ISelectBuilderFrom OuterApply(ISubquery subquery, DerivedTableBase alias);
 
+    /// <summary>Appends <c>RIGHT JOIN table</c>, keeping all right-side rows. The join predicate is supplied by the following <c>On(...)</c>.</summary>
+    /// <param name="table">The table reference to right-join.</param>
+    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
     ISelectBuilderJoin RightJoin(TableReference table);
 }

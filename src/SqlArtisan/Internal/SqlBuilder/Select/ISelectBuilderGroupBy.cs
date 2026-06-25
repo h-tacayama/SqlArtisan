@@ -1,9 +1,14 @@
 namespace SqlArtisan.Internal;
 
+/// <summary>The builder state after <c>GROUP BY</c>: filter groups with <c>HAVING</c>, order, paginate, build, or (MySQL) append <c>WITH ROLLUP</c>.</summary>
 public interface ISelectBuilderGroupBy : ISqlBuilder, ISetOperator, ISubquery, IPagination
 {
+    /// <summary>Appends <c>HAVING condition</c> to filter on aggregated groups.</summary>
+    /// <param name="condition">The group filter, typically over an aggregate; literals it contains are auto-parameterized.</param>
+    /// <returns>The builder positioned after <c>HAVING</c>, ready for <c>ORDER BY</c>, pagination, or build.</returns>
     ISelectBuilderHaving Having(SqlCondition condition);
 
+    /// <inheritdoc cref="ISelectBuilderFrom.OrderBy(object[])"/>
     ISelectBuilderOrderBy OrderBy(
         params object[] orderByItems);
 

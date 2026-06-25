@@ -1,5 +1,6 @@
 namespace SqlArtisan.Internal;
 
+/// <summary>The row-limiting clauses that can follow a query. The forms are per-dialect: <c>LIMIT</c>/<c>OFFSET</c> (PostgreSQL/MySQL/SQLite) versus <c>OFFSET ... ROWS</c> / <c>FETCH ... ROWS ONLY</c> (Oracle 12c+/SQL Server 2012+).</summary>
 public interface IPagination
 {
     /// <summary>

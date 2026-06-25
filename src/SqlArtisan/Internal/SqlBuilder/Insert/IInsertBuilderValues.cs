@@ -1,5 +1,6 @@
 ﻿namespace SqlArtisan.Internal;
 
+/// <summary>The state after a <c>VALUES</c> row: append more rows, add <c>RETURNING</c> or an upsert clause, or build.</summary>
 public interface IInsertBuilderValues : ISqlBuilder, IReturning, IUpsert
 {
     /// <summary>
