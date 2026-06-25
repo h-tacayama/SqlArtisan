@@ -2,18 +2,18 @@
 
 public abstract class TableReference : SqlPart
 {
-    private readonly string _tableName;
-
     public TableReference()
     {
-        _tableName = GetType().Name;
+        Name = GetType().Name;
     }
 
     public TableReference(string tableName)
     {
-        _tableName = tableName;
+        Name = tableName;
     }
 
+    private protected string Name { get; }
+
     internal override void Format(SqlBuildingBuffer buffer) =>
-        buffer.Append(_tableName);
+        buffer.Append(Name);
 }
