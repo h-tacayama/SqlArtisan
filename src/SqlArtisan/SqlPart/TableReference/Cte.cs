@@ -4,11 +4,11 @@ namespace SqlArtisan;
 
 /// <summary>
 /// Names a common table expression inline, without declaring a dedicated
-/// <see cref="CteSchemaBase"/> subclass. Bind a subquery with
-/// <see cref="CteSchemaBase.As"/>; its columns are referenced by name through
+/// <see cref="CteBase"/> subclass. Bind a subquery with
+/// <see cref="CteBase.As"/>; its columns are referenced by name through
 /// <see cref="Column(string)"/>.
 /// </summary>
-public sealed class Cte(string name) : CteSchemaBase(name), IColumnAccessor
+public sealed class Cte(string name) : CteBase(name), IColumnAccessor
 {
     /// <summary>Returns the named column of this CTE, qualified by its name.</summary>
     public DbColumn Column(string columnName) => new(Alias, columnName);

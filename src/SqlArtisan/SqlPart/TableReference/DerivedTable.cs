@@ -5,12 +5,12 @@ namespace SqlArtisan;
 /// <summary>
 /// Names a derived table inline — a <c>CROSS APPLY</c> / <c>LATERAL</c> source
 /// (or any <c>FROM</c> / <c>JOIN</c> relation) — without declaring a dedicated
-/// schema class, and renders as that bare name. Its columns are referenced by
+/// subclass, and renders as that bare name. Its columns are referenced by
 /// name through <see cref="Column(string)"/>. For columns referenced repeatedly,
-/// subclass <see cref="DerivedTableSchemaBase"/> and expose them as typed members
+/// subclass <see cref="DerivedTableBase"/> and expose them as typed members
 /// instead.
 /// </summary>
-public sealed class DerivedTable(string name) : DerivedTableSchemaBase(name), IColumnAccessor
+public sealed class DerivedTable(string name) : DerivedTableBase(name), IColumnAccessor
 {
     /// <summary>Returns the named column of this derived table, qualified by its alias.</summary>
     public DbColumn Column(string columnName) => new(Alias, columnName);

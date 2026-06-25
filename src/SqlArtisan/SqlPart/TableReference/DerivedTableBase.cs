@@ -8,9 +8,9 @@ namespace SqlArtisan;
 /// <see cref="DbColumn"/> members; for a one-off, use the inline
 /// <see cref="DerivedTable"/> instead.
 /// </summary>
-public abstract class DerivedTableSchemaBase : TableReference
+public abstract class DerivedTableBase : TableReference
 {
-    public DerivedTableSchemaBase(string name) : base(name)
+    public DerivedTableBase(string name) : base(name)
     {
         Alias = name;
     }

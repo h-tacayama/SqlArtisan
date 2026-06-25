@@ -494,8 +494,8 @@ SqlStatement sql =
 ```
 
 When you reference the derived table's columns repeatedly, subclass
-`DerivedTableSchemaBase` and expose them as typed `DbColumn` members (the same
-pattern as a CTE's `CteSchemaBase`); pass that instance as the handle.
+`DerivedTableBase` and expose them as typed `DbColumn` members (the same
+pattern as a CTE's `CteBase`); pass that instance as the handle.
 
 | Method | Emits | Typical DBMS |
 |---|---|---|
@@ -1027,7 +1027,7 @@ instead:
 
 1. Define your CTE Schema Class
 ```csharp
-internal sealed class SeniorUsersCte : CteSchemaBase
+internal sealed class SeniorUsersCte : CteBase
 {
     public SeniorUsersCte(string name) : base(name)
     {

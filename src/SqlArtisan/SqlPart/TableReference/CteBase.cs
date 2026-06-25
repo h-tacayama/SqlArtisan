@@ -2,9 +2,9 @@
 
 namespace SqlArtisan;
 
-public abstract class CteSchemaBase : TableReference
+public abstract class CteBase : TableReference
 {
-    public CteSchemaBase(string name) : base(name)
+    public CteBase(string name) : base(name)
     {
         Alias = name;
     }
