@@ -502,6 +502,10 @@ public static partial class Sql
         new(Resolve(expr));
 
     /// <inheritdoc cref="Count(object)"/>
+    /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
+    /// counting only distinct values.</param>
+    /// <param name="expr">The expression to count.</param>
+    /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(DISTINCT expr)</c>.</returns>
     public static CountFunction Count(DistinctKeyword distinct, object expr) =>
         new(distinct, Resolve(expr));
 
