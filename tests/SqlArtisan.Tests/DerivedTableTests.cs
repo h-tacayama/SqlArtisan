@@ -1,9 +1,10 @@
 ﻿using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-public class DerivedTableSchemaTests
+public class DerivedTableTests
 {
     private readonly TestTable _t = new("t");
     private readonly TestTable _s = new("s");
@@ -39,7 +40,7 @@ public class DerivedTableSchemaTests
     }
 
     [Fact]
-    public void DerivedTableSchema_SqlServer_CrossApplyTypedColumns_CorrectSql()
+    public void DerivedTable_SqlServer_CrossApplyTypedColumns_CorrectSql()
     {
         TestDerivedTable x = new("x");
 
@@ -125,7 +126,7 @@ public class DerivedTableSchemaTests
     public void DerivedTable_SqlServer_ColumnFromAlias_CorrectSql()
     {
         DerivedTable x = new("x");
-        var total = Sum(_s.Code).As("total");
+        ExpressionAlias total = Sum(_s.Code).As("total");
 
         SqlStatement sql =
             Select(_t.Name, x.Column(total))
@@ -169,7 +170,7 @@ public class DerivedTableSchemaTests
     public void Cte_ColumnFromAlias_CorrectSql()
     {
         Cte cte = new("cte");
-        var code = _a.Code.As("c");
+        ExpressionAlias code = _a.Code.As("c");
 
         SqlStatement sql =
             With(cte.As(Select(code).From(_a)))

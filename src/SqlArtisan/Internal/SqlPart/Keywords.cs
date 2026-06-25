@@ -156,7 +156,7 @@ internal static class Keywords
     internal const string ToNumber = "TO_NUMBER";
     internal const string ToTimestamp = "TO_TIMESTAMP";
     internal const string Trim = "TRIM";
-    internal const string True = "true";
+    internal const string True = "TRUE";
     internal const string Trunc = "TRUNC";
     internal const string Unbounded = "UNBOUNDED";
     internal const string Union = "UNION";

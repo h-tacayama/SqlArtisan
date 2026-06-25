@@ -501,16 +501,20 @@ pattern as a CTE's `CteBase`); pass that instance as the handle.
 |---|---|---|
 | `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
 | `OuterApply(subquery, handle)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
-| `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | PostgreSQL, MySQL, Oracle |
-| `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON true` | PostgreSQL, MySQL, Oracle |
-| `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL, Oracle |
+| `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | PostgreSQL, MySQL |
+| `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON TRUE` | PostgreSQL, MySQL |
+| `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL |
 
 The derived-table alias is emitted bare (`... ) x`), matching how a CTE name is
 written; column references through the handle are alias-quoted (`"x".id`).
 
-Availability is the target database's concern (and the opt-in analyzer's):
-SQLite supports neither, and `LATERAL` has no SQL Server equivalent. SqlArtisan
-emits the construct faithfully rather than gating it at build time.
+The DBMS column lists where each form is idiomatic, not the limit of what is
+emitted: availability is the target database's concern (and the opt-in
+analyzer's). SQLite supports neither family; `LATERAL` has no SQL Server form;
+and Oracle's correlated-derived-table join is `CROSS APPLY` / `OUTER APPLY`, so
+prefer those over the `LATERAL` forms there (the injected `ON TRUE` in particular
+relies on a boolean literal Oracle lacks before 23c). SqlArtisan emits the
+construct faithfully rather than gating it at build time.
 
 ---
 
@@ -1022,10 +1026,10 @@ SqlStatement sql =
     .Build();
 ```
 
-When you reference a CTE's columns repeatedly, declare a typed schema class
-instead:
+When you reference a CTE's columns repeatedly, declare a typed `CteBase`
+subclass instead:
 
-1. Define your CTE Schema Class
+1. Define your CTE class
 ```csharp
 internal sealed class SeniorUsersCte : CteBase
 {

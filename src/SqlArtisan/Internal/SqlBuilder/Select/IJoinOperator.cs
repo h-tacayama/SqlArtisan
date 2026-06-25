@@ -15,7 +15,7 @@ public interface IJoinOperator
 
     /// <summary>
     /// Joins a correlated derived table with <c>CROSS JOIN LATERAL (subquery) alias</c>
-    /// (PostgreSQL / MySQL / Oracle; SQL Server spells it
+    /// (PostgreSQL / MySQL; SQL Server / Oracle spell it
     /// <see cref="CrossApply(ISubquery, DerivedTableBase)"/>).
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
@@ -29,7 +29,7 @@ public interface IJoinOperator
     /// <summary>
     /// Joins a correlated derived table with <c>JOIN LATERAL (subquery) alias ON ...</c>,
     /// the join predicate supplied by the following <c>On(...)</c>
-    /// (PostgreSQL / MySQL / Oracle).
+    /// (PostgreSQL / MySQL).
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
@@ -38,8 +38,8 @@ public interface IJoinOperator
     ISelectBuilderJoin LeftJoin(TableReference table);
 
     /// <summary>
-    /// Joins a correlated derived table with <c>LEFT JOIN LATERAL (subquery) alias ON true</c>
-    /// (PostgreSQL / MySQL / Oracle; the SQL Server / Oracle <c>APPLY</c> form is
+    /// Joins a correlated derived table with <c>LEFT JOIN LATERAL (subquery) alias ON TRUE</c>
+    /// (PostgreSQL / MySQL; the SQL Server / Oracle <c>APPLY</c> form is
     /// <see cref="OuterApply(ISubquery, DerivedTableBase)"/>).
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
