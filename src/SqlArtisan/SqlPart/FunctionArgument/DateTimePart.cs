@@ -1,4 +1,4 @@
-namespace SqlArtisan;
+﻿namespace SqlArtisan;
 
 /// <summary>
 /// A date/time field to extract or operate on. This is a superset shared across

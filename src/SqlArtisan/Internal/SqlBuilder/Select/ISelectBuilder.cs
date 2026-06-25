@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>The entry state of a <c>SELECT</c> statement: choose the select list.</summary>
 public interface ISelectBuilder

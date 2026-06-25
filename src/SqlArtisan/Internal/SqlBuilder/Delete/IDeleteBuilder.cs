@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>The entry state of a <c>DELETE</c> statement: name the target table.</summary>
 public interface IDeleteBuilder

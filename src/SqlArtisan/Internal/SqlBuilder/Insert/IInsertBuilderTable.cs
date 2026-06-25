@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>The state after <c>INSERT INTO table</c> (no column list): supply the row by column assignments or positionally.</summary>
 public interface IInsertBuilderTable : ISqlBuilder

@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>The row-locking clause that can terminate a query: <c>FOR UPDATE</c>, optionally restricted to named columns and with a lock-wait behavior.</summary>
 public interface IForUpdate

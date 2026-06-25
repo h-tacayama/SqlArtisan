@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>The builder state after <c>WHERE</c>: group, order, paginate, lock, or build.</summary>
 public interface ISelectBuilderWhere : ISqlBuilder, ISetOperator, IForUpdate, ISubquery, IPagination

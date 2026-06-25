@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>The builder state after the select list: name the source tables with <c>FROM</c>.</summary>
 public interface ISelectBuilderSelect : ISqlBuilder, ISetOperator, ISubquery

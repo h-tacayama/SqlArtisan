@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>The builder state after <c>FROM</c>: join more tables, filter, group, order, paginate, or build.</summary>
 public interface ISelectBuilderFrom : ISqlBuilder, IJoinOperator, ISetOperator, IForUpdate, ISubquery, IPagination

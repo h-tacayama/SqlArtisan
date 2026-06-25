@@ -1,4 +1,4 @@
-namespace SqlArtisan;
+﻿namespace SqlArtisan;
 
 /// <summary>
 /// A target database engine. The chosen value selects the dialect — parameter

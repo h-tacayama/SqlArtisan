@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>The ability to prepend a <c>WITH</c> clause (Common Table Expressions) to the <c>SELECT</c> that feeds an <c>INSERT ... SELECT</c>.</summary>
 public interface IWithBuilder

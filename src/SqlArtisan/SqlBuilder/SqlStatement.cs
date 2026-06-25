@@ -1,4 +1,4 @@
-using SqlArtisan.Internal;
+﻿using SqlArtisan.Internal;
 
 namespace SqlArtisan;
 

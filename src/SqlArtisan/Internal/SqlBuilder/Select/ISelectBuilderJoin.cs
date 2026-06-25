@@ -1,4 +1,4 @@
-namespace SqlArtisan.Internal;
+﻿namespace SqlArtisan.Internal;
 
 /// <summary>The state after an <c>INNER</c>/<c>LEFT</c>/<c>RIGHT</c>/<c>FULL JOIN</c>: supply its <c>ON</c> predicate.</summary>
 public interface ISelectBuilderJoin : ISqlBuilder, IForUpdate
