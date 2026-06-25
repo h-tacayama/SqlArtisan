@@ -146,6 +146,26 @@ public class DerivedTableSchemaTests
     }
 
     [Fact]
+    public void Cte_ColumnFromSourceColumn_CorrectSql()
+    {
+        Cte cte = new("cte");
+
+        SqlStatement sql =
+            With(cte.As(Select(_a.Code).From(_a)))
+            .Select(cte.Column(_a.Code))
+                .From(cte)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH cte AS ");
+        expected.Append("(SELECT \"a\".code FROM test_table \"a\") ");
+        expected.Append("SELECT \"cte\".code ");
+        expected.Append("FROM cte");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Cte_ColumnFromAlias_CorrectSql()
     {
         Cte cte = new("cte");
