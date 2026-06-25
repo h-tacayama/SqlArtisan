@@ -8,10 +8,12 @@ public static partial class Sql
     /// <summary>
     /// Starts a <c>MERGE INTO target</c> statement (Oracle / SQL Server, and
     /// PostgreSQL 15+). Continue with <c>Using(...).On(...)</c> and one or more
-    /// <c>WhenMatched</c> / <c>WhenNotMatched</c> branches. The emitted SQL is
-    /// per-dialect by design — for example, SQL Server appends the required
-    /// terminating semicolon and supports <c>WHEN NOT MATCHED BY SOURCE</c>.
+    /// <c>WhenMatched</c> / <c>WhenNotMatched</c> branches.
     /// </summary>
+    /// <param name="target">The table to merge rows into.</param>
+    /// <returns>A merge builder positioned to accept <c>Using(...).On(...)</c>.</returns>
+    /// <remarks>The emitted SQL is per-dialect: SQL Server appends the required
+    /// terminating semicolon and supports <c>WHEN NOT MATCHED BY SOURCE</c>.</remarks>
     public static IMergeBuilderTarget MergeInto(DbTableBase target) =>
         new MergeBuilder(new MergeIntoClause(target));
 

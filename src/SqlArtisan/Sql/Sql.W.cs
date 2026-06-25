@@ -40,6 +40,7 @@ public static partial class Sql
     /// columns via <see cref="Cte.Column(string)"/>.
     /// </summary>
     /// <param name="ctes">One or more CTE definitions, each produced by <c>cte.As(subquery)</c>.</param>
+    /// <returns>A <c>WITH</c> builder positioned for the following statement.</returns>
     public static IWithBuilderWith With(
         params CommonTableExpression[] ctes) =>
         new WithBuilder(new WithClause(ctes));
@@ -50,6 +51,7 @@ public static partial class Sql
     /// <see cref="CteBase"/> subclass.
     /// </summary>
     /// <param name="ctes">One or more CTE definitions, each produced by <c>cte.As(subquery)</c>.</param>
+    /// <returns>A <c>WITH RECURSIVE</c> builder positioned for the following statement.</returns>
     public static IWithBuilderWith WithRecursive(
         params CommonTableExpression[] ctes) =>
         new WithBuilder(new WithRecursiveClause(ctes));

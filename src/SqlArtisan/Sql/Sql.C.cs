@@ -431,6 +431,7 @@ public static partial class Sql
     /// is emitted verbatim, so supply the exact SQL data type for your target database
     /// (for example <c>"VARCHAR2(10)"</c> on Oracle, <c>"NVARCHAR(10)"</c> on SQL Server).
     /// </summary>
+    /// <returns>A <see cref="CastExpression"/> emitting <c>CAST(expr AS type)</c>.</returns>
     public static CastExpression Cast(object expr, string type) =>
         new(Resolve(expr), type);
 
@@ -513,10 +514,10 @@ public static partial class Sql
     /// The <c>CUBE(...)</c> GROUP BY grouping extension. Each element is an ordinary
     /// column or a <c>Sql.Group(...)</c> composite column (so
     /// <c>Cube(Group(a, b), c)</c> emits <c>CUBE((a, b), c)</c>). Emitted as
-    /// <c>CUBE(a, b)</c>. MySQL and SQLite have no CUBE; <c>Build</c> still emits it
-    /// faithfully rather than rejecting it, leaving the unsupported statement for
-    /// the target database to reject.
+    /// <c>CUBE(a, b)</c>.
     /// </summary>
+    /// <remarks>MySQL and SQLite do not support it; emitted as written for the
+    /// database to reject.</remarks>
     public static CubeGrouping Cube(object element, params object[] elements) =>
         new(GroupByItemResolver.ResolveElements([element, .. elements]));
 
@@ -555,6 +556,9 @@ public static partial class Sql
     /// Gets the current value of a sequence using the PostgreSQL syntax
     /// <c>CURRVAL('sequenceName')</c>.
     /// </summary>
+    /// <param name="sequenceName">The name of the sequence to read.</param>
+    /// <returns>A <see cref="CurrvalFunction"/> emitting
+    /// <c>CURRVAL('sequenceName')</c>.</returns>
     /// <remarks>
     /// Dialect-specific (PostgreSQL). For Oracle use <see cref="Sequence(string)"/>
     /// with <c>.Currval</c>.

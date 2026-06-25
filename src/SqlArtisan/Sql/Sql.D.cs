@@ -7,15 +7,22 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// Adds <paramref name="number"/> units of <paramref name="datepart"/> to
-    /// <paramref name="dateTime"/>, emitting SQL Server's
-    /// <c>DATEADD(datepart, number, date)</c>. Pass a negative
-    /// <paramref name="number"/> to subtract. For Oracle use
-    /// <see cref="AddMonths(object, object)"/>; PostgreSQL/MySQL use interval
-    /// arithmetic native to those dialects.
-    /// <para><see cref="DateTimePart"/> is a superset shared with EXTRACT/DATEPART;
-    /// only the dateparts SQL Server's <c>DATEADD</c> accepts are valid here.</para>
+    /// The <c>DATEADD(<paramref name="datepart"/>, <paramref name="number"/>, <paramref name="dateTime"/>)</c>
+    /// function (SQL Server): <paramref name="dateTime"/> shifted by
+    /// <paramref name="number"/> units of <paramref name="datepart"/>. Pass a
+    /// negative <paramref name="number"/> to subtract.
     /// </summary>
+    /// <param name="datepart">The unit to add (year, month, day, ...).</param>
+    /// <param name="number">The number of units to add; negative to subtract.</param>
+    /// <param name="dateTime">The date/time value to shift.</param>
+    /// <returns>The <c>DATEADD</c> function expression.</returns>
+    /// <remarks>
+    /// This is SQL Server's form. For Oracle use
+    /// <see cref="AddMonths(object, object)"/>; PostgreSQL/MySQL use interval
+    /// arithmetic native to those dialects. <see cref="DateTimePart"/> is a superset
+    /// shared with EXTRACT/DATEPART; only the dateparts SQL Server's <c>DATEADD</c>
+    /// accepts are valid here.
+    /// </remarks>
     public static DateaddFunction Dateadd(
         DateTimePart datepart,
         object number,
@@ -25,14 +32,20 @@ public static partial class Sql
             Resolve(dateTime));
 
     /// <summary>
-    /// Returns the number of <paramref name="datepart"/> boundaries crossed
-    /// between <paramref name="startDate"/> and <paramref name="endDate"/>,
-    /// emitting SQL Server's <c>DATEDIFF(datepart, startdate, enddate)</c>.
-    /// Argument order and supported units are vendor-specific; this is the SQL
-    /// Server form.
-    /// <para><see cref="DateTimePart"/> is a superset shared with EXTRACT/DATEPART;
-    /// only the dateparts SQL Server's <c>DATEDIFF</c> accepts are valid here.</para>
+    /// The <c>DATEDIFF(<paramref name="datepart"/>, <paramref name="startDate"/>, <paramref name="endDate"/>)</c>
+    /// function (SQL Server): the number of <paramref name="datepart"/> boundaries
+    /// crossed between <paramref name="startDate"/> and <paramref name="endDate"/>.
     /// </summary>
+    /// <param name="datepart">The unit of the boundaries to count.</param>
+    /// <param name="startDate">The start date/time.</param>
+    /// <param name="endDate">The end date/time.</param>
+    /// <returns>The <c>DATEDIFF</c> function expression.</returns>
+    /// <remarks>
+    /// Argument order and supported units are vendor-specific; this is the SQL
+    /// Server form. <see cref="DateTimePart"/> is a superset shared with
+    /// EXTRACT/DATEPART; only the dateparts SQL Server's <c>DATEDIFF</c> accepts
+    /// are valid here.
+    /// </remarks>
     public static DatediffFunction Datediff(
         DateTimePart datepart,
         object startDate,
@@ -56,13 +69,19 @@ public static partial class Sql
         new(datepart, Resolve(source));
 
     /// <summary>
-    /// Truncates <paramref name="source"/> down to <paramref name="datepart"/>
-    /// precision, emitting PostgreSQL's <c>DATE_TRUNC('datepart', source)</c>.
-    /// For Oracle use the date/time overload of <see cref="Trunc(object, object)"/>
-    /// (<c>TRUNC(date, fmt)</c>).
-    /// <para><see cref="DateTimePart"/> is a superset shared with EXTRACT/DATEPART;
-    /// only the fields PostgreSQL's <c>date_trunc</c> accepts are valid here.</para>
+    /// The <c>DATE_TRUNC('<paramref name="datepart"/>', <paramref name="source"/>)</c>
+    /// function (PostgreSQL): <paramref name="source"/> truncated down to
+    /// <paramref name="datepart"/> precision.
     /// </summary>
+    /// <param name="datepart">The precision to truncate to.</param>
+    /// <param name="source">The date/time value to truncate.</param>
+    /// <returns>The <c>DATE_TRUNC</c> function expression.</returns>
+    /// <remarks>
+    /// This is PostgreSQL's form. For Oracle use the date/time overload of
+    /// <see cref="Trunc(object, object)"/> (<c>TRUNC(date, fmt)</c>).
+    /// <see cref="DateTimePart"/> is a superset shared with EXTRACT/DATEPART; only
+    /// the fields PostgreSQL's <c>date_trunc</c> accepts are valid here.
+    /// </remarks>
     public static DateTruncFunction DateTrunc(
         DateTimePart datepart,
         object source) => new(datepart, Resolve(source));

@@ -7,9 +7,11 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// Gets the next value of a sequence using the PostgreSQL syntax
-    /// <c>NEXTVAL('sequenceName')</c>.
+    /// The <c>NEXTVAL('sequenceName')</c> function: the next value of the named
+    /// sequence.
     /// </summary>
+    /// <param name="sequenceName">The name of the sequence to advance.</param>
+    /// <returns>A <c>NEXTVAL</c> function expression.</returns>
     /// <remarks>
     /// Dialect-specific (PostgreSQL). For Oracle use <see cref="Sequence(string)"/>
     /// with <c>.Nextval</c>; for SQL Server use <see cref="NextValueFor(string)"/>.
@@ -18,9 +20,11 @@ public static partial class Sql
         new(sequenceName);
 
     /// <summary>
-    /// Gets the next value of a sequence using the SQL Server syntax
-    /// <c>NEXT VALUE FOR sequenceName</c>.
+    /// The <c>NEXT VALUE FOR sequenceName</c> expression: the next value of the
+    /// named sequence.
     /// </summary>
+    /// <param name="sequenceName">The name of the sequence to advance.</param>
+    /// <returns>A <c>NEXT VALUE FOR</c> expression.</returns>
     /// <remarks>
     /// Dialect-specific (SQL Server). For Oracle use <see cref="Sequence(string)"/>
     /// with <c>.Nextval</c>; for PostgreSQL use <see cref="Nextval(string)"/>.
@@ -54,19 +58,21 @@ public static partial class Sql
     /// <summary>
     /// The <c>NTH_VALUE(expr, n)</c> analytic function: the value of
     /// <paramref name="expr"/> from the <paramref name="n"/>th row of the window
-    /// frame. The position is emitted as an integer literal (not a bind
-    /// parameter), because some databases require a constant. Not supported by
-    /// SQL Server.
+    /// frame.
     /// </summary>
+    /// <param name="expr">The expression whose value is taken.</param>
+    /// <param name="n">The 1-based position within the window frame.</param>
+    /// <returns>An <c>NTH_VALUE</c> analytic function expression.</returns>
+    /// <remarks>Not supported by SQL Server.</remarks>
     public static AnalyticNthValueFunction NthValue(object expr, int n) =>
         new(Resolve(expr), n);
 
     /// <summary>
     /// The <c>NTILE(buckets)</c> analytic function: distributes the ordered rows
     /// of each window partition into <paramref name="buckets"/> ranked groups.
-    /// The bucket count is emitted as an integer literal (not a bind parameter),
-    /// because some databases require a constant.
     /// </summary>
+    /// <param name="buckets">The number of ranked groups to distribute rows into.</param>
+    /// <returns>An <c>NTILE</c> analytic function expression.</returns>
     public static AnalyticNtileFunction Ntile(int buckets) => new(buckets);
 
     /// <summary>

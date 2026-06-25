@@ -10,6 +10,7 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the correlation supplies the predicate, so no <c>ON</c> follows.</returns>
     ISelectBuilderFrom CrossApply(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>Appends <c>CROSS JOIN table</c> — the unfiltered Cartesian product, so no <c>ON</c> follows.</summary>
@@ -24,6 +25,7 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the correlation supplies the predicate, so no <c>ON</c> follows.</returns>
     ISelectBuilderFrom CrossJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>Appends <c>FULL JOIN table</c>, keeping unmatched rows from both sides. The join predicate is supplied by the following <c>On(...)</c>.</summary>
@@ -43,6 +45,7 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
+    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
     ISelectBuilderJoin JoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>Appends <c>LEFT JOIN table</c>, keeping all left-side rows. The join predicate is supplied by the following <c>On(...)</c>.</summary>
@@ -57,6 +60,7 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the lateral <c>ON TRUE</c> supplies the predicate, so no <c>ON</c> follows.</returns>
     ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
@@ -66,6 +70,7 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the correlation supplies the predicate, so no <c>ON</c> follows.</returns>
     ISelectBuilderFrom OuterApply(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>Appends <c>RIGHT JOIN table</c>, keeping all right-side rows. The join predicate is supplied by the following <c>On(...)</c>.</summary>

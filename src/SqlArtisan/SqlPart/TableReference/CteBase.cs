@@ -15,5 +15,7 @@ public abstract class CteBase(string name) : TableReference(name)
     /// <c>name AS (subquery)</c> definition to pass to
     /// <see cref="Sql.With(CommonTableExpression[])"/>.
     /// </summary>
+    /// <param name="subquery">The subquery to bind as this CTE's body.</param>
+    /// <returns>A <see cref="CommonTableExpression"/> pairing this CTE's name with <paramref name="subquery"/>.</returns>
     public CommonTableExpression As(ISubquery subquery) => new(_name, subquery);
 }

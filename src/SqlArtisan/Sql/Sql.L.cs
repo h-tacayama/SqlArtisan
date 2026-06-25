@@ -16,9 +16,9 @@ public static partial class Sql
     /// <summary>
     /// The <c>LAG(expr, offset)</c> analytic function: the value of
     /// <paramref name="expr"/> from the row <paramref name="offset"/> positions
-    /// before the current row. The offset is emitted as an integer literal (not
-    /// a bind parameter), because some databases (e.g. MySQL) require a constant.
+    /// before the current row.
     /// </summary>
+    /// <remarks>The offset is emitted as an integer literal.</remarks>
     public static AnalyticLagFunction Lag(object expr, int offset) =>
         new(Resolve(expr), offset);
 
@@ -26,10 +26,10 @@ public static partial class Sql
     /// The <c>LAG(expr, offset, default)</c> analytic function: the value of
     /// <paramref name="expr"/> from the row <paramref name="offset"/> positions
     /// before the current row, or <paramref name="defaultValue"/> when that row
-    /// falls outside the partition. The offset is emitted as an integer literal
-    /// (some databases, e.g. MySQL, require a constant); the default value is
-    /// parameterized.
+    /// falls outside the partition.
     /// </summary>
+    /// <remarks>The offset is emitted as an integer literal; the default value is
+    /// parameterized.</remarks>
     public static AnalyticLagFunction Lag(
         object expr,
         int offset,
@@ -50,11 +50,11 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>LAST_VALUE(expr)</c> analytic function: the value of
-    /// <paramref name="expr"/> from the last row of the window frame. Note the
-    /// default frame ends at the current row, so an explicit frame (e.g.
-    /// <c>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</c>) is
-    /// usually intended.
+    /// <paramref name="expr"/> from the last row of the window frame.
     /// </summary>
+    /// <remarks>The default frame ends at the current row, so an explicit frame
+    /// (e.g. <c>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</c>) is
+    /// usually intended.</remarks>
     public static AnalyticLastValueFunction LastValue(object expr) =>
         new(Resolve(expr));
 
@@ -69,9 +69,9 @@ public static partial class Sql
     /// <summary>
     /// The <c>LEAD(expr, offset)</c> analytic function: the value of
     /// <paramref name="expr"/> from the row <paramref name="offset"/> positions
-    /// after the current row. The offset is emitted as an integer literal (not a
-    /// bind parameter), because some databases (e.g. MySQL) require a constant.
+    /// after the current row.
     /// </summary>
+    /// <remarks>The offset is emitted as an integer literal.</remarks>
     public static AnalyticLeadFunction Lead(object expr, int offset) =>
         new(Resolve(expr), offset);
 
@@ -79,10 +79,10 @@ public static partial class Sql
     /// The <c>LEAD(expr, offset, default)</c> analytic function: the value of
     /// <paramref name="expr"/> from the row <paramref name="offset"/> positions
     /// after the current row, or <paramref name="defaultValue"/> when that row
-    /// falls outside the partition. The offset is emitted as an integer literal
-    /// (some databases, e.g. MySQL, require a constant); the default value is
-    /// parameterized.
+    /// falls outside the partition.
     /// </summary>
+    /// <remarks>The offset is emitted as an integer literal; the default value is
+    /// parameterized.</remarks>
     public static AnalyticLeadFunction Lead(
         object expr,
         int offset,
@@ -124,6 +124,10 @@ public static partial class Sql
     /// it with <c>.WithinGroup(OrderBy(...))</c> to supply Oracle's mandatory
     /// ordering.
     /// </summary>
+    /// <param name="expr">The value aggregated into the concatenated string.</param>
+    /// <param name="separator">The separator placed between values.</param>
+    /// <returns>A <see cref="ListaggFunction"/> emitting
+    /// <c>LISTAGG(expr, separator)</c>.</returns>
     public static ListaggFunction Listagg(object expr, object separator) =>
         new(Resolve(expr), Resolve(separator));
 

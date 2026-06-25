@@ -180,11 +180,17 @@ public static partial class Sql
     /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Each element is an
     /// ordinary column or a <c>Sql.Group(...)</c> composite column (so
     /// <c>Rollup(Group(a, b), c)</c> emits <c>ROLLUP((a, b), c)</c>). Emitted as the
-    /// standard function form <c>ROLLUP(a, b)</c> on every dialect. MySQL accepts
-    /// only its <c>WITH ROLLUP</c> suffix instead — use
-    /// <c>.GroupBy(...).WithRollup()</c> for that. An unsupported target is emitted
-    /// as written, leaving the statement for the database to reject.
+    /// standard function form <c>ROLLUP(a, b)</c> on every dialect.
     /// </summary>
+    /// <param name="element">The first grouping element.</param>
+    /// <param name="elements">Further grouping elements.</param>
+    /// <returns>A <c>ROLLUP</c> grouping for a <c>GROUP BY</c> clause.</returns>
+    /// <remarks>
+    /// MySQL accepts only its <c>WITH ROLLUP</c> suffix instead — use
+    /// <c>.GroupBy(...).WithRollup()</c> for that. On a dialect that does not
+    /// support the function form the grouping is emitted as written, leaving the
+    /// statement for the database to reject.
+    /// </remarks>
     public static RollupGrouping Rollup(object element, params object[] elements) =>
         new(GroupByItemResolver.ResolveElements([element, .. elements]));
 
@@ -192,13 +198,15 @@ public static partial class Sql
     /// The <c>ROUND(expr)</c> function: rounds <paramref name="expr"/> to the
     /// nearest integer.
     /// </summary>
+    /// <param name="expr">The numeric expression to round.</param>
+    /// <returns>A <c>ROUND</c> function expression.</returns>
     public static RoundFunction Round(object expr) =>
         new(Resolve(expr));
 
-    /// <summary>
-    /// The <c>ROUND(expr, decimals)</c> function: rounds <paramref name="expr"/>
-    /// to <paramref name="decimals"/> decimal places.
-    /// </summary>
+    /// <inheritdoc cref="Round(object)"/>
+    /// <param name="expr">The numeric expression to round.</param>
+    /// <param name="decimals">The number of decimal places to round to.</param>
+    /// <returns>A <c>ROUND(x, n)</c> function expression.</returns>
     public static RoundFunction Round(
         object expr,
         object decimals) => new(

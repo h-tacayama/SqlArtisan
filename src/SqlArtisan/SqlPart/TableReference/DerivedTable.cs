@@ -13,11 +13,17 @@ namespace SqlArtisan;
 public sealed class DerivedTable(string name) : DerivedTableBase(name), IColumnAccessor
 {
     /// <summary>Returns the named column of this derived table, qualified by its alias.</summary>
+    /// <param name="columnName">The column name to qualify with this derived table's alias.</param>
+    /// <returns>A <see cref="DbColumn"/> qualified by this derived table's alias.</returns>
     public DbColumn Column(string columnName) => new(_name, columnName);
 
     /// <summary>Returns this derived table's column for <paramref name="sourceColumn"/> — its column name, qualified by this alias. Use when the subquery projects the column unaliased.</summary>
+    /// <param name="sourceColumn">The source column whose name is re-qualified with this derived table's alias.</param>
+    /// <returns>A <see cref="DbColumn"/> qualified by this derived table's alias.</returns>
     public DbColumn Column(DbColumn sourceColumn) => new(_name, sourceColumn.Name);
 
     /// <summary>Returns this derived table's column for <paramref name="expressionAlias"/> — a SELECT-list <c>.As(...)</c> — qualified by this alias.</summary>
+    /// <param name="expressionAlias">The SELECT-list <c>.As(...)</c> alias to qualify with this derived table's alias.</param>
+    /// <returns>A <see cref="DbColumn"/> qualified by this derived table's alias.</returns>
     public DbColumn Column(ExpressionAlias expressionAlias) => new(_name, expressionAlias.Name);
 }

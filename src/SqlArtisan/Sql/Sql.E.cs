@@ -18,6 +18,9 @@ public static partial class Sql
     /// References a column of the row proposed for insertion inside an UPSERT
     /// update clause (PostgreSQL/SQLite <c>EXCLUDED</c>, MySQL row alias).
     /// </summary>
+    /// <param name="column">The conflicting-insert column to reference.</param>
+    /// <returns>An <see cref="ExcludedColumn"/> referencing the proposed row's
+    /// value of <paramref name="column"/>.</returns>
     public static ExcludedColumn Excluded(DbColumn column) => new(column);
 
     /// <summary>
