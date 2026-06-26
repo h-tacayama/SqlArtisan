@@ -6,6 +6,17 @@ namespace SqlArtisan.Dapper;
 
 public static partial class SqlMapper
 {
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>ExecuteAsync</c>.
+    /// </summary>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the number of rows affected.</returns>
     public static Task<int> ExecuteAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -22,6 +33,8 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="ExecuteScalarAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <returns>A task producing the first column of the first row, or <see langword="null"/>.</returns>
     public static Task<object?> ExecuteScalarAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -38,6 +51,18 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>ExecuteScalarAsync</c>.
+    /// </summary>
+    /// <typeparam name="T">The CLR type to convert the scalar result to.</typeparam>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the first column of the first row, converted to <typeparamref name="T"/>.</returns>
     public static Task<T?> ExecuteScalarAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -54,6 +79,14 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QuerySingleAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="type">The CLR type to map each row to.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the single row mapped to <paramref name="type"/>.</returns>
     public static Task<object> QuerySingleAsync(
         this IDbConnection cnn,
         Type type,
@@ -72,6 +105,8 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QuerySingleAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <returns>A task producing the single row as a <c>dynamic</c> object.</returns>
     public static Task<dynamic> QuerySingleAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -88,6 +123,18 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>QuerySingleAsync</c>.
+    /// </summary>
+    /// <typeparam name="T">The CLR type to map the row to.</typeparam>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the single row mapped to <typeparamref name="T"/>.</returns>
     public static Task<T> QuerySingleAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -104,6 +151,14 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QuerySingleOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="type">The CLR type to map each row to.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the single row mapped to <paramref name="type"/>, or <see langword="null"/> if none.</returns>
     public static Task<object?> QuerySingleOrDefaultAsync(
         this IDbConnection cnn,
         Type type,
@@ -122,6 +177,8 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QuerySingleOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <returns>A task producing the single row as a <c>dynamic</c> object, or <see langword="null"/> if none.</returns>
     public static Task<dynamic?> QuerySingleOrDefaultAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -138,6 +195,18 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>QuerySingleOrDefaultAsync</c>.
+    /// </summary>
+    /// <typeparam name="T">The CLR type to map the row to.</typeparam>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the single row mapped to <typeparamref name="T"/>, or the default if none.</returns>
     public static Task<T?> QuerySingleOrDefaultAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -154,6 +223,14 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QueryFirstAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="type">The CLR type to map each row to.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the first row mapped to <paramref name="type"/>.</returns>
     public static Task<object> QueryFirstAsync(
         this IDbConnection cnn,
         Type type,
@@ -172,6 +249,8 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QueryFirstAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <returns>A task producing the first row as a <c>dynamic</c> object.</returns>
     public static Task<dynamic> QueryFirstAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -188,6 +267,18 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>QueryFirstAsync</c>.
+    /// </summary>
+    /// <typeparam name="T">The CLR type to map the row to.</typeparam>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the first row mapped to <typeparamref name="T"/>.</returns>
     public static Task<T> QueryFirstAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -204,6 +295,14 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QueryFirstOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="type">The CLR type to map each row to.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the first row mapped to <paramref name="type"/>, or <see langword="null"/> if none.</returns>
     public static Task<object?> QueryFirstOrDefaultAsync(
         this IDbConnection cnn,
         Type type,
@@ -222,6 +321,8 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QueryFirstOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <returns>A task producing the first row as a <c>dynamic</c> object, or <see langword="null"/> if none.</returns>
     public static Task<dynamic?> QueryFirstOrDefaultAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -238,6 +339,18 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>QueryFirstOrDefaultAsync</c>.
+    /// </summary>
+    /// <typeparam name="T">The CLR type to map the row to.</typeparam>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the first row mapped to <typeparamref name="T"/>, or the default if none.</returns>
     public static Task<T?> QueryFirstOrDefaultAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -254,6 +367,14 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QueryAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="type">The CLR type to map each row to.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing a sequence of rows mapped to <paramref name="type"/>.</returns>
     public static Task<IEnumerable<object>> QueryAsync(
         this IDbConnection cnn,
         Type type,
@@ -272,6 +393,8 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <inheritdoc cref="QueryAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
+    /// <returns>A task producing a sequence of <c>dynamic</c> rows.</returns>
     public static Task<IEnumerable<dynamic>> QueryAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -288,6 +411,18 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>QueryAsync</c>.
+    /// </summary>
+    /// <typeparam name="T">The CLR type to map each row to.</typeparam>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing a sequence of rows mapped to <typeparamref name="T"/>.</returns>
     public static Task<IEnumerable<T>> QueryAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -304,6 +439,17 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>QueryMultipleAsync</c>.
+    /// </summary>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing a <see cref="GridReader"/> for reading each result set in turn.</returns>
     public static Task<GridReader> QueryMultipleAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -320,6 +466,17 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>ExecuteReaderAsync</c>.
+    /// </summary>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing an <see cref="IDataReader"/> over the result set.</returns>
     public static Task<IDataReader> ExecuteReaderAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
