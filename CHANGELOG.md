@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.4.0-beta.1] - 2026-06-27
 ### Added
 - Added support for joining a correlated derived table via `APPLY` / `LATERAL`, each grammar exposed as its own method per ADR 0002: `CrossApply` / `OuterApply` (`CROSS APPLY` / `OUTER APPLY`, SQL Server / Oracle) and `CrossJoinLateral` / `LeftJoinLateral` / `JoinLateral(...).On(...)` (`CROSS JOIN LATERAL` / `LEFT JOIN LATERAL ... ON TRUE` / `JOIN LATERAL ... ON ...`, PostgreSQL / MySQL). The derived table is named by a `DerivedTableBase` handle — subclass it for typed `DbColumn` members, or use the inline `DerivedTable` and read columns with `Column(...)`. Per ADR 0003, `Build(Dbms)` emits faithfully and never rewrites one form into the other; availability is left to the database and the analyzer. (#122)
 - Added support for the GROUP BY grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)`. `Group(...)` forms a composite grouping element — a multi-column set inside `GroupingSets(...)`, or a parenthesized composite column inside `Rollup(...)` / `Cube(...)` (e.g. `Rollup(Group(a, b), c)` → `ROLLUP((a, b), c)`) — with `Group()` being the grand total; a single-column `Group(x)` renders bare as `x`. All three always emit their standard function forms (`ROLLUP(...)` / `CUBE(...)` / `GROUPING SETS(...)`) on every dialect. Per ADR 0003, `Build(Dbms)` emits faithfully and does not gate on DBMS availability — an unsupported combination (e.g. `Cube` or the function-form `Rollup(...)` on MySQL, any extension on SQLite) is emitted as written for the database/analyzer to flag, not thrown. (#121)
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - CTE and derived-table names are now alias-quoted at their definition (`WITH "cte" AS ...`, `... ) "x"`) and at every reference (`FROM "cte"`, `... JOIN ... "x"`), consistent with the already-quoted column references through their handles (`"cte".col` / `"x".col`). Previously the name was emitted bare, so on Oracle it case-folded (`cte` → `CTE`) while the quoted column reference stayed lowercase, yielding an unresolvable qualifier (ORA-00904) — most visibly for `CROSS APPLY` / `OUTER APPLY`, whose primary target is Oracle. Emitted SQL for CTEs changes accordingly (the name is now quoted). (#122)
 - `GroupBy(...)` with a `null` grouping item now throws a clear `ArgumentNullException` instead of a `NullReferenceException`. (#121)
 - `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)` with a `null` trailing `params` array (e.g. `Rollup(a, null)`) now throw a clear `ArgumentNullException` instead of a `NullReferenceException`. (#121)
+- **SqlArtisan.TableClassGen**: generated class/property names are now sanitized into valid C# identifiers — a column name starting with a digit, containing Oracle's `$` / `#`, or consisting only of separators previously produced uncompilable code. (#141)
 
 ## [0.3.0-beta.1] - 2026-06-21
 ### Added

@@ -6,7 +6,7 @@
     inherit it, so a release never drifts between packages. (#118)
   -->
   <PropertyGroup>
-    <VersionPrefix>0.3.0</VersionPrefix>
+    <VersionPrefix>0.4.0</VersionPrefix>
     <VersionSuffix>beta.1</VersionSuffix>
   </PropertyGroup>
 
