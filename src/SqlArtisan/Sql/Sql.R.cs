@@ -192,7 +192,7 @@ public static partial class Sql
     /// statement for the database to reject.
     /// </remarks>
     public static RollupGrouping Rollup(object element, params object[] elements) =>
-        new(GroupByItemResolver.ResolveElements([element, .. elements]));
+        new(GroupByItemResolver.ResolveElements(element, elements));
 
     /// <summary>
     /// The <c>ROUND(expr)</c> function: rounds <paramref name="expr"/> to the

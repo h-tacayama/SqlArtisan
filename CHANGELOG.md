@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - CTE and derived-table names are now alias-quoted at their definition (`WITH "cte" AS ...`, `... ) "x"`) and at every reference (`FROM "cte"`, `... JOIN ... "x"`), consistent with the already-quoted column references through their handles (`"cte".col` / `"x".col`). Previously the name was emitted bare, so on Oracle it case-folded (`cte` → `CTE`) while the quoted column reference stayed lowercase, yielding an unresolvable qualifier (ORA-00904) — most visibly for `CROSS APPLY` / `OUTER APPLY`, whose primary target is Oracle. Emitted SQL for CTEs changes accordingly (the name is now quoted). (#122)
 - `GroupBy(...)` with a `null` grouping item now throws a clear `ArgumentNullException` instead of a `NullReferenceException`. (#121)
+- `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)` with a `null` trailing `params` array (e.g. `Rollup(a, null)`) now throw a clear `ArgumentNullException` instead of a `NullReferenceException`. (#121)
 
 ## [0.3.0-beta.1] - 2026-06-21
 ### Added

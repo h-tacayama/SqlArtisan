@@ -11,15 +11,22 @@ public sealed class GroupingSetsGrouping : GroupingElement
 {
     private readonly GroupingSet[] _sets;
 
-    internal GroupingSetsGrouping(GroupingSet[] sets)
+    // The leading set is taken separately so the factory can pass its `params`
+    // array straight through: a null array (the C# binding for e.g.
+    // GroupingSets(set, null)) throws a clear ArgumentNullException instead of
+    // failing with an NRE when spread into a collection expression. The required
+    // leading set also guarantees at least one grouping set.
+    internal GroupingSetsGrouping(GroupingSet set, params GroupingSet[] sets)
     {
-        if (sets.Length == 0)
+        if (sets is null)
         {
-            throw new ArgumentException(
-                "GROUPING SETS requires at least one grouping set.");
+            throw new ArgumentNullException(
+                nameof(sets), ExpressionResolver.NullValueMessage);
         }
 
-        _sets = sets;
+        _sets = new GroupingSet[sets.Length + 1];
+        _sets[0] = set;
+        Array.Copy(sets, 0, _sets, 1, sets.Length);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>
