@@ -29,7 +29,7 @@ public class CrossJoinLateralTests
         expected.Append("(");
         expected.Append("SELECT \"s\".code FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
-        expected.Append("x");
+        expected.Append("\"x\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -54,7 +54,7 @@ public class CrossJoinLateralTests
         expected.Append("(");
         expected.Append("SELECT `s`.code FROM test_table `s` WHERE `s`.code = `t`.code");
         expected.Append(") ");
-        expected.Append("x");
+        expected.Append("`x`");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

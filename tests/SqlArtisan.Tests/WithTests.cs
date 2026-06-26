@@ -39,14 +39,14 @@ public class WithTests
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO test_table (code, name, created_at) ");
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\", ");
         expected.Append("\"a\".name \"cte_name\", ");
         expected.Append("\"a\".created_at \"cte_created_at\" ");
         expected.Append("FROM test_table \"a\" WHERE \"a\".code = :0) ");
         expected.Append("SELECT \"c\".code, \"c\".name, \"c\".created_at ");
         expected.Append("FROM test_table \"c\" ");
-        expected.Append("INNER JOIN cte ON \"c\".code = \"cte\".cte_code ");
+        expected.Append("INNER JOIN \"cte\" ON \"c\".code = \"cte\".cte_code ");
         expected.Append("WHERE \"c\".code > :1");
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -79,7 +79,7 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\", ");
         expected.Append("\"a\".name \"cte_name\", ");
         expected.Append("\"a\".created_at \"cte_created_at\" ");
@@ -87,7 +87,7 @@ public class WithTests
         expected.Append("\"a\" WHERE \"a\".code = :0) ");
         expected.Append("SELECT \"b\".code, \"b\".name, \"b\".created_at ");
         expected.Append("FROM test_table \"b\" ");
-        expected.Append("INNER JOIN cte ");
+        expected.Append("INNER JOIN \"cte\" ");
         expected.Append("ON \"b\".code = \"cte\".cte_code ");
         expected.Append("WHERE \"b\".code > :1");
 
@@ -116,12 +116,12 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\" ");
         expected.Append("FROM test_table \"a\") ");
         expected.Append("SELECT DISTINCT \"b\".code ");
         expected.Append("FROM test_table \"b\" ");
-        expected.Append("INNER JOIN cte ");
+        expected.Append("INNER JOIN \"cte\" ");
         expected.Append("ON \"b\".code = \"cte\".cte_code");
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -148,12 +148,12 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\" ");
         expected.Append("FROM test_table \"a\") ");
         expected.Append("SELECT /*+ FULL(b) */ \"b\".code ");
         expected.Append("FROM test_table \"b\" ");
-        expected.Append("INNER JOIN cte ");
+        expected.Append("INNER JOIN \"cte\" ");
         expected.Append("ON \"b\".code = \"cte\".cte_code");
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -181,12 +181,12 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\" ");
         expected.Append("FROM test_table \"a\") ");
         expected.Append("SELECT /*+ FULL(b) */ DISTINCT \"b\".code ");
         expected.Append("FROM test_table \"b\" ");
-        expected.Append("INNER JOIN cte ");
+        expected.Append("INNER JOIN \"cte\" ");
         expected.Append("ON \"b\".code = \"cte\".cte_code");
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -228,21 +228,21 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte1 AS ");
+        expected.Append("WITH \"cte1\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\", ");
         expected.Append("\"a\".name \"cte_name\", ");
         expected.Append("\"a\".created_at \"cte_created_at\" ");
         expected.Append("FROM test_table \"a\" ");
         expected.Append("WHERE \"a\".code = :0), ");
-        expected.Append("cte2 AS ");
+        expected.Append("\"cte2\" AS ");
         expected.Append("(SELECT \"b\".code \"cte_code\", ");
         expected.Append("\"b\".name \"cte_name\", ");
         expected.Append("\"b\".created_at \"cte_created_at\" ");
         expected.Append("FROM test_table \"b\" WHERE \"b\".code = :1) ");
         expected.Append("SELECT \"c\".code, \"c\".name, \"c\".created_at ");
-        expected.Append("FROM test_table \"c\" LEFT JOIN cte1 ");
+        expected.Append("FROM test_table \"c\" LEFT JOIN \"cte1\" ");
         expected.Append("ON \"c\".code = \"cte1\".cte_code ");
-        expected.Append("LEFT JOIN cte2 ON \"c\".code = \"cte2\".cte_code ");
+        expected.Append("LEFT JOIN \"cte2\" ON \"c\".code = \"cte2\".cte_code ");
         expected.Append("WHERE \"c\".code > :2"); ;
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -280,18 +280,18 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH RECURSIVE cte AS ");
+        expected.Append("WITH RECURSIVE \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\", ");
         expected.Append("\"a\".name \"cte_name\", ");
         expected.Append("\"a\".created_at \"cte_created_at\" ");
         expected.Append("FROM test_table \"a\" WHERE \"a\".code = :0 ");
         expected.Append("UNION ALL SELECT (\"b\".code + :1), ");
         expected.Append("\"b\".name, \"b\".created_at ");
-        expected.Append("FROM cte INNER JOIN test_table \"b\" ");
+        expected.Append("FROM \"cte\" INNER JOIN test_table \"b\" ");
         expected.Append("ON \"cte\".cte_code = \"b\".code) ");
         expected.Append("SELECT \"cte\".cte_code, ");
         expected.Append("\"cte\".cte_name, \"cte\".cte_created_at ");
-        expected.Append("FROM cte");
+        expected.Append("FROM \"cte\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -314,13 +314,13 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\" ");
         expected.Append("FROM test_table \"a\" ");
         expected.Append("WHERE \"a\".code = :0) ");
         expected.Append("DELETE FROM test_table AS \"b\" ");
         expected.Append("WHERE \"b\".code IN ");
-        expected.Append("(SELECT \"cte\".cte_code FROM cte)");
+        expected.Append("(SELECT \"cte\".cte_code FROM \"cte\")");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -346,7 +346,7 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\" ");
         expected.Append("FROM test_table \"a\" ");
         expected.Append("WHERE \"a\".code = :0) ");
@@ -385,7 +385,7 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\", ");
         expected.Append("\"a\".name \"cte_name\", ");
         expected.Append("\"a\".created_at \"cte_created_at\" ");
@@ -395,7 +395,7 @@ public class WithTests
         expected.Append("SELECT \"cte\".cte_code, ");
         expected.Append("\"cte\".cte_name, ");
         expected.Append("\"cte\".cte_created_at ");
-        expected.Append("FROM cte");
+        expected.Append("FROM \"cte\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -425,7 +425,7 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"cte_code\", ");
         expected.Append("\"a\".name \"cte_name\", ");
         expected.Append("\"a\".created_at \"cte_created_at\" ");
@@ -436,7 +436,7 @@ public class WithTests
         expected.Append("name = :2, ");
         expected.Append("created_at = SYSDATE ");
         expected.Append("WHERE \"b\".code IN ");
-        expected.Append("(SELECT \"cte\".cte_code FROM cte)");
+        expected.Append("(SELECT \"cte\".cte_code FROM \"cte\")");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

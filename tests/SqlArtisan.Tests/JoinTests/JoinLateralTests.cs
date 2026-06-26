@@ -28,7 +28,7 @@ public class JoinLateralTests
         expected.Append("(");
         expected.Append("SELECT \"s\".code FROM test_table \"s\"");
         expected.Append(") ");
-        expected.Append("x ");
+        expected.Append("\"x\" ");
         expected.Append("ON ");
         expected.Append("\"t\".code = \"x\".code");
 
@@ -54,7 +54,7 @@ public class JoinLateralTests
         expected.Append("(");
         expected.Append("SELECT `s`.code FROM test_table `s`");
         expected.Append(") ");
-        expected.Append("x ");
+        expected.Append("`x` ");
         expected.Append("ON ");
         expected.Append("`t`.code = `x`.code");
 
@@ -80,7 +80,7 @@ public class JoinLateralTests
         expected.Append("(");
         expected.Append("SELECT \"s\".code FROM test_table \"s\"");
         expected.Append(") ");
-        expected.Append("x ");
+        expected.Append("\"x\" ");
         expected.Append("ON ");
         expected.Append("\"t\".code = \"x\".code");
 

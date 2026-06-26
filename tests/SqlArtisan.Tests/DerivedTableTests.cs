@@ -34,7 +34,7 @@ public class DerivedTableTests
         expected.Append("(");
         expected.Append("SELECT SUM(\"s\".code) \"total\" FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
-        expected.Append("x");
+        expected.Append("\"x\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -63,7 +63,7 @@ public class DerivedTableTests
         expected.Append("(");
         expected.Append("SELECT SUM(\"s\".code) \"total\" FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
-        expected.Append("x");
+        expected.Append("\"x\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -86,12 +86,12 @@ public class DerivedTableTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(");
         expected.Append("SELECT \"a\".code \"c\", \"a\".name \"n\" FROM test_table \"a\" WHERE \"a\".code = :0");
         expected.Append(") ");
         expected.Append("SELECT \"cte\".c, \"cte\".n ");
-        expected.Append("FROM cte");
+        expected.Append("FROM \"cte\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -115,7 +115,7 @@ public class DerivedTableTests
         expected.Append("test_table \"t\" ");
         expected.Append("JOIN LATERAL ");
         expected.Append("(SELECT \"s\".code FROM test_table \"s\") ");
-        expected.Append("x ");
+        expected.Append("\"x\" ");
         expected.Append("ON ");
         expected.Append("\"t\".code = \"x\".code");
 
@@ -141,7 +141,7 @@ public class DerivedTableTests
         expected.Append("test_table \"t\" ");
         expected.Append("CROSS APPLY ");
         expected.Append("(SELECT SUM(\"s\".code) \"total\" FROM test_table \"s\" WHERE \"s\".code = \"t\".code) ");
-        expected.Append("x");
+        expected.Append("\"x\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -158,10 +158,10 @@ public class DerivedTableTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code FROM test_table \"a\") ");
         expected.Append("SELECT \"cte\".code ");
-        expected.Append("FROM cte");
+        expected.Append("FROM \"cte\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -179,10 +179,10 @@ public class DerivedTableTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH cte AS ");
+        expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"c\" FROM test_table \"a\") ");
         expected.Append("SELECT \"cte\".c ");
-        expected.Append("FROM cte");
+        expected.Append("FROM \"cte\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
