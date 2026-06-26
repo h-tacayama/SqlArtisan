@@ -270,15 +270,34 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    // Emits a single-character string literal (e.g. the LIKE ... ESCAPE char),
-    // single-quote delimited. A position whose grammar wants a literal rather than
-    // a bind parameter (ADR 0004) — MySQL rejects `ESCAPE ?` as a non-constant. The
-    // single quote is doubled on every dialect; the backslash is doubled only where
-    // the dialect treats it as a string-literal escape (MySQL).
+    // Emits a single-quote-delimited string literal for a position whose grammar
+    // wants a literal rather than a bind parameter (ADR 0004) — e.g. the LIKE ...
+    // ESCAPE char (MySQL rejects `ESCAPE ?`) or a GROUP_CONCAT ... SEPARATOR.
     internal SqlBuildingBuffer AppendStringLiteral(char value)
     {
         Append('\'');
+        AppendEscaped(value);
+        Append('\'');
+        return this;
+    }
 
+    internal SqlBuildingBuffer AppendStringLiteral(string value)
+    {
+        Append('\'');
+
+        foreach (char c in value)
+        {
+            AppendEscaped(c);
+        }
+
+        Append('\'');
+        return this;
+    }
+
+    // Doubles the single quote on every dialect; doubles the backslash only where
+    // the dialect treats it as a string-literal escape (MySQL).
+    private void AppendEscaped(char value)
+    {
         if (value == '\'')
         {
             Append("''");
@@ -291,9 +310,6 @@ internal sealed class SqlBuildingBuffer : IDisposable
         {
             Append(value);
         }
-
-        Append('\'');
-        return this;
     }
 
     internal SqlBuildingBuffer EncloseInParentheses(SqlPart part)

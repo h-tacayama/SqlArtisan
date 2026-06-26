@@ -20,14 +20,5 @@ public sealed class SeparatorClause : SqlPart
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Separator)
         .AppendSpace()
-        .Append('\'')
-        .Append(Escape(_separator))
-        .Append('\'');
-
-    // MySQL string literals treat both the single quote and (in the default SQL
-    // mode) the backslash as special, so double each to emit a safe literal.
-    private static string Escape(string value) =>
-        value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("'", "''", StringComparison.Ordinal);
+        .AppendStringLiteral(_separator);
 }
