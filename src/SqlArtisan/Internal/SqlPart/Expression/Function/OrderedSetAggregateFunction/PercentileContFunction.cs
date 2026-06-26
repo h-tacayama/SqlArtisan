@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>PERCENTILE_CONT</c> ordered-set aggregate, pending its mandatory

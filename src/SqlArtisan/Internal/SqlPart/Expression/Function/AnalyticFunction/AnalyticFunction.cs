@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// Base class for the ranking and offset (<c>LAG</c>/<c>LEAD</c>) analytic

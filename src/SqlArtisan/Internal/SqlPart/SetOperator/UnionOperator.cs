@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 internal sealed class UnionOperator(bool all) : SqlPart
 {

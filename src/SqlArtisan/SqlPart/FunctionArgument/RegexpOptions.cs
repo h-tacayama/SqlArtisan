@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan;
+namespace SqlArtisan;
 
 /// <summary>
 /// Match options for the <c>REGEXP_*</c> functions, emitted as the match-parameter

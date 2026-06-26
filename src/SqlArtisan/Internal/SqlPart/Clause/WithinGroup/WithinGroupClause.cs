@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>WITHIN GROUP (ORDER BY ...)</c> clause of an ordered-set aggregate.

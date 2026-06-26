@@ -1,4 +1,4 @@
-﻿using static SqlArtisan.Internal.Keywords;
+using static SqlArtisan.Internal.Keywords;
 
 namespace SqlArtisan.Internal;
 

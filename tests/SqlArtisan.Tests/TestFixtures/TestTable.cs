@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Tests;
+namespace SqlArtisan.Tests;
 
 internal sealed class TestTable : DbTableBase
 {

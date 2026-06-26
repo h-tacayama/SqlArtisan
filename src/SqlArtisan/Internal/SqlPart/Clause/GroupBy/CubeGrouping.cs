@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>CUBE(...)</c> grouping extension, built with <c>Sql.Cube(...)</c>.

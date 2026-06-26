@@ -1,4 +1,4 @@
-﻿using static SqlArtisan.Sql;
+using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 

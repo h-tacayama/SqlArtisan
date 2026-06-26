@@ -39,8 +39,10 @@ dotnet format SqlArtisan.sln --verify-no-changes ; echo "format exit=$?"
   **0 warnings is the bar**, including XML-doc `cref` resolution (CS1574).
 - Tests assert exact SQL strings — any output drift fails here.
 - `format` exit 0 means `.editorconfig` is satisfied (indent, `var` policy,
-  Allman braces, file encoding). `[*.cs]` has no `charset` rule, but match the
-  repo's BOM convention (existing `.cs` files are UTF-8 **with** BOM).
+  Allman braces, file encoding). `[*.cs]` sets `charset = utf-8` — UTF-8 **without**
+  a BOM — and `dotnet format` enforces it: a BOM'd `.cs` fails with
+  `error CHARSET: Fix file encoding.` (#134). So a whole-file rewrite must not
+  reintroduce a BOM.
 
 ## 3. Check conformance to the ADRs
 

@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 internal sealed class ExceptOperator(bool all) : SqlPart
 {

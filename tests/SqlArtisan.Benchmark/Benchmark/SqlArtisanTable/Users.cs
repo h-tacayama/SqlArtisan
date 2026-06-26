@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Benchmark.SqlArtisanTable;
+namespace SqlArtisan.Benchmark.SqlArtisanTable;
 
 internal sealed class Users : DbTableBase
 {

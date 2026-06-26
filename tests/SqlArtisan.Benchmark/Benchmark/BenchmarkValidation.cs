@@ -1,4 +1,4 @@
-﻿using LinqToDB.Data;
+using LinqToDB.Data;
 using SqlArtisan.Benchmark.EfCoreModel;
 
 namespace SqlArtisan.Benchmark;

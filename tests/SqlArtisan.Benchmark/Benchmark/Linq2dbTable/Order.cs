@@ -1,4 +1,4 @@
-﻿using LinqToDB.Mapping;
+using LinqToDB.Mapping;
 
 namespace SqlArtisan.Benchmark.Linq2dbTable;
 

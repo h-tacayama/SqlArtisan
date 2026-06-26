@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.TableClassGen;
+namespace SqlArtisan.TableClassGen;
 
 internal static class CaseConverter
 {

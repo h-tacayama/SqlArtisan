@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 internal sealed class SqlPartAgent(Action<SqlBuildingBuffer> formatAction) : SqlPart
 {

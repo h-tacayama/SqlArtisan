@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 // The `UPDATE SET col = val, ...` action of a MERGE WHEN clause. Unlike the
 // standalone UPDATE statement's SET clause, MERGE leads with the UPDATE keyword.

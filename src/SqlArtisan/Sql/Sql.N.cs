@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using SqlArtisan.Internal;
 using static SqlArtisan.Internal.ExpressionResolver;
 

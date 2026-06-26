@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 public abstract class EqualityBasedCondition : SqlCondition
 {

@@ -1,4 +1,4 @@
-﻿using InterpolatedSql;
+using InterpolatedSql;
 using InterpolatedSql.SqlBuilders;
 
 namespace SqlArtisan.Benchmark;

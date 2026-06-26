@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using LinqToDB.Data;
 using SqlArtisan.Benchmark.EfCoreModel;

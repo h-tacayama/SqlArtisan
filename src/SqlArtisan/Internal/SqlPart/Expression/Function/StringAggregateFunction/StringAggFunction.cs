@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>STRING_AGG(expr, separator)</c> string aggregate (PostgreSQL and

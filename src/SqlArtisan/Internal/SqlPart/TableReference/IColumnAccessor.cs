@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 // Implemented by the ad-hoc relation handles (DerivedTable, Cte) to force them to
 // expose the same Column(...) surface: adding an overload here breaks compilation

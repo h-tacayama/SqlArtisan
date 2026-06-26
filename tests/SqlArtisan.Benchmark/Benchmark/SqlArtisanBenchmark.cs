@@ -1,4 +1,4 @@
-﻿using SqlArtisan.Benchmark.SqlArtisanTable;
+using SqlArtisan.Benchmark.SqlArtisanTable;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Benchmark;

@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// A parenthesized grouping element built with <c>Sql.Group(...)</c>: a grouping

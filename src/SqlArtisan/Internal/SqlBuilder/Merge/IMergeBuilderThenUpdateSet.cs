@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The state after a <c>WHEN MATCHED ... UPDATE SET</c>: continue with another
