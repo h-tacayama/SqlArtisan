@@ -10,6 +10,8 @@ public static partial class Sql
     /// <paramref name="expr"/> from the row one position before the current row
     /// in the window.
     /// </summary>
+    /// <param name="expr">The value evaluated for each row of the window.</param>
+    /// <returns>An <see cref="AnalyticLagFunction"/> emitting <c>LAG(expr)</c>.</returns>
     public static AnalyticLagFunction Lag(object expr) =>
         new(Resolve(expr));
 
@@ -18,6 +20,9 @@ public static partial class Sql
     /// <paramref name="expr"/> from the row <paramref name="offset"/> positions
     /// before the current row.
     /// </summary>
+    /// <param name="expr">The value evaluated for each row of the window.</param>
+    /// <param name="offset">The number of rows to look back from the current row.</param>
+    /// <returns>An <see cref="AnalyticLagFunction"/> emitting <c>LAG(expr, offset)</c>.</returns>
     /// <remarks>The offset is emitted as an integer literal.</remarks>
     public static AnalyticLagFunction Lag(object expr, int offset) =>
         new(Resolve(expr), offset);
@@ -28,6 +33,10 @@ public static partial class Sql
     /// before the current row, or <paramref name="defaultValue"/> when that row
     /// falls outside the partition.
     /// </summary>
+    /// <param name="expr">The value evaluated for each row of the window.</param>
+    /// <param name="offset">The number of rows to look back from the current row.</param>
+    /// <param name="defaultValue">The value returned when the offset row falls outside the partition.</param>
+    /// <returns>An <see cref="AnalyticLagFunction"/> emitting <c>LAG(expr, offset, default)</c>.</returns>
     /// <remarks>The offset is emitted as an integer literal; the default value is
     /// parameterized.</remarks>
     public static AnalyticLagFunction Lag(
@@ -39,7 +48,7 @@ public static partial class Sql
             Resolve(defaultValue));
 
     /// <summary>
-    /// The <c>LAST_DAY(<paramref name="date"/>)</c> function (Oracle): the date
+    /// The <c>LAST_DAY(<paramref name="date"/>)</c> function: the date
     /// of the last day of the month containing <paramref name="date"/>.
     /// </summary>
     /// <param name="date">The date whose month's last day is returned.</param>
@@ -52,6 +61,8 @@ public static partial class Sql
     /// The <c>LAST_VALUE(expr)</c> analytic function: the value of
     /// <paramref name="expr"/> from the last row of the window frame.
     /// </summary>
+    /// <param name="expr">The value evaluated for each row of the window.</param>
+    /// <returns>An <see cref="AnalyticLastValueFunction"/> emitting <c>LAST_VALUE(expr)</c>.</returns>
     /// <remarks>The default frame ends at the current row, so an explicit frame
     /// (e.g. <c>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</c>) is
     /// usually intended.</remarks>
@@ -63,6 +74,8 @@ public static partial class Sql
     /// <paramref name="expr"/> from the row one position after the current row
     /// in the window.
     /// </summary>
+    /// <param name="expr">The value evaluated for each row of the window.</param>
+    /// <returns>An <see cref="AnalyticLeadFunction"/> emitting <c>LEAD(expr)</c>.</returns>
     public static AnalyticLeadFunction Lead(object expr) =>
         new(Resolve(expr));
 
@@ -71,6 +84,9 @@ public static partial class Sql
     /// <paramref name="expr"/> from the row <paramref name="offset"/> positions
     /// after the current row.
     /// </summary>
+    /// <param name="expr">The value evaluated for each row of the window.</param>
+    /// <param name="offset">The number of rows to look ahead from the current row.</param>
+    /// <returns>An <see cref="AnalyticLeadFunction"/> emitting <c>LEAD(expr, offset)</c>.</returns>
     /// <remarks>The offset is emitted as an integer literal.</remarks>
     public static AnalyticLeadFunction Lead(object expr, int offset) =>
         new(Resolve(expr), offset);
@@ -81,6 +97,10 @@ public static partial class Sql
     /// after the current row, or <paramref name="defaultValue"/> when that row
     /// falls outside the partition.
     /// </summary>
+    /// <param name="expr">The value evaluated for each row of the window.</param>
+    /// <param name="offset">The number of rows to look ahead from the current row.</param>
+    /// <param name="defaultValue">The value returned when the offset row falls outside the partition.</param>
+    /// <returns>An <see cref="AnalyticLeadFunction"/> emitting <c>LEAD(expr, offset, default)</c>.</returns>
     /// <remarks>The offset is emitted as an integer literal; the default value is
     /// parameterized.</remarks>
     public static AnalyticLeadFunction Lead(
@@ -110,7 +130,7 @@ public static partial class Sql
         new(Resolve(source));
 
     /// <summary>
-    /// The <c>LENGTHB(<paramref name="source"/>)</c> function (Oracle): the
+    /// The <c>LENGTHB(<paramref name="source"/>)</c> function: the
     /// length of <paramref name="source"/> in bytes.
     /// </summary>
     /// <param name="source">The string whose byte length is measured.</param>
@@ -120,7 +140,7 @@ public static partial class Sql
         new(Resolve(source));
 
     /// <summary>
-    /// The <c>LISTAGG(expr, separator)</c> string aggregate (Oracle). Complete
+    /// The <c>LISTAGG(expr, separator)</c> string aggregate. Complete
     /// it with <c>.WithinGroup(OrderBy(...))</c> to supply Oracle's mandatory
     /// ordering.
     /// </summary>
@@ -128,6 +148,7 @@ public static partial class Sql
     /// <param name="separator">The separator placed between values.</param>
     /// <returns>A <see cref="ListaggFunction"/> emitting
     /// <c>LISTAGG(expr, separator)</c>.</returns>
+    /// <remarks>Oracle syntax.</remarks>
     public static ListaggFunction Listagg(object expr, object separator) =>
         new(Resolve(expr), Resolve(separator));
 

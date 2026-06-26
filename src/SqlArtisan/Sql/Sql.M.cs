@@ -49,7 +49,7 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>MONTHS_BETWEEN(<paramref name="date1"/>, <paramref name="date2"/>)</c>
-    /// function (Oracle): the number of months between <paramref name="date1"/>
+    /// function: the number of months between <paramref name="date1"/>
     /// and <paramref name="date2"/>.
     /// </summary>
     /// <param name="date1">The later date.</param>

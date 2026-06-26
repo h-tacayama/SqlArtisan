@@ -31,13 +31,14 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>INSTR(<paramref name="source"/>, <paramref name="substring"/>)</c>
-    /// function (Oracle): the 1-based position of the first occurrence of
+    /// function: the 1-based position of the first occurrence of
     /// <paramref name="substring"/> within <paramref name="source"/>, or 0 when
     /// not found.
     /// </summary>
     /// <param name="source">The string to search in.</param>
     /// <param name="substring">The substring to search for.</param>
     /// <returns>The INSTR construct.</returns>
+    /// <remarks>Oracle syntax.</remarks>
     public static InstrFunction Instr(
         object source,
         object substring) => new(

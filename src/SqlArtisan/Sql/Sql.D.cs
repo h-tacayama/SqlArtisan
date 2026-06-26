@@ -8,7 +8,7 @@ public static partial class Sql
 {
     /// <summary>
     /// The <c>DATEADD(<paramref name="datepart"/>, <paramref name="number"/>, <paramref name="dateTime"/>)</c>
-    /// function (SQL Server): <paramref name="dateTime"/> shifted by
+    /// function: <paramref name="dateTime"/> shifted by
     /// <paramref name="number"/> units of <paramref name="datepart"/>. Pass a
     /// negative <paramref name="number"/> to subtract.
     /// </summary>
@@ -33,7 +33,7 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>DATEDIFF(<paramref name="datepart"/>, <paramref name="startDate"/>, <paramref name="endDate"/>)</c>
-    /// function (SQL Server): the number of <paramref name="datepart"/> boundaries
+    /// function: the number of <paramref name="datepart"/> boundaries
     /// crossed between <paramref name="startDate"/> and <paramref name="endDate"/>.
     /// </summary>
     /// <param name="datepart">The unit of the boundaries to count.</param>
@@ -70,7 +70,7 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>DATE_TRUNC('<paramref name="datepart"/>', <paramref name="source"/>)</c>
-    /// function (PostgreSQL): <paramref name="source"/> truncated down to
+    /// function: <paramref name="source"/> truncated down to
     /// <paramref name="datepart"/> precision.
     /// </summary>
     /// <param name="datepart">The precision to truncate to.</param>
