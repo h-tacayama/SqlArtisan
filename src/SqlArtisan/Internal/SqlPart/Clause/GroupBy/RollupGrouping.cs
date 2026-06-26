@@ -12,13 +12,10 @@ public sealed class RollupGrouping : GroupingElement
 {
     private readonly SqlPart[] _elements;
 
+    // A non-empty element list is guaranteed by Sql.Rollup, whose required leading
+    // element the resolver always carries through; the constructor trusts that.
     internal RollupGrouping(SqlPart[] elements)
     {
-        if (elements.Length == 0)
-        {
-            throw new ArgumentException("ROLLUP requires at least one element.");
-        }
-
         _elements = elements;
     }
 

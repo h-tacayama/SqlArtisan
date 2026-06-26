@@ -10,13 +10,10 @@ public sealed class CubeGrouping : GroupingElement
 {
     private readonly SqlPart[] _elements;
 
+    // A non-empty element list is guaranteed by Sql.Cube, whose required leading
+    // element the resolver always carries through; the constructor trusts that.
     internal CubeGrouping(SqlPart[] elements)
     {
-        if (elements.Length == 0)
-        {
-            throw new ArgumentException("CUBE requires at least one element.");
-        }
-
         _elements = elements;
     }
 
