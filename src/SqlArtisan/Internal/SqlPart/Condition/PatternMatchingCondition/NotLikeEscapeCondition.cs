@@ -4,12 +4,12 @@ public sealed class NotLikeEscapeCondition : SqlCondition
 {
     private readonly SqlExpression _leftSide;
     private readonly SqlExpression _rightSide;
-    private readonly SqlExpression _escapeChar;
+    private readonly char _escapeChar;
 
     internal NotLikeEscapeCondition(
         SqlExpression leftSide,
         SqlExpression rightSide,
-        SqlExpression escapeChar)
+        char escapeChar)
     {
         _leftSide = leftSide;
         _rightSide = rightSide;
@@ -21,5 +21,5 @@ public sealed class NotLikeEscapeCondition : SqlCondition
         .Append($" {Keywords.Not} {Keywords.Like} ")
         .Append(_rightSide)
         .Append($" {Keywords.Escape} ")
-        .Append(_escapeChar);
+        .AppendStringLiteral(_escapeChar);
 }

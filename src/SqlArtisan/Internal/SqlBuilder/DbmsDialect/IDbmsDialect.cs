@@ -5,6 +5,16 @@ internal interface IDbmsDialect
     char AliasQuote { get; }
 
     /// <summary>
+    /// Whether a single-quoted string literal treats the backslash as an escape
+    /// character, so a literal backslash must be doubled. <see langword="true"/>
+    /// for MySQL (default <c>sql_mode</c>); <see langword="false"/> for the
+    /// standard-conforming dialects (PostgreSQL / Oracle / SQLite / SQL Server),
+    /// where a backslash stands for itself. Governs how a literal-emitting
+    /// position such as <c>LIKE ... ESCAPE '\'</c> is rendered.
+    /// </summary>
+    bool BackslashEscapesStringLiterals { get; }
+
+    /// <summary>
     /// The separator between a DML target table and its alias: <c> AS </c>
     /// (PostgreSQL / SQLite / MySQL / SQL Server) or a single space
     /// (Oracle, which rejects <c>AS</c> on a table alias — ORA-00933). This is

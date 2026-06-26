@@ -1,5 +1,3 @@
-using static SqlArtisan.Internal.ExpressionResolver;
-
 namespace SqlArtisan.Internal;
 
 public sealed class NotLikeCondition : SqlCondition
@@ -13,8 +11,10 @@ public sealed class NotLikeCondition : SqlCondition
         _rightSide = rightSide;
     }
 
-    public NotLikeEscapeCondition Escape(object escapeChar) =>
-        new(_leftSide, _rightSide, Resolve(escapeChar));
+    // The escape character is emitted as an inline string literal, not a bind
+    // parameter: MySQL rejects a parameter marker after ESCAPE.
+    public NotLikeEscapeCondition Escape(char escapeChar) =>
+        new(_leftSide, _rightSide, escapeChar);
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
