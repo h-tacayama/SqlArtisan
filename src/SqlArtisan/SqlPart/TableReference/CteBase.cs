@@ -21,8 +21,6 @@ public abstract class CteBase(string name) : TableReference(name)
 
     // The CTE name is quoted wherever it is referenced (e.g. `FROM "cte"`) to
     // match the quoted `WITH "cte" AS ...` definition and the quoted column
-    // references (`"cte".col`); a bare name would fold case on Oracle and break
-    // those references (ORA-00904).
-    internal override void Format(SqlBuildingBuffer buffer) =>
-        buffer.EncloseInAliasQuotes(_name);
+    // references (`"cte".col`). See TableReference.QuoteName.
+    private protected override bool QuoteName => true;
 }
