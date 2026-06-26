@@ -22,6 +22,12 @@ internal static class GroupByItemResolver
 
     internal static SqlPart Resolve(object groupByItem)
     {
+        if (groupByItem is null)
+        {
+            throw new ArgumentNullException(
+                nameof(groupByItem), ExpressionResolver.NullValueMessage);
+        }
+
         if (groupByItem is SqlExpression expr)
         {
             return expr;
