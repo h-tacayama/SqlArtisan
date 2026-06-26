@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using SqlArtisan.Benchmark.SqlifyTable;
 using Sqlify.Core;
 using static Sqlify.Sql;

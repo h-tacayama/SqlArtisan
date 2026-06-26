@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>GROUP_CONCAT(expr)</c> string aggregate (MySQL and SQLite). The two

@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The state after <c>DELETE ... WHERE</c>: add <c>RETURNING</c> or build.

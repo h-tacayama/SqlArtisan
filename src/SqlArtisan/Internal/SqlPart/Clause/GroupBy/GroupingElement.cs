@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// Base type for a GROUP BY grouping extension (<c>ROLLUP</c> / <c>CUBE</c> /

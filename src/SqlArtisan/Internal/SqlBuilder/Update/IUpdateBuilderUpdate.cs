@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The state after <c>UPDATE table</c>: supply the column assignments with <c>SET</c>.

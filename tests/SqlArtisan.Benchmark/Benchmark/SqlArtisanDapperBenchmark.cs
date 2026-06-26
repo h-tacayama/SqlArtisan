@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using SqlArtisan.Benchmark.SqlArtisanTable;
 using SqlArtisan.Dapper;
 using static SqlArtisan.Sql;

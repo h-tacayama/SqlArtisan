@@ -18,6 +18,8 @@ generated_code = true
 
 # C# files
 [*.cs]
+# Encoding: UTF-8 without BOM is the standard for .cs files (#134)
+charset = utf-8
 # New line preferences
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true

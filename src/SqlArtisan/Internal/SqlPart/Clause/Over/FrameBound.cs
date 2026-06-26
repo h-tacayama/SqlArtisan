@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// A single window-frame bound, such as <c>UNBOUNDED PRECEDING</c>,

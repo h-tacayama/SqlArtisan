@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan;
+namespace SqlArtisan;
 
 /// <summary>
 /// Library-wide configuration.

@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The MySQL <c>SEPARATOR &lt;value&gt;</c> clause of <c>GROUP_CONCAT</c>. Use

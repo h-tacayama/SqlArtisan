@@ -1,4 +1,4 @@
-﻿using SqlKata;
+using SqlKata;
 
 namespace SqlArtisan.Benchmark;
 

@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>LISTAGG(expr, separator)</c> string aggregate (Oracle), pending its

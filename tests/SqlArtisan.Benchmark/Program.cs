@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Running;
 using SqlArtisan.Benchmark;
 
 // `dotnet run -- validate` runs the one-time output-equivalence check; anything else is

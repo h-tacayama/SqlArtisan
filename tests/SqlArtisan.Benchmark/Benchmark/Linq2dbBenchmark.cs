@@ -1,4 +1,4 @@
-﻿using LinqToDB;
+using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.DataProvider.PostgreSQL;
 using SqlArtisan.Benchmark.Linq2dbTable;

@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The set of join clauses that can follow a table reference: plain joins, lateral joins, and the SQL Server / Oracle <c>APPLY</c> forms.

@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The state after <c>ON (...)</c>: add one or more <c>WHEN</c> branches, then

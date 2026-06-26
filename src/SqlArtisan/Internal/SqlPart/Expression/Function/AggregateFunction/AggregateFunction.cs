@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// Base class for aggregate functions (<c>SUM</c>, <c>COUNT</c>, <c>AVG</c>,

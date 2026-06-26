@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// Base class for the value analytic functions (<c>FIRST_VALUE</c>,

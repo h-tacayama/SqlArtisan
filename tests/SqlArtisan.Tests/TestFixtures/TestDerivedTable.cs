@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Tests;
+namespace SqlArtisan.Tests;
 
 // A typed derived-table schema: columns exposed as members, for an APPLY / LATERAL
 // source whose columns are referenced repeatedly.

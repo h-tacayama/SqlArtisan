@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// A window specification with a frame: an <c>ORDER BY</c> (optionally preceded

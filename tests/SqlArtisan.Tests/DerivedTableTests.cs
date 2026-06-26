@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 

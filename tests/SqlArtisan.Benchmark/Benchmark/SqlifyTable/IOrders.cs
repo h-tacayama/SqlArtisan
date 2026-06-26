@@ -1,4 +1,4 @@
-﻿using Sqlify;
+using Sqlify;
 using Sqlify.Core;
 using Sqlify.Core.Expressions;
 

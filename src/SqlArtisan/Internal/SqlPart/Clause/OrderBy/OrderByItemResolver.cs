@@ -1,4 +1,4 @@
-﻿using static SqlArtisan.Internal.ExpressionResolver;
+using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan.Internal;
 

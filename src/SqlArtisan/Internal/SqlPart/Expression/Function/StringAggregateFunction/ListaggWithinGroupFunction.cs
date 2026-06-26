@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The Oracle <c>LISTAGG(expr, separator) WITHIN GROUP (ORDER BY ...)</c> string

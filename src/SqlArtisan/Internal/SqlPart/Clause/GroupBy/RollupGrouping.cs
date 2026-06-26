@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>ROLLUP(...)</c> grouping extension, built with <c>Sql.Rollup(...)</c>.

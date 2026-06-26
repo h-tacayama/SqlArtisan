@@ -1,4 +1,4 @@
-﻿namespace SqlArtisan.Internal;
+namespace SqlArtisan.Internal;
 
 internal sealed class InsertBuilder(params SqlPart[] rootParts) :
     SelectBuilder(rootParts),
