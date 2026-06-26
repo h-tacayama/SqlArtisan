@@ -38,13 +38,11 @@ public static class DbmsResolver
     /// </summary>
     /// <param name="typeFullName">The connection's fully qualified type name (e.g. <c>Npgsql.NpgsqlConnection</c>), matched case-insensitively.</param>
     /// <param name="dbms">The engine the connection type talks to.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="typeFullName"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="typeFullName"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="typeFullName"/> is empty or whitespace.</exception>
     public static void RegisterProvider(string typeFullName, Dbms dbms)
     {
-        if (string.IsNullOrWhiteSpace(typeFullName))
-        {
-            throw new ArgumentNullException(nameof(typeFullName));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(typeFullName);
 
         s_providerMap.TryAdd(typeFullName, dbms);
     }

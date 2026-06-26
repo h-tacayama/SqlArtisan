@@ -13,8 +13,9 @@ public sealed class SeparatorClause : SqlPart
 
     internal SeparatorClause(string separator)
     {
-        _separator = separator
-            ?? throw new ArgumentNullException(nameof(separator));
+        ArgumentNullException.ThrowIfNull(separator);
+
+        _separator = separator;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
