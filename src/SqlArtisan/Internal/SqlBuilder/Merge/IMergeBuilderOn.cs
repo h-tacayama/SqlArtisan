@@ -2,8 +2,8 @@
 
 /// <summary>
 /// The state after <c>ON (...)</c>: add one or more <c>WHEN</c> branches, then
-/// <see cref="ISqlBuilder.Build()">Build</see>. The branches are per-dialect
-/// by design — <c>WHEN NOT MATCHED BY SOURCE</c> is SQL Server only.
+/// <see cref="ISqlBuilder.Build()">Build</see>. The branches are per-dialect:
+/// <c>WHEN NOT MATCHED BY SOURCE</c> is SQL Server only.
 /// </summary>
 public interface IMergeBuilderOn : ISqlBuilder
 {

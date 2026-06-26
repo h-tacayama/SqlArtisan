@@ -2,7 +2,7 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The capability to write an UPSERT clause on an INSERT. The methods are
-/// per-dialect by design: <c>OnConflict</c> targets PostgreSQL/SQLite,
+/// per-dialect: <c>OnConflict</c> targets PostgreSQL/SQLite,
 /// <c>OnDuplicateKeyUpdate</c> targets MySQL.
 /// </summary>
 public interface IUpsert
