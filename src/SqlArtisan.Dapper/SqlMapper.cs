@@ -110,7 +110,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="QuerySingle{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
-    /// <returns>The single row as a <c>dynamic</c> object.</returns>
+    /// <returns>The single row as a <see langword="dynamic"/> object.</returns>
     public static dynamic QuerySingle(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -139,6 +139,7 @@ public static partial class SqlMapper
     /// <param name="commandTimeout">Command timeout in seconds.</param>
     /// <param name="commandType">How to interpret the command text.</param>
     /// <returns>The single row mapped to <typeparamref name="T"/>.</returns>
+    /// <exception cref="System.InvalidOperationException">The query did not return exactly one row.</exception>
     public static T QuerySingle<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -182,7 +183,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="QuerySingleOrDefault{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
-    /// <returns>The single row as a <c>dynamic</c> object, or <see langword="null"/> if none.</returns>
+    /// <returns>The single row as a <see langword="dynamic"/> object, or <see langword="null"/> if none.</returns>
     public static dynamic? QuerySingleOrDefault(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -254,7 +255,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="QueryFirst{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
-    /// <returns>The first row as a <c>dynamic</c> object.</returns>
+    /// <returns>The first row as a <see langword="dynamic"/> object.</returns>
     public static dynamic QueryFirst(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -283,6 +284,7 @@ public static partial class SqlMapper
     /// <param name="commandTimeout">Command timeout in seconds.</param>
     /// <param name="commandType">How to interpret the command text.</param>
     /// <returns>The first row mapped to <typeparamref name="T"/>.</returns>
+    /// <exception cref="System.InvalidOperationException">The query returned no rows.</exception>
     public static T QueryFirst<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -326,7 +328,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="QueryFirstOrDefault{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
-    /// <returns>The first row as a <c>dynamic</c> object, or <see langword="null"/> if none.</returns>
+    /// <returns>The first row as a <see langword="dynamic"/> object, or <see langword="null"/> if none.</returns>
     public static dynamic? QueryFirstOrDefault(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -401,7 +403,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="Query{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, bool, int?, System.Data.CommandType?)"/>
-    /// <returns>A sequence of <c>dynamic</c> rows.</returns>
+    /// <returns>A sequence of <see langword="dynamic"/> rows.</returns>
     public static IEnumerable<dynamic> Query(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,

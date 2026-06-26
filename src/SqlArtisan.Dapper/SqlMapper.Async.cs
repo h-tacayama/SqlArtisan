@@ -106,7 +106,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="QuerySingleAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
-    /// <returns>A task producing the single row as a <c>dynamic</c> object.</returns>
+    /// <returns>A task producing the single row as a <see langword="dynamic"/> object.</returns>
     public static Task<dynamic> QuerySingleAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -135,6 +135,7 @@ public static partial class SqlMapper
     /// <param name="commandTimeout">Command timeout in seconds.</param>
     /// <param name="commandType">How to interpret the command text.</param>
     /// <returns>A task producing the single row mapped to <typeparamref name="T"/>.</returns>
+    /// <exception cref="System.InvalidOperationException">The query did not return exactly one row.</exception>
     public static Task<T> QuerySingleAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -178,7 +179,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="QuerySingleOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
-    /// <returns>A task producing the single row as a <c>dynamic</c> object, or <see langword="null"/> if none.</returns>
+    /// <returns>A task producing the single row as a <see langword="dynamic"/> object, or <see langword="null"/> if none.</returns>
     public static Task<dynamic?> QuerySingleOrDefaultAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -250,7 +251,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="QueryFirstAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
-    /// <returns>A task producing the first row as a <c>dynamic</c> object.</returns>
+    /// <returns>A task producing the first row as a <see langword="dynamic"/> object.</returns>
     public static Task<dynamic> QueryFirstAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -279,6 +280,7 @@ public static partial class SqlMapper
     /// <param name="commandTimeout">Command timeout in seconds.</param>
     /// <param name="commandType">How to interpret the command text.</param>
     /// <returns>A task producing the first row mapped to <typeparamref name="T"/>.</returns>
+    /// <exception cref="System.InvalidOperationException">The query returned no rows.</exception>
     public static Task<T> QueryFirstAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -322,7 +324,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="QueryFirstOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
-    /// <returns>A task producing the first row as a <c>dynamic</c> object, or <see langword="null"/> if none.</returns>
+    /// <returns>A task producing the first row as a <see langword="dynamic"/> object, or <see langword="null"/> if none.</returns>
     public static Task<dynamic?> QueryFirstOrDefaultAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
@@ -394,7 +396,7 @@ public static partial class SqlMapper
     }
 
     /// <inheritdoc cref="QueryAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
-    /// <returns>A task producing a sequence of <c>dynamic</c> rows.</returns>
+    /// <returns>A task producing a sequence of <see langword="dynamic"/> rows.</returns>
     public static Task<IEnumerable<dynamic>> QueryAsync(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
