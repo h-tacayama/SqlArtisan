@@ -6,16 +6,27 @@ namespace SqlArtisan;
 
 public static partial class Sql
 {
+    /// <summary>
+    /// The searched <c>CASE WHEN ... THEN ... [ELSE ...] END</c> expression. Build each
+    /// branch with <c>Sql.When(condition).Then(result)</c> and an optional
+    /// <c>Sql.Else(result)</c>.
+    /// </summary>
+    /// <param name="whenClause">The first <c>WHEN ... THEN ...</c> branch.</param>
+    /// <param name="whenClauses">Any additional <c>WHEN ... THEN ...</c> branches.</param>
+    /// <returns>A <see cref="SearchedCaseExpression"/> emitting
+    /// <c>CASE WHEN ... THEN ... END</c>.</returns>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause,
         params SearchedCaseWhenClause[] whenClauses) =>
         new([whenClause, .. whenClauses]);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause,
         CaseElseExpression elseExpr) =>
         new([whenClause], elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause1,
         SearchedCaseWhenClause whenClause2,
@@ -26,6 +37,7 @@ public static partial class Sql
         ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause1,
         SearchedCaseWhenClause whenClause2,
@@ -38,6 +50,7 @@ public static partial class Sql
         ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause1,
         SearchedCaseWhenClause whenClause2,
@@ -52,6 +65,7 @@ public static partial class Sql
         ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause1,
         SearchedCaseWhenClause whenClause2,
@@ -68,6 +82,7 @@ public static partial class Sql
         ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause1,
         SearchedCaseWhenClause whenClause2,
@@ -86,6 +101,7 @@ public static partial class Sql
         ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause1,
         SearchedCaseWhenClause whenClause2,
@@ -106,6 +122,7 @@ public static partial class Sql
         ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause1,
         SearchedCaseWhenClause whenClause2,
@@ -128,6 +145,7 @@ public static partial class Sql
         ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause1,
         SearchedCaseWhenClause whenClause2,
@@ -152,6 +170,7 @@ public static partial class Sql
         ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause1,
         SearchedCaseWhenClause whenClause2,
@@ -178,17 +197,29 @@ public static partial class Sql
         ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause[] whenClauses,
         CaseElseExpression elseExpr) =>
         new(whenClauses, elseExpr);
 
+    /// <summary>
+    /// The simple <c>CASE <paramref name="expr"/> WHEN ... THEN ... [ELSE ...] END</c>
+    /// expression, comparing <paramref name="expr"/> against each branch's value. Build
+    /// each branch with <c>Sql.When(value).Then(result)</c> and an optional
+    /// <c>Sql.Else(result)</c>.
+    /// </summary>
+    /// <param name="expr">The expression compared against each <c>WHEN</c> value.</param>
+    /// <param name="whenClauses">The <c>WHEN ... THEN ...</c> branches.</param>
+    /// <returns>A <see cref="SimpleCaseExpression"/> emitting
+    /// <c>CASE expr WHEN ... THEN ... END</c>.</returns>
     public static SimpleCaseExpression Case(
         object expr,
         params SimpleCaseWhenClause[] whenClauses) => new(
             Resolve(expr),
             whenClauses);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause,
@@ -197,6 +228,7 @@ public static partial class Sql
             [whenClause],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause1,
@@ -209,6 +241,7 @@ public static partial class Sql
             ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause1,
@@ -223,6 +256,7 @@ public static partial class Sql
             ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause1,
@@ -239,6 +273,7 @@ public static partial class Sql
             ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause1,
@@ -257,6 +292,7 @@ public static partial class Sql
             ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause1,
@@ -277,6 +313,7 @@ public static partial class Sql
             ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause1,
@@ -299,6 +336,7 @@ public static partial class Sql
             ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause1,
@@ -323,6 +361,7 @@ public static partial class Sql
             ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause1,
@@ -349,6 +388,7 @@ public static partial class Sql
             ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause whenClause1,
@@ -377,6 +417,7 @@ public static partial class Sql
             ],
             elseExpr);
 
+    /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause[] whenClauses,
@@ -390,6 +431,7 @@ public static partial class Sql
     /// is emitted verbatim, so supply the exact SQL data type for your target database
     /// (for example <c>"VARCHAR2(10)"</c> on Oracle, <c>"NVARCHAR(10)"</c> on SQL Server).
     /// </summary>
+    /// <returns>A <see cref="CastExpression"/> emitting <c>CAST(expr AS type)</c>.</returns>
     public static CastExpression Cast(object expr, string type) =>
         new(Resolve(expr), type);
 
@@ -417,6 +459,16 @@ public static partial class Sql
     public static CeilingFunction Ceiling(object expr) =>
         new(Resolve(expr));
 
+    /// <summary>
+    /// The <c>COALESCE(<paramref name="primary"/>, <paramref name="secondary"/>, ...)</c>
+    /// function (the first non-<c>NULL</c> argument).
+    /// </summary>
+    /// <param name="primary">The first candidate value.</param>
+    /// <param name="secondary">The second candidate value, used when
+    /// <paramref name="primary"/> is <c>NULL</c>.</param>
+    /// <param name="others">Any further candidate values, tried in order.</param>
+    /// <returns>A <see cref="CoalesceFunction"/> emitting
+    /// <c>COALESCE(a, b, ...)</c>.</returns>
     public static CoalesceFunction Coalesce(
         object primary,
         object secondary,
@@ -425,6 +477,14 @@ public static partial class Sql
             Resolve(secondary),
             Resolve(others));
 
+    /// <summary>
+    /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>, ...)</c>
+    /// function (the arguments joined into a single string).
+    /// </summary>
+    /// <param name="primary">The first string expression.</param>
+    /// <param name="secondary">The second string expression.</param>
+    /// <param name="others">Any further string expressions, appended in order.</param>
+    /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b, ...)</c>.</returns>
     public static ConcatFunction Concat(
         object primary,
         object secondary,
@@ -433,9 +493,20 @@ public static partial class Sql
             Resolve(secondary),
             Resolve(others));
 
+    /// <summary>
+    /// The <c>COUNT(<paramref name="expr"/>)</c> aggregate function (the number of
+    /// non-<c>NULL</c> values in the group).
+    /// </summary>
+    /// <param name="expr">The expression to count.</param>
+    /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(expr)</c>.</returns>
     public static CountFunction Count(object expr) =>
         new(Resolve(expr));
 
+    /// <inheritdoc cref="Count(object)"/>
+    /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
+    /// counting only distinct values.</param>
+    /// <param name="expr">The expression to count.</param>
+    /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(DISTINCT expr)</c>.</returns>
     public static CountFunction Count(DistinctKeyword distinct, object expr) =>
         new(distinct, Resolve(expr));
 
@@ -443,15 +514,23 @@ public static partial class Sql
     /// The <c>CUBE(...)</c> GROUP BY grouping extension. Each element is an ordinary
     /// column or a <c>Sql.Group(...)</c> composite column (so
     /// <c>Cube(Group(a, b), c)</c> emits <c>CUBE((a, b), c)</c>). Emitted as
-    /// <c>CUBE(a, b)</c>. MySQL and SQLite have no CUBE; <c>Build</c> still emits it
-    /// faithfully rather than rejecting it, leaving the unsupported statement for
-    /// the target database to reject.
+    /// <c>CUBE(a, b)</c>.
     /// </summary>
+    /// <remarks>MySQL and SQLite do not support it; emitted as written for the
+    /// database to reject.</remarks>
     public static CubeGrouping Cube(object element, params object[] elements) =>
         new(GroupByItemResolver.ResolveElements([element, .. elements]));
 
+    /// <summary>
+    /// The <c>CUME_DIST()</c> analytic function (cumulative distribution of the current
+    /// row within its window). Complete it with <c>.Over(...)</c>.
+    /// </summary>
+    /// <returns>An <see cref="AnalyticCumeDistFunction"/> emitting <c>CUME_DIST()</c>.</returns>
     public static AnalyticCumeDistFunction CumeDist() => new();
 
+    /// <summary>
+    /// The <c>CURRENT_DATE</c> function (the current date).
+    /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentDateFunction CurrentDate => new();
 
@@ -461,9 +540,15 @@ public static partial class Sql
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static FrameBound CurrentRow => FrameBound.CurrentRow();
 
+    /// <summary>
+    /// The <c>CURRENT_TIME</c> function (the current time of day).
+    /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentTimeFunction CurrentTime => new();
 
+    /// <summary>
+    /// The <c>CURRENT_TIMESTAMP</c> function (the current date and time).
+    /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentTimestampFunction CurrentTimestamp => new();
 
@@ -471,6 +556,9 @@ public static partial class Sql
     /// Gets the current value of a sequence using the PostgreSQL syntax
     /// <c>CURRVAL('sequenceName')</c>.
     /// </summary>
+    /// <param name="sequenceName">The name of the sequence to read.</param>
+    /// <returns>A <see cref="CurrvalFunction"/> emitting
+    /// <c>CURRVAL('sequenceName')</c>.</returns>
     /// <remarks>
     /// Dialect-specific (PostgreSQL). For Oracle use <see cref="Sequence(string)"/>
     /// with <c>.Currval</c>.
