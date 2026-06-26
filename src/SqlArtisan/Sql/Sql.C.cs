@@ -494,6 +494,27 @@ public static partial class Sql
             Resolve(others));
 
     /// <summary>
+    /// Conditionally includes a <see cref="SqlCondition"/>: returns
+    /// <paramref name="condition"/> when <paramref name="when"/> is
+    /// <see langword="true"/>, otherwise an empty condition that emits nothing.
+    /// </summary>
+    /// <remarks>
+    /// Use this to drop a predicate out of a <c>WHERE</c> clause based on a runtime
+    /// flag without breaking the fluent chain.
+    /// </remarks>
+    /// <param name="when">When <see langword="true"/>, the condition is included; when
+    /// <see langword="false"/>, it is omitted.</param>
+    /// <param name="condition">The condition to include when <paramref name="when"/> is
+    /// <see langword="true"/>.</param>
+    /// <returns><paramref name="condition"/> when <paramref name="when"/> is
+    /// <see langword="true"/>; otherwise an empty <see cref="SqlCondition"/> that emits
+    /// nothing.</returns>
+    public static SqlCondition ConditionIf(
+        bool when,
+        SqlCondition condition) =>
+        when ? condition : new EmptyCondition();
+
+    /// <summary>
     /// The <c>COUNT(<paramref name="expr"/>)</c> aggregate function (the number of
     /// non-<c>NULL</c> values in the group).
     /// </summary>

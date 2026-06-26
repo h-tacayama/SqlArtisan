@@ -20,27 +20,6 @@ public static partial class Sql
     public static AbsFunction Abs(object expr) => new(Resolve(expr));
 
     /// <summary>
-    /// Conditionally includes a <see cref="SqlCondition"/>: returns
-    /// <paramref name="condition"/> when <paramref name="when"/> is
-    /// <see langword="true"/>, otherwise an empty condition that emits nothing.
-    /// </summary>
-    /// <remarks>
-    /// Use this to drop a predicate out of a <c>WHERE</c> clause based on a runtime
-    /// flag without breaking the fluent chain.
-    /// </remarks>
-    /// <param name="when">When <see langword="true"/>, the condition is included; when
-    /// <see langword="false"/>, it is omitted.</param>
-    /// <param name="condition">The condition to include when <paramref name="when"/> is
-    /// <see langword="true"/>.</param>
-    /// <returns><paramref name="condition"/> when <paramref name="when"/> is
-    /// <see langword="true"/>; otherwise an empty <see cref="SqlCondition"/> that emits
-    /// nothing.</returns>
-    public static SqlCondition ConditionIf(
-        bool when,
-        SqlCondition condition) =>
-        when ? condition : new EmptyCondition();
-
-    /// <summary>
     /// The <c>ADD_MONTHS(<paramref name="dateTime"/>, <paramref name="months"/>)</c>
     /// function (the date/time shifted forward by the given number of months).
     /// </summary>
