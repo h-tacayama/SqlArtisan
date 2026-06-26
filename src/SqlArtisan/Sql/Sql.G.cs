@@ -52,7 +52,7 @@ public static partial class Sql
         new(Resolve(expr), positionalSeparator: Resolve(separator));
 
     /// <summary>
-    /// The <c>GROUP_CONCAT(expr ORDER BY ...)</c> string aggregate (MySQL) with
+    /// The <c>GROUP_CONCAT(expr ORDER BY ...)</c> string aggregate with
     /// inline ordering and the default comma separator.
     /// </summary>
     /// <param name="expr">The value aggregated into the concatenated string.</param>
@@ -66,8 +66,8 @@ public static partial class Sql
         new(Resolve(expr), orderByClause: orderByClause);
 
     /// <summary>
-    /// The <c>GROUP_CONCAT(expr SEPARATOR separator)</c> string aggregate
-    /// (MySQL), where <paramref name="separatorClause"/> is built with
+    /// The <c>GROUP_CONCAT(expr SEPARATOR separator)</c> string aggregate,
+    /// where <paramref name="separatorClause"/> is built with
     /// <c>Sql.Separator(...)</c>.
     /// </summary>
     /// <param name="expr">The value aggregated into the concatenated string.</param>
@@ -82,7 +82,7 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr ORDER BY ... SEPARATOR separator)</c> string
-    /// aggregate (MySQL) with inline ordering and an explicit
+    /// aggregate with inline ordering and an explicit
     /// <c>Sql.Separator(...)</c>.
     /// </summary>
     /// <param name="expr">The value aggregated into the concatenated string.</param>
