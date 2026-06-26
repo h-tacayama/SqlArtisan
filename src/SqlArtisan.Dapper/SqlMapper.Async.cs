@@ -208,6 +208,7 @@ public static partial class SqlMapper
     /// <param name="commandTimeout">Command timeout in seconds.</param>
     /// <param name="commandType">How to interpret the command text.</param>
     /// <returns>A task producing the single row mapped to <typeparamref name="T"/>, or the default if none.</returns>
+    /// <exception cref="System.InvalidOperationException">The query returned more than one row.</exception>
     public static Task<T?> QuerySingleOrDefaultAsync<T>(
         this IDbConnection cnn,
         ISqlBuilder sqlBuilder,
