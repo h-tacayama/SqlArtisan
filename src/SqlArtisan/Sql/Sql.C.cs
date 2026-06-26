@@ -519,7 +519,7 @@ public static partial class Sql
     /// <remarks>MySQL and SQLite do not support it; emitted as written for the
     /// database to reject.</remarks>
     public static CubeGrouping Cube(object element, params object[] elements) =>
-        new(GroupByItemResolver.ResolveElements([element, .. elements]));
+        new(GroupByItemResolver.ResolveElements(element, elements));
 
     /// <summary>
     /// The <c>CUME_DIST()</c> analytic function (cumulative distribution of the current

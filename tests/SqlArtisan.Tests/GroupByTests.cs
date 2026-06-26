@@ -433,4 +433,25 @@ public class GroupByTests
         Assert.Throws<ArgumentNullException>(() =>
             Select(_t.Code).From(_t).GroupBy(null!));
     }
+
+    [Fact]
+    public void Rollup_WithNullElements_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => Rollup(_t.Code, null!));
+    }
+
+    [Fact]
+    public void Cube_WithNullElements_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => Cube(_t.Code, null!));
+    }
+
+    [Fact]
+    public void GroupingSets_WithNullSets_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => GroupingSets(Group(_t.Code), null!));
+    }
 }

@@ -158,5 +158,5 @@ public static partial class Sql
     /// not, where it is emitted as written for the database to reject.</remarks>
     public static GroupingSetsGrouping GroupingSets(
         GroupingSet set,
-        params GroupingSet[] sets) => new([set, .. sets]);
+        params GroupingSet[] sets) => new(set, sets);
 }
