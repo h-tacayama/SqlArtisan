@@ -4,6 +4,9 @@ internal sealed class SqlServerDialect : IDbmsDialect
 {
     public char AliasQuote => '"';
 
+    // SQL Server string literals take the backslash literally, so it is never doubled.
+    public bool BackslashEscapesStringLiterals => false;
+
     public string DmlTableAliasSeparator => " AS ";
 
     public char ParameterMarker => '@';

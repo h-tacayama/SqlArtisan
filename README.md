@@ -1290,8 +1290,12 @@ SqlStatement sql =
 
 // SELECT name
 // FROM users
-// WHERE name LIKE :0 ESCAPE :1
+// WHERE name LIKE :0 ESCAPE '!'
 ```
+
+The escape character is emitted as an inline string literal rather than a bind
+parameter — MySQL rejects a parameter marker after `ESCAPE` — so it is valid
+identically on every dialect.
 
 ##### BETWEEN Condition
 ```csharp
