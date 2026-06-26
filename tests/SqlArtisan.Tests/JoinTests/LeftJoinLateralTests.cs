@@ -29,7 +29,7 @@ public class LeftJoinLateralTests
         expected.Append("(");
         expected.Append("SELECT \"s\".code FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
-        expected.Append("x ");
+        expected.Append("\"x\" ");
         expected.Append("ON TRUE");
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -55,7 +55,7 @@ public class LeftJoinLateralTests
         expected.Append("(");
         expected.Append("SELECT `s`.code FROM test_table `s` WHERE `s`.code = `t`.code");
         expected.Append(") ");
-        expected.Append("x ");
+        expected.Append("`x` ");
         expected.Append("ON TRUE");
 
         Assert.Equal(expected.ToString(), sql.Text);

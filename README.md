@@ -490,7 +490,7 @@ SqlStatement sql =
 
 // SELECT "u".name, "x".id
 // FROM users "u"
-// CROSS APPLY (SELECT "o".id "id" FROM orders "o" WHERE "o".user_id = "u".id) x
+// CROSS APPLY (SELECT "o".id "id" FROM orders "o" WHERE "o".user_id = "u".id) "x"
 ```
 
 When you reference the derived table's columns repeatedly, subclass
@@ -505,8 +505,11 @@ pattern as a CTE's `CteBase`); pass that instance as the handle.
 | `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON TRUE` | PostgreSQL, MySQL |
 | `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL |
 
-The derived-table alias is emitted bare (`... ) x`), matching how a CTE name is
-written; column references through the handle are alias-quoted (`"x".id`).
+The derived-table alias is alias-quoted at its definition (`... ) "x"`), matching
+both how a CTE name is written and the alias-quoted column references through the
+handle (`"x".id`), so the alias resolves consistently on every dialect — including
+Oracle, where a bare alias would case-fold (`x` → `X`) and no longer match the
+quoted reference.
 
 The DBMS column lists where each form is idiomatic, not the limit of what is
 emitted: availability is the target database's concern (and the opt-in
@@ -1074,7 +1077,7 @@ SqlStatement sql =
     .On(orders.UserId == seniors.SeniorId)
     .Build();
 
-// WITH seniors AS
+// WITH "seniors" AS
 // (SELECT "users".id "senior_id",
 // "users".name "senior_name",
 // "users".age "senior_age"
@@ -1085,7 +1088,7 @@ SqlStatement sql =
 // "seniors".senior_name,
 // "seniors".senior_age
 // FROM orders "orders"
-// INNER JOIN seniors
+// INNER JOIN "seniors"
 // ON "orders".user_id = "seniors".senior_id
 ```
 

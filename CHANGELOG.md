@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **[BREAKING CHANGE]** Renamed the CTE schema base class `CteSchemaBase` to `CteBase` (and named the new derived-table base `DerivedTableBase`, not `DerivedTableSchemaBase`), dropping the `Schema` term that read inconsistently with `DbTableBase` and invited confusion with a database schema. CTE subclasses update only the base type name (e.g. `class MyCte : CteSchemaBase` → `: CteBase`); emitted SQL is unchanged. (#122)
 - Reworked the benchmark suite into a fair builder comparison (every entrant emits SQL plus bind parameters for the same query), added linq2db and a labeled EF Core reference, and refreshed the README Performance section. (#79)
 
+### Fixed
+- CTE and derived-table names are now alias-quoted at their definition (`WITH "cte" AS ...`, `... ) "x"`) and at every reference (`FROM "cte"`, `... JOIN ... "x"`), consistent with the already-quoted column references through their handles (`"cte".col` / `"x".col`). Previously the name was emitted bare, so on Oracle it case-folded (`cte` → `CTE`) while the quoted column reference stayed lowercase, yielding an unresolvable qualifier (ORA-00904) — most visibly for `CROSS APPLY` / `OUTER APPLY`, whose primary target is Oracle. Emitted SQL for CTEs changes accordingly (the name is now quoted). (#122)
+
 ## [0.3.0-beta.1] - 2026-06-21
 ### Added
 - Added support for the `MERGE` statement (Oracle / SQL Server, and PostgreSQL 15+): `MergeInto(...).Using(...).On(...)` with per-dialect `WhenMatched` / `WhenNotMatched` / `WhenNotMatchedBySource` branches; SQL Server output is automatically terminated with the required semicolon. (#89)
