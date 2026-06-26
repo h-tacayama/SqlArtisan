@@ -98,6 +98,18 @@ Example — the trim that motivated this skill:
   verb-first form ("Gets the current value of a sequence …").
 - Keep the `<summary>` to the construct and its emitted form; put dialect caveats
   and "use X instead" pointers in `<remarks>`.
+- **Tag line breaks (the .NET-standard layout).** Always put `<summary>` on its
+  own line — the open tag, the text, and `</summary>` each on a separate `///`
+  line, **even for a one-liner** (this is what Visual Studio / Roslyn generate):
+  ```csharp
+  /// <summary>
+  /// Gets the number of bound parameters.
+  /// </summary>
+  ```
+  Keep `<param>`, `<returns>`, `<typeparam>`, `<exception>` **inline** on the tag
+  line (`/// <param name="x">The thing.</param>`), wrapping onto continuation
+  lines only when the content is long. Do not split those onto their own
+  open-tag line.
 - **Document on the interface, not the implementation.** Put a builder step's doc
   on its `ISelectBuilder*` interface. The IDE shows it on the implementation
   automatically, but the *generated XML* and DocFX do not inherit it — so when

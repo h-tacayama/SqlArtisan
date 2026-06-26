@@ -1,9 +1,13 @@
 ﻿namespace SqlArtisan.Internal;
 
-/// <summary>The entry state of a <c>SELECT</c> statement: choose the select list.</summary>
+/// <summary>
+/// The entry state of a <c>SELECT</c> statement: choose the select list.
+/// </summary>
 public interface ISelectBuilder
 {
-    /// <summary>Opens the statement with <c>SELECT a, b, ...</c>.</summary>
+    /// <summary>
+    /// Opens the statement with <c>SELECT a, b, ...</c>.
+    /// </summary>
     /// <param name="selectItems">The select-list items — columns, expressions, or <c>expr.As("alias")</c> aliases.</param>
     /// <returns>The builder positioned after the select list, ready for <c>From(...)</c>.</returns>
     ISelectBuilderSelect Select(

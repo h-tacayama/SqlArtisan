@@ -1,6 +1,8 @@
 namespace SqlArtisan.Internal;
 
-/// <summary>The state after <c>LIMIT n</c>: optionally add an <c>OFFSET</c> (PostgreSQL/MySQL/SQLite), or build.</summary>
+/// <summary>
+/// The state after <c>LIMIT n</c>: optionally add an <c>OFFSET</c> (PostgreSQL/MySQL/SQLite), or build.
+/// </summary>
 public interface ILimitOffsetBuilder : ISqlBuilder
 {
     /// <summary>

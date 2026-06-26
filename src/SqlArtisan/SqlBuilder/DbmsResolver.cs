@@ -33,7 +33,9 @@ public static class DbmsResolver
         RegisterProvider("Oracle.DataAccess.Client.OracleConnection", Dbms.Oracle);
     }
 
-    /// <summary>Registers a connection type so <see cref="Resolve(IDbConnection)"/> maps it to <paramref name="dbms"/>. The first registration for a type wins; a later one for the same type is ignored.</summary>
+    /// <summary>
+    /// Registers a connection type so <see cref="Resolve(IDbConnection)"/> maps it to <paramref name="dbms"/>. The first registration for a type wins; a later one for the same type is ignored.
+    /// </summary>
     /// <param name="typeFullName">The connection's fully qualified type name (e.g. <c>Npgsql.NpgsqlConnection</c>), matched case-insensitively.</param>
     /// <param name="dbms">The engine the connection type talks to.</param>
     /// <exception cref="ArgumentNullException"><paramref name="typeFullName"/> is null, empty, or whitespace.</exception>
@@ -47,7 +49,9 @@ public static class DbmsResolver
         s_providerMap.TryAdd(typeFullName, dbms);
     }
 
-    /// <summary>Resolves the engine behind a connection from its runtime type.</summary>
+    /// <summary>
+    /// Resolves the engine behind a connection from its runtime type.
+    /// </summary>
     /// <param name="connection">The connection to inspect.</param>
     /// <returns>The registered <see cref="Dbms"/>, or <see cref="Dbms.Unknown"/> when <paramref name="connection"/> is null or its type is not registered.</returns>
     public static Dbms Resolve(IDbConnection connection)
