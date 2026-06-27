@@ -12,8 +12,6 @@ namespace SqlArtisan;
 public sealed class DbTable(string tableName, string tableAlias = "")
     : DbTableBase(tableName, tableAlias), IColumnAccessor
 {
-    private readonly string _tableAlias = tableAlias;
-
     /// <summary>
     /// Returns the named column of this table, qualified by its alias (or unqualified when the table has no alias).
     /// </summary>

@@ -8,7 +8,7 @@ namespace SqlArtisan;
 /// </summary>
 public abstract class DbTableBase : TableReference
 {
-    private readonly string _tableAlias;
+    private protected readonly string _tableAlias;
 
     /// <summary>
     /// Initializes a table whose name defaults to the subclass's type name, with the given alias.

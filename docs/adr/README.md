@@ -22,5 +22,5 @@ divergence, then the output, API, and performance decisions.
 | [0002](0002-dbms-differences-in-dialect-layer.md) | Handling DBMS differences: tokens in the dialect layer, constructs as per-dialect APIs | Accepted |
 | [0003](0003-dbms-difference-safety.md) | DBMS-difference safety: permissive API + opt-in analyzer | Accepted |
 | [0004](0004-automatic-parameterization.md) | Values are automatically parameterized | Accepted |
-| [0005](0005-public-api-in-sql-partial-class.md) | Public API lives only in `Sql.*.cs` and `SqlBuilder/` | Accepted |
+| [0005](0005-public-api-in-sql-partial-class.md) | Public API location | Accepted |
 | [0006](0006-performance-allocation-light.md) | Performance is a feature: allocation-light building | Accepted |
