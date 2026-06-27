@@ -57,12 +57,12 @@ So you can focus on the query logic, not the boilerplate. That's why SqlArtisan.
 
 ## Key Features
 
-- **SQL-like API**: Write queries naturally, mirroring SQL syntax and structure.
-- **Schema IntelliSense**: Provides code completion for table/column names via **table schema classes**, improving development speed and accuracy.
-- **Automatic Parameterization**: Converts literals to bind variables, boosting security (SQLi prevention) and query performance.
-- **Dynamic Query Conditions**: Dynamically include or exclude `WHERE` conditions (and other query parts) using simple helpers like `ConditionIf`.
-- **Low-Allocation Design**: Minimizes heap allocations and GC load for superior performance.
-- **Seamless Dapper Integration**: The optional `SqlArtisan.Dapper` library provides Dapper extensions that enable effortless SQL execution.
+- **SQL-like API**: queries read like the SQL they emit.
+- **Schema IntelliSense**: table/column completion from generated table classes — no stringly-typed names.
+- **Automatic parameterization**: literals become bind parameters, preventing SQL injection.
+- **Dynamic conditions**: add or drop `WHERE` parts at runtime with helpers like `ConditionIf`.
+- **Fast & allocation-light**: pooled buffers make it the fastest, lowest-allocation builder [benchmarked](#performance).
+- **Dapper integration**: optional `SqlArtisan.Dapper` adds one-call execution.
 
 ---
 
