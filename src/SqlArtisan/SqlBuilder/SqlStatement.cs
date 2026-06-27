@@ -22,4 +22,12 @@ public sealed class SqlStatement
     /// Gets the parameters bound by <see cref="Text"/>.
     /// </summary>
     public SqlParameters Parameters { get; }
+
+    /// <summary>
+    /// Returns <see cref="Text"/> — the SQL with parameter markers. Parameter
+    /// <em>values</em> are not included (they may hold sensitive data); read
+    /// <see cref="Parameters"/> explicitly when you need them.
+    /// </summary>
+    /// <returns>The rendered SQL text.</returns>
+    public override string ToString() => Text;
 }

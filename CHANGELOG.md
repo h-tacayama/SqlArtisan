@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `SqlStatement.ToString()` now returns `Text` (the parameter-marked SQL), so logging or inspecting a built statement shows the SQL instead of the type name. Parameter values are not included (they may be sensitive); read `Parameters` explicitly when you need them. (#147)
+### Added
 - Added `DbTable`, an ad-hoc table reference: name a table inline (`new DbTable("users", "u")`) and read its columns by name with `Column(name)`, without declaring a typed `DbTableBase` subclass — mirroring `Cte` / `DerivedTable`. Columns are qualified by the alias (unqualified when none); usable in `SELECT` / `FROM` / `JOIN` and as an `INSERT` / `UPDATE` / `DELETE` target. (#145)
 ### Changed
 - Split the API reference out of the README into `docs/` to keep the README a lean landing page (it ships in the NuGet package and renders on nuget.org). The README now carries a capability-map index; usage examples, expressions, and the function catalog moved to `docs/query-statements.md`, `docs/expressions.md`, and `docs/functions.md`, indexed by `docs/README.md`. README→docs links are absolute GitHub URLs since nuget.org does not resolve relative links. Added `llms.txt` as an LLM-friendly index for AI coding tools. (#143)
