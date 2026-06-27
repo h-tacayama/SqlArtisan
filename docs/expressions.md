@@ -592,4 +592,3 @@ SqlStatement sql =
 // SELECT
 // NEXT VALUE FOR users_id_seq
 ```
-
