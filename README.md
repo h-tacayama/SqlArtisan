@@ -188,30 +188,14 @@ dotnet add package SqlArtisan.Dapper --prerelease
     IEnumerable<UserDto> users = await connection.QueryAsync<UserDto>(sql);
     ```
 
-    **Alternative: Manual Execution (Accessing SQL and Parameters)**
+    **Alternative: Manual Execution**
 
-    Alternatively, access the SQL string and parameters directly for use with raw ADO.NET, other micro-ORMs, or for debugging, instead of using `SqlArtisan.Dapper`.
+    Not using Dapper? Call `Build()` to get the SQL string and its parameters for raw ADO.NET, another micro-ORM, or debugging. `Build()` takes an optional `Dbms` (default `PostgreSql`) that sets dialect details like the parameter prefix (`:` vs `@`).
 
-    `ISqlBuilder.Build()` accepts an optional `Dbms` argument (defaulting to `Dbms.PostgreSql`) to specify the SQL dialect. This affects features like the bind parameter prefix (e.g., `:` for PostgreSQL, `@` for SQL Server).
-
-    **Example (Default - PostgreSQL):**
     ```csharp
-    UsersTable u = new();
-
-    // No args; defaults to Dbms.PostgreSql, uses ':' prefix
-    SqlStatement sql =
-        Select(u.Id, u.Name)
-        .From(u)
-        .Where(u.Id == 10 & u.Name == "Alice")
-        .Build();
-
-    // sql.Text is
-    // SELECT id, name
-    // FROM users
-    // WHERE (id = :0) AND (name = :1)
-    //
-    // sql.Parameters.Get<int>(":0") is 10
-    // sql.Parameters.Get<string>(":1") is "Alice"
+    SqlStatement sql = Select(u.Id, u.Name).From(u).Where(u.Id == 10).Build();
+    // sql.Text       => "SELECT id, name FROM users WHERE id = :0"
+    // sql.Parameters => ":0" is 10
     ```
 
 ---
