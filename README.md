@@ -89,7 +89,7 @@ The **allocation lead is firm** (lightweight builders allocate the same bytes ev
 | :------------------------- | :---------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
 | `SqlArtisan`               | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                       | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg)](https://www.nuget.org/packages/SqlArtisan/)                             | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan)](https://www.nuget.org/packages/SqlArtisan/)                             |
 | `SqlArtisan.Dapper`        | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.Dapper)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               |
-| `SqlArtisan.TableClassGen` | A .NET tool that generates C# table classes from your database, enabling IntelliSense and type-safety with SqlArtisan. | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
+| `SqlArtisan.TableClassGen` | A .NET tool that generates C# table classes from your database, enabling IntelliSense and type safety with SqlArtisan. | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
 
 ---
 
@@ -171,7 +171,7 @@ dotnet add package SqlArtisan.Dapper   # optional: Dapper execution
 
     // 'connection' is your IDbConnection. SqlArtisan auto-detects the DBMS
     // (MySQL, Oracle, PostgreSQL, SQLite, SQL Server) & applies
-    // the correct bind parameter prefix (e.g., ':' or '@').
+    // the correct bind-parameter prefix (e.g., ':' or '@').
     IEnumerable<UserDto> users = await connection.QueryAsync<UserDto>(sql);
     ```
 

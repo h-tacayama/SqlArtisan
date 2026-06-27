@@ -690,7 +690,7 @@ alias-qualified (pass columns from an unaliased table instance, as `c` above).
 > SqlArtisan does not inject it). SQL Server's `MERGE` also has a history of
 > bugs and surprising behavior; Microsoft and the community recommend caution,
 > especially with a `DELETE` action or temporal tables. Prefer separate
-> statements if you do not need atomic upsert semantics.
+> statements if you do not need atomic UPSERT semantics.
 
 ---
 
