@@ -54,7 +54,7 @@ All the convenience, minimal overhead: the **lowest-allocation, fastest** builde
 
 - **SQL-like API**: queries read like the SQL they emit.
 - **Schema IntelliSense**: table/column completion from generated table classes — no stringly-typed names.
-- **Allocation-light & fast**: pooled buffers make it the lowest-allocation, fastest builder [benchmarked](#performance).
+- **Allocation-light & fast**: pooled buffers keep it nearly as lean as a hand-written `StringBuilder` ([benchmarks](#performance)).
 - **Automatic parameterization**: literals become bind parameters, preventing SQL injection.
 - **Dynamic conditions**: add or drop `WHERE` parts at runtime with helpers like `ConditionIf`.
 - **Dapper integration**: optional `SqlArtisan.Dapper` adds one-call execution.
@@ -63,7 +63,7 @@ All the convenience, minimal overhead: the **lowest-allocation, fastest** builde
 
 ## Performance
 
-SqlArtisan minimizes heap allocations — string buffers are recycled from a pooled `ArrayPool<T>` — so it adds little GC pressure on hot paths. On a **fair, like-for-like** [BenchmarkDotNet](https://benchmarkdotnet.org/) workload, where every entrant builds the *same* query's SQL string **and** its bind parameters, it is the **fastest and lowest-allocation** builder; only a hand-written `StringBuilder` (no type safety, no parameters) is lighter.
+SqlArtisan minimizes heap allocations — string buffers are recycled from a pooled `ArrayPool<T>` — so it adds little GC pressure on hot paths. On a **fair, like-for-like** [BenchmarkDotNet](https://benchmarkdotnet.org/) workload, where every entrant builds the *same* query's SQL string **and** its bind parameters, it is the **lowest-allocation and fastest** builder; only a hand-written `StringBuilder` (no type safety, no parameters) is lighter.
 
 | Method | Category | Mean | Allocated |
 | :--- | :--- | ---: | ---: |
