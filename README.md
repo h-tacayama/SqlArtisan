@@ -6,6 +6,8 @@
 
 Write SQL, in C#. A type-safe SQL query builder where the SQL you write is the SQL that runs—allocation-light, fast, and automatically parameterized.
 
+---
+
 ## Why SqlArtisan?
 
 Does this sound familiar?
@@ -34,23 +36,22 @@ ISqlBuilder sql =
     .OrderBy(u.Id);
 ```
 
-So you can focus on the query logic, not the boilerplate. That’s why SqlArtisan.
+So you can focus on the query logic, not the boilerplate. That's why SqlArtisan.
 
 ---
 
-## Changelog
+## Contents
 
-Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md) file for all notable changes.
-
----
-
-## Packages
-
-| Package                    | Description                                                                                                                   | NuGet                                                                                                                                | Downloads                                                                                                                      |
-| :------------------------- | :---------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| `SqlArtisan`               | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                       | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg)](https://www.nuget.org/packages/SqlArtisan/)                             | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan)](https://www.nuget.org/packages/SqlArtisan/)                             |
-| `SqlArtisan.Dapper`        | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.Dapper)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               |
-| `SqlArtisan.TableClassGen` | A .NET tool that generates C# table schema classes from your database, enabling IntelliSense and type-safety with SqlArtisan. | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
+- [Key Features](#key-features)
+- [Packages](#packages)
+- [Design Philosophy](#design-philosophy)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Performance](#performance)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Changelog](#changelog)
+- [License](#license)
 
 ---
 
@@ -62,6 +63,16 @@ Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main
 - **Dynamic Query Conditions**: Dynamically include or exclude `WHERE` conditions (and other query parts) using simple helpers like `ConditionIf`.
 - **Low-Allocation Design**: Minimizes heap allocations and GC load for superior performance.
 - **Seamless Dapper Integration**: The optional `SqlArtisan.Dapper` library provides Dapper extensions that enable effortless SQL execution.
+
+---
+
+## Packages
+
+| Package                    | Description                                                                                                                   | NuGet                                                                                                                                | Downloads                                                                                                                      |
+| :------------------------- | :---------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
+| `SqlArtisan`               | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                       | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg)](https://www.nuget.org/packages/SqlArtisan/)                             | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan)](https://www.nuget.org/packages/SqlArtisan/)                             |
+| `SqlArtisan.Dapper`        | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.Dapper)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               |
+| `SqlArtisan.TableClassGen` | A .NET tool that generates C# table schema classes from your database, enabling IntelliSense and type-safety with SqlArtisan. | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
 
 ---
 
@@ -203,26 +214,6 @@ dotnet add package SqlArtisan.Dapper --prerelease
     // sql.Parameters.Get<string>(":1") is "Alice"
     ```
 
-    **Example (Specifying SQL Server):**
-    ```csharp
-    UsersTable u = new();
-
-    // With Dbms.SqlServer; uses '@' prefix
-    SqlStatement sql =
-        Select(u.Id, u.Name)
-        .From(u)
-        .Where(u.Id == 20 & u.Name == "Bob")
-        .Build(Dbms.SqlServer);
-
-    // sql.Text is
-    // SELECT id, name
-    // FROM users
-    // WHERE (id = @0) AND (name = @1)
-    //
-    // sql.Parameters.Get<int>("@0") is 20
-    // sql.Parameters.Get<string>("@1") is "Bob"
-    ```
-
 ---
 
 ## Configuration
@@ -299,7 +290,6 @@ The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLit
 
 > Using an AI coding assistant? Point it at [`llms.txt`](https://github.com/h-tacayama/SqlArtisan/blob/main/llms.txt) for an LLM-friendly index of this documentation.
 
-
 ---
 
 ## Contributing
@@ -310,6 +300,12 @@ We welcome your feedback, suggestions, and bug reports! Your contributions help 
 * **For general questions, discussions about ideas, or seeking help:** Please start a new topic on our [GitHub Discussions page](https://github.com/h-tacayama/SqlArtisan/discussions).
 
 Your collaboration is greatly appreciated!
+
+---
+
+## Changelog
+
+Please see the [CHANGELOG.md](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md) file for all notable changes.
 
 ---
 
