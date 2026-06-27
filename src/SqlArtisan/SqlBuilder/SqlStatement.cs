@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using SqlArtisan.Internal;
 
 namespace SqlArtisan;
@@ -6,7 +5,6 @@ namespace SqlArtisan;
 /// <summary>
 /// A built SQL statement: the rendered text and the parameters it binds.
 /// </summary>
-[DebuggerDisplay("{Text}")]
 public sealed class SqlStatement
 {
     internal SqlStatement(string text, List<KeyValuePair<string, BindValue>> parameters)
