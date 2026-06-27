@@ -43,11 +43,11 @@ So you can focus on the query logic, not the boilerplate. That's why SqlArtisan.
 ## Contents
 
 - [Key Features](#key-features)
+- [Performance](#performance)
 - [Packages](#packages)
-- [Design Philosophy](#design-philosophy)
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
-- [Performance](#performance)
+- [Design Philosophy](#design-philosophy)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [Changelog](#changelog)
@@ -66,6 +66,49 @@ So you can focus on the query logic, not the boilerplate. That's why SqlArtisan.
 
 ---
 
+## Performance
+
+SqlArtisan is engineered for efficient performance, primarily by minimizing heap allocations. Our core strategy is efficient buffer management using `ArrayPool<T>`: internal buffers, particularly for string construction, are recycled from a shared pool. This approach leads to fewer garbage collection (GC) pauses and improved application throughput.
+
+To put that in context, we benchmark SqlArtisan against other C# query builders on a **fair, like-for-like** workload using [BenchmarkDotNet](https://benchmarkdotnet.org/): every entrant builds the SQL string **and** its bind-parameter collection for the *same* logical query. Among the builder libraries, SqlArtisan is both the **fastest** and the **lowest-allocation** option — only a hand-written `StringBuilder` (which is neither type-safe nor automatically parameterized) is lighter.
+
+### Benchmark Details
+
+- Environment:
+  - .NET Version: .NET 8.0.28 (X64 RyuJIT)
+  - CPU: 11th Gen Intel Core i5-1135G7 @ 2.40GHz (4 physical / 8 logical cores)
+  - RAM: 16 GB
+  - OS: Windows 11 (25H2, build 26200)
+- Query shape: a single parameterized `SELECT … FROM users INNER JOIN orders … WHERE order_date >= @p0 AND order_date < @p1 GROUP BY … ORDER BY COUNT(…) DESC` (two `DateTime` bind parameters), built once per operation.
+- Library versions: Dapper.SqlBuilder 2.1.66, InterpolatedSql 2.5.1, linq2db 6.3.0, Sqlify 0.3.14, SqlKata 4.0.1, EF Core 8.0.11 (Npgsql provider 8.0.11). PostgreSQL dialect throughout.
+- Source Code: Benchmark code is available at [Benchmark Source Code](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark). We encourage review and custom testing.
+
+### Benchmark Result
+
+| Method                               | Category       |            Mean |        Error |      StdDev |     Allocated |
+| :----------------------------------- | :------------- | --------------: | -----------: | ----------: | ------------: |
+| StringBuilder_DapperDynamicParams    | Baseline¹      |      630.9 ns   |    20.74 ns  |   57.81 ns  |     1.92 KB   |
+| **SqlArtisan_SpecificParams**        | Builder        |  **1,451.6 ns** |    19.91 ns  |   20.45 ns  |   **2.16 KB** |
+| Sqlify_SpecificParams                | Builder        |   1,871.0 ns    |    36.57 ns  |   75.53 ns  |    3.13 KB    |
+| **SqlArtisan_DapperDynamicParams**   | Builder        |   1,892.5 ns    |    30.50 ns  |   63.67 ns  |    2.84 KB    |
+| InterpolatedSql_SpecificParams       | Builder        |   2,749.7 ns    |    54.29 ns  |   53.32 ns  |    5.11 KB    |
+| DapperSqlBuilder_DapperDynamicParams | Builder        |   2,762.2 ns    |    59.10 ns  |  162.77 ns  |    5.70 KB    |
+| Linq2db_TypedParams                  | Builder        |  44,173.3 ns    | 1,046.11 ns  | 2,792.29 ns |   19.13 KB    |
+| SqlKata_SpecificParams               | Builder        |  50,577.6 ns    |   826.21 ns  |  732.41 ns  |   40.54 KB    |
+| EfCore_Reference                     | ORM reference² |  49,728.5 ns    |   768.22 ns  | 1,101.76 ns |   12.86 KB    |
+
+Among the **Builder** entrants, SqlArtisan has both the lowest allocation and the fastest mean. The **allocation lead is the firm result**: the lightweight builders allocate the same bytes on every run, and SqlArtisan's 2.16 KB is the lowest of any builder regardless of timing noise. Mean times, by contrast, carry run-to-run variance (see `Error` / `StdDev`) that grows for the heavier entrants — so treat the timing order as directional, not exact. As a sanity check we ran the suite three times; SqlArtisan was the fastest builder in each. The other two rows are labeled references, kept out of the builder ranking:
+
+¹ Hand-written `StringBuilder` + Dapper `DynamicParameters` — the raw floor, with no type safety, composition, or dialect handling. It marks the theoretical lower bound; SqlArtisan stays within ~13% of its allocation while remaining fully type-safe.
+
+² EF Core is a **reference**, not a builder entrant. As a full ORM it does materially different work (model metadata, change-tracking infrastructure, a richer query pipeline) and caches compiled queries; SQL here is produced via `CreateDbCommand()` without executing. It is shown only to give a sense of scale.
+
+### Disclaimer
+
+These numbers were measured on the machine described above; absolute times vary with hardware, OS, and runtime, so treat them as relative. The comparison is intentionally scoped to a single general-purpose parameterized query, not a full feature comparison — each library has different design goals and may perform differently on other workloads (for example, linq2db and EF Core cache compiled queries, so they are reported at **warm** steady-state, which is realistic for apps that reuse queries but hides their first-call cost). SQL text is required to be *logically* equivalent across entrants, not byte-identical. Re-run the suite yourself with `dotnet run -c Release --project tests/SqlArtisan.Benchmark -- --filter '*SqlBuilderBenchmarks*'` (and `-- validate` to confirm output equivalence).
+
+---
+
 ## Packages
 
 | Package                    | Description                                                                                                                   | NuGet                                                                                                                                | Downloads                                                                                                                      |
@@ -73,24 +116,6 @@ So you can focus on the query logic, not the boilerplate. That's why SqlArtisan.
 | `SqlArtisan`               | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                       | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg)](https://www.nuget.org/packages/SqlArtisan/)                             | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan)](https://www.nuget.org/packages/SqlArtisan/)                             |
 | `SqlArtisan.Dapper`        | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.Dapper)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               |
 | `SqlArtisan.TableClassGen` | A .NET tool that generates C# table schema classes from your database, enabling IntelliSense and type-safety with SqlArtisan. | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
-
----
-
-## Design Philosophy
-
-SqlArtisan's principle is simple: **the SQL you write is the SQL that runs.** Your C# maps directly to SQL—no translation layer second-guesses your intent.
-
-Full ORMs hide SQL behind object graphs; portability-focused builders rewrite your query per database. SqlArtisan does neither. It's for developers who *want* to write SQL—type-safely and composably in C#, not as fragile strings.
-
-It normalizes only the mechanical—bind-parameter markers (`:0` vs `@0`) and identifier quoting—and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
-
-```csharp
-Sequence("users_id_seq").Nextval   // Oracle:      users_id_seq.NEXTVAL
-Nextval("users_id_seq")            // PostgreSQL:  NEXTVAL('users_id_seq')
-NextValueFor("users_id_seq")       // SQL Server:  NEXT VALUE FOR users_id_seq
-```
-
-So **cross-database portability is a deliberate non-goal**: target Oracle and you write Oracle SQL; target PostgreSQL and you write PostgreSQL SQL. You trade portability for fidelity—the full power of your database's SQL, never flattened to a lowest common denominator.
 
 ---
 
@@ -219,46 +244,21 @@ SqlStatement sql = Select(u.Name).From(u).Build();
 
 ---
 
-## Performance
+## Design Philosophy
 
-SqlArtisan is engineered for efficient performance, primarily by minimizing heap allocations. Our core strategy is efficient buffer management using `ArrayPool<T>`: internal buffers, particularly for string construction, are recycled from a shared pool. This approach leads to fewer garbage collection (GC) pauses and improved application throughput.
+SqlArtisan's principle is simple: **the SQL you write is the SQL that runs.** Your C# maps directly to SQL—no translation layer second-guesses your intent.
 
-To put that in context, we benchmark SqlArtisan against other C# query builders on a **fair, like-for-like** workload using [BenchmarkDotNet](https://benchmarkdotnet.org/): every entrant builds the SQL string **and** its bind-parameter collection for the *same* logical query. Among the builder libraries, SqlArtisan is both the **fastest** and the **lowest-allocation** option — only a hand-written `StringBuilder` (which is neither type-safe nor automatically parameterized) is lighter.
+Full ORMs hide SQL behind object graphs; portability-focused builders rewrite your query per database. SqlArtisan does neither. It's for developers who *want* to write SQL—type-safely and composably in C#, not as fragile strings.
 
-### Benchmark Details
+It normalizes only the mechanical—bind-parameter markers (`:0` vs `@0`) and identifier quoting—and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
 
-- Environment:
-  - .NET Version: .NET 8.0.28 (X64 RyuJIT)
-  - CPU: 11th Gen Intel Core i5-1135G7 @ 2.40GHz (4 physical / 8 logical cores)
-  - RAM: 16 GB
-  - OS: Windows 11 (25H2, build 26200)
-- Query shape: a single parameterized `SELECT … FROM users INNER JOIN orders … WHERE order_date >= @p0 AND order_date < @p1 GROUP BY … ORDER BY COUNT(…) DESC` (two `DateTime` bind parameters), built once per operation.
-- Library versions: Dapper.SqlBuilder 2.1.66, InterpolatedSql 2.5.1, linq2db 6.3.0, Sqlify 0.3.14, SqlKata 4.0.1, EF Core 8.0.11 (Npgsql provider 8.0.11). PostgreSQL dialect throughout.
-- Source Code: Benchmark code is available at [Benchmark Source Code](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark). We encourage review and custom testing.
+```csharp
+Sequence("users_id_seq").Nextval   // Oracle:      users_id_seq.NEXTVAL
+Nextval("users_id_seq")            // PostgreSQL:  NEXTVAL('users_id_seq')
+NextValueFor("users_id_seq")       // SQL Server:  NEXT VALUE FOR users_id_seq
+```
 
-### Benchmark Result
-
-| Method                               | Category       |            Mean |        Error |      StdDev |     Allocated |
-| :----------------------------------- | :------------- | --------------: | -----------: | ----------: | ------------: |
-| StringBuilder_DapperDynamicParams    | Baseline¹      |      630.9 ns   |    20.74 ns  |   57.81 ns  |     1.92 KB   |
-| **SqlArtisan_SpecificParams**        | Builder        |  **1,451.6 ns** |    19.91 ns  |   20.45 ns  |   **2.16 KB** |
-| Sqlify_SpecificParams                | Builder        |   1,871.0 ns    |    36.57 ns  |   75.53 ns  |    3.13 KB    |
-| **SqlArtisan_DapperDynamicParams**   | Builder        |   1,892.5 ns    |    30.50 ns  |   63.67 ns  |    2.84 KB    |
-| InterpolatedSql_SpecificParams       | Builder        |   2,749.7 ns    |    54.29 ns  |   53.32 ns  |    5.11 KB    |
-| DapperSqlBuilder_DapperDynamicParams | Builder        |   2,762.2 ns    |    59.10 ns  |  162.77 ns  |    5.70 KB    |
-| Linq2db_TypedParams                  | Builder        |  44,173.3 ns    | 1,046.11 ns  | 2,792.29 ns |   19.13 KB    |
-| SqlKata_SpecificParams               | Builder        |  50,577.6 ns    |   826.21 ns  |  732.41 ns  |   40.54 KB    |
-| EfCore_Reference                     | ORM reference² |  49,728.5 ns    |   768.22 ns  | 1,101.76 ns |   12.86 KB    |
-
-Among the **Builder** entrants, SqlArtisan has both the lowest allocation and the fastest mean. The **allocation lead is the firm result**: the lightweight builders allocate the same bytes on every run, and SqlArtisan's 2.16 KB is the lowest of any builder regardless of timing noise. Mean times, by contrast, carry run-to-run variance (see `Error` / `StdDev`) that grows for the heavier entrants — so treat the timing order as directional, not exact. As a sanity check we ran the suite three times; SqlArtisan was the fastest builder in each. The other two rows are labeled references, kept out of the builder ranking:
-
-¹ Hand-written `StringBuilder` + Dapper `DynamicParameters` — the raw floor, with no type safety, composition, or dialect handling. It marks the theoretical lower bound; SqlArtisan stays within ~13% of its allocation while remaining fully type-safe.
-
-² EF Core is a **reference**, not a builder entrant. As a full ORM it does materially different work (model metadata, change-tracking infrastructure, a richer query pipeline) and caches compiled queries; SQL here is produced via `CreateDbCommand()` without executing. It is shown only to give a sense of scale.
-
-### Disclaimer
-
-These numbers were measured on the machine described above; absolute times vary with hardware, OS, and runtime, so treat them as relative. The comparison is intentionally scoped to a single general-purpose parameterized query, not a full feature comparison — each library has different design goals and may perform differently on other workloads (for example, linq2db and EF Core cache compiled queries, so they are reported at **warm** steady-state, which is realistic for apps that reuse queries but hides their first-call cost). SQL text is required to be *logically* equivalent across entrants, not byte-identical. Re-run the suite yourself with `dotnet run -c Release --project tests/SqlArtisan.Benchmark -- --filter '*SqlBuilderBenchmarks*'` (and `-- validate` to confirm output equivalence).
+So **cross-database portability is a deliberate non-goal**: target Oracle and you write Oracle SQL; target PostgreSQL and you write PostgreSQL SQL. You trade portability for fidelity—the full power of your database's SQL, never flattened to a lowest common denominator.
 
 ---
 
