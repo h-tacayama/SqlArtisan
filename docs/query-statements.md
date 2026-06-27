@@ -4,7 +4,8 @@
 [Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
 > **How to read this reference.** Each entry shows the **C# you write** and the
-> **exact SQL it emits** — verbatim, what you see is what runs.
+> **SQL it emits**. The SQL in comments is line-wrapped for readability; `sql.Text`
+> is a single line carrying the same tokens in the same order.
 >
 > **Design constraints (read before generating code):**
 > - SqlArtisan emits the SQL you write; **cross-database portability is a non-goal**.
