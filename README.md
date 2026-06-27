@@ -61,7 +61,7 @@ So you can focus on the query logic, not the boilerplate. That's why SqlArtisan.
 - **Schema IntelliSense**: table/column completion from generated table classes — no stringly-typed names.
 - **Automatic parameterization**: literals become bind parameters, preventing SQL injection.
 - **Dynamic conditions**: add or drop `WHERE` parts at runtime with helpers like `ConditionIf`.
-- **Fast & allocation-light**: pooled buffers make it the fastest, lowest-allocation builder [benchmarked](#performance).
+- **Allocation-light & fast**: pooled buffers make it the lowest-allocation, fastest builder [benchmarked](#performance).
 - **Dapper integration**: optional `SqlArtisan.Dapper` adds one-call execution.
 
 ---
