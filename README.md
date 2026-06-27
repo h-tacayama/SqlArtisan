@@ -31,7 +31,7 @@ SqlStatement sql =
 // SELECT id, name, created_at FROM users WHERE (id > :0) AND (name LIKE :1) AND (status_id = :2)
 ```
 
-Ergonomics without the overhead: the **lowest-allocation, fastest** builder [benchmarked](#performance). Focus on the query, not the plumbing.
+All the convenience, minimal overhead: the **lowest-allocation, fastest** builder [benchmarked](#performance). Focus on the query, not the plumbing.
 
 ---
 
