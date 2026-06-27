@@ -88,8 +88,21 @@ four with templates and reference implementations (`AbsFunction`,
 - Unit test conventions (naming grammar, dialect-specific `Build`, exact-SQL
   assertions) live in `.claude/rules/unit-tests.md` — auto-loaded when editing
   `tests/**`.
-- Update `CHANGELOG.md` for user-visible changes; the README is the canonical
-  user-facing documentation.
+- Update `CHANGELOG.md` for user-visible changes. The **README is the
+  landing/overview plus a capability-map index**; the **API reference lives in
+  `docs/`** — `docs/README.md` (reference home), `docs/query-statements.md`,
+  `docs/expressions.md`, `docs/functions.md`. Keep usage examples, expressions,
+  and functions in `docs/`, not the README. `/llms.txt` is the AI-tool entry
+  point (an index of the docs); keep its links in sync when docs move
+  (`llms-full.txt` and an MCP/Context7 feed are future work).
+- README→docs links must be **absolute GitHub URLs** (nuget.org, which renders
+  the bundled README, does not resolve relative links); `llms.txt` uses
+  `raw.githubusercontent.com` URLs. In-page anchors stay relative.
+- List DBMS in documentation in `Dbms` enum order:
+  **MySQL, Oracle, PostgreSQL, SQLite, SQL Server**.
+- Documentation prose/style conventions (terminology, DBMS naming, spaced em
+  dash, reference-entry shape) live in `.claude/rules/docs-style.md` —
+  auto-loaded when editing `README.md`, `docs/**`, or `llms.txt`.
 
 ## Git
 

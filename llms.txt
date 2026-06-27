@@ -1,0 +1,26 @@
+# SqlArtisan
+
+> A type-safe SQL query builder for C# (.NET 8). You write SQL-like C# and it
+> produces the SQL string plus its bind parameters. The SQL you write is the SQL
+> that runs — cross-database portability is a deliberate non-goal. Supported
+> dialects: MySQL, Oracle, PostgreSQL, SQLite, SQL Server (default: PostgreSQL).
+
+Each reference page pairs the C# you write with the exact SQL it emits. When
+generating code, pick the API for the target DBMS; do not expect a single call to
+be rewritten across dialects.
+
+## Docs
+
+- [Overview & Quick Start](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/README.md): Why, installation, first query, configuration, performance.
+- [Reference Home](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/README.md): Index of all statements, expressions, and functions.
+
+## Reference
+
+- [Query Statements](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/query-statements.md): SELECT (clauses, JOIN, set operators, pagination, FOR UPDATE), INSERT (multi-row, SET-like, INSERT…SELECT, UPSERT, MERGE), UPDATE, DELETE, WITH/CTE, RETURNING.
+- [Expressions](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/expressions.md): NULL, arithmetic, conditions, CASE, CAST, window functions, string aggregation, sequences.
+- [Functions](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/functions.md): Built-in function catalog — numeric, character, date/time, conversion, aggregate, string aggregation, window/analytic — plus bind-parameter types.
+
+## Optional
+
+- [CHANGELOG](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/CHANGELOG.md): Version history.
+- [Design (ADRs)](https://github.com/h-tacayama/SqlArtisan/tree/main/docs/adr): Architecture decisions (faithful SQL, dialect layer, parameterization).
