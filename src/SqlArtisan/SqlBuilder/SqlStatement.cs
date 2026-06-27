@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using SqlArtisan.Internal;
 
 namespace SqlArtisan;
@@ -5,6 +6,7 @@ namespace SqlArtisan;
 /// <summary>
 /// A built SQL statement: the rendered text and the parameters it binds.
 /// </summary>
+[DebuggerDisplay("{Text}")]
 public sealed class SqlStatement
 {
     internal SqlStatement(string text, List<KeyValuePair<string, BindValue>> parameters)
@@ -22,4 +24,12 @@ public sealed class SqlStatement
     /// Gets the parameters bound by <see cref="Text"/>.
     /// </summary>
     public SqlParameters Parameters { get; }
+
+    /// <summary>
+    /// Returns <see cref="Text"/> — the SQL with parameter markers. Parameter
+    /// <em>values</em> are not included (they may hold sensitive data); read
+    /// <see cref="Parameters"/> explicitly when you need them.
+    /// </summary>
+    /// <returns>The rendered SQL text.</returns>
+    public override string ToString() => Text;
 }
