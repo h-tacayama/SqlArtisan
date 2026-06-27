@@ -10,7 +10,7 @@
 ## Contents
 
 - [Bind Parameter Types](#bind-parameter-types)
-- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions)
+- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions)
 
 ---
 
@@ -94,6 +94,13 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `ToDate()` for `TO_DATE`
 - `ToNumber()` for `TO_NUMBER`
 - `ToTimestamp()` for `TO_TIMESTAMP`
+
+---
+
+## Comparison Functions
+
+- `Greatest()` for `GREATEST`
+- `Least()` for `LEAST`
 
 ---
 
