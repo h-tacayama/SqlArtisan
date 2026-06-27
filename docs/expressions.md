@@ -239,7 +239,7 @@ SqlStatement sql =
 
 SqlArtisan allows you to dynamically include or exclude conditions using a helper like `ConditionIf`. This is useful when parts of your `WHERE` clause depend on runtime logic.
 
-#### Case 1: Condition is Included 
+#### Case 1: Condition is Included
 
 ```csharp
 bool filterUnderTen = true;
