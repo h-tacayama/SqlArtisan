@@ -77,9 +77,11 @@ SqlArtisan minimizes heap allocations — string buffers are recycled from a poo
 | SqlKata_SpecificParams | Builder | 50,577.6 ns | 40.54 KB |
 | EfCore_Reference | ORM reference² | 49,728.5 ns | 12.86 KB |
 
-The **allocation lead is firm** (lightweight builders allocate the same bytes every run); treat the timing order as directional, since run-to-run variance grows for the heavier entrants. <br>¹ Raw `StringBuilder` + Dapper `DynamicParameters` — the floor, with no type safety or dialect handling. ² EF Core is a full-ORM **reference** (different work, caches compiled queries), shown only for scale.
+The **allocation lead is firm** (lightweight builders allocate the same bytes every run); treat the timing order as directional, since run-to-run variance grows for the heavier entrants.
 
-<sub>Measured on .NET 8.0.28, i5-1135G7 / 16 GB / Windows 11, PostgreSQL dialect. Query shape, library versions, and re-run instructions are in the [benchmark project](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark).</sub>
+¹ Raw `StringBuilder` + Dapper `DynamicParameters` — the floor, with no type safety or dialect handling. ² EF Core is a full-ORM **reference** (different work, caches compiled queries), shown only for scale.
+
+*Measured on .NET 8.0.28, i5-1135G7 / 16 GB / Windows 11, PostgreSQL dialect. Query shape, library versions, and re-run instructions are in the [benchmark project](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark).*
 
 ---
 

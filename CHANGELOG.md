@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Changed
 - Split the API reference out of the README into `docs/` to keep the README a lean landing page (it ships in the NuGet package and renders on nuget.org). The README now carries a capability-map index; usage examples, expressions, and the function catalog moved to `docs/query-statements.md`, `docs/expressions.md`, and `docs/functions.md`, indexed by `docs/README.md`. README→docs links are absolute GitHub URLs since nuget.org does not resolve relative links. Added `llms.txt` as an LLM-friendly index for AI coding tools. (#143)
+- Documented the `GREATEST` / `LEAST` functions, which were public but absent from the function reference. (#143)
 
 ## [0.4.0-beta.1] - 2026-06-27
 ### Added
