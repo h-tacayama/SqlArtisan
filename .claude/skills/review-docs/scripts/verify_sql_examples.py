@@ -135,7 +135,7 @@ def main():
             sql_builds = [(e, clean_expected(x)) for e, x in builds
                           if any(t.upper().startswith(SQLKW) for t in x)]
             block_text = "\n".join(buf)
-            inject_u = "UsersTable u" not in block_text and re.search(r"\bu\.", block_text)
+            inject_u = re.search(r"\bu\.", block_text) and not re.search(r"\bu\s*=", block_text)
             for j, (expr, expected) in enumerate(sql_builds):
                 cases.append({"id": f"{f}:{start}#{j}", "expr": expr, "expected": expected,
                               "setups": setups, "inject_u": bool(inject_u)})
