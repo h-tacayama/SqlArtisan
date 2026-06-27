@@ -68,44 +68,23 @@ So you can focus on the query logic, not the boilerplate. That's why SqlArtisan.
 
 ## Performance
 
-SqlArtisan is engineered for efficient performance, primarily by minimizing heap allocations. Our core strategy is efficient buffer management using `ArrayPool<T>`: internal buffers, particularly for string construction, are recycled from a shared pool. This approach leads to fewer garbage collection (GC) pauses and improved application throughput.
+SqlArtisan minimizes heap allocations — string buffers are recycled from a pooled `ArrayPool<T>` — so it adds little GC pressure on hot paths. On a **fair, like-for-like** [BenchmarkDotNet](https://benchmarkdotnet.org/) workload, where every entrant builds the *same* query's SQL string **and** its bind parameters, it is the **fastest and lowest-allocation** builder; only a hand-written `StringBuilder` (no type safety, no parameters) is lighter.
 
-To put that in context, we benchmark SqlArtisan against other C# query builders on a **fair, like-for-like** workload using [BenchmarkDotNet](https://benchmarkdotnet.org/): every entrant builds the SQL string **and** its bind-parameter collection for the *same* logical query. Among the builder libraries, SqlArtisan is both the **fastest** and the **lowest-allocation** option — only a hand-written `StringBuilder` (which is neither type-safe nor automatically parameterized) is lighter.
+| Method | Category | Mean | Allocated |
+| :--- | :--- | ---: | ---: |
+| StringBuilder_DapperDynamicParams | Baseline¹ | 630.9 ns | 1.92 KB |
+| **SqlArtisan_SpecificParams** | Builder | **1,451.6 ns** | **2.16 KB** |
+| Sqlify_SpecificParams | Builder | 1,871.0 ns | 3.13 KB |
+| **SqlArtisan_DapperDynamicParams** | Builder | 1,892.5 ns | 2.84 KB |
+| InterpolatedSql_SpecificParams | Builder | 2,749.7 ns | 5.11 KB |
+| DapperSqlBuilder_DapperDynamicParams | Builder | 2,762.2 ns | 5.70 KB |
+| Linq2db_TypedParams | Builder | 44,173.3 ns | 19.13 KB |
+| SqlKata_SpecificParams | Builder | 50,577.6 ns | 40.54 KB |
+| EfCore_Reference | ORM reference² | 49,728.5 ns | 12.86 KB |
 
-### Benchmark Details
+The **allocation lead is firm** (lightweight builders allocate the same bytes every run); treat the timing order as directional, since run-to-run variance grows for the heavier entrants. <br>¹ Raw `StringBuilder` + Dapper `DynamicParameters` — the floor, with no type safety or dialect handling. ² EF Core is a full-ORM **reference** (different work, caches compiled queries), shown only for scale.
 
-- Environment:
-  - .NET Version: .NET 8.0.28 (X64 RyuJIT)
-  - CPU: 11th Gen Intel Core i5-1135G7 @ 2.40GHz (4 physical / 8 logical cores)
-  - RAM: 16 GB
-  - OS: Windows 11 (25H2, build 26200)
-- Query shape: a single parameterized `SELECT … FROM users INNER JOIN orders … WHERE order_date >= @p0 AND order_date < @p1 GROUP BY … ORDER BY COUNT(…) DESC` (two `DateTime` bind parameters), built once per operation.
-- Library versions: Dapper.SqlBuilder 2.1.66, InterpolatedSql 2.5.1, linq2db 6.3.0, Sqlify 0.3.14, SqlKata 4.0.1, EF Core 8.0.11 (Npgsql provider 8.0.11). PostgreSQL dialect throughout.
-- Source Code: Benchmark code is available at [Benchmark Source Code](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark). We encourage review and custom testing.
-
-### Benchmark Result
-
-| Method                               | Category       |            Mean |        Error |      StdDev |     Allocated |
-| :----------------------------------- | :------------- | --------------: | -----------: | ----------: | ------------: |
-| StringBuilder_DapperDynamicParams    | Baseline¹      |      630.9 ns   |    20.74 ns  |   57.81 ns  |     1.92 KB   |
-| **SqlArtisan_SpecificParams**        | Builder        |  **1,451.6 ns** |    19.91 ns  |   20.45 ns  |   **2.16 KB** |
-| Sqlify_SpecificParams                | Builder        |   1,871.0 ns    |    36.57 ns  |   75.53 ns  |    3.13 KB    |
-| **SqlArtisan_DapperDynamicParams**   | Builder        |   1,892.5 ns    |    30.50 ns  |   63.67 ns  |    2.84 KB    |
-| InterpolatedSql_SpecificParams       | Builder        |   2,749.7 ns    |    54.29 ns  |   53.32 ns  |    5.11 KB    |
-| DapperSqlBuilder_DapperDynamicParams | Builder        |   2,762.2 ns    |    59.10 ns  |  162.77 ns  |    5.70 KB    |
-| Linq2db_TypedParams                  | Builder        |  44,173.3 ns    | 1,046.11 ns  | 2,792.29 ns |   19.13 KB    |
-| SqlKata_SpecificParams               | Builder        |  50,577.6 ns    |   826.21 ns  |  732.41 ns  |   40.54 KB    |
-| EfCore_Reference                     | ORM reference² |  49,728.5 ns    |   768.22 ns  | 1,101.76 ns |   12.86 KB    |
-
-Among the **Builder** entrants, SqlArtisan has both the lowest allocation and the fastest mean. The **allocation lead is the firm result**: the lightweight builders allocate the same bytes on every run, and SqlArtisan's 2.16 KB is the lowest of any builder regardless of timing noise. Mean times, by contrast, carry run-to-run variance (see `Error` / `StdDev`) that grows for the heavier entrants — so treat the timing order as directional, not exact. As a sanity check we ran the suite three times; SqlArtisan was the fastest builder in each. The other two rows are labeled references, kept out of the builder ranking:
-
-¹ Hand-written `StringBuilder` + Dapper `DynamicParameters` — the raw floor, with no type safety, composition, or dialect handling. It marks the theoretical lower bound; SqlArtisan stays within ~13% of its allocation while remaining fully type-safe.
-
-² EF Core is a **reference**, not a builder entrant. As a full ORM it does materially different work (model metadata, change-tracking infrastructure, a richer query pipeline) and caches compiled queries; SQL here is produced via `CreateDbCommand()` without executing. It is shown only to give a sense of scale.
-
-### Disclaimer
-
-These numbers were measured on the machine described above; absolute times vary with hardware, OS, and runtime, so treat them as relative. The comparison is intentionally scoped to a single general-purpose parameterized query, not a full feature comparison — each library has different design goals and may perform differently on other workloads (for example, linq2db and EF Core cache compiled queries, so they are reported at **warm** steady-state, which is realistic for apps that reuse queries but hides their first-call cost). SQL text is required to be *logically* equivalent across entrants, not byte-identical. Re-run the suite yourself with `dotnet run -c Release --project tests/SqlArtisan.Benchmark -- --filter '*SqlBuilderBenchmarks*'` (and `-- validate` to confirm output equivalence).
+<sub>Measured on .NET 8.0.28, i5-1135G7 / 16 GB / Windows 11, PostgreSQL dialect. Query shape, library versions, and re-run instructions are in the [benchmark project](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark).</sub>
 
 ---
 
@@ -123,27 +102,17 @@ These numbers were measured on the machine described above; absolute times vary 
 
 ### Prerequisites
 
-- **.NET Version:** .NET 8.0 or later.
-- **Dialect-Specific API Usage:** SqlArtisan provides dialect-specific C# APIs that map to DBMS features. For example, use `Systimestamp` for Oracle's `SYSTIMESTAMP` and `CurrentTimestamp` for PostgreSQL's `CURRENT_TIMESTAMP`. Developers should select the C# API appropriate for their target database.
-- **Bind Parameter Handling:** SqlArtisan adjusts bind parameter prefixes (e.g., `:` or `@`) to suit the target DBMS. Currently, this behavior is verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
-- **(Optional) Dapper Integration:** Install `SqlArtisan.Dapper` for seamless Dapper execution. It auto-detects the dialect from your `IDbConnection` to apply correct settings (like bind parameter prefixes) and provides helpful execution methods.
+- **.NET 8.0 or later.**
+- **Choose the API for your target DBMS** (e.g. `Systimestamp` for Oracle vs `CurrentTimestamp` for PostgreSQL). Bind-parameter prefixes (`:` / `@`) are then handled for you — verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
+- **(Optional) `SqlArtisan.Dapper`** auto-detects the dialect from your `IDbConnection` and adds execution methods.
 
 ### Installation
 
-You can install SqlArtisan and its optional Dapper integration library via NuGet Package Manager.
-
-*(Note: These packages are currently in their pre-release phase, so use the --prerelease flag when installing.)*
-
-For the core query building functionality:
+Packages are pre-release, so pass `--prerelease`:
 
 ```bash
-dotnet add package SqlArtisan --prerelease
-```
-
-For seamless execution with Dapper (recommended):
-
-```bash
-dotnet add package SqlArtisan.Dapper --prerelease
+dotnet add package SqlArtisan          # core query builder
+dotnet add package SqlArtisan.Dapper   # optional: Dapper execution
 ```
 
 ### Quick Start
@@ -173,7 +142,7 @@ dotnet add package SqlArtisan.Dapper --prerelease
 
 2. Define your DTO Class
 
-    Create a Data Transfer Object (DTO) class. This class will be used to map the results of your SQL query.
+    A plain class to map query results onto:
 
     ```csharp
     internal sealed class UserDto(int id, string name, DateTime createdAt)
@@ -186,9 +155,7 @@ dotnet add package SqlArtisan.Dapper --prerelease
 
 3. Build and Execute your Query
 
-    Construct your query using SqlArtisan's SQL-like API. For convenient access to entry point methods like `Select()` or `InsertInto()`, add a static using for `SqlArtisan.Sql`, which provides these static helper methods.
-
-    Once built, execute the query. This example uses Dapper with `SqlArtisan.Dapper`.
+    Add `using static SqlArtisan.Sql;` for the entry-point methods (`Select`, `InsertInto`, …), build the query, and execute it — here with Dapper:
 
     ```csharp
     using SqlArtisan;
@@ -278,12 +245,10 @@ The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLit
 
 ## Contributing
 
-We welcome your feedback, suggestions, and bug reports! Your contributions help make SqlArtisan better for everyone.
+Feedback, bug reports, and ideas are welcome.
 
-* **For bug reports or specific feature requests:** Please open an [issue on our GitHub Issues page](https://github.com/h-tacayama/SqlArtisan/issues).
-* **For general questions, discussions about ideas, or seeking help:** Please start a new topic on our [GitHub Discussions page](https://github.com/h-tacayama/SqlArtisan/discussions).
-
-Your collaboration is greatly appreciated!
+* **Bugs or feature requests:** open an [issue](https://github.com/h-tacayama/SqlArtisan/issues).
+* **Questions or ideas:** start a [discussion](https://github.com/h-tacayama/SqlArtisan/discussions).
 
 ---
 
