@@ -100,6 +100,9 @@ four with templates and reference implementations (`AbsFunction`,
   `raw.githubusercontent.com` URLs. In-page anchors stay relative.
 - List DBMS in documentation in `Dbms` enum order:
   **MySQL, Oracle, PostgreSQL, SQLite, SQL Server**.
+- Documentation prose/style conventions (terminology, DBMS naming, spaced em
+  dash, reference-entry shape) live in `.claude/rules/docs-style.md` —
+  auto-loaded when editing `README.md`, `docs/**`, or `llms.txt`.
 
 ## Git
 
