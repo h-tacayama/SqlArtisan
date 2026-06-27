@@ -73,6 +73,23 @@ SqlStatement sql =
 
 ### FROM Clause
 
+#### Ad-hoc Tables
+
+For a one-off query you don't want to declare a typed table class (a `DbTableBase` subclass) for, name a table inline with `DbTable` and read its columns by name with `Column(name)`:
+
+```csharp
+DbTable u = new("users", "u");
+SqlStatement sql =
+    Select(u.Column("id"), u.Column("name"))
+    .From(u)
+    .Where(u.Column("id") > 0)
+    .Build();
+
+// SELECT "u".id, "u".name FROM users "u" WHERE "u".id > :0
+```
+
+Columns are qualified by the alias — or rendered unqualified when the table has no alias (`new DbTable("users")` → `id`). `DbTable` works anywhere a table class does, including `INSERT` / `UPDATE` / `DELETE`. For columns referenced repeatedly, or for IntelliSense on column names, declare a typed `DbTableBase` subclass (or generate one with SqlArtisan.TableClassGen) instead.
+
 #### FROM-less Queries
 ```csharp
 SqlStatement sql =

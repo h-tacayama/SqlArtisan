@@ -1,4 +1,4 @@
-# ADR 0005 — Public API lives only in `Sql.*.cs` and `SqlBuilder/`
+# ADR 0005 — Public API location
 
 **Status:** Accepted
 
@@ -13,6 +13,11 @@ separated from internals that are free to change.
   `src/SqlArtisan/Sql/Sql.{A..W}.cs` — one file per leading letter of the function
   name.
 - The remaining public surface lives under `src/SqlArtisan/SqlBuilder/`.
+- A narrow set of **public table-reference types** lives under
+  `src/SqlArtisan/SqlPart/TableReference/` — the types consumers subclass or
+  instantiate to name relations and reference columns: `DbTableBase` / `DbTable`,
+  `CteBase` / `Cte`, `DerivedTableBase` / `DerivedTable`, and the `DbColumn` they
+  expose. These are public by necessity and part of the contract.
 - **Everything under `Internal/` is implementation detail**, even where a type is
   `public` for technical reasons.
 

@@ -64,7 +64,9 @@ four with templates and reference implementations (`AbsFunction`,
   implicit usings). Match it.
 - Keep DBMS-specific syntax inside `DbmsDialect`; never branch on `Dbms` inside
   function nodes.
-- Public API lives only in `Sql.*.cs` and `src/SqlArtisan/SqlBuilder/`;
+- Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, and the
+  table-reference types under `src/SqlArtisan/SqlPart/TableReference/`
+  (`DbTableBase`/`DbTable`, `CteBase`/`Cte`, `DerivedTableBase`/`DerivedTable`, `DbColumn`);
   everything under `Internal/` is implementation detail.
 - Name a function (factory method, `*Function` node, keyword constant) after its
   SQL token, treating **underscores as the only word boundaries**: each
