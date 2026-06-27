@@ -685,7 +685,7 @@ alias-qualified (pass columns from an unaliased table instance, as `c` above).
 > **SQL Server `MERGE` caveats.** SqlArtisan appends the **required terminating
 > semicolon** automatically when you `Build(Dbms.SqlServer)` (other dialects omit
 > it). `MERGE` performs its `INSERT`/`UPDATE`/`DELETE` actions independently, so
-> for concurrency safety you should take a serializable lock on the target —
+> for concurrency safety you should take a serializable lock on the target — 
 > `MERGE target WITH (HOLDLOCK) ...` (add the hint to your target table source;
 > SqlArtisan does not inject it). SQL Server's `MERGE` also has a history of
 > bugs and surprising behavior; Microsoft and the community recommend caution,

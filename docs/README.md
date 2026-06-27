@@ -10,7 +10,7 @@ emitted SQL are also visible inline via IntelliSense (bundled XML docs).
 
 How to assemble each statement and clause.
 
-- **SELECT** —
+- **SELECT** — 
   [SELECT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#select-clause) ·
   [FROM](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#from-clause) ·
   [WHERE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#where-clause) ·
@@ -22,7 +22,7 @@ How to assemble each statement and clause.
   [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination)
 - **[DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#delete-statement)**
 - **[UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#update-statement)**
-- **INSERT** —
+- **INSERT** — 
   [Standard](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#standard-syntax) ·
   [Multiple Rows](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#multiple-rows) ·
   [SET-like](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#alternative-syntax-set-like) ·
@@ -30,7 +30,7 @@ How to assemble each statement and clause.
   [UPSERT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#upsert-insert-or-update) ·
   [MERGE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement)
 - **[WITH / CTE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#with-clause-common-table-expressions)**
-- **RETURNING** —
+- **RETURNING** — 
   [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause) ·
   [RETURNING INTO (Oracle)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-into-oracle)
 
