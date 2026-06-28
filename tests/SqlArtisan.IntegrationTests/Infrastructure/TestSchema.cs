@@ -19,21 +19,21 @@ internal static class TestSchema
     // SQLite, and SQL Server (INTEGER is a SQL Server synonym for INT).
     public static readonly string[] StandardDdl =
     [
-        "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER)",
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER, created_at TIMESTAMP)",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
     ];
 
-    // SQL Server: NVARCHAR so Unicode text round-trips (its VARCHAR is non-Unicode).
+    // SQL Server: NVARCHAR so Unicode text round-trips (its VARCHAR is non-Unicode); DATETIME2 for the timestamp.
     public static readonly string[] SqlServerDdl =
     [
-        "CREATE TABLE users (id INTEGER PRIMARY KEY, name NVARCHAR(100), age INTEGER, department_id INTEGER)",
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name NVARCHAR(100), age INTEGER, department_id INTEGER, created_at DATETIME2)",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
     ];
 
-    // Oracle spells the same shapes NUMBER / VARCHAR2.
+    // Oracle spells the same shapes NUMBER / VARCHAR2 / DATE.
     public static readonly string[] OracleDdl =
     [
-        "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), department_id NUMBER(10))",
+        "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), department_id NUMBER(10), created_at DATE)",
         "CREATE TABLE orders (id NUMBER(10) PRIMARY KEY, user_id NUMBER(10), amount NUMBER(10,2))",
     ];
 
@@ -64,11 +64,12 @@ internal static class TestSchema
         }
 
         UsersTable users = new();
+        DateTime createdAt = new(2020, 3, 15, 10, 30, 0);
         foreach ((int id, string name, int age, int departmentId) in s_users)
         {
             connection.Execute(
-                InsertInto(users, users.Id, users.Name, users.Age, users.DepartmentId)
-                    .Values(id, name, age, departmentId));
+                InsertInto(users, users.Id, users.Name, users.Age, users.DepartmentId, users.CreatedAt)
+                    .Values(id, name, age, departmentId, createdAt));
         }
 
         OrdersTable orders = new();

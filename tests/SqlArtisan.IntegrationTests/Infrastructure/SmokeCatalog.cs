@@ -110,6 +110,35 @@ internal static class SmokeCatalog
         Add("PercentileDisc", () => Select(PercentileDisc(0.5).WithinGroup(OrderBy(u.Age))).From(u),
             Only(Dbms.Oracle, Dbms.PostgreSql));
 
+        // --- CASE (universal) ---
+        Add("Case", () => Scalar(Case(When(u.Age > 30).Then("old"), Else("young"))), All);
+
+        // --- Date / time (operate on the created_at column) ---
+        Add("Extract", () => Scalar(Extract(DateTimePart.Year, u.CreatedAt)),
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("Datepart", () => Scalar(Datepart(DateTimePart.Year, u.CreatedAt)), Only(Dbms.SqlServer));
+        Add("Dateadd", () => Scalar(Dateadd(DateTimePart.Day, 1, u.CreatedAt)), Only(Dbms.SqlServer));
+        Add("Datediff", () => Scalar(Datediff(DateTimePart.Day, u.CreatedAt, u.CreatedAt)), Only(Dbms.SqlServer));
+        Add("DateTrunc", () => Scalar(DateTrunc(DateTimePart.Month, u.CreatedAt)), Only(Dbms.PostgreSql));
+        Add("AddMonths", () => Scalar(AddMonths(u.CreatedAt, 1)), Only(Dbms.Oracle));
+        Add("LastDay", () => Scalar(LastDay(u.CreatedAt)), Only(Dbms.MySql, Dbms.Oracle));
+        Add("MonthsBetween", () => Scalar(MonthsBetween(u.CreatedAt, u.CreatedAt)), Only(Dbms.Oracle));
+
+        // --- Conversion (Oracle / PostgreSQL) ---
+        Add("ToChar", () => Scalar(ToChar(u.Age, "999")), Only(Dbms.Oracle, Dbms.PostgreSql));
+        Add("ToNumber", () => Scalar(ToNumber("123")), Only(Dbms.Oracle, Dbms.PostgreSql));
+        Add("ToDate", () => Scalar(ToDate("2020-01-01", "YYYY-MM-DD")), Only(Dbms.Oracle, Dbms.PostgreSql));
+        Add("ToTimestamp", () => Scalar(ToTimestamp("2020-01-01 00:00:00", "YYYY-MM-DD HH24:MI:SS")),
+            Only(Dbms.Oracle, Dbms.PostgreSql));
+
+        // --- Regexp ---
+        Add("RegexpLike", () => Select(Count(u.Id)).From(u).Where(RegexpLike(u.Name, "A.*")),
+            Only(Dbms.MySql, Dbms.Oracle));
+        Add("RegexpReplace", () => Scalar(RegexpReplace(u.Name, "a", "b")),
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("RegexpSubstr", () => Scalar(RegexpSubstr(u.Name, "A")), Only(Dbms.MySql, Dbms.Oracle));
+        Add("RegexpCount", () => Scalar(RegexpCount(u.Name, "a")), Only(Dbms.Oracle));
+
         return cases;
     }
 }

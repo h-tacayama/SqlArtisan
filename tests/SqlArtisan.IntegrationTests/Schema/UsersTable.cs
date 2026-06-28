@@ -14,6 +14,7 @@ internal sealed class UsersTable : DbTableBase
         Name = new DbColumn(alias, "name");
         Age = new DbColumn(alias, "age");
         DepartmentId = new DbColumn(alias, "department_id");
+        CreatedAt = new DbColumn(alias, "created_at");
     }
 
     public DbColumn Id { get; }
@@ -23,4 +24,6 @@ internal sealed class UsersTable : DbTableBase
     public DbColumn Age { get; }
 
     public DbColumn DepartmentId { get; }
+
+    public DbColumn CreatedAt { get; }
 }
