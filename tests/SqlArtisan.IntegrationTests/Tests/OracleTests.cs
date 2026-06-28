@@ -1,5 +1,7 @@
 using System.Data;
+using System.Threading.Tasks;
 using Dapper;
+using SqlArtisan;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -75,6 +77,23 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.Equal(3, Convert.ToInt32(outputs.Get<object>("outId")!.ToString()));
         Assert.Equal("Carol", outputs.Get<string>("outName"));
+        transaction.Rollback();
+    }
+
+    [Fact] // The async counterpart of ReturningInto: ExecuteReturningIntoAsync
+           // runs the statement and returns the populated bag.
+    public async Task ReturningIntoAsync_OnDelete_BindsOutputParameter()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        DynamicParameters outputs = await connection.ExecuteReturningIntoAsync(
+            DeleteFrom(u).Where(u.Id == 2)
+                .Returning(u.Id).Into(new OutputParameter("outId", DbType.Int32)),
+            transaction);
+
+        Assert.Equal(2, Convert.ToInt32(outputs.Get<object>("outId")!.ToString()));
         transaction.Rollback();
     }
 

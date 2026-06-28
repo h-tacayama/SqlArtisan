@@ -1,4 +1,6 @@
 using System.Data;
+using System.Threading.Tasks;
+using SqlArtisan;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -419,6 +421,69 @@ public abstract class IntegrationTestBase
             .Query<int>(Select(u.Id).From(u).OrderBy(u.Id.Desc));
 
         Assert.Equal(new[] { 5, 4, 3, 2, 1 }, ids);
+    }
+
+    [Fact]
+    public async Task Async_QueryAndExecute_RoundTrip()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Exercises the async Dapper path end to end: ExecuteAsync (insert),
+        // ExecuteScalarAsync (count), and QueryAsync (read back).
+        await connection.ExecuteAsync(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(160, "Async", 20, 99),
+            transaction);
+
+        long count = Convert.ToInt64(await connection.ExecuteScalarAsync(
+            Select(Count(u.Id)).From(u).Where(u.Id == 160), transaction));
+        IEnumerable<string> names = await connection.QueryAsync<string>(
+            Select(u.Name).From(u).Where(u.Id == 160), transaction);
+
+        Assert.Equal(1, count);
+        Assert.Equal("Async", names.Single());
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void DbTable_AdHocReference_Executes()
+    {
+        // An ad-hoc table reference (no typed DbTableBase subclass): name the
+        // table inline and read columns by name.
+        DbTable users = new("users", "u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(users.Column("id"))).From(users).Where(users.Column("id") == 1)));
+
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void DapperEntryPoints_QueryVariants_Execute()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The thin Dapper passthroughs beyond Query/Execute/ExecuteScalar.
+        int single = connection.QuerySingle<int>(Select(u.Id).From(u).Where(u.Id == 1));
+        int first = connection.QueryFirst<int>(Select(u.Id).From(u).OrderBy(u.Id));
+        int? none = connection.QueryFirstOrDefault<int?>(Select(u.Id).From(u).Where(u.Id == -1));
+
+        Assert.Equal(1, single);
+        Assert.Equal(1, first);
+        Assert.Null(none);
+
+        using (IDataReader reader = connection.ExecuteReader(Select(u.Id).From(u).Where(u.Id == 1)))
+        {
+            Assert.True(reader.Read());
+        }
+
+        using (var grid = connection.QueryMultiple(Select(u.Id).From(u).Where(u.Id == 1)))
+        {
+            Assert.Equal(1, grid.Read<int>().Single());
+        }
     }
 
     [Fact]
