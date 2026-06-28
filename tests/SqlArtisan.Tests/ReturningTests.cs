@@ -125,7 +125,7 @@ public class ReturningTests
         SqlStatement sql =
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
-            .Into("b", "c")
+            .Into(new("b", DbType.Int32), new("c", DbType.String, 100))
             .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
@@ -144,7 +144,7 @@ public class ReturningTests
             DeleteFrom(_t)
             .Where(_t.Code == 1)
             .Returning(_t.Code, _t.Name)
-            .Into("b", "c")
+            .Into(new("b", DbType.Int32), new("c", DbType.String, 100))
             .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
@@ -164,7 +164,7 @@ public class ReturningTests
             InsertInto(_t)
             .Set(_t.Code == 1, _t.Name == "a")
             .Returning(_t.Code, _t.Name)
-            .Into("b", "c")
+            .Into(new("b", DbType.Int32), new("c", DbType.String, 100))
             .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
@@ -184,7 +184,7 @@ public class ReturningTests
             Update(_t)
             .Set(_t.Code == 1, _t.Name == "a")
             .Returning(_t.Code, _t.Name)
-            .Into("b", "c")
+            .Into(new("b", DbType.Int32), new("c", DbType.String, 100))
             .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
@@ -231,7 +231,7 @@ public class ReturningTests
         Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
-            .Into("b")
+            .Into(new OutputParameter("b", DbType.Int32))
             .Build());
     }
 
@@ -241,8 +241,14 @@ public class ReturningTests
         Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
-            .Into("b", "b")
+            .Into(new("b", DbType.Int32), new("b", DbType.Int32))
             .Build());
+    }
+
+    [Fact]
+    public void OutputParameter_EmptyVariable_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => new OutputParameter("", DbType.Int32));
     }
 
     // ── output parameters ─────────────────────────────────────────────
@@ -253,14 +259,17 @@ public class ReturningTests
         SqlStatement sql =
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
-            .Into("b", "c")
+            .Into(new("b", DbType.Int32), new("c", DbType.String, 100))
             .Build(Dbms.Oracle);
 
         Dictionary<string, BindValue> parameters = new();
         sql.Parameters.ForEach((name, bind) => parameters.Add(name, bind));
 
         Assert.Equal(ParameterDirection.Output, parameters[":b"].Direction);
+        Assert.Equal(DbType.Int32, parameters[":b"].DbType);
         Assert.Equal(ParameterDirection.Output, parameters[":c"].Direction);
+        Assert.Equal(DbType.String, parameters[":c"].DbType);
+        Assert.Equal(100, parameters[":c"].Size);
     }
 
     [Fact]
@@ -269,7 +278,7 @@ public class ReturningTests
         SqlStatement sql =
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
-            .Into("b", "c")
+            .Into(new("b", DbType.Int32), new("c", DbType.String, 100))
             .Build(Dbms.SqlServer);
 
         Assert.Contains("INTO @b, @c", sql.Text);

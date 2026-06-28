@@ -33,6 +33,34 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>ExecuteAsync</c>, returning the parameter bag so
+    /// the values bound to its output parameters — an Oracle <c>RETURNING … INTO</c>
+    /// clause — can be read back with <see cref="DynamicParameters.Get{T}"/> after
+    /// execution.
+    /// </summary>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan statement to execute, typically a <c>RETURNING … INTO</c>.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>A task producing the <see cref="DynamicParameters"/> used for the command, carrying the populated output values.</returns>
+    public static async Task<DynamicParameters> ExecuteReturningIntoAsync(
+        this IDbConnection cnn,
+        ISqlBuilder sqlBuilder,
+        IDbTransaction? transaction = null,
+        int? commandTimeout = null,
+        CommandType? commandType = null)
+    {
+        SqlStatement sql = sqlBuilder.Build(cnn);
+        DynamicParameters parameters = sql.Parameters.ToDynamicParameters();
+        await cnn.ExecuteAsync(sql.Text, parameters, transaction, commandTimeout, commandType)
+            .ConfigureAwait(false);
+        return parameters;
+    }
+
     /// <inheritdoc cref="ExecuteScalarAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
     /// <returns>A task producing the first column of the first row, or <see langword="null"/>.</returns>
     public static Task<object?> ExecuteScalarAsync(

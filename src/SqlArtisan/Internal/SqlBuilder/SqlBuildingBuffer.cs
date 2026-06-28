@@ -400,23 +400,25 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    internal SqlBuildingBuffer AddOutParameter(string variable)
+    internal SqlBuildingBuffer AddOutParameter(OutputParameter output)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         _parameters ??= new();
-        string name = $"{_dialect.ParameterMarker}{variable}";
+        string name = $"{_dialect.ParameterMarker}{output.Variable}";
 
         if (ContainsParameterName(name))
         {
             throw new ArgumentException(
-                $"Duplicate variable name '{variable}' in RETURNING INTO clause. Each variable name must be unique.");
+                $"Duplicate variable name '{output.Variable}' in RETURNING INTO clause. Each variable name must be unique.");
         }
 
         Append(name);
         _parameters.Add(new(name, new BindValue(
             DBNull.Value,
-            direction: ParameterDirection.Output)));
+            dbType: output.DbType,
+            direction: ParameterDirection.Output,
+            size: output.Size)));
         return this;
     }
 

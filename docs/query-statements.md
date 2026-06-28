@@ -831,7 +831,7 @@ SqlStatement sql =
 
 ### RETURNING INTO (Oracle)
 
-For Oracle, chain `Into()` after `Returning()` to bind the returned columns into output parameters. The number of variables must match the number of returned expressions, and each variable name must be unique. The output parameters are registered with `ParameterDirection.Output` so you can read their values after execution.
+For Oracle, chain `Into()` after `Returning()` to bind the returned columns into output parameters. Each output is an `OutputParameter` — a variable name, its `DbType`, and an optional size (required for variable-length types such as strings). The type cannot be inferred from the returned column, so it is supplied here. The number of output parameters must match the number of returned expressions, and each variable name must be unique. They are registered with `ParameterDirection.Output` so you can read their values after execution.
 
 ```csharp
 UsersTable u = new();
@@ -839,13 +839,28 @@ SqlStatement sql =
     DeleteFrom(u)
     .Where(u.Id == 1)
     .Returning(u.Id, u.Name)
-    .Into("outId", "outName")
+    .Into(new OutputParameter("outId", DbType.Int32),
+          new OutputParameter("outName", DbType.String, 100))
     .Build(Dbms.Oracle);
 
 // DELETE FROM users
 // WHERE id = :0
 // RETURNING id, name
 // INTO :outId, :outName
+```
+
+With the Dapper integration, `ExecuteReturningInto` runs the statement and returns the parameter bag, so the bound output values can be read back by name after execution:
+
+```csharp
+DynamicParameters outputs = connection.ExecuteReturningInto(
+    DeleteFrom(u)
+    .Where(u.Id == 1)
+    .Returning(u.Id, u.Name)
+    .Into(new OutputParameter("outId", DbType.Int32),
+          new OutputParameter("outName", DbType.String, 100)));
+
+int deletedId = outputs.Get<int>("outId");
+string deletedName = outputs.Get<string>("outName");
 ```
 
 **Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (3.35+). It is not supported by SQL Server (which uses `OUTPUT`) or MySQL. The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
