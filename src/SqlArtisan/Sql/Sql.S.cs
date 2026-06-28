@@ -107,24 +107,24 @@ public static partial class Sql
     /// <paramref name="separator"/>.
     /// </summary>
     /// <param name="expr">The expression aggregated across the group.</param>
-    /// <param name="separator">The string placed between concatenated values.</param>
+    /// <param name="separator">The string placed between concatenated values. Emitted as an inline string literal, since SQL Server requires the separator to be a literal.</param>
     /// <returns>A <c>STRING_AGG</c> aggregate expression.</returns>
     /// <remarks>
     /// PostgreSQL and SQL Server. Order the values per dialect: pass
     /// <c>OrderBy(...)</c> as an argument for PostgreSQL's inline form, or chain
     /// <c>.WithinGroup(OrderBy(...))</c> for SQL Server's <c>WITHIN GROUP</c> form.
     /// </remarks>
-    public static StringAggFunction StringAgg(object expr, object separator) =>
-        new(Resolve(expr), Resolve(separator));
+    public static StringAggFunction StringAgg(object expr, string separator) =>
+        new(Resolve(expr), separator);
 
-    /// <inheritdoc cref="StringAgg(object, object)"/>
+    /// <inheritdoc cref="StringAgg(object, string)"/>
     /// <param name="expr">The expression aggregated across the group.</param>
-    /// <param name="separator">The string placed between concatenated values.</param>
+    /// <param name="separator">The string placed between concatenated values. Emitted as an inline string literal, since SQL Server requires the separator to be a literal.</param>
     /// <param name="orderByClause">PostgreSQL's inline ordering, emitted inside the call (<c>STRING_AGG(expr, separator ORDER BY ...)</c>).</param>
     public static StringAggFunction StringAgg(
         object expr,
-        object separator,
-        OrderByClause orderByClause) => new(Resolve(expr), Resolve(separator), orderByClause);
+        string separator,
+        OrderByClause orderByClause) => new(Resolve(expr), separator, orderByClause);
 
     /// <summary>
     /// The <c>SUBSTR(source, position)</c> function: the substring of

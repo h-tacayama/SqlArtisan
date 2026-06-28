@@ -511,14 +511,18 @@ String aggregation flattens the values of a group into one delimited string. Thi
 Select(StringAgg(u.Name, ", ", OrderBy(u.Name)))
     .From(u)
     .Build(Dbms.PostgreSql);
-// SELECT STRING_AGG(name, :0 ORDER BY name) FROM users   [:0 = ", "]
+// SELECT STRING_AGG(name, ', ' ORDER BY name) FROM users
 
 // SQL Server: ordering uses WITHIN GROUP
 Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
     .From(u)
     .Build(Dbms.SqlServer);
-// SELECT STRING_AGG(name, @0) WITHIN GROUP (ORDER BY name) FROM users   [@0 = ", "]
+// SELECT STRING_AGG(name, ', ') WITHIN GROUP (ORDER BY name) FROM users
 ```
+
+The separator is emitted as an inline single-quote-escaped string literal rather
+than a bind parameter, because SQL Server requires `STRING_AGG`'s separator to be
+a literal (a bind parameter is rejected).
 
 ### LISTAGG (Oracle)
 

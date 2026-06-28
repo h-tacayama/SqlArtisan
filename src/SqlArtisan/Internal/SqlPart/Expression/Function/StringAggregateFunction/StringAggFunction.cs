@@ -10,13 +10,13 @@ namespace SqlArtisan.Internal;
 public sealed class StringAggFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
-    private readonly SqlExpression _separator;
+    private readonly string _separator;
     private readonly OrderByClause? _orderByClause;
     private WithinGroupClause? _withinGroupClause;
 
     internal StringAggFunction(
         SqlExpression expr,
-        SqlExpression separator,
+        string separator,
         OrderByClause? orderByClause = null)
     {
         _expr = expr;
@@ -38,7 +38,12 @@ public sealed class StringAggFunction : SqlExpression
         .Append(Keywords.StringAgg)
         .OpenParenthesis()
         .Append(_expr)
-        .PrependComma(_separator)
+        // The separator is emitted as an inline string literal, not a bind
+        // parameter: SQL Server requires STRING_AGG's separator to be a literal
+        // (ADR 0004; same reason GROUP_CONCAT's SEPARATOR and LIKE ... ESCAPE
+        // are inlined). #168
+        .Append(", ")
+        .AppendStringLiteral(_separator)
         .PrependSpaceIfNotNull(_orderByClause)
         .CloseParenthesis()
         .PrependSpaceIfNotNull(_withinGroupClause);
