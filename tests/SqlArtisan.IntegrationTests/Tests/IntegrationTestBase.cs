@@ -390,7 +390,7 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public void EdgeCase_Boolean_RoundTrip()
+    public virtual void EdgeCase_Boolean_RoundTrip()
     {
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();

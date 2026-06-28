@@ -43,8 +43,10 @@ internal static class TestSchema
     // Oracle spells the same shapes NUMBER / VARCHAR2 / DATE.
     public static readonly string[] OracleDdl =
     [
-        // Oracle 23c (gvenzl/oracle-free) has a native BOOLEAN column type.
-        "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), department_id NUMBER(10), created_at DATE, is_active BOOLEAN)",
+        // Oracle XE 21c (the Testcontainers image) has no native BOOLEAN column
+        // type, so the conventional NUMBER(1) stands in. The boolean round-trip
+        // test is skipped on Oracle accordingly.
+        "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), department_id NUMBER(10), created_at DATE, is_active NUMBER(1))",
         "CREATE TABLE orders (id NUMBER(10) PRIMARY KEY, user_id NUMBER(10), amount NUMBER(10,2))",
         "CREATE SEQUENCE test_seq",
     ];
