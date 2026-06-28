@@ -42,6 +42,22 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     }
 
     [Fact]
+    public void Sequence_NextvalCurrval_Executes()
+    {
+        UsersTable u = new();
+        var seq = Sequence("test_seq");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Oracle's pseudo-column form: test_seq.NEXTVAL / test_seq.CURRVAL.
+        long next = Convert.ToInt64(connection.ExecuteScalar(
+            Select(seq.Nextval).From(u).Where(u.Id == 1)));
+        long current = Convert.ToInt64(connection.ExecuteScalar(
+            Select(seq.Currval).From(u).Where(u.Id == 1)));
+
+        Assert.Equal(next, current);
+    }
+
+    [Fact]
     public void Merge_UpsertViaMerge_Executes()
     {
         UsersTable t = new("t");
