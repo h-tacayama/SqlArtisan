@@ -251,13 +251,20 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public void Api_FunctionSmoke()
+    public void Api_FunctionSmoke() => RunSmoke(SmokeCatalog.Cases, "function");
+
+    [Fact]
+    public void Api_StatementSmoke() => RunSmoke(StatementCatalog.Cases, "statement");
+
+    // Runs every catalog case valid for this engine and aggregates the failures,
+    // so one run reports exactly which construct fails on which engine.
+    private void RunSmoke(IReadOnlyList<SmokeCase> cases, string label)
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
         List<string> failures = [];
         int total = 0;
-        foreach (SmokeCase smokeCase in SmokeCatalog.Cases)
+        foreach (SmokeCase smokeCase in cases)
         {
             if (!smokeCase.Engines.Contains(_fixture.Dbms))
             {
@@ -277,7 +284,7 @@ public abstract class IntegrationTestBase
 
         Assert.True(
             failures.Count == 0,
-            $"{_fixture.Dbms} function smoke: {failures.Count}/{total} failed:\n  "
+            $"{_fixture.Dbms} {label} smoke: {failures.Count}/{total} failed:\n  "
                 + string.Join("\n  ", failures));
     }
 
@@ -365,6 +372,45 @@ public abstract class IntegrationTestBase
             .Single();
 
         Assert.Equal(amount, value);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void InsertSelect_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name)
+                .Select(u.Id + 1000, u.Name)
+                .From(u)
+                .Where(u.Id == 1),
+            transaction);
+
+        long inserted = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Id == 1001), transaction));
+
+        Assert.Equal(1, inserted);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public virtual void MultiRowValues_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name).Values(201, "A").Values(202, "B"),
+            transaction);
+
+        long inserted = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Id.In(201, 202)), transaction));
+
+        Assert.Equal(2, inserted);
         transaction.Rollback();
     }
 
