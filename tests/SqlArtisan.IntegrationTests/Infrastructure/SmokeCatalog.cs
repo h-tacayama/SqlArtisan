@@ -81,10 +81,17 @@ internal static class SmokeCatalog
         Add("Lpad", () => Scalar(Lpad("x", 3, "0")), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
         Add("Rpad", () => Scalar(Rpad("x", 3, "0")), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
         Add("Instr", () => Scalar(Instr("abc", "b")), Only(Dbms.MySql, Dbms.Oracle, Dbms.Sqlite));
+        // LENGTHB / SUBSTRB are Oracle byte-semantics builtins.
+        Add("Lengthb", () => Scalar(Lengthb("abc")), Only(Dbms.Oracle));
+        Add("Substrb", () => Scalar(Substrb("abcdef", 2)), Only(Dbms.Oracle));
+        // Numeric TRUNC: Oracle/PostgreSQL/SQLite (MySQL spells it TRUNCATE; SQL Server has no TRUNC).
+        Add("Trunc", () => Scalar(Trunc(123.456)), Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
 
         // --- Conditional / null handling ---
         Add("Coalesce", () => Scalar(Coalesce(u.Name, "x")), All);
         Add("Nullif", () => Scalar(Nullif(1, 2)), All);
+        Add("Exists", () => Select(Count(u.Id)).From(u).Where(Exists(Select(o.Id).From(o))), All);
+        Add("NotExists", () => Select(Count(u.Id)).From(u).Where(NotExists(Select(o.Id).From(o).Where(o.Id == -1))), All);
         Add("Cast", () => Scalar(Cast(u.Age, "DECIMAL(10,2)")), All);
         Add("Greatest", () => Scalar(Greatest(1, 2, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.SqlServer));
         Add("Least", () => Scalar(Least(1, 2, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.SqlServer));
