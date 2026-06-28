@@ -158,4 +158,95 @@ public abstract class IntegrationTestBase
         Assert.Equal(0, remaining);
         transaction.Rollback();
     }
+
+    [Fact]
+    public void SetOperator_Union_RemovesDuplicates()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // department_id values are {10, 10, 20, 20, 30}; UNION of the column with
+        // itself collapses to the three distinct departments.
+        IEnumerable<int> departments = connection
+            .Query<int>(Select(u.DepartmentId).From(u).Union.Select(u.DepartmentId).From(u));
+
+        Assert.Equal(3, departments.Count());
+    }
+
+    [Fact]
+    public void SetOperator_UnionAll_KeepsDuplicates()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> departments = connection
+            .Query<int>(Select(u.DepartmentId).From(u).UnionAll.Select(u.DepartmentId).From(u));
+
+        Assert.Equal(10, departments.Count());
+    }
+
+    [Fact]
+    public void WindowFunction_Rank_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Ages are all distinct, so RANK over age ascending yields 1..5.
+        IEnumerable<int> ranks = connection
+            .Query<int>(Select(Rank().Over(OrderBy(u.Age))).From(u));
+
+        Assert.Equal(5, ranks.Max());
+    }
+
+    [Fact]
+    public void WindowFunction_AggregateOver_Executes()
+    {
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<decimal> partitionTotals = connection
+            .Query<decimal>(Select(Sum(o.Amount).Over(PartitionBy(o.UserId))).From(o));
+
+        Assert.Equal(5, partitionTotals.Count());
+    }
+
+    [Fact]
+    public void WindowFunction_Lag_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The first row's LAG is NULL, so map to a nullable int.
+        IEnumerable<int?> previousAges = connection
+            .Query<int?>(Select(Lag(u.Age).Over(OrderBy(u.Id))).From(u));
+
+        Assert.Equal(5, previousAges.Count());
+    }
+
+    [Fact]
+    public void ScalarFunction_Coalesce_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string name = connection
+            .Query<string>(Select(Coalesce(u.Name, "fallback")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal("Alice", name);
+    }
+
+    [Fact]
+    public void Subquery_InWhere_Filters()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Orders reference users {1, 2, 3, 5}, so four users have at least one order.
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Id.In(Select(o.UserId).From(o)))));
+
+        Assert.Equal(4, count);
+    }
 }

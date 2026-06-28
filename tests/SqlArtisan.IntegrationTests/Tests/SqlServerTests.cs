@@ -47,4 +47,32 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(5, count);
         transaction.Rollback();
     }
+
+    [Fact]
+    public void StringAggregation_StringAgg_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string concatenated = connection
+            .Query<string>(Select(StringAgg(u.Name, ",")).From(u))
+            .Single();
+
+        Assert.Contains("Alice", concatenated);
+    }
+
+    [Fact]
+    public void SetOperator_Except_Executes()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Users {1..5} EXCEPT the users referenced by orders {1,2,3,5} = {4}.
+        int id = connection
+            .Query<int>(Select(u.Id).From(u).Except.Select(o.UserId).From(o))
+            .Single();
+
+        Assert.Equal(4, id);
+    }
 }

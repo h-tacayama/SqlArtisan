@@ -64,4 +64,32 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(5, count);
         transaction.Rollback();
     }
+
+    [Fact]
+    public void StringAggregation_Listagg_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string concatenated = connection
+            .Query<string>(Select(Listagg(u.Name, ",").WithinGroup(OrderBy(u.Name))).From(u))
+            .Single();
+
+        Assert.Contains("Alice", concatenated);
+    }
+
+    [Fact]
+    public void SetOperator_Minus_Executes()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Oracle spells EXCEPT as MINUS: users {1..5} MINUS {1,2,3,5} = {4}.
+        int id = connection
+            .Query<int>(Select(u.Id).From(u).Minus.Select(o.UserId).From(o))
+            .Single();
+
+        Assert.Equal(4, id);
+    }
 }
