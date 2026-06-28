@@ -126,7 +126,8 @@ internal static class SmokeCatalog
 
         // --- Conversion (Oracle / PostgreSQL) ---
         Add("ToChar", () => Scalar(ToChar(u.Age, "999")), Only(Dbms.Oracle, Dbms.PostgreSql));
-        Add("ToNumber", () => Scalar(ToNumber("123")), Only(Dbms.Oracle, Dbms.PostgreSql));
+        // PostgreSQL's to_number requires a format argument (Oracle allows one arg).
+        Add("ToNumber", () => Scalar(ToNumber("123", "999")), Only(Dbms.Oracle, Dbms.PostgreSql));
         Add("ToDate", () => Scalar(ToDate("2020-01-01", "YYYY-MM-DD")), Only(Dbms.Oracle, Dbms.PostgreSql));
         Add("ToTimestamp", () => Scalar(ToTimestamp("2020-01-01 00:00:00", "YYYY-MM-DD HH24:MI:SS")),
             Only(Dbms.Oracle, Dbms.PostgreSql));
