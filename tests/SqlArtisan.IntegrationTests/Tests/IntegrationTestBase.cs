@@ -274,7 +274,12 @@ public abstract class IntegrationTestBase
             total++;
             try
             {
-                connection.Query<object>(smokeCase.Build()).ToList();
+                // ExecuteScalar runs the query server-side and reads one raw cell
+                // — enough to prove the SQL executes, while avoiding Dapper's typed
+                // result materialization (which can choke boxing provider-native
+                // numerics, e.g. Oracle NUMBER from a window frame). We assert the
+                // SQL runs, not that .NET can map the result.
+                connection.ExecuteScalar(smokeCase.Build());
             }
             catch (Exception ex)
             {
