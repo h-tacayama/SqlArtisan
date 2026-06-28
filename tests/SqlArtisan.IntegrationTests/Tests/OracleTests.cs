@@ -25,10 +25,9 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(new[] { 2, 3 }, ids);
     }
 
-    [Fact(Skip = "Known bug #165: a re-aliased CTE column is alias-quoted at its "
-        + "definition but referenced unquoted, so Oracle folds the reference to "
-        + "uppercase and raises ORA-00904. Un-skip when #165 is fixed.")]
-    public void Cte_AliasedColumn_KnownOracleBug()
+    [Fact] // Regression for #165: a re-aliased CTE column now emits a bare alias,
+           // so it resolves on Oracle (previously ORA-00904).
+    public void Cte_AliasedColumn_Executes()
     {
         UsersTable u = new();
         Cte seniors = new("seniors");
