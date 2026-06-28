@@ -63,8 +63,10 @@ internal static class SmokeCatalog
         Add("Sign", () => Scalar(Sign(-5)), All);
         Add("Ceil", () => Scalar(Ceil(1.2)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
         Add("Ceiling", () => Scalar(Ceiling(1.2)), Only(Dbms.MySql, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
-        Add("Power", () => Scalar(Power(2, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.SqlServer));
-        Add("Sqrt", () => Scalar(Sqrt(16)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.SqlServer));
+        // SQLite has POWER/SQRT when built with math functions (3.35+, enabled in
+        // the bundled Microsoft.Data.Sqlite native library).
+        Add("Power", () => Scalar(Power(2, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
+        Add("Sqrt", () => Scalar(Sqrt(16)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
         Add("Mod", () => Scalar(Mod(10, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
 
         // --- String scalars ---
@@ -76,7 +78,8 @@ internal static class SmokeCatalog
         Add("Replace", () => Scalar(Replace("abc", "b", "X")), All);
         Add("Length", () => Scalar(Length("abc")), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
         Add("Substr", () => Scalar(Substr("abcdef", 2, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
-        Add("Concat", () => Scalar(Concat("a", "b")), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.SqlServer));
+        // CONCAT is on SQLite 3.44+ (bundled build), alongside the others.
+        Add("Concat", () => Scalar(Concat("a", "b")), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
         // SQLite has no LPAD/RPAD built-in.
         Add("Lpad", () => Scalar(Lpad("x", 3, "0")), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
         Add("Rpad", () => Scalar(Rpad("x", 3, "0")), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
@@ -158,6 +161,51 @@ internal static class SmokeCatalog
             Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
         Add("RegexpSubstr", () => Scalar(RegexpSubstr(u.Name, "A")), Only(Dbms.MySql, Dbms.Oracle));
         Add("RegexpCount", () => Scalar(RegexpCount(u.Name, "a")), Only(Dbms.Oracle));
+
+        // --- Distinct-arity overloads not exercised by the cases above ---
+        // Window LAG/LEAD with an explicit offset and offset+default.
+        Add("LagOffset", () => Window(Lag(u.Age, 2).Over(OrderBy(u.Id))), All);
+        Add("LagOffsetDefault", () => Window(Lag(u.Age, 2, 0).Over(OrderBy(u.Id))), All);
+        Add("LeadOffset", () => Window(Lead(u.Age, 2).Over(OrderBy(u.Id))), All);
+        Add("LeadOffsetDefault", () => Window(Lead(u.Age, 2, 0).Over(OrderBy(u.Id))), All);
+        // ROUND(expr) with no decimals — SQL Server's ROUND requires the 2nd arg.
+        Add("RoundNoDecimals", () => Scalar(Round(1.7)),
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+        // SUBSTR(source, position) — rest of string (no SUBSTR on SQL Server).
+        Add("SubstrNoLength", () => Scalar(Substr("abcdef", 2)),
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+        // LPAD/RPAD(source, length) without a pad string — Oracle / PostgreSQL
+        // (MySQL's LPAD/RPAD require the pad argument).
+        Add("LpadNoPad", () => Scalar(Lpad("x", 3)), Only(Dbms.Oracle, Dbms.PostgreSql));
+        Add("RpadNoPad", () => Scalar(Rpad("x", 3)), Only(Dbms.Oracle, Dbms.PostgreSql));
+        // LTRIM/RTRIM(source, trimChars) — Oracle / PostgreSQL / SQLite
+        // (MySQL's LTRIM/RTRIM take no trim-character argument).
+        Add("LtrimChars", () => Scalar(Ltrim("xxabc", "x")),
+            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+        Add("RtrimChars", () => Scalar(Rtrim("abcxx", "x")),
+            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+        // SUBSTRB(source, position, length) — Oracle byte-semantics, 3-arg form.
+        Add("SubstrbLength", () => Scalar(Substrb("abcdef", 2, 3)), Only(Dbms.Oracle));
+        // REGEXP_SUBSTR / REGEXP_COUNT with a start position (and a match option).
+        Add("RegexpSubstrPosition", () => Scalar(RegexpSubstr(u.Name, "A", 1)),
+            Only(Dbms.MySql, Dbms.Oracle));
+        Add("RegexpCountPosition", () => Scalar(RegexpCount(u.Name, "a", 1)), Only(Dbms.Oracle));
+        Add("RegexpCountOptions", () => Scalar(RegexpCount(u.Name, "a", 1, RegexpOptions.CaseInsensitive)),
+            Only(Dbms.Oracle));
+        // DISTINCT inside SUM / AVG.
+        Add("SumDistinct", () => Select(Sum(Distinct, o.Amount)).From(o), All);
+        Add("AvgDistinct", () => Select(Avg(Distinct, o.Amount)).From(o), All);
+        // Ordered string aggregation: PostgreSQL inline ORDER BY, SQL Server
+        // WITHIN GROUP, MySQL GROUP_CONCAT ... ORDER BY, SQLite positional separator.
+        Add("StringAggOrderBy", () => Select(StringAgg(u.Name, ", ", OrderBy(u.Name))).From(u),
+            Only(Dbms.PostgreSql));
+        Add("StringAggWithinGroup",
+            () => Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name))).From(u),
+            Only(Dbms.SqlServer));
+        Add("GroupConcatOrderBy", () => Select(GroupConcat(u.Name, OrderBy(u.Name))).From(u),
+            Only(Dbms.MySql));
+        Add("GroupConcatSeparator", () => Select(GroupConcat(u.Name, ", ")).From(u),
+            Only(Dbms.Sqlite));
 
         return cases;
     }

@@ -187,6 +187,29 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public void Update_MultipleColumns_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(180, "Temp", 20, 99),
+            transaction);
+        // Two assignments in one SET — the comma-separated assignment list.
+        connection.Execute(
+            Update(u).Set(u.Name == "Updated", u.Age == 31).Where(u.Id == 180), transaction);
+
+        (string Name, int Age) row = connection
+            .Query<(string, int)>(Select(u.Name, u.Age).From(u).Where(u.Id == 180), transaction)
+            .Single();
+
+        Assert.Equal("Updated", row.Name);
+        Assert.Equal(31, row.Age);
+        transaction.Rollback();
+    }
+
+    [Fact]
     public void Delete_RemovesRow()
     {
         UsersTable u = new();
