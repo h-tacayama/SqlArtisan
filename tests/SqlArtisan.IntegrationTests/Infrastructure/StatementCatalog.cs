@@ -33,6 +33,16 @@ internal static class StatementCatalog
         // Window frame (ROWS) — all five (MySQL 8, SQLite 3.28+).
         Add("WindowFrame",
             () => Select(Avg(o.Amount).Over(OrderBy(o.Id).Rows(UnboundedPreceding))).From(o), All);
+        // The rest of the frame vocabulary: BETWEEN bounds and RANGE, plus the
+        // Preceding(n) / Following(n) / CurrentRow / UnboundedFollowing bounds.
+        Add("WindowFrameRowsBetween",
+            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RowsBetween(Preceding(1), Following(1)))).From(o), All);
+        Add("WindowFrameRangeBetween",
+            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RangeBetween(UnboundedPreceding, CurrentRow))).From(o), All);
+        Add("WindowFrameUnboundedFollowing",
+            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RowsBetween(CurrentRow, UnboundedFollowing))).From(o), All);
+        Add("WindowFrameRange",
+            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).Range(UnboundedPreceding))).From(o), All);
 
         // GROUP BY extensions — Oracle / PostgreSQL / SQL Server (function form).
         Add("Rollup",

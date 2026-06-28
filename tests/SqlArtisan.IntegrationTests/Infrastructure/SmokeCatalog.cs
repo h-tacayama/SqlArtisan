@@ -120,6 +120,18 @@ internal static class SmokeCatalog
         // --- CASE (universal) ---
         Add("Case", () => Scalar(Case(When(u.Age > 30).Then("old"), Else("young"))), All);
 
+        // --- Niladic date/time functions ---
+        // CURRENT_TIMESTAMP is universal; CURRENT_DATE has no SQL Server form;
+        // CURRENT_TIME exists only on MySQL / PostgreSQL / SQLite.
+        Add("CurrentTimestamp", () => Scalar(CurrentTimestamp), All);
+        Add("CurrentDate", () => Scalar(CurrentDate),
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+        Add("CurrentTime", () => Scalar(CurrentTime),
+            Only(Dbms.MySql, Dbms.PostgreSql, Dbms.Sqlite));
+        // Oracle SYSDATE / SYSTIMESTAMP selected FROM DUAL (also covers the DUAL table).
+        Add("Sysdate", () => Select(Sysdate).From(Dual), Only(Dbms.Oracle));
+        Add("Systimestamp", () => Select(Systimestamp).From(Dual), Only(Dbms.Oracle));
+
         // --- Date / time (operate on the created_at column) ---
         Add("Extract", () => Scalar(Extract(DateTimePart.Year, u.CreatedAt)),
             Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
