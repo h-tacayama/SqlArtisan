@@ -49,6 +49,50 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public void LeftJoin_IncludesUnmatchedRows()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Users {1..5} LEFT JOIN orders (user_ids 1, 1, 2, 3, 5): the four
+        // matched users contribute five rows and unmatched Dave (4) contributes
+        // one NULL-padded row — six in total. INNER JOIN would yield only five.
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).LeftJoin(o).On(o.UserId == u.Id)));
+
+        Assert.Equal(6, count);
+    }
+
+    [Fact]
+    public void CrossJoin_ProducesCartesianProduct()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Five users × five orders = 25 unrestricted combinations.
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).CrossJoin(o)));
+
+        Assert.Equal(25, count);
+    }
+
+    [Fact]
+    public void SelectDistinct_RemovesDuplicates()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // department_id values are {10, 10, 20, 20, 30}; DISTINCT collapses them
+        // to the three distinct departments.
+        IEnumerable<int> departments = connection
+            .Query<int>(Select(Distinct, u.DepartmentId).From(u));
+
+        Assert.Equal(3, departments.Count());
+    }
+
+    [Fact]
     public void Cte_FiltersThenSelects()
     {
         UsersTable u = new();

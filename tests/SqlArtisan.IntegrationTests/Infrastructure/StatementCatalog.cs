@@ -78,6 +78,30 @@ internal static class StatementCatalog
                 .Select(c.Column("id")).From(c);
         }, Only(Dbms.PostgreSql, Dbms.Sqlite, Dbms.MySql));
 
+        // OUTER joins beyond INNER — RIGHT (all five; SQLite 3.39+) and FULL
+        // (every engine except MySQL, which has no FULL JOIN). Both tables are
+        // aliased so the join columns stay qualified (id exists on both).
+        Add("RightJoin", () =>
+        {
+            UsersTable ju = new("u");
+            OrdersTable jo = new("o");
+            return Select(jo.Amount).From(jo).RightJoin(ju).On(jo.UserId == ju.Id);
+        }, All);
+        Add("FullJoin", () =>
+        {
+            UsersTable ju = new("u");
+            OrdersTable jo = new("o");
+            return Select(jo.Amount).From(jo).FullJoin(ju).On(jo.UserId == ju.Id);
+        }, Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
+
+        // Set operators not covered by the dedicated UNION/EXCEPT tests:
+        // INTERSECT (all five; MySQL 8.0.31+) and INTERSECT ALL (PostgreSQL / MySQL).
+        Add("Intersect",
+            () => Select(u.DepartmentId).From(u).Intersect.Select(u.DepartmentId).From(u), All);
+        Add("IntersectAll",
+            () => Select(u.DepartmentId).From(u).IntersectAll.Select(u.DepartmentId).From(u),
+            Only(Dbms.MySql, Dbms.PostgreSql));
+
         // CROSS APPLY — SQL Server / Oracle.
         Add("CrossApply", () =>
         {
