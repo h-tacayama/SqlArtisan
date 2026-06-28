@@ -24,7 +24,7 @@ public sealed class SqlServerFixture : IAsyncLifetime, IDatabaseFixture
     {
         await _container.StartAsync();
         using IDbConnection connection = OpenConnection();
-        TestSchema.Apply(connection, TestSchema.StandardDdl);
+        TestSchema.Apply(connection, TestSchema.SqlServerDdl);
     }
 
     public Task DisposeAsync() => _container.DisposeAsync().AsTask();

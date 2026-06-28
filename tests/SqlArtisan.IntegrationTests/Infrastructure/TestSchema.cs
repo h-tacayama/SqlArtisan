@@ -23,6 +23,13 @@ internal static class TestSchema
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
     ];
 
+    // SQL Server: NVARCHAR so Unicode text round-trips (its VARCHAR is non-Unicode).
+    public static readonly string[] SqlServerDdl =
+    [
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name NVARCHAR(100), age INTEGER, department_id INTEGER)",
+        "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
+    ];
+
     // Oracle spells the same shapes NUMBER / VARCHAR2.
     public static readonly string[] OracleDdl =
     [

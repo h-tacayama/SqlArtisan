@@ -56,7 +56,9 @@ internal static class SmokeCatalog
 
         // --- Numeric scalars ---
         Add("Abs", () => Scalar(Abs(-5)), All);
-        Add("Round", () => Scalar(Round(123.456, 1)), All);
+        // Round a numeric column: PostgreSQL has round(numeric, int) but not
+        // round(double, int), so a double literal would fail there.
+        Add("Round", () => Select(Round(o.Amount, 1)).From(o).Where(o.Id == 1), All);
         Add("Floor", () => Scalar(Floor(1.7)), All);
         Add("Sign", () => Scalar(Sign(-5)), All);
         Add("Ceil", () => Scalar(Ceil(1.2)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
@@ -100,7 +102,9 @@ internal static class SmokeCatalog
         Add("Lead", () => Window(Lead(u.Age).Over(OrderBy(u.Id))), All);
         Add("FirstValue", () => Window(FirstValue(u.Age).Over(OrderBy(u.Id))), All);
         Add("LastValue", () => Window(LastValue(u.Age).Over(OrderBy(u.Id))), All);
-        Add("NthValue", () => Window(NthValue(u.Age, 2).Over(OrderBy(u.Id))), All);
+        // SQL Server has no NTH_VALUE.
+        Add("NthValue", () => Window(NthValue(u.Age, 2).Over(OrderBy(u.Id))),
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
         Add("PercentileCont", () => Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u),
             Only(Dbms.Oracle, Dbms.PostgreSql));
         Add("PercentileDisc", () => Select(PercentileDisc(0.5).WithinGroup(OrderBy(u.Age))).From(u),
