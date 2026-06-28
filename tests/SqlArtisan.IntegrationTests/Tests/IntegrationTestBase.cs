@@ -55,8 +55,11 @@ public abstract class IntegrationTestBase
         Cte seniors = new("seniors");
         using IDbConnection connection = _fixture.OpenConnection();
 
+        // The CTE projects `id` without re-aliasing, so the column name folds
+        // identically at definition and reference on every engine. Re-aliasing
+        // (`.As(seniors.Column("id"))`) is broken on Oracle — see #165.
         long count = Convert.ToInt64(connection.ExecuteScalar(
-            With(seniors.As(Select(u.Id.As(seniors.Column("id"))).From(u).Where(u.Age >= 40)))
+            With(seniors.As(Select(u.Id).From(u).Where(u.Age >= 40)))
                 .Select(Count(seniors.Column("id")))
                 .From(seniors)));
 
