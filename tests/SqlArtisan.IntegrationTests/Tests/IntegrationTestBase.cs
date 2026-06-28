@@ -369,6 +369,27 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public void Insert_NullValue_Executes()
+    {
+        // Regression for #169: Values(null) emits a SQL NULL literal (was a
+        // NullReferenceException at build time).
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(120, null!, 20, 99),
+            transaction);
+
+        string? name = connection
+            .Query<string?>(Select(u.Name).From(u).Where(u.Id == 120), transaction)
+            .Single();
+
+        Assert.Null(name);
+        transaction.Rollback();
+    }
+
+    [Fact]
     public void EdgeCase_DateTime_RoundTrip()
     {
         UsersTable u = new();

@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 
 internal static class InsertValueResolver
 {
-    internal static SqlExpression[] Resolve(object[] values)
+    internal static SqlExpression[] Resolve(object?[] values)
     {
         var resolved = new SqlExpression[values.Length];
 
@@ -16,9 +16,15 @@ internal static class InsertValueResolver
         return resolved;
     }
 
-    internal static SqlExpression Resolve(object value)
+    internal static SqlExpression Resolve(object? value)
     {
-        if (value is SqlExpression expr)
+        if (value is null)
+        {
+            // A null value inserts a SQL NULL (the NULL keyword, not a bind
+            // parameter): valid on every dialect and unambiguous. (#169)
+            return new NullExpression();
+        }
+        else if (value is SqlExpression expr)
         {
             return expr;
         }
