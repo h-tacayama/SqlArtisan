@@ -50,6 +50,11 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
     }
 
+    [Fact(Skip = "Oracle has no multi-row VALUES; it uses INSERT ALL instead.")]
+    public override void MultiRowValues_Executes()
+    {
+    }
+
     [Fact]
     public void Sequence_NextvalCurrval_Executes()
     {
