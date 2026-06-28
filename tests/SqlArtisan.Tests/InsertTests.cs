@@ -28,6 +28,19 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_NullValue_EmitsNullLiteral()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name)
+            .Values(1, null!)
+            .Build();
+
+        Assert.Equal("INSERT INTO test_table (code, name) VALUES (:0, NULL)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+    }
+
+    [Fact]
     public void InsertInto_WithColumnList_SqlWithColumnsAndValues()
     {
         TestTable t = new();
