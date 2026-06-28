@@ -19,9 +19,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        List<int> ids = connection
-            .Query<int>(Select(u.Id).From(u).OrderBy(u.Id).Limit(2).Offset(1))
-            .ToList();
+        IEnumerable<int> ids = connection
+            .Query<int>(Select(u.Id).From(u).OrderBy(u.Id).Limit(2).Offset(1));
 
         Assert.Equal(new[] { 2, 3 }, ids);
     }

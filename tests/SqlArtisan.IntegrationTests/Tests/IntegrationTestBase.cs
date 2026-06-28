@@ -29,9 +29,8 @@ public abstract class IntegrationTestBase
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        List<string> names = connection
-            .Query<string>(Select(u.Name).From(u).Where(u.Age > 35).OrderBy(u.Name))
-            .ToList();
+        IEnumerable<string> names = connection
+            .Query<string>(Select(u.Name).From(u).Where(u.Age > 35).OrderBy(u.Name));
 
         Assert.Equal(new[] { "Bob", "Carol" }, names);
     }
@@ -70,11 +69,10 @@ public abstract class IntegrationTestBase
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        List<int> rowNumbers = connection
-            .Query<int>(Select(RowNumber().Over(PartitionBy(u.DepartmentId).OrderBy(u.Age))).From(u))
-            .ToList();
+        IEnumerable<int> rowNumbers = connection
+            .Query<int>(Select(RowNumber().Over(PartitionBy(u.DepartmentId).OrderBy(u.Age))).From(u));
 
-        Assert.Equal(5, rowNumbers.Count);
+        Assert.Equal(5, rowNumbers.Count());
         Assert.Equal(2, rowNumbers.Max());
     }
 
@@ -84,14 +82,13 @@ public abstract class IntegrationTestBase
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        List<int> departments = connection
+        IEnumerable<int> departments = connection
             .Query<int>(
                 Select(u.DepartmentId)
                     .From(u)
                     .GroupBy(u.DepartmentId)
                     .Having(Count(u.Id) >= 2)
-                    .OrderBy(u.DepartmentId))
-            .ToList();
+                    .OrderBy(u.DepartmentId));
 
         Assert.Equal(new[] { 10, 20 }, departments);
     }

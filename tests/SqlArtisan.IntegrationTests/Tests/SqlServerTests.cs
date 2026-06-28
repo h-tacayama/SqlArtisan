@@ -19,9 +19,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        List<int> ids = connection
-            .Query<int>(Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2))
-            .ToList();
+        IEnumerable<int> ids = connection
+            .Query<int>(Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2));
 
         Assert.Equal(new[] { 2, 3 }, ids);
     }
