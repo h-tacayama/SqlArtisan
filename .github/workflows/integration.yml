@@ -10,6 +10,10 @@ name: Integration Tests
 on:
   workflow_call:
   workflow_dispatch:
+  # TEMPORARY (#151 validation): run the matrix on PRs to this branch so the four
+  # container engines can be verified before merge. Remove before merging.
+  pull_request:
+    branches: [main]
   schedule:
     # Nightly at 03:00 UTC.
     - cron: '0 3 * * *'
