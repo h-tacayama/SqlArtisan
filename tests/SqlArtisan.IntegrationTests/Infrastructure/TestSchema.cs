@@ -21,7 +21,7 @@ internal static class TestSchema
     // DECIMAL are accepted verbatim across these engines.
     public static readonly string[] StandardDdl =
     [
-        "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER, created_at TIMESTAMP)",
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER, created_at TIMESTAMP, is_active BOOLEAN)",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
     ];
 
@@ -35,7 +35,7 @@ internal static class TestSchema
     // SQL Server: NVARCHAR so Unicode text round-trips (its VARCHAR is non-Unicode); DATETIME2 for the timestamp.
     public static readonly string[] SqlServerDdl =
     [
-        "CREATE TABLE users (id INTEGER PRIMARY KEY, name NVARCHAR(100), age INTEGER, department_id INTEGER, created_at DATETIME2)",
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name NVARCHAR(100), age INTEGER, department_id INTEGER, created_at DATETIME2, is_active BIT)",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
         "CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1",
     ];
@@ -43,7 +43,8 @@ internal static class TestSchema
     // Oracle spells the same shapes NUMBER / VARCHAR2 / DATE.
     public static readonly string[] OracleDdl =
     [
-        "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), department_id NUMBER(10), created_at DATE)",
+        // Oracle 23c (gvenzl/oracle-free) has a native BOOLEAN column type.
+        "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), department_id NUMBER(10), created_at DATE, is_active BOOLEAN)",
         "CREATE TABLE orders (id NUMBER(10) PRIMARY KEY, user_id NUMBER(10), amount NUMBER(10,2))",
         "CREATE SEQUENCE test_seq",
     ];

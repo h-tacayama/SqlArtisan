@@ -390,6 +390,25 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public void EdgeCase_Boolean_RoundTrip()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.IsActive).Values(140, "B", 20, 99, true),
+            transaction);
+
+        bool active = connection
+            .Query<bool>(Select(u.IsActive).From(u).Where(u.Id == 140), transaction)
+            .Single();
+
+        Assert.True(active);
+        transaction.Rollback();
+    }
+
+    [Fact]
     public void EdgeCase_DateTime_RoundTrip()
     {
         UsersTable u = new();
