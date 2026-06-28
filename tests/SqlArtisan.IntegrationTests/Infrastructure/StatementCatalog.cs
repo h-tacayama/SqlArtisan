@@ -54,6 +54,13 @@ internal static class StatementCatalog
         Add("NullsLast",
             () => Select(u.Id).From(u).OrderBy(u.Age.NullsLast),
             Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+        Add("NullsFirst",
+            () => Select(u.Id).From(u).OrderBy(u.Age.NullsFirst),
+            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+
+        // LIKE ... ESCAPE — the escape char is inlined as a literal; valid on all five.
+        Add("LikeEscape",
+            () => Select(u.Id).From(u).Where(u.Name.Like("A!%").Escape('!')), All);
 
         // Optimizer-hint comment — a /*+ ... */ comment is accepted everywhere.
         Add("Hints", () => Select(Hints("/*+ test */"), u.Id).From(u), All);
@@ -125,6 +132,40 @@ internal static class StatementCatalog
                     Select(lo.Amount.As(x.Column("amount"))).From(lo).Where(lo.UserId == lu.Id),
                     x)
                 .On(lu.Id == lu.Id);
+        }, Only(Dbms.PostgreSql, Dbms.MySql));
+
+        // OUTER APPLY — the sibling of CROSS APPLY (SQL Server / Oracle).
+        Add("OuterApply", () =>
+        {
+            UsersTable au = new("u");
+            OrdersTable ao = new("o");
+            DerivedTable x = new("x");
+            return Select(au.Id, x.Column("amount")).From(au)
+                .OuterApply(
+                    Select(ao.Amount.As(x.Column("amount"))).From(ao).Where(ao.UserId == au.Id),
+                    x);
+        }, Only(Dbms.Oracle, Dbms.SqlServer));
+
+        // CROSS / LEFT JOIN LATERAL — the siblings of JOIN LATERAL (PostgreSQL / MySQL).
+        Add("CrossJoinLateral", () =>
+        {
+            UsersTable lu = new("u");
+            OrdersTable lo = new("o");
+            DerivedTable x = new("x");
+            return Select(lu.Id, x.Column("amount")).From(lu)
+                .CrossJoinLateral(
+                    Select(lo.Amount.As(x.Column("amount"))).From(lo).Where(lo.UserId == lu.Id),
+                    x);
+        }, Only(Dbms.PostgreSql, Dbms.MySql));
+        Add("LeftJoinLateral", () =>
+        {
+            UsersTable lu = new("u");
+            OrdersTable lo = new("o");
+            DerivedTable x = new("x");
+            return Select(lu.Id, x.Column("amount")).From(lu)
+                .LeftJoinLateral(
+                    Select(lo.Amount.As(x.Column("amount"))).From(lo).Where(lo.UserId == lu.Id),
+                    x);
         }, Only(Dbms.PostgreSql, Dbms.MySql));
 
         return cases;

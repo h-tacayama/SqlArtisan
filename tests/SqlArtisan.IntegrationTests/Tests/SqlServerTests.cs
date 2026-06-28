@@ -60,6 +60,31 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    [Fact]
+    public void Merge_WhenNotMatchedBySource_DeletesUnmatched()
+    {
+        UsersTable t = new("t");
+        OrdersTable o = new("o");
+        UsersTable c = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // MERGE users with orders on id = user_id: target users referenced by no
+        // order (only Dave, id 4) are NOT MATCHED BY SOURCE and get deleted,
+        // leaving {1, 2, 3, 5}.
+        connection.Execute(
+            MergeInto(t)
+                .Using(o)
+                .On(t.Id == o.UserId)
+                .WhenNotMatchedBySource().ThenDelete(),
+            transaction);
+
+        long count = Convert.ToInt64(connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
+
+        Assert.Equal(4, count);
+        transaction.Rollback();
+    }
+
     [Fact] // Regression for #168: STRING_AGG's separator is now emitted as an
            // inline literal, which SQL Server requires (it rejects a parameter).
     public void StringAggregation_StringAgg_Executes()

@@ -295,6 +295,133 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public void Where_Between_FiltersRange()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Ages {30, 40, 50, 25, 35}; BETWEEN 30 AND 40 keeps Alice, Bob, Eve.
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Age.Between(30, 40))));
+
+        Assert.Equal(3, count);
+    }
+
+    [Fact]
+    public void Where_NotBetween_FiltersOutsideRange()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Outside [30, 40]: Carol (50) and Dave (25).
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Age.NotBetween(30, 40))));
+
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public void Where_Like_MatchesPattern()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string name = connection
+            .Query<string>(Select(u.Name).From(u).Where(u.Name.Like("A%")))
+            .Single();
+
+        Assert.Equal("Alice", name);
+    }
+
+    [Fact]
+    public void Where_NotLike_ExcludesPattern()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Only Alice starts with 'A'; the other four remain.
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Name.NotLike("A%"))));
+
+        Assert.Equal(4, count);
+    }
+
+    [Fact]
+    public void Where_NotInList_Filters()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Excluding ids {1, 2} leaves {3, 4, 5}.
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Id.NotIn(1, 2))));
+
+        Assert.Equal(3, count);
+    }
+
+    [Fact]
+    public void Where_NotInSubquery_Filters()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Orders reference users {1, 2, 3, 5}; only Dave (4) is NOT IN that set.
+        int id = connection
+            .Query<int>(Select(u.Id).From(u).Where(u.Id.NotIn(Select(o.UserId).From(o))))
+            .Single();
+
+        Assert.Equal(4, id);
+    }
+
+    [Fact]
+    public void Where_IsNullAndIsNotNull_Filter()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Add one NULL-name row; the five seeded users all have names.
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(150, null!, 20, 99),
+            transaction);
+
+        long nulls = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Name.IsNull), transaction));
+        long nonNulls = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Name.IsNotNull), transaction));
+
+        Assert.Equal(1, nulls);
+        Assert.Equal(5, nonNulls);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void Where_LogicalNot_Negates()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // NOT (age > 40) keeps everyone aged <= 40 — all but Carol (50).
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(Not(u.Age > 40))));
+
+        Assert.Equal(4, count);
+    }
+
+    [Fact]
+    public void OrderBy_Desc_SortsDescending()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> ids = connection
+            .Query<int>(Select(u.Id).From(u).OrderBy(u.Id.Desc));
+
+        Assert.Equal(new[] { 5, 4, 3, 2, 1 }, ids);
+    }
+
+    [Fact]
     public void Api_FunctionSmoke() => RunSmoke(SmokeCatalog.Cases, "function");
 
     [Fact]
