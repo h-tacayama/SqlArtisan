@@ -249,4 +249,122 @@ public abstract class IntegrationTestBase
 
         Assert.Equal(4, count);
     }
+
+    [Fact]
+    public void Api_FunctionSmoke()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        List<string> failures = [];
+        int total = 0;
+        foreach (SmokeCase smokeCase in SmokeCatalog.Cases)
+        {
+            if (!smokeCase.Engines.Contains(_fixture.Dbms))
+            {
+                continue;
+            }
+
+            total++;
+            try
+            {
+                connection.Query<object>(smokeCase.Build()).ToList();
+            }
+            catch (Exception ex)
+            {
+                failures.Add($"{smokeCase.Name}: {ex.Message.Split('\n')[0].Trim()}");
+            }
+        }
+
+        Assert.True(
+            failures.Count == 0,
+            $"{_fixture.Dbms} function smoke: {failures.Count}/{total} failed:\n  "
+                + string.Join("\n  ", failures));
+    }
+
+    [Fact]
+    public void EdgeCase_NullValue_CoalesceReturnsFallback()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // NULLIF(name, name) is always NULL, so COALESCE must fall through to the
+        // fallback. (Produces the NULL in SQL rather than inserting one — see #169.)
+        string value = connection
+            .Query<string>(
+                Select(Coalesce(Nullif(u.Name, u.Name), "fallback")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal("fallback", value);
+    }
+
+    [Fact]
+    public void EdgeCase_SpecialCharacters_RoundTrip()
+    {
+        UsersTable u = new();
+        const string tricky = "O'Brien \"q\" %_\\ end";
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(111, tricky, 20, 99),
+            transaction);
+
+        string value = connection
+            .Query<string>(Select(u.Name).From(u).Where(u.Id == 111), transaction)
+            .Single();
+
+        Assert.Equal(tricky, value);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void EdgeCase_Unicode_RoundTrip()
+    {
+        UsersTable u = new();
+        const string unicode = "日本語café";
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(112, unicode, 20, 99),
+            transaction);
+
+        string value = connection
+            .Query<string>(Select(u.Name).From(u).Where(u.Id == 112), transaction)
+            .Single();
+
+        Assert.Equal(unicode, value);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void EdgeCase_EmptyResult_ReturnsNoRows()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        bool any = connection.Query<int>(Select(u.Id).From(u).Where(u.Id == -1)).Any();
+
+        Assert.False(any);
+    }
+
+    [Fact]
+    public void EdgeCase_DecimalPrecision_RoundTrip()
+    {
+        OrdersTable o = new();
+        const decimal amount = 12345.67m;
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(o, o.Id, o.UserId, o.Amount).Values(900, 1, amount),
+            transaction);
+
+        decimal value = connection
+            .Query<decimal>(Select(o.Amount).From(o).Where(o.Id == 900), transaction)
+            .Single();
+
+        Assert.Equal(amount, value);
+        transaction.Rollback();
+    }
 }
