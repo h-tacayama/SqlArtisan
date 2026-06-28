@@ -1,0 +1,75 @@
+using System.Data;
+using Dapper;
+using SqlArtisan.Dapper;
+using SqlArtisan.IntegrationTests.Schema;
+using static SqlArtisan.Sql;
+
+namespace SqlArtisan.IntegrationTests.Infrastructure;
+
+/// <summary>
+/// The shared test schema (two small tables) plus the baseline seed data, applied
+/// by every fixture after the engine is up. DDL is inherently dialectal — SqlArtisan
+/// does not build DDL — so the <c>CREATE TABLE</c> text lives here, per engine. The
+/// seed rows, by contrast, are inserted through SqlArtisan itself, so seeding doubles
+/// as INSERT-execution coverage on every engine.
+/// </summary>
+internal static class TestSchema
+{
+    // INTEGER / VARCHAR / DECIMAL are accepted verbatim by PostgreSQL, MySQL,
+    // SQLite, and SQL Server (INTEGER is a SQL Server synonym for INT).
+    public static readonly string[] StandardDdl =
+    [
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER)",
+        "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
+    ];
+
+    // Oracle spells the same shapes NUMBER / VARCHAR2.
+    public static readonly string[] OracleDdl =
+    [
+        "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), department_id NUMBER(10))",
+        "CREATE TABLE orders (id NUMBER(10) PRIMARY KEY, user_id NUMBER(10), amount NUMBER(10,2))",
+    ];
+
+    private static readonly (int Id, string Name, int Age, int DepartmentId)[] s_users =
+    [
+        (1, "Alice", 30, 10),
+        (2, "Bob", 40, 10),
+        (3, "Carol", 50, 20),
+        (4, "Dave", 25, 20),
+        (5, "Eve", 35, 30),
+    ];
+
+    private static readonly (int Id, int UserId, decimal Amount)[] s_orders =
+    [
+        (1, 1, 100.00m),
+        (2, 1, 200.00m),
+        (3, 2, 50.00m),
+        (4, 3, 300.00m),
+        (5, 5, 75.00m),
+    ];
+
+    /// <summary>Creates the tables (using <paramref name="ddl"/>) and seeds the baseline rows.</summary>
+    public static void Apply(IDbConnection connection, string[] ddl)
+    {
+        foreach (string statement in ddl)
+        {
+            connection.Execute(statement);
+        }
+
+        UsersTable users = new();
+        foreach ((int id, string name, int age, int departmentId) in s_users)
+        {
+            connection.Execute(
+                InsertInto(users, users.Id, users.Name, users.Age, users.DepartmentId)
+                    .Values(id, name, age, departmentId));
+        }
+
+        OrdersTable orders = new();
+        foreach ((int id, int userId, decimal amount) in s_orders)
+        {
+            connection.Execute(
+                InsertInto(orders, orders.Id, orders.UserId, orders.Amount)
+                    .Values(id, userId, amount));
+        }
+    }
+}

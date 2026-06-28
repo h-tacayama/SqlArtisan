@@ -1,0 +1,48 @@
+name: Integration Tests
+
+# Real-database integration matrix (#151). Each engine runs SqlArtisan-built
+# statements against a live database (Testcontainers; SQLite is in-process), so
+# CI catches grammar/semantic bugs only the engine itself rejects — the kind the
+# exact-SQL unit tests cannot. Kept off the per-PR fast loop (ci.yml): the unit
+# tests are the inner loop; these gate releases (called by release.yml) and run
+# nightly, with on-demand dispatch.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    # Nightly at 03:00 UTC.
+    - cron: '0 3 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+
+    strategy:
+      # One engine per job, in parallel; a failure in one (e.g. the heavy Oracle
+      # lane) must not cancel the others — each engine's result stands alone.
+      fail-fast: false
+      matrix:
+        engine: [Sqlite, PostgreSql, MySql, SqlServer, Oracle]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore tests/SqlArtisan.IntegrationTests/SqlArtisan.IntegrationTests.csproj
+
+      - name: Test (${{ matrix.engine }})
+        run: >
+          dotnet test tests/SqlArtisan.IntegrationTests
+          -c Release
+          --filter "Engine=${{ matrix.engine }}"
+          --logger "console;verbosity=normal"

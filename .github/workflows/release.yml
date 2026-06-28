@@ -40,8 +40,14 @@ jobs:
       - name: Test
         run: dotnet test tests/SqlArtisan.Tests --no-build -c Release --verbosity normal
 
-  publish:
+  # Real-database integration matrix gates the release: the emitted SQL must
+  # actually execute on every engine before anything reaches nuget.org (#151).
+  integration:
     needs: verify
+    uses: ./.github/workflows/integration.yml
+
+  publish:
+    needs: integration
     runs-on: ubuntu-latest
     # Holds the NUGET_API_KEY secret; attach required reviewers here to gate the
     # push behind a manual approval.
