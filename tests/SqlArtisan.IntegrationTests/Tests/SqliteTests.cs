@@ -66,6 +66,26 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    [Fact(Skip = "Known bug #169: InsertInto(...).Values(null) throws "
+        + "NullReferenceException instead of binding SQL NULL. Engine-independent "
+        + "(fails at build time). Un-skip when #169 is fixed.")]
+    public void Insert_NullValue_KnownBug()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(110, null!, 20, 99),
+            transaction);
+
+        long nulls = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Id == 110), transaction));
+
+        Assert.Equal(1, nulls);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void StringAggregation_GroupConcat_Executes()
     {
