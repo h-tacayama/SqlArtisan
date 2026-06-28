@@ -367,4 +367,19 @@ public abstract class IntegrationTestBase
         Assert.Equal(amount, value);
         transaction.Rollback();
     }
+
+    [Fact]
+    public void EdgeCase_DateTime_RoundTrip()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The seed sets every user's created_at to this value (no fractional
+        // seconds, so it round-trips on second-precision engines too).
+        DateTime value = connection
+            .Query<DateTime>(Select(u.CreatedAt).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal(new DateTime(2020, 3, 15, 10, 30, 0), value);
+    }
 }
