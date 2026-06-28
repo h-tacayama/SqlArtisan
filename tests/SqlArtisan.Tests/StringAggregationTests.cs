@@ -12,7 +12,7 @@ public class StringAggregationTests
     public void StringAgg_Plain_CorrectSql()
     {
         // Arrange
-        string expected = "SELECT STRING_AGG(name, :0)";
+        string expected = "SELECT STRING_AGG(name, ', ')";
 
         // Act
         SqlStatement sql =
@@ -20,14 +20,14 @@ public class StringAggregationTests
 
         // Assert
         Assert.Equal(expected, sql.Text);
-        Assert.Equal(", ", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(0, sql.Parameters.Count);
     }
 
     [Fact]
     public void StringAgg_PostgreSql_InlineOrderBy_CorrectSql()
     {
         // Arrange
-        string expected = "SELECT STRING_AGG(name, :0 ORDER BY name)";
+        string expected = "SELECT STRING_AGG(name, ', ' ORDER BY name)";
 
         // Act
         SqlStatement sql =
@@ -42,7 +42,7 @@ public class StringAggregationTests
     {
         // Arrange
         string expected =
-            "SELECT STRING_AGG(name, @0) WITHIN GROUP (ORDER BY name DESC)";
+            "SELECT STRING_AGG(name, ', ') WITHIN GROUP (ORDER BY name DESC)";
 
         // Act
         SqlStatement sql =
