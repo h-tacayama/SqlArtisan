@@ -424,6 +424,46 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public void Where_CompoundAnd_Filters()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // age > 30 AND department_id = 10 → only Bob (40, dept 10).
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Age > 30 & u.DepartmentId == 10)));
+
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void Where_CompoundOr_Filters()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // age > 45 OR department_id = 30 → Carol (50) and Eve (dept 30).
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Age > 45 | u.DepartmentId == 30)));
+
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public void Arithmetic_Operators_Compute()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Alice is 30: 30 * 3 / 2 - 1 = 44, exercising *, /, and -.
+        int value = connection
+            .Query<int>(Select(u.Age * 3 / 2 - 1).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal(44, value);
+    }
+
+    [Fact]
     public void Where_DateTimeParameter_Matches()
     {
         UsersTable u = new();

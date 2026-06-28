@@ -146,6 +146,31 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    [Fact] // Oracle's in-clause DELETE WHERE: the matched rows are updated, then
+           // the just-updated rows satisfying the predicate are removed.
+    public void Merge_DeleteWhere_RemovesUpdatedRows()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        UsersTable c = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Every user matches; the UPDATE's DELETE WHERE then removes the updated
+        // rows aged >= 50 (Carol), leaving four.
+        connection.Execute(
+            MergeInto(t)
+                .Using(s)
+                .On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Name == s.Name).DeleteWhere(t.Age >= 50),
+            transaction);
+
+        long count = Convert.ToInt64(connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
+
+        Assert.Equal(4, count);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void StringAggregation_Listagg_Executes()
     {

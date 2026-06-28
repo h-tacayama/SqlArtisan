@@ -65,6 +65,37 @@ internal static class StatementCatalog
         // Optimizer-hint comment — a /*+ ... */ comment is accepted everywhere.
         Add("Hints", () => Select(Hints("/*+ test */"), u.Id).From(u), All);
 
+        // Explicit ascending order (the default direction made explicit).
+        Add("Asc", () => Select(u.Id).From(u).OrderBy(u.Id.Asc), All);
+
+        // FETCH FIRST n ROWS ONLY — Oracle 12c+ / PostgreSQL (SQL Server needs a
+        // preceding OFFSET, so it is covered by OffsetRows().FetchNext() instead).
+        Add("FetchFirst", () => Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(2),
+            Only(Dbms.Oracle, Dbms.PostgreSql));
+
+        // Set operators with ALL — EXCEPT ALL (PostgreSQL / MySQL 8.0.31+) and
+        // Oracle's MINUS ALL.
+        Add("ExceptAll",
+            () => Select(u.DepartmentId).From(u).ExceptAll.Select(u.DepartmentId).From(u),
+            Only(Dbms.MySql, Dbms.PostgreSql));
+        Add("MinusAll",
+            () => Select(u.DepartmentId).From(u).MinusAll.Select(u.DepartmentId).From(u),
+            Only(Dbms.Oracle));
+
+        // FOR UPDATE lock-wait behaviours and FOR UPDATE OF.
+        Add("ForUpdateNowait",
+            () => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(Nowait),
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("ForUpdateSkipLocked",
+            () => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(SkipLocked),
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("ForUpdateWait",
+            () => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(Wait(3)),
+            Only(Dbms.Oracle));
+        Add("ForUpdateOf",
+            () => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(Of(u.Id)),
+            Only(Dbms.Oracle));
+
         // FOR UPDATE row locking — PostgreSQL / MySQL / Oracle.
         Add("ForUpdate",
             () => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(),

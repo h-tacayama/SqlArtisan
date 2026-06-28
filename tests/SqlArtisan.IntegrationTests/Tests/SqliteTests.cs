@@ -48,6 +48,26 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
     }
 
     [Fact]
+    public void Upsert_OnConflictDoNothing_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // id 1 already exists; DO NOTHING leaves the original row untouched.
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name).Values(1, "ShouldNotApply").OnConflict(u.Id).DoNothing(),
+            transaction);
+
+        string name = connection
+            .Query<string>(Select(u.Name).From(u).Where(u.Id == 1), transaction)
+            .Single();
+
+        Assert.Equal("Alice", name);
+        transaction.Rollback();
+    }
+
+    [Fact]
     public void Returning_OnInsert_ReadsBackRow()
     {
         UsersTable u = new();
