@@ -20,4 +20,47 @@
     <AnalysisMode>Recommended</AnalysisMode>
   </PropertyGroup>
 
+  <!--
+    Debuggable, trustworthy packages (#157). Source Link maps the shipped
+    assemblies back to this exact commit on GitHub so consumers can step into
+    SqlArtisan source; symbols ship as a separate .snupkg with portable PDBs.
+    These apply to every project — harmless for the non-packed tests/benchmark,
+    which are simply never packed. (.NET 8's SDK bundles the Source Link
+    infrastructure but not the GitHub host package, so it is referenced below.)
+  -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <!-- Build-time only (PrivateAssets=all): never flows to consumers as a dependency. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!--
+    Deterministic build: a given commit always produces byte-identical output, so
+    the published assemblies are verifiably reproducible from source. Scoped to CI
+    (GitHub Actions sets GITHUB_ACTIONS=true) because ContinuousIntegrationBuild
+    normalizes source paths, which would break local debugging.
+  -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!--
+    AOT / trimming compatibility for the core (#158). The builder uses no
+    reflection or dynamic codegen (enum handling is `value is Enum`), so it is
+    trim/AOT-safe. IsAotCompatible turns on the trim, single-file, and AOT
+    analyzers and declares the contract via the IsTrimmable assembly flag; a clean
+    build is the proof. Scoped to the core only — SqlArtisan.Dapper depends on
+    Dapper and is out of scope.
+  -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SqlArtisan'">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
 </Project>
