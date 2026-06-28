@@ -424,6 +424,117 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public void Where_DateTimeParameter_Matches()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The seed sets every user's created_at to this value; binding it as a
+        // DateTime parameter must match all five rows.
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.CreatedAt == new DateTime(2020, 3, 15, 10, 30, 0))));
+
+        Assert.Equal(5, count);
+    }
+
+    [Fact]
+    public void Where_DecimalParameter_Filters()
+    {
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Amounts {100, 200, 50, 300, 75}; > 100.00 keeps 200 and 300.
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(o.Id)).From(o).Where(o.Amount > 100.00m)));
+
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public virtual void Where_BooleanParameter_Filters()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // The seeded users leave is_active NULL; only the inserted active row
+        // matches the bound boolean parameter.
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.IsActive).Values(170, "Active", 20, 99, true),
+            transaction);
+
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.IsActive == true), transaction));
+
+        Assert.Equal(1, count);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void Aggregate_CountDistinct_Counts()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // department_id values {10, 10, 20, 20, 30} → three distinct.
+        long count = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(Distinct, u.DepartmentId)).From(u)));
+
+        Assert.Equal(3, count);
+    }
+
+    [Fact]
+    public void GroupBy_MultipleColumns_Groups()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Each (department_id, age) pair is unique among the five users.
+        int groups = connection
+            .Query<int>(Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId, u.Age))
+            .Count();
+
+        Assert.Equal(5, groups);
+    }
+
+    [Fact]
+    public void Update_SetExpression_Increments()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Alice is 30; SET age = age + 1 makes her 31.
+        connection.Execute(Update(u).Set(u.Age == u.Age + 1).Where(u.Id == 1), transaction);
+
+        int age = connection
+            .Query<int>(Select(u.Age).From(u).Where(u.Id == 1), transaction)
+            .Single();
+
+        Assert.Equal(31, age);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public virtual void EdgeCase_BooleanFalse_RoundTrip()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.IsActive).Values(171, "Inactive", 20, 99, false),
+            transaction);
+
+        bool active = connection
+            .Query<bool>(Select(u.IsActive).From(u).Where(u.Id == 171), transaction)
+            .Single();
+
+        Assert.False(active);
+        transaction.Rollback();
+    }
+
+    [Fact]
     public async Task Async_QueryAndExecute_RoundTrip()
     {
         UsersTable u = new();
