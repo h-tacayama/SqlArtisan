@@ -17,10 +17,19 @@ internal static class TestSchema
 {
     // INTEGER / VARCHAR / DECIMAL are accepted verbatim by PostgreSQL, MySQL,
     // SQLite, and SQL Server (INTEGER is a SQL Server synonym for INT).
+    // Used by MySQL and SQLite, which have no sequences. INTEGER / VARCHAR /
+    // DECIMAL are accepted verbatim across these engines.
     public static readonly string[] StandardDdl =
     [
         "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER, created_at TIMESTAMP)",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
+    ];
+
+    // PostgreSQL = the standard tables plus a sequence (exercised by NEXTVAL/CURRVAL).
+    public static readonly string[] PostgreSqlDdl =
+    [
+        .. StandardDdl,
+        "CREATE SEQUENCE test_seq",
     ];
 
     // SQL Server: NVARCHAR so Unicode text round-trips (its VARCHAR is non-Unicode); DATETIME2 for the timestamp.
@@ -28,6 +37,7 @@ internal static class TestSchema
     [
         "CREATE TABLE users (id INTEGER PRIMARY KEY, name NVARCHAR(100), age INTEGER, department_id INTEGER, created_at DATETIME2)",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
+        "CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1",
     ];
 
     // Oracle spells the same shapes NUMBER / VARCHAR2 / DATE.
@@ -35,6 +45,7 @@ internal static class TestSchema
     [
         "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), department_id NUMBER(10), created_at DATE)",
         "CREATE TABLE orders (id NUMBER(10) PRIMARY KEY, user_id NUMBER(10), amount NUMBER(10,2))",
+        "CREATE SEQUENCE test_seq",
     ];
 
     private static readonly (int Id, string Name, int Age, int DepartmentId)[] s_users =

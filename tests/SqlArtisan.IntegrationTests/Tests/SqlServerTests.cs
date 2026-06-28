@@ -26,6 +26,18 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     }
 
     [Fact]
+    public void Sequence_NextValueFor_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        long next = Convert.ToInt64(connection.ExecuteScalar(
+            Select(NextValueFor("test_seq")).From(u).Where(u.Id == 1)));
+
+        Assert.True(next >= 1);
+    }
+
+    [Fact]
     public void Merge_UpsertViaMerge_Executes()
     {
         UsersTable t = new("t");

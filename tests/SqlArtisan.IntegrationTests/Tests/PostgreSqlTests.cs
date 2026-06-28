@@ -26,6 +26,22 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     }
 
     [Fact]
+    public void Sequence_NextvalCurrval_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // One row, so NEXTVAL is called once; CURRVAL then reads it back in the
+        // same session.
+        long next = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Nextval("test_seq")).From(u).Where(u.Id == 1)));
+        long current = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Currval("test_seq")).From(u).Where(u.Id == 1)));
+
+        Assert.Equal(next, current);
+    }
+
+    [Fact]
     public void Upsert_OnConflictDoUpdate_Executes()
     {
         UsersTable u = new();

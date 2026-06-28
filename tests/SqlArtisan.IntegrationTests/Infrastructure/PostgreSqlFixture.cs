@@ -24,7 +24,7 @@ public sealed class PostgreSqlFixture : IAsyncLifetime, IDatabaseFixture
     {
         await _container.StartAsync();
         using IDbConnection connection = OpenConnection();
-        TestSchema.Apply(connection, TestSchema.StandardDdl);
+        TestSchema.Apply(connection, TestSchema.PostgreSqlDdl);
     }
 
     public Task DisposeAsync() => _container.DisposeAsync().AsTask();
