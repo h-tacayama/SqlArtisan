@@ -53,6 +53,16 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
     }
 
+    [Fact(Skip = "Oracle XE 21c has no native boolean type; is_active is NUMBER(1).")]
+    public override void EdgeCase_BooleanFalse_RoundTrip()
+    {
+    }
+
+    [Fact(Skip = "Oracle XE 21c has no native boolean type; is_active is NUMBER(1).")]
+    public override void Where_BooleanParameter_Filters()
+    {
+    }
+
     [Fact(Skip = "Oracle has no multi-row VALUES; it uses INSERT ALL instead.")]
     public override void MultiRowValues_Executes()
     {
