@@ -33,21 +33,21 @@ internal sealed class ReturningBuilder : IReturningBuilder
         return new ReturningBuilder(inner, resolved);
     }
 
-    public ISqlBuilder Into(params string[] variables)
+    public ISqlBuilder Into(params OutputParameter[] outputs)
     {
-        if (variables.Length == 0)
+        if (outputs.Length == 0)
         {
-            throw new ArgumentException("At least one variable is required for Into().");
+            throw new ArgumentException("At least one output parameter is required for Into().");
         }
 
-        if (variables.Length != _expressions.Length)
+        if (outputs.Length != _expressions.Length)
         {
             throw new ArgumentException(
-                $"Into() requires {_expressions.Length} variable(s) to match " +
-                $"the {_expressions.Length} expression(s) in Returning(), but {variables.Length} were provided.");
+                $"Into() requires {_expressions.Length} output parameter(s) to match " +
+                $"the {_expressions.Length} expression(s) in Returning(), but {outputs.Length} were provided.");
         }
 
-        _inner.AddPart(new ReturningIntoClause(_expressions, variables));
+        _inner.AddPart(new ReturningIntoClause(_expressions, outputs));
         return (ISqlBuilder)_inner;
     }
 

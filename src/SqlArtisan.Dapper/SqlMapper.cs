@@ -37,6 +37,33 @@ public static partial class SqlMapper
             commandType);
     }
 
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
+    /// (inferred from <paramref name="cnn"/> via <see cref="DbmsResolver"/>) and
+    /// runs it through Dapper's <c>Execute</c>, returning the parameter bag so the
+    /// values bound to its output parameters — an Oracle <c>RETURNING … INTO</c>
+    /// clause — can be read back with <see cref="DynamicParameters.Get{T}"/> after
+    /// execution.
+    /// </summary>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan statement to execute, typically a <c>RETURNING … INTO</c>.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <returns>The <see cref="DynamicParameters"/> used for the command, carrying the populated output values.</returns>
+    public static DynamicParameters ExecuteReturningInto(
+        this IDbConnection cnn,
+        ISqlBuilder sqlBuilder,
+        IDbTransaction? transaction = null,
+        int? commandTimeout = null,
+        CommandType? commandType = null)
+    {
+        SqlStatement sql = sqlBuilder.Build(cnn);
+        DynamicParameters parameters = sql.Parameters.ToDynamicParameters();
+        cnn.Execute(sql.Text, parameters, transaction, commandTimeout, commandType);
+        return parameters;
+    }
+
     /// <inheritdoc cref="ExecuteScalar{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?)"/>
     /// <returns>The first column of the first row, or <see langword="null"/>.</returns>
     public static object? ExecuteScalar(
