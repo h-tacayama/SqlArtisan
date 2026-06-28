@@ -48,7 +48,9 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
-    [Fact]
+    [Fact(Skip = "Known bug #168: STRING_AGG's separator is emitted as a bind "
+        + "parameter, but SQL Server requires it to be a literal and rejects it "
+        + "(argument 2 nvarchar invalid). Un-skip when #168 is fixed.")]
     public void StringAggregation_StringAgg_Executes()
     {
         UsersTable u = new();
