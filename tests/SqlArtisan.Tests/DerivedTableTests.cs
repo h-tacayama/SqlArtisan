@@ -32,7 +32,7 @@ public class DerivedTableTests
         expected.Append("test_table \"t\" ");
         expected.Append("CROSS APPLY ");
         expected.Append("(");
-        expected.Append("SELECT SUM(\"s\".code) \"total\" FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
+        expected.Append("SELECT SUM(\"s\".code) total FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
         expected.Append("\"x\"");
 
@@ -61,7 +61,7 @@ public class DerivedTableTests
         expected.Append("test_table \"t\" ");
         expected.Append("CROSS APPLY ");
         expected.Append("(");
-        expected.Append("SELECT SUM(\"s\".code) \"total\" FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
+        expected.Append("SELECT SUM(\"s\".code) total FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
         expected.Append("\"x\"");
 
@@ -88,7 +88,7 @@ public class DerivedTableTests
         StringBuilder expected = new();
         expected.Append("WITH \"cte\" AS ");
         expected.Append("(");
-        expected.Append("SELECT \"a\".code \"c\", \"a\".name \"n\" FROM test_table \"a\" WHERE \"a\".code = :0");
+        expected.Append("SELECT \"a\".code c, \"a\".name n FROM test_table \"a\" WHERE \"a\".code = :0");
         expected.Append(") ");
         expected.Append("SELECT \"cte\".c, \"cte\".n ");
         expected.Append("FROM \"cte\"");

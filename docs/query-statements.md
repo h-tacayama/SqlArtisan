@@ -186,7 +186,7 @@ SqlStatement sql =
 
 // SELECT "u".name, "x".id
 // FROM users "u"
-// CROSS APPLY (SELECT "o".id "id" FROM orders "o" WHERE "o".user_id = "u".id) "x"
+// CROSS APPLY (SELECT "o".id id FROM orders "o" WHERE "o".user_id = "u".id) "x"
 ```
 
 When you reference the derived table's columns repeatedly, subclass
@@ -774,9 +774,9 @@ SqlStatement sql =
     .Build();
 
 // WITH "seniors" AS
-// (SELECT "users".id "senior_id",
-// "users".name "senior_name",
-// "users".age "senior_age"
+// (SELECT "users".id senior_id,
+// "users".name senior_name,
+// "users".age senior_age
 // FROM users "users" WHERE "users".age > :0)
 // SELECT "orders".id,
 // "orders".order_date,
