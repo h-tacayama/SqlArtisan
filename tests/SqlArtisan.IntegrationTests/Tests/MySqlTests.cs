@@ -45,4 +45,17 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Equal("AliceUpdated", name);
         transaction.Rollback();
     }
+
+    [Fact]
+    public void StringAggregation_GroupConcat_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string concatenated = connection
+            .Query<string>(Select(GroupConcat(u.Name)).From(u))
+            .Single();
+
+        Assert.Contains("Alice", concatenated);
+    }
 }
