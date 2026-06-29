@@ -112,6 +112,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
 
+Chain `.Filter(condition)` on any of these for conditional aggregation — `SUM(x) FILTER (WHERE ...)` (see [Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
+
 ---
 
 ## String Aggregation Functions
