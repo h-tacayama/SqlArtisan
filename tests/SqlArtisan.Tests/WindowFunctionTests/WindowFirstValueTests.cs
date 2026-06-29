@@ -7,6 +7,12 @@ public class WindowFirstValueTests
     private readonly TestTable _t = new();
 
     [Fact]
+    public void FirstValue_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(FirstValue(_t.Name)).Build());
+    }
+
+    [Fact]
     public void FirstValue_OverOrderBy_CorrectSql()
     {
         // Arrange

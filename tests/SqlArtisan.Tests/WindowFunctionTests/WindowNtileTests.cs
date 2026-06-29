@@ -7,6 +7,12 @@ public class WindowNtileTests
     private readonly TestTable _t = new();
 
     [Fact]
+    public void Ntile_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(Ntile(4)).Build());
+    }
+
+    [Fact]
     public void Ntile_OverOrderBy_CorrectSql()
     {
         // Arrange

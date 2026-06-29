@@ -7,6 +7,12 @@ public class WindowLagTests
     private readonly TestTable _t = new();
 
     [Fact]
+    public void Lag_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(Lag(_t.Name)).Build());
+    }
+
+    [Fact]
     public void Lag_OverOrderBy_CorrectSql()
     {
         // Arrange

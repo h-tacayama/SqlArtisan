@@ -7,6 +7,12 @@ public class WindowNthValueTests
     private readonly TestTable _t = new();
 
     [Fact]
+    public void NthValue_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(NthValue(_t.Name, 2)).Build());
+    }
+
+    [Fact]
     public void NthValue_OverOrderBy_CorrectSql()
     {
         // Arrange

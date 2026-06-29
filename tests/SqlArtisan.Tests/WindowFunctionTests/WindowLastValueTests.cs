@@ -7,6 +7,12 @@ public class WindowLastValueTests
     private readonly TestTable _t = new();
 
     [Fact]
+    public void LastValue_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(LastValue(_t.Name)).Build());
+    }
+
+    [Fact]
     public void LastValue_OverOrderBy_CorrectSql()
     {
         // Arrange
