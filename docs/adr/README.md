@@ -14,7 +14,7 @@ code.
 ## Index
 
 ADRs are ordered as a narrative: the philosophy first, then handling DBMS
-divergence, then the output, API, and performance decisions.
+divergence, then the output, API, performance, and enforcement-boundary decisions.
 
 | ADR | Title | Status |
 |-----|-------|--------|
@@ -24,3 +24,4 @@ divergence, then the output, API, and performance decisions.
 | [0004](0004-automatic-parameterization.md) | Values are automatically parameterized | Accepted |
 | [0005](0005-public-api-in-sql-partial-class.md) | Public API location | Accepted |
 | [0006](0006-performance-allocation-light.md) | Performance is a feature: allocation-light building | Accepted |
+| [0007](0007-validity-enforcement-boundary.md) | What the library rejects: grammatical completeness vs dialect availability | Accepted |
