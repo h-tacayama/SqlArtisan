@@ -46,8 +46,7 @@ internal static class OrderByItemResolver
         }
         else
         {
-            throw new ArgumentException(
-                $"Invalid type for OrderByItem: {orderByItem.GetType()}");
+            throw UnresolvableValue("OrderByItem", orderByItem);
         }
     }
 }

@@ -34,8 +34,7 @@ internal static class InsertValueResolver
         }
         else
         {
-            throw new ArgumentException(
-                $"Invalid type for InsertValue: {value.GetType()}");
+            throw UnresolvableValue("InsertValue", value);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace SqlArtisan.Internal;
 /// ordering, so complete the call with <see cref="WithinGroup(OrderByClause)"/>
 /// before it can be used as an expression.
 /// </summary>
-public sealed class ListaggFunction
+public sealed class ListaggFunction : IIncompleteExpression
 {
     private readonly SqlExpression _expr;
     private readonly SqlExpression _separator;
@@ -16,6 +16,9 @@ public sealed class ListaggFunction
         _expr = expr;
         _separator = separator;
     }
+
+    string IIncompleteExpression.CompletionHint =>
+        "Complete it with .WithinGroup(OrderBy(...)) — LISTAGG requires a WITHIN GROUP clause.";
 
     /// <summary>
     /// Supplies Oracle's mandatory <c>WITHIN GROUP (ORDER BY ...)</c> clause:

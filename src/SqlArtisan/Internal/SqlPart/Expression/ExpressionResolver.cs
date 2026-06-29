@@ -59,11 +59,23 @@ internal static class ExpressionResolver
         }
         else
         {
-            throw new ArgumentException(
-                $"Invalid type for SqlExpression: {item.GetType()}");
+            throw UnresolvableValue("SqlExpression", item);
         }
 #pragma warning restore IDE0046
     }
+
+    // Builds the exception for a value that reached a value position but isn't a
+    // usable expression, shared by every resolver. A "pending" type (a window
+    // function before .Over(...), an ordered-set aggregate before .WithinGroup(...))
+    // gets an actionable completion hint; any other unsupported type gets the
+    // generic message, where `position` names the position the value reached
+    // (e.g. "SelectItem", "GroupByItem").
+    internal static ArgumentException UnresolvableValue(string position, object item) =>
+        item is IIncompleteExpression incomplete
+            ? new ArgumentException(
+                $"{item.GetType().Name} is not a complete SQL expression. {incomplete.CompletionHint}")
+            : new ArgumentException(
+                $"Invalid type for {position}: {item.GetType()}");
 
     internal static bool IsBindable(object value) =>
         IsBoolean(value)

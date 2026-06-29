@@ -32,8 +32,7 @@ internal static class SelectItemResolver
         }
         else
         {
-            throw new ArgumentException(
-                $"Invalid type for SelectItem: {selectItem.GetType()}");
+            throw UnresolvableValue("SelectItem", selectItem);
         }
     }
 }
