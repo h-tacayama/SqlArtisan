@@ -8,6 +8,12 @@ public partial class WindowDenseRankTests
     private readonly TestTable _t = new("t");
 
     [Fact]
+    public void DenseRank_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(DenseRank()).Build());
+    }
+
+    [Fact]
     public void DenseRank_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =

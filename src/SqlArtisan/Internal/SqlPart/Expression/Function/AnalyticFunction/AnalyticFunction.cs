@@ -8,8 +8,16 @@ namespace SqlArtisan.Internal;
 /// They require <c>ORDER BY</c> and accept no <c>ROWS</c>/<c>RANGE</c> frame, so
 /// only the ordered <c>Over(...)</c> overloads are exposed — unlike
 /// <see cref="AggregateFunction"/>.
+/// <para>
+/// This type is deliberately <em>not</em> a <see cref="SqlExpression"/>: a window
+/// function is invalid without <c>OVER</c> in every dialect, so only
+/// <c>Over(...)</c> yields a usable <see cref="WindowFunction"/>. A bare analytic
+/// function thus cannot reach a value position — it fails to compile where a
+/// <see cref="SqlExpression"/> is expected, and is rejected at run time by
+/// <c>Select(...)</c> (which takes <c>object</c>).
+/// </para>
 /// </remarks>
-public abstract class AnalyticFunction() : SqlExpression
+public abstract class AnalyticFunction() : SqlPart
 {
     /// <summary>
     /// Turns the analytic function into a window function ordered over the whole

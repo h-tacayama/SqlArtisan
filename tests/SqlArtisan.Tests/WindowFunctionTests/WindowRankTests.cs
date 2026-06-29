@@ -8,6 +8,12 @@ public partial class WindowRankTests
     private readonly TestTable _t = new("t");
 
     [Fact]
+    public void Rank_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(Rank()).Build());
+    }
+
+    [Fact]
     public void Rank_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =
