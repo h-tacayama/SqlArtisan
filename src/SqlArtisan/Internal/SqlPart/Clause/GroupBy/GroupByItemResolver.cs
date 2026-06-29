@@ -38,9 +38,7 @@ internal static class GroupByItemResolver
         }
         else
         {
-            ExpressionResolver.ThrowIfIncomplete(groupByItem);
-            throw new ArgumentException(
-                $"Invalid type for GroupByItem: {groupByItem.GetType()}");
+            throw ExpressionResolver.InvalidValue("GroupByItem", groupByItem);
         }
     }
 
