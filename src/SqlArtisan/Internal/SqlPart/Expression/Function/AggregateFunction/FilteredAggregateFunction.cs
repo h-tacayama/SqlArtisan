@@ -13,19 +13,21 @@ namespace SqlArtisan.Internal;
 public sealed class FilteredAggregateFunction : WindowableFunction
 {
     private readonly AggregateFunction _aggregate;
-    private readonly SqlCondition _condition;
+    // Built once here, not per Format call, to keep the build path allocation-free
+    // (ADR 0006).
+    private readonly WhereClause _filterWhere;
 
     internal FilteredAggregateFunction(
         AggregateFunction aggregate,
         SqlCondition condition)
     {
         _aggregate = aggregate;
-        _condition = condition;
+        _filterWhere = new WhereClause(condition);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_aggregate)
         .Append($" {Keywords.Filter} ")
-        .OpenParenthesis(new WhereClause(_condition))
+        .OpenParenthesis(_filterWhere)
         .CloseParenthesis();
 }
