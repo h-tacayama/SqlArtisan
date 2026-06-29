@@ -33,6 +33,16 @@ internal static class StatementCatalog
         // Window frame (ROWS) — all five (MySQL 8, SQLite 3.28+).
         Add("WindowFrame",
             () => Select(Avg(o.Amount).Over(OrderBy(o.Id).Rows(UnboundedPreceding))).From(o), All);
+        // The rest of the frame vocabulary: BETWEEN bounds and RANGE, plus the
+        // Preceding(n) / Following(n) / CurrentRow / UnboundedFollowing bounds.
+        Add("WindowFrameRowsBetween",
+            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RowsBetween(Preceding(1), Following(1)))).From(o), All);
+        Add("WindowFrameRangeBetween",
+            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RangeBetween(UnboundedPreceding, CurrentRow))).From(o), All);
+        Add("WindowFrameUnboundedFollowing",
+            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RowsBetween(CurrentRow, UnboundedFollowing))).From(o), All);
+        Add("WindowFrameRange",
+            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).Range(UnboundedPreceding))).From(o), All);
 
         // GROUP BY extensions — Oracle / PostgreSQL / SQL Server (function form).
         Add("Rollup",
@@ -61,6 +71,18 @@ internal static class StatementCatalog
         // LIKE ... ESCAPE — the escape char is inlined as a literal; valid on all five.
         Add("LikeEscape",
             () => Select(u.Id).From(u).Where(u.Name.Like("A!%").Escape('!')), All);
+        // A backslash escape char exercises MySQL's literal backslash-doubling
+        // branch (BackslashEscapesStringLiterals); a bare backslash on the others.
+        Add("LikeEscapeBackslash",
+            () => Select(u.Id).From(u).Where(u.Name.Like("A\\%").Escape('\\')), All);
+
+        // Pagination clauses used standalone: LIMIT without OFFSET (MySQL /
+        // PostgreSQL / SQLite) and OFFSET without LIMIT (PostgreSQL only — MySQL
+        // and SQLite require a LIMIT before OFFSET).
+        Add("LimitStandalone", () => Select(u.Id).From(u).OrderBy(u.Id).Limit(2),
+            Only(Dbms.MySql, Dbms.PostgreSql, Dbms.Sqlite));
+        Add("OffsetStandalone", () => Select(u.Id).From(u).OrderBy(u.Id).Offset(2),
+            Only(Dbms.PostgreSql));
 
         // Optimizer-hint comment — a /*+ ... */ comment is accepted everywhere.
         Add("Hints", () => Select(Hints("/*+ test */"), u.Id).From(u), All);

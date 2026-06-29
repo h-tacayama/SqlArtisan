@@ -58,4 +58,18 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Contains("Alice", concatenated);
     }
+
+    [Fact]
+    public void StringAggregation_GroupConcatSeparator_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // GROUP_CONCAT(name SEPARATOR ' | ') — the SEPARATOR clause is inlined.
+        string concatenated = connection
+            .Query<string>(Select(GroupConcat(u.Name, Separator(" | "))).From(u))
+            .Single();
+
+        Assert.Contains(" | ", concatenated);
+    }
 }

@@ -187,6 +187,29 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public void Update_MultipleColumns_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(180, "Temp", 20, 99),
+            transaction);
+        // Two assignments in one SET — the comma-separated assignment list.
+        connection.Execute(
+            Update(u).Set(u.Name == "Updated", u.Age == 31).Where(u.Id == 180), transaction);
+
+        (string Name, int Age) row = connection
+            .Query<(string, int)>(Select(u.Name, u.Age).From(u).Where(u.Id == 180), transaction)
+            .Single();
+
+        Assert.Equal("Updated", row.Name);
+        Assert.Equal(31, row.Age);
+        transaction.Rollback();
+    }
+
+    [Fact]
     public void Delete_RemovesRow()
     {
         UsersTable u = new();
@@ -621,10 +644,12 @@ public abstract class IntegrationTestBase
         int single = connection.QuerySingle<int>(Select(u.Id).From(u).Where(u.Id == 1));
         int first = connection.QueryFirst<int>(Select(u.Id).From(u).OrderBy(u.Id));
         int? none = connection.QueryFirstOrDefault<int?>(Select(u.Id).From(u).Where(u.Id == -1));
+        int singleOrDefault = connection.QuerySingleOrDefault<int>(Select(u.Id).From(u).Where(u.Id == 1));
 
         Assert.Equal(1, single);
         Assert.Equal(1, first);
         Assert.Null(none);
+        Assert.Equal(1, singleOrDefault);
 
         using (IDataReader reader = connection.ExecuteReader(Select(u.Id).From(u).Where(u.Id == 1)))
         {
@@ -632,6 +657,35 @@ public abstract class IntegrationTestBase
         }
 
         using (var grid = connection.QueryMultiple(Select(u.Id).From(u).Where(u.Id == 1)))
+        {
+            Assert.Equal(1, grid.Read<int>().Single());
+        }
+    }
+
+    [Fact]
+    public async Task DapperEntryPoints_AsyncQueryVariants_Execute()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The async siblings of the passthroughs above — each builds for the
+        // connection's dialect and dispatches to the matching Dapper async call.
+        int single = await connection.QuerySingleAsync<int>(Select(u.Id).From(u).Where(u.Id == 1));
+        int singleOrDefault = await connection.QuerySingleOrDefaultAsync<int>(Select(u.Id).From(u).Where(u.Id == 1));
+        int first = await connection.QueryFirstAsync<int>(Select(u.Id).From(u).OrderBy(u.Id));
+        int? none = await connection.QueryFirstOrDefaultAsync<int?>(Select(u.Id).From(u).Where(u.Id == -1));
+
+        Assert.Equal(1, single);
+        Assert.Equal(1, singleOrDefault);
+        Assert.Equal(1, first);
+        Assert.Null(none);
+
+        using (IDataReader reader = await connection.ExecuteReaderAsync(Select(u.Id).From(u).Where(u.Id == 1)))
+        {
+            Assert.True(reader.Read());
+        }
+
+        using (var grid = await connection.QueryMultipleAsync(Select(u.Id).From(u).Where(u.Id == 1)))
         {
             Assert.Equal(1, grid.Read<int>().Single());
         }
