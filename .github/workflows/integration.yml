@@ -10,11 +10,6 @@ name: Integration Tests
 on:
   workflow_call:
   workflow_dispatch:
-  # TEMPORARY (remove before merge): re-run the full container matrix on this PR
-  # after adding the Select(hints, DistinctOn) overload, to reconfirm every engine
-  # lane stays green. This edit lives only on claude/distinct-on-155, so the
-  # trigger fires only for this PR. See the run-integration-tests skill / #151.
-  pull_request:
   schedule:
     # Nightly at 03:00 UTC.
     - cron: '0 3 * * *'
