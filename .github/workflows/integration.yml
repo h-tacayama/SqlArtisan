@@ -10,12 +10,6 @@ name: Integration Tests
 on:
   workflow_call:
   workflow_dispatch:
-  # TEMPORARY (remove before merge): run the full container matrix on this PR to
-  # validate the four container engine lanes before #150 merges, since
-  # workflow_dispatch only lists workflows already on the default branch. This
-  # edit lives only on claude/v1-release-issues-0pw93r, so the trigger fires only
-  # for PR #189. See the run-integration-tests skill / #151.
-  pull_request:
   schedule:
     # Nightly at 03:00 UTC.
     - cron: '0 3 * * *'
