@@ -17,8 +17,11 @@ namespace SqlArtisan.Internal;
 /// <c>Select(...)</c> (which takes <c>object</c>).
 /// </para>
 /// </remarks>
-public abstract class AnalyticFunction() : SqlPart
+public abstract class AnalyticFunction() : SqlPart, IIncompleteExpression
 {
+    string IIncompleteExpression.CompletionHint =>
+        "Complete it with .Over(...) — a window function requires an OVER clause.";
+
     /// <summary>
     /// Turns the analytic function into a window function ordered over the whole
     /// result set: <c>OVER (ORDER BY ...)</c>.

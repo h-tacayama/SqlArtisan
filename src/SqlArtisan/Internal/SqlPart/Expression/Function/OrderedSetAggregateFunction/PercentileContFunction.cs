@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The <c>PERCENTILE_CONT</c> ordered-set aggregate, pending its mandatory
 /// <c>WITHIN GROUP (ORDER BY ...)</c> clause.
 /// </summary>
-public sealed class PercentileContFunction
+public sealed class PercentileContFunction : IIncompleteExpression
 {
     private readonly double _fraction;
 
@@ -19,6 +19,9 @@ public sealed class PercentileContFunction
 
         _fraction = fraction;
     }
+
+    string IIncompleteExpression.CompletionHint =>
+        "Complete it with .WithinGroup(OrderBy(...)) — PERCENTILE_CONT requires a WITHIN GROUP clause.";
 
     /// <summary>
     /// Supplies the mandatory <c>WITHIN GROUP (ORDER BY ...)</c> clause that the

@@ -34,6 +34,7 @@ internal static class InsertValueResolver
         }
         else
         {
+            ThrowIfIncomplete(value);
             throw new ArgumentException(
                 $"Invalid type for InsertValue: {value.GetType()}");
         }

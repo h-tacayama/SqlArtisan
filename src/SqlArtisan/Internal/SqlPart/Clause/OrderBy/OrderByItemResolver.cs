@@ -46,6 +46,7 @@ internal static class OrderByItemResolver
         }
         else
         {
+            ThrowIfIncomplete(orderByItem);
             throw new ArgumentException(
                 $"Invalid type for OrderByItem: {orderByItem.GetType()}");
         }

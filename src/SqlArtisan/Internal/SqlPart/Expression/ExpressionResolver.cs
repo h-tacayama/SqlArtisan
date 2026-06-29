@@ -59,10 +59,25 @@ internal static class ExpressionResolver
         }
         else
         {
+            ThrowIfIncomplete(item);
             throw new ArgumentException(
                 $"Invalid type for SqlExpression: {item.GetType()}");
         }
 #pragma warning restore IDE0046
+    }
+
+    // When a "pending" expression (a window function before .Over(...), an
+    // ordered-set aggregate before .WithinGroup(...)) reaches a value position,
+    // throw with the type's completion hint so the caller learns how to fix it.
+    // A no-op for any other type, so the resolver falls through to its own
+    // generic "invalid type" message.
+    internal static void ThrowIfIncomplete(object item)
+    {
+        if (item is IIncompleteExpression incomplete)
+        {
+            throw new ArgumentException(
+                $"{item.GetType().Name} is not a complete SQL expression. {incomplete.CompletionHint}");
+        }
     }
 
     internal static bool IsBindable(object value) =>
