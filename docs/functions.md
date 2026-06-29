@@ -145,3 +145,10 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `PercentRank()` for `PERCENT_RANK()`
 - `Rank()` for `RANK()`
 - `RowNumber()` for `ROW_NUMBER()`
+
+> [!NOTE]
+> A window function is invalid without `OVER`, so complete each one with
+> `.Over(...)` (see [Expressions: Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions)).
+> The library enforces this: a bare `Rank()`, `RowNumber()`, etc. is not a usable
+> expression, so passing one to `Select(...)` is rejected rather than emitting an
+> `OVER`-less token the database would reject.

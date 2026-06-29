@@ -8,6 +8,12 @@ public partial class WindowRowNumberTests
     private readonly TestTable _t = new("t");
 
     [Fact]
+    public void RowNumber_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(RowNumber()).Build());
+    }
+
+    [Fact]
     public void RowNumber_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =

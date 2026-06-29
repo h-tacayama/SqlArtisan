@@ -8,6 +8,12 @@ public partial class WindowCumeDistTests
     private readonly TestTable _t = new("t");
 
     [Fact]
+    public void CumeDist_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(CumeDist()).Build());
+    }
+
+    [Fact]
     public void CumeDist_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =

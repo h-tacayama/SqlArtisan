@@ -2,11 +2,11 @@ namespace SqlArtisan.Internal;
 
 public sealed class WindowFunction : SqlExpression
 {
-    private readonly SqlExpression _function;
+    private readonly SqlPart _function;
     private readonly OverClause _overClause;
 
     internal WindowFunction(
-        SqlExpression function,
+        SqlPart function,
         OverClause overClause)
     {
         _function = function;

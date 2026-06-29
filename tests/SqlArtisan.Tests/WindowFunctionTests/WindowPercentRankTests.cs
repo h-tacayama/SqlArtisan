@@ -8,6 +8,12 @@ public partial class WindowPercentRankTests
     private readonly TestTable _t = new("t");
 
     [Fact]
+    public void PercentRank_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(PercentRank()).Build());
+    }
+
+    [Fact]
     public void PercentRank_OverPartitionByOrderBy_CorrectSql()
     {
         SqlStatement sql =

@@ -7,6 +7,12 @@ public class WindowLeadTests
     private readonly TestTable _t = new();
 
     [Fact]
+    public void Lead_WithoutOver_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(Lead(_t.Name)).Build());
+    }
+
+    [Fact]
     public void Lead_OverOrderBy_CorrectSql()
     {
         // Arrange
