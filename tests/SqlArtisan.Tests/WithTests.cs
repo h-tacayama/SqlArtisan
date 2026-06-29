@@ -128,6 +128,38 @@ public class WithTests
     }
 
     [Fact]
+    public void With_SelectDistinctOn_CorrectSql()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+
+        TestTable b = new("b");
+        SqlStatement sql =
+            With(
+                cte.As(
+                    Select(a.Code.As(cte.CteCode))
+                    .From(a)))
+                    .Select(
+                        DistinctOn(b.Code),
+                        b.Code)
+            .From(b)
+            .InnerJoin(cte)
+            .On(b.Code == cte.CteCode)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS ");
+        expected.Append("(SELECT \"a\".code cte_code ");
+        expected.Append("FROM test_table \"a\") ");
+        expected.Append("SELECT DISTINCT ON (\"b\".code) \"b\".code ");
+        expected.Append("FROM test_table \"b\" ");
+        expected.Append("INNER JOIN \"cte\" ");
+        expected.Append("ON \"b\".code = \"cte\".cte_code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void With_SelectHints_CorrectSql()
     {
         TestTable a = new("a");

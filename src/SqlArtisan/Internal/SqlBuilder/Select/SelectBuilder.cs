@@ -259,6 +259,18 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     }
 
     public ISelectBuilderSelect Select(
+        DistinctOnKeyword distinctOn,
+        params object[] selectItems)
+    {
+        AddPart(
+            SelectClauseWithDistinct.Parse(
+                distinctOn,
+                selectItems));
+
+        return this;
+    }
+
+    public ISelectBuilderSelect Select(
         SqlHints hints,
         params object[] selectItems)
     {

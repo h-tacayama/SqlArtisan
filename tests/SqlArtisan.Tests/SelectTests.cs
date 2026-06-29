@@ -71,6 +71,68 @@ public class SelectTests
     }
 
     [Fact]
+    public void Select_DistinctOn_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DistinctOn(_t.Code), _t.Code, _t.Name)
+            .From(_t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DISTINCT ON (\"t\".code) ");
+        expected.Append("\"t\".code, \"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Select_DistinctOnMultipleExpressions_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DistinctOn(_t.Code, _t.Name), _t.Code, _t.Name)
+            .From(_t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DISTINCT ON (\"t\".code, \"t\".name) ");
+        expected.Append("\"t\".code, \"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Select_DistinctOnWithOrderBy_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DistinctOn(_t.Code), _t.Code, _t.Name)
+            .From(_t)
+            .OrderBy(_t.Code, _t.Name.Desc)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DISTINCT ON (\"t\".code) ");
+        expected.Append("\"t\".code, \"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("ORDER BY \"t\".code, \"t\".name DESC");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DistinctOn_NoExpressions_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() => Select(DistinctOn(), _t.Code).Build());
+    }
+
+    [Fact]
     public void Select_FromClauseWithMultipleColumns_CorrectSql()
     {
         SqlStatement sql =

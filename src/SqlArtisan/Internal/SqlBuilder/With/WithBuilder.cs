@@ -47,6 +47,15 @@ internal sealed class WithBuilder : IWithBuilderWith
                 selectItems));
 
     public ISelectBuilderSelect Select(
+        DistinctOnKeyword distinctOn,
+        params object[] selectItems) =>
+        new SelectBuilder(
+            _withPart,
+            SelectClauseWithDistinct.Parse(
+                distinctOn,
+                selectItems));
+
+    public ISelectBuilderSelect Select(
         SqlHints hints,
         params object[] selectItems) =>
         new SelectBuilder(
