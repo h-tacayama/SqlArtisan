@@ -68,8 +68,8 @@ internal static class ExpressionResolver
     // usable expression, shared by every resolver. A "pending" type (a window
     // function before .Over(...), an ordered-set aggregate before .WithinGroup(...))
     // gets an actionable completion hint; any other unsupported type gets the
-    // position's generic message, where <paramref name="position"/> names the
-    // position (e.g. "SelectItem", "GroupByItem").
+    // generic message, where `position` names the position the value reached
+    // (e.g. "SelectItem", "GroupByItem").
     internal static ArgumentException InvalidValue(string position, object item) =>
         item is IIncompleteExpression incomplete
             ? new ArgumentException(
