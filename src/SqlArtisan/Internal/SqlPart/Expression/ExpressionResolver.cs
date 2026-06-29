@@ -59,7 +59,7 @@ internal static class ExpressionResolver
         }
         else
         {
-            throw InvalidValue("SqlExpression", item);
+            throw UnresolvableValue("SqlExpression", item);
         }
 #pragma warning restore IDE0046
     }
@@ -70,7 +70,7 @@ internal static class ExpressionResolver
     // gets an actionable completion hint; any other unsupported type gets the
     // generic message, where `position` names the position the value reached
     // (e.g. "SelectItem", "GroupByItem").
-    internal static ArgumentException InvalidValue(string position, object item) =>
+    internal static ArgumentException UnresolvableValue(string position, object item) =>
         item is IIncompleteExpression incomplete
             ? new ArgumentException(
                 $"{item.GetType().Name} is not a complete SQL expression. {incomplete.CompletionHint}")

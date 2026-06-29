@@ -38,7 +38,7 @@ internal static class GroupByItemResolver
         }
         else
         {
-            throw ExpressionResolver.InvalidValue("GroupByItem", groupByItem);
+            throw ExpressionResolver.UnresolvableValue("GroupByItem", groupByItem);
         }
     }
 

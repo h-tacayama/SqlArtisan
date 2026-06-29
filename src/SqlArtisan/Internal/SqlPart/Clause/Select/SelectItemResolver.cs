@@ -32,7 +32,7 @@ internal static class SelectItemResolver
         }
         else
         {
-            throw InvalidValue("SelectItem", selectItem);
+            throw UnresolvableValue("SelectItem", selectItem);
         }
     }
 }

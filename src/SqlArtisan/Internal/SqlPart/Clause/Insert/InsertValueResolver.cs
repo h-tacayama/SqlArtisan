@@ -34,7 +34,7 @@ internal static class InsertValueResolver
         }
         else
         {
-            throw InvalidValue("InsertValue", value);
+            throw UnresolvableValue("InsertValue", value);
         }
     }
 }

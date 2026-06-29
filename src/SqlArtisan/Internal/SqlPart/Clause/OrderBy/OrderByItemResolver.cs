@@ -46,7 +46,7 @@ internal static class OrderByItemResolver
         }
         else
         {
-            throw InvalidValue("OrderByItem", orderByItem);
+            throw UnresolvableValue("OrderByItem", orderByItem);
         }
     }
 }
