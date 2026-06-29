@@ -47,6 +47,15 @@ internal sealed class WithBuilder : IWithBuilderWith
                 selectItems));
 
     public ISelectBuilderSelect Select(
+        DistinctOnKeyword distinctOn,
+        params object[] selectItems) =>
+        new SelectBuilder(
+            _withPart,
+            SelectClauseWithDistinct.Parse(
+                distinctOn,
+                selectItems));
+
+    public ISelectBuilderSelect Select(
         SqlHints hints,
         params object[] selectItems) =>
         new SelectBuilder(
@@ -64,6 +73,17 @@ internal sealed class WithBuilder : IWithBuilderWith
             SelectClauseWithOptions.Parse(
                 hints,
                 distinct,
+                selectItems));
+
+    public ISelectBuilderSelect Select(
+        SqlHints hints,
+        DistinctOnKeyword distinctOn,
+        params object[] selectItems) =>
+        new SelectBuilder(
+            _withPart,
+            SelectClauseWithOptions.Parse(
+                hints,
+                distinctOn,
                 selectItems));
 
     public IUpdateBuilderUpdate Update(DbTableBase table) =>

@@ -2,11 +2,13 @@ namespace SqlArtisan.Internal;
 
 internal sealed class SelectClauseWithDistinct : SqlPart
 {
-    private readonly DistinctKeyword _distinct;
+    // Either DISTINCT (DistinctKeyword) or DISTINCT ON (...) (DistinctOnKeyword);
+    // both are SqlParts rendered as the select prefix.
+    private readonly SqlPart _distinct;
     private readonly SqlPart[] _selectItems;
 
     private SelectClauseWithDistinct(
-        DistinctKeyword distinct,
+        SqlPart distinct,
         SqlPart[] selectItems)
     {
         _distinct = distinct;
@@ -14,7 +16,7 @@ internal sealed class SelectClauseWithDistinct : SqlPart
     }
 
     internal static SelectClauseWithDistinct Parse(
-        DistinctKeyword distinct,
+        SqlPart distinct,
         object[] selectItems) => new(
             distinct,
             SelectItemResolver.Resolve(selectItems));

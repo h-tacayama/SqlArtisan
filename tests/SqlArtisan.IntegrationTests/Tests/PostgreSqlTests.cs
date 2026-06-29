@@ -116,6 +116,24 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     }
 
     [Fact]
+    public void DistinctOn_OneRowPerDepartment_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Departments 10 -> {1,2}, 20 -> {3,4}, 30 -> {5}. DISTINCT ON
+        // (department_id) ordered by (department_id, id) keeps the lowest id per
+        // department: {1, 3, 5}.
+        IEnumerable<int> ids = connection
+            .Query<int>(
+                Select(DistinctOn(u.DepartmentId), u.Id)
+                    .From(u)
+                    .OrderBy(u.DepartmentId, u.Id));
+
+        Assert.Equal(new[] { 1, 3, 5 }, ids);
+    }
+
+    [Fact]
     public void SetOperator_Except_Executes()
     {
         UsersTable u = new();

@@ -319,6 +319,18 @@ public static partial class Sql
     public static DistinctKeyword Distinct => new();
 
     /// <summary>
+    /// PostgreSQL's <c>DISTINCT ON (<paramref name="expressions"/>)</c> select
+    /// prefix: keeps one row per distinct combination of
+    /// <paramref name="expressions"/> (the first per the query's <c>ORDER BY</c>).
+    /// Pass to <c>Select(DistinctOn(...), ...)</c>.
+    /// </summary>
+    /// <param name="expressions">The expressions to deduplicate on; at least one.</param>
+    /// <returns>A <c>DISTINCT ON (...)</c> select prefix.</returns>
+    /// <remarks>PostgreSQL syntax; emitted faithfully on every dialect.</remarks>
+    public static DistinctOnKeyword DistinctOn(params object[] expressions) =>
+        new(Resolve(expressions));
+
+    /// <summary>
     /// Oracle's <c>DUAL</c> dummy table, for selecting expressions without a real
     /// table (<c>SELECT ... FROM DUAL</c>).
     /// </summary>

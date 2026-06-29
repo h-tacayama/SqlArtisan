@@ -56,6 +56,22 @@ SqlStatement sql =
 // FROM users
 ```
 
+#### DISTINCT ON (PostgreSQL)
+Keeps one row per distinct combination of the listed expressions — the first per the query's `ORDER BY`. Pass `DistinctOn(...)` as the select prefix.
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Select(DistinctOn(u.DepartmentId), u.DepartmentId, u.Name)
+    .From(u)
+    .OrderBy(u.DepartmentId, u.Salary.Desc)
+    .Build();
+
+// SELECT DISTINCT ON ("u".department_id) "u".department_id, "u".name
+// FROM users "u"
+// ORDER BY "u".department_id, "u".salary DESC
+```
+PostgreSQL syntax; emitted faithfully on every dialect, with availability left to the database (ADR 0001/0003).
+
 #### Hints
 ```csharp
 // The hint below refers to this alias "u".
