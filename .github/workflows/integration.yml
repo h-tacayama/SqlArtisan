@@ -10,6 +10,12 @@ name: Integration Tests
 on:
   workflow_call:
   workflow_dispatch:
+  # TEMPORARY (remove before merge): run the full container matrix on this PR to
+  # validate the DISTINCT ON change against real PostgreSQL (and confirm the other
+  # lanes still pass), since workflow_dispatch only lists workflows already on the
+  # default branch. This edit lives only on claude/distinct-on-155, so the trigger
+  # fires only for this PR. See the run-integration-tests skill / #151.
+  pull_request:
   schedule:
     # Nightly at 03:00 UTC.
     - cron: '0 3 * * *'
