@@ -3,12 +3,13 @@ namespace SqlArtisan.Internal;
 internal sealed class SelectClauseWithOptions : SqlPart
 {
     private readonly SqlHints _hints;
-    private readonly DistinctKeyword _distinct;
+    // Either DISTINCT (DistinctKeyword) or DISTINCT ON (...) (DistinctOnKeyword).
+    private readonly SqlPart _distinct;
     private readonly SqlPart[] _selectItems;
 
     private SelectClauseWithOptions(
         SqlHints hints,
-        DistinctKeyword distinct,
+        SqlPart distinct,
         SqlPart[] selectItems)
     {
         _hints = hints;
@@ -18,7 +19,7 @@ internal sealed class SelectClauseWithOptions : SqlPart
 
     internal static SelectClauseWithOptions Parse(
         SqlHints hints,
-        DistinctKeyword distinct,
+        SqlPart distinct,
         object[] selectItems) => new(
             hints,
             distinct,

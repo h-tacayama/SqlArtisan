@@ -225,4 +225,23 @@ public class SelectTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Select_WithHintsAndDistinctOn_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                Hints("/*+ ANY HINT */"),
+                DistinctOn(_t.Code),
+                _t.Code)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("/*+ ANY HINT */ ");
+        expected.Append("DISTINCT ON (\"t\".code) ");
+        expected.Append("\"t\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

@@ -296,6 +296,20 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    public ISelectBuilderSelect Select(
+        SqlHints hints,
+        DistinctOnKeyword distinctOn,
+        params object[] selectItems)
+    {
+        AddPart(
+            SelectClauseWithOptions.Parse(
+                hints,
+                distinctOn,
+                selectItems));
+
+        return this;
+    }
+
     public ISelectBuilderWhere Where(SqlCondition condition)
     {
         AddPart(new WhereClause(condition));

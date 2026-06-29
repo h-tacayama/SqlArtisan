@@ -64,6 +64,20 @@ public static partial class Sql
                 distinct,
                 selectItems));
 
+    /// <inheritdoc cref="Select(object[])"/>
+    /// <param name="hints">Optimizer hints (<see cref="Hints(string)"/>), emitted after <c>SELECT</c>.</param>
+    /// <param name="distinctOn">PostgreSQL's <c>DISTINCT ON (...)</c> prefix (<see cref="DistinctOn(object[])"/>), emitting <c>SELECT ... DISTINCT ON (...)</c>.</param>
+    /// <param name="selectItems">The columns or expressions to project.</param>
+    public static ISelectBuilderSelect Select(
+        SqlHints hints,
+        DistinctOnKeyword distinctOn,
+        params object[] selectItems) =>
+        new SelectBuilder(
+            SelectClauseWithOptions.Parse(
+                hints,
+                distinctOn,
+                selectItems));
+
     /// <summary>
     /// Wraps a <c>GROUP_CONCAT</c> separator in MySQL's <c>SEPARATOR</c> keyword
     /// form.
