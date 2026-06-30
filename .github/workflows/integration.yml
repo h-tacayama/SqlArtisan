@@ -10,11 +10,6 @@ name: Integration Tests
 on:
   workflow_call:
   workflow_dispatch:
-  # TEMPORARY (remove before merge): re-run the container matrix on this PR after
-  # the aggregate-base restructure (internal rename; emitted SQL unchanged) to
-  # reconfirm every engine lane stays green. This edit lives only on
-  # claude/aggregate-filter-154, so the trigger fires only for this PR.
-  pull_request:
   schedule:
     # Nightly at 03:00 UTC.
     - cron: '0 3 * * *'
