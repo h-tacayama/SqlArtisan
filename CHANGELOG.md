@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Scalar subqueries in expression position: a `SELECT` builder can now be used directly as a value — in a `SELECT` list, a `WHERE` comparison, or arithmetic — without an explicit wrapper. Chain `.As("alias")` for an aliased scalar subquery. Correlated subqueries (referencing outer-table columns) work naturally. (#156)
 
 ## [0.5.0-beta.1] - 2026-06-30
 ### Added
