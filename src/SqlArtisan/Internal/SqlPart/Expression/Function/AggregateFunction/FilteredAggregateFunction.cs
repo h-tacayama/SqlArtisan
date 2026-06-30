@@ -10,7 +10,7 @@ namespace SqlArtisan.Internal;
 /// every dialect; engines without it (and the analyzer) decide availability — the
 /// library never rewrites it to a <c>CASE</c> expression.
 /// </remarks>
-public sealed class FilteredAggregateFunction : WindowableFunction
+public sealed class FilteredAggregateFunction : OverableFunction
 {
     private readonly AggregateFunction _aggregate;
     // Built once here, not per Format call, to keep the build path allocation-free

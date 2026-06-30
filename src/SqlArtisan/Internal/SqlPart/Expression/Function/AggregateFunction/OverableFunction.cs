@@ -1,11 +1,11 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// Base class for an expression that can be turned into a window function with
-/// <c>Over(...)</c> — an <see cref="AggregateFunction"/> or a
+/// Base class for an expression that takes an <c>OVER (...)</c> clause to become a
+/// window function — an <see cref="AggregateFunction"/> or a
 /// <see cref="FilteredAggregateFunction"/>.
 /// </summary>
-public abstract class WindowableFunction : SqlExpression
+public abstract class OverableFunction : SqlExpression
 {
     /// <summary>
     /// Turns it into a window function over the whole result set: <c>OVER ()</c>.

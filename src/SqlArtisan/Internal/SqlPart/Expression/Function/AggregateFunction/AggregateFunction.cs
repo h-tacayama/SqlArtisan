@@ -10,7 +10,7 @@ namespace SqlArtisan.Internal;
 /// (e.g. <c>SUM(DISTINCT x) OVER (...)</c>), so combining a distinct aggregate
 /// with <c>Over(...)</c> generates SQL that the database will reject.
 /// </remarks>
-public abstract class AggregateFunction : WindowableFunction
+public abstract class AggregateFunction : OverableFunction
 {
     /// <summary>
     /// Restricts the aggregate to rows matching <paramref name="condition"/>:
