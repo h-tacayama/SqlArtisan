@@ -9,15 +9,15 @@ namespace SqlArtisan.Internal;
 /// Native on PostgreSQL and SQLite; emitted as written on every dialect (engines
 /// without it reject it).
 /// </remarks>
-public sealed class FilteredAggregateFunction : OverableFunction
+public sealed class FilteredAggregateFunction : AggregateFunction
 {
-    private readonly AggregateFunction _aggregate;
+    private readonly UnfilteredAggregateFunction _aggregate;
     // Built once here, not per Format call, to keep the build path allocation-free
     // (ADR 0006).
     private readonly WhereClause _filterWhere;
 
     internal FilteredAggregateFunction(
-        AggregateFunction aggregate,
+        UnfilteredAggregateFunction aggregate,
         SqlCondition condition)
     {
         _aggregate = aggregate;

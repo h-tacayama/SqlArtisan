@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SumFunction : AggregateFunction
+public sealed class SumFunction : UnfilteredAggregateFunction
 {
     private readonly DistinctKeyword? _distinct;
     private readonly SqlPart _expr;
