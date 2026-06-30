@@ -20,6 +20,7 @@
 - [CASE Expressions](#case-expressions)
 - [CAST](#cast)
 - [Window Functions](#window-functions)
+- [Conditional Aggregation (FILTER)](#conditional-aggregation-filter)
 - [String Aggregation](#string-aggregation)
 - [Sequence](#sequence)
 
@@ -497,6 +498,29 @@ PercentileCont(0.5).WithinGroup(OrderBy(u.Salary)).Over(PartitionBy(u.Department
 ```
 
 - Dialect support is split: Oracle allows both forms; PostgreSQL only the plain `WITHIN GROUP` form; SQL Server only the windowed `.Over(PartitionBy(...))` form. MySQL and SQLite do not support these functions.
+
+---
+
+## Conditional Aggregation (FILTER)
+
+Restrict an aggregate to the rows matching a condition with `.Filter(...)` — `agg(...) FILTER (WHERE ...)`.
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        Count(u.Id).Filter(u.IsActive == true).As("active"),
+        Count(u.Id).As("total"))
+    .From(u)
+    .Build();
+
+// SELECT COUNT(id) FILTER (WHERE is_active = :0) "active", COUNT(id) "total"
+// FROM users
+```
+
+Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FILTER (WHERE ...) OVER (PARTITION BY ...)`.
+
+- Native on PostgreSQL and SQLite. Per ADR 0001/0003 it is emitted faithfully on every dialect (never rewritten to a `CASE` expression); engines without it reject it, which the analyzer can flag.
 
 ---
 

@@ -49,6 +49,7 @@ internal static class Keywords
     internal const string Exists = "EXISTS";
     internal const string Extract = "EXTRACT";
     internal const string Fetch = "FETCH";
+    internal const string Filter = "FILTER";
     internal const string First = "FIRST";
     internal const string FirstValue = "FIRST_VALUE";
     internal const string Floor = "FLOOR";

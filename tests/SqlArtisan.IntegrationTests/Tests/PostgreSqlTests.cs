@@ -116,6 +116,20 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     }
 
     [Fact]
+    public void AggregateFilter_CountFilterWhere_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Ages are 30, 40, 50, 25, 35; three exceed 30. PostgreSQL supports FILTER.
+        int matching = connection
+            .Query<int>(Select(Count(u.Id).Filter(u.Age > 30)).From(u))
+            .Single();
+
+        Assert.Equal(3, matching);
+    }
+
+    [Fact]
     public void DistinctOn_OneRowPerDepartment_Executes()
     {
         UsersTable u = new();
