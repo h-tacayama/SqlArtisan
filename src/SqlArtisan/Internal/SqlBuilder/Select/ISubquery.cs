@@ -6,4 +6,13 @@ namespace SqlArtisan.Internal;
 public interface ISubquery
 {
     internal void Format(SqlBuildingBuffer buffer);
+
+    /// <summary>
+    /// Aliases this subquery as a scalar expression for use in a <c>SELECT</c>
+    /// list: <c>(SELECT ...) AS "alias"</c>.
+    /// </summary>
+    /// <param name="alias">The column alias.</param>
+    /// <returns>An aliased scalar-subquery expression.</returns>
+    public ExpressionAlias As(string alias) =>
+        new(new ScalarSubquery(this), alias);
 }

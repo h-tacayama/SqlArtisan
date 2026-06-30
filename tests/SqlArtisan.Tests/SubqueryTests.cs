@@ -141,4 +141,128 @@ public class SubqueryTests
             _t.Code.In(Select(Hints("/*+ ANY HINT */"), Distinct, _s.Code)),
             expected.ToString());
     }
+
+    [Fact]
+    public void ScalarSubquery_InSelectList_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                _t.Name,
+                Select(Max(_s.Code)).From(_s))
+            .From(_t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name, ");
+        expected.Append("(SELECT MAX(\"s\".code) FROM test_table \"s\") ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ScalarSubquery_WithAlias_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                _t.Name,
+                Select(Max(_s.Code)).From(_s).As("max_code"))
+            .From(_t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name, ");
+        expected.Append("(SELECT MAX(\"s\".code) FROM test_table \"s\") \"max_code\" ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ScalarSubquery_InWhereComparison_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code > Select(Avg(_s.Code)).From(_s))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code > (SELECT AVG(\"s\".code) FROM test_table \"s\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ScalarSubquery_InArithmetic_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(
+                (_t.Code - Select(Avg(_s.Code)).From(_s)).As("diff"))
+            .From(_t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("(\"t\".code - (SELECT AVG(\"s\".code) FROM test_table \"s\")) \"diff\" ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ScalarSubquery_Correlated_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code > Select(Max(_s.Code)).From(_s).Where(_s.Name == _t.Name))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code > ");
+        expected.Append("(SELECT MAX(\"s\".code) FROM test_table \"s\" ");
+        expected.Append("WHERE \"s\".name = \"t\".name)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ScalarSubquery_WithBindParameters_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code > Select(Max(_s.Code)).From(_s).Where(_s.Code > 10))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code > ");
+        expected.Append("(SELECT MAX(\"s\".code) FROM test_table \"s\" ");
+        expected.Append("WHERE \"s\".code > :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(10, sql.Parameters.Get<object>(":0"));
+    }
 }

@@ -53,6 +53,10 @@ internal static class ExpressionResolver
         {
             return expr;
         }
+        else if (item is ISubquery subquery)
+        {
+            return new ScalarSubquery(subquery);
+        }
         else if (IsBindable(item))
         {
             return new BindValue(item);

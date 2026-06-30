@@ -26,6 +26,10 @@ internal static class SelectItemResolver
         {
             return alias;
         }
+        else if (selectItem is ISubquery subquery)
+        {
+            return new ScalarSubquery(subquery);
+        }
         else if (IsBindable(selectItem))
         {
             return new BindValue(selectItem);
