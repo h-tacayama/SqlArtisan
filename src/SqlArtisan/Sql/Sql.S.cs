@@ -79,6 +79,16 @@ public static partial class Sql
                 selectItems));
 
     /// <summary>
+    /// The <c>SOME (subquery)</c> quantified comparison operator: equivalent to
+    /// <see cref="Any(ISubquery)"/> — the comparison must hold for at least one row.
+    /// Use with a comparison operator — e.g. <c>col = Some(subquery)</c>.
+    /// </summary>
+    /// <param name="subquery">A <c>SELECT</c> builder returning a single column.</param>
+    /// <returns>A quantified-subquery expression emitting <c>SOME (SELECT ...)</c>.</returns>
+    public static QuantifiedSubquery Some(ISubquery subquery) =>
+        new(Keywords.Some, subquery);
+
+    /// <summary>
     /// Wraps a <c>GROUP_CONCAT</c> separator in MySQL's <c>SEPARATOR</c> keyword
     /// form.
     /// </summary>

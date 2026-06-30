@@ -7,6 +7,7 @@ internal static class Keywords
     internal const string AddMonths = "ADD_MONTHS";
     internal const string All = "ALL";
     internal const string And = "AND";
+    internal const string Any = "ANY";
     internal const string Apply = "APPLY";
     internal const string As = "AS";
     internal const string Asc = "ASC";
@@ -140,6 +141,7 @@ internal static class Keywords
     internal const string Select = "SELECT";
     internal const string Separator = "SEPARATOR";
     internal const string Set = "SET";
+    internal const string Some = "SOME";
     internal const string Sign = "SIGN";
     internal const string Skip = "SKIP";
     internal const string Source = "SOURCE";

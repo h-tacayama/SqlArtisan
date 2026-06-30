@@ -265,4 +265,127 @@ public class SubqueryTests
         Assert.Equal(1, sql.Parameters.Count);
         Assert.Equal(10, sql.Parameters.Get<object>(":0"));
     }
+
+    [Fact]
+    public void QuantifiedSubquery_Any_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code > Any(Select(_s.Code).From(_s)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code > ANY (SELECT \"s\".code FROM test_table \"s\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void QuantifiedSubquery_All_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code > All(Select(_s.Code).From(_s)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code > ALL (SELECT \"s\".code FROM test_table \"s\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void QuantifiedSubquery_Some_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code == Some(Select(_s.Code).From(_s)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code = SOME (SELECT \"s\".code FROM test_table \"s\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void QuantifiedSubquery_All_WithBindParameters_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code > All(Select(_s.Code).From(_s).Where(_s.Code > 10)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code > ALL (SELECT \"s\".code FROM test_table \"s\" ");
+        expected.Append("WHERE \"s\".code > :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(10, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void QuantifiedSubquery_Any_MySql_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code > Any(Select(_s.Code).From(_s)))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("`t`.name ");
+        expected.Append("FROM ");
+        expected.Append("test_table `t` ");
+        expected.Append("WHERE ");
+        expected.Append("`t`.code > ANY (SELECT `s`.code FROM test_table `s`)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void QuantifiedSubquery_All_SqlServer_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .Where(_t.Code > All(Select(_s.Code).From(_s)))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code > ALL (SELECT \"s\".code FROM test_table \"s\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }
