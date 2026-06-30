@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.5.0-beta.1] - 2026-06-30
 ### Added
 - `SqlStatement.ToString()` now returns `Text` (the parameter-marked SQL), so logging or inspecting a built statement shows the SQL instead of the type name. Parameter values are not included (they may be sensitive); read `Parameters` explicitly when you need them. (#147)
 - Added `DbTable`, an ad-hoc table reference: name a table inline (`new DbTable("users", "u")`) and read its columns by name with `Column(name)`, without declaring a typed `DbTableBase` subclass — mirroring `Cte` / `DerivedTable`. Columns are qualified by the alias (unqualified when none); usable in `SELECT` / `FROM` / `JOIN` and as an `INSERT` / `UPDATE` / `DELETE` target. (#145)
