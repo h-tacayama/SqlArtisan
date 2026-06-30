@@ -6,9 +6,9 @@ namespace SqlArtisan.Internal;
 /// <c>ORDER BY</c>). Pass it to <c>Select(DistinctOn(...), ...)</c>.
 /// </summary>
 /// <remarks>
-/// PostgreSQL-only syntax; emitted faithfully on every dialect (ADR 0001/0003).
-/// Unlike <see cref="DistinctKeyword"/> it is valid only as a select prefix, never
-/// inside an aggregate, so it is a separate type.
+/// PostgreSQL-only syntax; emitted as written on every dialect. Unlike
+/// <see cref="DistinctKeyword"/> it is valid only as a select prefix, never inside
+/// an aggregate, so it is a separate type.
 /// </remarks>
 public sealed class DistinctOnKeyword : SqlPart
 {

@@ -6,9 +6,8 @@ namespace SqlArtisan.Internal;
 /// <c>SUM(x) FILTER (WHERE ...) OVER (...)</c>.
 /// </summary>
 /// <remarks>
-/// Native on PostgreSQL and SQLite. Per ADR 0001/0003 it is emitted faithfully on
-/// every dialect; engines without it (and the analyzer) decide availability — the
-/// library never rewrites it to a <c>CASE</c> expression.
+/// Native on PostgreSQL and SQLite; emitted as written on every dialect (engines
+/// without it reject it).
 /// </remarks>
 public sealed class FilteredAggregateFunction : OverableFunction
 {
