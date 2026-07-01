@@ -119,6 +119,16 @@ public static partial class Sql
     public static SkipLockedBehavior SkipLocked => new();
 
     /// <summary>
+    /// The <c>SOME (subquery)</c> quantified comparison operator: equivalent to
+    /// <see cref="Any(ISubquery)"/> — the comparison must hold for at least one row.
+    /// Use with a comparison operator — e.g. <c>col = Some(subquery)</c>.
+    /// </summary>
+    /// <param name="subquery">A <c>SELECT</c> builder returning a single column.</param>
+    /// <returns>A quantified-subquery expression emitting <c>SOME (SELECT ...)</c>.</returns>
+    public static QuantifiedSubquery Some(ISubquery subquery) =>
+        new(Keywords.Some, subquery);
+
+    /// <summary>
     /// The <c>SQRT(expr)</c> function: the square root of <paramref name="expr"/>.
     /// </summary>
     /// <param name="expr">The numeric expression whose square root is taken.</param>

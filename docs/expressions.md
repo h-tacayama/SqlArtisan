@@ -17,6 +17,8 @@
 - [NULL Literal](#null-literal)
 - [Arithmetic Operators](#arithmetic-operators)
 - [Conditions](#conditions)
+- [Scalar Subquery](#scalar-subquery)
+- [ALL / ANY / SOME](#all--any--some)
 - [CASE Expressions](#case-expressions)
 - [CAST](#cast)
 - [Window Functions](#window-functions)
@@ -281,6 +283,39 @@ SqlStatement sql =
 // FROM users "u"
 // WHERE "u".age > (SELECT MAX("s".age) FROM users "s"
 // WHERE "s".name = "u".name)
+```
+
+### ALL / ANY / SOME
+
+The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY`.
+
+```csharp
+UsersTable u = new("u");
+UsersTable s = new("s");
+
+// col > ALL (subquery)
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Age > All(Select(s.Age).From(s)))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE "u".age > ALL (SELECT "s".age FROM users "s")
+```
+
+```csharp
+// col > ANY (subquery)
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Age > Any(Select(s.Age).From(s)))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE "u".age > ANY (SELECT "s".age FROM users "s")
 ```
 
 ### Dynamic Condition
