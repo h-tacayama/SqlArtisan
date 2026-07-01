@@ -81,9 +81,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         // JSON_EXTRACT(data, '$.name') — the path is inlined as a literal. MySQL
         // returns the scalar as a quoted JSON string (e.g. "Alice"), so the value
-        // is asserted with Contains rather than an exact match. (MySQL's ->/->>
-        // operators require a *literal* path, which the parameterized operator API
-        // does not emit, so they are covered by the SQLite/PostgreSQL lanes.)
+        // is asserted with Contains rather than an exact match.
         string name = connection
             .Query<string>(Select(JsonExtract(u.Data, "$.name")).From(u).Where(u.Id == 1))
             .Single();
@@ -91,20 +89,32 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Contains("Alice", name);
     }
 
-    // TEMPORARY probe (#152): confirm empirically whether MySQL rejects a bound
-    // parameter as the `->>` path. Current operator API parameterizes the key, so
-    // this emits `data ->> ?`. If MySQL requires a literal path here, this test
-    // fails at execute — proving the constraint. Remove after verification.
     [Fact]
-    public void JsonArrowText_ParameterizedPath_Probe()
+    public void JsonArrowText_ReadsScalar()
     {
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
+        // (data ->> '$.name') — MySQL accepts a bound parameter as the path, so
+        // the key binds normally; ->> returns the unquoted scalar.
         string name = connection
             .Query<string>(Select(JsonArrowText(u.Data, "$.name")).From(u).Where(u.Id == 1))
             .Single();
 
         Assert.Equal("Alice", name);
+    }
+
+    [Fact]
+    public void JsonArrow_ReadsNestedObject()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // (data -> '$.address') returns the nested JSON object.
+        string address = connection
+            .Query<string>(Select(JsonArrow(u.Data, "$.address")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Contains("10001", address);
     }
 }
