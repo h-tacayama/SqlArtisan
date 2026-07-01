@@ -9,20 +9,8 @@
 
 ## Contents
 
-- [Bind Parameter Types](#bind-parameter-types)
 - [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions)
-
----
-
-## Bind Parameter Types
-
-SqlArtisan automatically converts C# literal values into bind parameters. Supported types are as follows:
-
-- **Boolean**: `bool`
-- **Character/String**: `char`, `string`
-- **Date/Time**: `DateTime`, `DateOnly`, `TimeOnly`
-- **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
-- **Enum**: Any `enum` type
+- [Bind Parameter Types](#bind-parameter-types)
 
 ---
 
@@ -154,3 +142,15 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 > The library enforces this: a bare `Rank()`, `RowNumber()`, etc. is not a usable
 > expression, so passing one to `Select(...)` is rejected rather than emitting an
 > `OVER`-less token the database would reject.
+
+---
+
+## Bind Parameter Types
+
+SqlArtisan automatically converts C# literal values into bind parameters. Supported types are as follows:
+
+- **Boolean**: `bool`
+- **Character/String**: `char`, `string`
+- **Date/Time**: `DateTime`, `DateOnly`, `TimeOnly`
+- **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
+- **Enum**: Any `enum` type
