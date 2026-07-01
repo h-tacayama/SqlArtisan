@@ -373,8 +373,8 @@ Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators. The 
 ```csharp
 SqlStatement sql =
     Select(
-        JsonGet(u.Data, "address"),
-        JsonGetText(u.Data, "name"))
+        JsonArrow(u.Data, "address"),
+        JsonArrowText(u.Data, "name"))
     .From(u)
     .Build(Dbms.PostgreSql);
 
@@ -382,13 +382,13 @@ SqlStatement sql =
 // FROM users
 ```
 
-`JsonGet` (`->`) returns the JSON type; `JsonGetText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite.
+`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite.
 
 Chaining is natural — the result is a `SqlExpression`:
 
 ```csharp
 // Nested access: (data -> :0) ->> :1
-JsonGetText(JsonGet(u.Data, "address"), "city")
+JsonArrowText(JsonArrow(u.Data, "address"), "city")
 ```
 
 ### Path Access (`#>` / `#>>`)
@@ -396,8 +396,8 @@ JsonGetText(JsonGet(u.Data, "address"), "city")
 ```csharp
 SqlStatement sql =
     Select(
-        JsonGetPath(u.Data, "{a,b}"),
-        JsonGetPathText(u.Data, "{a,b}"))
+        JsonHashArrow(u.Data, "{a,b}"),
+        JsonHashArrowText(u.Data, "{a,b}"))
     .From(u)
     .Build(Dbms.PostgreSql);
 
@@ -405,7 +405,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-PostgreSQL only. `JsonGetPath` (`#>`) returns JSON; `JsonGetPathText` (`#>>`) returns text.
+PostgreSQL only. `JsonHashArrow` (`#>`) returns JSON; `JsonHashArrowText` (`#>>`) returns text.
 
 ---
 

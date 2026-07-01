@@ -18,46 +18,46 @@ public static partial class Sql
         string path) => new(Resolve(jsonDoc), path);
 
     /// <summary>
-    /// The <c>(jsonExpr -&gt; key)</c> JSON access operator: extracts a JSON
-    /// element by key or index (MySQL, PostgreSQL, SQLite).
+    /// The <c>(jsonExpr -&gt; key)</c> JSON operator: extracts a JSON element by
+    /// key or index, returning a JSON value (MySQL, PostgreSQL, SQLite).
     /// </summary>
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="key">The key or index to access.</param>
     /// <returns>A <c>-&gt;</c> operator expression.</returns>
-    public static JsonGetOperator JsonGet(
+    public static JsonArrowOperator JsonArrow(
         object jsonExpr,
         object key) => new(Resolve(jsonExpr), Resolve(key));
 
     /// <summary>
-    /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON access operator: extracts a JSON
-    /// element as text by key or index (MySQL, PostgreSQL, SQLite).
+    /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator: extracts a JSON element
+    /// as text by key or index (MySQL, PostgreSQL, SQLite).
     /// </summary>
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="key">The key or index to access.</param>
     /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
-    public static JsonGetTextOperator JsonGetText(
+    public static JsonArrowTextOperator JsonArrowText(
         object jsonExpr,
         object key) => new(Resolve(jsonExpr), Resolve(key));
 
     /// <summary>
-    /// The <c>(jsonExpr #&gt; path)</c> JSON path operator: extracts a JSON
-    /// element at the specified path (PostgreSQL).
+    /// The <c>(jsonExpr #&gt; path)</c> JSON operator: extracts a JSON element at
+    /// the specified path (PostgreSQL).
     /// </summary>
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
     /// <returns>A <c>#&gt;</c> operator expression.</returns>
-    public static JsonGetPathOperator JsonGetPath(
+    public static JsonHashArrowOperator JsonHashArrow(
         object jsonExpr,
         object path) => new(Resolve(jsonExpr), Resolve(path));
 
     /// <summary>
-    /// The <c>(jsonExpr #&gt;&gt; path)</c> JSON path operator: extracts a JSON
-    /// element as text at the specified path (PostgreSQL).
+    /// The <c>(jsonExpr #&gt;&gt; path)</c> JSON operator: extracts a JSON element
+    /// as text at the specified path (PostgreSQL).
     /// </summary>
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
     /// <returns>A <c>#&gt;&gt;</c> operator expression.</returns>
-    public static JsonGetPathTextOperator JsonGetPathText(
+    public static JsonHashArrowTextOperator JsonHashArrowText(
         object jsonExpr,
         object path) => new(Resolve(jsonExpr), Resolve(path));
 

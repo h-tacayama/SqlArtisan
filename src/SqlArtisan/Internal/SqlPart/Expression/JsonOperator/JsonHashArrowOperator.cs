@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class JsonGetPathOperator(
+public sealed class JsonHashArrowOperator(
     SqlExpression leftSide,
     SqlExpression rightSide) :
     JsonOperator(leftSide, Operators.JsonHashArrow, rightSide)

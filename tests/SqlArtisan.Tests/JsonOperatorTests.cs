@@ -6,13 +6,13 @@ public class JsonOperatorTests
 {
     private readonly TestTable _t = new("t");
 
-    // --- JsonGet (->) ---------------------------------------------------------
+    // --- JsonArrow (->) ---------------------------------------------------------
 
     [Fact]
-    public void JsonGet_CorrectSql()
+    public void JsonArrow_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonGet(_t.Name, "key"))
+            Select(JsonArrow(_t.Name, "key"))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal("SELECT (\"t\".name -> :0)", sql.Text);
@@ -20,10 +20,10 @@ public class JsonOperatorTests
     }
 
     [Fact]
-    public void JsonGet_MySql_CorrectSql()
+    public void JsonArrow_MySql_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonGet(_t.Name, "key"))
+            Select(JsonArrow(_t.Name, "key"))
             .Build(Dbms.MySql);
 
         Assert.Equal("SELECT (`t`.name -> ?0)", sql.Text);
@@ -31,10 +31,10 @@ public class JsonOperatorTests
     }
 
     [Fact]
-    public void JsonGet_Sqlite_CorrectSql()
+    public void JsonArrow_Sqlite_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonGet(_t.Name, "key"))
+            Select(JsonArrow(_t.Name, "key"))
             .Build(Dbms.Sqlite);
 
         Assert.Equal("SELECT (\"t\".name -> :0)", sql.Text);
@@ -42,10 +42,10 @@ public class JsonOperatorTests
     }
 
     [Fact]
-    public void JsonGet_Nested_CorrectSql()
+    public void JsonArrow_Nested_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonGet(JsonGet(_t.Name, "a"), "b"))
+            Select(JsonArrow(JsonArrow(_t.Name, "a"), "b"))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal("SELECT ((\"t\".name -> :0) -> :1)", sql.Text);
@@ -53,13 +53,13 @@ public class JsonOperatorTests
         Assert.Equal("b", sql.Parameters.Get<string>(":1"));
     }
 
-    // --- JsonGetText (->>) ----------------------------------------------------
+    // --- JsonArrowText (->>) ----------------------------------------------------
 
     [Fact]
-    public void JsonGetText_CorrectSql()
+    public void JsonArrowText_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonGetText(_t.Name, "key"))
+            Select(JsonArrowText(_t.Name, "key"))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal("SELECT (\"t\".name ->> :0)", sql.Text);
@@ -67,12 +67,12 @@ public class JsonOperatorTests
     }
 
     [Fact]
-    public void JsonGetText_InWhere_CorrectSql()
+    public void JsonArrowText_InWhere_CorrectSql()
     {
         SqlStatement sql =
             Select(_t.Name)
             .From(_t)
-            .Where(JsonGetText(_t.Name, "status") == "active")
+            .Where(JsonArrowText(_t.Name, "status") == "active")
             .Build(Dbms.PostgreSql);
 
         Assert.Equal(
@@ -83,35 +83,35 @@ public class JsonOperatorTests
     }
 
     [Fact]
-    public void JsonGetText_WithAlias_CorrectSql()
+    public void JsonArrowText_WithAlias_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonGetText(_t.Name, "city").As("city"))
+            Select(JsonArrowText(_t.Name, "city").As("city"))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal("SELECT (\"t\".name ->> :0) \"city\"", sql.Text);
     }
 
-    // --- JsonGetPath (#>) -----------------------------------------------------
+    // --- JsonHashArrow (#>) -----------------------------------------------------
 
     [Fact]
-    public void JsonGetPath_CorrectSql()
+    public void JsonHashArrow_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonGetPath(_t.Name, "{a,b}"))
+            Select(JsonHashArrow(_t.Name, "{a,b}"))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal("SELECT (\"t\".name #> :0)", sql.Text);
         Assert.Equal("{a,b}", sql.Parameters.Get<string>(":0"));
     }
 
-    // --- JsonGetPathText (#>>) ------------------------------------------------
+    // --- JsonHashArrowText (#>>) ------------------------------------------------
 
     [Fact]
-    public void JsonGetPathText_CorrectSql()
+    public void JsonHashArrowText_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonGetPathText(_t.Name, "{a,b}"))
+            Select(JsonHashArrowText(_t.Name, "{a,b}"))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal("SELECT (\"t\".name #>> :0)", sql.Text);

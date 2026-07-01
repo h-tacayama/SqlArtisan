@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Scalar subqueries in expression position: a `SELECT` builder can now be used directly as a value — in a `SELECT` list, a `WHERE` comparison, or arithmetic — without an explicit wrapper. Chain `.As("alias")` for an aliased scalar subquery. Correlated subqueries (referencing outer-table columns) work naturally. (#156)
 - `ALL` / `ANY` / `SOME` quantified comparison operators with subqueries: `col > All(subquery)`, `col > Any(subquery)`, `col = Some(subquery)`. Standard SQL, supported on all five dialects. (#196)
-- JSON operations: `JsonExtract` (`JSON_EXTRACT` — MySQL, SQLite), `JsonValue` (`JSON_VALUE` — Oracle, SQL Server), `JsonQuery` (`JSON_QUERY` — Oracle, SQL Server) for function-call JSON access, and `JsonGet` (`->`), `JsonGetText` (`->>`), `JsonGetPath` (`#>`), `JsonGetPathText` (`#>>`) for infix JSON operators (MySQL, PostgreSQL, SQLite). JSON function paths are emitted as inline string literals (ADR 0004; SQL Server and Oracle require a literal path); JSON operator keys are parameterized normally. (#152)
+- JSON operations: `JsonExtract` (`JSON_EXTRACT` — MySQL, SQLite), `JsonValue` (`JSON_VALUE` — Oracle, SQL Server), `JsonQuery` (`JSON_QUERY` — Oracle, SQL Server) for function-call JSON access, and `JsonArrow` (`->`), `JsonArrowText` (`->>`), `JsonHashArrow` (`#>`), `JsonHashArrowText` (`#>>`) for infix JSON operators (MySQL, PostgreSQL, SQLite). JSON function paths are emitted as inline string literals (ADR 0004; SQL Server and Oracle require a literal path); JSON operator keys are parameterized normally. (#152)
 
 ## [0.5.0-beta.1] - 2026-06-30
 ### Added
