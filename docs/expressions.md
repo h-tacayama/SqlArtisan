@@ -17,6 +17,8 @@
 - [NULL Literal](#null-literal)
 - [Arithmetic Operators](#arithmetic-operators)
 - [Conditions](#conditions)
+- [Scalar Subquery](#scalar-subquery)
+- [ALL / ANY / SOME](#all--any--some)
 - [CASE Expressions](#case-expressions)
 - [CAST](#cast)
 - [Window Functions](#window-functions)
