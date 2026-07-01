@@ -71,6 +71,9 @@ internal static class Keywords
     internal const string Into = "INTO";
     internal const string Is = "IS";
     internal const string Join = "JOIN";
+    internal const string JsonExtract = "JSON_EXTRACT";
+    internal const string JsonQuery = "JSON_QUERY";
+    internal const string JsonValue = "JSON_VALUE";
     internal const string Key = "KEY";
     internal const string Lag = "LAG";
     internal const string LastDay = "LAST_DAY";

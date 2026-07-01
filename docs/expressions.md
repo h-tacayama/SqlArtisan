@@ -17,6 +17,7 @@
 - [NULL Literal](#null-literal)
 - [Arithmetic Operators](#arithmetic-operators)
 - [Conditions](#conditions)
+- [JSON Operators](#json-operators)
 - [Scalar Subquery](#scalar-subquery)
 - [ALL / ANY / SOME](#all--any--some)
 - [CASE Expressions](#case-expressions)
@@ -238,7 +239,97 @@ SqlStatement sql =
 // AND (NOT EXISTS (SELECT "c".id FROM users "c"))
 ```
 
-### Scalar Subquery
+### Dynamic Condition
+
+SqlArtisan allows you to dynamically include or exclude conditions using a helper like `ConditionIf`. This is useful when parts of your `WHERE` clause depend on runtime logic.
+
+#### Case 1: Condition is Included
+
+```csharp
+bool filterUnderTen = true;
+
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id > 0
+        & ConditionIf(filterUnderTen, u.Id < 10))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE (id > :0)
+// AND (id < :1)
+```
+
+#### Case 2: Condition is Excluded
+
+```csharp
+bool filterUnderTen = false;
+
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        u.Id > 0
+        & ConditionIf(filterUnderTen, u.Id < 10))
+    .Build();
+
+// SELECT name
+// FROM users
+// WHERE (id > :0)
+```
+
+---
+
+## JSON Operators
+
+Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators. The key or path on the right side is parameterized normally.
+
+### Element Access (`->` / `->>`)
+
+```csharp
+SqlStatement sql =
+    Select(
+        JsonArrow(u.Data, "address"),
+        JsonArrowText(u.Data, "name"))
+    .From(u)
+    .Build(Dbms.PostgreSql);
+
+// SELECT (data -> :0), (data ->> :1)
+// FROM users
+```
+
+`JsonArrow` (`->`) returns the JSON type; `JsonArrowText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite.
+
+Chaining is natural — the result is a `SqlExpression`:
+
+```csharp
+// Nested access: (data -> :0) ->> :1
+JsonArrowText(JsonArrow(u.Data, "address"), "city")
+```
+
+### Path Access (`#>` / `#>>`)
+
+```csharp
+SqlStatement sql =
+    Select(
+        JsonHashArrow(u.Data, "{a,b}"),
+        JsonHashArrowText(u.Data, "{a,b}"))
+    .From(u)
+    .Build(Dbms.PostgreSql);
+
+// SELECT (data #> :0), (data #>> :1)
+// FROM users
+```
+
+PostgreSQL only. `JsonHashArrow` (`#>`) returns JSON; `JsonHashArrowText` (`#>>`) returns text.
+
+---
+
+## Scalar Subquery
 
 A `SELECT` builder can be used directly as a scalar value — in a `SELECT` list, a `WHERE` comparison, or arithmetic. Chain `.As("alias")` for an aliased column.
 
@@ -285,7 +376,9 @@ SqlStatement sql =
 // WHERE "s".name = "u".name)
 ```
 
-### ALL / ANY / SOME
+---
+
+## ALL / ANY / SOME
 
 The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY`.
 
@@ -316,49 +409,6 @@ SqlStatement sql =
 // SELECT "u".name
 // FROM users "u"
 // WHERE "u".age > ANY (SELECT "s".age FROM users "s")
-```
-
-### Dynamic Condition
-
-SqlArtisan allows you to dynamically include or exclude conditions using a helper like `ConditionIf`. This is useful when parts of your `WHERE` clause depend on runtime logic.
-
-#### Case 1: Condition is Included
-
-```csharp
-bool filterUnderTen = true;
-
-UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(
-        u.Id > 0
-        & ConditionIf(filterUnderTen, u.Id < 10))
-    .Build();
-
-// SELECT name
-// FROM users
-// WHERE (id > :0)
-// AND (id < :1)
-```
-
-#### Case 2: Condition is Excluded
-
-```csharp
-bool filterUnderTen = false;
-
-UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(
-        u.Id > 0
-        & ConditionIf(filterUnderTen, u.Id < 10))
-    .Build();
-
-// SELECT name
-// FROM users
-// WHERE (id > :0)
 ```
 
 ---

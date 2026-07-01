@@ -16,6 +16,7 @@ internal sealed class UsersTable : DbTableBase
         DepartmentId = new DbColumn(alias, "department_id");
         CreatedAt = new DbColumn(alias, "created_at");
         IsActive = new DbColumn(alias, "is_active");
+        Data = new DbColumn(alias, "data");
     }
 
     public DbColumn Id { get; }
@@ -29,4 +30,6 @@ internal sealed class UsersTable : DbTableBase
     public DbColumn CreatedAt { get; }
 
     public DbColumn IsActive { get; }
+
+    public DbColumn Data { get; }
 }

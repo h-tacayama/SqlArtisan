@@ -161,4 +161,50 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
         Assert.Equal(4, id);
     }
+
+    [Fact]
+    public void JsonArrowText_ReadsScalar()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // (data ->> 'name') on the JSONB column; the key binds as a text parameter.
+        string name = connection
+            .Query<string>(Select(JsonArrowText(u.Data, "name")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal("Alice", name);
+    }
+
+    [Fact]
+    public void JsonArrow_ReadsNestedObject()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // (data -> 'address') returns the nested JSON object.
+        string address = connection
+            .Query<string>(Select(JsonArrow(u.Data, "address")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Contains("10001", address);
+    }
+
+    [Fact]
+    public void JsonHashArrowText_ReadsByPath()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // (data #>> '{address,zip}') walks a path; PostgreSQL's #>> takes a text[]
+        // right operand, so the path literal is cast to text[].
+        string zip = connection
+            .Query<string>(
+                Select(JsonHashArrowText(u.Data, Cast("{address,zip}", "text[]")))
+                    .From(u)
+                    .Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal("10001", zip);
+    }
 }

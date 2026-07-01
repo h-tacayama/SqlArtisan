@@ -72,4 +72,49 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Contains(" | ", concatenated);
     }
+
+    [Fact]
+    public void JsonExtract_ReadsScalar()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // JSON_EXTRACT(data, '$.name') — the path is inlined as a literal. MySQL
+        // returns the scalar as a quoted JSON string (e.g. "Alice"), so the value
+        // is asserted with Contains rather than an exact match.
+        string name = connection
+            .Query<string>(Select(JsonExtract(u.Data, "$.name")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Contains("Alice", name);
+    }
+
+    [Fact]
+    public void JsonArrowText_ReadsScalar()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // (data ->> '$.name') — MySQL accepts a bound parameter as the path, so
+        // the key binds normally; ->> returns the unquoted scalar.
+        string name = connection
+            .Query<string>(Select(JsonArrowText(u.Data, "$.name")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal("Alice", name);
+    }
+
+    [Fact]
+    public void JsonArrow_ReadsNestedObject()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // (data -> '$.address') returns the nested JSON object.
+        string address = connection
+            .Query<string>(Select(JsonArrow(u.Data, "$.address")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Contains("10001", address);
+    }
 }

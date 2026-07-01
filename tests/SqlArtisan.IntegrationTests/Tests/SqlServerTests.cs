@@ -113,4 +113,32 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         Assert.Equal(4, id);
     }
+
+    [Fact]
+    public void JsonValue_ReadsScalar()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // JSON_VALUE(data, '$.name') extracts a scalar from the NVARCHAR(MAX) column.
+        string name = connection
+            .Query<string>(Select(JsonValue(u.Data, "$.name")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal("Alice", name);
+    }
+
+    [Fact]
+    public void JsonQuery_ReadsNestedObject()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // JSON_QUERY(data, '$.address') returns the nested JSON object.
+        string address = connection
+            .Query<string>(Select(JsonQuery(u.Data, "$.address")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Contains("10001", address);
+    }
 }

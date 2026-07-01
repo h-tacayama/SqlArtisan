@@ -9,7 +9,7 @@
 
 ## Contents
 
-- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions)
+- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [JSON](#json-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions)
 - [Bind Parameter Types](#bind-parameter-types)
 
 ---
@@ -89,6 +89,21 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 - `Greatest()` for `GREATEST`
 - `Least()` for `LEAST`
+
+---
+
+## JSON Functions
+
+JSON paths are emitted as inline string literals (SQL Server and Oracle require the path to be a literal, not a bind parameter).
+
+- `JsonExtract(jsonDoc, path)` for `JSON_EXTRACT(jsonDoc, 'path')` (MySQL, SQLite)
+- `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (Oracle, SQL Server)
+- `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, SQL Server)
+
+> [!NOTE]
+> JSON **operators** (`->`, `->>`, `#>`, `#>>`) live in
+> [Expressions: JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators)
+> because they are infix operators, not function calls.
 
 ---
 

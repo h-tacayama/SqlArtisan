@@ -17,8 +17,8 @@ be rewritten across dialects.
 ## Reference
 
 - [Query Statements](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/query-statements.md): SELECT (clauses, JOIN, set operators, pagination, FOR UPDATE), INSERT (multi-row, SET-like, INSERT…SELECT, UPSERT, MERGE), UPDATE, DELETE, WITH/CTE, RETURNING.
-- [Expressions](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/expressions.md): NULL, arithmetic, conditions, scalar subqueries, ALL/ANY/SOME, CASE, CAST, window functions, conditional aggregation, string aggregation, sequences.
-- [Functions](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/functions.md): Built-in function catalog — numeric, character, date/time, conversion, aggregate, string aggregation, window/analytic — plus bind-parameter types.
+- [Expressions](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/expressions.md): NULL, arithmetic, conditions, JSON operators (`->`, `->>`, `#>`, `#>>`), scalar subqueries, ALL/ANY/SOME, CASE, CAST, window functions, conditional aggregation, string aggregation, sequences.
+- [Functions](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/functions.md): Built-in function catalog — numeric, character, date/time, conversion, comparison, JSON (`JSON_EXTRACT`, `JSON_VALUE`, `JSON_QUERY`), aggregate, string aggregation, window/analytic — plus bind-parameter types.
 
 ## Optional
 
