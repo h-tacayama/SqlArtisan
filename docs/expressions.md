@@ -283,27 +283,14 @@ SqlStatement sql =
 // WHERE "s".name = "u".name)
 ```
 
-### ANY / ALL / SOME
+### ALL / ANY / SOME
 
-The quantified comparison operators `ANY`, `ALL`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY`.
+The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY`.
 
 ```csharp
 UsersTable u = new("u");
 UsersTable s = new("s");
 
-// col > ANY (subquery)
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(u.Age > Any(Select(s.Age).From(s)))
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// WHERE "u".age > ANY (SELECT "s".age FROM users "s")
-```
-
-```csharp
 // col > ALL (subquery)
 SqlStatement sql =
     Select(u.Name)
@@ -314,6 +301,19 @@ SqlStatement sql =
 // SELECT "u".name
 // FROM users "u"
 // WHERE "u".age > ALL (SELECT "s".age FROM users "s")
+```
+
+```csharp
+// col > ANY (subquery)
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Age > Any(Select(s.Age).From(s)))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE "u".age > ANY (SELECT "s".age FROM users "s")
 ```
 
 ### Dynamic Condition
