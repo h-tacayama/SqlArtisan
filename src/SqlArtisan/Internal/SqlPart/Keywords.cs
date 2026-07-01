@@ -141,9 +141,9 @@ internal static class Keywords
     internal const string Select = "SELECT";
     internal const string Separator = "SEPARATOR";
     internal const string Set = "SET";
-    internal const string Some = "SOME";
     internal const string Sign = "SIGN";
     internal const string Skip = "SKIP";
+    internal const string Some = "SOME";
     internal const string Source = "SOURCE";
     internal const string Sqrt = "SQRT";
     internal const string StringAgg = "STRING_AGG";
