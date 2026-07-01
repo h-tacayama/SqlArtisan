@@ -72,4 +72,22 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Contains(" | ", concatenated);
     }
+
+    [Fact]
+    public void JsonExtract_ReadsScalar()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // JSON_EXTRACT(data, '$.name') — the path is inlined as a literal. MySQL
+        // returns the scalar as a quoted JSON string (e.g. "Alice"), so the value
+        // is asserted with Contains rather than an exact match. (MySQL's ->/->>
+        // operators require a *literal* path, which the parameterized operator API
+        // does not emit, so they are covered by the SQLite/PostgreSQL lanes.)
+        string name = connection
+            .Query<string>(Select(JsonExtract(u.Data, "$.name")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Contains("Alice", name);
+    }
 }

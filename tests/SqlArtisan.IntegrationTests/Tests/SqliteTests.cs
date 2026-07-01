@@ -127,4 +127,43 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
         Assert.Equal(3, matching);
     }
+
+    [Fact]
+    public void JsonExtract_ReadsScalar()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string name = connection
+            .Query<string>(Select(JsonExtract(u.Data, "$.name")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal("Alice", name);
+    }
+
+    [Fact]
+    public void JsonArrowText_ReadsScalar()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string city = connection
+            .Query<string>(Select(JsonArrowText(u.Data, "$.city")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal("NYC", city);
+    }
+
+    [Fact]
+    public void JsonArrow_ReadsNestedObject()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string address = connection
+            .Query<string>(Select(JsonArrow(u.Data, "$.address")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Contains("10001", address);
+    }
 }
