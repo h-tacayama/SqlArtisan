@@ -8,7 +8,6 @@ name: Integration Tests
 # nightly, with on-demand dispatch.
 
 on:
-  pull_request:
   workflow_call:
   workflow_dispatch:
   schedule:
