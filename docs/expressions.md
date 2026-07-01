@@ -17,9 +17,9 @@
 - [NULL Literal](#null-literal)
 - [Arithmetic Operators](#arithmetic-operators)
 - [Conditions](#conditions)
+- [JSON Operators](#json-operators)
 - [Scalar Subquery](#scalar-subquery)
 - [ALL / ANY / SOME](#all--any--some)
-- [JSON Operators](#json-operators)
 - [CASE Expressions](#case-expressions)
 - [CAST](#cast)
 - [Window Functions](#window-functions)
@@ -239,86 +239,6 @@ SqlStatement sql =
 // AND (NOT EXISTS (SELECT "c".id FROM users "c"))
 ```
 
-### Scalar Subquery
-
-A `SELECT` builder can be used directly as a scalar value — in a `SELECT` list, a `WHERE` comparison, or arithmetic. Chain `.As("alias")` for an aliased column.
-
-```csharp
-UsersTable u = new("u");
-UsersTable s = new("s");
-
-// In a SELECT list with alias
-SqlStatement sql =
-    Select(
-        u.Name,
-        Select(Max(s.Age)).From(s).As("max_age"))
-    .From(u)
-    .Build();
-
-// SELECT "u".name, (SELECT MAX("s".age) FROM users "s") "max_age"
-// FROM users "u"
-```
-
-```csharp
-// In a WHERE comparison
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(u.Age > Select(Avg(s.Age)).From(s))
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// WHERE "u".age > (SELECT AVG("s".age) FROM users "s")
-```
-
-```csharp
-// Correlated subquery
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(u.Age > Select(Max(s.Age)).From(s).Where(s.Name == u.Name))
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// WHERE "u".age > (SELECT MAX("s".age) FROM users "s"
-// WHERE "s".name = "u".name)
-```
-
-### ALL / ANY / SOME
-
-The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY`.
-
-```csharp
-UsersTable u = new("u");
-UsersTable s = new("s");
-
-// col > ALL (subquery)
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(u.Age > All(Select(s.Age).From(s)))
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// WHERE "u".age > ALL (SELECT "s".age FROM users "s")
-```
-
-```csharp
-// col > ANY (subquery)
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(u.Age > Any(Select(s.Age).From(s)))
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// WHERE "u".age > ANY (SELECT "s".age FROM users "s")
-```
-
 ### Dynamic Condition
 
 SqlArtisan allows you to dynamically include or exclude conditions using a helper like `ConditionIf`. This is useful when parts of your `WHERE` clause depend on runtime logic.
@@ -406,6 +326,90 @@ SqlStatement sql =
 ```
 
 PostgreSQL only. `JsonHashArrow` (`#>`) returns JSON; `JsonHashArrowText` (`#>>`) returns text.
+
+---
+
+## Scalar Subquery
+
+A `SELECT` builder can be used directly as a scalar value — in a `SELECT` list, a `WHERE` comparison, or arithmetic. Chain `.As("alias")` for an aliased column.
+
+```csharp
+UsersTable u = new("u");
+UsersTable s = new("s");
+
+// In a SELECT list with alias
+SqlStatement sql =
+    Select(
+        u.Name,
+        Select(Max(s.Age)).From(s).As("max_age"))
+    .From(u)
+    .Build();
+
+// SELECT "u".name, (SELECT MAX("s".age) FROM users "s") "max_age"
+// FROM users "u"
+```
+
+```csharp
+// In a WHERE comparison
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Age > Select(Avg(s.Age)).From(s))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE "u".age > (SELECT AVG("s".age) FROM users "s")
+```
+
+```csharp
+// Correlated subquery
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Age > Select(Max(s.Age)).From(s).Where(s.Name == u.Name))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE "u".age > (SELECT MAX("s".age) FROM users "s"
+// WHERE "s".name = "u".name)
+```
+
+---
+
+## ALL / ANY / SOME
+
+The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY`.
+
+```csharp
+UsersTable u = new("u");
+UsersTable s = new("s");
+
+// col > ALL (subquery)
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Age > All(Select(s.Age).From(s)))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE "u".age > ALL (SELECT "s".age FROM users "s")
+```
+
+```csharp
+// col > ANY (subquery)
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Age > Any(Select(s.Age).From(s)))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE "u".age > ANY (SELECT "s".age FROM users "s")
+```
 
 ---
 
