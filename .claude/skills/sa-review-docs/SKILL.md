@@ -1,11 +1,11 @@
 ---
-name: review-docs
-description: Review SqlArtisan's user-facing documentation (README, docs/, llms.txt, CHANGELOG) for structure, completeness, accuracy, consistency, links, persuasiveness, and conciseness. Use when asked to review/audit the docs, check the README, validate a docs change before pushing, or confirm docs match the code. Complements review-changes (code) with doc-specific checks and bundles scripts that verify links, API coverage, terminology, and emitted SQL empirically.
+name: sa-review-docs
+description: Review SqlArtisan's user-facing documentation (README, docs/, llms.txt, CHANGELOG) for structure, completeness, accuracy, consistency, links, persuasiveness, and conciseness. Use when asked to review/audit the docs, check the README, validate a docs change before pushing, or confirm docs match the code. Complements sa-review-changes (code) with doc-specific checks and bundles scripts that verify links, API coverage, terminology, and emitted SQL empirically.
 ---
 
 # Review SqlArtisan documentation
 
-This audits the **docs**, not the code (use `review-changes` / `code-review` for
+This audits the **docs**, not the code (use `sa-review-changes` / `code-review` for
 code). The highest-value moves are **empirical and bidirectional**: verify the
 emitted SQL by running the real builder (never from memory), and check coverage
 both ways (every public API documented; every documented API real).
@@ -20,7 +20,7 @@ index. Conventions live in `.claude/rules/docs-style.md`.
 From the repo root (`dotnet` SDK required for the last one):
 
 ```bash
-S=.claude/skills/review-docs/scripts
+S=.claude/skills/sa-review-docs/scripts
 python3 $S/check_links.py          # anchor/link integrity across README + docs + llms.txt
 python3 $S/check_api_coverage.py   # deficiency (undocumented API) + surplus (phantom API)
 python3 $S/check_terms.py          # terminology + em-dash + whitespace lint vs docs-style.md

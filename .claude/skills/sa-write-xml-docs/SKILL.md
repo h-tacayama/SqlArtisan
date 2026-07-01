@@ -1,5 +1,5 @@
 ---
-name: write-xml-docs
+name: sa-write-xml-docs
 description: Write or revise XML doc comments (///) for SqlArtisan's public API. Use when adding/editing summaries on Sql.* factories, builder-step interfaces, or other user-facing surface — to match the project's terse, point-of-use house style (what it emits + when to use it, no design rationale) and its tag conventions.
 ---
 
@@ -138,7 +138,7 @@ Copy from `Sql.C.cs`: `Ceil`/`Ceiling` (`<remarks>` cross-ref) and `Cast`
 ## Accuracy
 
 - The `<c>` form equals real output — confirm dialect-specific / non-obvious forms
-  with the **run-sql-harness** skill.
+  with the **sa-run-sql-harness** skill.
 - When behavior changes, update the doc in the same change.
 - Every `<see cref>` resolves; the core lib builds at the **0-warning** bar
   (CS1574 included).

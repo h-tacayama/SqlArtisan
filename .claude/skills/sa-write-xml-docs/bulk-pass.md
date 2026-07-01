@@ -42,7 +42,7 @@ Go area by area (or `Sql.<letter>` file by file); run every batch through:
 2. **Reconcile existing docs** in the touched files against the house style; apply
    the internal-`///` hygiene rule.
 3. **Verify against source** — harness any dialect-specific / non-obvious `<c>`
-   form or enum token with the `run-sql-harness` skill; never assert from memory.
+   form or enum token with the `sa-run-sql-harness` skill; never assert from memory.
 4. **Re-review** against the checklist below.
 5. **Gate, then commit** — touched files raise no CS1591/CS1574, `dotnet format`
    is clean, and `dotnet test` is green.

@@ -11,7 +11,7 @@ Why: the documented SQL must match what the code emits today — not what we
 remember. The `//` comments are line-wrapped for readability while `sql.Text`
 is a single line, so the comparison normalises whitespace.
 
-Usage:  python3 .claude/skills/review-docs/scripts/verify_sql_examples.py [workdir]
+Usage:  python3 .claude/skills/sa-review-docs/scripts/verify_sql_examples.py [workdir]
 Run from the repo root. Requires the dotnet SDK. Exit 0 if all match.
 
 Table classes used by the doc examples are embedded below. If the docs add an
