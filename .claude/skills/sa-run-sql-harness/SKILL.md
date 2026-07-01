@@ -1,6 +1,6 @@
 ---
-name: run-sql-harness
-description: Build and run a throwaway console that references SqlArtisan to observe the REAL emitted SQL, exercise failure modes, and measure allocations — instead of reasoning about DBMS grammar or output from memory. Use when asked to run/try SqlArtisan, check what SQL a builder call produces, confirm a function works across dialects, verify a misuse fails loudly, or measure build-path allocations. The review-changes skill uses this for its empirical step.
+name: sa-run-sql-harness
+description: Build and run a throwaway console that references SqlArtisan to observe the REAL emitted SQL, exercise failure modes, and measure allocations — instead of reasoning about DBMS grammar or output from memory. Use when asked to run/try SqlArtisan, check what SQL a builder call produces, confirm a function works across dialects, verify a misuse fails loudly, or measure build-path allocations. The sa-review-changes skill uses this for its empirical step.
 ---
 
 # Run a SqlArtisan verification harness

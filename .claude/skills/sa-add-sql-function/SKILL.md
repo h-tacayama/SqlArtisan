@@ -1,5 +1,5 @@
 ---
-name: add-sql-function
+name: sa-add-sql-function
 description: Add a new SQL function to the SqlArtisan query builder. Use when the user wants to add/implement/expose a SQL function (e.g. ABS, COALESCE, TRIM, an aggregate, a date function) in the public `Sql` API. Walks through the four required touch points (node class, keyword, public factory, test) following the project's alphabetical-partial-class conventions. Also covers adding a fluent builder step / clause modifier (e.g. a GROUP BY suffix) and the type-safety practice of narrowing the return interface so invalid chains fail to compile.
 ---
 
@@ -159,7 +159,7 @@ interface that omits the now-invalid methods:
   `Select(...)` (e.g. `ListaggFunction` → `ListaggWithinGroupFunction`).
 
 Verify the guard the way you verify SQL: a throwaway with the bad chain behind
-`#if BAD` must fail to compile (CS1061), per the `run-sql-harness` skill.
+`#if BAD` must fail to compile (CS1061), per the `sa-run-sql-harness` skill.
 
 ## Validate
 

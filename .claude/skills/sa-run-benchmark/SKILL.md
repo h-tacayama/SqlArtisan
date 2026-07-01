@@ -1,5 +1,5 @@
 ---
-name: run-benchmark
+name: sa-run-benchmark
 description: Build and run the SqlArtisan.Benchmark (BenchmarkDotNet) project to compare SqlArtisan's build path against other query builders or to measure the isolated Build() path. Use when asked to run/try the benchmarks, compare SqlArtisan's throughput or allocations vs other builders, or regenerate numbers for the README comparison. NOT for absolute timing in this cloud container (see the noise caveat) — use it for relative comparison and allocation (B/op) figures.
 ---
 
@@ -10,7 +10,7 @@ build path against other C# query builders (Dapper.SqlBuilder, SqlKata, Sqlify,
 InterpolatedSql, linq2db, a hand-written `StringBuilder` floor, …), shows EF Core
 as a labeled ORM **reference**, and isolates the `.Build()` format path. This is
 the *official* benchmark cited in docs — prefer it over the ad-hoc allocation
-probe in the `run-sql-harness` skill for anything user-visible.
+probe in the `sa-run-sql-harness` skill for anything user-visible.
 
 Every entrant builds the SQL string **and** its bind-parameter collection for the
 same logical query (an INNER JOIN + GROUP BY aggregate with two date parameters),
@@ -81,6 +81,6 @@ commit them). The columns that matter most here:
 - Benchmark artifacts are throwaway output, not source — never commit
   `BenchmarkDotNet.Artifacts/`.
 - For a quick allocation sanity check during development (not docs), the
-  thread-allocation probe in `run-sql-harness` is faster than a full run.
+  thread-allocation probe in `sa-run-sql-harness` is faster than a full run.
 - Durable correctness still lives in `tests/SqlArtisan.Tests`; the benchmark
   measures cost, not correctness.

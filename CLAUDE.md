@@ -53,7 +53,7 @@ violation.
 Adding a function touches **four** places, all kept alphabetical: the node class
 (`Internal/SqlPart/Expression/Function/<Category>/<Name>Function.cs`), the keyword
 in `Keywords.cs`, the public factory in `Sql.<Letter>.cs`, and the test in
-`FunctionTests.<Letter>.cs`. The **`add-sql-function` skill** walks through all
+`FunctionTests.<Letter>.cs`. The **`sa-add-sql-function` skill** walks through all
 four with templates and reference implementations (`AbsFunction`,
 `AddMonthsFunction`, …) — follow it for the full procedure.
 
@@ -86,7 +86,7 @@ four with templates and reference implementations (`AbsFunction`,
   `ISelectBuilderWithRollup`, so `.WithRollup().WithRollup()` is a compile error);
   a mandatory trailing clause uses the two-type "pending" pattern (the pending
   type is not a `SqlExpression`, so omitting it fails at `Select(...)`). The
-  `add-sql-function` skill has the full recipe.
+  `sa-add-sql-function` skill has the full recipe.
 - Unit test conventions (naming grammar, dialect-specific `Build`, exact-SQL
   assertions) live in `.claude/rules/unit-tests.md` — auto-loaded when editing
   `tests/**`.

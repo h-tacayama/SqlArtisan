@@ -1,5 +1,5 @@
 ---
-name: run-integration-tests
+name: sa-run-integration-tests
 description: Run the real-database integration test matrix (tests/SqlArtisan.IntegrationTests) that executes SqlArtisan-built statements against MySQL, Oracle, PostgreSQL, SQL Server (Testcontainers) and SQLite (in-process), to confirm the emitted SQL actually runs on a real engine. Use when asked to run/try the integration tests, verify a change against a live database, check one engine, or trigger the matrix in CI. NOT a substitute for the exact-SQL unit tests in tests/SqlArtisan.Tests (the fast inner loop) — this is the slower, releases-gating outer loop.
 ---
 
@@ -87,6 +87,6 @@ green, then remove it before merging. (This is exactly how #151 was landed.)
 - A known Oracle bug (#165, CTE column alias → `ORA-00904`) is parked as a
   **skipped** test, `OracleTests.Cte_AliasedColumn_KnownOracleBug` — un-skip it
   when #165 is fixed.
-- This complements `run-sql-harness` (which only *observes* the emitted string)
-  and `run-benchmark`: use this when "does it actually run on the engine?" is the
+- This complements `sa-run-sql-harness` (which only *observes* the emitted string)
+  and `sa-run-benchmark`: use this when "does it actually run on the engine?" is the
   question.

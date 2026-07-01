@@ -1,5 +1,5 @@
 ---
-name: review-changes
+name: sa-review-changes
 description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory.
 ---
 
@@ -89,7 +89,7 @@ check the diff against each:
 
 Static reading misses grammar bugs, missing enforcement, and allocation
 regressions. **Build a throwaway console and run it** — use the
-`run-sql-harness` skill, which has the full setup and templates. The three checks
+`sa-run-sql-harness` skill, which has the full setup and templates. The three checks
 to run for a review:
 
 - **SQL per dialect** — `Build(Dbms.X)` for every DBMS the construct targets;
