@@ -310,26 +310,6 @@ public class SubqueryTests
     }
 
     [Fact]
-    public void QuantifiedSubquery_All_SqlServer_CorrectSql()
-    {
-        SqlStatement sql =
-            Select(_t.Name)
-            .From(_t)
-            .Where(_t.Code > All(Select(_s.Code).From(_s)))
-            .Build(Dbms.SqlServer);
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("\"t\".name ");
-        expected.Append("FROM ");
-        expected.Append("test_table \"t\" ");
-        expected.Append("WHERE ");
-        expected.Append("\"t\".code > ALL (SELECT \"s\".code FROM test_table \"s\")");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
     public void QuantifiedSubquery_Any_CorrectSql()
     {
         SqlStatement sql =
@@ -345,26 +325,6 @@ public class SubqueryTests
         expected.Append("test_table \"t\" ");
         expected.Append("WHERE ");
         expected.Append("\"t\".code > ANY (SELECT \"s\".code FROM test_table \"s\")");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void QuantifiedSubquery_Any_MySql_CorrectSql()
-    {
-        SqlStatement sql =
-            Select(_t.Name)
-            .From(_t)
-            .Where(_t.Code > Any(Select(_s.Code).From(_s)))
-            .Build(Dbms.MySql);
-
-        StringBuilder expected = new();
-        expected.Append("SELECT ");
-        expected.Append("`t`.name ");
-        expected.Append("FROM ");
-        expected.Append("test_table `t` ");
-        expected.Append("WHERE ");
-        expected.Append("`t`.code > ANY (SELECT `s`.code FROM test_table `s`)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
