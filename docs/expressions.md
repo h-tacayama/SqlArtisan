@@ -19,6 +19,7 @@
 - [Conditions](#conditions)
 - [Scalar Subquery](#scalar-subquery)
 - [ALL / ANY / SOME](#all--any--some)
+- [JSON Operators](#json-operators)
 - [CASE Expressions](#case-expressions)
 - [CAST](#cast)
 - [Window Functions](#window-functions)
@@ -360,6 +361,51 @@ SqlStatement sql =
 // FROM users
 // WHERE (id > :0)
 ```
+
+---
+
+## JSON Operators
+
+Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators. The key or path on the right side is parameterized normally.
+
+### Element Access (`->` / `->>`)
+
+```csharp
+SqlStatement sql =
+    Select(
+        JsonGet(u.Data, "address"),
+        JsonGetText(u.Data, "name"))
+    .From(u)
+    .Build(Dbms.PostgreSql);
+
+// SELECT (data -> :0), (data ->> :1)
+// FROM users
+```
+
+`JsonGet` (`->`) returns the JSON type; `JsonGetText` (`->>`) returns text. Both work on MySQL, PostgreSQL, and SQLite.
+
+Chaining is natural — the result is a `SqlExpression`:
+
+```csharp
+// Nested access: (data -> :0) ->> :1
+JsonGetText(JsonGet(u.Data, "address"), "city")
+```
+
+### Path Access (`#>` / `#>>`)
+
+```csharp
+SqlStatement sql =
+    Select(
+        JsonGetPath(u.Data, "{a,b}"),
+        JsonGetPathText(u.Data, "{a,b}"))
+    .From(u)
+    .Build(Dbms.PostgreSql);
+
+// SELECT (data #> :0), (data #>> :1)
+// FROM users
+```
+
+PostgreSQL only. `JsonGetPath` (`#>`) returns JSON; `JsonGetPathText` (`#>>`) returns text.
 
 ---
 

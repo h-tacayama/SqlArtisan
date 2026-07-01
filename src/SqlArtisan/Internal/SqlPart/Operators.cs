@@ -7,6 +7,10 @@ internal static class Operators
     internal const string GreaterThan = ">";
     internal const string GreaterThanOrEqual = ">=";
     internal const string Inequality = "<>";
+    internal const string JsonArrow = "->";
+    internal const string JsonArrowText = "->>";
+    internal const string JsonHashArrow = "#>";
+    internal const string JsonHashArrowText = "#>>";
     internal const string LessThan = "<";
     internal const string LessThanOrEqual = "<=";
     internal const string Minus = "-";
