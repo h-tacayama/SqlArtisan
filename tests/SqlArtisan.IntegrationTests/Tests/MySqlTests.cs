@@ -90,4 +90,21 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Contains("Alice", name);
     }
+
+    // TEMPORARY probe (#152): confirm empirically whether MySQL rejects a bound
+    // parameter as the `->>` path. Current operator API parameterizes the key, so
+    // this emits `data ->> ?`. If MySQL requires a literal path here, this test
+    // fails at execute — proving the constraint. Remove after verification.
+    [Fact]
+    public void JsonArrowText_ParameterizedPath_Probe()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        string name = connection
+            .Query<string>(Select(JsonArrowText(u.Data, "$.name")).From(u).Where(u.Id == 1))
+            .Single();
+
+        Assert.Equal("Alice", name);
+    }
 }
