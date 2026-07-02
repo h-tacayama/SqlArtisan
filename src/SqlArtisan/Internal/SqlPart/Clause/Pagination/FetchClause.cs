@@ -12,7 +12,9 @@ internal sealed class FetchClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Fetch} {(_first ? Keywords.First : Keywords.Next)} ")
+        .Append($"{Keywords.Fetch} ")
+        .Append(_first ? Keywords.First : Keywords.Next)
+        .AppendSpace()
         .Append(_count)
         .Append($" {Keywords.Rows} {Keywords.Only}");
 }

@@ -2,8 +2,9 @@ namespace SqlArtisan.Internal;
 
 public sealed class WaitBehavior(int seconds) : LockBehaviorBase
 {
-    private readonly int _seconds = seconds;
+    private readonly string _seconds = seconds.ToInvariantString();
 
-    internal override void Format(SqlBuildingBuffer buffer) =>
-        buffer.Append($"{Keywords.Wait} {_seconds}");
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
+        .Append($"{Keywords.Wait} ")
+        .Append(_seconds);
 }

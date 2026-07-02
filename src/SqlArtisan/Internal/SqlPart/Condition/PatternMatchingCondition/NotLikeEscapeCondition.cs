@@ -18,8 +18,8 @@ public sealed class NotLikeEscapeCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Keywords.Not} {Keywords.Like} ")
+        .EncloseInSpaces($"{Keywords.Not} {Keywords.Like}")
         .Append(_rightSide)
-        .Append($" {Keywords.Escape} ")
+        .EncloseInSpaces(Keywords.Escape)
         .AppendStringLiteral(_escapeChar);
 }

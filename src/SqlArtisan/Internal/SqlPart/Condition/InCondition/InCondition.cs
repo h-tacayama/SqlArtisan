@@ -13,7 +13,7 @@ public sealed class InCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Keywords.In} ")
+        .EncloseInSpaces(Keywords.In)
         .OpenParenthesis()
         .AppendCsv(_expressions)
         .CloseParenthesis();

@@ -2,12 +2,12 @@ namespace SqlArtisan.Internal;
 
 internal sealed class CrossApplyClause : SqlPart
 {
-    private readonly SqlPartAgent _subquery;
+    private readonly ISubquery _subquery;
     private readonly DerivedTableBase _alias;
 
     internal CrossApplyClause(ISubquery subquery, DerivedTableBase alias)
     {
-        _subquery = new(subquery.Format);
+        _subquery = subquery;
         _alias = alias;
     }
 

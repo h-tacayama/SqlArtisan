@@ -9,6 +9,6 @@ internal sealed class LessThanOrEqualCondition(
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Operators.LessThanOrEqual} ")
+        .EncloseInSpaces(Operators.LessThanOrEqual)
         .Append(_rightSide);
 }

@@ -10,6 +10,6 @@ internal sealed class InequalityCondition(
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(LeftSide)
-        .Append($" {Operators.Inequality} ")
+        .EncloseInSpaces(Operators.Inequality)
         .Append(RightSide);
 }

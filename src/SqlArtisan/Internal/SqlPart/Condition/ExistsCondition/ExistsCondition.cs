@@ -2,11 +2,11 @@ namespace SqlArtisan.Internal;
 
 public sealed class ExistsCondition : SqlCondition
 {
-    private readonly SqlPartAgent _subquery;
+    private readonly ISubquery _subquery;
 
     internal ExistsCondition(ISubquery subquery)
     {
-        _subquery = new(subquery.Format);
+        _subquery = subquery;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

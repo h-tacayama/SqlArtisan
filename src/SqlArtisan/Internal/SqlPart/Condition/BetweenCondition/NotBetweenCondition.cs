@@ -18,8 +18,8 @@ public sealed class NotBetweenCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Keywords.Not} {Keywords.Between} ")
+        .EncloseInSpaces($"{Keywords.Not} {Keywords.Between}")
         .Append(_rightSide1)
-        .Append($" {Keywords.And} ")
+        .EncloseInSpaces(Keywords.And)
         .Append(_rightSide2);
 }

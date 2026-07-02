@@ -18,6 +18,6 @@ public sealed class NotLikeCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Keywords.Not} {Keywords.Like} ")
+        .EncloseInSpaces($"{Keywords.Not} {Keywords.Like}")
         .Append(_rightSide);
 }

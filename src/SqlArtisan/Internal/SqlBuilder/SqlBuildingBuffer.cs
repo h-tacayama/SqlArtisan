@@ -160,16 +160,6 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    internal SqlBuildingBuffer AppendIf(bool when, string? value)
-    {
-        if (when)
-        {
-            Append(value);
-        }
-
-        return this;
-    }
-
     internal SqlBuildingBuffer AppendSelectItems(SqlPart[] selectItems)
     {
         if (selectItems.Length == 0)
@@ -316,6 +306,16 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         Append('(');
         part.Format(this);
+        Append(')');
+        return this;
+    }
+
+    // ISubquery is not a SqlPart (it marks a builder state), so it gets its own
+    // overload rather than a per-construction adapter allocation.
+    internal SqlBuildingBuffer EncloseInParentheses(ISubquery subquery)
+    {
+        Append('(');
+        subquery.Format(this);
         Append(')');
         return this;
     }

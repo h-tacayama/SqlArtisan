@@ -67,7 +67,15 @@ Rules:
 - `.PrependComma(part)` — `, ` then the part (for the 2nd+ required arg)
 - `.PrependCommaIfNotNull(part)` — same, only if the arg is non-null (optional args)
 - `.AppendSpace()` / `.AppendSpace(part)` / `.AppendSpaceIfNotNull(part)`
-- `.AppendIf(bool, string)` — conditional token
+- `.EncloseInSpaces(op)` — ` op ` (a keyword/operator between two operands)
+- `.PrependSpaceIfNotNull(part-or-string)` — space + token, only when present
+  (for a flag: `flag ? Keywords.X : null`)
+
+Const keyword interpolations may carry their own edge spaces
+(`$"{Keywords.Where} "`); the helpers cover spacing a const string cannot — a
+part between operands, an optional token, a runtime value. Full rules (incl.
+one-token keyword constants and one-method-per-line wrapped chains) live in
+`.claude/rules/sql-building-style.md` (auto-loaded when editing `Internal/**`).
 
 For 3+ args with several optional ones, see `RegexpCountFunction` which delegates
 to `VariadicFunctionCore`.
@@ -82,6 +90,11 @@ internal const string <Name> = "<SQL_TOKEN>";   // e.g. AddMonths = "ADD_MONTHS"
 ```
 
 Reuse an existing keyword constant if the token already exists.
+
+**One SQL token per constant — never a spaced phrase.** A multi-word construct
+(`IN BOOLEAN MODE`, `GROUP BY`) is composed at the use site from single-token
+atoms via const interpolation: `$"{Keywords.In} {Keywords.Boolean} {Keywords.Mode}"`
+(compile-time folded, so it costs nothing). See `.claude/rules/sql-building-style.md`.
 
 ## 3. Public factory
 

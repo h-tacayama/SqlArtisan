@@ -6,28 +6,37 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public sealed class FrameBound : SqlPart
 {
-    private readonly string _text;
+    private readonly string? _offset;
+    private readonly string _keyword;
 
-    private FrameBound(string text)
+    private FrameBound(string? offset, string keyword)
     {
-        _text = text;
+        _offset = offset;
+        _keyword = keyword;
     }
 
     internal static FrameBound UnboundedPreceding() =>
-        new($"{Keywords.Unbounded} {Keywords.Preceding}");
+        new(null, $"{Keywords.Unbounded} {Keywords.Preceding}");
 
     internal static FrameBound Preceding(int offset) =>
-        new($"{offset.ToInvariantString()} {Keywords.Preceding}");
+        new(offset.ToInvariantString(), Keywords.Preceding);
 
     internal static FrameBound CurrentRow() =>
-        new($"{Keywords.Current} {Keywords.Row}");
+        new(null, $"{Keywords.Current} {Keywords.Row}");
 
     internal static FrameBound Following(int offset) =>
-        new($"{offset.ToInvariantString()} {Keywords.Following}");
+        new(offset.ToInvariantString(), Keywords.Following);
 
     internal static FrameBound UnboundedFollowing() =>
-        new($"{Keywords.Unbounded} {Keywords.Following}");
+        new(null, $"{Keywords.Unbounded} {Keywords.Following}");
 
-    internal override void Format(SqlBuildingBuffer buffer) =>
-        buffer.Append(_text);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        if (_offset is not null)
+        {
+            buffer.Append(_offset).AppendSpace();
+        }
+
+        buffer.Append(_keyword);
+    }
 }

@@ -22,7 +22,7 @@ public sealed class TrimFunction : SqlExpression
         {
             buffer.Append($"{Keywords.Both} ")
                 .Append(_trimChar)
-                .Append($" {Keywords.From} ");
+                .EncloseInSpaces(Keywords.From);
         }
 
         buffer.Append(_source)

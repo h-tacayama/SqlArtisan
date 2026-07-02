@@ -33,7 +33,7 @@ public sealed class SimpleCaseExpression : SqlExpression
 
         if (_elseClause is not null)
         {
-            buffer.Append($" {Keywords.Else} ")
+            buffer.EncloseInSpaces(Keywords.Else)
                 .Append(_elseClause);
         }
 

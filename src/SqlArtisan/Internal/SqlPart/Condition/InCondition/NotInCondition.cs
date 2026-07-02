@@ -13,7 +13,7 @@ public sealed class NotInCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Keywords.Not} {Keywords.In} ")
+        .EncloseInSpaces($"{Keywords.Not} {Keywords.In}")
         .OpenParenthesis()
         .AppendCsv(_expressions)
         .CloseParenthesis();

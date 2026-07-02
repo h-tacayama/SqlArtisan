@@ -18,6 +18,6 @@ public sealed class LikeCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Keywords.Like} ")
+        .EncloseInSpaces(Keywords.Like)
         .Append(_rightSide);
 }

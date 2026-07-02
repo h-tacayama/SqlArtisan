@@ -26,7 +26,7 @@ public sealed class FilteredAggregateFunction : AggregateFunction
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_aggregate)
-        .Append($" {Keywords.Filter} ")
+        .EncloseInSpaces(Keywords.Filter)
         .OpenParenthesis(_filterWhere)
         .CloseParenthesis();
 }

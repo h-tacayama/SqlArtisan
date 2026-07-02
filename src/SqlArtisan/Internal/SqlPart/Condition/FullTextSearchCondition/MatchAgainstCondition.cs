@@ -21,8 +21,7 @@ public sealed class MatchAgainstCondition : SqlCondition
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.Match)
-        .AppendSpace()
+        .Append($"{Keywords.Match} ")
         .OpenParenthesis()
         .AppendCsv(_columns)
         .CloseParenthesis()
