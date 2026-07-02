@@ -6,6 +6,27 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
+    public void Score_Oracle_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Score(1))
+            .From(_t)
+            .Where(ContainsScore(_t.Name, "database", 1) > 0)
+            .OrderBy(Score(1).Desc)
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT SCORE(1) ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("WHERE CONTAINS(\"t\".name, :0, 1) > :1 ");
+        expected.Append("ORDER BY SCORE(1) DESC");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("database", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(0, sql.Parameters.Get<int>(":1"));
+    }
+
+    [Fact]
     public void Sign_NumericValue_CorrectSql()
     {
         SqlStatement sql =

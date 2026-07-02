@@ -6,6 +6,40 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
+    /// The MySQL full-text <c>MATCH (columns)</c> construct, pending its mandatory
+    /// <c>AGAINST</c> clause. Complete it with <c>.Against(...)</c> (a <c>WHERE</c>
+    /// predicate) or <c>.AgainstScore(...)</c> (the numeric relevance score).
+    /// Requires a <c>FULLTEXT</c> index on the columns.
+    /// </summary>
+    /// <param name="column">The first full-text indexed column to search.</param>
+    /// <param name="otherColumns">Any further columns of the same
+    /// <c>FULLTEXT</c> index.</param>
+    /// <returns>A <see cref="MatchFunction"/> pending its <c>AGAINST</c> clause.</returns>
+    /// <remarks>MySQL syntax. For the SQLite FTS5 <c>table MATCH pattern</c>
+    /// predicate use <see cref="Match(DbTableBase, object)"/>.</remarks>
+    public static MatchFunction Match(
+        object column,
+        params object[] otherColumns) =>
+        new([Resolve(column), .. Resolve(otherColumns)]);
+
+    /// <summary>
+    /// The SQLite FTS5 <c>table MATCH pattern</c> predicate: matches rows of the
+    /// FTS <paramref name="table"/> against <paramref name="pattern"/>. The table
+    /// renders as its alias when one is declared, otherwise as its bare name.
+    /// </summary>
+    /// <param name="table">The FTS5 table to search.</param>
+    /// <param name="pattern">The FTS5 query (e.g. <c>"database"</c>,
+    /// <c>"data* AND query"</c>).</param>
+    /// <returns>A <see cref="MatchCondition"/> emitting <c>table MATCH pattern</c>.</returns>
+    /// <remarks>SQLite syntax. For the MySQL <c>MATCH ... AGAINST</c> construct use
+    /// <see cref="Match(object, object[])"/>.</remarks>
+    public static MatchCondition Match(
+        DbTableBase table,
+        object pattern) => new(
+            table,
+            Resolve(pattern));
+
+    /// <summary>
     /// Starts a <c>MERGE INTO target</c> statement (Oracle / SQL Server, and
     /// PostgreSQL 15+). Continue with <c>Using(...).On(...)</c> and one or more
     /// <c>WhenMatched</c> / <c>WhenNotMatched</c> branches.

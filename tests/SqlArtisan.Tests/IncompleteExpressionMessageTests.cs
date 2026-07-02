@@ -9,6 +9,7 @@ public class IncompleteExpressionMessageTests
 {
     private readonly TestTable _t = new("t");
 
+    private const string AgainstHint = "Complete it with .Against(...) or .AgainstScore(...)";
     private const string OverHint = "Complete it with .Over(...)";
     private const string WithinGroupHint = "Complete it with .WithinGroup(OrderBy(...))";
 
@@ -48,6 +49,16 @@ public class IncompleteExpressionMessageTests
             Assert.Throws<ArgumentException>(() => Select(PercentileDisc(0.5)).From(_t).Build());
 
         Assert.Contains(WithinGroupHint, ex.Message);
+    }
+
+    [Fact]
+    public void Match_WithoutAgainst_Select_ThrowsWithAgainstHint()
+    {
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(Match(_t.Name)).From(_t).Build());
+
+        Assert.Contains("is not a complete SQL expression", ex.Message);
+        Assert.Contains(AgainstHint, ex.Message);
     }
 
     [Fact]

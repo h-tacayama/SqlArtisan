@@ -31,4 +31,22 @@ public static partial class Sql
     /// <param name="offset">The number of rows/range units after the current row.</param>
     /// <returns>A <see cref="FrameBound"/> for the <c>n FOLLOWING</c> bound.</returns>
     public static FrameBound Following(int offset) => FrameBound.Following(offset);
+
+    /// <summary>
+    /// The SQL Server full-text <c>FREETEXT(column, freetext)</c> predicate:
+    /// matches rows whose <paramref name="column"/> matches the meaning — not the
+    /// exact wording — of <paramref name="freetext"/>. Requires a full-text index
+    /// on the column.
+    /// </summary>
+    /// <param name="column">The full-text indexed column to search.</param>
+    /// <param name="freetext">The free-form text to match by meaning.</param>
+    /// <returns>A <see cref="FreetextCondition"/> emitting
+    /// <c>FREETEXT(column, freetext)</c>.</returns>
+    /// <remarks>SQL Server syntax. For exact words, prefixes, and boolean
+    /// combinations use <see cref="Contains(object, object)"/>.</remarks>
+    public static FreetextCondition Freetext(
+        object column,
+        object freetext) => new(
+            Resolve(column),
+            Resolve(freetext));
 }

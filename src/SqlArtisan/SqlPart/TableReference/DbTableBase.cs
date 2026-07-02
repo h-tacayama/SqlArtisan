@@ -53,4 +53,19 @@ public abstract class DbTableBase : TableReference
             buffer.AppendDmlTableAlias(_tableAlias);
         }
     }
+
+    // Renders the reference a predicate targets by table (SQLite FTS5
+    // `tbl MATCH ...`): the alias when one is declared — matching how columns
+    // are qualified — otherwise the bare table name.
+    internal void FormatAsMatchTarget(SqlBuildingBuffer buffer)
+    {
+        if (string.IsNullOrEmpty(_tableAlias))
+        {
+            base.Format(buffer);
+        }
+        else
+        {
+            buffer.EncloseInAliasQuotes(_tableAlias);
+        }
+    }
 }

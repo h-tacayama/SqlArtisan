@@ -94,6 +94,58 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Contains_SqlServer_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Where(Contains(_t.Name, "database"))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT \"t\".code ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("WHERE CONTAINS(\"t\".name, @0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("database", sql.Parameters.Get<string>("@0"));
+    }
+
+    [Fact]
+    public void ContainsScore_Oracle_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Where(ContainsScore(_t.Name, "database") > 0)
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT \"t\".code ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("WHERE CONTAINS(\"t\".name, :0) > :1");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("database", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(0, sql.Parameters.Get<int>(":1"));
+    }
+
+    [Fact]
+    public void ContainsScore_Oracle_WithLabel_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(ContainsScore(_t.Name, "database", 1))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CONTAINS(\"t\".name, :0, 1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("database", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
     public void Count_ColumnValue_CorrectSql()
     {
         SqlStatement sql =

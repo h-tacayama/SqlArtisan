@@ -5,6 +5,7 @@ internal static class Keywords
     internal const string Abs = "ABS";
     internal const string Add = "ADD";
     internal const string AddMonths = "ADD_MONTHS";
+    internal const string Against = "AGAINST";
     internal const string All = "ALL";
     internal const string And = "AND";
     internal const string Any = "ANY";
@@ -22,6 +23,7 @@ internal static class Keywords
     internal const string Coalesce = "COALESCE";
     internal const string Concat = "CONCAT";
     internal const string Conflict = "CONFLICT";
+    internal const string Contains = "CONTAINS";
     internal const string Count = "COUNT";
     internal const string Cross = "CROSS";
     internal const string Cube = "CUBE";
@@ -56,6 +58,7 @@ internal static class Keywords
     internal const string Floor = "FLOOR";
     internal const string Following = "FOLLOWING";
     internal const string For = "FOR";
+    internal const string Freetext = "FREETEXT";
     internal const string From = "FROM";
     internal const string Full = "FULL";
     internal const string Greatest = "GREATEST";
@@ -64,6 +67,8 @@ internal static class Keywords
     internal const string GroupingSets = "GROUPING SETS";
     internal const string Having = "HAVING";
     internal const string In = "IN";
+    internal const string InBooleanMode = "IN BOOLEAN MODE";
+    internal const string InNaturalLanguageMode = "IN NATURAL LANGUAGE MODE";
     internal const string Inner = "INNER";
     internal const string Insert = "INSERT";
     internal const string Instr = "INSTR";
@@ -91,6 +96,7 @@ internal static class Keywords
     internal const string Lower = "LOWER";
     internal const string Lpad = "LPAD";
     internal const string Ltrim = "LTRIM";
+    internal const string Match = "MATCH";
     internal const string Matched = "MATCHED";
     internal const string Max = "MAX";
     internal const string Merge = "MERGE";
@@ -122,6 +128,7 @@ internal static class Keywords
     internal const string PercentileCont = "PERCENTILE_CONT";
     internal const string PercentileDisc = "PERCENTILE_DISC";
     internal const string PercentRank = "PERCENT_RANK";
+    internal const string PlaintoTsquery = "PLAINTO_TSQUERY";
     internal const string Power = "POWER";
     internal const string Preceding = "PRECEDING";
     internal const string Range = "RANGE";
@@ -141,6 +148,7 @@ internal static class Keywords
     internal const string Rows = "ROWS";
     internal const string Rpad = "RPAD";
     internal const string Rtrim = "RTRIM";
+    internal const string Score = "SCORE";
     internal const string Select = "SELECT";
     internal const string Separator = "SEPARATOR";
     internal const string Set = "SET";
@@ -161,6 +169,8 @@ internal static class Keywords
     internal const string ToDate = "TO_DATE";
     internal const string ToNumber = "TO_NUMBER";
     internal const string ToTimestamp = "TO_TIMESTAMP";
+    internal const string ToTsquery = "TO_TSQUERY";
+    internal const string ToTsvector = "TO_TSVECTOR";
     internal const string Trim = "TRIM";
     internal const string True = "TRUE";
     internal const string Trunc = "TRUNC";
@@ -176,4 +186,5 @@ internal static class Keywords
     internal const string Where = "WHERE";
     internal const string With = "WITH";
     internal const string WithinGroup = "WITHIN GROUP";
+    internal const string WithQueryExpansion = "WITH QUERY EXPANSION";
 }

@@ -72,6 +72,51 @@ public static partial class Sql
             Resolve(format));
 
     /// <summary>
+    /// The PostgreSQL <c>TO_TSQUERY(text)</c> function: parses <paramref name="text"/>
+    /// already in tsquery syntax (operators <c>&amp;</c>, <c>|</c>, <c>!</c>) into a
+    /// text-search query. Pair with a tsvector via
+    /// <see cref="TsMatch(object, object)"/>.
+    /// </summary>
+    /// <param name="text">The tsquery-syntax text to parse.</param>
+    /// <returns>A <see cref="ToTsqueryFunction"/> emitting <c>TO_TSQUERY(text)</c>.</returns>
+    /// <remarks>PostgreSQL syntax. For plain, unformatted text use
+    /// <see cref="PlaintoTsquery(object)"/>.</remarks>
+    public static ToTsqueryFunction ToTsquery(object text) =>
+        new(null, Resolve(text));
+
+    /// <inheritdoc cref="ToTsquery(object)"/>
+    /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
+    /// emitted as an inline string literal.</param>
+    /// <param name="text">The tsquery-syntax text to parse.</param>
+    public static ToTsqueryFunction ToTsquery(
+        string config,
+        object text) => new(
+            config,
+            Resolve(text));
+
+    /// <summary>
+    /// The PostgreSQL <c>TO_TSVECTOR(document)</c> function: reduces
+    /// <paramref name="document"/> to a text-search vector. Pair with a tsquery via
+    /// <see cref="TsMatch(object, object)"/>.
+    /// </summary>
+    /// <param name="document">The document expression to reduce.</param>
+    /// <returns>A <see cref="ToTsvectorFunction"/> emitting
+    /// <c>TO_TSVECTOR(document)</c>.</returns>
+    /// <remarks>PostgreSQL syntax.</remarks>
+    public static ToTsvectorFunction ToTsvector(object document) =>
+        new(null, Resolve(document));
+
+    /// <inheritdoc cref="ToTsvector(object)"/>
+    /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
+    /// emitted as an inline string literal.</param>
+    /// <param name="document">The document expression to reduce.</param>
+    public static ToTsvectorFunction ToTsvector(
+        string config,
+        object document) => new(
+            config,
+            Resolve(document));
+
+    /// <summary>
     /// The <c>TRIM(source)</c> function: removes leading and trailing spaces from
     /// <paramref name="source"/>.
     /// </summary>
@@ -113,4 +158,20 @@ public static partial class Sql
         object format) => new(
             Resolve(expr),
             Resolve(format));
+
+    /// <summary>
+    /// The PostgreSQL text-search match predicate <c>vector @@ query</c>: whether
+    /// <paramref name="vector"/> (a tsvector, e.g. <see cref="ToTsvector(object)"/>)
+    /// matches <paramref name="query"/> (a tsquery, e.g.
+    /// <see cref="ToTsquery(object)"/> or <see cref="PlaintoTsquery(object)"/>).
+    /// </summary>
+    /// <param name="vector">The tsvector expression to search.</param>
+    /// <param name="query">The tsquery expression to match.</param>
+    /// <returns>A <see cref="TsMatchCondition"/> emitting <c>vector @@ query</c>.</returns>
+    /// <remarks>PostgreSQL syntax.</remarks>
+    public static TsMatchCondition TsMatch(
+        object vector,
+        object query) => new(
+            Resolve(vector),
+            Resolve(query));
 }
