@@ -85,10 +85,55 @@ dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = priva
 dotnet_naming_style.camel_case_underscore_style.required_prefix = _
 dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
 
+# namespaces, types, and non-field members should be PascalCase
+dotnet_naming_rule.general_symbols_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.general_symbols_should_be_pascal_case.symbols  = general_symbols
+dotnet_naming_rule.general_symbols_should_be_pascal_case.style    = pascal_case_style
+dotnet_naming_symbols.general_symbols.applicable_kinds = namespace, class, struct, enum, property, method, event
+
+# interfaces should have an I prefix
+dotnet_naming_rule.interfaces_should_have_i_prefix.severity = suggestion
+dotnet_naming_rule.interfaces_should_have_i_prefix.symbols  = interfaces
+dotnet_naming_rule.interfaces_should_have_i_prefix.style    = interface_style
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.interface_style.required_prefix = I
+dotnet_naming_style.interface_style.capitalization = pascal_case
+
+# type parameters should have a T prefix
+dotnet_naming_rule.type_parameters_should_have_t_prefix.severity = suggestion
+dotnet_naming_rule.type_parameters_should_have_t_prefix.symbols  = type_parameters
+dotnet_naming_rule.type_parameters_should_have_t_prefix.style    = type_parameter_style
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
+dotnet_naming_style.type_parameter_style.required_prefix = T
+dotnet_naming_style.type_parameter_style.capitalization = pascal_case
+
+# non-private static fields should be PascalCase
+# (private/internal static fields keep the s_ prefix rule above)
+dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.symbols  = non_private_static_fields
+dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.style    = pascal_case_style
+dotnet_naming_symbols.non_private_static_fields.applicable_kinds = field
+dotnet_naming_symbols.non_private_static_fields.required_modifiers = static
+dotnet_naming_symbols.non_private_static_fields.applicable_accessibilities = public, protected, protected_internal
+
+# method parameters should be camelCase
+dotnet_naming_rule.method_parameters_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.method_parameters_should_be_camel_case.symbols  = method_parameters
+dotnet_naming_rule.method_parameters_should_be_camel_case.style    = camel_case_style
+dotnet_naming_symbols.method_parameters.applicable_kinds = parameter
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+# local variables should be camelCase
+dotnet_naming_rule.local_variables_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.local_variables_should_be_camel_case.symbols  = local_variables
+dotnet_naming_rule.local_variables_should_be_camel_case.style    = camel_case_style
+dotnet_naming_symbols.local_variables.applicable_kinds = local
+
 # Code style defaults
+csharp_style_namespace_declarations = file_scoped:warning
 csharp_using_directive_placement = outside_namespace:suggestion
 dotnet_sort_system_directives_first = true
-csharp_prefer_braces = true:silent
+csharp_prefer_braces = true:warning
 csharp_preserve_single_line_blocks = true:none
 csharp_preserve_single_line_statements = false:none
 csharp_prefer_static_local_function = true:suggestion
