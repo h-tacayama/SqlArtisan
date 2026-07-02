@@ -207,4 +207,24 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
         Assert.Equal("10001", zip);
     }
+
+    [Fact]
+    public void FullTextSearch_TsMatch_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // to_tsvector/plainto_tsquery are functional without a GIN index — the
+        // index is a performance prerequisite, not a grammatical one.
+        string name = connection
+            .Query<string>(
+                Select(u.Name)
+                    .From(u)
+                    .Where(TsMatch(
+                        ToTsvector("english", u.Name),
+                        PlaintoTsquery("english", "alice"))))
+            .Single();
+
+        Assert.Equal("Alice", name);
+    }
 }

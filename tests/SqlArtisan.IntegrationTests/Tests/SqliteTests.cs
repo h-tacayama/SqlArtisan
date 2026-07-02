@@ -1,4 +1,5 @@
 using System.Data;
+using Dapper;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -165,5 +166,47 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             .Single();
 
         Assert.Contains("10001", address);
+    }
+
+    [Fact]
+    public void FullTextSearch_Fts5Match_Executes()
+    {
+        DbTable fts = new("users_fts");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The FTS5 virtual table is created (and dropped) here rather than in the
+        // shared DDL: StandardDdl is shared with MySQL, which has no FTS5.
+        connection.Execute("CREATE VIRTUAL TABLE users_fts USING fts5(name, bio)");
+
+        try
+        {
+            connection.Execute(
+                InsertInto(fts, fts.Column("name"), fts.Column("bio"))
+                    .Values("Alice", "builds type-safe database queries"));
+            connection.Execute(
+                InsertInto(fts, fts.Column("name"), fts.Column("bio"))
+                    .Values("Bob", "writes release notes"));
+
+            // Bare-table target: users_fts MATCH :0
+            string name = connection
+                .Query<string>(
+                    Select(fts.Column("name")).From(fts).Where(Match(fts, "database")))
+                .Single();
+
+            // Alias-qualified target: "f".users_fts MATCH :0 — a bare quoted
+            // alias would fall back to a string literal and fail (#153 review).
+            DbTable f = new("users_fts", "f");
+            string aliased = connection
+                .Query<string>(
+                    Select(f.Column("name")).From(f).Where(Match(f, "database")))
+                .Single();
+
+            Assert.Equal("Alice", name);
+            Assert.Equal("Alice", aliased);
+        }
+        finally
+        {
+            connection.Execute("DROP TABLE users_fts");
+        }
     }
 }
