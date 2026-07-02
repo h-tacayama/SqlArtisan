@@ -10,5 +10,7 @@ public sealed class CurrvalFunction : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Currval}('{_sequenceName}')");
+        .Append($"{Keywords.Currval}('")
+        .Append(_sequenceName)
+        .Append("')");
 }

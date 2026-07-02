@@ -10,5 +10,7 @@ public sealed class NextvalFunction : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Nextval}('{_sequenceName}')");
+        .Append($"{Keywords.Nextval}('")
+        .Append(_sequenceName)
+        .Append("')");
 }
