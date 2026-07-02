@@ -6,9 +6,7 @@ public sealed class SimpleCaseExpression : SqlExpression
     private readonly SimpleCaseWhenClause[] _whenClauses;
     private readonly CaseElseExpression? _elseClause;
 
-    internal SimpleCaseExpression(
-        SqlExpression expr,
-        SimpleCaseWhenClause[] whenClauses)
+    internal SimpleCaseExpression(SqlExpression expr, SimpleCaseWhenClause[] whenClauses)
     {
         _expr = expr;
         _whenClauses = whenClauses;

@@ -24,9 +24,7 @@ public static partial class Sql
     /// <param name="columns">The columns to insert into, emitted as a
     /// parenthesized list after the table.</param>
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
-    public static IInsertBuilderColumns InsertInto(
-        DbTableBase table,
-        params DbColumn[] columns) =>
+    public static IInsertBuilderColumns InsertInto(DbTableBase table, params DbColumn[] columns) =>
         new InsertBuilder(new InsertIntoClause(table, columns));
 
     /// <summary>
@@ -39,23 +37,15 @@ public static partial class Sql
     /// <param name="substring">The substring to search for.</param>
     /// <returns>The INSTR construct.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static InstrFunction Instr(
-        object source,
-        object substring) => new(
-            Resolve(source),
-            Resolve(substring));
+    public static InstrFunction Instr(object source, object substring) =>
+        new(Resolve(source), Resolve(substring));
 
     /// <inheritdoc cref="Instr(object, object)"/>
     /// <param name="source">The string to search in.</param>
     /// <param name="substring">The substring to search for.</param>
     /// <param name="position">The 1-based position at which to start searching.</param>
-    public static InstrFunction Instr(
-        object source,
-        object substring,
-        object position) => new(
-            Resolve(source),
-            Resolve(substring),
-            Resolve(position));
+    public static InstrFunction Instr(object source, object substring, object position) =>
+        new(Resolve(source), Resolve(substring), Resolve(position));
 
     /// <inheritdoc cref="Instr(object, object)"/>
     /// <param name="source">The string to search in.</param>

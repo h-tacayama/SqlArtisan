@@ -5,9 +5,7 @@ public sealed class ToNumberFunction : SqlExpression
     private readonly SqlExpression _expr;
     private readonly SqlExpression? _format;
 
-    internal ToNumberFunction(
-        SqlExpression expr,
-        SqlExpression? format = null)
+    internal ToNumberFunction(SqlExpression expr, SqlExpression? format = null)
     {
         _expr = expr;
         _format = format;

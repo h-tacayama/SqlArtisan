@@ -11,9 +11,7 @@ internal sealed class ForUpdateClause : SqlPart
         _lockBehavior = lockBehavior;
     }
 
-    internal ForUpdateClause(
-        OfClause ofClause,
-        LockBehaviorBase? lockBehavior = null)
+    internal ForUpdateClause(OfClause ofClause, LockBehaviorBase? lockBehavior = null)
     {
         _ofClause = ofClause;
         _lockBehavior = lockBehavior;

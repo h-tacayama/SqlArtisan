@@ -23,10 +23,7 @@ public sealed class SortOrder : SqlPart
     {
     }
 
-    internal SortOrder(
-        SqlPart exprOrAlias,
-        SortDirection direction,
-        NullOrdering nullOrdering)
+    internal SortOrder(SqlPart exprOrAlias, SortDirection direction, NullOrdering nullOrdering)
     {
         _exprOrAlias = exprOrAlias;
         _direction = direction;

@@ -20,6 +20,11 @@ generated_code = true
 [*.cs]
 # Encoding: UTF-8 without BOM is the standard for .cs files (#134)
 charset = utf-8
+# Line length guideline (#209): keep a member signature and its expression body
+# on as few lines as fit within 100 columns; wrap one parameter per line only
+# when a line would exceed it. Editors honor max_line_length; dotnet format
+# does not enforce it.
+max_line_length = 100
 # New line preferences
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true

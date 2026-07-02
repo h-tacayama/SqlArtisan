@@ -13,9 +13,8 @@ public static partial class Sql
     /// <param name="path">The JSON path (e.g. <c>"$.name"</c>). Emitted as an
     /// inline string literal.</param>
     /// <returns>A <c>JSON_EXTRACT</c> function expression.</returns>
-    public static JsonExtractFunction JsonExtract(
-        object jsonDoc,
-        string path) => new(Resolve(jsonDoc), path);
+    public static JsonExtractFunction JsonExtract(object jsonDoc, string path) =>
+        new(Resolve(jsonDoc), path);
 
     /// <summary>
     /// The <c>(jsonExpr -&gt; key)</c> JSON operator: extracts a JSON element by
@@ -24,9 +23,8 @@ public static partial class Sql
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="key">The key or index to access.</param>
     /// <returns>A <c>-&gt;</c> operator expression.</returns>
-    public static JsonArrowOperator JsonArrow(
-        object jsonExpr,
-        object key) => new(Resolve(jsonExpr), Resolve(key));
+    public static JsonArrowOperator JsonArrow(object jsonExpr, object key) =>
+        new(Resolve(jsonExpr), Resolve(key));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator: extracts a JSON element
@@ -35,9 +33,8 @@ public static partial class Sql
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="key">The key or index to access.</param>
     /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
-    public static JsonArrowTextOperator JsonArrowText(
-        object jsonExpr,
-        object key) => new(Resolve(jsonExpr), Resolve(key));
+    public static JsonArrowTextOperator JsonArrowText(object jsonExpr, object key) =>
+        new(Resolve(jsonExpr), Resolve(key));
 
     /// <summary>
     /// The <c>(jsonExpr #&gt; path)</c> JSON operator: extracts a JSON element at
@@ -46,9 +43,8 @@ public static partial class Sql
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
     /// <returns>A <c>#&gt;</c> operator expression.</returns>
-    public static JsonHashArrowOperator JsonHashArrow(
-        object jsonExpr,
-        object path) => new(Resolve(jsonExpr), Resolve(path));
+    public static JsonHashArrowOperator JsonHashArrow(object jsonExpr, object path) =>
+        new(Resolve(jsonExpr), Resolve(path));
 
     /// <summary>
     /// The <c>(jsonExpr #&gt;&gt; path)</c> JSON operator: extracts a JSON element
@@ -57,9 +53,8 @@ public static partial class Sql
     /// <param name="jsonExpr">The JSON expression.</param>
     /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
     /// <returns>A <c>#&gt;&gt;</c> operator expression.</returns>
-    public static JsonHashArrowTextOperator JsonHashArrowText(
-        object jsonExpr,
-        object path) => new(Resolve(jsonExpr), Resolve(path));
+    public static JsonHashArrowTextOperator JsonHashArrowText(object jsonExpr, object path) =>
+        new(Resolve(jsonExpr), Resolve(path));
 
     /// <summary>
     /// The <c>JSON_QUERY(jsonDoc, 'path')</c> function: extracts a JSON object
@@ -70,9 +65,8 @@ public static partial class Sql
     /// <param name="path">The JSON path (e.g. <c>"$.address"</c>). Emitted as an
     /// inline string literal.</param>
     /// <returns>A <c>JSON_QUERY</c> function expression.</returns>
-    public static JsonQueryFunction JsonQuery(
-        object jsonDoc,
-        string path) => new(Resolve(jsonDoc), path);
+    public static JsonQueryFunction JsonQuery(object jsonDoc, string path) =>
+        new(Resolve(jsonDoc), path);
 
     /// <summary>
     /// The <c>JSON_VALUE(jsonDoc, 'path')</c> function: extracts a scalar value
@@ -83,7 +77,6 @@ public static partial class Sql
     /// <param name="path">The JSON path (e.g. <c>"$.name"</c>). Emitted as an
     /// inline string literal.</param>
     /// <returns>A <c>JSON_VALUE</c> function expression.</returns>
-    public static JsonValueFunction JsonValue(
-        object jsonDoc,
-        string path) => new(Resolve(jsonDoc), path);
+    public static JsonValueFunction JsonValue(object jsonDoc, string path) =>
+        new(Resolve(jsonDoc), path);
 }

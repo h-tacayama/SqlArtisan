@@ -88,9 +88,8 @@ public static partial class Sql
     /// <param name="expr1">The expression returned when the two differ.</param>
     /// <param name="expr2">The expression compared against <paramref name="expr1"/>.</param>
     /// <returns>A <c>NULLIF</c> function expression.</returns>
-    public static NullifFunction Nullif(
-        object expr1,
-        object expr2) => new(Resolve(expr1), Resolve(expr2));
+    public static NullifFunction Nullif(object expr1, object expr2) =>
+        new(Resolve(expr1), Resolve(expr2));
 
     /// <summary>
     /// The <c>NVL(expr1, expr2)</c> function: returns <paramref name="expr1"/> when
@@ -101,7 +100,6 @@ public static partial class Sql
     /// <returns>An <c>NVL</c> function expression.</returns>
     /// <remarks>Oracle syntax. For the standard equivalent use
     /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
-    public static NvlFunction Nvl(
-        object expr1,
-        object expr2) => new(Resolve(expr1), Resolve(expr2));
+    public static NvlFunction Nvl(object expr1, object expr2) =>
+        new(Resolve(expr1), Resolve(expr2));
 }

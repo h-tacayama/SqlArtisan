@@ -1,8 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class VariadicFunctionCore(
-    string functionName,
-    params SqlPart?[] args)
+internal sealed class VariadicFunctionCore(string functionName, params SqlPart?[] args)
 {
     private readonly string _functionName = functionName;
     private readonly SqlPart?[] _args = args;

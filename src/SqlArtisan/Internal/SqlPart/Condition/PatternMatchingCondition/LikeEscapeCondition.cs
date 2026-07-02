@@ -6,10 +6,7 @@ public sealed class LikeEscapeCondition : SqlCondition
     private readonly SqlExpression _rightSide;
     private readonly char _escapeChar;
 
-    internal LikeEscapeCondition(
-        SqlExpression leftSide,
-        SqlExpression rightSide,
-        char escapeChar)
+    internal LikeEscapeCondition(SqlExpression leftSide, SqlExpression rightSide, char escapeChar)
     {
         _leftSide = leftSide;
         _rightSide = rightSide;

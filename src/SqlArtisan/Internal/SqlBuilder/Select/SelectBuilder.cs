@@ -140,9 +140,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISqlBuilder ForUpdate(
-        OfClause ofClause,
-        LockBehaviorBase? lockBehavior = null)
+    public ISqlBuilder ForUpdate(OfClause ofClause, LockBehaviorBase? lockBehavior = null)
     {
         AddPart(new ForUpdateClause(ofClause, lockBehavior));
         return this;
@@ -220,8 +218,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderOrderBy OrderBy(
-        params object[] orderByItems)
+    public ISelectBuilderOrderBy OrderBy(params object[] orderByItems)
     {
         AddPart(OrderByClause.Parse(orderByItems));
         return this;
@@ -239,16 +236,13 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderSelect Select(
-        params object[] selectItems)
+    public ISelectBuilderSelect Select(params object[] selectItems)
     {
         AddPart(SelectClause.Parse(selectItems));
         return this;
     }
 
-    public ISelectBuilderSelect Select(
-        DistinctKeyword distinct,
-        params object[] selectItems)
+    public ISelectBuilderSelect Select(DistinctKeyword distinct, params object[] selectItems)
     {
         AddPart(
             SelectClauseWithDistinct.Parse(
@@ -258,9 +252,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderSelect Select(
-        DistinctOnKeyword distinctOn,
-        params object[] selectItems)
+    public ISelectBuilderSelect Select(DistinctOnKeyword distinctOn, params object[] selectItems)
     {
         AddPart(
             SelectClauseWithDistinct.Parse(
@@ -270,9 +262,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISelectBuilderSelect Select(
-        SqlHints hints,
-        params object[] selectItems)
+    public ISelectBuilderSelect Select(SqlHints hints, params object[] selectItems)
     {
         AddPart(
             SelectClauseWithHints.Parse(

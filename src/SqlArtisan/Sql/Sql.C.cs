@@ -509,9 +509,7 @@ public static partial class Sql
     /// <returns><paramref name="condition"/> when <paramref name="when"/> is
     /// <see langword="true"/>; otherwise an empty <see cref="SqlCondition"/> that emits
     /// nothing.</returns>
-    public static SqlCondition ConditionIf(
-        bool when,
-        SqlCondition condition) =>
+    public static SqlCondition ConditionIf(bool when, SqlCondition condition) =>
         when ? condition : new EmptyCondition();
 
     /// <summary>

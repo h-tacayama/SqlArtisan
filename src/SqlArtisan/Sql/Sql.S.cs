@@ -24,8 +24,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="selectItems">The columns or expressions to project.</param>
     /// <returns>A select builder positioned for <c>.From(...)</c>.</returns>
-    public static ISelectBuilderSelect Select(
-        params object[] selectItems) =>
+    public static ISelectBuilderSelect Select(params object[] selectItems) =>
         new SelectBuilder(SelectClause.Parse(selectItems));
 
     /// <inheritdoc cref="Select(object[])"/>
@@ -53,13 +52,8 @@ public static partial class Sql
     /// <inheritdoc cref="Select(object[])"/>
     /// <param name="hints">Optimizer hints (<see cref="Hints(string)"/>), emitted after <c>SELECT</c>.</param>
     /// <param name="selectItems">The columns or expressions to project.</param>
-    public static ISelectBuilderSelect Select(
-        SqlHints hints,
-        params object[] selectItems) =>
-        new SelectBuilder(
-            SelectClauseWithHints.Parse(
-                hints,
-                selectItems));
+    public static ISelectBuilderSelect Select(SqlHints hints, params object[] selectItems) =>
+        new SelectBuilder(SelectClauseWithHints.Parse(hints, selectItems));
 
     /// <inheritdoc cref="Select(object[])"/>
     /// <param name="hints">Optimizer hints (<see cref="Hints(string)"/>), emitted after <c>SELECT</c>.</param>
@@ -180,23 +174,15 @@ public static partial class Sql
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position.</param>
     /// <returns>A <c>SUBSTR</c> function expression.</returns>
-    public static SubstrFunction Substr(
-        object source,
-        object position) => new(
-            Resolve(source),
-            Resolve(position));
+    public static SubstrFunction Substr(object source, object position) =>
+        new(Resolve(source), Resolve(position));
 
     /// <inheritdoc cref="Substr(object, object)"/>
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position.</param>
     /// <param name="length">The number of characters to take.</param>
-    public static SubstrFunction Substr(
-        object source,
-        object position,
-        object length) => new(
-            Resolve(source),
-            Resolve(position),
-            Resolve(length));
+    public static SubstrFunction Substr(object source, object position, object length) =>
+        new(Resolve(source), Resolve(position), Resolve(length));
 
     /// <summary>
     /// The <c>SUBSTRB(source, position)</c> function: like <see cref="Substr(object, object)"/>
@@ -206,23 +192,15 @@ public static partial class Sql
     /// <param name="position">The 1-based start position, in bytes.</param>
     /// <returns>A <c>SUBSTRB</c> function expression.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static SubstrbFunction Substrb(
-        object source,
-        object position) => new(
-            Resolve(source),
-            Resolve(position));
+    public static SubstrbFunction Substrb(object source, object position) =>
+        new(Resolve(source), Resolve(position));
 
     /// <inheritdoc cref="Substrb(object, object)"/>
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position, in bytes.</param>
     /// <param name="length">The number of bytes to take.</param>
-    public static SubstrbFunction Substrb(
-        object source,
-        object position,
-        object length) => new(
-            Resolve(source),
-            Resolve(position),
-            Resolve(length));
+    public static SubstrbFunction Substrb(object source, object position, object length) =>
+        new(Resolve(source), Resolve(position), Resolve(length));
 
     /// <summary>
     /// The <c>SUM(expr)</c> aggregate: the total of <paramref name="expr"/> over the

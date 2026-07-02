@@ -42,9 +42,7 @@ public abstract class SqlExpression : SqlPart
         object rightSide) =>
         new LessThanCondition(@this, Resolve(rightSide));
 
-    public static SqlCondition operator >(
-        SqlExpression @this,
-        object rightSide) =>
+    public static SqlCondition operator >(SqlExpression @this, object rightSide) =>
         new GreaterThanCondition(@this, Resolve(rightSide));
 
     public static SqlCondition operator <=(
@@ -80,13 +78,11 @@ public abstract class SqlExpression : SqlPart
     public ExpressionAlias As(string alias) => new(this, alias);
     public ExpressionAlias As(DbColumn column) => new(this, column.Name, quoteAlias: false);
 
-    public BetweenCondition Between(
-        object rightSide1,
-        object rightSide2) => new(this, Resolve(rightSide1), Resolve(rightSide2));
+    public BetweenCondition Between(object rightSide1, object rightSide2) =>
+        new(this, Resolve(rightSide1), Resolve(rightSide2));
 
-    public NotBetweenCondition NotBetween(
-        object rightSide1,
-        object rightSide2) => new(this, Resolve(rightSide1), Resolve(rightSide2));
+    public NotBetweenCondition NotBetween(object rightSide1, object rightSide2) =>
+        new(this, Resolve(rightSide1), Resolve(rightSide2));
 
     public InCondition In(params object[] expressions) =>
         new(this, Resolve(expressions));
@@ -100,9 +96,7 @@ public abstract class SqlExpression : SqlPart
     public NotInSubqueryCondition NotIn(ISubquery subquery) =>
         new(this, subquery);
 
-    public LikeCondition Like(
-        object rightSide) => new(this, Resolve(rightSide));
+    public LikeCondition Like(object rightSide) => new(this, Resolve(rightSide));
 
-    public NotLikeCondition NotLike(
-        object rightSide) => new(this, Resolve(rightSide));
+    public NotLikeCondition NotLike(object rightSide) => new(this, Resolve(rightSide));
 }

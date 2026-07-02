@@ -23,13 +23,8 @@ public static partial class Sql
     /// shared with EXTRACT/DATEPART; only the dateparts SQL Server's <c>DATEADD</c>
     /// accepts are valid here.
     /// </remarks>
-    public static DateaddFunction Dateadd(
-        DateTimePart datepart,
-        object number,
-        object dateTime) => new(
-            datepart,
-            Resolve(number),
-            Resolve(dateTime));
+    public static DateaddFunction Dateadd(DateTimePart datepart, object number, object dateTime) =>
+        new(datepart, Resolve(number), Resolve(dateTime));
 
     /// <summary>
     /// The <c>DATEDIFF(<paramref name="datepart"/>, <paramref name="startDate"/>, <paramref name="endDate"/>)</c>
@@ -82,9 +77,8 @@ public static partial class Sql
     /// <see cref="DateTimePart"/> is a superset shared with EXTRACT/DATEPART; only
     /// the fields PostgreSQL's <c>date_trunc</c> accepts are valid here.
     /// </remarks>
-    public static DateTruncFunction DateTrunc(
-        DateTimePart datepart,
-        object source) => new(datepart, Resolve(source));
+    public static DateTruncFunction DateTrunc(DateTimePart datepart, object source) =>
+        new(datepart, Resolve(source));
 
     /// <summary>
     /// The <c>DECODE(<paramref name="expr"/>, search, result, ..., <paramref name="default"/>)</c>

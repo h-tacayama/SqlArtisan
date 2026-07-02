@@ -120,6 +120,9 @@ Rules:
   (`using static SqlArtisan.Internal.ExpressionResolver;` is at the top of each
   `Sql.*.cs`).
 - Return the concrete `<Name>Function` type, not `SqlExpression`.
+- Keep the signature (and expression body) on as few lines as fit within
+  **100 columns** — `Cast` / `Currval` / the JSON factories are the shape to
+  copy; wrap one parameter per line only when a line would exceed 100 (#209).
 
 ## 4. Test
 

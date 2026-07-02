@@ -20,10 +20,7 @@ public sealed class AnalyticLeadFunction : AnalyticFunction
         _default = null;
     }
 
-    internal AnalyticLeadFunction(
-        SqlExpression expr,
-        int offset,
-        SqlExpression @default)
+    internal AnalyticLeadFunction(SqlExpression expr, int offset, SqlExpression @default)
     {
         _expr = expr;
         _offset = offset;
