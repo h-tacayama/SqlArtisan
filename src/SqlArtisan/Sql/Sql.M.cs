@@ -25,7 +25,8 @@ public static partial class Sql
     /// <summary>
     /// The SQLite FTS5 <c>table MATCH pattern</c> predicate: matches rows of the
     /// FTS <paramref name="table"/> against <paramref name="pattern"/>. The table
-    /// renders as its alias when one is declared, otherwise as its bare name.
+    /// renders as its bare name, qualified by its alias when one is declared
+    /// (<c>"a".tbl MATCH ...</c>).
     /// </summary>
     /// <param name="table">The FTS5 table to search.</param>
     /// <param name="pattern">The FTS5 query (e.g. <c>"database"</c>,

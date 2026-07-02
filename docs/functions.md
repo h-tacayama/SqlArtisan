@@ -163,7 +163,7 @@ SqlStatement sql =
 
 ### SQLite — FTS5 `MATCH`
 
-`Match(table, pattern)` emits the FTS5 `table MATCH pattern` predicate against an FTS5 virtual table. The table renders as its alias when one is declared, otherwise as its bare name.
+`Match(table, pattern)` emits the FTS5 `table MATCH pattern` predicate against an FTS5 virtual table. The table renders as its bare name, qualified by its alias when one is declared (`"a".posts_fts MATCH ...`).
 
 ```csharp
 DbTable fts = new("posts_fts");

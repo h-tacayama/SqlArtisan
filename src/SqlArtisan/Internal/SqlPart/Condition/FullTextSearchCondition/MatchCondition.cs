@@ -2,8 +2,8 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The SQLite FTS5 <c>table MATCH pattern</c> predicate, matching rows of the
-/// FTS table against the pattern. The table renders as its alias when one is
-/// declared, otherwise as its bare name.
+/// FTS table against the pattern. The table renders as its bare name, qualified
+/// by its alias when one is declared (<c>"a".tbl MATCH ...</c>).
 /// </summary>
 public sealed class MatchCondition : SqlCondition
 {

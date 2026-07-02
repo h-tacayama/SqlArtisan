@@ -55,17 +55,18 @@ public abstract class DbTableBase : TableReference
     }
 
     // Renders the reference a predicate targets by table (SQLite FTS5
-    // `tbl MATCH ...`): the alias when one is declared — matching how columns
-    // are qualified — otherwise the bare table name.
+    // `tbl MATCH ...`). FTS5 resolves the target as the hidden column named
+    // after the table, so an aliased table must qualify it (`"a".tbl`) — a bare
+    // quoted alias falls back to a string literal (no such column) and fails
+    // with "unable to use function MATCH in the requested context".
     internal void FormatAsMatchTarget(SqlBuildingBuffer buffer)
     {
-        if (string.IsNullOrEmpty(_tableAlias))
-        {
-            base.Format(buffer);
-        }
-        else
+        if (!string.IsNullOrEmpty(_tableAlias))
         {
             buffer.EncloseInAliasQuotes(_tableAlias);
+            buffer.Append('.');
         }
+
+        base.Format(buffer);
     }
 }

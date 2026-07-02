@@ -104,7 +104,7 @@ public partial class FunctionTests
         StringBuilder expected = new();
         expected.Append("SELECT \"t\".code ");
         expected.Append("FROM test_table \"t\" ");
-        expected.Append("WHERE \"t\" MATCH :0");
+        expected.Append("WHERE \"t\".test_table MATCH :0");
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("database", sql.Parameters.Get<string>(":0"));
