@@ -47,3 +47,7 @@ the absolute-URL rule, and the DBMS enum order also live in CLAUDE.md.
   DBMS in enum order.
 - README→docs and docs↔docs links are absolute GitHub `blob/main` URLs;
   `llms.txt` uses `raw.githubusercontent.com` URLs; in-page anchors stay relative.
+- Adding/renaming/moving a `## ` section in `docs/expressions.md` or
+  `docs/functions.md` must update `docs/README.md`'s index **in page order**
+  (and usually the README capability map and `llms.txt`). `DocsIndexTests`
+  fails the unit suite when an index link is missing (#210).
