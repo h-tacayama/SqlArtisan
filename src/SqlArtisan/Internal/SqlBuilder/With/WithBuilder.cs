@@ -24,27 +24,14 @@ internal sealed class WithBuilder : IWithBuilderWith
             _withPart,
             new InsertIntoClause(table));
 
-    public IInsertBuilderColumns InsertInto(
-        DbTableBase table,
-        params DbColumn[] columns) =>
-        new InsertBuilder(
-            _withPart,
-            new InsertIntoClause(table, columns));
+    public IInsertBuilderColumns InsertInto(DbTableBase table, params DbColumn[] columns) =>
+        new InsertBuilder(_withPart, new InsertIntoClause(table, columns));
 
-    public ISelectBuilderSelect Select(
-        params object[] selectItems) =>
-        new SelectBuilder(
-            _withPart,
-            SelectClause.Parse(selectItems));
+    public ISelectBuilderSelect Select(params object[] selectItems) =>
+        new SelectBuilder(_withPart, SelectClause.Parse(selectItems));
 
-    public ISelectBuilderSelect Select(
-        DistinctKeyword distinct,
-        params object[] selectItems) =>
-        new SelectBuilder(
-            _withPart,
-            SelectClauseWithDistinct.Parse(
-                distinct,
-                selectItems));
+    public ISelectBuilderSelect Select(DistinctKeyword distinct, params object[] selectItems) =>
+        new SelectBuilder(_withPart, SelectClauseWithDistinct.Parse(distinct, selectItems));
 
     public ISelectBuilderSelect Select(
         DistinctOnKeyword distinctOn,
@@ -55,14 +42,8 @@ internal sealed class WithBuilder : IWithBuilderWith
                 distinctOn,
                 selectItems));
 
-    public ISelectBuilderSelect Select(
-        SqlHints hints,
-        params object[] selectItems) =>
-        new SelectBuilder(
-            _withPart,
-            SelectClauseWithHints.Parse(
-                hints,
-                selectItems));
+    public ISelectBuilderSelect Select(SqlHints hints, params object[] selectItems) =>
+        new SelectBuilder(_withPart, SelectClauseWithHints.Parse(hints, selectItems));
 
     public ISelectBuilderSelect Select(
         SqlHints hints,

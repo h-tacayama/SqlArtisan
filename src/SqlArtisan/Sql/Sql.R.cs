@@ -27,11 +27,8 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_COUNT</c> function expression.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static RegexpCountFunction RegexpCount(
-        object source,
-        object pattern) => new(
-            Resolve(source),
-            Resolve(pattern));
+    public static RegexpCountFunction RegexpCount(object source, object pattern) =>
+        new(Resolve(source), Resolve(pattern));
 
     /// <inheritdoc cref="RegexpCount(object, object)"/>
     /// <param name="source">The string searched.</param>
@@ -69,11 +66,8 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_LIKE</c> condition.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static RegexpLikeCondition RegexpLike(
-        object source,
-        object pattern) => new(
-            Resolve(source),
-            Resolve(pattern));
+    public static RegexpLikeCondition RegexpLike(object source, object pattern) =>
+        new(Resolve(source), Resolve(pattern));
 
     /// <inheritdoc cref="RegexpLike(object, object)"/>
     /// <param name="source">The string tested.</param>
@@ -168,13 +162,8 @@ public static partial class Sql
     /// <param name="search">The substring to find.</param>
     /// <param name="replacement">The replacement substring.</param>
     /// <returns>A <c>REPLACE</c> function expression.</returns>
-    public static ReplaceFunction Replace(
-        object source,
-        object search,
-        object replacement) => new(
-            Resolve(source),
-            Resolve(search),
-            Resolve(replacement));
+    public static ReplaceFunction Replace(object source, object search, object replacement) =>
+        new(Resolve(source), Resolve(search), Resolve(replacement));
 
     /// <summary>
     /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Each element is an
@@ -207,11 +196,8 @@ public static partial class Sql
     /// <param name="expr">The numeric expression to round.</param>
     /// <param name="decimals">The number of decimal places to round to.</param>
     /// <returns>A <c>ROUND(x, n)</c> function expression.</returns>
-    public static RoundFunction Round(
-        object expr,
-        object decimals) => new(
-            Resolve(expr),
-            Resolve(decimals));
+    public static RoundFunction Round(object expr, object decimals) =>
+        new(Resolve(expr), Resolve(decimals));
 
     /// <summary>
     /// The <c>RPAD(source, length)</c> function: right-pads <paramref name="source"/>
@@ -220,23 +206,15 @@ public static partial class Sql
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target length.</param>
     /// <returns>An <c>RPAD</c> function expression.</returns>
-    public static RpadFunction Rpad(
-        object source,
-        object length) => new(
-            Resolve(source),
-            Resolve(length));
+    public static RpadFunction Rpad(object source, object length) =>
+        new(Resolve(source), Resolve(length));
 
     /// <inheritdoc cref="Rpad(object, object)"/>
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target length.</param>
     /// <param name="padding">The padding string used instead of spaces.</param>
-    public static RpadFunction Rpad(
-        object source,
-        object length,
-        object padding) => new(
-            Resolve(source),
-            Resolve(length),
-            Resolve(padding));
+    public static RpadFunction Rpad(object source, object length, object padding) =>
+        new(Resolve(source), Resolve(length), Resolve(padding));
 
     /// <summary>
     /// The <c>RTRIM(source)</c> function: removes trailing spaces from
@@ -250,11 +228,8 @@ public static partial class Sql
     /// <inheritdoc cref="Rtrim(object)"/>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip instead of spaces.</param>
-    public static RtrimFunction Rtrim(
-        object source,
-        object trimChars) => new(
-            Resolve(source),
-            Resolve(trimChars));
+    public static RtrimFunction Rtrim(object source, object trimChars) =>
+        new(Resolve(source), Resolve(trimChars));
 
     /// <summary>
     /// The <c>REGEXP_SUBSTR(source, pattern)</c> function: the first substring of
@@ -264,11 +239,8 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_SUBSTR</c> function expression.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static RegexpSubstrFunction RegexpSubstr(
-        object source,
-        object pattern) => new(
-            Resolve(source),
-            Resolve(pattern));
+    public static RegexpSubstrFunction RegexpSubstr(object source, object pattern) =>
+        new(Resolve(source), Resolve(pattern));
 
     /// <inheritdoc cref="RegexpSubstr(object, object)"/>
     /// <param name="source">The string searched.</param>

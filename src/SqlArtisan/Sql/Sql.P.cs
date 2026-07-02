@@ -11,8 +11,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expressions">The columns or expressions to partition by.</param>
     /// <returns>A <c>PARTITION BY</c> clause.</returns>
-    public static PartitionByClause PartitionBy(
-        params object[] expressions) => new(Resolve(expressions));
+    public static PartitionByClause PartitionBy(params object[] expressions) =>
+        new(Resolve(expressions));
 
     /// <summary>
     /// The <c>PERCENTILE_CONT(fraction)</c> ordered-set aggregate (continuous
@@ -77,11 +77,8 @@ public static partial class Sql
     /// <param name="base">The base value.</param>
     /// <param name="exponent">The exponent to raise <paramref name="base"/> to.</param>
     /// <returns>A <c>POWER</c> function expression.</returns>
-    public static PowerFunction Power(
-        object @base,
-        object exponent) => new(
-            Resolve(@base),
-            Resolve(exponent));
+    public static PowerFunction Power(object @base, object exponent) =>
+        new(Resolve(@base), Resolve(exponent));
 
     /// <summary>
     /// A <c>n PRECEDING</c> window-frame bound (offset rows/range before the

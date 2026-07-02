@@ -21,7 +21,6 @@ public static partial class Sql
     /// </summary>
     /// <param name="orderByItems">The columns or expressions to order by.</param>
     /// <returns>An <c>ORDER BY</c> clause.</returns>
-    public static OrderByClause OrderBy(
-        params object[] orderByItems) =>
+    public static OrderByClause OrderBy(params object[] orderByItems) =>
         OrderByClause.Parse(orderByItems);
 }

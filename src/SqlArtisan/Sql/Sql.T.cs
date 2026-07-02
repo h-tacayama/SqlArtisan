@@ -18,11 +18,8 @@ public static partial class Sql
     /// <inheritdoc cref="ToChar(object)"/>
     /// <param name="expr">The value to convert to text.</param>
     /// <param name="format">The Oracle format model controlling the output.</param>
-    public static ToCharFunction ToChar(
-        object expr,
-        object format) => new(
-            Resolve(expr),
-            Resolve(format));
+    public static ToCharFunction ToChar(object expr, object format) =>
+        new(Resolve(expr), Resolve(format));
 
     /// <summary>
     /// The <c>TO_DATE(text, format)</c> function: parses <paramref name="text"/> into
@@ -32,11 +29,8 @@ public static partial class Sql
     /// <param name="format">The Oracle format model describing <paramref name="text"/>.</param>
     /// <returns>A <c>TO_DATE</c> function expression.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static ToDateFunction ToDate(
-        object text,
-        object format) => new(
-            Resolve(text),
-            Resolve(format));
+    public static ToDateFunction ToDate(object text, object format) =>
+        new(Resolve(text), Resolve(format));
 
     /// <summary>
     /// The <c>TO_NUMBER(expr)</c> function: converts <paramref name="expr"/> to a
@@ -51,11 +45,8 @@ public static partial class Sql
     /// <inheritdoc cref="ToNumber(object)"/>
     /// <param name="expr">The value to convert.</param>
     /// <param name="numericFormat">The Oracle numeric format model describing <paramref name="expr"/>.</param>
-    public static ToNumberFunction ToNumber(
-        object expr,
-        object numericFormat) => new(
-            Resolve(expr),
-            Resolve(numericFormat));
+    public static ToNumberFunction ToNumber(object expr, object numericFormat) =>
+        new(Resolve(expr), Resolve(numericFormat));
 
     /// <summary>
     /// The <c>TO_TIMESTAMP(text, format)</c> function: parses <paramref name="text"/>
@@ -65,11 +56,8 @@ public static partial class Sql
     /// <param name="format">The Oracle format model describing <paramref name="text"/>.</param>
     /// <returns>A <c>TO_TIMESTAMP</c> function expression.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static ToTimestampFunction ToTimestamp(
-        object text,
-        object format) => new(
-            Resolve(text),
-            Resolve(format));
+    public static ToTimestampFunction ToTimestamp(object text, object format) =>
+        new(Resolve(text), Resolve(format));
 
     /// <summary>
     /// The PostgreSQL <c>TO_TSQUERY(text)</c> function: parses <paramref name="text"/>
@@ -127,11 +115,8 @@ public static partial class Sql
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChar">The character to strip from both ends instead of spaces.</param>
     /// <returns>A <c>TRIM</c> function expression.</returns>
-    public static TrimFunction Trim(
-        object source,
-        object trimChar) => new(
-            Resolve(source),
-            Resolve(trimChar));
+    public static TrimFunction Trim(object source, object trimChar) =>
+        new(Resolve(source), Resolve(trimChar));
 
     /// <summary>
     /// The <c>TRUNC(expr)</c> function: truncates <paramref name="expr"/> toward zero
@@ -147,11 +132,8 @@ public static partial class Sql
     /// <inheritdoc cref="Trunc(object)"/>
     /// <param name="expr">The numeric or date value to truncate.</param>
     /// <param name="format">The number of decimal places, or the Oracle date format unit (e.g. <c>'MM'</c>).</param>
-    public static TruncFunction Trunc(
-        object expr,
-        object format) => new(
-            Resolve(expr),
-            Resolve(format));
+    public static TruncFunction Trunc(object expr, object format) =>
+        new(Resolve(expr), Resolve(format));
 
     /// <summary>
     /// The PostgreSQL text-search match predicate <c>vector @@ query</c>: whether

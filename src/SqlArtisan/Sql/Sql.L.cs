@@ -39,13 +39,8 @@ public static partial class Sql
     /// <returns>An <see cref="AnalyticLagFunction"/> emitting <c>LAG(expr, offset, default)</c>.</returns>
     /// <remarks>The offset is emitted as an integer literal; the default value is
     /// parameterized.</remarks>
-    public static AnalyticLagFunction Lag(
-        object expr,
-        int offset,
-        object defaultValue) => new(
-            Resolve(expr),
-            offset,
-            Resolve(defaultValue));
+    public static AnalyticLagFunction Lag(object expr, int offset, object defaultValue) =>
+        new(Resolve(expr), offset, Resolve(defaultValue));
 
     /// <summary>
     /// The <c>LAST_DAY(<paramref name="date"/>)</c> function: the date
@@ -103,13 +98,8 @@ public static partial class Sql
     /// <returns>An <see cref="AnalyticLeadFunction"/> emitting <c>LEAD(expr, offset, default)</c>.</returns>
     /// <remarks>The offset is emitted as an integer literal; the default value is
     /// parameterized.</remarks>
-    public static AnalyticLeadFunction Lead(
-        object expr,
-        int offset,
-        object defaultValue) => new(
-            Resolve(expr),
-            offset,
-            Resolve(defaultValue));
+    public static AnalyticLeadFunction Lead(object expr, int offset, object defaultValue) =>
+        new(Resolve(expr), offset, Resolve(defaultValue));
 
     /// <summary>
     /// The <c>LEAST(a, b, ...)</c> function: the smallest of its
@@ -169,23 +159,15 @@ public static partial class Sql
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target total length.</param>
     /// <returns>The LPAD construct.</returns>
-    public static LpadFunction Lpad(
-        object source,
-        object length) => new(
-            Resolve(source),
-            Resolve(length));
+    public static LpadFunction Lpad(object source, object length) =>
+        new(Resolve(source), Resolve(length));
 
     /// <inheritdoc cref="Lpad(object, object)"/>
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target total length.</param>
     /// <param name="padding">The string to pad with instead of spaces.</param>
-    public static LpadFunction Lpad(
-        object source,
-        object length,
-        object padding) => new(
-            Resolve(source),
-            Resolve(length),
-            Resolve(padding));
+    public static LpadFunction Lpad(object source, object length, object padding) =>
+        new(Resolve(source), Resolve(length), Resolve(padding));
 
     /// <summary>
     /// The <c>LTRIM(<paramref name="source"/>)</c> function: removes leading
@@ -199,9 +181,6 @@ public static partial class Sql
     /// <inheritdoc cref="Ltrim(object)"/>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip from the left.</param>
-    public static LtrimFunction Ltrim(
-        object source,
-        object trimChars) => new(
-            Resolve(source),
-            Resolve(trimChars));
+    public static LtrimFunction Ltrim(object source, object trimChars) =>
+        new(Resolve(source), Resolve(trimChars));
 }

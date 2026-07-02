@@ -20,8 +20,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="whenCondition">The condition tested by this arm.</param>
     /// <returns>A searched <c>WHEN</c> arm awaiting <c>.Then(...)</c>.</returns>
-    public static SearchedCaseWhenCondition When(
-        SqlCondition whenCondition) => new(whenCondition);
+    public static SearchedCaseWhenCondition When(SqlCondition whenCondition) => new(whenCondition);
 
     /// <summary>
     /// A <c>WHEN value THEN ...</c> arm of a simple <c>CASE expr</c> expression: the
@@ -41,8 +40,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="ctes">One or more CTE definitions, each produced by <c>cte.As(subquery)</c>.</param>
     /// <returns>A <c>WITH</c> builder positioned for the following statement.</returns>
-    public static IWithBuilderWith With(
-        params CommonTableExpression[] ctes) =>
+    public static IWithBuilderWith With(params CommonTableExpression[] ctes) =>
         new WithBuilder(new WithClause(ctes));
 
     /// <summary>
@@ -52,7 +50,6 @@ public static partial class Sql
     /// </summary>
     /// <param name="ctes">One or more CTE definitions, each produced by <c>cte.As(subquery)</c>.</param>
     /// <returns>A <c>WITH RECURSIVE</c> builder positioned for the following statement.</returns>
-    public static IWithBuilderWith WithRecursive(
-        params CommonTableExpression[] ctes) =>
+    public static IWithBuilderWith WithRecursive(params CommonTableExpression[] ctes) =>
         new WithBuilder(new WithRecursiveClause(ctes));
 }

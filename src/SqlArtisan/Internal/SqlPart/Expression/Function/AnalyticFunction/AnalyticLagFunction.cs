@@ -20,10 +20,7 @@ public sealed class AnalyticLagFunction : AnalyticFunction
         _default = null;
     }
 
-    internal AnalyticLagFunction(
-        SqlExpression expr,
-        int offset,
-        SqlExpression @default)
+    internal AnalyticLagFunction(SqlExpression expr, int offset, SqlExpression @default)
     {
         _expr = expr;
         _offset = offset;

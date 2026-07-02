@@ -5,9 +5,7 @@ public sealed class RtrimFunction : SqlExpression
     private readonly SqlExpression _source;
     private readonly SqlExpression? _trimChars;
 
-    internal RtrimFunction(
-        SqlExpression source,
-        SqlExpression? trimChars = null)
+    internal RtrimFunction(SqlExpression source, SqlExpression? trimChars = null)
     {
         _source = source;
         _trimChars = trimChars;

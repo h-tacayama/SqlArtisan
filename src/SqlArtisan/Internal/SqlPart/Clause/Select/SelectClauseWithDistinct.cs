@@ -7,19 +7,14 @@ internal sealed class SelectClauseWithDistinct : SqlPart
     private readonly SqlPart _distinct;
     private readonly SqlPart[] _selectItems;
 
-    private SelectClauseWithDistinct(
-        SqlPart distinct,
-        SqlPart[] selectItems)
+    private SelectClauseWithDistinct(SqlPart distinct, SqlPart[] selectItems)
     {
         _distinct = distinct;
         _selectItems = selectItems;
     }
 
-    internal static SelectClauseWithDistinct Parse(
-        SqlPart distinct,
-        object[] selectItems) => new(
-            distinct,
-            SelectItemResolver.Resolve(selectItems));
+    internal static SelectClauseWithDistinct Parse(SqlPart distinct, object[] selectItems) =>
+        new(distinct, SelectItemResolver.Resolve(selectItems));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Select} ")

@@ -71,11 +71,8 @@ public static partial class Sql
     /// <param name="dividend">The number being divided.</param>
     /// <param name="divisor">The number to divide by.</param>
     /// <returns>The MOD construct.</returns>
-    public static ModFunction Mod(
-        object dividend,
-        object divisor) => new(
-            Resolve(dividend),
-            Resolve(divisor));
+    public static ModFunction Mod(object dividend, object divisor) =>
+        new(Resolve(dividend), Resolve(divisor));
 
     /// <summary>
     /// The <c>MONTHS_BETWEEN(<paramref name="date1"/>, <paramref name="date2"/>)</c>
@@ -86,9 +83,6 @@ public static partial class Sql
     /// <param name="date2">The earlier date.</param>
     /// <returns>The MONTHS_BETWEEN construct.</returns>
     /// <remarks>Oracle syntax.</remarks>
-    public static MonthsBetweenFunction MonthsBetween(
-        object date1,
-        object date2) => new(
-            Resolve(date1),
-            Resolve(date2));
+    public static MonthsBetweenFunction MonthsBetween(object date1, object date2) =>
+        new(Resolve(date1), Resolve(date2));
 }

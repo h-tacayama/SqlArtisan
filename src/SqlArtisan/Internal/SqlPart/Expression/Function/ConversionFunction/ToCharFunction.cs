@@ -5,9 +5,7 @@ public sealed class ToCharFunction : SqlExpression
     private readonly SqlExpression _expr;
     private readonly SqlExpression? _format;
 
-    internal ToCharFunction(
-        SqlExpression expr,
-        SqlExpression? format = null)
+    internal ToCharFunction(SqlExpression expr, SqlExpression? format = null)
     {
         _expr = expr;
         _format = format;

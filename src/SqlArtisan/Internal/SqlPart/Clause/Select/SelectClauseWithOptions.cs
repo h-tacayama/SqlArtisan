@@ -7,10 +7,7 @@ internal sealed class SelectClauseWithOptions : SqlPart
     private readonly SqlPart _distinct;
     private readonly SqlPart[] _selectItems;
 
-    private SelectClauseWithOptions(
-        SqlHints hints,
-        SqlPart distinct,
-        SqlPart[] selectItems)
+    private SelectClauseWithOptions(SqlHints hints, SqlPart distinct, SqlPart[] selectItems)
     {
         _hints = hints;
         _distinct = distinct;

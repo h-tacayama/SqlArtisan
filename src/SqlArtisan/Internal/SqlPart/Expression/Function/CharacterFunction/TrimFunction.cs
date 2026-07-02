@@ -5,9 +5,7 @@ public sealed class TrimFunction : SqlExpression
     private readonly SqlExpression _source;
     private readonly SqlExpression? _trimChar;
 
-    internal TrimFunction(
-        SqlExpression source,
-        SqlExpression? trimChar = null)
+    internal TrimFunction(SqlExpression source, SqlExpression? trimChar = null)
     {
         _source = source;
         _trimChar = trimChar;

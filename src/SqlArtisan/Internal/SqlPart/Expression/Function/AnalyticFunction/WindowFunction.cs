@@ -5,9 +5,7 @@ public sealed class WindowFunction : SqlExpression
     private readonly SqlPart _function;
     private readonly OverClause _overClause;
 
-    internal WindowFunction(
-        SqlPart function,
-        OverClause overClause)
+    internal WindowFunction(SqlPart function, OverClause overClause)
     {
         _function = function;
         _overClause = overClause;

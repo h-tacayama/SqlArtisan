@@ -6,10 +6,7 @@ public sealed class DateaddFunction : SqlExpression
     private readonly SqlExpression _number;
     private readonly SqlExpression _dateTime;
 
-    internal DateaddFunction(
-        DateTimePart datepart,
-        SqlExpression number,
-        SqlExpression dateTime)
+    internal DateaddFunction(DateTimePart datepart, SqlExpression number, SqlExpression dateTime)
     {
         _datepart = datepart;
         _number = number;

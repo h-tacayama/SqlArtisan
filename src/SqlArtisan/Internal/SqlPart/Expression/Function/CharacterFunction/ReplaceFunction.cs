@@ -6,10 +6,7 @@ public sealed class ReplaceFunction : SqlExpression
     private readonly SqlExpression _search;
     private readonly SqlExpression _replacement;
 
-    internal ReplaceFunction(
-        SqlExpression source,
-        SqlExpression search,
-        SqlExpression replacement)
+    internal ReplaceFunction(SqlExpression source, SqlExpression search, SqlExpression replacement)
     {
 
         _source = source;

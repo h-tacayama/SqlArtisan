@@ -31,11 +31,8 @@ public static partial class Sql
     /// <param name="months">The number of months to add.</param>
     /// <returns>An <see cref="AddMonthsFunction"/> emitting
     /// <c>ADD_MONTHS(dateTime, months)</c>.</returns>
-    public static AddMonthsFunction AddMonths(
-        object dateTime,
-        object months) => new(
-            Resolve(dateTime),
-            Resolve(months));
+    public static AddMonthsFunction AddMonths(object dateTime, object months) =>
+        new(Resolve(dateTime), Resolve(months));
 
     /// <summary>
     /// The <c>ALL (subquery)</c> quantified comparison operator: the comparison must
