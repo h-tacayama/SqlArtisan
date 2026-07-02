@@ -66,7 +66,7 @@ internal static class Keywords
     internal const string Greatest = "GREATEST";
     internal const string Group = "GROUP";
     internal const string GroupConcat = "GROUP_CONCAT";
-    internal const string GroupingSets = "GROUPING SETS";
+    internal const string Grouping = "GROUPING";
     internal const string Having = "HAVING";
     internal const string In = "IN";
     internal const string Inner = "INNER";
@@ -82,6 +82,7 @@ internal static class Keywords
     internal const string Key = "KEY";
     internal const string Lag = "LAG";
     internal const string Language = "LANGUAGE";
+    internal const string Last = "LAST";
     internal const string LastDay = "LAST_DAY";
     internal const string LastValue = "LAST_VALUE";
     internal const string Lateral = "LATERAL";
@@ -116,8 +117,7 @@ internal static class Keywords
     internal const string Ntile = "NTILE";
     internal const string Null = "NULL";
     internal const string Nullif = "NULLIF";
-    internal const string NullsFirst = "NULLS FIRST";
-    internal const string NullsLast = "NULLS LAST";
+    internal const string Nulls = "NULLS";
     internal const string Nvl = "NVL";
     internal const string Of = "OF";
     internal const string Offset = "OFFSET";
@@ -156,6 +156,7 @@ internal static class Keywords
     internal const string Select = "SELECT";
     internal const string Separator = "SEPARATOR";
     internal const string Set = "SET";
+    internal const string Sets = "SETS";
     internal const string Sign = "SIGN";
     internal const string Skip = "SKIP";
     internal const string Some = "SOME";
@@ -189,5 +190,5 @@ internal static class Keywords
     internal const string When = "WHEN";
     internal const string Where = "WHERE";
     internal const string With = "WITH";
-    internal const string WithinGroup = "WITHIN GROUP";
+    internal const string Within = "WITHIN";
 }

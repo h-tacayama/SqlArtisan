@@ -13,7 +13,7 @@ public sealed class WithinGroupClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.WithinGroup)
+        .Append($"{Keywords.Within} {Keywords.Group}")
         .AppendSpace()
         .OpenParenthesis()
         .Append(_orderByClause)

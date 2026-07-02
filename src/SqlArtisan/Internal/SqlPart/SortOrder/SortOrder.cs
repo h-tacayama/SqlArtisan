@@ -56,10 +56,10 @@ public sealed class SortOrder : SqlPart
         switch (_nullOrdering)
         {
             case NullOrdering.NullsFirst:
-                buffer.Append($" {Keywords.NullsFirst}");
+                buffer.Append($" {Keywords.Nulls} {Keywords.First}");
                 break;
             case NullOrdering.NullsLast:
-                buffer.Append($" {Keywords.NullsLast}");
+                buffer.Append($" {Keywords.Nulls} {Keywords.Last}");
                 break;
         }
     }
