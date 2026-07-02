@@ -9,7 +9,7 @@
 
 ## Contents
 
-- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [JSON](#json-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions)
+- [Numeric](#numeric-functions) · [Character](#character-functions) · [Date & Time](#date-and-time-functions) · [Conversion](#conversion-functions) · [Comparison](#comparison-functions) · [JSON](#json-functions) · [Full-Text Search](#full-text-search-functions) · [Aggregate](#aggregate-functions) · [String Aggregation](#string-aggregation-functions) · [Window / Analytic](#window-functions)
 - [Bind Parameter Types](#bind-parameter-types)
 
 ---
@@ -104,6 +104,27 @@ JSON paths are emitted as inline string literals (SQL Server and Oracle require 
 > JSON **operators** (`->`, `->>`, `#>`, `#>>`) live in
 > [Expressions: JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators)
 > because they are infix operators, not function calls.
+
+---
+
+## Full-Text Search Functions
+
+Exposed per dialect (no unified rewrite); each emits its dialect-native syntax verbatim. Search text is parameterized; the PostgreSQL text-search configuration is emitted as an inline string literal.
+
+- `Match(columns...).Against(text[, modifier])` for `MATCH (...) AGAINST (... [modifier])` (MySQL, predicate); `.AgainstScore(...)` emits the same construct as the relevance score
+- `ContainsScore(column, query[, label])` for `CONTAINS(column, query[, label])` (Oracle, relevance score 0–100)
+- `Score(label)` for `SCORE(label)` (Oracle)
+- `ToTsvector([config,] document)` for `TO_TSVECTOR` (PostgreSQL)
+- `ToTsquery([config,] text)` for `TO_TSQUERY` (PostgreSQL)
+- `PlaintoTsquery([config,] text)` for `PLAINTO_TSQUERY` (PostgreSQL)
+- `TsMatch(vector, query)` for the `@@` match predicate (PostgreSQL)
+- `Match(table, pattern)` for FTS5 `table MATCH pattern` (SQLite, predicate)
+- `Contains(column, searchCondition)` for `CONTAINS(column, searchCondition)` (SQL Server, predicate)
+- `Freetext(column, freetext)` for `FREETEXT(column, freetext)` (SQL Server, predicate)
+
+> [!NOTE]
+> Usage examples and each engine's full-text index prerequisite live in
+> [Expressions: Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search).
 
 ---
 

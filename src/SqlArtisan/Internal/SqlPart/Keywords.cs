@@ -5,6 +5,7 @@ internal static class Keywords
     internal const string Abs = "ABS";
     internal const string Add = "ADD";
     internal const string AddMonths = "ADD_MONTHS";
+    internal const string Against = "AGAINST";
     internal const string All = "ALL";
     internal const string And = "AND";
     internal const string Any = "ANY";
@@ -13,6 +14,7 @@ internal static class Keywords
     internal const string Asc = "ASC";
     internal const string Avg = "AVG";
     internal const string Between = "BETWEEN";
+    internal const string Boolean = "BOOLEAN";
     internal const string Both = "BOTH";
     internal const string By = "BY";
     internal const string Case = "CASE";
@@ -22,6 +24,7 @@ internal static class Keywords
     internal const string Coalesce = "COALESCE";
     internal const string Concat = "CONCAT";
     internal const string Conflict = "CONFLICT";
+    internal const string Contains = "CONTAINS";
     internal const string Count = "COUNT";
     internal const string Cross = "CROSS";
     internal const string Cube = "CUBE";
@@ -48,6 +51,7 @@ internal static class Keywords
     internal const string Escape = "ESCAPE";
     internal const string Except = "EXCEPT";
     internal const string Exists = "EXISTS";
+    internal const string Expansion = "EXPANSION";
     internal const string Extract = "EXTRACT";
     internal const string Fetch = "FETCH";
     internal const string Filter = "FILTER";
@@ -56,6 +60,7 @@ internal static class Keywords
     internal const string Floor = "FLOOR";
     internal const string Following = "FOLLOWING";
     internal const string For = "FOR";
+    internal const string Freetext = "FREETEXT";
     internal const string From = "FROM";
     internal const string Full = "FULL";
     internal const string Greatest = "GREATEST";
@@ -76,6 +81,7 @@ internal static class Keywords
     internal const string JsonValue = "JSON_VALUE";
     internal const string Key = "KEY";
     internal const string Lag = "LAG";
+    internal const string Language = "LANGUAGE";
     internal const string LastDay = "LAST_DAY";
     internal const string LastValue = "LAST_VALUE";
     internal const string Lateral = "LATERAL";
@@ -91,13 +97,16 @@ internal static class Keywords
     internal const string Lower = "LOWER";
     internal const string Lpad = "LPAD";
     internal const string Ltrim = "LTRIM";
+    internal const string Match = "MATCH";
     internal const string Matched = "MATCHED";
     internal const string Max = "MAX";
     internal const string Merge = "MERGE";
     internal const string Min = "MIN";
     internal const string Minus = "MINUS";
     internal const string Mod = "MOD";
+    internal const string Mode = "MODE";
     internal const string MonthsBetween = "MONTHS_BETWEEN";
+    internal const string Natural = "NATURAL";
     internal const string Next = "NEXT";
     internal const string Nextval = "NEXTVAL";
     internal const string Not = "NOT";
@@ -122,8 +131,10 @@ internal static class Keywords
     internal const string PercentileCont = "PERCENTILE_CONT";
     internal const string PercentileDisc = "PERCENTILE_DISC";
     internal const string PercentRank = "PERCENT_RANK";
+    internal const string PlaintoTsquery = "PLAINTO_TSQUERY";
     internal const string Power = "POWER";
     internal const string Preceding = "PRECEDING";
+    internal const string Query = "QUERY";
     internal const string Range = "RANGE";
     internal const string Rank = "RANK";
     internal const string Recursive = "RECURSIVE";
@@ -141,6 +152,7 @@ internal static class Keywords
     internal const string Rows = "ROWS";
     internal const string Rpad = "RPAD";
     internal const string Rtrim = "RTRIM";
+    internal const string Score = "SCORE";
     internal const string Select = "SELECT";
     internal const string Separator = "SEPARATOR";
     internal const string Set = "SET";
@@ -161,6 +173,8 @@ internal static class Keywords
     internal const string ToDate = "TO_DATE";
     internal const string ToNumber = "TO_NUMBER";
     internal const string ToTimestamp = "TO_TIMESTAMP";
+    internal const string ToTsquery = "TO_TSQUERY";
+    internal const string ToTsvector = "TO_TSVECTOR";
     internal const string Trim = "TRIM";
     internal const string True = "TRUE";
     internal const string Trunc = "TRUNC";

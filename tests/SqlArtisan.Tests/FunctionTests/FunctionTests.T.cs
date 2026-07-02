@@ -118,6 +118,64 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void ToTsquery_CharacterValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(ToTsquery("data & query"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TO_TSQUERY(:0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("data & query", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void ToTsquery_WithConfig_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(ToTsquery("english", "data & query"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TO_TSQUERY('english', :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("data & query", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void ToTsvector_ColumnValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(ToTsvector(_t.Name))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TO_TSVECTOR(\"t\".name)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ToTsvector_WithConfig_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(ToTsvector("english", _t.Name))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TO_TSVECTOR('english', \"t\".name)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Trim_CharacterValue_CorrectSql()
     {
         SqlStatement sql =
@@ -199,5 +257,26 @@ public partial class FunctionTests
         expected.Append("TRUNC(\"t\".code, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void TsMatch_TsvectorAgainstTsquery_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Where(TsMatch(
+                ToTsvector("english", _t.Name),
+                PlaintoTsquery("english", "database")))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT \"t\".code ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("WHERE TO_TSVECTOR('english', \"t\".name) ");
+        expected.Append("@@ PLAINTO_TSQUERY('english', :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("database", sql.Parameters.Get<string>(":0"));
     }
 }

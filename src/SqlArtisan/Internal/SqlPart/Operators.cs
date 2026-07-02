@@ -17,4 +17,5 @@ internal static class Operators
     internal const string Percent = "%";
     internal const string Plus = "+";
     internal const string Slash = "/";
+    internal const string TsMatch = "@@";
 }

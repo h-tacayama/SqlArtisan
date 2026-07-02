@@ -51,6 +51,26 @@ public static partial class Sql
     public static AnalyticPercentRankFunction PercentRank() => new();
 
     /// <summary>
+    /// The PostgreSQL <c>PLAINTO_TSQUERY(text)</c> function: parses plain,
+    /// unformatted <paramref name="text"/> into a text-search query (terms ANDed).
+    /// Pair with a tsvector via <see cref="TsMatch(object, object)"/>.
+    /// </summary>
+    /// <param name="text">The plain text to parse.</param>
+    /// <returns>A <see cref="PlaintoTsqueryFunction"/> emitting
+    /// <c>PLAINTO_TSQUERY(text)</c>.</returns>
+    /// <remarks>PostgreSQL syntax. For text already in tsquery syntax use
+    /// <see cref="ToTsquery(object)"/>.</remarks>
+    public static PlaintoTsqueryFunction PlaintoTsquery(object text) =>
+        new(null, Resolve(text));
+
+    /// <inheritdoc cref="PlaintoTsquery(object)"/>
+    /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
+    /// emitted as an inline string literal.</param>
+    /// <param name="text">The plain text to parse.</param>
+    public static PlaintoTsqueryFunction PlaintoTsquery(string config, object text) =>
+        new(config, Resolve(text));
+
+    /// <summary>
     /// The <c>POWER(base, exponent)</c> function: <paramref name="base"/> raised
     /// to the power of <paramref name="exponent"/>.
     /// </summary>

@@ -7,6 +7,17 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
+    /// The Oracle Text <c>SCORE(label)</c> function: the relevance score computed
+    /// by the <see cref="ContainsScore(object, object, int)"/> operator carrying
+    /// the same <paramref name="label"/>, for a select list or <c>ORDER BY</c>.
+    /// </summary>
+    /// <param name="label">The label of the <c>CONTAINS</c> operator whose score
+    /// to read.</param>
+    /// <returns>A <see cref="ScoreFunction"/> emitting <c>SCORE(label)</c>.</returns>
+    /// <remarks>Oracle syntax.</remarks>
+    public static ScoreFunction Score(int label) => new(label);
+
+    /// <summary>
     /// Begins a <c>SELECT</c> statement projecting <paramref name="selectItems"/>.
     /// Continue with <c>.From(...)</c> and the remaining clauses. Each item is a
     /// column, expression, or <c>expr.As("alias")</c>.
