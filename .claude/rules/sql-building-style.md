@@ -14,7 +14,8 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    atoms** — `$"{Keywords.Group} {Keywords.By}"` — which the compiler folds
    into a single string constant (zero runtime cost). Edge spaces inside such
    const interpolations are fine: `$"{Keywords.Where} "`, `$" {Keywords.End}"`.
-   (Four legacy compound constants are being decomposed in #208.)
+   The one-token rule is CI-enforced by `KeywordsTests` (a constant value
+   containing a space fails the unit suite).
 
 2. **Helpers cover what a const interpolation cannot.** Use them for spacing
    that involves a `SqlPart`, a runtime value, or a condition — do not

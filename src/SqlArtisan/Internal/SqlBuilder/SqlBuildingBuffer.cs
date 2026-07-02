@@ -113,7 +113,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // Emitted faithfully on every dialect; where GROUPING SETS is unavailable
     // (MySQL, SQLite) that is the analyzer's concern (ADR 0003), not Build's.
     internal SqlBuildingBuffer AppendGroupingSets(SqlPart[] sets) =>
-        Append(Keywords.GroupingSets)
+        Append($"{Keywords.Grouping} {Keywords.Sets}")
             .OpenParenthesis()
             .AppendCsv(sets)
             .CloseParenthesis();
