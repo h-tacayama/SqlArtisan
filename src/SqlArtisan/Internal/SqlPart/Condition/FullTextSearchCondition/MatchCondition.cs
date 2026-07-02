@@ -21,7 +21,7 @@ public sealed class MatchCondition : SqlCondition
         _table.FormatAsMatchTarget(buffer);
 
         buffer
-            .Append($" {Keywords.Match} ")
+            .EncloseInSpaces(Keywords.Match)
             .Append(_pattern);
     }
 }

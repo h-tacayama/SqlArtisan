@@ -22,14 +22,14 @@ public sealed class MatchAgainstExpression : SqlExpression
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Match} ")
+        .Append(Keywords.Match)
+        .AppendSpace()
         .OpenParenthesis()
         .AppendCsv(_columns)
         .CloseParenthesis()
-        .Append($" {Keywords.Against} ")
+        .EncloseInSpaces(Keywords.Against)
         .OpenParenthesis()
         .Append(_searchExpr)
-        .AppendIf(_modifier is not null, " ")
-        .Append(_modifier)
+        .PrependSpaceIfNotNull(_modifier)
         .CloseParenthesis();
 }

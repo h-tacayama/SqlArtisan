@@ -17,6 +17,6 @@ public sealed class TsMatchCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_vector)
-        .Append($" {Operators.TsMatch} ")
+        .EncloseInSpaces(Operators.TsMatch)
         .Append(_query);
 }
