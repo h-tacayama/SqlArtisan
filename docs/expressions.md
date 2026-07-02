@@ -18,6 +18,7 @@
 - [Arithmetic Operators](#arithmetic-operators)
 - [Conditions](#conditions)
 - [JSON Operators](#json-operators)
+- [Full-Text Search](#full-text-search)
 - [Scalar Subquery](#scalar-subquery)
 - [ALL / ANY / SOME](#all--any--some)
 - [CASE Expressions](#case-expressions)
@@ -25,7 +26,6 @@
 - [Window Functions](#window-functions)
 - [Conditional Aggregation (FILTER)](#conditional-aggregation-filter)
 - [String Aggregation](#string-aggregation)
-- [Full-Text Search](#full-text-search)
 - [Sequence](#sequence)
 
 ---
@@ -327,6 +327,94 @@ SqlStatement sql =
 ```
 
 PostgreSQL only. `JsonHashArrow` (`#>`) returns JSON; `JsonHashArrowText` (`#>>`) returns text.
+
+---
+
+## Full-Text Search
+
+Full-text search has no common syntax across the five engines, so SqlArtisan exposes it per dialect (no unified rewrite): you call the API your target DBMS supports, and the SQL you write is the SQL that runs. Every engine requires a full-text index on the searched columns before these run — a `FULLTEXT` index (MySQL), an Oracle Text `CONTEXT` index, a `GIN` index over the tsvector (PostgreSQL), an FTS5 virtual table (SQLite), or a full-text index and catalog (SQL Server).
+
+The examples below assume a `posts` table class with `Title` / `Body` columns.
+
+### MATCH ... AGAINST (MySQL)
+
+`Match(columns...)` is pending its mandatory `AGAINST` clause: complete it with `.Against(text)` (a `WHERE` predicate) or `.AgainstScore(text)` (the numeric relevance score, for a select list or `ORDER BY`). Both take an optional `SearchModifier` — `InNaturalLanguageMode`, `InBooleanMode`, or `WithQueryExpansion`; omitted, MySQL defaults to natural language mode.
+
+```csharp
+SqlStatement sql =
+    Select(post.Title)
+    .From(post)
+    .Where(Match(post.Title, post.Body).Against("+database -orm", SearchModifier.InBooleanMode))
+    .Build(Dbms.MySql);
+
+// SELECT title FROM posts
+// WHERE MATCH (title, body) AGAINST (?0 IN BOOLEAN MODE)
+```
+
+### CONTAINS / SCORE (Oracle)
+
+`ContainsScore(column, query)` emits Oracle Text's `CONTAINS`, which returns a relevance score (0–100; 0 = no match) — compare it in `WHERE`. Pass a `label` to read the score elsewhere via `Score(label)`.
+
+```csharp
+SqlStatement sql =
+    Select(post.Title, Score(1).As("relevance"))
+    .From(post)
+    .Where(ContainsScore(post.Body, "database", 1) > 0)
+    .OrderBy(Score(1).Desc)
+    .Build(Dbms.Oracle);
+
+// SELECT title, SCORE(1) "relevance" FROM posts
+// WHERE CONTAINS(body, :0, 1) > :1 ORDER BY SCORE(1) DESC
+```
+
+### TO_TSVECTOR @@ TO_TSQUERY (PostgreSQL)
+
+`TsMatch(vector, query)` emits the `@@` match predicate. Build its sides with `ToTsvector([config,] document)`, and `ToTsquery([config,] text)` (tsquery syntax: `&`, `|`, `!`) or `PlaintoTsquery([config,] text)` (plain text, terms ANDed). The text-search configuration is emitted as an inline string literal.
+
+```csharp
+SqlStatement sql =
+    Select(post.Title)
+    .From(post)
+    .Where(TsMatch(
+        ToTsvector("english", post.Body),
+        PlaintoTsquery("english", "database query")))
+    .Build();
+
+// SELECT title FROM posts
+// WHERE TO_TSVECTOR('english', body) @@ PLAINTO_TSQUERY('english', :0)
+```
+
+### FTS5 MATCH (SQLite)
+
+`Match(table, pattern)` emits the FTS5 `table MATCH pattern` predicate against an FTS5 virtual table. The table renders as its bare name, qualified by its alias when one is declared (`"a".posts_fts MATCH ...`).
+
+```csharp
+DbTable fts = new("posts_fts");
+
+SqlStatement sql =
+    Select(fts.Column("title"))
+    .From(fts)
+    .Where(Match(fts, "database"))
+    .Build(Dbms.Sqlite);
+
+// SELECT title FROM posts_fts
+// WHERE posts_fts MATCH :0
+```
+
+### CONTAINS / FREETEXT (SQL Server)
+
+`Contains(column, searchCondition)` matches words, prefixes, and boolean combinations; `Freetext(column, freetext)` matches by meaning rather than exact wording. Both are `WHERE` predicates.
+
+```csharp
+SqlStatement sql =
+    Select(post.Title)
+    .From(post)
+    .Where(Contains(post.Body, "database AND query"))
+    .Build(Dbms.SqlServer);
+
+// SELECT title FROM posts
+// WHERE CONTAINS(body, @0)
+```
 
 ---
 
@@ -712,94 +800,6 @@ MySQL's grammar requires the `SEPARATOR` value to be a string literal (a bind pa
 
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable (e.g. `SET SESSION group_concat_max_len = 1000000;`) when a group can exceed it.
-
----
-
-## Full-Text Search
-
-Full-text search is the most dialect-divergent feature in scope, so SqlArtisan exposes it per dialect (no unified rewrite): you call the API your target DBMS supports, and the SQL you write is the SQL that runs. Every engine requires a full-text index on the searched columns before these run — a `FULLTEXT` index (MySQL), an Oracle Text `CONTEXT` index, a `GIN` index over the tsvector (PostgreSQL), an FTS5 virtual table (SQLite), or a full-text index and catalog (SQL Server).
-
-The examples below assume a `posts` table class with `Title` / `Body` columns.
-
-### MATCH ... AGAINST (MySQL)
-
-`Match(columns...)` is pending its mandatory `AGAINST` clause: complete it with `.Against(text)` (a `WHERE` predicate) or `.AgainstScore(text)` (the numeric relevance score, for a select list or `ORDER BY`). Both take an optional `SearchModifier` — `InNaturalLanguageMode`, `InBooleanMode`, or `WithQueryExpansion`; omitted, MySQL defaults to natural language mode.
-
-```csharp
-SqlStatement sql =
-    Select(post.Title)
-    .From(post)
-    .Where(Match(post.Title, post.Body).Against("+database -orm", SearchModifier.InBooleanMode))
-    .Build(Dbms.MySql);
-
-// SELECT title FROM posts
-// WHERE MATCH (title, body) AGAINST (?0 IN BOOLEAN MODE)
-```
-
-### CONTAINS / SCORE (Oracle)
-
-`ContainsScore(column, query)` emits Oracle Text's `CONTAINS`, which returns a relevance score (0–100; 0 = no match) — compare it in `WHERE`. Pass a `label` to read the score elsewhere via `Score(label)`.
-
-```csharp
-SqlStatement sql =
-    Select(post.Title, Score(1).As("relevance"))
-    .From(post)
-    .Where(ContainsScore(post.Body, "database", 1) > 0)
-    .OrderBy(Score(1).Desc)
-    .Build(Dbms.Oracle);
-
-// SELECT title, SCORE(1) "relevance" FROM posts
-// WHERE CONTAINS(body, :0, 1) > :1 ORDER BY SCORE(1) DESC
-```
-
-### TO_TSVECTOR @@ TO_TSQUERY (PostgreSQL)
-
-`TsMatch(vector, query)` emits the `@@` match predicate. Build its sides with `ToTsvector([config,] document)`, and `ToTsquery([config,] text)` (tsquery syntax: `&`, `|`, `!`) or `PlaintoTsquery([config,] text)` (plain text, terms ANDed). The text-search configuration is emitted as an inline string literal.
-
-```csharp
-SqlStatement sql =
-    Select(post.Title)
-    .From(post)
-    .Where(TsMatch(
-        ToTsvector("english", post.Body),
-        PlaintoTsquery("english", "database query")))
-    .Build();
-
-// SELECT title FROM posts
-// WHERE TO_TSVECTOR('english', body) @@ PLAINTO_TSQUERY('english', :0)
-```
-
-### FTS5 MATCH (SQLite)
-
-`Match(table, pattern)` emits the FTS5 `table MATCH pattern` predicate against an FTS5 virtual table. The table renders as its bare name, qualified by its alias when one is declared (`"a".posts_fts MATCH ...`).
-
-```csharp
-DbTable fts = new("posts_fts");
-
-SqlStatement sql =
-    Select(fts.Column("title"))
-    .From(fts)
-    .Where(Match(fts, "database"))
-    .Build(Dbms.Sqlite);
-
-// SELECT title FROM posts_fts
-// WHERE posts_fts MATCH :0
-```
-
-### CONTAINS / FREETEXT (SQL Server)
-
-`Contains(column, searchCondition)` matches words, prefixes, and boolean combinations; `Freetext(column, freetext)` matches by meaning rather than exact wording. Both are `WHERE` predicates.
-
-```csharp
-SqlStatement sql =
-    Select(post.Title)
-    .From(post)
-    .Where(Contains(post.Body, "database AND query"))
-    .Build(Dbms.SqlServer);
-
-// SELECT title FROM posts
-// WHERE CONTAINS(body, @0)
-```
 
 ---
 
