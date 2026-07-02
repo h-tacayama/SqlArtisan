@@ -45,6 +45,7 @@ Values, predicates, and computed expressions.
 [CAST](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#cast) ·
 [Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions) ·
 [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-aggregation) ·
+[Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search) ·
 [Sequence](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#sequence)
 
 ## [Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md)
