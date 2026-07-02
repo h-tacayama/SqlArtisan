@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.5.0-beta.2] - 2026-07-03
 ### Added
 - Full-text search, exposed per dialect (ADR 0002; no cross-DB rewrite). MySQL: `Match(columns...)` pending its mandatory `AGAINST` — complete with `.Against(text[, SearchModifier])` (a `WHERE` predicate) or `.AgainstScore(text[, SearchModifier])` (the numeric relevance score); modifiers `IN NATURAL LANGUAGE MODE` / `IN BOOLEAN MODE` / `WITH QUERY EXPANSION`. Oracle: `ContainsScore(column, query[, label])` for the score-returning `CONTAINS` (compare it, e.g. `> 0`) and `Score(label)` for `SCORE(label)`. PostgreSQL: `TsMatch(vector, query)` for the `@@` predicate with `ToTsvector` / `ToTsquery` / `PlaintoTsquery` (optional configuration emitted as an inline string literal). SQLite: `Match(table, pattern)` for the FTS5 `table MATCH pattern` predicate. SQL Server: `Contains(column, searchCondition)` and `Freetext(column, freetext)` predicates. Search text is parameterized on every dialect; each engine requires its full-text index prerequisite (documented in the expression reference). (#153)
 - Scalar subqueries in expression position: a `SELECT` builder can now be used directly as a value — in a `SELECT` list, a `WHERE` comparison, or arithmetic — without an explicit wrapper. Chain `.As("alias")` for an aliased scalar subquery. Correlated subqueries (referencing outer-table columns) work naturally. (#156)
