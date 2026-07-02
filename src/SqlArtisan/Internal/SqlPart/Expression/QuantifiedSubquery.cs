@@ -4,10 +4,8 @@ public sealed class QuantifiedSubquery(string keyword, ISubquery subquery) : Sql
 {
     private readonly ISubquery _subquery = subquery;
 
-    internal override void Format(SqlBuildingBuffer buffer)
-    {
-        buffer.Append(keyword);
-        buffer.Append(' ');
-        buffer.EncloseInParentheses(_subquery);
-    }
+    internal override void Format(SqlBuildingBuffer buffer) => buffer
+        .Append(keyword)
+        .AppendSpace()
+        .EncloseInParentheses(_subquery);
 }
