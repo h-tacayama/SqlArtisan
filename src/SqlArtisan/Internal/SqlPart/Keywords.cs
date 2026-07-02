@@ -14,6 +14,7 @@ internal static class Keywords
     internal const string Asc = "ASC";
     internal const string Avg = "AVG";
     internal const string Between = "BETWEEN";
+    internal const string Boolean = "BOOLEAN";
     internal const string Both = "BOTH";
     internal const string By = "BY";
     internal const string Case = "CASE";
@@ -50,6 +51,7 @@ internal static class Keywords
     internal const string Escape = "ESCAPE";
     internal const string Except = "EXCEPT";
     internal const string Exists = "EXISTS";
+    internal const string Expansion = "EXPANSION";
     internal const string Extract = "EXTRACT";
     internal const string Fetch = "FETCH";
     internal const string Filter = "FILTER";
@@ -67,8 +69,6 @@ internal static class Keywords
     internal const string GroupingSets = "GROUPING SETS";
     internal const string Having = "HAVING";
     internal const string In = "IN";
-    internal const string InBooleanMode = "IN BOOLEAN MODE";
-    internal const string InNaturalLanguageMode = "IN NATURAL LANGUAGE MODE";
     internal const string Inner = "INNER";
     internal const string Insert = "INSERT";
     internal const string Instr = "INSTR";
@@ -81,6 +81,7 @@ internal static class Keywords
     internal const string JsonValue = "JSON_VALUE";
     internal const string Key = "KEY";
     internal const string Lag = "LAG";
+    internal const string Language = "LANGUAGE";
     internal const string LastDay = "LAST_DAY";
     internal const string LastValue = "LAST_VALUE";
     internal const string Lateral = "LATERAL";
@@ -103,7 +104,9 @@ internal static class Keywords
     internal const string Min = "MIN";
     internal const string Minus = "MINUS";
     internal const string Mod = "MOD";
+    internal const string Mode = "MODE";
     internal const string MonthsBetween = "MONTHS_BETWEEN";
+    internal const string Natural = "NATURAL";
     internal const string Next = "NEXT";
     internal const string Nextval = "NEXTVAL";
     internal const string Not = "NOT";
@@ -131,6 +134,7 @@ internal static class Keywords
     internal const string PlaintoTsquery = "PLAINTO_TSQUERY";
     internal const string Power = "POWER";
     internal const string Preceding = "PRECEDING";
+    internal const string Query = "QUERY";
     internal const string Range = "RANGE";
     internal const string Rank = "RANK";
     internal const string Recursive = "RECURSIVE";
@@ -186,5 +190,4 @@ internal static class Keywords
     internal const string Where = "WHERE";
     internal const string With = "WITH";
     internal const string WithinGroup = "WITHIN GROUP";
-    internal const string WithQueryExpansion = "WITH QUERY EXPANSION";
 }
