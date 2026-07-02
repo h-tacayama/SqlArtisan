@@ -69,7 +69,7 @@ Rules:
 - `.AppendSpace()` / `.AppendSpace(part)` / `.AppendSpaceIfNotNull(part)`
 - `.EncloseInSpaces(op)` — ` op ` (a keyword/operator between two operands)
 - `.PrependSpaceIfNotNull(part-or-string)` — space + token, only when present
-- `.AppendIf(bool, string)` — conditional token
+  (for a flag: `flag ? Keywords.X : null`)
 
 Const keyword interpolations may carry their own edge spaces
 (`$"{Keywords.Where} "`); the helpers cover spacing a const string cannot — a

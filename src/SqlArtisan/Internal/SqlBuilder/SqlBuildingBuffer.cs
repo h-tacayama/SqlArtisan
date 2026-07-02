@@ -160,16 +160,6 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    internal SqlBuildingBuffer AppendIf(bool when, string? value)
-    {
-        if (when)
-        {
-            Append(value);
-        }
-
-        return this;
-    }
-
     internal SqlBuildingBuffer AppendSelectItems(SqlPart[] selectItems)
     {
         if (selectItems.Length == 0)
