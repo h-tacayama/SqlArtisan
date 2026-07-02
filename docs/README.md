@@ -43,9 +43,12 @@ Values, predicates, and computed expressions.
 [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions) ·
 [JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators) ·
 [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search) ·
+[Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery) ·
+[ALL / ANY / SOME](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#all--any--some) ·
 [CASE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#case-expressions) ·
 [CAST](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#cast) ·
 [Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions) ·
+[Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter) ·
 [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-aggregation) ·
 [Sequence](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#sequence)
 
