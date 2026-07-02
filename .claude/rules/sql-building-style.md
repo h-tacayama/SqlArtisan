@@ -32,5 +32,9 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    (ADR 0006). Stringify values at construction
    (`seconds.ToInvariantString()`) and append the pieces.
 
-4. **When a method chain wraps onto multiple lines, put one method per line.**
-   A short chain may stay on a single line.
+4. **Chain wrapping.** An expression-bodied `Format` (`=> buffer`) wraps its
+   chain one method per line — the dominant shape across the condition and
+   clause nodes — even when it has only two calls. A statement chain inside a
+   block body stays on one line while it is short
+   (`buffer.Append(_offset).AppendSpace();`); once it wraps, one method per
+   line applies there too.
