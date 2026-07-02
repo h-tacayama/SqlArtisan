@@ -34,9 +34,7 @@ public sealed class FrameBound : SqlPart
     {
         if (_offset is not null)
         {
-            buffer
-                .Append(_offset)
-                .AppendSpace();
+            buffer.Append(_offset).AppendSpace();
         }
 
         buffer.Append(_keyword);
