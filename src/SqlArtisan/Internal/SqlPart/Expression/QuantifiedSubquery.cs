@@ -2,7 +2,7 @@ namespace SqlArtisan.Internal;
 
 public sealed class QuantifiedSubquery(string keyword, ISubquery subquery) : SqlExpression
 {
-    private readonly SqlPartAgent _subquery = new(subquery.Format);
+    private readonly ISubquery _subquery = subquery;
 
     internal override void Format(SqlBuildingBuffer buffer)
     {

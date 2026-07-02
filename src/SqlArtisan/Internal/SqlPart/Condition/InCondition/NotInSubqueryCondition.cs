@@ -3,12 +3,12 @@ namespace SqlArtisan.Internal;
 public sealed class NotInSubqueryCondition : SqlCondition
 {
     private readonly SqlExpression _leftSide;
-    private readonly SqlPartAgent _subquery;
+    private readonly ISubquery _subquery;
 
     internal NotInSubqueryCondition(SqlExpression leftSide, ISubquery subquey)
     {
         _leftSide = leftSide;
-        _subquery = new(subquey.Format);
+        _subquery = subquey;
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

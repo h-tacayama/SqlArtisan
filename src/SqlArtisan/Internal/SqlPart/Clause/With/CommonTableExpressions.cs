@@ -6,14 +6,18 @@ internal sealed class CommonTableExpressions(CommonTableExpression[] ctes)
 
     internal void Format(SqlBuildingBuffer buffer, string withKeyword)
     {
-        SqlPartAgent[] agents = new SqlPartAgent[_ctes.Length];
+        buffer
+            .Append(withKeyword)
+            .AppendSpace();
+
         for (int i = 0; i < _ctes.Length; i++)
         {
-            agents[i] = new(_ctes[i].Format);
-        }
+            if (i > 0)
+            {
+                buffer.Append(", ");
+            }
 
-        buffer.Append(withKeyword)
-            .AppendSpace()
-            .AppendCsv(agents);
+            _ctes[i].Format(buffer);
+        }
     }
 }
