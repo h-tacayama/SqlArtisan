@@ -15,6 +15,6 @@ internal sealed class MergeUpdateSetClause : SqlPart
         new(UpsertAssignmentResolver.Resolve(items));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Update} {Keywords.Set} ")
+        .Append($"{Keywords.Update} {Keywords.Set}").AppendSpace()
         .AppendCsv(_assignments);
 }

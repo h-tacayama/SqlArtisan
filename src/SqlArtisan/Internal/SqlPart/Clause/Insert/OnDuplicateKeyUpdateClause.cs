@@ -13,6 +13,6 @@ internal sealed class OnDuplicateKeyUpdateClause : SqlPart
         new(UpsertAssignmentResolver.Resolve(items));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.On} {Keywords.Duplicate} {Keywords.Key} {Keywords.Update} ")
+        .Append($"{Keywords.On} {Keywords.Duplicate} {Keywords.Key} {Keywords.Update}").AppendSpace()
         .AppendAssignmentsCsv(_assignments);
 }

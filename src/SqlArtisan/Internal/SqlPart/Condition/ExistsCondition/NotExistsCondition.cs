@@ -10,6 +10,6 @@ public sealed class NotExistsCondition : SqlCondition
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Not} {Keywords.Exists} ")
+        .Append($"{Keywords.Not} {Keywords.Exists}").AppendSpace()
         .EncloseInParentheses(_subquery);
 }

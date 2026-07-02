@@ -7,6 +7,6 @@ internal sealed class MergeDeleteWhereClause(SqlCondition condition) : SqlPart
     private readonly SqlCondition _condition = condition;
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Delete} {Keywords.Where} ")
+        .Append($"{Keywords.Delete} {Keywords.Where}").AppendSpace()
         .Append(_condition);
 }

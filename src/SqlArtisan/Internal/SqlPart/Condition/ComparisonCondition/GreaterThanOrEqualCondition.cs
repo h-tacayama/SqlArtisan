@@ -9,6 +9,6 @@ internal sealed class GreaterThanOrEqualCondition(
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Operators.GreaterThanOrEqual} ")
+        .EncloseInSpaces(Operators.GreaterThanOrEqual)
         .Append(_rightSide);
 }

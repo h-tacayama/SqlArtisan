@@ -13,6 +13,6 @@ public sealed class InSubqueryCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Keywords.In} ")
+        .EncloseInSpaces(Keywords.In)
         .EncloseInParentheses(_subquery);
 }

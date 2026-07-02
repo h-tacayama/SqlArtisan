@@ -7,6 +7,6 @@ internal sealed class MergeOnClause(SqlCondition condition) : SqlPart
     private readonly SqlCondition _condition = condition;
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.On} ")
+        .Append(Keywords.On).AppendSpace()
         .EncloseInParentheses(_condition);
 }

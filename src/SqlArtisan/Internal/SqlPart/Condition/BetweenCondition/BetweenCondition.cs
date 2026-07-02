@@ -18,8 +18,8 @@ public sealed class BetweenCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Keywords.Between} ")
+        .EncloseInSpaces(Keywords.Between)
         .Append(_rightSide1)
-        .Append($" {Keywords.And} ")
+        .EncloseInSpaces(Keywords.And)
         .Append(_rightSide2);
 }

@@ -9,6 +9,6 @@ internal sealed class GreaterThanCondition(
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .Append($" {Operators.GreaterThan} ")
+        .EncloseInSpaces(Operators.GreaterThan)
         .Append(_rightSide);
 }

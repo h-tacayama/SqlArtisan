@@ -16,7 +16,7 @@ public sealed class PartitionByClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Partition} {Keywords.By} ")
+        .Append($"{Keywords.Partition} {Keywords.By}").AppendSpace()
         .AppendCsv(_expressions);
 
     public PartitionByAndOrderBy OrderBy(

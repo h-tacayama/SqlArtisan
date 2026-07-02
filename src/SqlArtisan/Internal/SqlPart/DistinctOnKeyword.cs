@@ -26,7 +26,7 @@ public sealed class DistinctOnKeyword : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Distinct} {Keywords.On} ")
+        .Append($"{Keywords.Distinct} {Keywords.On}").AppendSpace()
         .OpenParenthesis()
         .AppendCsv(_expressions)
         .CloseParenthesis();

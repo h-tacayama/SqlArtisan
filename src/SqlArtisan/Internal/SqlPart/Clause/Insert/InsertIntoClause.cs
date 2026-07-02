@@ -12,7 +12,7 @@ internal sealed class InsertIntoClause(DbTableBase table, DbColumn[] columns) : 
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append($"{Keywords.Insert} {Keywords.Into} ");
+        buffer.Append($"{Keywords.Insert} {Keywords.Into}").AppendSpace();
         _table.FormatAsDmlTarget(buffer);
 
         if (_columns.Length > 0)

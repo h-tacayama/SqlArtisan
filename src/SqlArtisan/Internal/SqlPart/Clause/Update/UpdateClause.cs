@@ -6,7 +6,7 @@ internal sealed class UpdateClause(DbTableBase table) : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append($"{Keywords.Update} ");
+        buffer.Append(Keywords.Update).AppendSpace();
         _table.FormatAsDmlTarget(buffer);
     }
 }

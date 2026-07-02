@@ -12,7 +12,7 @@ internal sealed class CrossJoinLateralClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Cross} {Keywords.Join} {Keywords.Lateral} ")
+        .Append($"{Keywords.Cross} {Keywords.Join} {Keywords.Lateral}").AppendSpace()
         .EncloseInParentheses(_subquery)
         .AppendSpace()
         .Append(_alias);

@@ -20,9 +20,9 @@ public sealed class TrimFunction : SqlExpression
 
         if (_trimChar is not null)
         {
-            buffer.Append($"{Keywords.Both} ")
+            buffer.Append(Keywords.Both).AppendSpace()
                 .Append(_trimChar)
-                .Append($" {Keywords.From} ");
+                .EncloseInSpaces(Keywords.From);
         }
 
         buffer.Append(_source)

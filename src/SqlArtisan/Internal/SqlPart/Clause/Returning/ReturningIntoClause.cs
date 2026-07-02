@@ -13,9 +13,9 @@ internal sealed class ReturningIntoClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append($"{Keywords.Returning} ");
+        buffer.Append(Keywords.Returning).AppendSpace();
         buffer.AppendSelectItems(_returningItems);
-        buffer.Append($" {Keywords.Into} ");
+        buffer.EncloseInSpaces(Keywords.Into);
 
         for (int i = 0; i < _outputs.Length; i++)
         {

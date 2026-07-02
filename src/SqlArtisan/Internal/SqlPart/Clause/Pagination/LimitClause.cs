@@ -10,6 +10,6 @@ internal sealed class LimitClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Limit} ")
+        .Append(Keywords.Limit).AppendSpace()
         .Append(_count);
 }

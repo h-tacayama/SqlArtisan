@@ -13,6 +13,6 @@ internal sealed class DoUpdateSetClause : SqlPart
         new(UpsertAssignmentResolver.Resolve(items));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Do} {Keywords.Update} {Keywords.Set} ")
+        .Append($"{Keywords.Do} {Keywords.Update} {Keywords.Set}").AppendSpace()
         .AppendAssignmentsCsv(_assignments);
 }

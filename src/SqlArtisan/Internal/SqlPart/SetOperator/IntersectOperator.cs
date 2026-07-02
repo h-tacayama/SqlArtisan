@@ -6,5 +6,5 @@ internal sealed class IntersectOperator(bool all) : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Intersect)
-        .AppendIf(_all, $" {Keywords.All}");
+        .PrependSpaceIfNotNull(_all ? Keywords.All : null);
 }

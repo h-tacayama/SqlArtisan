@@ -11,7 +11,7 @@ public sealed class DeleteClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append($"{Keywords.Delete} {Keywords.From} ");
+        buffer.Append($"{Keywords.Delete} {Keywords.From}").AppendSpace();
         _table.FormatAsDmlTarget(buffer);
     }
 }

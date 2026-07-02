@@ -5,6 +5,6 @@ namespace SqlArtisan.Internal;
 internal sealed class RowAliasClause : SqlPart
 {
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.As} ")
+        .Append(Keywords.As).AppendSpace()
         .AppendExcludedName();
 }

@@ -10,7 +10,7 @@ public sealed class EqualityCondition(
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(LeftSide)
-        .Append($" {Operators.Equality} ")
+        .EncloseInSpaces(Operators.Equality)
         .Append(RightSide);
 
     // Renders `column = value` for a DML assignment, forcing the target column
@@ -28,6 +28,6 @@ public sealed class EqualityCondition(
             LeftSide.Format(buffer);
         }
 
-        buffer.Append($" {Operators.Equality} ").Append(RightSide);
+        buffer.EncloseInSpaces(Operators.Equality).Append(RightSide);
     }
 }

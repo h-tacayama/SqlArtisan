@@ -10,6 +10,6 @@ internal sealed class ReturningClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Returning} ")
+        .Append(Keywords.Returning).AppendSpace()
         .AppendSelectItems(_expressions);
 }

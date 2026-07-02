@@ -10,6 +10,6 @@ public sealed class ExistsCondition : SqlCondition
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Exists} ")
+        .Append(Keywords.Exists).AppendSpace()
         .EncloseInParentheses(_subquery);
 }
