@@ -44,9 +44,6 @@ public static partial class Sql
     /// <c>FREETEXT(column, freetext)</c>.</returns>
     /// <remarks>SQL Server syntax. For exact words, prefixes, and boolean
     /// combinations use <see cref="Contains(object, object)"/>.</remarks>
-    public static FreetextCondition Freetext(
-        object column,
-        object freetext) => new(
-            Resolve(column),
-            Resolve(freetext));
+    public static FreetextCondition Freetext(object column, object freetext) =>
+        new(Resolve(column), Resolve(freetext));
 }

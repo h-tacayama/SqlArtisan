@@ -12,10 +12,7 @@ public sealed class ContainsScoreFunction : SqlExpression
     private readonly SqlExpression _query;
     private readonly string? _label;
 
-    internal ContainsScoreFunction(
-        SqlExpression column,
-        SqlExpression query,
-        int? label = null)
+    internal ContainsScoreFunction(SqlExpression column, SqlExpression query, int? label = null)
     {
         _column = column;
         _query = query;

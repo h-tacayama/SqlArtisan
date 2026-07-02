@@ -17,9 +17,7 @@ public static partial class Sql
     /// <returns>A <see cref="MatchFunction"/> pending its <c>AGAINST</c> clause.</returns>
     /// <remarks>MySQL syntax. For the SQLite FTS5 <c>table MATCH pattern</c>
     /// predicate use <see cref="Match(DbTableBase, object)"/>.</remarks>
-    public static MatchFunction Match(
-        object column,
-        params object[] otherColumns) =>
+    public static MatchFunction Match(object column, params object[] otherColumns) =>
         new([Resolve(column), .. Resolve(otherColumns)]);
 
     /// <summary>
@@ -34,11 +32,8 @@ public static partial class Sql
     /// <returns>A <see cref="MatchCondition"/> emitting <c>table MATCH pattern</c>.</returns>
     /// <remarks>SQLite syntax. For the MySQL <c>MATCH ... AGAINST</c> construct use
     /// <see cref="Match(object, object[])"/>.</remarks>
-    public static MatchCondition Match(
-        DbTableBase table,
-        object pattern) => new(
-            table,
-            Resolve(pattern));
+    public static MatchCondition Match(DbTableBase table, object pattern) =>
+        new(table, Resolve(pattern));
 
     /// <summary>
     /// Starts a <c>MERGE INTO target</c> statement (Oracle / SQL Server, and

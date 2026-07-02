@@ -88,11 +88,8 @@ public static partial class Sql
     /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
     /// emitted as an inline string literal.</param>
     /// <param name="text">The tsquery-syntax text to parse.</param>
-    public static ToTsqueryFunction ToTsquery(
-        string config,
-        object text) => new(
-            config,
-            Resolve(text));
+    public static ToTsqueryFunction ToTsquery(string config, object text) =>
+        new(config, Resolve(text));
 
     /// <summary>
     /// The PostgreSQL <c>TO_TSVECTOR(document)</c> function: reduces
@@ -110,11 +107,8 @@ public static partial class Sql
     /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
     /// emitted as an inline string literal.</param>
     /// <param name="document">The document expression to reduce.</param>
-    public static ToTsvectorFunction ToTsvector(
-        string config,
-        object document) => new(
-            config,
-            Resolve(document));
+    public static ToTsvectorFunction ToTsvector(string config, object document) =>
+        new(config, Resolve(document));
 
     /// <summary>
     /// The <c>TRIM(source)</c> function: removes leading and trailing spaces from
@@ -169,9 +163,6 @@ public static partial class Sql
     /// <param name="query">The tsquery expression to match.</param>
     /// <returns>A <see cref="TsMatchCondition"/> emitting <c>vector @@ query</c>.</returns>
     /// <remarks>PostgreSQL syntax.</remarks>
-    public static TsMatchCondition TsMatch(
-        object vector,
-        object query) => new(
-            Resolve(vector),
-            Resolve(query));
+    public static TsMatchCondition TsMatch(object vector, object query) =>
+        new(Resolve(vector), Resolve(query));
 }

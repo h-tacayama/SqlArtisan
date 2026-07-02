@@ -528,11 +528,8 @@ public static partial class Sql
     /// <remarks>SQL Server syntax. Oracle's <c>CONTAINS</c> returns a numeric
     /// score instead — use <see cref="ContainsScore(object, object)"/> for that
     /// target.</remarks>
-    public static ContainsCondition Contains(
-        object column,
-        object searchCondition) => new(
-            Resolve(column),
-            Resolve(searchCondition));
+    public static ContainsCondition Contains(object column, object searchCondition) =>
+        new(Resolve(column), Resolve(searchCondition));
 
     /// <summary>
     /// The Oracle Text <c>CONTAINS(column, query)</c> operator: the relevance score
@@ -549,11 +546,8 @@ public static partial class Sql
     /// <remarks>Oracle syntax. SQL Server's <c>CONTAINS</c> is a predicate
     /// instead — use <see cref="Contains(object, object)"/> for that
     /// target.</remarks>
-    public static ContainsScoreFunction ContainsScore(
-        object column,
-        object query) => new(
-            Resolve(column),
-            Resolve(query));
+    public static ContainsScoreFunction ContainsScore(object column, object query) =>
+        new(Resolve(column), Resolve(query));
 
     /// <inheritdoc cref="ContainsScore(object, object)"/>
     /// <param name="column">The Oracle Text indexed column to search.</param>
@@ -561,13 +555,8 @@ public static partial class Sql
     /// <c>"data % query"</c>).</param>
     /// <param name="label">The label linking this operator to
     /// <see cref="Score(int)"/>, emitted as <c>CONTAINS(column, query, label)</c>.</param>
-    public static ContainsScoreFunction ContainsScore(
-        object column,
-        object query,
-        int label) => new(
-            Resolve(column),
-            Resolve(query),
-            label);
+    public static ContainsScoreFunction ContainsScore(object column, object query, int label) =>
+        new(Resolve(column), Resolve(query), label);
 
     /// <summary>
     /// The <c>COUNT(<paramref name="expr"/>)</c> aggregate function (the number of
