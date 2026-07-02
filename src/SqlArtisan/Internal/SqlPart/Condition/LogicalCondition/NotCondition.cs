@@ -10,6 +10,6 @@ public sealed class NotCondition : SqlCondition
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.Not).AppendSpace()
+        .Append($"{Keywords.Not} ")
         .EncloseInParentheses(_condition);
 }

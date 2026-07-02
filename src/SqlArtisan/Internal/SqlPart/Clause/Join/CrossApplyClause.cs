@@ -12,7 +12,7 @@ internal sealed class CrossApplyClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Cross} {Keywords.Apply}").AppendSpace()
+        .Append($"{Keywords.Cross} {Keywords.Apply} ")
         .EncloseInParentheses(_subquery)
         .AppendSpace()
         .Append(_alias);

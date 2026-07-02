@@ -14,7 +14,7 @@ public sealed class SearchedCaseWhenClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.When).AppendSpace()
+        .Append($"{Keywords.When} ")
         .OpenParenthesis()
         .Append(_whenCondition)
         .CloseParenthesis()

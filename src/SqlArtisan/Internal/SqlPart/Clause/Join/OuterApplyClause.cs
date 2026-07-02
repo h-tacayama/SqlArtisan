@@ -12,7 +12,7 @@ internal sealed class OuterApplyClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Outer} {Keywords.Apply}").AppendSpace()
+        .Append($"{Keywords.Outer} {Keywords.Apply} ")
         .EncloseInParentheses(_subquery)
         .AppendSpace()
         .Append(_alias);

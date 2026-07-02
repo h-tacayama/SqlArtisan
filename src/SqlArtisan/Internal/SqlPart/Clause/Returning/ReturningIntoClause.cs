@@ -13,7 +13,7 @@ internal sealed class ReturningIntoClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append(Keywords.Returning).AppendSpace();
+        buffer.Append($"{Keywords.Returning} ");
         buffer.AppendSelectItems(_returningItems);
         buffer.EncloseInSpaces(Keywords.Into);
 

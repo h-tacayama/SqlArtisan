@@ -71,11 +71,11 @@ Rules:
 - `.PrependSpaceIfNotNull(part-or-string)` — space + token, only when present
 - `.AppendIf(bool, string)` — conditional token
 
-**Spacing goes through these helpers, never through spaces embedded in
-strings** — the only allowed embedded space is between keyword atoms inside a
-const interpolation (`$"{Keywords.Group} {Keywords.By}"`). The full two-layer
-rule lives in `.claude/rules/sql-building-style.md` (auto-loaded when editing
-`Internal/**`).
+Const keyword interpolations may carry their own edge spaces
+(`$"{Keywords.Where} "`); the helpers cover spacing a const string cannot — a
+part between operands, an optional token, a runtime value. Full rules (incl.
+one-token keyword constants and one-method-per-line wrapped chains) live in
+`.claude/rules/sql-building-style.md` (auto-loaded when editing `Internal/**`).
 
 For 3+ args with several optional ones, see `RegexpCountFunction` which delegates
 to `VariadicFunctionCore`.

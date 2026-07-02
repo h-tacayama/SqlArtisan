@@ -15,6 +15,6 @@ internal sealed class WhenNotMatchedClause(SqlCondition? extraCondition) : SqlPa
             buffer.EncloseInSpaces(Keywords.And).Append(_extraCondition);
         }
 
-        buffer.AppendSpace().Append(Keywords.Then);
+        buffer.Append($" {Keywords.Then}");
     }
 }

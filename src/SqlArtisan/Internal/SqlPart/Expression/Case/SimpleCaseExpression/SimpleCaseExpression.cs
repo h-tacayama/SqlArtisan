@@ -27,7 +27,7 @@ public sealed class SimpleCaseExpression : SqlExpression
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append(Keywords.Case).AppendSpace()
+        buffer.Append($"{Keywords.Case} ")
             .AppendSpace(_expr)
             .AppendSpaceSeparated((SqlPart[])_whenClauses);
 
@@ -37,6 +37,6 @@ public sealed class SimpleCaseExpression : SqlExpression
                 .Append(_elseClause);
         }
 
-        buffer.AppendSpace().Append(Keywords.End);
+        buffer.Append($" {Keywords.End}");
     }
 }

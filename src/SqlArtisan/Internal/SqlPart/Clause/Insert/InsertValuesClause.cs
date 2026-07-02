@@ -28,7 +28,7 @@ internal sealed class InsertValuesClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append(Keywords.Values).AppendSpace();
+        buffer.Append($"{Keywords.Values} ");
 
         for (int i = 0; i < _rows.Count; i++)
         {

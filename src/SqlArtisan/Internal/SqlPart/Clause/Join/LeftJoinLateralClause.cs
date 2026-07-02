@@ -14,9 +14,9 @@ internal sealed class LeftJoinLateralClause : SqlPart
     // A LEFT JOIN LATERAL requires an ON predicate; with no extra correlation
     // beyond the subquery body, the idiomatic always-true `ON TRUE` is emitted.
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Left} {Keywords.Join} {Keywords.Lateral}").AppendSpace()
+        .Append($"{Keywords.Left} {Keywords.Join} {Keywords.Lateral} ")
         .EncloseInParentheses(_subquery)
         .AppendSpace()
         .Append(_alias)
-        .AppendSpace().Append($"{Keywords.On} {Keywords.True}");
+        .Append($" {Keywords.On} {Keywords.True}");
 }

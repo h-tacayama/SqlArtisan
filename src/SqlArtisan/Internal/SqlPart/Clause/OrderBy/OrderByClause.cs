@@ -45,6 +45,6 @@ public sealed class OrderByClause : SqlPart
         new(OrderByItemResolver.Resolve(orderByItems));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Order} {Keywords.By}").AppendSpace()
+        .Append($"{Keywords.Order} {Keywords.By} ")
         .AppendCsv(_orderByItems);
 }

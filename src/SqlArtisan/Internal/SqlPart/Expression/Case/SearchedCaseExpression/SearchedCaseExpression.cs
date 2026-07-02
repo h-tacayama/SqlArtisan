@@ -21,7 +21,7 @@ public sealed class SearchedCaseExpression : SqlExpression
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append(Keywords.Case).AppendSpace()
+        buffer.Append($"{Keywords.Case} ")
             .AppendSpaceSeparated((SqlPart[])_whenClauses);
 
         if (_elseClause is not null)
@@ -30,6 +30,6 @@ public sealed class SearchedCaseExpression : SqlExpression
                 .Append(_elseClause);
         }
 
-        buffer.AppendSpace().Append(Keywords.End);
+        buffer.Append($" {Keywords.End}");
     }
 }

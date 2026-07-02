@@ -14,7 +14,7 @@ internal sealed class JoinLateralClause : SqlPart
     // The ON predicate is supplied by the caller's subsequent `.On(...)` step,
     // emitted as a separate OnClause — mirroring INNER JOIN.
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Join} {Keywords.Lateral}").AppendSpace()
+        .Append($"{Keywords.Join} {Keywords.Lateral} ")
         .EncloseInParentheses(_subquery)
         .AppendSpace()
         .Append(_alias);

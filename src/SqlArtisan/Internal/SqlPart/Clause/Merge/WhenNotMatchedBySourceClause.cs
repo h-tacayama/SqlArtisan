@@ -16,6 +16,6 @@ internal sealed class WhenNotMatchedBySourceClause(SqlCondition? extraCondition)
             buffer.EncloseInSpaces(Keywords.And).Append(_extraCondition);
         }
 
-        buffer.AppendSpace().Append(Keywords.Then);
+        buffer.Append($" {Keywords.Then}");
     }
 }

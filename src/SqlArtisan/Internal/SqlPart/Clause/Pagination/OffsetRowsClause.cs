@@ -10,7 +10,7 @@ internal sealed class OffsetRowsClause : SqlPart
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(Keywords.Offset).AppendSpace()
+        .Append($"{Keywords.Offset} ")
         .Append(_start)
-        .AppendSpace().Append(Keywords.Rows);
+        .Append($" {Keywords.Rows}");
 }

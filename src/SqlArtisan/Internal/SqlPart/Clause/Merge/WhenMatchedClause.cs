@@ -15,6 +15,6 @@ internal sealed class WhenMatchedClause(SqlCondition? extraCondition) : SqlPart
             buffer.EncloseInSpaces(Keywords.And).Append(_extraCondition);
         }
 
-        buffer.AppendSpace().Append(Keywords.Then);
+        buffer.Append($" {Keywords.Then}");
     }
 }
