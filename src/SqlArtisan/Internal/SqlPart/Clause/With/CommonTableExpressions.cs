@@ -6,9 +6,7 @@ internal sealed class CommonTableExpressions(CommonTableExpression[] ctes)
 
     internal void Format(SqlBuildingBuffer buffer, string withKeyword)
     {
-        buffer
-            .Append(withKeyword)
-            .AppendSpace();
+        buffer.Append(withKeyword).AppendSpace();
 
         for (int i = 0; i < _ctes.Length; i++)
         {
