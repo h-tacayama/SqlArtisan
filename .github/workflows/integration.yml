@@ -13,12 +13,6 @@ on:
   schedule:
     # Nightly at 03:00 UTC.
     - cron: '0 3 * * *'
-  # TEMPORARY (#93 dialect sweep verification): run on pushes to the analyzer
-  # branch so the sweep can be validated against the four container engines
-  # before merge (workflow_dispatch only sees workflows on the default branch).
-  # Remove this trigger once the sweep is green — the same pattern #151 used.
-  push:
-    branches: [claude/issue-backlog-cleanup-hmywia]
 
 permissions:
   contents: read
