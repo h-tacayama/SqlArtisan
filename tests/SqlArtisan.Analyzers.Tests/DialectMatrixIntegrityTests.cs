@@ -9,9 +9,9 @@ namespace SqlArtisan.Analyzers.Tests;
 /// public API: every entry's member name (and, for an arity-level entry, that
 /// exact declared parameter count) must resolve to a real public member
 /// somewhere in the SqlArtisan assembly. This is the "integrity" half of the
-/// plan's coverage/integrity gate pair — it catches a renamed or removed
-/// overload; it does not (yet) assert that every public member HAS an entry,
-/// which is the "coverage" half pending the full matrix sweep (#93 follow-up).
+/// coverage/integrity gate pair — it catches a renamed or removed overload;
+/// the inverse direction (every public member HAS an entry or a documented
+/// exclusion) is <see cref="DialectMatrixCoverageTests"/>.
 /// </summary>
 public class DialectMatrixIntegrityTests
 {

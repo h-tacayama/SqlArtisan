@@ -168,8 +168,11 @@ overrides) still apply first, so only genuinely unconfirmed constructs fail.
 one way or the other is not offered as a separate rule. `SQLA0001` only
 fires on a *confirmed* mismatch by design (ADR 0003's degradable matrix), so
 there is no "unverified construct" diagnostic to promote — the matrix's
-completeness is the whole safety net. Track the analyzer's own package
-version if you want to be notified as matrix coverage grows.
+completeness is the whole safety net, and it is enforced in this repository:
+a coverage test fails when a public member ships without a matrix entry or a
+documented dialect-neutral exclusion, and an integration-test sweep executes
+the entries against a live engine per dialect (the versions in the table
+below) asserting the accept/reject outcome matches the matrix both ways.
 
 ---
 
@@ -214,7 +217,10 @@ for, not a bug in the matrix.
 - **Typo'd keys fail silently** (see above) — there is no diagnostic for an
   unrecognized `sqlartisan_construct_*` *key name*, only for a recognized
   key with an unrecognized *value*.
-- **The matrix does not yet cover every public member.** Absence of an
-  entry means "not yet verified," not "universally supported" — see
+- **Absence of an entry still means silence, not endorsement.** The matrix
+  covers every referencable public member except a documented set of
+  dialect-neutral plumbing (`Build`, the result and configuration objects)
+  and `Trunc` above — gate-enforced by the repository's tests — but a member
+  in that excluded set never warns either way. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
-  for what's currently entered.
+  for what's entered.
