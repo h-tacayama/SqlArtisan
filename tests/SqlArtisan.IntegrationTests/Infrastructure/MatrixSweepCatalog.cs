@@ -246,7 +246,8 @@ internal static class MatrixSweepCatalog
         Add("MonthsBetween", _ => Scalar(MonthsBetween(u.CreatedAt, u.CreatedAt)));
         Add("Sysdate", _ => Select(Sysdate).From(Dual));
         Add("Systimestamp", _ => Select(Systimestamp).From(Dual));
-        Add("Dual", _ => Select(Sysdate).From(Dual));
+        // Isolated from SYSDATE so MySQL's FROM DUAL support is actually exercised.
+        Add("Dual", _ => Select(Abs(-1)).From(Dual));
 
         // --- Conversion ---
         Add("ToChar", _ => Scalar(ToChar(u.Age, "999")));

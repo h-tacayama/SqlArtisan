@@ -313,11 +313,12 @@ public class DialectUsageAnalyzerTests
                 }
             }
             """;
+        // PostgreSQL: FROM DUAL is invalid there (MySQL, by contrast, allows it).
         const string editorConfig = """
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = mysql
+            sqlartisan_target_dbms = postgresql
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);

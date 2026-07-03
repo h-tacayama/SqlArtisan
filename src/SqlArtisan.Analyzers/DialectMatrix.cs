@@ -78,7 +78,9 @@ internal static class DialectMatrix
 
         // --- PostgreSQL / Oracle single-dialect helpers ---
         [new MatrixKey("DistinctOn")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
-        [new MatrixKey("Dual")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        // Dual: MySQL explicitly allows FROM DUAL too (dev.mysql.com SELECT syntax), so the
+        // XML remark's "Oracle-specific" would be a false positive for MySQL users.
+        [new MatrixKey("Dual")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
         // --- UPSERT / MERGE (CHANGELOG 0.3.0-beta.1, #85, #89) ---
         [new MatrixKey("OnConflict")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
