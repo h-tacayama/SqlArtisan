@@ -118,7 +118,6 @@ internal static class DialectMatrix
         [new MatrixKey("Substrb")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Decode")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Nvl")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
-        [new MatrixKey("RegexpLike")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         // "Ceil" is emitted verbatim everywhere; SQL Server spells this function CEILING instead.
         [new MatrixKey("Ceil")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // "Ceiling" is SQL Server's/standard spelling; Oracle and SQLite spell it CEIL instead.
@@ -140,10 +139,15 @@ internal static class DialectMatrix
         [new MatrixKey("ToDate")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToNumber")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToTimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
-        // RegexpCount/RegexpReplace/RegexpSubstr show the identical "Oracle syntax" remark plus a
-        // default-.Build() test pattern hinting at the same PostgreSQL gap as ToChar, but with no
-        // rule-file confirmation backing it (medium, not high, confidence) — deliberately left
-        // unentered pending an integration-test check rather than guessed either way.
+        // --- REGEXP_* family: Oracle syntax, AND PostgreSQL 15+ added the same functions with
+        // matching signatures (regexp_count/regexp_like/regexp_substr, and regexp_replace's
+        // start/N forms — pgpedia.info per-function pages; PostgreSQL 15 release notes). The
+        // PostgreSQL 16 baseline has them all, so the earlier Oracle-only classification of
+        // RegexpLike was a false positive for PostgreSQL users and is corrected here.
+        [new MatrixKey("RegexpLike")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("RegexpCount")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("RegexpReplace")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("RegexpSubstr")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- Window functions ---
         // NthValue: XML docs + docs/functions.md + docs/expressions.md all state "Not supported by SQL Server".
@@ -154,8 +158,12 @@ internal static class DialectMatrix
         [new MatrixKey("Minus")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
         // --- Sequences ---
-        [new MatrixKey("Nextval")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
-        [new MatrixKey("Currval")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // Nextval/Currval are a name collision (see the caveat above): Sql.Nextval("seq") is
+        // PostgreSQL's function form, while Sequence("seq").Nextval is Oracle's — a property on
+        // DbSequence with the same member name. A PostgreSQL-only entry would false-positive on
+        // the correct Oracle form, so both are the union of the two forms' dialects.
+        [new MatrixKey("Nextval")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Currval")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("NextValueFor")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("Sequence")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
@@ -171,6 +179,241 @@ internal static class DialectMatrix
         [new MatrixKey("WhenNotMatchedBySource")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("ThenDelete")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("DeleteWhere")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+
+        // ============ Full-coverage expansion (#93 step 1) ============
+        // Everything below completes coverage of the public surface. Universal rows assert
+        // "valid on all five baselines" — most are ANSI core with no dialect note anywhere in
+        // the repo; the non-obvious cells cite their source. Restricted rows below were
+        // individually verified against official vendor documentation (cited per group);
+        // the live-engine sweep (#93 step 2-3) is the final arbiter for all of them.
+
+        // --- Statement / clause / builder core (universal) ---
+        [new MatrixKey("Select")] = DbmsSupport.All,
+        [new MatrixKey("InsertInto")] = DbmsSupport.All,
+        [new MatrixKey("Update")] = DbmsSupport.All,
+        [new MatrixKey("DeleteFrom")] = DbmsSupport.All,
+        [new MatrixKey("From")] = DbmsSupport.All,
+        [new MatrixKey("Where")] = DbmsSupport.All,
+        [new MatrixKey("GroupBy")] = DbmsSupport.All,
+        [new MatrixKey("Having")] = DbmsSupport.All,
+        [new MatrixKey("OrderBy")] = DbmsSupport.All,
+        // On: join ON (universal) + MERGE ON (Oracle/PostgreSQL/SQL Server) share the name — union.
+        [new MatrixKey("On")] = DbmsSupport.All,
+        // Set: UPDATE SET (universal); the SET-like INSERT emits standard INSERT (docs note), not MySQL's INSERT ... SET.
+        [new MatrixKey("Set")] = DbmsSupport.All,
+        // Values: single-row INSERT is universal; Oracle rejects multi-row VALUES (#87) but the
+        // row count is a call-site value the matrix key cannot see — union, under-restricts Oracle.
+        [new MatrixKey("Values")] = DbmsSupport.All,
+        [new MatrixKey("InnerJoin")] = DbmsSupport.All,
+        [new MatrixKey("LeftJoin")] = DbmsSupport.All,
+        // RightJoin: SQLite added RIGHT JOIN in 3.39 (bundled baseline 3.46+).
+        [new MatrixKey("RightJoin")] = DbmsSupport.All,
+        [new MatrixKey("CrossJoin")] = DbmsSupport.All,
+        // FullJoin: MySQL has no FULL [OUTER] JOIN at all; SQLite added it in 3.39 (baseline OK).
+        [new MatrixKey("FullJoin")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
+        [new MatrixKey("With")] = DbmsSupport.All,
+        // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
+        // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL/SQLite
+        // require it for recursion.
+        [new MatrixKey("WithRecursive")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+        [new MatrixKey("Distinct")] = DbmsSupport.All,
+        // Hints: the mechanism (verbatim text after SELECT) is universal; the hint text itself
+        // is the caller's per-dialect responsibility.
+        [new MatrixKey("Hints")] = DbmsSupport.All,
+        [new MatrixKey("Group")] = DbmsSupport.All,
+        [new MatrixKey("Null")] = DbmsSupport.All,
+        [new MatrixKey("ConditionIf")] = DbmsSupport.All,
+        [new MatrixKey("As")] = DbmsSupport.All,
+        [new MatrixKey("Asc")] = DbmsSupport.All,
+        [new MatrixKey("Desc")] = DbmsSupport.All,
+
+        // --- Expressions / conditions (universal, ANSI core) ---
+        [new MatrixKey("Case")] = DbmsSupport.All,
+        [new MatrixKey("When")] = DbmsSupport.All,
+        [new MatrixKey("Then")] = DbmsSupport.All,
+        [new MatrixKey("Else")] = DbmsSupport.All,
+        [new MatrixKey("Cast")] = DbmsSupport.All,
+        [new MatrixKey("Exists")] = DbmsSupport.All,
+        [new MatrixKey("NotExists")] = DbmsSupport.All,
+        [new MatrixKey("Not")] = DbmsSupport.All,
+        [new MatrixKey("In")] = DbmsSupport.All,
+        [new MatrixKey("NotIn")] = DbmsSupport.All,
+        [new MatrixKey("Between")] = DbmsSupport.All,
+        [new MatrixKey("NotBetween")] = DbmsSupport.All,
+        [new MatrixKey("Like")] = DbmsSupport.All,
+        [new MatrixKey("NotLike")] = DbmsSupport.All,
+        // Escape: docs/expressions.md — "supported identically across all dialects".
+        [new MatrixKey("Escape")] = DbmsSupport.All,
+        [new MatrixKey("IsNull")] = DbmsSupport.All,
+        [new MatrixKey("IsNotNull")] = DbmsSupport.All,
+        // All/Any/Some: CHANGELOG 0.5.0-beta.2 (#196) — "supported on all five dialects".
+        [new MatrixKey("All")] = DbmsSupport.All,
+        [new MatrixKey("Any")] = DbmsSupport.All,
+        [new MatrixKey("Some")] = DbmsSupport.All,
+        [new MatrixKey("Coalesce")] = DbmsSupport.All,
+        [new MatrixKey("Nullif")] = DbmsSupport.All,
+
+        // --- Functions with no dialect variance across the baselines ---
+        [new MatrixKey("Abs")] = DbmsSupport.All,
+        // Floor/Power/Sqrt/Sign on SQLite are math functions (3.35+, SQLITE_ENABLE_MATH_FUNCTIONS;
+        // enabled in the bundled e_sqlite3 build) — sweep-confirm along with Mod.
+        [new MatrixKey("Floor")] = DbmsSupport.All,
+        [new MatrixKey("Power")] = DbmsSupport.All,
+        [new MatrixKey("Sqrt")] = DbmsSupport.All,
+        [new MatrixKey("Sign")] = DbmsSupport.All,
+        [new MatrixKey("Lower")] = DbmsSupport.All,
+        [new MatrixKey("Upper")] = DbmsSupport.All,
+        [new MatrixKey("Replace")] = DbmsSupport.All,
+        [new MatrixKey("Avg")] = DbmsSupport.All,
+        [new MatrixKey("Count")] = DbmsSupport.All,
+        [new MatrixKey("Max")] = DbmsSupport.All,
+        [new MatrixKey("Min")] = DbmsSupport.All,
+        [new MatrixKey("Sum")] = DbmsSupport.All,
+        [new MatrixKey("CurrentTimestamp")] = DbmsSupport.All,
+        // Concat is one params method (declared arity fixed), so the 2-arg-vs-more split is
+        // invisible to the key: Oracle's native CONCAT takes exactly 2 arguments, so a 3+-arg
+        // call is invalid there — union, under-restricts Oracle. SQLite: concat() since 3.44
+        // (baseline 3.46+); SQL Server: CONCAT since 2012.
+        [new MatrixKey("Concat")] = DbmsSupport.All,
+
+        // --- Window / analytic (universal on the baselines: MySQL 8.0+, SQLite 3.25+, SQL Server 2012+) ---
+        [new MatrixKey("Rank")] = DbmsSupport.All,
+        [new MatrixKey("RowNumber")] = DbmsSupport.All,
+        [new MatrixKey("DenseRank")] = DbmsSupport.All,
+        [new MatrixKey("CumeDist")] = DbmsSupport.All,
+        [new MatrixKey("PercentRank")] = DbmsSupport.All,
+        [new MatrixKey("Ntile")] = DbmsSupport.All,
+        [new MatrixKey("Lag")] = DbmsSupport.All,
+        [new MatrixKey("Lead")] = DbmsSupport.All,
+        [new MatrixKey("FirstValue")] = DbmsSupport.All,
+        [new MatrixKey("LastValue")] = DbmsSupport.All,
+        [new MatrixKey("Over")] = DbmsSupport.All,
+        [new MatrixKey("PartitionBy")] = DbmsSupport.All,
+        [new MatrixKey("Rows")] = DbmsSupport.All,
+        // Range: T-SQL only allows RANGE with UNBOUNDED/CURRENT ROW bounds (no numeric offsets) —
+        // a bound-value nuance the key cannot see; union, under-restricts SQL Server.
+        [new MatrixKey("Range")] = DbmsSupport.All,
+        [new MatrixKey("RowsBetween")] = DbmsSupport.All,
+        [new MatrixKey("RangeBetween")] = DbmsSupport.All,
+        [new MatrixKey("CurrentRow")] = DbmsSupport.All,
+        [new MatrixKey("Preceding")] = DbmsSupport.All,
+        [new MatrixKey("Following")] = DbmsSupport.All,
+        [new MatrixKey("UnboundedPreceding")] = DbmsSupport.All,
+        [new MatrixKey("UnboundedFollowing")] = DbmsSupport.All,
+
+        // --- Character/numeric functions with real dialect gaps (vendor docs, per row) ---
+        // Mod: T-SQL has no MOD() function (only the % operator).
+        [new MatrixKey("Mod")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // Length: T-SQL spells this LEN(); no LENGTH().
+        [new MatrixKey("Length")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // Substr: T-SQL spells this SUBSTRING(); no SUBSTR.
+        [new MatrixKey("Substr")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // Lpad/Rpad: no native LPAD/RPAD on SQLite or SQL Server (even 2022).
+        [new MatrixKey("Lpad")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Rpad")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // Ltrim/Rtrim: 1-arg universal; the 2-arg trim-characters form does not exist on MySQL
+        // (LTRIM(str) only), and on SQL Server requires 2022 with compatibility level 160
+        // (learn.microsoft.com LTRIM/RTRIM pages) — the baseline's default for new databases.
+        [new MatrixKey("Ltrim")] = DbmsSupport.All,
+        [new MatrixKey("Ltrim", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
+        [new MatrixKey("Rtrim")] = DbmsSupport.All,
+        [new MatrixKey("Rtrim", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
+        // Trim: 1-arg universal (T-SQL TRIM since 2017). The 2-arg overload emits the ANSI
+        // keyword form TRIM(BOTH ch FROM src) (TrimFunction.cs): SQLite only accepts its own
+        // positional trim(X, Y), not the FROM form; SQL Server accepts BOTH ... FROM on
+        // 2022/compat 160.
+        [new MatrixKey("Trim")] = DbmsSupport.All,
+        [new MatrixKey("Trim", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        // Round: T-SQL ROUND requires 2-3 arguments — the 1-arg form is invalid on SQL Server.
+        [new MatrixKey("Round")] = DbmsSupport.All,
+        [new MatrixKey("Round", 1)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // Instr: XML docs say "Oracle syntax", but MySQL and SQLite both have the native 2-arg
+        // INSTR(str, substr) — an arity split the docs miss. The 3/4-arg forms are Oracle-only
+        // (member-level row); PostgreSQL and SQL Server have no INSTR at any arity.
+        [new MatrixKey("Instr")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        [new MatrixKey("Instr", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: false, sqlite: true, sqlServer: false),
+        // Greatest/Least: no SQLite equivalent (it uses multi-argument scalar MAX/MIN instead);
+        // SQL Server added GREATEST/LEAST in 2022 (the baseline).
+        [new MatrixKey("Greatest")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("Least")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+
+        // --- Date/time keywords with gaps ---
+        // CurrentDate/CurrentTime: T-SQL supports neither ANSI keyword (only CURRENT_TIMESTAMP);
+        // Oracle has CURRENT_DATE and CURRENT_TIMESTAMP but no CURRENT_TIME (no TIME type).
+        [new MatrixKey("CurrentDate")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        [new MatrixKey("CurrentTime")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+        // Extract: ANSI EXTRACT(part FROM source) — no SQLite function, no T-SQL support (DATEPART).
+        [new MatrixKey("Extract")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+
+        // --- Aggregate chains ---
+        // Filter: docs/expressions.md — "Native on PostgreSQL and SQLite".
+        [new MatrixKey("Filter")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+        // WithinGroup: union of its three hosts — Listagg (Oracle), StringAgg (SQL Server),
+        // PercentileCont/Disc (Oracle + PostgreSQL).
+        [new MatrixKey("WithinGroup")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        // PercentileCont/Disc: Sql.P.cs remarks — Oracle both forms, PostgreSQL WithinGroup-only,
+        // SQL Server Over-only; MySQL/SQLite not at all. The per-chain narrowing is a
+        // builder-state nuance the key cannot see — member-level union of the three.
+        [new MatrixKey("PercentileCont")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("PercentileDisc")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+
+        // --- Set operators (ISetOperator properties) ---
+        [new MatrixKey("Union")] = DbmsSupport.All,
+        [new MatrixKey("UnionAll")] = DbmsSupport.All,
+        // Except/Intersect: MySQL added both in 8.0.31 (the floating mysql:8.0 baseline is past
+        // that); Oracle added EXCEPT in 21c (baseline is 23ai Free) — oracle-base.com 21c article.
+        [new MatrixKey("Except")] = DbmsSupport.All,
+        [new MatrixKey("Intersect")] = DbmsSupport.All,
+        // The ALL variants: MySQL 8.0.31+, Oracle 21c+, PostgreSQL always; SQLite and SQL Server
+        // support ALL only on UNION.
+        [new MatrixKey("ExceptAll")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("IntersectAll")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // MinusAll: Oracle 21c+ spelling of EXCEPT ALL.
+        [new MatrixKey("MinusAll")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+
+        // --- Pagination (IPagination / ILimitOffsetBuilder / IOffsetFetchBuilder XML remarks) ---
+        [new MatrixKey("Limit")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+        // Offset: standalone OFFSET is PostgreSQL-only, after Limit(...) it is MySQL/PostgreSQL/
+        // SQLite — same member name on two interfaces, so this is their union (a standalone
+        // Offset on MySQL/SQLite stays silent rather than warn).
+        [new MatrixKey("Offset")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+        [new MatrixKey("OffsetRows")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
+        [new MatrixKey("FetchNext")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
+        // FetchFirst: standalone form — Oracle 12c+ and PostgreSQL (IPagination remark); SQL
+        // Server needs the OffsetRows(...) prefix instead.
+        [new MatrixKey("FetchFirst")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+
+        // --- FOR UPDATE (row locking): SQLite has no row locking; SQL Server uses lock hints,
+        // not ANSI FOR UPDATE. NOWAIT/SKIP LOCKED/OF: MySQL 8.0+, Oracle, PostgreSQL.
+        // WAIT n is Oracle-only.
+        [new MatrixKey("ForUpdate")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Of")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Nowait")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("SkipLocked")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Wait")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+
+        // --- ORDER BY null ordering: no NULLS FIRST/LAST on MySQL or SQL Server; SQLite 3.30+.
+        [new MatrixKey("NullsFirst")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        [new MatrixKey("NullsLast")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+
+        // --- PostgreSQL full-text helpers (Sql.T.cs / Sql.P.cs "PostgreSQL syntax") ---
+        [new MatrixKey("ToTsvector")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("ToTsquery")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("PlaintoTsquery")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+
+        // --- MERGE / UPSERT chain steps (same scope as their statements) ---
+        // Using is MERGE-only today (JOIN ... USING is #197, post-1.0) — revisit if that lands.
+        [new MatrixKey("Using")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("WhenMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("WhenNotMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("ThenInsert")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("ThenUpdateSet")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("DoNothing")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+        [new MatrixKey("DoUpdateSet")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+
+        // --- GROUP_CONCAT's SEPARATOR clause factory (MySQL keyword form; SQLite uses the
+        // positional 2-arg GroupConcat overload instead).
+        [new MatrixKey("Separator")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
 
         // --- Trunc is deliberately NOT entered: Sql.Trunc(expr[, format]) carries one dialect
         // support set for a numeric argument (Oracle+PostgreSQL) and a DIFFERENT, disjoint one for

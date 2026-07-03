@@ -209,6 +209,96 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task SequenceNextvalProperty_OnOracle_StaysSilent()
+    {
+        // Regression for a fixed false positive: Sequence("s").Nextval is Oracle's form, but the
+        // DbSequence.Nextval property shares its name with Sql.Nextval("s") (PostgreSQL's form),
+        // and the entry was originally PostgreSQL-only — warning on the correct Oracle usage.
+        // The entry is now the union of both forms' dialects.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var x = Sequence("users_id_seq").Nextval;
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = oracle
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task RegexpLike_OnPostgreSql_StaysSilent()
+    {
+        // Regression for a fixed false positive: the XML docs say "Oracle syntax" only, but
+        // PostgreSQL 15 added regexp_like with the same signature — the PostgreSQL 16 baseline
+        // supports it, so the original Oracle-only entry warned on valid PostgreSQL usage.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var x = RegexpLike("name", "^A.*");
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task RoundOneArgForm_OnSqlServer_ReportsSqla0001ButTwoArgFormDoesNot()
+    {
+        // Real matrix arity split: T-SQL's ROUND requires 2-3 arguments, so the 1-arg overload
+        // is invalid on SQL Server while the 2-arg overload is universal.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = Round("price", 2);
+                    var bad = {|#0:Round("price")|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = sqlserver
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task DualProperty_UnsupportedTarget_ReportsSqla0001()
     {
         const string source = """
