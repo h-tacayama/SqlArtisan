@@ -141,6 +141,74 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task MatchOverloads_OnTargetWhereNeitherIsSupported_BothReportSqla0001()
+    {
+        // Real matrix union entry (not synthetic): MySQL's Match(object, params object[]) and
+        // SQLite's Match(DbTableBase, object) both declare 2 parameters, so they collapse into
+        // one MatrixKey — on a target where neither dialect applies, both correctly warn.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var table = new DbTable("posts", "p");
+                    var mysqlShaped = {|#0:Match("col1", "col2")|};
+                    var sqliteShaped = {|#1:Match(table, "pattern")|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = oracle
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(1));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task MatchOverloads_OnTargetWhereOnlyOneIsSupported_UnionMeansNeitherWarns()
+    {
+        // The documented false-negative trade-off (DialectMatrix.cs's "key collision caveat"):
+        // targeting MySQL, the SQLite-shaped overload is NOT actually valid, but the matrix
+        // cannot tell the two overloads apart by arity, so it stays silent rather than guess —
+        // this test locks in that accepted behavior so a future edit can't silently tighten or
+        // loosen it without the change being visible here.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var table = new DbTable("posts", "p");
+                    var mysqlShaped = Match("col1", "col2");
+                    var sqliteShaped = Match(table, "pattern");
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = mysql
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task DualProperty_UnsupportedTarget_ReportsSqla0001()
     {
         const string source = """
