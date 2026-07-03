@@ -93,6 +93,7 @@ public class DialectMatrixCoverageTests
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Cast<MemberInfo>()
                 .Concat(type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                .Concat(type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                 .Select(m => $"{type.Name}.{m.Name}"))
             .ToHashSet();
 
