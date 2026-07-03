@@ -1,13 +1,14 @@
 ---
 name: sa-add-sql-function
-description: Add a new SQL function to the SqlArtisan query builder. Use when the user wants to add/implement/expose a SQL function (e.g. ABS, COALESCE, TRIM, an aggregate, a date function) in the public `Sql` API. Walks through the four required touch points (node class, keyword, public factory, test) following the project's alphabetical-partial-class conventions. Also covers adding a fluent builder step / clause modifier (e.g. a GROUP BY suffix) and the type-safety practice of narrowing the return interface so invalid chains fail to compile.
+description: Add a new SQL function to the SqlArtisan query builder. Use when the user wants to add/implement/expose a SQL function (e.g. ABS, COALESCE, TRIM, an aggregate, a date function) in the public `Sql` API. Walks through the required touch points (node class, keyword, public factory, test, and — if the function is dialect-restricted — the analyzer's dialect matrix) following the project's alphabetical-partial-class conventions. Also covers adding a fluent builder step / clause modifier (e.g. a GROUP BY suffix) and the type-safety practice of narrowing the return interface so invalid chains fail to compile.
 ---
 
 # Add a new SQL function to SqlArtisan
 
-Adding a SQL function touches **four** places, all kept in alphabetical order.
-Skipping any one leaves the function unusable or untested. Work through them in
-order, then validate with format + test.
+Adding a SQL function touches **four** places (five if it's dialect-restricted),
+all kept in alphabetical order. Skipping any one leaves the function unusable,
+untested, or unchecked by the analyzer. Work through them in order, then
+validate with format + test.
 
 Reference implementations to copy from:
 - **Single argument** → `AbsFunction` (`NumericFunction/AbsFunction.cs`)
@@ -132,6 +133,33 @@ optional arg present/absent). Mirror the existing tests and follow
 `.claude/rules/unit-tests.md` for the conventions — naming, dialect-specific
 `Build(Dbms.X)`, and exact-SQL `StringBuilder` + `Parameters` assertions.
 
+## 5. Dialect matrix (only if the function is dialect-restricted)
+
+If the function is emitted faithfully everywhere but is only *meaningful* on
+some dialects (an "Oracle syntax" / "MySQL, SQLite" style XML remark — the
+ADR 0001/0003 case, not a `DbmsDialect` token swap), add it to the analyzer's
+dialect matrix so `SQLA0001` (#93) can warn about it: an entry in
+`src/SqlArtisan.Analyzers/DialectMatrix.cs`, keyed by the C# member name (add
+an `_arity<N>`-suffixed key alongside the member-wide one only if support
+genuinely differs by overload, e.g. `StringAgg`'s 3-arg inline-`ORDER BY` form
+vs. its 2-arg form — see the file's own doc comment for the full key scheme
+and its collision caveat). Cite the primary source (the XML remark,
+`docs/functions.md`/`docs/expressions.md`, a `CHANGELOG.md` entry, or a test)
+in a comment next to the entry — do not guess a `false` without one, since a
+wrong `false` is exactly the false positive the matrix exists to avoid.
+Skipping this step doesn't break the build (an absent entry just stays
+silent, per the matrix's degradable design) but does leave `SQLA0001` unable
+to warn about the new function until someone adds it later — this step is
+the mechanism the "1.0 full coverage" goal (tracked in the Road-to-1.0 epic)
+depends on, not an optional nicety.
+
+If the function's dialect support depends on the *runtime value* of an
+argument rather than its arity or declared type (`Trunc`'s numeric-vs-date/time
+argument is the existing example — same overload, disjoint dialect sets), the
+current matrix key shape cannot express it safely; leave it unentered rather
+than assert a partial truth, and note the gap the way `DialectMatrix.cs`
+already does for `Trunc`.
+
 ## DBMS-specific syntax
 
 If the function's *syntax* (not semantics) differs per DBMS — quoting,
@@ -182,8 +210,9 @@ Verify the guard the way you verify SQL: a throwaway with the bad chain behind
 ```bash
 dotnet format SqlArtisan.sln --verify-no-changes   # style (.editorconfig)
 dotnet test tests/SqlArtisan.Tests                 # exact-SQL assertions
+dotnet test tests/SqlArtisan.Analyzers.Tests        # only if you touched DialectMatrix.cs — its integrity gate checks every entry resolves to a real member
 ```
 
-Both must pass. Then, for user-visible additions:
+All must pass. Then, for user-visible additions:
 - Add an entry to `CHANGELOG.md`.
 - Document the function in `README.md` if it belongs in a usage section.
