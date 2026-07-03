@@ -29,4 +29,37 @@
     </None>
   </ItemGroup>
 
+  <!--
+    Embed the SqlArtisan.Analyzers output as a build-time analyzer (#93), so
+    consumers get it automatically with no extra package reference — opt-in via
+    .editorconfig / <SqlArtisanTargetDbms>, silent otherwise. ReferenceOutputAssembly
+    is false because this is packaged content, not a compile-time dependency of
+    SqlArtisan itself; OutputItemType=Analyzer both makes the built DLL available
+    to the pack target below and applies the analyzer to this project's own build
+    (a permanent smoke test — opt-in, so it stays silent here too).
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\SqlArtisan.Analyzers\SqlArtisan.Analyzers.csproj"
+                       ReferenceOutputAssembly="false"
+                       OutputItemType="Analyzer" />
+    <None Include="build\SqlArtisan.props" Pack="true" PackagePath="buildTransitive\SqlArtisan.props" />
+  </ItemGroup>
+
+  <!--
+    @(Analyzer) holds every analyzer applied to THIS compilation — not just our
+    own, but also the SDK-bundled NetAnalyzers pulled in by <AnalysisMode>
+    above (their NuGetPackageId is empty too, since they come from the SDK
+    toolset rather than a PackageReference, so that metadata alone cannot tell
+    the two apart). Filter by filename to pack only our own analyzer output;
+    an analyzer must never ship copies of the host compiler's own assemblies
+    (the analyzer host supplies those at load time) or of unrelated SDK
+    analyzers already present on the consumer's machine.
+  -->
+  <Target Name="_PackSqlArtisanAnalyzer" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="@(Analyzer)" Condition="'%(Analyzer.Filename)' == 'SqlArtisan.Analyzers'"
+            Pack="true" PackagePath="analyzers\dotnet\cs" Visible="false" />
+    </ItemGroup>
+  </Target>
+
 </Project>

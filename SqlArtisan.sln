@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.Dapper", "src\Sq
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.IntegrationTests", "tests\SqlArtisan.IntegrationTests\SqlArtisan.IntegrationTests.csproj", "{F49D0D7A-D0C0-4A15-AAF1-973799EC8464}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.Analyzers", "src\SqlArtisan.Analyzers\SqlArtisan.Analyzers.csproj", "{DB00C1B7-EC99-4FCC-8D9B-1DC10BF73578}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.Analyzers.Tests", "tests\SqlArtisan.Analyzers.Tests\SqlArtisan.Analyzers.Tests.csproj", "{6ED64785-2A3B-4185-806E-74BE16105838}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +53,14 @@ Global
 		{F49D0D7A-D0C0-4A15-AAF1-973799EC8464}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F49D0D7A-D0C0-4A15-AAF1-973799EC8464}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F49D0D7A-D0C0-4A15-AAF1-973799EC8464}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB00C1B7-EC99-4FCC-8D9B-1DC10BF73578}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB00C1B7-EC99-4FCC-8D9B-1DC10BF73578}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB00C1B7-EC99-4FCC-8D9B-1DC10BF73578}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB00C1B7-EC99-4FCC-8D9B-1DC10BF73578}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6ED64785-2A3B-4185-806E-74BE16105838}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6ED64785-2A3B-4185-806E-74BE16105838}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6ED64785-2A3B-4185-806E-74BE16105838}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6ED64785-2A3B-4185-806E-74BE16105838}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,5 +72,7 @@ Global
 		{0CF476C5-8765-4117-B6AF-438BF78A1D8C} = {A36260A0-5AEB-46AA-A77F-9CE7ABF74AA4}
 		{B8F35097-2A98-44AE-87F3-400AB15057BA} = {A36260A0-5AEB-46AA-A77F-9CE7ABF74AA4}
 		{F49D0D7A-D0C0-4A15-AAF1-973799EC8464} = {F29CB8EE-C83F-493D-9F22-2EE7EFCC209D}
+		{DB00C1B7-EC99-4FCC-8D9B-1DC10BF73578} = {A36260A0-5AEB-46AA-A77F-9CE7ABF74AA4}
+		{6ED64785-2A3B-4185-806E-74BE16105838} = {F29CB8EE-C83F-493D-9F22-2EE7EFCC209D}
 	EndGlobalSection
 EndGlobal

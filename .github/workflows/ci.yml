@@ -33,3 +33,6 @@ jobs:
 
       - name: Test
         run: dotnet test tests/SqlArtisan.Tests --no-build -c Release --verbosity normal
+
+      - name: Test analyzer
+        run: dotnet test tests/SqlArtisan.Analyzers.Tests --no-build -c Release --verbosity normal
