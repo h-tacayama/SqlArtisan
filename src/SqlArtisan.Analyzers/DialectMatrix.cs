@@ -66,11 +66,13 @@ internal static class DialectMatrix
         [new MatrixKey("AddMonths")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
         // --- String aggregation (CHANGELOG 0.3.0-beta.1, #88) ---
-        // StringAgg's 2-arg form is PostgreSQL + SQL Server; the 3-arg form (inline ORDER BY) is
-        // PostgreSQL-only — SQL Server orders via the separate .WithinGroup(...) chain instead
-        // (Sql.S.cs remarks; docs/expressions.md). Arity-split to avoid under-restricting SQL Server.
-        [new MatrixKey("StringAgg")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
-        [new MatrixKey("StringAgg", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // StringAgg's 2-arg form is PostgreSQL + SQL Server + SQLite (3.44 added string_agg as
+        // a group_concat alias — live-verified by the dialect sweep on the bundled 3.46); the
+        // 3-arg form (inline ORDER BY) additionally works on SQLite via 3.44's
+        // ORDER-BY-inside-aggregates, but not on SQL Server, which orders via the separate
+        // .WithinGroup(...) chain instead (Sql.S.cs remarks; docs/expressions.md).
+        [new MatrixKey("StringAgg")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
+        [new MatrixKey("StringAgg", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("Listagg")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("GroupConcat")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
 
@@ -105,7 +107,10 @@ internal static class DialectMatrix
 
         // --- JSON (CHANGELOG 0.5.0-beta.2, #152) ---
         [new MatrixKey("JsonExtract")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
-        [new MatrixKey("JsonValue")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
+        // JsonValue: MySQL added JSON_VALUE in 8.0.21 (dev.mysql.com; the mysql:8.0 baseline
+        // is past that), so the repo docs' "Oracle, SQL Server" was under-inclusive.
+        // PostgreSQL's JSON_VALUE arrived in 17 — the PostgreSQL 16 baseline lacks it.
+        [new MatrixKey("JsonValue")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("JsonQuery")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("JsonArrow")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("JsonArrowText")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
@@ -120,11 +125,15 @@ internal static class DialectMatrix
         [new MatrixKey("Nvl")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         // "Ceil" is emitted verbatim everywhere; SQL Server spells this function CEILING instead.
         [new MatrixKey("Ceil")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // "Ceiling" is SQL Server's/standard spelling; Oracle and SQLite spell it CEIL instead.
-        [new MatrixKey("Ceiling")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
+        // "Ceiling" is SQL Server's/standard spelling; Oracle spells it CEIL only, but SQLite's
+        // math functions provide BOTH ceil() and ceiling() — the XML remark's "Oracle and
+        // SQLite spell this CEIL" was wrong about SQLite (live-verified by the dialect sweep).
+        [new MatrixKey("Ceiling")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
 
         // --- Date/time Oracle-only and SQL Server-only helpers ---
-        [new MatrixKey("LastDay")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        // LastDay: MySQL has LAST_DAY too — live-verified by the integration smoke catalog
+        // (the XML remark's "Oracle syntax" was under-inclusive).
+        [new MatrixKey("LastDay")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("MonthsBetween")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Sysdate")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Systimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
@@ -138,16 +147,20 @@ internal static class DialectMatrix
         [new MatrixKey("ToChar")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToDate")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToNumber")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // PostgreSQL's to_number requires the format argument (smoke-catalog note); the
+        // 1-arg form is Oracle-only.
+        [new MatrixKey("ToNumber", 1)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("ToTimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
-        // --- REGEXP_* family: Oracle syntax, AND PostgreSQL 15+ added the same functions with
-        // matching signatures (regexp_count/regexp_like/regexp_substr, and regexp_replace's
-        // start/N forms — pgpedia.info per-function pages; PostgreSQL 15 release notes). The
-        // PostgreSQL 16 baseline has them all, so the earlier Oracle-only classification of
-        // RegexpLike was a false positive for PostgreSQL users and is corrected here.
-        [new MatrixKey("RegexpLike")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // --- REGEXP_* family: Oracle syntax; MySQL 8.0 has REGEXP_LIKE/REGEXP_REPLACE/
+        // REGEXP_SUBSTR with matching signatures (live-verified by the integration smoke
+        // catalog) but no REGEXP_COUNT; PostgreSQL 15+ added all four with matching
+        // signatures (pgpedia.info; PostgreSQL 15 release notes), so the PostgreSQL 16
+        // baseline has them — the earlier Oracle-only classification of RegexpLike was a
+        // false positive for both MySQL and PostgreSQL users and is corrected here.
+        [new MatrixKey("RegexpLike")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpCount")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
-        [new MatrixKey("RegexpReplace")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
-        [new MatrixKey("RegexpSubstr")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("RegexpReplace")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("RegexpSubstr")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- Window functions ---
         // NthValue: XML docs + docs/functions.md + docs/expressions.md all state "Not supported by SQL Server".
@@ -177,7 +190,9 @@ internal static class DialectMatrix
         // WhenNotMatched scope (Oracle/PostgreSQL 15+/SQL Server) — a coverage gap the initial
         // pass left silent since these method names had no entry of their own at all.
         [new MatrixKey("WhenNotMatchedBySource")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
-        [new MatrixKey("ThenDelete")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        // ThenDelete: PostgreSQL 15+ MERGE also supports WHEN MATCHED THEN DELETE (Oracle
+        // does not — its delete is the in-clause DeleteWhere).
+        [new MatrixKey("ThenDelete")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("DeleteWhere")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
         // ============ Full-coverage expansion (#93 step 1) ============
@@ -246,10 +261,12 @@ internal static class DialectMatrix
         [new MatrixKey("Escape")] = DbmsSupport.All,
         [new MatrixKey("IsNull")] = DbmsSupport.All,
         [new MatrixKey("IsNotNull")] = DbmsSupport.All,
-        // All/Any/Some: CHANGELOG 0.5.0-beta.2 (#196) — "supported on all five dialects".
-        [new MatrixKey("All")] = DbmsSupport.All,
-        [new MatrixKey("Any")] = DbmsSupport.All,
-        [new MatrixKey("Some")] = DbmsSupport.All,
+        // All/Any/Some: the CHANGELOG's "supported on all five dialects" (#196) is wrong for
+        // SQLite — its expression grammar has no quantified comparisons at all, live-verified
+        // by the dialect sweep ('near "ALL": syntax error'). docs corrected to match.
+        [new MatrixKey("All")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("Any")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("Some")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("Coalesce")] = DbmsSupport.All,
         [new MatrixKey("Nullif")] = DbmsSupport.All,
 
@@ -308,9 +325,13 @@ internal static class DialectMatrix
         [new MatrixKey("Length")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // Substr: T-SQL spells this SUBSTRING(); no SUBSTR.
         [new MatrixKey("Substr")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // Lpad/Rpad: no native LPAD/RPAD on SQLite or SQL Server (even 2022).
+        // Lpad/Rpad: no native LPAD/RPAD on SQLite or SQL Server (even 2022). MySQL's
+        // LPAD/RPAD require the pad argument (smoke-catalog note), so the 2-arg
+        // pad-with-spaces form is Oracle/PostgreSQL only.
         [new MatrixKey("Lpad")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Lpad", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("Rpad")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Rpad", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         // Ltrim/Rtrim: 1-arg universal; the 2-arg trim-characters form does not exist on MySQL
         // (LTRIM(str) only), and on SQL Server requires 2022 with compatibility level 160
         // (learn.microsoft.com LTRIM/RTRIM pages) — the baseline's default for new databases.
@@ -387,7 +408,11 @@ internal static class DialectMatrix
         // not ANSI FOR UPDATE. NOWAIT/SKIP LOCKED/OF: MySQL 8.0+, Oracle, PostgreSQL.
         // WAIT n is Oracle-only.
         [new MatrixKey("ForUpdate")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
-        [new MatrixKey("Of")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // Of: SqlArtisan's Of(DbColumn) emits Oracle's FOR UPDATE OF <column> form;
+        // MySQL's and PostgreSQL's FOR UPDATE OF take a table name, not a column, so the
+        // emitted form is Oracle-only (live-verified: the statement catalog runs
+        // ForUpdateOf on Oracle alone).
+        [new MatrixKey("Of")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Nowait")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("SkipLocked")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("Wait")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),

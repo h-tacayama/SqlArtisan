@@ -471,6 +471,8 @@ SqlStatement sql =
 
 The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY`.
 
+Supported on MySQL, Oracle, PostgreSQL, and SQL Server — SQLite's grammar has no quantified comparisons and rejects all three.
+
 ```csharp
 UsersTable u = new("u");
 UsersTable s = new("s");

@@ -130,6 +130,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="subquery">A <c>SELECT</c> builder returning a single column.</param>
     /// <returns>A quantified-subquery expression emitting <c>SOME (SELECT ...)</c>.</returns>
+    /// <remarks>SQLite's grammar has no quantified comparisons; the other dialects accept it.</remarks>
     public static QuantifiedSubquery Some(ISubquery subquery) =>
         new(Keywords.Some, subquery);
 
