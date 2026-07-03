@@ -224,6 +224,8 @@ indent_brace_style = Allman
 indent_size = 2
 
 [*.{csproj,vbproj,proj,nativeproj,locproj}]
+# UTF-8 without BOM, matching what `dotnet new` generates. Editors honor
+# charset; dotnet format does not check it for project files (only .cs, #134).
 charset = utf-8
 
 # Xml build files
