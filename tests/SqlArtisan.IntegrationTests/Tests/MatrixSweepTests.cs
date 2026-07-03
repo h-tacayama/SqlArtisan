@@ -55,6 +55,12 @@ public abstract class MatrixSweepTestBase
                 continue;
             }
 
+            if (!expected && sweepCase.NegativeSkips?.ContainsKey(_fixture.Dbms) == true)
+            {
+                skipped++;
+                continue;
+            }
+
             string? error = TryExecute(connection, sweepCase);
             if (expected && error is not null)
             {

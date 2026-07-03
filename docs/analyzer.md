@@ -182,7 +182,7 @@ against):
 | Dialect | Verified against |
 |---|---|
 | MySQL | MySQL 8.0 |
-| Oracle | Oracle Database Free (the `Testcontainers.Oracle` module's default `gvenzl/oracle-free` image) |
+| Oracle | Oracle Database XE 21c (the `Testcontainers.Oracle` module's default `gvenzl/oracle-xe:21.3.0-slim-faststart` image) |
 | PostgreSQL | PostgreSQL 16 |
 | SQLite | the SQLite build bundled with `Microsoft.Data.Sqlite` 9.0.5 |
 | SQL Server | SQL Server 2022 |

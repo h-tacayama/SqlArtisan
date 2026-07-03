@@ -17,11 +17,13 @@ namespace SqlArtisan.IntegrationTests.Infrastructure;
 /// <param name="Build">Produces the statement; receives the engine so union entries (e.g. <c>Match</c>) can pick the dialect-appropriate form.</param>
 /// <param name="Mutating">Whether to run inside a rolled-back transaction (DML).</param>
 /// <param name="PositiveSkips">Engines where the supported side cannot be exercised here, with the reason (e.g. container lacks the full-text feature).</param>
+/// <param name="NegativeSkips">Engines where the unsupported side cannot be asserted because the engine parses the text as something else entirely (never as the construct), with the reason.</param>
 internal sealed record SweepCase(
     MatrixKey Key,
     Func<Dbms, ISqlBuilder> Build,
     bool Mutating = false,
-    IReadOnlyDictionary<Dbms, string>? PositiveSkips = null);
+    IReadOnlyDictionary<Dbms, string>? PositiveSkips = null,
+    IReadOnlyDictionary<Dbms, string>? NegativeSkips = null);
 
 /// <summary>
 /// The statement-per-matrix-entry catalog behind the dialect sweep (#93 step 2).
@@ -297,7 +299,14 @@ internal static class MatrixSweepCatalog
         Add("ExceptAll", _ => Select(u.DepartmentId).From(u).ExceptAll.Select(u.DepartmentId).From(u));
         Add("Intersect", _ => Select(u.DepartmentId).From(u).Intersect.Select(u.DepartmentId).From(u));
         Add("IntersectAll", _ => Select(u.DepartmentId).From(u).IntersectAll.Select(u.DepartmentId).From(u));
-        Add("Minus", _ => Select(u.DepartmentId).From(u).Minus.Select(u.DepartmentId).From(u));
+        cases.Add(new SweepCase(new MatrixKey("Minus"),
+            _ => Select(u.DepartmentId).From(u).Minus.Select(u.DepartmentId).From(u),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.SqlServer] = "T-SQL parses MINUS as a table alias and the second SELECT as a "
+                    + "separate batch statement, so the text executes without MINUS acting as a set "
+                    + "operator — acceptance proves nothing about MINUS support.",
+            }));
         Add("MinusAll", _ => Select(u.DepartmentId).From(u).MinusAll.Select(u.DepartmentId).From(u));
 
         // --- Pagination ---
@@ -410,11 +419,13 @@ internal static class MatrixSweepCatalog
         AddMutating("ThenUpdateSet", _ => MergeUpdateShape());
         AddMutating("WhenNotMatched", _ => MergeShape());
         AddMutating("ThenInsert", _ => MergeShape());
+        // A 1:1 self-merge: a source with duplicate join keys (e.g. orders.user_id) makes
+        // PostgreSQL fail at runtime with "MERGE command cannot affect row a second time".
         AddMutating("ThenDelete", _ =>
         {
             UsersTable t = new("t");
-            OrdersTable src = new("o");
-            return MergeInto(t).Using(src).On(t.Id == src.UserId).WhenMatched().ThenDelete();
+            UsersTable s = new("s");
+            return MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenDelete();
         });
         AddMutating("WhenNotMatchedBySource", _ =>
         {
@@ -459,6 +470,8 @@ internal static class MatrixSweepCatalog
             return Select(fts.Column("name")).From(fts).Where(Match(fts, "alice"));
         }
 
+        // The SET left side uses the unaliased column (PostgreSQL rejects a qualified target
+        // column there — same rule as UPDATE ... SET; Oracle and SQL Server accept both forms).
         ISqlBuilder MergeShape()
         {
             UsersTable t = new("t");
@@ -467,7 +480,7 @@ internal static class MatrixSweepCatalog
             return MergeInto(t)
                 .Using(s)
                 .On(t.Id == s.Id)
-                .WhenMatched().ThenUpdateSet(t.Name == s.Name)
+                .WhenMatched().ThenUpdateSet(c.Name == s.Name)
                 .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Id, s.Name);
         }
 
@@ -475,7 +488,8 @@ internal static class MatrixSweepCatalog
         {
             UsersTable t = new("t");
             UsersTable s = new("s");
-            return MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenUpdateSet(t.Name == s.Name);
+            UsersTable c = new();
+            return MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenUpdateSet(c.Name == s.Name);
         }
     }
 }

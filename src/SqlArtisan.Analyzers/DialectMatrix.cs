@@ -45,7 +45,7 @@ internal static class DialectMatrix
     public static readonly IReadOnlyDictionary<TargetDbms, string> VerifiedAgainstVersion = new Dictionary<TargetDbms, string>
     {
         [TargetDbms.MySql] = "MySQL 8.0 (Testcontainers `mysql:8.0`)",
-        [TargetDbms.Oracle] = "Oracle Database Free (Testcontainers.Oracle module default image, gvenzl/oracle-free)",
+        [TargetDbms.Oracle] = "Oracle Database XE 21c (Testcontainers.Oracle module default image, gvenzl/oracle-xe:21.3.0-slim-faststart)",
         [TargetDbms.PostgreSql] = "PostgreSQL 16 (Testcontainers `postgres:16-alpine`)",
         [TargetDbms.Sqlite] = "the SQLite version bundled with Microsoft.Data.Sqlite 9.0.5 (in-process, no container)",
         [TargetDbms.SqlServer] = "SQL Server 2022 (Testcontainers `mcr.microsoft.com/mssql/server:2022-latest`)",
@@ -57,7 +57,9 @@ internal static class DialectMatrix
         [new MatrixKey("Rollup")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("Cube")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("GroupingSets")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
-        [new MatrixKey("WithRollup")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
+        // WithRollup: MySQL's form, but T-SQL still accepts the legacy `GROUP BY x WITH ROLLUP`
+        // (deprecated in favor of ROLLUP(...) — live-verified on SQL Server 2022).
+        [new MatrixKey("WithRollup")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
 
         // --- Date/time arithmetic (Sql.D.cs / Sql.A.cs XML docs) ---
         [new MatrixKey("Dateadd")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
@@ -92,9 +94,12 @@ internal static class DialectMatrix
         // --- APPLY / LATERAL (CHANGELOG 0.4.0-beta.1, #122) ---
         [new MatrixKey("CrossApply")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("OuterApply")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
-        [new MatrixKey("CrossJoinLateral")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // Oracle 12c+ also accepts CROSS JOIN LATERAL and JOIN LATERAL ... ON (live-verified on
+        // XE 21c). LeftJoinLateral stays false on Oracle: the emitted `ON TRUE` needs a boolean
+        // literal, which Oracle SQL (pre-23ai) does not have.
+        [new MatrixKey("CrossJoinLateral")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("LeftJoinLateral")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
-        [new MatrixKey("JoinLateral")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("JoinLateral")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- Full-text search (CHANGELOG 0.5.0-beta.2, #153) ---
         // Match: see the key-collision caveat above — union of MySQL's and SQLite's overloads.
@@ -400,8 +405,10 @@ internal static class DialectMatrix
         // SQLite — same member name on two interfaces, so this is their union (a standalone
         // Offset on MySQL/SQLite stays silent rather than warn).
         [new MatrixKey("Offset")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
-        [new MatrixKey("OffsetRows")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
-        [new MatrixKey("FetchNext")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
+        // OffsetRows/FetchNext: the ANSI OFFSET ... FETCH pair — Oracle 12c+, PostgreSQL, and
+        // SQL Server 2012+ (PostgreSQL live-verified by the dialect sweep).
+        [new MatrixKey("OffsetRows")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("FetchNext")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         // FetchFirst: standalone form — Oracle 12c+ and PostgreSQL (IPagination remark); SQL
         // Server needs the OffsetRows(...) prefix instead.
         [new MatrixKey("FetchFirst")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
