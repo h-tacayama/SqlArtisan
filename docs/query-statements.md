@@ -70,7 +70,7 @@ SqlStatement sql =
 // FROM users "u"
 // ORDER BY "u".department_id, "u".salary DESC
 ```
-PostgreSQL syntax; emitted faithfully on every dialect, with availability left to the database (ADR 0001/0003).
+PostgreSQL syntax; emitted faithfully on every dialect, with availability left to the database.
 
 #### Hints
 ```csharp

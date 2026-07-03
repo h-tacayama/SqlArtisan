@@ -743,7 +743,7 @@ SqlStatement sql =
 
 Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FILTER (WHERE ...) OVER (PARTITION BY ...)`.
 
-- Native on PostgreSQL and SQLite. Per ADR 0001/0003 it is emitted faithfully on every dialect (never rewritten to a `CASE` expression); engines without it reject it, which the analyzer can flag.
+- Native on PostgreSQL and SQLite. It is emitted faithfully on every dialect (never rewritten to a `CASE` expression); engines without it reject it, which the analyzer can flag.
 
 ---
 

@@ -2,7 +2,7 @@
 
 [← Back to Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
-An opt-in build-time analyzer (ADR 0003) warns when your code uses a SqlArtisan
+An opt-in build-time analyzer warns when your code uses a SqlArtisan
 construct that is not supported on your project's target dialect. It ships
 inside the `SqlArtisan` package — no extra package reference — and is
 completely silent until you configure a target.
@@ -166,8 +166,9 @@ overrides) still apply first, so only genuinely unconfirmed constructs fail.
 
 **Whitelist mode** — fail on anything the matrix hasn't explicitly verified
 one way or the other is not offered as a separate rule. `SQLA0001` only
-fires on a *confirmed* mismatch by design (ADR 0003's degradable matrix), so
-there is no "unverified construct" diagnostic to promote — the matrix's
+fires on a *confirmed* mismatch by design (a construct the matrix doesn't
+know stays silent rather than guess), so there is no "unverified construct"
+diagnostic to promote — the matrix's
 completeness is the whole safety net, and it is enforced in this repository:
 a coverage test fails when a public member ships without a matrix entry or a
 documented dialect-neutral exclusion, and an integration-test sweep executes
