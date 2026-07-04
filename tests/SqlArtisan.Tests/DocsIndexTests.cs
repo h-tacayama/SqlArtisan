@@ -15,6 +15,7 @@ public class DocsIndexTests
     // through grouped entries, which this heading-level check cannot mirror.
     private static readonly string[] s_indexedPages =
     [
+        "docs/analyzer.md",
         "docs/expressions.md",
         "docs/functions.md",
     ];

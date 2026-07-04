@@ -22,6 +22,7 @@ from pathlib import Path
 FILES = [
     "README.md", "llms.txt", "docs/README.md",
     "docs/query-statements.md", "docs/expressions.md", "docs/functions.md",
+    "docs/analyzer.md",
 ]
 CODE_IDENTS = ("PostgreSql", "SqlServer", "MySql", "Sqlite")  # display: PostgreSQL/SQL Server/MySQL/SQLite
 
