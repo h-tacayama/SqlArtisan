@@ -115,7 +115,7 @@ for the full procedure.
   **MySQL, Oracle, PostgreSQL, SQLite, SQL Server**.
 - Documentation prose/style conventions (terminology, DBMS naming, spaced em
   dash, reference-entry shape) live in `.claude/rules/docs-style.md` —
-  auto-loaded when editing `README.md`, `docs/**`, or `llms.txt`.
+  auto-loaded when editing `README.md`, `docs/**`, `llms.txt`, or `CHANGELOG.md`.
 
 ## Git
 
