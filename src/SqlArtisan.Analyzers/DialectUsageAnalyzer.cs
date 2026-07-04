@@ -103,7 +103,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     {
         var reportedTargetValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var reportedOverrideValues = new HashSet<(string Key, string Value)>();
-        string[] overrideKeys = DialectMatrix.AllOverrideKeys.Distinct().ToArray();
+        string[] overrideKeys = [.. DialectMatrix.AllOverrideKeys.Distinct()];
         string validTargetNames = string.Join("/", AnalyzerConfigResolver.ValidTargetNames);
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)

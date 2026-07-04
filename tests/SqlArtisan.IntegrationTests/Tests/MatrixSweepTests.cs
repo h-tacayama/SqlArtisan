@@ -154,13 +154,12 @@ public sealed class MatrixSweepCatalogTests
     [Fact]
     public void Catalog_CoversEveryMatrixEntry()
     {
-        HashSet<MatrixKey> covered = MatrixSweepCatalog.Cases.Select(c => c.Key).ToHashSet();
+        HashSet<MatrixKey> covered = [.. MatrixSweepCatalog.Cases.Select(c => c.Key)];
         Assert.Equal(MatrixSweepCatalog.Cases.Count, covered.Count); // no duplicate case keys
 
-        List<string> missing = DialectMatrix.AllKeys
+        List<string> missing = [.. DialectMatrix.AllKeys
             .Where(key => !covered.Contains(key) && !MatrixSweepCatalog.ExcludedEntries.ContainsKey(key))
-            .Select(key => key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName)
-            .ToList();
+            .Select(key => key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName)];
 
         Assert.True(
             missing.Count == 0,
@@ -171,13 +170,12 @@ public sealed class MatrixSweepCatalogTests
     [Fact]
     public void Catalog_HasNoKeysOutsideTheMatrix()
     {
-        HashSet<MatrixKey> matrixKeys = DialectMatrix.AllKeys.ToHashSet();
+        HashSet<MatrixKey> matrixKeys = [.. DialectMatrix.AllKeys];
 
-        List<string> stale = MatrixSweepCatalog.Cases.Select(c => c.Key)
+        List<string> stale = [.. MatrixSweepCatalog.Cases.Select(c => c.Key)
             .Concat(MatrixSweepCatalog.ExcludedEntries.Keys)
             .Where(key => !matrixKeys.Contains(key))
-            .Select(key => key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName)
-            .ToList();
+            .Select(key => key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName)];
 
         Assert.True(
             stale.Count == 0,

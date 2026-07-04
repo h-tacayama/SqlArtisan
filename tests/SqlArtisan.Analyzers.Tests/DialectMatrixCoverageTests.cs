@@ -49,7 +49,7 @@ public class DialectMatrixCoverageTests
     [Fact]
     public void EveryReferencablePublicMember_HasMatrixEntryOrDocumentedExclusion()
     {
-        HashSet<string> matrixNames = DialectMatrix.AllKeys.Select(k => k.MemberName).ToHashSet();
+        HashSet<string> matrixNames = [.. DialectMatrix.AllKeys.Select(k => k.MemberName)];
 
         List<string> uncovered = [];
         foreach (Type type in typeof(Sql).Assembly.GetExportedTypes())
@@ -89,19 +89,17 @@ public class DialectMatrixCoverageTests
     [Fact]
     public void Exclusions_ResolveToRealMembersWithoutMatrixEntries()
     {
-        HashSet<string> matrixNames = DialectMatrix.AllKeys.Select(k => k.MemberName).ToHashSet();
-        HashSet<string> realMembers = typeof(Sql).Assembly.GetExportedTypes()
+        HashSet<string> matrixNames = [.. DialectMatrix.AllKeys.Select(k => k.MemberName)];
+        HashSet<string> realMembers = [.. typeof(Sql).Assembly.GetExportedTypes()
             .SelectMany(type => type
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Cast<MemberInfo>()
                 .Concat(type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                 .Concat(type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-                .Select(m => $"{type.Name}.{m.Name}"))
-            .ToHashSet();
+                .Select(m => $"{type.Name}.{m.Name}"))];
 
-        List<string> stale = Exclusions.Keys
-            .Where(key => !realMembers.Contains(key) || matrixNames.Contains(key.Split('.')[1]))
-            .ToList();
+        List<string> stale = [.. Exclusions.Keys
+            .Where(key => !realMembers.Contains(key) || matrixNames.Contains(key.Split('.')[1]))];
 
         Assert.True(
             stale.Count == 0,
