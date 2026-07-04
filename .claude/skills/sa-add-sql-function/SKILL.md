@@ -1,13 +1,15 @@
 ---
 name: sa-add-sql-function
-description: Add a new SQL function to the SqlArtisan query builder. Use when the user wants to add/implement/expose a SQL function (e.g. ABS, COALESCE, TRIM, an aggregate, a date function) in the public `Sql` API. Walks through the four required touch points (node class, keyword, public factory, test) following the project's alphabetical-partial-class conventions. Also covers adding a fluent builder step / clause modifier (e.g. a GROUP BY suffix) and the type-safety practice of narrowing the return interface so invalid chains fail to compile.
+description: Add a new SQL function to the SqlArtisan query builder. Use when the user wants to add/implement/expose a SQL function (e.g. ABS, COALESCE, TRIM, an aggregate, a date function) in the public `Sql` API. Walks through the required touch points (node class, keyword, public factory, test, the analyzer's dialect matrix, and its integration-test sweep case) following the project's alphabetical-partial-class conventions. Also covers adding a fluent builder step / clause modifier (e.g. a GROUP BY suffix) and the type-safety practice of narrowing the return interface so invalid chains fail to compile.
 ---
 
 # Add a new SQL function to SqlArtisan
 
-Adding a SQL function touches **four** places, all kept in alphabetical order.
-Skipping any one leaves the function unusable or untested. Work through them in
-order, then validate with format + test.
+Adding a SQL function touches **six** places: four core ones kept in
+alphabetical order (node class, keyword, factory, tests), plus the analyzer's
+dialect matrix and its integration-test sweep catalog — both gate-enforced, so
+skipping either fails the test suite. Work through them in order, then
+validate with format + test.
 
 Reference implementations to copy from:
 - **Single argument** → `AbsFunction` (`NumericFunction/AbsFunction.cs`)
@@ -132,6 +134,43 @@ optional arg present/absent). Mirror the existing tests and follow
 `.claude/rules/unit-tests.md` for the conventions — naming, dialect-specific
 `Build(Dbms.X)`, and exact-SQL `StringBuilder` + `Parameters` assertions.
 
+## 5. Dialect matrix entry (gate-enforced)
+
+Every new public member needs an entry in
+`src/SqlArtisan.Analyzers/DialectMatrix.cs` — an all-`true` row for a
+universal function, a restricted row when it is only *meaningful* on some
+dialects (an "Oracle syntax" / "MySQL, SQLite" style XML remark — the
+ADR 0001/0003 case, not a `DbmsDialect` token swap) so `SQLA0001` (#93) can
+warn about it. `DialectMatrixCoverageTests` fails the suite when a public
+member has neither an entry nor a documented exclusion there. Key the entry
+by the C# member name (add an `_arity<N>`-suffixed key alongside the
+member-wide one only if support genuinely differs by overload, e.g.
+`StringAgg`'s 3-arg inline-`ORDER BY` form vs. its 2-arg form — see the
+file's own doc comment for the full key scheme and its collision caveat).
+Cite the primary source (the XML remark,
+`docs/functions.md`/`docs/expressions.md`, a `CHANGELOG.md` entry, or a test)
+in a comment next to the entry — do not guess a `false` without one, since a
+wrong `false` is exactly the false positive the matrix exists to avoid.
+
+If the function's dialect support depends on the *runtime value* of an
+argument rather than its arity or declared type (`Trunc`'s numeric-vs-date/time
+argument is the existing example — same overload, disjoint dialect sets), the
+current matrix key shape cannot express it safely; leave it unentered rather
+than assert a partial truth, and add it to `DialectMatrixCoverageTests`'
+exclusion list with the reason, the way `Trunc` is.
+
+## 6. Sweep case (gate-enforced)
+
+Every matrix entry needs a statement in
+`tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs`
+exercising exactly that construct — the integration-test dialect sweep runs
+it on all five engines and asserts the accept/reject outcome matches the
+matrix in both directions, so a wrong entry is caught by a live engine, not
+a user. `MatrixSweepCatalogTests` fails the suite when an entry has neither
+a sweep case nor a documented `ExcludedEntries` reason. Copy a nearby shape
+(`Scalar(...)` for a plain function) and keep the statement minimal — one
+construct per case.
+
 ## DBMS-specific syntax
 
 If the function's *syntax* (not semantics) differs per DBMS — quoting,
@@ -182,8 +221,10 @@ Verify the guard the way you verify SQL: a throwaway with the bad chain behind
 ```bash
 dotnet format SqlArtisan.sln --verify-no-changes   # style (.editorconfig)
 dotnet test tests/SqlArtisan.Tests                 # exact-SQL assertions
+dotnet test tests/SqlArtisan.Analyzers.Tests       # coverage gate: every public member has a matrix entry or documented exclusion; integrity gate: every entry resolves to a real member
+dotnet test tests/SqlArtisan.IntegrationTests --filter "Engine=Sqlite|FullyQualifiedName~MatrixSweepCatalogTests"  # sweep-catalog completeness + the one engine that runs without Docker
 ```
 
-Both must pass. Then, for user-visible additions:
+All must pass. Then, for user-visible additions:
 - Add an entry to `CHANGELOG.md`.
 - Document the function in `README.md` if it belongs in a usage section.

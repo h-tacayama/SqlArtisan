@@ -28,16 +28,32 @@ DOCS = ["docs/query-statements.md", "docs/expressions.md", "docs/functions.md"]
 SQLKW = ("SELECT", "INSERT", "UPDATE", "DELETE", "MERGE", "WITH")
 SQLPROJ = "src/SqlArtisan/SqlArtisan.csproj"
 
-SCAFFOLD = r"""using SqlArtisan;
+# Locals a snippet may reference without declaring (the section's prose declares
+# them once); injected when referenced and not assigned inside the block. The
+# aliased form is picked when the documented SQL qualifies through the alias.
+INJECTABLE_LOCALS = [
+    ("u", "UsersTable u = new();", 'UsersTable u = new("u");'),
+    ("s", 'UsersTable s = new("s");', 'UsersTable s = new("s");'),
+    ("post", "PostsTable post = new();", 'PostsTable post = new("post");'),
+]
+
+SCAFFOLD = r"""using System.Data;
+using SqlArtisan;
 using static SqlArtisan.Sql;
 
 internal sealed class UsersTable : DbTableBase {
     public UsersTable(string a="") : base("users",a) {
         Id=new(a,"id");Name=new(a,"name");CreatedAt=new(a,"created_at");StatusId=new(a,"status_id");
         Age=new(a,"age");DepartmentId=new(a,"department_id");Salary=new(a,"salary");Amount=new(a,"amount");Date=new(a,"date");
+        Data=new(a,"data");IsActive=new(a,"is_active");
     }
     public DbColumn Id{get;} public DbColumn Name{get;} public DbColumn CreatedAt{get;} public DbColumn StatusId{get;}
     public DbColumn Age{get;} public DbColumn DepartmentId{get;} public DbColumn Salary{get;} public DbColumn Amount{get;} public DbColumn Date{get;}
+    public DbColumn Data{get;} public DbColumn IsActive{get;}
+}
+internal sealed class PostsTable : DbTableBase {
+    public PostsTable(string a="") : base("posts",a) { Id=new(a,"id");Title=new(a,"title");Body=new(a,"body"); }
+    public DbColumn Id{get;} public DbColumn Title{get;} public DbColumn Body{get;}
 }
 internal sealed class OrdersTable : DbTableBase {
     public OrdersTable(string a="") : base("orders",a) { Id=new(a,"id");UserId=new(a,"user_id");OrderDate=new(a,"order_date"); }
@@ -135,16 +151,18 @@ def main():
             sql_builds = [(e, clean_expected(x)) for e, x in builds
                           if any(t.upper().startswith(SQLKW) for t in x)]
             block_text = "\n".join(buf)
-            inject_u = re.search(r"\bu\.", block_text) and not re.search(r"\bu\s*=", block_text)
             for j, (expr, expected) in enumerate(sql_builds):
+                injects = [aliased if f'"{name}"' in expected else plain
+                           for name, plain, aliased in INJECTABLE_LOCALS
+                           if re.search(rf"\b{name}\.", block_text) and not re.search(rf"\b{name}\s*=", block_text)]
                 cases.append({"id": f"{f}:{start}#{j}", "expr": expr, "expected": expected,
-                              "setups": setups, "inject_u": bool(inject_u)})
+                              "setups": setups, "injects": injects})
 
     methods, calls = [], []
     for k, c in enumerate(cases):
         body = []
-        if c["inject_u"]:
-            body.append("        UsersTable u = new();")
+        for decl in c["injects"]:
+            body.append("        " + decl)
         for s in c["setups"]:
             body.append("        " + s.replace("\n", "\n        "))
         expr = c["expr"].replace("\n", "\n            ")

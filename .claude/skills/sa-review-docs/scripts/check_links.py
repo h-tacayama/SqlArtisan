@@ -23,6 +23,7 @@ FILES = [
     "docs/query-statements.md",
     "docs/expressions.md",
     "docs/functions.md",
+    "docs/analyzer.md",
 ]
 
 

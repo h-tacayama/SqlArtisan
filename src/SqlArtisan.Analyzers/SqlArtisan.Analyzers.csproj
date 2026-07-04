@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- netstandard2.0 is a Roslyn analyzer hosting requirement, not a runtime choice (#93). -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      PrivateAssets=all keeps these off this project's own dependency surface.
+      More importantly, it is what lets the SqlArtisan.csproj packing target
+      (_PackSqlArtisanAnalyzer) tell our own compiled output apart from
+      Microsoft.CodeAnalysis.* assemblies pulled in via these packages: an
+      analyzer must never ship its own copies of the host compiler's
+      assemblies (the analyzer host supplies them at load time), and the
+      packing target's NuGetPackageId filter relies on this reference shape.
+    -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

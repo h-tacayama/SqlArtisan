@@ -1,0 +1,14 @@
+<Project>
+
+  <!--
+    Exposes the consumer's <SqlArtisanTargetDbms> MSBuild property to the
+    bundled analyzer (#93) as build_property.SqlArtisanTargetDbms. This is an
+    alternative to the primary .editorconfig key (sqlartisan_target_dbms) for
+    projects that prefer setting the target in a .csproj / Directory.Build.props
+    instead — the analyzer's config resolver checks both.
+  -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="SqlArtisanTargetDbms" />
+  </ItemGroup>
+
+</Project>

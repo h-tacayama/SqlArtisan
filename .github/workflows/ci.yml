@@ -20,7 +20,9 @@ jobs:
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          # Pinned by global.json so every environment resolves the same SDK
+          # feature band (analyzer/format behavior differs across bands).
+          global-json-file: global.json
 
       - name: Restore
         run: dotnet restore SqlArtisan.sln
@@ -33,3 +35,6 @@ jobs:
 
       - name: Test
         run: dotnet test tests/SqlArtisan.Tests --no-build -c Release --verbosity normal
+
+      - name: Test analyzer
+        run: dotnet test tests/SqlArtisan.Analyzers.Tests --no-build -c Release --verbosity normal

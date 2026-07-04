@@ -19,8 +19,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 ## Numeric Functions
 
 - `Abs()` for `ABS`
-- `Ceil()` for `CEIL` (Oracle/SQLite; MySQL/PostgreSQL accept both spellings)
-- `Ceiling()` for `CEILING` (SQL Server; MySQL/PostgreSQL accept both spellings)
+- `Ceil()` for `CEIL` (Oracle; MySQL/PostgreSQL/SQLite accept both spellings)
+- `Ceiling()` for `CEILING` (SQL Server; MySQL/PostgreSQL/SQLite accept both spellings)
 - `Floor()` for `FLOOR`
 - `Mod()` for `MOD`
 - `Power()` for `POWER`
@@ -97,7 +97,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 JSON paths are emitted as inline string literals (SQL Server and Oracle require the path to be a literal, not a bind parameter).
 
 - `JsonExtract(jsonDoc, path)` for `JSON_EXTRACT(jsonDoc, 'path')` (MySQL, SQLite)
-- `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (Oracle, SQL Server)
+- `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL 8.0.21+, Oracle, SQL Server)
 - `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, SQL Server)
 
 > [!NOTE]

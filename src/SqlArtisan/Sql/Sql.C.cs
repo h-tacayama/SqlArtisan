@@ -442,7 +442,7 @@ public static partial class Sql
     /// <remarks>
     /// Emitted verbatim as <c>CEIL</c> on every DBMS. SQL Server spells this
     /// function <c>CEILING</c>; use <see cref="Ceiling(object)"/> for that
-    /// target. MySQL and PostgreSQL accept both spellings.
+    /// target. MySQL, PostgreSQL, and SQLite accept both spellings.
     /// </remarks>
     public static CeilFunction Ceil(object expr) =>
         new(Resolve(expr));
@@ -452,9 +452,9 @@ public static partial class Sql
     /// <paramref name="expr"/>).
     /// </summary>
     /// <remarks>
-    /// Emitted verbatim as <c>CEILING</c> on every DBMS. Oracle and SQLite spell
-    /// this function <c>CEIL</c>; use <see cref="Ceil(object)"/> for those
-    /// targets. MySQL and PostgreSQL accept both spellings.
+    /// Emitted verbatim as <c>CEILING</c> on every DBMS. Oracle spells this
+    /// function <c>CEIL</c>; use <see cref="Ceil(object)"/> for that target.
+    /// MySQL, PostgreSQL, and SQLite accept both spellings.
     /// </remarks>
     public static CeilingFunction Ceiling(object expr) =>
         new(Resolve(expr));

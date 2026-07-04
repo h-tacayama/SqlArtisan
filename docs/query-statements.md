@@ -70,7 +70,7 @@ SqlStatement sql =
 // FROM users "u"
 // ORDER BY "u".department_id, "u".salary DESC
 ```
-PostgreSQL syntax; emitted faithfully on every dialect, with availability left to the database (ADR 0001/0003).
+PostgreSQL syntax; emitted faithfully on every dialect, with availability left to the database.
 
 #### Hints
 ```csharp
@@ -124,6 +124,7 @@ SqlStatement sql =
 
 // SELECT SYSDATE FROM DUAL
 ```
+MySQL also accepts `FROM DUAL` (the `SYSDATE` shown here is Oracle syntax).
 
 ---
 
@@ -213,9 +214,9 @@ pattern as a CTE's `CteBase`); pass that instance as the handle.
 |---|---|---|
 | `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
 | `OuterApply(subquery, handle)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
-| `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | PostgreSQL, MySQL |
-| `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON TRUE` | PostgreSQL, MySQL |
-| `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | PostgreSQL, MySQL |
+| `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | MySQL, Oracle 12c+, PostgreSQL |
+| `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON TRUE` | MySQL, PostgreSQL |
+| `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | MySQL, Oracle 12c+, PostgreSQL |
 
 The derived-table alias is alias-quoted at its definition (`... ) "x"`), matching
 both how a CTE name is written and the alias-quoted column references through the
@@ -225,11 +226,11 @@ quoted reference.
 
 The DBMS column lists where each form is idiomatic, not the limit of what is
 emitted: availability is the target database's concern (and the opt-in
-analyzer's). SQLite supports neither family; `LATERAL` has no SQL Server form;
-and Oracle's correlated-derived-table join is `CROSS APPLY` / `OUTER APPLY`, so
-prefer those over the `LATERAL` forms there (the injected `ON TRUE` in particular
-relies on a boolean literal Oracle lacks before 23c). SqlArtisan emits the
-construct faithfully rather than gating it at build time.
+analyzer's). SQLite supports neither family, and `LATERAL` has no SQL Server
+form. Oracle (12c+) accepts both families except `LeftJoinLateral` — its
+injected `ON TRUE` relies on a boolean literal Oracle lacks before 23c; use
+`OuterApply` there. SqlArtisan emits the construct faithfully rather than
+gating it at build time.
 
 ---
 
@@ -453,7 +454,7 @@ SqlStatement sql =
 
 `Limit()` and `Offset()` can be combined as `LIMIT n OFFSET m`. Note that a standalone `Offset()` (without `Limit()`) is only valid on PostgreSQL; MySQL and SQLite require `OFFSET` to be paired with `LIMIT`.
 
-#### OFFSET/FETCH family (Oracle 12c+ / SQL Server 2012+)
+#### OFFSET/FETCH family (Oracle 12c+ / PostgreSQL / SQL Server 2012+)
 
 ```csharp
 TestTable t = new();
@@ -706,7 +707,7 @@ alias-qualified (pass columns from an unaliased table instance, as `c` above).
 // Oracle in-clause DELETE: WHEN MATCHED THEN UPDATE SET ... DELETE WHERE ...
 .WhenMatched().ThenUpdateSet(t.Name == s.Name).DeleteWhere(t.Name.IsNull)
 
-// SQL Server only: WHEN MATCHED THEN DELETE
+// PostgreSQL 15+ / SQL Server: WHEN MATCHED THEN DELETE
 .WhenMatched().ThenDelete()
 
 // SQL Server only: WHEN NOT MATCHED BY SOURCE THEN UPDATE/DELETE

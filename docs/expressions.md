@@ -469,7 +469,9 @@ SqlStatement sql =
 
 ## ALL / ANY / SOME
 
-The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY`.
+The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY` — `Some(subquery)` emits `SOME (...)` exactly as `Any(subquery)` emits `ANY (...)`.
+
+Supported on MySQL, Oracle, PostgreSQL, and SQL Server — SQLite's grammar has no quantified comparisons and rejects all three.
 
 ```csharp
 UsersTable u = new("u");
@@ -741,7 +743,7 @@ SqlStatement sql =
 
 Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FILTER (WHERE ...) OVER (PARTITION BY ...)`.
 
-- Native on PostgreSQL and SQLite. Per ADR 0001/0003 it is emitted faithfully on every dialect (never rewritten to a `CASE` expression); engines without it reject it, which the analyzer can flag.
+- Native on PostgreSQL and SQLite. It is emitted faithfully on every dialect (never rewritten to a `CASE` expression); engines without it reject it, which the analyzer can flag.
 
 ---
 
@@ -749,10 +751,10 @@ Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FI
 
 String aggregation flattens the values of a group into one delimited string. This is the most syntactically divergent feature in scope, so SqlArtisan exposes it per dialect (no unified rewrite): you call the function your target DBMS supports, and the SQL you write is the SQL that runs.
 
-### STRING_AGG (PostgreSQL / SQL Server)
+### STRING_AGG (PostgreSQL / SQLite 3.44+ / SQL Server)
 
 ```csharp
-// PostgreSQL: ordering is inline inside the call, so pass OrderBy(...) as an argument
+// PostgreSQL / SQLite (3.44+): ordering is inline inside the call, so pass OrderBy(...) as an argument
 Select(StringAgg(u.Name, ", ", OrderBy(u.Name)))
     .From(u)
     .Build(Dbms.PostgreSql);

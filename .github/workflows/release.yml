@@ -26,7 +26,9 @@ jobs:
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          # Pinned by global.json so every environment resolves the same SDK
+          # feature band (analyzer/format behavior differs across bands).
+          global-json-file: global.json
 
       - name: Restore
         run: dotnet restore SqlArtisan.sln
@@ -60,7 +62,9 @@ jobs:
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          # Pinned by global.json so every environment resolves the same SDK
+          # feature band (analyzer/format behavior differs across bands).
+          global-json-file: global.json
 
       # Pack the three shipped projects individually — packing the solution would
       # also try to pack the tests and benchmark.

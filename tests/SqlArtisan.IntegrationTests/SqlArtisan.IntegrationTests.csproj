@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -29,6 +29,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\SqlArtisan.Analyzers\SqlArtisan.Analyzers.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan.Dapper\SqlArtisan.Dapper.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>

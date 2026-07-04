@@ -325,10 +325,10 @@ public static partial class Sql
         new(Resolve(expressions));
 
     /// <summary>
-    /// Oracle's <c>DUAL</c> dummy table, for selecting expressions without a real
-    /// table (<c>SELECT ... FROM DUAL</c>).
+    /// The <c>DUAL</c> dummy table (MySQL and Oracle), for selecting expressions
+    /// without a real table (<c>SELECT ... FROM DUAL</c>).
     /// </summary>
-    /// <remarks>This is Oracle-specific.</remarks>
+    /// <remarks>On other dialects use a <c>FROM</c>-less <c>Select(...)</c> instead.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static DualTable Dual => new();
 }

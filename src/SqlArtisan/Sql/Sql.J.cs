@@ -71,7 +71,7 @@ public static partial class Sql
     /// <summary>
     /// The <c>JSON_VALUE(jsonDoc, 'path')</c> function: extracts a scalar value
     /// from a JSON document at the given <paramref name="path"/>
-    /// (Oracle, SQL Server).
+    /// (MySQL 8.0.21+, Oracle, SQL Server).
     /// </summary>
     /// <param name="jsonDoc">The JSON document expression.</param>
     /// <param name="path">The JSON path (e.g. <c>"$.name"</c>). Emitted as an

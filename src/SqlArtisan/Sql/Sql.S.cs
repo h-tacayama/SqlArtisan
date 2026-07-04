@@ -130,6 +130,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="subquery">A <c>SELECT</c> builder returning a single column.</param>
     /// <returns>A quantified-subquery expression emitting <c>SOME (SELECT ...)</c>.</returns>
+    /// <remarks>SQLite's grammar has no quantified comparisons; the other dialects accept it.</remarks>
     public static QuantifiedSubquery Some(ISubquery subquery) =>
         new(Keywords.Some, subquery);
 
@@ -150,9 +151,10 @@ public static partial class Sql
     /// <param name="separator">The string placed between concatenated values. Emitted as an inline string literal, since SQL Server requires the separator to be a literal.</param>
     /// <returns>A <c>STRING_AGG</c> aggregate expression.</returns>
     /// <remarks>
-    /// PostgreSQL and SQL Server. Order the values per dialect: pass
-    /// <c>OrderBy(...)</c> as an argument for PostgreSQL's inline form, or chain
-    /// <c>.WithinGroup(OrderBy(...))</c> for SQL Server's <c>WITHIN GROUP</c> form.
+    /// PostgreSQL, SQLite (3.44+), and SQL Server. Order the values per dialect:
+    /// pass <c>OrderBy(...)</c> as an argument for the PostgreSQL / SQLite inline
+    /// form, or chain <c>.WithinGroup(OrderBy(...))</c> for SQL Server's
+    /// <c>WITHIN GROUP</c> form.
     /// </remarks>
     public static StringAggFunction StringAgg(object expr, string separator) =>
         new(Resolve(expr), separator);

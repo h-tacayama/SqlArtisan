@@ -24,7 +24,7 @@ public interface IJoinOperator
 
     /// <summary>
     /// Joins a correlated derived table with <c>CROSS JOIN LATERAL (subquery) alias</c>
-    /// (PostgreSQL / MySQL; SQL Server / Oracle spell it
+    /// (MySQL / Oracle 12c+ / PostgreSQL; SQL Server spells it
     /// <see cref="CrossApply(ISubquery, DerivedTableBase)"/>).
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
@@ -49,7 +49,7 @@ public interface IJoinOperator
     /// <summary>
     /// Joins a correlated derived table with <c>JOIN LATERAL (subquery) alias ON ...</c>,
     /// the join predicate supplied by the following <c>On(...)</c>
-    /// (PostgreSQL / MySQL).
+    /// (MySQL / Oracle 12c+ / PostgreSQL).
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>

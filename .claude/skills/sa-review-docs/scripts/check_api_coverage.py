@@ -19,7 +19,7 @@ from pathlib import Path
 SQL_DIR = Path("src/SqlArtisan/Sql")
 DOC_FILES = [
     "README.md", "docs/README.md", "docs/query-statements.md",
-    "docs/expressions.md", "docs/functions.md",
+    "docs/expressions.md", "docs/functions.md", "docs/analyzer.md",
 ]
 # Known instance/extension members that legitimately appear as "`X()` for `Y`"
 # without being a static Sql.* factory.
