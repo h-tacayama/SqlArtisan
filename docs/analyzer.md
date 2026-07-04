@@ -66,10 +66,9 @@ using static SqlArtisan.Sql;
 
 // sqlartisan_target_dbms = mysql
 var g = Rollup(t.Code, t.Name);
-// warning SQLA0001: 'Rollup' is not supported on MySQL (per SqlArtisan's
-// dialect matrix, verified against MySQL 8.0 ...). If your engine version
-// supports it, silence this by setting 'sqlartisan_construct_rollup =
-// supported' in .editorconfig.
+// warning SQLA0001: 'Rollup' is not supported on MySQL. Set
+// 'sqlartisan_construct_rollup = supported' in .editorconfig if your
+// engine version supports it.
 ```
 
 Severity is controlled the standard Roslyn way, per rule ID:

@@ -95,7 +95,6 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             context.Operation.Syntax.GetLocation(),
             DisplayName(memberName, arity, result.IsArityLevel),
             DisplayName(target),
-            DialectMatrix.VerifiedAgainstVersion[target],
             result.OverrideKeyHint));
     }
 

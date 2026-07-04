@@ -124,6 +124,7 @@ SqlStatement sql =
 
 // SELECT SYSDATE FROM DUAL
 ```
+MySQL also accepts `FROM DUAL` (the `SYSDATE` shown here is Oracle syntax).
 
 ---
 

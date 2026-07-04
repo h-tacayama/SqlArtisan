@@ -328,7 +328,7 @@ public static partial class Sql
     /// Oracle's <c>DUAL</c> dummy table, for selecting expressions without a real
     /// table (<c>SELECT ... FROM DUAL</c>).
     /// </summary>
-    /// <remarks>This is Oracle-specific.</remarks>
+    /// <remarks>Oracle syntax; MySQL also accepts <c>FROM DUAL</c>.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static DualTable Dual => new();
 }

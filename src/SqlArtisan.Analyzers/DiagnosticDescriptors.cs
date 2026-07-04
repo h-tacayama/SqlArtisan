@@ -10,8 +10,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor UnsupportedDialectConstruct = new(
         id: "SQLA0001",
         title: "SQL construct not supported on the target dialect",
-        messageFormat: "'{0}' is not supported on {1} (per SqlArtisan's dialect matrix, verified against {2}). "
-            + "If your engine version supports it, silence this by setting '{3} = supported' in .editorconfig.",
+        messageFormat: "'{0}' is not supported on {1}. Set '{2} = supported' in .editorconfig if your engine version supports it.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
