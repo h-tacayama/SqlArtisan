@@ -17,7 +17,7 @@ public static partial class Sql
 
     /// <inheritdoc cref="ToChar(object)"/>
     /// <param name="expr">The value to convert to text.</param>
-    /// <param name="format">The Oracle format model controlling the output.</param>
+    /// <param name="format">The format model (Oracle-style) controlling the output.</param>
     public static ToCharFunction ToChar(object expr, object format) =>
         new(Resolve(expr), Resolve(format));
 
@@ -26,7 +26,7 @@ public static partial class Sql
     /// a date using the Oracle <paramref name="format"/> model.
     /// </summary>
     /// <param name="text">The string to parse.</param>
-    /// <param name="format">The Oracle format model describing <paramref name="text"/>.</param>
+    /// <param name="format">The format model (Oracle-style) describing <paramref name="text"/>.</param>
     /// <returns>A <c>TO_DATE</c> function expression.</returns>
     /// <remarks>Oracle and PostgreSQL syntax.</remarks>
     public static ToDateFunction ToDate(object text, object format) =>
@@ -44,7 +44,7 @@ public static partial class Sql
 
     /// <inheritdoc cref="ToNumber(object)"/>
     /// <param name="expr">The value to convert.</param>
-    /// <param name="numericFormat">The Oracle numeric format model describing <paramref name="expr"/>.</param>
+    /// <param name="numericFormat">The numeric format model (Oracle-style) describing <paramref name="expr"/>.</param>
     public static ToNumberFunction ToNumber(object expr, object numericFormat) =>
         new(Resolve(expr), Resolve(numericFormat));
 
@@ -53,7 +53,7 @@ public static partial class Sql
     /// into a timestamp using the Oracle <paramref name="format"/> model.
     /// </summary>
     /// <param name="text">The string to parse.</param>
-    /// <param name="format">The Oracle format model describing <paramref name="text"/>.</param>
+    /// <param name="format">The format model (Oracle-style) describing <paramref name="text"/>.</param>
     /// <returns>A <c>TO_TIMESTAMP</c> function expression.</returns>
     /// <remarks>Oracle and PostgreSQL syntax.</remarks>
     public static ToTimestampFunction ToTimestamp(object text, object format) =>
