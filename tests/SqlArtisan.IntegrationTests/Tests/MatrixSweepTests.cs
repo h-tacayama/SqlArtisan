@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 using SqlArtisan.Analyzers;
 using SqlArtisan.Dapper;
@@ -61,7 +62,7 @@ public abstract class MatrixSweepTestBase
                 continue;
             }
 
-            string? error = TryExecute(connection, sweepCase);
+            string? error = TryExecute(connection, sweepCase, out bool isEngineRejection);
             if (expected && error is not null)
             {
                 failures.Add($"{Label(sweepCase)}: matrix says SUPPORTED, engine rejected: {error}");
@@ -69,6 +70,12 @@ public abstract class MatrixSweepTestBase
             else if (!expected && error is null)
             {
                 failures.Add($"{Label(sweepCase)}: matrix says UNSUPPORTED, engine accepted");
+            }
+            else if (!expected && !isEngineRejection)
+            {
+                // An infrastructure failure (timeout, dropped connection) must not
+                // count as the engine rejecting the construct's grammar.
+                failures.Add($"{Label(sweepCase)}: matrix says UNSUPPORTED, but the failure was not a database rejection: {error}");
             }
             else if (expected)
             {
@@ -87,8 +94,9 @@ public abstract class MatrixSweepTestBase
                 + string.Join("\n  ", failures));
     }
 
-    private string? TryExecute(IDbConnection connection, SweepCase sweepCase)
+    private string? TryExecute(IDbConnection connection, SweepCase sweepCase, out bool isEngineRejection)
     {
+        isEngineRejection = false;
         try
         {
             if (sweepCase.Mutating)
@@ -109,6 +117,11 @@ public abstract class MatrixSweepTestBase
             }
 
             return null;
+        }
+        catch (DbException ex)
+        {
+            isEngineRejection = true;
+            return ex.Message.Split('\n')[0].Trim();
         }
         catch (Exception ex)
         {

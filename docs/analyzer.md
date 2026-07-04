@@ -170,10 +170,11 @@ fires on a *confirmed* mismatch by design (a construct the matrix doesn't
 know stays silent rather than guess), so there is no "unverified construct"
 diagnostic to promote — the matrix's
 completeness is the whole safety net, and it is enforced in this repository:
-a coverage test fails when a public member ships without a matrix entry or a
-documented dialect-neutral exclusion, and an integration-test sweep executes
-the entries against a live engine per dialect (the versions in the table
-below) asserting the accept/reject outcome matches the matrix both ways.
+a coverage test fails when a public method, property, or field ships without
+a matrix entry or a documented dialect-neutral exclusion, and an
+integration-test sweep executes the entries against a live engine per
+dialect (the versions in the table below) asserting the accept/reject
+outcome matches the matrix both ways.
 
 ---
 
@@ -215,13 +216,23 @@ for, not a bug in the matrix.
   Oracle+PostgreSQL, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry and never
   warns either way.
+- **Overloaded operators are out of scope.** The analyzer inspects method,
+  property, and field references only; C# operator uses (`u.Age + 1`,
+  `u.Id % 2`) reach it as binary operations and are never checked. At least
+  one operator is dialect-divergent — `%` emits SQL's modulo operator, which
+  Oracle does not have (its form is the `Mod(...)` function, which the
+  matrix does cover) — so an operator misuse surfaces only at the database.
 - **Typo'd keys fail silently** (see above) — there is no diagnostic for an
   unrecognized `sqlartisan_construct_*` *key name*, only for a recognized
-  key with an unrecognized *value*.
+  key with an unrecognized *value*. Value validation covers the keys derived
+  from the matrix; an override key naming a member the matrix has no entry
+  for is honored when its value is valid, but a typo in its *value* is
+  silently ignored too.
 - **Absence of an entry still means silence, not endorsement.** The matrix
-  covers every referencable public member except a documented set of
-  dialect-neutral plumbing (`Build`, the result and configuration objects)
-  and `Trunc` above — gate-enforced by the repository's tests — but a member
-  in that excluded set never warns either way. See
+  covers every referencable public method, property, and field except a
+  documented set of dialect-neutral plumbing (`Build`, the result and
+  configuration objects) and `Trunc` above — gate-enforced by the
+  repository's tests — but a member in that excluded set never warns either
+  way. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.

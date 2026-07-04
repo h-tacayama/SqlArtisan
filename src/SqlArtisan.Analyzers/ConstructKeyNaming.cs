@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 
 namespace SqlArtisan.Analyzers;
@@ -15,6 +16,13 @@ internal static class ConstructKeyNaming
 {
     private const string Prefix = "sqlartisan_construct_";
     private const string AritySeparator = "_arity";
+
+    // Key strings are built once per distinct member name (and (name, arity)
+    // pair) instead of on every analyzed usage: the analyzer resolves a key for
+    // each SqlArtisan member reference in the IDE's analysis loop, and the set
+    // of distinct names is small and fixed by the SqlArtisan API surface.
+    private static readonly ConcurrentDictionary<string, string> MemberKeyCache = new();
+    private static readonly ConcurrentDictionary<(string MemberName, int Arity), string> ArityKeyCache = new();
 
     public static string ToSnakeCase(string pascalCaseName)
     {
@@ -34,12 +42,14 @@ internal static class ConstructKeyNaming
     }
 
     /// <summary>The member-level override key — applies to every overload.</summary>
-    public static string MemberKey(string memberName) => Prefix + ToSnakeCase(memberName);
+    public static string MemberKey(string memberName) =>
+        MemberKeyCache.GetOrAdd(memberName, static name => Prefix + ToSnakeCase(name));
 
     /// <summary>
     /// The arity-level override key — applies only to the overload with this many
     /// parameters. <paramref name="arity"/> is a parameter count, never a
     /// disambiguating index, so it stays stable as overloads are added.
     /// </summary>
-    public static string ArityKey(string memberName, int arity) => MemberKey(memberName) + AritySeparator + arity;
+    public static string ArityKey(string memberName, int arity) =>
+        ArityKeyCache.GetOrAdd((memberName, arity), static key => MemberKey(key.MemberName) + AritySeparator + key.Arity);
 }

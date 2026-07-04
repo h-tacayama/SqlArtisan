@@ -7,11 +7,13 @@ namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
 /// The "coverage" half of the coverage/integrity gate pair (#93): every public
-/// member of SqlArtisan.dll that user query code can reference (and the
-/// analyzer therefore sees) must either have a <see cref="DialectMatrix"/>
-/// entry or a documented exclusion here. This is what makes the analyzer's
-/// "silence = verified" reading safe going forward — a new public member
-/// cannot ship without an explicit dialect decision.
+/// method, property, and field of SqlArtisan.dll that user query code can
+/// reference (and the analyzer therefore sees) must either have a
+/// <see cref="DialectMatrix"/> entry or a documented exclusion here. This is
+/// what makes the analyzer's "silence = verified" reading safe going forward —
+/// a new public member cannot ship without an explicit dialect decision.
+/// Overloaded operators are outside both this sweep and the analyzer's
+/// operation kinds (docs/analyzer.md, known limitations).
 /// </summary>
 public class DialectMatrixCoverageTests
 {
