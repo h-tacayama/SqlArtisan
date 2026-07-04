@@ -48,14 +48,25 @@ string, so any output change will surface here. Also run
 `dotnet format SqlArtisan.sln` before pushing — CI fails on any `.editorconfig`
 violation.
 
+The SDK is pinned by `global.json` (CI installs exactly that via
+`setup-dotnet`'s `global-json-file`), because analyzer/`dotnet format`
+behavior differs across SDK feature bands — an unpinned local SDK can pass
+`--verify-no-changes` while CI fails it. If your environment cannot install
+the pinned band, run the commands from **outside** the repo directory with
+explicit project paths (SDK resolution reads `global.json` upward from the
+current directory), and treat CI as the authoritative format gate.
+
 ## How to add a new SQL function (the most common task)
 
-Adding a function touches **four** places, all kept alphabetical: the node class
+Adding a function touches **six** places: four kept alphabetical — the node class
 (`Internal/SqlPart/Expression/Function/<Category>/<Name>Function.cs`), the keyword
 in `Keywords.cs`, the public factory in `Sql.<Letter>.cs`, and the test in
-`FunctionTests.<Letter>.cs`. The **`sa-add-sql-function` skill** walks through all
-four with templates and reference implementations (`AbsFunction`,
-`AddMonthsFunction`, …) — follow it for the full procedure.
+`FunctionTests.<Letter>.cs` — plus two gate-enforced analyzer touch points: the
+dialect-matrix entry (`src/SqlArtisan.Analyzers/DialectMatrix.cs`) and its sweep
+case (`tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs`).
+The **`sa-add-sql-function` skill** walks through all six with templates and
+reference implementations (`AbsFunction`, `AddMonthsFunction`, …) — follow it
+for the full procedure.
 
 ## Conventions
 
