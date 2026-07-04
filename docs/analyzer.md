@@ -54,6 +54,13 @@ the analyzer never reports anything — enabling it is purely additive.
 without a matrix entry stays silent rather than guessed at, so an incomplete
 matrix can under-warn but never produce a false positive.
 
+`SQLA0002` is a compilation-end diagnostic reported once per distinct
+(key, value) with no file location: it appears in **build** output (CLI and
+CI, and an IDE's Error List after an explicit build — check that the list's
+source filter includes Build entries), but not in the editor's live
+analysis, which never runs compilation-end actions. `SQLA0001`, by
+contrast, is a per-usage diagnostic and shows up live as you type.
+
 ```csharp
 using static SqlArtisan.Sql;
 
