@@ -751,10 +751,10 @@ Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FI
 
 String aggregation flattens the values of a group into one delimited string. This is the most syntactically divergent feature in scope, so SqlArtisan exposes it per dialect (no unified rewrite): you call the function your target DBMS supports, and the SQL you write is the SQL that runs.
 
-### STRING_AGG (PostgreSQL / SQL Server)
+### STRING_AGG (PostgreSQL / SQLite 3.44+ / SQL Server)
 
 ```csharp
-// PostgreSQL: ordering is inline inside the call, so pass OrderBy(...) as an argument
+// PostgreSQL / SQLite (3.44+): ordering is inline inside the call, so pass OrderBy(...) as an argument
 Select(StringAgg(u.Name, ", ", OrderBy(u.Name)))
     .From(u)
     .Build(Dbms.PostgreSql);

@@ -115,7 +115,7 @@ internal static class DialectMatrix
         // --- JSON (CHANGELOG 0.5.0-beta.2, #152) ---
         [new MatrixKey("JsonExtract")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
         // JsonValue: MySQL added JSON_VALUE in 8.0.21 (dev.mysql.com; the mysql:8.0 baseline
-        // is past that), so the repo docs' "Oracle, SQL Server" was under-inclusive.
+        // is past that).
         // PostgreSQL's JSON_VALUE arrived in 17 — the PostgreSQL 16 baseline lacks it.
         [new MatrixKey("JsonValue")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("JsonQuery")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
@@ -133,13 +133,11 @@ internal static class DialectMatrix
         // "Ceil" is emitted verbatim everywhere; SQL Server spells this function CEILING instead.
         [new MatrixKey("Ceil")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // "Ceiling" is SQL Server's/standard spelling; Oracle spells it CEIL only, but SQLite's
-        // math functions provide BOTH ceil() and ceiling() — the XML remark's "Oracle and
-        // SQLite spell this CEIL" was wrong about SQLite (live-verified by the dialect sweep).
+        // math functions provide BOTH ceil() and ceiling() (live-verified by the dialect sweep).
         [new MatrixKey("Ceiling")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
 
         // --- Date/time Oracle-only and SQL Server-only helpers ---
-        // LastDay: MySQL has LAST_DAY too — live-verified by the integration smoke catalog
-        // (the XML remark's "Oracle syntax" was under-inclusive).
+        // LastDay: MySQL has LAST_DAY too — live-verified by the integration smoke catalog.
         [new MatrixKey("LastDay")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("MonthsBetween")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Sysdate")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
@@ -355,9 +353,9 @@ internal static class DialectMatrix
         // Round: T-SQL ROUND requires 2-3 arguments — the 1-arg form is invalid on SQL Server.
         [new MatrixKey("Round")] = DbmsSupport.All,
         [new MatrixKey("Round", 1)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // Instr: XML docs say "Oracle syntax", but MySQL and SQLite both have the native 2-arg
-        // INSTR(str, substr) — an arity split the docs miss. The 3/4-arg forms are Oracle-only
-        // (member-level row); PostgreSQL and SQL Server have no INSTR at any arity.
+        // Instr: MySQL and SQLite both have the native 2-arg INSTR(str, substr) — an arity
+        // split. The 3/4-arg forms are Oracle-only (member-level row); PostgreSQL and
+        // SQL Server have no INSTR at any arity.
         [new MatrixKey("Instr")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Instr", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: false, sqlite: true, sqlServer: false),
         // Greatest/Least: no SQLite equivalent (it uses multi-argument scalar MAX/MIN instead);

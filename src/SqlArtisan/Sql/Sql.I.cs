@@ -36,7 +36,8 @@ public static partial class Sql
     /// <param name="source">The string to search in.</param>
     /// <param name="substring">The substring to search for.</param>
     /// <returns>The INSTR construct.</returns>
-    /// <remarks>Oracle syntax.</remarks>
+    /// <remarks>MySQL, Oracle, and SQLite syntax; the 3- and 4-argument forms
+    /// are Oracle-only.</remarks>
     public static InstrFunction Instr(object source, object substring) =>
         new(Resolve(source), Resolve(substring));
 

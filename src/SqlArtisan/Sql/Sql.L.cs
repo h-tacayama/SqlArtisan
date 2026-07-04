@@ -48,7 +48,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="date">The date whose month's last day is returned.</param>
     /// <returns>The LAST_DAY construct.</returns>
-    /// <remarks>Oracle syntax.</remarks>
+    /// <remarks>MySQL and Oracle syntax.</remarks>
     public static LastDayFunction LastDay(object date) =>
         new(Resolve(date));
 

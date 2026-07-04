@@ -26,7 +26,7 @@ public static partial class Sql
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_COUNT</c> function expression.</returns>
-    /// <remarks>Oracle syntax.</remarks>
+    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
     public static RegexpCountFunction RegexpCount(object source, object pattern) =>
         new(Resolve(source), Resolve(pattern));
 
@@ -65,7 +65,7 @@ public static partial class Sql
     /// <param name="source">The string tested.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_LIKE</c> condition.</returns>
-    /// <remarks>Oracle syntax.</remarks>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpLikeCondition RegexpLike(object source, object pattern) =>
         new(Resolve(source), Resolve(pattern));
 
@@ -90,7 +90,7 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
-    /// <remarks>Oracle syntax.</remarks>
+    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -238,7 +238,7 @@ public static partial class Sql
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_SUBSTR</c> function expression.</returns>
-    /// <remarks>Oracle syntax.</remarks>
+    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static RegexpSubstrFunction RegexpSubstr(object source, object pattern) =>
         new(Resolve(source), Resolve(pattern));
 

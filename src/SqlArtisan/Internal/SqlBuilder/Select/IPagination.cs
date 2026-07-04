@@ -24,8 +24,8 @@ public interface IPagination
     ISqlBuilder Offset(int start);
 
     /// <summary>
-    /// Appends <c>OFFSET m ROWS</c>. Dialect-specific (Oracle 12c+ / SQL Server 2012+).
-    /// For PostgreSQL / MySQL / SQLite use <see cref="Offset(int)"/>.
+    /// Appends <c>OFFSET m ROWS</c>. Dialect-specific (Oracle 12c+ / PostgreSQL /
+    /// SQL Server 2012+). For MySQL / SQLite use <see cref="Offset(int)"/>.
     /// </summary>
     /// <param name="start">The number of leading rows to skip.</param>
     /// <returns>The builder positioned to optionally add a <c>FETCH NEXT n ROWS ONLY</c>, or build.</returns>
