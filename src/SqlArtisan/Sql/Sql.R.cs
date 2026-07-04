@@ -26,7 +26,7 @@ public static partial class Sql
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_COUNT</c> function expression.</returns>
-    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
+    /// <remarks>Oracle and PostgreSQL (15+) syntax.</remarks>
     public static RegexpCountFunction RegexpCount(object source, object pattern) =>
         new(Resolve(source), Resolve(pattern));
 
@@ -238,7 +238,7 @@ public static partial class Sql
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_SUBSTR</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpSubstrFunction RegexpSubstr(object source, object pattern) =>
         new(Resolve(source), Resolve(pattern));
 
