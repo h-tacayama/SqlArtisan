@@ -2,6 +2,11 @@ using Microsoft.CodeAnalysis;
 
 namespace SqlArtisan.Analyzers;
 
+// Message length standard (benchmarked against the BCL analyzers): a fact-only
+// message is one short sentence (IDE0305/CS0103 are 40-60 chars); fact plus
+// remediation is two sentences, capped around CS8618's ~155 chars. Lead with the
+// fact, include only remediation the user cannot guess (the derived override
+// key), and push everything else to docs/analyzer.md via the help link.
 internal static class DiagnosticDescriptors
 {
     private const string Category = "SqlArtisan.Dialect";
