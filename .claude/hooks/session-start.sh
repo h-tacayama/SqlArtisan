@@ -1,6 +1,6 @@
 #!/bin/bash
 # SessionStart hook for Claude Code on the web.
-# Ensures the .NET 8 SDK is available and NuGet packages are restored so that
+# Ensures the .NET 10 SDK pinned by global.json is available and NuGet packages are restored so that
 # `dotnet build` / `dotnet test` work immediately in remote sessions.
 set -euo pipefail
 
@@ -17,15 +17,15 @@ if [ "$(id -u)" -ne 0 ]; then
     SUDO="sudo"
 fi
 
-# Install the .NET 8 SDK from the Ubuntu archive if it isn't already present.
+# Install the .NET 10 SDK from the Ubuntu archive if it isn't already present.
 # (The official dot.net / Azure CDN installers are blocked by the network
 # policy in this environment, but archive.ubuntu.com is reachable.)
 if ! command -v dotnet >/dev/null 2>&1; then
-    echo "Installing .NET 8 SDK..."
+    echo "Installing .NET 10 SDK..."
     export DEBIAN_FRONTEND=noninteractive
     # Refresh package lists; tolerate failures from unrelated third-party PPAs.
     $SUDO apt-get update -qq || true
-    $SUDO apt-get install -y --no-install-recommends dotnet-sdk-8.0
+    $SUDO apt-get install -y --no-install-recommends dotnet-sdk-10.0
 fi
 
 # Quiet the first-run banner and telemetry for this and the session's commands.
