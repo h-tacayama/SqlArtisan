@@ -18,7 +18,7 @@ internal static class AnalyzerConfigResolver
     /// <summary>
     /// The MSBuild-property fallback for <see cref="TargetDbmsKey"/>, populated
     /// via the <c>CompilerVisibleProperty</c> declared in the shipped
-    /// buildTransitive props (src/SqlArtisan/build/SqlArtisan.props). Consumers
+    /// buildTransitive props (src/SqlArtisan.Analyzers/build/SqlArtisan.props). Consumers
     /// who prefer setting <c>&lt;SqlArtisanTargetDbms&gt;</c> in a .csproj /
     /// Directory.Build.props over an .editorconfig section use this key
     /// instead; .editorconfig wins when both are set.

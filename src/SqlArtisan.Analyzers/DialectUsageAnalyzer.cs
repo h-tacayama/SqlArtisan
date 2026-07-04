@@ -15,6 +15,15 @@ namespace SqlArtisan.Analyzers;
 /// matrix has a verified entry for (never a false positive from an incomplete
 /// matrix).
 /// </summary>
+/// <remarks>
+/// Coupling to the core library is limited to a three-point contract
+/// (ADR 0009): the containing-assembly name (<c>"SqlArtisan"</c>), the public
+/// member names the matrix keys mirror (gate-enforced both ways by the
+/// integrity and coverage tests), and the <c>.editorconfig</c> / MSBuild
+/// configuration surface. Do not add a build reference to SqlArtisan or share
+/// types with it — the analyzer must stay loadable and correct against any
+/// core version.
+/// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 {

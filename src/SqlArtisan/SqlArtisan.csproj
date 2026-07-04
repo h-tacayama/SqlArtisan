@@ -42,7 +42,9 @@
     <ProjectReference Include="..\SqlArtisan.Analyzers\SqlArtisan.Analyzers.csproj"
                        ReferenceOutputAssembly="false"
                        OutputItemType="Analyzer" />
-    <None Include="build\SqlArtisan.props" Pack="true" PackagePath="buildTransitive\SqlArtisan.props" />
+    <!-- The props is an analyzer-owned artifact (ADR 0009): it lives with the
+         analyzer project; this core package only carries it. -->
+    <None Include="..\SqlArtisan.Analyzers\build\SqlArtisan.props" Pack="true" PackagePath="buildTransitive\SqlArtisan.props" />
   </ItemGroup>
 
   <!--

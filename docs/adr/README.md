@@ -26,3 +26,4 @@ divergence, then the output, API, performance, and enforcement-boundary decision
 | [0006](0006-performance-allocation-light.md) | Performance is a feature: allocation-light building | Accepted |
 | [0007](0007-validity-enforcement-boundary.md) | What the library rejects: grammatical completeness vs dialect availability | Accepted |
 | [0008](0008-analyzer-override-configuration.md) | Analyzer override configuration: keys, precedence, and what's out of scope | Accepted |
+| [0009](0009-analyzer-distribution-bundled.md) | Analyzer distribution: bundled in the core package, coupled only by contract | Accepted |
