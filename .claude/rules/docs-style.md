@@ -10,9 +10,10 @@ paths:
 # Documentation style
 
 Covers wording and formatting for the README (landing + capability-map index),
-`docs/` (reference), `llms.txt`, and `CHANGELOG.md`. The README/`docs/` split
-also lives in CLAUDE.md; the absolute-URL rule and the DBMS enum order live
-only here.
+`docs/` (reference), `llms.txt` (the AI-tool index; `llms-full.txt` and an
+MCP/Context7 feed are future work), and `CHANGELOG.md`. The README/`docs/`
+split also lives in CLAUDE.md; the absolute-URL rule and the DBMS enum order
+live only here.
 
 **No ADR citations on user-facing surfaces** — README, `docs/` reference
 pages, `llms.txt`, and `CHANGELOG.md` must not cite ADR numbers ("per
@@ -55,7 +56,7 @@ with availability left to the database"). ADR cross-references belong in
   DBMS in enum order.
 - **Dialect caveat note** (a construct that is invalid or a trap on some
   DBMS): one sentence naming the affected DBMS (enum order) and the working
-  alternative in the same breath — "On SQL Server and Oracle (< 23ai), recurse
+  alternative in the same breath — "On Oracle (< 23ai) and SQL Server, recurse
   with plain `With(...)` — `WithRecursive()` is rejected there." Never a bare
   "not supported on X" with no way out.
 - **Version boundary note**: parenthesized after the DBMS name — "(SQL Server

@@ -20,7 +20,10 @@ paths:
     (`UsesRowAlias`, `EscapesLiteral`).
   - e.g. `Abs_NumericValue_CorrectSql`, `Extract_Oracle_CorrectSql`,
     `Returning_NoArguments_ThrowsArgumentException`.
-- **Guard and elision assertions.** A `Throws...` test asserts the exception's
+- **Guard and elision assertions** (forward convention — applies to the
+  #236/#245 guards as they land; tests written before it assert only the
+  exception type or use `Contains`, don't copy them). A `Throws...` test
+  asserts the exception's
   **exact message** (`Assert.Equal` on `ex.Message`) — the message grammar in
   the guards rule is part of the contract, not incidental wording. An
   `Omits<Clause>` test asserts the **exact full SQL string** without the

@@ -15,18 +15,22 @@ Decision principles distilled from the #225 expressibility triage
 
 ## Naming: three categories, in priority order
 
-1. **SQL-token names** — the CLAUDE.md rule (underscores are the only word
-   boundaries): `ADD_MONTHS`→`AddMonths`, `DATETRUNC`→`Datetrunc`.
+1. **SQL-token names** — underscores are the only word boundaries: each
+   underscore-delimited segment gets one leading capital and the rest
+   lowercase; a token with no underscore stays a single word
+   (`ADD_MONTHS`→`AddMonths`, `DATETRUNC`→`Datetrunc`, never invented
+   internal capitals). CLAUDE.md carries the one-line summary; this is the
+   full rule.
 2. **Symbol-only operators → glyph names**, precedent `JsonArrow` (`->`) /
    `JsonArrowText` (`->>`); the `||` factory (#234) follows this category.
-3. **Non-token helpers** (`ConditionIf`, `Hints`, `Group`, `Value`,
-   `NoCondition`) — invented names are allowed *only* here, for API
-   affordances that correspond to no SQL token.
+3. **Non-token helpers** (`ConditionIf`, `Hints`, `Group`) — invented names
+   are allowed *only* here, for API affordances that correspond to no SQL
+   token.
 
 Never invent a token-like name for a real construct: `CountAll()` was rejected
-(#233) because no `COUNT_ALL` token exists — `COUNT(*)` is the parameterless
-`Count()` overload, and real tokens like SQL Server's `COUNT_BIG` keep their
-conventional names available.
+(#233) because no `COUNT_ALL` token exists — `COUNT(*)` lands as a
+parameterless `Count()` overload (#233, not yet implemented), and real tokens
+like SQL Server's `COUNT_BIG` keep their conventional names available.
 
 ## Overload split for analyzer arity
 
@@ -36,11 +40,13 @@ arity-restricted matrix entry — every call site reports the same declared
 arity. When dialect support differs by argument count, **split the overloads
 so the declared arities differ**:
 
-> Worked example (#234): `Concat(object, object)` (arity 2, all dialects) +
-> `Concat(object, object, object, params object[])` (arity 4, `oracle: false`)
-> lets `("Concat", 2)` / `("Concat", 4)` matrix entries warn on Oracle's
-> 2-argument limit with zero analyzer-engine changes. First from-scratch use:
-> `Grouping` (#235).
+> Decided shape (#234 — **not yet landed**; today `Concat` is still one
+> `params` method and its matrix entry is a support union, see the caveat
+> comment on it in `DialectMatrix.cs`): `Concat(object, object)` (arity 2,
+> all dialects) + `Concat(object, object, object, params object[])` (arity 4,
+> `oracle: false`) lets `("Concat", 2)` / `("Concat", 4)` matrix entries warn
+> on Oracle's 2-argument limit with zero analyzer-engine changes. `Grouping`
+> (#235) is decided as the first from-scratch use.
 
 Before adding a matrix entry, check the `MatrixKey` collision caveat in
 `DialectMatrix.cs`: keys are (name, arity) with **no parameter types**, so

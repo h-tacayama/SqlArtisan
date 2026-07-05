@@ -115,6 +115,8 @@ binding grows the parameter list.
 findings — probe whichever the change could plausibly affect:
 
 ```csharp
+using SqlArtisan.Internal;                              // SqlCondition lives here
+
 SqlCondition e() => ConditionIf(false, u.Id == 1);      // an excluded condition
 
 // (a) all conditions off — must elide WHERE (SELECT) / throw (DML), never emit "WHERE "

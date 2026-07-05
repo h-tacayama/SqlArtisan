@@ -58,6 +58,10 @@ an explicit, sourced, suppressible diagnostic or a docs note.
   layer or unblock a constituency's adoption (planned waves #237/#159), and
   can still say wontfix where a same-dialect, vendor-recommended workaround
   exists (CONNECT BY, PIVOT, legacy index hints — #225).
+- Tier 2 *extends* the analyzer's planned remit beyond the
+  dialect-availability scope noted in ADR 0007's consequences (and ADR 0003's
+  original out-of-scope list); the decisions themselves — the permissive API
+  and the rejection boundary — stand unchanged.
 - Analyzer facts require a primary source or live verification; unverified
   grammar claims carry the `grammar-unverified` tag. Version-bounded and
   context-bounded facts the construct-level matrix cannot express are

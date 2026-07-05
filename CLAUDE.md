@@ -13,11 +13,12 @@ SQL-like C# and it produces the SQL string plus its bind parameters.
 
 Faithful emission is the foundation, not the whole mission: SqlArtisan aims
 to be the **deterministic guard rail for SQL written alongside generative
-AI** — misuse fails to compile, the analyzer deterministically flags what
-the target DBMS rejects (dialect availability today; version/schema checks
-are the #232 direction; cost-based advice is permanently out of scope), and
-exact-SQL tests plus the live-engine matrix close the loop. The full
-decision is **ADR 0010** (`docs/adr/`), building on ADRs 0001–0003/0007.
+AI** — misuse fails to compile or throws loudly, the analyzer
+deterministically flags what the target DBMS rejects (dialect availability
+today; version/schema checks are the #232 direction; cost-based advice is
+permanently out of scope), and exact-SQL tests plus the live-engine matrix
+close the loop. The full decision is **ADR 0010** (`docs/adr/`), building on
+ADRs 0001–0003/0007.
 
 Do **not** introduce abstractions whose purpose is to make one query run
 unchanged across multiple DBMS. DBMS differences are handled only where the

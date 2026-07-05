@@ -167,9 +167,10 @@ overloads first.** The analyzer computes arity from the *declared* parameter
 count, so a single `params` overload reports one arity for every call site
 and can never carry an arity-restricted entry. Declare e.g. `(object, object)`
 and `(object, object, object, params object[])` so the declared arities
-differ, then key the entries per arity — the `Concat` split (#234) is the
-worked example, `Grouping` (#235) the first from-scratch use. Full recipe in
-`.claude/rules/public-api-design.md`.
+differ, then key the entries per arity — the `Concat` split is the decided
+shape of #234 (not yet landed; today's single-`params` `Concat` entry carries
+the union caveat in `DialectMatrix.cs`), `Grouping` the first from-scratch
+use decided in #235. Full recipe in `.claude/rules/public-api-design.md`.
 Cite the primary source (the XML remark,
 `docs/functions.md`/`docs/expressions.md`, a `CHANGELOG.md` entry, or a test)
 in a comment next to the entry — do not guess a `false` without one, since a
