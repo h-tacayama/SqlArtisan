@@ -81,6 +81,13 @@ green, then remove it before merging. (This is exactly how #151 was landed.)
   follow that pattern, don't leave committed writes behind.
 - DDL is per-engine in `Infrastructure/TestSchema.cs`; the seed rows are inserted
   through SqlArtisan, so seeding doubles as INSERT-execution coverage.
+- **Sweep entry vs verification test.** A `MatrixSweepCatalog` entry asserts
+  that each engine's accept/reject outcome **matches the dialect matrix** in
+  both directions — it presumes the answer is already known and entered. When
+  the point is to *discover* per-engine behavior (does Oracle reject the
+  repeated-parameter GROUP BY? — the GAP-19/#241 pattern), write a dedicated
+  test that records accept/reject per engine instead; promote the fact into
+  the matrix + a sweep case only after the results are in.
 
 ## Notes
 

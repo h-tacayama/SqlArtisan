@@ -17,7 +17,12 @@ Reference implementations to copy from:
 - **Optional trailing args** → `RtrimFunction` (`CharacterFunction/RtrimFunction.cs`)
 - **Conditional / keyword-in-args** → `TrimFunction` (`CharacterFunction/TrimFunction.cs`)
 
-Before starting, decide the **category** and **name**:
+Before starting, decide the **category** and **name**. Naming has three
+categories — SQL-token names (the rule below), glyph names for symbol-only
+operators (`JsonArrow` for `->`), and invented names for non-token helpers
+(`ConditionIf`, `Hints`) — see `.claude/rules/public-api-design.md` for when
+each applies and why token-like inventions (`CountAll`) are rejected. For a
+token name:
 - Pick the function `<Category>` folder under
   `src/SqlArtisan/Internal/SqlPart/Expression/Function/`. Existing categories:
   `AggregateFunction`, `AnalyticFunction`, `CharacterFunction`,
@@ -125,8 +130,17 @@ Rules:
 - Keep the signature (and expression body) on as few lines as fit within
   **100 columns** — `Cast` / `Currval` / the JSON factories are the shape to
   copy; wrap one parameter per line only when a line would exceed 100 (#209).
+- Adding a guard (empty `params`, empty collection, mandatory argument)?
+  Follow `.claude/rules/guards-and-empty-states.md` — the eager vs
+  Build()-time timing decision and the message grammar live there.
 
 ## 4. Test
+
+**Probe first, then pin.** Before writing the tests, run the construct through
+the `sa-run-sql-harness` skill: print `Build(Dbms.X)` for every target dialect
+and read the real output — the #225 follow-up corrected seven from-memory
+claims this way. Paste the probe output into the issue/PR, then pin those
+exact strings as the tests.
 
 Add `[Fact]`(s) to `FunctionTests.<Letter>.cs` (a `public partial class
 FunctionTests`) covering the basic case and each overload (multi-arg, `DISTINCT`,
@@ -147,6 +161,15 @@ by the C# member name (add an `_arity<N>`-suffixed key alongside the
 member-wide one only if support genuinely differs by overload, e.g.
 `StringAgg`'s 3-arg inline-`ORDER BY` form vs. its 2-arg form — see the
 file's own doc comment for the full key scheme and its collision caveat).
+
+**When support differs by argument count on a `params` method, split the
+overloads first.** The analyzer computes arity from the *declared* parameter
+count, so a single `params` overload reports one arity for every call site
+and can never carry an arity-restricted entry. Declare e.g. `(object, object)`
+and `(object, object, object, params object[])` so the declared arities
+differ, then key the entries per arity — the `Concat` split (#234) is the
+worked example, `Grouping` (#235) the first from-scratch use. Full recipe in
+`.claude/rules/public-api-design.md`.
 Cite the primary source (the XML remark,
 `docs/functions.md`/`docs/expressions.md`, a `CHANGELOG.md` entry, or a test)
 in a comment next to the entry — do not guess a `false` without one, since a
@@ -227,4 +250,8 @@ dotnet test tests/SqlArtisan.IntegrationTests --filter "Engine=Sqlite|FullyQuali
 
 All must pass. Then, for user-visible additions:
 - Add an entry to `CHANGELOG.md`.
-- Document the function in `README.md` if it belongs in a usage section.
+- Add the reference entry to `docs/functions.md` (or `docs/expressions.md` /
+  `docs/query-statements.md` for non-function surface) and keep
+  `docs/README.md`'s index in page order — `DocsIndexTests` fails the suite
+  on a missing index link. Touch `README.md` only if the capability map
+  itself changes; usage examples live in `docs/`, not the README.

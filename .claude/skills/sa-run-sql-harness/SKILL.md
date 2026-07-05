@@ -111,10 +111,32 @@ same reference (0 B) when there is no match; `char.ToString()` costs ~24 B; the
 inline-literal separator path is lighter than the bound-parameter path because
 binding grows the parameter list.
 
+**4. Hazard shapes.** The four shapes behind the #225 audit's silent-failure
+findings — probe whichever the change could plausibly affect:
+
+```csharp
+SqlCondition e() => ConditionIf(false, u.Id == 1);      // an excluded condition
+
+// (a) all conditions off — must elide WHERE (SELECT) / throw (DML), never emit "WHERE "
+Show("all-off", Select(u.Id).From(u).Where(e() & e()).Build());
+// (b) nested all-empty group beside an active condition — historically emitted "() AND (...)"
+Show("nested", Select(u.Id).From(u).Where((e() | e()) & (u.Id > 1)).Build());
+// (c) held prefix built along two branches — the second build must not inherit the first's state
+var q = Select(u.Id).From(u);
+Show("branch-1", q.Where(u.Id == 1).Build());
+Show("branch-2", q.Build());                            // watch for a leaked WHERE
+// (d) correlated DML with an unaliased target — watch for a bare outer column (tautology)
+Show("corr", Update(new T()).Set(/* col == correlated subquery */).Build());
+```
+
 ## Notes
 
 - This is for **observation**, not a substitute for `tests/SqlArtisan.Tests` —
   durable expectations belong in xUnit exact-SQL tests.
+- **Paste probe output verbatim** into the issue/PR/review that relies on it —
+  that is what makes the claim grounded. An emitted-SQL assertion made without
+  a probe carries the `grammar-unverified` tag until one is run (the #225
+  follow-up corrected seven from-memory claims this way).
 - Keep it in `/tmp`; never commit the harness.
 - Complements the built-in `run`/`verify` skills with the SqlArtisan-specific
   project reference and the SQL/parameter/allocation probes above.
