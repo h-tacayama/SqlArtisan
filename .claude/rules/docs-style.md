@@ -10,8 +10,9 @@ paths:
 # Documentation style
 
 Covers wording and formatting for the README (landing + capability-map index),
-`docs/` (reference), `llms.txt`, and `CHANGELOG.md`. The README/`docs/` split,
-the absolute-URL rule, and the DBMS enum order also live in CLAUDE.md.
+`docs/` (reference), `llms.txt`, and `CHANGELOG.md`. The README/`docs/` split
+also lives in CLAUDE.md; the absolute-URL rule and the DBMS enum order live
+only here.
 
 **No ADR citations on user-facing surfaces** — README, `docs/` reference
 pages, `llms.txt`, and `CHANGELOG.md` must not cite ADR numbers ("per

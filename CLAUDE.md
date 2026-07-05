@@ -48,13 +48,11 @@ string, so any output change will surface here. Also run
 `dotnet format SqlArtisan.sln` before pushing — CI fails on any `.editorconfig`
 violation.
 
-The SDK is pinned by `global.json` (CI installs exactly that via
-`setup-dotnet`'s `global-json-file`), because analyzer/`dotnet format`
-behavior differs across SDK feature bands — an unpinned local SDK can pass
-`--verify-no-changes` while CI fails it. If your environment cannot install
-the pinned band, run the commands from **outside** the repo directory with
-explicit project paths (SDK resolution reads `global.json` upward from the
-current directory), and treat CI as the authoritative format gate.
+The SDK is pinned by `global.json` — `dotnet format` behavior differs across
+feature bands, so an unpinned local SDK can pass `--verify-no-changes` while
+CI fails it. If the pinned band isn't installable, run the commands from
+**outside** the repo directory with explicit project paths, and treat CI as
+the authoritative format gate.
 
 ## How to add a new SQL function (the most common task)
 
@@ -70,6 +68,11 @@ for the full procedure.
 
 ## Conventions
 
+This file carries only always-true invariants and the map. File-scoped
+conventions live in `.claude/rules/` (auto-loaded by path when the matching
+files are edited); procedures live in `.claude/skills/`. Add new conventions
+there, not here — a pointer line in this list is enough.
+
 - Style is enforced by `.editorconfig` (4-space indent, Allman braces,
   explicit types over `var` unless the type is apparent, `Nullable` enabled,
   implicit usings). Match it.
@@ -79,25 +82,15 @@ for the full procedure.
   table-reference types under `src/SqlArtisan/SqlPart/TableReference/`
   (`DbTableBase`/`DbTable`, `CteBase`/`Cte`, `DerivedTableBase`/`DerivedTable`, `DbColumn`);
   everything under `Internal/` is implementation detail.
-- Name a function (factory method, `*Function` node, keyword constant) after its
-  SQL token, treating **underscores as the only word boundaries**: each
-  underscore-delimited segment gets one leading capital, the rest lowercase; a
-  token with no underscore stays a single word — never invent internal capitals.
-  So `ADD_MONTHS`→`AddMonths`, `DATE_TRUNC`→`DateTrunc`, but `DATEPART`→`Datepart`,
-  `CURRVAL`→`Currval`, and `DATEADD`/`DATEDIFF`→`Dateadd`/`Datediff`.
-- Order a statement builder's **implemented-interface list** and its **member
-  methods** alphabetically by name (e.g. `DeleteBuilder`, `UpdateBuilder`).
-  Properties precede methods and the `protected` build hook trails; overloads
-  stay adjacent and explicit interface implementations sort by their simple
-  name. Within an interface definition, declare members alphabetically too. This
-  is mechanical and keeps builders consistent as they grow.
-- Make invalid fluent chains uncompilable through the **return type**, rather than
-  returning the same builder and trusting the caller. A one-shot step returns a
-  *narrowed* interface that omits it (e.g. `WithRollup()` returns
-  `ISelectBuilderWithRollup`, so `.WithRollup().WithRollup()` is a compile error);
-  a mandatory trailing clause uses the two-type "pending" pattern (the pending
-  type is not a `SqlExpression`, so omitting it fails at `Select(...)`). The
-  `sa-add-sql-function` skill has the full recipe.
+- Name public members after their SQL token — **underscores are the only word
+  boundaries** (`ADD_MONTHS`→`AddMonths`, `DATEADD`→`Dateadd`, never invented
+  internal capitals). The full rule, the glyph/helper naming categories, and
+  the other API-shape decisions live in `.claude/rules/public-api-design.md`.
+- Make invalid fluent chains uncompilable through the **return type** (narrowed
+  step interfaces for one-shot steps; the two-type "pending" pattern for
+  mandatory trailing clauses) — the `sa-add-sql-function` skill has the full
+  recipe. Builder member/interface ordering lives in
+  `.claude/rules/sql-building-style.md`.
 - Unit test conventions (naming grammar, dialect-specific `Build`, exact-SQL
   assertions) live in `.claude/rules/unit-tests.md` — auto-loaded when editing
   `tests/**`.
@@ -112,19 +105,12 @@ for the full procedure.
   not yet probed carries the `grammar-unverified` tag.
 - Update `CHANGELOG.md` for user-visible changes. The **README is the
   landing/overview plus a capability-map index**; the **API reference lives in
-  `docs/`** — `docs/README.md` (reference home), `docs/query-statements.md`,
-  `docs/expressions.md`, `docs/functions.md`. Keep usage examples, expressions,
-  and functions in `docs/`, not the README. `/llms.txt` is the AI-tool entry
-  point (an index of the docs); keep its links in sync when docs move
-  (`llms-full.txt` and an MCP/Context7 feed are future work).
-- README→docs links must be **absolute GitHub URLs** (nuget.org, which renders
-  the bundled README, does not resolve relative links); `llms.txt` uses
-  `raw.githubusercontent.com` URLs. In-page anchors stay relative.
-- List DBMS in documentation in `Dbms` enum order:
-  **MySQL, Oracle, PostgreSQL, SQLite, SQL Server**.
-- Documentation prose/style conventions (terminology, DBMS naming, spaced em
-  dash, reference-entry shape) live in `.claude/rules/docs-style.md` —
-  auto-loaded when editing `README.md`, `docs/**`, `llms.txt`, or `CHANGELOG.md`.
+  `docs/`** (`docs/README.md` home + `query-statements.md` / `expressions.md` /
+  `functions.md`) — keep usage examples there, not in the README; `/llms.txt`
+  is the AI-tool index. Link formats (absolute GitHub URLs), DBMS
+  naming/order, terminology, and the reference-entry/caveat-note shapes live
+  in `.claude/rules/docs-style.md` — auto-loaded when editing `README.md`,
+  `docs/**`, `llms.txt`, or `CHANGELOG.md`.
 
 ## Git
 
