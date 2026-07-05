@@ -101,6 +101,15 @@ for the full procedure.
 - Unit test conventions (naming grammar, dialect-specific `Build`, exact-SQL
   assertions) live in `.claude/rules/unit-tests.md` — auto-loaded when editing
   `tests/**`.
+- Guard conventions (the empty-state policy, eager vs Build()-time throws,
+  message grammar) live in `.claude/rules/guards-and-empty-states.md`; public
+  API design decisions (naming categories, the overload split for analyzer
+  arity, collection parameters) in `.claude/rules/public-api-design.md` —
+  both auto-loaded when editing the relevant sources.
+- Before asserting emitted-SQL behavior anywhere durable (an issue, docs, a
+  review comment), reproduce it with the `sa-run-sql-harness` skill — the
+  #225 follow-up corrected seven audit-record claims this way. An assertion
+  not yet probed carries the `grammar-unverified` tag.
 - Update `CHANGELOG.md` for user-visible changes. The **README is the
   landing/overview plus a capability-map index**; the **API reference lives in
   `docs/`** — `docs/README.md` (reference home), `docs/query-statements.md`,
