@@ -15,9 +15,22 @@ paths:
     `DistinctSeparator`); omit when there is nothing to qualify.
   - `<Expectation>` — required tail: `CorrectSql` (exact SQL-string assertion),
     `ThrowsArgumentException` / `ThrowsArgumentNullException`, `Returns<X>`
-    (Dapper), or a specific behavior (`UsesRowAlias`, `EscapesLiteral`).
+    (Dapper), a clause-elision assertion (`Omits<Clause>`, e.g.
+    `Where_AllConditionsExcluded_OmitsWhereClause`), or a specific behavior
+    (`UsesRowAlias`, `EscapesLiteral`).
   - e.g. `Abs_NumericValue_CorrectSql`, `Extract_Oracle_CorrectSql`,
     `Returning_NoArguments_ThrowsArgumentException`.
+- **Guard and elision assertions** (forward convention — applies to the
+  #236/#245 guards as they land; tests written before it assert only the
+  exception type or use `Contains`, don't copy them). A `Throws...` test
+  asserts the exception's
+  **exact message** (`Assert.Equal` on `ex.Message`) — the message grammar in
+  the guards rule is part of the contract, not incidental wording. An
+  `Omits<Clause>` test asserts the **exact full SQL string** without the
+  clause; never a `Contains`/negation check, which passes on garbage. Where a
+  Build()-time builder guard is added, also cover the legal twin: building a
+  *finished* chain twice (multi-dialect) asserts equal text, while a stage
+  call after `Build()` asserts the guard throw (#245).
 - **Build with the dialect the SQL targets.** A test that asserts
   dialect-specific tokens (Oracle `SYSDATE`, SQL Server `DATEADD`, MySQL
   `GROUP_CONCAT`, …) must `.Build(Dbms.X)`, never the default `.Build()` —

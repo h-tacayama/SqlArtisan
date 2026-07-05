@@ -37,3 +37,25 @@ make `Build` silently rewrite the author's SQL, violating ADR 0001.
 A construct that simply does not exist on a DBMS needs no flag at all: emit
 faithfully and leave availability to the database and the analyzer (ADR 0003) —
 do not gate it at `Build` time.
+
+Two further classes look like dialect differences but belong in **neither**
+the dialect layer nor a plain matrix entry (both identified in the #225
+triage):
+
+- **Version-bounded availability → docs note + a #232 interval seed.** The
+  matrix asserts against one pinned engine version (`VerifiedAgainstVersion`),
+  so a fact that flips at a version boundary — `WITH RECURSIVE` on
+  Oracle 23ai, `CONCAT`/`||` on SQLite 3.44, MySQL 8.0.16 / 8.0.19 / 8.0.20,
+  `DATETRUNC` on SQL Server 2022 — is recorded as a docs version note and
+  registered as an interval-annotation seed on #232, never as an
+  `IDbmsDialect` member.
+- **Context-bounded validity → docs note + a #232 context-rule candidate.** A
+  construct valid in one syntactic context and rejected in another on the
+  *same* engine — MySQL's `LIMIT` inside `IN`/`ANY`/`ALL`/`SOME` subqueries,
+  MySQL's `GROUPING()` outside a `WITH ROLLUP` query, Oracle's `PRIOR` outside
+  `CONNECT BY` — cannot be expressed by the construct-level matrix at all.
+  Document the workaround and register the case on #232.
+
+Before adding anything to `IDbmsDialect` or `DialectMatrix`, walk the classes
+above in order: token-level → construct-level → plain unavailability →
+version-bounded → context-bounded.

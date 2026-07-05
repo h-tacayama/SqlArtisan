@@ -67,6 +67,13 @@ check the diff against each:
   Complexity in the hot path (`Format`) is justified **only by a measured**
   allocation win; otherwise prefer simplicity. Back any perf claim with a number
   (§5), and note that the official benchmark is `tests/SqlArtisan.Benchmark`.
+- **0007 — validity enforcement boundary.** Misuse fails loudly at the right
+  layer: compile time via return-type narrowing where possible, else a thrown
+  guard — never a silently emitted invalid/wrong statement. For anything that
+  can be *empty* (conditions, select lists, collections), check the change
+  against the empty-state policy in `.claude/rules/guards-and-empty-states.md`
+  (elide vs eager-throw vs Build()-time throw), and that guard messages follow
+  its grammar with exact-message tests.
 
 ## 4. Check consistency with existing conventions
 
@@ -82,8 +89,13 @@ check the diff against each:
   clause (Oracle `LISTAGG` needs `WITHIN GROUP`); keep it optional when the
   clause is genuinely optional (SQL Server `STRING_AGG`, MySQL `GROUP_CONCAT`
   ordering).
-- **Mutable builder fields returning `this`** are acceptable — there is
-  precedent (`SortOrder.SetNullOrdering`). Not a finding on its own.
+- **Mutable builder fields returning `this`** are acceptable as an
+  implementation — there is precedent (`SortOrder.SetNullOrdering`). Not a
+  finding on its own, **but** the reuse contract is (#245): a stage call after
+  `Build()` must throw once the freeze-after-Build guard lands, and docs must
+  never *promise* mutation (the contract wording is "a partial chain is
+  one-way"), keeping copy-on-write open as a later bug-fix. Flag docs or code
+  that locks mutation in.
 
 ## 5. Verify empirically with a throwaway harness
 
@@ -96,6 +108,11 @@ to run for a review:
   confirm `sql.Text` is valid for *that* DBMS's grammar (§6).
 - **Negative / enforcement** — a misuse (e.g. a mandatory clause omitted) must
   throw, not emit invalid SQL.
+- **Hazard shapes** — the four shapes that produced the #225 audit's silent
+  failures (the harness skill has the code): all-`ConditionIf`-off, a nested
+  all-empty OR/AND group beside an active condition, a held builder prefix
+  built along two branches, and a correlated UPDATE/DELETE with an unaliased
+  target. Run whichever the diff could plausibly affect.
 - **Allocation** — probe with `GC.GetAllocatedBytesForCurrentThread` to back any
   ADR 0006 claim; the formal suite is `tests/SqlArtisan.Benchmark`.
 
@@ -109,6 +126,13 @@ the form. Known sharp edges:
 - Oracle `LISTAGG` **requires** `WITHIN GROUP (ORDER BY ...)`.
 - `STRING_AGG` ordering differs: PostgreSQL inline `ORDER BY`, SQL Server
   `WITHIN GROUP`.
+- MySQL's default `sql_mode` parses `||` as **logical OR**, not concatenation —
+  valid SQL with silently different semantics (#234).
+- MySQL rejects `LIMIT` inside `IN`/`ANY`/`ALL`/`SOME` subqueries while
+  allowing it in scalar position — context-bounded, not matrix-expressible
+  (#240).
+- T-SQL cannot alias the direct UPDATE/DELETE target (`UPDATE t AS x` is
+  invalid); the alias comes via the `FROM` form (#239/#237).
 
 ## 7. Check docs match the source
 

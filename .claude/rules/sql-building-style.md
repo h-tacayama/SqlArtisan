@@ -39,3 +39,11 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    block body stays on one line while it is short
    (`buffer.Append(_offset).AppendSpace();`); once it wraps, one method per
    line applies there too.
+
+5. **Builder ordering.** Order a statement builder's **implemented-interface
+   list** and its **member methods** alphabetically by name (e.g.
+   `DeleteBuilder`, `UpdateBuilder`). Properties precede methods and the
+   `protected` build hook trails; overloads stay adjacent and explicit
+   interface implementations sort by their simple name. Within an interface
+   definition, declare members alphabetically too. This is mechanical and
+   keeps builders consistent as they grow.
