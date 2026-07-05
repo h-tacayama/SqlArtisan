@@ -11,10 +11,20 @@ SQL-like C# and it produces the SQL string plus its bind parameters.
 > "The SQL you write is the SQL that runs. Cross-database portability is a
 > deliberate non-goal."
 
+Faithful emission is the foundation, not the whole mission: SqlArtisan aims
+to be the **deterministic guard rail for SQL written alongside generative
+AI** — misuse fails to compile, the analyzer deterministically flags what
+the target DBMS rejects (dialect availability today; version/schema checks
+are the #232 direction; cost-based advice is permanently out of scope), and
+exact-SQL tests plus the live-engine matrix close the loop. The full
+decision is **ADR 0010** (`docs/adr/`), building on ADRs 0001–0003/0007.
+
 Do **not** introduce abstractions whose purpose is to make one query run
 unchanged across multiple DBMS. DBMS differences are handled only where the
 *syntax* genuinely differs (quoting, parameter markers, pagination), via the
-dialect layer — never by rewriting the user's SQL semantics.
+dialect layer — never by rewriting the user's SQL semantics. And never omit
+a legitimate SQL spelling to steer users — opinions live in docs and the
+analyzer, not in API holes (ADR 0010).
 
 ## Layout
 

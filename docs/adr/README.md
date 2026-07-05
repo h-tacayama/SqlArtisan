@@ -14,7 +14,8 @@ code.
 ## Index
 
 ADRs are ordered as a narrative: the philosophy first, then handling DBMS
-divergence, then the output, API, performance, and enforcement-boundary decisions.
+divergence, then the output, API, performance, and enforcement-boundary
+decisions — closed by the mission that ties them together.
 
 | ADR | Title | Status |
 |-----|-------|--------|
@@ -27,3 +28,4 @@ divergence, then the output, API, performance, and enforcement-boundary decision
 | [0007](0007-validity-enforcement-boundary.md) | What the library rejects: grammatical completeness vs dialect availability | Accepted |
 | [0008](0008-analyzer-override-configuration.md) | Analyzer override configuration: keys, precedence, and what's out of scope | Accepted |
 | [0009](0009-analyzer-distribution-bundled.md) | Analyzer distribution: bundled in the core package, coupled only by contract | Accepted |
+| [0010](0010-deterministic-guard-mission.md) | The mission: deterministic guard rails for AI-assisted SQL | Accepted |
