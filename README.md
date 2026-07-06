@@ -246,7 +246,8 @@ The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLit
 
 ## Versioning & Support
 
-From 1.0, SqlArtisan follows SemVer — with a rule specific to a query builder: a change to the **emitted SQL** for the same input is at minimum a *minor* release, called out in the CHANGELOG. The [versioning & support policy](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md) covers what counts as breaking, the deprecation process, supported runtimes and verified engine versions, and the support window.
+* **Versioning, breaking changes, deprecation, support window:** see the [versioning & support policy](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md).
+* **Security vulnerabilities:** report privately per [SECURITY.md](https://github.com/h-tacayama/SqlArtisan/blob/main/SECURITY.md) — never in a public issue.
 
 ---
 
@@ -256,7 +257,6 @@ Feedback, bug reports, and ideas are welcome.
 
 * **Bugs or feature requests:** open an [issue](https://github.com/h-tacayama/SqlArtisan/issues).
 * **Questions or ideas:** start a [discussion](https://github.com/h-tacayama/SqlArtisan/discussions).
-* **Security vulnerabilities:** report privately per [SECURITY.md](https://github.com/h-tacayama/SqlArtisan/blob/main/SECURITY.md) — never in a public issue.
 
 ---
 
