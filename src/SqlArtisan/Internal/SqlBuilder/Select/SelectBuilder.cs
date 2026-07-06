@@ -11,6 +11,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     ISelectBuilderHaving,
     ISelectBuilderJoin,
     ISelectBuilderOrderBy,
+    ISelectBuilderPaginated,
     ISelectBuilderSelect,
     ISelectBuilderSetOperator,
     ISelectBuilderWhere,
@@ -120,13 +121,13 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISqlBuilder FetchFirst(int count)
+    public ISelectBuilderPaginated FetchFirst(int count)
     {
         AddPart(new FetchClause(count, first: true));
         return this;
     }
 
-    public ISqlBuilder FetchNext(int count)
+    public ISelectBuilderPaginated FetchNext(int count)
     {
         AddPart(new FetchClause(count, first: false));
         return this;
@@ -200,7 +201,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ISqlBuilder Offset(int start)
+    public ISelectBuilderPaginated Offset(int start)
     {
         AddPart(new OffsetClause(start));
         return this;

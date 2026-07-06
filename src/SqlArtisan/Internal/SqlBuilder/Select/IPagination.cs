@@ -20,8 +20,8 @@ public interface IPagination
     /// <see cref="OffsetRows(int)"/>.
     /// </summary>
     /// <param name="start">The number of leading rows to skip.</param>
-    /// <returns>The terminal builder; call <see cref="ISqlBuilder.Build()"/>.</returns>
-    ISqlBuilder Offset(int start);
+    /// <returns>The terminal builder; build, or embed as a subquery.</returns>
+    ISelectBuilderPaginated Offset(int start);
 
     /// <summary>
     /// Appends <c>OFFSET m ROWS</c>. Dialect-specific (Oracle 12c+ / PostgreSQL /
@@ -39,6 +39,6 @@ public interface IPagination
     /// SQLite, <see cref="Limit(int)"/> is the more common form.
     /// </summary>
     /// <param name="count">The maximum number of rows to return.</param>
-    /// <returns>The terminal builder; call <see cref="ISqlBuilder.Build()"/>.</returns>
-    ISqlBuilder FetchFirst(int count);
+    /// <returns>The terminal builder; build, or embed as a subquery.</returns>
+    ISelectBuilderPaginated FetchFirst(int count);
 }

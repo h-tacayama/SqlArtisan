@@ -478,6 +478,35 @@ SqlStatement sql =
 
 The row counts are parameterized like other literals, so the bind-parameter prefix follows the target dialect (`:` / `@` / `?`).
 
+#### Row-limited queries as subqueries
+
+A query ending in a row-limiting clause is still a subquery: embed it as an aliased scalar value (`.As("alias")`), an `IN` / `NOT IN` / `EXISTS` operand, a CTE body, or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:
+
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+DerivedTable x = new("x");
+
+SqlStatement sql =
+    Select(u.Name, x.Column("amount"))
+    .From(u)
+    .CrossJoinLateral(
+        Select(o.Amount.As(x.Column("amount")))
+            .From(o)
+            .Where(o.UserId == u.Id)
+            .OrderBy(o.Amount)
+            .Limit(3),
+        x)
+    .Build();
+
+// SELECT "u".name, "x".amount
+// FROM users "u"
+// CROSS JOIN LATERAL (SELECT "o".amount amount FROM orders "o"
+// WHERE "o".user_id = "u".id ORDER BY "o".amount LIMIT :0) "x"
+```
+
+On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited query through a CTE (`With(c.As(...))`) and select from that instead. Every other subquery position — scalar, `EXISTS`, CTE body, `LATERAL` — accepts `LIMIT` on MySQL.
+
 ---
 
 ## DELETE Statement

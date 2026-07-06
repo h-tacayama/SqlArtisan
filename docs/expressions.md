@@ -221,6 +221,8 @@ SqlStatement sql =
 // OR ("a".id NOT IN (SELECT "c".id FROM users "c"))
 ```
 
+A row-limited subquery (`.OrderBy(...).Limit(n)` and the `OFFSET` / `FETCH` forms) is a valid operand too. On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited query through a CTE (`With(c.As(...))`) and select from that instead.
+
 ### EXISTS Condition
 ```csharp
 UsersTable a = new("a");
@@ -420,7 +422,7 @@ SqlStatement sql =
 
 ## Scalar Subquery
 
-A `SELECT` builder can be used directly as a scalar value — in a `SELECT` list, a `WHERE` comparison, or arithmetic. Chain `.As("alias")` for an aliased column.
+A `SELECT` builder can be used directly as a scalar value — in a `SELECT` list, a `WHERE` comparison, or arithmetic. Chain `.As("alias")` for an aliased column. A row-limited query works the same way — the top-1 idiom is `.OrderBy(...).Limit(1)` (or `.FetchFirst(1)`) used as a value.
 
 ```csharp
 UsersTable u = new("u");
