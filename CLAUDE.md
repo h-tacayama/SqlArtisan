@@ -91,14 +91,17 @@ there, not here — a pointer line in this list is enough.
   function nodes.
 - Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
   table-reference types under `src/SqlArtisan/SqlPart/TableReference/`
-  (`DbTableBase`/`DbTable`, `CteBase`/`Cte`, `DerivedTableBase`/`DerivedTable`),
-  `DbColumn` under `src/SqlArtisan/SqlPart/Expression/`, and the two abstract
-  roots `SqlExpression` (`src/SqlArtisan/SqlPart/Expression/`) and
-  `SqlCondition` (`src/SqlArtisan/SqlPart/Condition/`) — named by callers that
-  hold a computed value or an accumulated condition, so they cannot live in
-  `Internal/`; every concrete node under them stays `Internal/` and is held
-  only through these roots. Everything else under `Internal/` is
-  implementation detail.
+  (`DbTableBase`/`DbTable`, `CteBase`/`Cte`, `DerivedTableBase`/`DerivedTable`,
+  and their base `TableReference`), `DbColumn` under
+  `src/SqlArtisan/SqlPart/Expression/`, and the types users must **name** in a
+  declaration position (a helper's return type, an accumulator variable, a
+  `List<>` element) — `SqlExpression`, `SqlCondition`, `ISubquery`,
+  `SortOrder`, `ExpressionAlias`, `CommonTableExpression` — all in the root
+  namespace under `src/SqlArtisan/SqlPart/` / `src/SqlArtisan/SqlBuilder/`.
+  That naming test is the boundary rule (#244): a type moves out of
+  `Internal/` when a mainstream flow must write its name; every concrete node
+  stays `Internal/` and is held only through these roots. Everything else
+  under `Internal/` is implementation detail.
 - Name public members after their SQL token — **underscores are the only word
   boundaries** (`ADD_MONTHS`→`AddMonths`, `DATEADD`→`Dateadd`, never invented
   internal capitals). The full rule, the glyph/helper naming categories, and

@@ -1,14 +1,29 @@
-namespace SqlArtisan.Internal;
+using SqlArtisan.Internal;
 
+namespace SqlArtisan;
+
+/// <summary>
+/// A named relation usable in <c>FROM</c>, a <c>JOIN</c>, or MERGE's
+/// <c>USING</c> — the base type of <see cref="DbTableBase"/>,
+/// <see cref="CteBase"/>, and <see cref="DerivedTableBase"/>. Type a
+/// collection or helper as this to work across all three.
+/// </summary>
 public abstract class TableReference : SqlPart
 {
     private protected readonly string _name;
 
+    /// <summary>
+    /// Names the relation after the runtime type's own name.
+    /// </summary>
     public TableReference()
     {
         _name = GetType().Name;
     }
 
+    /// <summary>
+    /// Names the relation explicitly.
+    /// </summary>
+    /// <param name="name">The relation name as it appears in SQL.</param>
     public TableReference(string name)
     {
         _name = name;
