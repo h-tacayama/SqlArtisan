@@ -90,24 +90,13 @@ there, not here — a pointer line in this list is enough.
 - Keep DBMS-specific syntax inside `DbmsDialect`; never branch on `Dbms` inside
   function nodes.
 - Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
-  table-reference types under `src/SqlArtisan/SqlPart/TableReference/`
-  (`DbTableBase`/`DbTable`, `CteBase`/`Cte`, `DerivedTableBase`/`DerivedTable`,
-  and their base `TableReference`), `DbColumn` under
-  `src/SqlArtisan/SqlPart/Expression/`, and the types users must **name** in a
-  declaration position (a helper's return type, an accumulator variable, a
-  `List<>` element, a shared `static readonly` field) — `SqlExpression`,
-  `SqlCondition`, `ISubquery`, `SortOrder`, `ExpressionAlias`,
-  `CommonTableExpression`, `DbSequence` — all in the root namespace under
-  `src/SqlArtisan/SqlPart/` / `src/SqlArtisan/SqlBuilder/`. The boundary rule
-  (#244): a type leaves `Internal/` only when **all three** hold — it is a
-  query's **content** (a relation, value, predicate, sort item, or handle —
-  not clause syntax, statement decoration like hints/locks, or a pending
-  intermediate); a mainstream flow must **write its name** in a declaration
-  position; and **no root type already names it**. Clause fragments stay
-  `Internal/` (specified through the builder chain; the reusable unit is the
-  completed expression, already nameable via the roots). Every concrete node
-  stays `Internal/` and is held only through these roots. Everything else
-  under `Internal/` is implementation detail.
+  table-reference types under `src/SqlArtisan/SqlPart/TableReference/`, and
+  `DbColumn` under `src/SqlArtisan/SqlPart/Expression/`. Types users must
+  **name** in a declaration position (`SqlExpression`, `SqlCondition`,
+  `ISubquery`, `SortOrder`, `ExpressionAlias`, `CommonTableExpression`,
+  `DbSequence`) live in the root namespace. The Internal → root boundary rule
+  lives in `.claude/rules/public-api-design.md`. Everything under `Internal/`
+  is implementation detail.
 - Name public members after their SQL token — **underscores are the only word
   boundaries** (`ADD_MONTHS`→`AddMonths`, `DATEADD`→`Dateadd`, never invented
   internal capitals). The full rule, the glyph/helper naming categories, and
