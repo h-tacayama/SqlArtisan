@@ -94,9 +94,9 @@ there, not here — a pointer line in this list is enough.
   `DbColumn` under `src/SqlArtisan/SqlPart/Expression/`. Types users must
   **name** in a declaration position (`SqlExpression`, `SqlCondition`,
   `ISubquery`, `SortOrder`, `ExpressionAlias`, `CommonTableExpression`,
-  `DbSequence`) live in the root namespace. The Internal → root boundary rule
-  lives in `.claude/rules/public-api-design.md`. Everything under `Internal/`
-  is implementation detail.
+  `DbSequence`) live in the root namespace. The root vs `Internal` placement
+  rule lives in `.claude/rules/public-api-design.md`. Everything under
+  `Internal/` is implementation detail.
 - Name public members after their SQL token — **underscores are the only word
   boundaries** (`ADD_MONTHS`→`AddMonths`, `DATEADD`→`Dateadd`, never invented
   internal capitals). The full rule, the glyph/helper naming categories, and

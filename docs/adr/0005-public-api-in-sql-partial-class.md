@@ -22,8 +22,8 @@ separated from internals that are free to change.
   path corrected; the decision itself is unchanged.)*
 - Types that application code must **name** in a declaration position (a
   method return type, an accumulator variable, a `List<>` element, a shared
-  field) are public by the same necessity. A type leaves `Internal` only when
-  **all three** hold:
+  field) are public by the same necessity. A type belongs in the root
+  namespace only when **all three** hold:
 
   1. It is a query's **content** — a relation, value, predicate, sort item,
      or handle — not clause syntax, statement decoration, or a pending
@@ -31,8 +31,8 @@ separated from internals that are free to change.
   2. A mainstream flow must **write its name** in a declaration position.
   3. No root type already names it.
 
-  Concrete nodes stay in `Internal/` and are held only through these roots.
-  *(#244 moved the qualifying types to the root namespace.)*
+  Everything else — concrete nodes, clause types, builder internals — belongs
+  in `Internal/` and is held only through the root types.
 - **Everything under `Internal/` is implementation detail**, even where a type is
   `public` for technical reasons.
 

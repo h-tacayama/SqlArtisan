@@ -63,16 +63,17 @@ same-name same-arity overloads collide into a support union.
 > keeps strings on the `params` path and still covers every runtime
 > collection.
 
-## Internal → root namespace boundary (ADR 0005, #244)
+## Root namespace vs `Internal` (ADR 0005)
 
-A type leaves `Internal/` only when **all three** hold:
+A type belongs in the root `SqlArtisan` namespace only when **all three** hold:
 
 1. It is a query's **content** — a relation, value, predicate, sort item, or
    handle — not clause syntax, statement decoration, or a pending intermediate.
 2. A mainstream flow must **write its name** in a declaration position.
 3. No root type already names it.
 
-Concrete nodes stay in `Internal/` and are held only through these roots.
+Everything else — concrete nodes, clause types, builder internals — belongs in
+`Internal/` and is held only through the root types.
 
 ## Opinions live in docs and the analyzer, not in API holes
 
