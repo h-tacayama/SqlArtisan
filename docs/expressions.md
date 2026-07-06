@@ -285,31 +285,6 @@ SqlStatement sql =
 // WHERE (id > :0)
 ```
 
-#### Accumulating a Variable Number of Conditions
-
-For a search screen with an unknown number of active facets, hold the accumulator as a plain `SqlCondition` and fold with `&` (or `|`) — both `SqlCondition` and `SqlExpression` are ordinary public types, so no extra namespace import is needed to name them in a variable or a helper method's signature:
-
-```csharp
-UsersTable u = new();
-SqlCondition where = u.Id > 0;
-
-foreach (int excludedId in idsToExclude)
-{
-    where &= u.Id != excludedId;
-}
-
-SqlStatement sql = Select(u.Name).From(u).Where(where).Build();
-```
-
-A helper method that returns a `SqlCondition` (or a computed value as a `SqlExpression`) composes the same way:
-
-```csharp
-static SqlCondition NameFilter(UsersTable u, string? name) =>
-    name is null ? u.Id > 0 : u.Name == name;
-
-SqlStatement sql = Select(u.Name).From(u).Where(NameFilter(u, "Alice")).Build();
-```
-
 ---
 
 ## JSON Operators
