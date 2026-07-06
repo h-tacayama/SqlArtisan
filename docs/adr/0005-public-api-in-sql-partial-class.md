@@ -20,6 +20,19 @@ separated from internals that are free to change.
   expose lives beside them under `src/SqlArtisan/SqlPart/Expression/`. These are
   public by necessity and part of the contract. *(Erratum 2026-07: `DbColumn`'s
   path corrected; the decision itself is unchanged.)*
+- Types that application code must **name** in a declaration position (a
+  method return type, an accumulator variable, a `List<>` element, a shared
+  field) are public by the same necessity. A type belongs in the root
+  namespace only when **all three** hold:
+
+  1. It is a query's **content** — a relation, value, predicate, sort item,
+     or handle — not clause syntax, statement decoration, or a pending
+     intermediate.
+  2. A mainstream flow must **write its name** in a declaration position.
+  3. No root type already names it.
+
+  Everything else — concrete nodes, clause types, builder internals — belongs
+  in `Internal/` and is held only through the root types.
 - **Everything under `Internal/` is implementation detail**, even where a type is
   `public` for technical reasons.
 
