@@ -90,9 +90,6 @@ public class PublicSurfaceNamingTests
     // in the field declaration.
     private static readonly DbSequence CodeSeq = Sequence("code_seq");
 
-    // A hint block shared across statements the same way.
-    private static readonly SqlHints AnyHint = Hints("/*+ ANY HINT */");
-
     [Fact]
     public void DbSequence_SharedHandleField_CorrectSql()
     {
@@ -100,38 +97,6 @@ public class PublicSurfaceNamingTests
 
         StringBuilder expected = new();
         expected.Append("SELECT code_seq.NEXTVAL");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void SqlHints_SharedConstantField_CorrectSql()
-    {
-        SqlStatement sql = Select(AnyHint, _t.Code).From(_t).Build();
-
-        StringBuilder expected = new();
-        expected.Append("SELECT /*+ ANY HINT */ \"t\".code ");
-        expected.Append("FROM test_table \"t\"");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-    }
-
-    [Fact]
-    public void LockBehaviorBase_RuntimeSelection_CorrectSql()
-    {
-        static LockBehaviorBase Lock(int waitSeconds) =>
-            waitSeconds > 0 ? Wait(waitSeconds) : SkipLocked;
-
-        SqlStatement sql =
-            Select(_t.Code)
-            .From(_t)
-            .ForUpdate(Lock(0))
-            .Build();
-
-        StringBuilder expected = new();
-        expected.Append("SELECT \"t\".code ");
-        expected.Append("FROM test_table \"t\" ");
-        expected.Append("FOR UPDATE SKIP LOCKED");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

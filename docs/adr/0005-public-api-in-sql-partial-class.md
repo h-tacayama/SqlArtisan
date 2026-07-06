@@ -24,13 +24,23 @@ separated from internals that are free to change.
   helper method's return type, an accumulator variable, a `List<>` element, a
   shared `static readonly` field — are public by the same necessity:
   `SqlExpression`, `SqlCondition`, `ISubquery`, `TableReference`, `SortOrder`,
-  `ExpressionAlias`, `CommonTableExpression`, `DbSequence`, `SqlHints`, and
-  `LockBehaviorBase`. The boundary rule: **values, items, and handles leave
-  `Internal` when a mainstream flow must write their name and no
-  root-namespace alternative exists; clause syntax stays** — clause fragments
-  (`OrderByClause`, `PartitionByClause`, `OfClause`, `SeparatorClause`, …)
-  are specified through the builder chain at the call site, and the natural
-  unit of reuse is the completed expression, which the roots already name.
+  `ExpressionAlias`, `CommonTableExpression`, and `DbSequence`. The boundary
+  rule has three conjuncts — a type leaves `Internal` only when **all** hold:
+
+  1. It is a query's **content** — a relation, value, predicate, sort item, or
+     handle that helps determine the result set. *Not* clause syntax
+     (`OrderByClause`, `PartitionByClause`, `OfClause`, `SeparatorClause`),
+     *not* statement decoration that leaves the result set unchanged
+     (optimizer hints, lock behaviors), and *not* a pending intermediate
+     (an incomplete window/ordered-set aggregate — naming it is the
+     anti-pattern the pending design prevents).
+  2. A **mainstream flow must write its name** in a declaration position
+     (`var` cannot infer a `null` initializer, a method signature, or a
+     field).
+  3. **No root type already names it** — clause fragments fail here too, since
+     the natural unit of reuse is the completed expression, which the roots
+     already name.
+
   Every concrete node under the roots (`AndCondition`, `LikeCondition`,
   `CountFunction`, …) stays in `Internal/` and is held only through them;
   pure-mechanism bases with no user-facing members (`SqlPart`) stay too.
