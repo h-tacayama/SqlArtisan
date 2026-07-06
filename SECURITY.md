@@ -6,10 +6,11 @@ Report vulnerabilities **privately** via GitHub Security Advisories:
 [Report a vulnerability](https://github.com/h-tacayama/SqlArtisan/security/advisories/new).
 Please do not open a public issue for anything you believe is exploitable.
 
-This is an individually-maintained project, so there is no guaranteed
-response time or fix timeline — reports are triaged on a best-effort
-basis. If a fix is made, it is developed privately and released once
-ready; you will be credited in the advisory unless you prefer otherwise.
+Reports are taken seriously and triaged as promptly as possible. This is
+an individually-maintained project, though, so there is no fixed response
+SLA or fix timeline. If a fix is made, it is developed privately and
+released once ready; you will be credited in the advisory unless you
+prefer otherwise.
 
 ## What counts as a vulnerability here
 
