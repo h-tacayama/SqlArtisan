@@ -10,10 +10,13 @@ for the published packages — `SqlArtisan`, `SqlArtisan.Dapper`, and
 ## SemVer commitment
 
 From **1.0**, SqlArtisan follows [Semantic Versioning](https://semver.org/):
-no breaking changes in minor or patch releases. Until then (the 0.x
+breaking changes are reserved for major releases. Until then (the 0.x
 pre-releases), any release may contain breaking changes; each one is marked
 **Breaking:** in the
 [CHANGELOG](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md).
+If a breaking change ever slips into a minor or patch release by mistake,
+that is treated as a bug — please open an
+[issue](https://github.com/h-tacayama/SqlArtisan/issues).
 
 ## What counts as breaking
 
@@ -23,10 +26,10 @@ is **major**. Two cases are specific to this library:
 
 - **Emitted SQL is part of the contract.** A change to the SQL text emitted
   for the same input is at minimum a **minor** release — even when it is a bug
-  fix — and is called out under a dedicated **Emitted SQL** heading in the
-  CHANGELOG, so you can review your query output before upgrading. It is
-  **major** when it can change query *semantics* (which rows are read or
-  written) for code that previously built and ran without error.
+  fix — and is called out in the CHANGELOG, so you can review your query
+  output before upgrading. It is **major** when it can change query
+  *semantics* (which rows are read or written) for code that previously
+  built and ran without error.
 - **Builder-stage interfaces are not for user implementation.** The
   `I*Builder*` fluent-chain stage types (e.g. `ISelectBuilderPaginated`) exist
   solely to type the fluent chain; their only implementations are internal.
@@ -42,7 +45,9 @@ never runtime behavior.
 
 API slated for removal is first marked `[Obsolete]` — with a message naming
 the replacement — in a **minor** release, and removed **no earlier than the
-next major**.
+next major**. Removal without that prior `[Obsolete]` step is treated as a
+bug — please open an
+[issue](https://github.com/h-tacayama/SqlArtisan/issues).
 
 ## Support statement
 
