@@ -33,9 +33,9 @@ is **major**. Two cases are specific to this library:
 - **Builder-stage interfaces are not for user implementation.** The
   `I*Builder*` fluent-chain stage types (e.g. `ISelectBuilderPaginated`) exist
   solely to type the fluent chain; their only implementations are internal.
-  Adding members to them is therefore a **minor** change — source and binary
-  compatibility for *callers* is preserved as usual, and each planned fluent
-  extension would otherwise formally force a major.
+  Adding members to them is therefore a **minor** change, so new fluent-chain
+  functionality can keep landing in ordinary releases — source and binary
+  compatibility for *callers* is preserved as usual.
 
 New or corrected analyzer warnings (`SQLA0001` / `SQLA0002` dialect-matrix
 updates) may appear in a minor release: they change build-time diagnostics,
@@ -67,6 +67,5 @@ bug — please open an
 ## Release cadence
 
 No fixed schedule: releases ship when a coherent set of changes is ready.
-Confirmed wrong-SQL emissions — the class of bug that silently reads or
-writes the wrong rows — are treated as high priority, ahead of other
-pending work.
+Bugs that cause silently wrong query results — the wrong rows read or
+written — are treated as the highest-priority class of fix.
