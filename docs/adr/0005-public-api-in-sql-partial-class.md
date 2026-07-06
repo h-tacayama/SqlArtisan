@@ -20,6 +20,13 @@ separated from internals that are free to change.
   expose lives beside them under `src/SqlArtisan/SqlPart/Expression/`. These are
   public by necessity and part of the contract. *(Erratum 2026-07: `DbColumn`'s
   path corrected; the decision itself is unchanged.)*
+- The two abstract roots **`SqlExpression`** (`src/SqlArtisan/SqlPart/Expression/`)
+  and **`SqlCondition`** (`src/SqlArtisan/SqlPart/Condition/`) are public by the
+  same necessity: application code names them to hold a computed value or an
+  accumulated condition (a variable, a helper method's return type). Every
+  concrete node under them (`AndCondition`, `LikeCondition`, `CountFunction`, …)
+  stays in `Internal/` and is held only through these two roots. *(Moved from
+  `Internal` to the root namespace, #244.)*
 - **Everything under `Internal/` is implementation detail**, even where a type is
   `public` for technical reasons.
 
