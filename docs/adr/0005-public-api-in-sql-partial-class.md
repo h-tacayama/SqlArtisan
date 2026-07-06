@@ -16,8 +16,10 @@ separated from internals that are free to change.
 - A narrow set of **public table-reference types** lives under
   `src/SqlArtisan/SqlPart/TableReference/` — the types consumers subclass or
   instantiate to name relations and reference columns: `DbTableBase` / `DbTable`,
-  `CteBase` / `Cte`, `DerivedTableBase` / `DerivedTable`, and the `DbColumn` they
-  expose. These are public by necessity and part of the contract.
+  `CteBase` / `Cte`, `DerivedTableBase` / `DerivedTable` — and the `DbColumn` they
+  expose lives beside them under `src/SqlArtisan/SqlPart/Expression/`. These are
+  public by necessity and part of the contract. *(Erratum 2026-07: `DbColumn`'s
+  path corrected; the decision itself is unchanged.)*
 - **Everything under `Internal/` is implementation detail**, even where a type is
   `public` for technical reasons.
 

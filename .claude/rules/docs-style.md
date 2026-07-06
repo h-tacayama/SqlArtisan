@@ -5,15 +5,17 @@ paths:
   - "docs/**/*.md"
   - "llms.txt"
   - "CHANGELOG.md"
+  - "src/*/README.md"
 ---
 
 # Documentation style
 
 Covers wording and formatting for the README (landing + capability-map index),
 `docs/` (reference), `llms.txt` (the AI-tool index; `llms-full.txt` and an
-MCP/Context7 feed are future work), and `CHANGELOG.md`. The README/`docs/`
-split also lives in CLAUDE.md; the absolute-URL rule and the DBMS enum order
-live only here.
+MCP/Context7 feed are future work, tracked in #228), `CHANGELOG.md`, and the
+package READMEs under `src/*/README.md` (NuGet landing pages). The
+README/`docs/` split also lives in CLAUDE.md; the absolute-URL rule and the
+DBMS enum order live only here.
 
 **No ADR citations on user-facing surfaces** — README, `docs/` reference
 pages, `llms.txt`, and `CHANGELOG.md` must not cite ADR numbers ("per

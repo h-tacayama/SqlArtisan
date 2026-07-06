@@ -28,12 +28,14 @@ policy; never cite a row as already-enforced without checking the code.
 | SELECT `.Where(...)`, `.Having(...)`, aggregate `.Filter(...)` | **elide the clause** |
 | UPDATE / DELETE `.Where(...)` | **throw at Build()** (eliding turns filtered DML into a full-table write) |
 | JOIN `.On(...)`, CASE `When(...)`, MERGE `.On(...)`/`.WhenMatched(cond)`/`.DeleteWhere(...)` | throw at Build() |
-| Empty SELECT list, empty `IN` collection, empty `VALUES` rows | throw **eagerly** |
+| Empty SELECT list (#236); empty `IN` collection, empty `VALUES` rows (#243) | throw **eagerly** |
 
 Condition emptiness is **recursive**: a tree whose operands are all empty
 renders nothing. Never test an operand with `is EmptyCondition` — that is the
 bug that emitted `()` for nested all-empty groups even in mixed states; use the
-recursive emptiness check.
+recursive emptiness check, **including `NOT`** — a `NOT` over an empty operand
+is itself empty (`NOT ()` is the probe-confirmed hazard a plain AND/OR walk
+misses).
 
 ## When to throw: eagerly vs at Build()
 

@@ -89,9 +89,10 @@ there, not here — a pointer line in this list is enough.
   implicit usings). Match it.
 - Keep DBMS-specific syntax inside `DbmsDialect`; never branch on `Dbms` inside
   function nodes.
-- Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, and the
+- Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
   table-reference types under `src/SqlArtisan/SqlPart/TableReference/`
-  (`DbTableBase`/`DbTable`, `CteBase`/`Cte`, `DerivedTableBase`/`DerivedTable`, `DbColumn`);
+  (`DbTableBase`/`DbTable`, `CteBase`/`Cte`, `DerivedTableBase`/`DerivedTable`),
+  and `DbColumn` under `src/SqlArtisan/SqlPart/Expression/`;
   everything under `Internal/` is implementation detail.
 - Name public members after their SQL token — **underscores are the only word
   boundaries** (`ADD_MONTHS`→`AddMonths`, `DATEADD`→`Dateadd`, never invented
