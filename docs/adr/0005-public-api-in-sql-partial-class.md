@@ -20,31 +20,19 @@ separated from internals that are free to change.
   expose lives beside them under `src/SqlArtisan/SqlPart/Expression/`. These are
   public by necessity and part of the contract. *(Erratum 2026-07: `DbColumn`'s
   path corrected; the decision itself is unchanged.)*
-- The types application code must **name** in a declaration position — a
-  helper method's return type, an accumulator variable, a `List<>` element, a
-  shared `static readonly` field — are public by the same necessity:
-  `SqlExpression`, `SqlCondition`, `ISubquery`, `TableReference`, `SortOrder`,
-  `ExpressionAlias`, `CommonTableExpression`, and `DbSequence`. The boundary
-  rule has three conjuncts — a type leaves `Internal` only when **all** hold:
+- Types that application code must **name** in a declaration position (a
+  method return type, an accumulator variable, a `List<>` element, a shared
+  field) are public by the same necessity. A type leaves `Internal` only when
+  **all three** hold:
 
-  1. It is a query's **content** — a relation, value, predicate, sort item, or
-     handle that helps determine the result set. *Not* clause syntax
-     (`OrderByClause`, `PartitionByClause`, `OfClause`, `SeparatorClause`),
-     *not* statement decoration that leaves the result set unchanged
-     (optimizer hints, lock behaviors), and *not* a pending intermediate
-     (an incomplete window/ordered-set aggregate — naming it is the
-     anti-pattern the pending design prevents).
-  2. A **mainstream flow must write its name** in a declaration position
-     (`var` cannot infer a `null` initializer, a method signature, or a
-     field).
-  3. **No root type already names it** — clause fragments fail here too, since
-     the natural unit of reuse is the completed expression, which the roots
-     already name.
+  1. It is a query's **content** — a relation, value, predicate, sort item,
+     or handle — not clause syntax, statement decoration, or a pending
+     intermediate.
+  2. A mainstream flow must **write its name** in a declaration position.
+  3. No root type already names it.
 
-  Every concrete node under the roots (`AndCondition`, `LikeCondition`,
-  `CountFunction`, …) stays in `Internal/` and is held only through them;
-  pure-mechanism bases with no user-facing members (`SqlPart`) stay too.
-  *(Moved from `Internal` to the root namespace, #244.)*
+  Concrete nodes stay in `Internal/` and are held only through these roots.
+  *(#244 moved the qualifying types to the root namespace.)*
 - **Everything under `Internal/` is implementation detail**, even where a type is
   `public` for technical reasons.
 
