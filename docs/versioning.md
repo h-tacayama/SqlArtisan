@@ -20,9 +20,7 @@ that is treated as a bug — please open an
 
 ## What counts as breaking
 
-The usual SemVer rules apply — removing or renaming public API, changing
-signatures, source or binary compatibility, or a documented behavior contract
-is **major**. Two cases are specific to this library:
+Two cases are specific to this library, beyond the usual API-level changes:
 
 - **Emitted SQL is part of the contract.** A change to the SQL text emitted
   for the same input is at minimum a **minor** release — even when it is a bug
