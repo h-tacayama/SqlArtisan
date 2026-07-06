@@ -33,6 +33,28 @@ public class InSubqueryTests
             expected.ToString());
     }
 
+    // A row-limited subquery resolves to the ISubquery overload and emits the
+    // list-IN form (single parentheses), not a scalar-subquery wrapping (#240).
+    [Fact]
+    public void In_LimitedSubquery_CorrectSql()
+    {
+        StringBuilder expected = new();
+        expected.Append("\"t\".code IN ");
+        expected.Append("(");
+        expected.Append("SELECT ");
+        expected.Append("\"s\".code ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"s\" ");
+        expected.Append("ORDER BY \"s\".code ");
+        expected.Append("LIMIT :0");
+        expected.Append(")");
+
+        _assert.Equal(
+            _t.Code.In(Select(_s.Code).From(_s).OrderBy(_s.Code).Limit(2)),
+            expected.ToString(),
+            1, 2);
+    }
+
     [Fact]
     public void NotIn_Subquery_CorrectSql()
     {
@@ -48,5 +70,25 @@ public class InSubqueryTests
         _assert.Equal(
             _t.Code.NotIn(Select(_s.Code).From(_s)),
             expected.ToString());
+    }
+
+    [Fact]
+    public void NotIn_LimitedSubquery_CorrectSql()
+    {
+        StringBuilder expected = new();
+        expected.Append("\"t\".code NOT IN ");
+        expected.Append("(");
+        expected.Append("SELECT ");
+        expected.Append("\"s\".code ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"s\" ");
+        expected.Append("ORDER BY \"s\".code ");
+        expected.Append("LIMIT :0");
+        expected.Append(")");
+
+        _assert.Equal(
+            _t.Code.NotIn(Select(_s.Code).From(_s).OrderBy(_s.Code).Limit(2)),
+            expected.ToString(),
+            1, 2);
     }
 }

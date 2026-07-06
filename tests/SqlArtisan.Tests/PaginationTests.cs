@@ -166,6 +166,141 @@ public class PaginationTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // ── Row-limited queries as subqueries (#240) ──────────────────────
+
+    [Fact]
+    public void Limit_SubqueryInCrossJoinLateral_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        DerivedTable x = new("x");
+
+        SqlStatement sql =
+            Select(t.Name, x.Column("code"))
+            .From(t)
+            .CrossJoinLateral(
+                Select(s.Code.As(x.Column("code")))
+                    .From(s)
+                    .Where(s.Code == t.Code)
+                    .OrderBy(s.Code)
+                    .Limit(3),
+                x)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name, \"x\".code ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("CROSS JOIN LATERAL ");
+        expected.Append("(");
+        expected.Append("SELECT \"s\".code code FROM test_table \"s\" ");
+        expected.Append("WHERE \"s\".code = \"t\".code ");
+        expected.Append("ORDER BY \"s\".code LIMIT :0");
+        expected.Append(") ");
+        expected.Append("\"x\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(3, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void FetchNext_SqlServer_SubqueryInCrossApply_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        DerivedTable x = new("x");
+
+        SqlStatement sql =
+            Select(t.Name, x.Column("code"))
+            .From(t)
+            .CrossApply(
+                Select(s.Code.As(x.Column("code")))
+                    .From(s)
+                    .Where(s.Code == t.Code)
+                    .OrderBy(s.Code)
+                    .OffsetRows(0)
+                    .FetchNext(3),
+                x)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name, \"x\".code ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("CROSS APPLY ");
+        expected.Append("(");
+        expected.Append("SELECT \"s\".code code FROM test_table \"s\" ");
+        expected.Append("WHERE \"s\".code = \"t\".code ");
+        expected.Append("ORDER BY \"s\".code OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY");
+        expected.Append(") ");
+        expected.Append("\"x\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(2, sql.Parameters.Count);
+        Assert.Equal(0, sql.Parameters.Get<object>("@0"));
+        Assert.Equal(3, sql.Parameters.Get<object>("@1"));
+    }
+
+    [Fact]
+    public void Limit_AliasedScalarSubquery_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            Select(
+                t.Name,
+                Select(s.Code).From(s).OrderBy(s.Code).Limit(1).As("top_code"))
+            .From(t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name, ");
+        expected.Append("(SELECT \"s\".code FROM test_table \"s\" ");
+        expected.Append("ORDER BY \"s\".code LIMIT :0) \"top_code\" ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void Limit_SubqueryInCteAs_CorrectSql()
+    {
+        TestTable s = new("s");
+        Cte c = new("c");
+
+        SqlStatement sql =
+            With(
+                c.As(
+                    Select(s.Code.As(c.Column("code")))
+                    .From(s)
+                    .OrderBy(s.Code)
+                    .Limit(3)))
+            .Select(c.Column("code"))
+            .From(c)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"c\" AS ");
+        expected.Append("(");
+        expected.Append("SELECT \"s\".code code FROM test_table \"s\" ");
+        expected.Append("ORDER BY \"s\".code LIMIT :0");
+        expected.Append(") ");
+        expected.Append("SELECT \"c\".code ");
+        expected.Append("FROM \"c\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(3, sql.Parameters.Get<object>(":0"));
+    }
+
     [Fact]
     public void OffsetRowsFetchNext_OnSqlServer_UsesDialectParameterMarker()
     {

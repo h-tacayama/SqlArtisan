@@ -310,11 +310,23 @@ internal static class MatrixSweepCatalog
         Add("MinusAll", _ => Select(u.DepartmentId).From(u).MinusAll.Select(u.DepartmentId).From(u));
 
         // --- Pagination ---
-        Add("Limit", _ => Select(u.Id).From(u).OrderBy(u.Id).Limit(2));
+        // Limit exercises the row-limited-subquery position IN (... LIMIT n) (#240);
+        // top-level LIMIT acceptance is proven by the Offset case. MySQL rejects LIMIT
+        // directly inside an IN/ALL/ANY/SOME subquery — a context-dependent restriction
+        // the construct-level matrix cannot express (#232 rule candidate).
+        AddSkips("Limit",
+            _ => Select(Count(u.Id)).From(u)
+                .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2))),
+            (Dbms.MySql, "MySQL rejects LIMIT inside an IN/ALL/ANY/SOME subquery (ER_NOT_SUPPORTED_YET), "
+                + "though it supports LIMIT itself — proven by the Offset case; context-aware rule candidate for #232."));
         Add("Offset", _ => Select(u.Id).From(u).OrderBy(u.Id).Limit(2).Offset(1));
         Add("OffsetRows", _ => Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2));
         Add("FetchNext", _ => Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2));
-        Add("FetchFirst", _ => Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(2));
+        // FetchFirst exercises the aliased-scalar-subquery position (#240): the Oracle
+        // scalar FETCH FIRST 1 ROW ONLY idiom the #225 audit could not write.
+        Add("FetchFirst", _ => Select(
+                Select(o.Amount).From(o).OrderBy(o.Amount).FetchFirst(1).As("top_amount"))
+            .From(u).Where(u.Id == 1));
 
         // --- FOR UPDATE ---
         Add("ForUpdate", _ => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate());
@@ -331,9 +343,39 @@ internal static class MatrixSweepCatalog
         Add("DistinctOn", _ => Select(DistinctOn(u.DepartmentId), u.DepartmentId).From(u).OrderBy(u.DepartmentId));
 
         // --- APPLY / LATERAL ---
-        Add("CrossApply", _ => ApplyShape((b, sub, x) => b.CrossApply(sub, x)));
+        // CrossApply and CrossJoinLateral run the per-group top-N shape — a row-limited
+        // lateral subquery (#240). The limiter follows EACH engine's own row-limiting
+        // grammar (proven by the plain pagination cases), including on the engines the
+        // matrix rejects, so the accept/reject outcome isolates the APPLY / LATERAL
+        // construct itself rather than a smuggled-in invalid limiter.
+        Add("CrossApply", dbms =>
+        {
+            UsersTable au = new("u");
+            OrdersTable ao = new("o");
+            DerivedTable x = new("x");
+            ISelectBuilderOrderBy ordered = Select(ao.Amount.As(x.Column("amount")))
+                .From(ao).Where(ao.UserId == au.Id).OrderBy(ao.Amount);
+            ISubquery topN = dbms is Dbms.MySql or Dbms.Sqlite
+                ? ordered.Limit(2)
+                : ordered.OffsetRows(0).FetchNext(2);
+            return Select(au.Id, x.Column("amount")).From(au).CrossApply(topN, x);
+        });
         Add("OuterApply", _ => ApplyShape((b, sub, x) => b.OuterApply(sub, x)));
-        Add("CrossJoinLateral", _ => ApplyShape((b, sub, x) => b.CrossJoinLateral(sub, x)));
+        Add("CrossJoinLateral", dbms =>
+        {
+            UsersTable lu = new("u");
+            OrdersTable lo = new("o");
+            DerivedTable x = new("x");
+            ISelectBuilderOrderBy ordered = Select(lo.Amount.As(x.Column("amount")))
+                .From(lo).Where(lo.UserId == lu.Id).OrderBy(lo.Amount);
+            ISubquery topN = dbms switch
+            {
+                Dbms.Oracle => ordered.FetchFirst(2),
+                Dbms.SqlServer => ordered.OffsetRows(0).FetchNext(2),
+                _ => ordered.Limit(2),
+            };
+            return Select(lu.Id, x.Column("amount")).From(lu).CrossJoinLateral(topN, x);
+        });
         Add("LeftJoinLateral", _ => ApplyShape((b, sub, x) => b.LeftJoinLateral(sub, x)));
         Add("JoinLateral", _ =>
         {
