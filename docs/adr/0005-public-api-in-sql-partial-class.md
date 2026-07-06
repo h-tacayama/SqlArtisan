@@ -21,16 +21,20 @@ separated from internals that are free to change.
   public by necessity and part of the contract. *(Erratum 2026-07: `DbColumn`'s
   path corrected; the decision itself is unchanged.)*
 - The types application code must **name** in a declaration position — a
-  helper method's return type, an accumulator variable, a `List<>` element —
-  are public by the same necessity: `SqlExpression`, `SqlCondition`,
-  `ISubquery`, `TableReference`, `SortOrder`, `ExpressionAlias`, and
-  `CommonTableExpression`. That naming test is the boundary rule: a type
-  leaves `Internal` when a mainstream flow must write its name and no
-  root-namespace alternative exists. Every concrete node under the roots
-  (`AndCondition`, `LikeCondition`, `CountFunction`, …) stays in `Internal/`
-  and is held only through them; pure-mechanism bases with no user-facing
-  members (`SqlPart`) stay too. *(Moved from `Internal` to the root
-  namespace, #244.)*
+  helper method's return type, an accumulator variable, a `List<>` element, a
+  shared `static readonly` field — are public by the same necessity:
+  `SqlExpression`, `SqlCondition`, `ISubquery`, `TableReference`, `SortOrder`,
+  `ExpressionAlias`, `CommonTableExpression`, `DbSequence`, `SqlHints`, and
+  `LockBehaviorBase`. The boundary rule: **values, items, and handles leave
+  `Internal` when a mainstream flow must write their name and no
+  root-namespace alternative exists; clause syntax stays** — clause fragments
+  (`OrderByClause`, `PartitionByClause`, `OfClause`, `SeparatorClause`, …)
+  are specified through the builder chain at the call site, and the natural
+  unit of reuse is the completed expression, which the roots already name.
+  Every concrete node under the roots (`AndCondition`, `LikeCondition`,
+  `CountFunction`, …) stays in `Internal/` and is held only through them;
+  pure-mechanism bases with no user-facing members (`SqlPart`) stay too.
+  *(Moved from `Internal` to the root namespace, #244.)*
 - **Everything under `Internal/` is implementation detail**, even where a type is
   `public` for technical reasons.
 
