@@ -63,4 +63,5 @@ next major**.
 
 No fixed schedule: releases ship when a coherent set of changes is ready.
 Confirmed wrong-SQL emissions — the class of bug that silently reads or
-writes the wrong rows — are prioritized for the next release.
+writes the wrong rows — are treated as high priority, ahead of other
+pending work.

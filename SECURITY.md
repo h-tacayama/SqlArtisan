@@ -7,8 +7,8 @@ Report vulnerabilities **privately** via GitHub Security Advisories:
 Please do not open a public issue for anything you believe is exploitable.
 
 This is an individually-maintained project, so there is no guaranteed
-response time — reports are triaged as soon as possible on a best-effort
-basis. Fixes are developed privately and released as soon as they are
+response time or fix timeline — reports are triaged on a best-effort
+basis. If a fix is made, it is developed privately and released once
 ready; you will be credited in the advisory unless you prefer otherwise.
 
 ## What counts as a vulnerability here
@@ -30,12 +30,7 @@ is an ordinary bug — please open a public
 
 ## Supported versions
 
-| Version | Supported |
-|---|---|
-| Latest published pre-release (0.x) | ✅ Fixes land in the next release |
-| Older pre-releases | ❌ Upgrade to the latest |
-
-From 1.0, security fixes target the latest release of the current major
-version. See the
+Only the latest published version is supported — there is no backporting
+to older pre-releases. Upgrade to receive any fix. See the
 [versioning & support policy](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md)
 for the full support statement.
