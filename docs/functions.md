@@ -33,7 +33,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 ## Character Functions
 
-- `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)` (three or more arguments — Oracle's `CONCAT` takes exactly two, see the caveat below)
+- `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)`
 - `Instr()` for `INSTR`
 - `Lpad()` for `LPAD`
 - `Ltrim()` for `LTRIM`
