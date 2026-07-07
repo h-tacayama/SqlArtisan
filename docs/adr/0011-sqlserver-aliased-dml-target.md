@@ -64,10 +64,10 @@ unavailable *and* no valid spelling exists on the resolved target:
   the target the caller explicitly named, in the same fail-loudly spirit as the
   empty-state and correlated-DML guards (#236 / #239).
 
-The mechanism is a `ValidateForDialect(Dbms)` hook on `SqlBuilderBase`, invoked
-at the top of `BuildCore`, that `UpdateBuilder` and `DeleteBuilder` override —
-so every build path (including `Returning()`, which funnels through `BuildCore`)
-is covered.
+The mechanism is a `Preflight(Dbms)` hook on `SqlBuilderBase`, invoked at the
+top of `BuildCore`, that `UpdateBuilder` and `DeleteBuilder` override — so every
+build path (including `Returning()`, which funnels through `BuildCore`) is
+covered.
 
 ## Consequences
 
