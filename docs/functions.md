@@ -153,7 +153,10 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
 
-Chain `.Filter(condition)` on any of these for conditional aggregation — `SUM(x) FILTER (WHERE ...)` (see [Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
+> [!NOTE]
+> Chain `.Filter(condition)` on any of these for conditional aggregation —
+> `SUM(x) FILTER (WHERE ...)` (see
+> [Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
 
 > [!NOTE]
 > `COUNT(expr)` skips `NULL` values in `expr`; `COUNT(*)` counts every row.
