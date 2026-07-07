@@ -16,6 +16,7 @@ internal sealed class WithBuilder : IWithBuilderWith
 
     public IDeleteBuilderDelete DeleteFrom(DbTableBase table)
         => new DeleteBuilder(
+            table,
             _withPart,
             new DeleteClause(table));
 
@@ -69,6 +70,7 @@ internal sealed class WithBuilder : IWithBuilderWith
 
     public IUpdateBuilderUpdate Update(DbTableBase table) =>
         new UpdateBuilder(
+            table,
             _withPart,
             new UpdateClause(table));
 }

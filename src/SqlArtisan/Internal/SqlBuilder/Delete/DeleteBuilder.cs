@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class DeleteBuilder(params SqlPart[] rootParts) :
+internal sealed class DeleteBuilder(DbTableBase target, params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
     IDeleteBuilderDelete,
     IDeleteBuilderWhere
@@ -19,4 +19,7 @@ internal sealed class DeleteBuilder(params SqlPart[] rootParts) :
         AddPart(new WhereClause(condition));
         return this;
     }
+
+    protected override void ValidateForDialect(Dbms dbms) =>
+        DmlTargetGuard.RejectAliasedTargetOnSqlServer(target, dbms);
 }

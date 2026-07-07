@@ -324,7 +324,7 @@ public static partial class Sql
     /// <param name="table">The table to delete rows from.</param>
     /// <returns>A delete builder positioned to accept a <c>WHERE</c> clause.</returns>
     public static IDeleteBuilderDelete DeleteFrom(DbTableBase table)
-        => new DeleteBuilder(new DeleteClause(table));
+        => new DeleteBuilder(table, new DeleteClause(table));
 
     /// <summary>
     /// The <c>DENSE_RANK()</c> analytic function (rank within the window with no

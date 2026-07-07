@@ -82,6 +82,43 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_SqlServer_AliasedTarget_ThrowsArgumentException()
+    {
+        // T-SQL cannot alias the UPDATE target directly, so the aliased form has
+        // no valid spelling on SQL Server — the guard throws at Build (ADR 0011).
+        TestTable t = new("cu");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t).Set(t.Name == "a").Where(t.Code == 1).Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "SQL Server does not support aliasing the target of an UPDATE or DELETE statement; use an unaliased target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_SqlServer_UnaliasedTarget_CorrectSql()
+    {
+        // The unaliased target builds normally on SQL Server — only the alias is
+        // rejected. Columns render unqualified; parameters use the @ marker.
+        SqlStatement sql =
+            Update(_t)
+            .Set(_t.Name == "a")
+            .Where(_t.Code == 1)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE ");
+        expected.Append("test_table ");
+        expected.Append("SET ");
+        expected.Append("name = @0 ");
+        expected.Append("WHERE ");
+        expected.Append("code = @1");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Update_Oracle_WithAlias_CorrectSql()
     {
         // Oracle rejects AS on a table alias (ORA-00933): the alias follows the

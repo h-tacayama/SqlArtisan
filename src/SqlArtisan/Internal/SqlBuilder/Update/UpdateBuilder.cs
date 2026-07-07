@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class UpdateBuilder(params SqlPart[] rootParts) :
+internal sealed class UpdateBuilder(DbTableBase target, params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
     IUpdateBuilderSet,
     IUpdateBuilderUpdate,
@@ -26,4 +26,7 @@ internal sealed class UpdateBuilder(params SqlPart[] rootParts) :
         AddPart(new WhereClause(condition));
         return this;
     }
+
+    protected override void ValidateForDialect(Dbms dbms) =>
+        DmlTargetGuard.RejectAliasedTargetOnSqlServer(target, dbms);
 }
