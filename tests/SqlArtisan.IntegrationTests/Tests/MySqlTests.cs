@@ -117,4 +117,28 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Contains("10001", address);
     }
+
+    [Fact] // #255 / #239 (ERG-09): MySQL accepts a single-table DELETE with an
+           // aliased target (`DELETE FROM users AS `cu``) as of 8.0.16; the pinned
+           // mysql:8.0 image is well past that boundary. This is the safe spelling
+           // for a correlated DELETE on MySQL, so proving it runs clears the
+           // grammar-unverified register entry.
+    public void DeleteAliasedTarget_Executes()
+    {
+        UsersTable cu = new("cu");
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(300, "Temp", 20, 99),
+            transaction);
+        connection.Execute(DeleteFrom(cu).Where(cu.Id == 300), transaction);
+
+        long remaining = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Id == 300), transaction));
+
+        Assert.Equal(0, remaining);
+        transaction.Rollback();
+    }
 }
