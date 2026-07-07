@@ -15,6 +15,7 @@ completely silent until you configure a target.
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
 - [Verified-against versions](#verified-against-versions)
+- [Reserved: version-aware warnings](#reserved-version-aware-warnings)
 - [Known limitations](#known-limitations)
 
 ---
@@ -201,6 +202,41 @@ against):
 An older or newer engine version may disagree with a `false` entry in
 either direction — that's what the `supported`/`unsupported` overrides are
 for, not a bug in the matrix.
+
+---
+
+## Reserved: version-aware warnings
+
+`sqlartisan_target_version` (and its MSBuild counterpart,
+`<SqlArtisanTargetVersion>`) is a **reserved key**. Setting it today does
+nothing; a future release will use it to make the warnings version-aware —
+matrix entries will optionally carry a minimum engine version per dialect,
+so a construct newer than your declared engine (say, `MERGE` before
+PostgreSQL 15, or `DATETRUNC` before SQL Server 2022) warns just like a
+plain dialect mismatch does today.
+
+The reservation pins down now what the future release will not change:
+
+- **Value format.** The engine's own version spelling, the same one this
+  documentation's dialect notes use — `8.0.16` for MySQL, `23` for Oracle,
+  `16` for PostgreSQL, `3.44` for SQLite, `2022` for SQL Server. Versions
+  compare by numeric segment (`8.0.20` is newer than `8.0.16`); trailing
+  letters in a segment are ignored (`23ai` reads as `23`).
+- **Unset means today's behavior.** With no declared version, version
+  bounds never fire and the analyzer behaves exactly as the rest of this
+  page describes. The key also has no effect without
+  `sqlartisan_target_dbms` — a version alone identifies no engine.
+- **Your overrides keep the last word.** A version bound refines the
+  shipped matrix's verdict, not yours: resolution stays *your arity-level
+  override → your member-level override → the matrix (version-refined) →
+  silence*, so `supported` / `unsupported` keys silence or force the
+  warning exactly as they do today.
+- **No new false positives.** A version bound only ever refines a construct
+  the matrix already has an entry for; a construct without an entry stays
+  silent whether or not a version is declared.
+- **Same plumbing as the target key.** Resolved per source file,
+  `.editorconfig` wins over the MSBuild property, and an unrecognized value
+  is flagged as `SQLA0002` and otherwise treated as unset.
 
 ---
 

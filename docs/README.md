@@ -80,4 +80,5 @@ dialect it doesn't support.
 [Mixed-Dialect Projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects) ·
 [CI Gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement) ·
 [Verified-Against Versions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions) ·
+[Reserved: Version-Aware Warnings](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#reserved-version-aware-warnings) ·
 [Known Limitations](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#known-limitations)
