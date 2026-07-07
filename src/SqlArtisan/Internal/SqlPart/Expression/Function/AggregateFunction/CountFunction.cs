@@ -20,7 +20,7 @@ public sealed class CountFunction : UnfilteredAggregateFunction
     internal CountFunction()
     {
         _distinct = null;
-        _expr = AsteriskExpression.Instance;
+        _expr = new AsteriskExpression();
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

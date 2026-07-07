@@ -151,8 +151,8 @@ Chain `.Filter(condition)` on any of these for conditional aggregation — `SUM(
 > [!NOTE]
 > `COUNT(expr)` skips `NULL` values in `expr`; `COUNT(*)` counts every row.
 > Pick `Count()` for a row count and `Count(expr)` only when `NULL`-skipping is
-> the behavior you want — `COUNT(*)` carries no performance penalty on modern
-> engines, all of which optimize it to the smallest usable index.
+> the behavior you want — modern engines optimize `COUNT(*)` to the smallest
+> usable index rather than materializing every column.
 
 ---
 

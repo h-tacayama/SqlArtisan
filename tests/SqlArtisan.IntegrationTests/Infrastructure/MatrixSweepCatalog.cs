@@ -177,8 +177,7 @@ internal static class MatrixSweepCatalog
         Add("Upper", _ => Scalar(Upper("abc")));
         Add("Replace", _ => Scalar(Replace("abc", "b", "X")));
         Add("Avg", _ => Select(Avg(o.Amount)).From(o));
-        Add("Count", _ => Select(Count(u.Id)).From(u));
-        AddArity("Count", 0, _ => Select(Count()).From(u));
+        Add("Count", _ => Select(Count(u.Id), Count()).From(u));
         Add("Max", _ => Select(Max(u.Age)).From(u));
         Add("Min", _ => Select(Min(u.Age)).From(u));
         Add("Sum", _ => Select(Sum(o.Amount)).From(o));
