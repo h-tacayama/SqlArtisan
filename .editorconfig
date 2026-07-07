@@ -264,14 +264,10 @@ dotnet_diagnostic.CA1822.severity = none
 [src/SqlArtisan/Internal/SqlPart/**.cs]
 dotnet_diagnostic.CS1591.severity = none
 
-# CA1708 fires once for SqlArtisan.Internal.DateTruncFunction/DatetruncFunction and
-# once for Sql.DateTrunc/Sql.Datetrunc — genuinely distinct SQL tokens (PostgreSQL's
-# DATE_TRUNC vs. SQL Server's DATETRUNC) whose C# names collide only by case under
-# the project's deterministic SQL-token naming rule, not an accidental near-duplicate.
-# A [SuppressMessage] on the individual declarations (or an assembly-level one scoped
-# by Target=~T:.../~M:...) does not suppress it — this rule reports both diagnostics
-# against Sql.A.cs (the partial Sql class's first file), regardless of which file the
-# colliding symbols actually live in, so the severity override is scoped there instead
-# of project-wide.
+# CA1708: DATE_TRUNC (PostgreSQL) and DATETRUNC (SQL Server) are genuinely distinct
+# SQL tokens whose C# names collide only by case under the project's deterministic
+# naming rule — not an accidental near-duplicate. The diagnostic reports against
+# Sql.A.cs (the partial Sql class's first file) regardless of where the colliding
+# symbols live, so the override is scoped there rather than to the actual files.
 [src/SqlArtisan/Sql/Sql.A.cs]
 dotnet_diagnostic.CA1708.severity = none
