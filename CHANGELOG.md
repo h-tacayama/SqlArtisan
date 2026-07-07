@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- Added `Grouping(expr)` (MySQL 8.0.1+, Oracle, PostgreSQL, SQL Server) to label a `Rollup`/`Cube`/`GroupingSets` subtotal row (`1`) versus a genuine data row (`0`); `Grouping(a, b, ...)` (MySQL, PostgreSQL) and `GroupingId(a, ...)` (Oracle, SQL Server) return the equivalent multi-column bitmask under each dialect's own spelling. MySQL accepts `Grouping(...)` only inside a `WITH ROLLUP` query. (#235)
 - Added date-bucketing functions: `DateFormat(date, format)` for MySQL's `DATE_FORMAT`, `Datetrunc(datepart, date)` for SQL Server 2022+'s `DATETRUNC`, and `Format(value, format[, culture])` for SQL Server's `FORMAT`. Note: SQLite (3.38+) has its own `printf()`-style `FORMAT()`, so a `Format(...)` call executes there too but with incompatible substitution-directive semantics rather than .NET-style format strings — see `docs/functions.md`. (#231)
 - Added a parameterless `Count()` overload emitting `COUNT(*)` (row count, `NULL`s included) alongside the existing `Count(expr)` (non-`NULL` count). Composes with `.Filter(...)` and `.Over(...)` like any other aggregate. Identical in syntax and semantics on every dialect. (#233)
 - Added `SECURITY.md` (private vulnerability reporting, threat model, supported versions) and `docs/versioning.md` (SemVer commitment from 1.0, what counts as breaking — including emitted-SQL changes and builder-stage interfaces — deprecation process, supported runtimes and verified engine versions), linked from the README. (#224)

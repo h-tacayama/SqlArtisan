@@ -302,6 +302,15 @@ internal static class MatrixSweepCatalog
         Add("Cube", _ => Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId)));
         Add("GroupingSets", _ => Select(u.DepartmentId).From(u).GroupBy(GroupingSets(Group(u.DepartmentId), Group())));
         Add("WithRollup", _ => Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId).WithRollup());
+        // MySQL has no ROLLUP(...) function form (see the Rollup entry above), so
+        // GROUPING(...) is exercised there via its native WITH ROLLUP suffix instead.
+        AddArity("Grouping", 1, dbms => dbms == Dbms.MySql
+            ? Select(u.DepartmentId, Grouping(u.DepartmentId)).From(u).GroupBy(u.DepartmentId).WithRollup()
+            : Select(Grouping(u.DepartmentId)).From(u).GroupBy(Rollup(u.DepartmentId)));
+        AddArity("Grouping", 3, dbms => dbms == Dbms.MySql
+            ? Select(u.DepartmentId, u.Age, Grouping(u.DepartmentId, u.Age)).From(u).GroupBy(u.DepartmentId, u.Age).WithRollup()
+            : Select(Grouping(u.DepartmentId, u.Age)).From(u).GroupBy(Rollup(u.DepartmentId, u.Age)));
+        AddArity("GroupingId", 2, _ => Select(GroupingId(u.DepartmentId, u.Age)).From(u).GroupBy(Rollup(u.DepartmentId, u.Age)));
 
         // --- Set operators ---
         Add("Union", _ => Select(u.DepartmentId).From(u).Union.Select(u.DepartmentId).From(u));

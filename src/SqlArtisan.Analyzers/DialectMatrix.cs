@@ -60,6 +60,13 @@ internal static class DialectMatrix
         // WithRollup: MySQL's form, but T-SQL still accepts the legacy `GROUP BY x WITH ROLLUP`
         // (deprecated in favor of ROLLUP(...) — live-verified on SQL Server 2022).
         [new MatrixKey("WithRollup")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        // Grouping/GroupingId (Sql.G.cs XML docs, #235): single-arg GROUPING(expr) is
+        // MySQL 8.0.1+/Oracle/PostgreSQL/SQL Server; the multi-column bitmask splits by
+        // dialect spelling — GROUPING(a, b, ...) on MySQL/PostgreSQL, GROUPING_ID(a, ...)
+        // on Oracle/SQL Server — so the two forms have disjoint dialect support.
+        [new MatrixKey("Grouping", 1)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("Grouping", 3)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("GroupingId", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
 
         // --- Date/time arithmetic (Sql.D.cs / Sql.A.cs XML docs) ---
         [new MatrixKey("Dateadd")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),

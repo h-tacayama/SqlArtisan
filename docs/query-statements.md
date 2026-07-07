@@ -326,6 +326,25 @@ Select(s.Region, s.Product, Sum(s.Amount))
 
 `Build(Dbms)` emits every form faithfully and does not police DBMS availability — an unsupported combination such as `Cube` / `GroupingSets` on MySQL, the function-form `Rollup(...)` on MySQL, or any extension on SQLite, is emitted as written, leaving it for the database (and the planned opt-in analyzer) to flag rather than silently rewriting the query.
 
+A subtotal row from `Rollup(...)` / `Cube(...)` / `GroupingSets(...)` has `NULL` in the aggregated-away column — indistinguishable from a genuine `NULL` data value without `Grouping(...)`, which returns `1` for a subtotal row and `0` for a data row. Use it to label subtotal rows, typically via a `Case`:
+
+```csharp
+SqlStatement sql =
+    Select(
+        s.Region,
+        Sum(s.Amount),
+        Case(When(Grouping(s.Region) == 1).Then("All Regions"), Else(s.Region)))
+    .From(s)
+    .GroupBy(Rollup(s.Region))
+    .Build();
+
+// SELECT region, SUM(amount), CASE WHEN (GROUPING(region) = :0) THEN :1 ELSE region END
+// FROM sales
+// GROUP BY ROLLUP(region)
+```
+
+`Grouping(a, b, ...)` also takes multiple columns, returning a combined bitmask (MySQL, PostgreSQL); Oracle and SQL Server spell the same bitmask `GroupingId(a, ...)` instead. MySQL accepts `Grouping(...)` only inside a `WITH ROLLUP` query (its own grouping syntax, above) — using it with an ordinary `GroupBy(...)` is rejected there, a context requirement no dialect matrix key can express.
+
 ---
 
 ### Set Operators

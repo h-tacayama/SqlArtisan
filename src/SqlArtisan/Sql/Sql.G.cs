@@ -147,6 +147,48 @@ public static partial class Sql
         new(Resolve(expr), distinct: distinct, orderByClause: orderByClause, separatorClause: separatorClause);
 
     /// <summary>
+    /// The <c>GROUPING(<paramref name="expr"/>)</c> function: <c>1</c> when
+    /// <paramref name="expr"/> is aggregated away in the current
+    /// grouping-extension row (a subtotal), <c>0</c> otherwise — distinguishing a
+    /// subtotal row from a genuine <c>NULL</c> data row.
+    /// </summary>
+    /// <param name="expr">The grouping-extension column to test.</param>
+    /// <returns>A <see cref="GroupingFunction"/> emitting <c>GROUPING(expr)</c>.</returns>
+    /// <remarks>MySQL (8.0.1+), Oracle, PostgreSQL, and SQL Server; not SQLite,
+    /// which has no grouping extensions.</remarks>
+    public static GroupingFunction Grouping(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The multi-column <c>GROUPING(<paramref name="expr1"/>, <paramref name="expr2"/>, ...)</c>
+    /// bitmask function: each argument contributes a bit (1 when aggregated away),
+    /// combined into a single integer.
+    /// </summary>
+    /// <param name="expr1">The first grouping-extension column.</param>
+    /// <param name="expr2">The second grouping-extension column.</param>
+    /// <param name="others">Any further grouping-extension columns.</param>
+    /// <returns>A <see cref="GroupingFunction"/> emitting <c>GROUPING(a, b, ...)</c>.</returns>
+    /// <remarks>MySQL and PostgreSQL only; Oracle accepts only the single-argument
+    /// form (use <see cref="GroupingId(object, object[])"/> there instead), and
+    /// neither SQLite nor SQL Server support it.</remarks>
+    public static GroupingFunction Grouping(object expr1, object expr2, params object[] others) =>
+        new(Resolve(expr1), Resolve(expr2), Resolve(others));
+
+    /// <summary>
+    /// The <c>GROUPING_ID(<paramref name="expr"/>, ...)</c> bitmask function: each
+    /// argument contributes a bit (1 when aggregated away in the current
+    /// grouping-extension row), combined into a single integer.
+    /// </summary>
+    /// <param name="expr">The first grouping-extension column.</param>
+    /// <param name="others">Any further grouping-extension columns.</param>
+    /// <returns>A <see cref="GroupingIdFunction"/> emitting
+    /// <c>GROUPING_ID(a, ...)</c>.</returns>
+    /// <remarks>Oracle and SQL Server syntax; for MySQL/PostgreSQL's equivalent
+    /// bitmask use <see cref="Grouping(object, object, object[])"/> instead.</remarks>
+    public static GroupingIdFunction GroupingId(object expr, params object[] others) =>
+        new(Resolve(expr), Resolve(others));
+
+    /// <summary>
     /// The <c>GROUPING SETS(...)</c> GROUP BY grouping extension, built from one or
     /// more <c>Group(...)</c> sets and emitted as <c>GROUPING SETS((a, b), c, ())</c>.
     /// </summary>
