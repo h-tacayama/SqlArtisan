@@ -155,7 +155,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   - Added examples for Sequence (`CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`) in "Usage Examples".
   - Added examples for Arithmetic Operators (`+`, `-`, `*`, `/`, `%`) in "Usage Examples".
   - Added examples for `CASE` expressions (Simple CASE and Searched CASE) in "Usage Examples".
-  
+
 ### Removed
 - `SqlArtisan.DapperExtensions` has been removed. Users should migrate to `SqlArtisan.Dapper`.
 
@@ -166,14 +166,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `SqlArtisan.TableClassGen` now depends on the new `SqlArtisan.Dapper` package.
 - Updated README:
   - Reorganized the Table of Contents to improve navigation.
-  - Clarified bind parameter prefix handling in "Quick Start".
+  - Clarified bind-parameter prefix handling in "Quick Start".
 ### Deprecated
 - `SqlArtisan.DapperExtensions` is now deprecated and will be removed in a future release. Users should migrate to `SqlArtisan.Dapper`.
 
 ## [0.1.0-alpha.13] - 2025-05-29
 ### Added
-- Added bind parameter prefix support for MySQL and SQL Server (#23).
-- `SqlArtisan.DapperExtensions` now auto-detects the DBMS from `IDbConnection` to ensure correct bind parameter prefixes are used (#23).
+- Added bind-parameter prefix support for MySQL and SQL Server (#23).
+- `SqlArtisan.DapperExtensions` now auto-detects the DBMS from `IDbConnection` to ensure correct bind-parameter prefixes are used (#23).
 
 ## [0.1.0-alpha.12] - 2025-05-26
 ### Changed
