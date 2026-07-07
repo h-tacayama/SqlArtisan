@@ -484,10 +484,8 @@ public static partial class Sql
     /// <param name="primary">The first string expression.</param>
     /// <param name="secondary">The second string expression.</param>
     /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b)</c>.</returns>
-    /// <remarks>Two-argument form: supported on every dialect. For three or more
-    /// arguments, see <see cref="Concat(object, object, object, object[])"/> — Oracle's
-    /// <c>CONCAT</c> accepts only two arguments; on Oracle, PostgreSQL, and SQLite (3.44+),
-    /// <see cref="DoublePipe(object, object, object[])"/> chains any number without nesting.</remarks>
+    /// <remarks>Supported on every dialect. For three or more arguments — where Oracle's
+    /// <c>CONCAT</c> differs — see <see cref="Concat(object, object, object, object[])"/>.</remarks>
     public static ConcatFunction Concat(object primary, object secondary) =>
         new(Resolve(primary), Resolve(secondary));
 
@@ -583,9 +581,7 @@ public static partial class Sql
     /// </summary>
     /// <remarks>
     /// Unlike <see cref="Count(object)"/>, which skips <c>NULL</c> values in the
-    /// counted expression, <c>COUNT(*)</c> counts every row. Identical in syntax
-    /// and semantics on every DBMS; modern engines optimize it to the smallest
-    /// usable index rather than materializing every column.
+    /// counted expression, <c>COUNT(*)</c> counts every row. Identical on every dialect.
     /// </remarks>
     /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(*)</c>.</returns>
     public static CountFunction Count() => new();
