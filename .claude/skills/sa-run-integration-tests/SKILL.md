@@ -22,8 +22,9 @@ lane with `--filter`.
 
 - **A running Docker daemon** for the four container engines (Testcontainers
   pulls and starts a container per lane). SQLite needs nothing.
-- First run pulls images; **Oracle (`gvenzl/oracle-free`) is large and slow to
-  start** (a minute or two), so it dominates wall-clock.
+- First run pulls images; **Oracle (`gvenzl/oracle-xe:21.3.0-slim-faststart`,
+  XE 21c — pinned in `OracleFixture`, same version the docs cite) is large and
+  slow to start** (a minute or two), so it dominates wall-clock.
 
 ## Run it
 
@@ -52,6 +53,15 @@ Oracle) must run on a real Docker host — a local dev machine or CI. Don't
 interpret a container-lane failure *here* as a product bug; it's the missing
 daemon. Verify those four in CI (below).
 
+Worse in a cloud session with only the .NET 8 SDK: `global.json` pins .NET 10,
+so `dotnet build`/`test` fails outright and you can't even **compile** the
+integration project locally. And the per-PR `ci.yml` builds only
+`SqlArtisan.Tests` and `SqlArtisan.Analyzers.Tests` — **not**
+`SqlArtisan.IntegrationTests` — so a compile error in an integration test never
+surfaces on the PR either. When you touch this project from such a session, the
+dispatched integration run (below) is your *only* gate: it both compiles and
+executes the tests.
+
 ## Run it in CI
 
 The matrix lives in `.github/workflows/integration.yml` as a per-engine matrix
@@ -65,10 +75,22 @@ per-PR fast loop** (`ci.yml`) by design — unit tests are the inner loop. It ru
 - as a **release gate** — `release.yml` calls it via `workflow_call`, so the
   NuGet `publish` job only runs after a green matrix.
 
-To validate the container engines on a feature branch *before* merge (since
-`workflow_dispatch` only shows for workflows already on the default branch),
-temporarily add a `pull_request:` trigger to `integration.yml`, push, confirm
-green, then remove it before merging. (This is exactly how #151 was landed.)
+**Validate a feature branch before merge — just dispatch it against the branch
+ref.** The GitHub UI only lists `workflow_dispatch` for workflows already on the
+default branch, but the *API* dispatches against any ref: because
+`integration.yml` is already on `main`, `actions_run_trigger` with
+`ref: <your-branch>` runs the workflow **against your branch's code**, new tests
+included. No `pull_request:`-trigger hack, no push-to-default:
+
+```
+actions_run_trigger(run_workflow, workflow_id="integration.yml", ref="<your-branch>")
+```
+
+Then read per-lane results — the matrix is `fail-fast: false`, so lanes stand
+alone — with `actions_list(list_workflow_jobs, <run-id>)`: each job is named
+`integration (<Engine>)` with its own `conclusion`. (Rebasing the branch after a
+green run doesn't invalidate it as long as the touched test files are unchanged
+and the run covered the lanes you care about.)
 
 ## Adding coverage
 
@@ -88,12 +110,22 @@ green, then remove it before merging. (This is exactly how #151 was landed.)
   repeated-parameter GROUP BY? — the GAP-19/#241 pattern), write a dedicated
   test that records accept/reject per engine instead; promote the fact into
   the matrix + a sweep case only after the results are in.
+- **The sweep can't hold a spelling variation of an existing construct.** The
+  catalog is keyed by `MatrixKey` (member name + optional arity), so there is
+  one entry per construct. A *grammar/spelling variation* of a construct that
+  already has a matrix key — e.g. aliasing a DML target (`UPDATE users "cu"` on
+  Oracle, or MySQL's backtick-quoted `AS` form), where `Update` / `DeleteFrom`
+  are already swept — has no key of its own and can't be a second sweep entry.
+  Verify it in the per-engine class alongside the other engine-specific DML
+  proofs (this is where the #255 correlated-DML alias checks live).
 
 ## Notes
 
-- A known Oracle bug (#165, CTE column alias → `ORA-00904`) is parked as a
-  **skipped** test, `OracleTests.Cte_AliasedColumn_KnownOracleBug` — un-skip it
-  when #165 is fixed.
+- The Oracle CTE-column-alias bug (#165, re-aliased CTE column → `ORA-00904`)
+  is **fixed**; `OracleTests.Cte_AliasedColumn_Executes` stands as its active
+  regression guard (a re-aliased CTE column now emits a bare alias that resolves
+  on Oracle). The still-skipped Oracle tests are the ones XE 21c genuinely can't
+  run — no native boolean (`is_active` is `NUMBER(1)`), no multi-row `VALUES`.
 - This complements `sa-run-sql-harness` (which only *observes* the emitted string)
   and `sa-run-benchmark`: use this when "does it actually run on the engine?" is the
   question.
