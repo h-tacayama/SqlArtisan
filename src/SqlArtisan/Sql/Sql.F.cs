@@ -41,10 +41,11 @@ public static partial class Sql
     /// <param name="format">The .NET-style format string (e.g. <c>"yyyy-MM-dd"</c>).</param>
     /// <returns>The <c>FORMAT</c> function expression.</returns>
     /// <remarks>
-    /// SQL Server syntax. SQLite (3.38+) has its own <c>FORMAT()</c> — a
-    /// <c>printf()</c> alias using <c>%s</c>/<c>%d</c>-style substitution, not
-    /// this .NET-style format string — so the call executes there without
-    /// erroring but not with these semantics.
+    /// SQL Server syntax. Two other dialects have a same-named but incompatible
+    /// <c>FORMAT()</c>, so the call executes there without erroring but not with
+    /// these semantics: MySQL's formats a number to a fixed decimal count
+    /// (<c>FORMAT(number, decimals[, locale])</c>), and SQLite's (3.38+) is a
+    /// <c>printf()</c> alias using <c>%s</c>/<c>%d</c>-style substitution.
     /// </remarks>
     public static FormatFunction Format(object value, object format) =>
         new(Resolve(value), Resolve(format));

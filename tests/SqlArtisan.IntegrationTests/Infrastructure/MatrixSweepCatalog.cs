@@ -272,6 +272,9 @@ internal static class MatrixSweepCatalog
             _ => Scalar(Format(u.CreatedAt, "yyyy-MM")),
             NegativeSkips: new Dictionary<Dbms, string>
             {
+                [Dbms.MySql] = "MySQL has its own FORMAT(X, D[, locale]) function (formats a number to "
+                    + "D decimal places), so the call text executes there too via implicit type coercion "
+                    + "of both arguments — acceptance proves nothing about SQL Server's FORMAT support.",
                 [Dbms.Sqlite] = "SQLite 3.38+ has its own printf-style format() function (an alias for "
                     + "printf()), so the call text executes there too, but with incompatible semantics "
                     + "(substitution directives, not .NET date/number format strings) — acceptance proves "

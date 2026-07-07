@@ -94,11 +94,12 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `ToTimestamp()` for `TO_TIMESTAMP`
 
 > [!NOTE]
-> SQLite (3.38+) has its own `FORMAT()` function — a `printf()` alias using
-> substitution directives (`%s`, `%d`), not SQL Server's .NET-style
-> (`"yyyy-MM-dd"`) format strings. The call executes there without erroring,
-> but not with the semantics this factory targets; there is no SQLite
-> equivalent of SQL Server's `Format(...)`.
+> MySQL and SQLite each have their own same-named but incompatible `FORMAT()`.
+> MySQL's formats a number to a fixed decimal count (`FORMAT(number, decimals[, locale])`);
+> SQLite's (3.38+) is a `printf()` alias using substitution directives (`%s`, `%d`).
+> Neither matches SQL Server's .NET-style (`"yyyy-MM-dd"`) format strings, so a
+> call executes on both without erroring but not with the semantics this factory
+> targets — there is no MySQL or SQLite equivalent of SQL Server's `Format(...)`.
 
 ---
 
