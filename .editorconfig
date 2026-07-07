@@ -213,11 +213,6 @@ dotnet_diagnostic.IDE0130.severity = none
 # CA1716: the fluent SQL DSL deliberately uses names that match language keywords
 # (e.g. In, As). Allow them.
 dotnet_diagnostic.CA1716.severity = none
-# CA1708: DATETRUNC (SQL Server) and DATE_TRUNC (PostgreSQL) are genuinely distinct
-# SQL tokens whose C# names (Datetrunc / DateTrunc) collide only by case under the
-# project's deterministic SQL-token naming rule (underscores are the only word
-# boundary) — not an accidental near-duplicate. Allow it.
-dotnet_diagnostic.CA1708.severity = none
 
 # C++ Files
 [*.{cpp,h,in}]
@@ -268,3 +263,15 @@ dotnet_diagnostic.CA1822.severity = none
 # here — suppress CS1591 for this layer rather than document private machinery.
 [src/SqlArtisan/Internal/SqlPart/**.cs]
 dotnet_diagnostic.CS1591.severity = none
+
+# CA1708 fires once for SqlArtisan.Internal.DateTruncFunction/DatetruncFunction and
+# once for Sql.DateTrunc/Sql.Datetrunc — genuinely distinct SQL tokens (PostgreSQL's
+# DATE_TRUNC vs. SQL Server's DATETRUNC) whose C# names collide only by case under
+# the project's deterministic SQL-token naming rule, not an accidental near-duplicate.
+# A [SuppressMessage] on the individual declarations (or an assembly-level one scoped
+# by Target=~T:.../~M:...) does not suppress it — this rule reports both diagnostics
+# against Sql.A.cs (the partial Sql class's first file), regardless of which file the
+# colliding symbols actually live in, so the severity override is scoped there instead
+# of project-wide.
+[src/SqlArtisan/Sql/Sql.A.cs]
+dotnet_diagnostic.CA1708.severity = none
