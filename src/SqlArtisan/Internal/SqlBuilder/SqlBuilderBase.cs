@@ -37,7 +37,7 @@ internal abstract class SqlBuilderBase
 
     protected SqlStatement BuildCore(Dbms dbms)
     {
-        Preflight(dbms);
+        Validate(dbms);
         IDbmsDialect dialect = DbmsDialectFactory.Create(dbms);
         using SqlBuildingBuffer buffer = new(dialect);
         buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
@@ -59,7 +59,7 @@ internal abstract class SqlBuilderBase
     // does nothing, so every other statement builds unchanged. Runs on every
     // build path, since they all funnel through BuildCore (Returning included,
     // via BuildWithPart).
-    protected virtual void Preflight(Dbms dbms)
+    protected virtual void Validate(Dbms dbms)
     {
     }
 
