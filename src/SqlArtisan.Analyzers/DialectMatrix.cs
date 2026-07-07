@@ -66,6 +66,11 @@ internal static class DialectMatrix
         [new MatrixKey("Datediff")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("DateTrunc")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("AddMonths")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        // DateFormat: MySQL's DATE_FORMAT (Sql.D.cs XML docs, #231).
+        [new MatrixKey("DateFormat")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
+        // Datetrunc: SQL Server 2022+'s DATETRUNC (Sql.D.cs XML docs, #231) — a distinct
+        // token from DateTrunc's PostgreSQL DATE_TRUNC above, not an alternate spelling of it.
+        [new MatrixKey("Datetrunc")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
 
         // --- String aggregation (CHANGELOG 0.3.0-beta.1, #88) ---
         // StringAgg's 2-arg form is PostgreSQL + SQL Server + SQLite (3.44 added string_agg as
@@ -156,6 +161,9 @@ internal static class DialectMatrix
         // 1-arg form is Oracle-only.
         [new MatrixKey("ToNumber", 1)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("ToTimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // Format: SQL Server's FORMAT (Sql.F.cs XML docs, #231); both the 2-arg and
+        // 3-arg (culture) overloads share this support, so one member-wide entry covers both.
+        [new MatrixKey("Format")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         // --- REGEXP_* family: Oracle syntax; MySQL 8.0 has REGEXP_LIKE/REGEXP_REPLACE/
         // REGEXP_SUBSTR with matching signatures (live-verified by the integration smoke
         // catalog) but no REGEXP_COUNT; PostgreSQL 15+ added all four with matching
@@ -288,11 +296,6 @@ internal static class DialectMatrix
         [new MatrixKey("Replace")] = DbmsSupport.All,
         [new MatrixKey("Avg")] = DbmsSupport.All,
         [new MatrixKey("Count")] = DbmsSupport.All,
-        // Count()'s COUNT(*) arity is identical in syntax and semantics to
-        // Count(expr) on every dialect (harness-verified, #233); the arity-0
-        // key exists so the sweep catalog can carry a distinct live COUNT(*)
-        // case alongside Count(expr)'s, not because support actually differs.
-        [new MatrixKey("Count", 0)] = DbmsSupport.All,
         [new MatrixKey("Max")] = DbmsSupport.All,
         [new MatrixKey("Min")] = DbmsSupport.All,
         [new MatrixKey("Sum")] = DbmsSupport.All,

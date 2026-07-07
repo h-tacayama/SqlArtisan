@@ -244,6 +244,8 @@ internal static class MatrixSweepCatalog
         Add("Dateadd", _ => Scalar(Dateadd(DateTimePart.Day, 1, u.CreatedAt)));
         Add("Datediff", _ => Scalar(Datediff(DateTimePart.Day, u.CreatedAt, u.CreatedAt)));
         Add("DateTrunc", _ => Scalar(DateTrunc(DateTimePart.Month, u.CreatedAt)));
+        Add("Datetrunc", _ => Scalar(Datetrunc(DateTimePart.Month, u.CreatedAt)));
+        Add("DateFormat", _ => Scalar(DateFormat(u.CreatedAt, "%Y-%m")));
         Add("AddMonths", _ => Scalar(AddMonths(u.CreatedAt, 1)));
         Add("LastDay", _ => Scalar(LastDay(u.CreatedAt)));
         Add("MonthsBetween", _ => Scalar(MonthsBetween(u.CreatedAt, u.CreatedAt)));
@@ -258,6 +260,15 @@ internal static class MatrixSweepCatalog
         Add("ToNumber", _ => Scalar(ToNumber("123", "999")));
         AddArity("ToNumber", 1, _ => Scalar(ToNumber("123")));
         Add("ToTimestamp", _ => Scalar(ToTimestamp("2020-01-01 00:00:00", "YYYY-MM-DD HH24:MI:SS")));
+        cases.Add(new SweepCase(new MatrixKey("Format"),
+            _ => Scalar(Format(u.CreatedAt, "yyyy-MM")),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.Sqlite] = "SQLite 3.38+ has its own printf-style format() function (an alias for "
+                    + "printf()), so the call text executes there too, but with incompatible semantics "
+                    + "(substitution directives, not .NET date/number format strings) — acceptance proves "
+                    + "nothing about SQL Server's FORMAT support.",
+            }));
 
         // --- Regexp ---
         Add("RegexpLike", _ => WherePredicate(RegexpLike(u.Name, "A.*")));

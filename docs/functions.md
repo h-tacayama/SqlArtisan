@@ -61,8 +61,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
 - `Dateadd()` for `DATEADD` (SQL Server)
 - `Datediff()` for `DATEDIFF` (SQL Server)
+- `DateFormat()` for `DATE_FORMAT` (MySQL)
 - `Datepart()` for `DATEPART` (SQL Server)
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
+- `Datetrunc()` for `DATETRUNC` (SQL Server 2022+; use `Format()` on earlier versions)
 - `Extract()` for `EXTRACT` (Date/Time Overload)
 - `LastDay()` for `LAST_DAY`
 - `MonthsBetween()` for `MONTHS_BETWEEN`
@@ -76,12 +78,20 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 - `Coalesce()` for `COALESCE`
 - `Decode()` for `DECODE`
+- `Format(value, format[, culture])` for `FORMAT(value, format[, culture])` (SQL Server)
 - `Nullif()` for `NULLIF`
 - `Nvl()` for `NVL`
 - `ToChar()` for `TO_CHAR`
 - `ToDate()` for `TO_DATE`
 - `ToNumber()` for `TO_NUMBER`
 - `ToTimestamp()` for `TO_TIMESTAMP`
+
+> [!NOTE]
+> SQLite (3.38+) has its own `FORMAT()` function — a `printf()` alias using
+> substitution directives (`%s`, `%d`), not SQL Server's .NET-style
+> (`"yyyy-MM-dd"`) format strings. The call executes there without erroring,
+> but not with the semantics this factory targets; there is no SQLite
+> equivalent of SQL Server's `Format(...)`.
 
 ---
 

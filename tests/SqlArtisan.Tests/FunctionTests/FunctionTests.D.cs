@@ -50,6 +50,21 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void DateFormat_MySql_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DateFormat(_t.CreatedAt, "%Y-%m"))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATE_FORMAT(`t`.created_at, ?0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("%Y-%m", sql.Parameters.Get<string>("?0"));
+    }
+
+    [Fact]
     public void Datepart_SqlServer_CorrectSql()
     {
         SqlStatement sql =
@@ -102,6 +117,20 @@ public partial class FunctionTests
         StringBuilder expected = new();
         expected.Append("SELECT ");
         expected.Append("DATE_TRUNC('MONTH', \"t\".created_at)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Datetrunc_SqlServer_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Datetrunc(DateTimePart.Month, _t.CreatedAt))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATETRUNC(MONTH, \"t\".created_at)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

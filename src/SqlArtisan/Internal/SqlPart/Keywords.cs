@@ -36,8 +36,10 @@ internal static class Keywords
     internal const string Currval = "CURRVAL";
     internal const string Dateadd = "DATEADD";
     internal const string Datediff = "DATEDIFF";
+    internal const string DateFormat = "DATE_FORMAT";
     internal const string Datepart = "DATEPART";
     internal const string DateTrunc = "DATE_TRUNC";
+    internal const string Datetrunc = "DATETRUNC";
     internal const string Decode = "DECODE";
     internal const string Delete = "DELETE";
     internal const string DenseRank = "DENSE_RANK";
@@ -60,6 +62,7 @@ internal static class Keywords
     internal const string Floor = "FLOOR";
     internal const string Following = "FOLLOWING";
     internal const string For = "FOR";
+    internal const string Format = "FORMAT";
     internal const string Freetext = "FREETEXT";
     internal const string From = "FROM";
     internal const string Full = "FULL";

@@ -50,6 +50,19 @@ public static partial class Sql
             Resolve(endDate));
 
     /// <summary>
+    /// The <c>DATE_FORMAT(<paramref name="date"/>, <paramref name="format"/>)</c>
+    /// function: <paramref name="date"/> rendered as a string per
+    /// <paramref name="format"/>'s strftime-style specifiers (<c>%Y</c>,
+    /// <c>%m</c>, <c>%d</c>, ...).
+    /// </summary>
+    /// <param name="date">The date/time value to format.</param>
+    /// <param name="format">The strftime-style format string.</param>
+    /// <returns>The <c>DATE_FORMAT</c> function expression.</returns>
+    /// <remarks>MySQL syntax.</remarks>
+    public static DateFormatFunction DateFormat(object date, object format) =>
+        new(Resolve(date), Resolve(format));
+
+    /// <summary>
     /// The <c>DATEPART(<paramref name="datepart"/>, <paramref name="source"/>)</c>
     /// function returning a single date/time field as an integer.
     /// </summary>
@@ -79,6 +92,23 @@ public static partial class Sql
     /// </remarks>
     public static DateTruncFunction DateTrunc(DateTimePart datepart, object source) =>
         new(datepart, Resolve(source));
+
+    /// <summary>
+    /// The <c>DATETRUNC(<paramref name="datepart"/>, <paramref name="date"/>)</c>
+    /// function: <paramref name="date"/> truncated down to
+    /// <paramref name="datepart"/> precision.
+    /// </summary>
+    /// <param name="datepart">The precision to truncate to.</param>
+    /// <param name="date">The date/time value to truncate.</param>
+    /// <returns>The <c>DATETRUNC</c> function expression.</returns>
+    /// <remarks>
+    /// SQL Server syntax (SQL Server 2022+; use <see cref="Format(object, object)"/>
+    /// on earlier versions). <see cref="DateTimePart"/> is a superset shared with
+    /// EXTRACT/DATEPART; only the fields SQL Server's <c>DATETRUNC</c> accepts are
+    /// valid here.
+    /// </remarks>
+    public static DatetruncFunction Datetrunc(DateTimePart datepart, object date) =>
+        new(datepart, Resolve(date));
 
     /// <summary>
     /// The <c>DECODE(<paramref name="expr"/>, search, result, ..., <paramref name="default"/>)</c>

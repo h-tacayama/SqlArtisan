@@ -33,6 +33,31 @@ public static partial class Sql
     public static FrameBound Following(int offset) => FrameBound.Following(offset);
 
     /// <summary>
+    /// The <c>FORMAT(<paramref name="value"/>, <paramref name="format"/>)</c>
+    /// function: <paramref name="value"/> (a number or date/time) rendered as a
+    /// string per the .NET-style <paramref name="format"/> string.
+    /// </summary>
+    /// <param name="value">The value to format.</param>
+    /// <param name="format">The .NET-style format string (e.g. <c>"yyyy-MM-dd"</c>).</param>
+    /// <returns>The <c>FORMAT</c> function expression.</returns>
+    /// <remarks>
+    /// SQL Server syntax. SQLite (3.38+) has its own <c>FORMAT()</c> — a
+    /// <c>printf()</c> alias using <c>%s</c>/<c>%d</c>-style substitution, not
+    /// this .NET-style format string — so the call executes there without
+    /// erroring but not with these semantics.
+    /// </remarks>
+    public static FormatFunction Format(object value, object format) =>
+        new(Resolve(value), Resolve(format));
+
+    /// <inheritdoc cref="Format(object, object)"/>
+    /// <param name="value">The value to format.</param>
+    /// <param name="format">The .NET-style format string (e.g. <c>"yyyy-MM-dd"</c>).</param>
+    /// <param name="culture">The culture name (e.g. <c>"en-US"</c>) the format is
+    /// interpreted under.</param>
+    public static FormatFunction Format(object value, object format, object culture) =>
+        new(Resolve(value), Resolve(format), Resolve(culture));
+
+    /// <summary>
     /// The SQL Server full-text <c>FREETEXT(column, freetext)</c> predicate:
     /// matches rows whose <paramref name="column"/> matches the meaning — not the
     /// exact wording — of <paramref name="freetext"/>. Requires a full-text index
