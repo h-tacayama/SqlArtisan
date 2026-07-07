@@ -478,19 +478,40 @@ public static partial class Sql
             Resolve(others));
 
     /// <summary>
-    /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>, ...)</c>
-    /// function (the arguments joined into a single string).
+    /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>)</c>
+    /// function (the two arguments joined into a single string).
     /// </summary>
     /// <param name="primary">The first string expression.</param>
     /// <param name="secondary">The second string expression.</param>
+    /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b)</c>.</returns>
+    /// <remarks>Two-argument form: supported on every dialect. For three or more
+    /// arguments, see <see cref="Concat(object, object, object, object[])"/> — Oracle's
+    /// <c>CONCAT</c> accepts only two arguments; on Oracle, PostgreSQL, and SQLite (3.44+),
+    /// <see cref="DoublePipe(object, object, object[])"/> chains any number without nesting.</remarks>
+    public static ConcatFunction Concat(object primary, object secondary) =>
+        new(Resolve(primary), Resolve(secondary));
+
+    /// <summary>
+    /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>, <paramref name="third"/>, ...)</c>
+    /// function (three or more arguments joined into a single string).
+    /// </summary>
+    /// <param name="primary">The first string expression.</param>
+    /// <param name="secondary">The second string expression.</param>
+    /// <param name="third">The third string expression.</param>
     /// <param name="others">Any further string expressions, appended in order.</param>
-    /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b, ...)</c>.</returns>
+    /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b, c, ...)</c>.</returns>
+    /// <remarks>Oracle's <c>CONCAT</c> takes exactly two arguments and rejects this
+    /// three-or-more form — nest two-argument calls there instead, or use
+    /// <see cref="DoublePipe(object, object, object[])"/> to chain any number without
+    /// nesting (also valid on PostgreSQL and SQLite 3.44+).</remarks>
     public static ConcatFunction Concat(
         object primary,
         object secondary,
+        object third,
         params object[] others) => new(
             Resolve(primary),
             Resolve(secondary),
+            Resolve(third),
             Resolve(others));
 
     /// <summary>

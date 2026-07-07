@@ -3,6 +3,7 @@ namespace SqlArtisan.Internal;
 internal static class Operators
 {
     internal const string Asterisk = "*";
+    internal const string DoublePipe = "||";
     internal const string Equality = "=";
     internal const string GreaterThan = ">";
     internal const string GreaterThanOrEqual = ">=";

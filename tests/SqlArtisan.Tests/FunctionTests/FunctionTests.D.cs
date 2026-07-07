@@ -541,4 +541,52 @@ public partial class FunctionTests
         Assert.Equal("j", sql.Parameters.Get<string>(":19"));
         Assert.Equal("z", sql.Parameters.Get<string>(":20"));
     }
+
+    [Fact]
+    public void DoublePipe_TwoValues_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DoublePipe(_t.Name, "a"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("(\"t\".name || :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void DoublePipe_MultipleValues_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DoublePipe(_t.Name, "a", "b"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("(\"t\".name || :0 || :1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("b", sql.Parameters.Get<string>(":1"));
+    }
+
+    [Fact]
+    public void DoublePipe_MySql_StillEmitsDoublePipe()
+    {
+        // DoublePipe(...) emits || verbatim on every dialect, including MySQL,
+        // where it is logical OR under the default sql_mode — the SQL you write
+        // is the SQL that runs, and the analyzer flags this trap instead.
+        SqlStatement sql =
+            Select(DoublePipe(_t.Name, "a"))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("(`t`.name || ?0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

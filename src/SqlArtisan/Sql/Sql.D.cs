@@ -355,6 +355,25 @@ public static partial class Sql
         new(Resolve(expressions));
 
     /// <summary>
+    /// The <c>||</c> concatenation operator: <c>(<paramref name="primary"/> || <paramref name="secondary"/> || ...)</c>,
+    /// chaining any number of arguments without nesting.
+    /// </summary>
+    /// <param name="primary">The first string expression.</param>
+    /// <param name="secondary">The second string expression.</param>
+    /// <param name="others">Any further string expressions, chained in order.</param>
+    /// <returns>A <see cref="DoublePipeOperator"/> emitting <c>(a || b || ...)</c>.</returns>
+    /// <remarks>
+    /// Oracle, PostgreSQL, and SQLite (every version) syntax. On MySQL, <c>||</c> is
+    /// <em>logical OR</em> under the default <c>sql_mode</c> — valid SQL with silently
+    /// different semantics — so use <see cref="Concat(object, object)"/> /
+    /// <see cref="Concat(object, object, object, object[])"/> there instead. SQL Server
+    /// rejects <c>||</c> entirely; its concatenation operator is <c>+</c>, already
+    /// emitted by the existing <c>+</c> operator on <see cref="SqlExpression"/>.
+    /// </remarks>
+    public static DoublePipeOperator DoublePipe(object primary, object secondary, params object[] others) =>
+        new(Resolve(primary), Resolve(secondary), Resolve(others));
+
+    /// <summary>
     /// The <c>DUAL</c> dummy table (MySQL and Oracle), for selecting expressions
     /// without a real table (<c>SELECT ... FROM DUAL</c>).
     /// </summary>

@@ -16,6 +16,7 @@
 
 - [NULL Literal](#null-literal)
 - [Arithmetic Operators](#arithmetic-operators)
+- [String Concatenation](#string-concatenation)
 - [Conditions](#conditions)
 - [JSON Operators](#json-operators)
 - [Full-Text Search](#full-text-search)
@@ -65,6 +66,27 @@ SqlStatement sql =
 // (age % :4)
 // FROM users
 ```
+
+---
+
+## String Concatenation
+
+Concatenation has no common syntax across the five engines, so pick the form for your target DBMS rather than reaching for one factory everywhere:
+
+```csharp
+SqlStatement sql =
+    Select(DoublePipe(u.FirstName, " ", u.LastName))
+    .From(u)
+    .Build(Dbms.PostgreSql);
+
+// SELECT (first_name || :0 || last_name)
+// FROM users
+```
+
+- **Oracle, PostgreSQL, SQLite (every version)** — `DoublePipe(a, b, ...)` for the native `||` operator, chaining any number of arguments without nesting.
+- **MySQL** — `Concat(a, b)` / `Concat(a, b, c, ...)` for the `CONCAT` function. `DoublePipe(...)` is a trap on MySQL: under the default `sql_mode`, `||` is **logical OR**, not concatenation — valid SQL with a completely different result, not a syntax error, so nothing at the SQL level warns you. Use `Concat(...)` there.
+- **SQL Server** — the existing `+` operator (`u.FirstName + " " + u.LastName`) for native concatenation, or the 2-argument `Concat(a, b)` function; SQL Server has no `||` operator at all.
+- **Oracle's `CONCAT`** takes exactly two arguments — `Concat(a, b, c)` (three or more) is invalid there; use `DoublePipe(...)` for chains of three or more on Oracle.
 
 ---
 

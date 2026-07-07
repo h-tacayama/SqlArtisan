@@ -307,11 +307,17 @@ internal static class DialectMatrix
         [new MatrixKey("Min")] = DbmsSupport.All,
         [new MatrixKey("Sum")] = DbmsSupport.All,
         [new MatrixKey("CurrentTimestamp")] = DbmsSupport.All,
-        // Concat is one params method (declared arity fixed), so the 2-arg-vs-more split is
-        // invisible to the key: Oracle's native CONCAT takes exactly 2 arguments, so a 3+-arg
-        // call is invalid there — union, under-restricts Oracle. SQLite: concat() since 3.44
-        // (baseline 3.46+); SQL Server: CONCAT since 2012.
-        [new MatrixKey("Concat")] = DbmsSupport.All,
+        // Concat split by declared arity (#234): Oracle's native CONCAT takes exactly 2
+        // arguments, so the 2-arg form is universal but the 3+-arg form is invalid there.
+        // SQLite: concat() since 3.44 (baseline 3.46+); SQL Server: CONCAT since 2012.
+        [new MatrixKey("Concat", 2)] = DbmsSupport.All,
+        [new MatrixKey("Concat", 4)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
+        // DoublePipe (Sql.D.cs XML docs, #234): native on Oracle/PostgreSQL/SQLite (every
+        // version). MySQL rejects it under the default sql_mode's PIPES_AS_CONCAT-off
+        // meaning — || is logical OR there, valid SQL with silently different semantics,
+        // exactly the trap this entry exists to flag. SQL Server has no || operator at all
+        // (its concatenation operator is +, the existing AdditionOperator).
+        [new MatrixKey("DoublePipe")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
 
         // --- Window / analytic (universal on the baselines: MySQL 8.0+, SQLite 3.25+, SQL Server 2012+) ---
         [new MatrixKey("Rank")] = DbmsSupport.All,

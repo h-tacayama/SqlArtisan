@@ -33,7 +33,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 ## Character Functions
 
-- `Concat()` for `CONCAT`
+- `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)` (three or more arguments — Oracle's `CONCAT` takes exactly two, see the caveat below)
 - `Instr()` for `INSTR`
 - `Lpad()` for `LPAD`
 - `Ltrim()` for `LTRIM`
@@ -50,6 +50,13 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Substrb()` for `SUBSTRB`
 - `Trim()` for `TRIM`
 - `Upper()` for `UPPER`
+
+> [!NOTE]
+> On Oracle, chain two-argument `Concat(a, b)` calls (`Concat(Concat(a, b), c)`)
+> for three or more arguments, or use the `||` operator instead — see
+> [Expressions: String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation)
+> for the full per-dialect guide, including a MySQL semantics trap `||` has that
+> `Concat` doesn't.
 
 ---
 

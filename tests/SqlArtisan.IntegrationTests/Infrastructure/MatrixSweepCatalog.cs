@@ -182,7 +182,16 @@ internal static class MatrixSweepCatalog
         Add("Min", _ => Select(Min(u.Age)).From(u));
         Add("Sum", _ => Select(Sum(o.Amount)).From(o));
         Add("CurrentTimestamp", _ => Scalar(CurrentTimestamp));
-        Add("Concat", _ => Scalar(Concat("a", "b")));
+        AddArity("Concat", 2, _ => Scalar(Concat("a", "b")));
+        AddArity("Concat", 4, _ => Scalar(Concat("a", "b", "c")));
+        cases.Add(new SweepCase(new MatrixKey("DoublePipe"),
+            _ => Scalar(DoublePipe("a", "b")),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.MySql] = "Under MySQL's default sql_mode, || is logical OR (not string "
+                    + "concatenation) — a boolean expression, not a grammar error — so the call text "
+                    + "executes there too; acceptance proves nothing about DoublePipe's own support.",
+            }));
 
         // --- Window / analytic ---
         Add("Rank", _ => Window(Rank().Over(OrderBy(u.Age))));
