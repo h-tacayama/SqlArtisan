@@ -24,6 +24,9 @@ FILES = [
     "docs/expressions.md",
     "docs/functions.md",
     "docs/analyzer.md",
+    "docs/versioning.md",
+    "SECURITY.md",
+    "CHANGELOG.md",
 ]
 
 

@@ -23,5 +23,6 @@ be rewritten across dialects.
 
 ## Optional
 
+- [Versioning & Support](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/versioning.md): SemVer commitment, breaking-change definition (including emitted-SQL changes), deprecation process, verified engine versions, support window.
 - [CHANGELOG](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/CHANGELOG.md): Version history.
 - [Design (ADRs)](https://github.com/h-tacayama/SqlArtisan/tree/main/docs/adr): Architecture decisions (faithful SQL, dialect layer, parameterization).

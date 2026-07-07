@@ -44,6 +44,7 @@ All the convenience, minimal overhead: an **allocation-light, fast** builder [be
 - [Configuration](#configuration)
 - [Design Philosophy](#design-philosophy)
 - [Documentation](#documentation)
+- [Versioning & Support](#versioning--support)
 - [Contributing](#contributing)
 - [Changelog](#changelog)
 - [License](#license)
@@ -240,6 +241,13 @@ The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLit
 | **[Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)** | Opt-in Roslyn analyzer — [enabling it](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it), [rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules), [correcting a warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys), [mixed-dialect projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects), [CI gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement) |
 
 > Using an AI coding assistant? Point it at [`llms.txt`](https://github.com/h-tacayama/SqlArtisan/blob/main/llms.txt) for an LLM-friendly index of this documentation.
+
+---
+
+## Versioning & Support
+
+* **Versioning, breaking changes, deprecation, support window:** see the [versioning & support policy](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md).
+* **Security vulnerabilities:** report privately per [SECURITY.md](https://github.com/h-tacayama/SqlArtisan/blob/main/SECURITY.md) — never in a public issue.
 
 ---
 

@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- Added `SECURITY.md` (private vulnerability reporting, threat model, supported versions) and `docs/versioning.md` (SemVer commitment from 1.0, what counts as breaking — including emitted-SQL changes and builder-stage interfaces — deprecation process, supported runtimes and verified engine versions), linked from the README. (#224)
 - Opt-in Roslyn analyzer, shipped inside the `SqlArtisan` package with no extra reference. Set a target dialect — `sqlartisan_target_dbms` in `.editorconfig`, or `<SqlArtisanTargetDbms>` as an MSBuild property — and `SQLA0001` warns when a construct isn't supported there, per a curated, primary-source-verified dialect matrix (silent, and no false positive, for anything the matrix hasn't confirmed one way or the other). `SQLA0002` flags an unrecognized `.editorconfig` value. Every warning names the `sqlartisan_construct_<member>[_arity<N>]` override key that would silence it (`supported`) or force it (`unsupported`) — the arity-level key exists because a handful of overloaded members (e.g. `StringAgg`'s 3-argument inline-`ORDER BY` form) have narrower dialect support than their siblings. Severity is controlled the standard way (`dotnet_diagnostic.SQLA0001.severity`), so a mismatch can be promoted to a build error. See `docs/analyzer.md`. (#93)
 ### Changed
 - **Breaking:** a query with a row-limiting clause (`Limit()` / `Offset()` / `OffsetRows()` / `FetchNext()` / `FetchFirst()`) can now be used as a subquery: a `LATERAL` / `APPLY` operand (per-group top-N), an aliased scalar select item (`.As("alias")`), a CTE body, or an `IN` / `NOT IN` / `EXISTS` / `ALL` / `ANY` / `SOME` operand. Source-compatible for callers but binary-breaking — the terminal `Offset()` / `FetchFirst()` / `FetchNext()` steps now return `ISelectBuilderPaginated` instead of `ISqlBuilder` — so rebuild code compiled against an earlier version. Recompiling also changes `In(...)` / `NotIn(...)` with a row-limited subquery, by design: previously they silently emitted a scalar-subquery comparison, `IN ((SELECT … LIMIT :0))` — wrong semantics that fail at runtime past one row — and now emit the list form `IN (SELECT … LIMIT :0)`. MySQL itself rejects `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery — route the limited query through a CTE there (see the pagination reference). (#240)
@@ -154,7 +155,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   - Added examples for Sequence (`CURRVAL`, `NEXTVAL`, `NEXT VALUE FOR`) in "Usage Examples".
   - Added examples for Arithmetic Operators (`+`, `-`, `*`, `/`, `%`) in "Usage Examples".
   - Added examples for `CASE` expressions (Simple CASE and Searched CASE) in "Usage Examples".
-  
+
 ### Removed
 - `SqlArtisan.DapperExtensions` has been removed. Users should migrate to `SqlArtisan.Dapper`.
 
@@ -165,14 +166,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `SqlArtisan.TableClassGen` now depends on the new `SqlArtisan.Dapper` package.
 - Updated README:
   - Reorganized the Table of Contents to improve navigation.
-  - Clarified bind parameter prefix handling in "Quick Start".
+  - Clarified bind-parameter prefix handling in "Quick Start".
 ### Deprecated
 - `SqlArtisan.DapperExtensions` is now deprecated and will be removed in a future release. Users should migrate to `SqlArtisan.Dapper`.
 
 ## [0.1.0-alpha.13] - 2025-05-29
 ### Added
-- Added bind parameter prefix support for MySQL and SQL Server (#23).
-- `SqlArtisan.DapperExtensions` now auto-detects the DBMS from `IDbConnection` to ensure correct bind parameter prefixes are used (#23).
+- Added bind-parameter prefix support for MySQL and SQL Server (#23).
+- `SqlArtisan.DapperExtensions` now auto-detects the DBMS from `IDbConnection` to ensure correct bind-parameter prefixes are used (#23).
 
 ## [0.1.0-alpha.12] - 2025-05-26
 ### Changed
