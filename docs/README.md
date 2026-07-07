@@ -80,10 +80,3 @@ dialect it doesn't support.
 [CI Gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement) ·
 [Verified-Against Versions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions) ·
 [Known Limitations](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#known-limitations)
-
-## [Versioning & Support](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md)
-
-The SemVer commitment, what counts as breaking (including changes to emitted
-SQL), the deprecation process, supported runtimes, verified engine versions,
-and the support window. Security reporting lives in
-[SECURITY.md](https://github.com/h-tacayama/SqlArtisan/blob/main/SECURITY.md).
