@@ -226,4 +226,62 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.Contains("10001", address);
     }
+
+    [Fact] // #255 / #239 (GAP-10, C5/C6): Oracle accepts the bare-separator DML
+           // target alias `UPDATE users "cu"`, so a correlated subquery can
+           // reference the outer row through the alias — the safe spelling that
+           // avoids the unaliased tautology where the outer column silently
+           // resolves to the inner table. Clears the grammar-unverified register
+           // entry for the Oracle aliased correlated UPDATE.
+    public void CorrelatedUpdate_AliasedTarget_Executes()
+    {
+        UsersTable cu = new("cu");
+        OrdersTable o = new("o");
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // department_id = 999 for exactly the users referenced by an order
+        // ({1, 2, 3, 5}); the subquery correlates orders back to the outer
+        // "cu".id, so without the alias the bare column would resolve to orders.
+        connection.Execute(
+            Update(cu)
+                .Set(cu.DepartmentId == 999)
+                .Where(cu.Id.In(Select(o.UserId).From(o).Where(o.UserId == cu.Id))),
+            transaction);
+
+        long updated = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.DepartmentId == 999), transaction));
+
+        Assert.Equal(4, updated);
+        transaction.Rollback();
+    }
+
+    [Fact] // #255 / #239 (GAP-10, C5/C6): the DELETE counterpart — Oracle accepts
+           // the bare-separator DELETE target alias `DELETE FROM users "cu"`, so
+           // the correlated subquery references the outer row safely. Clears the
+           // grammar-unverified register entry for the Oracle aliased correlated
+           // DELETE.
+    public void CorrelatedDelete_AliasedTarget_Executes()
+    {
+        UsersTable cu = new("cu");
+        OrdersTable o = new("o");
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Delete the users referenced by an order ({1, 2, 3, 5}); Dave (4) has no
+        // order and remains. The subquery correlates orders back to the outer
+        // "cu".id.
+        connection.Execute(
+            DeleteFrom(cu)
+                .Where(cu.Id.In(Select(o.UserId).From(o).Where(o.UserId == cu.Id))),
+            transaction);
+
+        long remaining = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u), transaction));
+
+        Assert.Equal(1, remaining);
+        transaction.Rollback();
+    }
 }
