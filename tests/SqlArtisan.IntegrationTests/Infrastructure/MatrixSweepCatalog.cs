@@ -177,12 +177,21 @@ internal static class MatrixSweepCatalog
         Add("Upper", _ => Scalar(Upper("abc")));
         Add("Replace", _ => Scalar(Replace("abc", "b", "X")));
         Add("Avg", _ => Select(Avg(o.Amount)).From(o));
-        Add("Count", _ => Select(Count(u.Id)).From(u));
+        Add("Count", _ => Select(Count(u.Id), Count()).From(u));
         Add("Max", _ => Select(Max(u.Age)).From(u));
         Add("Min", _ => Select(Min(u.Age)).From(u));
         Add("Sum", _ => Select(Sum(o.Amount)).From(o));
         Add("CurrentTimestamp", _ => Scalar(CurrentTimestamp));
-        Add("Concat", _ => Scalar(Concat("a", "b")));
+        AddArity("Concat", 2, _ => Scalar(Concat("a", "b")));
+        AddArity("Concat", 4, _ => Scalar(Concat("a", "b", "c")));
+        cases.Add(new SweepCase(new MatrixKey("DoublePipe"),
+            _ => Scalar(DoublePipe("a", "b")),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.MySql] = "Under MySQL's default sql_mode, || is logical OR (not string "
+                    + "concatenation) — a boolean expression, not a grammar error — so the call text "
+                    + "executes there too; acceptance proves nothing about DoublePipe's own support.",
+            }));
 
         // --- Window / analytic ---
         Add("Rank", _ => Window(Rank().Over(OrderBy(u.Age))));
@@ -243,6 +252,8 @@ internal static class MatrixSweepCatalog
         Add("Dateadd", _ => Scalar(Dateadd(DateTimePart.Day, 1, u.CreatedAt)));
         Add("Datediff", _ => Scalar(Datediff(DateTimePart.Day, u.CreatedAt, u.CreatedAt)));
         Add("DateTrunc", _ => Scalar(DateTrunc(DateTimePart.Month, u.CreatedAt)));
+        Add("Datetrunc", _ => Scalar(Datetrunc(DateTimePart.Month, u.CreatedAt)));
+        Add("DateFormat", _ => Scalar(DateFormat(u.CreatedAt, "%Y-%m")));
         Add("AddMonths", _ => Scalar(AddMonths(u.CreatedAt, 1)));
         Add("LastDay", _ => Scalar(LastDay(u.CreatedAt)));
         Add("MonthsBetween", _ => Scalar(MonthsBetween(u.CreatedAt, u.CreatedAt)));
@@ -257,6 +268,18 @@ internal static class MatrixSweepCatalog
         Add("ToNumber", _ => Scalar(ToNumber("123", "999")));
         AddArity("ToNumber", 1, _ => Scalar(ToNumber("123")));
         Add("ToTimestamp", _ => Scalar(ToTimestamp("2020-01-01 00:00:00", "YYYY-MM-DD HH24:MI:SS")));
+        cases.Add(new SweepCase(new MatrixKey("Format"),
+            _ => Scalar(Format(u.CreatedAt, "yyyy-MM")),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.MySql] = "MySQL has its own FORMAT(X, D[, locale]) function (formats a number to "
+                    + "D decimal places), so the call text executes there too via implicit type coercion "
+                    + "of both arguments — acceptance proves nothing about SQL Server's FORMAT support.",
+                [Dbms.Sqlite] = "SQLite 3.38+ has its own printf-style format() function (an alias for "
+                    + "printf()), so the call text executes there too, but with incompatible semantics "
+                    + "(substitution directives, not .NET date/number format strings) — acceptance proves "
+                    + "nothing about SQL Server's FORMAT support.",
+            }));
 
         // --- Regexp ---
         Add("RegexpLike", _ => WherePredicate(RegexpLike(u.Name, "A.*")));
@@ -291,6 +314,15 @@ internal static class MatrixSweepCatalog
         Add("Cube", _ => Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId)));
         Add("GroupingSets", _ => Select(u.DepartmentId).From(u).GroupBy(GroupingSets(Group(u.DepartmentId), Group())));
         Add("WithRollup", _ => Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId).WithRollup());
+        // MySQL has no ROLLUP(...) function form (see the Rollup entry above), so
+        // GROUPING(...) is exercised there via its native WITH ROLLUP suffix instead.
+        AddArity("Grouping", 1, dbms => dbms == Dbms.MySql
+            ? Select(u.DepartmentId, Grouping(u.DepartmentId)).From(u).GroupBy(u.DepartmentId).WithRollup()
+            : Select(Grouping(u.DepartmentId)).From(u).GroupBy(Rollup(u.DepartmentId)));
+        AddArity("Grouping", 3, dbms => dbms == Dbms.MySql
+            ? Select(u.DepartmentId, u.Age, Grouping(u.DepartmentId, u.Age)).From(u).GroupBy(u.DepartmentId, u.Age).WithRollup()
+            : Select(Grouping(u.DepartmentId, u.Age)).From(u).GroupBy(Rollup(u.DepartmentId, u.Age)));
+        AddArity("GroupingId", 2, _ => Select(GroupingId(u.DepartmentId, u.Age)).From(u).GroupBy(Rollup(u.DepartmentId, u.Age)));
 
         // --- Set operators ---
         Add("Union", _ => Select(u.DepartmentId).From(u).Union.Select(u.DepartmentId).From(u));

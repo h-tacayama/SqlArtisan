@@ -478,19 +478,38 @@ public static partial class Sql
             Resolve(others));
 
     /// <summary>
-    /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>, ...)</c>
-    /// function (the arguments joined into a single string).
+    /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>)</c>
+    /// function (the two arguments joined into a single string).
     /// </summary>
     /// <param name="primary">The first string expression.</param>
     /// <param name="secondary">The second string expression.</param>
+    /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b)</c>.</returns>
+    /// <remarks>Supported on every dialect. For three or more arguments — where Oracle's
+    /// <c>CONCAT</c> differs — see <see cref="Concat(object, object, object, object[])"/>.</remarks>
+    public static ConcatFunction Concat(object primary, object secondary) =>
+        new(Resolve(primary), Resolve(secondary));
+
+    /// <summary>
+    /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>, <paramref name="third"/>, ...)</c>
+    /// function (three or more arguments joined into a single string).
+    /// </summary>
+    /// <param name="primary">The first string expression.</param>
+    /// <param name="secondary">The second string expression.</param>
+    /// <param name="third">The third string expression.</param>
     /// <param name="others">Any further string expressions, appended in order.</param>
-    /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b, ...)</c>.</returns>
+    /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b, c, ...)</c>.</returns>
+    /// <remarks>Oracle's <c>CONCAT</c> takes exactly two arguments and rejects this
+    /// three-or-more form — nest two-argument calls there instead, or use
+    /// <see cref="DoublePipe(object, object, object[])"/> to chain any number without
+    /// nesting (also valid on PostgreSQL and SQLite 3.44+).</remarks>
     public static ConcatFunction Concat(
         object primary,
         object secondary,
+        object third,
         params object[] others) => new(
             Resolve(primary),
             Resolve(secondary),
+            Resolve(third),
             Resolve(others));
 
     /// <summary>
@@ -555,6 +574,17 @@ public static partial class Sql
     /// <see cref="Score(int)"/>, emitted as <c>CONTAINS(column, query, label)</c>.</param>
     public static ContainsScoreFunction ContainsScore(object column, object query, int label) =>
         new(Resolve(column), Resolve(query), label);
+
+    /// <summary>
+    /// The <c>COUNT(*)</c> aggregate function (the number of rows in the group,
+    /// <c>NULL</c>s included).
+    /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="Count(object)"/>, which skips <c>NULL</c> values in the
+    /// counted expression, <c>COUNT(*)</c> counts every row. Identical on every dialect.
+    /// </remarks>
+    /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(*)</c>.</returns>
+    public static CountFunction Count() => new();
 
     /// <summary>
     /// The <c>COUNT(<paramref name="expr"/>)</c> aggregate function (the number of

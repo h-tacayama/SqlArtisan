@@ -33,7 +33,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 ## Character Functions
 
-- `Concat()` for `CONCAT`
+- `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)`
 - `Instr()` for `INSTR`
 - `Lpad()` for `LPAD`
 - `Ltrim()` for `LTRIM`
@@ -51,6 +51,13 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trim()` for `TRIM`
 - `Upper()` for `UPPER`
 
+> [!NOTE]
+> On Oracle, chain two-argument `Concat(a, b)` calls (`Concat(Concat(a, b), c)`)
+> for three or more arguments, or use the `||` operator instead — see
+> [Expressions: String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation)
+> for the full per-dialect guide, including a MySQL semantics trap `||` has that
+> `Concat` doesn't.
+
 ---
 
 ## Date and Time Functions
@@ -61,8 +68,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
 - `Dateadd()` for `DATEADD` (SQL Server)
 - `Datediff()` for `DATEDIFF` (SQL Server)
+- `DateFormat()` for `DATE_FORMAT` (MySQL)
 - `Datepart()` for `DATEPART` (SQL Server)
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
+- `Datetrunc()` for `DATETRUNC` (SQL Server 2022+; use `Format()` on earlier versions)
 - `Extract()` for `EXTRACT` (Date/Time Overload)
 - `LastDay()` for `LAST_DAY`
 - `MonthsBetween()` for `MONTHS_BETWEEN`
@@ -76,12 +85,21 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 
 - `Coalesce()` for `COALESCE`
 - `Decode()` for `DECODE`
+- `Format(value, format[, culture])` for `FORMAT(value, format[, culture])` (SQL Server)
 - `Nullif()` for `NULLIF`
 - `Nvl()` for `NVL`
 - `ToChar()` for `TO_CHAR`
 - `ToDate()` for `TO_DATE`
 - `ToNumber()` for `TO_NUMBER`
 - `ToTimestamp()` for `TO_TIMESTAMP`
+
+> [!NOTE]
+> MySQL and SQLite each have their own same-named but incompatible `FORMAT()`.
+> MySQL's formats a number to a fixed decimal count (`FORMAT(number, decimals[, locale])`);
+> SQLite's (3.38+) is a `printf()` alias using substitution directives (`%s`, `%d`).
+> Neither matches SQL Server's .NET-style (`"yyyy-MM-dd"`) format strings, so a
+> call executes on both without erroring but not with the semantics this factory
+> targets — there is no MySQL or SQLite equivalent of SQL Server's `Format(...)`.
 
 ---
 
@@ -131,12 +149,21 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 ## Aggregate Functions
 
 - `Avg()` for `AVG`
-- `Count()` for `COUNT`
+- `Count()` for `COUNT(*)`; `Count(expr)` for `COUNT(expr)`
 - `Max()` for `MAX`
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
 
-Chain `.Filter(condition)` on any of these for conditional aggregation — `SUM(x) FILTER (WHERE ...)` (see [Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
+> [!NOTE]
+> Chain `.Filter(condition)` on any of these for conditional aggregation —
+> `SUM(x) FILTER (WHERE ...)` (see
+> [Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
+
+> [!NOTE]
+> `COUNT(expr)` skips `NULL` values in `expr`; `COUNT(*)` counts every row.
+> Pick `Count()` for a row count and `Count(expr)` only when `NULL`-skipping is
+> the behavior you want — modern engines optimize `COUNT(*)` to the smallest
+> usable index rather than materializing every column.
 
 ---
 

@@ -5,6 +5,12 @@ public sealed class CountFunction : UnfilteredAggregateFunction
     private readonly DistinctKeyword? _distinct;
     private readonly SqlPart _expr;
 
+    internal CountFunction()
+    {
+        _distinct = null;
+        _expr = new AsteriskExpression();
+    }
+
     internal CountFunction(SqlExpression expr)
     {
         _distinct = null;

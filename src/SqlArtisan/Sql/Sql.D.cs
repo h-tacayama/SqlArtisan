@@ -50,6 +50,19 @@ public static partial class Sql
             Resolve(endDate));
 
     /// <summary>
+    /// The <c>DATE_FORMAT(<paramref name="date"/>, <paramref name="format"/>)</c>
+    /// function: <paramref name="date"/> rendered as a string per
+    /// <paramref name="format"/>'s strftime-style specifiers (<c>%Y</c>,
+    /// <c>%m</c>, <c>%d</c>, ...).
+    /// </summary>
+    /// <param name="date">The date/time value to format.</param>
+    /// <param name="format">The strftime-style format string.</param>
+    /// <returns>The <c>DATE_FORMAT</c> function expression.</returns>
+    /// <remarks>MySQL syntax.</remarks>
+    public static DateFormatFunction DateFormat(object date, object format) =>
+        new(Resolve(date), Resolve(format));
+
+    /// <summary>
     /// The <c>DATEPART(<paramref name="datepart"/>, <paramref name="source"/>)</c>
     /// function returning a single date/time field as an integer.
     /// </summary>
@@ -79,6 +92,23 @@ public static partial class Sql
     /// </remarks>
     public static DateTruncFunction DateTrunc(DateTimePart datepart, object source) =>
         new(datepart, Resolve(source));
+
+    /// <summary>
+    /// The <c>DATETRUNC(<paramref name="datepart"/>, <paramref name="date"/>)</c>
+    /// function: <paramref name="date"/> truncated down to
+    /// <paramref name="datepart"/> precision.
+    /// </summary>
+    /// <param name="datepart">The precision to truncate to.</param>
+    /// <param name="date">The date/time value to truncate.</param>
+    /// <returns>The <c>DATETRUNC</c> function expression.</returns>
+    /// <remarks>
+    /// SQL Server syntax (SQL Server 2022+; use <see cref="Format(object, object)"/>
+    /// on earlier versions). <see cref="DateTimePart"/> is a superset shared with
+    /// EXTRACT/DATEPART; only the fields SQL Server's <c>DATETRUNC</c> accepts are
+    /// valid here.
+    /// </remarks>
+    public static DatetruncFunction Datetrunc(DateTimePart datepart, object date) =>
+        new(datepart, Resolve(date));
 
     /// <summary>
     /// The <c>DECODE(<paramref name="expr"/>, search, result, ..., <paramref name="default"/>)</c>
@@ -323,6 +353,25 @@ public static partial class Sql
     /// <remarks>PostgreSQL syntax; emitted faithfully on every dialect.</remarks>
     public static DistinctOnKeyword DistinctOn(params object[] expressions) =>
         new(Resolve(expressions));
+
+    /// <summary>
+    /// The <c>||</c> concatenation operator: <c>(<paramref name="primary"/> || <paramref name="secondary"/> || ...)</c>,
+    /// chaining any number of arguments without nesting.
+    /// </summary>
+    /// <param name="primary">The first string expression.</param>
+    /// <param name="secondary">The second string expression.</param>
+    /// <param name="others">Any further string expressions, chained in order.</param>
+    /// <returns>A <see cref="DoublePipeOperator"/> emitting <c>(a || b || ...)</c>.</returns>
+    /// <remarks>
+    /// Oracle, PostgreSQL, and SQLite (every version) syntax. On MySQL, <c>||</c> is
+    /// <em>logical OR</em> under the default <c>sql_mode</c> — valid SQL with silently
+    /// different semantics — so use <see cref="Concat(object, object)"/> /
+    /// <see cref="Concat(object, object, object, object[])"/> there instead. SQL Server
+    /// rejects <c>||</c> entirely; its concatenation operator is <c>+</c>, already
+    /// emitted by the existing <c>+</c> operator on <see cref="SqlExpression"/>.
+    /// </remarks>
+    public static DoublePipeOperator DoublePipe(object primary, object secondary, params object[] others) =>
+        new(Resolve(primary), Resolve(secondary), Resolve(others));
 
     /// <summary>
     /// The <c>DUAL</c> dummy table (MySQL and Oracle), for selecting expressions

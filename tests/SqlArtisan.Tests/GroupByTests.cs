@@ -420,6 +420,58 @@ public class GroupByTests
     }
 
     [Fact]
+    public void Grouping_MySql_WithRollup_CorrectSql()
+    {
+        // MySQL's WITH ROLLUP form combined with Grouping(...) to label subtotal rows.
+        SqlStatement sql =
+            Select(
+                _t.Code,
+                Grouping(_t.Code))
+            .From(_t)
+            .GroupBy(_t.Code)
+            .WithRollup()
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("`t`.code, ");
+        expected.Append("GROUPING(`t`.code) ");
+        expected.Append("FROM ");
+        expected.Append("test_table `t` ");
+        expected.Append("GROUP BY ");
+        expected.Append("`t`.code WITH ROLLUP");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Grouping_CaseLabelsSubtotalRow_CorrectSql()
+    {
+        // GROUPING(...) distinguishes a ROLLUP subtotal row (1) from a genuine data
+        // row (0), so it can drive a CASE label for the aggregated-away column.
+        SqlStatement sql =
+            Select(
+                Case(
+                    When(Grouping(_t.Code) == 1).Then("Total"),
+                    Else(_t.Code)))
+            .From(_t)
+            .GroupBy(Rollup(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CASE WHEN (GROUPING(\"t\".code) = :0) THEN :1 ELSE \"t\".code END ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("GROUP BY ");
+        expected.Append("ROLLUP(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("Total", sql.Parameters.Get<string>(":1"));
+    }
+
+    [Fact]
     public void GroupBy_WithNoItems_ThrowsArgumentException()
     {
         // Act & Assert

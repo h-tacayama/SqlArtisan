@@ -80,6 +80,20 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Concat_TwoValues_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Concat(_t.Name, "a"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CONCAT(\"t\".name, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Concat_MultipleValues_CorrectSql()
     {
         SqlStatement sql =
@@ -143,6 +157,20 @@ public partial class FunctionTests
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("database", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void Count_NoArgument_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Count())
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("COUNT(*)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]

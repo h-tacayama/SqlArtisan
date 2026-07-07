@@ -263,3 +263,11 @@ dotnet_diagnostic.CA1822.severity = none
 # here — suppress CS1591 for this layer rather than document private machinery.
 [src/SqlArtisan/Internal/SqlPart/**.cs]
 dotnet_diagnostic.CS1591.severity = none
+
+# CA1708: DATE_TRUNC (PostgreSQL) and DATETRUNC (SQL Server) are genuinely distinct
+# SQL tokens whose C# names collide only by case under the project's deterministic
+# naming rule — not an accidental near-duplicate. The diagnostic reports against
+# Sql.A.cs (the partial Sql class's first file) regardless of where the colliding
+# symbols live, so the override is scoped there rather than to the actual files.
+[src/SqlArtisan/Sql/Sql.A.cs]
+dotnet_diagnostic.CA1708.severity = none

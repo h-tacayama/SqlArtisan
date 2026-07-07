@@ -60,12 +60,24 @@ internal static class DialectMatrix
         // WithRollup: MySQL's form, but T-SQL still accepts the legacy `GROUP BY x WITH ROLLUP`
         // (deprecated in favor of ROLLUP(...) — live-verified on SQL Server 2022).
         [new MatrixKey("WithRollup")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        // Grouping/GroupingId (Sql.G.cs XML docs, #235): single-arg GROUPING(expr) is
+        // MySQL 8.0.1+/Oracle/PostgreSQL/SQL Server; the multi-column bitmask splits by
+        // dialect spelling — GROUPING(a, b, ...) on MySQL/PostgreSQL, GROUPING_ID(a, ...)
+        // on Oracle/SQL Server — so the two forms have disjoint dialect support.
+        [new MatrixKey("Grouping", 1)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("Grouping", 3)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("GroupingId", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: true),
 
         // --- Date/time arithmetic (Sql.D.cs / Sql.A.cs XML docs) ---
         [new MatrixKey("Dateadd")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("Datediff")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("DateTrunc")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("AddMonths")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        // DateFormat: MySQL's DATE_FORMAT (Sql.D.cs XML docs, #231).
+        [new MatrixKey("DateFormat")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
+        // Datetrunc: SQL Server 2022+'s DATETRUNC (Sql.D.cs XML docs, #231) — a distinct
+        // token from DateTrunc's PostgreSQL DATE_TRUNC above, not an alternate spelling of it.
+        [new MatrixKey("Datetrunc")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
 
         // --- String aggregation (CHANGELOG 0.3.0-beta.1, #88) ---
         // StringAgg's 2-arg form is PostgreSQL + SQL Server + SQLite (3.44 added string_agg as
@@ -156,6 +168,13 @@ internal static class DialectMatrix
         // 1-arg form is Oracle-only.
         [new MatrixKey("ToNumber", 1)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("ToTimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // Format: SQL Server's FORMAT (Sql.F.cs XML docs, #231); both the 2-arg and
+        // 3-arg (culture) overloads share this support, so one member-wide entry covers both.
+        // MySQL and SQLite each have their own same-named but incompatible FORMAT() (a
+        // number-decimals formatter and a printf() alias respectively) that accepts the
+        // call syntax without erroring — live-verified false positive on the MySQL 8.0
+        // integration sweep — so both stay false here despite the call "working".
+        [new MatrixKey("Format")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         // --- REGEXP_* family: Oracle syntax; MySQL 8.0 has REGEXP_LIKE/REGEXP_REPLACE/
         // REGEXP_SUBSTR with matching signatures (live-verified by the integration smoke
         // catalog) but no REGEXP_COUNT; PostgreSQL 15+ added all four with matching
@@ -292,11 +311,17 @@ internal static class DialectMatrix
         [new MatrixKey("Min")] = DbmsSupport.All,
         [new MatrixKey("Sum")] = DbmsSupport.All,
         [new MatrixKey("CurrentTimestamp")] = DbmsSupport.All,
-        // Concat is one params method (declared arity fixed), so the 2-arg-vs-more split is
-        // invisible to the key: Oracle's native CONCAT takes exactly 2 arguments, so a 3+-arg
-        // call is invalid there — union, under-restricts Oracle. SQLite: concat() since 3.44
-        // (baseline 3.46+); SQL Server: CONCAT since 2012.
-        [new MatrixKey("Concat")] = DbmsSupport.All,
+        // Concat split by declared arity (#234): Oracle's native CONCAT takes exactly 2
+        // arguments, so the 2-arg form is universal but the 3+-arg form is invalid there.
+        // SQLite: concat() since 3.44 (baseline 3.46+); SQL Server: CONCAT since 2012.
+        [new MatrixKey("Concat", 2)] = DbmsSupport.All,
+        [new MatrixKey("Concat", 4)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
+        // DoublePipe (Sql.D.cs XML docs, #234): native on Oracle/PostgreSQL/SQLite (every
+        // version). MySQL rejects it under the default sql_mode's PIPES_AS_CONCAT-off
+        // meaning — || is logical OR there, valid SQL with silently different semantics,
+        // exactly the trap this entry exists to flag. SQL Server has no || operator at all
+        // (its concatenation operator is +, the existing AdditionOperator).
+        [new MatrixKey("DoublePipe")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
 
         // --- Window / analytic (universal on the baselines: MySQL 8.0+, SQLite 3.25+, SQL Server 2012+) ---
         [new MatrixKey("Rank")] = DbmsSupport.All,
