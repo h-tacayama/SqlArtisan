@@ -5,7 +5,8 @@ namespace SqlArtisan.Internal;
 // (PostgreSQL's DATE_TRUNC) only by case, which the .NET SDK rejects as a
 // duplicate compile item to keep the project buildable on case-insensitive
 // filesystems (Windows/macOS). The resulting CA1708 warning (type/member names
-// differing only by case) is suppressed project-wide in .editorconfig.
+// differing only by case) is suppressed in .editorconfig (scoped to Sql.A.cs,
+// where the analyzer reports it).
 public sealed class DatetruncFunction : SqlExpression
 {
     private readonly DateTimePart _datepart;

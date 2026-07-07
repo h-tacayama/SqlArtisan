@@ -584,8 +584,8 @@ public static partial class Sql
     /// <remarks>
     /// Unlike <see cref="Count(object)"/>, which skips <c>NULL</c> values in the
     /// counted expression, <c>COUNT(*)</c> counts every row. Identical in syntax
-    /// and semantics on every DBMS, with no performance penalty on modern
-    /// engines — all optimize it to the smallest usable index.
+    /// and semantics on every DBMS; modern engines optimize it to the smallest
+    /// usable index rather than materializing every column.
     /// </remarks>
     /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(*)</c>.</returns>
     public static CountFunction Count() => new();
