@@ -146,6 +146,20 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Count_NoArgument_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Count())
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("COUNT(*)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Count_ColumnValue_CorrectSql()
     {
         SqlStatement sql =

@@ -17,6 +17,12 @@ public sealed class CountFunction : UnfilteredAggregateFunction
         _expr = expr;
     }
 
+    internal CountFunction()
+    {
+        _distinct = null;
+        _expr = AsteriskExpression.Instance;
+    }
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Count)
         .OpenParenthesis()

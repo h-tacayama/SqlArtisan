@@ -131,12 +131,18 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 ## Aggregate Functions
 
 - `Avg()` for `AVG`
-- `Count()` for `COUNT`
+- `Count()` for `COUNT(*)`; `Count(expr)` for `COUNT(expr)`
 - `Max()` for `MAX`
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
 
 Chain `.Filter(condition)` on any of these for conditional aggregation — `SUM(x) FILTER (WHERE ...)` (see [Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
+
+> [!NOTE]
+> `COUNT(expr)` skips `NULL` values in `expr`; `COUNT(*)` counts every row.
+> Pick `Count()` for a row count and `Count(expr)` only when `NULL`-skipping is
+> the behavior you want — `COUNT(*)` carries no performance penalty on modern
+> engines, all of which optimize it to the smallest usable index.
 
 ---
 

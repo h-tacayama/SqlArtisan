@@ -288,6 +288,11 @@ internal static class DialectMatrix
         [new MatrixKey("Replace")] = DbmsSupport.All,
         [new MatrixKey("Avg")] = DbmsSupport.All,
         [new MatrixKey("Count")] = DbmsSupport.All,
+        // Count()'s COUNT(*) arity is identical in syntax and semantics to
+        // Count(expr) on every dialect (harness-verified, #233); the arity-0
+        // key exists so the sweep catalog can carry a distinct live COUNT(*)
+        // case alongside Count(expr)'s, not because support actually differs.
+        [new MatrixKey("Count", 0)] = DbmsSupport.All,
         [new MatrixKey("Max")] = DbmsSupport.All,
         [new MatrixKey("Min")] = DbmsSupport.All,
         [new MatrixKey("Sum")] = DbmsSupport.All,

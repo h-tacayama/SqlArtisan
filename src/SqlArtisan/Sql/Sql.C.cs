@@ -557,6 +557,19 @@ public static partial class Sql
         new(Resolve(column), Resolve(query), label);
 
     /// <summary>
+    /// The <c>COUNT(*)</c> aggregate function (the number of rows in the group,
+    /// <c>NULL</c>s included).
+    /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="Count(object)"/>, which skips <c>NULL</c> values in the
+    /// counted expression, <c>COUNT(*)</c> counts every row. Identical in syntax
+    /// and semantics on every DBMS, with no performance penalty on modern
+    /// engines — all optimize it to the smallest usable index.
+    /// </remarks>
+    /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(*)</c>.</returns>
+    public static CountFunction Count() => new();
+
+    /// <summary>
     /// The <c>COUNT(<paramref name="expr"/>)</c> aggregate function (the number of
     /// non-<c>NULL</c> values in the group).
     /// </summary>

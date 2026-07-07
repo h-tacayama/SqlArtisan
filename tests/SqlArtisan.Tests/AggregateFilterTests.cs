@@ -27,6 +27,15 @@ public class AggregateFilterTests
     }
 
     [Fact]
+    public void Filter_OnCountNoArgument_CorrectSql()
+    {
+        SqlStatement sql = Select(Count().Filter(_t.Name == "x")).Build();
+
+        Assert.Equal("SELECT COUNT(*) FILTER (WHERE name = :0)", sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
     public void Filter_WithDistinct_CorrectSql()
     {
         SqlStatement sql = Select(Sum(Distinct, _t.Code).Filter(_t.Code > 0)).Build();
