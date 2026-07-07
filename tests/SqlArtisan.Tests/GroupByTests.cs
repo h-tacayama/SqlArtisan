@@ -420,7 +420,7 @@ public class GroupByTests
     }
 
     [Fact]
-    public void Grouping_WithRollup_MySql_CorrectSql()
+    public void Grouping_MySql_WithRollup_CorrectSql()
     {
         // MySQL's WITH ROLLUP form combined with Grouping(...) to label subtotal rows.
         SqlStatement sql =
