@@ -96,6 +96,21 @@ public class EmptyStatePolicyTests
     }
 
     [Fact]
+    public void Filter_AllConditionsExcludedWithOver_ThrowsArgumentException()
+    {
+        // The windowed form goes through the same FilteredAggregateFunction, so
+        // wrapping in .Over(...) must not let an empty FILTER slip past.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Sum(_t.Code).Filter(ConditionIf(false, _t.Code > 0)).Over(PartitionBy(_t.Name)))
+            .From(_t)
+            .Build());
+
+        Assert.Equal(
+            "An aggregate's FILTER requires a condition; omit it for an unfiltered aggregate.",
+            ex.Message);
+    }
+
+    [Fact]
     public void Update_WhereAllConditionsExcluded_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
@@ -159,6 +174,22 @@ public class EmptyStatePolicyTests
             Select(_t.Code)
             .From(_t)
             .InnerJoin(_s)
+            .On(ConditionIf(false, _t.Code == _s.Code))
+            .Build());
+
+        Assert.Equal(
+            "A JOIN's ON clause requires a condition; use CrossJoin for an unconditional join.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void LeftJoin_OnAllConditionsExcluded_ThrowsArgumentException()
+    {
+        // LEFT/RIGHT/FULL joins share the single OnClause guard with INNER JOIN.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .LeftJoin(_s)
             .On(ConditionIf(false, _t.Code == _s.Code))
             .Build());
 
