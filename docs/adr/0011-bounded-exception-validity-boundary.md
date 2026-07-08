@@ -1,4 +1,4 @@
-# ADR 0011 — A bounded exception to ADR 0007: rejecting an aliased INSERT/UPDATE/DELETE target on SQL Server
+# ADR 0011 — Bounded exceptions to the validity-enforcement boundary: when a construct valid on some dialect may still be rejected
 
 **Status:** Accepted
 
