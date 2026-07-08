@@ -28,9 +28,8 @@ public sealed class FilteredAggregateFunction : AggregateFunction
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        // A written FILTER with every operand excluded is rejected rather than
-        // silently dropped — omit .Filter(...) for an unfiltered aggregate (the
-        // #236 empty-state policy).
+        // Guarded on _condition here, ahead of the embedded _filterWhere (itself a
+        // WhereClause that would also throw), so the message names FILTER, not WHERE.
         EmptyConditionGuard.Reject(
             _condition,
             "An aggregate's FILTER requires a condition; omit it for an unfiltered aggregate.");
