@@ -309,7 +309,7 @@ SqlStatement sql =
 
 #### Case 3: Every Condition Excluded
 
-When *every* condition in a `WHERE` is excluded, the clause has nothing left to run. Rather than silently drop the `WHERE` you wrote — an unintended full-table read is a real load risk — SqlArtisan throws at `Build()`:
+When *every* condition is excluded, the `WHERE` has nothing left to run. Rather than silently drop the clause you wrote — an unintended full-table read is a real load risk — SqlArtisan throws at `Build()`:
 
 ```csharp
 bool filterPositive = false;
@@ -327,16 +327,7 @@ Select(u.Name)
     .Build();
 ```
 
-To read every row on purpose, omit `.Where(...)` entirely — that is the explicit, unambiguous way to say "no filter":
-
-```csharp
-SqlStatement sql = Select(u.Name).From(u).Build();
-
-// SELECT name
-// FROM users
-```
-
-The same rule holds for every written condition clause: `HAVING`, an aggregate's `FILTER (WHERE ...)`, an `UPDATE` / `DELETE` `WHERE`, a `JOIN` / `MERGE` `ON`, a `CASE` `WHEN`, and a `MERGE` `WHEN [NOT] MATCHED` condition each require a real condition and throw at `Build()` when every operand is excluded. An excluded operand *beside* an active one just drops out, as in Case 2 — only an entirely empty clause throws.
+To read every row on purpose, omit `.Where(...)` entirely. Any condition clause you write follows the same rule — it must carry a real condition, or it throws.
 
 ---
 
