@@ -21,5 +21,5 @@ internal sealed class DeleteBuilder(DbTableBase table, params SqlPart[] rootPart
     }
 
     protected override void Validate(Dbms dbms) =>
-        DmlTargetGuard.RejectAliasedTargetOnSqlServer(table, dbms);
+        DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
 }

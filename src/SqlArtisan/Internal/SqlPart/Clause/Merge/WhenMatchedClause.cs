@@ -12,7 +12,7 @@ internal sealed class WhenMatchedClause(SqlCondition? extraCondition) : SqlPart
 
         if (_extraCondition is not null)
         {
-            EmptyConditionGuard.Reject(
+            ConditionGuard.ThrowIfEmpty(
                 _extraCondition,
                 "A MERGE WHEN MATCHED AND clause requires a condition.");
 

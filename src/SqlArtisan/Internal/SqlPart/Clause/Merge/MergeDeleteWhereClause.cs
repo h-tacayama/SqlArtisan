@@ -8,7 +8,7 @@ internal sealed class MergeDeleteWhereClause(SqlCondition condition) : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        EmptyConditionGuard.Reject(
+        ConditionGuard.ThrowIfEmpty(
             _condition,
             "A MERGE DELETE WHERE clause requires a condition.");
 

@@ -8,7 +8,7 @@ internal sealed class MergeOnClause(SqlCondition condition) : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        EmptyConditionGuard.Reject(
+        ConditionGuard.ThrowIfEmpty(
             _condition,
             "A MERGE ON clause requires a condition.");
 

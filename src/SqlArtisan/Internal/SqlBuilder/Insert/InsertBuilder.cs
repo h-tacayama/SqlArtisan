@@ -82,5 +82,5 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
     }
 
     protected override void Validate(Dbms dbms) =>
-        DmlTargetGuard.RejectAliasedTargetOnSqlServer(table, dbms);
+        DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
 }

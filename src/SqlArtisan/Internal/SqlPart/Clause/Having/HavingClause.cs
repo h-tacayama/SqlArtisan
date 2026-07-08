@@ -6,7 +6,7 @@ internal sealed class HavingClause(SqlCondition condition) : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        EmptyConditionGuard.Reject(
+        ConditionGuard.ThrowIfEmpty(
             _condition,
             "The HAVING clause requires a condition; omit it for no group restriction.");
 

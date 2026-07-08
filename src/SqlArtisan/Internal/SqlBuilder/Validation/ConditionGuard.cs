@@ -5,9 +5,9 @@ namespace SqlArtisan.Internal;
 // rather than silently dropped — "no restriction" means omitting the clause.
 // Checked at Build(), not eagerly, because `operator &` can make a held AND group
 // non-empty after the clause method returns.
-internal static class EmptyConditionGuard
+internal static class ConditionGuard
 {
-    internal static void Reject(SqlPart condition, string message)
+    internal static void ThrowIfEmpty(SqlPart condition, string message)
     {
         if (condition.IsEmpty)
         {

@@ -13,9 +13,9 @@ namespace SqlArtisan.Internal;
 // rather than emit SQL that can never be correct on the resolved target.
 internal static class DmlTargetGuard
 {
-    internal static void RejectAliasedTargetOnSqlServer(DbTableBase target, Dbms dbms)
+    internal static void ThrowIfAliasedOnSqlServer(DbTableBase table, Dbms dbms)
     {
-        if (dbms == Dbms.SqlServer && target.HasAlias)
+        if (dbms == Dbms.SqlServer && table.HasAlias)
         {
             throw new ArgumentException(
                 "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE statement; use an unaliased target table.");

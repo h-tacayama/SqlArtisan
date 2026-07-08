@@ -30,7 +30,7 @@ public sealed class FilteredAggregateFunction : AggregateFunction
     {
         // Guarded on _condition here, ahead of the embedded _filterWhere (itself a
         // WhereClause that would also throw), so the message names FILTER, not WHERE.
-        EmptyConditionGuard.Reject(
+        ConditionGuard.ThrowIfEmpty(
             _condition,
             "An aggregate's FILTER requires a condition; omit it for an unfiltered aggregate.");
 

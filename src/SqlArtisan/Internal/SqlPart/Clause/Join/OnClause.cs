@@ -6,7 +6,7 @@ internal sealed class OnClause(SqlCondition condition) : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        EmptyConditionGuard.Reject(
+        ConditionGuard.ThrowIfEmpty(
             _condition,
             "A JOIN's ON clause requires a condition; use CrossJoin for an unconditional join.");
 
