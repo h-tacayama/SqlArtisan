@@ -150,7 +150,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
            // UpdateBuilder/DeleteBuilder: with no valid spelling to emit, it throws
            // rather than produce SQL the engine rejects. Raw SQL by necessity — the
            // guard would otherwise throw before the statement ever reached the DB.
-    public void AliasedDmlTarget_RejectedByEngine()
+    public void AliasedDmlTarget_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
 

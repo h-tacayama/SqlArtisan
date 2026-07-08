@@ -81,7 +81,7 @@ covered.
   premise ("no valid spelling exists") weakens; re-evaluate whether it should
   narrow or point at the joined form instead.
 - **The premise is empirically anchored,** not asserted: an integration test
-  (`SqlServerTests.AliasedDmlTarget_RejectedByEngine`) executes the raw emitted
+  (`SqlServerTests.AliasedDmlTarget_Rejected`) executes the raw emitted
   form against a live SQL Server and confirms the rejection, alongside the
   unaliased form succeeding — so the guard rests on a verified engine fact, not
   on grammar folklore.
