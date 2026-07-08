@@ -23,7 +23,7 @@ refusing to guess rather than by quietly dropping the clause. "No restriction"
 is expressed by **omitting the clause** entirely.
 
 **Status:** shipped in #236 — the recursive emptiness check (`SqlPart.IsEmpty`),
-the shared `EmptyConditionGuard.Reject` used by every condition clause's
+the shared `ConditionGuard.ThrowIfEmpty` used by every condition clause's
 `Format`, and the eager empty-`Select()` guard
 (`SelectItemResolver.ResolveSelectList`). Still per #243/#245: the empty `IN`
 collection and empty `VALUES` rows guards. New guards must land on this policy;
