@@ -22,11 +22,12 @@ internal sealed class WithBuilder : IWithBuilderWith
 
     public IInsertBuilderTable InsertInto(DbTableBase table) =>
         new InsertBuilder(
+            table,
             _withPart,
             new InsertIntoClause(table));
 
     public IInsertBuilderColumns InsertInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(_withPart, new InsertIntoClause(table, columns));
+        new InsertBuilder(table, _withPart, new InsertIntoClause(table, columns));
 
     public ISelectBuilderSelect Select(params object[] selectItems) =>
         new SelectBuilder(_withPart, SelectClause.Parse(selectItems));

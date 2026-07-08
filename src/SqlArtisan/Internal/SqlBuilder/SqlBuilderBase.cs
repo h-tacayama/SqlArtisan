@@ -55,10 +55,10 @@ internal abstract class SqlBuilderBase
     // Pre-build check: a statement builder overrides this to reject an
     // otherwise-grammatical construct for a specific target dialect before any
     // SQL is emitted — the bounded exception to ADR 0007 recorded in ADR 0011
-    // (currently only an aliased UPDATE/DELETE target on SQL Server). The default
-    // does nothing, so every other statement builds unchanged. Runs on every
-    // build path, since they all funnel through BuildCore (Returning included,
-    // via BuildWithPart).
+    // (currently only an aliased INSERT/UPDATE/DELETE target on SQL Server). The
+    // default does nothing, so every other statement builds unchanged. Runs on
+    // every build path, since they all funnel through BuildCore (Returning
+    // included, via BuildWithPart).
     protected virtual void Validate(Dbms dbms)
     {
     }

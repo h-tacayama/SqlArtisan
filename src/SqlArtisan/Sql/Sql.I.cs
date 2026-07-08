@@ -13,7 +13,7 @@ public static partial class Sql
     /// <param name="table">The target table.</param>
     /// <returns>An insert builder awaiting the values to insert.</returns>
     public static IInsertBuilderTable InsertInto(DbTableBase table) =>
-        new InsertBuilder(new InsertIntoClause(table));
+        new InsertBuilder(table, new InsertIntoClause(table));
 
     /// <summary>
     /// Starts an <c>INSERT INTO table (c1, c2)</c> statement naming
@@ -25,7 +25,7 @@ public static partial class Sql
     /// parenthesized list after the table.</param>
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
     public static IInsertBuilderColumns InsertInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(new InsertIntoClause(table, columns));
+        new InsertBuilder(table, new InsertIntoClause(table, columns));
 
     /// <summary>
     /// The <c>INSTR(<paramref name="source"/>, <paramref name="substring"/>)</c>

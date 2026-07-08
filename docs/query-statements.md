@@ -584,6 +584,8 @@ SqlStatement sql =
 // (:0, :1, CURRENT_TIMESTAMP)
 ```
 
+**Dialect note:** On SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`), since T-SQL introduces a table alias through a `FROM` clause instead; building an aliased target for SQL Server throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-or-update), and MySQL, Oracle, and SQLite emit the alias faithfully as well.
+
 ---
 
 ### Multiple Rows

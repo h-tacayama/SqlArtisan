@@ -66,7 +66,7 @@ public class DeleteTests
             DeleteFrom(_t).Where(_t.Code == 1).Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an UPDATE or DELETE statement; use an unaliased target table.",
+            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE statement; use an unaliased target table.",
             ex.Message);
     }
 

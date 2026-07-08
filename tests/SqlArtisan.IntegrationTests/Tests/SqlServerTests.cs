@@ -143,13 +143,14 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Contains("10001", address);
     }
 
-    [Fact] // #254: T-SQL cannot alias the target of an UPDATE/DELETE directly (the
-           // alias must come from a FROM clause — the joined-DML form), so the text
-           // SqlArtisan would emit for an aliased target, `UPDATE users AS "cu" ...`,
-           // is a syntax error here. This anchors the Build(SqlServer) guard in
-           // UpdateBuilder/DeleteBuilder: with no valid spelling to emit, it throws
-           // rather than produce SQL the engine rejects. Raw SQL by necessity — the
-           // guard would otherwise throw before the statement ever reached the DB.
+    [Fact] // #254: T-SQL cannot alias the target of an INSERT/UPDATE/DELETE directly
+           // (the alias must come from a FROM clause — the joined-DML form), so the
+           // text SqlArtisan would emit for an aliased target, `UPDATE users AS "cu"
+           // ...`, is a syntax error here. This anchors the Build(SqlServer) guard in
+           // InsertBuilder/UpdateBuilder/DeleteBuilder: with no valid spelling to
+           // emit, it throws rather than produce SQL the engine rejects. Raw SQL by
+           // necessity — the guard would otherwise throw before the statement ever
+           // reached the DB.
     public void AliasedDmlTarget_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -158,12 +159,15 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         // run inside a rolled-back transaction to leave the seed untouched.
         using (IDbTransaction tx = connection.BeginTransaction())
         {
+            connection.Execute("INSERT INTO users (id, name) VALUES (999, 'x')", transaction: tx);
             connection.Execute("UPDATE users SET name = name WHERE id = 1", transaction: tx);
             connection.Execute("DELETE FROM users WHERE id = -1", transaction: tx);
             tx.Rollback();
         }
 
         // The only difference — aliasing the target — is what SQL Server rejects.
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "INSERT INTO users AS \"cu\" (id, name) VALUES (999, 'x')"));
         Assert.ThrowsAny<Exception>(() => connection.Execute(
             "UPDATE users AS \"cu\" SET name = 'x' WHERE \"cu\".id = 1"));
         Assert.ThrowsAny<Exception>(() => connection.Execute(

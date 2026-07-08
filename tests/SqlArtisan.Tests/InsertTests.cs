@@ -205,4 +205,48 @@ public class InsertTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void InsertInto_SqlServer_AliasedTarget_ThrowsArgumentException()
+    {
+        // An aliased INSERT target is valid on PostgreSQL (it is how ON CONFLICT
+        // is written), but T-SQL cannot alias the target directly, so the aliased
+        // form has no valid spelling on SQL Server — the guard throws at Build
+        // (ADR 0011).
+        TestTable t = new("cu");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name).Values(1, "a").Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE statement; use an unaliased target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_UnaliasedTarget_CorrectSql()
+    {
+        // The unaliased target builds normally on SQL Server — only the alias is
+        // rejected. Parameters use the @ marker.
+        TestTable t = new();
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name)
+            .Values(1, "a")
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO ");
+        expected.Append("test_table ");
+        expected.Append('(');
+        expected.Append("code, ");
+        expected.Append("name");
+        expected.Append(") ");
+        expected.Append("VALUES ");
+        expected.Append('(');
+        expected.Append("@0, ");
+        expected.Append("@1");
+        expected.Append(')');
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

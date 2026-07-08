@@ -1,4 +1,4 @@
-# ADR 0011 — A bounded exception to ADR 0007: rejecting an aliased UPDATE/DELETE target on SQL Server
+# ADR 0011 — A bounded exception to ADR 0007: rejecting an aliased INSERT/UPDATE/DELETE target on SQL Server
 
 **Status:** Accepted
 
@@ -15,12 +15,13 @@ analyzer and ultimately the database). Its dividing test is literal:
 > availability → permissive.
 
 Aliasing a DML target — `Update(new UsersTable("cu"))`, emitted as
-`UPDATE users AS "cu" SET …` — is valid on PostgreSQL and MySQL. By the literal
-test it is therefore *dialect availability*, which ADR 0007 says the library
-must not throw for. Yet on **SQL Server** the emitted text is a hard syntax
-error: T-SQL cannot alias the target of an `UPDATE`/`DELETE` directly (the alias
-must be introduced through a `FROM` clause — the joined-DML form, not yet
-built — #237). This surfaced in the #225 audit (GAP-10 / ERG-09) as part of the
+`UPDATE users AS "cu" SET …` — is valid on PostgreSQL and MySQL (and an aliased
+`INSERT` target is how PostgreSQL spells `ON CONFLICT`). By the literal test it
+is therefore *dialect availability*, which ADR 0007 says the library must not
+throw for. Yet on **SQL Server** the emitted text is a hard syntax error: T-SQL
+cannot alias the target of an `INSERT`/`UPDATE`/`DELETE` directly (the alias must
+be introduced through a `FROM` clause — the joined-DML form, not yet built —
+#237). This surfaced in the #225 audit (GAP-10 / ERG-09) as part of the
 correlated-DML family (#239).
 
 Two facts make this case unlike ordinary dialect availability (e.g. `CUBE` on
@@ -45,10 +46,10 @@ deterministic signal, only a runtime syntax error the analyzer can't pre-empt.
 ## Decision
 
 The library **throws at `Build(SqlServer)`** (an `ArgumentException`, per the #69
-/ #190 guard precedent) when the target of an `UPDATE` or `DELETE` carries an
-alias. The message names the construct and states the requirement:
+/ #190 guard precedent) when the target of an `INSERT`, `UPDATE`, or `DELETE`
+carries an alias. The message names the construct and states the requirement:
 
-> `SQL Server does not support aliasing the target of an UPDATE or DELETE statement; use an unaliased target table.`
+> `SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE statement; use an unaliased target table.`
 
 This is a **bounded exception to ADR 0007**, not a repeal of it. It is confined
 to exactly the case where both of ADR 0007's dialect-availability safety nets are
@@ -56,7 +57,9 @@ unavailable *and* no valid spelling exists on the resolved target:
 
 - **Dialect-scoped:** it fires only for `Dbms.SqlServer`; the same aliased target
   emits faithfully on PostgreSQL, MySQL, SQLite, and Oracle (their bare/`AS`
-  alias forms are valid and live-verified — #255).
+  alias forms — the aliased `UPDATE`/`DELETE` target is live-verified on Oracle
+  and MySQL, #255; the aliased `INSERT` target is native on PostgreSQL, where it
+  introduces the `ON CONFLICT` correlation name).
 - **Position-scoped:** only the DML *target* alias. Aliases everywhere else
   (`FROM`, joins, derived tables, CTEs) are untouched.
 - **Not a portability opinion.** The library is not judging that SQL Server
@@ -65,9 +68,9 @@ unavailable *and* no valid spelling exists on the resolved target:
   empty-state and correlated-DML guards (#236 / #239).
 
 The mechanism is a `Validate(Dbms)` hook on `SqlBuilderBase`, invoked at the top
-of `BuildCore`, that `UpdateBuilder` and `DeleteBuilder` override — so every
-build path (including `Returning()`, which funnels through `BuildCore`) is
-covered.
+of `BuildCore`, that `InsertBuilder`, `UpdateBuilder`, and `DeleteBuilder`
+override — so every build path (including `Returning()`, which funnels through
+`BuildCore`) is covered.
 
 ## Consequences
 

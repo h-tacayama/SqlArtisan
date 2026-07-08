@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class InsertBuilder(params SqlPart[] rootParts) :
+internal sealed class InsertBuilder(DbTableBase target, params SqlPart[] rootParts) :
     SelectBuilder(rootParts),
     IInsertBuilderColumns,
     IInsertBuilderDoUpdateSet,
@@ -80,4 +80,7 @@ internal sealed class InsertBuilder(params SqlPart[] rootParts) :
         AddPart(new WithRecursiveClause(ctes));
         return this;
     }
+
+    protected override void Validate(Dbms dbms) =>
+        DmlTargetGuard.RejectAliasedTargetOnSqlServer(target, dbms);
 }
