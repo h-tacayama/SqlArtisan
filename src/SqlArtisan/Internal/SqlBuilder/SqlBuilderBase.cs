@@ -37,6 +37,7 @@ internal abstract class SqlBuilderBase
 
     protected SqlStatement BuildCore(Dbms dbms)
     {
+        Validate(dbms);
         IDbmsDialect dialect = DbmsDialectFactory.Create(dbms);
         using SqlBuildingBuffer buffer = new(dialect);
         buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
@@ -48,6 +49,17 @@ internal abstract class SqlBuilderBase
     // SQL Server MERGE terminating semicolon). The default emits nothing, leaving
     // every other statement's output untouched.
     protected virtual void AppendTrailing(SqlBuildingBuffer buffer)
+    {
+    }
+
+    // Pre-build check: a statement builder overrides this to reject an
+    // otherwise-grammatical construct for a specific target dialect before any
+    // SQL is emitted — the bounded exception to ADR 0007 recorded in ADR 0011
+    // (currently only an aliased INSERT/UPDATE/DELETE target on SQL Server). The
+    // default does nothing, so every other statement builds unchanged. Runs on
+    // every build path, since they all funnel through BuildCore (Returning
+    // included, via BuildWithPart).
+    protected virtual void Validate(Dbms dbms)
     {
     }
 

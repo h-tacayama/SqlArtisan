@@ -25,7 +25,7 @@ public static partial class Sql
     /// <param name="table">The table to update.</param>
     /// <returns>An update builder positioned for <c>.Set(...)</c>.</returns>
     public static IUpdateBuilderUpdate Update(DbTableBase table) =>
-        new UpdateBuilder(new UpdateClause(table));
+        new UpdateBuilder(table, new UpdateClause(table));
 
     /// <summary>
     /// The <c>UPPER(source)</c> function (uppercases <paramref name="source"/>).

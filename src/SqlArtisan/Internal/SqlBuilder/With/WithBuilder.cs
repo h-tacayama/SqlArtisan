@@ -16,16 +16,18 @@ internal sealed class WithBuilder : IWithBuilderWith
 
     public IDeleteBuilderDelete DeleteFrom(DbTableBase table)
         => new DeleteBuilder(
+            table,
             _withPart,
             new DeleteClause(table));
 
     public IInsertBuilderTable InsertInto(DbTableBase table) =>
         new InsertBuilder(
+            table,
             _withPart,
             new InsertIntoClause(table));
 
     public IInsertBuilderColumns InsertInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(_withPart, new InsertIntoClause(table, columns));
+        new InsertBuilder(table, _withPart, new InsertIntoClause(table, columns));
 
     public ISelectBuilderSelect Select(params object[] selectItems) =>
         new SelectBuilder(_withPart, SelectClause.Parse(selectItems));
@@ -69,6 +71,7 @@ internal sealed class WithBuilder : IWithBuilderWith
 
     public IUpdateBuilderUpdate Update(DbTableBase table) =>
         new UpdateBuilder(
+            table,
             _withPart,
             new UpdateClause(table));
 }

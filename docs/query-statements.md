@@ -540,6 +540,8 @@ SqlStatement sql =
 // WHERE id = :0
 ```
 
+**Dialect note:** On SQL Server the `DELETE` target cannot be aliased — pass an unaliased table (`DeleteFrom(new UsersTable())`), since T-SQL introduces the alias through a `FROM` clause instead; building an aliased target for SQL Server throws. MySQL, Oracle, PostgreSQL, and SQLite accept an aliased target.
+
 ---
 
 ## UPDATE Statement
@@ -561,6 +563,8 @@ SqlStatement sql =
 
 **Note:** SqlArtisan's `Set()` method uses `Column == Value` for SQL-like assignment, unlike standard C# `==` (comparison). In `Where()` clauses, `==` is used for comparison as expected.
 
+**Dialect note:** As with `DELETE`, on SQL Server the `UPDATE` target cannot be aliased — pass an unaliased table; building an aliased target for SQL Server throws. MySQL, Oracle, PostgreSQL, and SQLite accept an aliased target.
+
 ---
 
 ## INSERT Statement
@@ -579,6 +583,8 @@ SqlStatement sql =
 // VALUES
 // (:0, :1, CURRENT_TIMESTAMP)
 ```
+
+**Dialect note:** On SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`), since T-SQL introduces a table alias through a `FROM` clause instead; building an aliased target for SQL Server throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-or-update), and MySQL, Oracle, and SQLite emit the alias faithfully as well.
 
 ---
 

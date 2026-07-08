@@ -62,8 +62,13 @@ yes-somewhere → dialect availability → permissive.
   mandatory-clause constructs follow the same pattern.
 - **Guardrail:** the library must never throw for dialect availability. A future
   change that, say, threw on `CUBE` for MySQL would violate this ADR — that belongs
-  to the analyzer and the database.
+  to the analyzer and the database. ADR 0011 carves one narrow, enumerated
+  exception — an aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server — admitted only
+  because the analyzer structurally cannot see the construct *and* the resolved
+  target has no valid spelling at all; any further exception must clear the same
+  bar.
 - **Scopes the analyzer (#93):** it need not re-check completeness the type system
   already guarantees; its remit stays dialect availability, arity, and unknown
   target.
-- Complements ADR 0001 and ADR 0003; supersedes neither. See #150, #190, #93.
+- Complements ADR 0001 and ADR 0003; supersedes neither. Refined by ADR 0011
+  (a bounded exception). See #150, #190, #93.
