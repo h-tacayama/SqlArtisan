@@ -30,7 +30,7 @@ public abstract class DbTableBase : TableReference
     }
 
     // Whether this table carries an alias — read by the DML-target guard, since
-    // aliasing an UPDATE/DELETE target is rejected on SQL Server (ADR 0011).
+    // aliasing an INSERT/UPDATE/DELETE target is rejected on SQL Server (ADR 0011).
     internal bool HasAlias => !string.IsNullOrEmpty(_tableAlias);
 
     internal override void Format(SqlBuildingBuffer buffer)

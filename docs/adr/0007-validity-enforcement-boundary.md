@@ -63,7 +63,7 @@ yes-somewhere → dialect availability → permissive.
 - **Guardrail:** the library must never throw for dialect availability. A future
   change that, say, threw on `CUBE` for MySQL would violate this ADR — that belongs
   to the analyzer and the database. ADR 0011 carves one narrow, enumerated
-  exception — an aliased `UPDATE`/`DELETE` target on SQL Server — admitted only
+  exception — an aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server — admitted only
   because the analyzer structurally cannot see the construct *and* the resolved
   target has no valid spelling at all; any further exception must clear the same
   bar.

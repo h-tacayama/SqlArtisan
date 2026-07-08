@@ -29,4 +29,4 @@ decisions — closed by the mission that ties them together.
 | [0008](0008-analyzer-override-configuration.md) | Analyzer override configuration: keys, precedence, and what's out of scope | Accepted |
 | [0009](0009-analyzer-distribution-bundled.md) | Analyzer distribution: bundled in the core package, coupled only by contract | Accepted |
 | [0010](0010-deterministic-guard-mission.md) | The mission: deterministic guard rails for AI-assisted SQL | Accepted |
-| [0011](0011-sqlserver-aliased-dml-target.md) | A bounded exception to ADR 0007: rejecting an aliased UPDATE/DELETE target on SQL Server | Accepted |
+| [0011](0011-sqlserver-aliased-dml-target.md) | A bounded exception to ADR 0007: rejecting an aliased INSERT/UPDATE/DELETE target on SQL Server | Accepted |
