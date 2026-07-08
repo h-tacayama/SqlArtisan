@@ -2,12 +2,15 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// The #236 empty-state policy: an all-empty condition elides a SELECT-side
-// clause (WHERE / HAVING / aggregate FILTER) but is rejected on DML and
-// structural positions (UPDATE/DELETE WHERE, JOIN/MERGE ON, CASE WHEN, MERGE
-// WHEN MATCHED AND / DELETE WHERE), and an empty SELECT list throws eagerly.
-// Emptiness is recursive — an AND/OR/NOT tree of all-empty operands is empty —
-// so no `()` leaks even when an active condition sits beside the empty group.
+// The #236 empty-state policy: a written condition clause with no runnable
+// condition is rejected at Build() rather than silently dropped — the library
+// never elides a clause the caller wrote. This holds uniformly for the
+// SELECT-side WHERE / HAVING / aggregate FILTER, the DML WHERE, and the
+// structural JOIN/MERGE ON, CASE WHEN, and MERGE WHEN [NOT] MATCHED / DELETE
+// WHERE positions; an empty SELECT list throws eagerly. Omitting the clause
+// entirely stays the way to express "no restriction". Emptiness is recursive —
+// an AND/OR/NOT tree of all-empty operands is empty — but an excluded operand
+// beside an active one simply drops out, keeping the clause non-empty and `()`-free.
 public class EmptyStatePolicyTests
 {
     private readonly TestTable _t = new("t");
@@ -18,20 +21,21 @@ public class EmptyStatePolicyTests
     private readonly TestTable _cols = new();
 
     [Fact]
-    public void Where_AllConditionsExcluded_OmitsWhereClause()
+    public void Where_AllConditionsExcluded_ThrowsArgumentException()
     {
-        SqlStatement sql =
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code)
             .From(_t)
             .Where(ConditionIf(false, _t.Code > 0))
-            .Build();
+            .Build());
 
-        Assert.Equal("SELECT \"t\".code FROM test_table \"t\"", sql.Text);
-        Assert.Equal(0, sql.Parameters.Count);
+        Assert.Equal(
+            "The WHERE clause requires a condition; omit it for an unfiltered statement.",
+            ex.Message);
     }
 
     [Fact]
-    public void Where_EmptyOrGroupBesideActiveCondition_OmitsEmptyGroup()
+    public void Where_EmptyOrGroupBesideActiveCondition_CorrectSql()
     {
         SqlStatement sql =
             Select(_t.Code)
@@ -42,48 +46,53 @@ public class EmptyStatePolicyTests
             .Build();
 
         // The all-empty OR subtree renders nothing — no `()` — leaving only the
-        // active operand.
+        // active operand, so the clause is non-empty and builds.
         Assert.Equal("SELECT \"t\".code FROM test_table \"t\" WHERE (\"t\".code > :0)", sql.Text);
         Assert.Equal(0, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]
-    public void Where_NotOverEmptyCondition_OmitsWhereClause()
+    public void Where_NotOverEmptyCondition_ThrowsArgumentException()
     {
-        SqlStatement sql =
+        // NOT over an empty operand is itself empty — never `NOT ()`, and as the
+        // whole WHERE it is rejected, not dropped.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code)
             .From(_t)
             .Where(Not(ConditionIf(false, _t.Code > 0)))
-            .Build();
+            .Build());
 
-        // NOT over an empty operand is itself empty — never `NOT ()`.
-        Assert.Equal("SELECT \"t\".code FROM test_table \"t\"", sql.Text);
+        Assert.Equal(
+            "The WHERE clause requires a condition; omit it for an unfiltered statement.",
+            ex.Message);
     }
 
     [Fact]
-    public void Having_AllConditionsExcluded_OmitsHavingClause()
+    public void Having_AllConditionsExcluded_ThrowsArgumentException()
     {
-        SqlStatement sql =
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code)
             .From(_t)
             .GroupBy(_t.Code)
             .Having(ConditionIf(false, Count(_t.Code) > 1))
-            .Build();
+            .Build());
 
-        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" GROUP BY \"t\".code", sql.Text);
+        Assert.Equal(
+            "The HAVING clause requires a condition; omit it for no group restriction.",
+            ex.Message);
     }
 
     [Fact]
-    public void Filter_AllConditionsExcluded_OmitsFilterClause()
+    public void Filter_AllConditionsExcluded_ThrowsArgumentException()
     {
-        SqlStatement sql =
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(Count(_t.Code).Filter(ConditionIf(false, _t.Code > 0)))
             .From(_t)
-            .Build();
+            .Build());
 
-        // The whole FILTER (WHERE ...) wrapper is dropped — an unfiltered
-        // aggregate is just the aggregate.
-        Assert.Equal("SELECT COUNT(\"t\".code) FROM test_table \"t\"", sql.Text);
+        Assert.Equal(
+            "An aggregate's FILTER requires a condition; omit it for an unfiltered aggregate.",
+            ex.Message);
     }
 
     [Fact]
@@ -96,7 +105,7 @@ public class EmptyStatePolicyTests
             .Build());
 
         Assert.Equal(
-            "The WHERE clause of an UPDATE or DELETE requires a condition; omit it to affect every row.",
+            "The WHERE clause requires a condition; omit it for an unfiltered statement.",
             ex.Message);
     }
 
@@ -139,7 +148,7 @@ public class EmptyStatePolicyTests
             .Build());
 
         Assert.Equal(
-            "The WHERE clause of an UPDATE or DELETE requires a condition; omit it to affect every row.",
+            "The WHERE clause requires a condition; omit it for an unfiltered statement.",
             ex.Message);
     }
 
@@ -222,21 +231,6 @@ public class EmptyStatePolicyTests
         Assert.Equal(
             "A MERGE WHEN NOT MATCHED BY SOURCE AND clause requires a condition.",
             ex.Message);
-    }
-
-    [Fact]
-    public void Where_ElidedBetweenFromAndOrderBy_OmitsWhereClause()
-    {
-        // An elided clause sitting between two emitted clauses must leave exactly
-        // one separator space, never a doubled one.
-        SqlStatement sql =
-            Select(_t.Code)
-            .From(_t)
-            .Where(ConditionIf(false, _t.Code > 0))
-            .OrderBy(_t.Code)
-            .Build();
-
-        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY \"t\".code", sql.Text);
     }
 
     [Fact]

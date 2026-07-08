@@ -307,28 +307,36 @@ SqlStatement sql =
 // WHERE (id > :0)
 ```
 
-#### Case 3: All Conditions Excluded
+#### Case 3: Every Condition Excluded
 
-When every condition is excluded, the whole `WHERE` clause is elided on a `SELECT` — an all-filters-off search screen runs unrestricted instead of emitting an invalid bare `WHERE`. This holds for a nested group of excluded conditions too; an empty `AND` / `OR` / `NOT` subtree renders nothing rather than a stray `()`.
+When *every* condition in a `WHERE` is excluded, the clause has nothing left to run. Rather than silently drop the `WHERE` you wrote — an unintended full-table read is a real load risk — SqlArtisan throws at `Build()`:
 
 ```csharp
 bool filterPositive = false;
 bool filterUnderTen = false;
 
 UsersTable u = new();
-SqlStatement sql =
-    Select(u.Name)
+
+// Throws ArgumentException:
+// "The WHERE clause requires a condition; omit it for an unfiltered statement."
+Select(u.Name)
     .From(u)
     .Where(
         ConditionIf(filterPositive, u.Id > 0)
         & ConditionIf(filterUnderTen, u.Id < 10))
     .Build();
+```
+
+To read every row on purpose, omit `.Where(...)` entirely — that is the explicit, unambiguous way to say "no filter":
+
+```csharp
+SqlStatement sql = Select(u.Name).From(u).Build();
 
 // SELECT name
 // FROM users
 ```
 
-The same elision applies to `HAVING` and to an aggregate's `FILTER (WHERE ...)`. On an `UPDATE` or `DELETE`, an all-empty `WHERE` instead throws at `Build()` — eliding it would silently turn a filtered statement into a full-table write, so an intentional full-table `UPDATE` / `DELETE` is spelled by omitting `.Where(...)` altogether. A `JOIN` / `MERGE` `ON`, a `CASE` `WHEN`, and a `MERGE` `WHEN MATCHED` / `WHEN NOT MATCHED` condition are structural and likewise throw when empty.
+The same rule holds for every written condition clause: `HAVING`, an aggregate's `FILTER (WHERE ...)`, an `UPDATE` / `DELETE` `WHERE`, a `JOIN` / `MERGE` `ON`, a `CASE` `WHEN`, and a `MERGE` `WHEN [NOT] MATCHED` condition each require a real condition and throw at `Build()` when every operand is excluded. An excluded operand *beside* an active one just drops out, as in Case 2 — only an entirely empty clause throws.
 
 ---
 

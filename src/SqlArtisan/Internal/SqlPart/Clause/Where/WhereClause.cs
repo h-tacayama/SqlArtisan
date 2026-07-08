@@ -4,11 +4,18 @@ internal sealed class WhereClause(SqlCondition condition) : SqlPart
 {
     private readonly SqlCondition _condition = condition;
 
-    // An all-empty condition elides the whole clause (a search screen's
-    // all-filters-off default) on SELECT; UPDATE/DELETE reject it before Format.
-    internal override bool IsEmpty => _condition.IsEmpty;
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        // A written WHERE with no runnable condition (every operand excluded) is
+        // rejected rather than silently dropped — omit .Where(...) for an
+        // unfiltered statement (the #236 empty-state policy). Shared by SELECT,
+        // UPDATE, and DELETE; the aggregate FILTER intercepts with its own message.
+        EmptyConditionGuard.Reject(
+            _condition,
+            "The WHERE clause requires a condition; omit it for an unfiltered statement.");
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Where} ")
-        .Append(_condition);
+        buffer
+            .Append($"{Keywords.Where} ")
+            .Append(_condition);
+    }
 }

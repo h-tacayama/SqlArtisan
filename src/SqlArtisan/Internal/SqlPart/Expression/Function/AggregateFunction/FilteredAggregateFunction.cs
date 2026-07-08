@@ -12,6 +12,7 @@ namespace SqlArtisan.Internal;
 public sealed class FilteredAggregateFunction : AggregateFunction
 {
     private readonly UnfilteredAggregateFunction _aggregate;
+    private readonly SqlCondition _condition;
     // Built once here, not per Format call, to keep the build path allocation-free
     // (ADR 0006).
     private readonly WhereClause _filterWhere;
@@ -21,19 +22,18 @@ public sealed class FilteredAggregateFunction : AggregateFunction
         SqlCondition condition)
     {
         _aggregate = aggregate;
+        _condition = condition;
         _filterWhere = new WhereClause(condition);
     }
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        // An all-empty filter condition drops the whole FILTER (WHERE ...) wrapper
-        // — an unfiltered aggregate is just the aggregate (the #236 empty-state
-        // policy) — rather than emitting FILTER (WHERE ) (invalid on every dialect).
-        if (_filterWhere.IsEmpty)
-        {
-            buffer.Append(_aggregate);
-            return;
-        }
+        // A written FILTER with every operand excluded is rejected rather than
+        // silently dropped — omit .Filter(...) for an unfiltered aggregate (the
+        // #236 empty-state policy).
+        EmptyConditionGuard.Reject(
+            _condition,
+            "An aggregate's FILTER requires a condition; omit it for an unfiltered aggregate.");
 
         buffer
             .Append(_aggregate)

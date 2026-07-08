@@ -15,8 +15,9 @@ public sealed class OrCondition : SqlCondition
         _second = rightSide;
     }
 
-    // An OR group renders nothing when every operand is empty; the enclosing
-    // clause is then elided (or, on DML, rejected) rather than emitting `()`.
+    // An OR group is empty when every operand is empty; the enclosing clause is
+    // then rejected at Build() rather than emitting `()`. A single empty operand
+    // beside a non-empty one just drops out in Format.
     internal override bool IsEmpty
     {
         get

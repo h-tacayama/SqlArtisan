@@ -4,10 +4,16 @@ internal sealed class HavingClause(SqlCondition condition) : SqlPart
 {
     private readonly SqlCondition _condition = condition;
 
-    // An all-empty condition elides the whole clause — no group restriction.
-    internal override bool IsEmpty => _condition.IsEmpty;
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        // A written HAVING with every operand excluded is rejected rather than
+        // silently dropped — omit .Having(...) for no group restriction.
+        EmptyConditionGuard.Reject(
+            _condition,
+            "The HAVING clause requires a condition; omit it for no group restriction.");
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Having} ")
-        .Append(_condition);
+        buffer
+            .Append($"{Keywords.Having} ")
+            .Append(_condition);
+    }
 }

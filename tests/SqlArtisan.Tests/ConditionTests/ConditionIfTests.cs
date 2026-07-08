@@ -20,11 +20,22 @@ public class ConditionIfTests
             1, 1);
 
     [Fact]
-    public void ConditionIf_WhenConditionIsFalse_ReturnsEmpty() =>
-        _assert.Equal(ConditionIf(false, _t.Code == 1), string.Empty);
+    public void ConditionIf_WhenConditionIsFalse_ThrowsArgumentException()
+    {
+        // An excluded condition used as the whole WHERE leaves nothing runnable,
+        // so the clause is rejected at Build() rather than silently dropped (#236).
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Name).From(_t).Where(ConditionIf(false, _t.Code == 1)).Build());
+
+        Assert.Equal(
+            "The WHERE clause requires a condition; omit it for an unfiltered statement.",
+            ex.Message);
+    }
 
     [Fact]
-    public void ConditionIf_MultiEmptyCondition_ReturnsEmpty() =>
+    public void ConditionIf_MultiPartlyExcluded_CorrectSql() =>
+        // Excluded operands drop out (ConditionIf's contract) while the one
+        // included operand keeps the clause non-empty.
         _assert.Equal(
             ConditionIf(false, _t.Code == 1)
             & ConditionIf(false, _t.Code == 2)

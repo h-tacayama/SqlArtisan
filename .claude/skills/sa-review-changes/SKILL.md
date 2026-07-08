@@ -72,8 +72,8 @@ check the diff against each:
   guard — never a silently emitted invalid/wrong statement. For anything that
   can be *empty* (conditions, select lists, collections), check the change
   against the empty-state policy in `.claude/rules/guards-and-empty-states.md`
-  (elide vs eager-throw vs Build()-time throw), and that guard messages follow
-  its grammar with exact-message tests.
+  (eager-throw vs Build()-time throw — written clauses are never elided), and
+  that guard messages follow its grammar with exact-message tests.
 
 ## 4. Check consistency with existing conventions
 
