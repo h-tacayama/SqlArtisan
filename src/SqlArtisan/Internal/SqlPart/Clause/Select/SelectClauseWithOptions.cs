@@ -20,7 +20,7 @@ internal sealed class SelectClauseWithOptions : SqlPart
         object[] selectItems) => new(
             hints,
             distinct,
-            SelectItemResolver.Resolve(selectItems));
+            SelectItemResolver.ResolveSelectList(selectItems));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Select} ")

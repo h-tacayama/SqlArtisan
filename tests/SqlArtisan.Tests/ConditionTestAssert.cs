@@ -23,9 +23,15 @@ internal sealed class ConditionTestAssert(TestTable t)
         expected.Append("SELECT ");
         expected.Append("\"t\".name ");
         expected.Append("FROM ");
-        expected.Append("test_table \"t\" ");
-        expected.Append("WHERE ");
-        expected.Append(expectedSql);
+        expected.Append("test_table \"t\"");
+
+        // An all-empty condition elides the WHERE clause entirely (#236); every
+        // other condition keeps its ` WHERE <sql>` tail.
+        if (expectedSql.Length != 0)
+        {
+            expected.Append(" WHERE ");
+            expected.Append(expectedSql);
+        }
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(expectedBindCount, sql.Parameters.Count);

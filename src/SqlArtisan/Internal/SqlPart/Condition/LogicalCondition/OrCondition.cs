@@ -15,6 +15,32 @@ public sealed class OrCondition : SqlCondition
         _second = rightSide;
     }
 
+    // An OR group renders nothing when every operand is empty; the enclosing
+    // clause is then elided (or, on DML, rejected) rather than emitting `()`.
+    internal override bool IsEmpty
+    {
+        get
+        {
+            if (!_first.IsEmpty || !_second.IsEmpty)
+            {
+                return false;
+            }
+
+            if (_rest is not null)
+            {
+                for (int i = 0; i < _rest.Count; i++)
+                {
+                    if (!_rest[i].IsEmpty)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
     internal override void Format(SqlBuildingBuffer buffer)
     {
         bool added = false;
@@ -42,7 +68,7 @@ public sealed class OrCondition : SqlCondition
         SqlCondition condition,
         ref bool added)
     {
-        if (condition is EmptyCondition)
+        if (condition.IsEmpty)
         {
             return;
         }

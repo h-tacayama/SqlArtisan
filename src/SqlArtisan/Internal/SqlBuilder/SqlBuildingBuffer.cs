@@ -204,17 +204,27 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal SqlBuildingBuffer AppendSpaceSeparated(ReadOnlySpan<SqlPart> parts)
     {
-        if (parts.Length == 0)
-        {
-            return this;
-        }
+        // Skip parts that render nothing (an elided empty WHERE/HAVING) so the
+        // separator space lands only between parts that actually emit, never
+        // leaving a dangling or doubled space (the #236 empty-state policy).
+        bool anyEmitted = false;
 
-        parts[0].Format(this);
-
-        for (int i = 1; i < parts.Length; i++)
+        for (int i = 0; i < parts.Length; i++)
         {
-            AppendSpace();
-            parts[i].Format(this);
+            SqlPart part = parts[i];
+
+            if (part.IsEmpty)
+            {
+                continue;
+            }
+
+            if (anyEmitted)
+            {
+                AppendSpace();
+            }
+
+            part.Format(this);
+            anyEmitted = true;
         }
 
         return this;

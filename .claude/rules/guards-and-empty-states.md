@@ -18,10 +18,12 @@ follow these conventions so every new guard lands on the same policy.
 Elide a clause only where an all-empty condition plausibly means "no
 restriction"; fail loudly everywhere else.
 
-**Status:** this table is the policy *decided* in #236, not shipped behavior —
-today the library still emits bare `WHERE ` / `SELECT  FROM` / `IN ()` for
-these states (probed in the #225 follow-up). New guards must land on this
-policy; never cite a row as already-enforced without checking the code.
+**Status:** the SELECT-side elision (WHERE / HAVING / aggregate FILTER), the
+UPDATE/DELETE/JOIN/MERGE/CASE Build()-time throws, and the eager empty-`Select()`
+throw shipped in #236 (recursive emptiness via `SqlPart.IsEmpty`; skipped in
+`AppendSpaceSeparated`; the shared `EmptyConditionGuard`). Still per #243/#245:
+the empty `IN` collection and empty `VALUES` rows guards. New guards must land on
+this policy; never cite a row as already-enforced without checking the code.
 
 | Position | All-empty behavior |
 |---|---|
@@ -41,8 +43,7 @@ misses).
 
 - **Eagerly (in the factory / clause method)** only when the fact is fixed at
   the call site: a `params` array length, a collection count. Precedent:
-  `PartitionBy` (#69); the empty-`Select()` eager guard is decided in #236
-  but not yet landed.
+  `PartitionBy` (#69) and the empty-`Select()` guard (`SelectItemResolver.ResolveSelectList`, #236).
 - **At Build()/format time** when later mutation can change the fact:
   conditions (`operator &` mutates a held `AndCondition`, so an empty tree at
   `.Where(...)` time can legitimately become non-empty before `Build()`) and

@@ -24,9 +24,21 @@ public sealed class FilteredAggregateFunction : AggregateFunction
         _filterWhere = new WhereClause(condition);
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(_aggregate)
-        .EncloseInSpaces(Keywords.Filter)
-        .OpenParenthesis(_filterWhere)
-        .CloseParenthesis();
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        // An all-empty filter condition drops the whole FILTER (WHERE ...) wrapper
+        // — an unfiltered aggregate is just the aggregate (the #236 empty-state
+        // policy) — rather than emitting FILTER (WHERE ) (invalid on every dialect).
+        if (_filterWhere.IsEmpty)
+        {
+            buffer.Append(_aggregate);
+            return;
+        }
+
+        buffer
+            .Append(_aggregate)
+            .EncloseInSpaces(Keywords.Filter)
+            .OpenParenthesis(_filterWhere)
+            .CloseParenthesis();
+    }
 }

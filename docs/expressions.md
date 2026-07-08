@@ -307,6 +307,29 @@ SqlStatement sql =
 // WHERE (id > :0)
 ```
 
+#### Case 3: All Conditions Excluded
+
+When every condition is excluded, the whole `WHERE` clause is elided on a `SELECT` — an all-filters-off search screen runs unrestricted instead of emitting an invalid bare `WHERE`. This holds for a nested group of excluded conditions too; an empty `AND` / `OR` / `NOT` subtree renders nothing rather than a stray `()`.
+
+```csharp
+bool filterPositive = false;
+bool filterUnderTen = false;
+
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(
+        ConditionIf(filterPositive, u.Id > 0)
+        & ConditionIf(filterUnderTen, u.Id < 10))
+    .Build();
+
+// SELECT name
+// FROM users
+```
+
+The same elision applies to `HAVING` and to an aggregate's `FILTER (WHERE ...)`. On an `UPDATE` or `DELETE`, an all-empty `WHERE` instead throws at `Build()` — eliding it would silently turn a filtered statement into a full-table write, so an intentional full-table `UPDATE` / `DELETE` is spelled by omitting `.Where(...)` altogether. A `JOIN` / `MERGE` `ON`, a `CASE` `WHEN`, and a `MERGE` `WHEN MATCHED` condition are structural and likewise throw when empty.
+
 ---
 
 ## JSON Operators

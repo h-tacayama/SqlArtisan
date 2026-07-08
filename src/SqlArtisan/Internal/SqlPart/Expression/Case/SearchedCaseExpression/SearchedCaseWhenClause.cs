@@ -13,11 +13,18 @@ public sealed class SearchedCaseWhenClause : SqlPart
         _thenExpr = thenExpr;
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.When} ")
-        .OpenParenthesis()
-        .Append(_whenCondition)
-        .CloseParenthesis()
-        .EncloseInSpaces(Keywords.Then)
-        .Append(_thenExpr);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        EmptyConditionGuard.Reject(
+            _whenCondition,
+            "A CASE WHEN branch requires a condition.");
+
+        buffer
+            .Append($"{Keywords.When} ")
+            .OpenParenthesis()
+            .Append(_whenCondition)
+            .CloseParenthesis()
+            .EncloseInSpaces(Keywords.Then)
+            .Append(_thenExpr);
+    }
 }
