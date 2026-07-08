@@ -12,6 +12,10 @@ internal sealed class WhenNotMatchedClause(SqlCondition? extraCondition) : SqlPa
 
         if (_extraCondition is not null)
         {
+            EmptyConditionGuard.Reject(
+                _extraCondition,
+                "A MERGE WHEN NOT MATCHED AND clause requires a condition.");
+
             buffer.EncloseInSpaces(Keywords.And).Append(_extraCondition);
         }
 

@@ -328,7 +328,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-The same elision applies to `HAVING` and to an aggregate's `FILTER (WHERE ...)`. On an `UPDATE` or `DELETE`, an all-empty `WHERE` instead throws at `Build()` — eliding it would silently turn a filtered statement into a full-table write, so an intentional full-table `UPDATE` / `DELETE` is spelled by omitting `.Where(...)` altogether. A `JOIN` / `MERGE` `ON`, a `CASE` `WHEN`, and a `MERGE` `WHEN MATCHED` condition are structural and likewise throw when empty.
+The same elision applies to `HAVING` and to an aggregate's `FILTER (WHERE ...)`. On an `UPDATE` or `DELETE`, an all-empty `WHERE` instead throws at `Build()` — eliding it would silently turn a filtered statement into a full-table write, so an intentional full-table `UPDATE` / `DELETE` is spelled by omitting `.Where(...)` altogether. A `JOIN` / `MERGE` `ON`, a `CASE` `WHEN`, and a `MERGE` `WHEN MATCHED` / `WHEN NOT MATCHED` condition are structural and likewise throw when empty.
 
 ---
 

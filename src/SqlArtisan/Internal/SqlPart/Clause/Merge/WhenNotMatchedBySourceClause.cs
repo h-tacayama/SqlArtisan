@@ -13,6 +13,10 @@ internal sealed class WhenNotMatchedBySourceClause(SqlCondition? extraCondition)
 
         if (_extraCondition is not null)
         {
+            EmptyConditionGuard.Reject(
+                _extraCondition,
+                "A MERGE WHEN NOT MATCHED BY SOURCE AND clause requires a condition.");
+
             buffer.EncloseInSpaces(Keywords.And).Append(_extraCondition);
         }
 

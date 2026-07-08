@@ -196,6 +196,50 @@ public class EmptyStatePolicyTests
     }
 
     [Fact]
+    public void Merge_WhenNotMatchedConditionExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenNotMatched(ConditionIf(false, _s.Name == "x"))
+                .ThenInsert(_cols.Code).Values(_s.Code)
+            .Build(Dbms.Oracle));
+
+        Assert.Equal("A MERGE WHEN NOT MATCHED AND clause requires a condition.", ex.Message);
+    }
+
+    [Fact]
+    public void Merge_WhenNotMatchedBySourceConditionExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenNotMatchedBySource(ConditionIf(false, _t.Name == "x")).ThenDelete()
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "A MERGE WHEN NOT MATCHED BY SOURCE AND clause requires a condition.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Where_ElidedBetweenFromAndOrderBy_OmitsWhereClause()
+    {
+        // An elided clause sitting between two emitted clauses must leave exactly
+        // one separator space, never a doubled one.
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Where(ConditionIf(false, _t.Code > 0))
+            .OrderBy(_t.Code)
+            .Build();
+
+        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY \"t\".code", sql.Text);
+    }
+
+    [Fact]
     public void Merge_DeleteWhereAllConditionsExcluded_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
