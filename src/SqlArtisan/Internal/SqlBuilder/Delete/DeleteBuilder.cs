@@ -5,6 +5,8 @@ internal sealed class DeleteBuilder(DbTableBase table, params SqlPart[] rootPart
     IDeleteBuilderDelete,
     IDeleteBuilderWhere
 {
+    protected override string StatementName => Keywords.Delete;
+
     public SqlStatement Build() =>
         BuildCore(SqlArtisanConfig.DefaultDbms);
 
@@ -19,8 +21,6 @@ internal sealed class DeleteBuilder(DbTableBase table, params SqlPart[] rootPart
         AddPart(new WhereClause(condition));
         return this;
     }
-
-    protected override string StatementName => Keywords.Delete;
 
     protected override void Validate(Dbms dbms) =>
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);

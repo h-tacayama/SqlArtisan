@@ -1,4 +1,6 @@
+using System.Data;
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -54,9 +56,8 @@ public class BuilderReuseTests
     [Fact]
     public void Build_ThrewOnDialectGuard_LeavesBuilderUsable()
     {
-        // A throwing Build() must not freeze the builder — the SQL Server aliased
-        // target is rejected, but the same instance still builds for a dialect
-        // that allows it.
+        // A throwing Build() must not freeze the builder — a fix-up on the same
+        // instance still builds.
         TestTable aliased = new("t");
         var stmt = DeleteFrom(aliased);
 
@@ -74,8 +75,8 @@ public class BuilderReuseTests
     [Fact]
     public void Build_FreshChainPerDialect_BuildsEach()
     {
-        // The supported way to emit one query for several dialects: rebuild the
-        // chain from a factory rather than reusing a held instance.
+        // Rebuilding from a factory, not reusing a held instance, is what makes
+        // a repeated call — here, two dialects — safe.
         Func<ISqlBuilder> query = () =>
             Select(_t.Code).From(_t).Where(_t.Code == 1);
 
@@ -84,6 +85,52 @@ public class BuilderReuseTests
 
         Assert.Equal("SELECT code FROM test_table WHERE code = :0", pg.Text);
         Assert.Equal("SELECT code FROM test_table WHERE code = :0", ora.Text);
+    }
+
+    [Fact]
+    public void Returning_BuildCalledTwice_ThrowsArgumentException()
+    {
+        // Returning().Build() routes through BuildWithPart, which appends its
+        // extra part directly (bypassing AddPart) before delegating to
+        // BuildCore — a distinct path from every other stage method.
+        IReturningBuilder ret = Update(_t).Set(_t.Code == 1).Returning(_t.Code);
+        ret.Build();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ret.Build(Dbms.Oracle));
+
+        Assert.Equal(
+            "This UPDATE statement was already built; start a new chain.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ReturningInto_ChainedAfterBuild_ThrowsArgumentException()
+    {
+        IReturningBuilder ret = Update(_t).Set(_t.Code == 1).Returning(_t.Code);
+        ret.Build();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ret.Into(new OutputParameter("out", DbType.Int32)));
+
+        Assert.Equal(
+            "This UPDATE statement was already built; start a new chain.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ReturningInto_BuildCalledTwice_ThrowsArgumentException()
+    {
+        ISqlBuilder withInto =
+            Update(_t).Set(_t.Code == 1).Returning(_t.Code).Into(new OutputParameter("out", DbType.Int32));
+        withInto.Build();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            withInto.Build(Dbms.Oracle));
+
+        Assert.Equal(
+            "This UPDATE statement was already built; start a new chain.",
+            ex.Message);
     }
 
     [Fact]

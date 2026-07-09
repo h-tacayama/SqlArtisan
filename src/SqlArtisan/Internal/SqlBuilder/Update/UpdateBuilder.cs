@@ -6,6 +6,8 @@ internal sealed class UpdateBuilder(DbTableBase table, params SqlPart[] rootPart
     IUpdateBuilderUpdate,
     IUpdateBuilderWhere
 {
+    protected override string StatementName => Keywords.Update;
+
     public SqlStatement Build() =>
         BuildCore(SqlArtisanConfig.DefaultDbms);
 
@@ -26,8 +28,6 @@ internal sealed class UpdateBuilder(DbTableBase table, params SqlPart[] rootPart
         AddPart(new WhereClause(condition));
         return this;
     }
-
-    protected override string StatementName => Keywords.Update;
 
     protected override void Validate(Dbms dbms) =>
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);

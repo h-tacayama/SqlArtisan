@@ -15,6 +15,8 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
 {
     private InsertValuesClause? _valuesClause;
 
+    protected override string StatementName => Keywords.Insert;
+
     public IReturning DoNothing()
     {
         AddPart(new DoNothingClause());
@@ -102,8 +104,6 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
         AddPart(new WithRecursiveClause(ctes));
         return this;
     }
-
-    protected override string StatementName => Keywords.Insert;
 
     protected override void Validate(Dbms dbms) =>
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);

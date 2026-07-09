@@ -77,6 +77,8 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         }
     }
 
+    protected override string StatementName => Keywords.Select;
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public ISelectBuilderSetOperator Union
     {
@@ -342,6 +344,4 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         AddPart(new WithRollupClause());
         return this;
     }
-
-    protected override string StatementName => Keywords.Select;
 }

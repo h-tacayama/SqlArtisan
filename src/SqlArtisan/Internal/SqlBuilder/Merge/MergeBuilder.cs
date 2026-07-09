@@ -11,6 +11,8 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     IMergeBuilderWhenNotMatched,
     IMergeBuilderWhenNotMatchedBySource
 {
+    protected override string StatementName => Keywords.Merge;
+
     public SqlStatement Build() => BuildCore(SqlArtisanConfig.DefaultDbms);
 
     public SqlStatement Build(Dbms dbms) => BuildCore(dbms);
@@ -104,8 +106,6 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
         AddPart(new WhenNotMatchedBySourceClause(extraCondition));
         return this;
     }
-
-    protected override string StatementName => Keywords.Merge;
 
     // SQL Server requires a MERGE to end in a semicolon; the dialect supplies it
     // (empty for every other DBMS, leaving their output unchanged).
