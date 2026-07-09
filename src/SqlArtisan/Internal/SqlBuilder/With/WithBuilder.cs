@@ -20,6 +20,15 @@ internal sealed class WithBuilder : IWithBuilderWith
             _withPart,
             new DeleteClause(table));
 
+    public IInsertIgnoreBuilderTable InsertIgnoreInto(DbTableBase table) =>
+        new InsertBuilder(
+            table,
+            _withPart,
+            new InsertIgnoreIntoClause(table));
+
+    public IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns) =>
+        new InsertBuilder(table, _withPart, new InsertIgnoreIntoClause(table, columns));
+
     public IInsertBuilderTable InsertInto(DbTableBase table) =>
         new InsertBuilder(
             table,
