@@ -3,14 +3,9 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Tests;
 
 // The #236 empty-state policy: a written condition clause with no runnable
-// condition is rejected at Build() rather than silently dropped — the library
-// never elides a clause the caller wrote. This holds uniformly for the
-// SELECT-side WHERE / HAVING / aggregate FILTER, the DML WHERE, and the
-// structural JOIN/MERGE ON, CASE WHEN, and MERGE WHEN [NOT] MATCHED / DELETE
-// WHERE positions; an empty SELECT list throws eagerly. Omitting the clause
-// entirely stays the way to express "no restriction". Emptiness is recursive —
-// an AND/OR/NOT tree of all-empty operands is empty — but an excluded operand
-// beside an active one simply drops out, keeping the clause non-empty and `()`-free.
+// condition is rejected at Build() (never silently elided), uniformly across the
+// positions below; an empty SELECT list throws eagerly. Omitting a clause is the
+// way to express "no restriction".
 public class EmptyStatePolicyTests
 {
     private readonly TestTable _t = new("t");
@@ -45,8 +40,7 @@ public class EmptyStatePolicyTests
                 & (_t.Code > 0))
             .Build();
 
-        // The all-empty OR subtree renders nothing — no `()` — leaving only the
-        // active operand, so the clause is non-empty and builds.
+        // The all-empty OR subtree drops out — no `()` — leaving the active operand.
         Assert.Equal("SELECT \"t\".code FROM test_table \"t\" WHERE (\"t\".code > :0)", sql.Text);
         Assert.Equal(0, sql.Parameters.Get<int>(":0"));
     }
@@ -54,8 +48,7 @@ public class EmptyStatePolicyTests
     [Fact]
     public void Where_NotOverEmptyCondition_ThrowsArgumentException()
     {
-        // NOT over an empty operand is itself empty — never `NOT ()`, and as the
-        // whole WHERE it is rejected, not dropped.
+        // NOT over an empty operand is itself empty (never `NOT ()`) — rejected as a whole WHERE.
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code)
             .From(_t)
@@ -98,8 +91,7 @@ public class EmptyStatePolicyTests
     [Fact]
     public void Filter_AllConditionsExcludedWithOver_ThrowsArgumentException()
     {
-        // The windowed form goes through the same FilteredAggregateFunction, so
-        // wrapping in .Over(...) must not let an empty FILTER slip past.
+        // The windowed form reuses FilteredAggregateFunction — .Over(...) must not hide an empty FILTER.
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(Sum(_t.Code).Filter(ConditionIf(false, _t.Code > 0)).Over(PartitionBy(_t.Name)))
             .From(_t)
