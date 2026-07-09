@@ -15,9 +15,8 @@ public sealed class AndCondition : SqlCondition
         _second = rightSide;
     }
 
-    // An AND group is empty when every operand is empty; the enclosing clause is
-    // then rejected at Build() rather than emitting `()`. A single empty operand
-    // beside a non-empty one just drops out in Format.
+    // An AND group is empty only when every operand is empty; a lone empty operand
+    // beside a non-empty one just drops out in Format (so no `()`).
     internal override bool IsEmpty
     {
         get

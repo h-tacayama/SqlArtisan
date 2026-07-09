@@ -5,9 +5,8 @@ namespace SqlArtisan.Internal;
 internal static class SelectItemResolver
 {
     // The eager guard for the SELECT list (the #236 empty-state policy): a SELECT
-    // list can never legally be empty, and the count is fixed at the call site, so
-    // it throws immediately rather than at Build(). RETURNING resolves through the
-    // plain Resolve below (it guards its own emptiness in ReturningBuilder.Create).
+    // list can never legally be empty, so it throws at the call rather than at
+    // Build(). RETURNING guards its own emptiness in ReturningBuilder.Create.
     internal static SqlPart[] ResolveOrThrow(object[] selectItems)
     {
         CollectionGuard.ThrowIfEmpty(selectItems, "SELECT requires at least one item.");

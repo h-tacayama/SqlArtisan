@@ -22,8 +22,7 @@ public class ConditionIfTests
     [Fact]
     public void ConditionIf_WhenConditionIsFalse_ThrowsArgumentException()
     {
-        // An excluded condition used as the whole WHERE leaves nothing runnable,
-        // so the clause is rejected at Build() rather than silently dropped (#236).
+        // An excluded condition as the whole WHERE leaves nothing runnable — rejected at Build() (#236).
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Name).From(_t).Where(ConditionIf(false, _t.Code == 1)).Build());
 
@@ -34,8 +33,7 @@ public class ConditionIfTests
 
     [Fact]
     public void ConditionIf_MultiPartlyExcluded_CorrectSql() =>
-        // Excluded operands drop out (ConditionIf's contract) while the one
-        // included operand keeps the clause non-empty.
+        // Excluded operands drop out; the one included operand keeps the clause non-empty.
         _assert.Equal(
             ConditionIf(false, _t.Code == 1)
             & ConditionIf(false, _t.Code == 2)
