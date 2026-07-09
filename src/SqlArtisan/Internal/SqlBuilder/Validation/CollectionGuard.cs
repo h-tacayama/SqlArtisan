@@ -1,11 +1,8 @@
 namespace SqlArtisan.Internal;
 
-// The eager guard for the many clause factories that require at least one item
-// (SELECT/GROUP BY/ORDER BY/PARTITION BY/DISTINCT ON lists, RETURNING and its
-// INTO outputs). Each formerly repeated the same `Length == 0` check inline; this
-// centralizes the throw so the shape is written once. The construct-specific
-// message stays at the call site — the wording names that construct and is
-// asserted verbatim by its tests.
+// The eager empty-collection guard for the clause factories that require at least
+// one item; centralizes the repeated `Length == 0` check, with the
+// construct-specific message supplied at the call site.
 internal static class CollectionGuard
 {
     internal static void ThrowIfEmpty<T>(T[] items, string message)
