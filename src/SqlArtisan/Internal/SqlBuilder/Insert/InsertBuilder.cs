@@ -7,7 +7,11 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
     IInsertBuilderOnConflict,
     IInsertBuilderSet,
     IInsertBuilderTable,
-    IInsertBuilderValues
+    IInsertBuilderValues,
+    IInsertIgnoreBuilderColumns,
+    IInsertIgnoreBuilderSet,
+    IInsertIgnoreBuilderTable,
+    IInsertIgnoreBuilderValues
 {
     private InsertValuesClause? _valuesClause;
 
@@ -45,6 +49,12 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
         return this;
     }
 
+    // The narrowed INSERT IGNORE chain reuses the same builder; only the static
+    // return type drops IUpsert, so ON CONFLICT / ON DUPLICATE KEY UPDATE can't
+    // be chained after INSERT IGNORE (ODKU would override IGNORE — nonsense SQL).
+    IInsertIgnoreBuilderSet IInsertIgnoreBuilderTable.Set(params EqualityBasedCondition[] assignments) =>
+        (IInsertIgnoreBuilderSet)Set(assignments);
+
     public IInsertBuilderValues Values(params object[] values)
     {
         if (_valuesClause is null)
@@ -59,6 +69,15 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
 
         return this;
     }
+
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(params object[] values) =>
+        (IInsertIgnoreBuilderValues)Values(values);
+
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(params object[] values) =>
+        (IInsertIgnoreBuilderValues)Values(values);
+
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderValues.Values(params object[] values) =>
+        (IInsertIgnoreBuilderValues)Values(values);
 
     // The DO UPDATE SET WHERE filter. Explicit implementation keeps this distinct
     // from the inherited SelectBuilder.Where (which returns a SELECT builder);

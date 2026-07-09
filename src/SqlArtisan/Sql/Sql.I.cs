@@ -28,6 +28,34 @@ public static partial class Sql
         new InsertBuilder(table, new InsertIntoClause(table, columns));
 
     /// <summary>
+    /// Starts an <c>INSERT IGNORE INTO table</c> statement (MySQL): rows whose
+    /// insertion would raise an error — a duplicate key, and also FK violations or
+    /// out-of-range values — are skipped rather than aborting the statement.
+    /// Continue with <c>.Values(...)</c> (or <c>.Select(...)</c>) to supply the rows.
+    /// </summary>
+    /// <param name="table">The target table.</param>
+    /// <returns>An insert builder awaiting the values to insert.</returns>
+    /// <remarks>MySQL syntax. On PostgreSQL/SQLite express the do-nothing UPSERT
+    /// with <c>InsertInto(...).Values(...).OnConflict().DoNothing()</c> instead.</remarks>
+    public static IInsertIgnoreBuilderTable InsertIgnoreInto(DbTableBase table) =>
+        new InsertBuilder(table, new InsertIgnoreIntoClause(table));
+
+    /// <summary>
+    /// Starts an <c>INSERT IGNORE INTO table (c1, c2)</c> statement (MySQL) naming
+    /// <paramref name="columns"/> explicitly; error-raising rows are skipped rather
+    /// than aborting the statement. Continue with <c>.Values(...)</c> (or
+    /// <c>.Select(...)</c>) to supply rows matching the listed columns.
+    /// </summary>
+    /// <param name="table">The target table.</param>
+    /// <param name="columns">The columns to insert into, emitted as a
+    /// parenthesized list after the table.</param>
+    /// <returns>An insert builder awaiting the values for the named columns.</returns>
+    /// <remarks>MySQL syntax. On PostgreSQL/SQLite express the do-nothing UPSERT
+    /// with <c>InsertInto(...).Values(...).OnConflict().DoNothing()</c> instead.</remarks>
+    public static IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns) =>
+        new InsertBuilder(table, new InsertIgnoreIntoClause(table, columns));
+
+    /// <summary>
     /// The <c>INSTR(<paramref name="source"/>, <paramref name="substring"/>)</c>
     /// function: the 1-based position of the first occurrence of
     /// <paramref name="substring"/> within <paramref name="source"/>, or 0 when

@@ -718,6 +718,31 @@ is MySQL-only. Oracle and SQL Server use [`MERGE`](#merge-statement) instead.
 SqlArtisan does not validate feature support, so ensure the clause is valid for
 your target DBMS.
 
+**MySQL — `INSERT IGNORE`**
+
+For the do-nothing case — skip the rows that would collide, rather than update
+them — MySQL also offers `INSERT IGNORE`, exposed as `InsertIgnoreInto(...)`:
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    InsertIgnoreInto(u, u.Id, u.Name)
+    .Values(1, "newName")
+    .Build(Dbms.MySql);
+
+// INSERT IGNORE INTO users (id, name) VALUES (?0, ?1)
+```
+
+`IGNORE` turns the whole statement's errors into warnings, not only duplicate-key
+ones: rows that violate a foreign key are skipped and out-of-range values are
+coerced. Prefer it to the `ON DUPLICATE KEY UPDATE id = id` trick, which burns an
+`AUTO_INCREMENT` value per skipped row and reports affected rows differently; for
+a portable skip-existing insert, use `INSERT … SELECT … WHERE NOT EXISTS`. The
+narrowed builder omits the UPSERT clauses — `.OnDuplicateKeyUpdate(...)` will not
+compile after `InsertIgnoreInto(...)`, since `IGNORE` would override it. On
+PostgreSQL and SQLite the do-nothing insert is `ON CONFLICT DO NOTHING` (above),
+so SQLite's own `INSERT OR IGNORE` is not exposed separately.
+
 ---
 
 ### MERGE Statement
