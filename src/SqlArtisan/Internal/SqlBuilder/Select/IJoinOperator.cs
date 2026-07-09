@@ -74,6 +74,38 @@ public interface IJoinOperator
     ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
+    /// Appends <c>NATURAL FULL JOIN table</c>, matching on every same-named column shared by both sides
+    /// and keeping unmatched rows from both.
+    /// </summary>
+    /// <param name="table">The table reference to natural-full-join.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    ISelectBuilderFrom NaturalFullJoin(TableReference table);
+
+    /// <summary>
+    /// Appends <c>NATURAL JOIN table</c>, matching on every same-named column shared by both sides
+    /// (an inner join, keeping only matched rows) instead of an explicit <c>ON</c> predicate.
+    /// </summary>
+    /// <param name="table">The table reference to natural-join.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    ISelectBuilderFrom NaturalJoin(TableReference table);
+
+    /// <summary>
+    /// Appends <c>NATURAL LEFT JOIN table</c>, matching on every same-named column shared by both sides
+    /// and keeping all left-side rows.
+    /// </summary>
+    /// <param name="table">The table reference to natural-left-join.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    ISelectBuilderFrom NaturalLeftJoin(TableReference table);
+
+    /// <summary>
+    /// Appends <c>NATURAL RIGHT JOIN table</c>, matching on every same-named column shared by both sides
+    /// and keeping all right-side rows.
+    /// </summary>
+    /// <param name="table">The table reference to natural-right-join.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    ISelectBuilderFrom NaturalRightJoin(TableReference table);
+
+    /// <summary>
     /// Joins a correlated derived table with <c>OUTER APPLY (subquery) alias</c>
     /// (SQL Server / Oracle; PostgreSQL / MySQL spell it
     /// <see cref="LeftJoinLateral(ISubquery, DerivedTableBase)"/>).

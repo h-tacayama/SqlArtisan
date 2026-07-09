@@ -253,6 +253,16 @@ internal static class DialectMatrix
         [new MatrixKey("CrossJoin")] = DbmsSupport.All,
         // FullJoin: MySQL has no FULL [OUTER] JOIN at all; SQLite added it in 3.39 (baseline OK).
         [new MatrixKey("FullJoin")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
+        // NATURAL JOIN family (#197): standard SQL, but SQL Server has no NATURAL JOIN spelling at all.
+        [new MatrixKey("NaturalJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        [new MatrixKey("NaturalLeftJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // NaturalRightJoin: SQLite added RIGHT JOIN in 3.39 (bundled baseline 3.46+), NATURAL included.
+        [new MatrixKey("NaturalRightJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // NaturalFullJoin: MySQL has no FULL JOIN at all (see FullJoin above), so NATURAL FULL is out too.
+        [new MatrixKey("NaturalFullJoin")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // JOIN ... USING (#197): arity 2 (DbColumn, params DbColumn[]) avoids colliding with MERGE's
+        // arity-1 Using(TableReference) below — see the MatrixKey collision caveat above.
+        [new MatrixKey("Using", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("With")] = DbmsSupport.All,
         // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
         // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL/SQLite
@@ -462,7 +472,7 @@ internal static class DialectMatrix
         [new MatrixKey("PlaintoTsquery")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- MERGE / UPSERT chain steps (same scope as their statements) ---
-        // Using is MERGE-only today (JOIN ... USING is #197, post-1.0) — revisit if that lands.
+        // MergeBuilder's arity-1 Using(TableReference); see the JOIN's arity-2 entry above (#197).
         [new MatrixKey("Using")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenNotMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),

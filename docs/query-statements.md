@@ -174,6 +174,40 @@ SqlStatement sql =
 - `RightJoin()` for `RIGHT JOIN`
 - `FullJoin()` for `FULL JOIN`
 - `CrossJoin()` for `CROSS JOIN`
+- `NaturalJoin()` for `NATURAL JOIN`, and `NaturalLeftJoin()` / `NaturalRightJoin()` / `NaturalFullJoin()` for the outer forms
+
+A `NATURAL` join takes no `On(...)` — it matches on **every** column name the two
+tables share, so adding or renaming a column on either side silently changes the
+join; reach for it only when that coupling is acceptable. On SQL Server, which
+has no `NATURAL JOIN`, write the match explicitly with `On(...)`; on MySQL, which
+has no `FULL JOIN` at all, `NaturalFullJoin()` is unsupported too — emulate it
+with `LeftJoin(...).On(...)` unioned with `RightJoin(...).On(...)` there.
+
+#### JOIN ... USING
+
+`.Using(column, ...)` follows `InnerJoin()` / `LeftJoin()` / `RightJoin()` /
+`FullJoin()` in place of `.On(...)`, matching where the named columns are equal
+(they must exist, unqualified, on both sides):
+
+```csharp
+DbTable u = new("users", "u");
+DbTable o = new("orders", "o");
+
+SqlStatement sql =
+    Select(u.Column("name"))
+    .From(u)
+    .InnerJoin(o)
+    .Using(u.Column("user_id"))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// INNER JOIN orders "o"
+// USING (user_id)
+```
+
+MySQL, Oracle, PostgreSQL, and SQLite support this (standard SQL); on SQL Server,
+which has no `JOIN ... USING`, write the equivalent `On(...)` predicate.
 
 #### Correlated joins: APPLY / LATERAL
 

@@ -116,6 +116,38 @@ internal static class MatrixSweepCatalog
             OrdersTable jo = new("o");
             return Select(jo.Amount).From(jo).FullJoin(ju).On(jo.UserId == ju.Id);
         });
+        // NATURAL JOIN matches on every shared column name; "id" is the only column both
+        // UsersTable and OrdersTable declare, so no explicit predicate is needed.
+        Add("NaturalJoin", _ =>
+        {
+            UsersTable ju = new("u");
+            OrdersTable jo = new("o");
+            return Select(jo.Amount).From(jo).NaturalJoin(ju);
+        });
+        Add("NaturalLeftJoin", _ =>
+        {
+            UsersTable ju = new("u");
+            OrdersTable jo = new("o");
+            return Select(jo.Amount).From(jo).NaturalLeftJoin(ju);
+        });
+        Add("NaturalRightJoin", _ =>
+        {
+            UsersTable ju = new("u");
+            OrdersTable jo = new("o");
+            return Select(jo.Amount).From(jo).NaturalRightJoin(ju);
+        });
+        Add("NaturalFullJoin", _ =>
+        {
+            UsersTable ju = new("u");
+            OrdersTable jo = new("o");
+            return Select(jo.Amount).From(jo).NaturalFullJoin(ju);
+        });
+        AddArity("Using", 2, _ =>
+        {
+            UsersTable ju = new("u");
+            OrdersTable jo = new("o");
+            return Select(jo.Amount).From(jo).InnerJoin(ju).Using(jo.Id);
+        });
         Add("With", _ =>
         {
             Cte c = new("c");
