@@ -25,7 +25,7 @@ is expressed by **omitting the clause** entirely.
 **Status:** shipped in #236 — the recursive emptiness check (`SqlPart.IsEmpty`),
 the shared `ConditionGuard.ThrowIfEmpty` used by every condition clause's
 `Format`, and the eager empty-`Select()` guard
-(`SelectItemResolver.ResolveSelectList`). Still per #243/#245: the empty `IN`
+(`SelectItemResolver.ResolveOrThrow`). Still per #243/#245: the empty `IN`
 collection and empty `VALUES` rows guards. New guards must land on this policy;
 never cite a row as already-enforced without checking the code.
 
@@ -51,7 +51,7 @@ operand *beside* an active one still drops out inside a non-empty AND/OR (that i
 
 - **Eagerly (in the factory / clause method)** only when the fact is fixed at
   the call site: a `params` array length, a collection count. Precedent:
-  `PartitionBy` (#69) and the empty-`Select()` guard (`SelectItemResolver.ResolveSelectList`, #236).
+  `PartitionBy` (#69) and the empty-`Select()` guard (`SelectItemResolver.ResolveOrThrow`, #236).
 - **At Build()/format time** when later mutation can change the fact:
   conditions (`operator &` mutates a held `AndCondition`, so an empty tree at
   `.Where(...)` time can legitimately become non-empty before `Build()`) and
