@@ -15,8 +15,7 @@ public sealed class OrCondition : SqlCondition
         _second = rightSide;
     }
 
-    // An OR group is empty only when every operand is empty; a lone empty operand
-    // beside a non-empty one drops out in Format (so no `()`).
+    // Same emptiness rule as AndCondition.IsEmpty.
     internal override bool IsEmpty
     {
         get
