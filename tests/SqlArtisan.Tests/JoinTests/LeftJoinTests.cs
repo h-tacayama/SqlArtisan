@@ -30,4 +30,20 @@ public class LeftJoinTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void LeftJoin_OnAllConditionsExcluded_ThrowsArgumentException()
+    {
+        // LEFT/RIGHT/FULL joins share the single OnClause guard with INNER JOIN.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .LeftJoin(_s)
+            .On(ConditionIf(false, _t.Code == _s.Code))
+            .Build());
+
+        Assert.Equal(
+            "A JOIN's ON clause requires a condition; use CrossJoin for an unconditional join.",
+            ex.Message);
+    }
 }

@@ -225,4 +225,73 @@ public class MergeTests
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(2, sql.Parameters.Count);
     }
+
+    [Fact]
+    public void Merge_OnAllConditionsExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(ConditionIf(false, _t.Code == _s.Code))
+            .WhenMatched().ThenUpdateSet(_t.Name == _s.Name)
+            .Build(Dbms.Oracle));
+
+        Assert.Equal("A MERGE ON clause requires a condition.", ex.Message);
+    }
+
+    [Fact]
+    public void Merge_WhenMatchedConditionExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenMatched(ConditionIf(false, _s.Name == "x")).ThenUpdateSet(_t.Name == _s.Name)
+            .Build(Dbms.Oracle));
+
+        Assert.Equal("A MERGE WHEN MATCHED AND clause requires a condition.", ex.Message);
+    }
+
+    [Fact]
+    public void Merge_WhenNotMatchedConditionExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenNotMatched(ConditionIf(false, _s.Name == "x"))
+                .ThenInsert(_cols.Code).Values(_s.Code)
+            .Build(Dbms.Oracle));
+
+        Assert.Equal("A MERGE WHEN NOT MATCHED AND clause requires a condition.", ex.Message);
+    }
+
+    [Fact]
+    public void Merge_WhenNotMatchedBySourceConditionExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenNotMatchedBySource(ConditionIf(false, _t.Name == "x")).ThenDelete()
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "A MERGE WHEN NOT MATCHED BY SOURCE AND clause requires a condition.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Merge_DeleteWhereAllConditionsExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet(_t.Name == _s.Name)
+            .DeleteWhere(ConditionIf(false, _s.Name == "x"))
+            .Build(Dbms.Oracle));
+
+        Assert.Equal("A MERGE DELETE WHERE clause requires a condition.", ex.Message);
+    }
 }

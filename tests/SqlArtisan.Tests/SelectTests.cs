@@ -244,4 +244,20 @@ public class SelectTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Select_NoItems_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Select());
+
+        Assert.Equal("SELECT requires at least one item.", ex.Message);
+    }
+
+    [Fact]
+    public void Select_DistinctNoItems_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Select(Distinct));
+
+        Assert.Equal("SELECT requires at least one item.", ex.Message);
+    }
 }

@@ -41,4 +41,35 @@ public class ConditionIfTests
             & ConditionIf(false, _t.Code == 2)
             & ConditionIf(true, _t.Code == 3),
             "(\"t\".code = :0)", 1, 3);
+
+    [Fact]
+    public void ConditionIf_EmptyOrGroupBesideActive_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Where(
+                (ConditionIf(false, _t.Code > 1) | ConditionIf(false, _t.Code > 2))
+                & (_t.Code > 0))
+            .Build();
+
+        // The all-empty OR subtree drops out — no `()` — leaving the active operand.
+        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" WHERE (\"t\".code > :0)", sql.Text);
+        Assert.Equal(0, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void ConditionIf_NotOverExcluded_ThrowsArgumentException()
+    {
+        // NOT over an empty operand is itself empty (never `NOT ()`) — rejected as a whole WHERE.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .Where(Not(ConditionIf(false, _t.Code > 0)))
+            .Build());
+
+        Assert.Equal(
+            "The WHERE clause requires a condition; omit it for an unfiltered statement.",
+            ex.Message);
+    }
 }
