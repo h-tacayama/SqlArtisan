@@ -229,6 +229,9 @@ internal static class DialectMatrix
         // --- Statement / clause / builder core (universal) ---
         [new MatrixKey("Select")] = DbmsSupport.All,
         [new MatrixKey("InsertInto")] = DbmsSupport.All,
+        // InsertIgnoreInto: INSERT IGNORE is MySQL-only; PostgreSQL/SQLite spell the
+        // do-nothing UPSERT as ON CONFLICT DO NOTHING, Oracle/SQL Server as MERGE.
+        [new MatrixKey("InsertIgnoreInto")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Update")] = DbmsSupport.All,
         [new MatrixKey("DeleteFrom")] = DbmsSupport.All,
         [new MatrixKey("From")] = DbmsSupport.All,

@@ -249,4 +249,87 @@ public class InsertTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void InsertIgnoreInto_MySql_WithColumnList_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            InsertIgnoreInto(t, t.Code, t.Name)
+            .Values(1, "a")
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("INSERT IGNORE INTO ");
+        expected.Append("test_table ");
+        expected.Append('(');
+        expected.Append("code, ");
+        expected.Append("name");
+        expected.Append(") ");
+        expected.Append("VALUES ");
+        expected.Append('(');
+        expected.Append("?0, ");
+        expected.Append("?1");
+        expected.Append(')');
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(2, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_MySql_WithoutColumnList_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            InsertIgnoreInto(t)
+            .Values(1, "a")
+            .Build(Dbms.MySql);
+
+        Assert.Equal("INSERT IGNORE INTO test_table VALUES (?0, ?1)", sql.Text);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_MySql_MultipleRows_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            InsertIgnoreInto(t, t.Code, t.Name)
+            .Values(1, "a")
+            .Values(2, "b")
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT IGNORE INTO test_table (code, name) VALUES (?0, ?1), (?2, ?3)",
+            sql.Text);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_MySql_WithSetClause_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            InsertIgnoreInto(t)
+            .Set(t.Code == 1, t.Name == "a")
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT IGNORE INTO test_table (code, name) VALUES (?0, ?1)",
+            sql.Text);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_MySql_WithSelectClause_CorrectSql()
+    {
+        TestTable t = new();
+        TestTable s = new();
+        SqlStatement sql =
+            InsertIgnoreInto(t, t.Code, t.Name)
+            .Select(s.Code, s.Name)
+            .From(s)
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT IGNORE INTO test_table (code, name) SELECT code, name FROM test_table",
+            sql.Text);
+    }
 }

@@ -433,6 +433,40 @@ public class WithTests
     }
 
     [Fact]
+    public void With_InsertIgnore_MySql_CorrectSql()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+
+        TestTable b = new();
+        SqlStatement sql =
+            With(
+                cte.As(
+                    Select(
+                        a.Code.As(cte.CteCode),
+                        a.Name.As(cte.CteName))
+                    .From(a)
+                    .Where(a.Code == 1)))
+            .InsertIgnoreInto(b, b.Code, b.Name)
+            .Select(cte.CteCode, cte.CteName)
+            .From(cte)
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("WITH `cte` AS ");
+        expected.Append("(SELECT `a`.code cte_code, ");
+        expected.Append("`a`.name cte_name ");
+        expected.Append("FROM test_table `a` ");
+        expected.Append("WHERE `a`.code = ?0) ");
+        expected.Append("INSERT IGNORE INTO test_table (code, name) ");
+        expected.Append("SELECT `cte`.cte_code, ");
+        expected.Append("`cte`.cte_name ");
+        expected.Append("FROM `cte`");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void With_Update_CorrectSql()
     {
         TestTable a = new("a");

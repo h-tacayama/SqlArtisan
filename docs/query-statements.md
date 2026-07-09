@@ -19,7 +19,7 @@
 - [DELETE](#delete-statement)
 - [UPDATE](#update-statement)
 - [INSERT](#insert-statement)
-  - [Standard](#standard-syntax) · [Multiple Rows](#multiple-rows) · [SET-like](#alternative-syntax-set-like) · [INSERT … SELECT](#insert-select-syntax) · [UPSERT](#upsert-insert-or-update) · [MERGE](#merge-statement) · [WITH / CTE](#with-clause-common-table-expressions)
+  - [Standard](#standard-syntax) · [Multiple Rows](#multiple-rows) · [SET-like](#alternative-syntax-set-like) · [INSERT … SELECT](#insert-select-syntax) · [UPSERT](#upsert-insert-update-or-skip) · [MERGE](#merge-statement) · [WITH / CTE](#with-clause-common-table-expressions)
 - [RETURNING](#returning-clause)
   - [RETURNING INTO (Oracle)](#returning-into-oracle)
 
@@ -584,7 +584,7 @@ SqlStatement sql =
 // (:0, :1, CURRENT_TIMESTAMP)
 ```
 
-**Dialect note:** On SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`), since T-SQL introduces a table alias through a `FROM` clause instead; building an aliased target for SQL Server throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-or-update), and MySQL, Oracle, and SQLite emit the alias faithfully as well.
+**Dialect note:** On SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`), since T-SQL introduces a table alias through a `FROM` clause instead; building an aliased target for SQL Server throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and MySQL, Oracle, and SQLite emit the alias faithfully as well.
 
 ---
 
@@ -655,7 +655,7 @@ SqlStatement sql =
 
 ---
 
-### UPSERT (Insert or Update)
+### UPSERT (Insert, Update, or Skip)
 
 SqlArtisan exposes UPSERT through **per-dialect methods** rather than a single
 rewritten abstraction — the SQL you pick is the SQL that runs.
@@ -717,6 +717,29 @@ deprecated `VALUES()` function.
 is MySQL-only. Oracle and SQL Server use [`MERGE`](#merge-statement) instead.
 SqlArtisan does not validate feature support, so ensure the clause is valid for
 your target DBMS.
+
+**MySQL — `INSERT IGNORE`**
+
+For the do-nothing case — skip the rows that would collide, rather than update
+them — MySQL also offers `INSERT IGNORE`, exposed as `InsertIgnoreInto(...)`:
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    InsertIgnoreInto(u, u.Id, u.Name)
+    .Values(1, "newName")
+    .Build(Dbms.MySql);
+
+// INSERT IGNORE INTO users (id, name) VALUES (?0, ?1)
+```
+
+`IGNORE` downgrades the statement's errors to warnings — not only duplicate keys
+but foreign-key violations and out-of-range values, whose rows are skipped or
+coerced. Prefer it to the `ON DUPLICATE KEY UPDATE id = id` trick, which burns an
+`AUTO_INCREMENT` value per skipped row; for a portable skip-existing insert, use
+`INSERT … SELECT … WHERE NOT EXISTS`. On PostgreSQL and SQLite the do-nothing
+insert is `ON CONFLICT DO NOTHING` (above), so SQLite's `INSERT OR IGNORE` is not
+exposed separately.
 
 ---
 

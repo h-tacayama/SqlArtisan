@@ -80,6 +80,8 @@ internal static class MatrixSweepCatalog
             return Select(jo.Amount).From(jo).InnerJoin(ju).On(jo.UserId == ju.Id);
         });
         AddMutating("InsertInto", _ => InsertInto(u, u.Id, u.Name).Values(600, "Sweep"));
+        // Duplicate id=1 (already seeded): MySQL ignores the row (0 affected), every other engine rejects INSERT IGNORE.
+        AddMutating("InsertIgnoreInto", _ => InsertIgnoreInto(u, u.Id, u.Name).Values(1, "Sweep"));
         AddMutating("Values", _ => InsertInto(u, u.Id, u.Name).Values(601, "Sweep"));
         AddMutating("Update", _ => Update(u).Set(u.Name == "Sweep").Where(u.Id == 1));
         AddMutating("Set", _ => Update(u).Set(u.Name == "Sweep").Where(u.Id == 1));
