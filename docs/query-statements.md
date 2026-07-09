@@ -11,6 +11,7 @@
 > - SqlArtisan emits the SQL you write; **cross-database portability is a non-goal**.
 > - Pick the API for your target DBMS; a single call is not rewritten per dialect.
 > - Dialect notes list databases in the order **MySQL, Oracle, PostgreSQL, SQLite, SQL Server**.
+> - A builder chain is **single-use**: `Build()` finishes it, including when a Dapper call runs `Build()` internally — see [Reusing a builder chain](#reusing-a-builder-chain).
 
 ## Contents
 
