@@ -119,7 +119,7 @@ using SqlArtisan.Internal;                              // SqlCondition lives he
 
 SqlCondition e() => ConditionIf(false, u.Id == 1);      // an excluded condition
 
-// (a) all conditions off — must elide WHERE (SELECT) / throw (DML), never emit "WHERE "
+// (a) all conditions off — must throw at Build() (every statement), never emit bare "WHERE "
 Show("all-off", Select(u.Id).From(u).Where(e() & e()).Build());
 // (b) nested all-empty group beside an active condition — historically emitted "() AND (...)"
 Show("nested", Select(u.Id).From(u).Where((e() | e()) & (u.Id > 1)).Build());

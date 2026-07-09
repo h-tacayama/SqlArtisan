@@ -15,34 +15,43 @@ follow these conventions so every new guard lands on the same policy.
 
 ## The empty-state policy (#236)
 
-Elide a clause only where an all-empty condition plausibly means "no
-restriction"; fail loudly everywhere else.
+Never elide a clause the caller wrote. A written condition clause with no
+runnable condition (every operand excluded) **fails loudly at Build()** —
+eliding it would silently change the query, and even a `SELECT` `WHERE`-less
+read is a load risk, so "the SQL you write is the SQL that runs" is honored by
+refusing to guess rather than by quietly dropping the clause. "No restriction"
+is expressed by **omitting the clause** entirely.
 
-**Status:** this table is the policy *decided* in #236, not shipped behavior —
-today the library still emits bare `WHERE ` / `SELECT  FROM` / `IN ()` for
-these states (probed in the #225 follow-up). New guards must land on this
-policy; never cite a row as already-enforced without checking the code.
+**Status:** shipped in #236 — the recursive emptiness check (`SqlPart.IsEmpty`),
+the shared `ConditionGuard.ThrowIfEmpty` used by every condition clause's
+`Format`, and the eager empty-`Select()` guard
+(`SelectItemResolver.ResolveOrThrow`). Still per #243/#245: the empty `IN`
+collection and empty `VALUES` rows guards. New guards must land on this policy;
+never cite a row as already-enforced without checking the code.
 
 | Position | All-empty behavior |
 |---|---|
-| SELECT `.Where(...)`, `.Having(...)`, aggregate `.Filter(...)` | **elide the clause** |
-| UPDATE / DELETE `.Where(...)` | **throw at Build()** (eliding turns filtered DML into a full-table write) |
-| JOIN `.On(...)`, CASE `When(...)`, MERGE `.On(...)`/`.WhenMatched(cond)`/`.DeleteWhere(...)` | throw at Build() |
+| Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` | **throw at Build()** |
 | Empty SELECT list (#236); empty `IN` collection, empty `VALUES` rows (#243) | throw **eagerly** |
 
-Condition emptiness is **recursive**: a tree whose operands are all empty
-renders nothing. Never test an operand with `is EmptyCondition` — that is the
-bug that emitted `()` for nested all-empty groups even in mixed states; use the
-recursive emptiness check, **including `NOT`** — a `NOT` over an empty operand
-is itself empty (`NOT ()` is the probe-confirmed hazard a plain AND/OR walk
-misses).
+There is **no elision** — omitting a clause is the only "no restriction". The
+throw lives in the clause node's own `Format` (Build()-time), so it fires
+whichever statement reuses the node; `WhereClause` is shared by SELECT/UPDATE/
+DELETE and the aggregate `FILTER`, which intercepts first with its own message.
+
+Condition emptiness is **recursive**: a tree whose operands are all empty is
+empty. Never test an operand with `is EmptyCondition` — that is the bug that
+emitted `()` for nested all-empty groups even in mixed states; use the recursive
+`IsEmpty`, **including `NOT`** — a `NOT` over an empty operand is itself empty
+(`NOT ()` is the probe-confirmed hazard a plain AND/OR walk misses). An excluded
+operand *beside* an active one still drops out inside a non-empty AND/OR (that is
+`ConditionIf`'s contract); only an entirely empty clause throws.
 
 ## When to throw: eagerly vs at Build()
 
 - **Eagerly (in the factory / clause method)** only when the fact is fixed at
   the call site: a `params` array length, a collection count. Precedent:
-  `PartitionBy` (#69); the empty-`Select()` eager guard is decided in #236
-  but not yet landed.
+  `PartitionBy` (#69) and the empty-`Select()` guard (`SelectItemResolver.ResolveOrThrow`, #236).
 - **At Build()/format time** when later mutation can change the fact:
   conditions (`operator &` mutates a held `AndCondition`, so an empty tree at
   `.Where(...)` time can legitimately become non-empty before `Build()`) and

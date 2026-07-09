@@ -764,4 +764,15 @@ public class CaseTests
         Assert.Equal("K", sql.Parameters.Get<string>(":21"));
         Assert.Equal("Z", sql.Parameters.Get<string>(":22"));
     }
+
+    [Fact]
+    public void Case_WhenAllConditionsExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Case(When(ConditionIf(false, _t.Code > 0)).Then(1)).As("x"))
+            .From(_t)
+            .Build());
+
+        Assert.Equal("A CASE WHEN branch requires a condition.", ex.Message);
+    }
 }

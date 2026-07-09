@@ -90,4 +90,17 @@ public class DeleteTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Delete_WhereAllConditionsExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(_t)
+            .Where(ConditionIf(false, _t.Code > 0))
+            .Build());
+
+        Assert.Equal(
+            "The WHERE clause requires a condition; omit it for an unfiltered statement.",
+            ex.Message);
+    }
 }

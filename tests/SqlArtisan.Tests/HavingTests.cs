@@ -83,4 +83,19 @@ public class HavingTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Having_AllConditionsExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .GroupBy(_t.Code)
+            .Having(ConditionIf(false, Count(_t.Code) > 1))
+            .Build());
+
+        Assert.Equal(
+            "The HAVING clause requires a condition; omit it for no group restriction.",
+            ex.Message);
+    }
 }

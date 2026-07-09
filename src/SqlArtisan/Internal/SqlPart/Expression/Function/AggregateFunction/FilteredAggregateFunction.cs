@@ -12,6 +12,7 @@ namespace SqlArtisan.Internal;
 public sealed class FilteredAggregateFunction : AggregateFunction
 {
     private readonly UnfilteredAggregateFunction _aggregate;
+    private readonly SqlCondition _condition;
     // Built once here, not per Format call, to keep the build path allocation-free
     // (ADR 0006).
     private readonly WhereClause _filterWhere;
@@ -21,12 +22,22 @@ public sealed class FilteredAggregateFunction : AggregateFunction
         SqlCondition condition)
     {
         _aggregate = aggregate;
+        _condition = condition;
         _filterWhere = new WhereClause(condition);
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(_aggregate)
-        .EncloseInSpaces(Keywords.Filter)
-        .OpenParenthesis(_filterWhere)
-        .CloseParenthesis();
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        // Guarded on _condition here, ahead of the embedded _filterWhere (itself a
+        // WhereClause that would also throw), so the message names FILTER, not WHERE.
+        ConditionGuard.ThrowIfEmpty(
+            _condition,
+            "An aggregate's FILTER requires a condition; omit it for an unfiltered aggregate.");
+
+        buffer
+            .Append(_aggregate)
+            .EncloseInSpaces(Keywords.Filter)
+            .OpenParenthesis(_filterWhere)
+            .CloseParenthesis();
+    }
 }

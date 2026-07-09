@@ -4,7 +4,14 @@ internal sealed class HavingClause(SqlCondition condition) : SqlPart
 {
     private readonly SqlCondition _condition = condition;
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Having} ")
-        .Append(_condition);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        ConditionGuard.ThrowIfEmpty(
+            _condition,
+            "The HAVING clause requires a condition; omit it for no group restriction.");
+
+        buffer
+            .Append($"{Keywords.Having} ")
+            .Append(_condition);
+    }
 }

@@ -15,6 +15,31 @@ public sealed class OrCondition : SqlCondition
         _second = rightSide;
     }
 
+    // Same emptiness rule as AndCondition.IsEmpty.
+    internal override bool IsEmpty
+    {
+        get
+        {
+            if (!_first.IsEmpty || !_second.IsEmpty)
+            {
+                return false;
+            }
+
+            if (_rest is not null)
+            {
+                for (int i = 0; i < _rest.Count; i++)
+                {
+                    if (!_rest[i].IsEmpty)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
     internal override void Format(SqlBuildingBuffer buffer)
     {
         bool added = false;
@@ -42,7 +67,7 @@ public sealed class OrCondition : SqlCondition
         SqlCondition condition,
         ref bool added)
     {
-        if (condition is EmptyCondition)
+        if (condition.IsEmpty)
         {
             return;
         }

@@ -307,6 +307,28 @@ SqlStatement sql =
 // WHERE (id > :0)
 ```
 
+#### Case 3: Every Condition Excluded
+
+When *every* condition is excluded, the `WHERE` has nothing left to run. Rather than silently drop the clause you wrote — an unintended full-table read is a real load risk — SqlArtisan throws at `Build()`:
+
+```csharp
+bool filterPositive = false;
+bool filterUnderTen = false;
+
+UsersTable u = new();
+
+// Throws ArgumentException:
+// "The WHERE clause requires a condition; omit it for an unfiltered statement."
+Select(u.Name)
+    .From(u)
+    .Where(
+        ConditionIf(filterPositive, u.Id > 0)
+        & ConditionIf(filterUnderTen, u.Id < 10))
+    .Build();
+```
+
+To read every row on purpose, omit `.Where(...)` entirely. Any condition clause you write follows the same rule — it must carry a real condition, or it throws.
+
 ---
 
 ## JSON Operators

@@ -53,4 +53,31 @@ public class AggregateFilterTests
             "SELECT SUM(code) FILTER (WHERE code > :0) OVER (PARTITION BY name)",
             sql.Text);
     }
+
+    [Fact]
+    public void Filter_AllConditionsExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Count(_t.Code).Filter(ConditionIf(false, _t.Code > 0)))
+            .From(_t)
+            .Build());
+
+        Assert.Equal(
+            "An aggregate's FILTER requires a condition; omit it for an unfiltered aggregate.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Filter_AllConditionsExcludedWithOver_ThrowsArgumentException()
+    {
+        // The windowed form reuses FilteredAggregateFunction — .Over(...) must not hide an empty FILTER.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Sum(_t.Code).Filter(ConditionIf(false, _t.Code > 0)).Over(PartitionBy(_t.Name)))
+            .From(_t)
+            .Build());
+
+        Assert.Equal(
+            "An aggregate's FILTER requires a condition; omit it for an unfiltered aggregate.",
+            ex.Message);
+    }
 }

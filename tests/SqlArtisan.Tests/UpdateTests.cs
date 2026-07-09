@@ -153,4 +153,46 @@ public class UpdateTests
             .Build();
         });
     }
+
+    [Fact]
+    public void Update_WhereAllConditionsExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t)
+            .Set(_t.Name == "x")
+            .Where(ConditionIf(false, _t.Code > 0))
+            .Build());
+
+        Assert.Equal(
+            "The WHERE clause requires a condition; omit it for an unfiltered statement.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_NoWhere_CorrectSql()
+    {
+        // The legal twin: omitting WHERE is the intentional full-table UPDATE — it must still build.
+        SqlStatement sql =
+            Update(_t)
+            .Set(_t.Name == "x")
+            .Build();
+
+        Assert.Equal("UPDATE test_table SET name = :0", sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void Update_EmptyConditionBesideActiveCondition_CorrectSql()
+    {
+        // Empty at the call but made non-empty by a later `&` — the guard runs at Build(), not eagerly.
+        SqlStatement sql =
+            Update(_t)
+            .Set(_t.Name == "x")
+            .Where(ConditionIf(false, _t.Code > 0) & (_t.Code == 1))
+            .Build();
+
+        Assert.Equal("UPDATE test_table SET name = :0 WHERE (code = :1)", sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
+    }
 }

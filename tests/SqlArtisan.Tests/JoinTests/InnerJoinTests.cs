@@ -62,4 +62,19 @@ public class InnerJoinTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void InnerJoin_OnAllConditionsExcluded_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .InnerJoin(_s)
+            .On(ConditionIf(false, _t.Code == _s.Code))
+            .Build());
+
+        Assert.Equal(
+            "A JOIN's ON clause requires a condition; use CrossJoin for an unconditional join.",
+            ex.Message);
+    }
 }

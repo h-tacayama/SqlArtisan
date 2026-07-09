@@ -14,6 +14,8 @@ public sealed class SearchedCaseWhenCondition : SqlPart
     public SearchedCaseWhenClause Then(object thenExpr) =>
         new(this, new CaseThenExpression(Resolve(thenExpr)));
 
+    internal override bool IsEmpty => _whenCondition.IsEmpty;
+
     internal override void Format(SqlBuildingBuffer buffer) =>
         _whenCondition.Format(buffer);
 }

@@ -6,7 +6,14 @@ internal sealed class MergeOnClause(SqlCondition condition) : SqlPart
 {
     private readonly SqlCondition _condition = condition;
 
-    internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.On} ")
-        .EncloseInParentheses(_condition);
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        ConditionGuard.ThrowIfEmpty(
+            _condition,
+            "A MERGE ON clause requires a condition.");
+
+        buffer
+            .Append($"{Keywords.On} ")
+            .EncloseInParentheses(_condition);
+    }
 }
