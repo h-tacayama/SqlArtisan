@@ -57,6 +57,9 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
 
     public IInsertBuilderValues Values(params object[] values)
     {
+        // A repeat Values() appends a row via AddRow, bypassing AddPart's guard.
+        ThrowIfBuilt();
+
         if (_valuesClause is null)
         {
             _valuesClause = InsertValuesClause.Parse(values);
@@ -99,6 +102,8 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
         AddPart(new WithRecursiveClause(ctes));
         return this;
     }
+
+    protected override string StatementName => Keywords.Insert;
 
     protected override void Validate(Dbms dbms) =>
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);

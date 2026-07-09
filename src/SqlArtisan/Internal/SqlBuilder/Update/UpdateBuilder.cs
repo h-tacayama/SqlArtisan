@@ -27,6 +27,8 @@ internal sealed class UpdateBuilder(DbTableBase table, params SqlPart[] rootPart
         return this;
     }
 
+    protected override string StatementName => Keywords.Update;
+
     protected override void Validate(Dbms dbms) =>
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
 }

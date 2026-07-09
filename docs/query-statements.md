@@ -560,6 +560,29 @@ SqlStatement sql =
 
 On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited query through a CTE (`With(c.As(...))`) and select from that instead. Every other subquery position — scalar, `EXISTS`, CTE body, `LATERAL` — accepts `LIMIT` on MySQL.
 
+#### Reusing a builder chain
+
+A builder chain is **single-use**: once you call `Build()`, that builder is finished — any further call on it, including a second `Build()`, throws. This turns a silently-wrong reuse into a loud error, so a held chain can't leak one branch's clauses into another:
+
+```csharp
+TestTable t = new();
+var q = Select(t.Code).From(t).OrderBy(t.Code);
+
+SqlStatement page = q.Limit(10).Build();       // OK
+SqlStatement more = q.OffsetRows(20).Build();  // throws:
+// This SELECT statement was already built; start a new chain.
+```
+
+To emit one query for several dialects, or to branch from a shared prefix, rebuild the chain from a local function instead of holding a partial one:
+
+```csharp
+Func<ISqlBuilder> paged = () =>
+    Select(t.Code).From(t).OrderBy(t.Code).Limit(10);
+
+SqlStatement pg  = paged().Build(Dbms.PostgreSql);
+SqlStatement ora = paged().Build(Dbms.Oracle);
+```
+
 ---
 
 ## DELETE Statement

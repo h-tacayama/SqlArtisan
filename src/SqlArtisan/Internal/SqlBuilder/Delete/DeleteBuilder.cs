@@ -20,6 +20,8 @@ internal sealed class DeleteBuilder(DbTableBase table, params SqlPart[] rootPart
         return this;
     }
 
+    protected override string StatementName => Keywords.Delete;
+
     protected override void Validate(Dbms dbms) =>
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
 }

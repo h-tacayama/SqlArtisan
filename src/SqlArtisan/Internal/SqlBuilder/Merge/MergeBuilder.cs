@@ -105,6 +105,8 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    protected override string StatementName => Keywords.Merge;
+
     // SQL Server requires a MERGE to end in a semicolon; the dialect supplies it
     // (empty for every other DBMS, leaving their output unchanged).
     protected override void AppendTrailing(SqlBuildingBuffer buffer) =>

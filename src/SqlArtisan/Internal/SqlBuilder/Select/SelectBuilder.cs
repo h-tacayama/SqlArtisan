@@ -342,4 +342,6 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         AddPart(new WithRollupClause());
         return this;
     }
+
+    protected override string StatementName => Keywords.Select;
 }
