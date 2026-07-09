@@ -260,9 +260,8 @@ internal static class DialectMatrix
         [new MatrixKey("NaturalRightJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // NaturalFullJoin: MySQL has no FULL JOIN at all (see FullJoin above), so NATURAL FULL is out too.
         [new MatrixKey("NaturalFullJoin")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // JOIN ... USING (#197): the 2-arity overload (DbColumn, params DbColumn[]) is distinct from
-        // MERGE's 1-arity Using(TableReference) below — see the MatrixKey collision caveat above.
-        // SQL Server has no JOIN ... USING spelling at all.
+        // JOIN ... USING (#197): arity 2 (DbColumn, params DbColumn[]) avoids colliding with MERGE's
+        // arity-1 Using(TableReference) below — see the MatrixKey collision caveat above.
         [new MatrixKey("Using", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("With")] = DbmsSupport.All,
         // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
@@ -473,8 +472,7 @@ internal static class DialectMatrix
         [new MatrixKey("PlaintoTsquery")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- MERGE / UPSERT chain steps (same scope as their statements) ---
-        // This is MergeBuilder's 1-arity Using(TableReference) — the JOIN's 2-arity Using(...) has its
-        // own arity-level entry above (#197); they do not collide because arity differs.
+        // MergeBuilder's arity-1 Using(TableReference); see the JOIN's arity-2 entry above (#197).
         [new MatrixKey("Using")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenNotMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),

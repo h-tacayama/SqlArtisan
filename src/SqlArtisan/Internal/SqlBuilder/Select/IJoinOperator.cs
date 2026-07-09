@@ -79,7 +79,6 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="table">The table reference to natural-full-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
-    /// <remarks>MySQL has no <c>FULL JOIN</c> at all; SQL Server accepts neither <c>NATURAL</c> join — spell the predicate explicitly with <see cref="FullJoin(TableReference)"/>.<c>On(...)</c> there.</remarks>
     ISelectBuilderFrom NaturalFullJoin(TableReference table);
 
     /// <summary>
@@ -88,7 +87,6 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="table">The table reference to natural-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
-    /// <remarks>SQL Server has no <c>NATURAL JOIN</c> — spell the predicate explicitly with <see cref="InnerJoin(TableReference)"/>.<c>On(...)</c> there.</remarks>
     ISelectBuilderFrom NaturalJoin(TableReference table);
 
     /// <summary>
@@ -97,7 +95,6 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="table">The table reference to natural-left-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
-    /// <remarks>SQL Server has no <c>NATURAL JOIN</c> — spell the predicate explicitly with <see cref="LeftJoin(TableReference)"/>.<c>On(...)</c> there.</remarks>
     ISelectBuilderFrom NaturalLeftJoin(TableReference table);
 
     /// <summary>
@@ -106,7 +103,6 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="table">The table reference to natural-right-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
-    /// <remarks>SQL Server has no <c>NATURAL JOIN</c> — spell the predicate explicitly with <see cref="RightJoin(TableReference)"/>.<c>On(...)</c> there.</remarks>
     ISelectBuilderFrom NaturalRightJoin(TableReference table);
 
     /// <summary>

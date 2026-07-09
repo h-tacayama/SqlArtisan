@@ -19,6 +19,5 @@ public interface ISelectBuilderJoin : ISqlBuilder, IForUpdate
     /// <param name="column">The first (and possibly only) shared column to match on.</param>
     /// <param name="additionalColumns">Further shared columns, all matched with equality.</param>
     /// <returns>The builder back in the <c>FROM</c> state, ready for further joins, <c>WHERE</c>, grouping, ordering, pagination, or build.</returns>
-    /// <remarks>SQL Server has no <c>JOIN ... USING</c> — spell the equivalent with <c>On(...)</c> there.</remarks>
     ISelectBuilderFrom Using(DbColumn column, params DbColumn[] additionalColumns);
 }
