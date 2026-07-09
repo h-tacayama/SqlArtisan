@@ -562,25 +562,27 @@ On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is r
 
 #### Reusing a builder chain
 
-A builder chain is **single-use**: once you call `Build()`, that builder is finished — any further call on it, including a second `Build()`, throws. This turns a silently-wrong reuse into a loud error, so a held chain can't leak one branch's clauses into another:
+A builder chain is **single-use**: once you call `Build()`, that builder is finished — any further call on it, including a second `Build()`, throws. This turns a silently-wrong reuse into a loud error, so a held chain can't leak one page's clauses into another:
 
 ```csharp
+// NG — holding a base query to fetch each page throws on the second Build().
 TestTable t = new();
-var q = Select(t.Code).From(t).OrderBy(t.Code);
+var q = Select(t.Code).From(t).OrderBy(t.Code).Limit(10);
 
-SqlStatement page = q.Limit(10).Build();       // OK
-SqlStatement more = q.OffsetRows(20).Build();  // throws:
+SqlStatement page1 = q.Offset(0).Build();
+SqlStatement page2 = q.Offset(10).Build();  // throws:
 // This SELECT statement was already built; start a new chain.
 ```
 
-To emit one query for several dialects, or to branch from a shared prefix, rebuild the chain from a local function instead of holding a partial one:
+Rebuild the chain per call instead — a local function parameterized by the part that changes:
 
 ```csharp
-Func<ISqlBuilder> paged = () =>
-    Select(t.Code).From(t).OrderBy(t.Code).Limit(10);
+// OK — each call builds a fresh chain.
+SqlStatement Page(int offset) =>
+    Select(t.Code).From(t).OrderBy(t.Code).Limit(10).Offset(offset).Build();
 
-SqlStatement pg  = paged().Build(Dbms.PostgreSql);
-SqlStatement ora = paged().Build(Dbms.Oracle);
+SqlStatement page1 = Page(0);
+SqlStatement page2 = Page(10);
 ```
 
 ---
