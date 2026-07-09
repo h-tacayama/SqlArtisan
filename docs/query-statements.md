@@ -174,34 +174,24 @@ SqlStatement sql =
 - `RightJoin()` for `RIGHT JOIN`
 - `FullJoin()` for `FULL JOIN`
 - `CrossJoin()` for `CROSS JOIN`
+- `NaturalJoin()` for `NATURAL JOIN`, and `NaturalLeftJoin()` / `NaturalRightJoin()` / `NaturalFullJoin()` for the outer forms
 
-#### NATURAL JOIN and JOIN ... USING
+A `NATURAL` join takes no `On(...)` — it matches on **every** column name the two
+tables share, so adding or renaming a column on either side silently changes the
+join; reach for it only when that coupling is acceptable. On SQL Server, which
+has no `NATURAL JOIN`, write the match explicitly with `On(...)`; `NaturalFullJoin()`
+also has `FullJoin()`'s gap — MySQL has no `FULL JOIN` at all.
 
-Two alternatives to an explicit `On(...)` predicate, both matching rows by
-column name instead of by an expression you write:
+#### JOIN ... USING
+
+`.Using(column, ...)` follows `InnerJoin()` / `LeftJoin()` / `RightJoin()` /
+`FullJoin()` in place of `.On(...)`, matching where the named columns are equal
+(they must exist, unqualified, on both sides):
 
 ```csharp
 DbTable u = new("users", "u");
 DbTable o = new("orders", "o");
 
-SqlStatement sql =
-    Select(u.Column("name"))
-    .From(u)
-    .NaturalJoin(o)
-    .Build();
-
-// SELECT "u".name
-// FROM users "u"
-// NATURAL JOIN orders "o"
-```
-
-`NaturalJoin()` / `NaturalLeftJoin()` / `NaturalRightJoin()` / `NaturalFullJoin()`
-match on **every** column name the two tables share — add or rename a column on
-either side and the join's meaning silently changes, so reach for it only when
-that coupling is acceptable. `JOIN ... USING` narrows the match to just the
-columns you name:
-
-```csharp
 SqlStatement sql =
     Select(u.Column("name"))
     .From(u)
@@ -215,12 +205,8 @@ SqlStatement sql =
 // USING (user_id)
 ```
 
-`.Using(...)` follows `InnerJoin()` / `LeftJoin()` / `RightJoin()` / `FullJoin()`
-in place of `.On(...)`; the listed columns must exist, unqualified, on both
-sides. MySQL, Oracle, PostgreSQL, and SQLite support both forms (standard SQL);
-SQL Server has neither spelling — write the equivalent `On(...)` predicate
-there. `NaturalFullJoin()` has the same additional gap as `FullJoin()`: MySQL
-has no `FULL JOIN` at all, so it is unsupported there too.
+MySQL, Oracle, PostgreSQL, and SQLite support this (standard SQL); on SQL Server,
+which has no `JOIN ... USING`, write the equivalent `On(...)` predicate.
 
 #### Correlated joins: APPLY / LATERAL
 
