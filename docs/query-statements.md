@@ -19,7 +19,7 @@
 - [DELETE](#delete-statement)
 - [UPDATE](#update-statement)
 - [INSERT](#insert-statement)
-  - [Standard](#standard-syntax) · [Multiple Rows](#multiple-rows) · [SET-like](#alternative-syntax-set-like) · [INSERT … SELECT](#insert-select-syntax) · [UPSERT](#upsert-insert-or-update) · [MERGE](#merge-statement) · [WITH / CTE](#with-clause-common-table-expressions)
+  - [Standard](#standard-syntax) · [Multiple Rows](#multiple-rows) · [SET-like](#alternative-syntax-set-like) · [INSERT … SELECT](#insert-select-syntax) · [UPSERT](#upsert-insert-update-or-skip) · [MERGE](#merge-statement) · [WITH / CTE](#with-clause-common-table-expressions)
 - [RETURNING](#returning-clause)
   - [RETURNING INTO (Oracle)](#returning-into-oracle)
 
@@ -584,7 +584,7 @@ SqlStatement sql =
 // (:0, :1, CURRENT_TIMESTAMP)
 ```
 
-**Dialect note:** On SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`), since T-SQL introduces a table alias through a `FROM` clause instead; building an aliased target for SQL Server throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-or-update), and MySQL, Oracle, and SQLite emit the alias faithfully as well.
+**Dialect note:** On SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`), since T-SQL introduces a table alias through a `FROM` clause instead; building an aliased target for SQL Server throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and MySQL, Oracle, and SQLite emit the alias faithfully as well.
 
 ---
 
@@ -655,7 +655,7 @@ SqlStatement sql =
 
 ---
 
-### UPSERT (Insert or Update)
+### UPSERT (Insert, Update, or Skip)
 
 SqlArtisan exposes UPSERT through **per-dialect methods** rather than a single
 rewritten abstraction — the SQL you pick is the SQL that runs.
