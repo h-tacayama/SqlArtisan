@@ -74,6 +74,42 @@ public interface IJoinOperator
     ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
+    /// Appends <c>NATURAL FULL JOIN table</c>, matching on every same-named column shared by both sides
+    /// and keeping unmatched rows from both.
+    /// </summary>
+    /// <param name="table">The table reference to natural-full-join.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <remarks>MySQL has no <c>FULL JOIN</c> at all; SQL Server accepts neither <c>NATURAL</c> join — spell the predicate explicitly with <see cref="FullJoin(TableReference)"/>.<c>On(...)</c> there.</remarks>
+    ISelectBuilderFrom NaturalFullJoin(TableReference table);
+
+    /// <summary>
+    /// Appends <c>NATURAL JOIN table</c>, matching on every same-named column shared by both sides
+    /// (an inner join, keeping only matched rows) instead of an explicit <c>ON</c> predicate.
+    /// </summary>
+    /// <param name="table">The table reference to natural-join.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <remarks>SQL Server has no <c>NATURAL JOIN</c> — spell the predicate explicitly with <see cref="InnerJoin(TableReference)"/>.<c>On(...)</c> there.</remarks>
+    ISelectBuilderFrom NaturalJoin(TableReference table);
+
+    /// <summary>
+    /// Appends <c>NATURAL LEFT JOIN table</c>, matching on every same-named column shared by both sides
+    /// and keeping all left-side rows.
+    /// </summary>
+    /// <param name="table">The table reference to natural-left-join.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <remarks>SQL Server has no <c>NATURAL JOIN</c> — spell the predicate explicitly with <see cref="LeftJoin(TableReference)"/>.<c>On(...)</c> there.</remarks>
+    ISelectBuilderFrom NaturalLeftJoin(TableReference table);
+
+    /// <summary>
+    /// Appends <c>NATURAL RIGHT JOIN table</c>, matching on every same-named column shared by both sides
+    /// and keeping all right-side rows.
+    /// </summary>
+    /// <param name="table">The table reference to natural-right-join.</param>
+    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <remarks>SQL Server has no <c>NATURAL JOIN</c> — spell the predicate explicitly with <see cref="RightJoin(TableReference)"/>.<c>On(...)</c> there.</remarks>
+    ISelectBuilderFrom NaturalRightJoin(TableReference table);
+
+    /// <summary>
     /// Joins a correlated derived table with <c>OUTER APPLY (subquery) alias</c>
     /// (SQL Server / Oracle; PostgreSQL / MySQL spell it
     /// <see cref="LeftJoinLateral(ISubquery, DerivedTableBase)"/>).

@@ -201,6 +201,30 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    public ISelectBuilderFrom NaturalFullJoin(TableReference table)
+    {
+        AddPart(new NaturalFullJoinClause(table));
+        return this;
+    }
+
+    public ISelectBuilderFrom NaturalJoin(TableReference table)
+    {
+        AddPart(new NaturalJoinClause(table));
+        return this;
+    }
+
+    public ISelectBuilderFrom NaturalLeftJoin(TableReference table)
+    {
+        AddPart(new NaturalLeftJoinClause(table));
+        return this;
+    }
+
+    public ISelectBuilderFrom NaturalRightJoin(TableReference table)
+    {
+        AddPart(new NaturalRightJoinClause(table));
+        return this;
+    }
+
     public ISelectBuilderPaginated Offset(int start)
     {
         AddPart(new OffsetClause(start));
@@ -298,6 +322,12 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
                 distinctOn,
                 selectItems));
 
+        return this;
+    }
+
+    public ISelectBuilderFrom Using(DbColumn column, params DbColumn[] additionalColumns)
+    {
+        AddPart(new JoinUsingClause([column, .. additionalColumns]));
         return this;
     }
 

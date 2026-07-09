@@ -175,6 +175,53 @@ SqlStatement sql =
 - `FullJoin()` for `FULL JOIN`
 - `CrossJoin()` for `CROSS JOIN`
 
+#### NATURAL JOIN and JOIN ... USING
+
+Two alternatives to an explicit `On(...)` predicate, both matching rows by
+column name instead of by an expression you write:
+
+```csharp
+DbTable u = new("users", "u");
+DbTable o = new("orders", "o");
+
+SqlStatement sql =
+    Select(u.Column("name"))
+    .From(u)
+    .NaturalJoin(o)
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// NATURAL JOIN orders "o"
+```
+
+`NaturalJoin()` / `NaturalLeftJoin()` / `NaturalRightJoin()` / `NaturalFullJoin()`
+match on **every** column name the two tables share — add or rename a column on
+either side and the join's meaning silently changes, so reach for it only when
+that coupling is acceptable. `JOIN ... USING` narrows the match to just the
+columns you name:
+
+```csharp
+SqlStatement sql =
+    Select(u.Column("name"))
+    .From(u)
+    .InnerJoin(o)
+    .Using(u.Column("user_id"))
+    .Build();
+
+// SELECT "u".name
+// FROM users "u"
+// INNER JOIN orders "o"
+// USING (user_id)
+```
+
+`.Using(...)` follows `InnerJoin()` / `LeftJoin()` / `RightJoin()` / `FullJoin()`
+in place of `.On(...)`; the listed columns must exist, unqualified, on both
+sides. MySQL, Oracle, PostgreSQL, and SQLite support both forms (standard SQL);
+SQL Server has neither spelling — write the equivalent `On(...)` predicate
+there. `NaturalFullJoin()` has the same additional gap as `FullJoin()`: MySQL
+has no `FULL JOIN` at all, so it is unsupported there too.
+
 #### Correlated joins: APPLY / LATERAL
 
 To join a correlated derived table (per-group Top-N, lateral function expansion,
