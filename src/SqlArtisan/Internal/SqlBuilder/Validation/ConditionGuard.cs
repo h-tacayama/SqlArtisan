@@ -1,9 +1,8 @@
 namespace SqlArtisan.Internal;
 
 // The Build()-time guard every written condition clause calls from its Format
-// (the #236 empty-state policy): a clause with no runnable condition is rejected,
-// not silently dropped. Checked at Build(), not eagerly, because `operator &` can
-// make a held AND group non-empty after the clause method returns.
+// (#236): a clause with no runnable condition is rejected, not silently dropped.
+// Checked at Build(), not eagerly — `operator &` can grow a held AND group.
 internal static class ConditionGuard
 {
     internal static void ThrowIfEmpty(SqlPart condition, string message)
