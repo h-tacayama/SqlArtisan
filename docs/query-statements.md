@@ -733,15 +733,13 @@ SqlStatement sql =
 // INSERT IGNORE INTO users (id, name) VALUES (?0, ?1)
 ```
 
-`IGNORE` turns the whole statement's errors into warnings, not only duplicate-key
-ones: rows that violate a foreign key are skipped and out-of-range values are
+`IGNORE` downgrades the statement's errors to warnings — not only duplicate keys
+but foreign-key violations and out-of-range values, whose rows are skipped or
 coerced. Prefer it to the `ON DUPLICATE KEY UPDATE id = id` trick, which burns an
-`AUTO_INCREMENT` value per skipped row and reports affected rows differently; for
-a portable skip-existing insert, use `INSERT … SELECT … WHERE NOT EXISTS`. The
-narrowed builder omits the UPSERT clauses — `.OnDuplicateKeyUpdate(...)` will not
-compile after `InsertIgnoreInto(...)`, since `IGNORE` would override it. On
-PostgreSQL and SQLite the do-nothing insert is `ON CONFLICT DO NOTHING` (above),
-so SQLite's own `INSERT OR IGNORE` is not exposed separately.
+`AUTO_INCREMENT` value per skipped row; for a portable skip-existing insert, use
+`INSERT … SELECT … WHERE NOT EXISTS`. On PostgreSQL and SQLite the do-nothing
+insert is `ON CONFLICT DO NOTHING` (above), so SQLite's `INSERT OR IGNORE` is not
+exposed separately.
 
 ---
 
