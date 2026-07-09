@@ -75,13 +75,13 @@ public class BuilderReuseTests
     [Fact]
     public void Build_FreshChainPerDialect_BuildsEach()
     {
-        // Rebuilding from a factory, not reusing a held instance, is what makes
-        // a repeated call — here, two dialects — safe.
-        Func<ISqlBuilder> query = () =>
-            Select(_t.Code).From(_t).Where(_t.Code == 1);
+        // A local function parameterized by the part that changes — here, the
+        // dialect — rebuilds the chain per call instead of reusing an instance.
+        SqlStatement Query(Dbms dbms) =>
+            Select(_t.Code).From(_t).Where(_t.Code == 1).Build(dbms);
 
-        SqlStatement pg = query().Build(Dbms.PostgreSql);
-        SqlStatement ora = query().Build(Dbms.Oracle);
+        SqlStatement pg = Query(Dbms.PostgreSql);
+        SqlStatement ora = Query(Dbms.Oracle);
 
         Assert.Equal("SELECT code FROM test_table WHERE code = :0", pg.Text);
         Assert.Equal("SELECT code FROM test_table WHERE code = :0", ora.Text);
