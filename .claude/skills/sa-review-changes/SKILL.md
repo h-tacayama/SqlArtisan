@@ -96,6 +96,11 @@ check the diff against each:
   never *promise* mutation (the contract wording is "a partial chain is
   one-way"), keeping copy-on-write open as a later bug-fix. Flag docs or code
   that locks mutation in.
+- **Comment audit.** Comments are part of the diff — hold them to the same bar.
+  Run the `.claude/rules/code-comments.md` smell checklist (1–8) and length
+  defaults over every added or changed `//` and `///`; delete restatements and
+  message-echoes, and trim anything over the defaults to why-only. AI-written
+  diffs skew verbose here, so this is a required pass, not an optional one.
 
 ## 5. Verify empirically with a throwaway harness
 

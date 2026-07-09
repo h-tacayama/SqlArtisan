@@ -85,6 +85,8 @@ there, not here — a pointer line in this list is enough.
   the `sa-run-sql-harness` skill.
 - Update `CHANGELOG.md` for user-visible changes. Usage examples live in
   `docs/`, not in the README.
+- Comment the **why**, never the **what**; keep comments short. See
+  `.claude/rules/code-comments.md`.
 
 ## Git
 
