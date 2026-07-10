@@ -5,9 +5,9 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// The single-use builder contract (#245): once Build() succeeds, any further
-// stage call or Build() on that instance throws instead of silently
-// contaminating the next build.
+// The single-use builder contract: once Build() succeeds, any further stage
+// call or Build() on that instance throws instead of silently contaminating
+// the next build.
 public class BuilderReuseTests
 {
     private const string SelectBuiltMessage =
@@ -18,9 +18,9 @@ public class BuilderReuseTests
     [Fact]
     public void Pagination_ChainedAfterBuild_ThrowsArgumentException()
     {
-        // The audit's A9 shape: a held chain built once, then extended down the
-        // other pagination family — previously stacked into invalid SQL.
-        var stmt = Select(_t.Code).From(_t).OrderBy(_t.Code);
+        // A held chain built once, then extended down the other pagination
+        // family — previously stacked both families into invalid SQL.
+        ISelectBuilderOrderBy stmt = Select(_t.Code).From(_t).OrderBy(_t.Code);
         stmt.Limit(10).Build();
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
@@ -32,7 +32,7 @@ public class BuilderReuseTests
     [Fact]
     public void Where_ChainedAfterBuild_ThrowsArgumentException()
     {
-        var q = Select(_t.Code).From(_t);
+        ISelectBuilderFrom q = Select(_t.Code).From(_t);
         q.Where(_t.Code == 1).Build();
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
@@ -44,7 +44,7 @@ public class BuilderReuseTests
     [Fact]
     public void Build_CalledTwice_ThrowsArgumentException()
     {
-        var stmt = Select(_t.Code).From(_t).Where(_t.Code == 1);
+        ISelectBuilderWhere stmt = Select(_t.Code).From(_t).Where(_t.Code == 1);
         stmt.Build();
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
@@ -59,7 +59,7 @@ public class BuilderReuseTests
         // A throwing Build() must not freeze the builder — a fix-up on the same
         // instance still builds.
         TestTable aliased = new("t");
-        var stmt = DeleteFrom(aliased);
+        IDeleteBuilderDelete stmt = DeleteFrom(aliased);
 
         Assert.Throws<ArgumentException>(() => stmt.Build(Dbms.SqlServer));
 
@@ -136,7 +136,7 @@ public class BuilderReuseTests
     [Fact]
     public void Update_ChainedAfterBuild_ThrowsArgumentException()
     {
-        var stmt = Update(_t).Set(_t.Code == 1);
+        IUpdateBuilderSet stmt = Update(_t).Set(_t.Code == 1);
         stmt.Build();
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
@@ -150,7 +150,7 @@ public class BuilderReuseTests
     [Fact]
     public void InsertValues_ChainedAfterBuild_ThrowsArgumentException()
     {
-        var stmt = InsertInto(_t, _t.Code, _t.Name).Values(1, "a");
+        IInsertBuilderValues stmt = InsertInto(_t, _t.Code, _t.Name).Values(1, "a");
         stmt.Build();
 
         // A repeat Values() accumulates a row via AddRow, bypassing AddPart —

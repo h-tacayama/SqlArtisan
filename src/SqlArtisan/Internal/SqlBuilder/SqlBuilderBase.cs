@@ -11,7 +11,7 @@ internal abstract class SqlBuilderBase
 
     private readonly List<SqlPart> _parts;
 
-    // Single-use guard (#245): a successful Build() sets this; afterwards any stage
+    // Single-use guard: a successful Build() sets this; afterwards any stage
     // call or Build() throws, blocking silent state contamination from a reused chain.
     private bool _built;
 
