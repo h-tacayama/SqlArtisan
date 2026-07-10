@@ -182,6 +182,97 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_CorrelatedSubqueryUnaliasedTarget_ThrowsArgumentException()
+    {
+        // The bare outer column would resolve to the inner table — a silent
+        // tautology updating every row — so the guard throws at Build (#253).
+        TestTable r = new("r");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t)
+            .Set(_t.Code == Select(Max(r.Code)).From(r).Where(r.Name == _t.Name))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE or DELETE must be aliased.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_CorrelatedSubqueryAliasedTarget_CorrectSql()
+    {
+        TestTable c = new("c");
+        TestTable r = new("r");
+
+        SqlStatement sql =
+            Update(c)
+            .Set(c.Code == Select(Max(r.Code)).From(r).Where(r.Name == c.Name))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE ");
+        expected.Append("test_table AS \"c\" ");
+        expected.Append("SET ");
+        expected.Append("code = ");
+        expected.Append("(SELECT MAX(\"r\".code) ");
+        expected.Append("FROM test_table \"r\" ");
+        expected.Append("WHERE \"r\".name = \"c\".name)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Update_UncorrelatedSubqueryUnaliasedTarget_CorrectSql()
+    {
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            Update(_t)
+            .Set(_t.Name == "x")
+            .Where(_t.Code.In(Select(s.Code).From(s)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE ");
+        expected.Append("test_table ");
+        expected.Append("SET ");
+        expected.Append("name = :0 ");
+        expected.Append("WHERE ");
+        expected.Append("code IN ");
+        expected.Append("(SELECT \"s\".code FROM test_table \"s\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void Update_TargetColumnAfterSubquery_CorrectSql()
+    {
+        // A bare target column following an uncorrelated subquery is back at
+        // statement scope — pins the guard's boundary tracking.
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            Update(_t)
+            .Set(_t.Name == "x")
+            .Where(_t.Code.In(Select(s.Code).From(s)) & (_t.Code == 1))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE ");
+        expected.Append("test_table ");
+        expected.Append("SET ");
+        expected.Append("name = :0 ");
+        expected.Append("WHERE ");
+        expected.Append("(code IN (SELECT \"s\".code FROM test_table \"s\")) ");
+        expected.Append("AND (code = :1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
+    }
+
+    [Fact]
     public void Update_EmptyConditionBesideActiveCondition_CorrectSql()
     {
         // Empty at the call but made non-empty by a later `&` — the guard runs at Build(), not eagerly.

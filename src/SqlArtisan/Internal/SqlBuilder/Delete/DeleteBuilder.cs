@@ -5,6 +5,9 @@ internal sealed class DeleteBuilder(DbTableBase table, params SqlPart[] rootPart
     IDeleteBuilderDelete,
     IDeleteBuilderWhere
 {
+    private protected override DbTableBase? CorrelatedDmlGuardTarget =>
+        table.HasAlias ? null : table;
+
     protected override string StatementName => Keywords.Delete;
 
     public SqlStatement Build() =>

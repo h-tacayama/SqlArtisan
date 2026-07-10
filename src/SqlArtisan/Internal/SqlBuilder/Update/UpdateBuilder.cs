@@ -6,6 +6,9 @@ internal sealed class UpdateBuilder(DbTableBase table, params SqlPart[] rootPart
     IUpdateBuilderUpdate,
     IUpdateBuilderWhere
 {
+    private protected override DbTableBase? CorrelatedDmlGuardTarget =>
+        table.HasAlias ? null : table;
+
     protected override string StatementName => Keywords.Update;
 
     public SqlStatement Build() =>

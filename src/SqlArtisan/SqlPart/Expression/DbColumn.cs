@@ -23,6 +23,12 @@ public sealed class DbColumn(TableReference owner, string name) : SqlExpression
             buffer.EncloseInAliasQuotes(correlationName);
             buffer.Append('.');
         }
+        else
+        {
+            // A bare DML-target column inside a subquery resolves to the inner
+            // scope — a silent tautology — so the guard fails loudly (#253).
+            buffer.ThrowIfCorrelatedDmlColumn(owner);
+        }
 
         buffer.Append(Name);
     }
