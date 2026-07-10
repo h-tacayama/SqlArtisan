@@ -284,4 +284,43 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(1, remaining);
         transaction.Rollback();
     }
+
+    [Fact] // #241 (GAP-19) probe: the same DECODE instance in SELECT and GROUP BY
+           // mints fresh bind slots per occurrence — records Oracle's accept/reject
+           // (hypothesis: ORA-00979, GROUP BY is matched syntactically).
+    public void GroupBy_SharedBindExpression_Executes()
+    {
+        UsersTable u = new();
+        SqlExpression label = Decode(u.DepartmentId, (10, "Low"), (20, "Mid"), "Other");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        int groups = connection
+            .Query<string>(Select(label).From(u).GroupBy(label))
+            .Count();
+
+        Assert.Equal(3, groups);
+    }
+
+    [Fact] // #241 (GAP-19) probe: the CTE-wrap escape — the bind values occur once
+           // inside the CTE body, so GROUP BY references only the projected column.
+    public void GroupBy_SharedBindExpression_CteWrap_Executes()
+    {
+        UsersTable u = new();
+        Cte labeled = new("labeled");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        int groups = connection
+            .Query<string>(
+                With(labeled.As(
+                    Select(
+                        Decode(u.DepartmentId, (10, "Low"), (20, "Mid"), "Other")
+                            .As(labeled.Column("label")))
+                    .From(u)))
+                .Select(labeled.Column("label"))
+                .From(labeled)
+                .GroupBy(labeled.Column("label")))
+            .Count();
+
+        Assert.Equal(3, groups);
+    }
 }
