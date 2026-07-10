@@ -29,9 +29,7 @@ public abstract class TableReference : SqlPart
         _name = name;
     }
 
-    // The name that qualifies a column reference belonging to this table —
-    // DbTableBase returns the alias (empty when unaliased), CteBase and
-    // DerivedTableBase return the name.
+    // The name used to qualify column references belonging to this relation.
     internal abstract string CorrelationName { get; }
 
     // Whether the name is alias-quoted when rendered. A reference whose name also

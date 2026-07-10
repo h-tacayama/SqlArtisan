@@ -8,11 +8,11 @@ namespace SqlArtisan;
 /// <see cref="DbTableBase"/> subclass.
 /// </summary>
 /// <param name="owner">The table, CTE, or derived table that owns this column.</param>
-/// <param name="columnName">The column name as it appears in SQL.</param>
-public sealed class DbColumn(TableReference owner, string columnName) : SqlExpression
+/// <param name="name">The column name as it appears in SQL.</param>
+public sealed class DbColumn(TableReference owner, string name) : SqlExpression
 {
     internal TableReference Owner => owner;
-    internal string Name => columnName;
+    internal string Name => name;
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
