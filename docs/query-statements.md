@@ -11,6 +11,7 @@
 > - SqlArtisan emits the SQL you write; **cross-database portability is a non-goal**.
 > - Pick the API for your target DBMS; a single call is not rewritten per dialect.
 > - Dialect notes list databases in the order **MySQL, Oracle, PostgreSQL, SQLite, SQL Server**.
+> - A builder chain is **single-use**: `Build()` finishes it, including when a Dapper call runs `Build()` internally — see [Reusing a builder chain](#reusing-a-builder-chain).
 
 ## Contents
 
@@ -559,6 +560,31 @@ SqlStatement sql =
 ```
 
 On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited query through a CTE (`With(c.As(...))`) and select from that instead. Every other subquery position — scalar, `EXISTS`, CTE body, `LATERAL` — accepts `LIMIT` on MySQL.
+
+#### Reusing a builder chain
+
+A builder chain is **single-use**: once you call `Build()`, that builder is finished — any further call on it, including a second `Build()`, throws. This turns a silently-wrong reuse into a loud error, so a held chain can't leak one page's clauses into another:
+
+```csharp
+// NG — holding a base query to fetch each page throws on the second Build().
+TestTable t = new();
+var q = Select(t.Code).From(t).OrderBy(t.Code).Limit(10);
+
+SqlStatement page1 = q.Offset(0).Build();
+SqlStatement page2 = q.Offset(10).Build();  // throws:
+// This SELECT statement was already built; start a new chain.
+```
+
+Rebuild the chain per call instead — a local function parameterized by the part that changes:
+
+```csharp
+// OK — each call builds a fresh chain.
+SqlStatement Page(int offset) =>
+    Select(t.Code).From(t).OrderBy(t.Code).Limit(10).Offset(offset).Build();
+
+SqlStatement page1 = Page(0);
+SqlStatement page2 = Page(10);
+```
 
 ---
 

@@ -11,6 +11,8 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     IMergeBuilderWhenNotMatched,
     IMergeBuilderWhenNotMatchedBySource
 {
+    protected override string StatementName => Keywords.Merge;
+
     public SqlStatement Build() => BuildCore(SqlArtisanConfig.DefaultDbms);
 
     public SqlStatement Build(Dbms dbms) => BuildCore(dbms);

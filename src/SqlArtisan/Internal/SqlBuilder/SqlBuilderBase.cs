@@ -11,13 +11,33 @@ internal abstract class SqlBuilderBase
 
     private readonly List<SqlPart> _parts;
 
+    // Single-use guard: a successful Build() sets this; afterwards any stage
+    // call or Build() throws, blocking silent state contamination from a reused chain.
+    private bool _built;
+
     protected SqlBuilderBase(SqlPart[] rootParts)
     {
         _parts = new List<SqlPart>(Math.Max(rootParts.Length, ExpectedClauseCount));
         _parts.AddRange(rootParts);
     }
 
-    protected internal void AddPart(SqlPart part) => _parts.Add(part);
+    // The SQL spelling of the statement, for the single-use guard message.
+    protected abstract string StatementName { get; }
+
+    protected internal void AddPart(SqlPart part)
+    {
+        ThrowIfBuilt();
+        _parts.Add(part);
+    }
+
+    protected void ThrowIfBuilt()
+    {
+        if (_built)
+        {
+            throw new ArgumentException(
+                $"This {StatementName} statement was already built; start a new chain.");
+        }
+    }
 
     internal SqlStatement BuildWithPart(SqlPart extraPart, Dbms dbms)
     {
@@ -37,11 +57,15 @@ internal abstract class SqlBuilderBase
 
     protected SqlStatement BuildCore(Dbms dbms)
     {
+        ThrowIfBuilt();
         Validate(dbms);
         IDbmsDialect dialect = DbmsDialectFactory.Create(dbms);
         using SqlBuildingBuffer buffer = new(dialect);
         buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
         AppendTrailing(buffer);
+        // Set last so a throw above (Validate / empty-clause guard) leaves the
+        // builder usable for a fix-up on the same instance.
+        _built = true;
         return buffer.ToSqlStatement();
     }
 

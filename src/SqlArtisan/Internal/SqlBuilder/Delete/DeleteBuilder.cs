@@ -5,6 +5,8 @@ internal sealed class DeleteBuilder(DbTableBase table, params SqlPart[] rootPart
     IDeleteBuilderDelete,
     IDeleteBuilderWhere
 {
+    protected override string StatementName => Keywords.Delete;
+
     public SqlStatement Build() =>
         BuildCore(SqlArtisanConfig.DefaultDbms);
 

@@ -179,6 +179,8 @@ dotnet add package SqlArtisan.Dapper   # optional: Dapper execution
     IEnumerable<UserDto> users = await connection.QueryAsync<UserDto>(sql);
     ```
 
+    **Note:** `sql` above is single-use — `Build()` runs inside `QueryAsync` (and every other Dapper call) the moment you call it, so passing the same `sql` to a second call, e.g. to fetch another page, throws. Build a fresh query per call instead. See [Reusing a builder chain](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#reusing-a-builder-chain).
+
     **Alternative: Manual Execution**
 
     Not using Dapper? Call `Build()` to get the SQL string and its parameters for raw ADO.NET, another micro-ORM, or debugging. `Build()` takes an optional `Dbms` (default `PostgreSql`) that sets dialect details like the parameter prefix (`:` vs `@`).
@@ -188,6 +190,8 @@ dotnet add package SqlArtisan.Dapper   # optional: Dapper execution
     // sql.Text       => "SELECT id, name FROM users WHERE id = :0"
     // sql.Parameters => ":0" is 10
     ```
+
+    **Note:** the same rule applies — a builder is single-use, so calling `Build()` again on that instance throws. Rebuild the chain per call rather than holding a partial one across calls.
 
 ---
 

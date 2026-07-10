@@ -6,6 +6,8 @@ internal sealed class UpdateBuilder(DbTableBase table, params SqlPart[] rootPart
     IUpdateBuilderUpdate,
     IUpdateBuilderWhere
 {
+    protected override string StatementName => Keywords.Update;
+
     public SqlStatement Build() =>
         BuildCore(SqlArtisanConfig.DefaultDbms);
 

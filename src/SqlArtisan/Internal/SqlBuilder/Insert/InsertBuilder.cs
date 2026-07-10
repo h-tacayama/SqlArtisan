@@ -15,6 +15,8 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
 {
     private InsertValuesClause? _valuesClause;
 
+    protected override string StatementName => Keywords.Insert;
+
     public IReturning DoNothing()
     {
         AddPart(new DoNothingClause());
@@ -57,6 +59,9 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
 
     public IInsertBuilderValues Values(params object[] values)
     {
+        // A repeat Values() appends a row via AddRow, bypassing AddPart's guard.
+        ThrowIfBuilt();
+
         if (_valuesClause is null)
         {
             _valuesClause = InsertValuesClause.Parse(values);
