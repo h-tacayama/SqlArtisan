@@ -29,6 +29,8 @@ public abstract class DbTableBase : TableReference
         _tableAlias = tableAlias;
     }
 
+    internal override string CorrelationName => _tableAlias;
+
     // Whether this table carries an alias — read by the DML-target guard, since
     // aliasing an INSERT/UPDATE/DELETE target is rejected on SQL Server (ADR 0011).
     internal bool HasAlias => !string.IsNullOrEmpty(_tableAlias);

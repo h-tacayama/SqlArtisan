@@ -10,13 +10,13 @@ internal sealed class UsersTable : DbTableBase
 {
     public UsersTable(string alias = "") : base("users", alias)
     {
-        Id = new DbColumn(alias, "id");
-        Name = new DbColumn(alias, "name");
-        Age = new DbColumn(alias, "age");
-        DepartmentId = new DbColumn(alias, "department_id");
-        CreatedAt = new DbColumn(alias, "created_at");
-        IsActive = new DbColumn(alias, "is_active");
-        Data = new DbColumn(alias, "data");
+        Id = new DbColumn(this, "id");
+        Name = new DbColumn(this, "name");
+        Age = new DbColumn(this, "age");
+        DepartmentId = new DbColumn(this, "department_id");
+        CreatedAt = new DbColumn(this, "created_at");
+        IsActive = new DbColumn(this, "is_active");
+        Data = new DbColumn(this, "data");
     }
 
     public DbColumn Id { get; }

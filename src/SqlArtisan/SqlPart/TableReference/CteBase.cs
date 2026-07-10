@@ -19,6 +19,8 @@ public abstract class CteBase(string name) : TableReference(name)
     /// <returns>A <see cref="CommonTableExpression"/> pairing this CTE's name with <paramref name="subquery"/>.</returns>
     public CommonTableExpression As(ISubquery subquery) => new(_name, subquery);
 
+    internal override string CorrelationName => _name;
+
     // The CTE name is quoted wherever it is referenced (e.g. `FROM "cte"`) to
     // match the quoted `WITH "cte" AS ...` definition and the quoted column
     // references (`"cte".col`). See TableReference.QuoteName.

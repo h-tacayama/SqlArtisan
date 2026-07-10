@@ -29,6 +29,11 @@ public abstract class TableReference : SqlPart
         _name = name;
     }
 
+    // The name that qualifies a column reference belonging to this table —
+    // DbTableBase returns the alias (empty when unaliased), CteBase and
+    // DerivedTableBase return the name.
+    internal abstract string CorrelationName { get; }
+
     // Whether the name is alias-quoted when rendered. A reference whose name also
     // qualifies column references — a CTE or derived table — must quote it so the
     // two agree; otherwise a bare name case-folds on Oracle (`x` -> `X`) while the

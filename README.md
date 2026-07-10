@@ -128,9 +128,9 @@ dotnet add package SqlArtisan.Dapper   # optional: Dapper execution
     {
         public UsersTable(string tableAlias = "") : base("users", tableAlias)
         {
-            Id = new DbColumn(tableAlias, "id");
-            Name = new DbColumn(tableAlias, "name");
-            CreatedAt = new DbColumn(tableAlias, "created_at");
+            Id = new DbColumn(this, "id");
+            Name = new DbColumn(this, "name");
+            CreatedAt = new DbColumn(this, "created_at");
         }
 
         public DbColumn Id { get; }

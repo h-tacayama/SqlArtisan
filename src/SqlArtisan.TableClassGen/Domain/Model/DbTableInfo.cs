@@ -28,7 +28,7 @@ internal sealed class DbTableInfo(
 
         foreach (DbColumnInfo column in Columns)
         {
-            code.AppendLine($"\t\t{column.PascalCaseName} = new DbColumn(tableAlias, \"{column.Name}\");");
+            code.AppendLine($"\t\t{column.PascalCaseName} = new DbColumn(this, \"{column.Name}\");");
         }
 
         code.AppendLine("\t}");

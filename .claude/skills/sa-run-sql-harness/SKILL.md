@@ -46,7 +46,7 @@ using static SqlArtisan.Sql;
 
 internal sealed class T : DbTableBase
 {
-    public T() : base("users", "") { Name = new DbColumn("", "name"); Id = new DbColumn("", "id"); }
+    public T() : base("users", "") { Name = new DbColumn(this, "name"); Id = new DbColumn(this, "id"); }
     public DbColumn Name { get; }
     public DbColumn Id { get; }
 }

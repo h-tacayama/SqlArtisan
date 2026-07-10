@@ -4,9 +4,9 @@ internal sealed class Users : DbTableBase
 {
     public Users(string alias) : base("users", alias)
     {
-        Id = new DbColumn(alias, "id");
-        Name = new DbColumn(alias, "name");
-        CreatedAt = new DbColumn(alias, "created_at");
+        Id = new DbColumn(this, "id");
+        Name = new DbColumn(this, "name");
+        CreatedAt = new DbColumn(this, "created_at");
     }
 
     public DbColumn Id { get; }
