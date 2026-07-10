@@ -6,8 +6,8 @@ internal sealed class TestDerivedTable : DerivedTableBase
 {
     public TestDerivedTable(string name) : base(name)
     {
-        Code = new DbColumn(name, "code");
-        Total = new DbColumn(name, "total");
+        Code = new DbColumn(this, "code");
+        Total = new DbColumn(this, "total");
     }
 
     public DbColumn Code { get; }

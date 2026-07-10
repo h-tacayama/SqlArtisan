@@ -8,9 +8,9 @@ internal sealed class OrdersTable : DbTableBase
 {
     public OrdersTable(string alias = "") : base("orders", alias)
     {
-        Id = new DbColumn(alias, "id");
-        UserId = new DbColumn(alias, "user_id");
-        Amount = new DbColumn(alias, "amount");
+        Id = new DbColumn(this, "id");
+        UserId = new DbColumn(this, "user_id");
+        Amount = new DbColumn(this, "amount");
     }
 
     public DbColumn Id { get; }

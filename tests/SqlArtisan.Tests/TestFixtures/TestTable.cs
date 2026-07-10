@@ -4,9 +4,9 @@ internal sealed class TestTable : DbTableBase
 {
     public TestTable(string alias = "") : base("test_table", alias)
     {
-        Code = new DbColumn(alias, "code");
-        Name = new DbColumn(alias, "name");
-        CreatedAt = new DbColumn(alias, "created_at");
+        Code = new DbColumn(this, "code");
+        Name = new DbColumn(this, "name");
+        CreatedAt = new DbColumn(this, "created_at");
     }
 
     public DbColumn Code { get; }

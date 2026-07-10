@@ -4,11 +4,11 @@ internal sealed class AllTabColumns : DbTableBase
 {
     public AllTabColumns(string alias = "") : base("all_tab_columns", alias)
     {
-        Owner = new DbColumn(alias, "owner");
-        TableName = new DbColumn(alias, "table_name");
-        ColumnName = new DbColumn(alias, "column_name");
-        DataType = new DbColumn(alias, "data_type");
-        ColumnId = new DbColumn(alias, "column_id");
+        Owner = new DbColumn(this, "owner");
+        TableName = new DbColumn(this, "table_name");
+        ColumnName = new DbColumn(this, "column_name");
+        DataType = new DbColumn(this, "data_type");
+        ColumnId = new DbColumn(this, "column_id");
     }
 
     public DbColumn Owner { get; }

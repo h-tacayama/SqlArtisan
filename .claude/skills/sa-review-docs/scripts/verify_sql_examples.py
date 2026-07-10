@@ -43,36 +43,36 @@ using static SqlArtisan.Sql;
 
 internal sealed class UsersTable : DbTableBase {
     public UsersTable(string a="") : base("users",a) {
-        Id=new(a,"id");Name=new(a,"name");CreatedAt=new(a,"created_at");StatusId=new(a,"status_id");
-        Age=new(a,"age");DepartmentId=new(a,"department_id");Salary=new(a,"salary");Amount=new(a,"amount");Date=new(a,"date");
-        Data=new(a,"data");IsActive=new(a,"is_active");
+        Id=new(this,"id");Name=new(this,"name");CreatedAt=new(this,"created_at");StatusId=new(this,"status_id");
+        Age=new(this,"age");DepartmentId=new(this,"department_id");Salary=new(this,"salary");Amount=new(this,"amount");Date=new(this,"date");
+        Data=new(this,"data");IsActive=new(this,"is_active");
     }
     public DbColumn Id{get;} public DbColumn Name{get;} public DbColumn CreatedAt{get;} public DbColumn StatusId{get;}
     public DbColumn Age{get;} public DbColumn DepartmentId{get;} public DbColumn Salary{get;} public DbColumn Amount{get;} public DbColumn Date{get;}
     public DbColumn Data{get;} public DbColumn IsActive{get;}
 }
 internal sealed class PostsTable : DbTableBase {
-    public PostsTable(string a="") : base("posts",a) { Id=new(a,"id");Title=new(a,"title");Body=new(a,"body"); }
+    public PostsTable(string a="") : base("posts",a) { Id=new(this,"id");Title=new(this,"title");Body=new(this,"body"); }
     public DbColumn Id{get;} public DbColumn Title{get;} public DbColumn Body{get;}
 }
 internal sealed class OrdersTable : DbTableBase {
-    public OrdersTable(string a="") : base("orders",a) { Id=new(a,"id");UserId=new(a,"user_id");OrderDate=new(a,"order_date"); }
+    public OrdersTable(string a="") : base("orders",a) { Id=new(this,"id");UserId=new(this,"user_id");OrderDate=new(this,"order_date"); }
     public DbColumn Id{get;} public DbColumn UserId{get;} public DbColumn OrderDate{get;}
 }
 internal sealed class ArchivedUsersTable : DbTableBase {
-    public ArchivedUsersTable(string a="") : base("archived_users",a) { Id=new(a,"id");Name=new(a,"name");CreatedAt=new(a,"created_at"); }
+    public ArchivedUsersTable(string a="") : base("archived_users",a) { Id=new(this,"id");Name=new(this,"name");CreatedAt=new(this,"created_at"); }
     public DbColumn Id{get;} public DbColumn Name{get;} public DbColumn CreatedAt{get;}
 }
 internal sealed class TestTable : DbTableBase {
-    public TestTable(string a="") : base("test_table",a) { Code=new(a,"code"); }
+    public TestTable(string a="") : base("test_table",a) { Code=new(this,"code"); }
     public DbColumn Code{get;}
 }
 internal sealed class SalesTable : DbTableBase {
-    public SalesTable(string a="") : base("sales",a) { Region=new(a,"region");Product=new(a,"product");Amount=new(a,"amount");Channel=new(a,"channel"); }
+    public SalesTable(string a="") : base("sales",a) { Region=new(this,"region");Product=new(this,"product");Amount=new(this,"amount");Channel=new(this,"channel"); }
     public DbColumn Region{get;} public DbColumn Product{get;} public DbColumn Amount{get;} public DbColumn Channel{get;}
 }
 internal sealed class SeniorUsersCte : CteBase {
-    public SeniorUsersCte(string name) : base(name) { SeniorId=new(name,"senior_id");SeniorName=new(name,"senior_name");SeniorAge=new(name,"senior_age"); }
+    public SeniorUsersCte(string name) : base(name) { SeniorId=new(this,"senior_id");SeniorName=new(this,"senior_name");SeniorAge=new(this,"senior_age"); }
     public DbColumn SeniorId{get;} public DbColumn SeniorName{get;} public DbColumn SeniorAge{get;}
 }
 """

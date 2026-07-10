@@ -4,9 +4,9 @@ internal sealed class TestCte : CteBase
 {
     public TestCte(string name) : base(name)
     {
-        CteCode = new DbColumn(name, "cte_code");
-        CteName = new DbColumn(name, "cte_name");
-        CteCreatedAt = new DbColumn(name, "cte_created_at");
+        CteCode = new DbColumn(this, "cte_code");
+        CteName = new DbColumn(this, "cte_name");
+        CteCreatedAt = new DbColumn(this, "cte_created_at");
     }
 
     public DbColumn CteCode { get; }

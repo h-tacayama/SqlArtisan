@@ -888,9 +888,9 @@ internal sealed class SeniorUsersCte : CteBase
 {
     public SeniorUsersCte(string name) : base(name)
     {
-        SeniorId = new DbColumn(name, "senior_id");
-        SeniorName = new DbColumn(name, "senior_name");
-        SeniorAge = new DbColumn(name, "senior_age");
+        SeniorId = new DbColumn(this, "senior_id");
+        SeniorName = new DbColumn(this, "senior_name");
+        SeniorAge = new DbColumn(this, "senior_age");
     }
 
     public DbColumn SeniorId { get; }

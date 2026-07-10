@@ -5,11 +5,11 @@ internal sealed class InformationSchemaColumns : DbTableBase
     public InformationSchemaColumns(string alias = "")
         : base("information_schema.columns", alias)
     {
-        TableSchema = new DbColumn(alias, "table_schema");
-        TableName = new DbColumn(alias, "table_name");
-        ColumnName = new DbColumn(alias, "column_name");
-        OrdinalPosition = new DbColumn(alias, "ordinal_position");
-        DataType = new DbColumn(alias, "data_type");
+        TableSchema = new DbColumn(this, "table_schema");
+        TableName = new DbColumn(this, "table_name");
+        ColumnName = new DbColumn(this, "column_name");
+        OrdinalPosition = new DbColumn(this, "ordinal_position");
+        DataType = new DbColumn(this, "data_type");
     }
 
     public DbColumn TableSchema { get; }

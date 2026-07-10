@@ -5,9 +5,9 @@ namespace SqlArtisan.Internal;
 // of every implementer until it is added.
 internal interface IColumnAccessor
 {
-    DbColumn Column(string columnName);
+    DbColumn Column(string name);
 
-    DbColumn Column(DbColumn sourceColumn);
+    DbColumn Column(DbColumn source);
 
-    DbColumn Column(ExpressionAlias expressionAlias);
+    DbColumn Column(ExpressionAlias alias);
 }

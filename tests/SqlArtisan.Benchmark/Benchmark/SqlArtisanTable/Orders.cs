@@ -4,9 +4,9 @@ internal sealed class Orders : DbTableBase
 {
     public Orders(string alias) : base("orders", alias)
     {
-        Id = new DbColumn(alias, "id");
-        UserId = new DbColumn(alias, "user_id");
-        OrderDate = new DbColumn(alias, "order_date");
+        Id = new DbColumn(this, "id");
+        UserId = new DbColumn(this, "user_id");
+        OrderDate = new DbColumn(this, "order_date");
     }
 
     public DbColumn Id { get; }
