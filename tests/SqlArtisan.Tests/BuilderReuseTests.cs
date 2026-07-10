@@ -90,9 +90,8 @@ public class BuilderReuseTests
     [Fact]
     public void Returning_BuildCalledTwice_ThrowsArgumentException()
     {
-        // Returning().Build() routes through BuildWithPart, which appends its
-        // extra part directly (bypassing AddPart) before delegating to
-        // BuildCore — a distinct path from every other stage method.
+        // Returning().Build() routes through BuildWithPart, which bypasses
+        // AddPart's guard directly — a distinct path from every other stage.
         IReturningBuilder ret = Update(_t).Set(_t.Code == 1).Returning(_t.Code);
         ret.Build();
 
