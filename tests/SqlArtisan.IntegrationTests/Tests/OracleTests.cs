@@ -285,10 +285,10 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
-    [Fact] // #241 (GAP-19) probe: the same DECODE instance in SELECT and GROUP BY
-           // mints fresh bind slots per occurrence — records Oracle's accept/reject
-           // (hypothesis: ORA-00979, GROUP BY is matched syntactically).
-    public void GroupBy_SharedBindExpression_Executes()
+    [Fact] // #241 (GAP-19): the issue's original DECODE repro, kept Oracle-side as
+           // the live check that a marker-reusing statement binds correctly through
+           // Dapper + ODP.NET (the provider binds by position unless BindByName).
+    public void GroupBy_SharedDecodeExpression_Executes()
     {
         UsersTable u = new();
         SqlExpression label = Decode(u.DepartmentId, (10, "Low"), (20, "Mid"), "Other");
@@ -301,26 +301,23 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(3, groups);
     }
 
-    [Fact] // #241 (GAP-19) probe: the CTE-wrap escape — the bind values occur once
-           // inside the CTE body, so GROUP BY references only the projected column.
-    public void GroupBy_SharedBindExpression_CteWrap_Executes()
+    [Fact] // #241 (GAP-19): Oracle matches GROUP BY expressions syntactically, so a
+           // parameterized SELECT expression repeated with fresh markers fails with
+           // ORA-00979 (live-verified). Raw SQL by necessity — SqlArtisan now
+           // reuses a shared instance's markers and cannot emit this form.
+    public void GroupByBindMarkerMismatch_Rejected()
     {
-        UsersTable u = new();
-        Cte labeled = new("labeled");
         using IDbConnection connection = _fixture.OpenConnection();
 
-        int groups = connection
-            .Query<string>(
-                With(labeled.As(
-                    Select(
-                        Decode(u.DepartmentId, (10, "Low"), (20, "Mid"), "Other")
-                            .As(labeled.Column("label")))
-                    .From(u)))
-                .Select(labeled.Column("label"))
-                .From(labeled)
-                .GroupBy(labeled.Column("label")))
-            .Count();
+        // The expression itself is valid (table and columns are right).
+        connection.Execute(
+            "SELECT DECODE(department_id, :p0, :p1, :p2) FROM users",
+            new { p0 = 10, p1 = "Low", p2 = "Other" });
 
-        Assert.Equal(3, groups);
+        // The only difference — distinct markers in GROUP BY — is what Oracle rejects.
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "SELECT DECODE(department_id, :p0, :p1, :p2) FROM users "
+                + "GROUP BY DECODE(department_id, :p3, :p4, :p5)",
+            new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
 }

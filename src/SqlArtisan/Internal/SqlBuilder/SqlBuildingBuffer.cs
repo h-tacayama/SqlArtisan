@@ -422,6 +422,22 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        // The same instance formatted again (one expression held in SELECT and
+        // GROUP BY) reuses its marker — engines that match GROUP BY syntactically
+        // reject distinct markers (#241). Identity only, via the existing list, so
+        // the common no-repeat path stays allocation-free.
+        if (_parameters is not null)
+        {
+            foreach (KeyValuePair<string, BindValue> parameter in _parameters)
+            {
+                if (ReferenceEquals(parameter.Value, bindValue))
+                {
+                    Append(parameter.Key);
+                    return this;
+                }
+            }
+        }
+
         _parameters ??= new();
         string name = ParameterNameCache.Get(_dialect.ParameterMarker, _parameters.Count);
         Append(name);

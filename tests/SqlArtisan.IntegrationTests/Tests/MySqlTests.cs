@@ -142,43 +142,4 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
-    [Fact] // #241 (GAP-19) probe: the same CASE instance in SELECT and GROUP BY
-           // mints fresh bind slots per occurrence — records MySQL's accept/reject
-           // (uncertain: ONLY_FULL_GROUP_BY runs functional-dependency analysis).
-    public void GroupBy_SharedBindExpression_Executes()
-    {
-        UsersTable u = new();
-        SqlExpression label =
-            Case(u.DepartmentId, When(10).Then("Low"), When(20).Then("Mid"), Else("Other"));
-        using IDbConnection connection = _fixture.OpenConnection();
-
-        int groups = connection
-            .Query<string>(Select(label).From(u).GroupBy(label))
-            .Count();
-
-        Assert.Equal(3, groups);
-    }
-
-    [Fact] // #241 (GAP-19) probe: the CTE-wrap escape — the bind values occur once
-           // inside the CTE body, so GROUP BY references only the projected column.
-    public void GroupBy_SharedBindExpression_CteWrap_Executes()
-    {
-        UsersTable u = new();
-        Cte labeled = new("labeled");
-        using IDbConnection connection = _fixture.OpenConnection();
-
-        int groups = connection
-            .Query<string>(
-                With(labeled.As(
-                    Select(
-                        Case(u.DepartmentId, When(10).Then("Low"), When(20).Then("Mid"), Else("Other"))
-                            .As(labeled.Column("label")))
-                    .From(u)))
-                .Select(labeled.Column("label"))
-                .From(labeled)
-                .GroupBy(labeled.Column("label")))
-            .Count();
-
-        Assert.Equal(3, groups);
-    }
 }

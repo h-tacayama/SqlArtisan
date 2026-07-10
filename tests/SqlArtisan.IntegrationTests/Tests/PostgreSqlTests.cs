@@ -1,4 +1,5 @@
 using System.Data;
+using Dapper;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -228,43 +229,23 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal("Alice", name);
     }
 
-    [Fact] // #241 (GAP-19) probe: the same CASE instance in SELECT and GROUP BY
-           // mints fresh bind slots per occurrence — records PG's accept/reject
-           // (hypothesis: 42803, grouping matches expressions syntactically).
-    public void GroupBy_SharedBindExpression_Executes()
+    [Fact] // #241 (GAP-19): PostgreSQL matches GROUP BY expressions syntactically,
+           // so a parameterized SELECT expression repeated with fresh markers fails
+           // with 42803 (live-verified). Raw SQL by necessity — SqlArtisan now
+           // reuses a shared instance's markers and cannot emit this form.
+    public void GroupByBindMarkerMismatch_Rejected()
     {
-        UsersTable u = new();
-        SqlExpression label =
-            Case(u.DepartmentId, When(10).Then("Low"), When(20).Then("Mid"), Else("Other"));
         using IDbConnection connection = _fixture.OpenConnection();
 
-        int groups = connection
-            .Query<string>(Select(label).From(u).GroupBy(label))
-            .Count();
+        // The expression itself is valid (table and columns are right).
+        connection.Execute(
+            "SELECT CASE department_id WHEN @p0 THEN @p1 ELSE @p2 END FROM users",
+            new { p0 = 10, p1 = "Low", p2 = "Other" });
 
-        Assert.Equal(3, groups);
-    }
-
-    [Fact] // #241 (GAP-19) probe: the CTE-wrap escape — the bind values occur once
-           // inside the CTE body, so GROUP BY references only the projected column.
-    public void GroupBy_SharedBindExpression_CteWrap_Executes()
-    {
-        UsersTable u = new();
-        Cte labeled = new("labeled");
-        using IDbConnection connection = _fixture.OpenConnection();
-
-        int groups = connection
-            .Query<string>(
-                With(labeled.As(
-                    Select(
-                        Case(u.DepartmentId, When(10).Then("Low"), When(20).Then("Mid"), Else("Other"))
-                            .As(labeled.Column("label")))
-                    .From(u)))
-                .Select(labeled.Column("label"))
-                .From(labeled)
-                .GroupBy(labeled.Column("label")))
-            .Count();
-
-        Assert.Equal(3, groups);
+        // The only difference — distinct markers in GROUP BY — is what PG rejects.
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "SELECT CASE department_id WHEN @p0 THEN @p1 ELSE @p2 END FROM users "
+                + "GROUP BY CASE department_id WHEN @p3 THEN @p4 ELSE @p5 END",
+            new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
 }
