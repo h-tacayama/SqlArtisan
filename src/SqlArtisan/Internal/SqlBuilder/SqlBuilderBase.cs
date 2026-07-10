@@ -21,6 +21,11 @@ internal abstract class SqlBuilderBase
         _parts.AddRange(rootParts);
     }
 
+    // Non-null arms the correlated-DML guard (#253): UPDATE/DELETE return their
+    // unaliased target so a target column rendered inside a subquery fails
+    // loudly instead of silently resolving to the inner scope.
+    private protected virtual DbTableBase? CorrelatedDmlGuardTarget => null;
+
     // The SQL spelling of the statement, for the single-use guard message.
     protected abstract string StatementName { get; }
 
@@ -61,6 +66,7 @@ internal abstract class SqlBuilderBase
         Validate(dbms);
         IDbmsDialect dialect = DbmsDialectFactory.Create(dbms);
         using SqlBuildingBuffer buffer = new(dialect);
+        buffer.SetCorrelatedDmlGuardTarget(CorrelatedDmlGuardTarget);
         buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
         AppendTrailing(buffer);
         // Set last so a throw above (Validate / empty-clause guard) leaves the

@@ -19,6 +19,7 @@
   - [SELECT Clause](#select-clause) · [FROM](#from-clause) · [WHERE](#where-clause) · [JOIN](#join-clause) · [ORDER BY](#order-by-clause) · [GROUP BY / HAVING](#group-by-and-having-clause) · [Set Operators](#set-operators) · [FOR UPDATE](#for-update-clause) · [Pagination](#pagination)
 - [DELETE](#delete-statement)
 - [UPDATE](#update-statement)
+  - [Correlated UPDATE / DELETE](#correlated-update--delete)
 - [INSERT](#insert-statement)
   - [Standard](#standard-syntax) · [Multiple Rows](#multiple-rows) · [SET-like](#alternative-syntax-set-like) · [INSERT … SELECT](#insert-select-syntax) · [UPSERT](#upsert-insert-update-or-skip) · [MERGE](#merge-statement) · [WITH / CTE](#with-clause-common-table-expressions)
 - [RETURNING](#returning-clause)
@@ -600,7 +601,7 @@ SqlStatement sql =
 // WHERE id = :0
 ```
 
-**Dialect note:** On SQL Server the `DELETE` target cannot be aliased — pass an unaliased table (`DeleteFrom(new UsersTable())`), since T-SQL introduces the alias through a `FROM` clause instead; building an aliased target for SQL Server throws. MySQL, Oracle, PostgreSQL, and SQLite accept an aliased target.
+**Dialect note:** On SQL Server the `DELETE` target cannot be aliased — pass an unaliased table (`DeleteFrom(new UsersTable())`), since T-SQL introduces the alias through a `FROM` clause instead; building an aliased target for SQL Server throws. MySQL, Oracle, PostgreSQL, and SQLite accept an aliased target. When the statement contains a subquery that references the target, the target **must** be aliased — see [Correlated UPDATE / DELETE](#correlated-update--delete).
 
 ---
 
@@ -624,6 +625,59 @@ SqlStatement sql =
 **Note:** SqlArtisan's `Set()` method uses `Column == Value` for SQL-like assignment, unlike standard C# `==` (comparison). In `Where()` clauses, `==` is used for comparison as expected.
 
 **Dialect note:** As with `DELETE`, on SQL Server the `UPDATE` target cannot be aliased — pass an unaliased table; building an aliased target for SQL Server throws. MySQL, Oracle, PostgreSQL, and SQLite accept an aliased target.
+
+### Correlated UPDATE / DELETE
+
+A target-table column referenced inside a subquery renders bare when the
+target has no alias, and every engine resolves it to the subquery's own
+table — a tautology that silently updates or deletes **every row**. SqlArtisan
+refuses to build that form; `Build()` throws:
+
+> The target of a correlated UPDATE or DELETE must be aliased.
+
+Alias the target — the outer reference then renders qualified and the
+statement means what it says:
+
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    DeleteFrom(u)
+    .Where(NotExists(
+        Select(o.Id)
+        .From(o)
+        .Where(o.UserId == u.Id)))
+    .Build();
+
+// DELETE FROM users AS "u"
+// WHERE NOT EXISTS
+// (SELECT "o".id FROM orders "o" WHERE "o".user_id = "u".id)
+```
+
+To deliberately re-select from the target table in an uncorrelated subquery,
+give the inner scope its own instance — one C# instance cannot stand for two
+SQL scopes, so reusing the target instance inside the subquery also throws:
+
+```csharp
+UsersTable u = new();
+UsersTable i = new("i");
+SqlStatement sql =
+    DeleteFrom(u)
+    .Where(u.Id.In(
+        Select(i.Id)
+        .From(i)
+        .Where(i.Name == "duplicate")))
+    .Build();
+
+// DELETE FROM users
+// WHERE id IN
+// (SELECT "i".id FROM users "i" WHERE "i".name = :0)
+```
+
+| DBMS | Correlated `UPDATE` / `DELETE` |
+|------|--------------------------------|
+| MySQL, Oracle, PostgreSQL, SQLite | Alias the target — `DeleteFrom(new UsersTable("u"))` — so the outer column renders qualified. |
+| SQL Server | The target cannot be aliased (aliasing throws at build) and joined DML is not yet supported — express the correlated update as a [`MERGE`](#merge-statement), the T-SQL idiom. |
 
 ---
 

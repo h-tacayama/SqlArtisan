@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SqlArtisan.Internal;
 
 // The Build()-time guard shared by InsertBuilder, UpdateBuilder, and
@@ -11,8 +13,16 @@ namespace SqlArtisan.Internal;
 // valid spelling at all until joined DML lands (#237), so this narrow case is
 // the bounded exception to ADR 0007 recorded in ADR 0011: fail loudly at Build()
 // rather than emit SQL that can never be correct on the resolved target.
+// The correlated-unaliased throw below is the same family's other half (#253):
+// a target column inside a subquery resolves to the inner scope on every
+// dialect, so the unaliased correlated form has no correct spelling either.
 internal static class DmlTargetGuard
 {
+    [DoesNotReturn]
+    internal static void ThrowCorrelatedUnaliasedTarget() =>
+        throw new ArgumentException(
+            "The target of a correlated UPDATE or DELETE must be aliased.");
+
     internal static void ThrowIfAliasedOnSqlServer(DbTableBase table, Dbms dbms)
     {
         if (dbms == Dbms.SqlServer && table.HasAlias)

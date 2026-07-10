@@ -89,6 +89,6 @@ override — so every build path (including `Returning()`, which funnels through
   unaliased form succeeding — so the guard rests on a verified engine fact, not
   on grammar folklore.
 - **Complements, does not overlap, #239.** #239 guards the *unaliased correlated*
-  target (a silent tautology) via the owning-table model; this guards the
-  *aliased* target on the one dialect where aliasing it is invalid. Together they
-  make the correlated-DML surface fail loudly on every dialect.
+  target (a silent tautology) via the owning-table model (shipped as #253); this
+  guards the *aliased* target on the one dialect where aliasing it is invalid.
+  Together they make the correlated-DML surface fail loudly on every dialect.

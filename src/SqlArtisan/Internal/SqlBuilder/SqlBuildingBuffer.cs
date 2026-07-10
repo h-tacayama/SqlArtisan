@@ -20,6 +20,10 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // small, so linear lookup is cheap and it allocates less than a hash table.
     private List<KeyValuePair<string, BindValue>>? _parameters;
     private bool _disposed;
+    // Correlated-DML guard state (#253): a bare target column rendered inside a
+    // subquery resolves to the inner scope — a silent tautology — so DbColumn's Format fails loudly instead.
+    private TableReference? _correlatedDmlTarget;
+    private int _subqueryDepth;
 
     internal SqlBuildingBuffer(IDbmsDialect dialect)
     {
@@ -311,13 +315,27 @@ internal sealed class SqlBuildingBuffer : IDisposable
     }
 
     // ISubquery is not a SqlPart (it marks a builder state), so it gets its own
-    // overload rather than a per-construction adapter allocation.
+    // overload rather than a per-construction adapter allocation. Every subquery
+    // embedding funnels through here — the correlated-DML guard's scope boundary.
     internal SqlBuildingBuffer EncloseInParentheses(ISubquery subquery)
     {
         Append('(');
+        _subqueryDepth++;
         subquery.Format(this);
+        _subqueryDepth--;
         Append(')');
         return this;
+    }
+
+    internal void SetCorrelatedDmlGuardTarget(DbTableBase? target) =>
+        _correlatedDmlTarget = target;
+
+    internal void ThrowIfCorrelatedDmlColumn(TableReference owner)
+    {
+        if (ReferenceEquals(owner, _correlatedDmlTarget) && _subqueryDepth > 0)
+        {
+            DmlTargetGuard.ThrowCorrelatedUnaliasedTarget();
+        }
     }
 
     internal SqlBuildingBuffer EncloseInSpaces(string value)

@@ -207,6 +207,24 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_SelectFromTargetTable_CorrectSql()
+    {
+        // INSERT..SELECT reading the insert target is legal — the correlated-DML
+        // guard (#253) arms only for UPDATE/DELETE.
+        TestTable t = new();
+
+        SqlStatement sql =
+            InsertInto(t, t.Code)
+            .Select(t.Code)
+            .From(t)
+            .Build();
+
+        Assert.Equal(
+            "INSERT INTO test_table (code) SELECT code FROM test_table",
+            sql.Text);
+    }
+
+    [Fact]
     public void InsertInto_SqlServer_AliasedTarget_ThrowsArgumentException()
     {
         // An aliased INSERT target is valid on PostgreSQL (it is how ON CONFLICT
