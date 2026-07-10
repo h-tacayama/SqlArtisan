@@ -134,10 +134,8 @@ public class DeleteTests
     [Fact]
     public void DeleteFrom_SameTableInstanceInSubquery_ThrowsArgumentException()
     {
-        // Deliberate: this SQL would resolve correctly (the inner reference
-        // binds to the subquery's own FROM), but one C# instance standing for
-        // two SQL scopes is ambiguous authorship — use a second instance for
-        // the inner scope, or alias the target.
+        // Accepted false positive: one C# instance standing for two SQL scopes is
+        // ambiguous authorship — use a second instance for the inner scope, or alias the target.
         TestTable t = new();
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
