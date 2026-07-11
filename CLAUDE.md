@@ -72,7 +72,7 @@ there, not here — a pointer line in this list is enough.
   function nodes.
 - Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
   table-reference types under `src/SqlArtisan/SqlPart/TableReference/`, and
-  `DbColumn` under `src/SqlArtisan/SqlPart/Expression/`. Types users must
+  `DbColumn`/`BindValue` under `src/SqlArtisan/SqlPart/Expression/`. Types users must
   **name** in a declaration position (`SqlExpression`, `SqlCondition`,
   `ISubquery`, `SortOrder`, `ExpressionAlias`, `CommonTableExpression`,
   `DbSequence`) live in the root namespace. Everything under `Internal/` is
