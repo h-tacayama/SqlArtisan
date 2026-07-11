@@ -1,5 +1,5 @@
 ---
-description: Public API design decisions — naming categories, overload split for analyzer arity, collection parameters, no opinion-holes
+description: Public API design decisions — naming categories, overload split for analyzer arity, collection parameters, factory return types, no opinion-holes
 paths:
   - "src/SqlArtisan/Sql/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
@@ -63,6 +63,20 @@ same-name same-arity overloads collide into a support union.
 > keeps strings on the `params` path and still covers every runtime
 > collection.
 
+## Factory return types: the concrete node type, not `SqlExpression`
+
+A public `Sql.*` factory returns its own concrete node type (`Sql.Null` →
+`NullExpression`, `Sql.Abs` → `AbsFunction`) — never the general
+`SqlExpression` supertype, even for a factory whose whole point is that
+callers hold the result in a variable. Upcasting there discards the
+type-level self-documentation the factory exists to provide; a caller who
+wants the generic supertype can still declare one locally.
+
+> Worked example (#282): the issue text that specified `Sql.Bind(value)`
+> proposed `SqlExpression Bind(object value)` as its return type — an
+> inconsistency with this rule caught in review and corrected to return the
+> pre-existing `BindValue` node directly.
+
 ## Root namespace vs `Internal` (ADR 0005)
 
 A type belongs in the root `SqlArtisan` namespace only when **all three** hold:
@@ -74,6 +88,14 @@ A type belongs in the root `SqlArtisan` namespace only when **all three** hold:
 
 Everything else — concrete nodes, clause types, builder internals — belongs in
 `Internal/` and is held only through the root types.
+
+> Worked example (#282): fixing `Sql.Bind` to return `BindValue` (above) put
+> that type through criterion 2 — its entire feature is a caller holding the
+> result across clauses (`BindValue p10 = Bind(10);`) — so `BindValue` moved
+> from `Internal/` to `src/SqlArtisan/SqlPart/Expression/`, beside `DbColumn`,
+> and gained full XML docs once it left the `Internal/SqlPart/**` CS1591
+> suppression. A factory's return-type fix can surface a namespace question
+> for the type it returns; check both together.
 
 ## Opinions live in docs and the analyzer, not in API holes
 
