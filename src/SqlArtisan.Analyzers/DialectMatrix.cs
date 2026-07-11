@@ -268,7 +268,7 @@ internal static class DialectMatrix
         // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL/SQLite
         // require it for recursion.
         [new MatrixKey("WithRecursive")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
-        // Asterisk: Sql.Asterisk (SELECT *) and DbTableBase.Asterisk (t.*) share the name — both universal.
+        // Asterisk: Sql.Asterisk (SELECT *) and TableReference.Asterisk (t.*) share the name — both universal.
         [new MatrixKey("Asterisk")] = DbmsSupport.All,
         [new MatrixKey("Distinct")] = DbmsSupport.All,
         // Hints: the mechanism (verbatim text after SELECT) is universal; the hint text itself

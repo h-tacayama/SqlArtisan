@@ -118,6 +118,62 @@ public class SelectTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    [Fact]
+    public void QualifiedAsterisk_Cte_CorrectSql()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+
+        SqlStatement sql =
+            With(
+                cte.As(
+                    Select(
+                        a.Code.As(cte.CteCode),
+                        a.Name.As(cte.CteName),
+                        a.CreatedAt.As(cte.CteCreatedAt))
+                    .From(a)))
+            .Select(cte.Asterisk)
+            .From(cte)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS ");
+        expected.Append("(SELECT \"a\".code cte_code, ");
+        expected.Append("\"a\".name cte_name, ");
+        expected.Append("\"a\".created_at cte_created_at ");
+        expected.Append("FROM test_table \"a\") ");
+        expected.Append("SELECT \"cte\".* ");
+        expected.Append("FROM \"cte\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void QualifiedAsterisk_DerivedTable_CorrectSql()
+    {
+        TestDerivedTable x = new("x");
+
+        SqlStatement sql =
+            Select(x.Asterisk)
+            .From(_t)
+            .CrossApply(
+                Select(_t.Code.As(x.Code), _t.Name.As(x.Total))
+                    .From(_t),
+                x)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"x\".* ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("CROSS APPLY ");
+        expected.Append("(SELECT \"t\".code code, \"t\".name total FROM test_table \"t\") ");
+        expected.Append("\"x\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     // The compiler blocks the marker in SqlExpression-typed positions; the
     // object-typed value positions reject it at runtime (ADR 0007 backstop).
     [Fact]

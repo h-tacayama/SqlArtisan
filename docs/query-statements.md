@@ -32,7 +32,7 @@
 ### SELECT Clause
 
 #### SELECT * and Qualified Star
-`Asterisk` is the bare `*` select item; a table's `.Asterisk` is the qualified star (`alias.*`, or `table.*` when the table has no alias) — every column of that one table, handy beside other select items in a join. Both stars are universal syntax, with one mixing rule: on Oracle a bare `*` must be the only select item — beside other items, use the table's `.Asterisk` (`t.*, id`) as in the join example below.
+`Asterisk` is the bare `*` select item; a table's `.Asterisk` is the qualified star (`alias.*`, or `table.*` when the table has no alias) — every column of that one relation, handy beside other select items in a join. It works the same way on a CTE or derived table (`cte.Asterisk` → `"cte".*`), which are always quoted like an alias. Both stars are universal syntax, with one mixing rule: on Oracle a bare `*` must be the only select item — beside other items, use the table's `.Asterisk` (`t.*, id`) as in the join example below.
 ```csharp
 UsersTable u = new();
 SqlStatement sql =
