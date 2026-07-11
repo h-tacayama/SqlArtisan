@@ -1,4 +1,5 @@
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -64,6 +65,36 @@ public partial class FunctionTests
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(2, sql.Parameters.Count);
+    }
+
+    // Sharing a Bind(...) handle across clauses reuses its marker in each — the
+    // #241 mechanism this factory exposes directly.
+    [Fact]
+    public void Bind_SharedHandleInSelectAndGroupBy_CorrectSql()
+    {
+        BindValue p10 = Bind(10);
+        BindValue low = Bind("Low");
+        BindValue other = Bind("Other");
+
+        SqlStatement sql =
+            Select(Case(_t.Code, When(p10).Then(low), Else(other)))
+            .From(_t)
+            .GroupBy(Case(_t.Code, When(p10).Then(low), Else(other)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CASE \"t\".code WHEN :0 THEN :1 ELSE :2 END ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("GROUP BY ");
+        expected.Append("CASE \"t\".code WHEN :0 THEN :1 ELSE :2 END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(3, sql.Parameters.Count);
+        Assert.Equal(10, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("Low", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("Other", sql.Parameters.Get<string>(":2"));
     }
 
     [Fact]
