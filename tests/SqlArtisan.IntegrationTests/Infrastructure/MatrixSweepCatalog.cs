@@ -68,6 +68,7 @@ internal static class MatrixSweepCatalog
 
         // --- Statement / clause / builder core ---
         Add("Select", _ => Select(u.Id).From(u));
+        Add("Asterisk", _ => Select(Asterisk).From(u).Where(u.Id == 1));
         Add("From", _ => Select(u.Id).From(u));
         Add("Where", _ => Select(u.Id).From(u).Where(u.Id == 1));
         Add("GroupBy", _ => Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId));

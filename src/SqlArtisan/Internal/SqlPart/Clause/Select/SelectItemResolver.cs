@@ -39,6 +39,10 @@ internal static class SelectItemResolver
         {
             return new ScalarSubquery(subquery);
         }
+        else if (selectItem is AsteriskMarker or QualifiedAsteriskMarker)
+        {
+            return (SqlPart)selectItem;
+        }
         else if (IsBindable(selectItem))
         {
             return new BindValue(selectItem);

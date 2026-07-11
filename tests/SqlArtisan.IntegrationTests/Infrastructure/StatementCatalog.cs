@@ -44,6 +44,17 @@ internal static class StatementCatalog
         Add("WindowFrameRange",
             () => Select(Avg(o.Amount).Over(OrderBy(o.Id).Range(UnboundedPreceding))).From(o), All);
 
+        // Qualified star (#242) — universal; the bare-star twin is the sweep's Asterisk case.
+        Add("QualifiedAsteriskAliased",
+            () =>
+            {
+                UsersTable au = new("u");
+                return Select(au.Asterisk).From(au);
+            },
+            All);
+        Add("QualifiedAsteriskBare",
+            () => Select(u.Asterisk).From(u), All);
+
         // GROUP BY extensions — Oracle / PostgreSQL / SQL Server (function form).
         Add("Rollup",
             () => Select(u.DepartmentId).From(u).GroupBy(Rollup(u.DepartmentId)),

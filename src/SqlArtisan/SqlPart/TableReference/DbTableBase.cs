@@ -29,6 +29,14 @@ public abstract class DbTableBase : TableReference
         _tableAlias = tableAlias;
     }
 
+    /// <summary>
+    /// The qualified star select item — <c>"alias".*</c>, or <c>table.*</c> when
+    /// the table has no alias: every column of this table. Valid only in a
+    /// <c>SELECT</c> or <c>RETURNING</c> list.
+    /// </summary>
+    public QualifiedAsteriskMarker Asterisk =>
+        HasAlias ? new(_tableAlias, quoteQualifier: true) : new(_name, quoteQualifier: false);
+
     internal override string CorrelationName => _tableAlias;
 
     // Whether this table carries an alias — read by the DML-target guard, since

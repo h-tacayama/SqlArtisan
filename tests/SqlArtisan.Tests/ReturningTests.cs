@@ -47,6 +47,22 @@ public class ReturningTests
     }
 
     [Fact]
+    public void Returning_Asterisk_CorrectSql()
+    {
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Returning(Asterisk)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM ");
+        expected.Append("test_table ");
+        expected.Append("RETURNING *");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Returning_OnDelete_CorrectSql()
     {
         SqlStatement sql =

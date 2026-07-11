@@ -31,6 +31,34 @@
 
 ### SELECT Clause
 
+#### SELECT * and Qualified Star
+`Asterisk` is the bare `*` select item; a table's `.Asterisk` is the qualified star (`alias.*`, or `table.*` when the table has no alias) — every column of that one table, handy beside other select items in a join. Both stars are universal syntax, with one mixing rule: on Oracle a bare `*` must be the only select item — beside other items, use the table's `.Asterisk` (`t.*, id`) as in the join example below.
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(Asterisk)
+    .From(u)
+    .Build();
+
+// SELECT * FROM users
+```
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    Select(u.Asterisk, o.Amount)
+    .From(u)
+    .InnerJoin(o).On(o.UserId == u.Id)
+    .Build();
+
+// SELECT "u".*, "o".amount
+// FROM users "u"
+// INNER JOIN orders "o" ON "o".user_id = "u".id
+```
+Both markers are valid only in a `SELECT` or `RETURNING` list; anywhere else (`Count(...)`, `Upper(...)`, `ORDER BY`, …) throws or does not compile. For `COUNT(*)` use the parameterless `Count()`.
+
+Do **not** write `Select("*")` — a string is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the equivalent `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
+
 #### Column Aliases
 ```csharp
 UsersTable u = new();
@@ -1024,7 +1052,7 @@ SqlArtisan also supports more advanced WITH clause scenarios, including:
 
 ## RETURNING Clause
 
-The `Returning()` method appends a `RETURNING` clause to `INSERT`, `UPDATE`, and `DELETE` statements, letting you read back the affected rows.
+The `Returning()` method appends a `RETURNING` clause to `INSERT`, `UPDATE`, and `DELETE` statements, letting you read back the affected rows. It accepts the same items as a `SELECT` list, including `Asterisk` for `RETURNING *`.
 
 ```csharp
 UsersTable u = new();

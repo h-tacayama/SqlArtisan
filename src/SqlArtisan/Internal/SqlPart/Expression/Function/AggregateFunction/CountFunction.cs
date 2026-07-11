@@ -8,7 +8,7 @@ public sealed class CountFunction : UnfilteredAggregateFunction
     internal CountFunction()
     {
         _distinct = null;
-        _expr = new AsteriskExpression();
+        _expr = new AsteriskMarker();
     }
 
     internal CountFunction(SqlExpression expr)
