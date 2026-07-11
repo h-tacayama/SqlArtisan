@@ -903,7 +903,8 @@ public abstract class IntegrationTestBase
     [Fact] // #241 (GAP-19): the same expression instance held in SELECT and GROUP BY
            // reuses its bind markers, so engines that match GROUP BY syntactically
            // (Oracle/PG/SS rejected the split-marker form) accept the shape —
-           // clears the grammar-unverified register entry.
+           // clears the grammar-unverified register entry. Aliased + aggregated on
+           // the SELECT side, mirroring the docs example (the clauses may differ).
     public void GroupBy_SharedBindExpression_Executes()
     {
         UsersTable u = new();
@@ -912,7 +913,7 @@ public abstract class IntegrationTestBase
         using IDbConnection connection = _fixture.OpenConnection();
 
         int groups = connection
-            .Query<string>(Select(label).From(u).GroupBy(label))
+            .Query<string>(Select(label.As("region"), Count()).From(u).GroupBy(label))
             .Count();
 
         Assert.Equal(3, groups);
