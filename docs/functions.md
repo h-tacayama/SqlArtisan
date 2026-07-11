@@ -217,3 +217,6 @@ SqlArtisan automatically converts C# literal values into bind parameters. Suppor
 - **Date/Time**: `DateTime`, `DateOnly`, `TimeOnly`
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type
+
+To bind one of these values explicitly — and reuse its marker across clauses —
+see [Bind Parameters](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#bind-parameters).

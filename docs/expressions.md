@@ -45,6 +45,43 @@ SqlStatement sql =
 
 ---
 
+## Bind Parameters
+
+`Bind(value)` wraps a value as an explicit bind-parameter handle. Hold the
+result in a variable and reuse it across clauses to make every occurrence bind
+the same marker — the value only needs to be written once, and repeating the
+expression's shape in each clause still parameterizes it once:
+
+```csharp
+UsersTable u = new();
+SqlExpression p10 = Bind(10);
+SqlExpression low = Bind("Low");
+SqlExpression other = Bind("Other");
+
+SqlStatement sql =
+    Select(Case(u.DepartmentId, When(p10).Then(low), Else(other)))
+    .From(u)
+    .GroupBy(Case(u.DepartmentId, When(p10).Then(low), Else(other)))
+    .Build();
+
+// SELECT CASE department_id WHEN :0 THEN :1 ELSE :2 END
+// FROM users
+// GROUP BY CASE department_id WHEN :0 THEN :1 ELSE :2 END
+// Parameters: :0 = 10, :1 = "Low", :2 = "Other"
+```
+
+Marker reuse is by reference: two separate `Bind(10)` calls — even with the
+same value — mint two distinct markers. Sharing a marker requires sharing the
+handle, the same reuse rule that applies to any expression instance held
+across clauses.
+
+Unlike inlining the value directly, `Bind` keeps it parameterized — useful for
+a value only known at run time, where inlining would fragment the database's
+plan cache. `Bind` accepts the same types as an auto-bound literal (see
+[Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types)).
+
+---
+
 ## Arithmetic Operators
 ```csharp
 UsersTable u = new();
