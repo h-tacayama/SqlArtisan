@@ -210,15 +210,10 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 
 ## Bind Parameter Types
 
-SqlArtisan automatically converts C# literal values into bind parameters. Supported types are as follows:
+SqlArtisan automatically converts C# literal values into bind parameters (to bind one explicitly instead — so its marker can be shared across clauses — use `Sql.Bind(value)`; see [GROUP BY and HAVING Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause)). Supported types are as follows:
 
 - **Boolean**: `bool`
 - **Character/String**: `char`, `string`
 - **Date/Time**: `DateTime`, `DateOnly`, `TimeOnly`
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type
-
-To bind one of these values explicitly, so the same marker can be shared
-across clauses (e.g. a `GROUP BY` on an expression already in `SELECT`), use
-`Sql.Bind(value)` — see
-[GROUP BY and HAVING Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause).

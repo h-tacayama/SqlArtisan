@@ -1,5 +1,3 @@
-using SqlArtisan.Internal;
-
 namespace SqlArtisan;
 
 /// <summary>
