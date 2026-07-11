@@ -15,6 +15,7 @@
 ## Contents
 
 - [NULL Literal](#null-literal)
+- [Bind Parameters](#bind-parameters)
 - [Arithmetic Operators](#arithmetic-operators)
 - [String Concatenation](#string-concatenation)
 - [Conditions](#conditions)
