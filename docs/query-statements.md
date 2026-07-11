@@ -327,19 +327,19 @@ SqlStatement sql =
 // HAVING COUNT(id) > :0
 ```
 
-To group by an expression that carries bind parameters — a `CASE` label, a `DECODE`, date math with a parameter — hold the expression in a variable and pass the **same instance** to `Select(...)` and `GroupBy(...)`; both occurrences then emit identical parameter markers and the statement runs everywhere:
+To group by an expression that carries bind parameters — a `CASE` label, a `DECODE`, date math with a parameter — hold the expression in a variable and pass the **same instance** to `Select(...)` and `GroupBy(...)`; both occurrences then emit identical parameter markers and the statement runs everywhere. The two clauses need not match otherwise — here the `SELECT` side aliases the instance and adds an aggregate:
 
 ```csharp
 UsersTable u = new();
 SqlExpression label =
     Case(u.DepartmentId, When(10).Then("East"), Else("Other"));
 SqlStatement sql =
-    Select(label, Count())
+    Select(label.As("region"), Count())
     .From(u)
     .GroupBy(label)
     .Build();
 
-// SELECT CASE department_id WHEN :0 THEN :1 ELSE :2 END, COUNT(*)
+// SELECT CASE department_id WHEN :0 THEN :1 ELSE :2 END "region", COUNT(*)
 // FROM users
 // GROUP BY CASE department_id WHEN :0 THEN :1 ELSE :2 END
 ```
