@@ -218,5 +218,7 @@ SqlArtisan automatically converts C# literal values into bind parameters. Suppor
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type
 
-To bind one of these values explicitly — and reuse its marker across clauses —
-see [Bind Parameters](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#bind-parameters).
+To bind one of these values explicitly, so the same marker can be shared
+across clauses (e.g. a `GROUP BY` on an expression already in `SELECT`), use
+`Sql.Bind(value)` — see
+[GROUP BY and HAVING Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause).

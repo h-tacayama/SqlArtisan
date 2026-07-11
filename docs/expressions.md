@@ -15,7 +15,6 @@
 ## Contents
 
 - [NULL Literal](#null-literal)
-- [Bind Parameters](#bind-parameters)
 - [Arithmetic Operators](#arithmetic-operators)
 - [String Concatenation](#string-concatenation)
 - [Conditions](#conditions)
@@ -42,32 +41,6 @@ SqlStatement sql =
 // SELECT
 // NULL,
 // NULL "NoValue"
-```
-
----
-
-## Bind Parameters
-
-`Bind(value)` wraps a value as an explicit bind-parameter handle; share the
-result across clauses to bind the same marker in each — reuse is by
-reference, so two separate `Bind(10)` calls still mint distinct markers.
-
-```csharp
-UsersTable u = new();
-SqlExpression p10 = Bind(10);
-SqlExpression low = Bind("Low");
-SqlExpression other = Bind("Other");
-
-SqlStatement sql =
-    Select(Case(u.DepartmentId, When(p10).Then(low), Else(other)))
-    .From(u)
-    .GroupBy(Case(u.DepartmentId, When(p10).Then(low), Else(other)))
-    .Build();
-
-// SELECT CASE department_id WHEN :0 THEN :1 ELSE :2 END
-// FROM users
-// GROUP BY CASE department_id WHEN :0 THEN :1 ELSE :2 END
-// Parameters: :0 = 10, :1 = "Low", :2 = "Other"
 ```
 
 ---
