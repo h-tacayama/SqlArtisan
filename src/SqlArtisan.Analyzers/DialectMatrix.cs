@@ -274,8 +274,6 @@ internal static class DialectMatrix
         [new MatrixKey("Hints")] = DbmsSupport.All,
         [new MatrixKey("Group")] = DbmsSupport.All,
         [new MatrixKey("Null")] = DbmsSupport.All,
-        // Bind: emits an ordinary bind-parameter marker, identical in shape to an
-        // auto-bound literal — #282.
         [new MatrixKey("Bind")] = DbmsSupport.All,
         [new MatrixKey("ConditionIf")] = DbmsSupport.All,
         [new MatrixKey("As")] = DbmsSupport.All,
