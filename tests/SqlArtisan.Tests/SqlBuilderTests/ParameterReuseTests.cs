@@ -1,4 +1,5 @@
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -124,9 +125,9 @@ public class ParameterReuseTests
            // only the values, write the CASE shape out in both clauses.
     public void Build_SharedBindHandlesInSelectAndGroupBy_CorrectSql()
     {
-        SqlExpression p10 = Bind(10);
-        SqlExpression low = Bind("Low");
-        SqlExpression other = Bind("Other");
+        BindValue p10 = Bind(10);
+        BindValue low = Bind("Low");
+        BindValue other = Bind("Other");
 
         SqlStatement sql =
             Select(Case(_t.Code, When(p10).Then(low), Else(other)))
