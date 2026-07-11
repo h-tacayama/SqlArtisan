@@ -327,6 +327,25 @@ SqlStatement sql =
 // HAVING COUNT(id) > :0
 ```
 
+To group by an expression that carries bind parameters — a `CASE` label, a `DECODE`, date math with a parameter — hold the expression in a variable and pass the **same instance** to `Select(...)` and `GroupBy(...)`; both occurrences then emit identical parameter markers and the statement runs everywhere. The two clauses need not match otherwise — here the `SELECT` side aliases the instance and adds an aggregate:
+
+```csharp
+UsersTable u = new();
+SqlExpression label =
+    Case(u.DepartmentId, When(10).Then("East"), Else("Other"));
+SqlStatement sql =
+    Select(label.As("region"), Count())
+    .From(u)
+    .GroupBy(label)
+    .Build();
+
+// SELECT CASE department_id WHEN :0 THEN :1 ELSE :2 END "region", COUNT(*)
+// FROM users
+// GROUP BY CASE department_id WHEN :0 THEN :1 ELSE :2 END
+```
+
+Building the expression twice instead binds separate parameters per occurrence (`GROUP BY ... WHEN :3 ...`), and Oracle, PostgreSQL, and SQL Server reject the statement — they match `GROUP BY` expressions syntactically and cannot prove the two parameter sets equal (ORA-00979 / 42803 / Msg 8120; MySQL and SQLite accept it). An alternative that avoids the repetition entirely: project the expression in a CTE and group over the projected column.
+
 For subtotal/grand-total reports, `GroupBy(...)` also accepts the grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)`. Wrap columns in `Group(...)` to form a composite grouping element — a multi-column set inside `GroupingSets(...)`, or a parenthesized composite column inside `Rollup(...)` / `Cube(...)` — and use `Group()` with no columns for the empty set (the grand total):
 
 ```csharp

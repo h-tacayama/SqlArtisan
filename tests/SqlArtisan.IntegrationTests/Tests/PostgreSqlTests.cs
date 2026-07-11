@@ -1,4 +1,5 @@
 using System.Data;
+using Dapper;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -226,5 +227,25 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             .Single();
 
         Assert.Equal("Alice", name);
+    }
+
+    [Fact] // #241 (GAP-19): PostgreSQL matches GROUP BY expressions syntactically,
+           // so a parameterized SELECT expression repeated with fresh markers fails
+           // with 42803 (live-verified). Raw SQL by necessity — SqlArtisan now
+           // reuses a shared instance's markers and cannot emit this form.
+    public void GroupByBindMarkerMismatch_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The expression itself is valid (table and columns are right).
+        connection.Execute(
+            "SELECT CASE department_id WHEN @p0 THEN @p1 ELSE @p2 END FROM users",
+            new { p0 = 10, p1 = "Low", p2 = "Other" });
+
+        // The only difference — distinct markers in GROUP BY — is what PG rejects.
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "SELECT CASE department_id WHEN @p0 THEN @p1 ELSE @p2 END FROM users "
+                + "GROUP BY CASE department_id WHEN @p3 THEN @p4 ELSE @p5 END",
+            new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
 }

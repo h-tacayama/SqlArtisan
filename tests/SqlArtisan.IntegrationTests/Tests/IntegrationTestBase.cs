@@ -900,6 +900,48 @@ public abstract class IntegrationTestBase
         transaction.Rollback();
     }
 
+    [Fact] // #241 (GAP-19): the same expression instance held in SELECT and GROUP BY
+           // reuses its bind markers, so engines that match GROUP BY syntactically
+           // (Oracle/PG/SS rejected the split-marker form) accept the shape —
+           // clears the grammar-unverified register entry. Aliased + aggregated on
+           // the SELECT side, mirroring the docs example (the clauses may differ).
+    public void GroupBy_SharedBindExpression_Executes()
+    {
+        UsersTable u = new();
+        SqlExpression label =
+            Case(u.DepartmentId, When(10).Then("Low"), When(20).Then("Mid"), Else("Other"));
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        int groups = connection
+            .Query<string>(Select(label.As("region"), Count()).From(u).GroupBy(label))
+            .Count();
+
+        Assert.Equal(3, groups);
+    }
+
+    [Fact] // #241 (GAP-19): the CTE-wrap alternative — the bind values occur once
+           // inside the CTE body, so GROUP BY references only the projected column.
+    public void GroupBy_SharedBindExpression_CteWrap_Executes()
+    {
+        UsersTable u = new();
+        Cte labeled = new("labeled");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        int groups = connection
+            .Query<string>(
+                With(labeled.As(
+                    Select(
+                        Case(u.DepartmentId, When(10).Then("Low"), When(20).Then("Mid"), Else("Other"))
+                            .As(labeled.Column("label")))
+                    .From(u)))
+                .Select(labeled.Column("label"))
+                .From(labeled)
+                .GroupBy(labeled.Column("label")))
+            .Count();
+
+        Assert.Equal(3, groups);
+    }
+
     [Fact]
     public void EdgeCase_DateTime_RoundTrip()
     {

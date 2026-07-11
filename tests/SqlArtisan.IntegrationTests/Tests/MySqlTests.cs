@@ -141,4 +141,5 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Equal(0, remaining);
         transaction.Rollback();
     }
+
 }

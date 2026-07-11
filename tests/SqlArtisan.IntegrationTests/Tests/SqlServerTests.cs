@@ -173,4 +173,24 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<Exception>(() => connection.Execute(
             "DELETE FROM users AS \"cu\" WHERE \"cu\".id = 1"));
     }
+
+    [Fact] // #241 (GAP-19): SQL Server matches GROUP BY expressions syntactically,
+           // so a parameterized SELECT expression repeated with fresh markers fails
+           // with Msg 8120 (live-verified). Raw SQL by necessity — SqlArtisan now
+           // reuses a shared instance's markers and cannot emit this form.
+    public void GroupByBindMarkerMismatch_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The expression itself is valid (table and columns are right).
+        connection.Execute(
+            "SELECT CASE department_id WHEN @p0 THEN @p1 ELSE @p2 END FROM users",
+            new { p0 = 10, p1 = "Low", p2 = "Other" });
+
+        // The only difference — distinct markers in GROUP BY — is what SS rejects.
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "SELECT CASE department_id WHEN @p0 THEN @p1 ELSE @p2 END FROM users "
+                + "GROUP BY CASE department_id WHEN @p3 THEN @p4 ELSE @p5 END",
+            new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
+    }
 }

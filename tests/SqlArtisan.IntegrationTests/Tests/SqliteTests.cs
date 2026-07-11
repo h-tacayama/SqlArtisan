@@ -209,4 +209,5 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             connection.Execute("DROP TABLE users_fts");
         }
     }
+
 }
