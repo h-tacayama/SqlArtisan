@@ -12,6 +12,10 @@ namespace SqlArtisan;
 /// <param name="dbType">The data type the parameter is bound as, or <see langword="null"/> to let the driver infer it.</param>
 /// <param name="direction">The parameter direction, or <see langword="null"/> for an ordinary input parameter.</param>
 /// <param name="size">The buffer size for variable-length types, or <see langword="null"/> when unset.</param>
+/// <remarks>
+/// <paramref name="direction"/> and <paramref name="size"/> serve the Oracle
+/// <c>RETURNING ... INTO</c> output-parameter path; <see cref="Sql.Bind(object)"/> never sets them.
+/// </remarks>
 public sealed class BindValue(
     object value,
     DbType? dbType = null,
