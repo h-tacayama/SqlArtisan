@@ -30,10 +30,9 @@ public abstract class TableReference : SqlPart
     }
 
     /// <summary>
-    /// The qualified star select item — <c>"alias".*</c> (or the CTE/derived-table
-    /// name, always quoted), or <c>table.*</c> for a <see cref="DbTableBase"/> with
-    /// no alias: every column of this relation. Valid only in a <c>SELECT</c> or
-    /// <c>RETURNING</c> list.
+    /// The qualified star select item — <c>"alias".*</c> (a CTE/derived-table name
+    /// is always quoted), or <c>table.*</c> for an unaliased <see cref="DbTableBase"/>.
+    /// Valid only in a <c>SELECT</c> or <c>RETURNING</c> list.
     /// </summary>
     public QualifiedAsteriskMarker Asterisk =>
         string.IsNullOrEmpty(CorrelationName)
