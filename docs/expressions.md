@@ -15,7 +15,6 @@
 ## Contents
 
 - [NULL Literal](#null-literal)
-- [Bind Value](#bind-value)
 - [Arithmetic Operators](#arithmetic-operators)
 - [String Concatenation](#string-concatenation)
 - [Conditions](#conditions)
@@ -43,33 +42,6 @@ SqlStatement sql =
 // NULL,
 // NULL "NoValue"
 ```
-
----
-
-## Bind Value
-
-`Value(x)` wraps a literal as an explicit bind-parameter expression, so it can be aliased or composed with operators — something a bare literal in `Select(...)` cannot do.
-
-```csharp
-SqlStatement sql =
-    Select(Value(1).As("depth"))
-    .Build();
-
-// SELECT :0 "depth"
-```
-
-```csharp
-// Operator composition
-UsersTable u = new();
-SqlStatement sql =
-    Select(Value(100) - u.Age)
-    .From(u)
-    .Build();
-
-// SELECT (:0 - age) FROM users
-```
-
-The emission is always a bind parameter (`:0`, `:1`, …), not an inline literal — consistent with how every literal in SqlArtisan becomes a bind. When the target engine requires an explicit type (e.g. a recursive-CTE anchor column), use `Cast(1, "INT")` instead — `Value` removes the aliasing ceremony but does not pin a SQL type.
 
 ---
 

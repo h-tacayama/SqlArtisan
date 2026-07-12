@@ -40,7 +40,6 @@ How to assemble each statement and clause.
 Values, predicates, and computed expressions.
 
 [NULL](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#null-literal) ·
-[Bind Value](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#bind-value) ·
 [Arithmetic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#arithmetic-operators) ·
 [String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation) ·
 [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions) ·
