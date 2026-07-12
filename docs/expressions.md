@@ -603,6 +603,12 @@ SqlStatement sql =
 // FROM users
 ```
 
+### Bind-Parameter Count in CASE
+
+Every `WHEN`, `THEN`, and `ELSE` literal becomes a bind parameter — the 3-arm simple CASE above produces 7 binds (3 match values + 3 result values + 1 ELSE). A 3-column pivot built from single-arm CASEs produces 9. This is the same literals-are-binds design used everywhere else: it guarantees injection safety and lets the engine reuse the execution plan when only the label values change.
+
+Most engines handle this comfortably — older SQLite versions cap at 999 parameters per statement (modern SQLite allows 32,766) and SQL Server caps at 2,100. A CASE in a `SELECT` list that also appears in `GROUP BY` doubles the bind count because the expression is repeated; wrapping the CASE in a CTE or subquery and grouping on its alias avoids the duplication.
+
 ---
 
 ## CAST
