@@ -583,11 +583,8 @@ public static partial class Sql
     /// Unlike <see cref="Count(object)"/>, which skips <c>NULL</c> values in the
     /// counted expression, <c>COUNT(*)</c> counts every row. Identical on every dialect.
     /// </remarks>
-    /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(*)</c>.</returns>
-    public static CountFunction Count() => new();
-
-    /// <inheritdoc cref="Count()"/>
     /// <param name="asterisk">The <c>*</c> marker (<see cref="Sql.Asterisk"/>).</param>
+    /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(*)</c>.</returns>
     public static CountFunction Count(AsteriskMarker asterisk) =>
         new(asterisk);
 

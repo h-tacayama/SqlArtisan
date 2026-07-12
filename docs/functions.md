@@ -149,7 +149,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 ## Aggregate Functions
 
 - `Avg()` for `AVG`
-- `Count()` or `Count(Asterisk)` for `COUNT(*)`; `Count(expr)` for `COUNT(expr)`
+- `Count(Asterisk)` for `COUNT(*)`; `Count(expr)` for `COUNT(expr)`
 - `Max()` for `MAX`
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
@@ -161,7 +161,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 
 > [!NOTE]
 > `COUNT(expr)` skips `NULL` values in `expr`; `COUNT(*)` counts every row.
-> Pick `Count()` for a row count and `Count(expr)` only when `NULL`-skipping is
+> Pick `Count(Asterisk)` for a row count and `Count(expr)` only when `NULL`-skipping is
 > the behavior you want — modern engines optimize `COUNT(*)` to the smallest
 > usable index rather than materializing every column.
 

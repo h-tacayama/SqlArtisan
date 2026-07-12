@@ -55,7 +55,7 @@ SqlStatement sql =
 // FROM users "u"
 // INNER JOIN orders "o" ON "o".user_id = "u".id
 ```
-Both markers are valid only in a `SELECT` or `RETURNING` list, with one exception: `Count(Asterisk)` emits `COUNT(*)` — the only aggregate where `*` is legal — equivalent to the parameterless `Count()`. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile.
+Both markers are valid only in a `SELECT` or `RETURNING` list, with one exception: `Count(Asterisk)` emits `COUNT(*)` — the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile.
 
 Do **not** write `Select("*")` — a string is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the equivalent `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
 
@@ -362,7 +362,7 @@ UsersTable u = new();
 SqlExpression label =
     Case(u.DepartmentId, When(10).Then("East"), Else("Other"));
 SqlStatement sql =
-    Select(label.As("region"), Count())
+    Select(label.As("region"), Count(Asterisk))
     .From(u)
     .GroupBy(label)
     .Build();

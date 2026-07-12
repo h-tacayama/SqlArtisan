@@ -913,7 +913,7 @@ public abstract class IntegrationTestBase
         using IDbConnection connection = _fixture.OpenConnection();
 
         int groups = connection
-            .Query<string>(Select(label.As("region"), Count()).From(u).GroupBy(label))
+            .Query<string>(Select(label.As("region"), Count(Asterisk)).From(u).GroupBy(label))
             .Count();
 
         Assert.Equal(3, groups);
