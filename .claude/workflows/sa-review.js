@@ -26,26 +26,39 @@ const SCOPE_SCHEMA = {
   required: ['scope', 'changedFiles'],
 }
 
-const scopePrompt = args?.reviewFullCodebase
+// `SqlBuilder/**` and `SqlPart/**` appear twice, deliberately: the
+// `Internal/`-prefixed path is implementation detail, while the bare path is
+// the public surface (Dbms, DbmsResolver, SqlArtisanConfig, SqlStatement,
+// SqlParameters, ISqlBuilder; DbColumn, BindValue, table-reference types) —
+// don't collapse them into one glob.
+const FULL_CODEBASE_GLOBS = [
+  'src/SqlArtisan/Sql/*.cs',
+  'src/SqlArtisan/Internal/SqlPart/Expression/Function/**',
+  'src/SqlArtisan/Internal/SqlBuilder/**',
+  'src/SqlArtisan/Internal/SqlPart/Keywords.cs',
+  'src/SqlArtisan/SqlBuilder/**',
+  'src/SqlArtisan/SqlPart/**',
+  'src/SqlArtisan.Dapper/**',
+  'src/SqlArtisan.TableClassGen/**',
+  'src/SqlArtisan.Analyzers/**',
+  'tests/SqlArtisan.Tests/**',
+  'tests/SqlArtisan.Benchmark/**',
+  'tests/SqlArtisan.Analyzers.Tests/**',
+  'tests/SqlArtisan.IntegrationTests/**',
+]
+
+// args.paths lets a caller scope a run to a subset (e.g. just the Public API
+// surface) instead of the full CLAUDE.md Layout table — useful for trying
+// the workflow's fullCodebase-style path on a smaller, cheaper slice first.
+const scopePrompt = args?.paths
+  ? `Report scope="fullCodebase". Use Glob (not git) to list every file
+matching these patterns:
+${args.paths.map((p) => `- ${p}`).join('\n')}
+Exclude bin/ and obj/ build output. Return the full list as changedFiles.`
+  : args?.reviewFullCodebase
   ? `Report scope="fullCodebase". Use Glob (not git) to list every file under
 the paths in CLAUDE.md's Layout table (read it if unsure of the exact set):
-- src/SqlArtisan/Sql/*.cs
-- src/SqlArtisan/Internal/SqlPart/Expression/Function/**
-- src/SqlArtisan/Internal/SqlBuilder/**
-- src/SqlArtisan/Internal/SqlPart/Keywords.cs
-- src/SqlArtisan/SqlBuilder/**            (public surface: Dbms, DbmsResolver,
-  SqlArtisanConfig, SqlStatement, SqlParameters, ISqlBuilder — distinct from
-  the Internal/SqlBuilder path above)
-- src/SqlArtisan/SqlPart/**               (public table-reference types,
-  DbColumn, BindValue)
-- src/SqlArtisan.Dapper/**
-- src/SqlArtisan.TableClassGen/**
-- src/SqlArtisan.Analyzers/**
-- tests/SqlArtisan.Tests/**               (all unit tests, not just
-  FunctionTests.*)
-- tests/SqlArtisan.Benchmark/**
-- tests/SqlArtisan.Analyzers.Tests/**
-- tests/SqlArtisan.IntegrationTests/**
+${FULL_CODEBASE_GLOBS.map((p) => `- ${p}`).join('\n')}
 Exclude bin/ and obj/ build output. Return the full list as changedFiles.`
   : `Report scope="diff" for the current branch.
 
