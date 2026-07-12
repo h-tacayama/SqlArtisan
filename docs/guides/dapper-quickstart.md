@@ -64,7 +64,7 @@ internal sealed class UsersTable : DbTableBase
 ```
 
 For a one-off query you can skip the class and name a table inline with
-`DbTable("users", "u")` — but generated or hand-written classes are the
+`new DbTable("users", "u")` — but generated or hand-written classes are the
 default; they are what makes wrong column names a compile error.
 
 ## 3. Execute queries

@@ -5,8 +5,7 @@ namespace SqlArtisan.Tests;
 
 // Pins the emitted SQL of every recipe in docs/cookbook.md (#227), so the doc
 // examples never rot — the DocsIndexTests approach applied to page content.
-// Table classes live in TestFixtures/CookbookTables.cs; each test mirrors its
-// recipe's snippet 1:1 apart from the Cookbook* class-name prefix.
+// Table classes live in TestFixtures/CookbookTables.cs (Cookbook* prefix).
 public class CookbookTests
 {
     [Fact]
@@ -449,12 +448,23 @@ public class CookbookTests
     [Fact]
     public void FunnelWithPagination_SqlServer_CorrectSql()
     {
+        StringBuilder expected = new();
+        expected.Append("WITH \"buyers\" AS (");
+        expected.Append("SELECT \"c\".customer_id customer_id, \"c\".region region, COUNT(*) orders ");
+        expected.Append("FROM customer \"c\" ");
+        expected.Append("INNER JOIN orders \"o\" ON \"c\".customer_id = \"o\".customer_id ");
+        expected.Append("GROUP BY \"c\".customer_id, \"c\".region), ");
+        expected.Append("\"repeaters\" AS (");
+        expected.Append("SELECT \"buyers\".region region, COUNT(*) repeat_customers ");
+        expected.Append("FROM \"buyers\" WHERE \"buyers\".orders >= @0 GROUP BY \"buyers\".region) ");
+        expected.Append("SELECT \"repeaters\".region, \"repeaters\".repeat_customers ");
+        expected.Append("FROM \"repeaters\" WHERE \"repeaters\".repeat_customers > @1 ");
+        expected.Append("ORDER BY \"repeaters\".repeat_customers DESC ");
+        expected.Append("OFFSET @2 ROWS FETCH NEXT @3 ROWS ONLY");
+
         SqlStatement sql = BuildFunnelOffsetFetch().Build(Dbms.SqlServer);
 
-        Assert.EndsWith(
-            "ORDER BY \"repeaters\".repeat_customers DESC "
-            + "OFFSET @2 ROWS FETCH NEXT @3 ROWS ONLY",
-            sql.Text);
+        Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(0, sql.Parameters.Get<int>("@2"));
         Assert.Equal(10, sql.Parameters.Get<int>("@3"));
     }

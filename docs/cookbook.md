@@ -32,7 +32,7 @@ so the examples cannot drift from the code.
   - [Optional filters, runtime sort, shared COUNT](#optional-filters-runtime-sort-shared-count) ·
     [A fully optional filter set](#a-fully-optional-filter-set) ·
     [Faceted filters](#faceted-filters)
-- [Batch and Upsert DML](#batch-and-upsert-dml)
+- [Batch and UPSERT DML](#batch-and-upsert-dml)
   - [UPSERT on every dialect](#upsert-on-every-dialect) ·
     [Skip-existing INSERT](#skip-existing-insert) ·
     [Reading back affected rows](#reading-back-affected-rows) ·
@@ -140,7 +140,7 @@ SqlStatement sql =
 ```
 
 This shape runs on all five dialects (only markers and quoting differ). On
-MySQL, PostgreSQL, and SQL Server (and Oracle 12c+), a
+MySQL, Oracle (12c+), PostgreSQL, and SQL Server, a
 [row-limited `LATERAL` / `APPLY` subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#row-limited-queries-as-subqueries)
 is the per-group top-N alternative.
 
@@ -641,7 +641,7 @@ SqlStatement sql =
 
 ---
 
-## Batch and Upsert DML
+## Batch and UPSERT DML
 
 ### UPSERT on every dialect
 
@@ -698,7 +698,7 @@ MergeInto(t).Using(Dual).On(t.ProductId == 1)
 // WHEN NOT MATCHED THEN INSERT (product_id, price) VALUES (:2, :3)
 ```
 
-SQL Server's upsert is also `MERGE`, but it has no `DUAL` — for a single
+SQL Server's UPSERT is also `MERGE`, but it has no `DUAL` — for a single
 literal row there, stage the row in a table (or run `UPDATE` then a
 conditional `INSERT` in one transaction) and `MERGE` from that source, as in
 [Synchronizing a table from staging](#synchronizing-a-table-from-staging).

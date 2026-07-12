@@ -27,7 +27,7 @@ pinned by an exact-SQL unit test.
 [The Recipe Schema](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#the-recipe-schema) ·
 [Reporting Queries](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#reporting-queries) ·
 [Dynamic Search Screens](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#dynamic-search-screens) ·
-[Batch and Upsert DML](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#batch-and-upsert-dml)
+[Batch and UPSERT DML](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#batch-and-upsert-dml)
 
 ## [Query Statements](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md)
 
