@@ -27,7 +27,7 @@ public class AggregateFilterTests
     }
 
     [Fact]
-    public void Filter_OnCountNoArgument_CorrectSql()
+    public void Filter_OnCountAsterisk_CorrectSql()
     {
         SqlStatement sql = Select(Count(Asterisk).Filter(_t.Name == "x")).Build();
 
