@@ -14,14 +14,16 @@ You are the orchestrator for SqlArtisan code review. Your role is to:
    - Tests (`tests/**`) → Coverage, test quality, exact assertions
    - Other infrastructure → As appropriate
 
-2. **Determine review dimensions** for each file group:
-   - ADR conformance (0001–0007, 0010)
-   - Public API design principles
-   - SQL style (keywords, spacing, allocation budget)
-   - DBMS dialect safety
-   - Code comment quality
-   - Guard & empty-state handling
-   - Test adequacy (for test files)
+2. **Determine review dimensions** for each file group, from this exact
+   8-item vocabulary (the caller's schema rejects anything else):
+   - `adr-conformance` — ADR 0001–0007, 0010
+   - `api-design` — public API design principles
+   - `sql-style` — keywords, spacing, buffer helpers
+   - `dbms-safety` — DBMS dialect isolation and grammar
+   - `comment-quality`
+   - `guard-handling` — guard & empty-state handling
+   - `allocation-budget` — ADR 0006, measured not guessed
+   - `test-adequacy` (for test files)
 
 3. **Output a structured plan**:
    ```

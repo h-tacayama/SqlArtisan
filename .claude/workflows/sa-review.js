@@ -27,12 +27,23 @@ const SCOPE_SCHEMA = {
 }
 
 const scopePrompt = args?.reviewFullCodebase
-  ? `Report scope="fullCodebase". Use Glob (not git) to list every file under:
+  ? `Report scope="fullCodebase". Use Glob (not git) to list every file under
+the paths in CLAUDE.md's Layout table (read it if unsure of the exact set):
 - src/SqlArtisan/Sql/*.cs
 - src/SqlArtisan/Internal/SqlPart/Expression/Function/**
 - src/SqlArtisan/Internal/SqlBuilder/**
-- tests/SqlArtisan.Tests/FunctionTests.*.cs
-Return the full list as changedFiles.`
+- src/SqlArtisan/Internal/SqlPart/Keywords.cs
+- src/SqlArtisan/SqlBuilder/**            (public surface: Dbms, DbmsResolver,
+  SqlArtisanConfig, SqlStatement, SqlParameters, ISqlBuilder — distinct from
+  the Internal/SqlBuilder path above)
+- src/SqlArtisan/SqlPart/**               (public table-reference types,
+  DbColumn, BindValue)
+- src/SqlArtisan.Dapper/**
+- src/SqlArtisan.TableClassGen/**
+- tests/SqlArtisan.Tests/**               (all unit tests, not just
+  FunctionTests.*)
+- tests/SqlArtisan.Benchmark/**
+Exclude bin/ and obj/ build output. Return the full list as changedFiles.`
   : `Report scope="diff" for the current branch.
 
 Per the sa-review-changes skill: local main is often stale, so a raw
@@ -138,13 +149,29 @@ were skipped.
 // ---------------------------------------------------------------------------
 phase('Orchestrate')
 
+// Single source of truth for the review-dimension vocabulary — reused in
+// both the schema (so a typo'd dimension fails validation instead of
+// reaching the reviewer prompt) and the orchestrate prompt below, so the
+// two can't drift apart the way this list and sa-review-orchestrator.md's
+// own copy previously did.
+const REVIEW_DIMENSIONS = [
+  'adr-conformance',
+  'api-design',
+  'sql-style',
+  'dbms-safety',
+  'comment-quality',
+  'guard-handling',
+  'allocation-budget',
+  'test-adequacy',
+]
+
 const FILE_GROUP_SCHEMA = {
   type: 'object',
   properties: {
     category: { type: 'string' },
     files: { type: 'array', items: { type: 'string' } },
     priority: { type: 'string', enum: ['high', 'medium', 'low'] },
-    reviewDimensions: { type: 'array', items: { type: 'string' } },
+    reviewDimensions: { type: 'array', items: { type: 'string', enum: REVIEW_DIMENSIONS } },
   },
   required: ['category', 'files', 'priority', 'reviewDimensions'],
 }
@@ -174,9 +201,7 @@ Group by role:
    shapes
 5. Infrastructure (anything else touched) -> as appropriate
 
-For each group's reviewDimensions, pick from: adr-conformance, api-design,
-sql-style, dbms-safety, comment-quality, guard-handling, allocation-budget,
-test-adequacy.
+For each group's reviewDimensions, pick from: ${REVIEW_DIMENSIONS.join(', ')}.
 
 Flag 2-3 highRiskFiles (recent core-logic changes, multiple ADR touchpoints,
 or allocation-sensitive paths). Only include groups that actually have files
@@ -188,7 +213,15 @@ const plan = await agent(orchestratePrompt, {
   schema: PLAN_SCHEMA,
 })
 
-const highRiskFiles = plan.highRiskFiles ?? []
+// Enforce the orchestrator spec's "highRiskFiles must be a subset of the
+// input" constraint here, symmetric with the fileGroups partition check
+// below — the spec states the contract but can't enforce it itself.
+const changedFilesSet = new Set(scopeInfo.changedFiles)
+const highRiskFiles = (plan.highRiskFiles ?? []).filter((f) => changedFilesSet.has(f))
+const invalidHighRiskFiles = (plan.highRiskFiles ?? []).filter((f) => !changedFilesSet.has(f))
+if (invalidHighRiskFiles.length > 0) {
+  log(`Note: orchestrator flagged ${invalidHighRiskFiles.length} highRiskFiles(s) not in scope — dropped: ${invalidHighRiskFiles.join(', ')}`)
+}
 
 log(`Plan: ${plan.fileGroups.length} group(s), complexity=${plan.estimatedComplexity ?? 'n/a'}`)
 
@@ -300,7 +333,10 @@ Tasks:
    naming issue in both Public API and Tests) rather than listing duplicates.
 2. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
 3. Decide a verdict: Mergeable / Mergeable after must-fix / Not mergeable.
-   A failing gate above is itself a MUST FIX and blocks "Mergeable".
+   A failing gate above is itself a MUST FIX and blocks "Mergeable" — and so
+   is a coverage gap (a missing or duplicated file above): a dropped file
+   was silently never reviewed, which is exactly the kind of silent failure
+   this workflow exists to catch, so treat it the same as a failing gate.
 
 Output as a headed report:
 
