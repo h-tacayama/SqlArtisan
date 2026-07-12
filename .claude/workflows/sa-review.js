@@ -40,9 +40,12 @@ the paths in CLAUDE.md's Layout table (read it if unsure of the exact set):
   DbColumn, BindValue)
 - src/SqlArtisan.Dapper/**
 - src/SqlArtisan.TableClassGen/**
+- src/SqlArtisan.Analyzers/**
 - tests/SqlArtisan.Tests/**               (all unit tests, not just
   FunctionTests.*)
 - tests/SqlArtisan.Benchmark/**
+- tests/SqlArtisan.Analyzers.Tests/**
+- tests/SqlArtisan.IntegrationTests/**
 Exclude bin/ and obj/ build output. Return the full list as changedFiles.`
   : `Report scope="diff" for the current branch.
 
