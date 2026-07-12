@@ -176,10 +176,12 @@ public class SelectTests
 
     // The compiler blocks the marker in SqlExpression-typed positions; the
     // object-typed value positions reject it at runtime (ADR 0007 backstop).
+    // COUNT is the one aggregate where * is legal — Count(Asterisk) has its
+    // own overload (see FunctionTests.C).
     [Fact]
     public void Asterisk_InExpressionPosition_ThrowsArgumentException()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => Count(Asterisk));
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Sum(Asterisk));
 
         Assert.Equal(
             "Invalid type for SqlExpression: SqlArtisan.Internal.AsteriskMarker",

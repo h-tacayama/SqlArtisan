@@ -149,7 +149,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 ## Aggregate Functions
 
 - `Avg()` for `AVG`
-- `Count()` for `COUNT(*)`; `Count(expr)` for `COUNT(expr)`
+- `Count()` or `Count(Asterisk)` for `COUNT(*)`; `Count(expr)` for `COUNT(expr)`
 - `Max()` for `MAX`
 - `Min()` for `MIN`
 - `Sum()` for `SUM`

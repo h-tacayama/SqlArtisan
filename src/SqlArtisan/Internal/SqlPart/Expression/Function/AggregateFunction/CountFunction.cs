@@ -11,6 +11,12 @@ public sealed class CountFunction : UnfilteredAggregateFunction
         _expr = new AsteriskMarker();
     }
 
+    internal CountFunction(AsteriskMarker asterisk)
+    {
+        _distinct = null;
+        _expr = asterisk;
+    }
+
     internal CountFunction(SqlExpression expr)
     {
         _distinct = null;

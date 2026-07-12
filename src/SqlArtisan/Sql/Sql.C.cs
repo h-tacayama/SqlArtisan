@@ -586,6 +586,11 @@ public static partial class Sql
     /// <returns>A <see cref="CountFunction"/> emitting <c>COUNT(*)</c>.</returns>
     public static CountFunction Count() => new();
 
+    /// <inheritdoc cref="Count()"/>
+    /// <param name="asterisk">The <c>*</c> marker (<see cref="Sql.Asterisk"/>).</param>
+    public static CountFunction Count(AsteriskMarker asterisk) =>
+        new(asterisk);
+
     /// <summary>
     /// The <c>COUNT(<paramref name="expr"/>)</c> aggregate function (the number of
     /// non-<c>NULL</c> values in the group).
