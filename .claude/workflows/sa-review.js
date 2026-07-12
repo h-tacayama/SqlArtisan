@@ -15,6 +15,8 @@ export const meta = {
 // ---------------------------------------------------------------------------
 phase('Scope')
 
+log(`args received: ${JSON.stringify(args ?? null)}`)
+
 const SCOPE_SCHEMA = {
   type: 'object',
   properties: {
@@ -112,7 +114,11 @@ dotnet test tests/SqlArtisan.Tests
 dotnet format SqlArtisan.sln --verify-no-changes
 
 0 warnings is the bar for the build (AnalysisMode=Recommended, including
-CS1574 cref resolution). Summarize any failure in one or two lines.`,
+CS1574 cref resolution) — with one named exception: a SourceLink warning
+reading "Source control information is not available" is a known artifact
+of a sandboxed git remote that isn't a real github.com host, not a
+code-quality issue. Disregard only that exact warning; anything else still
+counts against the bar. Summarize any failure in one or two lines.`,
   { model: 'haiku', effort: 'low', label: 'gates', phase: 'Gates', schema: GATES_SCHEMA }
 )
 
