@@ -23,7 +23,6 @@ public class DialectMatrixCoverageTests
         ["BindValue.DbType"] = "Bind-parameter metadata (System.Data plumbing), not a SQL construct.",
         ["BindValue.Direction"] = "Bind-parameter metadata (System.Data plumbing), not a SQL construct.",
         ["BindValue.Size"] = "Bind-parameter metadata (System.Data plumbing), not a SQL construct.",
-        ["BindValue.Value"] = "Bind-parameter metadata (System.Data plumbing), not a SQL construct.",
         ["Cte.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
         ["DbTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
         ["DerivedTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
