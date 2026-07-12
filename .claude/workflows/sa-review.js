@@ -36,13 +36,15 @@ Return the full list as changedFiles.`
   : `Report scope="diff" for the current branch.
 
 Per the sa-review-changes skill: local main is often stale, so a raw
-"git diff main...HEAD" can pull in unrelated already-merged work. Find the
-real branch point first:
+"git diff main...HEAD" (or a merge-base against local main) can pull in
+unrelated already-merged work — merge-base succeeds even when the local ref
+is stale, so it will not warn you. Always anchor against the remote-tracking
+ref, never the local branch:
 
-1. git merge-base main HEAD   (fall back to origin/main HEAD if main is
-   missing or stale)
-2. git diff <merge-base>..HEAD --name-only
-3. git diff <merge-base>..HEAD --stat
+1. git fetch origin main
+2. git merge-base origin/main HEAD
+3. git diff <merge-base>..HEAD --name-only
+4. git diff <merge-base>..HEAD --stat
 
 Execute these commands for real — do not guess. Return the merge-base commit
 as branchPoint, the file list as changedFiles, and the stat text as diffStat.`
