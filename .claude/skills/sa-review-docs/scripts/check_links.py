@@ -26,7 +26,6 @@ FILES = [
     "docs/analyzer.md",
     "docs/cookbook.md",
     "docs/guides/dapper-quickstart.md",
-    "docs/guides/ef-core-integration.md",
     "docs/guides/ai-assistants.md",
     "docs/versioning.md",
     "SECURITY.md",

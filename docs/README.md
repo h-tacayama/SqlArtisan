@@ -12,9 +12,6 @@ Task-oriented paths from your current project to SqlArtisan.
 
 - **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
   the greenfield path: packages → table classes → executed queries.
-- **[Introducing SqlArtisan into an EF Core Project](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ef-core-integration.md)** —
-  build the hard queries with SqlArtisan and run them on the same connection
-  and transaction as EF Core.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
   the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
   AI-written queries.
