@@ -1043,10 +1043,10 @@ SqlStatement sql =
 // ON "orders".user_id = "seniors".senior_id
 ```
 
-SqlArtisan also supports more advanced WITH clause scenarios, including:
+SqlArtisan also supports more advanced WITH clause scenarios:
 
-- Recursive CTEs using the `WithRecursive()` method.
-- CTEs with DML statements (`INSERT`, `UPDATE`, and `DELETE`).
+- **Recursive CTEs** — `WithRecursive()` emits `WITH RECURSIVE`, required by MySQL, PostgreSQL, and SQLite. On Oracle (< 23ai) and SQL Server, recurse with plain `With(...)` — those engines accept the recursive body but reject the `RECURSIVE` keyword. The analyzer warns when `WithRecursive()` targets a dialect that does not support it.
+- **CTEs with DML main statements** — `With(...)` before an `INSERT`, `UPDATE`, or `DELETE` main statement is supported. DML *inside* a CTE body (PostgreSQL data-modifying CTEs) is not supported.
 
 ---
 
