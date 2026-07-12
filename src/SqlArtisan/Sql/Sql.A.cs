@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using SqlArtisan.Internal;
 using static SqlArtisan.Internal.ExpressionResolver;
 
@@ -55,6 +56,16 @@ public static partial class Sql
     /// <remarks>SQLite's grammar has no quantified comparisons; the other dialects accept it.</remarks>
     public static QuantifiedSubquery Any(ISubquery subquery) =>
         new(Keywords.Any, subquery);
+
+    /// <summary>
+    /// The bare <c>*</c> select item (<c>SELECT *</c>: every column of every table
+    /// in <c>FROM</c>). Valid only in a <c>SELECT</c> or <c>RETURNING</c> list;
+    /// for one table's columns use the table's <see cref="TableReference.Asterisk"/>.
+    /// </summary>
+    /// <remarks>Do not write <c>Select("*")</c> — a string is always a bind value,
+    /// so it emits <c>SELECT :0</c> returning the literal <c>'*'</c>.</remarks>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static AsteriskMarker Asterisk => new();
 
     /// <summary>
     /// The <c>AVG(<paramref name="expr"/>)</c> aggregate function (mean of the argument

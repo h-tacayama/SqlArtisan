@@ -68,6 +68,7 @@ internal static class MatrixSweepCatalog
 
         // --- Statement / clause / builder core ---
         Add("Select", _ => Select(u.Id).From(u));
+        Add("Asterisk", _ => Select(Asterisk).From(u).Where(u.Id == 1));
         Add("From", _ => Select(u.Id).From(u));
         Add("Where", _ => Select(u.Id).From(u).Where(u.Id == 1));
         Add("GroupBy", _ => Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId));
@@ -212,7 +213,7 @@ internal static class MatrixSweepCatalog
         Add("Upper", _ => Scalar(Upper("abc")));
         Add("Replace", _ => Scalar(Replace("abc", "b", "X")));
         Add("Avg", _ => Select(Avg(o.Amount)).From(o));
-        Add("Count", _ => Select(Count(u.Id), Count()).From(u));
+        Add("Count", _ => Select(Count(u.Id), Count(Asterisk)).From(u));
         Add("Max", _ => Select(Max(u.Age)).From(u));
         Add("Min", _ => Select(Min(u.Age)).From(u));
         Add("Sum", _ => Select(Sum(o.Amount)).From(o));

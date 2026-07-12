@@ -5,10 +5,10 @@ public sealed class CountFunction : UnfilteredAggregateFunction
     private readonly DistinctKeyword? _distinct;
     private readonly SqlPart _expr;
 
-    internal CountFunction()
+    internal CountFunction(AsteriskMarker asterisk)
     {
         _distinct = null;
-        _expr = new AsteriskExpression();
+        _expr = asterisk;
     }
 
     internal CountFunction(SqlExpression expr)

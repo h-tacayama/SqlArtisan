@@ -29,6 +29,16 @@ public abstract class TableReference : SqlPart
         _name = name;
     }
 
+    /// <summary>
+    /// The qualified star select item — <c>"alias".*</c> (a CTE/derived-table name
+    /// is always quoted), or <c>table.*</c> for an unaliased <see cref="DbTableBase"/>.
+    /// Valid only in a <c>SELECT</c> or <c>RETURNING</c> list.
+    /// </summary>
+    public QualifiedAsteriskMarker Asterisk =>
+        string.IsNullOrEmpty(CorrelationName)
+            ? new(_name, quoteQualifier: false)
+            : new(CorrelationName, quoteQualifier: true);
+
     // The name used to qualify column references belonging to this relation.
     internal abstract string CorrelationName { get; }
 

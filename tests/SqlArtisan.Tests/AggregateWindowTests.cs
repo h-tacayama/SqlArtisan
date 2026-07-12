@@ -74,13 +74,13 @@ public class AggregateWindowTests
     }
 
     [Fact]
-    public void Count_NoArgument_OverPartitionBy_CorrectSql()
+    public void Count_Asterisk_OverPartitionBy_CorrectSql()
     {
         // Arrange
         string expected = "SELECT COUNT(*) OVER (PARTITION BY name)";
 
         // Act
-        SqlStatement sql = Select(Count().Over(PartitionBy(_t.Name))).Build();
+        SqlStatement sql = Select(Count(Asterisk).Over(PartitionBy(_t.Name))).Build();
 
         // Assert
         Assert.Equal(expected, sql.Text);

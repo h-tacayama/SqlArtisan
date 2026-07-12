@@ -160,10 +160,10 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Count_NoArgument_CorrectSql()
+    public void Count_Asterisk_CorrectSql()
     {
         SqlStatement sql =
-            Select(Count())
+            Select(Count(Asterisk))
             .Build();
 
         StringBuilder expected = new();
