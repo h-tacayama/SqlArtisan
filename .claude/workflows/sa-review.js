@@ -91,6 +91,46 @@ CS1574 cref resolution). Summarize any failure in one or two lines.`,
 
 log(`Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}`)
 
+// A failing gate is itself a MUST FIX (sa-review-changes skill: "a finding
+// the tools already catch is wasted review budget"). Short-circuit before
+// the expensive Orchestrate/Execute phases instead of spending them on code
+// that may not even compile.
+if (!gates.buildPassed || !gates.testsPassed || !gates.formatClean) {
+  log('Gates failed — skipping Orchestrate/Execute/Synthesize and reporting the gate failure directly')
+  return {
+    scope: scopeInfo.scope,
+    branchPoint: scopeInfo.branchPoint,
+    diffStat: scopeInfo.diffStat,
+    gates,
+    chunksReviewed: '0/0 (skipped — gates failed)',
+    highRiskFiles: [],
+    finalReport: `# SqlArtisan Code Review: ${scopeInfo.scope === 'diff' ? 'Branch Diff' : 'Full Codebase'}
+
+## Verdict
+Not mergeable
+
+## Summary
+A review gate failed before the deep review began. Per the sa-review-changes
+skill, a tool-catchable failure is a MUST FIX on its own, and reviewing
+further code before it's fixed wastes review budget — the deep-review phases
+were skipped.
+
+## Findings by Severity
+
+### MUST FIX
+- Gate failure: ${gates.summary}
+
+## Coverage
+- Scope: ${scopeInfo.scope}
+- Files in scope: ${scopeInfo.changedFiles.length}
+- Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}
+- Orchestrate/Execute/Synthesize: skipped (fail-fast on gate failure)
+
+## Recommendations (ranked)
+1. Fix the failing gate(s) above, then re-run this workflow.`,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // PHASE 3: Orchestrate — Fable classifies files and assigns dimensions.
 // This is the one stage where the expensive model earns its keep: a
@@ -148,6 +188,8 @@ const plan = await agent(orchestratePrompt, {
   schema: PLAN_SCHEMA,
 })
 
+const highRiskFiles = plan.highRiskFiles ?? []
+
 log(`Plan: ${plan.fileGroups.length} group(s), complexity=${plan.estimatedComplexity ?? 'n/a'}`)
 
 // ---------------------------------------------------------------------------
@@ -174,10 +216,21 @@ for (const group of plan.fileGroups) {
   }
 }
 
-const droppedFiles = scopeInfo.changedFiles.length -
-  reviewUnits.reduce((n, u) => n + u.chunkFiles.length, 0)
-if (droppedFiles > 0) {
-  log(`Note: orchestrator omitted ${droppedFiles} file(s) from the plan — see synthesis for coverage gaps`)
+// A plain length subtraction only catches under-coverage: a duplicated file
+// assignment inflates the assigned count and can mask a separately dropped
+// file (or even go negative). Diff the actual file sets instead so both
+// omissions and duplicates are caught, per the orchestrator's partition
+// constraint above.
+const assignedFiles = reviewUnits.flatMap((u) => u.chunkFiles)
+const assignedCounts = new Map()
+for (const f of assignedFiles) assignedCounts.set(f, (assignedCounts.get(f) ?? 0) + 1)
+
+const missingFiles = scopeInfo.changedFiles.filter((f) => !assignedCounts.has(f))
+const duplicateFiles = [...assignedCounts].filter(([, n]) => n > 1).map(([f]) => f)
+const coverageClean = missingFiles.length === 0 && duplicateFiles.length === 0
+
+if (!coverageClean) {
+  log(`Coverage issue: ${missingFiles.length} file(s) missing, ${duplicateFiles.length} file(s) duplicated across groups — see synthesis`)
 }
 
 // ---------------------------------------------------------------------------
@@ -235,7 +288,10 @@ const synthesisPrompt = `Synthesize ${reviewUnits.length} independent chunk revi
 SqlArtisan ${scopeInfo.scope === 'diff' ? 'branch diff' : 'full codebase pass'} into one report.
 
 GATES: ${gates.summary}
-${droppedFiles > 0 ? `\nCOVERAGE GAP: the orchestration plan omitted ${droppedFiles} file(s) that were in scope — call this out explicitly in the report.\n` : ''}
+BRANCH POINT: ${scopeInfo.branchPoint ?? 'n/a'}
+${!coverageClean ? `
+COVERAGE GAP — call this out explicitly in the report:
+${missingFiles.length > 0 ? `- Missing (in scope, never assigned to a group): ${missingFiles.join(', ')}\n` : ''}${duplicateFiles.length > 0 ? `- Duplicated (assigned to more than one group, reviewed redundantly): ${duplicateFiles.join(', ')}\n` : ''}` : ''}
 CHUNK REVIEWS:
 ${reviewUnits.map((u, i) => `--- ${u.chunkLabel} ---\n${reviewResults[i] ?? '(this chunk failed to return a result)'}`).join('\n\n')}
 
@@ -262,6 +318,7 @@ Output as a headed report:
 ### NITS
 
 ## Coverage
+- Branch point: ${scopeInfo.branchPoint ?? 'n/a'}
 - Chunks reviewed: ${reviewedUnits.length}/${reviewUnits.length}
 - Files in scope: ${scopeInfo.changedFiles.length}
 - Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}
@@ -280,8 +337,10 @@ log('Review synthesis complete')
 
 return {
   scope: scopeInfo.scope,
+  branchPoint: scopeInfo.branchPoint,
+  diffStat: scopeInfo.diffStat,
   gates,
   chunksReviewed: `${reviewedUnits.length}/${reviewUnits.length}`,
-  highRiskFiles: plan.highRiskFiles,
+  highRiskFiles,
   finalReport,
 }
