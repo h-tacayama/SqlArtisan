@@ -15,7 +15,14 @@ export const meta = {
 // ---------------------------------------------------------------------------
 phase('Scope')
 
-log(`args received: ${JSON.stringify(args ?? null)}`)
+// Callers occasionally pass args as a JSON-encoded string rather than a
+// live object (confirmed live: a `paths` array silently had no effect
+// because `args` arrived as the string '{"paths": [...]}', so `args.paths`
+// was undefined and every check below fell through to diff mode). Parse
+// defensively instead of trusting the caller's encoding.
+const runArgs = typeof args === 'string' ? JSON.parse(args) : (args ?? {})
+
+log(`args received: ${JSON.stringify(runArgs)}`)
 
 const SCOPE_SCHEMA = {
   type: 'object',
@@ -52,12 +59,12 @@ const FULL_CODEBASE_GLOBS = [
 // args.paths lets a caller scope a run to a subset (e.g. just the Public API
 // surface) instead of the full CLAUDE.md Layout table — useful for trying
 // the workflow's fullCodebase-style path on a smaller, cheaper slice first.
-const scopePrompt = args?.paths
+const scopePrompt = runArgs.paths
   ? `Report scope="fullCodebase". Use Glob (not git) to list every file
 matching these patterns:
-${args.paths.map((p) => `- ${p}`).join('\n')}
+${runArgs.paths.map((p) => `- ${p}`).join('\n')}
 Exclude bin/ and obj/ build output. Return the full list as changedFiles.`
-  : args?.reviewFullCodebase
+  : runArgs.reviewFullCodebase
   ? `Report scope="fullCodebase". Use Glob (not git) to list every file under
 the paths in CLAUDE.md's Layout table (read it if unsure of the exact set):
 ${FULL_CODEBASE_GLOBS.map((p) => `- ${p}`).join('\n')}
