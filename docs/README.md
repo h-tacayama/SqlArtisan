@@ -22,6 +22,7 @@ Realistic end-to-end queries — the C# and the SQL it emits, every recipe
 pinned by an exact-SQL unit test.
 
 [The Recipe Schema](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#the-recipe-schema) ·
+[Everyday Patterns](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#everyday-patterns) ·
 [Reporting Queries](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#reporting-queries) ·
 [Dynamic Search Screens](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#dynamic-search-screens) ·
 [Batch and UPSERT DML](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#batch-and-upsert-dml)

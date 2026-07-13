@@ -103,22 +103,6 @@ internal sealed class CookbookOrderItem : DbTableBase
     public DbColumn UnitPrice { get; }
 }
 
-internal sealed class CookbookStaff : DbTableBase
-{
-    public CookbookStaff(string alias = "") : base("staff", alias)
-    {
-        StaffId = new DbColumn(this, "staff_id");
-        FirstName = new DbColumn(this, "first_name");
-        ReportsTo = new DbColumn(this, "reports_to");
-    }
-
-    public DbColumn StaffId { get; }
-
-    public DbColumn FirstName { get; }
-
-    public DbColumn ReportsTo { get; }
-}
-
 internal sealed class CookbookStagingProduct : DbTableBase
 {
     public CookbookStagingProduct(string alias = "") : base("staging_product", alias)
@@ -135,24 +119,3 @@ internal sealed class CookbookStagingProduct : DbTableBase
     public DbColumn Price { get; }
 }
 
-internal sealed class CookbookOrgCte : CteBase
-{
-    public CookbookOrgCte(string name) : base(name)
-    {
-        StaffId = new DbColumn(this, "staff_id");
-        FirstName = new DbColumn(this, "first_name");
-        ReportsTo = new DbColumn(this, "reports_to");
-        Depth = new DbColumn(this, "depth");
-        Path = new DbColumn(this, "path");
-    }
-
-    public DbColumn StaffId { get; }
-
-    public DbColumn FirstName { get; }
-
-    public DbColumn ReportsTo { get; }
-
-    public DbColumn Depth { get; }
-
-    public DbColumn Path { get; }
-}
