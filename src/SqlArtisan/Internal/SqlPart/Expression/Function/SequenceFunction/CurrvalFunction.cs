@@ -6,6 +6,8 @@ public sealed class CurrvalFunction : SqlExpression
 
     internal CurrvalFunction(string sequenceName)
     {
+        StringGuard.ThrowIfNullOrEmpty(sequenceName, "CURRVAL requires a sequence name.");
+
         _sequenceName = sequenceName;
     }
 

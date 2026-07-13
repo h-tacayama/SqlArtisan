@@ -18,6 +18,12 @@ public sealed class GroupingSetsGrouping : GroupingElement
     // leading set also guarantees at least one grouping set.
     internal GroupingSetsGrouping(GroupingSet set, params GroupingSet[] sets)
     {
+        if (set is null)
+        {
+            throw new ArgumentNullException(
+                nameof(set), ExpressionResolver.NullValueMessage);
+        }
+
         if (sets is null)
         {
             throw new ArgumentNullException(

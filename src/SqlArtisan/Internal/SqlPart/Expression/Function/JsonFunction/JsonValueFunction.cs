@@ -12,6 +12,8 @@ public sealed class JsonValueFunction : SqlExpression
 
     internal JsonValueFunction(SqlExpression jsonDoc, string path)
     {
+        StringGuard.ThrowIfNullOrEmpty(path, "JSON_VALUE requires a path.");
+
         _jsonDoc = jsonDoc;
         _path = path;
     }

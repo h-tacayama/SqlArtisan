@@ -12,6 +12,8 @@ public sealed class JsonQueryFunction : SqlExpression
 
     internal JsonQueryFunction(SqlExpression jsonDoc, string path)
     {
+        StringGuard.ThrowIfNullOrEmpty(path, "JSON_QUERY requires a path.");
+
         _jsonDoc = jsonDoc;
         _path = path;
     }

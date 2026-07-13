@@ -70,4 +70,20 @@ public class CastTests
         // Assert
         Assert.Equal(expected, sql.Text);
     }
+
+    [Fact]
+    public void Cast_NullType_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Cast(_t.Code, null!));
+
+        Assert.Equal("CAST requires a target type.", ex.Message);
+    }
+
+    [Fact]
+    public void Cast_EmptyType_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Cast(_t.Code, ""));
+
+        Assert.Equal("CAST requires a target type.", ex.Message);
+    }
 }
