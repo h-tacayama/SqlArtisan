@@ -386,6 +386,24 @@ public class SelectTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void Select_EmptyHints_CorrectSql(string? hints)
+    {
+        SqlStatement sql =
+            Select(
+                Hints(hints!),
+                _t.Code)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     [Fact]
     public void Select_WithHintsAndDistinct_CorrectSql()
     {

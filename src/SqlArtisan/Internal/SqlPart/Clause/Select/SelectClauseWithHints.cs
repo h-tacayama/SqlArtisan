@@ -16,6 +16,6 @@ internal sealed class SelectClauseWithHints : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Select} ")
-        .AppendSpace(_hints)
+        .Append(_hints)
         .AppendSelectItems(_selectItems);
 }

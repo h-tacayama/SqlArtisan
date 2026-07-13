@@ -6,9 +6,17 @@ public sealed class SqlHints : SqlPart
 
     internal SqlHints(string hints)
     {
-        _hints = hints;
+        _hints = hints ?? "";
     }
 
-    internal override void Format(SqlBuildingBuffer buffer) =>
-        buffer.Append(_hints);
+    // Trailing space rides with the text so empty hints leave no stray separator.
+    internal override void Format(SqlBuildingBuffer buffer)
+    {
+        if (_hints.Length == 0)
+        {
+            return;
+        }
+
+        buffer.Append(_hints).AppendSpace();
+    }
 }

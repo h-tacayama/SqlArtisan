@@ -24,7 +24,7 @@ internal sealed class SelectClauseWithOptions : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Select} ")
-        .AppendSpace(_hints)
+        .Append(_hints)
         .AppendSpace(_distinct)
         .AppendSelectItems(_selectItems);
 }

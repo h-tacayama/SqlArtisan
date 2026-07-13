@@ -151,10 +151,9 @@ public static partial class Sql
     /// <param name="separator">The string placed between concatenated values. Emitted as an inline string literal, since SQL Server requires the separator to be a literal.</param>
     /// <returns>A <c>STRING_AGG</c> aggregate expression.</returns>
     /// <remarks>
-    /// PostgreSQL, SQLite (3.44+), and SQL Server. Order the values per dialect:
-    /// pass <c>OrderBy(...)</c> as an argument for the PostgreSQL / SQLite inline
-    /// form, or chain <c>.WithinGroup(OrderBy(...))</c> for SQL Server's
-    /// <c>WITHIN GROUP</c> form.
+    /// PostgreSQL, SQLite (3.44+), and SQL Server. Order per dialect: pass
+    /// <c>OrderBy(...)</c> as an argument for PostgreSQL / SQLite, or chain
+    /// <c>.WithinGroup(OrderBy(...))</c> for SQL Server's <c>WITHIN GROUP</c> form.
     /// </remarks>
     public static StringAggFunction StringAgg(object expr, string separator) =>
         new(Resolve(expr), separator);
