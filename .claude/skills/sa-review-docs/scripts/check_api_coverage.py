@@ -20,6 +20,8 @@ SQL_DIR = Path("src/SqlArtisan/Sql")
 DOC_FILES = [
     "README.md", "docs/README.md", "docs/query-statements.md",
     "docs/expressions.md", "docs/functions.md", "docs/analyzer.md",
+    "docs/cookbook.md", "docs/guides/dapper-quickstart.md",
+    "docs/guides/ai-assistants.md",
 ]
 # Known instance/extension members that legitimately appear as "`X()` for `Y`"
 # without being a static Sql.* factory.

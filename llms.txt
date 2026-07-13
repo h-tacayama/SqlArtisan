@@ -20,6 +20,12 @@ be rewritten across dialects.
 - [Expressions](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/expressions.md): NULL, arithmetic, string concatenation (`||` vs `CONCAT`), conditions, JSON operators (`->`, `->>`, `#>`, `#>>`), full-text search (MySQL `MATCH ... AGAINST`, Oracle `CONTAINS`/`SCORE`, PostgreSQL `@@`/`TO_TSVECTOR`/`TO_TSQUERY`, SQLite FTS5 `MATCH`, SQL Server `CONTAINS`/`FREETEXT`), scalar subqueries, ALL/ANY/SOME, CASE, CAST, window functions, conditional aggregation, string aggregation, sequences.
 - [Functions](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/functions.md): Built-in function catalog — numeric, character, date/time, conversion, comparison, JSON (`JSON_EXTRACT`, `JSON_VALUE`, `JSON_QUERY`), full-text search, aggregate, string aggregation, window/analytic — plus bind-parameter types.
 - [Analyzer](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/analyzer.md): Opt-in Roslyn analyzer that warns when a construct doesn't match the configured target dialect — enabling it, rule reference (SQLA0001/SQLA0002), override keys, mixed-dialect projects, CI gates.
+- [Query Cookbook](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/cookbook.md): Realistic end-to-end queries with the exact emitted SQL, pinned by unit tests — reporting (top-N per group, window functions, recursive CTEs), dynamic search screens (optional filters, faceting), batch/UPSERT/MERGE DML.
+
+## Guides
+
+- [Dapper + SqlArtisan from Scratch](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/guides/dapper-quickstart.md): The greenfield path — packages, table classes (generated or hand-written), executing queries through `SqlArtisan.Dapper`, pinning queries with tests.
+- [Using SqlArtisan with AI Coding Assistants](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/guides/ai-assistants.md): Analyzer target configuration, exact-SQL test pinning, and an agent-rules snippet for generated queries.
 
 ## Optional
 

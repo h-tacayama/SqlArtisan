@@ -6,6 +6,27 @@ The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLit
 Every entry below shows the C# you write and the exact SQL it produces. Per-call signatures and
 emitted SQL are also visible inline via IntelliSense (bundled XML docs).
 
+## Guides
+
+Task-oriented paths from your current project to SqlArtisan.
+
+- **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
+  the greenfield path: packages → table classes → executed queries.
+- **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
+  the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
+  AI-written queries.
+
+## [Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)
+
+Realistic end-to-end queries — the C# and the SQL it emits, every recipe
+pinned by an exact-SQL unit test.
+
+[The Recipe Schema](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#the-recipe-schema) ·
+[Everyday Patterns](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#everyday-patterns) ·
+[Reporting Queries](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#reporting-queries) ·
+[Dynamic Search Screens](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#dynamic-search-screens) ·
+[Batch and UPSERT DML](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#batch-and-upsert-dml)
+
 ## [Query Statements](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md)
 
 How to assemble each statement and clause.

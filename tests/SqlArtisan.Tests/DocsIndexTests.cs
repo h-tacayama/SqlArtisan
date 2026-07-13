@@ -16,6 +16,7 @@ public class DocsIndexTests
     private static readonly string[] s_indexedPages =
     [
         "docs/analyzer.md",
+        "docs/cookbook.md",
         "docs/expressions.md",
         "docs/functions.md",
     ];

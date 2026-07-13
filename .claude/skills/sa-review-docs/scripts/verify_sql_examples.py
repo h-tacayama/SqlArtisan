@@ -33,7 +33,7 @@ SQLPROJ = "src/SqlArtisan/SqlArtisan.csproj"
 # aliased form is picked when the documented SQL qualifies through the alias.
 INJECTABLE_LOCALS = [
     ("u", "UsersTable u = new();", 'UsersTable u = new("u");'),
-    ("s", 'UsersTable s = new("s");', 'UsersTable s = new("s");'),
+    ("s", "SalesTable s = new();", 'UsersTable s = new("s");'),
     ("post", "PostsTable post = new();", 'PostsTable post = new("post");'),
 ]
 
@@ -45,19 +45,19 @@ internal sealed class UsersTable : DbTableBase {
     public UsersTable(string a="") : base("users",a) {
         Id=new(this,"id");Name=new(this,"name");CreatedAt=new(this,"created_at");StatusId=new(this,"status_id");
         Age=new(this,"age");DepartmentId=new(this,"department_id");Salary=new(this,"salary");Amount=new(this,"amount");Date=new(this,"date");
-        Data=new(this,"data");IsActive=new(this,"is_active");
+        Data=new(this,"data");IsActive=new(this,"is_active");Region=new(this,"region");FirstName=new(this,"first_name");LastName=new(this,"last_name");
     }
     public DbColumn Id{get;} public DbColumn Name{get;} public DbColumn CreatedAt{get;} public DbColumn StatusId{get;}
     public DbColumn Age{get;} public DbColumn DepartmentId{get;} public DbColumn Salary{get;} public DbColumn Amount{get;} public DbColumn Date{get;}
-    public DbColumn Data{get;} public DbColumn IsActive{get;}
+    public DbColumn Data{get;} public DbColumn IsActive{get;} public DbColumn Region{get;} public DbColumn FirstName{get;} public DbColumn LastName{get;}
 }
 internal sealed class PostsTable : DbTableBase {
     public PostsTable(string a="") : base("posts",a) { Id=new(this,"id");Title=new(this,"title");Body=new(this,"body"); }
     public DbColumn Id{get;} public DbColumn Title{get;} public DbColumn Body{get;}
 }
 internal sealed class OrdersTable : DbTableBase {
-    public OrdersTable(string a="") : base("orders",a) { Id=new(this,"id");UserId=new(this,"user_id");OrderDate=new(this,"order_date"); }
-    public DbColumn Id{get;} public DbColumn UserId{get;} public DbColumn OrderDate{get;}
+    public OrdersTable(string a="") : base("orders",a) { Id=new(this,"id");UserId=new(this,"user_id");OrderDate=new(this,"order_date");Amount=new(this,"amount"); }
+    public DbColumn Id{get;} public DbColumn UserId{get;} public DbColumn OrderDate{get;} public DbColumn Amount{get;}
 }
 internal sealed class ArchivedUsersTable : DbTableBase {
     public ArchivedUsersTable(string a="") : base("archived_users",a) { Id=new(this,"id");Name=new(this,"name");CreatedAt=new(this,"created_at"); }
@@ -179,7 +179,7 @@ def main():
     open(os.path.join(work, "Program.cs"), "w", encoding="utf-8").write(prog)
     open(os.path.join(work, "docverify.csproj"), "w", encoding="utf-8").write(
         '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType>'
-        "<TargetFramework>net8.0</TargetFramework><Nullable>enable</Nullable>"
+        "<TargetFramework>net8.0</TargetFramework><RollForward>Major</RollForward><Nullable>enable</Nullable>"
         "<ImplicitUsings>enable</ImplicitUsings></PropertyGroup>"
         f'<ItemGroup><ProjectReference Include="{abs_proj}" /></ItemGroup></Project>')
 
