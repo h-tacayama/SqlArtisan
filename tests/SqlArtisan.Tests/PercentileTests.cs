@@ -108,6 +108,36 @@ public class PercentileTests
     }
 
     [Fact]
+    public void PercentileCont_WithFractionZero_CorrectSql()
+    {
+        // Arrange
+        string expected =
+            "SELECT PERCENTILE_CONT(0) WITHIN GROUP (ORDER BY code)";
+
+        // Act
+        SqlStatement sql =
+            Select(PercentileCont(0).WithinGroup(OrderBy(_t.Code))).Build();
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void PercentileDisc_WithFractionOne_CorrectSql()
+    {
+        // Arrange
+        string expected =
+            "SELECT PERCENTILE_DISC(1) WITHIN GROUP (ORDER BY code)";
+
+        // Act
+        SqlStatement sql =
+            Select(PercentileDisc(1).WithinGroup(OrderBy(_t.Code))).Build();
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
     public void PercentileCont_WithNaNFraction_ThrowsArgumentException()
     {
         // Act & Assert
@@ -120,5 +150,29 @@ public class PercentileTests
         // Act & Assert
         Assert.Throws<ArgumentException>(() =>
             PercentileDisc(double.PositiveInfinity));
+    }
+
+    [Fact]
+    public void PercentileCont_WithFractionAboveOne_ThrowsArgumentException()
+    {
+        // Act & Assert
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => PercentileCont(1.5));
+        Assert.Equal(
+            "The percentile fraction must be in the range 0 to 1."
+                + " (Parameter 'fraction')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void PercentileDisc_WithNegativeFraction_ThrowsArgumentException()
+    {
+        // Act & Assert
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => PercentileDisc(-0.1));
+        Assert.Equal(
+            "The percentile fraction must be in the range 0 to 1."
+                + " (Parameter 'fraction')",
+            ex.Message);
     }
 }
