@@ -20,6 +20,14 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Greatest_NoExpressions_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Greatest());
+
+        Assert.Equal("GREATEST requires at least one expression.", ex.Message);
+    }
+
+    [Fact]
     public void Grouping_SingleColumn_CorrectSql()
     {
         SqlStatement sql =
