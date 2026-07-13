@@ -248,4 +248,19 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
                 + "GROUP BY CASE department_id WHEN @p3 THEN @p4 ELSE @p5 END",
             new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
+
+    [Fact] // ADR 0012 (#295): anchors the "no engine accepts it" premise — raw
+           // SQL by necessity, since PercentileFractionGuard now rejects this client-side.
+    public void PercentileCont_FractionOutOfRange_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The in-range form is valid (so the table and column are right).
+        connection.ExecuteScalar(
+            "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY age) FROM users");
+
+        // The only difference — an out-of-range fraction — is what PG rejects.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) FROM users"));
+    }
 }

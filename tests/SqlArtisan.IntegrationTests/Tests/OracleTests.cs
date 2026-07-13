@@ -320,4 +320,19 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
                 + "GROUP BY DECODE(department_id, :p3, :p4, :p5)",
             new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
+
+    [Fact] // ADR 0012 (#295): anchors the "no engine accepts it" premise — raw
+           // SQL by necessity, since PercentileFractionGuard now rejects this client-side.
+    public void PercentileCont_FractionOutOfRange_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The in-range form is valid (so the table and column are right).
+        connection.ExecuteScalar(
+            "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY age) FROM users");
+
+        // The only difference — an out-of-range fraction — is what Oracle rejects.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) FROM users"));
+    }
 }
