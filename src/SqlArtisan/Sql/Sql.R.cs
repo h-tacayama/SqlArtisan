@@ -176,9 +176,8 @@ public static partial class Sql
     /// <returns>A <c>ROLLUP</c> grouping for a <c>GROUP BY</c> clause.</returns>
     /// <remarks>
     /// Oracle, PostgreSQL, and SQL Server. MySQL accepts only its <c>WITH ROLLUP</c>
-    /// suffix instead — use <c>.GroupBy(...).WithRollup()</c>; SQLite has no rollup
-    /// at all. On a dialect without the function form the grouping is emitted as
-    /// written, leaving the statement for the database to reject.
+    /// suffix — use <c>.GroupBy(...).WithRollup()</c> — and SQLite has no rollup at
+    /// all; on both, the function form is emitted as written for the database to reject.
     /// </remarks>
     public static RollupGrouping Rollup(object element, params object[] elements) =>
         new(GroupByItemResolver.ResolveElements(element, elements));

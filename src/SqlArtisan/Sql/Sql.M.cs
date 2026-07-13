@@ -36,6 +36,14 @@ public static partial class Sql
         new(table, Resolve(pattern));
 
     /// <summary>
+    /// The <c>MAX(<paramref name="expr"/>)</c> aggregate: the largest value of
+    /// <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The value to aggregate.</param>
+    /// <returns>The MAX construct.</returns>
+    public static MaxFunction Max(object expr) => new(Resolve(expr));
+
+    /// <summary>
     /// Starts a <c>MERGE INTO target</c> statement (Oracle / SQL Server, and
     /// PostgreSQL 15+). Continue with <c>Using(...).On(...)</c> and one or more
     /// <c>WhenMatched</c> / <c>WhenNotMatched</c> branches.
@@ -46,14 +54,6 @@ public static partial class Sql
     /// terminating semicolon and supports <c>WHEN NOT MATCHED BY SOURCE</c>.</remarks>
     public static IMergeBuilderTarget MergeInto(DbTableBase target) =>
         new MergeBuilder(new MergeIntoClause(target));
-
-    /// <summary>
-    /// The <c>MAX(<paramref name="expr"/>)</c> aggregate: the largest value of
-    /// <paramref name="expr"/> across the group.
-    /// </summary>
-    /// <param name="expr">The value to aggregate.</param>
-    /// <returns>The MAX construct.</returns>
-    public static MaxFunction Max(object expr) => new(Resolve(expr));
 
     /// <summary>
     /// The <c>MIN(<paramref name="expr"/>)</c> aggregate: the smallest value of

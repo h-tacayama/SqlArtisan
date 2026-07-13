@@ -19,9 +19,7 @@ public static partial class Sql
     /// <remarks>
     /// This is SQL Server's form. For Oracle use
     /// <see cref="AddMonths(object, object)"/>; PostgreSQL/MySQL use interval
-    /// arithmetic native to those dialects. <see cref="DateTimePart"/> is a superset
-    /// shared with EXTRACT/DATEPART; only the dateparts SQL Server's <c>DATEADD</c>
-    /// accepts are valid here.
+    /// arithmetic native to those dialects.
     /// </remarks>
     public static DateaddFunction Dateadd(DateTimePart datepart, object number, object dateTime) =>
         new(datepart, Resolve(number), Resolve(dateTime));
@@ -37,9 +35,7 @@ public static partial class Sql
     /// <returns>The <c>DATEDIFF</c> function expression.</returns>
     /// <remarks>
     /// Argument order and supported units are vendor-specific; this is the SQL
-    /// Server form. <see cref="DateTimePart"/> is a superset shared with
-    /// EXTRACT/DATEPART; only the dateparts SQL Server's <c>DATEDIFF</c> accepts
-    /// are valid here.
+    /// Server form.
     /// </remarks>
     public static DatediffFunction Datediff(
         DateTimePart datepart,
@@ -87,8 +83,6 @@ public static partial class Sql
     /// <remarks>
     /// This is PostgreSQL's form. For Oracle use the date/time overload of
     /// <see cref="Trunc(object, object)"/> (<c>TRUNC(date, fmt)</c>).
-    /// <see cref="DateTimePart"/> is a superset shared with EXTRACT/DATEPART; only
-    /// the fields PostgreSQL's <c>date_trunc</c> accepts are valid here.
     /// </remarks>
     public static DateTruncFunction DateTrunc(DateTimePart datepart, object source) =>
         new(datepart, Resolve(source));
@@ -103,9 +97,7 @@ public static partial class Sql
     /// <returns>The <c>DATETRUNC</c> function expression.</returns>
     /// <remarks>
     /// SQL Server syntax (SQL Server 2022+; use <see cref="Format(object, object)"/>
-    /// on earlier versions). <see cref="DateTimePart"/> is a superset shared with
-    /// EXTRACT/DATEPART; only the fields SQL Server's <c>DATETRUNC</c> accepts are
-    /// valid here.
+    /// on earlier versions).
     /// </remarks>
     public static DatetruncFunction Datetrunc(DateTimePart datepart, object date) =>
         new(datepart, Resolve(date));

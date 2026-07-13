@@ -75,8 +75,7 @@ public static partial class Sql
     /// <c>Sql.Separator(...)</c>.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr SEPARATOR separator)</c>.</returns>
-    /// <remarks>A MySQL aggregate; on other dialects use
-    /// <see cref="Listagg(object, object)"/> (Oracle).</remarks>
+    /// <inheritdoc cref="GroupConcat(object, OrderByClause)" path="/remarks"/>
     public static GroupConcatFunction GroupConcat(object expr, SeparatorClause separatorClause) =>
         new(Resolve(expr), separatorClause: separatorClause);
 
@@ -92,8 +91,7 @@ public static partial class Sql
     /// <c>Sql.Separator(...)</c>.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr ORDER BY ... SEPARATOR separator)</c>.</returns>
-    /// <remarks>A MySQL aggregate; on other dialects use
-    /// <see cref="Listagg(object, object)"/> (Oracle).</remarks>
+    /// <inheritdoc cref="GroupConcat(object, OrderByClause)" path="/remarks"/>
     public static GroupConcatFunction GroupConcat(
         object expr,
         OrderByClause orderByClause,
