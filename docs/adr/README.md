@@ -30,3 +30,4 @@ decisions — closed by the mission that ties them together.
 | [0009](0009-analyzer-distribution-bundled.md) | Analyzer distribution: bundled in the core package, coupled only by contract | Accepted |
 | [0010](0010-deterministic-guard-mission.md) | The mission: deterministic guard rails for AI-assisted SQL | Accepted |
 | [0011](0011-bounded-exception-validity-boundary.md) | Bounded exceptions to the validity-enforcement boundary: when a construct valid on some dialect may still be rejected | Accepted |
+| [0012](0012-value-domain-guards.md) | Value-domain guards: rejecting an argument value no engine accepts | Accepted |

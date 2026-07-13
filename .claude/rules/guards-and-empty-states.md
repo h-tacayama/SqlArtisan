@@ -52,6 +52,9 @@ operand *beside* an active one still drops out inside a non-empty AND/OR (that i
 - **Eagerly (in the factory / clause method)** only when the fact is fixed at
   the call site: a `params` array length, a collection count. Precedent:
   `PartitionBy` (#69) and the empty-`Select()` guard (`SelectItemResolver.ResolveOrThrow`, #236).
+  A **value-domain guard** (an argument value no engine accepts, e.g. a
+  percentile fraction outside 0..1) is also eager — its three admission
+  conditions are ADR 0012 (#295); never domain-check a bound value.
 - **At Build()/format time** when later mutation can change the fact:
   conditions (`operator &` mutates a held `AndCondition`, so an empty tree at
   `.Where(...)` time can legitimately become non-empty before `Build()`) and
