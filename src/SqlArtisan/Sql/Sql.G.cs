@@ -198,6 +198,6 @@ public static partial class Sql
     /// <c>GROUPING SETS(...)</c>.</returns>
     /// <remarks>PostgreSQL, Oracle, and SQL Server support it; MySQL and SQLite do
     /// not, where it is emitted as written for the database to reject.</remarks>
-    public static GroupingSetsGrouping GroupingSets( GroupingSet set, params GroupingSet[] sets) =>
+    public static GroupingSetsGrouping GroupingSets(GroupingSet set, params GroupingSet[] sets) =>
         new(set, sets);
 }
