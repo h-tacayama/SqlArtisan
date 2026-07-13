@@ -21,7 +21,7 @@ public sealed class GroupingSetsGrouping : GroupingElement
         if (set is null)
         {
             throw new ArgumentNullException(
-                nameof(set), ExpressionResolver.NullValueMessage);
+                nameof(set), "GROUPING SETS requires a grouping set.");
         }
 
         if (sets is null)
