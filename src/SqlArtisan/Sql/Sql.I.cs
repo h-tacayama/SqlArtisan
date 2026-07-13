@@ -7,8 +7,8 @@ public static partial class Sql
 {
     /// <summary>
     /// Starts an <c>INSERT INTO table</c> statement with no column list.
-    /// Continue with <c>.Values(...)</c> (or <c>.Select(...)</c>) to supply the
-    /// rows, which must line up with the table's column order.
+    /// Continue with <c>.Values(...)</c> to supply the rows, which must line up
+    /// with the table's column order.
     /// </summary>
     /// <param name="table">The target table.</param>
     /// <returns>An insert builder awaiting the values to insert.</returns>
@@ -31,7 +31,7 @@ public static partial class Sql
     /// Starts an <c>INSERT IGNORE INTO table</c> statement (MySQL): rows whose
     /// insertion would raise an error — a duplicate key, and also FK violations or
     /// out-of-range values — are skipped rather than aborting the statement.
-    /// Continue with <c>.Values(...)</c> (or <c>.Select(...)</c>) to supply the rows.
+    /// Continue with <c>.Values(...)</c> to supply the rows.
     /// </summary>
     /// <param name="table">The target table.</param>
     /// <returns>An insert builder awaiting the values to insert.</returns>

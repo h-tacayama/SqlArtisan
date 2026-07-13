@@ -176,6 +176,7 @@ public static partial class Sql
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position.</param>
     /// <returns>A <c>SUBSTR</c> function expression.</returns>
+    /// <remarks>Not supported by SQL Server.</remarks>
     public static SubstrFunction Substr(object source, object position) =>
         new(Resolve(source), Resolve(position));
 

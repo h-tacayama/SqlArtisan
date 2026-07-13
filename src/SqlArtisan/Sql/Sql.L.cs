@@ -159,6 +159,7 @@ public static partial class Sql
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target total length.</param>
     /// <returns>The LPAD construct.</returns>
+    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
     public static LpadFunction Lpad(object source, object length) =>
         new(Resolve(source), Resolve(length));
 
@@ -166,6 +167,7 @@ public static partial class Sql
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target total length.</param>
     /// <param name="padding">The string to pad with instead of spaces.</param>
+    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static LpadFunction Lpad(object source, object length, object padding) =>
         new(Resolve(source), Resolve(length), Resolve(padding));
 
@@ -181,6 +183,7 @@ public static partial class Sql
     /// <inheritdoc cref="Ltrim(object)"/>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip from the left.</param>
+    /// <remarks>Not supported by MySQL.</remarks>
     public static LtrimFunction Ltrim(object source, object trimChars) =>
         new(Resolve(source), Resolve(trimChars));
 }

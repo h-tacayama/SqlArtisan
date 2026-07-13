@@ -206,6 +206,7 @@ public static partial class Sql
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target length.</param>
     /// <returns>An <c>RPAD</c> function expression.</returns>
+    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
     public static RpadFunction Rpad(object source, object length) =>
         new(Resolve(source), Resolve(length));
 
@@ -213,6 +214,7 @@ public static partial class Sql
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target length.</param>
     /// <param name="padding">The padding string used instead of spaces.</param>
+    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static RpadFunction Rpad(object source, object length, object padding) =>
         new(Resolve(source), Resolve(length), Resolve(padding));
 
@@ -228,6 +230,7 @@ public static partial class Sql
     /// <inheritdoc cref="Rtrim(object)"/>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip instead of spaces.</param>
+    /// <remarks>Not supported by MySQL.</remarks>
     public static RtrimFunction Rtrim(object source, object trimChars) =>
         new(Resolve(source), Resolve(trimChars));
 

@@ -10,6 +10,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="tableIdentifier">A column of the table to lock.</param>
     /// <returns>An <c>OF</c> clause for <c>FOR UPDATE OF ...</c>.</returns>
+    /// <remarks>Oracle syntax.</remarks>
     public static OfClause Of(DbColumn tableIdentifier) => new(tableIdentifier);
 
     /// <summary>
