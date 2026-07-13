@@ -16,10 +16,7 @@ export const meta = {
 phase('Scope')
 
 // Callers occasionally pass args as a JSON-encoded string rather than a
-// live object (confirmed live: a `paths` array silently had no effect
-// because `args` arrived as the string '{"paths": [...]}', so `args.paths`
-// was undefined and every check below fell through to diff mode). Parse
-// defensively instead of trusting the caller's encoding.
+// live object; parse defensively instead of trusting the caller's encoding.
 const runArgs = typeof args === 'string' ? JSON.parse(args) : (args ?? {})
 
 log(`args received: ${JSON.stringify(runArgs)}`)
@@ -36,10 +33,8 @@ const SCOPE_SCHEMA = {
 }
 
 // `SqlBuilder/**` and `SqlPart/**` appear twice, deliberately: the
-// `Internal/`-prefixed path is implementation detail, while the bare path is
-// the public surface (Dbms, DbmsResolver, SqlArtisanConfig, SqlStatement,
-// SqlParameters, ISqlBuilder; DbColumn, BindValue, table-reference types) —
-// don't collapse them into one glob.
+// `Internal/`-prefixed path is implementation detail, the bare path is the
+// public surface (ADR 0005) — don't collapse them into one glob.
 const FULL_CODEBASE_GLOBS = [
   'src/SqlArtisan/Sql/*.cs',
   'src/SqlArtisan/Internal/SqlPart/Expression/Function/**',
@@ -94,6 +89,38 @@ const scopeInfo = await agent(scopePrompt, {
 })
 
 log(`Scope: ${scopeInfo.scope}, ${scopeInfo.changedFiles.length} file(s)`)
+
+// Nothing to review — skip straight to a report instead of spending
+// Gates/Orchestrate/Execute/Synthesize on an empty file list.
+if (scopeInfo.changedFiles.length === 0) {
+  log('No files in scope — nothing to review, skipping the remaining phases')
+  return {
+    scope: scopeInfo.scope,
+    branchPoint: scopeInfo.branchPoint,
+    diffStat: scopeInfo.diffStat,
+    gates: null,
+    chunksReviewed: '0/0 (skipped — no files in scope)',
+    highRiskFiles: [],
+    finalReport: `# SqlArtisan Code Review: ${scopeInfo.scope === 'diff' ? 'Branch Diff' : 'Full Codebase'}
+
+## Verdict
+Mergeable
+
+## Summary
+No files were in scope for this review (empty diff or empty glob match) — nothing to review.
+
+## Findings by Severity
+None — no files in scope.
+
+## Coverage
+- Scope: ${scopeInfo.scope}
+- Files in scope: 0
+- Gates/Orchestrate/Execute/Synthesize: skipped (empty scope)
+
+## Recommendations (ranked)
+1. No action needed.`,
+  }
+}
 
 // ---------------------------------------------------------------------------
 // PHASE 2: Gates — run once, up front, so reviewers don't re-derive
@@ -178,11 +205,10 @@ were skipped.
 // ---------------------------------------------------------------------------
 phase('Orchestrate')
 
-// Single source of truth for the review-dimension vocabulary — reused in
-// both the schema (so a typo'd dimension fails validation instead of
-// reaching the reviewer prompt) and the orchestrate prompt below, so the
-// two can't drift apart the way this list and sa-review-orchestrator.md's
-// own copy previously did.
+// Shared by the schema (so a typo'd dimension fails validation) and the
+// orchestrate prompt below — prevents drift within this file only.
+// sa-review-orchestrator.md keeps its own hand-copied list; keep it in sync
+// manually when this array changes.
 const REVIEW_DIMENSIONS = [
   'adr-conformance',
   'api-design',
@@ -278,11 +304,8 @@ for (const group of plan.fileGroups) {
   }
 }
 
-// A plain length subtraction only catches under-coverage: a duplicated file
-// assignment inflates the assigned count and can mask a separately dropped
-// file (or even go negative). Diff the actual file sets instead so both
-// omissions and duplicates are caught, per the orchestrator's partition
-// constraint above.
+// A length subtraction alone only catches under-coverage and can go
+// negative on duplicates; diff the actual file sets so both are caught.
 const assignedFiles = reviewUnits.flatMap((u) => u.chunkFiles)
 const assignedCounts = new Map()
 for (const f of assignedFiles) assignedCounts.set(f, (assignedCounts.get(f) ?? 0) + 1)

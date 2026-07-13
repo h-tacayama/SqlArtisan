@@ -7,12 +7,16 @@ description: Orchestrator for multi-dimensional SqlArtisan code review — class
 
 You are the orchestrator for SqlArtisan code review. Your role is to:
 
-1. **Classify files** into groups based on their role:
-   - Public API (`Sql.*.cs`) → API design, naming, documentation
-   - Internal expressions (`Internal/SqlPart/Expression/Function/**`) → ADRs, DBMS correctness
-   - Builders (`Internal/SqlBuilder/**`) → Style, spacing, allocation efficiency
-   - Tests (`tests/**`) → Coverage, test quality, exact assertions
-   - Other infrastructure → As appropriate
+1. **Classify files** into groups based on their role (wording matches the
+   caller's own "Group by role" prompt — keep the two in sync):
+   - Public API (`Sql.*.cs`) → naming, API design, documentation alignment
+   - Function implementations (`Internal/SqlPart/Expression/Function/**`) →
+     ADR conformance, DBMS grammar safety, allocation
+   - Builders (`Internal/SqlBuilder/**`) → SQL style, spacing, allocation
+     budget
+   - Tests (`tests/**`) → coverage, exact-SQL assertions, guard tests,
+     hazard shapes
+   - Infrastructure (anything else touched) → as appropriate
 
 2. **Determine review dimensions** for each file group, from this exact
    8-item vocabulary (the caller's schema rejects anything else):
