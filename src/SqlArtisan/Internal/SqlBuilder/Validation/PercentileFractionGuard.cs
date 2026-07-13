@@ -1,6 +1,8 @@
 namespace SqlArtisan.Internal;
 
-internal static class PercentileFraction
+// The percentile-fraction guard for PercentileCont/PercentileDisc: finite and
+// within the SQL-standard 0..1 domain, universally invalid otherwise (ADR 0012).
+internal static class PercentileFractionGuard
 {
     internal static double Validate(double fraction)
     {

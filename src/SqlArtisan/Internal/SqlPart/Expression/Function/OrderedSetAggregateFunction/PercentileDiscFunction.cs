@@ -9,7 +9,7 @@ public sealed class PercentileDiscFunction : IIncompleteExpression
     private readonly double _fraction;
 
     internal PercentileDiscFunction(double fraction) =>
-        _fraction = PercentileFraction.Validate(fraction);
+        _fraction = PercentileFractionGuard.Validate(fraction);
 
     string IIncompleteExpression.CompletionHint =>
         "Complete it with .WithinGroup(OrderBy(...)) — PERCENTILE_DISC requires a WITHIN GROUP clause.";
