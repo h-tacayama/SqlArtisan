@@ -339,7 +339,11 @@ verbatim probe output that backs it.`,
 )
 
 const reviewedUnits = reviewResults.filter(Boolean)
+const failedChunks = reviewUnits.filter((u, i) => !reviewResults[i]).map((u) => u.chunkLabel)
 log(`Execution complete: ${reviewedUnits.length}/${reviewUnits.length} chunk(s) reviewed`)
+if (failedChunks.length > 0) {
+  log(`Chunk failure: ${failedChunks.length} chunk(s) returned no result — files in them were never reviewed: ${failedChunks.join(', ')}`)
+}
 
 // ---------------------------------------------------------------------------
 // PHASE 5: Synthesize — Fable integrates findings into one report.
@@ -353,9 +357,12 @@ GATES: ${gates.summary}
 BRANCH POINT: ${scopeInfo.branchPoint ?? 'n/a'}
 ${!coverageClean ? `
 COVERAGE GAP — call this out explicitly in the report:
-${missingFiles.length > 0 ? `- Missing (in scope, never assigned to a group): ${missingFiles.join(', ')}\n` : ''}${duplicateFiles.length > 0 ? `- Duplicated (assigned to more than one group, reviewed redundantly): ${duplicateFiles.join(', ')}\n` : ''}` : ''}
+${missingFiles.length > 0 ? `- Missing (in scope, never assigned to a group): ${missingFiles.join(', ')}\n` : ''}${duplicateFiles.length > 0 ? `- Duplicated (assigned to more than one group, reviewed redundantly): ${duplicateFiles.join(', ')}\n` : ''}` : ''}${failedChunks.length > 0 ? `
+CHUNK FAILURE — call this out explicitly in the report:
+- ${failedChunks.length} chunk(s) returned no result and were never reviewed: ${failedChunks.join(', ')}
+` : ''}
 CHUNK REVIEWS:
-${reviewUnits.map((u, i) => `--- ${u.chunkLabel} ---\n${reviewResults[i] ?? '(this chunk failed to return a result)'}`).join('\n\n')}
+${reviewUnits.map((u, i) => `--- ${u.chunkLabel} ---\n${reviewResults[i] ?? '(this chunk failed to return a result — its files were never reviewed)'}`).join('\n\n')}
 
 Tasks:
 1. Merge findings across chunks; surface cross-chunk patterns (e.g. the same
@@ -363,9 +370,11 @@ Tasks:
 2. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
 3. Decide a verdict: Mergeable / Mergeable after must-fix / Not mergeable.
    A failing gate above is itself a MUST FIX and blocks "Mergeable" — and so
-   is a coverage gap (a missing or duplicated file above): a dropped file
-   was silently never reviewed, which is exactly the kind of silent failure
-   this workflow exists to catch, so treat it the same as a failing gate.
+   is a coverage gap (a missing or duplicated file above) and a chunk
+   failure (a chunk above that never returned a result): both mean files
+   in scope were silently never reviewed, which is exactly the kind of
+   silent failure this workflow exists to catch, so treat either the same
+   as a failing gate.
 
 Output as a headed report:
 
