@@ -418,6 +418,7 @@ InsertInto(u, u.ProductId, u.Price)
 // INSERT INTO product (product_id, price) VALUES (:0, :1)
 // ON CONFLICT (product_id) DO UPDATE SET price = EXCLUDED.price
 // RETURNING product_id, price
+// (SQLite emits lowercase "excluded.price" — Build(Dbms.Sqlite) handles it)
 
 // MySQL — ON DUPLICATE KEY UPDATE (8.0.19+ row-alias form):
 InsertInto(u, u.ProductId, u.Price)
