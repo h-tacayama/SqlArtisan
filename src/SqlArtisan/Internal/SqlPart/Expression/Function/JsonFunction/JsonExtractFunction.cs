@@ -12,6 +12,8 @@ public sealed class JsonExtractFunction : SqlExpression
 
     internal JsonExtractFunction(SqlExpression jsonDoc, string path)
     {
+        StringGuard.ThrowIfNullOrEmpty(path, "JSON_EXTRACT requires a path.");
+
         _jsonDoc = jsonDoc;
         _path = path;
     }

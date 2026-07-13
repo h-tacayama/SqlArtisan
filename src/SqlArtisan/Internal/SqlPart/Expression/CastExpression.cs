@@ -7,6 +7,8 @@ public sealed class CastExpression : SqlExpression
 
     internal CastExpression(SqlExpression expr, string type)
     {
+        StringGuard.ThrowIfNullOrEmpty(type, "CAST requires a target type.");
+
         _expr = expr;
         _type = type;
     }

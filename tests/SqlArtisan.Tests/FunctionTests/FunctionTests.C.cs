@@ -263,4 +263,20 @@ public partial class FunctionTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Currval_NullSequenceName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Currval(null!));
+
+        Assert.Equal("CURRVAL requires a sequence name.", ex.Message);
+    }
+
+    [Fact]
+    public void Currval_EmptySequenceName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Currval(""));
+
+        Assert.Equal("CURRVAL requires a sequence name.", ex.Message);
+    }
 }

@@ -111,4 +111,52 @@ public partial class FunctionTests
             sql.Text);
         Assert.Equal("active", sql.Parameters.Get<string>("@0"));
     }
+
+    [Fact]
+    public void JsonExtract_NullPath_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => JsonExtract(_t.Name, null!));
+
+        Assert.Equal("JSON_EXTRACT requires a path.", ex.Message);
+    }
+
+    [Fact]
+    public void JsonExtract_EmptyPath_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => JsonExtract(_t.Name, ""));
+
+        Assert.Equal("JSON_EXTRACT requires a path.", ex.Message);
+    }
+
+    [Fact]
+    public void JsonQuery_NullPath_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => JsonQuery(_t.Name, null!));
+
+        Assert.Equal("JSON_QUERY requires a path.", ex.Message);
+    }
+
+    [Fact]
+    public void JsonQuery_EmptyPath_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => JsonQuery(_t.Name, ""));
+
+        Assert.Equal("JSON_QUERY requires a path.", ex.Message);
+    }
+
+    [Fact]
+    public void JsonValue_NullPath_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => JsonValue(_t.Name, null!));
+
+        Assert.Equal("JSON_VALUE requires a path.", ex.Message);
+    }
+
+    [Fact]
+    public void JsonValue_EmptyPath_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => JsonValue(_t.Name, ""));
+
+        Assert.Equal("JSON_VALUE requires a path.", ex.Message);
+    }
 }
