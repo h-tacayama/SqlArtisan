@@ -88,6 +88,9 @@ internal static class DialectMatrix
         [new MatrixKey("StringAgg")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         [new MatrixKey("StringAgg", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("Listagg")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        // GroupConcat: see the key-collision caveat above — the three arity-2 overloads
+        // (SQLite's positional separator, MySQL's OrderBy and Separator forms) collapse to
+        // this MySQL/SQLite union, so a MySQL-only form used on SQLite stays silent.
         [new MatrixKey("GroupConcat")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
 
         // --- PostgreSQL / Oracle single-dialect helpers ---
