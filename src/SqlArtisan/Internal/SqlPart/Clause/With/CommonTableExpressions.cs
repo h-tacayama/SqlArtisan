@@ -1,8 +1,17 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class CommonTableExpressions(CommonTableExpression[] ctes)
+internal sealed class CommonTableExpressions
 {
-    private readonly CommonTableExpression[] _ctes = ctes;
+    private readonly CommonTableExpression[] _ctes;
+
+    internal CommonTableExpressions(CommonTableExpression[] ctes)
+    {
+        CollectionGuard.ThrowIfEmpty(
+            ctes,
+            "WITH requires at least one common table expression.");
+
+        _ctes = ctes;
+    }
 
     internal void Format(SqlBuildingBuffer buffer, string withKeyword)
     {

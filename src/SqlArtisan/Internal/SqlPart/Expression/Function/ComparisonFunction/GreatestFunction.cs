@@ -6,6 +6,10 @@ public sealed class GreatestFunction : SqlExpression
 
     internal GreatestFunction(SqlExpression[] expressions)
     {
+        CollectionGuard.ThrowIfEmpty(
+            expressions,
+            "GREATEST requires at least one expression.");
+
         _core = new(Keywords.Greatest, expressions);
     }
 

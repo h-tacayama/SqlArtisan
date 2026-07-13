@@ -506,4 +506,24 @@ public class WithTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void With_NoCtes_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => With());
+
+        Assert.Equal(
+            "WITH requires at least one common table expression.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void WithRecursive_NoCtes_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => WithRecursive());
+
+        Assert.Equal(
+            "WITH requires at least one common table expression.",
+            ex.Message);
+    }
 }

@@ -775,4 +775,31 @@ public class CaseTests
 
         Assert.Equal("A CASE WHEN branch requires a condition.", ex.Message);
     }
+
+    [Fact]
+    public void Case_SearchedNoWhenClausesWithElse_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Case([], Else("Z")));
+
+        Assert.Equal("CASE requires at least one WHEN clause.", ex.Message);
+    }
+
+    [Fact]
+    public void Case_SimpleNoWhenClauses_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Case(_t.Name));
+
+        Assert.Equal("CASE requires at least one WHEN clause.", ex.Message);
+    }
+
+    [Fact]
+    public void Case_SimpleNoWhenClausesWithElse_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Case(_t.Name, [], Else("Z")));
+
+        Assert.Equal("CASE requires at least one WHEN clause.", ex.Message);
+    }
 }

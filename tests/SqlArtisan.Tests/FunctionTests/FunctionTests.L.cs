@@ -34,6 +34,14 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Least_NoExpressions_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Least());
+
+        Assert.Equal("LEAST requires at least one expression.", ex.Message);
+    }
+
+    [Fact]
     public void Length_CharacterValue_CorrectSql()
     {
         SqlStatement sql =

@@ -200,8 +200,14 @@ public static partial class Sql
     /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause[] whenClauses,
-        CaseElseExpression elseExpr) =>
-        new(whenClauses, elseExpr);
+        CaseElseExpression elseExpr)
+    {
+        CollectionGuard.ThrowIfEmpty(
+            whenClauses,
+            "CASE requires at least one WHEN clause.");
+
+        return new(whenClauses, elseExpr);
+    }
 
     /// <summary>
     /// The simple <c>CASE <paramref name="expr"/> WHEN ... THEN ... [ELSE ...] END</c>
@@ -215,9 +221,14 @@ public static partial class Sql
     /// <c>CASE expr WHEN ... THEN ... END</c>.</returns>
     public static SimpleCaseExpression Case(
         object expr,
-        params SimpleCaseWhenClause[] whenClauses) => new(
-            Resolve(expr),
-            whenClauses);
+        params SimpleCaseWhenClause[] whenClauses)
+    {
+        CollectionGuard.ThrowIfEmpty(
+            whenClauses,
+            "CASE requires at least one WHEN clause.");
+
+        return new(Resolve(expr), whenClauses);
+    }
 
     /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
     public static SimpleCaseExpression Case(
@@ -421,10 +432,14 @@ public static partial class Sql
     public static SimpleCaseExpression Case(
         object expr,
         SimpleCaseWhenClause[] whenClauses,
-        CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+        CaseElseExpression elseExpr)
+    {
+        CollectionGuard.ThrowIfEmpty(
             whenClauses,
-            elseExpr);
+            "CASE requires at least one WHEN clause.");
+
+        return new(Resolve(expr), whenClauses, elseExpr);
+    }
 
     /// <summary>
     /// The ANSI <c>CAST(expr AS type)</c> expression. The target <paramref name="type"/>
