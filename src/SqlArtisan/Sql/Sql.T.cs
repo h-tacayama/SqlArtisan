@@ -38,7 +38,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The value to convert.</param>
     /// <returns>A <c>TO_NUMBER</c> function expression.</returns>
-    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
+    /// <remarks>Oracle syntax.</remarks>
     public static ToNumberFunction ToNumber(object expr) =>
         new(Resolve(expr));
 
@@ -115,6 +115,7 @@ public static partial class Sql
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChar">The character to strip from both ends instead of spaces.</param>
     /// <returns>A <c>TRIM</c> function expression.</returns>
+    /// <remarks>Not supported by SQLite.</remarks>
     public static TrimFunction Trim(object source, object trimChar) =>
         new(Resolve(source), Resolve(trimChar));
 
