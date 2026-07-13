@@ -20,6 +20,34 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Nextval_SequenceNameWithQuote_EscapesLiteral()
+    {
+        SqlStatement sql =
+            Select(Nextval("seq'; DROP TABLE users; --"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("NEXTVAL('seq''; DROP TABLE users; --')");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Nextval_MySql_SequenceNameWithBackslash_EscapesLiteral()
+    {
+        SqlStatement sql =
+            Select(Nextval("se'q\\x"))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("NEXTVAL('se''q\\\\x')");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void NextValueFor_SequenceName_CorrectSql()
     {
         SqlStatement sql =

@@ -235,4 +235,32 @@ public partial class FunctionTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Currval_SequenceNameWithQuote_EscapesLiteral()
+    {
+        SqlStatement sql =
+            Select(Currval("seq'; DROP TABLE users; --"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CURRVAL('seq''; DROP TABLE users; --')");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Currval_MySql_SequenceNameWithBackslash_EscapesLiteral()
+    {
+        SqlStatement sql =
+            Select(Currval("se'q\\x"))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CURRVAL('se''q\\\\x')");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }
