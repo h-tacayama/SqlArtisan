@@ -1,25 +1,20 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Xml.Linq;
 using SqlArtisan.Internal;
 
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// Guards the two doc/behaviour drifts fixed in #292 from recurring:
-/// (1) an <c>InsertInto(table)</c> XML doc promising a <c>.Select(...)</c>
-/// continuation its return type does not expose, and (2) a function's
-/// <c>&lt;remarks&gt;</c> dialect note disagreeing with <see cref="DialectMatrix"/>.
-/// Scoped to a curated member list on purpose — a whole-API remarks parser would
-/// be brittle against free-text prose, so this pins only the members the fix touched.
+/// Guards #292's doc/behaviour drifts from recurring. Scoped to a curated
+/// member list — a whole-API remarks parser would be too brittle against
+/// free-text prose.
 /// </summary>
 public class XmlDocDialectParityTests
 {
-    // The column-less INSERT builders expose only Set/Values; only the
-    // column-list builders (ISelectBuilder) carry Select. #292's first drift
-    // was a doc claiming .Select() on the column-less overload.
+    // #292: the doc promised .Select() here, but only ISelectBuilder-backed
+    // column-list builders carry it.
     [Fact]
     public void ColumnlessInsertBuilders_HaveNoSelectContinuation()
     {
@@ -83,9 +78,8 @@ public class XmlDocDialectParityTests
         ["SQL Server"] = TargetDbms.SqlServer,
     };
 
-    // Both house phrasings: "Not supported by X." = all but X; "A, B, and C
-    // syntax." = exactly the named set. Substring checks are unambiguous because
-    // the five display names do not contain one another.
+    // "Not supported by X." = all but X; "A, B, and C syntax." = exactly the
+    // named set. Substring match is safe: no display name contains another.
     private static ISet<TargetDbms> ParseDialects(string remark)
     {
         IEnumerable<TargetDbms> named = DisplayNames
