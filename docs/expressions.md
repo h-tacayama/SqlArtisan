@@ -746,7 +746,7 @@ SqlStatement sql =
 - Bounds: `UnboundedPreceding`, `CurrentRow`, `UnboundedFollowing`, `Preceding(n)`, `Following(n)`.
 - A single bound uses `Rows(bound)` / `Range(bound)` (e.g. `Rows(UnboundedPreceding)`); `RowsBetween(start, end)` / `RangeBetween(start, end)` produce `ROWS/RANGE BETWEEN ... AND ...`.
 - A frame requires `ORDER BY`, so `Rows(...)` / `Range(...)` are available only after `OrderBy(...)` (optionally with `PartitionBy(...)`).
-- Requires PostgreSQL, Oracle, MySQL 8.0+, SQLite 3.25+, or SQL Server 2012+.
+- Requires MySQL 8.0+, Oracle, PostgreSQL, SQLite 3.25+, or SQL Server 2012+.
 
 ### Example using PERCENTILE_CONT / PERCENTILE_DISC
 
