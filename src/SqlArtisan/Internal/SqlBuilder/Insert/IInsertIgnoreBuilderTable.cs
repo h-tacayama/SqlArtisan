@@ -12,10 +12,15 @@ public interface IInsertIgnoreBuilderTable : ISqlBuilder
     /// <returns>The builder positioned for <c>RETURNING</c> or build.</returns>
     IInsertIgnoreBuilderSet Set(params EqualityBasedCondition[] assignments);
 
-    /// <summary>
-    /// Appends a positional <c>VALUES (...)</c> row for the table's columns in declaration order.
-    /// </summary>
-    /// <param name="values">The row values, one per column; literals are auto-parameterized.</param>
+    /// <inheritdoc cref="IInsertBuilderTable.Values(object[])"/>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c>, or build.</returns>
     IInsertIgnoreBuilderValues Values(params object[] values);
+
+    /// <inheritdoc cref="IInsertBuilderTable.Values(IEnumerable{object[]})"/>
+    /// <returns>The builder positioned to append more rows, add <c>RETURNING</c>, or build.</returns>
+    IInsertIgnoreBuilderValues Values(IEnumerable<object[]> rows);
+
+    /// <inheritdoc cref="IInsertBuilderTable.Values(object[][])"/>
+    /// <returns>The builder positioned to append more rows, add <c>RETURNING</c>, or build.</returns>
+    IInsertIgnoreBuilderValues Values(object[][] rows);
 }

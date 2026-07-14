@@ -13,6 +13,9 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
     IInsertIgnoreBuilderTable,
     IInsertIgnoreBuilderValues
 {
+    private const string NoRowsMessage =
+        "VALUES requires at least one row; the row collection is empty.";
+
     private InsertValuesClause? _valuesClause;
 
     protected override string StatementName => Keywords.Insert;
@@ -59,9 +62,57 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
 
     public IInsertBuilderValues Values(params object[] values)
     {
-        // A repeat Values() appends a row via AddRow, bypassing AddPart's guard.
         ThrowIfBuilt();
+        AddValuesRow(values);
+        return this;
+    }
 
+    public IInsertBuilderValues Values(IEnumerable<object[]> rows)
+    {
+        ThrowIfBuilt();
+        ArgumentNullException.ThrowIfNull(rows);
+
+        bool any = false;
+        foreach (object[] row in rows)
+        {
+            AddValuesRow(row);
+            any = true;
+        }
+
+        if (!any)
+        {
+            throw new ArgumentException(NoRowsMessage);
+        }
+
+        return this;
+    }
+
+    public IInsertBuilderValues Values(object[][] rows)
+    {
+        ThrowIfBuilt();
+        ArgumentNullException.ThrowIfNull(rows);
+
+        if (rows.Length == 0)
+        {
+            throw new ArgumentException(NoRowsMessage);
+        }
+
+        // foreach over the concrete array (not the IEnumerable<object[]> overload
+        // above) avoids boxing the array's enumerator — a compiler-recognized
+        // zero-allocation loop, per ADR 0006.
+        foreach (object[] row in rows)
+        {
+            AddValuesRow(row);
+        }
+
+        return this;
+    }
+
+    // The single-row append shared by every Values overload. A repeat call grows
+    // the held clause via AddRow (which validates row width), bypassing AddPart's
+    // once-per-part guard.
+    private void AddValuesRow(object[] values)
+    {
         if (_valuesClause is null)
         {
             _valuesClause = InsertValuesClause.Parse(values);
@@ -71,15 +122,25 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
         {
             _valuesClause.AddRow(values);
         }
-
-        return this;
     }
 
     IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(params object[] values) =>
         (IInsertIgnoreBuilderValues)Values(values);
 
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(IEnumerable<object[]> rows) =>
+        (IInsertIgnoreBuilderValues)Values(rows);
+
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(object[][] rows) =>
+        (IInsertIgnoreBuilderValues)Values(rows);
+
     IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(params object[] values) =>
         (IInsertIgnoreBuilderValues)Values(values);
+
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(IEnumerable<object[]> rows) =>
+        (IInsertIgnoreBuilderValues)Values(rows);
+
+    IInsertIgnoreBuilderValues IInsertIgnoreBuilderTable.Values(object[][] rows) =>
+        (IInsertIgnoreBuilderValues)Values(rows);
 
     IInsertIgnoreBuilderValues IInsertIgnoreBuilderValues.Values(params object[] values) =>
         (IInsertIgnoreBuilderValues)Values(values);
