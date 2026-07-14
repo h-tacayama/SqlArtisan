@@ -347,25 +347,6 @@ Select(u.Name)
 
 To read every row on purpose, omit `.Where(...)` entirely. Any condition clause you write follows the same rule — it must carry a real condition, or it throws.
 
-#### Folding a Variable-Length List
-
-When the predicates come from a collection rather than fixed call sites, fold them with `NoCondition` as the seed — the neutral element for both `&` and `|`:
-
-```csharp
-UsersTable u = new();
-List<SqlCondition> filters = BuildFilters();   // 0..n runtime predicates
-
-SqlStatement sql =
-    Select(u.Name)
-    .From(u)
-    .Where(filters.Aggregate(NoCondition, (a, b) => a & b))
-    .Build();
-```
-
-`NoCondition` contributes nothing itself — every real condition combined onto it survives, and each drops the seed out cleanly, so an `n`-element list yields exactly `n` predicates. It reads as its meaning: `NoCondition` is *absence*, not `TRUE`. That distinction matters — a `TRUE` seed would absorb an `|` fold (`TRUE | x` ≡ `TRUE`), whereas `NoCondition` is skipped in both `&` and `|` chains, so the same seed folds an `AND` list and an `OR` list identically. Prefer it over a dummy `ConditionIf(false, ...)` seed or a nullable accumulator.
-
-An empty list folds to `NoCondition` alone — an empty `WHERE`, which throws at `Build()` exactly like Case 3 above. For a screen where the filter list can legitimately be empty, build the chain with or without `.Where(...)` keyed on whether any filter survived.
-
 ---
 
 ## JSON Operators
