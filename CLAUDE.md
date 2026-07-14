@@ -5,9 +5,9 @@ Guidance for Claude Code when working in this repository.
 ## What this project is
 
 **SqlArtisan** is a type-safe SQL query builder for C# (.NET 8). You write
-SQL-like C# and it produces the SQL string plus its bind parameters. Current
-version: **0.5.0-beta.2** (`Directory.Build.props` is the single source of
-truth for the shipped version across all three packages).
+SQL-like C# and it produces the SQL string plus its bind parameters.
+`Directory.Build.props` is the single source of truth for the shipped version
+across all three packages.
 
 **Core design philosophy — read this before proposing changes:**
 > "The SQL you write is the SQL that runs. Cross-database portability is a
