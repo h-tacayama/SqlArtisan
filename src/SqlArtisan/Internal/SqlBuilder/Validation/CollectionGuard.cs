@@ -7,6 +7,8 @@ internal static class CollectionGuard
 {
     internal static void ThrowIfEmpty<T>(T[] items, string message)
     {
+        ArgumentNullException.ThrowIfNull(items);
+
         if (items.Length == 0)
         {
             throw new ArgumentException(message);
