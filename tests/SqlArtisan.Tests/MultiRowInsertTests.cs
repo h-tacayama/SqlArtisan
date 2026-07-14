@@ -191,4 +191,22 @@ public class MultiRowInsertTests
         Assert.Throws<ArgumentException>(() =>
             InsertInto(_t, _t.Code, _t.Name).Values(rows));
     }
+
+    [Fact]
+    public void Values_NullRowCollection_ThrowsArgumentNullException()
+    {
+        IEnumerable<object[]> nullRows = null!;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(_t, _t.Code, _t.Name).Values(nullRows));
+    }
+
+    [Fact]
+    public void Values_NullRowArray_ThrowsArgumentNullException()
+    {
+        object[][] nullRows = null!;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(_t, _t.Code, _t.Name).Values(nullRows));
+    }
 }

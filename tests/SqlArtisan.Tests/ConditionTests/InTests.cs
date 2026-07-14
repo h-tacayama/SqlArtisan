@@ -134,4 +134,36 @@ public class InTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() => _t.Code.NotIn(empty));
         Assert.Equal("NOT IN requires at least one value.", ex.Message);
     }
+
+    [Fact]
+    public void In_NullCollection_ThrowsArgumentNullException()
+    {
+        IReadOnlyCollection<int> nullCollection = null!;
+
+        Assert.Throws<ArgumentNullException>(() => _t.Code.In(nullCollection));
+    }
+
+    [Fact]
+    public void In_NullArray_ThrowsArgumentNullException()
+    {
+        int[] nullArray = null!;
+
+        Assert.Throws<ArgumentNullException>(() => _t.Code.In(nullArray));
+    }
+
+    [Fact]
+    public void NotIn_NullCollection_ThrowsArgumentNullException()
+    {
+        IReadOnlyCollection<int> nullCollection = null!;
+
+        Assert.Throws<ArgumentNullException>(() => _t.Code.NotIn(nullCollection));
+    }
+
+    [Fact]
+    public void NotIn_NullArray_ThrowsArgumentNullException()
+    {
+        int[] nullArray = null!;
+
+        Assert.Throws<ArgumentNullException>(() => _t.Code.NotIn(nullArray));
+    }
 }
