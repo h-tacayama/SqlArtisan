@@ -33,6 +33,23 @@ public static partial class Sql
         new(sequenceName);
 
     /// <summary>
+    /// The neutral <see cref="SqlCondition"/> — the identity element for both the
+    /// <c>&amp;</c> and <c>|</c> operators. Seed a variable-length fold with it
+    /// (<c>filters.Aggregate(NoCondition, (a, b) =&gt; a &amp; b)</c>) instead of a
+    /// dummy always-true/false predicate: every real condition combined onto it
+    /// survives, and it contributes nothing itself.
+    /// </summary>
+    /// <remarks>
+    /// The neutral element is <em>absence</em>, not <c>TRUE</c> — it is skipped in
+    /// both <c>&amp;</c> and <c>|</c> chains, so a fold of zero real conditions
+    /// leaves it alone (a real <c>TRUE</c> would instead absorb an <c>OR</c> fold).
+    /// Beside an active condition it drops out cleanly; a <c>WHERE</c> that reduces
+    /// to nothing but <c>NoCondition</c> follows the empty-clause policy and throws
+    /// at <c>Build()</c> — omit <c>Where(...)</c> to run unfiltered on purpose.
+    /// </remarks>
+    public static SqlCondition NoCondition => EmptyCondition.Instance;
+
+    /// <summary>
     /// The <c>NOT (condition)</c> predicate: negates <paramref name="condition"/>.
     /// </summary>
     /// <param name="condition">The condition to negate.</param>
