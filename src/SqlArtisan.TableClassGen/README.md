@@ -1,6 +1,6 @@
-﻿# SqlArtisan.TableClassGen
+# SqlArtisan.TableClassGen
 
-A .NET tool that generates C# table classes from your database for `SqlArtisan`, enabling robust type-safety and IntelliSense in your query building.
+A .NET tool that generates C# table classes from your database for `SqlArtisan`, enabling robust type safety and IntelliSense in your query building.
 
 ## Installation
 
@@ -48,8 +48,8 @@ Successfully generated 17 out of 17 table classes.
 Table class generation process completed successfully.
 ```
 
-### Output: Example Table Schema Class
-As a result of the command, a C# class similar to the following would be generated (e.g., for a 'category' table):
+### Output: Example Table Class
+As a result of the command, a C# class similar to the following would be generated (e.g., for a 'users' table):
 
 ```csharp
 using SqlArtisan;
