@@ -1,6 +1,6 @@
 ---
-name: sa-review-changes
-description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory.
+name: sa-code-review
+description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory. Reports defects only — never idiom/style/"better way to write this" suggestions; use `sa-code-review-deep` for those. Accepts an optional scope argument (default: the diff's hunks only; `files`; `paths:<glob>`).
 ---
 
 # Review SqlArtisan changes
@@ -12,18 +12,36 @@ build a throwaway console that references the project and observe the real SQL,
 the real failure modes, and the real allocations. Do not reason about emitted
 SQL or DBMS grammar from memory.
 
-## 1. Scope the diff to the actual change
+This skill reports **defects only** (§8). For non-defect "better way to write
+this" suggestions, use `sa-code-review-deep` instead — it runs this skill in
+full and adds an improvement pass on top.
 
-The local `main` is often stale, so `git diff main...HEAD` shows unrelated
-already-merged work. Diff against the branch point instead:
+## 1. Scope the review
+
+Default scope is **the diff's hunks only**. The local `main` is often stale,
+so `git diff main...HEAD` shows unrelated already-merged work — diff against
+the branch point instead:
 
 ```bash
 git log --oneline <base>..HEAD          # the PR's own commits
 git diff <base>..HEAD --stat            # files the PR actually touches
 ```
 
-Find `<base>` from the first commit of the branch (or the PR base). Review only
-those files.
+Find `<base>` from the first commit of the branch (or the PR base).
+
+A scope argument widens this; it never narrows it, and only apply one you were
+actually given:
+- *(no argument)* — the diff's hunks only, per the walkthrough above.
+- `files` — the full current contents of every file the diff touches, not just
+  the changed hunks (catches issues adjacent to the edit that the diff itself
+  left untouched).
+- `paths:<glob>` — only the explicitly named paths, regardless of whether the
+  diff touched them (e.g. auditing a subsystem on request).
+
+Do not widen scope on your own initiative — "related code" or "the subsystem"
+is exactly the unbounded framing that turns a change review into an
+open-ended audit. If broader coverage seems warranted, say so and ask; don't
+silently expand it.
 
 ## 2. Run the gates first
 
@@ -141,20 +159,74 @@ the form. Known sharp edges:
 
 ## 7. Check docs match the source
 
-For user-visible changes, confirm the emitted SQL matches every doc surface:
+For every changed surface, confirm the doc/comment coverage matches current
+behavior — this is the mechanics of *where* to look; §8 sets the bar for
+*whether* to report what you find there:
 - **XML docs** on the public factory and node — the described form equals what
   `Format` emits; `cref`s resolve (covered by §2's 0-warning bar).
 - **README** — the function reference list, the table-of-contents entry, and any
   usage example all show the real output (real parameter markers / literals).
 - **CHANGELOG** — an `[Unreleased]` entry exists and names the caveats (e.g. the
   MySQL truncation note).
-- Watch for **doc/behavior drift**: a doc saying a clause is "mandatory" while the
-  code allows omitting it is a real finding — fix one to match the other.
+- **CLAUDE.md / docs/adr/ / `.claude/skills/` / `.claude/rules/`** — for a
+  change that touches conventions, structure, or process, confirm these
+  still describe the result accurately.
+
+## 8. What counts as a defect
+
+Everything reported here must be **wrong** — not merely improvable. A
+"this would read better as..." suggestion with no rule/ADR/precedent to cite
+belongs to `sa-code-review-deep`, not here; this skill never reports one, not
+even as a passing mention.
+
+**Code.** Reportable only if it (a) produces wrong/invalid output for a
+permitted input, (b) violates a specific ADR clause or a rule in
+`.claude/rules/` — cite which — or (c) **reinvents a shared pattern that
+already exists in-repo for this exact recurring shape** (e.g. a `*Core` base
+class built to unify near-identical `Format` logic across sibling functions)
+— cite the precedent by file. (c) is a defect, not a preference, because the
+divergence breaks consistency with an *established* convention; a factoring
+you'd merely have done differently, with no such precedent to cite, is not
+reportable here.
+
+**Docs & comments** — reportable wherever a reader is left **misinformed**,
+regardless of severity or fix cost (a cheap fix that misinforms is exactly the
+case worth flagging). Scope: `README.md`, `docs/**`, `CHANGELOG.md`, XML `///`
+and inline `//` comments — public **and** internal (`Internal/`'s `CS1591`
+suppression exempts it from doc-*generation*, not from being read by the next
+contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
+`.claude/rules/**`. Three shapes:
+- **Omission** — new/changed behavior with no doc/comment coverage where its
+  siblings have it (a `Sql.*` factory missing the XML summary every sibling
+  has; no `[Unreleased]` entry for a user-visible change; a new ADR/convention
+  not in CLAUDE.md's map).
+- **Inaccuracy** — something the current code contradicts: a clause described
+  as optional the code now requires, a wrong dialect claim, a stale example, a
+  stale count/file list — **and** an example the docs *explicitly present as
+  the recommended/idiomatic form* that a newer, simpler API has since
+  superseded (the recommendation claim is now false; name the superseding
+  API). An example that merely *uses* an older idiom without claiming it is
+  preferred is not inaccurate — that's `sa-code-review-deep`'s territory.
+- **Misleading ambiguity** — wording a reader could plausibly misread into an
+  incorrect belief about behavior, not merely wording you'd have chosen
+  differently.
+
+**Not a defect — do not report:**
+- A rewording that changes nothing a reader could conclude — pure phrasing
+  preference with no ambiguity, no factual gap, no idiom shift.
+- Comment *quality* (verbosity, restating, filler): a separate pass — the
+  `.claude/rules/code-comments.md` smell checklist in §4. This section governs
+  only whether the words stayed *true and complete*, not how many there are.
+- Any "better way to write this" suggestion with no rule/ADR/precedent to
+  cite, for code or docs — run `sa-code-review-deep` for that pass instead.
 
 ## Report
 
-Group findings by the user's criteria and tag each with severity
-(**High/Medium/Low/Nit**) and a `file:line`. Lead with the verdict
-(mergeable or not) and a short list of recommended actions, most important
-first. Separate "must fix" (bugs, ADR violations, invalid SQL) from "discuss"
-(permissive-API trade-offs the ADRs deliberately leave to the author / analyzer).
+Lead with the verdict (mergeable or not) and a short list of recommended
+actions, most important first. Then every finding tagged with a `file:line`
+and severity (**High/Medium/Low**) — a doc gap can be Low severity and still
+must-fix; severity ranks the queue, it does not gate inclusion. Separate
+"must fix" (bugs, ADR violations, invalid SQL, any doc/comment gap from §8)
+from "discuss" (permissive-API trade-offs the ADRs deliberately leave to the
+author / analyzer). This skill never reports non-defect improvement
+suggestions — re-run as `sa-code-review-deep` for those.
