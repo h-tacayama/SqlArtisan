@@ -1,6 +1,6 @@
 ---
 name: sa-review-changes
-description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory.
+description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory. Reports defects only by default; pass an `improve` argument (or ask for improvement/idiom/style suggestions, or a "thorough"/"deep" review) to also surface non-defect better-way suggestions.
 ---
 
 # Review SqlArtisan changes
@@ -11,6 +11,14 @@ allocation regressions. The highest-value move is **verifying empirically** —
 build a throwaway console that references the project and observe the real SQL,
 the real failure modes, and the real allocations. Do not reason about emitted
 SQL or DBMS grammar from memory.
+
+**Mode.** By default this review reports **defects only** — things that are
+wrong (§8). When invoked with an `improve` argument — or the user asks for
+improvement / idiom / style suggestions, or a "thorough" / "deep" review — also
+surface the **improvement** axis (§8): better ways to write something that is
+not wrong. Everything else (§1–§7 investigation, the gates, empirical
+verification) runs identically in both modes; the mode only changes what §8
+lets through and how the Report is grouped.
 
 ## 1. Scope the diff to the actual change
 
@@ -154,78 +162,90 @@ behavior — this is the mechanics of *where* to look; §8 sets the bar for
   change that touches conventions, structure, or process, confirm these
   still describe the result accurately.
 
-## 8. Two different bars: code defects vs. doc/comment sync
+## 8. Two axes: defects (always) vs. improvements (opt-in)
 
-Findings split into two tiers with **different thresholds**. Conflating them
-is what turns review into either noise (chasing implementation taste) or
-missed risk (waving off a cheap doc fix as "just a nit"). Apply the bar that
-matches the finding's tier **before** writing it down — not after.
+Every finding is either a **defect** — something wrong that must be fixed — or
+an **improvement** — a better way to write something that is *not* wrong.
+They get opposite default treatment; conflating them is what turns review into
+noise. Decide which a finding is **before** writing it down.
 
-### Tier A — implementation code (logic, structure, shape)
+### Defects — always reported (both modes)
 
-**Reportable only if** it produces wrong/invalid output for a permitted
-input, violates a specific ADR clause or a rule in `.claude/rules/` (cite
-which one), or **reinvents a shared pattern that already exists for this
-exact recurring shape** — e.g. a `*Core` base class built specifically to
-unify near-identical `Format` logic across sibling functions — cite the
-existing precedent by file. A shape or style choice that trips none of
-these three — a helper you'd have named or factored differently, defensive
-code for a state already ruled out, a structure that already passes its
-tests and reads fine, or a duplication with no existing shared solution to
-point to — is a **preference, not a defect: do not report it**, not even
-as a passing mention. "General best practice" with no citable ADR, rule,
-or in-repo precedent is not a fourth ground — SqlArtisan deliberately
-diverges from common idiom in places (ADR 0001, guards-and-empty-states.md),
-so an appeal to outside convention proves nothing on its own.
+**Code.** Reportable only if it (a) produces wrong/invalid output for a
+permitted input, (b) violates a specific ADR clause or a rule in
+`.claude/rules/` — cite which — or (c) **reinvents a shared pattern that
+already exists in-repo for this exact recurring shape** (e.g. a `*Core` base
+class built to unify near-identical `Format` logic across sibling functions)
+— cite the precedent by file. (c) is a defect, not a preference, because the
+divergence breaks consistency with an *established* convention; a factoring
+you'd merely have done differently, with no such precedent to cite, is an
+improvement, not a defect.
 
-### Tier B — documentation and comments (any visibility)
-
-Scope: `README.md`, `docs/**`, `CHANGELOG.md`, XML `///` comments, inline
+**Docs & comments** — where a reader is left **misinformed**, regardless of
+severity or fix cost (a cheap fix that misinforms is exactly the case worth
+flagging). Scope: `README.md`, `docs/**`, `CHANGELOG.md`, XML `///` and inline
 `//` comments — public **and** internal (`Internal/`'s `CS1591` suppression
-exempts it from doc-*generation*, not from being read by the next
-contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
-`.claude/rules/**`.
+exempts it from doc-*generation*, not from being read by the next contributor)
+— plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`, `.claude/rules/**`.
+Three shapes:
+- **Omission** — new/changed behavior with no doc/comment coverage where its
+  siblings have it (a `Sql.*` factory missing the XML summary every sibling
+  has; no `[Unreleased]` entry for a user-visible change; a new ADR/convention
+  not in CLAUDE.md's map).
+- **Inaccuracy** — something the current code contradicts: a clause described
+  as optional the code now requires, a wrong dialect claim, a stale example, a
+  stale count/file list — **and** an example the docs *explicitly present as
+  the recommended/idiomatic form* that a newer, simpler API has since
+  superseded (the recommendation claim is now false; name the superseding
+  API). An example that merely *uses* an older idiom without claiming it is
+  preferred is not inaccurate — it is an improvement (below).
+- **Misleading ambiguity** — wording a reader could plausibly misread into an
+  incorrect belief about behavior, not merely wording you'd have chosen
+  differently.
 
-**Always reportable, regardless of severity or fix cost** — a cheap fix that
-leaves a reader misinformed is exactly the case worth flagging. Four
-shapes, all in scope:
-- **Omission** — new or changed behavior with no doc/comment coverage where
-  coverage exists for its siblings (every other `Sql.*` factory has an XML
-  summary, this one doesn't; no `[Unreleased]` entry for a user-visible
-  change; a new ADR/convention not reflected in CLAUDE.md's map).
-- **Inaccuracy** — a doc/comment states something the current code
-  contradicts (a clause described as optional that the code now requires, a
-  wrong dialect claim, a stale example, a stale count or file list).
-- **Misleading ambiguity** — wording a reader could plausibly misread into
-  an incorrect belief about behavior — not merely wording you'd have
-  chosen differently.
-- **Superseded example** — a usage example (README, cookbook,
-  `docs/guides/`) that still runs correctly but no longer reflects the
-  current idiomatic way once a simpler API covers the same case. This
-  project's docs are read by AI coding assistants as much as humans (ADR
-  0010, `llms.txt`, `docs/guides/ai-assistants.md`) — a stale idiom risks
-  being reproduced verbatim in generated code, not just noticed and
-  shrugged off by a human reader, so it clears the bar even though nothing
-  in the example is factually wrong.
+### Improvements — reported only in `improve` mode
 
-**Not reportable:** a rewording that changes nothing a reader could
-conclude — pure phrasing preference with no ambiguity and no factual gap.
-Same principle as Tier A: no rule violation, no defect, no report.
+A better way to write something that is not a defect. In default mode these
+are **silent** — not downgraded to a passing nit, not "worth mentioning".
+Omitting them is the point. When the mode is on:
+- **Code** — a helper you'd have named or factored differently; a duplication
+  with a cleaner solution that is not (yet) an established in-repo pattern; a
+  simplification that no ADR/rule requires.
+- **Docs** — an example that still runs and makes **no** false recommendation
+  claim, but no longer uses the current idiom once a simpler API covers the
+  same case (name that API). This repo's docs are read by AI coding assistants
+  as much as humans (ADR 0010, `llms.txt`, `docs/guides/ai-assistants.md`), so
+  a stale idiom can be reproduced verbatim in generated code — worth
+  surfacing when improvements are asked for, but not a defect.
 
-This tier's low bar is deliberate and narrower in *kind* than it looks:
-`.claude/rules/code-comments.md`'s smell checklist (verbosity, restating,
-filler) governs comment *quality* and stays a separate pass (§4); this tier
-governs *correctness and coverage* — did the words stay true, not how many
-words there are.
+A suggestion must still be **concrete** (name the alternative) and must not
+contradict an ADR — you cannot pitch as an "improvement" something ADR 0001 or
+`guards-and-empty-states.md` deliberately rejects. Beyond that, `improve` mode
+is where general idiom and taste are legitimately in scope, *because the user
+asked* — the discipline is the opt-in gate, not a citation requirement.
+
+### Out of scope on both axes
+
+- A rewording that changes nothing a reader could conclude — pure phrasing
+  preference with no ambiguity, no factual gap, no idiom shift.
+- Comment *quality* (verbosity, restating, filler): a separate pass — the
+  `.claude/rules/code-comments.md` smell checklist in §4. This axis governs
+  only whether the words stayed *true and complete*, not how many there are.
 
 ## Report
 
-Tag every finding **Tier A** or **Tier B**, plus severity
-(**High/Medium/Low**), and a `file:line`. Tier A carries only defects that
-cleared §8's bar — an implementation preference never appears here.
-Tier B carries every doc/comment sync gap found, however small; never fold
-one into a passing mention or drop it for being "just docs". Lead with the
-verdict (mergeable or not) and a short list of recommended actions, most
-important first. Separate "must fix" (bugs, ADR violations, invalid SQL, any
-Tier B gap) from "discuss" (permissive-API trade-offs the ADRs deliberately
-leave to the author / analyzer).
+Lead with the verdict (mergeable or not) and a short list of recommended
+actions, most important first. Then two zones, each finding tagged with a
+`file:line` and severity (**High/Medium/Low**):
+
+- **Defects (must fix)** — everything that cleared §8's defect bar: wrong/
+  invalid SQL, ADR violations, established-pattern divergence, and every
+  doc/comment sync gap found, however small (never fold one into a passing
+  mention or drop it for being "just docs"). A doc gap can be Low severity and
+  still must-fix — severity ranks the queue, it does not gate inclusion.
+- **Suggestions (optional, non-blocking)** — the improvement axis, present
+  **only** when the skill ran in `improve` mode. Never mix these into the
+  must-fix zone, and never emit this zone at all in default mode.
+
+Keep separate from both zones the "discuss" items — permissive-API trade-offs
+the ADRs deliberately leave to the author / analyzer, not review findings.
