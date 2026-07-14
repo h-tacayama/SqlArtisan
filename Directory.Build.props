@@ -6,8 +6,8 @@
     inherit it, so a release never drifts between packages. (#118)
   -->
   <PropertyGroup>
-    <VersionPrefix>0.5.0</VersionPrefix>
-    <VersionSuffix>beta.2</VersionSuffix>
+    <VersionPrefix>0.6.0</VersionPrefix>
+    <VersionSuffix>beta.1</VersionSuffix>
   </PropertyGroup>
 
   <!--

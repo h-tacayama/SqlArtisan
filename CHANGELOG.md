@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.6.0-beta.1] - 2026-07-14
 ### Added
 - Opt-in Roslyn analyzer, shipped inside the `SqlArtisan` package with no extra reference. Set a target dialect — `sqlartisan_target_dbms` in `.editorconfig`, or `<SqlArtisanTargetDbms>` as an MSBuild property — and `SQLA0001` warns when a construct isn't supported there, per a curated dialect matrix verified against live engines. `SQLA0002` flags an unrecognized `.editorconfig` value. Every warning names the per-construct override key that would silence or force it. Severity is controlled the standard way (`dotnet_diagnostic.SQLA0001.severity`), so a mismatch can be promoted to a build error. See `docs/analyzer.md`. (#93)
 - Added `Asterisk` for the bare `*` select item (`Select(Asterisk)` → `SELECT *`) and `.Asterisk` on every table class, CTE, and derived table for the qualified star (`Select(u.Asterisk)` → `SELECT “u”.*`). Both also work in `RETURNING` and are select-item-only — expression positions reject them, except `Count(Asterisk)` which emits `COUNT(*)`. On Oracle a bare `*` must be the sole select item — beside other items, use the qualified star. See `docs/query-statements.md`. (#233, #242)
