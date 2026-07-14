@@ -13,6 +13,9 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
     IInsertIgnoreBuilderTable,
     IInsertIgnoreBuilderValues
 {
+    private const string NoRowsMessage =
+        "VALUES requires at least one row; the row collection is empty.";
+
     private InsertValuesClause? _valuesClause;
 
     protected override string StatementName => Keywords.Insert;
@@ -78,8 +81,7 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
 
         if (!any)
         {
-            throw new ArgumentException(
-                "VALUES requires at least one row; the row collection is empty.");
+            throw new ArgumentException(NoRowsMessage);
         }
 
         return this;
@@ -92,8 +94,7 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
 
         if (rows.Length == 0)
         {
-            throw new ArgumentException(
-                "VALUES requires at least one row; the row collection is empty.");
+            throw new ArgumentException(NoRowsMessage);
         }
 
         // foreach over the concrete array (not the IEnumerable<object[]> overload
