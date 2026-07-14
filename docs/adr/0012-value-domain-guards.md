@@ -41,8 +41,8 @@ all three of the following hold:
 1. **Universally invalid.** The emitted text carrying this value is valid on no
    supported dialect, in any version or configuration — the domain is fixed by
    the SQL standard (or identically by every engine), so no engine update can
-   widen it. This makes a false positive structurally impossible: the property
-   dialect availability lacks, and the reason this guard needs no opt-in or
+   widen it. This makes a false positive structurally impossible — the property
+   dialect availability lacks — and is why this guard needs no opt-in or
    override.
 2. **Literal-embedded and call-site-fixed.** The value is a scalar the library
    itself will print into the SQL text, fixed at the factory call — so the
