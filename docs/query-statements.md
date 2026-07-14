@@ -395,7 +395,7 @@ SqlStatement sql =
 //   => GROUP BY GROUPING SETS((region, product), channel, ())
 ```
 
-`Rollup(...)`, `Cube(...)`, and `GroupingSets(...)` always emit their standard function forms (`ROLLUP(...)`, `CUBE(...)`, `GROUPING SETS(...)`) on every dialect — PostgreSQL, Oracle, and SQL Server support all three. MySQL's own grouping syntax is instead the `WITH ROLLUP` suffix; chain `.WithRollup()` onto `GroupBy(...)` for it:
+`Rollup(...)`, `Cube(...)`, and `GroupingSets(...)` always emit their standard function forms (`ROLLUP(...)`, `CUBE(...)`, `GROUPING SETS(...)`) on every dialect — Oracle, PostgreSQL, and SQL Server support all three. MySQL's own grouping syntax is instead the `WITH ROLLUP` suffix; chain `.WithRollup()` onto `GroupBy(...)` for it:
 
 ```csharp
 // MySQL:
@@ -768,7 +768,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-**Note:** Multi-row `VALUES` is supported by PostgreSQL, MySQL, SQLite, and SQL Server (2008+). Oracle does not support multi-row `VALUES`; it uses `INSERT ALL` instead.
+**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server (2008+). Oracle does not support multi-row `VALUES`; it uses `INSERT ALL` instead.
 
 ---
 

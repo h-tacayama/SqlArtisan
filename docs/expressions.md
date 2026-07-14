@@ -243,7 +243,7 @@ SqlStatement sql =
 // OR ("a".id NOT IN (SELECT "c".id FROM users "c"))
 ```
 
-On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited query through a CTE (`With(c.As(...))`) and select from that instead.
+On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected — route the limited query through a CTE instead. See the [Pagination dialect caveat](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) for the full per-position rule.
 
 ### EXISTS Condition
 ```csharp
@@ -746,7 +746,7 @@ SqlStatement sql =
 - Bounds: `UnboundedPreceding`, `CurrentRow`, `UnboundedFollowing`, `Preceding(n)`, `Following(n)`.
 - A single bound uses `Rows(bound)` / `Range(bound)` (e.g. `Rows(UnboundedPreceding)`); `RowsBetween(start, end)` / `RangeBetween(start, end)` produce `ROWS/RANGE BETWEEN ... AND ...`.
 - A frame requires `ORDER BY`, so `Rows(...)` / `Range(...)` are available only after `OrderBy(...)` (optionally with `PartitionBy(...)`).
-- Requires PostgreSQL, Oracle, MySQL 8.0+, SQLite 3.25+, or SQL Server 2012+.
+- Requires MySQL 8.0+, Oracle, PostgreSQL, SQLite 3.25+, or SQL Server 2012+.
 
 ### Example using PERCENTILE_CONT / PERCENTILE_DISC
 

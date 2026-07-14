@@ -28,9 +28,9 @@ Decision principles distilled from the #225 expressibility triage
    token.
 
 Never invent a token-like name for a real construct: `CountAll()` was rejected
-(#233) because no `COUNT_ALL` token exists — `COUNT(*)` lands as a
-parameterless `Count()` overload (#233, not yet implemented), and real tokens
-like SQL Server's `COUNT_BIG` keep their conventional names available.
+(#233) because no `COUNT_ALL` token exists — `COUNT(*)` landed as a
+parameterless `Count()` overload (#233), and real tokens like SQL Server's
+`COUNT_BIG` keep their conventional names available.
 
 ## Overload split for analyzer arity
 
@@ -40,13 +40,11 @@ arity-restricted matrix entry — every call site reports the same declared
 arity. When dialect support differs by argument count, **split the overloads
 so the declared arities differ**:
 
-> Decided shape (#234 — **not yet landed**; today `Concat` is still one
-> `params` method and its matrix entry is a support union, see the caveat
-> comment on it in `DialectMatrix.cs`): `Concat(object, object)` (arity 2,
-> all dialects) + `Concat(object, object, object, params object[])` (arity 4,
-> `oracle: false`) lets `("Concat", 2)` / `("Concat", 4)` matrix entries warn
-> on Oracle's 2-argument limit with zero analyzer-engine changes. `Grouping`
-> (#235) is decided as the first from-scratch use.
+> Shipped shape (#234): `Concat(object, object)` (arity 2, all dialects) +
+> `Concat(object, object, object, params object[])` (arity 4, `oracle: false`)
+> lets `("Concat", 2)` / `("Concat", 4)` matrix entries warn on Oracle's
+> 2-argument limit with zero analyzer-engine changes. `Grouping` (#235) was the
+> first from-scratch use of this pattern.
 
 Before adding a matrix entry, check the `MatrixKey` collision caveat in
 `DialectMatrix.cs`: keys are (name, arity) with **no parameter types**, so

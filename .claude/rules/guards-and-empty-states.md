@@ -1,5 +1,5 @@
 ---
-description: Guard conventions — the empty-state policy, eager vs Build()-time timing, exception message grammar
+description: Guard conventions — the enforcement boundary, empty-state policy, eager vs Build()-time timing, exception message grammar
 paths:
   - "src/SqlArtisan/Internal/SqlBuilder/**/*.cs"
   - "src/SqlArtisan/Internal/SqlPart/Condition/**/*.cs"
@@ -13,6 +13,27 @@ or wrong SQL (bare `WHERE`, `()` from nested empty groups, correlated-DML
 tautologies). Guards exist to convert that failure class into loud errors —
 follow these conventions so every new guard lands on the same policy.
 
+## The enforcement boundary (ADR 0007 + 0011 + 0012)
+
+This table synthesizes the current boundary from the ADR cluster. Use it as
+the first check when deciding whether a new case should throw; the ADRs carry
+the full rationale.
+
+| Category | Library behavior | Mechanism | Dividing test |
+|----------|-----------------|-----------|---------------|
+| **Incomplete construct** — a mandatory element is missing (e.g. window function without `.Over(...)`) | **Reject** | Compile-time preferred (pending type → only the completing call yields `SqlExpression`); runtime `ArgumentException` backstop in `object`-typed positions | No supported dialect, in any configuration, accepts the bare token — the expression is unfinished |
+| **Value-domain violation** — an embedded literal value lies outside a universally fixed domain (e.g. percentile fraction outside 0..1) | **Reject eagerly** at the factory call | `ArgumentException`; all three conditions must hold: (1) universally invalid, (2) literal-embedded and call-site-fixed, (3) dialect-independent | The emitted text carrying this value is valid on no supported dialect — the domain is fixed by the SQL standard or identically by every engine |
+| **Bounded exception** — a complete construct valid on some dialect but structurally invisible to the analyzer *and* with no valid spelling on the resolved target | **Reject at Build(Dbms)** | `Validate(Dbms)` hook on `SqlBuilderBase`; dialect-scoped, position-scoped | The analyzer cannot see it (value-level, not construct-level) *and* the resolved target has no valid spelling — both conditions required |
+| **Dialect availability** — a complete construct that some engine does not support | **Emit faithfully** (ADR 0001); surfaced by the opt-in analyzer (ADR 0003) and ultimately the database | Permissive | Valid on at least one supported dialect |
+
+**Enumerated instances of each rejection category:**
+
+- *Incomplete*: window/analytic function without `.Over(...)` (#150); ordered-set
+  aggregate without `.WithinGroup(...)` (#190).
+- *Value-domain*: percentile fraction — finite (pre-existing) and 0..1 (#295).
+- *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
+  (ADR 0011).
+
 ## The empty-state policy (#236)
 
 Never elide a clause the caller wrote. A written condition clause with no
@@ -24,10 +45,11 @@ is expressed by **omitting the clause** entirely.
 
 **Status:** shipped in #236 — the recursive emptiness check (`SqlPart.IsEmpty`),
 the shared `ConditionGuard.ThrowIfEmpty` used by every condition clause's
-`Format`, and the eager empty-`Select()` guard
-(`SelectItemResolver.ResolveOrThrow`). Still per #243/#245: the empty `IN`
-collection and empty `VALUES` rows guards. New guards must land on this policy;
-never cite a row as already-enforced without checking the code.
+`Format`, the eager empty-`Select()` guard
+(`SelectItemResolver.ResolveOrThrow`), and the freeze-after-Build guard (#245).
+Still per #243: the empty `IN` collection and empty `VALUES` rows guards
+(ERG-05/ERG-07). New guards must land on this policy; never cite a row as
+already-enforced without checking the code.
 
 | Position | All-empty behavior |
 |---|---|
