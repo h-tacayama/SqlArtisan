@@ -770,6 +770,30 @@ SqlStatement sql =
 
 **Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server (2008+). Oracle does not support multi-row `VALUES`; it uses `INSERT ALL` instead.
 
+When the rows come from data rather than fixed literals, pass the whole collection to `Values(...)` in one call — a `List<object[]>`, an `object[][]` (e.g. from `.Select(...).ToArray()`), or any `IEnumerable<object[]>` — instead of a `Values(...)` call per row:
+
+```csharp
+UsersTable u = new();
+List<object[]> rows =
+[
+    [1, "Alice"],
+    [2, "Bob"],
+    [3, "Carol"],
+];
+
+SqlStatement sql =
+    InsertInto(u, u.Id, u.Name)
+    .Values(rows)
+    .Build();
+
+// INSERT INTO users
+// (id, name)
+// VALUES
+// (:0, :1), (:2, :3), (:4, :5)
+```
+
+The result is identical to the chained form — one `VALUES` row per element, one bind per value. Every row must be the same width (a mismatch throws, naming the offending row), and an empty collection throws at the call site (`VALUES requires at least one row; the row collection is empty.`) rather than emit an invalid empty `VALUES`. Each value is a bind parameter, so a large batch runs into the same per-engine parameter ceilings as any wide statement (SQL Server 2100; older SQLite 999) — split oversized batches across statements.
+
 ---
 
 ### Alternative Syntax (SET-like)
