@@ -141,20 +141,76 @@ the form. Known sharp edges:
 
 ## 7. Check docs match the source
 
-For user-visible changes, confirm the emitted SQL matches every doc surface:
+For every changed surface, confirm the doc/comment coverage matches current
+behavior — this is the mechanics of *where* to look; §8 sets the bar for
+*whether* to report what you find there:
 - **XML docs** on the public factory and node — the described form equals what
   `Format` emits; `cref`s resolve (covered by §2's 0-warning bar).
 - **README** — the function reference list, the table-of-contents entry, and any
   usage example all show the real output (real parameter markers / literals).
 - **CHANGELOG** — an `[Unreleased]` entry exists and names the caveats (e.g. the
   MySQL truncation note).
-- Watch for **doc/behavior drift**: a doc saying a clause is "mandatory" while the
-  code allows omitting it is a real finding — fix one to match the other.
+- **CLAUDE.md / docs/adr/ / `.claude/skills/` / `.claude/rules/`** — for a
+  change that touches conventions, structure, or process, confirm these
+  still describe the result accurately.
+
+## 8. Two different bars: code defects vs. doc/comment sync
+
+Findings split into two tiers with **different thresholds**. Conflating them
+is what turns review into either noise (chasing implementation taste) or
+missed risk (waving off a cheap doc fix as "just a nit"). Apply the bar that
+matches the finding's tier **before** writing it down — not after.
+
+### Tier A — implementation code (logic, structure, shape)
+
+**Reportable only if** it produces wrong/invalid output for a permitted
+input, or violates a specific ADR clause or a rule in `.claude/rules/` —
+cite which one. A shape or style choice that trips neither test — a helper
+you'd have named or factored differently, defensive code for a state
+already ruled out, a structure that already passes its tests and reads
+fine — is a **preference, not a defect: do not report it**, not even as a
+passing mention.
+
+### Tier B — documentation and comments (any visibility)
+
+Scope: `README.md`, `docs/**`, `CHANGELOG.md`, XML `///` comments, inline
+`//` comments — public **and** internal (`Internal/`'s `CS1591` suppression
+exempts it from doc-*generation*, not from being read by the next
+contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
+`.claude/rules/**`.
+
+**Always reportable, regardless of severity or fix cost** — a cheap fix that
+leaves a reader misinformed is exactly the case worth flagging. Three
+shapes, all in scope:
+- **Omission** — new or changed behavior with no doc/comment coverage where
+  coverage exists for its siblings (every other `Sql.*` factory has an XML
+  summary, this one doesn't; no `[Unreleased]` entry for a user-visible
+  change; a new ADR/convention not reflected in CLAUDE.md's map).
+- **Inaccuracy** — a doc/comment states something the current code
+  contradicts (a clause described as optional that the code now requires, a
+  wrong dialect claim, a stale example, a stale count or file list).
+- **Misleading ambiguity** — wording a reader could plausibly misread into
+  an incorrect belief about behavior — not merely wording you'd have
+  chosen differently.
+
+**Not reportable:** a rewording that changes nothing a reader could
+conclude — pure phrasing preference with no ambiguity and no factual gap.
+Same principle as Tier A: no rule violation, no defect, no report.
+
+This tier's low bar is deliberate and narrower in *kind* than it looks:
+`.claude/rules/code-comments.md`'s smell checklist (verbosity, restating,
+filler) governs comment *quality* and stays a separate pass (§4); this tier
+governs *correctness and coverage* — did the words stay true, not how many
+words there are.
 
 ## Report
 
-Group findings by the user's criteria and tag each with severity
-(**High/Medium/Low/Nit**) and a `file:line`. Lead with the verdict
-(mergeable or not) and a short list of recommended actions, most important
-first. Separate "must fix" (bugs, ADR violations, invalid SQL) from "discuss"
-(permissive-API trade-offs the ADRs deliberately leave to the author / analyzer).
+Tag every finding **Tier A** or **Tier B**, plus severity
+(**High/Medium/Low**), and a `file:line`. Tier A carries only defects that
+cleared §8's bar — an implementation preference never appears here.
+Tier B carries every doc/comment sync gap found, however small; never fold
+one into a passing mention or drop it for being "just docs". Lead with the
+verdict (mergeable or not) and a short list of recommended actions, most
+important first. Separate "must fix" (bugs, ADR violations, invalid SQL, any
+Tier B gap) from "discuss" (permissive-API trade-offs the ADRs deliberately
+leave to the author / analyzer).
