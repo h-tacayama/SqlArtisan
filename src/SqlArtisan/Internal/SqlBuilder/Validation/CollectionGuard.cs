@@ -12,4 +12,14 @@ internal static class CollectionGuard
             throw new ArgumentException(message);
         }
     }
+
+    internal static void ThrowIfEmpty<T>(IReadOnlyCollection<T> items, string message)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+
+        if (items.Count == 0)
+        {
+            throw new ArgumentException(message);
+        }
+    }
 }

@@ -41,6 +41,19 @@ internal static class ExpressionResolver
         return resolved;
     }
 
+    internal static SqlExpression[] Resolve<T>(IReadOnlyCollection<T> items)
+    {
+        var resolved = new SqlExpression[items.Count];
+
+        int i = 0;
+        foreach (T item in items)
+        {
+            resolved[i++] = Resolve(item!);
+        }
+
+        return resolved;
+    }
+
     internal static SqlExpression Resolve(object item)
     {
         if (item is null)

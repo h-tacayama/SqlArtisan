@@ -224,6 +224,24 @@ SqlStatement sql =
 // OR (id NOT IN (:3, :4, :5))
 ```
 
+Pass an existing collection straight through — a `List<T>`, `T[]`, `HashSet<T>`, or any `IReadOnlyCollection<T>` — without spreading it into the `params` form:
+
+```csharp
+List<int> ids = GetSelectedIds();   // 0..n from a faceted filter
+
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Id.In(ids))
+    .Build();
+
+// WHERE id IN (:0, :1, ...)   — one bind per element
+```
+
+The overload takes `IReadOnlyCollection<T>` rather than `IEnumerable<T>` deliberately: a `string` is an `IEnumerable<char>` but *not* an `IReadOnlyCollection<char>`, so `col.In("abc")` stays a single-value predicate (`IN (:0)`) instead of silently expanding into one bind per character. An empty collection throws at the call site — an empty `IN ()` is invalid SQL — so build the chain with or without the predicate keyed on whether the list has any elements.
+
+Each element is a **separate** bind parameter, so the parameter count grows with the list, and a very large `IN` list runs into per-engine bind ceilings (SQL Server 2100 parameters; older SQLite 999). On PostgreSQL, an equality-against-array — `col = ANY(:param)`, a single array-valued bind whose plan is stable across list sizes — sidesteps both the parameter count and the ceiling; SqlArtisan's `In(...)` emits the per-element list form on every dialect, so reach for a CTE of the values (or the raw `= ANY` idiom) when the list is both large and size-varying on PostgreSQL.
+
 ### IN Condition with Subquery
 ```csharp
 UsersTable a = new("a");
