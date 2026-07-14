@@ -164,12 +164,19 @@ matches the finding's tier **before** writing it down — not after.
 ### Tier A — implementation code (logic, structure, shape)
 
 **Reportable only if** it produces wrong/invalid output for a permitted
-input, or violates a specific ADR clause or a rule in `.claude/rules/` —
-cite which one. A shape or style choice that trips neither test — a helper
-you'd have named or factored differently, defensive code for a state
-already ruled out, a structure that already passes its tests and reads
-fine — is a **preference, not a defect: do not report it**, not even as a
-passing mention.
+input, violates a specific ADR clause or a rule in `.claude/rules/` (cite
+which one), or **reinvents a shared pattern that already exists for this
+exact recurring shape** — e.g. a `*Core` base class built specifically to
+unify near-identical `Format` logic across sibling functions — cite the
+existing precedent by file. A shape or style choice that trips none of
+these three — a helper you'd have named or factored differently, defensive
+code for a state already ruled out, a structure that already passes its
+tests and reads fine, or a duplication with no existing shared solution to
+point to — is a **preference, not a defect: do not report it**, not even
+as a passing mention. "General best practice" with no citable ADR, rule,
+or in-repo precedent is not a fourth ground — SqlArtisan deliberately
+diverges from common idiom in places (ADR 0001, guards-and-empty-states.md),
+so an appeal to outside convention proves nothing on its own.
 
 ### Tier B — documentation and comments (any visibility)
 
@@ -180,7 +187,7 @@ contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
 `.claude/rules/**`.
 
 **Always reportable, regardless of severity or fix cost** — a cheap fix that
-leaves a reader misinformed is exactly the case worth flagging. Three
+leaves a reader misinformed is exactly the case worth flagging. Four
 shapes, all in scope:
 - **Omission** — new or changed behavior with no doc/comment coverage where
   coverage exists for its siblings (every other `Sql.*` factory has an XML
@@ -192,6 +199,14 @@ shapes, all in scope:
 - **Misleading ambiguity** — wording a reader could plausibly misread into
   an incorrect belief about behavior — not merely wording you'd have
   chosen differently.
+- **Superseded example** — a usage example (README, cookbook,
+  `docs/guides/`) that still runs correctly but no longer reflects the
+  current idiomatic way once a simpler API covers the same case. This
+  project's docs are read by AI coding assistants as much as humans (ADR
+  0010, `llms.txt`, `docs/guides/ai-assistants.md`) — a stale idiom risks
+  being reproduced verbatim in generated code, not just noticed and
+  shrugged off by a human reader, so it clears the bar even though nothing
+  in the example is factually wrong.
 
 **Not reportable:** a rewording that changes nothing a reader could
 conclude — pure phrasing preference with no ambiguity and no factual gap.
