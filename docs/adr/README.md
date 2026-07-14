@@ -49,19 +49,6 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   0003 chooses the permissive-API + opt-in-analyzer approach; 0008 designs
   the override configuration; 0009 decides bundled distribution.
 
-### Entry points by question
-
-| Question | Read |
-|----------|------|
-| What is SqlArtisan's core philosophy? | 0001, then 0010 |
-| How are DBMS differences handled? | 0001 → 0002 → 0003 |
-| What does the library reject vs emit faithfully? | **Boundary cluster: 0007 + 0011 + 0012** |
-| How does the dialect analyzer work? | **Analyzer cluster: 0003 + 0008 + 0009** |
-| Why are values parameterized? | 0004 |
-| Where does the public API live? | 0005 |
-| Why is allocation-light building a constraint? | 0006 |
-| What is the mission statement? | 0010 (cites 0001–0003, 0007) |
-
 ## Consolidation trigger
 
 ADR refinement chains (one base decision + N follow-on ADRs) are the normal
@@ -69,8 +56,8 @@ outcome of incremental design. They become a navigation problem when
 synthesizing the answer to one question requires reading too many documents.
 The mitigation layers are, in order:
 
-1. **Cluster notes and the question map above** — sufficient while the cluster
-   is small and the refinements are self-contained.
+1. **Cluster notes above** — sufficient while the cluster is small and the
+   refinements are self-contained.
 2. **The decision table in `.claude/rules/guards-and-empty-states.md`** — the
    operational synthesis agents and contributors load at edit time.
 3. **Supersession** — a new ADR that consolidates the cluster into one
@@ -81,7 +68,3 @@ enumerated exceptions reach five or more**, the cluster has outgrown layers 1
 and 2. At that point, write a single consolidated ADR that supersedes the
 cluster members (note "Superseded by ADR NNNN" in each original's Status
 line). This threshold is decided now so it does not re-litigate per case.
-
-The Boundary cluster (0007 + 0011 + 0012) currently has three rejection
-categories and one enumerated exception — well below the threshold. The
-Analyzer cluster (0003 + 0008 + 0009) has no refinement pressure.
