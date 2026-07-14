@@ -243,7 +243,7 @@ SqlStatement sql =
 // OR ("a".id NOT IN (SELECT "c".id FROM users "c"))
 ```
 
-On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected ("This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited query through a CTE (`With(c.As(...))`) and select from that instead.
+On MySQL, `LIMIT` directly inside an `IN` / `ALL` / `ANY` / `SOME` subquery is rejected — route the limited query through a CTE instead. See the [Pagination dialect caveat](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) for the full per-position rule.
 
 ### EXISTS Condition
 ```csharp
