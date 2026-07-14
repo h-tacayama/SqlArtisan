@@ -85,8 +85,27 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
         return this;
     }
 
-    public IInsertBuilderValues Values(object[][] rows) =>
-        Values((IEnumerable<object[]>)rows);
+    public IInsertBuilderValues Values(object[][] rows)
+    {
+        ThrowIfBuilt();
+        ArgumentNullException.ThrowIfNull(rows);
+
+        if (rows.Length == 0)
+        {
+            throw new ArgumentException(
+                "VALUES requires at least one row; the row collection is empty.");
+        }
+
+        // foreach over the concrete array (not the IEnumerable<object[]> overload
+        // above) avoids boxing the array's enumerator — a compiler-recognized
+        // zero-allocation loop, per ADR 0006.
+        foreach (object[] row in rows)
+        {
+            AddValuesRow(row);
+        }
+
+        return this;
+    }
 
     // The single-row append shared by every Values overload. A repeat call grows
     // the held clause via AddRow (which validates row width), bypassing AddPart's
