@@ -15,17 +15,14 @@ across all three packages.
 
 The broader mission and constraints (guard-rail for AI-assisted SQL, no
 portability abstractions, no opinion-holes) are in **ADR 0010** (`docs/adr/`),
-building on ADRs 0001–0003/0007. There are 12 ADRs total covering faithful SQL
-output, dialect layer, safety, parameterization, API shape, performance,
-validity boundaries, analyzer config/distribution, the mission statement, and
-value-domain guards.
+building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 
 ## Layout
 
 | Path | Purpose |
 |------|---------|
-| `src/SqlArtisan/Sql/Sql.{A..W}.cs` | Public API. `static partial class Sql`, one file per **leading letter** of the function name (20 files; gaps at K, Q, V, X–Z). |
-| `src/SqlArtisan/Internal/SqlPart/Expression/Function/**` | Internal function node classes (`*Function : SqlExpression`), 13 categories (see below). |
+| `src/SqlArtisan/Sql/Sql.{A..W}.cs` | Public API. `static partial class Sql`, one file per **leading letter** of the function name (gaps at K, Q, V, X–Z). |
+| `src/SqlArtisan/Internal/SqlPart/Expression/Function/**` | Internal function node classes (`*Function : SqlExpression`), organized into categories (see below). |
 | `src/SqlArtisan/Internal/SqlBuilder/**` | Statement builders (Select/Insert/Update/Delete/Merge/With), `SqlBuildingBuffer`, validation guards. |
 | `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`). |
 | `src/SqlArtisan/Internal/SqlPart/Keywords.cs` | All SQL keyword string constants. |
@@ -39,7 +36,7 @@ value-domain guards.
 | `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests via Testcontainers (MySql, Oracle, PostgreSql, SqlServer, Sqlite). |
 | `tests/SqlArtisan.Benchmark/` | BenchmarkDotNet comparisons vs other builders. |
 | `docs/` | User-facing docs: `query-statements`, `expressions`, `functions`, `analyzer`, `cookbook`, `versioning`, plus `guides/` (Dapper quickstart, AI assistants). |
-| `docs/adr/` | 12 Architecture Decision Records. |
+| `docs/adr/` | Architecture Decision Records (see `docs/adr/README.md` for the index). |
 | `llms.txt` | LLM-friendly index with raw GitHub URLs to all documentation. |
 | `Directory.Build.props` | Centralized version, Source Link, AOT compatibility, analyzer mode. |
 
@@ -59,8 +56,8 @@ dotnet format SqlArtisan.sln --verify-no-changes   # .editorconfig style gate (C
 Always run `dotnet test` after changing `src/`. Tests assert the **exact** SQL
 string, so any output change will surface here. Also run
 `dotnet format SqlArtisan.sln` before pushing — CI fails on any `.editorconfig`
-violation. The SDK is pinned by `global.json` (currently 10.0.x with
-`latestPatch` roll-forward); treat CI as the authoritative format gate.
+violation. The SDK version is pinned by `global.json` (`latestPatch`
+roll-forward); treat CI as the authoritative format gate.
 
 Integration tests (`tests/SqlArtisan.IntegrationTests/`) run against live
 database engines via Testcontainers. They are triggered nightly and on release
@@ -88,7 +85,7 @@ The **`sa-add-sql-function` skill** walks through all six with templates and
 reference implementations (`AbsFunction`, `AddMonthsFunction`, …) — follow it
 for the full procedure.
 
-Function node classes are organized into 13 categories under
+Function node classes are organized into categories under
 `Internal/SqlPart/Expression/Function/`: Aggregate, Analytic, Character,
 Comparison, Conversion, DateTime, FullTextSearch, Grouping, Json, Numeric,
 OrderedSetAggregate, Sequence, StringAggregate.
