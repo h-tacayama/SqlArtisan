@@ -71,4 +71,6 @@ yes-somewhere → dialect availability → permissive.
   already guarantees; its remit stays dialect availability, arity, and unknown
   target.
 - Complements ADR 0001 and ADR 0003; supersedes neither. Refined by ADR 0011
-  (a bounded exception). See #150, #190, #93.
+  (a bounded exception) and ADR 0012 (value-domain guards — a *complete*
+  construct whose embedded value is valid on no engine also rejects).
+  See #150, #190, #93.
