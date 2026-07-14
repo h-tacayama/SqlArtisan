@@ -25,6 +25,7 @@ FILES = [
     "docs/analyzer.md", "docs/cookbook.md", "docs/guides/dapper-quickstart.md",
     "docs/guides/ai-assistants.md",
     "docs/versioning.md", "SECURITY.md", "CHANGELOG.md",
+    "src/SqlArtisan.TableClassGen/README.md",
 ]
 CODE_IDENTS = ("PostgreSql", "SqlServer", "MySql", "Sqlite")  # display: PostgreSQL/SQL Server/MySQL/SQLite
 
