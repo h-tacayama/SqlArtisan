@@ -108,6 +108,16 @@ public class InTests
     }
 
     [Fact]
+    public void NotIn_SingleString_BindsOneValueNotOnePerChar()
+    {
+        StringBuilder expected = new();
+        expected.Append("\"t\".name NOT IN ");
+        expected.Append("(:0)");
+
+        _assert.Equal(_t.Name.NotIn("abc"), expected.ToString(), 1, "abc");
+    }
+
+    [Fact]
     public void In_EmptyCollection_ThrowsArgumentException()
     {
         List<int> empty = [];
