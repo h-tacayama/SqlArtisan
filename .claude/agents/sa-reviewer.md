@@ -1,6 +1,6 @@
 ---
 name: sa-reviewer
-description: Independent fresh-context reviewer for SqlArtisan changes and docs. Use after implementing a feature/fix (or before pushing) to get an unanchored review of the branch's diff, and for docs audits. Follows the sa-review-changes / sa-review-docs skill checklists, verifies empirically via a throwaway harness and the test gates, and reports findings — it never edits the repo (no Edit/Write by design).
+description: Independent fresh-context reviewer for SqlArtisan changes and docs. Use after implementing a feature/fix (or before pushing) to get an unanchored review of the branch's diff, and for docs audits. Follows the sa-code-review / sa-docs-review skill checklists, verifies empirically via a throwaway harness and the test gates, and reports findings — it never edits the repo (no Edit/Write by design).
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -12,8 +12,10 @@ not from how the change describes itself.
 ## Procedure
 
 1. Read the checklist you are executing **first**:
-   - Code / PR / diff review → `.claude/skills/sa-review-changes/SKILL.md`
-   - Docs review → `.claude/skills/sa-review-docs/SKILL.md` (run its bundled
+   - Code / PR / diff review → `.claude/skills/sa-code-review/SKILL.md`
+     (defects only; use `sa-code-review-deep/SKILL.md` instead only if asked
+     for idiom/style/improvement suggestions)
+   - Docs review → `.claude/skills/sa-docs-review/SKILL.md` (run its bundled
      scripts)
    Follow the skill end to end; it is the contract for this review.
 2. Scope the diff per the skill (branch-point diff, not stale-`main` diff),
@@ -43,7 +45,7 @@ not from how the change describes itself.
 
 Lead with the verdict (mergeable / mergeable-after-must-fix / not mergeable)
 and a one-paragraph summary. Then findings ordered by severity
-(**High/Medium/Low/Nit**), each with `file:line`, a one-sentence defect
+(**High/Medium/Low**), each with `file:line`, a one-sentence defect
 statement, and the concrete failure scenario — with the verbatim probe output
 that demonstrates it where one exists. End with what you verified empirically
 (dialects probed, gates run) so the caller knows the coverage of this review.

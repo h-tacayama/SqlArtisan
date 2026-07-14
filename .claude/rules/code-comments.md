@@ -40,5 +40,5 @@ ordering / allocation); otherwise trim.
 Smells 5 and 6 are near-mechanical (a greppable phrase list, a line count);
 1 / 2 / 7 / 8 need the *is-the-why-non-obvious* judgment.
 
-Audited at review time — the `sa-review-changes` skill runs this checklist over
+Audited at review time — the `sa-code-review` skill runs this checklist over
 the diff.
