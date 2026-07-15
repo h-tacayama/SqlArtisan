@@ -184,4 +184,130 @@ public class DeleteTests
             "The WHERE clause requires a condition; omit it for an unfiltered statement.",
             ex.Message);
     }
+
+    [Fact]
+    public void DeleteFrom_PostgreSql_Using_CorrectSql()
+    {
+        // PostgreSQL DELETE ... USING: the target keeps its `DELETE FROM target`
+        // lead; the join predicate lives in WHERE.
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Using(s)
+            .Where(t.Code == s.Code)
+            .Build(Dbms.PostgreSql);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM test_table AS \"t\" ");
+        expected.Append("USING test_table \"s\" ");
+        expected.Append("WHERE \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_PostgreSql_UsingWithReturning_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Using(s)
+            .Where(t.Code == s.Code)
+            .Returning(t.Code)
+            .Build(Dbms.PostgreSql);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM test_table AS \"t\" ");
+        expected.Append("USING test_table \"s\" ");
+        expected.Append("WHERE \"t\".code = \"s\".code ");
+        expected.Append("RETURNING \"t\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_FromJoin_CorrectSql()
+    {
+        // SQL Server leads with the FROM-defined alias (`DELETE "t"`) and
+        // re-lists the target in FROM.
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .From(t)
+            .InnerJoin(s).On(t.Code == s.Code)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE \"t\" ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("INNER JOIN test_table \"s\" ");
+        expected.Append("ON \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_MySql_FromJoin_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .From(t)
+            .InnerJoin(s).On(t.Code == s.Code)
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE `t` ");
+        expected.Append("FROM test_table `t` ");
+        expected.Append("INNER JOIN test_table `s` ");
+        expected.Append("ON `t`.code = `s`.code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_FromNotRepeatingTarget_ThrowsArgumentException()
+    {
+        // The SQL Server / MySQL joined DELETE must re-list its target in FROM;
+        // omitting it would emit a target-less DELETE alias.
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t).From(s).InnerJoin(s).On(t.Code == s.Code).Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "A joined DELETE ... FROM must re-list the target table in the FROM clause.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_UsingNoTables_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t).Using());
+
+        Assert.Equal("USING requires at least one table.", ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_FromNoTables_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t).From());
+
+        Assert.Equal("FROM requires at least one table.", ex.Message);
+    }
 }

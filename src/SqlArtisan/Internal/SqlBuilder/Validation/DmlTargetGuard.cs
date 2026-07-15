@@ -31,4 +31,30 @@ internal static class DmlTargetGuard
                 "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE statement; use an unaliased target table.");
         }
     }
+
+    // A joined UPDATE/DELETE qualifies its columns through the target's alias
+    // (and SQL Server / MySQL lead with the alias alone), so an unaliased target
+    // has no correct spelling in the joined forms.
+    internal static void ThrowIfJoinedTargetUnaliased(DbTableBase target)
+    {
+        if (!target.HasAlias)
+        {
+            throw new ArgumentException(
+                "The target of a joined UPDATE or DELETE must be aliased.");
+        }
+    }
+
+    // The joined DELETE ... FROM leads with the target's alias and introduces the
+    // target through FROM, so the target must be re-listed there — otherwise the
+    // lead keeps `DELETE FROM target` and a second FROM follows, invalid on every
+    // dialect. A wrong-dialect joined form is emitted faithfully and left to the
+    // database (ADR 0001); only this structurally-broken case throws.
+    internal static void ThrowIfJoinedDeleteTargetNotRepeated(DmlJoinState state)
+    {
+        if (state.HasFrom && !state.TargetRepeatedInFrom)
+        {
+            throw new ArgumentException(
+                "A joined DELETE ... FROM must re-list the target table in the FROM clause.");
+        }
+    }
 }

@@ -15,10 +15,11 @@ internal sealed class WithBuilder : IWithBuilderWith
     }
 
     public IDeleteBuilderDelete DeleteFrom(DbTableBase table)
-        => new DeleteBuilder(
-            table,
-            _withPart,
-            new DeleteClause(table));
+    {
+        DmlJoinState state = new();
+        DeleteClause deleteClause = new(table, state);
+        return new DeleteBuilder(table, state, _withPart, deleteClause);
+    }
 
     public IInsertIgnoreBuilderTable InsertIgnoreInto(DbTableBase table) =>
         new InsertBuilder(
@@ -78,9 +79,10 @@ internal sealed class WithBuilder : IWithBuilderWith
                 distinctOn,
                 selectItems));
 
-    public IUpdateBuilderUpdate Update(DbTableBase table) =>
-        new UpdateBuilder(
-            table,
-            _withPart,
-            new UpdateClause(table));
+    public IUpdateBuilderUpdate Update(DbTableBase table)
+    {
+        DmlJoinState state = new();
+        UpdateClause updateClause = new(table, state);
+        return new UpdateBuilder(table, state, _withPart, updateClause);
+    }
 }

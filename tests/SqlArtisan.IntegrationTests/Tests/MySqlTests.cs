@@ -142,4 +142,45 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
+    [Fact]
+    public void JoinedUpdateJoin_Executes()
+    {
+        // MySQL's multi-table UPDATE joins before SET.
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        UsersTable read = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 999).Where(u.Id == 3),
+            transaction);
+
+        int age = connection
+            .Query<int>(Select(read.Age).From(read).Where(read.Id == 3), transaction)
+            .Single();
+
+        Assert.Equal(999, age);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void JoinedDeleteFrom_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        UsersTable read = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            DeleteFrom(u).From(u).InnerJoin(o).On(u.Id == o.UserId).Where(u.Id == 3),
+            transaction);
+
+        long remaining = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(read.Id)).From(read).Where(read.Id == 3), transaction));
+
+        Assert.Equal(0, remaining);
+        transaction.Rollback();
+    }
 }
