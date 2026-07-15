@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- Added joined `UPDATE` / `DELETE` — update or delete rows using columns from other tables. Each dialect keeps its own spelling: PostgreSQL and SQLite (3.33+) use `UPDATE ... FROM` and `DELETE ... USING`; SQL Server and MySQL re-list the target after `FROM` (`UPDATE t SET t.col = u.col FROM t JOIN u ON ...`, `DELETE t FROM t JOIN u ON ...`), and MySQL joins before `SET`. Start from `Update(target)` / `DeleteFrom(target)` and add `.From(...)` / `.Using(...)` / `.InnerJoin(...).On(...)` in the dialect's own order. The joined target must be aliased. Because the fluent steps reuse the `From` / `Join` / `Using` names the analyzer treats as universal, a form built for a dialect that lacks it — Oracle, or `UPDATE ... FROM` on MySQL — is emitted faithfully and rejected by the database rather than caught at build time. This is also the SQL Server correlated-`UPDATE`/`DELETE` idiom, since the alias comes from `FROM`. See the [Joined UPDATE / DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete) docs. (#258)
+- Added joined `UPDATE` / `DELETE` — update or delete rows using columns from other tables, each dialect in its own spelling: PostgreSQL/SQLite (3.33+) `UPDATE ... FROM` / `DELETE ... USING`, SQL Server and MySQL's `FROM ... JOIN` forms. Start from `Update(target)` / `DeleteFrom(target)` and chain `.From(...)` / `.Using(...)` / `.InnerJoin(...).On(...)` in the dialect's own order; the joined target must be aliased. See [Joined UPDATE / DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete). (#258)
 
 ## [0.6.0-beta.1] - 2026-07-14
 ### Added
