@@ -1206,4 +1206,47 @@ int deletedId = outputs.Get<int>("outId");
 string deletedName = outputs.Get<string>("outName");
 ```
 
-**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (3.35+). It is not supported by SQL Server (which uses `OUTPUT`) or MySQL. The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
+**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (3.35+). It is not supported by SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)) or MySQL. The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
+
+## OUTPUT Clause (SQL Server)
+
+SQL Server's `OUTPUT` is the counterpart to [`RETURNING`](#returning-clause): it reads back the rows an `INSERT`, `UPDATE`, or `DELETE` affects, from the `INSERTED` and `DELETED` pseudo-tables via `Inserted(col)` / `Deleted(col)`. Unlike `RETURNING`, `OUTPUT` sits mid-statement — after the column list on `INSERT`, after `SET` on `UPDATE`, after the target on `DELETE` — so it is a positioned `.Output(...)` step, chained before `VALUES` / `WHERE` / `FROM`.
+
+`INSERT` sees only `INSERTED`; `DELETE` only `DELETED`; `UPDATE` both — the row's pre-image (`DELETED`) and post-image (`INSERTED`). Column aliases are allowed (`Deleted(u.Age).As("old_age")`).
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Update(u)
+    .Set(u.Age == 30)
+    .Output(Deleted(u.Age), Inserted(u.Age))
+    .Where(u.Id == 5)
+    .Build(Dbms.SqlServer);
+
+// UPDATE users SET age = @0
+// OUTPUT DELETED.age, INSERTED.age
+// WHERE id = @1
+```
+
+### OUTPUT … INTO
+
+Chain `.Into(archive, cols...)` after `.Output(...)` to copy the output rows into an archive table instead of returning them to the caller. This is the single-statement archive-then-delete form, and the only `OUTPUT` spelling exempt from the AFTER-trigger limitation that blocks a plain `OUTPUT` on a triggered table:
+
+```csharp
+RentalTable rental = new();
+RentalArchiveTable archive = new();
+DateTime cutoff = new(2024, 1, 1);
+SqlStatement sql =
+    DeleteFrom(rental)
+    .Output(Deleted(rental.RentalId), Deleted(rental.CustomerId))
+    .Into(archive, archive.RentalId, archive.CustomerId)
+    .Where(rental.RentalDate < cutoff)
+    .Build(Dbms.SqlServer);
+
+// DELETE FROM rental
+// OUTPUT DELETED.rental_id, DELETED.customer_id
+// INTO rental_archive (rental_id, customer_id)
+// WHERE rental_date < @0
+```
+
+**Dialect note:** `OUTPUT` is SQL Server syntax; on MySQL, Oracle, PostgreSQL, and SQLite it is unavailable — use [`RETURNING`](#returning-clause) on Oracle, PostgreSQL, and SQLite (MySQL has neither).

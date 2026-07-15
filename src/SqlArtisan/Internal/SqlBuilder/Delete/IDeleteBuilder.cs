@@ -9,6 +9,6 @@ public interface IDeleteBuilder
     /// Opens <c>DELETE FROM table</c>.
     /// </summary>
     /// <param name="table">The table to delete from.</param>
-    /// <returns>The builder positioned for <c>WHERE</c>, <c>RETURNING</c>, or build.</returns>
-    IDeleteBuilderDelete DeleteFrom(DbTableBase table);
+    /// <returns>The builder positioned for <c>OUTPUT</c>, <c>WHERE</c>, <c>RETURNING</c>, or build.</returns>
+    IDeleteBuilderDeleteOutput DeleteFrom(DbTableBase table);
 }

@@ -252,4 +252,49 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(0, remaining);
         transaction.Rollback();
     }
+
+    [Fact]
+    public void OutputInto_ArchiveThenDelete_Executes()
+    {
+        // The single-statement archive-then-delete: OUTPUT ... INTO copies the
+        // deleted rows into an archive table as they are removed.
+        UsersTable u = new();
+        OutputArchiveTable archive = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            DeleteFrom(u)
+                .Output(Deleted(u.Id), Deleted(u.Name))
+                .Into(archive, archive.Id, archive.Name)
+                .Where(u.Id == 3),
+            transaction);
+
+        long usersLeft = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(u.Id)).From(u).Where(u.Id == 3), transaction));
+        string archivedName = connection
+            .Query<string>(Select(archive.Name).From(archive).Where(archive.Id == 3), transaction)
+            .Single();
+
+        Assert.Equal(0, usersLeft);
+        Assert.Equal("Carol", archivedName);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void Output_Insert_ReturnsInsertedId()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int inserted = connection
+            .Query<int>(
+                InsertInto(u, u.Id, u.Name).Output(Inserted(u.Id)).Values(700, "Grace"),
+                transaction)
+            .Single();
+
+        Assert.Equal(700, inserted);
+        transaction.Rollback();
+    }
 }

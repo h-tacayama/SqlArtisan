@@ -38,6 +38,6 @@ public interface IUpdateBuilderUpdate : ISqlBuilder
     /// Appends <c>SET col = value, ...</c> from <c>column == value</c> assignments.
     /// </summary>
     /// <param name="assignments">The per-column updates; each left side names a column and each right side its new value (literals are auto-parameterized).</param>
-    /// <returns>The builder positioned for <c>WHERE</c>, <c>RETURNING</c>, or build.</returns>
-    IUpdateBuilderSet Set(params EqualityBasedCondition[] assignments);
+    /// <returns>The builder positioned for <c>OUTPUT</c>, <c>WHERE</c>, <c>RETURNING</c>, or build.</returns>
+    IUpdateBuilderSetOutput Set(params EqualityBasedCondition[] assignments);
 }

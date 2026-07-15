@@ -42,6 +42,7 @@ internal static class Keywords
     internal const string Datetrunc = "DATETRUNC";
     internal const string Decode = "DECODE";
     internal const string Delete = "DELETE";
+    internal const string Deleted = "DELETED";
     internal const string DenseRank = "DENSE_RANK";
     internal const string Desc = "DESC";
     internal const string Distinct = "DISTINCT";
@@ -76,6 +77,7 @@ internal static class Keywords
     internal const string In = "IN";
     internal const string Inner = "INNER";
     internal const string Insert = "INSERT";
+    internal const string Inserted = "INSERTED";
     internal const string Instr = "INSTR";
     internal const string Intersect = "INTERSECT";
     internal const string Into = "INTO";
@@ -131,6 +133,7 @@ internal static class Keywords
     internal const string Or = "OR";
     internal const string Order = "ORDER";
     internal const string Outer = "OUTER";
+    internal const string Output = "OUTPUT";
     internal const string Over = "OVER";
     internal const string Partition = "PARTITION";
     internal const string PercentileCont = "PERCENTILE_CONT";
