@@ -274,32 +274,6 @@ public class DeleteTests
     }
 
     [Fact]
-    public void DeleteFrom_Using_SqlServer_ThrowsArgumentException()
-    {
-        TestTable t = new("t");
-        TestTable s = new("s");
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            DeleteFrom(t).Using(s).Where(t.Code == s.Code).Build(Dbms.SqlServer));
-
-        Assert.Equal("DELETE ... USING is not supported on SQL Server.", ex.Message);
-    }
-
-    [Fact]
-    public void DeleteFrom_FromJoin_Oracle_ThrowsArgumentException()
-    {
-        TestTable t = new("t");
-        TestTable s = new("s");
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            DeleteFrom(t).From(t).InnerJoin(s).On(t.Code == s.Code).Build(Dbms.Oracle));
-
-        Assert.Equal(
-            "a multi-table DELETE ... FROM is not supported on Oracle.",
-            ex.Message);
-    }
-
-    [Fact]
     public void DeleteFrom_FromNotRepeatingTarget_ThrowsArgumentException()
     {
         // The SQL Server / MySQL joined DELETE must re-list its target in FROM;

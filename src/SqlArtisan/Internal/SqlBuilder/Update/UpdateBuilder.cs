@@ -137,7 +137,6 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         if (state.IsJoined)
         {
             DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
-            DmlTargetGuard.ThrowIfJoinedUpdateShapeInvalid(state, dbms);
         }
         else
         {

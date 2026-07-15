@@ -44,63 +44,17 @@ internal static class DmlTargetGuard
         }
     }
 
-    // The joined UPDATE spellings are construct-level per-dialect and share the
-    // From/Join member names the analyzer keys on, so it cannot tell them apart;
-    // reject a shape the resolved target has no valid spelling for at Build (ADR
-    // 0011). SQL Server repeats the target in FROM; PostgreSQL/SQLite use
-    // UPDATE ... FROM without repeating it; MySQL joins before SET.
-    internal static void ThrowIfJoinedUpdateShapeInvalid(DmlJoinState state, Dbms dbms)
+    // The joined DELETE ... FROM leads with the target's alias and introduces the
+    // target through FROM, so the target must be re-listed there — otherwise the
+    // lead keeps `DELETE FROM target` and a second FROM follows, invalid on every
+    // dialect. A wrong-dialect joined form is emitted faithfully and left to the
+    // database (ADR 0001); only this structurally-broken case throws.
+    internal static void ThrowIfJoinedDeleteTargetNotRepeated(DmlJoinState state)
     {
-        if (state.TargetRepeatedInFrom)
-        {
-            if (dbms != Dbms.SqlServer)
-            {
-                throw ShapeError("UPDATE ... FROM with a repeated target", dbms);
-            }
-        }
-        else if (state.HasFrom)
-        {
-            if (dbms is not (Dbms.PostgreSql or Dbms.Sqlite))
-            {
-                throw ShapeError("UPDATE ... FROM", dbms);
-            }
-        }
-        else if (dbms != Dbms.MySql)
-        {
-            throw ShapeError("a multi-table UPDATE ... JOIN", dbms);
-        }
-    }
-
-    internal static void ThrowIfJoinedDeleteShapeInvalid(DmlJoinState state, Dbms dbms)
-    {
-        if (state.HasUsing)
-        {
-            if (dbms != Dbms.PostgreSql)
-            {
-                throw ShapeError("DELETE ... USING", dbms);
-            }
-        }
-        else if (!state.TargetRepeatedInFrom)
+        if (state.HasFrom && !state.TargetRepeatedInFrom)
         {
             throw new ArgumentException(
                 "A joined DELETE ... FROM must re-list the target table in the FROM clause.");
         }
-        else if (dbms is not (Dbms.SqlServer or Dbms.MySql))
-        {
-            throw ShapeError("a multi-table DELETE ... FROM", dbms);
-        }
     }
-
-    private static ArgumentException ShapeError(string construct, Dbms dbms) =>
-        new($"{construct} is not supported on {DisplayName(dbms)}.");
-
-    private static string DisplayName(Dbms dbms) => dbms switch
-    {
-        Dbms.MySql => "MySQL",
-        Dbms.Oracle => "Oracle",
-        Dbms.PostgreSql => "PostgreSQL",
-        Dbms.Sqlite => "SQLite",
-        Dbms.SqlServer => "SQL Server",
-        _ => dbms.ToString(),
-    };
 }

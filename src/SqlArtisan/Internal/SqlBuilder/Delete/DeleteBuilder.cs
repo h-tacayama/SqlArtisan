@@ -93,7 +93,7 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
         if (state.IsJoined)
         {
             DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
-            DmlTargetGuard.ThrowIfJoinedDeleteShapeInvalid(state, dbms);
+            DmlTargetGuard.ThrowIfJoinedDeleteTargetNotRepeated(state);
         }
         else
         {

@@ -430,51 +430,6 @@ public class UpdateTests
     }
 
     [Fact]
-    public void Update_From_Oracle_ThrowsArgumentException()
-    {
-        // Oracle has no UPDATE ... FROM; the analyzer can't see the joined form
-        // (it shares the From member name), so Build rejects the mismatch.
-        TestTable t = new("t");
-        TestTable s = new("s");
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Update(t).Set(t.Name == s.Name).From(s).Where(t.Code == s.Code).Build(Dbms.Oracle));
-
-        Assert.Equal("UPDATE ... FROM is not supported on Oracle.", ex.Message);
-    }
-
-    [Fact]
-    public void Update_Join_PostgreSql_ThrowsArgumentException()
-    {
-        TestTable t = new("t");
-        TestTable s = new("s");
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Update(t).InnerJoin(s).On(t.Code == s.Code).Set(t.Name == s.Name).Build(Dbms.PostgreSql));
-
-        Assert.Equal(
-            "a multi-table UPDATE ... JOIN is not supported on PostgreSQL.",
-            ex.Message);
-    }
-
-    [Fact]
-    public void Update_FromRepeatedTarget_PostgreSql_ThrowsArgumentException()
-    {
-        // Re-listing the target in FROM is the SQL Server spelling; PostgreSQL
-        // would read it as a self-join, so the mismatch is rejected.
-        TestTable t = new("t");
-        TestTable s = new("s");
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Update(t).Set(t.Name == s.Name).From(t).InnerJoin(s).On(t.Code == s.Code)
-                .Build(Dbms.PostgreSql));
-
-        Assert.Equal(
-            "UPDATE ... FROM with a repeated target is not supported on PostgreSQL.",
-            ex.Message);
-    }
-
-    [Fact]
     public void Update_Join_UnaliasedTarget_ThrowsArgumentException()
     {
         TestTable t = new();

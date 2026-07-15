@@ -789,9 +789,9 @@ DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
 
 The joined target must be aliased. Because the fluent steps reuse the `From` /
 `Join` / `Using` names the analyzer treats as universal, a form built for a
-dialect without that spelling — Oracle, or `UPDATE … FROM` on MySQL — is rejected
-at `Build(Dbms)` rather than warned. On Oracle, express the shape as a
-correlated subquery or a [`MERGE`](#merge-statement).
+dialect without that spelling — Oracle, or `UPDATE … FROM` on MySQL — is emitted
+as written and rejected by the database, not caught at build time. On Oracle,
+express the shape as a correlated subquery or a [`MERGE`](#merge-statement).
 
 ---
 
