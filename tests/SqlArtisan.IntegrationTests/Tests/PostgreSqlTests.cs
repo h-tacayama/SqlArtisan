@@ -263,4 +263,45 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) FROM users"));
     }
+
+    [Fact]
+    public void JoinedUpdateFrom_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        UsersTable read = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            Update(u).Set(u.Age == 999).From(o).Where((u.Id == o.UserId) & (u.Id == 3)),
+            transaction);
+
+        int age = connection
+            .Query<int>(Select(read.Age).From(read).Where(read.Id == 3), transaction)
+            .Single();
+
+        Assert.Equal(999, age);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void JoinedDeleteUsing_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        UsersTable read = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            DeleteFrom(u).Using(o).Where((u.Id == o.UserId) & (u.Id == 3)),
+            transaction);
+
+        long remaining = Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(read.Id)).From(read).Where(read.Id == 3), transaction));
+
+        Assert.Equal(0, remaining);
+        transaction.Rollback();
+    }
 }

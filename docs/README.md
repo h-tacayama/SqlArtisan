@@ -43,7 +43,8 @@ How to assemble each statement and clause.
   [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination)
 - **[DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#delete-statement)**
 - **[UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#update-statement)** —
-  [Correlated UPDATE / DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#correlated-update--delete)
+  [Correlated UPDATE / DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#correlated-update--delete) ·
+  [Joined UPDATE / DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete)
 - **INSERT** —
   [Standard](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#standard-syntax) ·
   [Multiple Rows](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#multiple-rows) ·

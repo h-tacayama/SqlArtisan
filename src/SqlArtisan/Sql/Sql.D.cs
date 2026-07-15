@@ -316,7 +316,10 @@ public static partial class Sql
     /// <param name="table">The table to delete rows from.</param>
     /// <returns>A delete builder positioned to accept a <c>WHERE</c> clause.</returns>
     public static IDeleteBuilderDelete DeleteFrom(DbTableBase table)
-        => new DeleteBuilder(table, new DeleteClause(table));
+    {
+        DmlJoinState state = new();
+        return new DeleteBuilder(table, state, new DeleteClause(table, state));
+    }
 
     /// <summary>
     /// The <c>DENSE_RANK()</c> analytic function (rank within the window with no

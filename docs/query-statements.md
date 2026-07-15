@@ -724,7 +724,74 @@ SqlStatement sql =
 | DBMS | Correlated `UPDATE` / `DELETE` |
 |------|--------------------------------|
 | MySQL, Oracle, PostgreSQL, SQLite | Alias the target — `DeleteFrom(new UsersTable("u"))` — so the outer column renders qualified. |
-| SQL Server | The target cannot be aliased (aliasing throws at build) and joined DML is not yet supported — express the correlated update as a [`MERGE`](#merge-statement), the T-SQL idiom. |
+| SQL Server | The target cannot be aliased directly (aliasing throws at build); express the correlated shape as a [joined `UPDATE` / `DELETE`](#joined-update--delete) — the `FROM`-supplied alias is the T-SQL idiom — or a [`MERGE`](#merge-statement). |
+
+### Joined UPDATE / DELETE
+
+Update or delete rows using columns from other tables. The grammar is
+per-dialect — the SQL you write is the SQL that runs — so each engine keeps its
+own spelling.
+
+**`UPDATE … FROM` (PostgreSQL, SQLite 3.33+):** the target stays in the
+`UPDATE`, the other tables go in `FROM`, and the join predicate lives in
+`WHERE`:
+
+```csharp
+Acct t = new("t");
+Ledger u = new("u");
+SqlStatement sql =
+    Update(t)
+    .Set(t.Total == u.Amount)
+    .From(u)
+    .Where(t.Id == u.Id)
+    .Build(Dbms.PostgreSql);
+
+// UPDATE acct AS "t" SET total = "u".amount
+// FROM ledger "u" WHERE "t".id = "u".id
+```
+
+**SQL Server** re-lists the target in `FROM` — its alias then leads the
+statement — and joins with `ON`:
+
+```csharp
+Update(t)
+    .Set(t.Total == u.Amount)
+    .From(t)
+    .InnerJoin(u).On(t.Id == u.Id)
+    .Build(Dbms.SqlServer);
+
+// UPDATE "t" SET "t".total = "u".amount
+// FROM acct "t" INNER JOIN ledger "u" ON "t".id = "u".id
+```
+
+**MySQL** joins before `SET`:
+
+```csharp
+Update(t)
+    .InnerJoin(u).On(t.Id == u.Id)
+    .Set(t.Total == u.Amount)
+    .Build(Dbms.MySql);
+
+// UPDATE acct AS `t` INNER JOIN ledger `u`
+// ON `t`.id = `u`.id SET `t`.total = `u`.amount
+```
+
+Joined `DELETE` follows the same split — PostgreSQL uses `USING`, SQL Server and
+MySQL re-list the target after `FROM`:
+
+```csharp
+DeleteFrom(t).Using(u).Where(t.Id == u.Id).Build(Dbms.PostgreSql);
+// DELETE FROM acct AS "t" USING ledger "u" WHERE "t".id = "u".id
+
+DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
+// DELETE "t" FROM acct "t" INNER JOIN ledger "u" ON "t".id = "u".id
+```
+
+The joined target must be aliased. Because the fluent steps reuse the `From` /
+`Join` / `Using` names the analyzer treats as universal, a form built for a
+dialect without that spelling — Oracle, or `UPDATE … FROM` on MySQL — is rejected
+at `Build(Dbms)` rather than warned. On Oracle, express the shape as a
+correlated subquery or a [`MERGE`](#merge-statement).
 
 ---
 

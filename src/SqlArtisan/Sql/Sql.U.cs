@@ -24,8 +24,11 @@ public static partial class Sql
     /// </summary>
     /// <param name="table">The table to update.</param>
     /// <returns>An update builder positioned for <c>.Set(...)</c>.</returns>
-    public static IUpdateBuilderUpdate Update(DbTableBase table) =>
-        new UpdateBuilder(table, new UpdateClause(table));
+    public static IUpdateBuilderUpdate Update(DbTableBase table)
+    {
+        DmlJoinState state = new();
+        return new UpdateBuilder(table, state, new UpdateClause(table, state));
+    }
 
     /// <summary>
     /// The <c>UPPER(source)</c> function (uppercases <paramref name="source"/>).
