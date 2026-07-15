@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- Added joined `UPDATE` / `DELETE` — update or delete rows using columns from other tables, each dialect in its own spelling: PostgreSQL/SQLite (3.33+) `UPDATE ... FROM` / `DELETE ... USING`, SQL Server and MySQL's `FROM ... JOIN` forms. Start from `Update(target)` / `DeleteFrom(target)` and chain `.From(...)` / `.Using(...)` / `.InnerJoin(...).On(...)` in the dialect's own order; the joined target must be aliased. See [Joined UPDATE / DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete). (#258)
+- Added joined `UPDATE` / `DELETE` — update or delete rows using columns from other tables, each dialect in its own spelling: PostgreSQL/SQLite (3.33+) `UPDATE ... FROM` / `DELETE ... USING`, MySQL and SQL Server's `FROM ... JOIN` forms. Start from `Update(target)` / `DeleteFrom(target)` and chain `.From(...)` / `.Using(...)` / `.InnerJoin(...).On(...)` in the dialect's own order; the joined target must be aliased. See [Joined UPDATE / DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete). (#258)
 
 ## [0.6.0-beta.1] - 2026-07-14
 ### Added

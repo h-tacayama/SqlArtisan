@@ -728,9 +728,8 @@ SqlStatement sql =
 
 ### Joined UPDATE / DELETE
 
-Update or delete rows using columns from other tables. The grammar is
-per-dialect — the SQL you write is the SQL that runs — so each engine keeps its
-own spelling.
+Update or delete rows using columns from other tables. Each dialect has its own
+grammar for this — the SQL you write is the SQL that runs.
 
 **`UPDATE … FROM` (PostgreSQL, SQLite 3.33+):** the target stays in the
 `UPDATE`, the other tables go in `FROM`, and the join predicate lives in
@@ -750,8 +749,7 @@ SqlStatement sql =
 // FROM ledger "u" WHERE "t".id = "u".id
 ```
 
-**SQL Server** re-lists the target in `FROM` — its alias then leads the
-statement — and joins with `ON`:
+**SQL Server** re-lists the target in `FROM` and joins with `ON`:
 
 ```csharp
 Update(t)
@@ -776,8 +774,8 @@ Update(t)
 // ON `t`.id = `u`.id SET `t`.total = `u`.amount
 ```
 
-Joined `DELETE` follows the same split — PostgreSQL uses `USING`, SQL Server and
-MySQL re-list the target after `FROM`:
+Joined `DELETE` follows the same split — PostgreSQL uses `USING`, MySQL and SQL
+Server re-list the target after `FROM`:
 
 ```csharp
 DeleteFrom(t).Using(u).Where(t.Id == u.Id).Build(Dbms.PostgreSql);
@@ -787,11 +785,10 @@ DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
 // DELETE "t" FROM acct "t" INNER JOIN ledger "u" ON "t".id = "u".id
 ```
 
-The joined target must be aliased. Because the fluent steps reuse the `From` /
-`Join` / `Using` names the analyzer treats as universal, a form built for a
-dialect without that spelling — Oracle, or `UPDATE … FROM` on MySQL — is emitted
-as written and rejected by the database, not caught at build time. On Oracle,
-express the shape as a correlated subquery or a [`MERGE`](#merge-statement).
+The joined target must be aliased. A spelling the target dialect doesn't support
+— Oracle, or `UPDATE … FROM` on MySQL — is emitted as written and rejected by the
+database, not caught at build time. On Oracle, express the shape as a correlated
+subquery or a [`MERGE`](#merge-statement).
 
 ---
 
