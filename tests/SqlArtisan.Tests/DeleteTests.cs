@@ -288,4 +288,26 @@ public class DeleteTests
             "A joined DELETE ... FROM must re-list the target table in the FROM clause.",
             ex.Message);
     }
+
+    [Fact]
+    public void DeleteFrom_UsingNoTables_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t).Using());
+
+        Assert.Equal("USING requires at least one table.", ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_FromNoTables_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t).From());
+
+        Assert.Equal("FROM requires at least one table.", ex.Message);
+    }
 }

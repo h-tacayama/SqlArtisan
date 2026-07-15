@@ -24,6 +24,7 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
 
     public IUpdateBuilderFrom From(params TableReference[] tables)
     {
+        CollectionGuard.ThrowIfEmpty(tables, "FROM requires at least one table.");
         AddPart(new FromClause(tables));
         state.HasFrom = true;
 

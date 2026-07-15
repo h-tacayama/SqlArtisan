@@ -442,4 +442,15 @@ public class UpdateTests
             "The target of a joined UPDATE or DELETE must be aliased.",
             ex.Message);
     }
+
+    [Fact]
+    public void Update_FromNoTables_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t).Set(t.Name == "x").From());
+
+        Assert.Equal("FROM requires at least one table.", ex.Message);
+    }
 }

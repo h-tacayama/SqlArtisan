@@ -21,6 +21,7 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
 
     public IDeleteBuilderFrom From(params TableReference[] tables)
     {
+        CollectionGuard.ThrowIfEmpty(tables, "FROM requires at least one table.");
         AddPart(new FromClause(tables));
         state.HasFrom = true;
 
@@ -71,6 +72,7 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
 
     public IDeleteBuilderUsing Using(params TableReference[] tables)
     {
+        CollectionGuard.ThrowIfEmpty(tables, "USING requires at least one table.");
         AddPart(new DeleteUsingClause(tables));
         state.HasUsing = true;
         return this;
