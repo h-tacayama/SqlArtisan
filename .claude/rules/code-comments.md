@@ -1,5 +1,5 @@
 ---
-description: Inline comment conventions — comment the why, never the what; keep it short
+description: Inline comment conventions — comment the why / why-not, never the what; keep it short
 paths:
   - "src/**/*.cs"
   - "tests/**/*.cs"
@@ -7,11 +7,14 @@ paths:
 
 # Code comments
 
-Comment the **why**, never the **what**. The code already states what it does; a
-comment that paraphrases the adjacent statement, a method or field name, or an
-exception message it throws is noise. **Default to no comment** — add one only
-for a non-obvious rationale (a design choice, a hazard avoided, an ordering or
-timing that matters, an allocation note per ADR 0006, a dialect quirk).
+Comment the **why** and the **why-not**, never the **what**. The *why* is the
+non-obvious rationale behind the code; the *why-not* is a rejected alternative or
+an avoided hazard the code itself can't show. Anything derivable from the code —
+what a statement does, a method or field name, an exception message it throws —
+is not a comment; it is noise. **Default to no comment** — add one only for a
+non-obvious why / why-not (a design choice, a rejected alternative, a hazard
+avoided, an ordering or timing that matters, an allocation note per ADR 0006, a
+dialect quirk).
 
 ## Length defaults
 
