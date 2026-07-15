@@ -17,11 +17,8 @@ internal sealed class WithBuilder : IWithBuilderWith
     public IDeleteBuilderDelete DeleteFrom(DbTableBase table)
     {
         DmlJoinState state = new();
-        return new DeleteBuilder(
-            table,
-            state,
-            _withPart,
-            new DeleteClause(table, state));
+        DeleteClause deleteClause = new(table, state);
+        return new DeleteBuilder(table, state, _withPart, deleteClause);
     }
 
     public IInsertIgnoreBuilderTable InsertIgnoreInto(DbTableBase table) =>
@@ -85,10 +82,7 @@ internal sealed class WithBuilder : IWithBuilderWith
     public IUpdateBuilderUpdate Update(DbTableBase table)
     {
         DmlJoinState state = new();
-        return new UpdateBuilder(
-            table,
-            state,
-            _withPart,
-            new UpdateClause(table, state));
+        UpdateClause updateClause = new(table, state);
+        return new UpdateBuilder(table, state, _withPart, updateClause);
     }
 }

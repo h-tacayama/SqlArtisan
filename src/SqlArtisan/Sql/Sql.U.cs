@@ -26,8 +26,10 @@ public static partial class Sql
     /// <returns>An update builder positioned for <c>.Set(...)</c>.</returns>
     public static IUpdateBuilderUpdate Update(DbTableBase table)
     {
+        // state is shared by the builder and its leading clause.
         DmlJoinState state = new();
-        return new UpdateBuilder(table, state, new UpdateClause(table, state));
+        UpdateClause updateClause = new(table, state);
+        return new UpdateBuilder(table, state, updateClause);
     }
 
     /// <summary>

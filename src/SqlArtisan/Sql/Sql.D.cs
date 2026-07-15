@@ -317,8 +317,10 @@ public static partial class Sql
     /// <returns>A delete builder positioned to accept a <c>WHERE</c> clause.</returns>
     public static IDeleteBuilderDelete DeleteFrom(DbTableBase table)
     {
+        // state is shared by the builder and its leading clause.
         DmlJoinState state = new();
-        return new DeleteBuilder(table, state, new DeleteClause(table, state));
+        DeleteClause deleteClause = new(table, state);
+        return new DeleteBuilder(table, state, deleteClause);
     }
 
     /// <summary>
