@@ -169,6 +169,10 @@ internal static class MatrixSweepCatalog
         });
         Add("Distinct", _ => Select(Distinct, u.DepartmentId).From(u));
         Add("Hints", _ => Select(Hints("/*+ sweep */"), u.Id).From(u));
+        Add("Top", _ => Select(Top(1), u.Id).From(u));
+        Add("Percent", _ => Select(Top(50).Percent(), u.Id).From(u));
+        // WITH TIES needs an ORDER BY (the Build-time guard); the no-workaround form.
+        Add("WithTies", _ => Select(Top(1).WithTies(), u.Id).From(u).OrderBy(u.Id));
         AddSkips("Group",
             _ => Select(u.DepartmentId).From(u).GroupBy(GroupingSets(Group(u.DepartmentId), Group())),
             (Dbms.MySql, "Group() is only exercisable inside a grouping extension, none of which MySQL supports."),

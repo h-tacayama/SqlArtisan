@@ -457,4 +457,91 @@ public class SelectTests
 
         Assert.Equal("SELECT requires at least one item.", ex.Message);
     }
+
+    [Fact]
+    public void Select_SqlServer_Top_CorrectSql()
+    {
+        SqlStatement sql = Select(Top(5), _t.Code).From(_t).Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TOP (@0) ");
+        expected.Append("\"t\".code ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void Select_SqlServer_TopWithTies_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Top(5).WithTies(), _t.Code)
+            .From(_t)
+            .OrderBy(_t.Code)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TOP (@0) WITH TIES ");
+        expected.Append("\"t\".code ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("ORDER BY \"t\".code");
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Select_SqlServer_DistinctTop_CorrectSql()
+    {
+        SqlStatement sql = Select(Distinct, Top(5), _t.Code).From(_t).Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DISTINCT TOP (@0) ");
+        expected.Append("\"t\".code ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Select_SqlServer_TopPercent_CorrectSql()
+    {
+        SqlStatement sql = Select(Top(10).Percent(), _t.Code).From(_t).Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TOP (@0) PERCENT ");
+        expected.Append("\"t\".code ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Top_SqlServer_WithTiesNoOrderBy_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Top(5).WithTies(), _t.Code).From(_t).Build(Dbms.SqlServer));
+
+        Assert.Equal("TOP ... WITH TIES requires an ORDER BY clause.", ex.Message);
+    }
+
+    [Fact]
+    public void Top_SqlServer_WithOffset_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Top(5), _t.Code)
+            .From(_t)
+            .OrderBy(_t.Code)
+            .OffsetRows(1)
+            .FetchNext(2)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "TOP cannot be combined with OFFSET / FETCH on SQL Server; use one or the other.",
+            ex.Message);
+    }
 }

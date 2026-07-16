@@ -582,6 +582,27 @@ SqlStatement sql =
 
 The row counts are parameterized like other literals, so the bind-parameter prefix follows the target dialect (`:` / `@` / `?`).
 
+#### TOP (SQL Server)
+
+SQL Server also spells row limiting as a `TOP (n)` select prefix. Plain `TOP (n)` overlaps `OFFSET/FETCH`, but **`TOP (n) WITH TIES` has no `OFFSET/FETCH` equivalent** — it also returns the rows tied with the last one under the `ORDER BY`:
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(Top(5).WithTies(), u.Id, u.Name)
+    .From(u)
+    .OrderBy(u.Age)
+    .Build(Dbms.SqlServer);
+
+// SELECT TOP (@0) WITH TIES id, name
+// FROM users
+// ORDER BY age
+```
+
+`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot appear with `OFFSET/FETCH` in the same query — SqlArtisan throws on `Build(Dbms.SqlServer)` if either rule is broken.
+
+**Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those have no `WITH TIES` equivalent.
+
 #### Row-limited queries as subqueries
 
 A query ending in a row-limiting clause is still a subquery: embed it as an aliased scalar value (`.As("alias")`), an `IN` / `NOT IN` / `EXISTS` operand, a CTE body, or a `LATERAL` / `APPLY` operand. The canonical per-group top-N:

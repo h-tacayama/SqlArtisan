@@ -136,6 +136,7 @@ internal static class Keywords
     internal const string Output = "OUTPUT";
     internal const string Over = "OVER";
     internal const string Partition = "PARTITION";
+    internal const string Percent = "PERCENT";
     internal const string PercentileCont = "PERCENTILE_CONT";
     internal const string PercentileDisc = "PERCENTILE_DISC";
     internal const string PercentRank = "PERCENT_RANK";
@@ -178,12 +179,14 @@ internal static class Keywords
     internal const string Systimestamp = "SYSTIMESTAMP";
     internal const string Target = "TARGET";
     internal const string Then = "THEN";
+    internal const string Ties = "TIES";
     internal const string ToChar = "TO_CHAR";
     internal const string ToDate = "TO_DATE";
     internal const string ToNumber = "TO_NUMBER";
     internal const string ToTimestamp = "TO_TIMESTAMP";
     internal const string ToTsquery = "TO_TSQUERY";
     internal const string ToTsvector = "TO_TSVECTOR";
+    internal const string Top = "TOP";
     internal const string Trim = "TRIM";
     internal const string True = "TRUE";
     internal const string Trunc = "TRUNC";

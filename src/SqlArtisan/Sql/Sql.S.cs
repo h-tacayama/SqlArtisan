@@ -83,6 +83,26 @@ public static partial class Sql
                 distinctOn,
                 selectItems));
 
+    /// <inheritdoc cref="Select(object[])"/>
+    /// <param name="top">SQL Server's <c>TOP (n)</c> prefix (<see cref="Top(int)"/>), emitting <c>SELECT TOP (n)</c>.</param>
+    /// <param name="selectItems">The columns or expressions to project.</param>
+    public static ISelectBuilderSelect Select(TopClause top, params object[] selectItems) =>
+        new SelectBuilder(SelectClauseWithTop.Parse(top, selectItems));
+
+    /// <inheritdoc cref="Select(object[])"/>
+    /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Distinct"/>), emitting <c>SELECT DISTINCT TOP (n)</c>.</param>
+    /// <param name="top">SQL Server's <c>TOP (n)</c> prefix (<see cref="Top(int)"/>).</param>
+    /// <param name="selectItems">The columns or expressions to project.</param>
+    public static ISelectBuilderSelect Select(
+        DistinctKeyword distinct,
+        TopClause top,
+        params object[] selectItems) =>
+        new SelectBuilder(
+            SelectClauseWithDistinctTop.Parse(
+                distinct,
+                top,
+                selectItems));
+
     /// <summary>
     /// Wraps a <c>GROUP_CONCAT</c> separator in MySQL's <c>SEPARATOR</c> keyword
     /// form.
