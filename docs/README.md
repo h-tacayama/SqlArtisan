@@ -10,6 +10,9 @@ emitted SQL are also visible inline via IntelliSense (bundled XML docs).
 
 Task-oriented paths from your current project to SqlArtisan.
 
+- **[Comparison Guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md)** —
+  how SqlArtisan compares to EF Core, linq2db, SqlKata, Dapper.SqlBuilder,
+  and InterpolatedSql — and when NOT to choose SqlArtisan.
 - **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
   the greenfield path: packages → table classes → executed queries.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
