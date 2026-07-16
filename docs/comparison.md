@@ -24,16 +24,21 @@ which problem *yours* is.
 
 Three families of SQL tooling, each with a clear design center:
 
-**Full ORMs** (EF Core, linq2db in LINQ mode) map objects to SQL. The SQL
-is an implementation detail the ORM controls — you write LINQ expressions
-against a domain model, and the provider translates them into
-engine-specific SQL. The abstraction is the value: schema changes,
-migrations, and change tracking live inside the ORM.
+**Full ORMs** (EF Core) map objects to SQL. The SQL is an implementation
+detail the ORM controls — you write LINQ expressions against a domain
+model, and the provider translates them into engine-specific SQL. The
+abstraction is the value: schema changes, migrations, change tracking,
+and lazy loading live inside the ORM.
 
-**Portability-focused query builders** (SqlKata, linq2db in query-builder
-mode) offer a SQL-like API, but a dialect compiler rewrites the output per
-engine. You write something resembling SQL; the library decides the exact
-grammar that reaches the database.
+**LINQ-to-SQL data access** (linq2db) also translates LINQ expressions
+into engine-specific SQL, but without the ORM scaffolding — no change
+tracking, no migrations, no lazy loading. It is a lightweight data-access
+layer that sits between a full ORM and a query builder.
+
+**Portability-focused query builders** (SqlKata) offer a SQL-like API,
+but a dialect compiler rewrites the output per engine. You write something
+resembling SQL; the library decides the exact grammar that reaches the
+database.
 
 **Faithful query builders** (SqlArtisan) emit the SQL you write. The C#
 maps directly to SQL tokens — bind-parameter markers and identifier quoting
@@ -53,9 +58,9 @@ How much the compiler catches before the query reaches a database:
 | **Raw SQL strings** | Nothing — typos and schema drift surface at runtime | EF Core `FromSqlRaw`, raw Dapper, InterpolatedSql |
 | **String-keyed builders** | Statement structure is typed, but table/column names are strings | Dapper.SqlBuilder, SqlKata |
 | **Generated table classes** | Column references are compile-checked C# properties; an `ALTER TABLE` that drops a column breaks the build | SqlArtisan |
-| **Expression-tree mapping** | Full compile-time model, tightest coupling between domain types and schema | EF Core LINQ, linq2db LINQ |
+| **Expression-tree mapping** | Full compile-time model, tightest coupling between domain types and schema | EF Core, linq2db |
 
-Expression-tree mapping (EF Core LINQ, linq2db LINQ) offers the tightest
+Expression-tree mapping (EF Core, linq2db) offers the tightest
 compile-time safety. SqlArtisan's table classes sit one level below: column
 names and statement structure are compile-checked, while the query itself
 stays in the SQL domain — you see the SQL you are writing, and the compiler
@@ -128,11 +133,13 @@ the compiler has mapped.
 | **Bundled execution** | The library owns the connection; you call LINQ or a query method and it executes | EF Core, linq2db |
 | **Bring-your-own execution** | The builder produces SQL + parameters; you execute with Dapper, ADO.NET, or any micro-ORM | SqlArtisan, Dapper.SqlBuilder, SqlKata |
 
-SqlArtisan's optional
-[Dapper integration](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)
-(`SqlArtisan.Dapper`) adds one-liner execution methods that auto-detect the
-DBMS from the connection — so the experience is close to "bundled" when you
-want it, without locking you to a specific executor.
+Both SqlArtisan and SqlKata ship optional Dapper-based execution packages
+(`SqlArtisan.Dapper` and `SqlKata.Execution` respectively) that add
+one-liner query methods on top of the builder — so the experience is close
+to "bundled" when you want it, without locking you to a specific executor.
+SqlArtisan.Dapper additionally auto-detects the DBMS from the connection.
+See the
+[Dapper quickstart](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md).
 
 ---
 
@@ -169,11 +176,12 @@ An honest section makes the rest credible.
   object graphs.
 
 - **Your team does not want to write SQL.** If the goal is to stay in C#
-  and let the tooling figure out the SQL, EF Core or linq2db in LINQ mode
-  is a better fit. SqlArtisan is for developers who *want* to write SQL —
-  type-safely and composably, but still recognizably SQL.
+  and let the tooling figure out the SQL, EF Core or linq2db is a better
+  fit — both translate LINQ expressions into engine-specific SQL.
+  SqlArtisan is for developers who *want* to write SQL — type-safely and
+  composably, but still recognizably SQL.
 
-- **You need expression-tree-level schema safety.** EF Core and linq2db's
-  LINQ modes tie C# types to database columns through expression trees —
-  the tightest compile-time coupling available. SqlArtisan's table classes
+- **You need expression-tree-level schema safety.** EF Core and linq2db
+  tie C# types to database columns through expression trees — the
+  tightest compile-time coupling available. SqlArtisan's table classes
   check names but not column types.
