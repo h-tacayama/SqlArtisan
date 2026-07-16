@@ -3,8 +3,10 @@ namespace SqlArtisan.Internal;
 internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
     IDeleteBuilderDelete,
+    IDeleteBuilderDeleteOutput,
     IDeleteBuilderFrom,
     IDeleteBuilderFromJoinOn,
+    IDeleteBuilderOutputInto,
     IDeleteBuilderUsing,
     IDeleteBuilderWhere
 {
@@ -49,6 +51,12 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
         return this;
     }
 
+    public IDeleteBuilderDelete Into(DbTableBase table, params DbColumn[] columns)
+    {
+        AddPart(new OutputIntoClause(table, columns));
+        return this;
+    }
+
     public IDeleteBuilderFromJoinOn LeftJoin(TableReference joined)
     {
         AddJoin(new LeftJoinClause(joined));
@@ -58,6 +66,13 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
     public IDeleteBuilderFrom On(SqlCondition condition)
     {
         AddPart(new OnClause(condition));
+        return this;
+    }
+
+    public IDeleteBuilderOutputInto Output(params object[] items)
+    {
+        CollectionGuard.ThrowIfEmpty(items, "OUTPUT requires at least one expression.");
+        AddPart(new OutputClause(SelectItemResolver.Resolve(items)));
         return this;
     }
 

@@ -350,4 +350,48 @@ public class InsertTests
             "INSERT IGNORE INTO test_table (code, name) SELECT code, name FROM test_table",
             sql.Text);
     }
+
+    [Fact]
+    public void InsertInto_SqlServer_Output_CorrectSql()
+    {
+        // OUTPUT sits after the column list and before VALUES.
+        TestTable t = new();
+
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name)
+            .Output(Inserted(t.Code))
+            .Values(1, "x")
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO test_table (code, name) ");
+        expected.Append("OUTPUT INSERTED.code ");
+        expected.Append("VALUES (@0, @1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("@1"));
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputInto_CorrectSql()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name)
+            .Output(Inserted(t.Code), Inserted(t.Name))
+            .Into(a, a.Code, a.Name)
+            .Values(1, "x")
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO test_table (code, name) ");
+        expected.Append("OUTPUT INSERTED.code, INSERTED.name ");
+        expected.Append("INTO archive_table (code, name) ");
+        expected.Append("VALUES (@0, @1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

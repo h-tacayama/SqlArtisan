@@ -560,6 +560,22 @@ internal static class MatrixSweepCatalog
                 [Dbms.Oracle] = "Oracle's RETURNING requires INTO with output-parameter binding; the dedicated Oracle test covers it.",
             }));
 
+        // --- OUTPUT (SQL Server) — the other four engines reject it at the OUTPUT token ---
+        AddMutating("Output", _ => InsertInto(u, u.Id, u.Name).Output(Inserted(u.Id)).Values(603, "Sweep"));
+        AddMutating("Inserted", _ => InsertInto(u, u.Id, u.Name).Output(Inserted(u.Id)).Values(604, "Sweep"));
+        AddMutating("Deleted", _ => DeleteFrom(u).Output(Deleted(u.Id)).Where(u.Id == -1));
+        cases.Add(new SweepCase(
+            new MatrixKey("Into", 2),
+            _ =>
+            {
+                OutputArchiveTable archive = new();
+                return DeleteFrom(u)
+                    .Output(Deleted(u.Id), Deleted(u.Name))
+                    .Into(archive, archive.Id, archive.Name)
+                    .Where(u.Id == -1);
+            },
+            Mutating: true));
+
         return cases;
 
         ISqlBuilder ApplyShape(Func<ISelectBuilderFrom, ISubquery, DerivedTableBase, ISqlBuilder> apply)

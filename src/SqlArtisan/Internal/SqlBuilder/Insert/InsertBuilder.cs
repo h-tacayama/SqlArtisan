@@ -3,6 +3,8 @@ namespace SqlArtisan.Internal;
 internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootParts) :
     SelectBuilder(rootParts),
     IInsertBuilderColumns,
+    IInsertBuilderColumnsOutput,
+    IInsertBuilderColumnsOutputInto,
     IInsertBuilderDoUpdateSet,
     IInsertBuilderOnConflict,
     IInsertBuilderSet,
@@ -32,6 +34,12 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
         return this;
     }
 
+    public IInsertBuilderColumns Into(DbTableBase table, params DbColumn[] columns)
+    {
+        AddPart(new OutputIntoClause(table, columns));
+        return this;
+    }
+
     public IInsertBuilderOnConflict OnConflict(params DbColumn[] conflictTarget)
     {
         AddPart(new OnConflictClause(conflictTarget));
@@ -42,6 +50,13 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
     {
         AddPart(new RowAliasClause());
         AddPart(OnDuplicateKeyUpdateClause.Parse(assignments));
+        return this;
+    }
+
+    public IInsertBuilderColumnsOutputInto Output(params object[] items)
+    {
+        CollectionGuard.ThrowIfEmpty(items, "OUTPUT requires at least one expression.");
+        AddPart(new OutputClause(SelectItemResolver.Resolve(items)));
         return this;
     }
 

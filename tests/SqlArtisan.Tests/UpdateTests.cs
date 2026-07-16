@@ -453,4 +453,54 @@ public class UpdateTests
 
         Assert.Equal("FROM requires at least one table.", ex.Message);
     }
+
+    [Fact]
+    public void Update_SqlServer_Output_CorrectSql()
+    {
+        // OUTPUT sits after SET and before WHERE; UPDATE sees both pseudo-tables.
+        TestTable t = new();
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "a")
+            .Output(Deleted(t.Name), Inserted(t.Name))
+            .Where(t.Code == 1)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table ");
+        expected.Append("SET name = @0 ");
+        expected.Append("OUTPUT DELETED.name, INSERTED.name ");
+        expected.Append("WHERE code = @1");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>("@0"));
+        Assert.Equal(1, sql.Parameters.Get<int>("@1"));
+    }
+
+    [Fact]
+    public void Update_SqlServer_OutputBeforeJoinedFrom_CorrectSql()
+    {
+        // OUTPUT lands after SET and before the joined FROM.
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == s.Name)
+            .Output(Inserted(t.Name))
+            .From(t)
+            .InnerJoin(s).On(t.Code == s.Code)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE \"t\" ");
+        expected.Append("SET \"t\".name = \"s\".name ");
+        expected.Append("OUTPUT INSERTED.name ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("INNER JOIN test_table \"s\" ");
+        expected.Append("ON \"t\".code = \"s\".code");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

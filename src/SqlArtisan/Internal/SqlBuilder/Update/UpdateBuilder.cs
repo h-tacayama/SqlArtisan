@@ -7,7 +7,9 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
     IUpdateBuilderJoinOn,
     IUpdateBuilderJoined,
     IUpdateBuilderJoinedSet,
+    IUpdateBuilderOutputInto,
     IUpdateBuilderSet,
+    IUpdateBuilderSetOutput,
     IUpdateBuilderUpdate,
     IUpdateBuilderWhere
 {
@@ -64,6 +66,12 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         return this;
     }
 
+    public IUpdateBuilderSet Into(DbTableBase table, params DbColumn[] columns)
+    {
+        AddPart(new OutputIntoClause(table, columns));
+        return this;
+    }
+
     public IUpdateBuilderJoinOn LeftJoin(TableReference joined)
     {
         AddJoin(new LeftJoinClause(joined));
@@ -88,6 +96,13 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         return this;
     }
 
+    public IUpdateBuilderOutputInto Output(params object[] items)
+    {
+        CollectionGuard.ThrowIfEmpty(items, "OUTPUT requires at least one expression.");
+        AddPart(new OutputClause(SelectItemResolver.Resolve(items)));
+        return this;
+    }
+
     public IReturningBuilder Returning(params object[] expressions) =>
         ReturningBuilder.Create(this, expressions);
 
@@ -103,7 +118,7 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         return this;
     }
 
-    public IUpdateBuilderSet Set(params EqualityBasedCondition[] assignments)
+    public IUpdateBuilderSetOutput Set(params EqualityBasedCondition[] assignments)
     {
         AddPart(UpdateSetClause.Parse(assignments, state));
         return this;

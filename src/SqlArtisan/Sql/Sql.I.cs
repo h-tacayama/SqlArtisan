@@ -24,7 +24,7 @@ public static partial class Sql
     /// <param name="columns">The columns to insert into, emitted as a
     /// parenthesized list after the table.</param>
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
-    public static IInsertBuilderColumns InsertInto(DbTableBase table, params DbColumn[] columns) =>
+    public static IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns) =>
         new InsertBuilder(table, new InsertIntoClause(table, columns));
 
     /// <summary>
@@ -54,6 +54,16 @@ public static partial class Sql
     /// with <c>InsertInto(...).Values(...).OnConflict().DoNothing()</c> instead.</remarks>
     public static IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns) =>
         new InsertBuilder(table, new InsertIgnoreIntoClause(table, columns));
+
+    /// <summary>
+    /// References <paramref name="column"/> of the <c>INSERTED</c> pseudo-table in
+    /// a SQL Server <c>OUTPUT</c> clause — the row's post-image after an
+    /// <c>INSERT</c> or <c>UPDATE</c>. Renders as <c>INSERTED.col</c>.
+    /// </summary>
+    /// <param name="column">The target-table column whose inserted value to read.</param>
+    /// <returns>An <c>INSERTED.col</c> reference.</returns>
+    /// <remarks>SQL Server syntax, valid only inside <c>Output(...)</c>.</remarks>
+    public static InsertedColumn Inserted(DbColumn column) => new(column);
 
     /// <summary>
     /// The <c>INSTR(<paramref name="source"/>, <paramref name="substring"/>)</c>

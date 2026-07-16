@@ -315,12 +315,22 @@ public static partial class Sql
     /// </summary>
     /// <param name="table">The table to delete rows from.</param>
     /// <returns>A delete builder positioned to accept a <c>WHERE</c> clause.</returns>
-    public static IDeleteBuilderDelete DeleteFrom(DbTableBase table)
+    public static IDeleteBuilderDeleteOutput DeleteFrom(DbTableBase table)
     {
         DmlJoinState state = new();
         DeleteClause deleteClause = new(table, state);
         return new DeleteBuilder(table, state, deleteClause);
     }
+
+    /// <summary>
+    /// References <paramref name="column"/> of the <c>DELETED</c> pseudo-table in
+    /// a SQL Server <c>OUTPUT</c> clause — the row's pre-image before a
+    /// <c>DELETE</c> or <c>UPDATE</c>. Renders as <c>DELETED.col</c>.
+    /// </summary>
+    /// <param name="column">The target-table column whose deleted value to read.</param>
+    /// <returns>A <c>DELETED.col</c> reference.</returns>
+    /// <remarks>SQL Server syntax, valid only inside <c>Output(...)</c>.</remarks>
+    public static DeletedColumn Deleted(DbColumn column) => new(column);
 
     /// <summary>
     /// The <c>DENSE_RANK()</c> analytic function (rank within the window with no

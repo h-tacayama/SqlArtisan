@@ -310,4 +310,76 @@ public class DeleteTests
 
         Assert.Equal("FROM requires at least one table.", ex.Message);
     }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_Output_CorrectSql()
+    {
+        TestTable t = new();
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Output(Deleted(t.Code))
+            .Where(t.Code == 1)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM test_table ");
+        expected.Append("OUTPUT DELETED.code ");
+        expected.Append("WHERE code = @0");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+    }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_OutputInto_CorrectSql()
+    {
+        // The single-statement archive-then-delete form (SQL Server): OUTPUT ...
+        // INTO precedes WHERE.
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Output(Deleted(t.Code), Deleted(t.Name))
+            .Into(a, a.Code, a.Name)
+            .Where(t.Code == 1)
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM test_table ");
+        expected.Append("OUTPUT DELETED.code, DELETED.name ");
+        expected.Append("INTO archive_table (code, name) ");
+        expected.Append("WHERE code = @0");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_OutputAlias_CorrectSql()
+    {
+        // SQL Server permits an OUTPUT column alias, so aliases are not rejected.
+        TestTable t = new();
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Output(Deleted(t.Code).As("old_code"))
+            .Where(t.Code == 1)
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "DELETE FROM test_table OUTPUT DELETED.code \"old_code\" WHERE code = @0",
+            sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_OutputNoExpressions_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t).Output());
+
+        Assert.Equal("OUTPUT requires at least one expression.", ex.Message);
+    }
 }

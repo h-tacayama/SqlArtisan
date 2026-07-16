@@ -32,6 +32,6 @@ public interface IInsertBuilder
     /// </summary>
     /// <param name="table">The table to insert into.</param>
     /// <param name="columns">The target columns, emitted in parentheses after the table name.</param>
-    /// <returns>The builder positioned to add rows via <c>Values(...)</c> or a <c>SELECT</c> source.</returns>
-    IInsertBuilderColumns InsertInto(DbTableBase table, params DbColumn[] columns);
+    /// <returns>The builder positioned to add <c>OUTPUT</c>, then rows via <c>Values(...)</c> or a <c>SELECT</c> source.</returns>
+    IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns);
 }

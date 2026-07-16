@@ -45,6 +45,9 @@ internal static class TestSchema
         "CREATE TABLE users (id INTEGER PRIMARY KEY, name NVARCHAR(100), age INTEGER, department_id INTEGER, created_at DATETIME2, is_active BIT, data NVARCHAR(MAX))",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
         "CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1",
+        // OUTPUT ... INTO target — SQL Server only (the other engines reject the
+        // statement at the OUTPUT token before resolving the table).
+        "CREATE TABLE output_archive (id INTEGER, name NVARCHAR(100))",
     ];
 
     // Oracle spells the same shapes NUMBER / VARCHAR2 / DATE.

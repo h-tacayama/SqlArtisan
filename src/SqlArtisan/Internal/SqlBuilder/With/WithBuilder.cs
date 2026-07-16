@@ -14,7 +14,7 @@ internal sealed class WithBuilder : IWithBuilderWith
         _withPart = withClause;
     }
 
-    public IDeleteBuilderDelete DeleteFrom(DbTableBase table)
+    public IDeleteBuilderDeleteOutput DeleteFrom(DbTableBase table)
     {
         DmlJoinState state = new();
         DeleteClause deleteClause = new(table, state);
@@ -36,7 +36,7 @@ internal sealed class WithBuilder : IWithBuilderWith
             _withPart,
             new InsertIntoClause(table));
 
-    public IInsertBuilderColumns InsertInto(DbTableBase table, params DbColumn[] columns) =>
+    public IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns) =>
         new InsertBuilder(table, _withPart, new InsertIntoClause(table, columns));
 
     public ISelectBuilderSelect Select(params object[] selectItems) =>

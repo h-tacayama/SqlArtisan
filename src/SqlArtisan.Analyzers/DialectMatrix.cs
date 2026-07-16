@@ -213,6 +213,15 @@ internal static class DialectMatrix
         // "Into" (the RETURNING ... INTO chain) is Oracle-specific — narrower than Returning itself.
         [new MatrixKey("Into")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
+        // --- OUTPUT (SQL Server): the RETURNING counterpart, plus the INSERTED./DELETED.
+        // pseudo-table references. All SQL-Server-only. The OUTPUT ... INTO redirect is
+        // Into arity 2 (DbTableBase, params DbColumn[]); the arity-priority lookup keeps it
+        // distinct from the arity-1 Oracle "Into" above (same split as JOIN/MERGE "Using").
+        [new MatrixKey("Output")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        [new MatrixKey("Inserted")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        [new MatrixKey("Deleted")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        [new MatrixKey("Into", 2)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+
         // --- MERGE sub-states narrower than the surrounding MergeInto/Using/On/WhenMatched/
         // WhenNotMatched scope (Oracle/PostgreSQL 15+/SQL Server) — a coverage gap the initial
         // pass left silent since these method names had no entry of their own at all.
