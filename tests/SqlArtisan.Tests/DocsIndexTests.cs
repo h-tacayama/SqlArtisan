@@ -54,6 +54,46 @@ public class DocsIndexTests
         }
     }
 
+    // query-statements.md carries its own in-page `## Contents` list (grouping
+    // `### ` subsections under each `## ` statement) instead of relying on
+    // docs/README.md, so it needs its own drift check: every `## `/`### `
+    // heading (excluding `#### ` sub-subsections, which the list omits by
+    // design) must appear in that Contents block.
+    [Fact]
+    public void QueryStatementsContents_EveryHeading_IsListed()
+    {
+        string root = FindRepoRoot();
+        string[] lines = File.ReadAllLines(Path.Combine(root, "docs", "query-statements.md"));
+
+        int contentsStart = Array.FindIndex(lines, l => l == "## Contents");
+        int contentsEnd = Array.FindIndex(lines, contentsStart + 1, l => l == "---");
+        Assert.True(
+            contentsStart >= 0 && contentsEnd > contentsStart,
+            "docs/query-statements.md must have a `## Contents` block terminated by `---`.");
+        string contents = string.Join('\n', lines[contentsStart..contentsEnd]);
+
+        foreach (string line in lines)
+        {
+            if (!Regex.IsMatch(line, "^#{2,3} "))
+            {
+                continue;
+            }
+
+            string heading = Regex.Replace(line, "^#{2,3} ", "").Trim();
+
+            if (heading == "Contents")
+            {
+                continue;
+            }
+
+            string anchor = $"#{ToGitHubAnchor(heading)}";
+
+            Assert.True(
+                contents.Contains(anchor, StringComparison.Ordinal),
+                $"docs/query-statements.md's own Contents list is missing \"{heading}\" ({anchor}) — add it in page order.");
+        }
+    }
+
     private static string FindRepoRoot()
     {
         DirectoryInfo? dir = new(AppContext.BaseDirectory);

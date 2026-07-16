@@ -19,7 +19,7 @@
   - [SELECT Clause](#select-clause) · [FROM](#from-clause) · [WHERE](#where-clause) · [JOIN](#join-clause) · [ORDER BY](#order-by-clause) · [GROUP BY / HAVING](#group-by-and-having-clause) · [Set Operators](#set-operators) · [FOR UPDATE](#for-update-clause) · [Pagination](#pagination)
 - [DELETE](#delete-statement)
 - [UPDATE](#update-statement)
-  - [Correlated UPDATE / DELETE](#correlated-update--delete)
+  - [Correlated UPDATE / DELETE](#correlated-update--delete) · [Joined UPDATE / DELETE](#joined-update--delete)
 - [INSERT](#insert-statement)
   - [Standard](#standard-syntax) · [Multiple Rows](#multiple-rows) · [SET-like](#alternative-syntax-set-like) · [INSERT … SELECT](#insert-select-syntax) · [UPSERT](#upsert-insert-update-or-skip) · [MERGE](#merge-statement) · [WITH / CTE](#with-clause-common-table-expressions)
 - [RETURNING](#returning-clause)
@@ -759,8 +759,8 @@ grammar for this — the SQL you write is the SQL that runs.
 `WHERE`:
 
 ```csharp
-Acct t = new("t");
-Ledger u = new("u");
+AcctTable t = new("t");
+LedgerTable u = new("u");
 SqlStatement sql =
     Update(t)
     .Set(t.Total == u.Amount)
