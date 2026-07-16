@@ -56,7 +56,9 @@ How to assemble each statement and clause.
 - **RETURNING** —
   [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause) ·
   [RETURNING INTO (Oracle)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-into-oracle)
-- **[OUTPUT (SQL Server)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#output-clause-sql-server)**
+- **OUTPUT (SQL Server)** —
+  [OUTPUT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#output-clause-sql-server) ·
+  [OUTPUT … INTO](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#output--into)
 
 ## [Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md)
 

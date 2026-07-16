@@ -24,6 +24,8 @@
   - [Standard](#standard-syntax) · [Multiple Rows](#multiple-rows) · [SET-like](#alternative-syntax-set-like) · [INSERT … SELECT](#insert-select-syntax) · [UPSERT](#upsert-insert-update-or-skip) · [MERGE](#merge-statement) · [WITH / CTE](#with-clause-common-table-expressions)
 - [RETURNING](#returning-clause)
   - [RETURNING INTO (Oracle)](#returning-into-oracle)
+- [OUTPUT (SQL Server)](#output-clause-sql-server)
+  - [OUTPUT … INTO](#output--into)
 
 ---
 

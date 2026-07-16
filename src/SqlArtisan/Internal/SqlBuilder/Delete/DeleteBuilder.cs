@@ -51,9 +51,9 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
         return this;
     }
 
-    public IDeleteBuilderDelete Into(DbTableBase archive, params DbColumn[] columns)
+    public IDeleteBuilderDelete Into(DbTableBase table, params DbColumn[] columns)
     {
-        AddPart(new OutputIntoClause(archive, columns));
+        AddPart(new OutputIntoClause(table, columns));
         return this;
     }
 

@@ -66,9 +66,9 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         return this;
     }
 
-    public IUpdateBuilderSet Into(DbTableBase archive, params DbColumn[] columns)
+    public IUpdateBuilderSet Into(DbTableBase table, params DbColumn[] columns)
     {
-        AddPart(new OutputIntoClause(archive, columns));
+        AddPart(new OutputIntoClause(table, columns));
         return this;
     }
 

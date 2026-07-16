@@ -34,9 +34,9 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
         return this;
     }
 
-    public IInsertBuilderColumns Into(DbTableBase archive, params DbColumn[] columns)
+    public IInsertBuilderColumns Into(DbTableBase table, params DbColumn[] columns)
     {
-        AddPart(new OutputIntoClause(archive, columns));
+        AddPart(new OutputIntoClause(table, columns));
         return this;
     }
 
