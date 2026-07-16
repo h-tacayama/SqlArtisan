@@ -188,7 +188,7 @@ def main():
                 for name, decl in recent_decls.items():
                     if name in injected_names:
                         continue
-                    if re.search(rf"\b{name}\b", block_text) and not re.search(rf"\b{name}\s*=", block_text):
+                    if re.search(rf"\b{name}\.", block_text) and not re.search(rf"\b{name}\s*=", block_text):
                         injects.append(decl)
                         injected_names.add(name)
                 for name, plain, aliased in INJECTABLE_LOCALS:
