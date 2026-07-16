@@ -488,7 +488,11 @@ internal static class DialectMatrix
 
         // --- MERGE / UPSERT chain steps (same scope as their statements) ---
         // MergeBuilder's arity-1 Using(TableReference); see the JOIN's arity-2 entry above (#197).
+        // The subquery source rides this key (a TableReference subtype through the same
+        // Using overload); only the VALUES source below narrows the scope (Oracle excluded).
         [new MatrixKey("Using")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        // MERGE literal-row source (VALUES (…),(…)); Oracle has no VALUES row constructor in USING.
+        [new MatrixKey("ValuesTable")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenNotMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("ThenInsert")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),

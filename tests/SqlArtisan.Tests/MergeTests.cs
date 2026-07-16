@@ -294,4 +294,124 @@ public class MergeTests
 
         Assert.Equal("A MERGE DELETE WHERE clause requires a condition.", ex.Message);
     }
+
+    [Fact]
+    public void MergeUsingSubquery_Oracle_CorrectSql()
+    {
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING (SELECT \"s\".code, \"s\".name FROM test_table \"s\") \"q\" ");
+        expected.Append("ON (\"t\".code = \"q\".code) ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"q\".name");
+
+        SubqueryDerivedTable q = Select(_s.Code, _s.Name).From(_s).AsTable("q");
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(q)
+            .On(_t.Code == q.Column("code"))
+            .WhenMatched().ThenUpdateSet(_t.Name == q.Column("name"))
+            .Build(Dbms.Oracle);
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void MergeUsingSubquery_SqlServer_CorrectSql()
+    {
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING (SELECT \"s\".code, \"s\".name FROM test_table \"s\") \"q\" ");
+        expected.Append("ON (\"t\".code = \"q\".code) ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"q\".name;");
+
+        SubqueryDerivedTable q = Select(_s.Code, _s.Name).From(_s).AsTable("q");
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(q)
+            .On(_t.Code == q.Column("code"))
+            .WhenMatched().ThenUpdateSet(_t.Name == q.Column("name"))
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void MergeUsingValues_SqlServer_CorrectSql()
+    {
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING (VALUES (@0, @1), (@2, @3)) \"s\" (code, name) ");
+        expected.Append("ON (\"t\".code = \"s\".code) ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"s\".name ");
+        expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
+        expected.Append("VALUES (\"s\".code, \"s\".name);");
+
+        ValuesDerivedTable s = ValuesTable("s", ["code", "name"], [[1, "Ann"], [2, "Bo"]]);
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(s)
+            .On(_t.Code == s.Column("code"))
+            .WhenMatched().ThenUpdateSet(_t.Name == s.Column("name"))
+            .WhenNotMatched().ThenInsert(_cols.Code, _cols.Name)
+                .Values(s.Column("code"), s.Column("name"))
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(4, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void MergeUsingValues_PostgreSql_CorrectSql()
+    {
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING (VALUES (:0, :1), (:2, :3)) \"s\" (code, name) ");
+        expected.Append("ON (\"t\".code = \"s\".code) ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"s\".name ");
+        expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
+        expected.Append("VALUES (\"s\".code, \"s\".name)");
+
+        ValuesDerivedTable s = ValuesTable("s", ["code", "name"], [[1, "Ann"], [2, "Bo"]]);
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(s)
+            .On(_t.Code == s.Column("code"))
+            .WhenMatched().ThenUpdateSet(_t.Name == s.Column("name"))
+            .WhenNotMatched().ThenInsert(_cols.Code, _cols.Name)
+                .Values(s.Column("code"), s.Column("name"))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(4, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void ValuesTable_NoRows_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ValuesTable("s", ["code"], []));
+
+        Assert.Equal("A VALUES source requires at least one row.", ex.Message);
+    }
+
+    [Fact]
+    public void ValuesTable_NoColumns_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ValuesTable("s", [], [[1]]));
+
+        Assert.Equal("A VALUES source requires at least one column.", ex.Message);
+    }
+
+    [Fact]
+    public void ValuesTable_RowWidthMismatch_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ValuesTable("s", ["code", "name"], [[1]]));
+
+        Assert.Equal(
+            "Every row of a VALUES source must supply one value per column; "
+                + "the column list has 2, but a row has 1.",
+            ex.Message);
+    }
 }

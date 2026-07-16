@@ -525,6 +525,17 @@ internal static class MatrixSweepCatalog
         // --- MERGE ---
         AddMutating("MergeInto", _ => MergeShape());
         AddMutating("Using", _ => MergeShape());
+        // The literal-row upsert MERGE is the SQL Server hole this closes (also PostgreSQL);
+        // MySQL/SQLite reject at MERGE, Oracle at the VALUES source.
+        AddMutating("ValuesTable", _ =>
+        {
+            UsersTable t = new("t");
+            UsersTable c = new();
+            ValuesDerivedTable s = ValuesTable("s", ["id", "name"], [[701, "Sweep"]]);
+            return MergeInto(t).Using(s).On(t.Id == s.Column("id"))
+                .WhenMatched().ThenUpdateSet(c.Name == s.Column("name"))
+                .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Column("id"), s.Column("name"));
+        });
         AddMutating("WhenMatched", _ => MergeUpdateShape());
         AddMutating("ThenUpdateSet", _ => MergeUpdateShape());
         AddMutating("WhenNotMatched", _ => MergeShape());
