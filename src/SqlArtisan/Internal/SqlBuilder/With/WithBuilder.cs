@@ -79,6 +79,20 @@ internal sealed class WithBuilder : IWithBuilderWith
                 distinctOn,
                 selectItems));
 
+    public ISelectBuilderSelect Select(TopClause top, params object[] selectItems) =>
+        new SelectBuilder(_withPart, SelectClauseWithTop.Parse(top, selectItems));
+
+    public ISelectBuilderSelect Select(
+        DistinctKeyword distinct,
+        TopClause top,
+        params object[] selectItems) =>
+        new SelectBuilder(
+            _withPart,
+            SelectClauseWithDistinctTop.Parse(
+                distinct,
+                top,
+                selectItems));
+
     public IUpdateBuilderUpdate Update(DbTableBase table)
     {
         DmlJoinState state = new();

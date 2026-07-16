@@ -95,4 +95,19 @@ internal abstract class SqlBuilderBase
 
     internal void FormatCore(SqlBuildingBuffer buffer) =>
         buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
+
+    // The first appended part of type T, or null — for a Validate(Dbms) override
+    // to inspect which clauses a chain carries (e.g. a TOP prefix beside OFFSET).
+    private protected T? FindPart<T>() where T : class
+    {
+        foreach (SqlPart part in CollectionsMarshal.AsSpan(_parts))
+        {
+            if (part is T match)
+            {
+                return match;
+            }
+        }
+
+        return null;
+    }
 }

@@ -51,4 +51,20 @@ public interface ISelectBuilder
         SqlHints hints,
         DistinctOnKeyword distinctOn,
         params object[] selectItems);
+
+    /// <inheritdoc cref="Select(object[])"/>
+    /// <param name="top">SQL Server's <c>TOP (n)</c> prefix, emitting <c>SELECT TOP (n) ...</c>.</param>
+    /// <param name="selectItems">The select-list items — columns, expressions, or <c>expr.As("alias")</c> aliases.</param>
+    ISelectBuilderSelect Select(
+        TopClause top,
+        params object[] selectItems);
+
+    /// <inheritdoc cref="Select(object[])"/>
+    /// <param name="distinct">The <c>DISTINCT</c> keyword, emitting <c>SELECT DISTINCT TOP (n) ...</c>.</param>
+    /// <param name="top">SQL Server's <c>TOP (n)</c> prefix.</param>
+    /// <param name="selectItems">The select-list items — columns, expressions, or <c>expr.As("alias")</c> aliases.</param>
+    ISelectBuilderSelect Select(
+        DistinctKeyword distinct,
+        TopClause top,
+        params object[] selectItems);
 }

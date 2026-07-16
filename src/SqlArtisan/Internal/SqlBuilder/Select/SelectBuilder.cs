@@ -327,6 +327,26 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    public ISelectBuilderSelect Select(TopClause top, params object[] selectItems)
+    {
+        AddPart(SelectClauseWithTop.Parse(top, selectItems));
+        return this;
+    }
+
+    public ISelectBuilderSelect Select(
+        DistinctKeyword distinct,
+        TopClause top,
+        params object[] selectItems)
+    {
+        AddPart(
+            SelectClauseWithDistinctTop.Parse(
+                distinct,
+                top,
+                selectItems));
+
+        return this;
+    }
+
     public ISelectBuilderFrom Using(DbColumn column, params DbColumn[] additionalColumns)
     {
         AddPart(new JoinUsingClause([column, .. additionalColumns]));
@@ -343,5 +363,35 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     {
         AddPart(new WithRollupClause());
         return this;
+    }
+
+    // Both TOP conflicts are analyzer-invisible (a combination / a value-level
+    // flag) with no valid T-SQL spelling, so they throw at Build(SqlServer) per
+    // the bounded-exception boundary (ADR 0011).
+    protected override void Validate(Dbms dbms)
+    {
+        if (dbms != Dbms.SqlServer)
+        {
+            return;
+        }
+
+        ITopSelectClause? top = FindPart<ITopSelectClause>();
+        if (top is null)
+        {
+            return;
+        }
+
+        if (FindPart<OffsetClause>() is not null
+            || FindPart<OffsetRowsClause>() is not null
+            || FindPart<FetchClause>() is not null)
+        {
+            throw new ArgumentException(
+                "TOP cannot be combined with OFFSET / FETCH on SQL Server; use one or the other.");
+        }
+
+        if (top.WithTies && FindPart<OrderByClause>() is null)
+        {
+            throw new ArgumentException("TOP ... WITH TIES requires an ORDER BY clause.");
+        }
     }
 }

@@ -99,6 +99,18 @@ public static partial class Sql
         new(config, Resolve(document));
 
     /// <summary>
+    /// SQL Server's <c>TOP (n)</c> select prefix — limits the result to the first
+    /// n rows: <c>Select(Top(n), ...)</c>. Chain <c>.WithTies()</c> (also returns
+    /// rows tied with the last under the query's <c>ORDER BY</c>) or
+    /// <c>.Percent()</c> (n percent of rows). Not combinable with <c>OFFSET</c> /
+    /// <c>FETCH</c>.
+    /// </summary>
+    /// <param name="count">The row count (or percent, with <c>.Percent()</c>).</param>
+    /// <returns>A <see cref="TopClause"/> for a <c>SELECT</c> prefix.</returns>
+    /// <remarks>SQL Server syntax.</remarks>
+    public static TopClause Top(int count) => new(count);
+
+    /// <summary>
     /// The <c>TRIM(source)</c> function: removes leading and trailing spaces from
     /// <paramref name="source"/>.
     /// </summary>
