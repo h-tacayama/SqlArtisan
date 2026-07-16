@@ -759,8 +759,8 @@ grammar for this — the SQL you write is the SQL that runs.
 `WHERE`:
 
 ```csharp
-Acct t = new("t");
-Ledger u = new("u");
+AcctTable t = new("t");
+LedgerTable u = new("u");
 SqlStatement sql =
     Update(t)
     .Set(t.Total == u.Amount)

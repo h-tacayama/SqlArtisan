@@ -75,6 +75,22 @@ internal sealed class SeniorUsersCte : CteBase {
     public SeniorUsersCte(string name) : base(name) { SeniorId=new(this,"senior_id");SeniorName=new(this,"senior_name");SeniorAge=new(this,"senior_age"); }
     public DbColumn SeniorId{get;} public DbColumn SeniorName{get;} public DbColumn SeniorAge{get;}
 }
+internal sealed class AcctTable : DbTableBase {
+    public AcctTable(string a="") : base("acct",a) { Id=new(this,"id");Total=new(this,"total"); }
+    public DbColumn Id{get;} public DbColumn Total{get;}
+}
+internal sealed class LedgerTable : DbTableBase {
+    public LedgerTable(string a="") : base("ledger",a) { Id=new(this,"id");Amount=new(this,"amount"); }
+    public DbColumn Id{get;} public DbColumn Amount{get;}
+}
+internal sealed class RentalTable : DbTableBase {
+    public RentalTable(string a="") : base("rental",a) { RentalId=new(this,"rental_id");CustomerId=new(this,"customer_id");RentalDate=new(this,"rental_date"); }
+    public DbColumn RentalId{get;} public DbColumn CustomerId{get;} public DbColumn RentalDate{get;}
+}
+internal sealed class RentalArchiveTable : DbTableBase {
+    public RentalArchiveTable(string a="") : base("rental_archive",a) { RentalId=new(this,"rental_id");CustomerId=new(this,"customer_id"); }
+    public DbColumn RentalId{get;} public DbColumn CustomerId{get;}
+}
 """
 
 
@@ -129,6 +145,12 @@ def clean_expected(lines):
     return re.sub(r"\s+", " ", s).strip()
 
 
+# A one-line local declaration ("AcctTable t = new(...);") — requires a type
+# token before the name so a plain field assignment inside a mis-parsed class
+# body ("SeniorName = new DbColumn(...);") doesn't look like one.
+LOCAL_DECL_RE = re.compile(r"^[A-Za-z_]\w*(?:<[^=;\n]*>)?(?:\[\])?\s+(\w+)\s*=\s*new\b")
+
+
 def norm(s):
     s = re.sub(r"\s+", " ", s).strip()
     s = re.sub(r"\(\s+", "(", s)
@@ -146,17 +168,41 @@ def main():
     for f in DOCS:
         if not os.path.exists(f):
             continue
+        # A doc section sometimes splits one worked example across several
+        # fenced blocks (a per-dialect variant reusing the prior block's
+        # locals without redeclaring them). Track each file's declarations in
+        # page order so a later block can borrow one from an earlier block.
+        recent_decls = {}
         for start, buf in code_blocks(f):
             setups, builds = parse_block(buf)
+            declared_here = {m.group(1) for s in setups for m in [LOCAL_DECL_RE.match(s.strip())] if m}
             sql_builds = [(e, clean_expected(x)) for e, x in builds
                           if any(t.upper().startswith(SQLKW) for t in x)]
             block_text = "\n".join(buf)
             for j, (expr, expected) in enumerate(sql_builds):
-                injects = [aliased if f'"{name}"' in expected else plain
-                           for name, plain, aliased in INJECTABLE_LOCALS
-                           if re.search(rf"\b{name}\.", block_text) and not re.search(rf"\b{name}\s*=", block_text)]
+                injected_names = set(declared_here)
+                injects = []
+                # A page-local declaration from an earlier block in this same
+                # worked example is more specific than the generic fallback
+                # below, so it wins when both would apply to the same name.
+                for name, decl in recent_decls.items():
+                    if name in injected_names:
+                        continue
+                    if re.search(rf"\b{name}\b", block_text) and not re.search(rf"\b{name}\s*=", block_text):
+                        injects.append(decl)
+                        injected_names.add(name)
+                for name, plain, aliased in INJECTABLE_LOCALS:
+                    if name in injected_names:
+                        continue
+                    if re.search(rf"\b{name}\.", block_text) and not re.search(rf"\b{name}\s*=", block_text):
+                        injects.append(aliased if f'"{name}"' in expected else plain)
+                        injected_names.add(name)
                 cases.append({"id": f"{f}:{start}#{j}", "expr": expr, "expected": expected,
                               "setups": setups, "injects": injects})
+            for s in setups:
+                m = LOCAL_DECL_RE.match(s.strip())
+                if m:
+                    recent_decls[m.group(1)] = s
 
     methods, calls = [], []
     for k, c in enumerate(cases):
