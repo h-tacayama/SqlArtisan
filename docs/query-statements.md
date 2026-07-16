@@ -1026,6 +1026,53 @@ SqlStatement sql =
 The `INSERT` column list names target columns and must **not** be
 alias-qualified (pass columns from an unaliased table instance, as `c` above).
 
+#### MERGE source forms
+
+Beyond a table, `Using(...)` accepts a **subquery** or a **literal-row** source.
+Both are derived tables named by an alias; read their columns back with
+`.Column(name)`:
+
+```csharp
+// Subquery source — merge from a filtered or computed SELECT
+UsersTable src = new("src");
+SubqueryDerivedTable s =
+    Select(src.Id, src.Name).From(src).Where(src.Name.IsNotNull).AsTable("s");
+
+MergeInto(t)
+    .Using(s)
+    .On(t.Id == s.Column("id"))
+    .WhenMatched().ThenUpdateSet(c.Name == s.Column("name"))
+    .Build(Dbms.PostgreSql);
+
+// MERGE INTO users "t"
+// USING (SELECT "src".id, "src".name FROM users "src" WHERE "src".name IS NOT NULL) "s"
+// ON ("t".id = "s".id)
+// WHEN MATCHED THEN UPDATE SET name = "s".name
+```
+
+```csharp
+// Literal-row source — merge a handful of known rows (values bind as parameters)
+ValuesDerivedTable s = ValuesTable("s", ["id", "name"], [[1, "Ann"], [2, "Bo"]]);
+
+MergeInto(t)
+    .Using(s)
+    .On(t.Id == s.Column("id"))
+    .WhenMatched().ThenUpdateSet(c.Name == s.Column("name"))
+    .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Column("id"), s.Column("name"))
+    .Build(Dbms.SqlServer);
+
+// MERGE INTO users "t"
+// USING (VALUES (@0, @1), (@2, @3)) "s" (id, name)
+// ON ("t".id = "s".id)
+// WHEN MATCHED THEN UPDATE SET name = "s".name
+// WHEN NOT MATCHED THEN INSERT (id, name) VALUES ("s".id, "s".name);
+```
+
+The alias renders without `AS` — `(…) "s"`, the derived-table spelling every
+dialect accepts. The literal-row source is PostgreSQL and SQL Server only —
+Oracle has no `VALUES` row constructor in `USING`; on Oracle, wrap the rows in a
+subquery source (`… .AsTable("s")`) instead.
+
 **Per-dialect branches and pitfalls:**
 
 ```csharp

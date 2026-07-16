@@ -17,4 +17,14 @@ public interface ISubquery
     /// <returns>An aliased scalar-subquery expression.</returns>
     public ExpressionAlias As(string alias) =>
         new(new ScalarSubquery(this), alias);
+
+    /// <summary>
+    /// Names this subquery as a derived-table source — <c>(SELECT ...) "alias"</c>
+    /// — for a <c>FROM</c>/<c>JOIN</c> or MERGE <c>USING</c>. Read its projected
+    /// columns by name with <c>Column(name)</c>.
+    /// </summary>
+    /// <param name="alias">The derived-table alias.</param>
+    /// <returns>A <see cref="SubqueryDerivedTable"/> naming this subquery.</returns>
+    public SubqueryDerivedTable AsTable(string alias) =>
+        new(this, alias);
 }
