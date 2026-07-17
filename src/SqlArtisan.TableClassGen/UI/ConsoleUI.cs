@@ -7,27 +7,45 @@ internal sealed class ConsoleUI
         Console.WriteLine();
         Console.WriteLine("Please enter database information.");
 
-        Console.Write("Database type (1.Oracle/2.PostgreSQL): ");
+        Console.Write("Database type (1.Oracle/2.PostgreSQL/3.MySQL/4.SQLite/5.SQLServer): ");
         string dbTypeInput = Console.ReadLine() ?? string.Empty;
         DbmsType dbType = ParseDatabaseType(dbTypeInput);
+
+        // SQLite is file-based, so it skips the host/port/credentials prompts.
+        if (dbType == DbmsType.Sqlite)
+        {
+            return ReadSqliteConnectionInfo();
+        }
 
         Console.Write("Host: ");
         string host = Console.ReadLine() ?? "localhost";
 
         Console.Write("Port: ");
         string portStr = Console.ReadLine() ?? string.Empty;
-        int port = string.IsNullOrWhiteSpace(portStr) ?
-            (dbType == DbmsType.Oracle ? 1521 : 5432) :
-            int.Parse(portStr);
+        int port = string.IsNullOrWhiteSpace(portStr)
+            ? DefaultPort(dbType)
+            : int.Parse(portStr);
 
         Console.Write("Service name (or database name): ");
         string serviceName = Console.ReadLine() ?? string.Empty;
 
         string? schema = null;
-        if (dbType == DbmsType.PostgreSQL)
+        if (dbType == DbmsType.PostgreSql)
         {
             Console.Write("Schema: ");
             schema = Console.ReadLine() ?? string.Empty;
+        }
+        else if (dbType == DbmsType.SqlServer)
+        {
+            Console.Write("Schema (default dbo): ");
+            string schemaInput = Console.ReadLine() ?? string.Empty;
+            schema = string.IsNullOrWhiteSpace(schemaInput) ? "dbo" : schemaInput;
+        }
+        else if (dbType == DbmsType.MySql)
+        {
+            // MySQL has no schema layer above the database, so information_schema
+            // is filtered by the database name itself.
+            schema = serviceName;
         }
 
         Console.Write("Username: ");
@@ -45,6 +63,31 @@ internal sealed class ConsoleUI
             username,
             password);
     }
+
+    private static DbConnectionInfo ReadSqliteConnectionInfo()
+    {
+        Console.Write("Database file path: ");
+        string filePath = Console.ReadLine() ?? string.Empty;
+
+        return new DbConnectionInfo(
+            DbmsType.Sqlite,
+            string.Empty,
+            0,
+            filePath,
+            string.Empty,
+            string.Empty,
+            string.Empty);
+    }
+
+    private static int DefaultPort(DbmsType dbType) =>
+        dbType switch
+        {
+            DbmsType.Oracle => 1521,
+            DbmsType.PostgreSql => 5432,
+            DbmsType.MySql => 3306,
+            DbmsType.SqlServer => 1433,
+            _ => throw new ArgumentOutOfRangeException(nameof(dbType))
+        };
 
     public CodeGenerationSettings ReadCodeGenerationSettings()
     {
@@ -83,8 +126,11 @@ internal sealed class ConsoleUI
     {
         return dbTypeInput.Trim().ToLowerInvariant() switch
         {
-            "1" => DbmsType.Oracle,
-            "2" or "postgres" => DbmsType.PostgreSQL,
+            "1" or "oracle" => DbmsType.Oracle,
+            "2" or "postgres" => DbmsType.PostgreSql,
+            "3" or "mysql" => DbmsType.MySql,
+            "4" or "sqlite" => DbmsType.Sqlite,
+            "5" or "sqlserver" or "mssql" => DbmsType.SqlServer,
             _ => throw new ArgumentException($"Unsupported database type: {dbTypeInput}")
         };
     }

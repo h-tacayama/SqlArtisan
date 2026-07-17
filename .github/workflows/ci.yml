@@ -38,3 +38,6 @@ jobs:
 
       - name: Test analyzer
         run: dotnet test tests/SqlArtisan.Analyzers.Tests --no-build -c Release --verbosity normal
+
+      - name: Test TableClassGen
+        run: dotnet test tests/SqlArtisan.TableClassGen.Tests --no-build -c Release --verbosity normal

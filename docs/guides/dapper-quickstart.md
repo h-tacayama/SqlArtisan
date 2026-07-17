@@ -34,16 +34,16 @@ per database table gives every query IntelliSense and compile-checked
 column names.
 
 **Generate them** when the database already exists — the
-`SqlArtisan.TableClassGen` tool connects to **Oracle** or **PostgreSQL** and
-writes one class file per table:
+`SqlArtisan.TableClassGen` tool connects to MySQL, Oracle, PostgreSQL, SQLite, or
+SQL Server and writes one class file per table:
 
 ```bash
 dotnet tool install --global SqlArtisan.TableClassGen --prerelease
 sa-tableclassgen    # interactive: connection info → namespace → output directory
 ```
 
-**Write them by hand** on MySQL, SQLite, and SQL Server (or when you prefer
-to) — each class is a constructor and one `DbColumn` per column:
+**Write them by hand** when you prefer to (or for a table that does not exist
+yet) — each class is a constructor and one `DbColumn` per column:
 
 ```csharp
 using SqlArtisan;

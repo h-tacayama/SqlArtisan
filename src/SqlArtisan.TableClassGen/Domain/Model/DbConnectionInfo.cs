@@ -1,4 +1,7 @@
 using System.Data;
+using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
+using MySqlConnector;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 
@@ -31,7 +34,10 @@ internal sealed class DbConnectionInfo(
         DbmsType switch
         {
             DbmsType.Oracle => new OracleConnection(GetConnectionString()),
-            DbmsType.PostgreSQL => new NpgsqlConnection(GetConnectionString()),
+            DbmsType.PostgreSql => new NpgsqlConnection(GetConnectionString()),
+            DbmsType.MySql => new MySqlConnection(GetConnectionString()),
+            DbmsType.Sqlite => new SqliteConnection(GetConnectionString()),
+            DbmsType.SqlServer => new SqlConnection(GetConnectionString()),
             _ => throw new ArgumentOutOfRangeException(nameof(DbmsType))
         };
 
@@ -40,8 +46,16 @@ internal sealed class DbConnectionInfo(
         {
             DbmsType.Oracle =>
                 $"User Id={Username};Password={Password};Data Source={Host}:{Port}/{ServiceName}",
-            DbmsType.PostgreSQL =>
+            DbmsType.PostgreSql =>
                 $"Host={Host};Port={Port};Database={ServiceName};Username={Username};Password={Password}",
+            DbmsType.MySql =>
+                $"Server={Host};Port={Port};Database={ServiceName};User ID={Username};Password={Password}",
+            // SQLite is file-based: ServiceName carries the database path.
+            DbmsType.Sqlite =>
+                $"Data Source={ServiceName}",
+            // SQL Server takes host,port (comma); TrustServerCertificate eases dev/container TLS.
+            DbmsType.SqlServer =>
+                $"Server={Host},{Port};Database={ServiceName};User ID={Username};Password={Password};TrustServerCertificate=True",
             _ => throw new ArgumentOutOfRangeException(nameof(DbmsType))
         };
 }

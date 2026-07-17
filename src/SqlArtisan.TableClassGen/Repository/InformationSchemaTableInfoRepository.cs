@@ -4,7 +4,10 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.TableClassGen;
 
-internal sealed class PgSqlTableInfoRepository(
+// Reads table metadata from the SQL-standard information_schema, shared by every
+// engine that exposes it; the dialect is resolved from the connection, so the
+// emitted catalog queries are dialected automatically. Oracle and SQLite differ.
+internal sealed class InformationSchemaTableInfoRepository(
     DbConnectionInfo connInfo,
     bool lowercaseNames) : ITableInfoRepository
 {

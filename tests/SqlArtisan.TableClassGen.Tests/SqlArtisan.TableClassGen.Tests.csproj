@@ -11,20 +11,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Dapper" Version="2.1.66" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
-    <PackageReference Include="MySqlConnector" Version="2.4.0" />
-    <PackageReference Include="Npgsql" Version="9.0.3" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.8.0" />
     <!-- Direct reference lifts the transitive SQLitePCLRaw.lib.e_sqlite3 2.1.10
          pulled by Microsoft.Data.Sqlite above the NU1903 advisory GHSA-2m69-gcr7-jv3q. -->
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
-    <PackageReference Include="Testcontainers.MsSql" Version="3.10.0" />
-    <PackageReference Include="Testcontainers.MySql" Version="3.10.0" />
-    <PackageReference Include="Testcontainers.Oracle" Version="3.10.0" />
-    <PackageReference Include="Testcontainers.PostgreSql" Version="3.10.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
       <PrivateAssets>all</PrivateAssets>
@@ -32,8 +24,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SqlArtisan.Analyzers\SqlArtisan.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\SqlArtisan.Dapper\SqlArtisan.Dapper.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan.TableClassGen\SqlArtisan.TableClassGen.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>
