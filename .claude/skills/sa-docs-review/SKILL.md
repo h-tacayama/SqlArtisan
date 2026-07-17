@@ -1,6 +1,6 @@
 ---
 name: sa-docs-review
-description: Review SqlArtisan's user-facing documentation (README, docs/, llms.txt, CHANGELOG) for structure, completeness, accuracy, consistency, links, persuasiveness, and conciseness. Use when asked to review/audit the docs, check the README, validate a docs change before pushing, or confirm docs match the code. Complements sa-code-review (code) with doc-specific checks and bundles scripts that verify links, API coverage, terminology, and emitted SQL empirically.
+description: Review SqlArtisan's user-facing documentation (README, docs/, llms.txt, CHANGELOG) for structure, completeness, accuracy, consistency, links, persuasiveness, and conciseness. Use when asked to review/audit the docs, check the README, validate a docs change before pushing, or confirm docs match the code. Complements sa-code-review (code) with doc-specific checks and bundles scripts that verify links, API coverage, terminology, and emitted SQL empirically. Ends with a mandatory adversarial verification pass — an independent subagent attempts to refute the docs' factual claims against primary sources.
 ---
 
 # Review SqlArtisan documentation
@@ -103,8 +103,43 @@ Score the docs against these. The scripts cover 2–5 and parts of 6/10.
   for wording/ordering/trims that are judgment calls, propose options and
   confirm before applying.
 
+## Adversarial verification (mandatory final pass)
+
+The dimensions above confirm; this pass refutes. A neutral pass accepted
+"every analyzer entry is executed against a live engine" (#267/#319) — the
+adversarial pass read `MatrixSweepCatalog.cs` and found the two excluded
+entries. **This pass is not optional.**
+
+After the findings are drafted, spawn an independent subagent
+(`sa-reviewer`) with an explicitly adversarial mission — "try to refute
+this", never "check this is right". Prime refutation targets in docs:
+
+- **Quantifiers** — every / all / always / never / only. One real exception
+  turns the sentence into an OVERREACH.
+- **Superlatives and rankings** — fastest / lowest-allocation; the benchmark
+  suite output is the primary source, not the README's own table.
+- **Counts, version bounds, capability claims** — "verified against live
+  engines", "N engines", "SQLite 3.44+"; the primary source is the test
+  catalog (e.g. `MatrixSweepCatalog.cs`), the pinned image list, or a live
+  probe.
+
+Mission rules: every factual claim is traced to a primary source (the code,
+a test catalog, an ADR, a live builder/harness run) — never the doc's own
+text or memory. Surviving findings carry severity (High/Medium/Low) plus the
+evidence that survived refutation (verbatim probe output or the primary
+source's `file:line`). Fallen claims are classified **DEFECT** (factually
+wrong) / **OVERREACH** (true but misleading) / **INCONSISTENCY** (contradicts
+another surface).
+
+Recursion and fallback: if you *are* the adversarial subagent, skip this
+section — no recursion. If the Agent tool is unavailable, run the pass
+yourself as a distinct final phase, re-deriving each claim from primary
+sources rather than rereading your draft.
+
 ## Output
 
 Summarise per dimension (pass / findings), list concrete fixes with file:line,
 and state what was verified empirically (links resolve, N/N examples match,
-coverage clean). Re-run the relevant script after fixes to confirm green.
+coverage clean). State which claims the adversarial pass challenged and what
+survived, with the DEFECT / OVERREACH / INCONSISTENCY classification of what
+fell. Re-run the relevant script after fixes to confirm green.

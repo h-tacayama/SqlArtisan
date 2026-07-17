@@ -1,6 +1,6 @@
 ---
 name: sa-code-review
-description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory. Reports defects only — never idiom/style/"better way to write this" suggestions; use `sa-code-review-deep` for those. Accepts an optional scope argument (default: the diff's hunks only; `files`; `paths:<glob>`).
+description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory. Reports defects only — never idiom/style/"better way to write this" suggestions; use `sa-code-review-deep` for those. Ends with a mandatory adversarial verification pass — an independent subagent attempts to refute the deliverable's claims and the draft findings against primary sources. Accepts an optional scope argument (default: the diff's hunks only; `files`; `paths:<glob>`).
 ---
 
 # Review SqlArtisan changes
@@ -220,6 +220,37 @@ contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
 - Any "better way to write this" suggestion with no rule/ADR/precedent to
   cite, for code or docs — run `sa-code-review-deep` for that pass instead.
 
+## 9. Adversarial verification (mandatory final pass)
+
+A confirming review checks that things look right; only a refuting pass
+reliably catches the plausible overclaim (#267/#319: a neutral docs pass
+accepted "every analyzer entry is executed against a live engine" — the
+adversarial pass read `MatrixSweepCatalog.cs` and found the two excluded
+entries). **This pass is not optional.**
+
+After the findings are drafted, spawn an independent subagent
+(`sa-reviewer`) with an explicitly adversarial mission — "try to refute
+this", never "check this is right":
+
+- **Refute both directions** — the deliverable's own claims (docs, XML docs,
+  CHANGELOG, commit-message wording) *and* your draft findings.
+- **Primary sources only.** Every factual claim is checked against the code
+  itself, a test catalog (e.g. `MatrixSweepCatalog.cs`), an ADR, or a live
+  harness probe — never against the claim's own text, the diff description,
+  or memory.
+- **Severity + evidence on every surviving finding** — High/Medium/Low plus
+  the evidence that survived refutation: verbatim probe output or the
+  primary source's `file:line`.
+- **Classify what falls**: **DEFECT** (factually wrong), **OVERREACH**
+  (technically true but misleading — a quantifier like "every"/"all"/
+  "never" with a real exception), or **INCONSISTENCY** (contradicts another
+  surface).
+
+Recursion and fallback: if you *are* the adversarial subagent, skip this
+section — no recursion. If the Agent tool is unavailable, run the pass
+yourself as a distinct final phase: re-derive each claim from primary
+sources; do not reread your draft as evidence.
+
 ## Report
 
 Lead with the verdict (mergeable or not) and a short list of recommended
@@ -228,5 +259,7 @@ and severity (**High/Medium/Low**) — a doc gap can be Low severity and still
 must-fix; severity ranks the queue, it does not gate inclusion. Separate
 "must fix" (bugs, ADR violations, invalid SQL, any doc/comment gap from §8)
 from "discuss" (permissive-API trade-offs the ADRs deliberately leave to the
-author / analyzer). This skill never reports non-defect improvement
+author / analyzer). Include the adversarial pass's coverage: which claims
+were challenged, what survived, and the DEFECT / OVERREACH / INCONSISTENCY
+classification of what fell. This skill never reports non-defect improvement
 suggestions — re-run as `sa-code-review-deep` for those.
