@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Aligned README, reference home, analyzer docs, comparison guide, and AI assistants guide with the deterministic guard-rail mission — faithful emission is the foundation; the type system, analyzer, exact-SQL tests, and live-engine integration matrix are the full verification stack. (#267)
 
+### Fixed
+- `SqlArtisan.TableClassGen`: with lowercase-name conversion enabled, a mixed-case table on a case-sensitive database (e.g. PostgreSQL) is no longer silently dropped — the catalog's stored name is now kept as the lookup key and only the emitted name is lowercased. (#323)
+
 ## [0.6.0-beta.1] - 2026-07-14
 ### Added
 - Opt-in Roslyn analyzer, shipped inside the `SqlArtisan` package with no extra reference. Set a target dialect — `sqlartisan_target_dbms` in `.editorconfig`, or `<SqlArtisanTargetDbms>` as an MSBuild property — and `SQLA0001` warns when a construct isn't supported there, per a curated dialect matrix verified against live engines. `SQLA0002` flags an unrecognized `.editorconfig` value. Every warning names the per-construct override key that would silence or force it. Severity is controlled the standard way (`dotnet_diagnostic.SQLA0001.severity`), so a mismatch can be promoted to a build error. See `docs/analyzer.md`. (#93)

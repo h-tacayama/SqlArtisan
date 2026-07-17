@@ -13,6 +13,9 @@ public sealed class PostgreSqlFixture : IAsyncLifetime, IDatabaseFixture
 
     public Dbms Dbms => Dbms.PostgreSql;
 
+    /// <summary>The live container's connection string, for tests that build their own connection.</summary>
+    public string ConnectionString => _container.GetConnectionString();
+
     public IDbConnection OpenConnection()
     {
         NpgsqlConnection connection = new(_container.GetConnectionString());

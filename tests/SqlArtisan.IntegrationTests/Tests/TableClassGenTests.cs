@@ -1,5 +1,8 @@
+using System.Data;
+using Dapper;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
+using Npgsql;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.TableClassGen;
 
@@ -60,6 +63,62 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         InformationSchemaTableInfoRepository repository = new(connInfo, lowercaseNames: false);
 
         TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+    }
+}
+
+[Trait("Engine", "PostgreSql")]
+public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixture>
+{
+    private readonly PostgreSqlFixture _fixture;
+
+    public PostgreSqlTableClassGenTests(PostgreSqlFixture fixture) => _fixture = fixture;
+
+    [Fact]
+    public void GenerateTables_PostgreSql_ExtractsSeededSchema()
+    {
+        InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
+
+        TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+    }
+
+    // #323: PostgreSQL's information_schema comparison is case-sensitive, so a
+    // mixed-case table must survive lowercaseNames — the fix keeps the catalog's
+    // stored name as the re-lookup key and lowercases only the emitted name.
+    [Fact]
+    public void GenerateTables_PostgreSql_LowercaseNames_KeepsMixedCaseTable()
+    {
+        Execute("CREATE TABLE IF NOT EXISTS \"MixedCaseTbl\" (\"Id\" integer, \"Val\" varchar(10))");
+        try
+        {
+            InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: true);
+
+            IReadOnlyList<DbTableInfo> tables = repository.GetAllTables();
+
+            Assert.Contains(tables, t => t.TableName == "mixedcasetbl");
+        }
+        finally
+        {
+            Execute("DROP TABLE IF EXISTS \"MixedCaseTbl\"");
+        }
+    }
+
+    private DbConnectionInfo ConnInfo()
+    {
+        NpgsqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+        return new DbConnectionInfo(
+            DbmsType.PostgreSql,
+            builder.Host!,
+            builder.Port,
+            builder.Database!,
+            "public",
+            builder.Username!,
+            builder.Password!);
+    }
+
+    private void Execute(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(sql);
     }
 }
 

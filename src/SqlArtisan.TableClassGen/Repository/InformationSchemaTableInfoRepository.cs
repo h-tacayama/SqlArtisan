@@ -36,10 +36,7 @@ internal sealed class InformationSchemaTableInfoRepository(
         {
             while (reader.Read())
             {
-                string tableName = _lowercaseNames
-                    ? reader.GetString(0).ToLower()
-                    : reader.GetString(0);
-                tableNames.Add(tableName);
+                tableNames.Add(reader.GetString(0));
             }
         }
 
@@ -63,6 +60,9 @@ internal sealed class InformationSchemaTableInfoRepository(
         return TryGetTableInfo(conn, tableName, out table);
     }
 
+    // tableName is the catalog's stored name, reused verbatim as the re-lookup
+    // key; lowercasing is applied only to the emitted names, so a case-sensitive
+    // collation cannot drop a mixed-case table on re-lookup.
     private bool TryGetTableInfo(IDbConnection conn, string tableName, out DbTableInfo? table)
     {
         table = null;
@@ -90,9 +90,7 @@ internal sealed class InformationSchemaTableInfoRepository(
         {
             while (reader.Read())
             {
-                string columnName = _lowercaseNames
-                    ? reader.GetString(0).ToLower()
-                    : reader.GetString(0);
+                string columnName = Normalize(reader.GetString(0));
                 string dataType = reader.GetString(1);
                 columns.Add(new DbColumnInfo(columnName, dataType));
             }
@@ -103,9 +101,11 @@ internal sealed class InformationSchemaTableInfoRepository(
             return false;
         }
 
-        table = new DbTableInfo(tableName, columns);
+        table = new DbTableInfo(Normalize(tableName), columns);
         return true;
     }
+
+    private string Normalize(string name) => _lowercaseNames ? name.ToLower() : name;
 
     private bool ExistsTable(IDbConnection conn, string tableName)
     {
