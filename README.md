@@ -23,7 +23,7 @@ When an AI coding assistant writes your SQL, a new failure mode appears: plausib
 1. **Types** — column names and statement structure are compile-checked; a wrong name fails the build.
 2. **Analyzer** — the opt-in Roslyn analyzer flags constructs your target dialect does not support, catching the most common AI failure mode (mixing dialects from training data).
 3. **Exact-SQL tests** — `Build()` is deterministic, so a unit test pins the reviewed SQL as a regression contract.
-4. **Integration matrix** — every analyzer entry is executed against a live engine, proving the SQL runs.
+4. **Integration matrix** — analyzer entries are executed against live engines, proving the SQL runs.
 
 ```csharp
 bool onlyActive = true;

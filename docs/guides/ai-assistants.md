@@ -8,8 +8,8 @@ checks it until it hits the database. SqlArtisan is a deterministic guard
 rail — writing it instead of raw strings puts four verification layers
 between generation and production: column names and statement structure are
 compile-checked, the analyzer flags wrong-dialect constructs at build time,
-exact-SQL tests freeze what was reviewed, and every analyzer entry is
-verified against a live engine. Wrong output becomes a red build instead of
+exact-SQL tests freeze what was reviewed, and analyzer entries are verified
+against live engines. Wrong output becomes a red build instead of
 a runtime surprise.
 
 This page is the setup that makes those checks bite.
