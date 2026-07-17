@@ -2,6 +2,8 @@
 
 A .NET tool that generates C# table classes from your database for `SqlArtisan`, enabling robust type safety and IntelliSense in your query building.
 
+Supported databases: MySQL, Oracle, PostgreSQL, SQLite, SQL Server.
+
 ## Installation
 
 Install `sa-tableclassgen` as a .NET global tool to make it accessible from any location:
@@ -27,7 +29,7 @@ Here's an example of the interactive prompts when running the sa-tableclassgen c
 
 ```
 Please enter database information.
-Database type (1.Oracle/2.PostgreSQL): 2
+Database type (1.Oracle/2.PostgreSQL/3.MySQL/4.SQLite/5.SQLServer): 2
 Host: localhost
 Port: 5432
 Service name (or database name): myservice

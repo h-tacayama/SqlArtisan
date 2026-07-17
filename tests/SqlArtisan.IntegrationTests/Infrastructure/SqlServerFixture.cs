@@ -13,6 +13,9 @@ public sealed class SqlServerFixture : IAsyncLifetime, IDatabaseFixture
 
     public Dbms Dbms => Dbms.SqlServer;
 
+    /// <summary>The live container's connection string, for tests that build their own connection.</summary>
+    public string ConnectionString => _container.GetConnectionString();
+
     public IDbConnection OpenConnection()
     {
         SqlConnection connection = new(_container.GetConnectionString());

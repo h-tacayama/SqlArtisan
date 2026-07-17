@@ -9,6 +9,9 @@ internal static class TableInfoRepositoryFactory
         {
             DbmsType.Oracle => new OracleTableInfoRepository(connInfo, lowercaseNames),
             DbmsType.PostgreSQL => new PgSqlTableInfoRepository(connInfo, lowercaseNames),
+            DbmsType.MySQL => new MySqlTableInfoRepository(connInfo, lowercaseNames),
+            DbmsType.SQLite => new SqliteTableInfoRepository(connInfo, lowercaseNames),
+            DbmsType.SQLServer => new SqlServerTableInfoRepository(connInfo, lowercaseNames),
             _ => throw new ArgumentOutOfRangeException(nameof(connInfo.DbmsType))
         };
 }

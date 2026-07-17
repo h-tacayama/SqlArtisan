@@ -13,6 +13,9 @@ public sealed class MySqlFixture : IAsyncLifetime, IDatabaseFixture
 
     public Dbms Dbms => Dbms.MySql;
 
+    /// <summary>The live container's connection string, for tests that build their own connection.</summary>
+    public string ConnectionString => _container.GetConnectionString();
+
     public IDbConnection OpenConnection()
     {
         MySqlConnection connection = new(_container.GetConnectionString());
