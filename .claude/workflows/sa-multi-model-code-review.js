@@ -323,7 +323,7 @@ if (!coverageClean) {
 // PHASE 4+5: Execute, then adversarially Verify — one pipeline, no barrier:
 // each chunk's verification starts as soon as its review lands. Execute runs
 // via the sa-reviewer agent so every chunk inherits its read-only tool
-// restriction and its pointer to the sa-review-changes / sa-run-sql-harness
+// restriction and its pointer to the sa-code-review / sa-run-sql-harness
 // skills, instead of re-deriving (and risking drift from) that procedure
 // inline in this prompt. Verify re-enters sa-reviewer on its
 // adversarial-verification mission (refute, don't confirm) so no finding
@@ -347,7 +347,7 @@ ${unit.chunkFiles.map((f) => `- ${f}`).join('\n')}
 DIMENSIONS TO APPLY:
 ${unit.reviewDimensions.map((d) => `- ${d}`).join('\n')}
 
-Follow the sa-review-changes skill's checklist for whichever of these
+Follow the sa-code-review skill's checklist for whichever of these
 dimensions apply, and use the sa-run-sql-harness skill for any empirical
 verification (DBMS grammar, guard enforcement, allocation) — do not assume
 emitted SQL or allocation behavior from memory. Skip the skill's own gate
@@ -409,18 +409,27 @@ DEFECT / OVERREACH / INCONSISTENCY with severity and evidence.`,
 
 const reviewedUnits = reviewResults.filter(Boolean)
 const failedChunks = reviewUnits.filter((u, i) => !reviewResults[i]).map((u) => u.chunkLabel)
-log(`Execution complete: ${reviewedUnits.length}/${reviewUnits.length} chunk(s) reviewed and adversarially verified`)
+const unverifiedChunks = reviewUnits.filter((u, i) =>
+  reviewResults[i]?.startsWith('(adversarial verification unavailable')
+).map((u) => u.chunkLabel)
+log(`Execution complete: ${reviewedUnits.length}/${reviewUnits.length} chunk(s) reviewed`
+  + (unverifiedChunks.length > 0 ? `, ${unverifiedChunks.length} unverified` : ' and adversarially verified'))
 if (failedChunks.length > 0) {
   log(`Chunk failure: ${failedChunks.length} chunk(s) returned no result — files in them were never reviewed: ${failedChunks.join(', ')}`)
 }
+if (unverifiedChunks.length > 0) {
+  log(`Verification gap: ${unverifiedChunks.length} chunk(s) fell back to an unverified review — see Coverage: ${unverifiedChunks.join(', ')}`)
+}
 
 // ---------------------------------------------------------------------------
-// PHASE 5: Synthesize — Fable integrates findings into one report.
+// PHASE 6: Synthesize — Fable integrates findings into one report.
 // ---------------------------------------------------------------------------
 phase('Synthesize')
 
-const synthesisPrompt = `Synthesize ${reviewUnits.length} adversarially verified chunk reviews of a
+const synthesisPrompt = `Synthesize ${reviewUnits.length} chunk reviews of a
 SqlArtisan ${scopeInfo.scope === 'diff' ? 'branch diff' : 'full codebase pass'} into one report.
+Each chunk went through adversarial verification, except any listed below as
+unverified (its review stands as drafted, unchallenged).
 
 GATES: ${gates.summary}
 BRANCH POINT: ${scopeInfo.branchPoint ?? 'n/a'}
@@ -429,9 +438,13 @@ COVERAGE GAP — call this out explicitly in the report:
 ${missingFiles.length > 0 ? `- Missing (in scope, never assigned to a group): ${missingFiles.join(', ')}\n` : ''}${duplicateFiles.length > 0 ? `- Duplicated (assigned to more than one group, reviewed redundantly): ${duplicateFiles.join(', ')}\n` : ''}` : ''}${failedChunks.length > 0 ? `
 CHUNK FAILURE — call this out explicitly in the report:
 - ${failedChunks.length} chunk(s) returned no result and were never reviewed: ${failedChunks.join(', ')}
+` : ''}${unverifiedChunks.length > 0 ? `
+UNVERIFIED CHUNKS — call this out explicitly in Coverage; treat their findings as unconfirmed:
+- ${unverifiedChunks.join(', ')}
 ` : ''}
-ADVERSARIALLY VERIFIED CHUNK REVIEWS (findings annotated CONFIRMED/REFUTED;
-extra DEFECT/OVERREACH/INCONSISTENCY findings may follow each review):
+CHUNK REVIEWS (verified chunks have findings annotated CONFIRMED/REFUTED,
+plus any extra DEFECT/OVERREACH/INCONSISTENCY findings the verifier added;
+unverified chunks carry the "(adversarial verification unavailable...)" marker):
 ${reviewUnits.map((u, i) => `--- ${u.chunkLabel} ---\n${reviewResults[i] ?? '(this chunk failed to return a result — its files were never reviewed)'}`).join('\n\n')}
 
 Tasks:
@@ -470,7 +483,8 @@ Output as a headed report:
 
 ## Coverage
 - Branch point: ${scopeInfo.branchPoint ?? 'n/a'}
-- Chunks reviewed+verified: ${reviewedUnits.length}/${reviewUnits.length} (note any unverified chunks)
+- Chunks reviewed: ${reviewedUnits.length}/${reviewUnits.length}
+- Chunks adversarially verified: ${reviewedUnits.length - unverifiedChunks.length}/${reviewedUnits.length}${unverifiedChunks.length > 0 ? ` (unverified: ${unverifiedChunks.join(', ')})` : ''}
 - Files in scope: ${scopeInfo.changedFiles.length}
 - Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}
 - Empirical probes actually run (from chunk reviews and verification): ...
