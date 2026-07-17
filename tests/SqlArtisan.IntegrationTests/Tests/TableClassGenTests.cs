@@ -22,7 +22,7 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
     {
         MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
         DbConnectionInfo connInfo = new(
-            DbmsType.MySQL,
+            DbmsType.MySql,
             builder.Server,
             (int)builder.Port,
             builder.Database,
@@ -30,7 +30,7 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
             builder.UserID,
             builder.Password);
 
-        MySqlTableInfoRepository repository = new(connInfo, lowercaseNames: false);
+        InformationSchemaTableInfoRepository repository = new(connInfo, lowercaseNames: false);
 
         TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
     }
@@ -49,7 +49,7 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         SqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
         string[] dataSource = builder.DataSource.Replace("tcp:", string.Empty).Split(',', 2);
         DbConnectionInfo connInfo = new(
-            DbmsType.SQLServer,
+            DbmsType.SqlServer,
             dataSource[0],
             dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1433,
             string.IsNullOrEmpty(builder.InitialCatalog) ? "master" : builder.InitialCatalog,
@@ -57,7 +57,7 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
             builder.UserID,
             builder.Password);
 
-        SqlServerTableInfoRepository repository = new(connInfo, lowercaseNames: false);
+        InformationSchemaTableInfoRepository repository = new(connInfo, lowercaseNames: false);
 
         TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
     }

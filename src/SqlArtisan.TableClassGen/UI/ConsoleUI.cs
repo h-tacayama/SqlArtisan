@@ -12,7 +12,7 @@ internal sealed class ConsoleUI
         DbmsType dbType = ParseDatabaseType(dbTypeInput);
 
         // SQLite is file-based, so it skips the host/port/credentials prompts.
-        if (dbType == DbmsType.SQLite)
+        if (dbType == DbmsType.Sqlite)
         {
             return ReadSqliteConnectionInfo();
         }
@@ -30,18 +30,18 @@ internal sealed class ConsoleUI
         string serviceName = Console.ReadLine() ?? string.Empty;
 
         string? schema = null;
-        if (dbType == DbmsType.PostgreSQL)
+        if (dbType == DbmsType.PostgreSql)
         {
             Console.Write("Schema: ");
             schema = Console.ReadLine() ?? string.Empty;
         }
-        else if (dbType == DbmsType.SQLServer)
+        else if (dbType == DbmsType.SqlServer)
         {
             Console.Write("Schema (default dbo): ");
             string schemaInput = Console.ReadLine() ?? string.Empty;
             schema = string.IsNullOrWhiteSpace(schemaInput) ? "dbo" : schemaInput;
         }
-        else if (dbType == DbmsType.MySQL)
+        else if (dbType == DbmsType.MySql)
         {
             // MySQL has no schema layer above the database, so information_schema
             // is filtered by the database name itself.
@@ -70,7 +70,7 @@ internal sealed class ConsoleUI
         string filePath = Console.ReadLine() ?? string.Empty;
 
         return new DbConnectionInfo(
-            DbmsType.SQLite,
+            DbmsType.Sqlite,
             string.Empty,
             0,
             filePath,
@@ -83,9 +83,9 @@ internal sealed class ConsoleUI
         dbType switch
         {
             DbmsType.Oracle => 1521,
-            DbmsType.PostgreSQL => 5432,
-            DbmsType.MySQL => 3306,
-            DbmsType.SQLServer => 1433,
+            DbmsType.PostgreSql => 5432,
+            DbmsType.MySql => 3306,
+            DbmsType.SqlServer => 1433,
             _ => throw new ArgumentOutOfRangeException(nameof(dbType))
         };
 
@@ -127,10 +127,10 @@ internal sealed class ConsoleUI
         return dbTypeInput.Trim().ToLowerInvariant() switch
         {
             "1" or "oracle" => DbmsType.Oracle,
-            "2" or "postgres" => DbmsType.PostgreSQL,
-            "3" or "mysql" => DbmsType.MySQL,
-            "4" or "sqlite" => DbmsType.SQLite,
-            "5" or "sqlserver" or "mssql" => DbmsType.SQLServer,
+            "2" or "postgres" => DbmsType.PostgreSql,
+            "3" or "mysql" => DbmsType.MySql,
+            "4" or "sqlite" => DbmsType.Sqlite,
+            "5" or "sqlserver" or "mssql" => DbmsType.SqlServer,
             _ => throw new ArgumentException($"Unsupported database type: {dbTypeInput}")
         };
     }

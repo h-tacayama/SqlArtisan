@@ -8,10 +8,9 @@ internal static class TableInfoRepositoryFactory
         connInfo.DbmsType switch
         {
             DbmsType.Oracle => new OracleTableInfoRepository(connInfo, lowercaseNames),
-            DbmsType.PostgreSQL => new PgSqlTableInfoRepository(connInfo, lowercaseNames),
-            DbmsType.MySQL => new MySqlTableInfoRepository(connInfo, lowercaseNames),
-            DbmsType.SQLite => new SqliteTableInfoRepository(connInfo, lowercaseNames),
-            DbmsType.SQLServer => new SqlServerTableInfoRepository(connInfo, lowercaseNames),
+            DbmsType.PostgreSql or DbmsType.MySql or DbmsType.SqlServer =>
+                new InformationSchemaTableInfoRepository(connInfo, lowercaseNames),
+            DbmsType.Sqlite => new SqliteTableInfoRepository(connInfo, lowercaseNames),
             _ => throw new ArgumentOutOfRangeException(nameof(connInfo.DbmsType))
         };
 }
