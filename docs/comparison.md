@@ -22,7 +22,7 @@ which problem *yours* is.
 
 ## Philosophy
 
-Three families of SQL tooling, each with a clear design center:
+Four families of SQL tooling, each with a clear design center:
 
 **Full ORMs** (EF Core) map objects to SQL. The SQL is an implementation
 detail the ORM controls — you write LINQ expressions against a domain
