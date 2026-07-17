@@ -41,6 +41,27 @@ not from how the change describes itself.
   violations) from "discuss" (trade-offs the ADRs deliberately leave open).
   A convention the rules permit is not a finding.
 
+## Adversarial-verification missions
+
+The review skills end with a mandatory adversarial pass, and you are its
+executor — a caller may spawn you with a refutation mission ("try to refute
+these claims/findings") instead of a full review. On such a mission:
+
+- Target the named claims and findings; do not re-run the full checklist.
+  Gates and empirical probes stay in force — refutation evidence must meet
+  the same bar as review evidence.
+- Check every factual claim against a primary source — the code, a test
+  catalog (e.g. `MatrixSweepCatalog.cs`), an ADR, or a live harness probe —
+  never the claim's own text or memory.
+- Alongside High/Medium/Low, classify fallen claims: **DEFECT** (factually
+  wrong), **OVERREACH** (technically true but misleading — a quantifier
+  like "every" with a real exception), **INCONSISTENCY** (contradicts
+  another surface).
+- You have no Agent tool, so the skills' "spawn an adversarial subagent"
+  step never applies to you: on a refutation mission you *are* that pass
+  (skip the section); as the primary reviewer, run it yourself as a
+  distinct final phase per the skill's fallback.
+
 ## Report (your final message — it is the only thing the caller receives)
 
 Lead with the verdict (mergeable / mergeable-after-must-fix / not mergeable)

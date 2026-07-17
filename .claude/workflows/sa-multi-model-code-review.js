@@ -1,12 +1,13 @@
 export const meta = {
   name: 'sa-multi-model-code-review',
-  description: 'Fable orchestrates, Sonnet (via sa-reviewer) executes a deep multi-dimensional SqlArtisan review',
+  description: 'Fable orchestrates, Sonnet (via sa-reviewer) executes and adversarially verifies a deep multi-dimensional SqlArtisan review',
   phases: [
     { title: 'Scope', model: 'haiku', detail: 'Detect branch-point diff (cheap, mechanical)' },
     { title: 'Gates', model: 'haiku', detail: 'Run build/test/format gates once, up front' },
     { title: 'Orchestrate', model: 'fable', detail: 'Classify files and assign review dimensions' },
     { title: 'Execute', model: 'sonnet', detail: 'Deep review per file chunk via sa-reviewer' },
-    { title: 'Synthesize', model: 'fable', detail: 'Integrate findings and produce final verdict' },
+    { title: 'Verify', model: 'sonnet', detail: 'Adversarially verify each chunk\'s findings against primary sources' },
+    { title: 'Synthesize', model: 'fable', detail: 'Integrate verified findings and produce final verdict' },
   ],
 }
 
@@ -115,7 +116,7 @@ None — no files in scope.
 ## Coverage
 - Scope: ${scopeInfo.scope}
 - Files in scope: 0
-- Gates/Orchestrate/Execute/Synthesize: skipped (empty scope)
+- Gates/Orchestrate/Execute/Verify/Synthesize: skipped (empty scope)
 
 ## Recommendations (ranked)
 1. No action needed.`,
@@ -191,7 +192,7 @@ were skipped.
 - Scope: ${scopeInfo.scope}
 - Files in scope: ${scopeInfo.changedFiles.length}
 - Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}
-- Orchestrate/Execute/Synthesize: skipped (fail-fast on gate failure)
+- Orchestrate/Execute/Verify/Synthesize: skipped (fail-fast on gate failure)
 
 ## Recommendations (ranked)
 1. Fix the failing gate(s) above, then re-run this workflow.`,
@@ -319,16 +320,22 @@ if (!coverageClean) {
 }
 
 // ---------------------------------------------------------------------------
-// PHASE 4: Execute — Sonnet, via the sa-reviewer agent so every chunk
-// inherits its read-only tool restriction and its pointer to the
-// sa-review-changes / sa-run-sql-harness skills, instead of re-deriving
-// (and risking drift from) that procedure inline in this prompt.
+// PHASE 4+5: Execute, then adversarially Verify — one pipeline, no barrier:
+// each chunk's verification starts as soon as its review lands. Execute runs
+// via the sa-reviewer agent so every chunk inherits its read-only tool
+// restriction and its pointer to the sa-code-review / sa-run-sql-harness
+// skills, instead of re-deriving (and risking drift from) that procedure
+// inline in this prompt. Verify re-enters sa-reviewer on its
+// adversarial-verification mission (refute, don't confirm) so no finding
+// reaches synthesis unchallenged.
 // ---------------------------------------------------------------------------
 phase('Execute')
 
-const reviewResults = await pipeline(reviewUnits, (unit) =>
-  agent(
-    `Deep-review this SqlArtisan file group as part of a larger multi-group
+const reviewResults = await pipeline(
+  reviewUnits,
+  (unit) =>
+    agent(
+      `Deep-review this SqlArtisan file group as part of a larger multi-group
 pass. Gates already ran and passed/failed as follows — do not re-run them:
 ${gates.summary}
 
@@ -340,41 +347,89 @@ ${unit.chunkFiles.map((f) => `- ${f}`).join('\n')}
 DIMENSIONS TO APPLY:
 ${unit.reviewDimensions.map((d) => `- ${d}`).join('\n')}
 
-Follow the sa-review-changes skill's checklist for whichever of these
+Follow the sa-code-review skill's checklist for whichever of these
 dimensions apply, and use the sa-run-sql-harness skill for any empirical
 verification (DBMS grammar, guard enforcement, allocation) — do not assume
 emitted SQL or allocation behavior from memory. Skip the skill's own gate
 step (already covered above) and skip re-scoping the diff (file list is
-fixed above); otherwise follow it end to end.
+fixed above); otherwise follow it end to end. Skip the skill's adversarial
+verification pass too — this workflow runs it as its own Verify stage on
+your report.
 
 Separate MUST FIX (bugs, ADR violations, invalid/wrong SQL, missing guards)
 from SHOULD DISCUSS (convention trade-offs, coverage gaps, doc drift) and
 NITS. Cite file:line and, for any DBMS-grammar or allocation claim, the
 verbatim probe output that backs it.`,
-    {
-      agentType: 'sa-reviewer',
-      model: 'sonnet',
-      effort: 'high',
-      label: `review:${unit.chunkLabel}`,
-      phase: 'Execute',
-    }
-  )
+      {
+        agentType: 'sa-reviewer',
+        model: 'sonnet',
+        effort: 'high',
+        label: `review:${unit.chunkLabel}`,
+        phase: 'Execute',
+      }
+    ),
+  // Verify stage. A null review (skipped/failed chunk) passes through so the
+  // failed-chunk accounting below still sees it; a null *verifier* result
+  // falls back to the unverified review — losing verification must not lose
+  // the review itself.
+  async (review, unit) => {
+    if (!review) return null
+    const verified = await agent(
+      `Adversarial-verification mission (see your "Adversarial-verification
+missions" section): try to REFUTE this chunk review, not confirm it.
+
+FILES the review covered:
+${unit.chunkFiles.map((f) => `- ${f}`).join('\n')}
+
+CHUNK REVIEW UNDER TEST:
+${review}
+
+For each finding: attempt to refute it against primary sources — the code
+itself, test catalogs, ADRs, or a live /tmp harness probe — never the
+review's own text. Re-output the full review with every finding annotated:
+- CONFIRMED — with the evidence that survived refutation (verbatim probe
+  output or the primary source's file:line)
+- REFUTED — with the disproving evidence
+Then add, as extra findings, any factual claim in the reviewed files
+themselves that the review missed and that falls to refutation, classified
+DEFECT / OVERREACH / INCONSISTENCY with severity and evidence.`,
+      {
+        agentType: 'sa-reviewer',
+        model: 'sonnet',
+        effort: 'high',
+        label: `verify:${unit.chunkLabel}`,
+        phase: 'Verify',
+      }
+    )
+    return verified
+      ? verified
+      : `(adversarial verification unavailable for this chunk — unverified review follows)\n${review}`
+  }
 )
 
 const reviewedUnits = reviewResults.filter(Boolean)
 const failedChunks = reviewUnits.filter((u, i) => !reviewResults[i]).map((u) => u.chunkLabel)
-log(`Execution complete: ${reviewedUnits.length}/${reviewUnits.length} chunk(s) reviewed`)
+const unverifiedChunks = reviewUnits.filter((u, i) =>
+  reviewResults[i]?.startsWith('(adversarial verification unavailable')
+).map((u) => u.chunkLabel)
+log(`Execution complete: ${reviewedUnits.length}/${reviewUnits.length} chunk(s) reviewed`
+  + (unverifiedChunks.length > 0 ? `, ${unverifiedChunks.length} unverified` : ' and adversarially verified'))
 if (failedChunks.length > 0) {
   log(`Chunk failure: ${failedChunks.length} chunk(s) returned no result — files in them were never reviewed: ${failedChunks.join(', ')}`)
 }
+if (unverifiedChunks.length > 0) {
+  log(`Verification gap: ${unverifiedChunks.length} chunk(s) fell back to an unverified review — see Coverage: ${unverifiedChunks.join(', ')}`)
+}
 
 // ---------------------------------------------------------------------------
-// PHASE 5: Synthesize — Fable integrates findings into one report.
+// PHASE 6: Synthesize — Fable integrates findings into one report.
 // ---------------------------------------------------------------------------
 phase('Synthesize')
 
-const synthesisPrompt = `Synthesize ${reviewUnits.length} independent chunk reviews of a
+const synthesisPrompt = `Synthesize ${reviewUnits.length} chunk reviews of a
 SqlArtisan ${scopeInfo.scope === 'diff' ? 'branch diff' : 'full codebase pass'} into one report.
+Each chunk went through adversarial verification, except any listed below as
+unverified (its review stands as drafted, unchallenged).
 
 GATES: ${gates.summary}
 BRANCH POINT: ${scopeInfo.branchPoint ?? 'n/a'}
@@ -383,15 +438,27 @@ COVERAGE GAP — call this out explicitly in the report:
 ${missingFiles.length > 0 ? `- Missing (in scope, never assigned to a group): ${missingFiles.join(', ')}\n` : ''}${duplicateFiles.length > 0 ? `- Duplicated (assigned to more than one group, reviewed redundantly): ${duplicateFiles.join(', ')}\n` : ''}` : ''}${failedChunks.length > 0 ? `
 CHUNK FAILURE — call this out explicitly in the report:
 - ${failedChunks.length} chunk(s) returned no result and were never reviewed: ${failedChunks.join(', ')}
+` : ''}${unverifiedChunks.length > 0 ? `
+UNVERIFIED CHUNKS — call this out explicitly in Coverage; treat their findings as unconfirmed:
+- ${unverifiedChunks.join(', ')}
 ` : ''}
-CHUNK REVIEWS:
+CHUNK REVIEWS (verified chunks have findings annotated CONFIRMED/REFUTED,
+plus any extra DEFECT/OVERREACH/INCONSISTENCY findings the verifier added;
+unverified chunks carry the "(adversarial verification unavailable...)" marker):
 ${reviewUnits.map((u, i) => `--- ${u.chunkLabel} ---\n${reviewResults[i] ?? '(this chunk failed to return a result — its files were never reviewed)'}`).join('\n\n')}
 
 Tasks:
 1. Merge findings across chunks; surface cross-chunk patterns (e.g. the same
    naming issue in both Public API and Tests) rather than listing duplicates.
-2. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
-3. Decide a verdict: Mergeable / Mergeable after must-fix / Not mergeable.
+2. Drop REFUTED findings from the verdict — list them briefly in a
+   "Refuted in verification" note so the exclusion is visible, never
+   silent. Route the verifiers' extra DEFECT / OVERREACH / INCONSISTENCY
+   findings by severity: DEFECT to MUST FIX; OVERREACH and INCONSISTENCY to
+   MUST FIX or SHOULD DISCUSS. A chunk marked "(adversarial verification
+   unavailable...)" was never verified — say so in Coverage and treat its
+   findings as unverified.
+3. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
+4. Decide a verdict: Mergeable / Mergeable after must-fix / Not mergeable.
    A failing gate above is itself a MUST FIX and blocks "Mergeable" — and so
    is a coverage gap (a missing or duplicated file above) and a chunk
    failure (a chunk above that never returned a result): both mean files
@@ -417,9 +484,10 @@ Output as a headed report:
 ## Coverage
 - Branch point: ${scopeInfo.branchPoint ?? 'n/a'}
 - Chunks reviewed: ${reviewedUnits.length}/${reviewUnits.length}
+- Chunks adversarially verified: ${reviewedUnits.length - unverifiedChunks.length}/${reviewedUnits.length}${unverifiedChunks.length > 0 ? ` (unverified: ${unverifiedChunks.join(', ')})` : ''}
 - Files in scope: ${scopeInfo.changedFiles.length}
 - Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}
-- Empirical probes actually run (from chunk reviews): ...
+- Empirical probes actually run (from chunk reviews and verification): ...
 
 ## Recommendations (ranked)
 1. ...`

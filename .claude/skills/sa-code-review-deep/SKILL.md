@@ -35,6 +35,14 @@ and taste are legitimately in scope here, *because reaching this skill was a
 deliberate choice* — the discipline is that choice, not a citation
 requirement.
 
+## Adversarial pass (inherited)
+
+The mandatory adversarial verification pass (`sa-code-review` §9) is
+inherited and runs **once**, after this improvement pass, covering both
+reports. Suggestions themselves are opinions, not refutation targets — but
+any factual claim inside one (e.g. "API X already covers this case") gets
+the primary-source check before it is reported.
+
 ## Report
 
 Append a **Suggestions (optional, non-blocking)** zone after
