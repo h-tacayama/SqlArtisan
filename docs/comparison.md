@@ -45,7 +45,8 @@ maps directly to SQL tokens — bind-parameter markers and identifier quoting
 are normalized, but SQL grammar is never rewritten. You target one engine
 and get its full SQL surface, never flattened to a lowest common
 denominator. Raw Dapper / ADO.NET shares this "you own the SQL" property,
-but without type safety or builder structure.
+but as plain strings — no compile-checked column names, no structured
+builder chain.
 
 ---
 
@@ -146,13 +147,13 @@ See the
 ## Performance
 
 SqlArtisan minimizes heap allocations — string buffers are recycled from a
-pooled `ArrayPool<T>` — and on a
-[like-for-like BenchmarkDotNet workload](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark)
-it is the lowest-allocation and fastest query builder tested; only a
-hand-written `StringBuilder` (with no type safety or dialect handling) is
-lighter. See the
+pooled `ArrayPool<T>`. In the project's
+[like-for-like BenchmarkDotNet workload](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark),
+it allocated the least and ran the fastest among the query builders tested;
+only a hand-written `StringBuilder` (no compile-checked names, no dialect
+handling) was lighter. See the
 [benchmark table in the README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md#performance)
-for the numbers.
+for the numbers and re-run instructions.
 
 **What the benchmark measures:** building the SQL string and its bind
 parameters — the builder path only. It does not measure end-to-end query
