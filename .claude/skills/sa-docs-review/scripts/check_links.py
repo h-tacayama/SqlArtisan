@@ -24,6 +24,7 @@ FILES = [
     "docs/expressions.md",
     "docs/functions.md",
     "docs/analyzer.md",
+    "docs/comparison.md",
     "docs/cookbook.md",
     "docs/guides/dapper-quickstart.md",
     "docs/guides/ai-assistants.md",
