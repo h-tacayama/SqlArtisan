@@ -22,7 +22,8 @@ from pathlib import Path
 FILES = [
     "README.md", "llms.txt", "docs/README.md",
     "docs/query-statements.md", "docs/expressions.md", "docs/functions.md",
-    "docs/analyzer.md", "docs/cookbook.md", "docs/guides/dapper-quickstart.md",
+    "docs/analyzer.md", "docs/comparison.md", "docs/cookbook.md",
+    "docs/guides/dapper-quickstart.md",
     "docs/guides/ai-assistants.md",
     "docs/versioning.md", "SECURITY.md", "CHANGELOG.md",
     "src/SqlArtisan.TableClassGen/README.md",

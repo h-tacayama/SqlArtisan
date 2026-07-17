@@ -2,10 +2,12 @@
 
 [← Back to Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
-An opt-in build-time analyzer warns when your code uses a SqlArtisan
-construct that is not supported on your project's target dialect. It ships
-inside the `SqlArtisan` package — no extra package reference — and is
-completely silent until you configure a target.
+The analyzer is the second layer of SqlArtisan's deterministic guard-rail
+stack — after compile-time type safety and before exact-SQL tests. It warns
+at build time when your code uses a construct that is not supported on your
+project's target dialect. It ships inside the `SqlArtisan` package — no
+extra package reference — and is completely silent until you configure a
+target.
 
 ## Contents
 

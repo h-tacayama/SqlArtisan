@@ -76,17 +76,18 @@ double when queries are written by AI coding assistants, whose failure mode
 is plausible-but-wrong SQL that compiles and looks right but does not do
 what it should.
 
-SqlArtisan puts three deterministic checks between generation and
-production:
+SqlArtisan is a deterministic guard rail — four verification layers stand
+between generation and production:
 
-1. **Compile-time** — table classes turn column-name errors into build
-   failures.
-2. **Build-time** — the opt-in
+1. **Types** — table classes turn column-name errors into build failures.
+2. **Analyzer** — the opt-in
    [Roslyn analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
    flags wrong-dialect constructs at build time, catching the most common
    AI failure mode (mixing dialects from training data).
-3. **Test-time** — `Build()` is deterministic, so an exact-SQL unit test
+3. **Exact-SQL tests** — `Build()` is deterministic, so a unit test
    freezes the reviewed SQL as a regression contract.
+4. **Integration matrix** — analyzer entries are executed against live
+   engines, proving the SQL runs.
 
 Raw SQL strings verify nothing until the database rejects them.
 String-keyed builders catch structural mistakes but not column typos.
