@@ -2,7 +2,7 @@
 
 [← Back to README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md)
 
-The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
+SqlArtisan is a deterministic guard rail for SQL written alongside AI — the same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
 Every entry below shows the C# you write and the exact SQL it produces. Per-call signatures and
 emitted SQL are also visible inline via IntelliSense (bundled XML docs).
 

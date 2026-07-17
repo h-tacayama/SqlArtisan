@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Aligned README, reference home, analyzer docs, comparison guide, and AI assistants guide with the deterministic guard-rail mission — faithful emission is the foundation; the type system, analyzer, exact-SQL tests, and live-engine integration matrix are the full verification stack. (#267)
+
 ### Added
 - Added a [comparison guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md) — how SqlArtisan compares to EF Core, linq2db, SqlKata, Dapper.SqlBuilder, and InterpolatedSql on philosophy, type safety, machine-verifiability, dialect handling, execution, and performance; includes when NOT to choose SqlArtisan. (#226)
 - Added SQL Server's `TOP (n)` select prefix — `Select(Top(n), ...)` → `SELECT TOP (n)`. Chain `.WithTies()` (`TOP (n) WITH TIES` — the form with no `OFFSET/FETCH` equivalent) or `.Percent()` (`TOP (n) PERCENT`), and combine with `DISTINCT` (`Select(Distinct, Top(n), ...)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot be combined with `OFFSET/FETCH` — both are rejected at `Build(Dbms.SqlServer)`. See [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination). (#261)

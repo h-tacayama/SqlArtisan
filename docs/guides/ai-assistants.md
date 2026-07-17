@@ -4,11 +4,13 @@
 [Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
 An AI assistant writing raw SQL strings produces *plausible* SQL — nothing
-checks it until it hits the database. Writing SqlArtisan instead puts
-deterministic checks between generation and production: column names and
-statement structure are compile-checked, the analyzer flags wrong-dialect
-constructs at build time, and exact-SQL tests freeze what was reviewed. Wrong
-output becomes a red build instead of a runtime surprise.
+checks it until it hits the database. SqlArtisan is a deterministic guard
+rail — writing it instead of raw strings puts four verification layers
+between generation and production: column names and statement structure are
+compile-checked, the analyzer flags wrong-dialect constructs at build time,
+exact-SQL tests freeze what was reviewed, and every analyzer entry is
+verified against a live engine. Wrong output becomes a red build instead of
+a runtime surprise.
 
 This page is the setup that makes those checks bite.
 
