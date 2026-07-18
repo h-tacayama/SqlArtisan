@@ -42,7 +42,7 @@ public class DialectMatrixIntegrityTests
         {
             bool methodMatch = type
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Where(m => (!m.IsSpecialName || m.Name.StartsWith("op_", StringComparison.Ordinal)) && m.Name == name)
+                .Where(m => (!m.IsSpecialName || IsOperator(m)) && m.Name == name)
                 .Any(m => !arity.HasValue || m.GetParameters().Length == arity.Value);
             if (methodMatch)
             {
@@ -63,4 +63,7 @@ public class DialectMatrixIntegrityTests
 
         return false;
     }
+
+    private static bool IsOperator(MethodInfo method) =>
+        method.Name.StartsWith("op_", StringComparison.Ordinal);
 }

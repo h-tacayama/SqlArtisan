@@ -352,7 +352,12 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+
+        // Locks the operator display mapping (the C# glyph, not "op_Modulus") and the
+        // member-level override key the message names — neither is asserted anywhere else.
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithLocation(0)
+            .WithArguments("operator %", "Oracle", "sqlartisan_construct_op_modulus"));
 
         await test.RunAsync();
     }
