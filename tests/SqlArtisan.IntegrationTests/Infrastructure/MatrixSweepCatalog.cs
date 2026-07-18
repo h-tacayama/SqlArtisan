@@ -519,8 +519,8 @@ internal static class MatrixSweepCatalog
             : Scalar(JsonArrowText(u.Data, "$.city")));
         Add("JsonHashArrow", _ => Scalar(JsonHashArrow(u.Data, Cast("{address}", "text[]"))));
         Add("JsonHashArrowText", _ => Scalar(JsonHashArrowText(u.Data, Cast("{address,zip}", "text[]"))));
-        // ARRAY[...] operands on both sides: every non-PG engine fails at the bracket
-        // before MySQL's &&-as-logical-AND could accept the text (the DoublePipe hazard).
+        // ARRAY[...] operands on both sides: MySQL has no ARRAY grammar at all (unlike
+        // ||, && isn't sql_mode-dependent there), so the DoublePipe hazard can't recur.
         Add("Array", _ => Scalar(Array("a", "b")));
         Add("ArrayOverlaps", _ => WherePredicate(ArrayOverlaps(Array("a", "b"), Array("b", "c"))));
         Add("ArrayContains", _ => WherePredicate(ArrayContains(Array("a", "b"), Array("a"))));
