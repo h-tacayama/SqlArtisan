@@ -139,6 +139,12 @@ internal static class DialectMatrix
         // docs/expressions.md: "PostgreSQL only" for both #>/#>> operators.
         [new MatrixKey("JsonHashArrow")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("JsonHashArrowText")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // docs/expressions.md: "PostgreSQL only" for the ARRAY[...] constructor and the
+        // <@ / @> / && array predicates (#159).
+        [new MatrixKey("Array")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("ArrayContainedBy")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("ArrayContains")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("ArrayOverlaps")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         // docs/expressions.md: "PostgreSQL only" for the JSONB @> / ? / ?& / ?| predicates (#159).
         [new MatrixKey("JsonbContains")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("JsonbExists")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),

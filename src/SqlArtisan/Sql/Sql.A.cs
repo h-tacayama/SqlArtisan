@@ -58,6 +58,50 @@ public static partial class Sql
         new(Keywords.Any, subquery);
 
     /// <summary>
+    /// The <c>ARRAY[elements]</c> array constructor: an array value from the
+    /// listed elements (PostgreSQL).
+    /// </summary>
+    /// <param name="elements">The array elements; at least one.</param>
+    /// <returns>An <see cref="ArrayConstructorExpression"/> emitting <c>ARRAY[elements]</c>.</returns>
+    public static ArrayConstructorExpression Array(params object[] elements)
+    {
+        CollectionGuard.ThrowIfEmpty(elements, "ARRAY[...] requires at least one element.");
+        return new(Resolve(elements));
+    }
+
+    /// <summary>
+    /// The array containment predicate <c>leftArray &lt;@ rightArray</c>: whether
+    /// every element of <paramref name="leftArray"/> is also an element of
+    /// <paramref name="rightArray"/> (PostgreSQL).
+    /// </summary>
+    /// <param name="leftArray">The array that must be contained.</param>
+    /// <param name="rightArray">The array to search.</param>
+    /// <returns>An <see cref="ArrayContainedByCondition"/> emitting <c>leftArray &lt;@ rightArray</c>.</returns>
+    public static ArrayContainedByCondition ArrayContainedBy(object leftArray, object rightArray) =>
+        new(Resolve(leftArray), Resolve(rightArray));
+
+    /// <summary>
+    /// The array containment predicate <c>leftArray @&gt; rightArray</c>: whether
+    /// every element of <paramref name="rightArray"/> is also an element of
+    /// <paramref name="leftArray"/> (PostgreSQL).
+    /// </summary>
+    /// <param name="leftArray">The array to search.</param>
+    /// <param name="rightArray">The array that must be contained.</param>
+    /// <returns>An <see cref="ArrayContainsCondition"/> emitting <c>leftArray @&gt; rightArray</c>.</returns>
+    public static ArrayContainsCondition ArrayContains(object leftArray, object rightArray) =>
+        new(Resolve(leftArray), Resolve(rightArray));
+
+    /// <summary>
+    /// The array overlap predicate <c>leftArray &amp;&amp; rightArray</c>: whether
+    /// the arrays have at least one element in common (PostgreSQL).
+    /// </summary>
+    /// <param name="leftArray">The first array.</param>
+    /// <param name="rightArray">The second array.</param>
+    /// <returns>An <see cref="ArrayOverlapsCondition"/> emitting <c>leftArray &amp;&amp; rightArray</c>.</returns>
+    public static ArrayOverlapsCondition ArrayOverlaps(object leftArray, object rightArray) =>
+        new(Resolve(leftArray), Resolve(rightArray));
+
+    /// <summary>
     /// The bare <c>*</c> select item (<c>SELECT *</c>: every column of every table
     /// in <c>FROM</c>). Valid only in a <c>SELECT</c> or <c>RETURNING</c> list;
     /// for one table's columns use the table's <see cref="TableReference.Asterisk"/>.

@@ -19,6 +19,7 @@
 - [String Concatenation](#string-concatenation)
 - [Conditions](#conditions)
 - [JSON Operators](#json-operators)
+- [Array Operators](#array-operators)
 - [Full-Text Search](#full-text-search)
 - [Scalar Subquery](#scalar-subquery)
 - [ALL / ANY / SOME](#all--any--some)
@@ -415,6 +416,27 @@ SqlStatement sql =
 PostgreSQL only. `JsonbContains` (`@>`) tests whether the left JSONB value contains the right one; `JsonbExists` (`?`) tests a single top-level key or array element (`data ? :0`); `JsonbExistsAny` (`?|`) / `JsonbExistsAll` (`?&`) test whether any / every key in the list exists (`data ?| ARRAY[:0, :1]`), and require at least one key — an empty list throws at the call site.
 
 A bound containment value reaches PostgreSQL as `text`, which `@>` does not accept — wrap it in `Cast(json, "jsonb")` as above. The bare `?` glyph never collides with a bind marker: SqlArtisan emits `:0`-style markers on PostgreSQL.
+
+---
+
+## Array Operators
+
+Build an array value with `Array(...)` (the `ARRAY[...]` constructor) and filter on array columns with the `&&`, `@>`, and `<@` predicates. Elements bind as parameters.
+
+```csharp
+SqlStatement sql =
+    Select(u.Id)
+    .From(u)
+    .Where(ArrayOverlaps(u.Tags, Array("go", "rust")))
+    .Build(Dbms.PostgreSql);
+
+// SELECT id FROM users
+// WHERE tags && ARRAY[:0, :1]
+```
+
+PostgreSQL only. `ArrayOverlaps` (`&&`) tests whether two arrays share at least one element; `ArrayContains` (`@>`) tests whether the left array contains every element of the right one; `ArrayContainedBy` (`<@`) tests the reverse. `Array(...)` requires at least one element — an empty call throws at the call site.
+
+String elements form a `text[]`; for another element type, pass typed values (`Array(1, 2)` binds an integer array).
 
 ---
 
