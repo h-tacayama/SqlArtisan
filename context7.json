@@ -3,7 +3,7 @@
   "projectTitle": "SqlArtisan",
   "description": "A type-safe SQL query builder for C# (.NET 8): SQL-like C# in, the SQL string plus its bind parameters out — emitted faithfully with no dialect translation.",
   "folders": [],
-  "excludeFolders": ["src", "tests", ".github", ".claude", "docs/adr"],
+  "excludeFolders": ["src", "tests", ".github", ".claude", ".devin", "docs/adr"],
   "excludeFiles": ["CLAUDE.md", "SECURITY.md", "llms.txt", "llms-full.txt"],
   "rules": [
     "SqlArtisan emits SQL faithfully with no dialect translation — always pick the API documented for the target DBMS (MySQL, Oracle, PostgreSQL, SQLite, SQL Server); only bind-parameter markers and alias quoting vary by dialect.",
