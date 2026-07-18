@@ -67,6 +67,9 @@ SqlStatement sql =
 // FROM users
 ```
 
+On Oracle, `%` is not an arithmetic operator — use `Mod(a, b)` (`MOD(a, b)`)
+instead; the analyzer warns when a `%` expression targets Oracle.
+
 ---
 
 ## String Concatenation

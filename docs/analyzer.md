@@ -136,6 +136,11 @@ name becomes a lowercase, underscore-separated word — `MergeInto` →
 it can't collide with a member name that itself ends in a digit (`Atan2` →
 `atan2` is a different key from `Atan`'s 2-argument form, `atan_arity2`).
 
+An overloaded C# operator is keyed by its CLR method name: `%` is
+`op_Modulus`, so its key is `sqlartisan_construct_op_modulus`. No need to
+memorize the mapping — the warning message names the exact key, so it can
+be copied from there.
+
 Both keys accept two values:
 
 | Value | Meaning |
@@ -197,7 +202,8 @@ fires on a *confirmed* mismatch by design (a construct the matrix doesn't
 know stays silent rather than guess), so there is no "unverified construct"
 diagnostic to promote — the matrix's
 completeness is the whole safety net, and it is enforced in this repository:
-a coverage test fails when a public method, property, or field ships without
+a coverage test fails when a public method, property, field, or overloaded
+operator ships without
 a matrix entry or a documented dialect-neutral exclusion, and an
 integration-test sweep executes the entries against a live engine per
 dialect (the versions in the table below) asserting the accept/reject
@@ -278,12 +284,6 @@ The reservation pins down now what the future release will not change:
   Oracle+PostgreSQL, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry and never
   warns either way.
-- **Overloaded operators are out of scope.** The analyzer inspects method,
-  property, and field references only; C# operator uses (`u.Age + 1`,
-  `u.Id % 2`) reach it as binary operations and are never checked. At least
-  one operator is dialect-divergent — `%` emits SQL's modulo operator, which
-  Oracle does not have (its form is the `Mod(...)` function, which the
-  matrix does cover) — so an operator misuse surfaces only at the database.
 - **Typo'd keys fail silently** (see above) — there is no diagnostic for an
   unrecognized `sqlartisan_construct_*` *key name*, only for a recognized
   key with an unrecognized *value*. Value validation covers the keys derived
@@ -291,7 +291,8 @@ The reservation pins down now what the future release will not change:
   for is honored when its value is valid, but a typo in its *value* is
   silently ignored too.
 - **Absence of an entry still means silence, not endorsement.** The matrix
-  covers every referencable public method, property, and field except a
+  covers every referencable public method, property, field, and overloaded
+  operator except a
   documented set of dialect-neutral plumbing (`Build`, the result and
   configuration objects) and `Trunc` above — gate-enforced by the
   repository's tests — but a member in that excluded set never warns either

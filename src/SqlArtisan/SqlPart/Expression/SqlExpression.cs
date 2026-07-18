@@ -178,6 +178,7 @@ public abstract class SqlExpression : SqlPart
     /// <param name="this">The left operand.</param>
     /// <param name="rightSide">The right operand — a literal or another expression.</param>
     /// <returns>The modulus expression.</returns>
+    /// <remarks>Not supported by Oracle — use <c>Sql.Mod</c> there.</remarks>
     public static ModulusOperator operator %(
         SqlExpression @this,
         object rightSide) => new(@this, Resolve(rightSide));

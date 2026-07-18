@@ -420,6 +420,25 @@ internal static class DialectMatrix
         [new MatrixKey("Greatest")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("Least")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
 
+        // --- Overloaded C# operators (#219): keyed by the CLR operator method name verbatim
+        // (op_Modulus -> sqlartisan_construct_op_modulus). All are binary; apart from % they
+        // emit SQL-92 core grammar (comparisons, AND/OR, + - * /) — universal on every baseline.
+        [new MatrixKey("op_Addition")] = DbmsSupport.All,
+        [new MatrixKey("op_Subtraction")] = DbmsSupport.All,
+        [new MatrixKey("op_Multiply")] = DbmsSupport.All,
+        [new MatrixKey("op_Division")] = DbmsSupport.All,
+        // op_Modulus: Oracle has no % arithmetic operator — its spelling is MOD(n, m), the
+        // exact mirror of the Mod entry's sqlServer: false above.
+        [new MatrixKey("op_Modulus")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
+        [new MatrixKey("op_Equality")] = DbmsSupport.All,
+        [new MatrixKey("op_Inequality")] = DbmsSupport.All,
+        [new MatrixKey("op_LessThan")] = DbmsSupport.All,
+        [new MatrixKey("op_GreaterThan")] = DbmsSupport.All,
+        [new MatrixKey("op_LessThanOrEqual")] = DbmsSupport.All,
+        [new MatrixKey("op_GreaterThanOrEqual")] = DbmsSupport.All,
+        [new MatrixKey("op_BitwiseAnd")] = DbmsSupport.All,
+        [new MatrixKey("op_BitwiseOr")] = DbmsSupport.All,
+
         // --- Date/time keywords with gaps ---
         // CurrentDate/CurrentTime: T-SQL supports neither ANSI keyword (only CURRENT_TIMESTAMP);
         // Oracle has CURRENT_DATE and CURRENT_TIMESTAMP but no CURRENT_TIME (no TIME type).

@@ -10,6 +10,9 @@ public class ConstructKeyNamingTests
     [InlineData("AddMonths", "add_months")]
     [InlineData("Dateadd", "dateadd")]
     [InlineData("Rollup", "rollup")]
+    // CLR operator method names (#219): the capital after the existing underscore gains no
+    // second separator — op_Modulus -> op_modulus, not op__modulus.
+    [InlineData("op_Modulus", "op_modulus")]
     public void ToSnakeCase_PascalCaseName_MatchesUnderscoreSegments(string pascalCase, string expectedSnakeCase)
     {
         Assert.Equal(expectedSnakeCase, ConstructKeyNaming.ToSnakeCase(pascalCase));

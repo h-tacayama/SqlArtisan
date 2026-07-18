@@ -12,8 +12,8 @@ namespace SqlArtisan.Analyzers.Tests;
 /// <see cref="DialectMatrix"/> entry or a documented exclusion here. This is
 /// what makes the analyzer's "silence = verified" reading safe going forward —
 /// a new public member cannot ship without an explicit dialect decision.
-/// Overloaded operators are outside both this sweep and the analyzer's
-/// operation kinds (docs/analyzer.md, known limitations).
+/// Overloaded operators are inside the sweep (#219): the special-name filters
+/// below admit <c>op_*</c> methods while still excluding property accessors.
 /// </summary>
 public class DialectMatrixCoverageTests
 {
@@ -64,7 +64,7 @@ public class DialectMatrixCoverageTests
 
             IEnumerable<string> names = type
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Where(m => !m.IsSpecialName && !IsObjectOverride(m))
+                .Where(m => (!m.IsSpecialName || IsOperator(m)) && !IsObjectOverride(m))
                 .Select(m => m.Name)
                 .Concat(type
                     .GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
@@ -112,4 +112,7 @@ public class DialectMatrixCoverageTests
 
     private static bool IsObjectOverride(MethodInfo method) =>
         method.IsVirtual && method.GetBaseDefinition().DeclaringType == typeof(object);
+
+    private static bool IsOperator(MethodInfo method) =>
+        method.Name.StartsWith("op_", StringComparison.Ordinal);
 }

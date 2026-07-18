@@ -42,6 +42,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzePropertyReference, OperationKind.PropertyReference);
         context.RegisterOperationAction(AnalyzeFieldReference, OperationKind.FieldReference);
+        context.RegisterOperationAction(AnalyzeBinaryOperator, OperationKind.Binary);
+        context.RegisterOperationAction(AnalyzeCompoundAssignment, OperationKind.CompoundAssignment);
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
         context.RegisterCompilationAction(ValidateConfiguration);
@@ -78,6 +80,30 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         AnalyzeUsage(context, field.Name, arity: null);
+    }
+
+    // Overloaded C# operators (#219) reach Roslyn as Binary / CompoundAssignment operations,
+    // never as invocations; OperatorMethod is null for built-in operators.
+    private static void AnalyzeBinaryOperator(OperationAnalysisContext context)
+    {
+        if (((IBinaryOperation)context.Operation).OperatorMethod is not { } method
+            || !IsFromSqlArtisan(method.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzeUsage(context, method.Name, method.Parameters.Length);
+    }
+
+    private static void AnalyzeCompoundAssignment(OperationAnalysisContext context)
+    {
+        if (((ICompoundAssignmentOperation)context.Operation).OperatorMethod is not { } method
+            || !IsFromSqlArtisan(method.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzeUsage(context, method.Name, method.Parameters.Length);
     }
 
     private static void AnalyzeUsage(OperationAnalysisContext context, string memberName, int? arity)
@@ -183,7 +209,28 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     private static bool IsFromSqlArtisan(IAssemblySymbol? assembly) => assembly?.Name == SqlArtisanAssemblyName;
 
     private static string DisplayName(string memberName, int? arity, bool isArityLevel) =>
-        isArityLevel && arity.HasValue ? $"{memberName} ({arity.Value}-argument form)" : memberName;
+        OperatorDisplayName(memberName)
+        ?? (isArityLevel && arity.HasValue ? $"{memberName} ({arity.Value}-argument form)" : memberName);
+
+    // Users write the C# glyph, not the CLR method name — show "operator %", not "op_Modulus".
+    // The override key in the message still derives from the CLR name (sqlartisan_construct_op_modulus).
+    private static string? OperatorDisplayName(string memberName) => memberName switch
+    {
+        "op_Addition" => "operator +",
+        "op_Subtraction" => "operator -",
+        "op_Multiply" => "operator *",
+        "op_Division" => "operator /",
+        "op_Modulus" => "operator %",
+        "op_Equality" => "operator ==",
+        "op_Inequality" => "operator !=",
+        "op_LessThan" => "operator <",
+        "op_GreaterThan" => "operator >",
+        "op_LessThanOrEqual" => "operator <=",
+        "op_GreaterThanOrEqual" => "operator >=",
+        "op_BitwiseAnd" => "operator &",
+        "op_BitwiseOr" => "operator |",
+        _ => null,
+    };
 
     private static string DisplayName(TargetDbms target) => target switch
     {
