@@ -1,6 +1,6 @@
 {
   "$schema": "https://context7.com/schema/context7.json",
-  "folders": ["docs", "."],
+  "folders": [],
   "excludeFolders": ["src", "tests", ".github", ".claude"],
   "rules": [
     "Emit SQL for the caller's chosen dialect; a single call is never rewritten across MySQL, Oracle, PostgreSQL, SQLite, and SQL Server — pick the per-dialect API/factory when they diverge.",
