@@ -4,6 +4,8 @@ paths:
   - "README.md"
   - "docs/**/*.md"
   - "llms.txt"
+  - "llms-full.txt"
+  - "context7.json"
   - "CHANGELOG.md"
   - "src/*/README.md"
 ---
@@ -11,11 +13,20 @@ paths:
 # Documentation style
 
 Covers wording and formatting for the README (landing + capability-map index),
-`docs/` (reference), `llms.txt` (the AI-tool index; `llms-full.txt` and an
-MCP/Context7 feed are future work, tracked in #228), `CHANGELOG.md`, and the
+`docs/` (reference), `llms.txt` (the AI-tool index), `llms-full.txt` (its
+full-text companion — every page `llms.txt` links via a raw-content URL,
+concatenated verbatim in that order; regenerate per the header comment in
+`tests/SqlArtisan.Tests/LlmsFullTests.cs`, which gates it byte-for-byte against
+drift), `context7.json` (Context7 indexing config), `CHANGELOG.md`, and the
 package READMEs under `src/*/README.md` (NuGet landing pages). The
 README/`docs/` split also lives in CLAUDE.md; the absolute-URL rule and the
 DBMS enum order live only here.
+
+A dedicated MCP docs server was evaluated (#228) and deliberately not built:
+`llms.txt`/`llms-full.txt` (resolvable via `raw.githubusercontent.com`, zero
+extra infrastructure) plus Context7 registration already cover every
+mainstream assistant's docs-resolution path, and a from-scratch server would
+be a standing hosting/auth/registry maintenance cost this repo doesn't need.
 
 **No ADR citations on user-facing surfaces** — README, `docs/` reference
 pages, `llms.txt`, and `CHANGELOG.md` must not cite ADR numbers ("per

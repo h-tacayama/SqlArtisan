@@ -1,0 +1,10 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "folders": [],
+  "excludeFolders": ["src", "tests", ".github", ".claude"],
+  "excludeFiles": ["CLAUDE.md"],
+  "rules": [
+    "Emit SQL for the caller's chosen dialect; a single call is never rewritten across MySQL, Oracle, PostgreSQL, SQLite, and SQL Server — pick the per-dialect API/factory when they diverge.",
+    "Point the assistant at llms.txt or llms-full.txt (repo root) for the full reference; docs/ mirrors the same content."
+  ]
+}
