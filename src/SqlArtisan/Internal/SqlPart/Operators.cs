@@ -10,6 +10,10 @@ internal static class Operators
     internal const string Inequality = "<>";
     internal const string JsonArrow = "->";
     internal const string JsonArrowText = "->>";
+    internal const string JsonbContains = "@>";
+    internal const string JsonbExists = "?";
+    internal const string JsonbExistsAll = "?&";
+    internal const string JsonbExistsAny = "?|";
     internal const string JsonHashArrow = "#>";
     internal const string JsonHashArrowText = "#>>";
     internal const string LessThan = "<";

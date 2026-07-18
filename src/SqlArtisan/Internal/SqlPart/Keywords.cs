@@ -10,6 +10,7 @@ internal static class Keywords
     internal const string And = "AND";
     internal const string Any = "ANY";
     internal const string Apply = "APPLY";
+    internal const string Array = "ARRAY";
     internal const string As = "AS";
     internal const string Asc = "ASC";
     internal const string Avg = "AVG";
