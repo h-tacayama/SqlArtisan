@@ -2132,16 +2132,16 @@ JsonArrowText(JsonArrow(u.Data, "address"), "city")
 ```csharp
 SqlStatement sql =
     Select(
-        JsonHashArrow(u.Data, "{a,b}"),
-        JsonHashArrowText(u.Data, "{a,b}"))
+        JsonHashArrow(u.Data, Cast("{a,b}", "text[]")),
+        JsonHashArrowText(u.Data, Cast("{a,b}", "text[]")))
     .From(u)
     .Build(Dbms.PostgreSql);
 
-// SELECT (data #> :0), (data #>> :1)
+// SELECT (data #> CAST(:0 AS text[])), (data #>> CAST(:1 AS text[]))
 // FROM users
 ```
 
-PostgreSQL only. `JsonHashArrow` (`#>`) returns JSON; `JsonHashArrowText` (`#>>`) returns text.
+PostgreSQL only. `JsonHashArrow` (`#>`) returns JSON; `JsonHashArrowText` (`#>>`) returns text. Both take the path as a `text[]` array, and a bound path string reaches PostgreSQL as `text` — wrap it in `Cast(path, "text[]")` as above.
 
 ### Containment / Existence Predicates (`@>` / `?` / `?|` / `?&`)
 
@@ -4323,6 +4323,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Aligned README, reference home, analyzer docs, comparison guide, and AI assistants guide with the deterministic guard-rail mission — faithful emission is the foundation; the type system, analyzer, exact-SQL tests, and live-engine integration matrix are the full verification stack. (#267)
 
 ### Fixed
+- Docs: the `#>` / `#>>` path-access examples bound the path as a plain string, which fails at execution on PostgreSQL (`operator does not exist: jsonb #> text` — the operators take `text[]`). The examples now wrap the path in `Cast(path, "text[]")`, the form the integration tests run against live PostgreSQL. (#334)
 - `SqlArtisan.TableClassGen`: with lowercase-name conversion enabled, a mixed-case table on a case-sensitive database (e.g. PostgreSQL) is no longer silently dropped — the catalog's stored name is now kept as the lookup key and only the emitted name is lowercased. (#323)
 
 ## [0.6.0-beta.1] - 2026-07-14

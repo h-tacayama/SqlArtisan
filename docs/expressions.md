@@ -384,16 +384,16 @@ JsonArrowText(JsonArrow(u.Data, "address"), "city")
 ```csharp
 SqlStatement sql =
     Select(
-        JsonHashArrow(u.Data, "{a,b}"),
-        JsonHashArrowText(u.Data, "{a,b}"))
+        JsonHashArrow(u.Data, Cast("{a,b}", "text[]")),
+        JsonHashArrowText(u.Data, Cast("{a,b}", "text[]")))
     .From(u)
     .Build(Dbms.PostgreSql);
 
-// SELECT (data #> :0), (data #>> :1)
+// SELECT (data #> CAST(:0 AS text[])), (data #>> CAST(:1 AS text[]))
 // FROM users
 ```
 
-PostgreSQL only. `JsonHashArrow` (`#>`) returns JSON; `JsonHashArrowText` (`#>>`) returns text.
+PostgreSQL only. `JsonHashArrow` (`#>`) returns JSON; `JsonHashArrowText` (`#>>`) returns text. Both take the path as a `text[]` array, and a bound path string reaches PostgreSQL as `text` — wrap it in `Cast(path, "text[]")` as above.
 
 ### Containment / Existence Predicates (`@>` / `?` / `?|` / `?&`)
 

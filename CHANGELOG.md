@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Aligned README, reference home, analyzer docs, comparison guide, and AI assistants guide with the deterministic guard-rail mission — faithful emission is the foundation; the type system, analyzer, exact-SQL tests, and live-engine integration matrix are the full verification stack. (#267)
 
 ### Fixed
+- Docs: the `#>` / `#>>` path-access examples bound the path as a plain string, which fails at execution on PostgreSQL (`operator does not exist: jsonb #> text` — the operators take `text[]`). The examples now wrap the path in `Cast(path, "text[]")`, the form the integration tests run against live PostgreSQL. (#334)
 - `SqlArtisan.TableClassGen`: with lowercase-name conversion enabled, a mixed-case table on a case-sensitive database (e.g. PostgreSQL) is no longer silently dropped — the catalog's stored name is now kept as the lookup key and only the emitted name is lowercased. (#323)
 
 ## [0.6.0-beta.1] - 2026-07-14
