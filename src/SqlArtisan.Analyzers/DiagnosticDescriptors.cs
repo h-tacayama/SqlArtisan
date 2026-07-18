@@ -30,4 +30,13 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
+
+    public static readonly DiagnosticDescriptor IdentifierTooLong = new(
+        id: "SQLA0003",
+        title: "SQL identifier exceeds the dialect's length limit",
+        messageFormat: "Identifier '{0}' exceeds {1}'s identifier limit of {2} {3}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
 }
