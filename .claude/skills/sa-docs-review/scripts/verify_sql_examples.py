@@ -45,11 +45,11 @@ internal sealed class UsersTable : DbTableBase {
     public UsersTable(string a="") : base("users",a) {
         Id=new(this,"id");Name=new(this,"name");CreatedAt=new(this,"created_at");StatusId=new(this,"status_id");
         Age=new(this,"age");DepartmentId=new(this,"department_id");Salary=new(this,"salary");Amount=new(this,"amount");Date=new(this,"date");
-        Data=new(this,"data");IsActive=new(this,"is_active");Region=new(this,"region");FirstName=new(this,"first_name");LastName=new(this,"last_name");
+        Data=new(this,"data");IsActive=new(this,"is_active");Region=new(this,"region");FirstName=new(this,"first_name");LastName=new(this,"last_name");Tags=new(this,"tags");
     }
     public DbColumn Id{get;} public DbColumn Name{get;} public DbColumn CreatedAt{get;} public DbColumn StatusId{get;}
     public DbColumn Age{get;} public DbColumn DepartmentId{get;} public DbColumn Salary{get;} public DbColumn Amount{get;} public DbColumn Date{get;}
-    public DbColumn Data{get;} public DbColumn IsActive{get;} public DbColumn Region{get;} public DbColumn FirstName{get;} public DbColumn LastName{get;}
+    public DbColumn Data{get;} public DbColumn IsActive{get;} public DbColumn Region{get;} public DbColumn FirstName{get;} public DbColumn LastName{get;} public DbColumn Tags{get;}
 }
 internal sealed class PostsTable : DbTableBase {
     public PostsTable(string a="") : base("posts",a) { Id=new(this,"id");Title=new(this,"title");Body=new(this,"body"); }
