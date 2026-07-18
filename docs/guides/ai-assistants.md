@@ -37,6 +37,13 @@ the SQL you write with **no cross-dialect rewriting**, so the assistant must
 pick the API for your target DBMS — and the reference tells it which call
 emits what.
 
+The same reference is also indexed on
+[Context7](https://context7.com/h-tacayama/sqlartisan). If your assistant has
+the Context7 MCP server (or CLI) configured, name the library ID
+`/h-tacayama/sqlartisan` in your prompt — Context7 then skips its
+library-matching step and pulls the SqlArtisan reference directly into
+context.
+
 ## Configure the analyzer target
 
 The bundled Roslyn analyzer is the deterministic reviewer for dialect
