@@ -52,6 +52,7 @@ the analyzer never reports anything — enabling it is purely additive.
 |---|---|---|
 | `SQLA0001` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
 | `SQLA0002` | Warning | A `sqlartisan_target_dbms` or `sqlartisan_construct_*` value could not be recognized. |
+| `SQLA0003` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
 
 `SQLA0001` only ever fires for a construct the matrix has confirmed — one
 without a matrix entry stays silent rather than guessed at, so an incomplete
@@ -63,6 +64,23 @@ CI, and an IDE's Error List after an explicit build — check that the list's
 source filter includes Build entries), but not in the editor's live
 analysis, which never runs compilation-end actions. `SQLA0001`, by
 contrast, is a per-usage diagnostic and shows up live as you type.
+
+`SQLA0003` checks compile-time identifier literals — table and expression
+aliases (`.As(...)`), CTE and derived-table names, `VALUES` column names, and
+the Oracle `RETURNING ... INTO` output variable — against each dialect's
+identifier-length limit: MySQL 256 characters, Oracle 128 bytes, PostgreSQL
+63 bytes, SQL Server 128 characters (SQLite is unbounded and never warns).
+MySQL's figure is its **alias** limit: the checked positions are aliases, and
+MySQL allows those up to 256 characters, well past its 64-character table and
+column names. PostgreSQL leads the list because it does not error on an
+over-long identifier — it truncates it (with only a notice, not an error), so
+two distinct long names can collide after truncation, and the analyzer is the
+only place this surfaces before the database does. Oracle and PostgreSQL
+measure in UTF-8 bytes, so a multi-byte identifier reaches the limit sooner
+than its character count suggests. Only constant identifiers are checked — a
+name built at run time is left alone — and, like `SQLA0001`, it is a per-usage
+diagnostic suppressible at a single site (`#pragma warning disable SQLA0003`, a
+`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0003.severity`).
 
 ```csharp
 using static SqlArtisan.Sql;

@@ -31,7 +31,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         DiagnosticDescriptors.UnsupportedDialectConstruct,
-        DiagnosticDescriptors.InvalidConfiguration);
+        DiagnosticDescriptors.InvalidConfiguration,
+        DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -41,6 +42,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzePropertyReference, OperationKind.PropertyReference);
         context.RegisterOperationAction(AnalyzeFieldReference, OperationKind.FieldReference);
+        context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -96,6 +99,45 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             DisplayName(memberName, arity, result.IsArityLevel),
             DisplayName(target),
             result.OverrideKeyHint));
+    }
+
+    private static void AnalyzeIdentifierLength(OperationAnalysisContext context)
+    {
+        (IMethodSymbol? member, ImmutableArray<IArgumentOperation> arguments) = context.Operation switch
+        {
+            IInvocationOperation invocation => (invocation.TargetMethod, invocation.Arguments),
+            IObjectCreationOperation { Constructor: { } constructor } creation => (constructor, creation.Arguments),
+            _ => (null, default),
+        };
+
+        if (member is null || !IsFromSqlArtisan(member.ContainingAssembly))
+        {
+            return;
+        }
+
+        if (ResolveIdentifierLimit(context) is not { } resolved)
+        {
+            return;
+        }
+
+        IdentifierLengthRule.Check(context, member, arguments, resolved.Limit, resolved.DialectName);
+    }
+
+    private static (DialectIdentifierLimit Limit, string DialectName)? ResolveIdentifierLimit(
+        OperationAnalysisContext context)
+    {
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is not { } target)
+        {
+            return null;
+        }
+
+        if (IdentifierLengthLimits.For(target) is not { } limit)
+        {
+            return null;
+        }
+
+        return (limit, DisplayName(target));
     }
 
     private static void ValidateConfiguration(CompilationAnalysisContext context)
