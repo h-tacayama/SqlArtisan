@@ -404,7 +404,7 @@ SqlStatement sql =
     Select(u.Id)
     .From(u)
     .Where(
-        JsonbContains(u.Data, Cast("{\"city\":\"NYC\"}", "jsonb"))
+        JsonbContains(u.Data, Cast("""{"city":"NYC"}""", "jsonb"))
         & JsonbExistsAny(u.Data, "city", "zip"))
     .Build(Dbms.PostgreSql);
 

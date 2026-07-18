@@ -37,26 +37,6 @@ public static partial class Sql
         new(Resolve(jsonExpr), Resolve(key));
 
     /// <summary>
-    /// The <c>(jsonExpr #&gt; path)</c> JSON operator: extracts a JSON element at
-    /// the specified path (PostgreSQL).
-    /// </summary>
-    /// <param name="jsonExpr">The JSON expression.</param>
-    /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
-    /// <returns>A <c>#&gt;</c> operator expression.</returns>
-    public static JsonHashArrowOperator JsonHashArrow(object jsonExpr, object path) =>
-        new(Resolve(jsonExpr), Resolve(path));
-
-    /// <summary>
-    /// The <c>(jsonExpr #&gt;&gt; path)</c> JSON operator: extracts a JSON element
-    /// as text at the specified path (PostgreSQL).
-    /// </summary>
-    /// <param name="jsonExpr">The JSON expression.</param>
-    /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
-    /// <returns>A <c>#&gt;&gt;</c> operator expression.</returns>
-    public static JsonHashArrowTextOperator JsonHashArrowText(object jsonExpr, object path) =>
-        new(Resolve(jsonExpr), Resolve(path));
-
-    /// <summary>
     /// The JSONB containment predicate <c>jsonExpr @&gt; jsonValue</c>: whether
     /// <paramref name="jsonExpr"/> contains <paramref name="jsonValue"/>
     /// (PostgreSQL).
@@ -105,6 +85,26 @@ public static partial class Sql
         CollectionGuard.ThrowIfEmpty(keys, "?| requires at least one key.");
         return new(Resolve(jsonExpr), Resolve(keys));
     }
+
+    /// <summary>
+    /// The <c>(jsonExpr #&gt; path)</c> JSON operator: extracts a JSON element at
+    /// the specified path (PostgreSQL).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
+    /// <returns>A <c>#&gt;</c> operator expression.</returns>
+    public static JsonHashArrowOperator JsonHashArrow(object jsonExpr, object path) =>
+        new(Resolve(jsonExpr), Resolve(path));
+
+    /// <summary>
+    /// The <c>(jsonExpr #&gt;&gt; path)</c> JSON operator: extracts a JSON element
+    /// as text at the specified path (PostgreSQL).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="path">The path to access (e.g. <c>"{a,b}"</c>).</param>
+    /// <returns>A <c>#&gt;&gt;</c> operator expression.</returns>
+    public static JsonHashArrowTextOperator JsonHashArrowText(object jsonExpr, object path) =>
+        new(Resolve(jsonExpr), Resolve(path));
 
     /// <summary>
     /// The <c>JSON_QUERY(jsonDoc, 'path')</c> function: extracts a JSON object
