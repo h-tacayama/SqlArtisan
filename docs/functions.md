@@ -22,7 +22,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Ceil()` for `CEIL` (Oracle; MySQL/PostgreSQL/SQLite accept both spellings)
 - `Ceiling()` for `CEILING` (SQL Server; MySQL/PostgreSQL/SQLite accept both spellings)
 - `Floor()` for `FLOOR`
-- `Mod()` for `MOD`
+- `Mod()` for `MOD` (not supported by SQL Server — use the `%` operator there)
 - `Power()` for `POWER`
 - `Round()` for `ROUND`
 - `Sign()` for `SIGN`
