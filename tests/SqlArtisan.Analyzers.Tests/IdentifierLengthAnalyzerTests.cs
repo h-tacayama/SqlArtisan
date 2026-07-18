@@ -68,7 +68,9 @@ public class IdentifierLengthAnalyzerTests
     [Fact]
     public async Task AliasOverMySqlCharLimit_ReportsSqla0003()
     {
-        var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 65)), EditorConfig("mysql"));
+        // MySQL's alias limit is 256 characters (its 64-char limit is for table/column
+        // names, not aliases), so an alias only warns past 256.
+        var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 257)), EditorConfig("mysql"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
         await test.RunAsync();
     }
@@ -76,7 +78,7 @@ public class IdentifierLengthAnalyzerTests
     [Fact]
     public async Task AliasAtMySqlCharLimit_StaysSilent()
     {
-        var test = AnalyzerVerifier.Create(Unmarked(AliasUsage(Repeat('a', 64))), EditorConfig("mysql"));
+        var test = AnalyzerVerifier.Create(Unmarked(AliasUsage(Repeat('a', 256))), EditorConfig("mysql"));
         await test.RunAsync();
     }
 

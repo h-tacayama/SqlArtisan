@@ -68,17 +68,19 @@ contrast, is a per-usage diagnostic and shows up live as you type.
 `SQLA0003` checks compile-time identifier literals — table and expression
 aliases (`.As(...)`), CTE and derived-table names, `VALUES` column names, and
 the Oracle `RETURNING ... INTO` output variable — against each dialect's
-identifier-length limit: MySQL 64 characters, Oracle 128 bytes, PostgreSQL
+identifier-length limit: MySQL 256 characters, Oracle 128 bytes, PostgreSQL
 63 bytes, SQL Server 128 characters (SQLite is unbounded and never warns).
-PostgreSQL leads the list because it does not error on an over-long
-identifier — it silently truncates it, so two distinct long names can collide
-after truncation, and the analyzer is the only place this surfaces before the
-database does. Oracle and PostgreSQL measure in UTF-8 bytes, so a multi-byte
-identifier reaches the limit sooner than its character count suggests. Only
-constant identifiers are checked — a name built at run time is left alone —
-and, like `SQLA0001`, it is a per-usage diagnostic suppressible at a single
-site (`#pragma warning disable SQLA0003`, a `[SuppressMessage]` attribute, or
-`dotnet_diagnostic.SQLA0003.severity`).
+MySQL's figure is its **alias** limit: the checked positions are aliases, and
+MySQL allows those up to 256 characters, well past its 64-character table and
+column names. PostgreSQL leads the list because it does not error on an
+over-long identifier — it truncates it (with only a notice, not an error), so
+two distinct long names can collide after truncation, and the analyzer is the
+only place this surfaces before the database does. Oracle and PostgreSQL
+measure in UTF-8 bytes, so a multi-byte identifier reaches the limit sooner
+than its character count suggests. Only constant identifiers are checked — a
+name built at run time is left alone — and, like `SQLA0001`, it is a per-usage
+diagnostic suppressible at a single site (`#pragma warning disable SQLA0003`, a
+`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0003.severity`).
 
 ```csharp
 using static SqlArtisan.Sql;

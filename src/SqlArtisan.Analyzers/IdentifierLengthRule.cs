@@ -14,9 +14,8 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 /// <remarks>
 /// Only identifiers the user mints in the query are covered; existing-schema names
-/// (real tables, columns, sequences) already exist within the engine's limit.
-/// Arguments are matched by parameter name, so overloads (e.g. <c>As(DbColumn)</c>)
-/// disambiguate without inspecting types the analyzer must not reference.
+/// already exist within the engine's limit. Arguments match by parameter name, so
+/// overloads (e.g. <c>As(DbColumn)</c>) disambiguate without a core-type reference.
 /// </remarks>
 internal static class IdentifierLengthRule
 {

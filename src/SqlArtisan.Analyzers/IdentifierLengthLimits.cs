@@ -14,10 +14,11 @@ internal static class IdentifierLengthLimits
     /// </summary>
     public static DialectIdentifierLimit? For(TargetDbms target) => target switch
     {
-        // Oracle's 30-byte pre-12.2 limit is version-conditioned, so only the 12.2+
-        // 128-byte baseline is modeled here; the tightening waits on target-version
-        // support.
-        TargetDbms.MySql => new DialectIdentifierLimit(64, LengthUnit.Characters),
+        // MySQL caps table/column names at 64 but aliases at 256; the checked positions
+        // are aliases, so the higher limit avoids false positives on legal long aliases.
+        TargetDbms.MySql => new DialectIdentifierLimit(256, LengthUnit.Characters),
+        // Oracle's 30-byte pre-12.2 limit is version-conditioned; only the 12.2+ 128-byte
+        // baseline is modeled here — the tightening waits on target-version support.
         TargetDbms.Oracle => new DialectIdentifierLimit(128, LengthUnit.Bytes),
         TargetDbms.PostgreSql => new DialectIdentifierLimit(63, LengthUnit.Bytes),
         TargetDbms.SqlServer => new DialectIdentifierLimit(128, LengthUnit.Characters),
