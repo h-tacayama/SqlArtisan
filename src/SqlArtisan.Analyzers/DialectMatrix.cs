@@ -139,6 +139,11 @@ internal static class DialectMatrix
         // docs/expressions.md: "PostgreSQL only" for both #>/#>> operators.
         [new MatrixKey("JsonHashArrow")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("JsonHashArrowText")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // docs/expressions.md: "PostgreSQL only" for the JSONB @> / ? / ?& / ?| predicates (#159).
+        [new MatrixKey("JsonbContains")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("JsonbExists")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("JsonbExistsAll")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("JsonbExistsAny")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- Numeric/character Oracle-only helpers (XML docs "Oracle syntax" + FunctionTests) ---
         [new MatrixKey("Lengthb")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),

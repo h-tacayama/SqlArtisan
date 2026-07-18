@@ -354,7 +354,7 @@ To read every row on purpose, omit `.Where(...)` entirely. Any condition clause 
 
 ## JSON Operators
 
-Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators. The key or path on the right side is parameterized normally.
+Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators, and filter on JSONB content with the `@>`, `?`, `?|`, and `?&` predicates. The key or path on the right side is parameterized normally.
 
 ### Element Access (`->` / `->>`)
 
@@ -394,6 +394,27 @@ SqlStatement sql =
 ```
 
 PostgreSQL only. `JsonHashArrow` (`#>`) returns JSON; `JsonHashArrowText` (`#>>`) returns text.
+
+### Containment / Existence Predicates (`@>` / `?` / `?|` / `?&`)
+
+JSONB `WHERE` predicates: containment and top-level key existence.
+
+```csharp
+SqlStatement sql =
+    Select(u.Id)
+    .From(u)
+    .Where(
+        JsonbContains(u.Data, Cast("{\"city\":\"NYC\"}", "jsonb"))
+        & JsonbExistsAny(u.Data, "city", "zip"))
+    .Build(Dbms.PostgreSql);
+
+// SELECT id FROM users
+// WHERE (data @> CAST(:0 AS jsonb)) AND (data ?| ARRAY[:1, :2])
+```
+
+PostgreSQL only. `JsonbContains` (`@>`) tests whether the left JSONB value contains the right one; `JsonbExists` (`?`) tests a single top-level key or array element (`data ? :0`); `JsonbExistsAny` (`?|`) / `JsonbExistsAll` (`?&`) test whether any / every key in the list exists (`data ?| ARRAY[:0, :1]`), and require at least one key — an empty list throws at the call site.
+
+A bound containment value reaches PostgreSQL as `text`, which `@>` does not accept — wrap it in `Cast(json, "jsonb")` as above. The bare `?` glyph never collides with a bind marker: SqlArtisan emits `:0`-style markers on PostgreSQL.
 
 ---
 
