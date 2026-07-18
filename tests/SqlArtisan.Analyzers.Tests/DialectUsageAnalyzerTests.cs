@@ -327,6 +327,150 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
+    [Fact]
+    public async Task ModulusOperator_OnOracleTarget_ReportsSqla0001()
+    {
+        // Overloaded operators reach the analyzer as binary operations (#219): Oracle has no
+        // % arithmetic operator (its spelling is MOD(n, m)).
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var x = {|#0:Abs(1) % 2|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = oracle
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task ModulusOperator_OnSqlServerTarget_StaysSilent()
+    {
+        // The deliberate mirror of the Mod entry: T-SQL rejects MOD() but accepts % — proves
+        // op_Modulus and Mod are independent entries.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var x = Abs(1) % 2;
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = sqlserver
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task AdditionOperator_OnOracleTarget_StaysSilent()
+    {
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var x = Abs(1) + 2;
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = oracle
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task ModulusOperator_MemberOverrideSupported_SilencesSqla0001()
+    {
+        // Proves the CLR-name-derived override key (op_Modulus -> sqlartisan_construct_op_modulus)
+        // round-trips through the resolver.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var x = Abs(1) % 2;
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = oracle
+            sqlartisan_construct_op_modulus = supported
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task ModulusCompoundAssignment_OnOracleTarget_ReportsSqla0001()
+    {
+        // e %= 2 compiles (ModulusOperator derives from SqlExpression) and reaches Roslyn as a
+        // compound assignment, not a binary operation — a separate registration.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    SqlExpression e = Abs(1);
+                    {|#0:e %= 2|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = oracle
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
     // A true multi-file "different .editorconfig section per file, one compilation" scenario is
     // NOT exercised end-to-end here: Microsoft.CodeAnalysis.Testing 1.1.2's AnalyzerConfigFiles
     // only attaches to the primary TestCode document — a second file added via

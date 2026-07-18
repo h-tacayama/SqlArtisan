@@ -284,6 +284,23 @@ internal static class MatrixSweepCatalog
         Add("Decode", _ => Scalar(Decode(u.Age, (30, "thirty"), "other")));
         Add("Nvl", _ => Scalar(Nvl(u.Name, "x")));
 
+        // --- Overloaded C# operators (#219) ---
+        Add("op_Addition", _ => Scalar(u.Age + 1));
+        Add("op_Subtraction", _ => Scalar(u.Age - 1));
+        Add("op_Multiply", _ => Scalar(u.Age * 2));
+        Add("op_Division", _ => Scalar(u.Age / 2));
+        // The one negative cell: Oracle rejects % as a grammar error (no parses-as-something-else
+        // hazard, unlike DoublePipe on MySQL), so no skips are needed.
+        Add("op_Modulus", _ => Scalar(u.Age % 2));
+        Add("op_Equality", _ => WherePredicate(u.Id == 1));
+        Add("op_Inequality", _ => WherePredicate(u.Id != -1));
+        Add("op_LessThan", _ => WherePredicate(u.Id < 100));
+        Add("op_GreaterThan", _ => WherePredicate(u.Id > -1));
+        Add("op_LessThanOrEqual", _ => WherePredicate(u.Id <= 100));
+        Add("op_GreaterThanOrEqual", _ => WherePredicate(u.Id >= -1));
+        Add("op_BitwiseAnd", _ => WherePredicate((u.Id == 1) & (u.Age >= 0)));
+        Add("op_BitwiseOr", _ => WherePredicate((u.Id == 1) | (u.Id == 2)));
+
         // --- Date / time ---
         Add("CurrentDate", _ => Scalar(CurrentDate));
         Add("CurrentTime", _ => Scalar(CurrentTime));

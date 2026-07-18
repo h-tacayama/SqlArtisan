@@ -44,6 +44,7 @@ public class XmlDocDialectParityTests
         ["M:SqlArtisan.Sql.Rpad(System.Object,System.Object,System.Object)", "Rpad", 3],
         ["M:SqlArtisan.Sql.Lpad(System.Object,System.Object)", "Lpad", 2],
         ["M:SqlArtisan.Sql.Lpad(System.Object,System.Object,System.Object)", "Lpad", 3],
+        ["M:SqlArtisan.SqlExpression.op_Modulus(SqlArtisan.SqlExpression,System.Object)", "op_Modulus", 2],
     ];
 
     [Theory]
