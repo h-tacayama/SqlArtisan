@@ -80,4 +80,5 @@ with availability left to the database"). ADR cross-references belong in
 - Adding/renaming/moving a `## ` section in `docs/expressions.md` or
   `docs/functions.md` must update `docs/README.md`'s index **and** the root
   README capability-map row, both **in page order** — `DocsIndexTests` gates
-  both (#210, #340) — and usually `llms.txt` (descriptor prose, ungated).
+  missing links on both, plus order and stale anchors on the root README row
+  (#210, #340) — and usually `llms.txt` (descriptor prose, ungated).
