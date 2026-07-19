@@ -16,7 +16,10 @@ public static partial class Sql
     /// <c>FULLTEXT</c> index.</param>
     /// <returns>A <see cref="MatchFunction"/> pending its <c>AGAINST</c> clause.</returns>
     /// <remarks>MySQL syntax. For the SQLite FTS5 <c>table MATCH pattern</c>
-    /// predicate use <see cref="Match(DbTableBase, object)"/>.</remarks>
+    /// predicate use <see cref="Match(DbTableBase, object)"/>. Also: a file
+    /// combining <c>using static SqlArtisan.Sql;</c> with unqualified
+    /// <c>Match.</c> member access (e.g. regex's <c>Match.Empty</c>) fails to
+    /// compile — qualify as <c>System.Text.RegularExpressions.Match</c>.</remarks>
     public static MatchFunction Match(object column, params object[] otherColumns) =>
         new([Resolve(column), .. Resolve(otherColumns)]);
 
@@ -31,7 +34,9 @@ public static partial class Sql
     /// <c>"data* AND query"</c>).</param>
     /// <returns>A <see cref="MatchCondition"/> emitting <c>table MATCH pattern</c>.</returns>
     /// <remarks>SQLite syntax. For the MySQL <c>MATCH ... AGAINST</c> construct use
-    /// <see cref="Match(object, object[])"/>.</remarks>
+    /// <see cref="Match(object, object[])"/>, whose remarks also cover a
+    /// <c>System.Text.RegularExpressions.Match</c> naming collision that
+    /// applies here too.</remarks>
     public static MatchCondition Match(DbTableBase table, object pattern) =>
         new(table, Resolve(pattern));
 

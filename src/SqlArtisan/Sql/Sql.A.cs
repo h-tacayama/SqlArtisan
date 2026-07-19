@@ -63,6 +63,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="elements">The array elements; at least one.</param>
     /// <returns>An <see cref="ArrayConstructorExpression"/> emitting <c>ARRAY[elements]</c>.</returns>
+    /// <remarks>A file combining <c>using static SqlArtisan.Sql;</c> with unqualified
+    /// <c>Array.</c> member access (e.g. <c>Array.Empty&lt;T&gt;()</c>) fails to
+    /// compile; qualify as <c>System.Array</c> there.</remarks>
     public static ArrayConstructorExpression Array(params object[] elements)
     {
         CollectionGuard.ThrowIfEmpty(elements, "ARRAY[...] requires at least one element.");
