@@ -158,9 +158,9 @@ public static partial class Sql
     /// The <c>SOME (array)</c> quantified comparison operator: equivalent to
     /// <see cref="Any(SqlExpression)"/> — the comparison must hold for at least
     /// one element of the array expression (PostgreSQL).
-    /// Use with a comparison operator — e.g. <c>col == Some(ArrayBind(values))</c>.
+    /// Use with a comparison operator — e.g. <c>col == Some(BindArray(values))</c>.
     /// </summary>
-    /// <param name="array">The array expression — an <see cref="ArrayBindValue"/>,
+    /// <param name="array">The array expression — an <see cref="BindArrayValue"/>,
     /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>
     /// <returns>A quantified expression emitting <c>SOME (array)</c>.</returns>
     public static QuantifiedExpression Some(SqlExpression array) =>

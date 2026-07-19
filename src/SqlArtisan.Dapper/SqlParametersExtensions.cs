@@ -23,7 +23,7 @@ public static class SqlParametersExtensions
 
         parameters.ForEach((name, bind) =>
         {
-            if (bind is ArrayBindValue)
+            if (bind is BindArrayValue)
             {
                 // Not passed as a raw value: Dapper would rewrite the marker
                 // into an IN list, corrupting = ANY (:n).

@@ -2,21 +2,21 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-public class ArrayBindTests
+public class BindArrayTests
 {
     private readonly TestTable _t = new("t");
 
-    // --- ArrayBind + ANY --------------------------------------------------------
+    // --- BindArray + ANY --------------------------------------------------------
 
     [Fact]
-    public void ArrayBind_EqualsAny_CorrectSql()
+    public void BindArray_EqualsAny_CorrectSql()
     {
         int[] values = [1, 2, 3];
 
         SqlStatement sql =
             Select(_t.Name)
             .From(_t)
-            .Where(_t.Code == Any(ArrayBind(values)))
+            .Where(_t.Code == Any(BindArray(values)))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal(
@@ -27,14 +27,14 @@ public class ArrayBindTests
     }
 
     [Fact]
-    public void ArrayBind_Collection_BindsSingleParameter()
+    public void BindArray_Collection_BindsSingleParameter()
     {
         List<string> values = ["a", "b"];
 
         SqlStatement sql =
             Select(_t.Code)
             .From(_t)
-            .Where(_t.Name == Any(ArrayBind(values)))
+            .Where(_t.Name == Any(BindArray(values)))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal(
@@ -45,12 +45,12 @@ public class ArrayBindTests
     }
 
     [Fact]
-    public void ArrayBind_EmptyArray_CorrectSql()
+    public void BindArray_EmptyArray_CorrectSql()
     {
         SqlStatement sql =
             Select(_t.Code)
             .From(_t)
-            .Where(_t.Code == Any(ArrayBind(System.Array.Empty<int>())))
+            .Where(_t.Code == Any(BindArray(System.Array.Empty<int>())))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal(
@@ -61,14 +61,14 @@ public class ArrayBindTests
     }
 
     [Fact]
-    public void ArrayBind_NullableElements_CorrectSql()
+    public void BindArray_NullableElements_CorrectSql()
     {
         int?[] values = [1, null];
 
         SqlStatement sql =
             Select(_t.Code)
             .From(_t)
-            .Where(_t.Code == Any(ArrayBind(values)))
+            .Where(_t.Code == Any(BindArray(values)))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal(
@@ -78,9 +78,9 @@ public class ArrayBindTests
     }
 
     [Fact]
-    public void ArrayBind_SharedInstance_ReusesMarker()
+    public void BindArray_SharedInstance_ReusesMarker()
     {
-        ArrayBindValue shared = ArrayBind([1, 2]);
+        BindArrayValue shared = BindArray([1, 2]);
 
         SqlStatement sql =
             Select(_t.Code)
@@ -103,7 +103,7 @@ public class ArrayBindTests
         SqlStatement sql =
             Select(_t.Name)
             .From(_t)
-            .Where(_t.Code < All(ArrayBind([10, 20])))
+            .Where(_t.Code < All(BindArray([10, 20])))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal(
@@ -118,7 +118,7 @@ public class ArrayBindTests
         SqlStatement sql =
             Select(_t.Name)
             .From(_t)
-            .Where(_t.Code == Some(ArrayBind([1])))
+            .Where(_t.Code == Some(BindArray([1])))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal(
@@ -146,10 +146,10 @@ public class ArrayBindTests
     // --- Guards -----------------------------------------------------------------
 
     [Fact]
-    public void ArrayBind_NullArray_ThrowsArgumentNullException()
+    public void BindArray_NullArray_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
-            ArrayBind<int>((int[])null!));
+            BindArray<int>((int[])null!));
 
         Assert.Equal(
             "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'values')",
@@ -157,10 +157,10 @@ public class ArrayBindTests
     }
 
     [Fact]
-    public void ArrayBind_NullCollection_ThrowsArgumentNullException()
+    public void BindArray_NullCollection_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
-            ArrayBind((List<int>)null!));
+            BindArray((List<int>)null!));
 
         Assert.Equal(
             "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'values')",
@@ -168,11 +168,11 @@ public class ArrayBindTests
     }
 
     [Fact]
-    public void ArrayBind_UnbindableElementType_ThrowsArgumentException()
+    public void BindArray_UnbindableElementType_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            ArrayBind(new object[] { 1 }));
+            BindArray(new object[] { 1 }));
 
-        Assert.Equal("Invalid element type for ArrayBind: System.Object", ex.Message);
+        Assert.Equal("Invalid element type for BindArray: System.Object", ex.Message);
     }
 }

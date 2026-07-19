@@ -117,7 +117,7 @@ internal static class ExpressionResolver
         || IsNumeric(value)
         || IsEnum(value);
 
-    // Type-level twin of IsBindable for ArrayBind's element check: the element
+    // Type-level twin of IsBindable for BindArray's element check: the element
     // type is fixed at the call site, so even an empty array validates
     // deterministically. Keep the two sets identical.
     internal static bool IsBindableType(Type type)

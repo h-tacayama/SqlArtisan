@@ -152,8 +152,8 @@ internal static class DialectMatrix
         [new MatrixKey("JsonbExistsAny")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         // docs/expressions.md: "PostgreSQL only" for the single array-typed bind behind
         // = ANY (:param), and for UNNEST (#159). The Any/All/Some keys below stay the
-        // subquery-form union — the array form's PG-only verdict rides on ArrayBind.
-        [new MatrixKey("ArrayBind")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // subquery-form union — the array form's PG-only verdict rides on BindArray.
+        [new MatrixKey("BindArray")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("Unnest")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- Numeric/character Oracle-only helpers (XML docs "Oracle syntax" + FunctionTests) ---
@@ -338,8 +338,8 @@ internal static class DialectMatrix
         // by the dialect sweep ('near "ALL": syntax error'). docs corrected to match.
         // The array-operand overloads (#159) collide here at arity 1 (MatrixKey is type-blind),
         // so these entries stay the subquery-form support; the PG-only array form is guarded
-        // through its ArrayBind argument. Known false negative: an array-typed column or
-        // ARRAY[...] operand with no ArrayBind call goes unflagged off-PG.
+        // through its BindArray argument. Known false negative: an array-typed column or
+        // ARRAY[...] operand with no BindArray call goes unflagged off-PG.
         [new MatrixKey("All")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("Any")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("Some")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),

@@ -25,7 +25,7 @@ public static partial class Sql
     /// is a set-returning call.
     /// </summary>
     /// <param name="arrays">The array expressions to expand — e.g.
-    /// <see cref="ArrayBind{T}(T[])"/> values or <c>ARRAY[...]</c> constructors;
+    /// <see cref="BindArray{T}(T[])"/> values or <c>ARRAY[...]</c> constructors;
     /// at least one.</param>
     /// <returns>An <see cref="UnnestFunction"/> emitting <c>UNNEST(arrays)</c>.</returns>
     public static UnnestFunction Unnest(params object[] arrays)

@@ -21,7 +21,7 @@ public partial class FunctionTests
     public void Unnest_AsTable_CorrectSql()
     {
         int[] values = [1, 2, 3];
-        UnnestDerivedTable t = Unnest(ArrayBind(values)).AsTable("t");
+        UnnestDerivedTable t = Unnest(BindArray(values)).AsTable("t");
 
         SqlStatement sql =
             Select(t.Column("t"))
@@ -37,7 +37,7 @@ public partial class FunctionTests
     public void Unnest_AsTable_NamedColumns_CorrectSql()
     {
         UnnestDerivedTable t =
-            Unnest(ArrayBind([1, 2]), ArrayBind(["a", "b"]))
+            Unnest(BindArray([1, 2]), BindArray(["a", "b"]))
             .AsTable("t", "x", "y");
 
         SqlStatement sql =
@@ -56,7 +56,7 @@ public partial class FunctionTests
     [Fact]
     public void Unnest_JoinedWithTable_CorrectSql()
     {
-        UnnestDerivedTable ids = Unnest(ArrayBind([1, 2])).AsTable("ids", "id");
+        UnnestDerivedTable ids = Unnest(BindArray([1, 2])).AsTable("ids", "id");
 
         SqlStatement sql =
             Select(_t.Name)
@@ -84,7 +84,7 @@ public partial class FunctionTests
     public void Unnest_AsTable_NoColumns_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Unnest(ArrayBind([1])).AsTable("t", []));
+            Unnest(BindArray([1])).AsTable("t", []));
 
         Assert.Equal(
             "An UNNEST column alias list requires at least one column.", ex.Message);

@@ -616,14 +616,14 @@ SqlStatement sql =
 
 ### ANY / ALL with a Bound Array (PostgreSQL)
 
-`ArrayBind(values)` binds a whole .NET array or collection as **one** array-typed parameter; passed to `Any(...)` / `All(...)` / `Some(...)`, it is the idiomatic PostgreSQL list filter:
+`BindArray(values)` binds a whole .NET array or collection as **one** array-typed parameter; passed to `Any(...)` / `All(...)` / `Some(...)`, it is the idiomatic PostgreSQL list filter:
 
 ```csharp
 int[] ids = [1, 2, 4];
 SqlStatement sql =
     Select(u.Name)
     .From(u)
-    .Where(u.Id == Any(ArrayBind(ids)))
+    .Where(u.Id == Any(BindArray(ids)))
     .Build(Dbms.PostgreSql);
 
 // SELECT "u".name

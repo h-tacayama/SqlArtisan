@@ -299,10 +299,10 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task ArrayBindAndUnnest_OnMySql_ReportSqla0001()
+    public async Task BindArrayAndUnnest_OnMySql_ReportSqla0001()
     {
         // The Any/All/Some keys stay the subquery-form union (arity-1 collision, see
-        // DialectMatrix), so off-PG the array form is flagged through ArrayBind/Unnest.
+        // DialectMatrix), so off-PG the array form is flagged through BindArray/Unnest.
         const string source = """
             using SqlArtisan;
             using static SqlArtisan.Sql;
@@ -311,7 +311,7 @@ public class DialectUsageAnalyzerTests
             {
                 void M()
                 {
-                    var bind = {|#0:ArrayBind(new[] { 1, 2 })|};
+                    var bind = {|#0:BindArray(new[] { 1, 2 })|};
                     var rows = {|#1:Unnest(bind)|};
                 }
             }
@@ -331,7 +331,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task ArrayBindAndUnnest_OnPostgreSql_StaySilent()
+    public async Task BindArrayAndUnnest_OnPostgreSql_StaySilent()
     {
         const string source = """
             using SqlArtisan;
@@ -341,7 +341,7 @@ public class DialectUsageAnalyzerTests
             {
                 void M()
                 {
-                    var bind = ArrayBind(new[] { 1, 2 });
+                    var bind = BindArray(new[] { 1, 2 });
                     var rows = Unnest(bind);
                 }
             }

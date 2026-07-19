@@ -531,8 +531,8 @@ internal static class MatrixSweepCatalog
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
         // The single array-typed bind (= ANY (:0)) doubles as the live proof of the
         // Dapper ArrayQueryParameter path.
-        cases.Add(new SweepCase(new MatrixKey("ArrayBind"),
-            _ => WherePredicate(u.Id == Any(ArrayBind([1, 2]))),
+        cases.Add(new SweepCase(new MatrixKey("BindArray"),
+            _ => WherePredicate(u.Id == Any(BindArray([1, 2]))),
             NegativeSkips: new Dictionary<Dbms, string>
             {
                 [Dbms.MySql] = "The array-typed parameter is not rejected client-side "
@@ -549,7 +549,7 @@ internal static class MatrixSweepCatalog
                     + "(no mapping exists from System.Int32[] to a known managed provider "
                     + "native type), so the statement never reaches the engine's grammar.",
             }));
-        // ARRAY[...] operand (not ArrayBind) so every parameter is a scalar and each
+        // ARRAY[...] operand (not BindArray) so every parameter is a scalar and each
         // engine's accept/reject verdict is about the UNNEST grammar itself.
         Add("Unnest", _ =>
         {

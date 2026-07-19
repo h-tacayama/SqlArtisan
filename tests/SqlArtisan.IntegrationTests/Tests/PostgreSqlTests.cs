@@ -306,7 +306,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     }
 
     [Fact]
-    public void Where_AnyArrayBind_FiltersByArrayParameter()
+    public void Where_AnyBindArray_FiltersByArrayParameter()
     {
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
@@ -314,13 +314,13 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         // The whole array travels as ONE parameter (ArrayQueryParameter must
         // bypass Dapper's IN-list expansion for = ANY (:0) to survive).
         long count = Convert.ToInt64(connection.ExecuteScalar(
-            Select(Count(u.Id)).From(u).Where(u.Id == Any(ArrayBind([1, 2, 4])))));
+            Select(Count(u.Id)).From(u).Where(u.Id == Any(BindArray([1, 2, 4])))));
 
         Assert.Equal(3, count);
     }
 
     [Fact]
-    public void Where_AnyArrayBind_EmptyArray_MatchesNoRows()
+    public void Where_AnyBindArray_EmptyArray_MatchesNoRows()
     {
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
@@ -328,15 +328,15 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         long count = Convert.ToInt64(connection.ExecuteScalar(
             Select(Count(u.Id))
             .From(u)
-            .Where(u.Id == Any(ArrayBind(System.Array.Empty<int>())))));
+            .Where(u.Id == Any(BindArray(System.Array.Empty<int>())))));
 
         Assert.Equal(0, count);
     }
 
     [Fact]
-    public void From_UnnestArrayBind_ExpandsIntoRows()
+    public void From_UnnestBindArray_ExpandsIntoRows()
     {
-        UnnestDerivedTable t = Unnest(ArrayBind([30, 10, 20])).AsTable("v");
+        UnnestDerivedTable t = Unnest(BindArray([30, 10, 20])).AsTable("v");
         using IDbConnection connection = _fixture.OpenConnection();
 
         IEnumerable<int> values = connection
