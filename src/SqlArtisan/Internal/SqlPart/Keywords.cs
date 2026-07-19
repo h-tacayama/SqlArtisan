@@ -193,6 +193,7 @@ internal static class Keywords
     internal const string Trunc = "TRUNC";
     internal const string Unbounded = "UNBOUNDED";
     internal const string Union = "UNION";
+    internal const string Unnest = "UNNEST";
     internal const string Update = "UPDATE";
     internal const string Upper = "UPPER";
     internal const string Using = "USING";

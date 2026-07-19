@@ -19,6 +19,22 @@ public static partial class Sql
     public static FrameBound UnboundedFollowing => FrameBound.UnboundedFollowing();
 
     /// <summary>
+    /// The <c>UNNEST(arrays)</c> table function: expands one or more arrays into
+    /// rows (PostgreSQL). Name it as a <c>FROM</c> source with
+    /// <see cref="UnnestFunction.AsTable(string)"/>; in a <c>SELECT</c> list it
+    /// is a set-returning call.
+    /// </summary>
+    /// <param name="arrays">The array expressions to expand — e.g.
+    /// <see cref="BindArray{T}(T[])"/> values or <c>ARRAY[...]</c> constructors;
+    /// at least one.</param>
+    /// <returns>An <see cref="UnnestFunction"/> emitting <c>UNNEST(arrays)</c>.</returns>
+    public static UnnestFunction Unnest(params object[] arrays)
+    {
+        CollectionGuard.ThrowIfEmpty(arrays, "UNNEST(...) requires at least one array.");
+        return new(Resolve(arrays));
+    }
+
+    /// <summary>
     /// Begins an <c>UPDATE table</c> statement. Continue with <c>.Set(...)</c> and
     /// <c>.Where(...)</c>.
     /// </summary>

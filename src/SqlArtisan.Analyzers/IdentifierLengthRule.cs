@@ -22,7 +22,7 @@ internal static class IdentifierLengthRule
     private static readonly Dictionary<string, IdentifierParam[]> MethodIdentifierParams = new(StringComparer.Ordinal)
     {
         ["As"] = [new IdentifierParam("alias", isList: false)],
-        ["AsTable"] = [new IdentifierParam("alias", isList: false)],
+        ["AsTable"] = [new IdentifierParam("alias", isList: false), new IdentifierParam("columns", isList: true)],
         ["ValuesTable"] = [new IdentifierParam("alias", isList: false), new IdentifierParam("columnNames", isList: true)],
     };
 

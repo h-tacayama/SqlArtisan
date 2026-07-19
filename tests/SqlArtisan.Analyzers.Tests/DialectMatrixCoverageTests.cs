@@ -28,6 +28,8 @@ public class DialectMatrixCoverageTests
         ["DbTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
         ["DerivedTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
         ["SubqueryDerivedTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
+        ["UnnestDerivedTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
+        ["UnnestFunction.AsTable"] = "Names the call as a FROM source; the PG-only construct is the Unnest entry.",
         ["ValuesDerivedTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
         ["ISubquery.AsTable"] = "Wraps a subquery as a derived-table source; dialect-neutral by construction — the source's dialect scope is carried by the consuming clause (MERGE USING = Oracle/PostgreSQL/SQL Server).",
         ["DbSequence.Name"] = "C#-side metadata; the sequence constructs are the Nextval/Currval/Sequence entries.",

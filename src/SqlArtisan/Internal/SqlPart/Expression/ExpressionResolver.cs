@@ -117,6 +117,35 @@ internal static class ExpressionResolver
         || IsNumeric(value)
         || IsEnum(value);
 
+    // Type-level twin of IsBindable for BindArray's element check: the element
+    // type is fixed at the call site, so even an empty array validates
+    // deterministically. Keep the two sets identical.
+    internal static bool IsBindableType(Type type)
+    {
+        Type unwrapped = Nullable.GetUnderlyingType(type) ?? type;
+        return unwrapped == typeof(bool)
+            || unwrapped == typeof(char)
+            || unwrapped == typeof(string)
+            || unwrapped == typeof(DateTime)
+            || unwrapped == typeof(DateOnly)
+            || unwrapped == typeof(TimeOnly)
+            || unwrapped == typeof(sbyte)
+            || unwrapped == typeof(byte)
+            || unwrapped == typeof(short)
+            || unwrapped == typeof(ushort)
+            || unwrapped == typeof(int)
+            || unwrapped == typeof(uint)
+            || unwrapped == typeof(nint)
+            || unwrapped == typeof(nuint)
+            || unwrapped == typeof(long)
+            || unwrapped == typeof(ulong)
+            || unwrapped == typeof(float)
+            || unwrapped == typeof(double)
+            || unwrapped == typeof(decimal)
+            || unwrapped == typeof(Complex)
+            || unwrapped.IsEnum;
+    }
+
     internal static bool IsBoolean(object value) =>
         value is bool;
 

@@ -16,7 +16,7 @@ namespace SqlArtisan;
 /// <paramref name="direction"/> and <paramref name="size"/> serve the Oracle
 /// <c>RETURNING ... INTO</c> output-parameter path; <see cref="Sql.Bind(object)"/> never sets them.
 /// </remarks>
-public sealed class BindValue(
+public class BindValue(
     object value,
     DbType? dbType = null,
     ParameterDirection? direction = null,

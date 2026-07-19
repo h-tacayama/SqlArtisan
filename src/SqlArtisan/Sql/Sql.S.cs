@@ -155,6 +155,18 @@ public static partial class Sql
         new(Keywords.Some, subquery);
 
     /// <summary>
+    /// The <c>SOME (array)</c> quantified comparison operator: equivalent to
+    /// <see cref="Any(SqlExpression)"/> — the comparison must hold for at least
+    /// one element of the array expression (PostgreSQL).
+    /// Use with a comparison operator — e.g. <c>col == Some(BindArray(values))</c>.
+    /// </summary>
+    /// <param name="array">The array expression — a <see cref="BindArrayValue"/>,
+    /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>
+    /// <returns>A quantified expression emitting <c>SOME (array)</c>.</returns>
+    public static QuantifiedExpression Some(SqlExpression array) =>
+        new(Keywords.Some, array);
+
+    /// <summary>
     /// The <c>SQRT(expr)</c> function: the square root of <paramref name="expr"/>.
     /// </summary>
     /// <param name="expr">The numeric expression whose square root is taken.</param>

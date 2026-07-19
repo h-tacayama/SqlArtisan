@@ -299,6 +299,66 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task BindArrayAndUnnest_OnMySql_ReportSqla0001()
+    {
+        // The Any/All/Some keys stay the subquery-form union (arity-1 collision, see
+        // DialectMatrix), so off-PG the array form is flagged through BindArray/Unnest.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var bind = {|#0:BindArray(new[] { 1, 2 })|};
+                    var rows = {|#1:Unnest(bind)|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = mysql
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(1));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task BindArrayAndUnnest_OnPostgreSql_StaySilent()
+    {
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var bind = BindArray(new[] { 1, 2 });
+                    var rows = Unnest(bind);
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task DualProperty_UnsupportedTarget_ReportsSqla0001()
     {
         const string source = """

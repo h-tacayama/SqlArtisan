@@ -47,6 +47,17 @@ public static partial class Sql
         new(Keywords.All, subquery);
 
     /// <summary>
+    /// The <c>ALL (array)</c> quantified comparison operator: the comparison must
+    /// hold for every element of the array expression (PostgreSQL).
+    /// Use with a comparison operator — e.g. <c>col &lt; All(BindArray(values))</c>.
+    /// </summary>
+    /// <param name="array">The array expression — a <see cref="BindArrayValue"/>,
+    /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>
+    /// <returns>A quantified expression emitting <c>ALL (array)</c>.</returns>
+    public static QuantifiedExpression All(SqlExpression array) =>
+        new(Keywords.All, array);
+
+    /// <summary>
     /// The <c>ANY (subquery)</c> quantified comparison operator: the comparison must
     /// hold for at least one row returned by the subquery.
     /// Use with a comparison operator — e.g. <c>col &gt; Any(subquery)</c>.
@@ -56,6 +67,17 @@ public static partial class Sql
     /// <remarks>SQLite's grammar has no quantified comparisons; the other dialects accept it.</remarks>
     public static QuantifiedSubquery Any(ISubquery subquery) =>
         new(Keywords.Any, subquery);
+
+    /// <summary>
+    /// The <c>ANY (array)</c> quantified comparison operator: the comparison must
+    /// hold for at least one element of the array expression (PostgreSQL).
+    /// Use with a comparison operator — e.g. <c>col == Any(BindArray(values))</c>.
+    /// </summary>
+    /// <param name="array">The array expression — a <see cref="BindArrayValue"/>,
+    /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>
+    /// <returns>A quantified expression emitting <c>ANY (array)</c>.</returns>
+    public static QuantifiedExpression Any(SqlExpression array) =>
+        new(Keywords.Any, array);
 
     /// <summary>
     /// The <c>ARRAY[elements]</c> array constructor: an array value from the

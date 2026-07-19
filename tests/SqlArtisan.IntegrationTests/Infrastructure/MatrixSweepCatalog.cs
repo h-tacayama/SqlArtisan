@@ -529,6 +529,33 @@ internal static class MatrixSweepCatalog
         Add("JsonbExists", _ => WherePredicate(JsonbExists(u.Data, "name")));
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
+        // The single array-typed bind (= ANY (:0)) doubles as the live proof of the
+        // Dapper ArrayQueryParameter path.
+        cases.Add(new SweepCase(new MatrixKey("BindArray"),
+            _ => WherePredicate(u.Id == Any(BindArray([1, 2]))),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.MySql] = "The array-typed parameter is not rejected client-side "
+                    + "(MySqlConnector infers a fallback type without an open connection); "
+                    + "any rejection happens at execute time, proven by the nightly matrix.",
+                [Dbms.Oracle] = "The array-typed parameter is not rejected client-side "
+                    + "(Oracle.ManagedDataAccess infers a fallback type without an open "
+                    + "connection); any rejection happens at execute time, proven by the "
+                    + "nightly matrix.",
+                [Dbms.Sqlite] = "The array-typed parameter is rejected client-side "
+                    + "(no mapping exists from System.Int32[] to a known managed provider "
+                    + "native type), so the statement never reaches the engine's grammar.",
+                [Dbms.SqlServer] = "The array-typed parameter is rejected client-side "
+                    + "(no mapping exists from System.Int32[] to a known managed provider "
+                    + "native type), so the statement never reaches the engine's grammar.",
+            }));
+        // ARRAY[...] operand (not BindArray) so every parameter is a scalar and each
+        // engine's accept/reject verdict is about the UNNEST grammar itself.
+        Add("Unnest", _ =>
+        {
+            UnnestDerivedTable t = Unnest(Array("a", "b")).AsTable("t");
+            return Select(t.Column("t")).From(t);
+        });
 
         // --- Sequences ---
         Add("Nextval", dbms => dbms == Dbms.Oracle
