@@ -78,6 +78,7 @@ with availability left to the database"). ADR cross-references belong in
 - README→docs and docs↔docs links are absolute GitHub `blob/main` URLs;
   `llms.txt` uses `raw.githubusercontent.com` URLs; in-page anchors stay relative.
 - Adding/renaming/moving a `## ` section in `docs/expressions.md` or
-  `docs/functions.md` must update `docs/README.md`'s index **in page order**
-  (and usually the README capability map and `llms.txt`). `DocsIndexTests`
-  fails the unit suite when an index link is missing (#210).
+  `docs/functions.md` must update `docs/README.md`'s index **and** the root
+  README capability-map row, both **in page order** — `DocsIndexTests` gates
+  missing links on both, plus order and stale anchors on the root README row
+  (#210, #340) — and usually `llms.txt` (descriptor prose, ungated).
