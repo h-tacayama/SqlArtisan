@@ -2834,7 +2834,8 @@ JSON paths are emitted as inline string literals (SQL Server and Oracle require 
 - `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, SQL Server)
 
 > [!NOTE]
-> JSON **operators** (`->`, `->>`, `#>`, `#>>`) live in
+> JSON **operators** (`->`, `->>`, `#>`, `#>>`, and the JSONB predicates
+> `@>` / `?` / `?|` / `?&`) live in
 > [Expressions: JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators)
 > because they are infix operators, not function calls.
 

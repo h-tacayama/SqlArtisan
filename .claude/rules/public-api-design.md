@@ -32,6 +32,28 @@ Never invent a token-like name for a real construct: `CountAll()` was rejected
 parameterless `Count()` overload (#233), and real tokens like SQL Server's
 `COUNT_BIG` keep their conventional names available.
 
+## BCL simple-name collisions: record here, don't rename
+
+A faithful SQL-token name can collide with a common BCL static-utility type of
+the same name: a file combining `using static SqlArtisan.Sql;` with an
+unqualified `Type.Member` call on the BCL type fails to compile (`CS0119`),
+because the simple name resolves to the imported method first. The collision
+is real but narrow: it only fires on member access in that one file (a sibling
+file without the `using static` is unaffected), and it has a cheap
+per-call-site fix (qualify the BCL type, e.g. `System.Array.Empty<T>()`).
+
+This is **not** grounds for a rename — the SQL-token naming rule above still
+wins, and inventing a non-token name to dodge a BCL collision has no more
+precedent than inventing one to encode an opinion (the `CountAll` rejection,
+above). Nor does it warrant a `<remarks>` on the factory: the failure is a
+loud compile error that names the factory itself (and `sa-write-xml-docs`
+keeps point-of-use docs out of this anyway). Record known instances here
+instead — `Sql.Array` (`System.Array`), `Sql.Match`
+(`System.Text.RegularExpressions.Match`) (#338). Before naming a new member
+after a literal SQL token, check it against common BCL static-utility type
+names (`Array`, `Convert`, `Math`, `Type`, `Enum`, `Console`, ...) so a new
+collision ships as a recorded trade-off, not a later surprise.
+
 ## Overload split for analyzer arity
 
 The analyzer keys the dialect matrix by the **declared** parameter count
