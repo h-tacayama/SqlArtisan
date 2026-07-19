@@ -12,24 +12,12 @@ namespace SqlArtisan;
 /// </summary>
 public sealed class DerivedTable(string name) : DerivedTableBase(name), IColumnAccessor
 {
-    /// <summary>
-    /// Returns the named column of this derived table, qualified by its alias.
-    /// </summary>
-    /// <param name="name">The column name to qualify with this derived table's alias.</param>
-    /// <returns>A <see cref="DbColumn"/> qualified by this derived table's alias.</returns>
+    /// <inheritdoc/>
     public DbColumn Column(string name) => new(this, name);
 
-    /// <summary>
-    /// Returns this derived table's column for <paramref name="source"/> — its column name, qualified by this alias. Use when the subquery projects the column unaliased.
-    /// </summary>
-    /// <param name="source">The source column whose name is re-qualified with this derived table's alias.</param>
-    /// <returns>A <see cref="DbColumn"/> qualified by this derived table's alias.</returns>
+    /// <inheritdoc/>
     public DbColumn Column(DbColumn source) => new(this, source.Name);
 
-    /// <summary>
-    /// Returns this derived table's column for <paramref name="alias"/> — a SELECT-list <c>.As(...)</c> — qualified by this alias.
-    /// </summary>
-    /// <param name="alias">The SELECT-list <c>.As(...)</c> alias to qualify with this derived table's alias.</param>
-    /// <returns>A <see cref="DbColumn"/> qualified by this derived table's alias.</returns>
+    /// <inheritdoc/>
     public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name);
 }
