@@ -2,6 +2,11 @@ namespace SqlArtisan.Internal;
 
 internal static class Operators
 {
+    // @> deliberately duplicates JsonbContains's token value — separate names
+    // keep each call site's operand domain explicit.
+    internal const string ArrayContainedBy = "<@";
+    internal const string ArrayContains = "@>";
+    internal const string ArrayOverlaps = "&&";
     internal const string Asterisk = "*";
     internal const string DoublePipe = "||";
     internal const string Equality = "=";
