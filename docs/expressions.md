@@ -631,7 +631,7 @@ SqlStatement sql =
 // WHERE "u".id = ANY (:0)
 ```
 
-`:0` binds the whole `int[]` as one parameter. PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling), and an empty collection is legal: it binds normally and matches no rows, where `In(...)` rejects an empty list at the call site. Element types follow the [bind-parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
+PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling), and an empty collection is legal: it binds normally and matches no rows, where `In(...)` rejects an empty list at the call site. Element types follow the [bind-parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
 
 Executing through SqlArtisan.Dapper preserves the array as a single ADO.NET parameter (it is exempt from Dapper's list expansion); Npgsql maps the .NET array to the PostgreSQL array type natively.
 
