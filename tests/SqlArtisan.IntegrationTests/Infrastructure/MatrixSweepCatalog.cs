@@ -530,13 +530,7 @@ internal static class MatrixSweepCatalog
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
         // The single array-typed bind (= ANY (:0)) doubles as the live proof of the
-        // Dapper ArrayQueryParameter path. On SqlServer/Sqlite the provider rejects the
-        // array value client-side (confirmed: "No mapping exists from object type
-        // System.Int32[] ..."), so the engine's own grammar verdict is unreachable. On
-        // MySql/Oracle the provider accepts .Value = int[] without an open connection
-        // (silently inferring VarChar/Int32), so any rejection there happens only at
-        // execute time against a live server — unverified without Docker in this repo's
-        // dev environment; the nightly matrix is the actual proof for those two.
+        // Dapper ArrayQueryParameter path.
         cases.Add(new SweepCase(new MatrixKey("ArrayBind"),
             _ => WherePredicate(u.Id == Any(ArrayBind([1, 2]))),
             NegativeSkips: new Dictionary<Dbms, string>
