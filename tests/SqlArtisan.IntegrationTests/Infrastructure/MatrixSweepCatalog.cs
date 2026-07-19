@@ -530,19 +530,30 @@ internal static class MatrixSweepCatalog
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
         // The single array-typed bind (= ANY (:0)) doubles as the live proof of the
-        // Dapper ArrayQueryParameter path. Off-PG the ADO.NET provider rejects the
-        // array value client-side, so the engine's own grammar verdict is unreachable.
-        const string arrayParamClientSideReason = "The array-typed parameter is rejected "
-            + "client-side by the ADO.NET provider (no array mapping), so the statement "
-            + "never reaches the engine's grammar.";
+        // Dapper ArrayQueryParameter path. On SqlServer/Sqlite the provider rejects the
+        // array value client-side (confirmed: "No mapping exists from object type
+        // System.Int32[] ..."), so the engine's own grammar verdict is unreachable. On
+        // MySql/Oracle the provider accepts .Value = int[] without an open connection
+        // (silently inferring VarChar/Int32), so any rejection there happens only at
+        // execute time against a live server — unverified without Docker in this repo's
+        // dev environment; the nightly matrix is the actual proof for those two.
         cases.Add(new SweepCase(new MatrixKey("ArrayBind"),
             _ => WherePredicate(u.Id == Any(ArrayBind([1, 2]))),
             NegativeSkips: new Dictionary<Dbms, string>
             {
-                [Dbms.MySql] = arrayParamClientSideReason,
-                [Dbms.Oracle] = arrayParamClientSideReason,
-                [Dbms.Sqlite] = arrayParamClientSideReason,
-                [Dbms.SqlServer] = arrayParamClientSideReason,
+                [Dbms.MySql] = "The array-typed parameter is not rejected client-side "
+                    + "(MySqlConnector infers a fallback type without an open connection); "
+                    + "any rejection happens at execute time, proven by the nightly matrix.",
+                [Dbms.Oracle] = "The array-typed parameter is not rejected client-side "
+                    + "(Oracle.ManagedDataAccess infers a fallback type without an open "
+                    + "connection); any rejection happens at execute time, proven by the "
+                    + "nightly matrix.",
+                [Dbms.Sqlite] = "The array-typed parameter is rejected client-side "
+                    + "(no mapping exists from System.Int32[] to a known managed provider "
+                    + "native type), so the statement never reaches the engine's grammar.",
+                [Dbms.SqlServer] = "The array-typed parameter is rejected client-side "
+                    + "(no mapping exists from System.Int32[] to a known managed provider "
+                    + "native type), so the statement never reaches the engine's grammar.",
             }));
         // ARRAY[...] operand (not ArrayBind) so every parameter is a scalar and each
         // engine's accept/reject verdict is about the UNNEST grammar itself.

@@ -57,7 +57,7 @@ public class ArrayBindTests
             "SELECT \"t\".code FROM test_table \"t\" WHERE \"t\".code = ANY (:0)",
             sql.Text);
         Assert.Equal(1, sql.Parameters.Count);
-        Assert.Empty(sql.Parameters.Get<int[]>(":0"));
+        Assert.Empty(sql.Parameters.Get<int[]>(":0")!);
     }
 
     [Fact]
@@ -151,8 +151,9 @@ public class ArrayBindTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             ArrayBind<int>((int[])null!));
 
-        Assert.StartsWith(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL.", ex.Message);
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'values')",
+            ex.Message);
     }
 
     [Fact]
@@ -161,8 +162,9 @@ public class ArrayBindTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             ArrayBind((List<int>)null!));
 
-        Assert.StartsWith(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL.", ex.Message);
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'values')",
+            ex.Message);
     }
 
     [Fact]
