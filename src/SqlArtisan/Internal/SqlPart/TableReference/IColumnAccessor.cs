@@ -13,7 +13,7 @@ internal interface IColumnAccessor
     DbColumn Column(string name);
 
     /// <summary>
-    /// Returns this derived table's column for <paramref name="source"/> — its column name, qualified by this alias. Use when the subquery projects the column unaliased.
+    /// Returns this derived table's column for <paramref name="source"/> — its column name, qualified by this alias. Use when the source projects the column unaliased.
     /// </summary>
     /// <param name="source">The source column whose name is re-qualified with this derived table's alias.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this derived table's alias.</returns>

@@ -51,7 +51,7 @@ public static partial class Sql
     /// hold for every element of the array expression (PostgreSQL).
     /// Use with a comparison operator — e.g. <c>col &lt; All(BindArray(values))</c>.
     /// </summary>
-    /// <param name="array">The array expression — an <see cref="BindArrayValue"/>,
+    /// <param name="array">The array expression — a <see cref="BindArrayValue"/>,
     /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>
     /// <returns>A quantified expression emitting <c>ALL (array)</c>.</returns>
     public static QuantifiedExpression All(SqlExpression array) =>
@@ -73,7 +73,7 @@ public static partial class Sql
     /// hold for at least one element of the array expression (PostgreSQL).
     /// Use with a comparison operator — e.g. <c>col == Any(BindArray(values))</c>.
     /// </summary>
-    /// <param name="array">The array expression — an <see cref="BindArrayValue"/>,
+    /// <param name="array">The array expression — a <see cref="BindArrayValue"/>,
     /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>
     /// <returns>A quantified expression emitting <c>ANY (array)</c>.</returns>
     public static QuantifiedExpression Any(SqlExpression array) =>
