@@ -591,10 +591,10 @@ SqlStatement sql =
     .From(t)
     .Build(Dbms.PostgreSql);
 
-// SELECT "v".v FROM UNNEST(:0) "v"      -- :0 = the whole int[] as one parameter
+// SELECT "v".v FROM UNNEST(:0) "v"
 ```
 
-PostgreSQL only. `.AsTable(alias, columns...)` names the result columns instead — `UNNEST(:0, :1) "t" (x, y)` — one column per array, for unnesting several arrays in parallel. The argument is any array expression: an [`ArrayBind(...)` parameter](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql), an `ARRAY[...]` constructor, or an array-typed column.
+`:0` binds the whole `int[]` as one parameter. PostgreSQL only. `.AsTable(alias, columns...)` names the result columns instead — `UNNEST(:0, :1) "t" (x, y)` — one column per array, for unnesting several arrays in parallel. The argument is any array expression: an [`ArrayBind(...)` parameter](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql), an `ARRAY[...]` constructor, or an array-typed column.
 
 ---
 
@@ -2393,10 +2393,10 @@ SqlStatement sql =
 
 // SELECT "u".name
 // FROM users "u"
-// WHERE "u".id = ANY (:0)      -- :0 = the whole int[] as one parameter
+// WHERE "u".id = ANY (:0)
 ```
 
-PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling), and an empty collection is legal: it binds normally and matches no rows, where `In(...)` rejects an empty list at the call site. Element types follow the [bind parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
+`:0` binds the whole `int[]` as one parameter. PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling), and an empty collection is legal: it binds normally and matches no rows, where `In(...)` rejects an empty list at the call site. Element types follow the [bind-parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
 
 Executing through SqlArtisan.Dapper preserves the array as a single ADO.NET parameter (it is exempt from Dapper's list expansion); Npgsql maps the .NET array to the PostgreSQL array type natively.
 
@@ -4371,7 +4371,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- Added `ArrayBind(values)` — bind a whole .NET array or collection as a single PostgreSQL array-typed parameter — plus `Any` / `All` / `Some` overloads over array expressions: `u.Id == Any(ArrayBind(ids))` emits `id = ANY (:0)` with one parameter, the idiomatic PostgreSQL list filter. Unlike `In(...)`'s one-bind-per-element expansion, the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling) and an empty collection is legal — it matches no rows. SqlArtisan.Dapper keeps the array as one ADO.NET parameter (exempt from Dapper's list expansion). See [ALL / ANY / SOME](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql). (#159)
+- Added `ArrayBind(values)` — bind a whole .NET array or collection as a single PostgreSQL array-typed parameter — plus `Any` / `All` / `Some` overloads over array expressions: `u.Id == Any(ArrayBind(ids))` emits `id = ANY (:0)` with one parameter, the idiomatic PostgreSQL list filter. Unlike `In(...)`'s one-bind-per-element expansion, the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling) and an empty collection is legal — it matches no rows. SqlArtisan.Dapper keeps the array as one ADO.NET parameter (exempt from Dapper's list expansion). See [ANY / ALL with a Bound Array](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql). (#159)
 - Added the PostgreSQL `UNNEST` table function — `Unnest(arrays...).AsTable(alias)` names it as a `FROM` source (`FROM UNNEST(:0) "v"`), expanding a bound array (or any array expression) into rows; `.AsTable(alias, columns...)` names the result columns for unnesting several arrays in parallel. See [UNNEST as a Table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#unnest-as-a-table-postgresql). (#159)
 - Added the PostgreSQL array constructor and predicates: `Array(...)` for `ARRAY[...]`, plus `ArrayOverlaps` / `ArrayContains` / `ArrayContainedBy` (`&&` / `@>` / `<@`) as `WHERE` conditions — the operators a default (`array_ops`) GIN index on the column accelerates. Elements bind as normal parameters; an empty `Array()` throws at the call site. See [Array Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#array-operators). (#159)
 - Added the PostgreSQL JSONB predicates `JsonbContains` (`@>`), `JsonbExists` (`?`), and `JsonbExistsAny` / `JsonbExistsAll` (`?|` / `?&`) — containment and top-level key existence as `WHERE` conditions, the operators a default (`jsonb_ops`) GIN index on the column accelerates. Keys bind as normal parameters; wrap a containment value in `Cast(json, "jsonb")` so it doesn't reach PostgreSQL as `text`. The bare `?` glyph never collides with a bind marker — SqlArtisan emits `:0`-style markers on PostgreSQL. See [JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators). (#159)

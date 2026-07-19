@@ -169,10 +169,10 @@ SqlStatement sql =
     .From(t)
     .Build(Dbms.PostgreSql);
 
-// SELECT "v".v FROM UNNEST(:0) "v"      -- :0 = the whole int[] as one parameter
+// SELECT "v".v FROM UNNEST(:0) "v"
 ```
 
-PostgreSQL only. `.AsTable(alias, columns...)` names the result columns instead — `UNNEST(:0, :1) "t" (x, y)` — one column per array, for unnesting several arrays in parallel. The argument is any array expression: an [`ArrayBind(...)` parameter](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql), an `ARRAY[...]` constructor, or an array-typed column.
+`:0` binds the whole `int[]` as one parameter. PostgreSQL only. `.AsTable(alias, columns...)` names the result columns instead — `UNNEST(:0, :1) "t" (x, y)` — one column per array, for unnesting several arrays in parallel. The argument is any array expression: an [`ArrayBind(...)` parameter](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql), an `ARRAY[...]` constructor, or an array-typed column.
 
 ---
 
