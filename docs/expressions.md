@@ -438,6 +438,8 @@ PostgreSQL only. `ArrayOverlaps` (`&&`) tests whether two arrays share at least 
 
 String elements form a `text[]`; for another element type, pass typed values (`Array(1, 2)` binds an integer array).
 
+To filter a column against a whole .NET collection bound as a single parameter, see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql); to expand an array into rows, see [UNNEST as a Table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#unnest-as-a-table-postgresql).
+
 ---
 
 ## Full-Text Search
@@ -579,9 +581,9 @@ SqlStatement sql =
 
 ## ALL / ANY / SOME
 
-The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY` — `Some(subquery)` emits `SOME (...)` exactly as `Any(subquery)` emits `ANY (...)`.
+The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery — or, on PostgreSQL, against every element of an array expression (below). `SOME` is a synonym for `ANY` — `Some(subquery)` emits `SOME (...)` exactly as `Any(subquery)` emits `ANY (...)`.
 
-Supported on MySQL, Oracle, PostgreSQL, and SQL Server — SQLite's grammar has no quantified comparisons and rejects all three.
+The subquery form is supported on MySQL, Oracle, PostgreSQL, and SQL Server — SQLite's grammar has no quantified comparisons and rejects all three.
 
 ```csharp
 UsersTable u = new("u");
@@ -611,6 +613,27 @@ SqlStatement sql =
 // FROM users "u"
 // WHERE "u".age > ANY (SELECT "s".age FROM users "s")
 ```
+
+### ANY / ALL with a Bound Array (PostgreSQL)
+
+`ArrayBind(values)` binds a whole .NET array or collection as **one** array-typed parameter; passed to `Any(...)` / `All(...)` / `Some(...)`, it is the idiomatic PostgreSQL list filter:
+
+```csharp
+int[] ids = [1, 2, 4];
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Id == Any(ArrayBind(ids)))
+    .Build(Dbms.PostgreSql);
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE "u".id = ANY (:0)      -- :0 = the whole int[] as one parameter
+```
+
+PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling), and an empty collection is legal: it binds normally and matches no rows, where `In(...)` rejects an empty list at the call site. Element types follow the [bind parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
+
+Executing through SqlArtisan.Dapper preserves the array as a single ADO.NET parameter (it is exempt from Dapper's list expansion); Npgsql maps the .NET array to the PostgreSQL array type natively.
 
 ---
 

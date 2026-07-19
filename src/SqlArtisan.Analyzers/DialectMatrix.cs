@@ -150,6 +150,11 @@ internal static class DialectMatrix
         [new MatrixKey("JsonbExists")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("JsonbExistsAll")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("JsonbExistsAny")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // docs/expressions.md: "PostgreSQL only" for the single array-typed bind behind
+        // = ANY (:param), and for UNNEST (#159). The Any/All/Some keys below stay the
+        // subquery-form union — the array form's PG-only verdict rides on ArrayBind.
+        [new MatrixKey("ArrayBind")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Unnest")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- Numeric/character Oracle-only helpers (XML docs "Oracle syntax" + FunctionTests) ---
         [new MatrixKey("Lengthb")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
@@ -331,6 +336,10 @@ internal static class DialectMatrix
         // All/Any/Some: the CHANGELOG's "supported on all five dialects" (#196) is wrong for
         // SQLite — its expression grammar has no quantified comparisons at all, live-verified
         // by the dialect sweep ('near "ALL": syntax error'). docs corrected to match.
+        // The array-operand overloads (#159) collide here at arity 1 (MatrixKey is type-blind),
+        // so these entries stay the subquery-form support; the PG-only array form is guarded
+        // through its ArrayBind argument. Known false negative: an array-typed column or
+        // ARRAY[...] operand with no ArrayBind call goes unflagged off-PG.
         [new MatrixKey("All")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("Any")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("Some")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),

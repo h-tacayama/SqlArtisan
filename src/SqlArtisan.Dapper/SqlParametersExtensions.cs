@@ -23,6 +23,14 @@ public static class SqlParametersExtensions
 
         parameters.ForEach((name, bind) =>
         {
+            if (bind is ArrayBindValue)
+            {
+                // Not passed as a raw value: Dapper would rewrite the marker
+                // into an IN list, corrupting = ANY (:n).
+                dynamicParameters.Add(name, new ArrayQueryParameter(bind.Value));
+                return;
+            }
+
             dynamicParameters.Add(
                 name,
                 bind.Value,

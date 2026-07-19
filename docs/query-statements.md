@@ -158,6 +158,22 @@ SqlStatement sql =
 ```
 MySQL also accepts `FROM DUAL` (the `SYSDATE` shown here is Oracle syntax).
 
+#### UNNEST as a Table (PostgreSQL)
+
+`Unnest(arrays...)` expands one or more arrays into rows; `.AsTable(alias)` names it as a `FROM` source. With a single array and no column list, the result column shares the alias — read it with `Column(alias)`:
+
+```csharp
+UnnestDerivedTable t = Unnest(ArrayBind(new[] { 10, 20, 30 })).AsTable("v");
+SqlStatement sql =
+    Select(t.Column("v"))
+    .From(t)
+    .Build(Dbms.PostgreSql);
+
+// SELECT "v".v FROM UNNEST(:0) "v"      -- :0 = the whole int[] as one parameter
+```
+
+PostgreSQL only. `.AsTable(alias, columns...)` names the result columns instead — `UNNEST(:0, :1) "t" (x, y)` — one column per array, for unnesting several arrays in parallel. The argument is any array expression: an [`ArrayBind(...)` parameter](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql), an `ARRAY[...]` constructor, or an array-typed column.
+
 ---
 
 ### WHERE Clause

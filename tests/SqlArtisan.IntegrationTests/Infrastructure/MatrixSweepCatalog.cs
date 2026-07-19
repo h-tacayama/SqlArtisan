@@ -529,6 +529,28 @@ internal static class MatrixSweepCatalog
         Add("JsonbExists", _ => WherePredicate(JsonbExists(u.Data, "name")));
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
+        // The single array-typed bind (= ANY (:0)) doubles as the live proof of the
+        // Dapper ArrayQueryParameter path. Off-PG the ADO.NET provider rejects the
+        // array value client-side, so the engine's own grammar verdict is unreachable.
+        const string arrayParamClientSideReason = "The array-typed parameter is rejected "
+            + "client-side by the ADO.NET provider (no array mapping), so the statement "
+            + "never reaches the engine's grammar.";
+        cases.Add(new SweepCase(new MatrixKey("ArrayBind"),
+            _ => WherePredicate(u.Id == Any(ArrayBind([1, 2]))),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.MySql] = arrayParamClientSideReason,
+                [Dbms.Oracle] = arrayParamClientSideReason,
+                [Dbms.Sqlite] = arrayParamClientSideReason,
+                [Dbms.SqlServer] = arrayParamClientSideReason,
+            }));
+        // ARRAY[...] operand (not ArrayBind) so every parameter is a scalar and each
+        // engine's accept/reject verdict is about the UNNEST grammar itself.
+        Add("Unnest", _ =>
+        {
+            UnnestDerivedTable t = Unnest(Array("a", "b")).AsTable("t");
+            return Select(t.Column("t")).From(t);
+        });
 
         // --- Sequences ---
         Add("Nextval", dbms => dbms == Dbms.Oracle

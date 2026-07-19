@@ -47,6 +47,17 @@ public static partial class Sql
         new(Keywords.All, subquery);
 
     /// <summary>
+    /// The <c>ALL (array)</c> quantified comparison operator: the comparison must
+    /// hold for every element of the array expression (PostgreSQL).
+    /// Use with a comparison operator — e.g. <c>col &lt; All(ArrayBind(values))</c>.
+    /// </summary>
+    /// <param name="array">The array expression — an <see cref="ArrayBindValue"/>,
+    /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>
+    /// <returns>A quantified expression emitting <c>ALL (array)</c>.</returns>
+    public static QuantifiedExpression All(SqlExpression array) =>
+        new(Keywords.All, array);
+
+    /// <summary>
     /// The <c>ANY (subquery)</c> quantified comparison operator: the comparison must
     /// hold for at least one row returned by the subquery.
     /// Use with a comparison operator — e.g. <c>col &gt; Any(subquery)</c>.
@@ -58,6 +69,17 @@ public static partial class Sql
         new(Keywords.Any, subquery);
 
     /// <summary>
+    /// The <c>ANY (array)</c> quantified comparison operator: the comparison must
+    /// hold for at least one element of the array expression (PostgreSQL).
+    /// Use with a comparison operator — e.g. <c>col == Any(ArrayBind(values))</c>.
+    /// </summary>
+    /// <param name="array">The array expression — an <see cref="ArrayBindValue"/>,
+    /// an <c>ARRAY[...]</c> constructor, or an array-typed column.</param>
+    /// <returns>A quantified expression emitting <c>ANY (array)</c>.</returns>
+    public static QuantifiedExpression Any(SqlExpression array) =>
+        new(Keywords.Any, array);
+
+    /// <summary>
     /// The <c>ARRAY[elements]</c> array constructor: an array value from the
     /// listed elements (PostgreSQL).
     /// </summary>
@@ -67,6 +89,54 @@ public static partial class Sql
     {
         CollectionGuard.ThrowIfEmpty(elements, "ARRAY[...] requires at least one element.");
         return new(Resolve(elements));
+    }
+
+    /// <summary>
+    /// Binds the whole array as one array-typed parameter (PostgreSQL):
+    /// <c>col == Any(ArrayBind(values))</c> emits <c>col = ANY (:0)</c> with a
+    /// single parameter. Unlike <c>In(...)</c>, the SQL text is identical for
+    /// every list length, and an empty array is legal (matches no element).
+    /// </summary>
+    /// <param name="values">The array to bind as one parameter.</param>
+    /// <returns>An <see cref="ArrayBindValue"/> carrying the array.</returns>
+    public static ArrayBindValue ArrayBind<T>(T[] values)
+    {
+        if (values is null)
+        {
+            throw new ArgumentNullException(nameof(values), NullValueMessage);
+        }
+
+        if (!IsBindableType(typeof(T)))
+        {
+            throw new ArgumentException($"Invalid element type for ArrayBind: {typeof(T)}");
+        }
+
+        return new ArrayBindValue(values);
+    }
+
+    /// <inheritdoc cref="ArrayBind{T}(T[])"/>
+    public static ArrayBindValue ArrayBind<T>(IReadOnlyCollection<T> values)
+    {
+        if (values is null)
+        {
+            throw new ArgumentNullException(nameof(values), NullValueMessage);
+        }
+
+        if (!IsBindableType(typeof(T)))
+        {
+            throw new ArgumentException($"Invalid element type for ArrayBind: {typeof(T)}");
+        }
+
+        // Normalized to T[] so the ADO-visible value is deterministic: Npgsql
+        // maps arrays natively but not e.g. HashSet<T>.
+        T[] copied = new T[values.Count];
+        int i = 0;
+        foreach (T value in values)
+        {
+            copied[i++] = value;
+        }
+
+        return new ArrayBindValue(copied);
     }
 
     /// <summary>

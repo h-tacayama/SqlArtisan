@@ -580,6 +580,22 @@ SqlStatement sql =
 ```
 MySQL also accepts `FROM DUAL` (the `SYSDATE` shown here is Oracle syntax).
 
+#### UNNEST as a Table (PostgreSQL)
+
+`Unnest(arrays...)` expands one or more arrays into rows; `.AsTable(alias)` names it as a `FROM` source. With a single array and no column list, the result column shares the alias — read it with `Column(alias)`:
+
+```csharp
+UnnestDerivedTable t = Unnest(ArrayBind(new[] { 10, 20, 30 })).AsTable("v");
+SqlStatement sql =
+    Select(t.Column("v"))
+    .From(t)
+    .Build(Dbms.PostgreSql);
+
+// SELECT "v".v FROM UNNEST(:0) "v"      -- :0 = the whole int[] as one parameter
+```
+
+PostgreSQL only. `.AsTable(alias, columns...)` names the result columns instead — `UNNEST(:0, :1) "t" (x, y)` — one column per array, for unnesting several arrays in parallel. The argument is any array expression: an [`ArrayBind(...)` parameter](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql), an `ARRAY[...]` constructor, or an array-typed column.
+
 ---
 
 ### WHERE Clause
@@ -2187,6 +2203,8 @@ PostgreSQL only. `ArrayOverlaps` (`&&`) tests whether two arrays share at least 
 
 String elements form a `text[]`; for another element type, pass typed values (`Array(1, 2)` binds an integer array).
 
+To filter a column against a whole .NET collection bound as a single parameter, see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql); to expand an array into rows, see [UNNEST as a Table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#unnest-as-a-table-postgresql).
+
 ---
 
 ## Full-Text Search
@@ -2328,9 +2346,9 @@ SqlStatement sql =
 
 ## ALL / ANY / SOME
 
-The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery. `SOME` is a synonym for `ANY` — `Some(subquery)` emits `SOME (...)` exactly as `Any(subquery)` emits `ANY (...)`.
+The quantified comparison operators `ALL`, `ANY`, and `SOME` compare a scalar value against every row returned by a subquery — or, on PostgreSQL, against every element of an array expression (below). `SOME` is a synonym for `ANY` — `Some(subquery)` emits `SOME (...)` exactly as `Any(subquery)` emits `ANY (...)`.
 
-Supported on MySQL, Oracle, PostgreSQL, and SQL Server — SQLite's grammar has no quantified comparisons and rejects all three.
+The subquery form is supported on MySQL, Oracle, PostgreSQL, and SQL Server — SQLite's grammar has no quantified comparisons and rejects all three.
 
 ```csharp
 UsersTable u = new("u");
@@ -2360,6 +2378,27 @@ SqlStatement sql =
 // FROM users "u"
 // WHERE "u".age > ANY (SELECT "s".age FROM users "s")
 ```
+
+### ANY / ALL with a Bound Array (PostgreSQL)
+
+`ArrayBind(values)` binds a whole .NET array or collection as **one** array-typed parameter; passed to `Any(...)` / `All(...)` / `Some(...)`, it is the idiomatic PostgreSQL list filter:
+
+```csharp
+int[] ids = [1, 2, 4];
+SqlStatement sql =
+    Select(u.Name)
+    .From(u)
+    .Where(u.Id == Any(ArrayBind(ids)))
+    .Build(Dbms.PostgreSql);
+
+// SELECT "u".name
+// FROM users "u"
+// WHERE "u".id = ANY (:0)      -- :0 = the whole int[] as one parameter
+```
+
+PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling), and an empty collection is legal: it binds normally and matches no rows, where `In(...)` rejects an empty list at the call site. Element types follow the [bind parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
+
+Executing through SqlArtisan.Dapper preserves the array as a single ADO.NET parameter (it is exempt from Dapper's list expansion); Npgsql maps the .NET array to the PostgreSQL array type natively.
 
 ---
 
@@ -4332,6 +4371,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- Added `ArrayBind(values)` — bind a whole .NET array or collection as a single PostgreSQL array-typed parameter — plus `Any` / `All` / `Some` overloads over array expressions: `u.Id == Any(ArrayBind(ids))` emits `id = ANY (:0)` with one parameter, the idiomatic PostgreSQL list filter. Unlike `In(...)`'s one-bind-per-element expansion, the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling) and an empty collection is legal — it matches no rows. SqlArtisan.Dapper keeps the array as one ADO.NET parameter (exempt from Dapper's list expansion). See [ALL / ANY / SOME](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql). (#159)
+- Added the PostgreSQL `UNNEST` table function — `Unnest(arrays...).AsTable(alias)` names it as a `FROM` source (`FROM UNNEST(:0) "v"`), expanding a bound array (or any array expression) into rows; `.AsTable(alias, columns...)` names the result columns for unnesting several arrays in parallel. See [UNNEST as a Table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#unnest-as-a-table-postgresql). (#159)
 - Added the PostgreSQL array constructor and predicates: `Array(...)` for `ARRAY[...]`, plus `ArrayOverlaps` / `ArrayContains` / `ArrayContainedBy` (`&&` / `@>` / `<@`) as `WHERE` conditions — the operators a default (`array_ops`) GIN index on the column accelerates. Elements bind as normal parameters; an empty `Array()` throws at the call site. See [Array Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#array-operators). (#159)
 - Added the PostgreSQL JSONB predicates `JsonbContains` (`@>`), `JsonbExists` (`?`), and `JsonbExistsAny` / `JsonbExistsAll` (`?|` / `?&`) — containment and top-level key existence as `WHERE` conditions, the operators a default (`jsonb_ops`) GIN index on the column accelerates. Keys bind as normal parameters; wrap a containment value in `Cast(json, "jsonb")` so it doesn't reach PostgreSQL as `text`. The bare `?` glyph never collides with a bind marker — SqlArtisan emits `:0`-style markers on PostgreSQL. See [JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators). (#159)
 - Added [`llms-full.txt`](https://github.com/h-tacayama/SqlArtisan/blob/main/llms-full.txt), the full-text companion to `llms.txt` — every page it links concatenated into one file for AI tools that ingest a single document instead of following links — plus a `context7.json` for Context7 indexing. A dedicated MCP docs server was evaluated and deliberately not built: the static files and Context7 already cover every mainstream assistant's docs-resolution path. See the expanded pointer in the README's Documentation section. (#228)
