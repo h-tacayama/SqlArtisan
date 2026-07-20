@@ -15,7 +15,7 @@ public static partial class Sql
     /// <returns>A <see cref="ValuesDerivedTable"/> usable as a MERGE <c>USING</c> source.</returns>
     /// <remarks>PostgreSQL and SQL Server. Oracle has no <c>VALUES</c> row
     /// constructor in <c>USING</c> — wrap the rows in a subquery source instead.</remarks>
-    public static ValuesDerivedTable ValuesTable(
+    public static ValuesDerivedTable Values(
         string alias, string[] columnNames, object[][] rows)
     {
         ArgumentException.ThrowIfNullOrEmpty(alias);

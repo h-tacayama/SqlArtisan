@@ -96,11 +96,13 @@ int affected = await connection.ExecuteAsync(
     Update(w).Set(w.Name == "renamed").Where(w.Id == 1));
 ```
 
-The full Dapper verb set is mirrored (`Query`, `QueryFirst`, `QuerySingle`,
+The core Dapper verb set is mirrored (`Query`, `QueryFirst`, `QuerySingle`,
 `Execute`, `ExecuteScalar`, `QueryMultiple`, `ExecuteReader`, and their
 `...Async` twins), each taking the usual `transaction` / `commandTimeout`
-arguments. For Oracle `RETURNING ... INTO`, `ExecuteReturningInto` returns the
-parameter bag so the output values can be read back with `Get<T>`.
+arguments — the multi-map `Query` overloads and `CommandDefinition`-based
+calls aren't, so build the statement and call `sql.Parameters.ToDynamicParameters()`
+directly for those. For Oracle `RETURNING ... INTO`, `ExecuteReturningInto`
+returns the parameter bag so the output values can be read back with `Get<T>`.
 
 Two execution rules to know from day one:
 

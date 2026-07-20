@@ -9,30 +9,30 @@ public enum Dbms
     /// <summary>
     /// An unresolved engine; <see cref="DbmsResolver.Resolve(System.Data.IDbConnection)"/> returns this for a null or unregistered connection.
     /// </summary>
-    Unknown,
+    Unknown = 0,
 
     /// <summary>
     /// MySQL — backtick-quoted identifiers and <c>?</c>-prefixed parameter markers.
     /// </summary>
-    MySql,
+    MySql = 1,
 
     /// <summary>
     /// Oracle Database — double-quoted identifiers and <c>:</c>-prefixed parameter markers.
     /// </summary>
-    Oracle,
+    Oracle = 2,
 
     /// <summary>
     /// PostgreSQL — double-quoted identifiers and <c>:</c>-prefixed parameter markers; the default dialect (<see cref="SqlArtisanConfig.DefaultDbms"/>).
     /// </summary>
-    PostgreSql,
+    PostgreSql = 3,
 
     /// <summary>
     /// SQLite — double-quoted identifiers and <c>:</c>-prefixed parameter markers.
     /// </summary>
-    Sqlite,
+    Sqlite = 4,
 
     /// <summary>
     /// SQL Server — double-quoted identifiers and <c>@</c>-prefixed parameter markers.
     /// </summary>
-    SqlServer,
+    SqlServer = 5,
 }

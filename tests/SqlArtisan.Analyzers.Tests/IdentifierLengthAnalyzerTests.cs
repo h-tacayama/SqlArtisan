@@ -255,7 +255,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task ValuesTableAliasOverLimit_ReportsSqla0003()
+    public async Task ValuesAliasOverLimit_ReportsSqla0003()
     {
         string source = $$"""
             using SqlArtisan;
@@ -265,7 +265,7 @@ public class IdentifierLengthAnalyzerTests
             {
                 void M()
                 {
-                    var v = ValuesTable({|#0:"{{Repeat('a', 64)}}"|}, ["c"], new object[][] { new object[] { 1 } });
+                    var v = Values({|#0:"{{Repeat('a', 64)}}"|}, ["c"], new object[][] { new object[] { 1 } });
                 }
             }
             """;
@@ -275,7 +275,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task ValuesTableColumnNameOverLimit_ReportsSqla0003PerElement()
+    public async Task ValuesColumnNameOverLimit_ReportsSqla0003PerElement()
     {
         // Only the over-limit column of the list warns, at its own location.
         string source = $$"""
@@ -286,12 +286,37 @@ public class IdentifierLengthAnalyzerTests
             {
                 void M()
                 {
-                    var v = ValuesTable("s", ["ok", {|#0:"{{Repeat('a', 64)}}"|}], new object[][] { new object[] { 1, 2 } });
+                    var v = Values("s", ["ok", {|#0:"{{Repeat('a', 64)}}"|}], new object[][] { new object[] { 1, 2 } });
                 }
             }
             """;
         var test = AnalyzerVerifier.Create(source, EditorConfig("postgresql"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task InsertValuesInstanceMethod_LongLiteral_StaysSilent()
+    {
+        // IInsertBuilderTable.Values(params object[]) shares the "Values" dictionary
+        // key with Sql.Values(alias, columnNames, rows) (same bare method name, no
+        // arity distinction in IdentifierLengthRule) — this pins down that the shared
+        // key doesn't misfire, since this overload's "values" parameter never matches
+        // the checked "alias"/"columnNames" names.
+        string source = $$"""
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var t = new DbTable("orders", "o");
+                    var x = InsertInto(t).Values("{{Repeat('a', 64)}}");
+                }
+            }
+            """;
+        var test = AnalyzerVerifier.Create(source, EditorConfig("postgresql"));
         await test.RunAsync();
     }
 

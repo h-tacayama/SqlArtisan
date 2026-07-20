@@ -1511,7 +1511,7 @@ MergeInto(t)
 
 ```csharp
 // Literal-row source — merge a handful of known rows (values bind as parameters)
-ValuesDerivedTable s = ValuesTable("s", ["id", "name"], [[1, "Ann"], [2, "Bo"]]);
+ValuesDerivedTable s = Values("s", ["id", "name"], [[1, "Ann"], [2, "Bo"]]);
 
 MergeInto(t)
     .Using(s)
@@ -4087,11 +4087,13 @@ int affected = await connection.ExecuteAsync(
     Update(w).Set(w.Name == "renamed").Where(w.Id == 1));
 ```
 
-The full Dapper verb set is mirrored (`Query`, `QueryFirst`, `QuerySingle`,
+The core Dapper verb set is mirrored (`Query`, `QueryFirst`, `QuerySingle`,
 `Execute`, `ExecuteScalar`, `QueryMultiple`, `ExecuteReader`, and their
 `...Async` twins), each taking the usual `transaction` / `commandTimeout`
-arguments. For Oracle `RETURNING ... INTO`, `ExecuteReturningInto` returns the
-parameter bag so the output values can be read back with `Get<T>`.
+arguments — the multi-map `Query` overloads and `CommandDefinition`-based
+calls aren't, so build the statement and call `sql.Parameters.ToDynamicParameters()`
+directly for those. For Oracle `RETURNING ... INTO`, `ExecuteReturningInto`
+returns the parameter bag so the output values can be read back with `Get<T>`.
 
 Two execution rules to know from day one:
 
@@ -4317,7 +4319,7 @@ treated as a bug — please open an
 
 ## What counts as breaking
 
-Two cases are specific to this library, beyond the usual API-level changes:
+Three cases are specific to this library, beyond the usual API-level changes:
 
 - **Emitted SQL is part of the contract.** A change to the SQL text emitted
   for the same input is at minimum a **minor** release, even as a bug fix,
@@ -4325,9 +4327,17 @@ Two cases are specific to this library, beyond the usual API-level changes:
   query semantics — which rows are read or written.
 - **Builder-stage interfaces are not for user implementation.** The
   `I*Builder*` fluent-chain stage types (e.g. `ISelectBuilderPaginated`)
-  exist only to type the fluent chain — all implementations are internal —
-  so adding members to them is a **minor** change; caller compatibility is
-  preserved as usual.
+  and the cross-cutting capability interfaces they compose
+  (`IPagination`, `IForUpdate`, `IJoinOperator`, `ISetOperator`,
+  `IReturning`, `IUpsert`) exist only to type the fluent chain; all
+  implementations are internal. Adding a member to any of them is a
+  **minor** change; caller compatibility is preserved as usual.
+- **Public enum values are append-only.** `Dbms`, `DateTimePart`,
+  `SearchModifier`, and `RegexpOptions` carry explicit numeric values;
+  a new value gets the next unused number, and no existing value's number
+  changes. Reassigning a shipped value would silently change behavior for a
+  caller who hasn't rebuilt against the new version — the same class of risk
+  the emitted-SQL rule above guards against.
 
 Analyzer dialect-matrix updates (`SQLA0001` / `SQLA0002`) may also land in a
 minor release: they change build-time diagnostics, never runtime behavior.
@@ -4381,7 +4391,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added MySQL, SQLite, and SQL Server as `SqlArtisan.TableClassGen` generation sources — the tool now reads schema metadata and writes table classes for all five supported databases, matching the existing Oracle and PostgreSQL paths. See the [TableClassGen README](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md). (#220)
 - Added a [comparison guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md) — how SqlArtisan compares to EF Core, linq2db, SqlKata, Dapper.SqlBuilder, and InterpolatedSql on philosophy, type safety, machine-verifiability, dialect handling, execution, and performance; includes when NOT to choose SqlArtisan. (#226)
 - Added SQL Server's `TOP (n)` select prefix — `Select(Top(n), ...)` → `SELECT TOP (n)`. Chain `.WithTies()` (`TOP (n) WITH TIES` — the form with no `OFFSET/FETCH` equivalent) or `.Percent()` (`TOP (n) PERCENT`), and combine with `DISTINCT` (`Select(Distinct, Top(n), ...)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot be combined with `OFFSET/FETCH` — both are rejected at `Build(Dbms.SqlServer)`. See [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination). (#261)
-- Added two MERGE source forms to `Using(...)`: a subquery source — `Using(subquery.AsTable("s"))` → `USING (SELECT …) "s"` (Oracle, PostgreSQL, SQL Server) — and a literal-row source — `Using(ValuesTable("s", ["c1", "c2"], rows))` → `USING (VALUES (…),(…)) "s" (c1, c2)` (PostgreSQL, SQL Server; Oracle has no `VALUES` row constructor in `USING` — wrap the rows in a subquery source instead). Read the source columns with `.Column(name)`. See [MERGE Statement](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement). (#260)
+- Added two MERGE source forms to `Using(...)`: a subquery source — `Using(subquery.AsTable("s"))` → `USING (SELECT …) "s"` (Oracle, PostgreSQL, SQL Server) — and a literal-row source — `Using(Values("s", ["c1", "c2"], rows))` → `USING (VALUES (…),(…)) "s" (c1, c2)` (PostgreSQL, SQL Server; Oracle has no `VALUES` row constructor in `USING` — wrap the rows in a subquery source instead). Read the source columns with `.Column(name)`. See [MERGE Statement](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement). (#260)
 - Added SQL Server's `OUTPUT` clause — read back affected rows from the `INSERTED` / `DELETED` pseudo-tables (`Inserted(col)` / `Deleted(col)`) with a positioned `.Output(...)` step on `INSERT` / `UPDATE` / `DELETE`. Chain `.Into(archive, cols...)` for `OUTPUT ... INTO`, the single-statement archive-then-delete form. See [OUTPUT (SQL Server)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#output-clause-sql-server). (#259)
 - Added joined `UPDATE` / `DELETE` — update or delete rows using columns from other tables, each dialect in its own spelling: PostgreSQL's `UPDATE ... FROM` and `DELETE ... USING` (plus SQLite's `UPDATE ... FROM`, 3.33+), and MySQL / SQL Server's `FROM ... JOIN` forms. Start from `Update(target)` / `DeleteFrom(target)` and chain `.From(...)` / `.Using(...)` / `.InnerJoin(...).On(...)` in the dialect's own order; the joined target must be aliased. See [Joined UPDATE / DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete). (#258)
 
@@ -4389,9 +4399,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** an incomplete statement no longer compiles where it previously built: a compound query ending in a set operator (`... .Union` with no following `SELECT`), an `UPDATE` without `SET`, an `INSERT` / `INSERT IGNORE` without a row source, and a `MERGE` with no `WHEN` branch all lose their `Build(...)` — the builder stages for those states no longer extend `ISqlBuilder`, so the unfinished statement is a compile error instead of reaching the database. Complete chains are unaffected and their emitted SQL is unchanged. (#149)
 - **Breaking:** removed `FullJoin` from the joined-`UPDATE` stages (`Update(t).FullJoin(...)` and after a completed join). That form targets only MySQL's multi-table `UPDATE`, and MySQL has no `FULL JOIN` — the member had no dialect it was valid on. The `FROM`-form `FullJoin` (`Update(t).Set(...).From(...).FullJoin(...)` and the `DELETE` counterpart) is unaffected. (#149)
 - **Breaking:** removed the `DbTableBase(string tableAlias)` constructor, whose single string was the *alias* (the table name silently defaulted to the subclass's type name) while the sibling bases' single string is the *name* — a wrong-table trap for hand-written table classes. Use `DbTableBase(tableName, tableAlias)`; pass an empty alias for none. The type-name default went with it, which also fixes `Sql.Dual`'s qualified star: `Dual.Asterisk` now emits `DUAL.*` instead of `DualTable.*` (a qualifier that named no relation in the statement). (#149)
+- **Breaking:** renamed `ValuesTable(...)` to `Values(...)` — `VALUES` is the real SQL token, and no name already on `Sql` needed the "Table" suffix to disambiguate. Emitted SQL is unchanged. (#149)
+- `Dbms`, `DateTimePart`, and `SearchModifier` now carry explicit numeric values (matching their previous implicit ones — no behavior change), so a future added value can never renumber an existing one. See [Versioning & Support](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/versioning.md#what-counts-as-breaking). (#149)
+- **Breaking:** `SqlArtisanConfig.SetDefaultDbms(Dbms.Unknown)` (or any undefined `Dbms` value) now throws `ArgumentOutOfRangeException` at the call site instead of silently accepting it and failing later, far away, the next time a parameterless `Build()` runs. (#149)
+- **Breaking:** renamed `ISqlBuilderExtensions` to `SqlBuilderExtensions` — an interface-prefixed name on a `static class` (it holds extension methods *for* `ISqlBuilder`, it isn't one), inconsistent with the sibling `SqlArtisan.Dapper.SqlParametersExtensions`. Only the type name changed; the extension method call syntax (`builder.Build(connection)`) is unaffected. (#149)
+- **Breaking:** `TableReference`'s constructor is no longer `public`. `TableReference` was never externally subclassable (its `CorrelationName` member is `internal abstract`), so this only tightens the declared accessibility to match what was already true. (#149)
 - Aligned README, reference home, analyzer docs, comparison guide, and AI assistants guide with the deterministic guard-rail mission — faithful emission is the foundation; the type system, analyzer, exact-SQL tests, and live-engine integration matrix are the full verification stack. (#267)
 
 ### Fixed
+- Docs: the Dapper quickstart guide's "the full Dapper verb set is mirrored" overclaimed — the multi-map `Query` overloads and `CommandDefinition`-based calls aren't. Reworded to "core Dapper verb set" and named the escape hatch (`sql.Parameters.ToDynamicParameters()`) for what isn't. (#149)
 - Docs: the `#>` / `#>>` path-access examples bound the path as a plain string, which fails at execution on PostgreSQL (`operator does not exist: jsonb #> text` — the operators take `text[]`). The examples now wrap the path in `Cast(path, "text[]")`, the form the integration tests run against live PostgreSQL. (#334)
 - `SqlArtisan.TableClassGen`: with lowercase-name conversion enabled, a mixed-case table on a case-sensitive database (e.g. PostgreSQL) is no longer silently dropped — the catalog's stored name is now kept as the lookup key and only the emitted name is lowercased. (#323)
 

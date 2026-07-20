@@ -16,7 +16,7 @@ public abstract class TableReference : SqlPart
     /// Names the relation explicitly.
     /// </summary>
     /// <param name="name">The relation name as it appears in SQL.</param>
-    public TableReference(string name)
+    private protected TableReference(string name)
     {
         _name = name;
     }

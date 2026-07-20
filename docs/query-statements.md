@@ -1089,7 +1089,7 @@ MergeInto(t)
 
 ```csharp
 // Literal-row source — merge a handful of known rows (values bind as parameters)
-ValuesDerivedTable s = ValuesTable("s", ["id", "name"], [[1, "Ann"], [2, "Bo"]]);
+ValuesDerivedTable s = Values("s", ["id", "name"], [[1, "Ann"], [2, "Bo"]]);
 
 MergeInto(t)
     .Using(s)
