@@ -17,5 +17,5 @@ public interface IMergeBuilderWhenMatched
     /// Appends <c>THEN DELETE</c>, removing the matched rows (PostgreSQL 15+ / SQL Server).
     /// </summary>
     /// <returns>The builder positioned to chain another <c>WHEN</c> branch or build.</returns>
-    IMergeBuilderOn ThenDelete();
+    IMergeBuilderWhen ThenDelete();
 }

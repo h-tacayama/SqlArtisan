@@ -2,17 +2,11 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The state after <c>UPDATE table</c>: supply the column assignments with
-/// <c>SET</c>, or begin MySQL's multi-table form with a <c>JOIN</c>.
+/// <c>SET</c>, or begin MySQL's multi-table form with a <c>JOIN</c>. Not
+/// buildable until <c>SET</c> is supplied.
 /// </summary>
-public interface IUpdateBuilderUpdate : ISqlBuilder
+public interface IUpdateBuilderUpdate
 {
-    /// <summary>
-    /// Appends <c>FULL JOIN table</c> (MySQL multi-table <c>UPDATE</c>); supply its predicate with the following <c>On(...)</c>.
-    /// </summary>
-    /// <param name="table">The table reference to full-join.</param>
-    /// <returns>The builder positioned to supply the join predicate.</returns>
-    IUpdateBuilderJoinOn FullJoin(TableReference table);
-
     /// <summary>
     /// Appends <c>INNER JOIN table</c> (MySQL multi-table <c>UPDATE</c>); supply its predicate with the following <c>On(...)</c>.
     /// </summary>

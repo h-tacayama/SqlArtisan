@@ -11,15 +11,6 @@ public abstract class DbTableBase : TableReference
     private protected readonly string _tableAlias;
 
     /// <summary>
-    /// Initializes a table whose name defaults to the subclass's type name, with the given alias.
-    /// </summary>
-    /// <param name="tableAlias">The table alias, or an empty string for none.</param>
-    public DbTableBase(string tableAlias)
-    {
-        _tableAlias = tableAlias;
-    }
-
-    /// <summary>
     /// Initializes a table with an explicit name and alias.
     /// </summary>
     /// <param name="tableName">The table name as it appears in SQL.</param>

@@ -1,11 +1,12 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>ON (...)</c>: add one or more <c>WHEN</c> branches, then
-/// <see cref="ISqlBuilder.Build()">Build</see>. The branches are per-dialect:
+/// The state after <c>ON (...)</c>: add the first <c>WHEN</c> branch. Not
+/// buildable until at least one branch completes (see
+/// <see cref="IMergeBuilderWhen"/>). The branches are per-dialect:
 /// <c>WHEN NOT MATCHED BY SOURCE</c> is SQL Server only.
 /// </summary>
-public interface IMergeBuilderOn : ISqlBuilder
+public interface IMergeBuilderOn
 {
     /// <summary>
     /// <c>WHEN MATCHED THEN</c>: act on rows that exist in both target and source.
