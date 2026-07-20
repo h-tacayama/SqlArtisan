@@ -7,6 +7,7 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     IMergeBuilderThenInsert,
     IMergeBuilderThenUpdateSet,
     IMergeBuilderUsing,
+    IMergeBuilderWhen,
     IMergeBuilderWhenMatched,
     IMergeBuilderWhenNotMatched,
     IMergeBuilderWhenNotMatchedBySource
@@ -17,7 +18,7 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
 
     public SqlStatement Build(Dbms dbms) => BuildCore(dbms);
 
-    public IMergeBuilderOn DeleteWhere(SqlCondition condition)
+    public IMergeBuilderWhen DeleteWhere(SqlCondition condition)
     {
         AddPart(new MergeDeleteWhereClause(condition));
         return this;
@@ -31,7 +32,7 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
 
     // Shared by IMergeBuilderWhenMatched and IMergeBuilderWhenNotMatchedBySource
     // (same signature and return type), so one implementation satisfies both.
-    public IMergeBuilderOn ThenDelete()
+    public IMergeBuilderWhen ThenDelete()
     {
         AddPart(new MergeDeleteClause());
         return this;
@@ -52,7 +53,7 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    IMergeBuilderOn IMergeBuilderWhenNotMatchedBySource.ThenUpdateSet(
+    IMergeBuilderWhen IMergeBuilderWhenNotMatchedBySource.ThenUpdateSet(
         params EqualityBasedCondition[] assignments)
     {
         AddPart(MergeUpdateSetClause.Parse(assignments));
@@ -65,7 +66,7 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public IMergeBuilderOn Values(params object[] values)
+    public IMergeBuilderWhen Values(params object[] values)
     {
         AddPart(InsertValuesClause.Parse(values));
         return this;

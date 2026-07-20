@@ -1,9 +1,9 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>INSERT IGNORE INTO table</c> (no column list): supply the row by column assignments or positionally.
+/// The state after <c>INSERT IGNORE INTO table</c> (no column list): supply the row by column assignments or positionally. Not buildable until a row source is supplied.
 /// </summary>
-public interface IInsertIgnoreBuilderTable : ISqlBuilder
+public interface IInsertIgnoreBuilderTable
 {
     /// <summary>
     /// Builds the row from <c>column == value</c> assignments, emitting the column list and one <c>VALUES</c> row from them (<c>INSERT IGNORE INTO t (code, name) VALUES (:0, :1)</c>).

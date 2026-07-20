@@ -13,14 +13,6 @@ public abstract class TableReference : SqlPart
     private protected readonly string _name;
 
     /// <summary>
-    /// Names the relation after the runtime type's own name.
-    /// </summary>
-    public TableReference()
-    {
-        _name = GetType().Name;
-    }
-
-    /// <summary>
     /// Names the relation explicitly.
     /// </summary>
     /// <param name="name">The relation name as it appears in SQL.</param>

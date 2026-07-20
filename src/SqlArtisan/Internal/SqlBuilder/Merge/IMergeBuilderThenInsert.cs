@@ -12,5 +12,5 @@ public interface IMergeBuilderThenInsert
     /// </summary>
     /// <param name="values">The row values, one per inserted column — source columns or literals (literals are auto-parameterized).</param>
     /// <returns>The builder positioned to chain another <c>WHEN</c> branch or build.</returns>
-    IMergeBuilderOn Values(params object[] values);
+    IMergeBuilderWhen Values(params object[] values);
 }

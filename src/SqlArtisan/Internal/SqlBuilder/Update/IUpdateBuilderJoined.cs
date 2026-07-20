@@ -7,13 +7,6 @@ namespace SqlArtisan.Internal;
 public interface IUpdateBuilderJoined
 {
     /// <summary>
-    /// Appends <c>FULL JOIN table</c>; supply its predicate with the following <c>On(...)</c>.
-    /// </summary>
-    /// <param name="table">The table reference to full-join.</param>
-    /// <returns>The builder positioned to supply the join predicate.</returns>
-    IUpdateBuilderJoinOn FullJoin(TableReference table);
-
-    /// <summary>
     /// Appends <c>INNER JOIN table</c>; supply its predicate with the following <c>On(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to inner-join.</param>

@@ -351,6 +351,23 @@ public class SelectTests
     }
 
     [Fact]
+    public void Select_DualAsterisk_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Dual.Asterisk)
+            .From(Dual)
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DUAL.* ");
+        expected.Append("FROM ");
+        expected.Append("DUAL");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Select_TableAliasWithDoubleQuotes_CorrectSql()
     {
         TestTable _t = new("t s");

@@ -1,9 +1,9 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>INSERT INTO table (col, ...)</c>: supply rows with <c>Values(...)</c> or feed them from a <c>SELECT</c> (or a <c>WITH</c> CTE).
+/// The state after <c>INSERT INTO table (col, ...)</c>: supply rows with <c>Values(...)</c> or feed them from a <c>SELECT</c> (or a <c>WITH</c> CTE). Not buildable until a row source is supplied.
 /// </summary>
-public interface IInsertBuilderColumns : ISqlBuilder, ISelectBuilder, IWithBuilder
+public interface IInsertBuilderColumns : ISelectBuilder, IWithBuilder
 {
     /// <summary>
     /// Appends a <c>VALUES (...)</c> row matching the declared column list.

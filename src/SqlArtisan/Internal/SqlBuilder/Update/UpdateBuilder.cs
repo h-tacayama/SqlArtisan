@@ -42,12 +42,6 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         return this;
     }
 
-    public IUpdateBuilderJoinOn FullJoin(TableReference joined)
-    {
-        AddJoin(new FullJoinClause(joined));
-        return this;
-    }
-
     IUpdateBuilderFromJoinOn IUpdateBuilderFrom.FullJoin(TableReference joined)
     {
         AddJoin(new FullJoinClause(joined));
