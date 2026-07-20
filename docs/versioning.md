@@ -25,12 +25,11 @@ Two cases are specific to this library, beyond the usual API-level changes:
   for the same input is at minimum a **minor** release, even as a bug fix,
   and is called out in the CHANGELOG. It's **major** when it can change
   query semantics — which rows are read or written.
-- **Builder-stage interfaces are not for user implementation.** Every
-  interface under `SqlArtisan.Internal`'s `SqlBuilder/` tree — the
+- **Builder-stage interfaces are not for user implementation.** The
   `I*Builder*` fluent-chain stage types (e.g. `ISelectBuilderPaginated`)
   and the cross-cutting capability interfaces they compose
   (`IPagination`, `IForUpdate`, `IJoinOperator`, `ISetOperator`,
-  `IReturning`, `IUpsert`) — exists only to type the fluent chain; all
+  `IReturning`, `IUpsert`) exist only to type the fluent chain; all
   implementations are internal. Adding a member to any of them is a
   **minor** change; caller compatibility is preserved as usual.
 - **Public enum values are append-only.** `Dbms`, `DateTimePart`,

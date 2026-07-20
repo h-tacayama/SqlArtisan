@@ -584,9 +584,7 @@ internal static class MatrixSweepCatalog
         AddMutating("MergeInto", _ => MergeShape());
         AddMutating("Using", _ => MergeShape());
         // The literal-row upsert MERGE is the SQL Server hole this closes (also PostgreSQL);
-        // MySQL/SQLite reject at MERGE, Oracle at the VALUES source. Arity 3 matches
-        // Sql.Values(alias, columnNames, rows), keeping this out of the arity-less
-        // Values union (the builder's instance Values(...) overloads are all arity 1).
+        // MySQL/SQLite reject at MERGE, Oracle at the VALUES source.
         cases.Add(new SweepCase(new MatrixKey("Values", 3), _ =>
         {
             UsersTable t = new("t");
