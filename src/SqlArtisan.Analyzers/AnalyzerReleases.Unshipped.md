@@ -8,3 +8,4 @@ Rule ID | Category | Severity | Notes
 SQLA0001 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used against a configured target dialect it is not supported on.
 SQLA0002 | SqlArtisan.Dialect | Warning | A SqlArtisan analyzer .editorconfig value could not be recognized.
 SQLA0003 | SqlArtisan.Dialect | Warning | A SQL identifier literal exceeds the target dialect's identifier-length limit.
+SQLA0004 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used in a syntactic position the target dialect rejects it in.

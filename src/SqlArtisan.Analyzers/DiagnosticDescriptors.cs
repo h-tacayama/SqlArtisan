@@ -39,4 +39,15 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
+
+    // No override-key hint: the construct itself is supported on the target, so
+    // sqlartisan_construct_* keys do not apply — suppression is per-ID only.
+    public static readonly DiagnosticDescriptor ContextRestrictedConstruct = new(
+        id: "SQLA0004",
+        title: "SQL construct not supported in this position on the target dialect",
+        messageFormat: "'{0}' is not supported {1} on {2}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
 }

@@ -14,6 +14,7 @@ target.
 - [Enabling it](#enabling-it)
 - [Rules](#rules)
 - [Correcting a warning: the override keys](#correcting-a-warning-the-override-keys)
+- [Context rules (SQLA0004)](#context-rules-sqla0004)
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
 - [Verified-against versions](#verified-against-versions)
@@ -53,6 +54,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0001` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
 | `SQLA0002` | Warning | A `sqlartisan_target_dbms` or `sqlartisan_construct_*` value could not be recognized. |
 | `SQLA0003` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
+| `SQLA0004` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0004). |
 
 `SQLA0001` only ever fires for a construct the matrix has confirmed — one
 without a matrix entry stays silent rather than guessed at, so an incomplete
@@ -160,6 +162,56 @@ A typo in a key name is not detectable — Roslyn does not let an analyzer
 enumerate which `.editorconfig` keys exist, only look one up by exact name —
 so a misspelled override silently does nothing. If a warning doesn't clear
 after adding one, check the key against the message text exactly.
+
+---
+
+## Context rules (SQLA0004)
+
+A construct can be valid on a dialect in one position and rejected by the same
+engine in another. The construct-level warnings above cannot express that —
+the construct itself *is* supported — so these facts ship as **context
+rules**: `SQLA0004` fires when the offending position is visible in the
+expression where the construct is used. Two rules ship today, both MySQL
+facts, live-verified against the engine like every matrix entry.
+
+**`LIMIT` inside an `IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL rejects a
+row-limited query directly under these positions ("This version of MySQL
+doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited
+query through a derived table or CTE instead. Scalar, `EXISTS`, CTE, and
+derived-table positions accept `LIMIT` and stay silent.
+
+```csharp
+// sqlartisan_target_dbms = mysql
+var q = Select(u.Id).From(u)
+    .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2)));
+// warning SQLA0004: 'Limit' is not supported inside an IN/ANY/ALL/SOME subquery on MySQL
+```
+
+**`GROUPING()` outside a `WITH ROLLUP` query.** MySQL accepts `Grouping(...)`
+only when the query's `GROUP BY` carries the `WITH ROLLUP` suffix — chain
+`.WithRollup()` after `.GroupBy(...)`.
+
+```csharp
+// sqlartisan_target_dbms = mysql
+var q = Select(u.DepartmentId, Grouping(u.DepartmentId))
+    .From(u).GroupBy(u.DepartmentId).OrderBy(u.DepartmentId);
+// warning SQLA0004: 'Grouping' is not supported outside a WITH ROLLUP query on MySQL
+```
+
+A context rule warns only when the position is provable from the expression
+itself. A subquery held in a variable, a builder chain continued from a
+helper method, or any shape the analyzer doesn't recognize stays silent —
+the same under-warn-but-never-false-positive principle the matrix follows.
+The absence side is equally strict: `Grouping` warns only when the chain
+shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
+point the builder's type can never accept the suffix — and a chain that
+still ends at `.GroupBy(...)` stays silent.
+
+Suppression is per rule ID, the standard Roslyn way
+(`#pragma warning disable SQLA0004`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0004.severity`). The `sqlartisan_construct_*`
+override keys do **not** apply here — they answer "does my engine support
+this construct," which is not what a context rule reports.
 
 ---
 

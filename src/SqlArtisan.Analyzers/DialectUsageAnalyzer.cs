@@ -32,7 +32,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         DiagnosticDescriptors.UnsupportedDialectConstruct,
         DiagnosticDescriptors.InvalidConfiguration,
-        DiagnosticDescriptors.IdentifierTooLong);
+        DiagnosticDescriptors.IdentifierTooLong,
+        DiagnosticDescriptors.ContextRestrictedConstruct);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -46,6 +47,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeCompoundAssignment, OperationKind.CompoundAssignment);
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
+        context.RegisterOperationAction(AnalyzeContextRules, OperationKind.Invocation);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -127,6 +129,34 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             result.OverrideKeyHint));
     }
 
+    // Both shipped context rules (#264) are MySQL facts; name-filter first so
+    // config resolution is paid only on trigger names.
+    private static void AnalyzeContextRules(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        string name = invocation.TargetMethod.Name;
+        if (name is not ("Limit" or "Grouping")
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is not TargetDbms.MySql)
+        {
+            return;
+        }
+
+        if (name == "Limit")
+        {
+            ContextRules.CheckLimitInQuantifiedSubquery(context, invocation, DisplayName(TargetDbms.MySql));
+        }
+        else
+        {
+            ContextRules.CheckGroupingRequiresWithRollup(context, invocation, DisplayName(TargetDbms.MySql));
+        }
+    }
+
     private static void AnalyzeIdentifierLength(OperationAnalysisContext context)
     {
         (IMethodSymbol? member, ImmutableArray<IArgumentOperation> arguments) = context.Operation switch
@@ -206,7 +236,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static bool IsFromSqlArtisan(IAssemblySymbol? assembly) => assembly?.Name == SqlArtisanAssemblyName;
+    internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) => assembly?.Name == SqlArtisanAssemblyName;
 
     private static string DisplayName(string memberName, int? arity, bool isArityLevel) =>
         OperatorDisplayName(memberName)
