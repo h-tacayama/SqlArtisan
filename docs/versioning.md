@@ -30,6 +30,12 @@ Two cases are specific to this library, beyond the usual API-level changes:
   exist only to type the fluent chain — all implementations are internal —
   so adding members to them is a **minor** change; caller compatibility is
   preserved as usual.
+- **Public enum values are append-only.** `Dbms`, `DateTimePart`,
+  `SearchModifier`, and `RegexpOptions` carry explicit numeric values;
+  a new value gets the next unused number, and no existing value's number
+  changes. Reassigning a shipped value would silently change behavior for a
+  caller who hasn't rebuilt against the new version — the same class of risk
+  the emitted-SQL rule above guards against.
 
 Analyzer dialect-matrix updates (`SQLA0001` / `SQLA0002`) may also land in a
 minor release: they change build-time diagnostics, never runtime behavior.

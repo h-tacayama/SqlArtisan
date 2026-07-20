@@ -10,17 +10,17 @@ public enum SearchModifier
     /// Natural language search (<c>IN NATURAL LANGUAGE MODE</c>) — MySQL's default,
     /// stated explicitly.
     /// </summary>
-    InNaturalLanguageMode,
+    InNaturalLanguageMode = 0,
 
     /// <summary>
     /// Boolean search (<c>IN BOOLEAN MODE</c>): the search expression uses operators
     /// such as <c>+</c>, <c>-</c>, and <c>*</c>.
     /// </summary>
-    InBooleanMode,
+    InBooleanMode = 1,
 
     /// <summary>
     /// Query expansion search (<c>WITH QUERY EXPANSION</c>): a second pass reuses
     /// terms from the most relevant rows of the first.
     /// </summary>
-    WithQueryExpansion,
+    WithQueryExpansion = 2,
 }
