@@ -296,6 +296,31 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
+    public async Task InsertValuesInstanceMethod_LongLiteral_StaysSilent()
+    {
+        // IInsertBuilderTable.Values(params object[]) shares the "Values" dictionary
+        // key with Sql.Values(alias, columnNames, rows) (same bare method name, no
+        // arity distinction in IdentifierLengthRule) — this pins down that the shared
+        // key doesn't misfire, since this overload's "values" parameter never matches
+        // the checked "alias"/"columnNames" names.
+        string source = $$"""
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var t = new DbTable("orders", "o");
+                    var x = InsertInto(t).Values("{{Repeat('a', 64)}}");
+                }
+            }
+            """;
+        var test = AnalyzerVerifier.Create(source, EditorConfig("postgresql"));
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task TypedCteBaseNameOverLimit_ReportsSqla0003()
     {
         // The name reaches the base constructor through a subclass initializer.
