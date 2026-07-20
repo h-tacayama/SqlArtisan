@@ -19,7 +19,7 @@ treated as a bug — please open an
 
 ## What counts as breaking
 
-Two cases are specific to this library, beyond the usual API-level changes:
+Three cases are specific to this library, beyond the usual API-level changes:
 
 - **Emitted SQL is part of the contract.** A change to the SQL text emitted
   for the same input is at minimum a **minor** release, even as a bug fix,
