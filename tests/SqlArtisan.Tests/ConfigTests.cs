@@ -78,4 +78,26 @@ public class ConfigTests : IDisposable
         expected.Append("code = @0");
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void SetDefaultDbms_Unknown_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            SqlArtisanConfig.SetDefaultDbms(Dbms.Unknown));
+
+        Assert.Equal(
+            "Unsupported DBMS. (Parameter 'dbms')\nActual value was Unknown.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void SetDefaultDbms_UndefinedValue_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            SqlArtisanConfig.SetDefaultDbms((Dbms)99));
+
+        Assert.Equal(
+            "Unsupported DBMS. (Parameter 'dbms')\nActual value was 99.",
+            ex.Message);
+    }
 }

@@ -36,7 +36,7 @@ public class DialectMatrixCoverageTests
         ["DbmsResolver.RegisterProvider"] = "Configuration-time API; never appears in a query expression.",
         ["DbmsResolver.Resolve"] = "Configuration-time API; never appears in a query expression.",
         ["ISqlBuilder.Build"] = "The universal build terminal — it takes the dialect as an argument rather than being one.",
-        ["ISqlBuilderExtensions.Build"] = "The universal build terminal — it takes the dialect as an argument rather than being one.",
+        ["SqlBuilderExtensions.Build"] = "The universal build terminal — it takes the dialect as an argument rather than being one.",
         ["OutputParameter.DbType"] = "Output-parameter binding metadata for RETURNING ... INTO; the construct is the Into entry.",
         ["OutputParameter.Size"] = "Output-parameter binding metadata for RETURNING ... INTO; the construct is the Into entry.",
         ["OutputParameter.Variable"] = "Output-parameter binding metadata for RETURNING ... INTO; the construct is the Into entry.",

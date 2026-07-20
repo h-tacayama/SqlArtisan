@@ -13,9 +13,14 @@ public static class SqlArtisanConfig
     /// <summary>
     /// Sets the dialect used by parameterless <see cref="ISqlBuilder.Build()"/> calls.
     /// </summary>
-    /// <param name="dbms">The engine to use as the default.</param>
+    /// <param name="dbms">The engine to use as the default; not <see cref="Dbms.Unknown"/>.</param>
     public static void SetDefaultDbms(Dbms dbms)
     {
+        if (dbms == Dbms.Unknown || !Enum.IsDefined(dbms))
+        {
+            throw new ArgumentOutOfRangeException(nameof(dbms), dbms, "Unsupported DBMS.");
+        }
+
         DefaultDbms = dbms;
     }
 }

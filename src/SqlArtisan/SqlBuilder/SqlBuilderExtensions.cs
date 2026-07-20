@@ -5,7 +5,7 @@ namespace SqlArtisan;
 /// <summary>
 /// Extension methods for <see cref="ISqlBuilder"/>.
 /// </summary>
-public static class ISqlBuilderExtensions
+public static class SqlBuilderExtensions
 {
     /// <summary>
     /// Builds the statement for the dialect inferred from an ADO.NET connection.
