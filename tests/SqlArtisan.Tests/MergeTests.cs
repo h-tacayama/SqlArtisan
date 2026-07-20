@@ -346,7 +346,7 @@ public class MergeTests
         expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
         expected.Append("VALUES (\"s\".code, \"s\".name);");
 
-        ValuesDerivedTable s = ValuesTable("s", ["code", "name"], [[1, "Ann"], [2, "Bo"]]);
+        ValuesDerivedTable s = Values("s", ["code", "name"], [[1, "Ann"], [2, "Bo"]]);
         SqlStatement sql =
             MergeInto(_t)
             .Using(s)
@@ -371,7 +371,7 @@ public class MergeTests
         expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
         expected.Append("VALUES (\"s\".code, \"s\".name)");
 
-        ValuesDerivedTable s = ValuesTable("s", ["code", "name"], [[1, "Ann"], [2, "Bo"]]);
+        ValuesDerivedTable s = Values("s", ["code", "name"], [[1, "Ann"], [2, "Bo"]]);
         SqlStatement sql =
             MergeInto(_t)
             .Using(s)
@@ -386,28 +386,28 @@ public class MergeTests
     }
 
     [Fact]
-    public void ValuesTable_NoRows_ThrowsArgumentException()
+    public void Values_NoRows_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            ValuesTable("s", ["code"], []));
+            Values("s", ["code"], []));
 
         Assert.Equal("A VALUES source requires at least one row.", ex.Message);
     }
 
     [Fact]
-    public void ValuesTable_NoColumns_ThrowsArgumentException()
+    public void Values_NoColumns_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            ValuesTable("s", [], [[1]]));
+            Values("s", [], [[1]]));
 
         Assert.Equal("A VALUES source requires at least one column.", ex.Message);
     }
 
     [Fact]
-    public void ValuesTable_RowWidthMismatch_ThrowsArgumentException()
+    public void Values_RowWidthMismatch_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            ValuesTable("s", ["code", "name"], [[1]]));
+            Values("s", ["code", "name"], [[1]]));
 
         Assert.Equal(
             "Every row of a VALUES source must supply one value per column; "

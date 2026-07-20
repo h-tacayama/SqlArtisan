@@ -255,7 +255,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task ValuesTableAliasOverLimit_ReportsSqla0003()
+    public async Task ValuesAliasOverLimit_ReportsSqla0003()
     {
         string source = $$"""
             using SqlArtisan;
@@ -265,7 +265,7 @@ public class IdentifierLengthAnalyzerTests
             {
                 void M()
                 {
-                    var v = ValuesTable({|#0:"{{Repeat('a', 64)}}"|}, ["c"], new object[][] { new object[] { 1 } });
+                    var v = Values({|#0:"{{Repeat('a', 64)}}"|}, ["c"], new object[][] { new object[] { 1 } });
                 }
             }
             """;
@@ -275,7 +275,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task ValuesTableColumnNameOverLimit_ReportsSqla0003PerElement()
+    public async Task ValuesColumnNameOverLimit_ReportsSqla0003PerElement()
     {
         // Only the over-limit column of the list warns, at its own location.
         string source = $$"""
@@ -286,7 +286,7 @@ public class IdentifierLengthAnalyzerTests
             {
                 void M()
                 {
-                    var v = ValuesTable("s", ["ok", {|#0:"{{Repeat('a', 64)}}"|}], new object[][] { new object[] { 1, 2 } });
+                    var v = Values("s", ["ok", {|#0:"{{Repeat('a', 64)}}"|}], new object[][] { new object[] { 1, 2 } });
                 }
             }
             """;

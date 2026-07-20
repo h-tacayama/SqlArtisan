@@ -5,7 +5,7 @@ namespace SqlArtisan;
 /// <summary>
 /// A table value constructor named as a derived-table source —
 /// <c>(VALUES (…),(…)) "s" (c1, c2)</c> — for a MERGE <c>USING</c>. Build one
-/// with <see cref="Sql.ValuesTable(string, string[], object[][])"/>; read its
+/// with <see cref="Sql.Values(string, string[], object[][])"/>; read its
 /// columns by name through <see cref="Column(string)"/>.
 /// </summary>
 public sealed class ValuesDerivedTable : DerivedTableBase, IColumnAccessor

@@ -534,8 +534,10 @@ internal static class DialectMatrix
         // The subquery source rides this key (a TableReference subtype through the same
         // Using overload); only the VALUES source below narrows the scope (Oracle excluded).
         [new MatrixKey("Using")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
-        // MERGE literal-row source (VALUES (…),(…)); Oracle has no VALUES row constructor in USING.
-        [new MatrixKey("ValuesTable")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
+        // Sql.Values(alias, columnNames, rows) — the MERGE USING literal-row source; arity 3
+        // keeps it out of the arity-less Values union above (the builder's instance
+        // Values(...) overloads are all arity 1). Oracle has no VALUES row constructor in USING.
+        [new MatrixKey("Values", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenNotMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("ThenInsert")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
