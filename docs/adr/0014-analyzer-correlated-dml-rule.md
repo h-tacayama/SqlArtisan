@@ -26,8 +26,9 @@ define the rule class:
 
 - **Advisory duplication.** The rule re-states a verdict the core already
   enforces — suppressing the diagnostic does not disable the `Build()`
-  throw. The message mirrors the guard's message verbatim, pinned by a
-  parity test; every analyzer trigger shape has a twin test that executes
+  throw. The message mirrors the guard's message (bar the trailing period
+  RS1032 forbids on a single-sentence diagnostic), pinned by a parity test;
+  every analyzer trigger shape has a twin test that executes
   `Build()` and asserts the real `ArgumentException`, so "the analyzer
   fires only where the runtime throws" is proven by execution, not
   argument.
@@ -61,9 +62,13 @@ Accepted false negatives (the ADR 0003 direction — never a false
 positive): table classes from referenced assemblies (no declaration
 syntax), non-readonly fields, helper indirection for the table or the
 subquery, a builder split across statements, and `With(...)`-headed
-subqueries. The runtime accepted-false-positive (one instance reused for
-both scopes) is reported too — accurately, since that statement cannot
-build.
+subqueries. A joined UPDATE/DELETE (`.From(...)` / `.Using(...)` / a join
+step in the chain) with an unaliased target is deliberately silent: its own
+Build()-time guard throws a *different* message ("joined … must be
+aliased") before the correlated guard arms, so a "correlated" diagnostic
+would misdescribe it — the joined guard is the report there. The runtime
+accepted-false-positive (one instance reused for both scopes) is reported
+too — accurately, since that statement cannot build.
 
 Identity decisions follow ADR 0013: standard Roslyn suppression only, no
 `sqlartisan_*` key family (a construct-override key would misdescribe the

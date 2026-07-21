@@ -187,6 +187,48 @@ public class CorrelatedDmlAnalyzerTests
             var q = DeleteFrom(u).Where(Exists(Select(r.Id).From(r).Where(r.Id == u.Id)));
             """);
 
+    // Deconstruction reassigns the target to an aliased instance; the no-write
+    // scan must descend into the tuple or it under-counts into a false positive.
+    [Fact]
+    public Task DeleteFrom_LocalReassignedViaTupleDeconstruction_StaysSilent() =>
+        RunSilent("""
+            T u = new T();
+            int x;
+            (u, x) = (new T("a"), 0);
+            var q = DeleteFrom(u).Where(Exists(Select(r.Id).From(r).Where(r.Id == u.Id)));
+            """);
+
+    // A deconstruction of a different local must not silence a genuine report.
+    [Fact]
+    public Task DeleteFrom_UnrelatedTupleDeconstruction_ReportsSqla0005() =>
+        RunReporting("""
+            T other = new T();
+            int x;
+            (other, x) = (new T("a"), 0);
+            var q = DeleteFrom(t).Where(Exists(Select(r.Id).From(r).Where(r.Id == {|#0:t.Id|})));
+            """);
+
+    // A joined UPDATE/DELETE with an unaliased target throws its own guard (a
+    // different message) before the correlated guard arms — reporting "correlated"
+    // there would misdescribe it.
+    [Fact]
+    public Task Update_JoinedFromUnaliasedTarget_StaysSilent() =>
+        RunSilent("""
+            var q = Update(t).Set(t.Id == 1).From(r).Where(t.Id.In(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
+            """);
+
+    [Fact]
+    public Task DeleteFrom_JoinedUsingUnaliasedTarget_StaysSilent() =>
+        RunSilent("""
+            var q = DeleteFrom(t).Using(r).Where(t.Id.In(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
+            """);
+
+    [Fact]
+    public Task Update_JoinedInnerJoinUnaliasedTarget_StaysSilent() =>
+        RunSilent("""
+            var q = Update(t).InnerJoin(r).On(t.Id == r.Id).Set(t.Id == 1).Where(t.Id.In(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
+            """);
+
     [Fact]
     public Task Update_NonReadonlyFieldTarget_StaysSilent() =>
         RunAsync("""

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -38,23 +39,44 @@ internal static class CorrelatedDmlRule
             return;
         }
 
+        // A joined UPDATE/DELETE with an unaliased target throws its own guard
+        // (a different message) before the correlated guard arms, so reporting
+        // "correlated" there would misdescribe it — scan the whole chain for a
+        // joined step before deciding to report.
         IOperation current = dml;
+        IOperation? correlated = null;
         while (FluentChain.Parent(current) is { } next)
         {
-            foreach (IArgumentOperation argument in next.Arguments)
+            if (IsJoinedStep(next.TargetMethod.Name))
             {
-                if (FindCorrelatedColumn(argument.Value, target, argument.Value) is { } column)
+                return;
+            }
+
+            if (correlated is null)
+            {
+                foreach (IArgumentOperation argument in next.Arguments)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
-                        column.Syntax.GetLocation()));
-                    return;
+                    if (FindCorrelatedColumn(argument.Value, target, argument.Value) is { } column)
+                    {
+                        correlated = column;
+                        break;
+                    }
                 }
             }
 
             current = next;
         }
+
+        if (correlated is not null)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
+                correlated.Syntax.GetLocation()));
+        }
     }
+
+    private static bool IsJoinedStep(string name) =>
+        name is "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin" or "FullJoin" or "On";
 
     // Only shapes whose runtime identity the symbol decides: a local, or a
     // readonly field read through this/statically (another instance's field is
@@ -171,18 +193,18 @@ internal static class CorrelatedDmlRule
         {
             bool writes = node switch
             {
-                AssignmentExpressionSyntax assignment => NamesIdentifier(assignment.Left, name),
+                AssignmentExpressionSyntax assignment => AssignsTo(assignment.Left, name),
                 PrefixUnaryExpressionSyntax prefix
                     when prefix.IsKind(SyntaxKind.PreIncrementExpression)
                         || prefix.IsKind(SyntaxKind.PreDecrementExpression)
-                    => NamesIdentifier(prefix.Operand, name),
+                    => AssignsTo(prefix.Operand, name),
                 PostfixUnaryExpressionSyntax postfix
                     when postfix.IsKind(SyntaxKind.PostIncrementExpression)
                         || postfix.IsKind(SyntaxKind.PostDecrementExpression)
-                    => NamesIdentifier(postfix.Operand, name),
+                    => AssignsTo(postfix.Operand, name),
                 ArgumentSyntax argument
                     when !argument.RefKindKeyword.IsKind(SyntaxKind.None)
-                    => NamesIdentifier(argument.Expression, name),
+                    => AssignsTo(argument.Expression, name),
                 _ => false,
             };
 
@@ -195,17 +217,21 @@ internal static class CorrelatedDmlRule
         return true;
     }
 
-    private static bool NamesIdentifier(ExpressionSyntax expression, string name)
+    // A tuple target reassigns each named element (`(t, x) = ...`), so the scan
+    // must descend into it — an unhandled write shape would under-count and
+    // false-positive rather than fail toward silence.
+    private static bool AssignsTo(ExpressionSyntax target, string name)
     {
-        while (expression is ParenthesizedExpressionSyntax parenthesized)
+        while (target is ParenthesizedExpressionSyntax parenthesized)
         {
-            expression = parenthesized.Expression;
+            target = parenthesized.Expression;
         }
 
-        return expression switch
+        return target switch
         {
             IdentifierNameSyntax identifier => identifier.Identifier.Text == name,
             MemberAccessExpressionSyntax member => member.Name.Identifier.Text == name,
+            TupleExpressionSyntax tuple => tuple.Arguments.Any(a => AssignsTo(a.Expression, name)),
             _ => false,
         };
     }

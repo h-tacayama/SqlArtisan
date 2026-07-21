@@ -51,7 +51,8 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // Mirrors the Build()-time guard's message verbatim (parity-tested): the
+    // Mirrors the Build()-time guard's message (parity-tested, modulo the
+    // trailing period RS1032 forbids on a single-sentence diagnostic): the
     // diagnostic is the same finding surfaced earlier, and suppressing it does
     // not disable the throw.
     public static readonly DiagnosticDescriptor CorrelatedDmlTargetNotAliased = new(

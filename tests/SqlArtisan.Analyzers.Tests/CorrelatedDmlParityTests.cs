@@ -26,8 +26,11 @@ public class CorrelatedDmlParityTests
         }
     }
 
+    // The diagnostic drops the runtime message's trailing period — RS1032
+    // forbids it on a single-sentence diagnostic — so the two match modulo that
+    // one character.
     [Fact]
-    public void Descriptor_MessageMirrorsRuntimeGuardVerbatim()
+    public void Descriptor_MessageMirrorsRuntimeGuard()
     {
         Assert.Equal(
             GuardMessage,
