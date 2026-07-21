@@ -208,6 +208,17 @@ public class CorrelatedDmlAnalyzerTests
             var q = DeleteFrom(t).Where(Exists(Select(r.Id).From(r).Where(r.Id == {|#0:t.Id|})));
             """);
 
+    // A ref alias lets a later write reach the target under another name; taking
+    // the ref must count as a write.
+    [Fact]
+    public Task DeleteFrom_LocalReassignedThroughRefAlias_StaysSilent() =>
+        RunSilent("""
+            T u = new T();
+            ref T v = ref u;
+            v = new T("a");
+            var q = DeleteFrom(u).Where(Exists(Select(r.Id).From(r).Where(r.Id == u.Id)));
+            """);
+
     // A joined UPDATE/DELETE with an unaliased target throws its own guard (a
     // different message) before the correlated guard arms — reporting "correlated"
     // there would misdescribe it.

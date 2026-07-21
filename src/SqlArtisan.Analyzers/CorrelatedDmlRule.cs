@@ -205,6 +205,9 @@ internal static class CorrelatedDmlRule
                 ArgumentSyntax argument
                     when !argument.RefKindKeyword.IsKind(SyntaxKind.None)
                     => AssignsTo(argument.Expression, name),
+                // Taking a ref at all counts: later writes reach the target
+                // under the alias's name, invisible to this scan.
+                RefExpressionSyntax reference => AssignsTo(reference.Expression, name),
                 _ => false,
             };
 
