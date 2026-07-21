@@ -122,20 +122,17 @@ public class DialectSupportResolverTests
         Assert.False(result.Value.IsVersionBound);
     }
 
-    // No currently-shipped bound sits on a false cell (the #263 candidate that
-    // would have — WithRecursive on Oracle — was withdrawn after a live probe
-    // found a narrower Oracle 23ai gap unrelated to RECURSIVE itself; see
-    // DialectMatrix.cs and docs/analyzer.md's Known limitations). The
-    // false-cell direction runs through the identical `declared >= min`
-    // comparison this true-cell test exercises — EngineVersionTests pins the
-    // comparison arithmetic itself.
+    // WithRecursive is oracle:false in the plain matrix (21c XE rejects it), but
+    // bound to Oracle 23 — a declared version meeting the bound flips the
+    // verdict to supported even though the bool alone says otherwise. Re-proven
+    // live after ExpressionAlias's RequireExplicitColumnAlias fix (#263).
     [Fact]
-    public void Resolve_TrueCellWithDeclaredVersionMeetingBound_StaysSupported()
+    public void Resolve_FalseCellWithDeclaredVersionMeetingBound_BecomesSupported()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
 
         DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
-            options, "WithRecursive", arity: null, TargetDbms.MySql, EngineVersion.Parse("8.0"));
+            options, "WithRecursive", arity: null, TargetDbms.Oracle, EngineVersion.Parse("23"));
 
         Assert.NotNull(result);
         Assert.True(result!.Value.IsSupported);

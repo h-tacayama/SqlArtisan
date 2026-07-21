@@ -92,21 +92,30 @@ diagnostic `SQLA0006`.**
   (`Oracle23aiBoundSweepTests`) exists for exactly this — it derives its
   expectations directly from `Bounds`, so any future above-baseline Oracle
   bound is pulled in and proven automatically, with no test-file change.
-  Neither Oracle candidate in the #263 register survived this discipline for
-  this PR: `LeftJoinLateral` (inferred from an existing comment about
-  Oracle's pre-23ai boolean-literal gap, not a documented "landed in 23ai"
-  fact) was dropped before ever seeding it — live-proving a chained
-  inference would only confirm the statement parses, not that the inference
-  was the actual reason. `WithRecursive` *was* seeded and run through the
-  lane; the `RECURSIVE` keyword itself connects and parses on 23ai, but the
-  run surfaced `ORA-02000: missing AS keyword` — `ExpressionAlias`'s
-  deliberate no-`AS` emission (the source of ADR 0001's faithful-output
-  contract), used exactly as `OracleTests.Cte_AliasedColumn_Executes`
-  already live-verifies fine under a plain `With(...)`, fails once
-  `RECURSIVE` is added. That is real information (recorded in
-  `docs/analyzer.md`'s Known limitations), but it is not the "23ai accepts
-  it" claim the register made, so the bound was removed rather than shipped
-  on a technicality — the lane did exactly the job it exists to do.
+  `LeftJoinLateral` (inferred from an existing comment about Oracle's
+  pre-23ai boolean-literal gap, not a documented "landed in 23ai" fact) did
+  not survive this discipline and was dropped before ever seeding it —
+  live-proving a chained inference would only confirm the statement parses,
+  not that the inference was the actual reason.
+
+  `WithRecursive` *did* survive, in two rounds. The first live run surfaced
+  a real, narrower fact instead of confirming the register's claim outright:
+  the `RECURSIVE` keyword itself connects and parses on 23ai, but
+  `ExpressionAlias`'s deliberate no-`AS` emission (`expr alias`, never
+  `expr AS alias`) — used exactly as `OracleTests.Cte_AliasedColumn_Executes`
+  already live-verifies fine under a plain `With(...)` — failed with
+  `ORA-02000: missing AS keyword` once `RECURSIVE` was added. Per the
+  live-proof discipline, that meant withdrawing the bound rather than
+  shipping it on a technicality (the lane doing exactly the job it exists
+  to do), and fixing the actual gap instead:
+  `SqlBuildingBuffer.RequireExplicitColumnAlias` is a narrow, buffer-scoped
+  flag — set only while `WithRecursiveClause.Format` is formatting a
+  recursive CTE body, and suspended by `EncloseInParentheses(ISubquery)` for
+  any genuine nested subquery within that body (the same snapshot/restore
+  shape the existing `_subqueryDepth` correlated-DML tracking already uses)
+  — that makes `ExpressionAlias.FormatAsSelect` emit `AS` in exactly that
+  scope and nowhere else. A second live run confirmed the fixed shape, and
+  the bound was re-seeded.
 
 ## Rejected alternatives
 
@@ -131,10 +140,17 @@ diagnostic `SQLA0006`.**
   every `Entries` key.
 - A future above-baseline flip (a currently-`false` cell gaining a bound)
   needs its own live-proof lane before it can ship — the pinned 23ai lane
-  already exists for Oracle, and this ADR's `WithRecursive` investigation
-  is the recorded example of the discipline doing its job: a plausible
-  claim that did not survive contact with the real engine, caught before
-  it shipped as a silenced false positive.
+  already exists for Oracle, and this ADR's `WithRecursive` investigation is
+  the recorded example of the discipline doing its job in both directions:
+  a plausible claim caught before it shipped as a silenced false positive on
+  the first pass, and a real fix (`RequireExplicitColumnAlias`) verified
+  live before the bound shipped on the second.
+- `ExpressionAlias`'s no-`AS` emission stays the default everywhere else —
+  the fix is scoped to the one position with live-verified evidence it's
+  required, not applied speculatively to `With(...)` or any other alias
+  position. `RequireExplicitColumnAlias`'s buffer-scoped, snapshot/restore
+  pattern is available as precedent for a future formatting decision that
+  needs "am I directly inside construct X's own body" context.
 - The Analyzer cluster (`docs/adr/README.md`) grows to
   0003 + 0008 + 0009 + 0013 + 0014 + 0015. Six members is within reach of
   the consolidation trigger's threshold, though that trigger counts

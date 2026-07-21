@@ -411,6 +411,7 @@ reproduces that verdict exactly.
 | `OnDuplicateKeyUpdate`, `Excluded` | MySQL | 8.0.19 | SqlArtisan always emits the row-alias UPSERT form (`... AS new ON DUPLICATE KEY UPDATE col = new.col`), which needs the row alias MySQL added in 8.0.19 — the pre-8.0.19 `VALUES()` function form is never emitted. |
 | `JsonValue` | MySQL | 8.0.21 | `JSON_VALUE` landed in 8.0.21. |
 | `Except`, `ExceptAll`, `IntersectAll`, `MinusAll` | Oracle | 21 | `EXCEPT`/`INTERSECT` (and their `ALL` forms) landed in Oracle 21c — live-verified forward-compatible on Oracle 23ai too. |
+| `WithRecursive` | Oracle | 23 | Oracle rejects the `RECURSIVE` keyword before 23ai; a plain `With(...)` is the pre-23ai recursive-CTE spelling. |
 | `MergeInto`, `Using`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete`, the 3-argument `Values` (MERGE `USING` literal rows) | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. |
 | `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr` | PostgreSQL | 15 | The `REGEXP_*` function family landed in PostgreSQL 15. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
@@ -424,15 +425,6 @@ reproduces that verdict exactly.
 
 ## Known limitations
 
-- **`WithRecursive` has no Oracle 23ai bound, despite Oracle 23ai accepting
-  the `RECURSIVE` keyword.** A live check found a narrower problem instead:
-  the anchor branch's `expr.As(cteColumn)` aliasing (which never emits the
-  `AS` keyword, by design) is rejected under `RECURSIVE` specifically
-  (`ORA-02000: missing AS keyword`), even though the identical shape is
-  live-verified fine under a plain `With(...)`. Until that's investigated,
-  `WithRecursive` on Oracle stays a plain unsupported warning regardless of
-  declared version — override it only after verifying your own statement
-  shape against a real 23ai instance.
 - **No cross-call inference.** The target comes from `.editorconfig`/MSBuild
   scope only; a literal `.Build(Dbms.MySql)` argument elsewhere in the file
   is not read as a hint.

@@ -578,19 +578,16 @@ internal static class DialectMatrix
         [new MatrixKey("ExceptAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
         [new MatrixKey("IntersectAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
         [new MatrixKey("MinusAll")] = new VersionBounds(oracle: V("21")),
-        // Neither Oracle candidate for an above-baseline flip survived live proof
-        // (#263), so neither carries an oracle bound: LeftJoinLateral's pre-23ai gap
-        // was a chained inference, not a documented "landed in 23ai" fact, and is
-        // untested. WithRecursive's RECURSIVE keyword itself connects and parses on
-        // the pinned 23ai image, but the run surfaced a real, narrower fact instead —
-        // ORA-02000 "missing AS keyword" on the anchor branch's `expr alias` column
-        // aliasing (ExpressionAlias's deliberate no-AS emission, ADR 0001) once
-        // RECURSIVE is present, even though the identical alias shape is already
-        // live-verified fine under a plain WITH (OracleTests.Cte_AliasedColumn_Executes,
-        // #165). Whether that generalizes, and whether the fix belongs in
-        // ExpressionAlias or is dialect-position-specific, needs its own
-        // investigation — recorded rather than guessed around.
-        [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0")),
+        // LeftJoinLateral is deliberately NOT entered here: the pre-23ai gap is a
+        // chained inference (no boolean literal -> ON TRUE unrepresentable), not a
+        // documented "landed in 23ai" fact — untested, so it stays a plain
+        // DbmsSupport false (a follow-up bound needs its own primary source).
+        // WithRecursive's Oracle-23 candidate was first withdrawn after a live probe
+        // found ORA-02000 "missing AS keyword" on the anchor branch's column
+        // aliasing under RECURSIVE — SqlBuildingBuffer.RequireExplicitColumnAlias
+        // now forces AS there specifically (WithRecursiveClause.Format), re-proven
+        // by the pinned 23ai lane.
+        [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0"), oracle: V("23")),
 
         // --- MySQL 8.0.x point releases (matrix comments above; #263 register) ---
         [new MatrixKey("Grouping", 1)] = new VersionBounds(mySql: V("8.0.1")),
