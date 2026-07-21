@@ -23,7 +23,7 @@ public class IdentifierLengthAnalyzerTests
     private static string Repeat(char c, int count) => new(c, count);
 
     [Fact]
-    public async Task AliasOverPostgreSqlByteLimit_ReportsSqla0003()
+    public async Task AliasOverPostgreSqlByteLimit_ReportsSqla0004()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 64)), AnalyzerVerifier.EditorConfig("postgresql"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0004").WithLocation(0));
@@ -38,7 +38,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task MultiByteAliasOverPostgreSqlByteLimit_ReportsSqla0003()
+    public async Task MultiByteAliasOverPostgreSqlByteLimit_ReportsSqla0004()
     {
         // 22 three-byte characters = 66 bytes (over 63) while only 22 characters — proves
         // the limit is measured in UTF-8 bytes, not characters.
@@ -56,7 +56,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task AliasOverMySqlCharLimit_ReportsSqla0003()
+    public async Task AliasOverMySqlCharLimit_ReportsSqla0004()
     {
         // MySQL's alias limit is 256 characters (its 64-char limit is for table/column
         // names, not aliases), so an alias only warns past 256.
@@ -73,7 +73,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task AliasOverSqlServerCharLimit_ReportsSqla0003()
+    public async Task AliasOverSqlServerCharLimit_ReportsSqla0004()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 129)), AnalyzerVerifier.EditorConfig("sqlserver"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0004").WithLocation(0));
@@ -81,7 +81,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task AliasOverOracleByteLimit_ReportsSqla0003()
+    public async Task AliasOverOracleByteLimit_ReportsSqla0004()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 129)), AnalyzerVerifier.EditorConfig("oracle"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0004").WithLocation(0));
@@ -145,7 +145,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task CteNameOverLimit_ReportsSqla0003()
+    public async Task CteNameOverLimit_ReportsSqla0004()
     {
         string source = $$"""
             using SqlArtisan;
@@ -165,7 +165,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task DerivedTableNameOverLimit_ReportsSqla0003()
+    public async Task DerivedTableNameOverLimit_ReportsSqla0004()
     {
         string source = $$"""
             using SqlArtisan;
@@ -185,7 +185,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task DbTableAliasOverLimit_ReportsSqla0003()
+    public async Task DbTableAliasOverLimit_ReportsSqla0004()
     {
         string source = $$"""
             using SqlArtisan;
@@ -225,7 +225,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task OutputParameterVariableOverLimit_ReportsSqla0003()
+    public async Task OutputParameterVariableOverLimit_ReportsSqla0004()
     {
         string source = $$"""
             using System.Data;
@@ -245,7 +245,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task ValuesAliasOverLimit_ReportsSqla0003()
+    public async Task ValuesAliasOverLimit_ReportsSqla0004()
     {
         string source = $$"""
             using SqlArtisan;
@@ -265,7 +265,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task ValuesColumnNameOverLimit_ReportsSqla0003PerElement()
+    public async Task ValuesColumnNameOverLimit_ReportsSqla0004PerElement()
     {
         // Only the over-limit column of the list warns, at its own location.
         string source = $$"""
@@ -311,7 +311,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task TypedCteBaseNameOverLimit_ReportsSqla0003()
+    public async Task TypedCteBaseNameOverLimit_ReportsSqla0004()
     {
         // The name reaches the base constructor through a subclass initializer.
         string source = $$"""

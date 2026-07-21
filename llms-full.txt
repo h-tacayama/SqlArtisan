@@ -3222,7 +3222,7 @@ comes only from its `.editorconfig` scope or the MSBuild property.
 **Promote a dialect mismatch to a hard failure:**
 
 ```ini
-dotnet_diagnostic.SQLA0001.severity = error
+dotnet_diagnostic.SQLA0002.severity = error
 ```
 
 Every confirmed mismatch fails the build; escape hatches (`supported`
