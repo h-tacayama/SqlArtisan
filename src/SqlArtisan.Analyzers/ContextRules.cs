@@ -26,12 +26,12 @@ internal static class ContextRules
         OperationAnalysisContext context, IInvocationOperation limit, string dialectName)
     {
         IOperation current = limit;
-        while (ChainParent(current) is { } link)
+        while (FluentChain.Parent(current) is { } link)
         {
             current = link;
         }
 
-        IOperation? parent = SkipConversion(current).Parent;
+        IOperation? parent = FluentChain.SkipConversion(current).Parent;
         if (parent is not IArgumentOperation argument || !IsQuantifiedSubqueryArgument(argument))
         {
             return;
@@ -119,7 +119,7 @@ internal static class ContextRules
         names.Reverse();
 
         IOperation current = anchor;
-        while (ChainParent(current) is { } link)
+        while (FluentChain.Parent(current) is { } link)
         {
             names.Add(link.TargetMethod.Name);
             current = link;
@@ -127,21 +127,6 @@ internal static class ContextRules
 
         return names;
     }
-
-    private static IInvocationOperation? ChainParent(IOperation current)
-    {
-        IOperation unwrapped = SkipConversion(current);
-        return unwrapped.Parent is IInvocationOperation invocation
-            && invocation.Instance == unwrapped
-            && DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly)
-                ? invocation
-                : null;
-    }
-
-    // Shared by CheckLimitInQuantifiedSubquery and ChainParent: an operation used
-    // as a typed argument or receiver often sits behind an implicit conversion.
-    private static IOperation SkipConversion(IOperation operation) =>
-        operation.Parent is IConversionOperation conversion ? conversion : operation;
 
     private static IInvocationOperation? ChainChild(IInvocationOperation invocation)
     {

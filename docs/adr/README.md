@@ -37,6 +37,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0011](0011-bounded-exception-validity-boundary.md) | Bounded exceptions to the validity-enforcement boundary: when a construct valid on some dialect may still be rejected | Boundary | Accepted |
 | [0012](0012-value-domain-guards.md) | Value-domain guards: rejecting an argument value no engine accepts | Boundary | Accepted |
 | [0013](0013-analyzer-context-rules.md) | Analyzer context rules: position-dependent verdicts under their own diagnostic | Analyzer | Accepted |
+| [0014](0014-analyzer-correlated-dml-rule.md) | Analyzer advisory duplication of a runtime guard: the correlated-DML rule | Analyzer | Accepted |
 
 ### Clusters
 
@@ -46,10 +47,12 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   0012 adds value-domain guards (a universally invalid embedded value also
   rejects). All three are required to answer "will the library throw for
   this?"
-- **Analyzer** (0003 + 0008 + 0009 + 0013) — *How does the dialect analyzer
-  work?* 0003 chooses the permissive-API + opt-in-analyzer approach; 0008
-  designs the override configuration; 0009 decides bundled distribution;
-  0013 adds position-dependent context rules (SQLA0003).
+- **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014) — *How does the dialect
+  analyzer work?* 0003 chooses the permissive-API + opt-in-analyzer
+  approach; 0008 designs the override configuration; 0009 decides bundled
+  distribution; 0013 adds position-dependent context rules (SQLA0003); 0014
+  adds the advisory correlated-DML rule (SQLA0005) duplicating the runtime
+  guard.
 
 ## Consolidation trigger
 
