@@ -5,13 +5,6 @@ namespace SqlArtisan.Analyzers.Tests;
 
 public class ContextRuleAnalyzerTests
 {
-    private static string EditorConfig(string dbms) => $"""
-        root = true
-
-        [*.cs]
-        sqlartisan_target_dbms = {dbms}
-        """;
-
     // The marked span is the whole trigger invocation (receiver chain included) —
     // the same location SQLA0001 reports for an instance-chain member.
     private static string Usage(string statements) => $$"""
@@ -37,14 +30,14 @@ public class ContextRuleAnalyzerTests
         }
         """;
 
-    private static string Unmarked(string source) =>
-        source.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
-
     private static Task RunReporting(string statements) =>
-        RunAsync(Usage(statements), EditorConfig("mysql"), expectWarning: true);
+        RunAsync(Usage(statements), AnalyzerVerifier.EditorConfig("mysql"), expectWarning: true);
 
     private static Task RunSilent(string statements, string? dbms = "mysql") =>
-        RunAsync(Unmarked(Usage(statements)), dbms is null ? null : EditorConfig(dbms), expectWarning: false);
+        RunAsync(
+            AnalyzerVerifier.Unmarked(Usage(statements)),
+            dbms is null ? null : AnalyzerVerifier.EditorConfig(dbms),
+            expectWarning: false);
 
     private static async Task RunAsync(string source, string? editorConfig, bool expectWarning)
     {
@@ -166,7 +159,7 @@ public class ContextRuleAnalyzerTests
 
                 static ISubquery Sub(T s) => Select(s.Id).From(s).OrderBy(s.Id).Limit(2);
             }
-            """, EditorConfig("mysql"), expectWarning: false);
+            """, AnalyzerVerifier.EditorConfig("mysql"), expectWarning: false);
 
     [Fact]
     public Task GroupingWithoutWithRollup_MySql_ReportsSqla0004() =>
@@ -234,5 +227,15 @@ public class ContextRuleAnalyzerTests
     public Task GroupingInInnerSubqueryWithOwnWithRollup_MySql_StaysSilent() =>
         RunSilent("""
             var q = Select(t.Id).From(t).Where(t.Id.In(Select(Grouping(s.Dep)).From(s).GroupBy(s.Dep).WithRollup()));
+            """);
+
+    // Regression for a cross-query misattribution: climbing through the WHERE/IN
+    // boundary and the outer AND must never reach the unrelated outer Having.
+    [Fact]
+    public Task GroupingInWhereOfDifferentQuery_MySql_StaysSilent() =>
+        RunSilent("""
+            var outer = Select(t.Dep).From(t).GroupBy(t.Dep).Having(
+                t.Id.In(Select(s.Dep).From(s).Where(Grouping(s.Dep) == 0).GroupBy(s.Dep).WithRollup().Having(s.Dep > 0))
+                & (t.Dep > 0));
             """);
 }

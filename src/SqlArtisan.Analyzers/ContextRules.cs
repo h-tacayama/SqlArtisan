@@ -31,12 +31,7 @@ internal static class ContextRules
             current = link;
         }
 
-        IOperation? parent = current.Parent;
-        if (parent is IConversionOperation conversion)
-        {
-            parent = conversion.Parent;
-        }
-
+        IOperation? parent = SkipConversion(current).Parent;
         if (parent is not IArgumentOperation argument || !IsQuantifiedSubqueryArgument(argument))
         {
             return;
@@ -51,10 +46,9 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// MySQL rejects <c>GROUPING()</c> in a query without the <c>WITH ROLLUP</c>
-    /// suffix. Absence is provable at the type level: <c>WithRollup()</c> is
-    /// declared only on the stage <c>GroupBy(...)</c> returns, so a chain whose
-    /// call after <c>GroupBy</c> is anything else can never acquire it.
+    /// Absence is provable at the type level: <c>WithRollup()</c> is declared only
+    /// on the stage <c>GroupBy(...)</c> returns, so a chain whose call after
+    /// <c>GroupBy</c> is anything else can never acquire it.
     /// </summary>
     public static void CheckGroupingRequiresWithRollup(
         OperationAnalysisContext context, IInvocationOperation grouping, string dialectName)
@@ -81,9 +75,8 @@ internal static class ContextRules
             dialectName));
     }
 
-    // Climbs from Grouping() to the SELECT-list/HAVING/ORDER BY invocation that
-    // hosts it, crossing only argument glue (params packing, operator conditions,
-    // wrapping functions) so a nested query attributes to its own clause.
+    // Climbs to the SELECT-list/HAVING/ORDER BY invocation hosting Grouping(); any
+    // other argument host stops the climb rather than risk crossing into another query.
     private static IInvocationOperation? FindClauseAnchor(IInvocationOperation grouping)
     {
         IOperation current = grouping;
@@ -104,14 +97,9 @@ internal static class ContextRules
                     current = parent;
                     break;
                 case IArgumentOperation { Parent: IInvocationOperation host }
-                    when DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly):
-                    if (host.TargetMethod.Name is "Select" or "Having" or "OrderBy")
-                    {
-                        return host;
-                    }
-
-                    current = host;
-                    break;
+                    when DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly)
+                        && host.TargetMethod.Name is "Select" or "Having" or "OrderBy":
+                    return host;
                 default:
                     return null;
             }
@@ -142,19 +130,18 @@ internal static class ContextRules
 
     private static IInvocationOperation? ChainParent(IOperation current)
     {
-        IOperation? parent = current.Parent;
-        if (parent is IConversionOperation conversion)
-        {
-            current = conversion;
-            parent = conversion.Parent;
-        }
-
-        return parent is IInvocationOperation invocation
-            && invocation.Instance == current
+        IOperation unwrapped = SkipConversion(current);
+        return unwrapped.Parent is IInvocationOperation invocation
+            && invocation.Instance == unwrapped
             && DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly)
                 ? invocation
                 : null;
     }
+
+    // Shared by CheckLimitInQuantifiedSubquery and ChainParent: an operation used
+    // as a typed argument or receiver often sits behind an implicit conversion.
+    private static IOperation SkipConversion(IOperation operation) =>
+        operation.Parent is IConversionOperation conversion ? conversion : operation;
 
     private static IInvocationOperation? ChainChild(IInvocationOperation invocation)
     {

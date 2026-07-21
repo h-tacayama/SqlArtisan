@@ -147,13 +147,14 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        string dialectName = DisplayName(TargetDbms.MySql);
         if (name == "Limit")
         {
-            ContextRules.CheckLimitInQuantifiedSubquery(context, invocation, DisplayName(TargetDbms.MySql));
+            ContextRules.CheckLimitInQuantifiedSubquery(context, invocation, dialectName);
         }
         else
         {
-            ContextRules.CheckGroupingRequiresWithRollup(context, invocation, DisplayName(TargetDbms.MySql));
+            ContextRules.CheckGroupingRequiresWithRollup(context, invocation, dialectName);
         }
     }
 
