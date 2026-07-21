@@ -483,7 +483,7 @@ internal static class DialectMatrix
         [new MatrixKey("Union")] = DbmsSupport.All,
         [new MatrixKey("UnionAll")] = DbmsSupport.All,
         // Except/Intersect: MySQL added both in 8.0.31 (the floating mysql:8.0 baseline is past
-        // that); Oracle added EXCEPT in 21c (baseline is 23ai Free) — oracle-base.com 21c article.
+        // that); Oracle added EXCEPT in 21c (the pinned XE 21c baseline) — oracle-base.com 21c article.
         [new MatrixKey("Except")] = DbmsSupport.All,
         [new MatrixKey("Intersect")] = DbmsSupport.All,
         // The ALL variants: MySQL 8.0.31+, Oracle 21c+, PostgreSQL always; SQLite and SQL Server
@@ -558,6 +558,57 @@ internal static class DialectMatrix
         // argument-type-aware key shape before it can be entered safely — tracked as follow-up,
         // not guessed around.
     };
+
+    /// <summary>
+    /// Optional minimum-engine-version floor per dialect, keyed identically to
+    /// <see cref="Entries"/> — a bound attaches to the exact key an entry
+    /// resolution matched (the arity key when the lookup was arity-specific,
+    /// else the member key), never falling back across the two. A key with no
+    /// row here has no recorded boundary: <see cref="DialectSupportResolver"/>
+    /// falls through to the plain <see cref="Entries"/> bool for it, exactly as
+    /// before #263 (ADR 0003 — a missing bound degrades to today's behavior,
+    /// never a new false positive).
+    /// </summary>
+    private static readonly Dictionary<MatrixKey, VersionBounds> Bounds = new()
+    {
+    };
+
+    private static EngineVersion V(string text) => EngineVersion.Parse(text);
+
+    /// <summary>
+    /// The machine-comparable floor of each dialect's <see cref="VerifiedAgainstVersion"/>
+    /// baseline — the anchor the <c>bool == (baseline &gt;= bound)</c> invariant
+    /// gate checks every <see cref="Bounds"/> row against. MySQL is a floor, not
+    /// an exact pin, because the <c>mysql:8.0</c> integration tag floats.
+    /// </summary>
+    internal static readonly IReadOnlyDictionary<TargetDbms, EngineVersion> BaselineVersion = new Dictionary<TargetDbms, EngineVersion>
+    {
+        [TargetDbms.MySql] = V("8.0.31"),
+        [TargetDbms.Oracle] = V("21.3"),
+        [TargetDbms.PostgreSql] = V("16"),
+        [TargetDbms.Sqlite] = V("3.46"),
+        [TargetDbms.SqlServer] = V("2022"),
+    };
+
+    /// <summary>
+    /// The minimum version <paramref name="target"/> must meet for the entry
+    /// matched by <paramref name="matchedKey"/>, or <see langword="false"/> if
+    /// no boundary is recorded for that exact key/dialect pair.
+    /// </summary>
+    public static bool TryGetMinVersion(MatrixKey matchedKey, TargetDbms target, out EngineVersion min)
+    {
+        if (Bounds.TryGetValue(matchedKey, out VersionBounds bounds) && bounds.MinFor(target) is { } bound)
+        {
+            min = bound;
+            return true;
+        }
+
+        min = default;
+        return false;
+    }
+
+    /// <summary>Exposed for the version-bounds gate tests (orphan check, baseline invariant, docs provenance).</summary>
+    internal static IReadOnlyDictionary<MatrixKey, VersionBounds> AllBounds => Bounds;
 
     public static bool TryGetEntry(string memberName, int? arity, out DbmsSupport support, out bool wasArityMatch) =>
         TryGetEntryFrom(Entries, memberName, arity, out support, out wasArityMatch);
