@@ -172,7 +172,7 @@ engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0003` fires when the offending position is visible in the
 expression where the construct is used. Two rules ship today, both MySQL
-facts, live-verified against the engine like every matrix entry.
+facts, live-verified against the engine.
 
 **`LIMIT` inside an `IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL rejects a
 row-limited query directly under these positions ("This version of MySQL
