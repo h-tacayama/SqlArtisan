@@ -2,10 +2,11 @@ namespace SqlArtisan.Internal;
 
 internal sealed class WithRecursiveClause : SqlPart
 {
-    // Oracle's recursive WITH requires the CTE column list (`cte(a, b) AS ...`),
-    // and every other dialect accepts it, so it is emitted unconditionally —
-    // derived from the anchor query block's select items. Derivation is eager:
-    // the anchor's resolved items are fixed at the WithRecursive(...) call.
+    // The CTE column list (`cte(a, b) AS ...`) is emitted unconditionally,
+    // derived from the anchor query block's select items: the engines that
+    // accept WITH RECURSIVE (MySQL/PostgreSQL/SQLite) all accept the list, so
+    // one uniform shape needs no per-dialect branch. Derivation is eager — the
+    // anchor's resolved items are fixed at the WithRecursive(...) call.
     private readonly CommonTableExpressions _ctes;
     private readonly string[][] _columnNames;
 
