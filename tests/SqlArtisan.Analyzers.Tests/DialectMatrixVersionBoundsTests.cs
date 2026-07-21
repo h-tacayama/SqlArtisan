@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace SqlArtisan.Analyzers.Tests;
 
@@ -74,5 +76,52 @@ public class DialectMatrixVersionBoundsTests
         Assert.True(mismatches.Count == 0, $"Bound/bool disagreement(s) at baseline: {string.Join("; ", mismatches)}");
     }
 
+    // Cheap drift guard (DialectMatrixDocsTests's pattern): every seeded bound's
+    // construct name and version token must appear somewhere in the provenance
+    // table docs/analyzer.md ships alongside SQLA0006 — a renamed/re-bounded
+    // row that forgets to update the docs fails here instead of shipping stale.
+    [Fact]
+    public void EveryBound_HasDocsProvenance()
+    {
+        string doc = File.ReadAllText(Path.Combine(FindRepoRoot(), "docs", "analyzer.md"));
+
+        List<string> missing = [];
+        foreach ((MatrixKey key, VersionBounds bounds) in DialectMatrix.AllBounds)
+        {
+            if (!doc.Contains(key.MemberName))
+            {
+                missing.Add($"{Label(key)}: construct name not found in docs/analyzer.md");
+            }
+
+            foreach (TargetDbms target in AllTargets)
+            {
+                if (bounds.MinFor(target) is not { } min)
+                {
+                    continue;
+                }
+
+                if (!doc.Contains(min.ToString()))
+                {
+                    missing.Add($"{Label(key)}/{target}: version token \"{min}\" not found in docs/analyzer.md");
+                }
+            }
+        }
+
+        Assert.True(missing.Count == 0, $"Undocumented bound(s): {string.Join("; ", missing)}");
+    }
+
     private static string Label(MatrixKey key) => key.Arity is { } arity ? $"{key.MemberName} (arity {arity})" : key.MemberName;
+
+    private static string FindRepoRoot()
+    {
+        DirectoryInfo? dir = new(AppContext.BaseDirectory);
+
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "SqlArtisan.sln")))
+        {
+            dir = dir.Parent;
+        }
+
+        Assert.NotNull(dir);
+        return dir!.FullName;
+    }
 }

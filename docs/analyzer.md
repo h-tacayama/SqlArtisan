@@ -19,7 +19,7 @@ target.
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
 - [Verified-against versions](#verified-against-versions)
-- [Reserved: version-aware warnings](#reserved-version-aware-warnings)
+- [Version-aware warnings (SQLA0006)](#version-aware-warnings-sqla0006)
 - [Known limitations](#known-limitations)
 
 ---
@@ -57,6 +57,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0003` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0003). |
 | `SQLA0004` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
 | `SQLA0005` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0005). |
+| `SQLA0006` | Warning | A construct is supported on the target dialect, but not at the declared `sqlartisan_target_version` — see [Version-aware warnings](#version-aware-warnings-sqla0006). |
 
 `SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
@@ -332,23 +333,47 @@ for, not a bug in the matrix.
 
 ---
 
-## Reserved: version-aware warnings
+## Version-aware warnings (SQLA0006)
 
-`sqlartisan_target_version` (and its MSBuild counterpart,
-`<SqlArtisanTargetVersion>`) is a **reserved key**. Setting it today does
-nothing; a future release will use it to make the warnings version-aware —
-matrix entries will optionally carry a minimum engine version per dialect,
-so a construct newer than your declared engine (say, `MERGE` before
-PostgreSQL 15, or `DATETRUNC` before SQL Server 2022) warns just like a
-plain dialect mismatch does today.
+Some constructs are only newer than *some* engine versions on an otherwise
+supported dialect — `MERGE` before PostgreSQL 15, `DATETRUNC` before SQL
+Server 2022. Declare your engine's version with `sqlartisan_target_version`
+and the matrix's version bounds warn on those too, as `SQLA0006` — the same
+"this could break in production" fact `SQLA0002` reports for a dialect
+mismatch, just for a version shortfall instead:
 
-The reservation pins down now what the future release will not change:
+```ini
+root = true
+
+[*.cs]
+sqlartisan_target_dbms = sqlserver
+sqlartisan_target_version = 2019
+```
+
+```csharp
+using static SqlArtisan.Sql;
+
+var g = Datetrunc(DateTimePart.Day, "created_at");
+// warning SQLA0006: 'Datetrunc' requires SQL Server 2022+ but the declared
+// target version is 2019. Set 'sqlartisan_construct_datetrunc = supported'
+// in .editorconfig if your engine supports it.
+```
+
+Or, if you prefer an MSBuild property:
+
+```xml
+<PropertyGroup>
+  <SqlArtisanTargetVersion>2019</SqlArtisanTargetVersion>
+</PropertyGroup>
+```
 
 - **Value format.** The engine's own version spelling, the same one this
   documentation's dialect notes use — `8.0.16` for MySQL, `23` for Oracle,
   `16` for PostgreSQL, `3.44` for SQLite, `2022` for SQL Server. Versions
-  compare by numeric segment (`8.0.20` is newer than `8.0.16`); trailing
-  letters in a segment are ignored (`23ai` reads as `23`).
+  compare by numeric segment (`8.0.20` is newer than `8.0.16`, and a bare
+  `8.0` reads as `8.0.0` — declare the precise patch version if an 8.0.x
+  bound matters to you); trailing letters in a segment are ignored (`23ai`
+  reads as `23`).
 - **Unset means today's behavior.** With no declared version, version
   bounds never fire and the analyzer behaves exactly as the rest of this
   page describes. The key also has no effect without
@@ -357,18 +382,57 @@ The reservation pins down now what the future release will not change:
   shipped matrix's verdict, not yours: resolution stays *your arity-level
   override → your member-level override → the matrix (version-refined) →
   silence*, so `supported` / `unsupported` keys silence or force the
-  warning exactly as they do today.
+  warning exactly as they do today — `sqlartisan_construct_datetrunc =
+  supported` silences the example above even with `2019` still declared.
 - **No new false positives.** A version bound only ever refines a construct
   the matrix already has an entry for; a construct without an entry stays
   silent whether or not a version is declared.
 - **Same plumbing as the target key.** Resolved per source file,
   `.editorconfig` wins over the MSBuild property, and an unrecognized value
-  is flagged as `SQLA0002` and otherwise treated as unset.
+  is flagged as `SQLA0001` and otherwise treated as unset.
+
+Suppression is per rule ID, the standard Roslyn way
+(`#pragma warning disable SQLA0006`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0006.severity`).
+
+### Version-bound constructs
+
+Every construct below has a recorded minimum version on the named dialect;
+below that version the matrix's plain `supported`/`not supported` verdict
+holds instead — declaring no version, or a version at or above the bound,
+reproduces that verdict exactly.
+
+| Construct | Dialect | Minimum version | Why |
+|---|---|---|---|
+| `WithRecursive` | MySQL | 8.0 | `WITH RECURSIVE` needs MySQL's CTE support, added in 8.0. |
+| `Grouping` (1-argument form) | MySQL | 8.0.1 | `GROUPING(expr)` landed in 8.0.1. |
+| `Except`, `Intersect`, `ExceptAll`, `IntersectAll` | MySQL | 8.0.31 | `EXCEPT`/`INTERSECT` landed in 8.0.31. |
+| `Nowait`, `SkipLocked` | MySQL | 8.0 | `FOR UPDATE NOWAIT`/`SKIP LOCKED` need 8.0. |
+| `OnDuplicateKeyUpdate`, `Excluded` | MySQL | 8.0.19 | SqlArtisan always emits the row-alias UPSERT form (`... AS new ON DUPLICATE KEY UPDATE col = new.col`), which needs the row alias MySQL added in 8.0.19 — the pre-8.0.19 `VALUES()` function form is never emitted. |
+| `JsonValue` | MySQL | 8.0.21 | `JSON_VALUE` landed in 8.0.21. |
+| `Except`, `ExceptAll`, `IntersectAll`, `MinusAll` | Oracle | 21 | `EXCEPT`/`INTERSECT` (and their `ALL` forms) landed in Oracle 21c — live-verified forward-compatible on Oracle 23ai too. |
+| `MergeInto`, `Using`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete`, the 3-argument `Values` (MERGE `USING` literal rows) | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. |
+| `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr` | PostgreSQL | 15 | The `REGEXP_*` function family landed in PostgreSQL 15. |
+| `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
+| `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
+| `StringAgg` (both overloads), `Concat` (both overloads) | SQLite | 3.44 | `string_agg`/`concat` landed in SQLite 3.44. |
+| `NullsFirst`, `NullsLast` | SQLite | 3.30 | `NULLS FIRST`/`NULLS LAST` landed in SQLite 3.30. |
+| `Trim` (1-argument form) | SQL Server | 2017 | `TRIM(...)` landed in SQL Server 2017. |
+| `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim`/`Trim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the trim-characters overloads all landed in SQL Server 2022. |
 
 ---
 
 ## Known limitations
 
+- **`WithRecursive` has no Oracle 23ai bound, despite Oracle 23ai accepting
+  the `RECURSIVE` keyword.** A live check found a narrower problem instead:
+  the anchor branch's `expr.As(cteColumn)` aliasing (which never emits the
+  `AS` keyword, by design) is rejected under `RECURSIVE` specifically
+  (`ORA-02000: missing AS keyword`), even though the identical shape is
+  live-verified fine under a plain `With(...)`. Until that's investigated,
+  `WithRecursive` on Oracle stays a plain unsupported warning regardless of
+  declared version — override it only after verifying your own statement
+  shape against a real 23ai instance.
 - **No cross-call inference.** The target comes from `.editorconfig`/MSBuild
   scope only; a literal `.Build(Dbms.MySql)` argument elsewhere in the file
   is not read as a hint.
