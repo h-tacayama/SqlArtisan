@@ -24,6 +24,13 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // subquery resolves to the inner scope — a silent tautology — so DbColumn's Format fails loudly instead.
     private TableReference? _correlatedDmlTarget;
     private int _subqueryDepth;
+    // Oracle 23ai's WITH RECURSIVE rejects a SELECT-list column alias with no
+    // explicit AS (ORA-02000), unlike every other position ExpressionAlias
+    // formats — including Oracle's own plain WITH (#263 live finding). Scoped to
+    // exactly the recursive CTE body's own top-level select items: a genuine
+    // nested subquery is a fresh query block, so EncloseInParentheses(ISubquery)
+    // suspends it for that scope.
+    private bool _requireExplicitColumnAlias;
 
     internal SqlBuildingBuffer(IDbmsDialect dialect)
     {
@@ -321,11 +328,18 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         Append('(');
         _subqueryDepth++;
+        bool previousRequireExplicitColumnAlias = _requireExplicitColumnAlias;
+        _requireExplicitColumnAlias = false;
         subquery.Format(this);
+        _requireExplicitColumnAlias = previousRequireExplicitColumnAlias;
         _subqueryDepth--;
         Append(')');
         return this;
     }
+
+    internal bool RequireExplicitColumnAlias => _requireExplicitColumnAlias;
+
+    internal void SetRequireExplicitColumnAlias(bool value) => _requireExplicitColumnAlias = value;
 
     internal void SetCorrelatedDmlGuardTarget(DbTableBase? target) =>
         _correlatedDmlTarget = target;
