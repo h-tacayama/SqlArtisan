@@ -66,7 +66,7 @@ sqlartisan_construct_<member>_arity<N> = supported | unsupported
 - **A `banned` value / dedicated policy rule.** Distinguishing "my engine
   can't run this" (dialect fact, `unsupported`) from "our team has decided
   not to use this" (policy, independent of engine) is real, but severity is
-  already controlled per rule ID (`dotnet_diagnostic.SQLA0001.severity`), so
+  already controlled per rule ID (`dotnet_diagnostic.SQLA0002.severity`), so
   a policy value would need its own rule ID to be independently escalatable
   — a second rule purely for a use case `BannedApiAnalyzers` already serves
   well. Deferred rather than built speculatively; can be added later without

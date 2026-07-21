@@ -26,7 +26,7 @@ internal static class DialectSupportResolver
         /// <summary>
         /// The <c>.editorconfig</c> key that would silence/force this result if
         /// it turns out to be wrong for the caller's actual engine version —
-        /// surfaced in the SQLA0001 message.
+        /// surfaced in the SQLA0002 message.
         /// </summary>
         public string OverrideKeyHint { get; }
 

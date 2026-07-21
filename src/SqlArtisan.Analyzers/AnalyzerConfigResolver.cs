@@ -39,7 +39,7 @@ internal static class AnalyzerConfigResolver
     /// <summary>
     /// The configured target for this syntax tree, or <see langword="null"/> if
     /// unset or unrecognized (the analyzer stays silent in either case — an
-    /// unrecognized value is separately flagged as SQLA0002).
+    /// unrecognized value is separately flagged as SQLA0001).
     /// </summary>
     public static TargetDbms? ResolveTarget(AnalyzerConfigOptions options)
     {
@@ -63,7 +63,7 @@ internal static class AnalyzerConfigResolver
     /// <summary>
     /// A construct override's raw value, parsed to true (<c>supported</c>),
     /// false (<c>unsupported</c>), or <see langword="null"/> (unset or an
-    /// unrecognized value — the latter is separately flagged as SQLA0002).
+    /// unrecognized value — the latter is separately flagged as SQLA0001).
     /// </summary>
     public static bool? ResolveOverride(AnalyzerConfigOptions options, string overrideKey)
     {

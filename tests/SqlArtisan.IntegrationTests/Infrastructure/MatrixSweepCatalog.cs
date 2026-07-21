@@ -402,12 +402,12 @@ internal static class MatrixSweepCatalog
         // Limit exercises the row-limited-subquery position IN (... LIMIT n) (#240);
         // top-level LIMIT acceptance is proven by the Offset case. MySQL rejects LIMIT
         // directly inside an IN/ALL/ANY/SOME subquery — a context-dependent restriction
-        // the construct-level matrix cannot express (#232 rule candidate).
+        // the construct-level matrix cannot express (analyzer context rule SQLA0003, #264).
         AddSkips("Limit",
             _ => Select(Count(u.Id)).From(u)
                 .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2))),
             (Dbms.MySql, "MySQL rejects LIMIT inside an IN/ALL/ANY/SOME subquery (ER_NOT_SUPPORTED_YET), "
-                + "though it supports LIMIT itself — proven by the Offset case; context-aware rule candidate for #232."));
+                + "though it supports LIMIT itself — proven by the Offset case; covered by context rule SQLA0003 (#264)."));
         Add("Offset", _ => Select(u.Id).From(u).OrderBy(u.Id).Limit(2).Offset(1));
         Add("OffsetRows", _ => Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2));
         Add("FetchNext", _ => Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2));

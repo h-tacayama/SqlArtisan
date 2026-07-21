@@ -154,7 +154,7 @@ Every new public member needs an entry in
 `src/SqlArtisan.Analyzers/DialectMatrix.cs` — an all-`true` row for a
 universal function, a restricted row when it is only *meaningful* on some
 dialects (an "Oracle syntax" / "MySQL, SQLite" style XML remark — the
-ADR 0001/0003 case, not a `DbmsDialect` token swap) so `SQLA0001` (#93) can
+ADR 0001/0003 case, not a `DbmsDialect` token swap) so `SQLA0002` (#93) can
 warn about it. `DialectMatrixCoverageTests` fails the suite when a public
 member has neither an entry nor a documented exclusion there. Key the entry
 by the C# member name (add an `_arity<N>`-suffixed key alongside the

@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -182,5 +183,29 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Equal(0, remaining);
         transaction.Rollback();
+    }
+
+    [Fact] // #264: SQLA0003's live proof. Top-level LIMIT acceptance is proven by
+           // Pagination_LimitOffset_Executes; the position is the only difference.
+    public void ContextRule_LimitInInSubquery_Rejected()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u)
+                .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2)))));
+    }
+
+    [Fact] // #264: SQLA0003's live proof. GROUPING() under WITH ROLLUP is proven by
+           // the dialect sweep's MySQL branch; the missing suffix is the only difference.
+    public void ContextRule_GroupingWithoutWithRollup_Rejected()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(Grouping(u.DepartmentId)).From(u).GroupBy(u.DepartmentId)));
     }
 }

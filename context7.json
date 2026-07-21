@@ -9,6 +9,6 @@
     "SqlArtisan emits SQL faithfully with no dialect translation — always pick the API documented for the target DBMS (MySQL, Oracle, PostgreSQL, SQLite, SQL Server); only bind-parameter markers and alias quoting vary by dialect.",
     "Reference database tables through their table classes (one DbTableBase subclass per table); never name a table or column with a string literal.",
     "A builder chain is single-use — build a fresh chain per statement; never hold a partially built query for reuse.",
-    "Treat SQLA0001 analyzer warnings as errors to fix, not suppress; pin every new or changed query with an exact-SQL unit test asserting sql.Text and its bind parameters."
+    "Treat SQLA0002 analyzer warnings as errors to fix, not suppress; pin every new or changed query with an exact-SQL unit test asserting sql.Text and its bind parameters."
   ]
 }

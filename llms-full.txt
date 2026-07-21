@@ -410,6 +410,7 @@ dialect it doesn't support.
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·
 [Correcting a Warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys) ·
+[Context Rules (SQLA0003)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0003) ·
 [Mixed-Dialect Projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects) ·
 [CI Gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement) ·
 [Verified-Against Versions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions) ·
@@ -2993,6 +2994,7 @@ target.
 - [Enabling it](#enabling-it)
 - [Rules](#rules)
 - [Correcting a warning: the override keys](#correcting-a-warning-the-override-keys)
+- [Context rules (SQLA0003)](#context-rules-sqla0003)
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
 - [Verified-against versions](#verified-against-versions)
@@ -3029,22 +3031,23 @@ the analyzer never reports anything — enabling it is purely additive.
 
 | ID | Severity | Reports |
 |---|---|---|
-| `SQLA0001` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
-| `SQLA0002` | Warning | A `sqlartisan_target_dbms` or `sqlartisan_construct_*` value could not be recognized. |
-| `SQLA0003` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
+| `SQLA0001` | Warning | A `sqlartisan_target_dbms` or `sqlartisan_construct_*` value could not be recognized. |
+| `SQLA0002` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
+| `SQLA0003` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0003). |
+| `SQLA0004` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
 
-`SQLA0001` only ever fires for a construct the matrix has confirmed — one
-without a matrix entry stays silent rather than guessed at, so an incomplete
-matrix can under-warn but never produce a false positive.
-
-`SQLA0002` is a compilation-end diagnostic reported once per distinct
+`SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
 CI, and an IDE's Error List after an explicit build — check that the list's
 source filter includes Build entries), but not in the editor's live
-analysis, which never runs compilation-end actions. `SQLA0001`, by
+analysis, which never runs compilation-end actions. `SQLA0002`, by
 contrast, is a per-usage diagnostic and shows up live as you type.
 
-`SQLA0003` checks compile-time identifier literals — table and expression
+`SQLA0002` only ever fires for a construct the matrix has confirmed — one
+without a matrix entry stays silent rather than guessed at, so an incomplete
+matrix can under-warn but never produce a false positive.
+
+`SQLA0004` checks compile-time identifier literals — table and expression
 aliases (`.As(...)`), CTE and derived-table names, `VALUES` column names, and
 the Oracle `RETURNING ... INTO` output variable — against each dialect's
 identifier-length limit: MySQL 256 characters, Oracle 128 bytes, PostgreSQL
@@ -3057,16 +3060,16 @@ two distinct long names can collide after truncation, and the analyzer is the
 only place this surfaces before the database does. Oracle and PostgreSQL
 measure in UTF-8 bytes, so a multi-byte identifier reaches the limit sooner
 than its character count suggests. Only constant identifiers are checked — a
-name built at run time is left alone — and, like `SQLA0001`, it is a per-usage
-diagnostic suppressible at a single site (`#pragma warning disable SQLA0003`, a
-`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0003.severity`).
+name built at run time is left alone — and, like `SQLA0002`, it is a per-usage
+diagnostic suppressible at a single site (`#pragma warning disable SQLA0004`, a
+`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0004.severity`).
 
 ```csharp
 using static SqlArtisan.Sql;
 
 // sqlartisan_target_dbms = mysql
 var g = Rollup(t.Code, t.Name);
-// warning SQLA0001: 'Rollup' is not supported on MySQL. Set
+// warning SQLA0002: 'Rollup' is not supported on MySQL. Set
 // 'sqlartisan_construct_rollup = supported' in .editorconfig if your
 // engine version supports it.
 ```
@@ -3074,12 +3077,12 @@ var g = Rollup(t.Code, t.Name);
 Severity is controlled the standard Roslyn way, per rule ID:
 
 ```ini
-dotnet_diagnostic.SQLA0001.severity = error   # promote to a build error
-dotnet_diagnostic.SQLA0002.severity = none    # suppress entirely
+dotnet_diagnostic.SQLA0002.severity = error   # promote to a build error
+dotnet_diagnostic.SQLA0001.severity = none    # suppress entirely
 ```
 
 Because severity is per rule ID, it cannot be scoped to one construct —
-promoting `SQLA0001` to `error` makes *every* dialect mismatch a build
+promoting `SQLA0002` to `error` makes *every* dialect mismatch a build
 failure, not just a chosen one. If you need to forbid a specific construct
 as a team policy rather than a dialect fact, reach for
 [`BannedApiAnalyzers`](https://www.nuget.org/packages/Microsoft.CodeAnalysis.BannedApiAnalyzers)
@@ -3090,7 +3093,7 @@ supports/doesn't support this," not "we've decided not to use this."
 
 ## Correcting a warning: the override keys
 
-Every `SQLA0001` message names the override key that would silence it. Two
+Every `SQLA0002` message names the override key that would silence it. Two
 kinds exist:
 
 - **Member-level** — `sqlartisan_construct_<name>` — applies to *every*
@@ -3142,6 +3145,56 @@ after adding one, check the key against the message text exactly.
 
 ---
 
+## Context rules (SQLA0003)
+
+A construct can be valid on a dialect in one position and rejected by the same
+engine in another. The construct-level warnings above cannot express that —
+the construct itself *is* supported — so these facts ship as **context
+rules**: `SQLA0003` fires when the offending position is visible in the
+expression where the construct is used. Two rules ship today, both MySQL
+facts, live-verified against the engine.
+
+**`LIMIT` inside an `IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL rejects a
+row-limited query directly under these positions ("This version of MySQL
+doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited
+query through a derived table or CTE instead. Scalar, `EXISTS`, CTE, and
+derived-table positions accept `LIMIT` and stay silent.
+
+```csharp
+// sqlartisan_target_dbms = mysql
+var q = Select(u.Id).From(u)
+    .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2)));
+// warning SQLA0003: 'Limit' is not supported inside an IN/ANY/ALL/SOME subquery on MySQL
+```
+
+**`GROUPING()` outside a `WITH ROLLUP` query.** MySQL accepts `Grouping(...)`
+only when the query's `GROUP BY` carries the `WITH ROLLUP` suffix — chain
+`.WithRollup()` after `.GroupBy(...)`.
+
+```csharp
+// sqlartisan_target_dbms = mysql
+var q = Select(u.DepartmentId, Grouping(u.DepartmentId))
+    .From(u).GroupBy(u.DepartmentId).OrderBy(u.DepartmentId);
+// warning SQLA0003: 'Grouping' is not supported outside a WITH ROLLUP query on MySQL
+```
+
+A context rule warns only when the position is provable from the expression
+itself. A subquery held in a variable, a builder chain continued from a
+helper method, or any shape the analyzer doesn't recognize stays silent —
+the same under-warn-but-never-false-positive principle the matrix follows.
+The absence side is equally strict: `Grouping` warns only when the chain
+shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
+point the builder's type can never accept the suffix — and a chain that
+still ends at `.GroupBy(...)` stays silent.
+
+Suppression is per rule ID, the standard Roslyn way
+(`#pragma warning disable SQLA0003`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0003.severity`). The `sqlartisan_construct_*`
+override keys do **not** apply here — they answer "does my engine support
+this construct," which is not what a context rule reports.
+
+---
+
 ## Mixed-dialect projects
 
 `.editorconfig` sections scope by file path, so a project that emits SQL for
@@ -3169,14 +3222,14 @@ comes only from its `.editorconfig` scope or the MSBuild property.
 **Promote a dialect mismatch to a hard failure:**
 
 ```ini
-dotnet_diagnostic.SQLA0001.severity = error
+dotnet_diagnostic.SQLA0002.severity = error
 ```
 
 Every confirmed mismatch fails the build; escape hatches (`supported`
 overrides) still apply first, so only genuinely unconfirmed constructs fail.
 
 **Whitelist mode** — fail on anything the matrix hasn't explicitly verified
-one way or the other is not offered as a separate rule. `SQLA0001` only
+one way or the other is not offered as a separate rule. `SQLA0002` only
 fires on a *confirmed* mismatch by design (a construct the matrix doesn't
 know stays silent rather than guess), so there is no "unverified construct"
 diagnostic to promote — the matrix's
@@ -4218,14 +4271,14 @@ gets a build-time warning:
 ```csharp
 // sqlartisan_target_dbms = mysql
 var g = Rollup(t.Code, t.Name);
-// warning SQLA0001: 'Rollup' is not supported on MySQL. ...
+// warning SQLA0002: 'Rollup' is not supported on MySQL. ...
 ```
 
 For an AI-heavy workflow, promote it to a build error so wrong-dialect code
 cannot merge:
 
 ```ini
-dotnet_diagnostic.SQLA0001.severity = error
+dotnet_diagnostic.SQLA0002.severity = error
 ```
 
 The [analyzer reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
@@ -4277,7 +4330,7 @@ file, and set the dialect line to your engine:
   never as raw SQL strings.
 - Target DBMS: PostgreSQL. SqlArtisan emits SQL faithfully with no dialect
   translation — always pick the API documented for this DBMS, and treat
-  SQLA0001 analyzer warnings as errors to fix, not suppress.
+  SQLA0002 analyzer warnings as errors to fix, not suppress.
 - API reference (each call shown with its emitted SQL):
   https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/llms.txt
 - Reference database tables through their table classes (one `DbTableBase`
@@ -4339,7 +4392,7 @@ Three cases are specific to this library, beyond the usual API-level changes:
   caller who hasn't rebuilt against the new version — the same class of risk
   the emitted-SQL rule above guards against.
 
-Analyzer dialect-matrix updates (`SQLA0001` / `SQLA0002`) may also land in a
+Analyzer diagnostic updates (SQLA0001–SQLA0004) may also land in a
 minor release: they change build-time diagnostics, never runtime behavior.
 
 ## Deprecation
@@ -4381,13 +4434,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- Added `SQLA0003`, a build-time warning for a construct the target dialect supports but rejects in the position it's used in — starting with two MySQL context rules: `Limit(...)` directly inside an `In` / `Any` / `All` / `Some` subquery (route the limited query through a derived table or CTE instead), and `Grouping(...)` in a query without the `WITH ROLLUP` suffix (chain `.WithRollup()` after `.GroupBy(...)`). Both warn only when the position is visible in the expression itself — indirection stays silent, never a false positive. See [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0003). (#264)
 - Added `BindArray(values)` — bind a whole .NET array or collection as a single PostgreSQL array-typed parameter — plus `Any` / `All` / `Some` overloads over array expressions: `u.Id == Any(BindArray(ids))` emits `id = ANY (:0)` with one parameter, the idiomatic PostgreSQL list filter. Unlike `In(...)`'s one-bind-per-element expansion, the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling) and an empty collection is legal — it matches no rows. SqlArtisan.Dapper keeps the array as one ADO.NET parameter (exempt from Dapper's list expansion). See [ANY / ALL with a Bound Array](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#any--all-with-a-bound-array-postgresql). (#159)
 - Added the PostgreSQL `UNNEST` table function — `Unnest(arrays...).AsTable(alias)` names it as a `FROM` source (`FROM UNNEST(:0) "v"`), expanding a bound array (or any array expression) into rows; `.AsTable(alias, columns...)` names the result columns for unnesting several arrays in parallel. See [UNNEST as a Table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#unnest-as-a-table-postgresql). (#159)
 - Added the PostgreSQL array constructor and predicates: `Array(...)` for `ARRAY[...]`, plus `ArrayOverlaps` / `ArrayContains` / `ArrayContainedBy` (`&&` / `@>` / `<@`) as `WHERE` conditions — the operators a default (`array_ops`) GIN index on the column accelerates. Elements bind as normal parameters; an empty `Array()` throws at the call site. See [Array Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#array-operators). (#159)
 - Added the PostgreSQL JSONB predicates `JsonbContains` (`@>`), `JsonbExists` (`?`), and `JsonbExistsAny` / `JsonbExistsAll` (`?|` / `?&`) — containment and top-level key existence as `WHERE` conditions, the operators a default (`jsonb_ops`) GIN index on the column accelerates. Keys bind as normal parameters; wrap a containment value in `Cast(json, "jsonb")` so it doesn't reach PostgreSQL as `text`. The bare `?` glyph never collides with a bind marker — SqlArtisan emits `:0`-style markers on PostgreSQL. See [JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators). (#159)
 - Added [`llms-full.txt`](https://github.com/h-tacayama/SqlArtisan/blob/main/llms-full.txt), the full-text companion to `llms.txt` — every page it links concatenated into one file for AI tools that ingest a single document instead of following links — plus a `context7.json` for Context7 indexing. A dedicated MCP docs server was evaluated and deliberately not built: the static files and Context7 already cover every mainstream assistant's docs-resolution path. See the expanded pointer in the README's Documentation section. (#228)
-- The analyzer now checks overloaded C# operators against the target dialect — `+ - * / %`, the six comparisons, and `& |` were previously invisible to `SQLA0001`. The one divergent operator today is `%`: Oracle has no modulo operator (use `Mod(a, b)` there); the warning's override key is `sqlartisan_construct_op_modulus` (operator keys use the CLR method name). Emitted SQL is unchanged. See the [analyzer guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md). (#219)
-- Added `SQLA0003`, a build-time warning when a compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or an Oracle `RETURNING ... INTO` output variable — is longer than the target dialect allows (MySQL 256 characters — its alias limit — Oracle 128 bytes, PostgreSQL 63 bytes, SQL Server 128 characters; SQLite is unbounded). PostgreSQL truncates an over-long identifier rather than erroring — emitting only a notice — so the analyzer is the only place it surfaces before the database; Oracle and PostgreSQL measure in UTF-8 bytes. Only constant identifiers are checked, and any site is suppressible the standard Roslyn way. See the [analyzer guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules). (#265)
+- The analyzer now checks overloaded C# operators against the target dialect — `+ - * / %`, the six comparisons, and `& |` were previously invisible to `SQLA0002`. The one divergent operator today is `%`: Oracle has no modulo operator (use `Mod(a, b)` there); the warning's override key is `sqlartisan_construct_op_modulus` (operator keys use the CLR method name). Emitted SQL is unchanged. See the [analyzer guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md). (#219)
+- Added `SQLA0004`, a build-time warning when a compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or an Oracle `RETURNING ... INTO` output variable — is longer than the target dialect allows (MySQL 256 characters — its alias limit — Oracle 128 bytes, PostgreSQL 63 bytes, SQL Server 128 characters; SQLite is unbounded). PostgreSQL truncates an over-long identifier rather than erroring — emitting only a notice — so the analyzer is the only place it surfaces before the database; Oracle and PostgreSQL measure in UTF-8 bytes. Only constant identifiers are checked, and any site is suppressible the standard Roslyn way. See the [analyzer guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules). (#265)
 - Added MySQL, SQLite, and SQL Server as `SqlArtisan.TableClassGen` generation sources — the tool now reads schema metadata and writes table classes for all five supported databases, matching the existing Oracle and PostgreSQL paths. See the [TableClassGen README](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md). (#220)
 - Added a [comparison guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md) — how SqlArtisan compares to EF Core, linq2db, SqlKata, Dapper.SqlBuilder, and InterpolatedSql on philosophy, type safety, machine-verifiability, dialect handling, execution, and performance; includes when NOT to choose SqlArtisan. (#226)
 - Added SQL Server's `TOP (n)` select prefix — `Select(Top(n), ...)` → `SELECT TOP (n)`. Chain `.WithTies()` (`TOP (n) WITH TIES` — the form with no `OFFSET/FETCH` equivalent) or `.Percent()` (`TOP (n) PERCENT`), and combine with `DISTINCT` (`Select(Distinct, Top(n), ...)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot be combined with `OFFSET/FETCH` — both are rejected at `Build(Dbms.SqlServer)`. See [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination). (#261)
@@ -4396,6 +4450,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added joined `UPDATE` / `DELETE` — update or delete rows using columns from other tables, each dialect in its own spelling: PostgreSQL's `UPDATE ... FROM` and `DELETE ... USING` (plus SQLite's `UPDATE ... FROM`, 3.33+), and MySQL / SQL Server's `FROM ... JOIN` forms. Start from `Update(target)` / `DeleteFrom(target)` and chain `.From(...)` / `.Using(...)` / `.InnerJoin(...).On(...)` in the dialect's own order; the joined target must be aliased. See [Joined UPDATE / DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete). (#258)
 
 ### Changed
+- **Breaking:** renumbered the analyzer diagnostic IDs into semantic order — configuration first, then what the construct is, where it sits, and how it's named: `SQLA0001` is now the invalid-configuration warning (previously `SQLA0002`) and `SQLA0002` the dialect-mismatch warning (previously `SQLA0001`); the two rules new in this release slot in as `SQLA0003` (context rules) and `SQLA0004` (identifier length). A `dotnet_diagnostic.SQLA000x.severity` line, `#pragma warning disable`, or `[SuppressMessage]` written against 0.6.0-beta.1 now targets the other diagnostic — swap `SQLA0001` and `SQLA0002` when upgrading. What each rule reports is unchanged; see the [rules table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules). (#264)
 - **Breaking:** an incomplete statement no longer compiles where it previously built: a compound query ending in a set operator (`... .Union` with no following `SELECT`), an `UPDATE` without `SET`, an `INSERT` / `INSERT IGNORE` without a row source, and a `MERGE` with no `WHEN` branch all lose their `Build(...)` — the builder stages for those states no longer extend `ISqlBuilder`, so the unfinished statement is a compile error instead of reaching the database. Complete chains are unaffected and their emitted SQL is unchanged. (#149)
 - **Breaking:** removed `FullJoin` from the joined-`UPDATE` stages (`Update(t).FullJoin(...)` and after a completed join). That form targets only MySQL's multi-table `UPDATE`, and MySQL has no `FULL JOIN` — the member had no dialect it was valid on. The `FROM`-form `FullJoin` (`Update(t).Set(...).From(...).FullJoin(...)` and the `DELETE` counterpart) is unaffected. (#149)
 - **Breaking:** removed the `DbTableBase(string tableAlias)` constructor, whose single string was the *alias* (the table name silently defaulted to the subclass's type name) while the sibling bases' single string is the *name* — a wrong-table trap for hand-written table classes. Use `DbTableBase(tableName, tableAlias)`; pass an empty alias for none. The type-name default went with it, which also fixes `Sql.Dual`'s qualified star: `Dual.Asterisk` now emits `DUAL.*` instead of `DualTable.*` (a qualifier that named no relation in the statement). (#149)
