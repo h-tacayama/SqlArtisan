@@ -26,7 +26,11 @@ jobs:
       # lane) must not cancel the others — each engine's result stands alone.
       fail-fast: false
       matrix:
-        engine: [Sqlite, PostgreSql, MySql, SqlServer, Oracle]
+        # Oracle23ai is a second, narrower Oracle lane (#263): it live-proves
+        # the analyzer's version-bound entries at 23ai rather than repeating
+        # the full sweep, so it pays the same heavy image start as Oracle but
+        # runs only a handful of statements.
+        engine: [Sqlite, PostgreSql, MySql, SqlServer, Oracle, Oracle23ai]
 
     steps:
       - name: Checkout
