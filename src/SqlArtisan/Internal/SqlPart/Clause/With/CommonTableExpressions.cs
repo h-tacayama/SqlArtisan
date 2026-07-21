@@ -27,4 +27,19 @@ internal sealed class CommonTableExpressions
             _ctes[i].Format(buffer);
         }
     }
+
+    internal void Format(SqlBuildingBuffer buffer, string withKeyword, string[][] columnNames)
+    {
+        buffer.Append(withKeyword).AppendSpace();
+
+        for (int i = 0; i < _ctes.Length; i++)
+        {
+            if (i > 0)
+            {
+                buffer.Append(", ");
+            }
+
+            _ctes[i].Format(buffer, columnNames[i]);
+        }
+    }
 }

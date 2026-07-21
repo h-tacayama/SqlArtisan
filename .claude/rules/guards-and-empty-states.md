@@ -78,7 +78,9 @@ operand *beside* an active one still drops out inside a non-empty AND/OR (that i
 
 - **Eagerly (in the factory / clause method)** only when the fact is fixed at
   the call site: a `params` array length, a collection count. Precedent:
-  `PartitionBy` (#69) and the empty-`Select()` guard (`SelectItemResolver.ResolveOrThrow`, #236).
+  `PartitionBy` (#69), the empty-`Select()` guard (`SelectItemResolver.ResolveOrThrow`, #236),
+  and the `WithRecursive(...)` column-name guard (`WithRecursiveClause` — the
+  anchor's resolved select items are fixed at the call, #263).
   A **value-domain guard** (an argument value no engine accepts, e.g. a
   percentile fraction outside 0..1) is also eager — its three admission
   conditions are ADR 0012 (#295); never domain-check a bound value.

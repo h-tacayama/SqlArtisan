@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class SelectClause : SqlPart
+internal sealed class SelectClause : SqlPart, ISelectItemsClause
 {
     private readonly SqlPart[] _selectItems;
 
@@ -8,6 +8,8 @@ internal sealed class SelectClause : SqlPart
     {
         _selectItems = selectItems;
     }
+
+    public SqlPart[] SelectItems => _selectItems;
 
     internal static SelectClause Parse(object[] selectItems) =>
         new(SelectItemResolver.ResolveOrThrow(selectItems));

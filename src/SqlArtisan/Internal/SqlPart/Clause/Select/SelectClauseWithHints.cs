@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class SelectClauseWithHints : SqlPart
+internal sealed class SelectClauseWithHints : SqlPart, ISelectItemsClause
 {
     private readonly SqlHints _hints;
     private readonly SqlPart[] _selectItems;
@@ -10,6 +10,8 @@ internal sealed class SelectClauseWithHints : SqlPart
         _hints = hints;
         _selectItems = selectItems;
     }
+
+    public SqlPart[] SelectItems => _selectItems;
 
     internal static SelectClauseWithHints Parse(SqlHints hints, object[] selectItems) =>
         new(hints, SelectItemResolver.ResolveOrThrow(selectItems));

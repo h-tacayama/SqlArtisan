@@ -135,6 +135,10 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    // The first SELECT clause is the compound's anchor; its resolved items are
+    // fixed at creation, so a later set-operator branch cannot change them.
+    internal SqlPart[]? FirstSelectItems() => FindPart<ISelectItemsClause>()?.SelectItems;
+
     public void Format(SqlBuildingBuffer buffer) => FormatCore(buffer);
 
     public ISqlBuilder ForUpdate(LockBehaviorBase? lockBehavior = null)

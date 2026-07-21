@@ -1219,7 +1219,7 @@ SqlStatement sql =
 
 SqlArtisan also supports more advanced WITH clause scenarios:
 
-- **Recursive CTEs** — `WithRecursive()` emits `WITH RECURSIVE`, required by MySQL, PostgreSQL, SQLite, and Oracle 23ai+. On SQL Server, and on Oracle before 23ai, recurse with plain `With(...)` instead — those engines accept the recursive body but reject the `RECURSIVE` keyword. The analyzer warns when `WithRecursive()` targets a dialect (or a declared version) that does not support it.
+- **Recursive CTEs** — `WithRecursive()` emits `WITH RECURSIVE`, required by MySQL, PostgreSQL, SQLite, and Oracle 23ai+. On SQL Server, and on Oracle before 23ai, recurse with plain `With(...)` instead — those engines accept the recursive body but reject the `RECURSIVE` keyword. The analyzer warns when `WithRecursive()` targets a dialect (or a declared version) that does not support it. `WithRecursive()` always includes the CTE column list, derived from the first query block (`WITH RECURSIVE "cte"(code) AS (...)`) — Oracle's recursive `WITH` requires the list, and every other engine accepts it. Every select item of the CTE's first query block must therefore have a name: a plain column, or an expression aliased with `.As(...)` — an unnamed expression throws at the `WithRecursive()` call. Plain `With()` never emits a column list.
 - **CTEs with DML main statements** — `With(...)` before an `INSERT`, `UPDATE`, or `DELETE` main statement is supported. DML *inside* a CTE body (PostgreSQL data-modifying CTEs) is not supported.
 
 ---
