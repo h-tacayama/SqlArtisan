@@ -122,20 +122,41 @@ public class DialectSupportResolverTests
         Assert.False(result.Value.IsVersionBound);
     }
 
-    // WithRecursive is oracle:false in the plain matrix (21c XE rejects it), but
-    // bound to Oracle 23 — a declared version meeting the bound must flip the
-    // verdict to supported even though the bool alone says otherwise.
+    // No currently-shipped bound sits on a false cell (the #263 candidate that
+    // would have — WithRecursive on Oracle — was withdrawn after a live probe
+    // found a narrower Oracle 23ai gap unrelated to RECURSIVE itself; see
+    // DialectMatrix.cs and docs/analyzer.md's Known limitations). The
+    // false-cell direction runs through the identical `declared >= min`
+    // comparison this true-cell test exercises — EngineVersionTests pins the
+    // comparison arithmetic itself.
     [Fact]
-    public void Resolve_FalseCellWithDeclaredVersionMeetingBound_BecomesSupported()
+    public void Resolve_TrueCellWithDeclaredVersionMeetingBound_StaysSupported()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
 
         DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
-            options, "WithRecursive", arity: null, TargetDbms.Oracle, EngineVersion.Parse("23"));
+            options, "WithRecursive", arity: null, TargetDbms.MySql, EngineVersion.Parse("8.0"));
 
         Assert.NotNull(result);
         Assert.True(result!.Value.IsSupported);
         Assert.False(result.Value.IsVersionBound);
+    }
+
+    // WithRecursive is mysql:true in the plain matrix but bound to 8.0 (no CTE
+    // support before it) — a declared version below the bound must report the
+    // shortfall, not fall back to the (also-true) plain bool.
+    [Fact]
+    public void Resolve_TrueCellWithDeclaredVersionBelowBound_ReportsVersionBoundForMySql()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+
+        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
+            options, "WithRecursive", arity: null, TargetDbms.MySql, EngineVersion.Parse("5.7"));
+
+        Assert.NotNull(result);
+        Assert.False(result!.Value.IsSupported);
+        Assert.True(result.Value.IsVersionBound);
+        Assert.Equal("8.0", result.Value.RequiredVersion);
     }
 
     // Datetrunc is sqlServer:true in the plain matrix but bound to 2022 — a

@@ -124,23 +124,36 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
-    // WithRecursive is oracle:false in the plain matrix (21c XE rejects it), so
-    // without a declared version it still reports the ordinary SQLA0002 — the
-    // bound only takes over once a target version is declared.
+    // WithRecursive is oracle:false in the plain matrix (21c XE rejects it) and
+    // carries no Oracle version bound — a live probe withdrew the Oracle-23
+    // candidate (see DialectMatrix.cs), so a declared version changes nothing
+    // here; this pins that "no bound" stays no bound even when a version is set.
     [Fact]
-    public async Task VersionBoundConstruct_NoDeclaredVersion_ReportsSqla0002()
+    public async Task VersionBoundConstruct_NoOracleBound_ReportsSqla0002RegardlessOfDeclaredVersion()
     {
-        var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle"));
+        var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle", "23"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
 
         await test.RunAsync();
     }
 
+    // WithRecursive is mysql:true in the plain matrix but bound to 8.0 (no CTE
+    // support before it) — a declared version below the bound reports the
+    // shortfall as SQLA0006, not silence.
     [Fact]
-    public async Task VersionBoundConstruct_DeclaredVersionMeetsBound_SilencesSqla0002()
+    public async Task VersionBoundConstruct_MySqlBelowBound_ReportsSqla0006()
+    {
+        var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("mysql", "5.7"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task VersionBoundConstruct_MySqlAtBound_StaysSilent()
     {
         var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(WithRecursiveUsageTemplate), AnalyzerVerifier.EditorConfig("oracle", "23"));
+            AnalyzerVerifier.Unmarked(WithRecursiveUsageTemplate), AnalyzerVerifier.EditorConfig("mysql", "8.0"));
 
         await test.RunAsync();
     }
