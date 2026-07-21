@@ -8,8 +8,8 @@ Every `DialectMatrix` entry is a single bool per dialect, verified against
 one representative engine version (`VerifiedAgainstVersion`: MySQL 8.0,
 Oracle XE 21c, PostgreSQL 16, the bundled SQLite build, SQL Server 2022).
 That collapses a real axis of variation: `MERGE` did not exist before
-PostgreSQL 15, `DATETRUNC` before SQL Server 2022, `WITH RECURSIVE` before
-Oracle 23ai. Today the only escape hatch is a per-construct
+PostgreSQL 15, `DATETRUNC` before SQL Server 2022, `EXCEPT` before
+Oracle 21c. Today the only escape hatch is a per-construct
 `sqlartisan_construct_*` override (ADR 0008) the *user* sets after
 discovering the mismatch themselves — the matrix carries no version
 knowledge of its own, so every user on an older or newer engine repeats the
@@ -49,11 +49,12 @@ diagnostic `SQLA0006`.**
   byte-for-byte untouched.
 - **The bound wins over the bool, in both directions, once a version is
   declared.** With `sqlartisan_target_version` set and a matching `Bounds`
-  row: `supported ⇔ declared ≥ min`. A currently-`false` cell above its
-  bound flips to supported (Oracle 23 asking about `WithRecursive`, which
-  is `oracle: false` in `Entries`); a currently-`true` cell below its bound
+  row: `supported ⇔ declared ≥ min`. A currently-`true` cell below its bound
   flips to unsupported (SQL Server 2019 asking about `Datetrunc`, `true` in
-  `Entries`). With no declared version, or no `Bounds` row for that exact
+  `Entries`); a currently-`false` cell above its bound would flip to
+  supported — no seeded bound sits on a false cell today (see the
+  `WithRecursive` record below), but the semantics are symmetric by design.
+  With no declared version, or no `Bounds` row for that exact
   key, the plain bool decides — identical to every build before this ADR.
   Per the #262 reservation, `sqlartisan_construct_*` overrides are checked
   *before* either table, so they keep the last word regardless of what a
@@ -98,24 +99,22 @@ diagnostic `SQLA0006`.**
   live-proving a chained inference would only confirm the statement parses,
   not that the inference was the actual reason.
 
-  `WithRecursive` *did* survive, in two rounds. The first live run surfaced
-  a real, narrower fact instead of confirming the register's claim outright:
-  the `RECURSIVE` keyword itself connects and parses on 23ai, but
-  `ExpressionAlias`'s deliberate no-`AS` emission (`expr alias`, never
-  `expr AS alias`) — used exactly as `OracleTests.Cte_AliasedColumn_Executes`
-  already live-verifies fine under a plain `With(...)` — failed with
-  `ORA-02000: missing AS keyword` once `RECURSIVE` was added. Per the
-  live-proof discipline, that meant withdrawing the bound rather than
-  shipping it on a technicality (the lane doing exactly the job it exists
-  to do), and fixing the actual gap instead:
-  `SqlBuildingBuffer.RequireExplicitColumnAlias` is a narrow, buffer-scoped
-  flag — set only while `WithRecursiveClause.Format` is formatting a
-  recursive CTE body, and suspended by `EncloseInParentheses(ISubquery)` for
-  any genuine nested subquery within that body (the same snapshot/restore
-  shape the existing `_subqueryDepth` correlated-DML tracking already uses)
-  — that makes `ExpressionAlias.FormatAsSelect` emit `AS` in exactly that
-  scope and nowhere else. A second live run confirmed the fixed shape, and
-  the bound was re-seeded.
+  `WithRecursive`'s Oracle-23 candidate is the discipline's fullest recorded
+  exercise — it was ultimately **disproven**, in three rounds. The first
+  live run rejected SqlArtisan's emission with `ORA-02000: missing AS
+  keyword`, initially misread as the select-list alias needing an explicit
+  `AS`; a fix forcing `AS` there produced the *identical* error, which is
+  what a wrong diagnosis looks like. A raw-SQL grammar probe then settled
+  it: both pinned images reject `WITH RECURSIVE` in every spelling — with or
+  without the CTE column list, quoted or bare name (21c: `ORA-00905`, 23ai:
+  `ORA-02000`, the parser reading `RECURSIVE` as the query name) — while
+  both accept the plain-`WITH` recursive form with a column list, Oracle's
+  own 11gR2 syntax. The register's "accepted at 23ai" premise was simply
+  wrong, and the bound was withdrawn for good. The lasting fix that came out
+  of the investigation is orthogonal to the bound: Oracle's recursive `WITH`
+  requires the CTE column list, so `WithRecursive()` now derives and emits
+  it on every dialect (`WithRecursiveClause`), which every other engine
+  accepts.
 
 ## Rejected alternatives
 
@@ -140,17 +139,15 @@ diagnostic `SQLA0006`.**
   every `Entries` key.
 - A future above-baseline flip (a currently-`false` cell gaining a bound)
   needs its own live-proof lane before it can ship — the pinned 23ai lane
-  already exists for Oracle, and this ADR's `WithRecursive` investigation is
-  the recorded example of the discipline doing its job in both directions:
-  a plausible claim caught before it shipped as a silenced false positive on
-  the first pass, and a real fix (`RequireExplicitColumnAlias`) verified
-  live before the bound shipped on the second.
-- `ExpressionAlias`'s no-`AS` emission stays the default everywhere else —
-  the fix is scoped to the one position with live-verified evidence it's
-  required, not applied speculatively to `With(...)` or any other alias
-  position. `RequireExplicitColumnAlias`'s buffer-scoped, snapshot/restore
-  pattern is available as precedent for a future formatting decision that
-  needs "am I directly inside construct X's own body" context.
+  already exists for Oracle, and this ADR's `WithRecursive` record is
+  the discipline's proof of value: a plausible register claim was caught by
+  the lane, a plausible-but-wrong fix was falsified by the same lane, and a
+  raw-SQL grammar probe settled the underlying engine fact before anything
+  shipped as a silenced false positive.
+- When a lane rejects a candidate, diagnose against the *engine's grammar*
+  with a raw-SQL probe before patching SqlArtisan's emission — the
+  `WithRecursive` record shows an emission-side fix built on a misread
+  error reproducing the identical failure.
 - The Analyzer cluster (`docs/adr/README.md`) grows to
   0003 + 0008 + 0009 + 0013 + 0014 + 0015. Six members is within reach of
   the consolidation trigger's threshold, though that trigger counts

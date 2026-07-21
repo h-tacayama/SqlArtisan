@@ -11,12 +11,10 @@ namespace SqlArtisan.IntegrationTests.Tests;
 /// Live proof for the analyzer's Oracle version bounds (#263): every matrix
 /// entry with an Oracle bound (<see cref="DialectMatrix.AllBounds"/>) must be
 /// accepted by a live Oracle 23ai engine — the version-refined verdict a
-/// declared <c>sqlartisan_target_version = 23</c> resolves to, which can
-/// differ from the plain matrix bool the ordinary 21c
-/// <see cref="MatrixSweepTestBase"/> lane checks (e.g. WITH RECURSIVE is
-/// bool-false at 21c but bound-true at 23). Expectations derive from
-/// <see cref="DialectMatrix.AllBounds"/> directly, so a future Oracle bound is
-/// pulled into this lane automatically.
+/// declared <c>sqlartisan_target_version = 23</c> resolves to, which the
+/// ordinary 21c <see cref="MatrixSweepTestBase"/> lane cannot vouch for.
+/// Expectations derive from <see cref="DialectMatrix.AllBounds"/> directly,
+/// so a future Oracle bound is pulled into this lane automatically.
 /// </summary>
 [Trait("Engine", "Oracle23ai")]
 public sealed class Oracle23aiBoundSweepTests : IClassFixture<Oracle23aiFixture>

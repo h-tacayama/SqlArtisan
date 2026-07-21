@@ -294,7 +294,9 @@ internal static class DialectMatrix
         [new MatrixKey("With")] = DbmsSupport.All,
         // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
         // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL/SQLite
-        // require it for recursion.
+        // require it for recursion. Oracle's rejection is live-probed on BOTH pinned images
+        // (21c: ORA-00905, 23ai: ORA-02000 — RECURSIVE parses as the query name), so the
+        // once-registered "accepted at 23ai" claim is disproven; no version bound applies.
         [new MatrixKey("WithRecursive")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         // Asterisk: Sql.Asterisk (SELECT *) and TableReference.Asterisk (t.*) share the name — both universal.
         [new MatrixKey("Asterisk")] = DbmsSupport.All,
@@ -582,12 +584,13 @@ internal static class DialectMatrix
         // chained inference (no boolean literal -> ON TRUE unrepresentable), not a
         // documented "landed in 23ai" fact — untested, so it stays a plain
         // DbmsSupport false (a follow-up bound needs its own primary source).
-        // WithRecursive's Oracle-23 candidate was first withdrawn after a live probe
-        // found ORA-02000 "missing AS keyword" on the anchor branch's column
-        // aliasing under RECURSIVE — SqlBuildingBuffer.RequireExplicitColumnAlias
-        // now forces AS there specifically (WithRecursiveClause.Format), re-proven
-        // by the pinned 23ai lane.
-        [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0"), oracle: V("23")),
+        // WithRecursive carries NO oracle bound: a raw-SQL probe on the pinned 23ai
+        // image rejected WITH RECURSIVE in every shape (with/without the CTE column
+        // list, quoted/bare name — always ORA-02000, the parser reading RECURSIVE as
+        // the query name) while accepting the plain-WITH recursive form, disproving
+        // the register's "accepted at 23ai" premise. The Entries comment carries the
+        // per-image error codes.
+        [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0")),
 
         // --- MySQL 8.0.x point releases (matrix comments above; #263 register) ---
         [new MatrixKey("Grouping", 1)] = new VersionBounds(mySql: V("8.0.1")),

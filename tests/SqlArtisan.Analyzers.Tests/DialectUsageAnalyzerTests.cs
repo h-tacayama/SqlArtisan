@@ -124,24 +124,14 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
-    // WithRecursive is oracle:false in the plain matrix (21c XE rejects it), but
-    // bound to Oracle 23 (re-proven live after ExpressionAlias's RequireExplicitColumnAlias
-    // fix, #263) — a declared version meeting the bound flips the verdict to
-    // supported even though the bool alone says otherwise.
+    // WithRecursive is oracle:false with NO oracle bound (the 23ai candidate was
+    // disproven live, #263) — a declared version, even a high one, keeps the
+    // plain-bool SQLA0002 verdict rather than inventing a version story.
     [Fact]
-    public async Task VersionBoundConstruct_OracleAtBound_SilencesSqla0002()
+    public async Task VersionBoundConstruct_OracleDeclaredVersionNoBound_ReportsSqla0002()
     {
-        var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(WithRecursiveUsageTemplate), AnalyzerVerifier.EditorConfig("oracle", "23"));
-
-        await test.RunAsync();
-    }
-
-    [Fact]
-    public async Task VersionBoundConstruct_OracleBelowBound_ReportsSqla0006()
-    {
-        var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle", "21"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle", "23"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
 
         await test.RunAsync();
     }

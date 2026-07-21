@@ -122,12 +122,12 @@ public class DialectSupportResolverTests
         Assert.False(result.Value.IsVersionBound);
     }
 
-    // WithRecursive is oracle:false in the plain matrix (21c XE rejects it), but
-    // bound to Oracle 23 — a declared version meeting the bound flips the
-    // verdict to supported even though the bool alone says otherwise. Re-proven
-    // live after ExpressionAlias's RequireExplicitColumnAlias fix (#263).
+    // No seeded bound sits on a false cell today (WithRecursive's Oracle-23
+    // candidate was disproven live, #263), so a false cell with a declared
+    // version keeps the plain-bool verdict — the flip direction stays covered
+    // by the ADR 0015 live-proof discipline, not by a data row.
     [Fact]
-    public void Resolve_FalseCellWithDeclaredVersionMeetingBound_BecomesSupported()
+    public void Resolve_FalseCellWithDeclaredVersionAndNoBound_StaysUnsupported()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
 
@@ -135,7 +135,7 @@ public class DialectSupportResolverTests
             options, "WithRecursive", arity: null, TargetDbms.Oracle, EngineVersion.Parse("23"));
 
         Assert.NotNull(result);
-        Assert.True(result!.Value.IsSupported);
+        Assert.False(result!.Value.IsSupported);
         Assert.False(result.Value.IsVersionBound);
     }
 
