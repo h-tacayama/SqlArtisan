@@ -14,6 +14,9 @@ public class CorrelatedDmlParityTests
     private const string GuardMessage =
         "The target of a correlated UPDATE or DELETE must be aliased.";
 
+    private const string JoinedGuardMessage =
+        "The target of a joined UPDATE or DELETE must be aliased.";
+
     private sealed class PTable : DbTableBase
     {
         public DbColumn Id;
@@ -76,6 +79,25 @@ public class CorrelatedDmlParityTests
             .Build());
 
         Assert.Equal(GuardMessage, ex.Message);
+    }
+
+    // Pins the message the rule's joined-chain silence leans on (CorrelatedDmlRule
+    // stays silent when a join step is visible, trusting this guard to report
+    // instead) — a drift here would silently break that trust.
+    [Fact]
+    public void Update_JoinedFromUnaliasedTarget_ThrowsJoinedArgumentException()
+    {
+        PTable t = new();
+        PTable r = new("r");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(t.Id == 1)
+            .From(r)
+            .Where(t.Id == r.Id)
+            .Build());
+
+        Assert.Equal(JoinedGuardMessage, ex.Message);
     }
 
     [Fact]
