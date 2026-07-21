@@ -24,10 +24,7 @@ public sealed class CommonTableExpression
     internal void Format(SqlBuildingBuffer buffer)
     {
         buffer.EncloseInAliasQuotes(_name);
-        buffer.EncloseInSpaces(Keywords.As);
-        buffer.OpenParenthesis();
-        _subquery?.Format(buffer);
-        buffer.CloseParenthesis();
+        AppendAsSubquery(buffer);
     }
 
     // The list names are emitted bare, matching how a CTE column reference
@@ -49,6 +46,11 @@ public sealed class CommonTableExpression
         }
 
         buffer.Append(')');
+        AppendAsSubquery(buffer);
+    }
+
+    private void AppendAsSubquery(SqlBuildingBuffer buffer)
+    {
         buffer.EncloseInSpaces(Keywords.As);
         buffer.OpenParenthesis();
         _subquery?.Format(buffer);
