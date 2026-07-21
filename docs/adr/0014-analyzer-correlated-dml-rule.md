@@ -63,12 +63,27 @@ positive): table classes from referenced assemblies (no declaration
 syntax), non-readonly fields, helper indirection for the table or the
 subquery, a builder split across statements, and `With(...)`-headed
 subqueries. A joined UPDATE/DELETE (`.From(...)` / `.Using(...)` / a join
-step in the chain) with an unaliased target is deliberately silent: its own
-Build()-time guard throws a *different* message ("joined … must be
-aliased") before the correlated guard arms, so a "correlated" diagnostic
-would misdescribe it — the joined guard is the report there. The runtime
-accepted-false-positive (one instance reused for both scopes) is reported
-too — accurately, since that statement cannot build.
+step **visible in the same expression chain**) with an unaliased target is
+deliberately silent: its own Build()-time guard throws a *different*
+message ("joined … must be aliased") before the correlated guard arms, so a
+"correlated" diagnostic would misdescribe it — the joined guard is the
+report there. A join step added on a builder variable in a *later*
+statement is invisible to the walk, so that shape still reports
+"correlated" while Build() throws the joined message — accepted: the
+statement is unbuildable either way, the exception type matches, and the
+remediation (alias the target) is identical, so only the message label
+diverges. The runtime accepted-false-positive (one instance reused for both
+scopes) is reported too — accurately, since that statement cannot build.
+
+One deliberate-circumvention escape is accepted rather than defended
+against: reassigning the target through an `in` parameter via
+`Unsafe.AsRef` leaves no `ref`/`out` keyword and no `ref` expression for
+the no-write scan to count, so a target realiased that way can still be
+reported on code that builds. Detecting it would need semantic-model
+argument binding for every call — cost out of proportion to code that
+defeats the language's own readonly-ref semantics. The soundness claim is
+therefore "never a false positive on code that respects readonly-ref
+semantics."
 
 Identity decisions follow ADR 0013: standard Roslyn suppression only, no
 `sqlartisan_*` key family (a construct-override key would misdescribe the

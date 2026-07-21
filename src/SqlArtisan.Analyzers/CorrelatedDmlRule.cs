@@ -18,7 +18,8 @@ namespace SqlArtisan.Analyzers;
 /// Every proof fails toward silence (ADR 0003): a target that is not a local or
 /// this-bound readonly field with a visible, provably-unaliased initializer —
 /// or any unrecognized shape in the walks — yields a false negative, never a
-/// false positive.
+/// false positive, short of code that defeats readonly-ref semantics
+/// (Unsafe.AsRef on an in argument — the accepted exception in ADR 0014).
 /// </remarks>
 internal static class CorrelatedDmlRule
 {
