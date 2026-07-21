@@ -4,10 +4,6 @@ internal sealed class WithRecursiveClause(CommonTableExpression[] ctes) : SqlPar
 {
     private readonly CommonTableExpressions _ctes = new(ctes);
 
-    internal override void Format(SqlBuildingBuffer buffer)
-    {
-        buffer.SetRequireExplicitColumnAlias(true);
+    internal override void Format(SqlBuildingBuffer buffer) =>
         _ctes.Format(buffer, $"{Keywords.With} {Keywords.Recursive}");
-        buffer.SetRequireExplicitColumnAlias(false);
-    }
 }

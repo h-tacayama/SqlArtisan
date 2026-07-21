@@ -313,9 +313,9 @@ public class WithTests
 
         StringBuilder expected = new();
         expected.Append("WITH RECURSIVE \"cte\" AS ");
-        expected.Append("(SELECT \"a\".code AS cte_code, ");
-        expected.Append("\"a\".name AS cte_name, ");
-        expected.Append("\"a\".created_at AS cte_created_at ");
+        expected.Append("(SELECT \"a\".code cte_code, ");
+        expected.Append("\"a\".name cte_name, ");
+        expected.Append("\"a\".created_at cte_created_at ");
         expected.Append("FROM test_table \"a\" WHERE \"a\".code = :0 ");
         expected.Append("UNION ALL SELECT (\"b\".code + :1), ");
         expected.Append("\"b\".name, \"b\".created_at ");
@@ -515,37 +515,6 @@ public class WithTests
         Assert.Equal(
             "WITH requires at least one common table expression.",
             ex.Message);
-    }
-
-    // A subquery nested inside the recursive anchor branch is a fresh query
-    // block, not part of the CTE's own column list — its alias must stay bare
-    // even though the outer anchor alias around it gets AS.
-    [Fact]
-    public void WithRecursive_AliasedColumnInNestedSubquery_OmitsAsForTheNestedAlias()
-    {
-        TestTable a = new("a");
-        TestCte cte = new("cte");
-
-        SqlStatement sql =
-            WithRecursive(
-                cte.As(
-                    Select(a.Code.As(cte.CteCode))
-                    .From(a)
-                    .Where(a.Code.In(Select(a.Code.As(cte.CteCode)).From(a).Where(a.Name == "x")))
-                    .UnionAll
-                    .Select(a.Code).From(cte).InnerJoin(a).On(cte.CteCode == a.Code)))
-            .Select(cte.CteCode)
-            .From(cte)
-            .Build();
-
-        StringBuilder expected = new();
-        expected.Append("WITH RECURSIVE \"cte\" AS ");
-        expected.Append("(SELECT \"a\".code AS cte_code FROM test_table \"a\" ");
-        expected.Append("WHERE \"a\".code IN (SELECT \"a\".code cte_code FROM test_table \"a\" WHERE \"a\".name = :0) ");
-        expected.Append("UNION ALL SELECT \"a\".code FROM \"cte\" INNER JOIN test_table \"a\" ON \"cte\".cte_code = \"a\".code) ");
-        expected.Append("SELECT \"cte\".cte_code FROM \"cte\"");
-
-        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]

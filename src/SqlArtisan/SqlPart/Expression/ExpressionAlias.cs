@@ -66,14 +66,6 @@ public sealed class ExpressionAlias : SqlPart, ISortable
     internal void FormatAsSelect(SqlBuildingBuffer buffer)
     {
         buffer.AppendSpace(_expr);
-
-        // Oracle's WITH RECURSIVE needs the explicit AS here (#263); every other
-        // position accepts the bare form, so this stays off outside that scope.
-        if (buffer.RequireExplicitColumnAlias)
-        {
-            buffer.Append(Keywords.As).AppendSpace();
-        }
-
         AppendAlias(buffer);
     }
 
