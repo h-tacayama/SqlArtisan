@@ -42,6 +42,14 @@ internal static class AnalyzerVerifier
         sqlartisan_target_dbms = {dbms}
         """;
 
+    public static string EditorConfig(string dbms, string version) => $"""
+        root = true
+
+        [*.cs]
+        sqlartisan_target_dbms = {dbms}
+        sqlartisan_target_version = {version}
+        """;
+
     public static string Unmarked(string source) =>
         source.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
 }

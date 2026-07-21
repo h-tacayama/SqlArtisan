@@ -18,6 +18,39 @@ public class DialectUsageAnalyzerTests
         }
         """;
 
+    private const string DatetruncUsageTemplate = """
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
+
+        class C
+        {
+            void M()
+            {
+                var x = {|#0:Datetrunc(DateTimePart.Day, "created_at")|};
+            }
+        }
+        """;
+
+    private const string WithRecursiveUsageTemplate = """
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
+
+        class T : DbTableBase
+        {
+            public T() : base("t", string.Empty) { }
+        }
+
+        class C
+        {
+            void M()
+            {
+                T t = new();
+                Cte cte = new("c");
+                var x = {|#0:WithRecursive(cte.As(Select(t.Asterisk).From(t)))|};
+            }
+        }
+        """;
+
     [Fact]
     public async Task NoTargetConfigured_StaysSilent()
     {
@@ -74,6 +107,75 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task VersionBoundConstructBelowDeclaredTarget_ReportsSqla0006()
+    {
+        var test = AnalyzerVerifier.Create(DatetruncUsageTemplate, AnalyzerVerifier.EditorConfig("sqlserver", "2019"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task VersionBoundConstructAtDeclaredTarget_StaysSilent()
+    {
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(DatetruncUsageTemplate), AnalyzerVerifier.EditorConfig("sqlserver", "2022"));
+
+        await test.RunAsync();
+    }
+
+    // WithRecursive is oracle:false in the plain matrix (21c XE rejects it), so
+    // without a declared version it still reports the ordinary SQLA0002 — the
+    // bound only takes over once a target version is declared.
+    [Fact]
+    public async Task VersionBoundConstruct_NoDeclaredVersion_ReportsSqla0002()
+    {
+        var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task VersionBoundConstruct_DeclaredVersionMeetsBound_SilencesSqla0002()
+    {
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(WithRecursiveUsageTemplate), AnalyzerVerifier.EditorConfig("oracle", "23"));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task VersionBoundConstruct_OnlyVersionDeclaredNoTargetDbms_StaysSilent()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_version = 2019
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(DatetruncUsageTemplate), editorConfig);
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task VersionBoundConstruct_MemberOverrideSupported_SilencesSqla0006()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = sqlserver
+            sqlartisan_target_version = 2019
+            sqlartisan_construct_datetrunc = supported
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(DatetruncUsageTemplate), editorConfig);
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task InvalidTargetValue_ReportsSqla0001()
     {
         const string editorConfig = """
@@ -81,6 +183,24 @@ public class DialectUsageAnalyzerTests
 
             [*.cs]
             sqlartisan_target_dbms = postgres
+            """;
+
+        string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task InvalidTargetVersionValue_ReportsSqla0001()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            sqlartisan_target_version = latest
             """;
 
         string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);

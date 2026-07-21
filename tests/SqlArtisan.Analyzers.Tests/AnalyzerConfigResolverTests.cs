@@ -80,4 +80,68 @@ public class AnalyzerConfigResolverTests
 
         Assert.Null(AnalyzerConfigResolver.ResolveOverride(options, "key"));
     }
+
+    [Fact]
+    public void ResolveTargetVersion_Unset_ReturnsNull()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+
+        Assert.Null(AnalyzerConfigResolver.ResolveTargetVersion(options));
+    }
+
+    [Fact]
+    public void ResolveTargetVersion_EditorConfigValue_IsParsed()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.TargetVersionKey] = "8.0.16",
+        });
+
+        Assert.Equal("8.0.16", AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString());
+    }
+
+    [Fact]
+    public void ResolveTargetVersion_EditorConfigSet_WinsOverMSBuildProperty()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.TargetVersionKey] = "23",
+            [AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey] = "21.3",
+        });
+
+        Assert.Equal("23", AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString());
+    }
+
+    [Fact]
+    public void ResolveTargetVersion_OnlyMSBuildPropertySet_IsUsedAsFallback()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey] = "2022",
+        });
+
+        Assert.Equal("2022", AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString());
+    }
+
+    [Fact]
+    public void ResolveTargetVersion_EditorConfigValueUnparseable_FallsThroughToMSBuildProperty()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.TargetVersionKey] = "latest",
+            [AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey] = "2022",
+        });
+
+        Assert.Equal("2022", AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString());
+    }
+
+    [Theory]
+    [InlineData("8.0.16", true)]
+    [InlineData("23ai", true)]
+    [InlineData("latest", false)]
+    [InlineData("", false)]
+    public void IsRecognizedVersionValue_MatchesParseability(string value, bool expected)
+    {
+        Assert.Equal(expected, AnalyzerConfigResolver.IsRecognizedVersionValue(value));
+    }
 }

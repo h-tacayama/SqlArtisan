@@ -12,10 +12,13 @@ internal static class DiagnosticDescriptors
     private const string Category = "SqlArtisan.Dialect";
     private const string HelpLinkUri = "https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md";
 
+    // {2} carries its own "one of: "/"a numeric ..." lead-in per call site (the
+    // target-dbms/override-value/target-version keys don't all read naturally
+    // under one fixed lead-in phrase).
     public static readonly DiagnosticDescriptor InvalidConfiguration = new(
         id: "SQLA0001",
         title: "Invalid SqlArtisan analyzer configuration",
-        messageFormat: "Invalid value '{1}' for '{0}' (expected one of: {2})",
+        messageFormat: "Invalid value '{1}' for '{0}' (expected {2})",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -59,6 +62,19 @@ internal static class DiagnosticDescriptors
         id: "SQLA0005",
         title: "Correlated UPDATE or DELETE target is not aliased",
         messageFormat: "The target of a correlated UPDATE or DELETE must be aliased",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
+    // Distinct from SQLA0002 (#263): the dialect itself supports the construct, but
+    // not at the caller's declared sqlartisan_target_version — a version shortfall,
+    // not a dialect mismatch, so the remediation differs (raise the version, or
+    // override if the caller has verified their actual engine already supports it).
+    public static readonly DiagnosticDescriptor VersionBoundConstruct = new(
+        id: "SQLA0006",
+        title: "SQL construct requires a newer engine version than the declared target",
+        messageFormat: "'{0}' requires {1} {2}+ but the declared target version is {3}. Set '{4} = supported' in .editorconfig if your engine supports it.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

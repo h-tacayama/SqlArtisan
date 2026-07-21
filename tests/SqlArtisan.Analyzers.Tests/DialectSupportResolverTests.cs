@@ -78,4 +78,116 @@ public class DialectSupportResolverTests
 
         Assert.Null(result);
     }
+
+    // Rollup has no version bound recorded (DialectMatrix.AllBounds) — declaring
+    // a target version must not change its verdict from the plain matrix bool.
+    [Fact]
+    public void Resolve_DeclaredVersionEntryHasNoBound_FallsBackToMatrixBool()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+
+        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
+            options, "Rollup", arity: null, TargetDbms.MySql, EngineVersion.Parse("8.0.16"));
+
+        Assert.NotNull(result);
+        Assert.False(result!.Value.IsSupported);
+        Assert.False(result.Value.IsVersionBound);
+        Assert.Null(result.Value.RequiredVersion);
+    }
+
+    [Fact]
+    public void Resolve_NoDeclaredVersion_BehavesExactlyAsBeforeVersionBounds()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+
+        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(options, "Rollup", arity: null, TargetDbms.MySql);
+
+        Assert.NotNull(result);
+        Assert.False(result!.Value.IsVersionBound);
+    }
+
+    [Fact]
+    public void Resolve_MemberOverride_WinsEvenWithADeclaredVersion()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            ["sqlartisan_construct_rollup"] = "supported",
+        });
+
+        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
+            options, "Rollup", arity: null, TargetDbms.MySql, EngineVersion.Parse("5.7"));
+
+        Assert.NotNull(result);
+        Assert.True(result!.Value.IsSupported);
+        Assert.False(result.Value.IsVersionBound);
+    }
+
+    // WithRecursive is oracle:false in the plain matrix (21c XE rejects it), but
+    // bound to Oracle 23 — a declared version meeting the bound must flip the
+    // verdict to supported even though the bool alone says otherwise.
+    [Fact]
+    public void Resolve_FalseCellWithDeclaredVersionMeetingBound_BecomesSupported()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+
+        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
+            options, "WithRecursive", arity: null, TargetDbms.Oracle, EngineVersion.Parse("23"));
+
+        Assert.NotNull(result);
+        Assert.True(result!.Value.IsSupported);
+        Assert.False(result.Value.IsVersionBound);
+    }
+
+    // Datetrunc is sqlServer:true in the plain matrix but bound to 2022 — a
+    // declared version below the bound must report SQLA0006, not silence.
+    [Fact]
+    public void Resolve_TrueCellWithDeclaredVersionBelowBound_ReportsVersionBound()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+
+        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
+            options, "Datetrunc", arity: null, TargetDbms.SqlServer, EngineVersion.Parse("2019"));
+
+        Assert.NotNull(result);
+        Assert.False(result!.Value.IsSupported);
+        Assert.True(result.Value.IsVersionBound);
+        Assert.Equal("2022", result.Value.RequiredVersion);
+    }
+
+    // Trim has both a member-level bound (2017, the 1-arg form) and a narrower
+    // arity-2 bound (2022, the ANSI TRIM(BOTH ... FROM ...) form) — the matched
+    // key must pick the exact one the arity resolved to, not fall back.
+    [Theory]
+    [InlineData(1, "2019", true, null)]
+    [InlineData(1, "2016", false, "2017")]
+    [InlineData(2, "2019", false, "2022")]
+    [InlineData(2, "2022", true, null)]
+    public void Resolve_ArityBoundAndMemberBound_PickExactMatchedKey(
+        int arity, string declared, bool expectedSupported, string? expectedRequired)
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+
+        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
+            options, "Trim", arity, TargetDbms.SqlServer, EngineVersion.Parse(declared));
+
+        Assert.NotNull(result);
+        Assert.Equal(expectedSupported, result!.Value.IsSupported);
+        Assert.Equal(expectedRequired, result.Value.RequiredVersion);
+    }
+
+    [Fact]
+    public void Resolve_MemberOverride_WinsOverAVersionBoundInBothDirections()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            ["sqlartisan_construct_datetrunc"] = "supported",
+        });
+
+        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
+            options, "Datetrunc", arity: null, TargetDbms.SqlServer, EngineVersion.Parse("2019"));
+
+        Assert.NotNull(result);
+        Assert.True(result!.Value.IsSupported);
+        Assert.False(result.Value.IsVersionBound);
+    }
 }
