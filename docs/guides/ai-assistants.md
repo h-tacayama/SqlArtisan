@@ -61,14 +61,14 @@ gets a build-time warning:
 ```csharp
 // sqlartisan_target_dbms = mysql
 var g = Rollup(t.Code, t.Name);
-// warning SQLA0001: 'Rollup' is not supported on MySQL. ...
+// warning SQLA0002: 'Rollup' is not supported on MySQL. ...
 ```
 
 For an AI-heavy workflow, promote it to a build error so wrong-dialect code
 cannot merge:
 
 ```ini
-dotnet_diagnostic.SQLA0001.severity = error
+dotnet_diagnostic.SQLA0002.severity = error
 ```
 
 The [analyzer reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
@@ -120,7 +120,7 @@ file, and set the dialect line to your engine:
   never as raw SQL strings.
 - Target DBMS: PostgreSQL. SqlArtisan emits SQL faithfully with no dialect
   translation — always pick the API documented for this DBMS, and treat
-  SQLA0001 analyzer warnings as errors to fix, not suppress.
+  SQLA0002 analyzer warnings as errors to fix, not suppress.
 - API reference (each call shown with its emitted SQL):
   https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/llms.txt
 - Reference database tables through their table classes (one `DbTableBase`

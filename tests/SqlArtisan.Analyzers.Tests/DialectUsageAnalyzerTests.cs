@@ -36,7 +36,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -68,7 +68,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -85,7 +85,7 @@ public class DialectUsageAnalyzerTests
 
         string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
 
         await test.RunAsync();
     }
@@ -102,8 +102,8 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
 
         await test.RunAsync();
     }
@@ -135,7 +135,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -168,8 +168,8 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(1));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(1));
 
         await test.RunAsync();
     }
@@ -293,7 +293,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -324,8 +324,8 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(1));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(1));
 
         await test.RunAsync();
     }
@@ -382,7 +382,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -415,7 +415,7 @@ public class DialectUsageAnalyzerTests
 
         // Locks the operator display mapping (the C# glyph, not "op_Modulus") and the
         // member-level override key the message names — neither is asserted anywhere else.
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
             .WithLocation(0)
             .WithArguments("operator %", "Oracle", "sqlartisan_construct_op_modulus"));
 
@@ -531,7 +531,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
 
         await test.RunAsync();
     }

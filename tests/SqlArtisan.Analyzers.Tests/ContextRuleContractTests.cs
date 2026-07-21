@@ -6,7 +6,7 @@ using System.Reflection;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// Pins the core-API facts the SQLA0004 context rules key on (the ADR 0009
+/// Pins the core-API facts the SQLA0003 context rules key on (the ADR 0009
 /// name contract): if the API drifts, these fail loudly instead of the rules
 /// silently dying or — worse — losing their no-false-positive soundness.
 /// </summary>
@@ -54,6 +54,6 @@ public class ContextRuleContractTests
             .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             .Any(m => m.Name == methodName);
 
-        Assert.True(exists, $"'{methodName}' is a SQLA0004 trigger but no longer exists in the core API.");
+        Assert.True(exists, $"'{methodName}' is a SQLA0003 trigger but no longer exists in the core API.");
     }
 }

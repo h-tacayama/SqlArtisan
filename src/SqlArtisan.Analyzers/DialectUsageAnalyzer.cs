@@ -30,10 +30,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     private const string SqlArtisanAssemblyName = "SqlArtisan";
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
-        DiagnosticDescriptors.UnsupportedDialectConstruct,
         DiagnosticDescriptors.InvalidConfiguration,
-        DiagnosticDescriptors.IdentifierTooLong,
-        DiagnosticDescriptors.ContextRestrictedConstruct);
+        DiagnosticDescriptors.UnsupportedDialectConstruct,
+        DiagnosticDescriptors.ContextRestrictedConstruct,
+        DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
     {

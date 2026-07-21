@@ -14,7 +14,7 @@ target.
 - [Enabling it](#enabling-it)
 - [Rules](#rules)
 - [Correcting a warning: the override keys](#correcting-a-warning-the-override-keys)
-- [Context rules (SQLA0004)](#context-rules-sqla0004)
+- [Context rules (SQLA0003)](#context-rules-sqla0003)
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
 - [Verified-against versions](#verified-against-versions)
@@ -51,23 +51,23 @@ the analyzer never reports anything — enabling it is purely additive.
 
 | ID | Severity | Reports |
 |---|---|---|
-| `SQLA0001` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
-| `SQLA0002` | Warning | A `sqlartisan_target_dbms` or `sqlartisan_construct_*` value could not be recognized. |
-| `SQLA0003` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
-| `SQLA0004` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0004). |
+| `SQLA0001` | Warning | A `sqlartisan_target_dbms` or `sqlartisan_construct_*` value could not be recognized. |
+| `SQLA0002` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
+| `SQLA0003` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0003). |
+| `SQLA0004` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
 
-`SQLA0001` only ever fires for a construct the matrix has confirmed — one
-without a matrix entry stays silent rather than guessed at, so an incomplete
-matrix can under-warn but never produce a false positive.
-
-`SQLA0002` is a compilation-end diagnostic reported once per distinct
+`SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
 CI, and an IDE's Error List after an explicit build — check that the list's
 source filter includes Build entries), but not in the editor's live
-analysis, which never runs compilation-end actions. `SQLA0001`, by
+analysis, which never runs compilation-end actions. `SQLA0002`, by
 contrast, is a per-usage diagnostic and shows up live as you type.
 
-`SQLA0003` checks compile-time identifier literals — table and expression
+`SQLA0002` only ever fires for a construct the matrix has confirmed — one
+without a matrix entry stays silent rather than guessed at, so an incomplete
+matrix can under-warn but never produce a false positive.
+
+`SQLA0004` checks compile-time identifier literals — table and expression
 aliases (`.As(...)`), CTE and derived-table names, `VALUES` column names, and
 the Oracle `RETURNING ... INTO` output variable — against each dialect's
 identifier-length limit: MySQL 256 characters, Oracle 128 bytes, PostgreSQL
@@ -80,16 +80,16 @@ two distinct long names can collide after truncation, and the analyzer is the
 only place this surfaces before the database does. Oracle and PostgreSQL
 measure in UTF-8 bytes, so a multi-byte identifier reaches the limit sooner
 than its character count suggests. Only constant identifiers are checked — a
-name built at run time is left alone — and, like `SQLA0001`, it is a per-usage
-diagnostic suppressible at a single site (`#pragma warning disable SQLA0003`, a
-`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0003.severity`).
+name built at run time is left alone — and, like `SQLA0002`, it is a per-usage
+diagnostic suppressible at a single site (`#pragma warning disable SQLA0004`, a
+`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0004.severity`).
 
 ```csharp
 using static SqlArtisan.Sql;
 
 // sqlartisan_target_dbms = mysql
 var g = Rollup(t.Code, t.Name);
-// warning SQLA0001: 'Rollup' is not supported on MySQL. Set
+// warning SQLA0002: 'Rollup' is not supported on MySQL. Set
 // 'sqlartisan_construct_rollup = supported' in .editorconfig if your
 // engine version supports it.
 ```
@@ -97,12 +97,12 @@ var g = Rollup(t.Code, t.Name);
 Severity is controlled the standard Roslyn way, per rule ID:
 
 ```ini
-dotnet_diagnostic.SQLA0001.severity = error   # promote to a build error
-dotnet_diagnostic.SQLA0002.severity = none    # suppress entirely
+dotnet_diagnostic.SQLA0002.severity = error   # promote to a build error
+dotnet_diagnostic.SQLA0001.severity = none    # suppress entirely
 ```
 
 Because severity is per rule ID, it cannot be scoped to one construct —
-promoting `SQLA0001` to `error` makes *every* dialect mismatch a build
+promoting `SQLA0002` to `error` makes *every* dialect mismatch a build
 failure, not just a chosen one. If you need to forbid a specific construct
 as a team policy rather than a dialect fact, reach for
 [`BannedApiAnalyzers`](https://www.nuget.org/packages/Microsoft.CodeAnalysis.BannedApiAnalyzers)
@@ -113,7 +113,7 @@ supports/doesn't support this," not "we've decided not to use this."
 
 ## Correcting a warning: the override keys
 
-Every `SQLA0001` message names the override key that would silence it. Two
+Every `SQLA0002` message names the override key that would silence it. Two
 kinds exist:
 
 - **Member-level** — `sqlartisan_construct_<name>` — applies to *every*
@@ -165,12 +165,12 @@ after adding one, check the key against the message text exactly.
 
 ---
 
-## Context rules (SQLA0004)
+## Context rules (SQLA0003)
 
 A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
-rules**: `SQLA0004` fires when the offending position is visible in the
+rules**: `SQLA0003` fires when the offending position is visible in the
 expression where the construct is used. Two rules ship today, both MySQL
 facts, live-verified against the engine like every matrix entry.
 
@@ -184,7 +184,7 @@ derived-table positions accept `LIMIT` and stay silent.
 // sqlartisan_target_dbms = mysql
 var q = Select(u.Id).From(u)
     .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2)));
-// warning SQLA0004: 'Limit' is not supported inside an IN/ANY/ALL/SOME subquery on MySQL
+// warning SQLA0003: 'Limit' is not supported inside an IN/ANY/ALL/SOME subquery on MySQL
 ```
 
 **`GROUPING()` outside a `WITH ROLLUP` query.** MySQL accepts `Grouping(...)`
@@ -195,7 +195,7 @@ only when the query's `GROUP BY` carries the `WITH ROLLUP` suffix — chain
 // sqlartisan_target_dbms = mysql
 var q = Select(u.DepartmentId, Grouping(u.DepartmentId))
     .From(u).GroupBy(u.DepartmentId).OrderBy(u.DepartmentId);
-// warning SQLA0004: 'Grouping' is not supported outside a WITH ROLLUP query on MySQL
+// warning SQLA0003: 'Grouping' is not supported outside a WITH ROLLUP query on MySQL
 ```
 
 A context rule warns only when the position is provable from the expression
@@ -208,8 +208,8 @@ point the builder's type can never accept the suffix — and a chain that
 still ends at `.GroupBy(...)` stays silent.
 
 Suppression is per rule ID, the standard Roslyn way
-(`#pragma warning disable SQLA0004`, a `[SuppressMessage]` attribute, or
-`dotnet_diagnostic.SQLA0004.severity`). The `sqlartisan_construct_*`
+(`#pragma warning disable SQLA0003`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0003.severity`). The `sqlartisan_construct_*`
 override keys do **not** apply here — they answer "does my engine support
 this construct," which is not what a context rule reports.
 
@@ -249,7 +249,7 @@ Every confirmed mismatch fails the build; escape hatches (`supported`
 overrides) still apply first, so only genuinely unconfirmed constructs fail.
 
 **Whitelist mode** — fail on anything the matrix hasn't explicitly verified
-one way or the other is not offered as a separate rule. `SQLA0001` only
+one way or the other is not offered as a separate rule. `SQLA0002` only
 fires on a *confirmed* mismatch by design (a construct the matrix doesn't
 know stays silent rather than guess), so there is no "unverified construct"
 diagnostic to promote — the matrix's

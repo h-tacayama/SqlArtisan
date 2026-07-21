@@ -6,7 +6,7 @@ namespace SqlArtisan.Analyzers.Tests;
 public class ContextRuleAnalyzerTests
 {
     // The marked span is the whole trigger invocation (receiver chain included) —
-    // the same location SQLA0001 reports for an instance-chain member.
+    // the same location SQLA0002 reports for an instance-chain member.
     private static string Usage(string statements) => $$"""
         using SqlArtisan;
         using SqlArtisan.Internal;
@@ -44,7 +44,7 @@ public class ContextRuleAnalyzerTests
         var test = AnalyzerVerifier.Create(source, editorConfig);
         if (expectWarning)
         {
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0004").WithLocation(0));
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
         }
 
         await test.RunAsync();

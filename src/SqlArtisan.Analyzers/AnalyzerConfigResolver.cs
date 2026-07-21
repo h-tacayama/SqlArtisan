@@ -39,7 +39,7 @@ internal static class AnalyzerConfigResolver
     /// <summary>
     /// The configured target for this syntax tree, or <see langword="null"/> if
     /// unset or unrecognized (the analyzer stays silent in either case — an
-    /// unrecognized value is separately flagged as SQLA0002).
+    /// unrecognized value is separately flagged as SQLA0001).
     /// </summary>
     public static TargetDbms? ResolveTarget(AnalyzerConfigOptions options)
     {
