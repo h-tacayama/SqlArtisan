@@ -578,8 +578,13 @@ internal static class DialectMatrix
         [new MatrixKey("ExceptAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
         [new MatrixKey("IntersectAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
         [new MatrixKey("MinusAll")] = new VersionBounds(oracle: V("21")),
+        // LeftJoinLateral is deliberately NOT entered here: the pre-23ai gap is a
+        // chained inference (no boolean literal -> ON TRUE unrepresentable), not a
+        // documented "landed in 23ai" fact the way WithRecursive is in the #263
+        // register — a live-proof lane could confirm 23ai parses the statement
+        // without that actually being the reason, so it stays a plain DbmsSupport
+        // false (a follow-up bound needs its own primary source).
         [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0"), oracle: V("23")),
-        [new MatrixKey("LeftJoinLateral")] = new VersionBounds(oracle: V("23")),
 
         // --- MySQL 8.0.x point releases (matrix comments above; #263 register) ---
         [new MatrixKey("Grouping", 1)] = new VersionBounds(mySql: V("8.0.1")),
