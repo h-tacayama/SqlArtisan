@@ -571,6 +571,62 @@ internal static class DialectMatrix
     /// </summary>
     private static readonly Dictionary<MatrixKey, VersionBounds> Bounds = new()
     {
+        // --- Oracle 21c/23ai (oracle-base.com 21c article; 23ai bound live-proven by the
+        // pinned Oracle23aiBoundSweepTests lane, #263) ---
+        [new MatrixKey("Except")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
+        [new MatrixKey("Intersect")] = new VersionBounds(mySql: V("8.0.31")),
+        [new MatrixKey("ExceptAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
+        [new MatrixKey("IntersectAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
+        [new MatrixKey("MinusAll")] = new VersionBounds(oracle: V("21")),
+        [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0"), oracle: V("23")),
+        [new MatrixKey("LeftJoinLateral")] = new VersionBounds(oracle: V("23")),
+
+        // --- MySQL 8.0.x point releases (matrix comments above; #263 register) ---
+        [new MatrixKey("Grouping", 1)] = new VersionBounds(mySql: V("8.0.1")),
+        [new MatrixKey("JsonValue")] = new VersionBounds(mySql: V("8.0.21")),
+        [new MatrixKey("Nowait")] = new VersionBounds(mySql: V("8.0")),
+        [new MatrixKey("SkipLocked")] = new VersionBounds(mySql: V("8.0")),
+        // OnDuplicateKeyUpdate/Excluded: SqlArtisan always emits MySQL's 8.0.19+ row-alias
+        // UPSERT form (`AS new` — MySqlDialect.ExcludedName, RowAliasClause), never the
+        // legacy VALUES() function, so the row alias's version is the real floor.
+        [new MatrixKey("OnDuplicateKeyUpdate")] = new VersionBounds(mySql: V("8.0.19")),
+        [new MatrixKey("Excluded")] = new VersionBounds(mySql: V("8.0.19")),
+
+        // --- PostgreSQL 15 (matrix comments above: MERGE and the REGEXP_* family) ---
+        [new MatrixKey("MergeInto")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("Using")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("WhenMatched")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("WhenNotMatched")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("ThenInsert")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("ThenUpdateSet")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("ThenDelete")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("Values", 3)] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpLike")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpReplace")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15")),
+
+        // --- SQLite point releases (matrix comments above) ---
+        [new MatrixKey("RightJoin")] = new VersionBounds(sqlite: V("3.39")),
+        [new MatrixKey("FullJoin")] = new VersionBounds(sqlite: V("3.39")),
+        [new MatrixKey("NaturalRightJoin")] = new VersionBounds(sqlite: V("3.39")),
+        [new MatrixKey("NaturalFullJoin")] = new VersionBounds(sqlite: V("3.39")),
+        [new MatrixKey("Returning")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("StringAgg")] = new VersionBounds(sqlite: V("3.44")),
+        [new MatrixKey("StringAgg", 3)] = new VersionBounds(sqlite: V("3.44")),
+        [new MatrixKey("Concat", 2)] = new VersionBounds(sqlite: V("3.44")),
+        [new MatrixKey("Concat", 4)] = new VersionBounds(sqlite: V("3.44")),
+        [new MatrixKey("NullsFirst")] = new VersionBounds(sqlite: V("3.30")),
+        [new MatrixKey("NullsLast")] = new VersionBounds(sqlite: V("3.30")),
+
+        // --- SQL Server (matrix comments above; #263 register) ---
+        [new MatrixKey("Datetrunc")] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Greatest")] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Least")] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Ltrim", 2)] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Rtrim", 2)] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Trim", 2)] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Trim")] = new VersionBounds(sqlServer: V("2017")),
     };
 
     private static EngineVersion V(string text) => EngineVersion.Parse(text);
