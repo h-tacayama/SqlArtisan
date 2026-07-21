@@ -15,6 +15,7 @@ target.
 - [Rules](#rules)
 - [Correcting a warning: the override keys](#correcting-a-warning-the-override-keys)
 - [Context rules (SQLA0003)](#context-rules-sqla0003)
+- [Correlated DML target (SQLA0005)](#correlated-dml-target-sqla0005)
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
 - [Verified-against versions](#verified-against-versions)
@@ -55,6 +56,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0002` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
 | `SQLA0003` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0003). |
 | `SQLA0004` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
+| `SQLA0005` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0005). |
 
 `SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
@@ -215,6 +217,53 @@ this construct," which is not what a context rule reports.
 
 ---
 
+## Correlated DML target (SQLA0005)
+
+An UPDATE or DELETE whose subquery references a column of the **unaliased**
+target table is a silent tautology: the bare outer column resolves to the
+inner table, so the condition compares a row to itself and the statement
+updates or deletes every row. `Build()` rejects exactly this statement at
+run time; `SQLA0005` is the same finding surfaced at compile time, where
+the fix is cheapest.
+
+```csharp
+// sqlartisan_target_dbms = postgresql
+UsersTable u = new();
+OrdersTable o = new("o");
+var q = DeleteFrom(u)
+    .Where(Exists(Select(o.Id).From(o).Where(o.UserId == u.Id)));
+// warning SQLA0005: The target of a correlated UPDATE or DELETE must be aliased
+```
+
+The fix is the one the run-time guard demands: alias the target
+(`new UsersTable("u")`). On MySQL, Oracle, PostgreSQL, and SQLite the
+aliased target is the correlated form; on SQL Server the DML target cannot
+be aliased at all — write the joined UPDATE/DELETE form
+(`.From(...)` / `.Using(...)` with joins) instead.
+
+The diagnostic is **advisory duplication** of the `Build()` guard:
+suppressing it does not stop the exception — the statement still fails to
+build. It fires on every configured dialect, because the wrong-scope
+resolution is universal, not a dialect fact.
+
+The warning reports only what is provable from the source. The target must
+be a local variable or a `readonly` field whose initializer visibly
+constructs the table class with an empty alias and which is never
+reassigned, and the correlated column reference must sit in a subquery
+written inline in the same fluent chain. Anything less certain — the table
+built by a helper, the alias passed as a variable, the builder split across
+statements, a table class compiled into a referenced assembly — stays
+silent. A missing warning therefore never means the statement is safe;
+`Build()` remains the enforcement.
+
+Suppression is per rule ID, the standard Roslyn way
+(`#pragma warning disable SQLA0005`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0005.severity`). The `sqlartisan_construct_*`
+override keys do not apply — the construct's dialect support is not what
+this rule reports.
+
+---
+
 ## Mixed-dialect projects
 
 `.editorconfig` sections scope by file path, so a project that emits SQL for
@@ -351,3 +400,7 @@ The reservation pins down now what the future release will not change:
   way. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
+- **`SQLA0005` needs a configured target too.** The correlated-DML mistake
+  it reports is dialect-independent, but the analyzer as a whole stays
+  silent until `sqlartisan_target_dbms` is set — without a target, the
+  `Build()` guard is the only report.

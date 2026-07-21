@@ -34,6 +34,11 @@ the full rationale.
 - *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
   (ADR 0011).
 
+"Structurally invisible to the analyzer" is a per-guard fact, not a law: the
+correlated-DML guard's provable subset now has an advisory analyzer duplicate
+(SQLA0005, ADR 0014) — the `Build()` guard remains the enforcement boundary,
+and suppressing the diagnostic never disables the throw.
+
 ## The empty-state policy (#236)
 
 Never elide a clause the caller wrote. A written condition clause with no

@@ -33,7 +33,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.InvalidConfiguration,
         DiagnosticDescriptors.UnsupportedDialectConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
-        DiagnosticDescriptors.IdentifierTooLong);
+        DiagnosticDescriptors.IdentifierTooLong,
+        DiagnosticDescriptors.CorrelatedDmlTargetNotAliased);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -48,6 +49,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
         context.RegisterOperationAction(AnalyzeContextRules, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeCorrelatedDml, OperationKind.Invocation);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -156,6 +158,26 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         {
             ContextRules.CheckGroupingRequiresWithRollup(context, invocation, dialectName);
         }
+    }
+
+    // Both DML heads (#256) — the static Sql members and the WithBuilder instance
+    // methods — share the name and the DbTableBase-first-parameter shape.
+    private static void AnalyzeCorrelatedDml(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (invocation.TargetMethod.Name is not ("Update" or "DeleteFrom")
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        CorrelatedDmlRule.Check(context, invocation);
     }
 
     private static void AnalyzeIdentifierLength(OperationAnalysisContext context)

@@ -50,4 +50,16 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
+
+    // Mirrors the Build()-time guard's message verbatim (parity-tested): the
+    // diagnostic is the same finding surfaced earlier, and suppressing it does
+    // not disable the throw.
+    public static readonly DiagnosticDescriptor CorrelatedDmlTargetNotAliased = new(
+        id: "SQLA0005",
+        title: "Correlated UPDATE or DELETE target is not aliased",
+        messageFormat: "The target of a correlated UPDATE or DELETE must be aliased",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
 }
