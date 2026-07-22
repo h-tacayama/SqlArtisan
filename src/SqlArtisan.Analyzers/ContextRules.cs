@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0003 for a construct the target dialect supports, but not in the
+/// Reports SQLA0004 for a construct the target dialect supports, but not in the
 /// syntactic position it sits in — verdicts a per-construct matrix entry cannot
 /// express (#264).
 /// </summary>

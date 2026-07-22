@@ -157,7 +157,7 @@ public class DialectSupportResolverTests
     }
 
     // Datetrunc is sqlServer:true in the plain matrix but bound to 2022 — a
-    // declared version below the bound must report SQLA0006, not silence.
+    // declared version below the bound must report SQLA0003, not silence.
     [Fact]
     public void Resolve_TrueCellWithDeclaredVersionBelowBound_ReportsVersionBound()
     {

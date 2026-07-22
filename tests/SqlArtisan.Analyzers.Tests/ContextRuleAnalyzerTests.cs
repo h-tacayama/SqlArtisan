@@ -44,44 +44,44 @@ public class ContextRuleAnalyzerTests
         var test = AnalyzerVerifier.Create(source, editorConfig);
         if (expectWarning)
         {
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0004").WithLocation(0));
         }
 
         await test.RunAsync();
     }
 
     [Fact]
-    public Task LimitInInSubquery_MySql_ReportsSqla0003() =>
+    public Task LimitInInSubquery_MySql_ReportsSqla0004() =>
         RunReporting("""
             var q = Select(t.Id).From(t).Where(t.Id.In({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|}));
             """);
 
     [Fact]
-    public Task LimitInNotInSubquery_MySql_ReportsSqla0003() =>
+    public Task LimitInNotInSubquery_MySql_ReportsSqla0004() =>
         RunReporting("""
             SqlCondition c = t.Id.NotIn({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|});
             """);
 
     [Fact]
-    public Task LimitInAnySubquery_MySql_ReportsSqla0003() =>
+    public Task LimitInAnySubquery_MySql_ReportsSqla0004() =>
         RunReporting("""
             SqlCondition c = t.Id > Any({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|});
             """);
 
     [Fact]
-    public Task LimitInAllSubquery_MySql_ReportsSqla0003() =>
+    public Task LimitInAllSubquery_MySql_ReportsSqla0004() =>
         RunReporting("""
             SqlCondition c = t.Id > All({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|});
             """);
 
     [Fact]
-    public Task LimitInSomeSubquery_MySql_ReportsSqla0003() =>
+    public Task LimitInSomeSubquery_MySql_ReportsSqla0004() =>
         RunReporting("""
             SqlCondition c = t.Id == Some({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|});
             """);
 
     [Fact]
-    public Task LimitOffsetInInSubquery_MySql_ReportsSqla0003() =>
+    public Task LimitOffsetInInSubquery_MySql_ReportsSqla0004() =>
         RunReporting("""
             SqlCondition c = t.Id.In({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|}.Offset(1));
             """);
@@ -162,31 +162,31 @@ public class ContextRuleAnalyzerTests
             """, AnalyzerVerifier.EditorConfig("mysql"), expectWarning: false);
 
     [Fact]
-    public Task GroupingWithoutWithRollup_MySql_ReportsSqla0003() =>
+    public Task GroupingWithoutWithRollup_MySql_ReportsSqla0004() =>
         RunReporting("""
             var q = Select(t.Dep, {|#0:Grouping(t.Dep)|}).From(t).GroupBy(t.Dep).OrderBy(t.Dep);
             """);
 
     [Fact]
-    public Task GroupingMultiArgWithoutWithRollup_MySql_ReportsSqla0003() =>
+    public Task GroupingMultiArgWithoutWithRollup_MySql_ReportsSqla0004() =>
         RunReporting("""
             var q = Select({|#0:Grouping(t.Dep, t.Id)|}).From(t).GroupBy(t.Dep, t.Id).OrderBy(t.Dep);
             """);
 
     [Fact]
-    public Task GroupingInHavingWithoutWithRollup_MySql_ReportsSqla0003() =>
+    public Task GroupingInHavingWithoutWithRollup_MySql_ReportsSqla0004() =>
         RunReporting("""
             var q = Select(t.Dep).From(t).GroupBy(t.Dep).Having({|#0:Grouping(t.Dep)|} == 0);
             """);
 
     [Fact]
-    public Task GroupingAliasedWithoutWithRollup_MySql_ReportsSqla0003() =>
+    public Task GroupingAliasedWithoutWithRollup_MySql_ReportsSqla0004() =>
         RunReporting("""
             var q = Select({|#0:Grouping(t.Dep)|}.As("g"), t.Dep).From(t).GroupBy(t.Dep).OrderBy(t.Dep);
             """);
 
     [Fact]
-    public Task GroupingSplitChainWithGroupByVisible_MySql_ReportsSqla0003() =>
+    public Task GroupingSplitChainWithGroupByVisible_MySql_ReportsSqla0004() =>
         RunReporting("""
             var q = Select(t.Dep).From(t);
             var r = q.GroupBy(t.Dep).Having({|#0:Grouping(t.Dep)|} == 0);

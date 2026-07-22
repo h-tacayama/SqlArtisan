@@ -29,7 +29,7 @@ as a guess.
 
 **A sparse, optional minimum-version floor per (construct, dialect) cell,
 evaluated against a declared `sqlartisan_target_version`, reported as a new
-diagnostic `SQLA0006`.**
+diagnostic `SQLA0003`.**
 
 - **Interval annotations, browserslist-style.** `DialectMatrix` gains a
   second table, `Bounds : Dictionary<MatrixKey, VersionBounds>`, keyed
@@ -59,7 +59,7 @@ diagnostic `SQLA0006`.**
   Per the #262 reservation, `sqlartisan_construct_*` overrides are checked
   *before* either table, so they keep the last word regardless of what a
   bound says.
-- **`SQLA0006`, not `SQLA0002`.** A version shortfall and a dialect mismatch
+- **`SQLA0003`, not `SQLA0002`.** A version shortfall and a dialect mismatch
   are different findings with different remediations — "declare a higher
   version, or override once you've verified your actual engine handles it"
   versus "this dialect fundamentally does not support the construct." Folding

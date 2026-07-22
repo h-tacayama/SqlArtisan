@@ -107,10 +107,10 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task VersionBoundConstructBelowDeclaredTarget_ReportsSqla0006()
+    public async Task VersionBoundConstructBelowDeclaredTarget_ReportsSqla0003()
     {
         var test = AnalyzerVerifier.Create(DatetruncUsageTemplate, AnalyzerVerifier.EditorConfig("sqlserver", "2019"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -147,12 +147,12 @@ public class DialectUsageAnalyzerTests
 
     // WithRecursive is mysql:true in the plain matrix but bound to 8.0 (no CTE
     // support before it) — a declared version below the bound reports the
-    // shortfall as SQLA0006, not silence.
+    // shortfall as SQLA0003, not silence.
     [Fact]
-    public async Task VersionBoundConstruct_MySqlBelowBound_ReportsSqla0006()
+    public async Task VersionBoundConstruct_MySqlBelowBound_ReportsSqla0003()
     {
         var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("mysql", "5.7"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -181,7 +181,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task VersionBoundConstruct_MemberOverrideSupported_SilencesSqla0006()
+    public async Task VersionBoundConstruct_MemberOverrideSupported_SilencesSqla0003()
     {
         const string editorConfig = """
             root = true

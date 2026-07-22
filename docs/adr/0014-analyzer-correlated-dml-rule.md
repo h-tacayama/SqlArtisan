@@ -96,7 +96,7 @@ the rule fires on every configured target).
 
 ## Rejected alternatives
 
-- **Reusing `SQLA0003`.** Context rules answer "this position on this
+- **Reusing `SQLA0004`.** Context rules answer "this position on this
   dialect"; this rule is dialect-independent and duplicates a runtime
   guard — different message shape, different remediation, different
   soundness machinery.

@@ -33,7 +33,7 @@ internal static class DialectSupportResolver
         /// <summary>
         /// The <c>.editorconfig</c> key that would silence/force this result if
         /// it turns out to be wrong for the caller's actual engine version —
-        /// surfaced in the SQLA0002/SQLA0006 message.
+        /// surfaced in the SQLA0002/SQLA0003 message.
         /// </summary>
         public string OverrideKeyHint { get; }
 
@@ -42,14 +42,14 @@ internal static class DialectSupportResolver
 
         /// <summary>
         /// The minimum engine version the matrix's bound requires, set only when
-        /// <see cref="IsVersionBound"/> is <see langword="true"/> — the SQLA0006
+        /// <see cref="IsVersionBound"/> is <see langword="true"/> — the SQLA0003
         /// message's "requires X {version}+" argument.
         /// </summary>
         public string? RequiredVersion { get; }
 
         /// <summary>
         /// Whether an unsupported <see cref="IsSupported"/> came from a declared
-        /// target version falling short of the matrix's bound (SQLA0006) rather
+        /// target version falling short of the matrix's bound (SQLA0003) rather
         /// than the entry's plain dialect bool (SQLA0002).
         /// </summary>
         public bool IsVersionBound { get; }

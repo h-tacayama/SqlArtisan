@@ -51,10 +51,10 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 - **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015) — *How does the
   dialect analyzer work?* 0003 chooses the permissive-API + opt-in-analyzer
   approach; 0008 designs the override configuration; 0009 decides bundled
-  distribution; 0013 adds position-dependent context rules (SQLA0003); 0014
+  distribution; 0013 adds position-dependent context rules (SQLA0004); 0014
   adds the advisory correlated-DML rule (SQLA0005) duplicating the runtime
   guard; 0015 adds version-interval bounds evaluated against a declared
-  engine version (SQLA0006).
+  engine version (SQLA0003).
 
 ## Consolidation trigger
 

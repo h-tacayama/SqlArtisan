@@ -39,7 +39,7 @@ Three cases are specific to this library, beyond the usual API-level changes:
   caller who hasn't rebuilt against the new version — the same class of risk
   the emitted-SQL rule above guards against.
 
-Analyzer diagnostic updates (SQLA0001–SQLA0004) may also land in a
+Analyzer diagnostic updates (SQLA0001–SQLA0006) may also land in a
 minor release: they change build-time diagnostics, never runtime behavior.
 
 ## Deprecation

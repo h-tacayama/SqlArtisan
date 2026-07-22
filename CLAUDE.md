@@ -28,7 +28,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/Internal/SqlPart/Keywords.cs` | All SQL keyword string constants. |
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. |
-| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0004). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0006). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Console tool that generates table classes from a live DB (Oracle/PgSql). |
 | `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..W}.cs` mirror `Sql.{A..W}.cs`. |
@@ -92,15 +92,19 @@ OrderedSetAggregate, Sequence, StringAggregate.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships four diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships six diagnostics:
 
 - **SQLA0001** — Invalid analyzer configuration (unrecognized `.editorconfig`
   value).
 - **SQLA0002** — SQL construct not supported on the target dialect. Fires when a
   `Sql.*` call is unsupported for the configured DBMS.
-- **SQLA0003** — Context-restricted construct. A construct the target supports,
+- **SQLA0003** — Version-bound construct. Supported on the target dialect, but
+  not until a newer engine version than the one declared.
+- **SQLA0004** — Context-restricted construct. A construct the target supports,
   used in a position that dialect rejects.
-- **SQLA0004** — Identifier too long for the target dialect's limit.
+- **SQLA0005** — Correlated `UPDATE`/`DELETE` with an unaliased target — the
+  same violation `Build()` rejects, surfaced early.
+- **SQLA0006** — Identifier too long for the target dialect's limit.
 
 The analyzer is bundled inside the main `SqlArtisan` NuGet package (not
 shipped separately). Its dialect support matrix (`DialectMatrix.cs`) is verified

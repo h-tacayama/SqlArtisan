@@ -78,7 +78,7 @@ public class DialectMatrixVersionBoundsTests
 
     // Cheap drift guard (DialectMatrixDocsTests's pattern): every seeded bound's
     // construct name and version token must appear somewhere in the provenance
-    // table docs/analyzer.md ships alongside SQLA0006 — a renamed/re-bounded
+    // table docs/analyzer.md ships alongside SQLA0003 — a renamed/re-bounded
     // row that forgets to update the docs fails here instead of shipping stale.
     [Fact]
     public void EveryBound_HasDocsProvenance()

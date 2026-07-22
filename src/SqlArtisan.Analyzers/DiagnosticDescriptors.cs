@@ -34,21 +34,25 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // No override-key hint: the construct itself is supported on the target, so
-    // sqlartisan_construct_* keys do not apply — suppression is per-ID only.
-    public static readonly DiagnosticDescriptor ContextRestrictedConstruct = new(
+    // Distinct from SQLA0002 (#263): the dialect itself supports the construct, but
+    // not at the caller's declared sqlartisan_target_version — a version shortfall,
+    // not a dialect mismatch, so the remediation differs (raise the version, or
+    // override if the caller has verified their actual engine already supports it).
+    public static readonly DiagnosticDescriptor VersionBoundConstruct = new(
         id: "SQLA0003",
-        title: "SQL construct not supported in this position on the target dialect",
-        messageFormat: "'{0}' is not supported {1} on {2}",
+        title: "SQL construct requires a newer engine version than the declared target",
+        messageFormat: "'{0}' requires {1} {2}+ but the declared target version is {3}. Set '{4} = supported' in .editorconfig if your engine supports it.",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    public static readonly DiagnosticDescriptor IdentifierTooLong = new(
+    // No override-key hint: the construct itself is supported on the target, so
+    // sqlartisan_construct_* keys do not apply — suppression is per-ID only.
+    public static readonly DiagnosticDescriptor ContextRestrictedConstruct = new(
         id: "SQLA0004",
-        title: "SQL identifier exceeds the dialect's length limit",
-        messageFormat: "Identifier '{0}' exceeds {1}'s identifier limit of {2} {3}",
+        title: "SQL construct not supported in this position on the target dialect",
+        messageFormat: "'{0}' is not supported {1} on {2}",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -67,14 +71,10 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // Distinct from SQLA0002 (#263): the dialect itself supports the construct, but
-    // not at the caller's declared sqlartisan_target_version — a version shortfall,
-    // not a dialect mismatch, so the remediation differs (raise the version, or
-    // override if the caller has verified their actual engine already supports it).
-    public static readonly DiagnosticDescriptor VersionBoundConstruct = new(
+    public static readonly DiagnosticDescriptor IdentifierTooLong = new(
         id: "SQLA0006",
-        title: "SQL construct requires a newer engine version than the declared target",
-        messageFormat: "'{0}' requires {1} {2}+ but the declared target version is {3}. Set '{4} = supported' in .editorconfig if your engine supports it.",
+        title: "SQL identifier exceeds the dialect's length limit",
+        messageFormat: "Identifier '{0}' exceeds {1}'s identifier limit of {2} {3}",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
