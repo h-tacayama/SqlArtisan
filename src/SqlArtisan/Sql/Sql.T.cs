@@ -45,6 +45,8 @@ public static partial class Sql
     /// <inheritdoc cref="ToNumber(object)"/>
     /// <param name="expr">The value to convert.</param>
     /// <param name="numericFormat">The numeric format model (Oracle-style) describing <paramref name="expr"/>.</param>
+    /// <remarks>Oracle and PostgreSQL syntax. PostgreSQL's <c>to_number</c> requires
+    /// the format argument, so only this two-argument form runs there.</remarks>
     public static ToNumberFunction ToNumber(object expr, object numericFormat) =>
         new(Resolve(expr), Resolve(numericFormat));
 

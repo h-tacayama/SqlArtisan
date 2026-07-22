@@ -12,11 +12,10 @@ namespace SqlArtisan.Analyzers;
 /// "degradable" design: an incomplete matrix cannot cause a false positive).
 ///
 /// <para>
-/// This is a <b>partial</b> matrix: it currently covers the constructs with
-/// known, confidently-sourced dialect restrictions. Reaching full coverage of
-/// every public member (the 1.0 completion condition, enforced by a coverage
-/// gate in the test project once complete) is tracked as follow-up work — see
-/// the sa-add-sql-function skill's fifth touch point.
+/// Coverage is complete and gate-enforced: <c>DialectMatrixCoverageTests</c>
+/// requires every referencable public member to have an entry here or a
+/// documented exclusion, so no new public member ships without a dialect
+/// decision (the sa-add-sql-function skill's fifth touch point keeps it so).
 /// </para>
 ///
 /// <para>
@@ -175,11 +174,7 @@ internal static class DialectMatrix
         [new MatrixKey("Systimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Datepart")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
 
-        // --- Conversion functions: confirmed documentation gap (XML docs say "Oracle syntax" only,
-        // but .claude/rules/unit-tests.md whitelists TO_CHAR as PG-valid and every test targets the
-        // default (PostgreSQL) build for all four — the matrix reflects verified behavior, not the
-        // stale remark). See docs/analyzer.md follow-up: the XML docs/docs/functions.md should be
-        // corrected to match.
+        // --- Conversion functions ---
         [new MatrixKey("ToChar")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToDate")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToNumber")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
