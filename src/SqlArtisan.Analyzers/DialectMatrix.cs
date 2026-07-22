@@ -568,8 +568,9 @@ internal static class DialectMatrix
     /// </summary>
     private static readonly Dictionary<MatrixKey, VersionBounds> Bounds = new()
     {
-        // --- Oracle 21c/23ai (oracle-base.com 21c article; the 21 bounds below are
-        // live-proven forward-compatible at 23ai too by Oracle23aiBoundSweepTests) ---
+        // --- Oracle 21c/23ai (EXCEPT/INTERSECT/MINUS ALL new in 21c — Oracle 21c SQL
+        // Language Reference set operators; the 21 bounds below are live-proven
+        // forward-compatible at 23ai too by Oracle23aiBoundSweepTests) ---
         [new MatrixKey("Except")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
         [new MatrixKey("Intersect")] = new VersionBounds(mySql: V("8.0.31")),
         [new MatrixKey("ExceptAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
