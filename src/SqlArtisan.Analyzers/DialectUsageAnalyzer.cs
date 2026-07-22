@@ -32,10 +32,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         DiagnosticDescriptors.InvalidConfiguration,
         DiagnosticDescriptors.UnsupportedDialectConstruct,
+        DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
-        DiagnosticDescriptors.IdentifierTooLong,
         DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
-        DiagnosticDescriptors.VersionBoundConstruct);
+        DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
     {
