@@ -3301,11 +3301,12 @@ rules**: `SQLA0004` fires when the offending position is visible in the
 expression where the construct is used. Two rules ship today, both MySQL
 facts, live-verified against the engine.
 
-**`LIMIT` inside an `IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL rejects a
-row-limited query directly under these positions ("This version of MySQL
-doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'") — route the limited
-query through a derived table or CTE instead. Scalar, `EXISTS`, CTE, and
-derived-table positions accept `LIMIT` and stay silent.
+**`LIMIT` inside an `IN` / `NOT IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL
+rejects a row-limited query directly under these positions ("This version of
+MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" — the same
+restriction covers `NOT IN`) — route the limited query through a derived table
+or CTE instead. Scalar, `EXISTS`, CTE, and derived-table positions accept
+`LIMIT` and stay silent.
 
 ```csharp
 // sqlartisan_target_dbms = mysql
