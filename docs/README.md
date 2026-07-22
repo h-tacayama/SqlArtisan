@@ -114,5 +114,3 @@ dialect it doesn't support.
 [CI Gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement) ·
 [Verified-Against Versions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions) ·
 [Known Limitations](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#known-limitations)
-
-Appendix: [Version-Bound Sources](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer-version-sources.md) — the primary vendor documentation behind each analyzer version bound.
