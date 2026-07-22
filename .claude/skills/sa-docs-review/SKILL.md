@@ -159,6 +159,14 @@ final phase, re-deriving each claim from primary sources rather than rereading
 your draft. Never report the review as complete with the adversarial pass
 silently skipped — a launched-but-non-returning agent is not a pass.
 
+**Detecting a stalled/vanished subagent.** There is no reliable "is it still
+running" query, and a background agent can disappear with zero
+notification — no completion, no error. Don't sleep-poll for it; but don't
+wait on it indefinitely either. If work has stalled on the adversarial pass
+with no notification, `TaskStop` on the agent's ID doubles as a status probe:
+an error (e.g. "no task found") confirms it already ended without notifying,
+and is the cue to run the fallback pass yourself rather than continue waiting.
+
 ## Output
 
 Summarise per dimension (pass / findings), list concrete fixes with file:line,
