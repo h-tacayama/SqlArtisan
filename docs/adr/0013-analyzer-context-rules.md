@@ -24,7 +24,7 @@ anchor a rule on.
 ## Decision
 
 **Context rules: per-rule operation-tree walks in `ContextRules.cs`,
-reported under a new diagnostic ID `SQLA0003`, registered from the same
+reported under a new diagnostic ID `SQLA0004`, registered from the same
 `DialectUsageAnalyzer`.**
 
 - **A new ID, one ID for all context rules.** `SQLA0002`'s message embeds
@@ -32,10 +32,10 @@ reported under a new diagnostic ID `SQLA0003`, registered from the same
   is wrong here — the construct *is* supported, and an ADR 0008 key that
   silenced a context warning would also silence that construct's real matrix
   warnings. One shared ID (not one per rule) matches how `SQLA0002` covers
-  ~230 constructs and `SQLA0004` covers many positions; per-rule severity is
+  ~230 constructs and `SQLA0006` covers many positions; per-rule severity is
   the same known granularity limit those rules already document.
 - **Suppression is standard Roslyn only** (`#pragma`, `[SuppressMessage]`,
-  `dotnet_diagnostic.SQLA0003.severity`). No new `.editorconfig` key family
+  `dotnet_diagnostic.SQLA0004.severity`). No new `.editorconfig` key family
   ships now — `ValidateConfiguration` (SQLA0001) is untouched. If MySQL ever
   lifts a restriction version-wise or the register grows enough for per-rule
   opt-out, rule-scoped keys (`sqlartisan_context_*`) are the compatible later
@@ -83,7 +83,7 @@ reported under a new diagnostic ID `SQLA0003`, registered from the same
 ## Consequences
 
 - A query can legitimately draw both warnings — `GroupBy(Rollup(x))` on
-  MySQL fires `SQLA0002` for `Rollup` and `SQLA0003` for a `Grouping` in the
+  MySQL fires `SQLA0002` for `Rollup` and `SQLA0004` for a `Grouping` in the
   same query (it has no `WITH ROLLUP`). Both are facts; neither is
   special-cased away.
 - False negatives are accepted by design: any shape the walks don't

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class SelectClauseWithDistinctTop : SqlPart, ITopSelectClause
+internal sealed class SelectClauseWithDistinctTop : SqlPart, ISelectItemsClause, ITopSelectClause
 {
     private readonly DistinctKeyword _distinct;
     private readonly TopClause _top;
@@ -15,6 +15,8 @@ internal sealed class SelectClauseWithDistinctTop : SqlPart, ITopSelectClause
         _top = top;
         _selectItems = selectItems;
     }
+
+    public SqlPart[] SelectItems => _selectItems;
 
     public bool WithTies => _top.HasWithTies;
 

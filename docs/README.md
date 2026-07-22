@@ -107,10 +107,10 @@ dialect it doesn't support.
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·
 [Correcting a Warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys) ·
-[Context Rules (SQLA0003)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0003) ·
+[Version-Aware Warnings (SQLA0003)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-aware-warnings-sqla0003) ·
+[Context Rules (SQLA0004)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0004) ·
 [Correlated DML Target (SQLA0005)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correlated-dml-target-sqla0005) ·
 [Mixed-Dialect Projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects) ·
 [CI Gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement) ·
 [Verified-Against Versions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions) ·
-[Reserved: Version-Aware Warnings](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#reserved-version-aware-warnings) ·
 [Known Limitations](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#known-limitations)

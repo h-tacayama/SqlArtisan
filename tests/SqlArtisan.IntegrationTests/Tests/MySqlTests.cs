@@ -185,7 +185,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
-    [Fact] // #264: SQLA0003's live proof. Top-level LIMIT acceptance is proven by
+    [Fact] // #264: SQLA0004's live proof. Top-level LIMIT acceptance is proven by
            // Pagination_LimitOffset_Executes; the position is the only difference.
     public void ContextRule_LimitInInSubquery_Rejected()
     {
@@ -198,7 +198,20 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
                 .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2)))));
     }
 
-    [Fact] // #264: SQLA0003's live proof. GROUPING() under WITH ROLLUP is proven by
+    [Fact] // SQLA0004 fires on NotIn too; MySQL's LIMIT restriction covers NOT IN
+           // as well as IN/ALL/ANY/SOME, so the NOT IN arm is live-proven here.
+    public void ContextRule_LimitInNotInSubquery_Rejected()
+    {
+        UsersTable u = new();
+        OrdersTable o = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u)
+                .Where(u.Id.NotIn(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2)))));
+    }
+
+    [Fact] // #264: SQLA0004's live proof. GROUPING() under WITH ROLLUP is proven by
            // the dialect sweep's MySQL branch; the missing suffix is the only difference.
     public void ContextRule_GroupingWithoutWithRollup_Rejected()
     {

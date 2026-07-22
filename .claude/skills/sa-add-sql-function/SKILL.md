@@ -176,6 +176,16 @@ Cite the primary source (the XML remark,
 in a comment next to the entry — do not guess a `false` without one, since a
 wrong `false` is exactly the false positive the matrix exists to avoid.
 
+If the cited source also names a **minimum engine version** (`MERGE` needs
+PostgreSQL 15+, `DATETRUNC` needs SQL Server 2022+), add a matching row to
+`DialectMatrix`'s `Bounds` dictionary next to the entry, keyed the same way —
+`DialectMatrixVersionBoundsTests` requires it to agree with the entry's bool
+at the dialect's verification baseline. Only flip a currently-`false` cell to
+supported above its bound with a live-proof lane behind it (see the pinned
+`Oracle23aiBoundSweepTests` for the shape) — a below-baseline `true` cell
+gaining a bound needs no new proof, since the baseline itself already
+confirms the `true` side.
+
 If the function's dialect support depends on the *runtime value* of an
 argument rather than its arity or declared type (`Trunc`'s numeric-vs-date/time
 argument is the existing example — same overload, disjoint dialect sets), the

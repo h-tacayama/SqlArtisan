@@ -34,6 +34,7 @@ public class XmlDocDialectParityTests
     public static IEnumerable<object[]> RemarkCases() =>
     [
         ["M:SqlArtisan.Sql.ToNumber(System.Object)", "ToNumber", 1],
+        ["M:SqlArtisan.Sql.ToNumber(System.Object,System.Object)", "ToNumber", 2],
         ["M:SqlArtisan.Sql.Of(SqlArtisan.DbColumn)", "Of", 1],
         ["P:SqlArtisan.Sql.Nowait", "Nowait", null!],
         ["M:SqlArtisan.Sql.Trim(System.Object,System.Object)", "Trim", 2],

@@ -32,9 +32,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         DiagnosticDescriptors.InvalidConfiguration,
         DiagnosticDescriptors.UnsupportedDialectConstruct,
+        DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
-        DiagnosticDescriptors.IdentifierTooLong,
-        DiagnosticDescriptors.CorrelatedDmlTargetNotAliased);
+        DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
+        DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -118,8 +119,22 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (DialectSupportResolver.Resolve(options, memberName, arity, target) is not { IsSupported: false } result)
+        EngineVersion? targetVersion = AnalyzerConfigResolver.ResolveTargetVersion(options);
+        if (DialectSupportResolver.Resolve(options, memberName, arity, target, targetVersion) is not { IsSupported: false } result)
         {
+            return;
+        }
+
+        if (result.IsVersionBound)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.VersionBoundConstruct,
+                context.Operation.Syntax.GetLocation(),
+                DisplayName(memberName, arity, result.IsArityLevel),
+                DisplayName(target),
+                result.RequiredVersion,
+                targetVersion,
+                result.OverrideKeyHint));
             return;
         }
 
@@ -222,6 +237,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     private static void ValidateConfiguration(CompilationAnalysisContext context)
     {
         var reportedTargetValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var reportedVersionValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var reportedOverrideValues = new HashSet<(string Key, string Value)>();
         string[] overrideKeys = [.. DialectMatrix.AllOverrideKeys.Distinct()];
         string validTargetNames = string.Join("/", AnalyzerConfigResolver.ValidTargetNames);
@@ -239,7 +255,19 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     Location.None,
                     AnalyzerConfigResolver.TargetDbmsKey,
                     targetValue,
-                    validTargetNames));
+                    $"one of: {validTargetNames}"));
+            }
+
+            if (options.TryGetValue(AnalyzerConfigResolver.TargetVersionKey, out string? versionValue)
+                && !AnalyzerConfigResolver.IsRecognizedVersionValue(versionValue)
+                && reportedVersionValues.Add(versionValue))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.InvalidConfiguration,
+                    Location.None,
+                    AnalyzerConfigResolver.TargetVersionKey,
+                    versionValue,
+                    "a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
             }
 
             foreach (string overrideKey in overrideKeys)

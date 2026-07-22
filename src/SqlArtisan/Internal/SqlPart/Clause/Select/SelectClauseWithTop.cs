@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class SelectClauseWithTop : SqlPart, ITopSelectClause
+internal sealed class SelectClauseWithTop : SqlPart, ISelectItemsClause, ITopSelectClause
 {
     private readonly TopClause _top;
     private readonly SqlPart[] _selectItems;
@@ -10,6 +10,8 @@ internal sealed class SelectClauseWithTop : SqlPart, ITopSelectClause
         _top = top;
         _selectItems = selectItems;
     }
+
+    public SqlPart[] SelectItems => _selectItems;
 
     public bool WithTies => _top.HasWithTies;
 

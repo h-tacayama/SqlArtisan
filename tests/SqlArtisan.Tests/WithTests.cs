@@ -312,7 +312,7 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH RECURSIVE \"cte\" AS ");
+        expected.Append("WITH RECURSIVE \"cte\"(cte_code, cte_name, cte_created_at) AS ");
         expected.Append("(SELECT \"a\".code cte_code, ");
         expected.Append("\"a\".name cte_name, ");
         expected.Append("\"a\".created_at cte_created_at ");
@@ -524,6 +524,82 @@ public class WithTests
 
         Assert.Equal(
             "WITH requires at least one common table expression.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void WithRecursive_DbColumnSelectItems_DerivesColumnListFromColumnNames()
+    {
+        TestTable a = new("a");
+        Cte c = new("c");
+
+        SqlStatement sql =
+            WithRecursive(
+                c.As(
+                    Select(a.Code, a.Name).From(a).Where(a.Code == 1)
+                    .UnionAll
+                    .Select(a.Code, a.Name).From(a).InnerJoin(c).On(c.Column("code") == a.Code)))
+            .Select(c.Column("code"))
+            .From(c)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH RECURSIVE \"c\"(code, name) AS ");
+        expected.Append("(SELECT \"a\".code, \"a\".name FROM test_table \"a\" WHERE \"a\".code = :0 ");
+        expected.Append("UNION ALL SELECT \"a\".code, \"a\".name FROM test_table \"a\" ");
+        expected.Append("INNER JOIN \"c\" ON \"c\".code = \"a\".code) ");
+        expected.Append("SELECT \"c\".code FROM \"c\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void WithRecursive_MultiCtes_EachCteGetsItsOwnColumnList()
+    {
+        TestTable a = new("a");
+        Cte c1 = new("c1");
+        Cte c2 = new("c2");
+
+        SqlStatement sql =
+            WithRecursive(
+                c1.As(
+                    Select(a.Code).From(a).Where(a.Code == 1)
+                    .UnionAll
+                    .Select(a.Code).From(a).InnerJoin(c1).On(c1.Column("code") == a.Code)),
+                c2.As(
+                    Select(a.Name.As("n")).From(a)))
+            .Select(c1.Column("code"), c2.Column("n"))
+            .From(c1, c2)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH RECURSIVE \"c1\"(code) AS ");
+        expected.Append("(SELECT \"a\".code FROM test_table \"a\" WHERE \"a\".code = :0 ");
+        expected.Append("UNION ALL SELECT \"a\".code FROM test_table \"a\" ");
+        expected.Append("INNER JOIN \"c1\" ON \"c1\".code = \"a\".code), ");
+        expected.Append("\"c2\"(n) AS ");
+        expected.Append("(SELECT \"a\".name \"n\" FROM test_table \"a\") ");
+        expected.Append("SELECT \"c1\".code, \"c2\".n FROM \"c1\", \"c2\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void WithRecursive_UnnamedSelectItem_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        Cte c = new("c");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            WithRecursive(
+                c.As(
+                    Select(a.Code + 1).From(a)
+                    .UnionAll
+                    .Select(a.Code).From(c))));
+
+        Assert.Equal(
+            "WITH RECURSIVE requires a name for every column of the CTE's first query block; "
+                + "alias the expression with .As(...).",
             ex.Message);
     }
 }

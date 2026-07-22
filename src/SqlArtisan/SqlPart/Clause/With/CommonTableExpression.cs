@@ -19,9 +19,38 @@ public sealed class CommonTableExpression
         _subquery = subquery;
     }
 
+    internal ISubquery Subquery => _subquery;
+
     internal void Format(SqlBuildingBuffer buffer)
     {
         buffer.EncloseInAliasQuotes(_name);
+        AppendAsSubquery(buffer);
+    }
+
+    // The list names are emitted bare, matching how a CTE column reference
+    // renders (DbColumn is unquoted) — quoting only the definition would break
+    // resolution on case-folding engines like Oracle (#165).
+    internal void Format(SqlBuildingBuffer buffer, string[] columnNames)
+    {
+        buffer.EncloseInAliasQuotes(_name);
+        buffer.Append('(');
+
+        for (int i = 0; i < columnNames.Length; i++)
+        {
+            if (i > 0)
+            {
+                buffer.Append(", ");
+            }
+
+            buffer.Append(columnNames[i]);
+        }
+
+        buffer.Append(')');
+        AppendAsSubquery(buffer);
+    }
+
+    private void AppendAsSubquery(SqlBuildingBuffer buffer)
+    {
         buffer.EncloseInSpaces(Keywords.As);
         buffer.OpenParenthesis();
         _subquery?.Format(buffer);

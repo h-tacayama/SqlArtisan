@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0004 for a compile-time identifier literal — a SELECT/table alias,
+/// Reports SQLA0006 for a compile-time identifier literal — a SELECT/table alias,
 /// a CTE or derived-table name, a <c>VALUES</c> column name, or the Oracle
 /// <c>RETURNING</c> output variable — that exceeds the target dialect's limit.
 /// </summary>

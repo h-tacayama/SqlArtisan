@@ -44,12 +44,12 @@ triage):
 
 - **Version-bounded availability → docs note + a #232 interval seed.** The
   matrix asserts against one pinned engine version (`VerifiedAgainstVersion`),
-  so a fact that flips at a version boundary — `WITH RECURSIVE` on
-  Oracle 23ai, `CONCAT`/`||` on SQLite 3.44, MySQL 8.0.16 / 8.0.19 / 8.0.20,
+  so a fact that flips at a version boundary — `EXCEPT`/`INTERSECT` on
+  Oracle 21c, `CONCAT`/`||` on SQLite 3.44, MySQL 8.0.16 / 8.0.19 / 8.0.20,
   `DATETRUNC` on SQL Server 2022 — is recorded as a docs version note and
   registered as an interval-annotation seed on #232, never as an
   `IDbmsDialect` member.
-- **Context-bounded validity → an analyzer context rule (SQLA0003, ADR
+- **Context-bounded validity → an analyzer context rule (SQLA0004, ADR
   0013).** A construct valid in one syntactic context and rejected in another
   on the *same* engine — MySQL's `LIMIT` inside `IN`/`ANY`/`ALL`/`SOME`
   subqueries, MySQL's `GROUPING()` outside a `WITH ROLLUP` query — cannot be

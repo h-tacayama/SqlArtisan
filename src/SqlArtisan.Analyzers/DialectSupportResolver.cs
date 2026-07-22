@@ -13,11 +13,18 @@ internal static class DialectSupportResolver
 {
     public readonly struct Result
     {
-        public Result(bool isSupported, string overrideKeyHint, bool isArityLevel)
+        public Result(
+            bool isSupported,
+            string overrideKeyHint,
+            bool isArityLevel,
+            string? requiredVersion = null,
+            bool isVersionBound = false)
         {
             IsSupported = isSupported;
             OverrideKeyHint = overrideKeyHint;
             IsArityLevel = isArityLevel;
+            RequiredVersion = requiredVersion;
+            IsVersionBound = isVersionBound;
         }
 
         /// <summary>Whether the usage is supported on the resolved target.</summary>
@@ -26,12 +33,26 @@ internal static class DialectSupportResolver
         /// <summary>
         /// The <c>.editorconfig</c> key that would silence/force this result if
         /// it turns out to be wrong for the caller's actual engine version —
-        /// surfaced in the SQLA0002 message.
+        /// surfaced in the SQLA0002/SQLA0003 message.
         /// </summary>
         public string OverrideKeyHint { get; }
 
         /// <summary>Whether the result is scoped to one overload's arity rather than the whole member.</summary>
         public bool IsArityLevel { get; }
+
+        /// <summary>
+        /// The minimum engine version the matrix's bound requires, set only when
+        /// <see cref="IsVersionBound"/> is <see langword="true"/> — the SQLA0003
+        /// message's "requires X {version}+" argument.
+        /// </summary>
+        public string? RequiredVersion { get; }
+
+        /// <summary>
+        /// Whether an unsupported <see cref="IsSupported"/> came from a declared
+        /// target version falling short of the matrix's bound (SQLA0003) rather
+        /// than the entry's plain dialect bool (SQLA0002).
+        /// </summary>
+        public bool IsVersionBound { get; }
     }
 
     /// <summary>
@@ -40,8 +61,18 @@ internal static class DialectSupportResolver
     /// <paramref name="arity"/> is the declared parameter count for a method,
     /// or <see langword="null"/> for a property/field (which cannot have
     /// arity-specific variants) — arity-level lookups are skipped in that case.
+    /// <paramref name="targetVersion"/> is the declared <c>sqlartisan_target_version</c>
+    /// (#262); when set and the matched entry carries a version bound for
+    /// <paramref name="target"/>, the bound decides instead of the entry's bool
+    /// in both directions — a currently-unsupported construct above the bound
+    /// becomes supported, and a currently-supported one below it does not.
     /// </summary>
-    public static Result? Resolve(AnalyzerConfigOptions options, string memberName, int? arity, TargetDbms target)
+    public static Result? Resolve(
+        AnalyzerConfigOptions options,
+        string memberName,
+        int? arity,
+        TargetDbms target,
+        EngineVersion? targetVersion = null)
     {
         string memberKey = ConstructKeyNaming.MemberKey(memberName);
         string? arityKey = arity.HasValue ? ConstructKeyNaming.ArityKey(memberName, arity.Value) : null;
@@ -66,6 +97,16 @@ internal static class DialectSupportResolver
             return null;
         }
 
-        return new Result(support.IsSupported(target), wasArityMatch ? arityKey! : memberKey, wasArityMatch);
+        string matchedHint = wasArityMatch ? arityKey! : memberKey;
+        MatrixKey matchedKey = new(memberName, wasArityMatch ? arity : null);
+
+        if (targetVersion is { } declared && DialectMatrix.TryGetMinVersion(matchedKey, target, out EngineVersion min))
+        {
+            return declared >= min
+                ? new Result(isSupported: true, matchedHint, wasArityMatch)
+                : new Result(isSupported: false, matchedHint, wasArityMatch, requiredVersion: min.ToString(), isVersionBound: true);
+        }
+
+        return new Result(support.IsSupported(target), matchedHint, wasArityMatch);
     }
 }

@@ -3,7 +3,7 @@ using System.Text;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// The per-dialect identifier-length limits SQLA0004 checks compile-time
+/// The per-dialect identifier-length limits SQLA0006 checks compile-time
 /// identifier literals against, and the unit each dialect measures in.
 /// </summary>
 internal static class IdentifierLengthLimits

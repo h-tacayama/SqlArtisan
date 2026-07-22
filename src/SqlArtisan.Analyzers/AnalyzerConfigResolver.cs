@@ -60,6 +60,36 @@ internal static class AnalyzerConfigResolver
 
     public static bool IsRecognizedTargetValue(string value) => TargetNames.ContainsKey(value);
 
+    /// <summary>The #262 reserved key: the engine version bounds are evaluated against.</summary>
+    public const string TargetVersionKey = "sqlartisan_target_version";
+
+    /// <summary>The MSBuild-property fallback for <see cref="TargetVersionKey"/>, same shape as <see cref="TargetDbmsMSBuildPropertyKey"/>.</summary>
+    public const string TargetVersionMSBuildPropertyKey = "build_property.SqlArtisanTargetVersion";
+
+    /// <summary>
+    /// The declared target version for this syntax tree, or <see langword="null"/>
+    /// if unset or unparseable (an unparseable value is separately flagged as
+    /// SQLA0001; either way version bounds simply do not apply).
+    /// </summary>
+    public static EngineVersion? ResolveTargetVersion(AnalyzerConfigOptions options)
+    {
+        if (options.TryGetValue(TargetVersionKey, out string? editorConfigValue)
+            && EngineVersion.TryParse(editorConfigValue, out EngineVersion fromEditorConfig))
+        {
+            return fromEditorConfig;
+        }
+
+        if (options.TryGetValue(TargetVersionMSBuildPropertyKey, out string? msBuildValue)
+            && EngineVersion.TryParse(msBuildValue, out EngineVersion fromMsBuildProperty))
+        {
+            return fromMsBuildProperty;
+        }
+
+        return null;
+    }
+
+    public static bool IsRecognizedVersionValue(string value) => EngineVersion.TryParse(value, out _);
+
     /// <summary>
     /// A construct override's raw value, parsed to true (<c>supported</c>),
     /// false (<c>unsupported</c>), or <see langword="null"/> (unset or an

@@ -12,11 +12,10 @@ namespace SqlArtisan.Analyzers;
 /// "degradable" design: an incomplete matrix cannot cause a false positive).
 ///
 /// <para>
-/// This is a <b>partial</b> matrix: it currently covers the constructs with
-/// known, confidently-sourced dialect restrictions. Reaching full coverage of
-/// every public member (the 1.0 completion condition, enforced by a coverage
-/// gate in the test project once complete) is tracked as follow-up work — see
-/// the sa-add-sql-function skill's fifth touch point.
+/// Coverage is complete and gate-enforced: <c>DialectMatrixCoverageTests</c>
+/// requires every referencable public member to have an entry here or a
+/// documented exclusion, so no new public member ships without a dialect
+/// decision (the sa-add-sql-function skill's fifth touch point keeps it so).
 /// </para>
 ///
 /// <para>
@@ -175,11 +174,7 @@ internal static class DialectMatrix
         [new MatrixKey("Systimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Datepart")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
 
-        // --- Conversion functions: confirmed documentation gap (XML docs say "Oracle syntax" only,
-        // but .claude/rules/unit-tests.md whitelists TO_CHAR as PG-valid and every test targets the
-        // default (PostgreSQL) build for all four — the matrix reflects verified behavior, not the
-        // stale remark). See docs/analyzer.md follow-up: the XML docs/docs/functions.md should be
-        // corrected to match.
+        // --- Conversion functions ---
         [new MatrixKey("ToChar")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToDate")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToNumber")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
@@ -293,8 +288,10 @@ internal static class DialectMatrix
         [new MatrixKey("Using", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("With")] = DbmsSupport.All,
         // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
-        // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL/SQLite
-        // require it for recursion.
+        // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL require
+        // it for recursion, SQLite accepts it. Oracle's rejection is live-probed on BOTH pinned images
+        // (21c: ORA-00905, 23ai: ORA-02000 — RECURSIVE parses as the query name), so the
+        // once-registered "accepted at 23ai" claim is disproven; no version bound applies.
         [new MatrixKey("WithRecursive")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         // Asterisk: Sql.Asterisk (SELECT *) and TableReference.Asterisk (t.*) share the name — both universal.
         [new MatrixKey("Asterisk")] = DbmsSupport.All,
@@ -483,7 +480,7 @@ internal static class DialectMatrix
         [new MatrixKey("Union")] = DbmsSupport.All,
         [new MatrixKey("UnionAll")] = DbmsSupport.All,
         // Except/Intersect: MySQL added both in 8.0.31 (the floating mysql:8.0 baseline is past
-        // that); Oracle added EXCEPT in 21c (baseline is 23ai Free) — oracle-base.com 21c article.
+        // that); Oracle added EXCEPT in 21c (the pinned XE 21c baseline) — oracle-base.com 21c article.
         [new MatrixKey("Except")] = DbmsSupport.All,
         [new MatrixKey("Intersect")] = DbmsSupport.All,
         // The ALL variants: MySQL 8.0.31+, Oracle 21c+, PostgreSQL always; SQLite and SQL Server
@@ -558,6 +555,123 @@ internal static class DialectMatrix
         // argument-type-aware key shape before it can be entered safely — tracked as follow-up,
         // not guessed around.
     };
+
+    /// <summary>
+    /// Optional minimum-engine-version floor per dialect, keyed identically to
+    /// <see cref="Entries"/> — a bound attaches to the exact key an entry
+    /// resolution matched (the arity key when the lookup was arity-specific,
+    /// else the member key), never falling back across the two. A key with no
+    /// row here has no recorded boundary: <see cref="DialectSupportResolver"/>
+    /// falls through to the plain <see cref="Entries"/> bool for it, exactly as
+    /// before #263 (ADR 0003 — a missing bound degrades to today's behavior,
+    /// never a new false positive).
+    /// </summary>
+    private static readonly Dictionary<MatrixKey, VersionBounds> Bounds = new()
+    {
+        // --- Oracle 21c/23ai (EXCEPT/INTERSECT/MINUS ALL new in 21c — Oracle 21c SQL
+        // Language Reference set operators; the 21 bounds below are live-proven
+        // forward-compatible at 23ai too by Oracle23aiBoundSweepTests) ---
+        [new MatrixKey("Except")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
+        [new MatrixKey("Intersect")] = new VersionBounds(mySql: V("8.0.31")),
+        [new MatrixKey("ExceptAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
+        [new MatrixKey("IntersectAll")] = new VersionBounds(mySql: V("8.0.31"), oracle: V("21")),
+        [new MatrixKey("MinusAll")] = new VersionBounds(oracle: V("21")),
+        // LeftJoinLateral is deliberately NOT entered here: the pre-23ai gap is a
+        // chained inference (no boolean literal -> ON TRUE unrepresentable), not a
+        // documented "landed in 23ai" fact — untested, so it stays a plain
+        // DbmsSupport false (a follow-up bound needs its own primary source).
+        // WithRecursive carries NO oracle bound: a raw-SQL probe on the pinned 23ai
+        // image rejected WITH RECURSIVE in every shape (with/without the CTE column
+        // list, quoted/bare name — always ORA-02000, the parser reading RECURSIVE as
+        // the query name) while accepting the plain-WITH recursive form, disproving
+        // the register's "accepted at 23ai" premise. The Entries comment carries the
+        // per-image error codes.
+        [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0")),
+
+        // --- MySQL 8.0.x point releases (matrix comments above; #263 register) ---
+        [new MatrixKey("Grouping", 1)] = new VersionBounds(mySql: V("8.0.1")),
+        [new MatrixKey("JsonValue")] = new VersionBounds(mySql: V("8.0.21")),
+        [new MatrixKey("Nowait")] = new VersionBounds(mySql: V("8.0")),
+        [new MatrixKey("SkipLocked")] = new VersionBounds(mySql: V("8.0")),
+        // OnDuplicateKeyUpdate/Excluded: SqlArtisan always emits MySQL's 8.0.19+ row-alias
+        // UPSERT form (`AS new` — MySqlDialect.ExcludedName, RowAliasClause), never the
+        // legacy VALUES() function, so the row alias's version is the real floor.
+        [new MatrixKey("OnDuplicateKeyUpdate")] = new VersionBounds(mySql: V("8.0.19")),
+        [new MatrixKey("Excluded")] = new VersionBounds(mySql: V("8.0.19")),
+
+        // --- PostgreSQL 15 (matrix comments above: MERGE and the REGEXP_* family) ---
+        [new MatrixKey("MergeInto")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("Using")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("WhenMatched")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("WhenNotMatched")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("ThenInsert")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("ThenUpdateSet")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("ThenDelete")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("Values", 3)] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpLike")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpReplace")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15")),
+
+        // --- SQLite point releases (matrix comments above) ---
+        [new MatrixKey("RightJoin")] = new VersionBounds(sqlite: V("3.39")),
+        [new MatrixKey("FullJoin")] = new VersionBounds(sqlite: V("3.39")),
+        [new MatrixKey("NaturalRightJoin")] = new VersionBounds(sqlite: V("3.39")),
+        [new MatrixKey("NaturalFullJoin")] = new VersionBounds(sqlite: V("3.39")),
+        [new MatrixKey("Returning")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("StringAgg")] = new VersionBounds(sqlite: V("3.44")),
+        [new MatrixKey("StringAgg", 3)] = new VersionBounds(sqlite: V("3.44")),
+        [new MatrixKey("Concat", 2)] = new VersionBounds(sqlite: V("3.44")),
+        [new MatrixKey("Concat", 4)] = new VersionBounds(sqlite: V("3.44")),
+        [new MatrixKey("NullsFirst")] = new VersionBounds(sqlite: V("3.30")),
+        [new MatrixKey("NullsLast")] = new VersionBounds(sqlite: V("3.30")),
+
+        // --- SQL Server (matrix comments above; #263 register) ---
+        [new MatrixKey("Datetrunc")] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Greatest")] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Least")] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Ltrim", 2)] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Rtrim", 2)] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Trim", 2)] = new VersionBounds(sqlServer: V("2022")),
+        [new MatrixKey("Trim")] = new VersionBounds(sqlServer: V("2017")),
+    };
+
+    private static EngineVersion V(string text) => EngineVersion.Parse(text);
+
+    /// <summary>
+    /// The machine-comparable floor of each dialect's <see cref="VerifiedAgainstVersion"/>
+    /// baseline — the anchor the <c>bool == (baseline &gt;= bound)</c> invariant
+    /// gate checks every <see cref="Bounds"/> row against. MySQL is a floor, not
+    /// an exact pin, because the <c>mysql:8.0</c> integration tag floats.
+    /// </summary>
+    internal static readonly IReadOnlyDictionary<TargetDbms, EngineVersion> BaselineVersion = new Dictionary<TargetDbms, EngineVersion>
+    {
+        [TargetDbms.MySql] = V("8.0.31"),
+        [TargetDbms.Oracle] = V("21.3"),
+        [TargetDbms.PostgreSql] = V("16"),
+        [TargetDbms.Sqlite] = V("3.46"),
+        [TargetDbms.SqlServer] = V("2022"),
+    };
+
+    /// <summary>
+    /// The minimum version <paramref name="target"/> must meet for the entry
+    /// matched by <paramref name="matchedKey"/>, or <see langword="false"/> if
+    /// no boundary is recorded for that exact key/dialect pair.
+    /// </summary>
+    public static bool TryGetMinVersion(MatrixKey matchedKey, TargetDbms target, out EngineVersion min)
+    {
+        if (Bounds.TryGetValue(matchedKey, out VersionBounds bounds) && bounds.MinFor(target) is { } bound)
+        {
+            min = bound;
+            return true;
+        }
+
+        min = default;
+        return false;
+    }
+
+    /// <summary>Exposed for the version-bounds gate tests (orphan check, baseline invariant, docs provenance).</summary>
+    internal static IReadOnlyDictionary<MatrixKey, VersionBounds> AllBounds => Bounds;
 
     public static bool TryGetEntry(string memberName, int? arity, out DbmsSupport support, out bool wasArityMatch) =>
         TryGetEntryFrom(Entries, memberName, arity, out support, out wasArityMatch);

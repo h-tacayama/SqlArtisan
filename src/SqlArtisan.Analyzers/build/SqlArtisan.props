@@ -1,14 +1,17 @@
 <Project>
 
   <!--
-    Exposes the consumer's <SqlArtisanTargetDbms> MSBuild property to the
-    bundled analyzer (#93) as build_property.SqlArtisanTargetDbms. This is an
-    alternative to the primary .editorconfig key (sqlartisan_target_dbms) for
-    projects that prefer setting the target in a .csproj / Directory.Build.props
-    instead — the analyzer's config resolver checks both.
+    Exposes the consumer's <SqlArtisanTargetDbms> and <SqlArtisanTargetVersion>
+    MSBuild properties to the bundled analyzer (#93 / #262) as
+    build_property.SqlArtisanTargetDbms / build_property.SqlArtisanTargetVersion.
+    These are alternatives to the primary .editorconfig keys
+    (sqlartisan_target_dbms / sqlartisan_target_version) for projects that
+    prefer setting the target in a .csproj / Directory.Build.props instead —
+    the analyzer's config resolver checks both.
   -->
   <ItemGroup>
     <CompilerVisibleProperty Include="SqlArtisanTargetDbms" />
+    <CompilerVisibleProperty Include="SqlArtisanTargetVersion" />
   </ItemGroup>
 
 </Project>
