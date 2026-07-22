@@ -72,20 +72,25 @@ matrix can under-warn but never produce a false positive.
 
 `SQLA0006` checks compile-time identifier literals — table and expression
 aliases (`.As(...)`), CTE and derived-table names, `VALUES` column names, and
-the Oracle `RETURNING ... INTO` output variable — against each dialect's
-identifier-length limit: MySQL 256 characters, Oracle 128 bytes, PostgreSQL
-63 bytes, SQL Server 128 characters (SQLite is unbounded and never warns).
-MySQL's figure is its **alias** limit: the checked positions are aliases, and
-MySQL allows those up to 256 characters, well past its 64-character table and
-column names. PostgreSQL leads the list because it does not error on an
-over-long identifier — it truncates it (with only a notice, not an error), so
-two distinct long names can collide after truncation, and the analyzer is the
-only place this surfaces before the database does. Oracle and PostgreSQL
-measure in UTF-8 bytes, so a multi-byte identifier reaches the limit sooner
-than its character count suggests. Only constant identifiers are checked — a
-name built at run time is left alone — and, like `SQLA0002`, it is a per-usage
-diagnostic suppressible at a single site (`#pragma warning disable SQLA0006`, a
-`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0006.severity`).
+the Oracle `RETURNING ... INTO` output variable — against each dialect's limit:
+
+| Dialect | Limit | Measured in |
+|---|---|---|
+| MySQL | 256 | characters |
+| Oracle | 128 | UTF-8 bytes |
+| PostgreSQL | 63 | UTF-8 bytes |
+| SQLite | unbounded (never warns) | — |
+| SQL Server | 128 | characters |
+
+MySQL's 256 is its **alias** limit — the checked positions are aliases, which
+MySQL allows well past its 64-character table and column names. PostgreSQL is
+the sharpest edge: it does not error on an over-long identifier but silently
+truncates it (only a notice), so two long names can collide after truncation,
+and the analyzer is the only place this surfaces before the database does.
+Only constant identifiers are checked; a name built at run time is left alone.
+Like `SQLA0002`, it is a per-usage diagnostic suppressible at one site
+(`#pragma warning disable SQLA0006`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0006.severity`).
 
 ```csharp
 using static SqlArtisan.Sql;
@@ -255,51 +260,10 @@ reproduces that verdict exactly.
 | `Trim` (1-argument form) | SQL Server | 2017 | `TRIM(...)` landed in SQL Server 2017. |
 | `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim`/`Trim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the trim-characters overloads all landed in SQL Server 2022. |
 
-### Sources for these version bounds
-
-Every minimum version above is drawn from the vendor's own documentation,
-linked below — and each is more than a citation: the integration suite runs
-the construct against a live engine at that dialect's verified baseline, so
-the "supported from version N" direction is reproduced, not just quoted. The
-"unsupported below N" direction rests on the documentation alone, because the
-suite does not pin a below-baseline image of every engine.
-
-**MySQL** — the reference manual gives the introducing release for each:
-
-- [`WITH RECURSIVE` / common table expressions](https://dev.mysql.com/doc/refman/8.0/en/with.html) — 8.0.1.
-- [`GROUPING()` under `WITH ROLLUP`](https://dev.mysql.com/doc/refman/8.0/en/group-by-modifiers.html) — 8.0.1.
-- [`INTERSECT` / `EXCEPT`](https://dev.mysql.com/doc/refman/8.0/en/set-operations.html) — 8.0.31.
-- [`FOR UPDATE ... NOWAIT` / `SKIP LOCKED`](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html) — 8.0.1.
-- [row-alias `INSERT ... AS new ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html) — 8.0.19.
-- [`JSON_VALUE()`](https://dev.mysql.com/doc/refman/8.0/en/json-search-functions.html) — 8.0.21.
-
-(`WITH RECURSIVE` and `NOWAIT` / `SKIP LOCKED` arrived in the 8.0.1 development
-milestone; their bounds round to `8.0`, whose first production release — 8.0.11
-— already includes them.)
-
-**Oracle** — `EXCEPT [ALL]`, `INTERSECT ALL`, and `MINUS ALL` are new in Oracle
-Database 21c, per the
-[21c New Features Guide](https://docs.oracle.com/en/database/oracle/oracle-database/21/nfcon/)
-and the
-[21c SQL Language Reference](https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/sql-language-reference.pdf)
-(the set-operators section).
-
-**PostgreSQL** — the
-[version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)
-list both `MERGE` and the `regexp_count` / `regexp_instr` / `regexp_like` /
-`regexp_substr` family as new in 15.
-
-**SQLite** — the per-release change logs:
-
-- [`NULLS FIRST` / `NULLS LAST`](https://sqlite.org/releaselog/3_30_0.html) — 3.30.0 (2019-10-04).
-- [`RETURNING`](https://sqlite.org/releaselog/3_35_0.html) — 3.35.0 (2021-03-12).
-- [`RIGHT JOIN` / `FULL OUTER JOIN`](https://sqlite.org/releaselog/3_39_0.html) — 3.39.0 (2022-06-25).
-- [`string_agg()` / `concat()`](https://sqlite.org/releaselog/3_44_0.html) — 3.44.0 (2023-11-01).
-
-**SQL Server** — Microsoft Learn's "Applies to" notes:
-
-- [`TRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/trim-transact-sql) — 2017; its optional trim-characters argument — 2022.
-- [`DATETRUNC`](https://learn.microsoft.com/en-us/sql/t-sql/functions/datetrunc-transact-sql), [`GREATEST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-greatest-transact-sql), [`LEAST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-least-transact-sql), and the [`LTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/ltrim-transact-sql) / [`RTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/rtrim-transact-sql) trim-characters argument — 2022 (16.x).
+The primary vendor documentation behind every version above — and a note on
+which half of each verdict the integration suite proves against a live engine
+— is collected in
+[Analyzer version-bound sources](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer-version-sources.md).
 
 ---
 
@@ -433,18 +397,15 @@ dotnet_diagnostic.SQLA0002.severity = error
 Every confirmed mismatch fails the build; escape hatches (`supported`
 overrides) still apply first, so only genuinely unconfirmed constructs fail.
 
-**Whitelist mode** — fail on anything the matrix hasn't explicitly verified
-one way or the other is not offered as a separate rule. `SQLA0002` only
-fires on a *confirmed* mismatch by design (a construct the matrix doesn't
-know stays silent rather than guess), so there is no "unverified construct"
-diagnostic to promote — the matrix's
-completeness is the whole safety net, and it is enforced in this repository:
-a coverage test fails when a public method, property, field, or overloaded
-operator ships without
-a matrix entry or a documented dialect-neutral exclusion, and an
-integration-test sweep executes the entries against a live engine per
-dialect (the versions in the table below) asserting the accept/reject
-outcome matches the matrix both ways.
+**Whitelist mode** — failing on any construct the matrix hasn't verified — is
+deliberately not offered. `SQLA0002` fires only on a *confirmed* mismatch (a
+construct the matrix doesn't know stays silent rather than guess), so there is
+no "unverified construct" diagnostic to promote: the matrix's completeness is
+the safety net, and this repository enforces it. A coverage test fails when any
+public method, property, field, or overloaded operator ships without a matrix
+entry or a documented dialect-neutral exclusion, and an integration-test sweep
+executes the entries against a live engine per dialect (the versions in the
+table below), asserting each accept/reject outcome matches the matrix both ways.
 
 ---
 
