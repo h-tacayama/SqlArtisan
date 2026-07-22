@@ -143,7 +143,13 @@ to run for a review:
 
 Wrong-DBMS facts are the easiest way to ship a bug. State each grammar claim as
 something you verified, and prefer a per-dialect API that lets the author pick
-the form. Known sharp edges:
+the form. Verify a version / "landed in X" / rejection claim against the
+vendor's own docs via a WebSearch scoped to the official domain — WebFetch to
+vendor sites is often egress-blocked (403), so WebSearch is the access path,
+not memory. Dialect support resolves at the **arity-specific** matrix entry
+(`[MatrixKey(name, arity)]`), not just the member — check it before trusting a
+per-overload claim (`ToNumber` arity-1 is Oracle-only, the member is
+Oracle+PostgreSQL). Known sharp edges:
 - MySQL `GROUP_CONCAT ... SEPARATOR` requires a **literal** (a `?` placeholder is
   a parse error) and silently truncates at `group_concat_max_len` (1024 B).
 - Oracle `LISTAGG` **requires** `WITHIN GROUP (ORDER BY ...)`.
@@ -238,6 +244,10 @@ this", never "check this is right":
   itself, a test catalog (e.g. `MatrixSweepCatalog.cs`), an ADR, or a live
   harness probe — never against the claim's own text, the diff description,
   or memory.
+- **The subagent has no web access** (Read/Grep/Glob/Bash only): it verifies
+  in-repo primary sources but **cannot check a DBMS-vendor-spec / version /
+  grammar claim** against the vendor's docs — keep those with the orchestrator's
+  WebSearch, and don't read subagent silence on them as verification.
 - **Severity + evidence on every surviving finding** — High/Medium/Low plus
   the evidence that survived refutation: verbatim probe output or the
   primary source's `file:line`.
@@ -247,9 +257,11 @@ this", never "check this is right":
   surface).
 
 Recursion and fallback: if you *are* the adversarial subagent, skip this
-section — no recursion. If the Agent tool is unavailable, run the pass
-yourself as a distinct final phase: re-derive each claim from primary
-sources; do not reread your draft as evidence.
+section — no recursion. If the Agent tool is unavailable — or the subagent
+errors, times out, or never returns — run the pass yourself as a distinct
+final phase: re-derive each claim from primary sources; do not reread your
+draft as evidence. Never report a review as complete with the adversarial
+pass silently skipped — a launched-but-non-returning agent is not a pass.
 
 ## Report
 

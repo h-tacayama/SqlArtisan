@@ -55,6 +55,18 @@ Score the docs against these. The scripts cover 2–5 and parts of 6/10.
    real `sql.Text`. Run it. (`verify_sql_examples.py`.) Remember `sql.Text` is a
    single line and a single condition has no wrapping parens; the `//` comments
    are line-wrapped for readability — don't claim "verbatim".
+   - **Cross-check a table's prose against its own data columns.** A "Why"/notes
+     cell that contradicts the row's own Construct/Dialect/Version columns is a
+     defect — the Oracle set-operator row claimed plain `INTERSECT` landed in
+     21c while its Construct column correctly listed only the `ALL` forms.
+   - **Dialect-support claims resolve at the *arity-specific* matrix entry**
+     (`[MatrixKey(name, arity)]`), not just the member — check it before
+     trusting a per-overload remark (`ToNumber` arity-1 is Oracle-only though
+     the member entry is Oracle+PostgreSQL).
+   - **Version / vendor-spec facts** ("landed in PostgreSQL 15", "MySQL rejects
+     `NOT IN` + `LIMIT`") are verified against the vendor's own docs via a
+     WebSearch scoped to the official domain — WebFetch to vendor sites is often
+     egress-blocked (403), so WebSearch is the access path, not memory.
 
 5. **Consistency — terminology & formatting.** Conform to
    `.claude/rules/docs-style.md`: *table class* (not "table schema class"),
@@ -78,6 +90,11 @@ Score the docs against these. The scripts cover 2–5 and parts of 6/10.
 8. **Conciseness — no redundancy.** Section volume is proportionate (watch the
    longest, usually Quick Start). No near-duplicate sentences across sections
    (e.g. the Why close vs a Key Features bullet) — differentiate the angle.
+   Before flagging redundancy or an inconsistency, check whether a nearby
+   note/column already reconciles it: a version gap an adjacent parenthetical
+   explains is not an inconsistency, and an explanatory column that carries the
+   SQL-token spelling the code-name column hides (`WithRecursive` →
+   `WITH RECURSIVE`) is additive, not a restatement.
 
 9. **AI-consumption readiness.** `llms.txt` exists and its links track the docs;
    each `docs/` page leads with a design-constraints block; examples are
@@ -122,6 +139,10 @@ this", never "check this is right". Prime refutation targets in docs:
   engines", "N engines", "SQLite 3.44+"; the primary source is the test
   catalog (e.g. `MatrixSweepCatalog.cs`), the pinned image list, or a live
   probe.
+- **The subagent has no web access** (Read/Grep/Glob/Bash), so it checks
+  in-repo primary sources but **cannot verify a version / vendor-spec claim**
+  against the vendor's docs — keep those with the orchestrator's WebSearch, and
+  don't read the subagent's silence on them as confirmation.
 
 Mission rules: every factual claim is traced to a primary source (the code,
 a test catalog, an ADR, a live builder/harness run) — never the doc's own
@@ -132,9 +153,11 @@ wrong) / **OVERREACH** (true but misleading) / **INCONSISTENCY** (contradicts
 another surface).
 
 Recursion and fallback: if you *are* the adversarial subagent, skip this
-section — no recursion. If the Agent tool is unavailable, run the pass
-yourself as a distinct final phase, re-deriving each claim from primary
-sources rather than rereading your draft.
+section — no recursion. If the Agent tool is unavailable — or the subagent
+errors, times out, or never returns — run the pass yourself as a distinct
+final phase, re-deriving each claim from primary sources rather than rereading
+your draft. Never report the review as complete with the adversarial pass
+silently skipped — a launched-but-non-returning agent is not a pass.
 
 ## Output
 
