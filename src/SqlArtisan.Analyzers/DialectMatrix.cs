@@ -293,8 +293,8 @@ internal static class DialectMatrix
         [new MatrixKey("Using", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("With")] = DbmsSupport.All,
         // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
-        // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL/SQLite
-        // require it for recursion. Oracle's rejection is live-probed on BOTH pinned images
+        // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL require
+        // it for recursion, SQLite accepts it. Oracle's rejection is live-probed on BOTH pinned images
         // (21c: ORA-00905, 23ai: ORA-02000 — RECURSIVE parses as the query name), so the
         // once-registered "accepted at 23ai" claim is disproven; no version bound applies.
         [new MatrixKey("WithRecursive")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
