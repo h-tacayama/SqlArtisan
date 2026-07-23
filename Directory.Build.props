@@ -2,7 +2,7 @@
 
   <!--
     Single source of truth for the shipped package version. Bump here only; the
-    three packable projects (SqlArtisan / SqlArtisan.Dapper / SqlArtisan.TableClassGen)
+    four packable projects (SqlArtisan / SqlArtisan.BulkCopy / SqlArtisan.Dapper / SqlArtisan.TableClassGen)
     inherit it, so a release never drifts between packages. (#118)
   -->
   <PropertyGroup>
@@ -57,7 +57,7 @@
     trim/AOT-safe. IsAotCompatible turns on the trim, single-file, and AOT
     analyzers and declares the contract via the IsTrimmable assembly flag; a clean
     build is the proof. Scoped to the core only — SqlArtisan.Dapper depends on
-    Dapper and is out of scope.
+    Dapper, SqlArtisan.BulkCopy maps rows via reflection; both are out of scope.
   -->
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SqlArtisan'">
     <IsAotCompatible>true</IsAotCompatible>

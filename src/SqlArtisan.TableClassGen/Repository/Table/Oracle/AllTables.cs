@@ -10,5 +10,5 @@ internal sealed class AllTables : DbTableBase
 
     public DbColumn Owner { get; }
 
-    public DbColumn TableName { get; }
+    public new DbColumn TableName { get; }
 }

@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <Copyright>Copyright (c) h.tacayama 2025</Copyright>
+
+    <Authors>h.tacayama</Authors>
+    <Description>Oracle bulk insert for SqlArtisan: high-throughput multi-row INSERT in one round trip via ODP.NET array binding, mapped from your table classes.</Description>
+    <PackageTags>database sql sqlbuilder query querybuilder oracle bulkinsert bulkcopy arraybinding</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+
+    <PackageProjectUrl>https://github.com/h-tacayama/SqlArtisan</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/h-tacayama/SqlArtisan</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Link="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SqlArtisan.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SqlArtisan\SqlArtisan.csproj" />
+  </ItemGroup>
+
+</Project>

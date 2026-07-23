@@ -14,7 +14,7 @@ internal sealed class InformationSchemaColumns : DbTableBase
 
     public DbColumn TableSchema { get; }
 
-    public DbColumn TableName { get; }
+    public new DbColumn TableName { get; }
 
     public DbColumn ColumnName { get; }
 

@@ -160,6 +160,13 @@ public class DbTableTests
     }
 
     [Fact]
+    public void DbTableBase_TableName_ReturnsRawTableName()
+    {
+        Assert.Equal("test_table", new TestTable().TableName);
+        Assert.Equal("test_table", new TestTable("t").TableName);
+    }
+
+    [Fact]
     public void DbTable_ColumnFromSourceColumn_CorrectSql()
     {
         DbTable u = new("users", "u");

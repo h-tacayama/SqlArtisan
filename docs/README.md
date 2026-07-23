@@ -15,6 +15,9 @@ Task-oriented paths from your current project to SqlArtisan.
   and InterpolatedSql — and when NOT to choose SqlArtisan.
 - **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
   the greenfield path: packages → table classes → executed queries.
+- **[Oracle Bulk Insert with SqlArtisan.BulkCopy](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/bulkcopy-oracle.md)** —
+  one-round-trip multi-row INSERT via ODP.NET array binding, mapped from
+  table classes.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
   the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
   AI-written queries.

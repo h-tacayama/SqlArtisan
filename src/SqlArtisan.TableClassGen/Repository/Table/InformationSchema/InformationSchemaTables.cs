@@ -12,7 +12,7 @@ internal sealed class InformationSchemaTables : DbTableBase
 
     public DbColumn TableSchema { get; }
 
-    public DbColumn TableName { get; }
+    public new DbColumn TableName { get; }
 
     public DbColumn TableType { get; }
 }
