@@ -167,6 +167,15 @@ internal static class MatrixSweepCatalog
                         .Where(ru.Id <= 3)))
                 .Select(c.Column("id")).From(c);
         });
+        // Non-recursive on purpose: plain-WITH self-reference is rejected by MySQL and
+        // PostgreSQL (RECURSIVE required); the recursive Oracle proof is StatementCatalog's
+        // RecursiveCtePlainWith.
+        Add("WithColumnList", _ =>
+        {
+            Cte c = new("c");
+            return With(c.As(Select(u.Id).From(u)).WithColumnList())
+                .Select(c.Column("id")).From(c);
+        });
         Add("Distinct", _ => Select(Distinct, u.DepartmentId).From(u));
         Add("Hints", _ => Select(Hints("/*+ sweep */"), u.Id).From(u));
         Add("Top", _ => Select(Top(1), u.Id).From(u));

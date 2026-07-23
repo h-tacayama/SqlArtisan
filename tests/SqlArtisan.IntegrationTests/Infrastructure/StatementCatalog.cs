@@ -149,6 +149,23 @@ internal static class StatementCatalog
                 .Select(c.Column("id")).From(c);
         }, Only(Dbms.PostgreSql, Dbms.Sqlite, Dbms.MySql));
 
+        // Recursive CTE via plain WITH — Oracle / SQL Server (they reject the RECURSIVE
+        // keyword); Oracle additionally requires the CTE column list on a recursive
+        // body (#348's acceptance shape).
+        Add("RecursiveCtePlainWith", () =>
+        {
+            UsersTable ru = new("ru");
+            Cte c = new("c");
+            return With(
+                    c.As(
+                        Select(ru.Id.As(c.Column("id"))).From(ru).Where(ru.Id == 1)
+                        .UnionAll
+                        .Select(ru.Id).From(ru).InnerJoin(c).On(ru.Id == c.Column("id") + 1)
+                        .Where(ru.Id <= 3))
+                    .WithColumnList())
+                .Select(c.Column("id")).From(c);
+        }, Only(Dbms.Oracle, Dbms.SqlServer));
+
         // OUTER joins beyond INNER — RIGHT (all five; SQLite 3.39+) and FULL
         // (every engine except MySQL, which has no FULL JOIN). Both tables are
         // aliased so the join columns stay qualified (id exists on both).

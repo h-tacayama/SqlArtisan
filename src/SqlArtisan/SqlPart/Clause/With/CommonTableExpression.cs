@@ -12,6 +12,7 @@ public sealed class CommonTableExpression
 {
     private readonly string _name;
     private readonly ISubquery _subquery;
+    private string[]? _columnNames;
 
     internal CommonTableExpression(string name, ISubquery subquery)
     {
@@ -19,10 +20,27 @@ public sealed class CommonTableExpression
         _subquery = subquery;
     }
 
-    internal ISubquery Subquery => _subquery;
+    /// <summary>
+    /// Emits this CTE with its column list — <c>"name"(col, ...) AS (subquery)</c>,
+    /// derived from the first query block: the form Oracle requires for a
+    /// recursive plain-<c>WITH</c> body.
+    /// </summary>
+    /// <returns>This CTE definition, now emitting its column list.</returns>
+    /// <exception cref="ArgumentException">A select item of the first query block has no name.</exception>
+    public CommonTableExpression WithColumnList()
+    {
+        _columnNames = TryDeriveColumnNames() ?? throw NoColumnName();
+        return this;
+    }
 
     internal void Format(SqlBuildingBuffer buffer)
     {
+        if (_columnNames is not null)
+        {
+            Format(buffer, _columnNames);
+            return;
+        }
+
         buffer.EncloseInAliasQuotes(_name);
         AppendAsSubquery(buffer);
     }
@@ -49,6 +67,36 @@ public sealed class CommonTableExpression
         AppendAsSubquery(buffer);
     }
 
+    // Null instead of a throw so each construct site owns its guard message.
+    internal string[]? TryDeriveColumnNames()
+    {
+        SqlPart[]? selectItems = (_subquery as SelectBuilder)?.FirstSelectItems();
+        if (selectItems is null)
+        {
+            return null;
+        }
+
+        string[] names = new string[selectItems.Length];
+        for (int i = 0; i < selectItems.Length; i++)
+        {
+            string? name = selectItems[i] switch
+            {
+                DbColumn column => column.Name,
+                ExpressionAlias alias => alias.Name,
+                _ => null,
+            };
+
+            if (name is null)
+            {
+                return null;
+            }
+
+            names[i] = name;
+        }
+
+        return names;
+    }
+
     private void AppendAsSubquery(SqlBuildingBuffer buffer)
     {
         buffer.EncloseInSpaces(Keywords.As);
@@ -56,4 +104,8 @@ public sealed class CommonTableExpression
         _subquery?.Format(buffer);
         buffer.CloseParenthesis();
     }
+
+    private static ArgumentException NoColumnName() => new(
+        "A CTE column list requires a name for every column of the CTE's first query block; "
+            + "alias the expression with .As(...).");
 }

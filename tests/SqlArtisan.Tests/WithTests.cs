@@ -602,4 +602,127 @@ public class WithTests
                 + "alias the expression with .As(...).",
             ex.Message);
     }
+
+    [Fact]
+    public void WithColumnList_Select_CorrectSql()
+    {
+        TestTable a = new("a");
+        TestTable b = new("b");
+        TestCte cte = new("cte");
+
+        SqlStatement sql =
+            With(
+                cte.As(
+                    Select(
+                        a.Code.As(cte.CteCode),
+                        a.Name.As(cte.CteName),
+                        a.CreatedAt.As(cte.CteCreatedAt))
+                    .From(a)
+                    .Where(a.Code == 1)
+                    .UnionAll
+                    .Select(
+                        b.Code + 1,
+                        b.Name,
+                        b.CreatedAt)
+                    .From(cte)
+                    .InnerJoin(b)
+                    .On(cte.CteCode == b.Code))
+                .WithColumnList())
+            .Select(
+                cte.CteCode,
+                cte.CteName,
+                cte.CteCreatedAt)
+            .From(cte)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\"(cte_code, cte_name, cte_created_at) AS ");
+        expected.Append("(SELECT \"a\".code cte_code, ");
+        expected.Append("\"a\".name cte_name, ");
+        expected.Append("\"a\".created_at cte_created_at ");
+        expected.Append("FROM test_table \"a\" WHERE \"a\".code = :0 ");
+        expected.Append("UNION ALL SELECT (\"b\".code + :1), ");
+        expected.Append("\"b\".name, \"b\".created_at ");
+        expected.Append("FROM \"cte\" INNER JOIN test_table \"b\" ");
+        expected.Append("ON \"cte\".cte_code = \"b\".code) ");
+        expected.Append("SELECT \"cte\".cte_code, ");
+        expected.Append("\"cte\".cte_name, \"cte\".cte_created_at ");
+        expected.Append("FROM \"cte\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void WithColumnList_DbColumnSelectItems_DerivesColumnListFromColumnNames()
+    {
+        TestTable a = new("a");
+        Cte c = new("c");
+
+        SqlStatement sql =
+            With(
+                c.As(
+                    Select(a.Code, a.Name).From(a).Where(a.Code == 1)
+                    .UnionAll
+                    .Select(a.Code, a.Name).From(a).InnerJoin(c).On(c.Column("code") == a.Code))
+                .WithColumnList())
+            .Select(c.Column("code"))
+            .From(c)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"c\"(code, name) AS ");
+        expected.Append("(SELECT \"a\".code, \"a\".name FROM test_table \"a\" WHERE \"a\".code = :0 ");
+        expected.Append("UNION ALL SELECT \"a\".code, \"a\".name FROM test_table \"a\" ");
+        expected.Append("INNER JOIN \"c\" ON \"c\".code = \"a\".code) ");
+        expected.Append("SELECT \"c\".code FROM \"c\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void WithColumnList_MixedCtes_OnlyOptedCteGetsColumnList()
+    {
+        TestTable a = new("a");
+        Cte c1 = new("c1");
+        Cte c2 = new("c2");
+
+        SqlStatement sql =
+            With(
+                c1.As(
+                    Select(a.Code, a.Name).From(a))
+                .WithColumnList(),
+                c2.As(
+                    Select(a.Code).From(a)))
+            .Select(c1.Column("code"), c2.Column("code"))
+            .From(c1, c2)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"c1\"(code, name) AS ");
+        expected.Append("(SELECT \"a\".code, \"a\".name FROM test_table \"a\"), ");
+        expected.Append("\"c2\" AS ");
+        expected.Append("(SELECT \"a\".code FROM test_table \"a\") ");
+        expected.Append("SELECT \"c1\".code, \"c2\".code FROM \"c1\", \"c2\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void WithColumnList_UnnamedSelectItem_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        Cte c = new("c");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            c.As(
+                Select(a.Code + 1).From(a)
+                .UnionAll
+                .Select(a.Code).From(c))
+            .WithColumnList());
+
+        Assert.Equal(
+            "A CTE column list requires a name for every column of the CTE's first query block; "
+                + "alias the expression with .As(...).",
+            ex.Message);
+    }
 }
