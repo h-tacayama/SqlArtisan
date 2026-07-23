@@ -154,9 +154,9 @@ internal static class OracleBulkInsertCommandFactory
 
         if (type == typeof(DateTime))
         {
-            // TimeStamp, not Date: OracleDbType.Date truncates sub-seconds in the driver —
-            // a silent value change. A DATE column's engine-side conversion is its own contract.
-            return OracleDbType.TimeStamp;
+            // OracleDbType.TimeStamp against a DATE column silently inserts NULL under
+            // ArrayBindCount (live-verified, #90) — Date is the array-bind-safe mapping.
+            return OracleDbType.Date;
         }
 
         throw new ArgumentException(

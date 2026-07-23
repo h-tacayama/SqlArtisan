@@ -64,8 +64,8 @@ Two Oracle-specific notes:
 
 - Model a `NUMBER(1)` flag column as `int` / `int?` — Oracle has no SQL
   `BOOLEAN` column type, so `bool` properties are rejected.
-- `DateTime` binds as `TIMESTAMP` — inserting into a `DATE` column stores it
-  to second precision, per the column's own type.
+- `DateTime` binds as `DATE` (whole-second precision — Oracle `DATE` has no
+  sub-second component).
 
 ## 3. Insert
 

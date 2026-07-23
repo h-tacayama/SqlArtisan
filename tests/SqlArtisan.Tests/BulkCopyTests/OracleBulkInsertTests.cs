@@ -68,7 +68,7 @@ public class OracleBulkInsertTests
             OracleDbType.Int16,
             OracleDbType.Decimal,
             OracleDbType.Varchar2,
-            OracleDbType.TimeStamp,
+            OracleDbType.Date,
         ];
 
         for (int i = 0; i < 6; i++)
