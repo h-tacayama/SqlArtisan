@@ -293,6 +293,10 @@ internal static class DialectMatrix
         // (21c: ORA-00905, 23ai: ORA-02000 — RECURSIVE parses as the query name), so the
         // once-registered "accepted at 23ai" claim is disproven; no version bound applies.
         [new MatrixKey("WithRecursive")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+        // WithColumnList: the explicit CTE column list (`WITH cte(a, b) AS ...`) is standard
+        // grammar on all five engines; Oracle requires it on a recursive plain-WITH body
+        // (ORA-32039), which is why the opt-in exists (#348).
+        [new MatrixKey("WithColumnList")] = DbmsSupport.All,
         // Asterisk: Sql.Asterisk (SELECT *) and TableReference.Asterisk (t.*) share the name — both universal.
         [new MatrixKey("Asterisk")] = DbmsSupport.All,
         [new MatrixKey("Distinct")] = DbmsSupport.All,

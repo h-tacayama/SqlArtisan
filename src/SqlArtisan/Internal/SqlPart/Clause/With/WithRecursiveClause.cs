@@ -25,24 +25,7 @@ internal sealed class WithRecursiveClause : SqlPart
 
         for (int i = 0; i < ctes.Length; i++)
         {
-            SqlPart[]? selectItems = (ctes[i].Subquery as SelectBuilder)?.FirstSelectItems();
-            if (selectItems is null)
-            {
-                throw NoColumnName();
-            }
-
-            string[] names = new string[selectItems.Length];
-            for (int j = 0; j < selectItems.Length; j++)
-            {
-                names[j] = selectItems[j] switch
-                {
-                    DbColumn column => column.Name,
-                    ExpressionAlias alias => alias.Name,
-                    _ => throw NoColumnName(),
-                };
-            }
-
-            columnNames[i] = names;
+            columnNames[i] = ctes[i].TryDeriveColumnNames() ?? throw NoColumnName();
         }
 
         return columnNames;
