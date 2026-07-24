@@ -12,11 +12,7 @@ namespace SqlArtisan;
 public sealed class DbColumn(TableReference owner, string name) : SqlExpression
 {
     internal TableReference Owner => owner;
-
-    /// <summary>
-    /// Gets the column name as it appears in SQL.
-    /// </summary>
-    public string Name => name;
+    internal string Name => name;
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
