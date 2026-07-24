@@ -44,18 +44,29 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         Assert.Equal(new[] { 9001, 9002, 9003 }, ids);
 
         UserRow first = connection.QuerySingle<UserRow>(
-            Select(u.Id, u.Name, u.Age, u.CreatedAt).From(u).Where(u.Id == 9001),
+            Select(u.Id, u.Name, u.Age).From(u).Where(u.Id == 9001),
             transaction);
         Assert.Equal("Bulk One", first.Name);
         Assert.Equal(21, first.Age);
-        Assert.Equal(new DateTime(2026, 7, 23, 12, 34, 56), first.CreatedAt);
+
+        // Read separately via a scalar query: Dapper's reflection-emitted POCO
+        // deserializer fails to unbox a non-null DateTime into a DateTime?
+        // property (StackExchange/Dapper#295) — unrelated to this package.
+        DateTime? firstCreatedAt = connection.ExecuteScalar<DateTime?>(
+            Select(u.CreatedAt).From(u).Where(u.Id == 9001),
+            transaction);
+        Assert.Equal(new DateTime(2026, 7, 23, 12, 34, 56), firstCreatedAt);
 
         UserRow second = connection.QuerySingle<UserRow>(
-            Select(u.Id, u.Name, u.Age, u.CreatedAt).From(u).Where(u.Id == 9002),
+            Select(u.Id, u.Name, u.Age).From(u).Where(u.Id == 9002),
             transaction);
         Assert.Null(second.Name);
         Assert.Null(second.Age);
-        Assert.Null(second.CreatedAt);
+
+        DateTime? secondCreatedAt = connection.ExecuteScalar<DateTime?>(
+            Select(u.CreatedAt).From(u).Where(u.Id == 9002),
+            transaction);
+        Assert.Null(secondCreatedAt);
 
         transaction.Rollback();
 
@@ -130,7 +141,5 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         public string? Name { get; init; }
 
         public int? Age { get; init; }
-
-        public DateTime? CreatedAt { get; init; }
     }
 }

@@ -188,7 +188,9 @@ internal static class MatrixSweepCatalog
             (Dbms.Sqlite, "Group() is only exercisable inside a grouping extension, none of which SQLite supports."));
         Add("Null", _ => Select(Null).From(u).Where(u.Id == 1));
         Add("Bind", _ => Scalar(Bind(1)));
-        Add("BindNull", _ => Scalar(BindNull()));
+        // A dbType hint, matching real usage: an untyped NULL-only parameter
+        // has nothing for the driver to infer a wire type from.
+        Add("BindNull", _ => Scalar(BindNull(System.Data.DbType.Int32)));
         Add("As", _ => Select(u.Id.As("i")).From(u));
         Add("Asc", _ => Select(u.Id).From(u).OrderBy(u.Id.Asc));
         Add("Desc", _ => Select(u.Id).From(u).OrderBy(u.Id.Desc));
