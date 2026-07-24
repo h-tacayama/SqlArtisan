@@ -62,6 +62,17 @@ public sealed class OracleBulkInsertTests : IClassFixture<OracleFixture>
 
         Assert.Equal(3, inserted);
 
+        // DIAGNOSTIC (#90): bypass Dapper's DateTime? materialization and read the raw
+        // created_at value directly to tell apart a write-side vs read-side failure —
+        // three different array-bind representations have failed identically so far.
+        object? rawCreatedAt = connection.ExecuteScalar(
+            Select(u.CreatedAt).From(u).Where(u.Id == 9001),
+            transaction);
+        Assert.Fail(
+            $"DIAGNOSTIC rawCreatedAt='{rawCreatedAt}' "
+                + $"type={rawCreatedAt?.GetType().FullName ?? "null"} "
+                + $"isDBNull={rawCreatedAt is DBNull}");
+
         IEnumerable<int> ids = connection.Query<int>(
             Select(u.Id).From(u).Where(u.Id >= 9001).OrderBy(u.Id),
             transaction);
