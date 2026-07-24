@@ -32,7 +32,6 @@ public class DialectMatrixCoverageTests
         ["UnnestFunction.AsTable"] = "Names the call as a FROM source; the PG-only construct is the Unnest entry.",
         ["ValuesDerivedTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
         ["ISubquery.AsTable"] = "Wraps a subquery as a derived-table source; dialect-neutral by construction — the source's dialect scope is carried by the consuming clause (MERGE USING = Oracle/PostgreSQL/SQL Server).",
-        ["DbSequence.Name"] = "C#-side metadata; the sequence constructs are the Nextval/Currval/Sequence entries.",
         ["DbmsResolver.RegisterProvider"] = "Configuration-time API; never appears in a query expression.",
         ["DbmsResolver.Resolve"] = "Configuration-time API; never appears in a query expression.",
         ["ISqlBuilder.Build"] = "The universal build terminal — it takes the dialect as an argument rather than being one.",
