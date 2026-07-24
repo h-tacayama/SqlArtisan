@@ -190,6 +190,46 @@ public class OracleArrayBindTests
     }
 
     [Fact]
+    public void ExecuteArrayBind_UnsupportedValueType_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(t, t.Id, t.Price).Values(1L, 1.5d),
+            InsertInto(t, t.Id, t.Price).Values(2L, 2.5d),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind cannot map bound value of type Double to an OracleDbType; "
+                + "supported types are int, long, short, decimal, string, and DateTime.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ExecuteArrayBind_UnsupportedDbTypeHint_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(t, t.Id, t.Code).Values(1L, BindNull(System.Data.DbType.Boolean)),
+            InsertInto(t, t.Id, t.Code).Values(2L, BindNull(System.Data.DbType.Boolean)),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind cannot map DbType.Boolean (parameter :1) to an OracleDbType; "
+                + "supported types are Int32, Int64, Int16, Decimal, String, and DateTime.",
+            ex.Message);
+    }
+
+    [Fact]
     public void ExecuteArrayBind_MismatchedShape_ThrowsArgumentException()
     {
         using OracleConnection connection = new();

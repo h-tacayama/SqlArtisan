@@ -102,6 +102,9 @@ Misuse fails loudly at the call, before anything reaches the database:
 - A bound value's type outside the supported set — `ExecuteArrayBind cannot
   map bound value of type ... to an OracleDbType; supported types are int,
   long, short, decimal, string, and DateTime.`
+- A `Sql.BindNull(dbType)` hint outside the supported set — `ExecuteArrayBind
+  cannot map DbType.... (parameter :...) to an OracleDbType; supported types
+  are Int32, Int64, Int16, Decimal, String, and DateTime.`
 - Two rows bind different types at the same position — `ExecuteArrayBind
   requires every bound value at parameter :... to map to the same OracleDbType;
   a ... value maps to OracleDbType...., but a ... value maps to OracleDbType....`
