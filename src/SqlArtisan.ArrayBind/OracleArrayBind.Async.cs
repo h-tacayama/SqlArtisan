@@ -19,7 +19,7 @@ public static partial class OracleArrayBind
     /// <param name="transaction">The transaction to execute in, or <see langword="null"/> for none.</param>
     /// <param name="cancellationToken">The token to cancel the operation.</param>
     /// <returns>The number of rows affected.</returns>
-    /// <exception cref="ArgumentException">The statement set is empty, the statements don't build identical SQL text, a bound value's type has no Oracle mapping, or a <see cref="Sql.BindNull(System.Data.DbType?)"/> hint disagrees with another row's bound type at the same position.</exception>
+    /// <exception cref="ArgumentException">The statement set is empty, the statements don't build identical SQL text, a bound value's type has no Oracle mapping, the values at one position don't all map to the same type, or a <see cref="Sql.BindNull(System.Data.DbType?)"/> hint disagrees with the bound values at its position.</exception>
     public static async Task<int> ExecuteArrayBindAsync(
         this OracleConnection connection,
         IReadOnlyCollection<ISqlBuilder> statements,

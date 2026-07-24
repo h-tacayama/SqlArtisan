@@ -92,42 +92,52 @@ internal static class OracleArrayBindCommandFactory
         return command;
     }
 
-    // A row can leave every value at a position DBNull (no CLR type to infer from), so an
-    // explicit Sql.BindNull(dbType) hint is required then — but it must still agree with
-    // whatever real CLR value another row supplies at the same position.
+    // Every non-null value at a position must map to one OracleDbType — the array binds as a
+    // single typed parameter, so a mix (an int beside a decimal, an out-of-range short) would
+    // bind values the type can't round-trip. An all-null position has no CLR type to infer
+    // from, so an explicit Sql.BindNull(dbType) hint is required there; when both are present
+    // the hint must agree with the values.
     private static OracleDbType ResolveOracleDbType(int position, DbType? dbTypeHint, object[] values)
     {
-        Type? clrType = null;
+        OracleDbType? fromValues = null;
+        Type? seenType = null;
         foreach (object value in values)
         {
-            if (value is not DBNull)
+            if (value is DBNull)
             {
-                clrType = value.GetType();
-                break;
+                continue;
             }
+
+            OracleDbType mapped = MapClrType(value.GetType());
+            if (fromValues.HasValue && mapped != fromValues.Value)
+            {
+                throw new ArgumentException(
+                    $"ExecuteArrayBind requires every bound value at parameter :{position} to map to the "
+                        + $"same OracleDbType; a {seenType!.Name} value maps to OracleDbType.{fromValues.Value}, "
+                        + $"but a {value.GetType().Name} value maps to OracleDbType.{mapped}.");
+            }
+
+            fromValues ??= mapped;
+            seenType ??= value.GetType();
         }
 
         if (dbTypeHint.HasValue)
         {
             OracleDbType hinted = MapDbType(position, dbTypeHint.Value);
-            if (clrType is not null)
+            if (fromValues.HasValue && fromValues.Value != hinted)
             {
-                OracleDbType fromClrType = MapClrType(clrType);
-                if (fromClrType != hinted)
-                {
-                    throw new ArgumentException(
-                        $"ExecuteArrayBind cannot bind parameter :{position} as OracleDbType.{hinted} from "
-                            + $"Sql.BindNull(DbType.{dbTypeHint.Value}); another row binds a {clrType.Name} value "
-                            + $"there, which maps to OracleDbType.{fromClrType} instead.");
-                }
+                throw new ArgumentException(
+                    $"ExecuteArrayBind cannot bind parameter :{position} as OracleDbType.{hinted} from "
+                        + $"Sql.BindNull(DbType.{dbTypeHint.Value}); another row binds a {seenType!.Name} value "
+                        + $"there, which maps to OracleDbType.{fromValues.Value} instead.");
             }
 
             return hinted;
         }
 
-        if (clrType is not null)
+        if (fromValues.HasValue)
         {
-            return MapClrType(clrType);
+            return fromValues.Value;
         }
 
         throw new ArgumentException(
@@ -148,40 +158,23 @@ internal static class OracleArrayBindCommandFactory
                 + "supported types are Int32, Int64, Int16, Decimal, String, and DateTime."),
     };
 
-    // Explicit types — ODP.NET inference reads the array's first element, which may be
-    // DBNull. The map carries only types the Oracle integration lane live-proves.
+    // DateTime → TimeStamp, not Date: OracleDbType.Date truncates sub-seconds in the driver —
+    // a silent value change. A DATE column's engine-side conversion is its own contract.
+    private static readonly IReadOnlyDictionary<Type, OracleDbType> ClrTypeMap = new Dictionary<Type, OracleDbType>
+    {
+        [typeof(int)] = OracleDbType.Int32,
+        [typeof(long)] = OracleDbType.Int64,
+        [typeof(short)] = OracleDbType.Int16,
+        [typeof(decimal)] = OracleDbType.Decimal,
+        [typeof(string)] = OracleDbType.Varchar2,
+        [typeof(DateTime)] = OracleDbType.TimeStamp,
+    };
+
     private static OracleDbType MapClrType(Type type)
     {
-        if (type == typeof(int))
+        if (ClrTypeMap.TryGetValue(type, out OracleDbType oracleDbType))
         {
-            return OracleDbType.Int32;
-        }
-
-        if (type == typeof(long))
-        {
-            return OracleDbType.Int64;
-        }
-
-        if (type == typeof(short))
-        {
-            return OracleDbType.Int16;
-        }
-
-        if (type == typeof(decimal))
-        {
-            return OracleDbType.Decimal;
-        }
-
-        if (type == typeof(string))
-        {
-            return OracleDbType.Varchar2;
-        }
-
-        if (type == typeof(DateTime))
-        {
-            // TimeStamp, not Date: OracleDbType.Date truncates sub-seconds in the driver —
-            // a silent value change. A DATE column's engine-side conversion is its own contract.
-            return OracleDbType.TimeStamp;
+            return oracleDbType;
         }
 
         throw new ArgumentException(

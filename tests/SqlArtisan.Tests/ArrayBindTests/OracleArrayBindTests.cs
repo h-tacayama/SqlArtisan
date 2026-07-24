@@ -170,6 +170,26 @@ public class OracleArrayBindTests
     }
 
     [Fact]
+    public void ExecuteArrayBind_MixedValueTypesAtOnePosition_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(t, t.Id, t.Price).Values(1L, 9),
+            InsertInto(t, t.Id, t.Price).Values(2L, 19.50m),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind requires every bound value at parameter :1 to map to the same OracleDbType; "
+                + "a Int32 value maps to OracleDbType.Int32, but a Decimal value maps to OracleDbType.Decimal.",
+            ex.Message);
+    }
+
+    [Fact]
     public void ExecuteArrayBind_MismatchedShape_ThrowsArgumentException()
     {
         using OracleConnection connection = new();
