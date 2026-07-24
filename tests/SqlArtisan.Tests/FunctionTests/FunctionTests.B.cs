@@ -124,4 +124,29 @@ public partial class FunctionTests
 
         Assert.Equal("Invalid type for Bind: SqlArtisan.DbColumn", ex.Message);
     }
+
+    [Fact]
+    public void BindNull_NoArguments_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(BindNull())
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append(":0");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(DBNull.Value, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void BindNull_WithDbType_SetsDbType()
+    {
+        BindValue bind = BindNull(System.Data.DbType.Int32);
+
+        Assert.Equal(DBNull.Value, bind.Value);
+        Assert.Equal(System.Data.DbType.Int32, bind.DbType);
+    }
 }

@@ -1,3 +1,4 @@
+using System.Data;
 using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan;
@@ -77,4 +78,20 @@ public static partial class Sql
 
         return new BindArrayValue(copied);
     }
+
+    /// <summary>
+    /// An explicit bind-parameter handle for a SQL <c>NULL</c>, emitted as a
+    /// marker (<c>:0</c>, <c>:1</c>, …) assigned at <c>Build()</c>.
+    /// </summary>
+    /// <param name="dbType">The data type the parameter is bound as, or <see langword="null"/> to let the driver infer it.</param>
+    /// <returns>A bind-parameter handle for a SQL <c>NULL</c>.</returns>
+    /// <remarks>
+    /// Unlike a bare <see langword="null"/> literal, which inlines the <c>NULL</c>
+    /// keyword directly into the SQL text (see <c>Values(...)</c>), this reserves
+    /// a real parameter — the statement's shape stays identical whether or not
+    /// this value is null. <c>Bind(null)</c> still throws; reach for this
+    /// factory when you deliberately want a bound <c>NULL</c>.
+    /// </remarks>
+    public static BindValue BindNull(DbType? dbType = null) =>
+        new(DBNull.Value, dbType);
 }

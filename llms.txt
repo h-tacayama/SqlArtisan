@@ -26,6 +26,7 @@ be rewritten across dialects.
 
 - [Comparison Guide](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/comparison.md): How SqlArtisan compares to EF Core, linq2db, SqlKata, Dapper.SqlBuilder, and InterpolatedSql — philosophy, type safety, machine-verifiability, dialect handling, execution, performance, and when NOT to choose SqlArtisan.
 - [Dapper + SqlArtisan from Scratch](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/guides/dapper-quickstart.md): The greenfield path — packages, table classes (generated or hand-written), executing queries through `SqlArtisan.Dapper`, pinning queries with tests.
+- [Oracle Array-Bind Execution with SqlArtisan.ArrayBind](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/guides/oracle-array-bind.md): Run any SqlArtisan-built statement for N rows in one round trip via ODP.NET array binding — setup, building one statement per row, transactions, and the loud-failure guards.
 - [Using SqlArtisan with AI Coding Assistants](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/guides/ai-assistants.md): Analyzer target configuration, exact-SQL test pinning, and an agent-rules snippet for generated queries.
 
 ## Optional

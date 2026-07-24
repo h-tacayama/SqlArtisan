@@ -310,6 +310,7 @@ internal static class DialectMatrix
         [new MatrixKey("Group")] = DbmsSupport.All,
         [new MatrixKey("Null")] = DbmsSupport.All,
         [new MatrixKey("Bind")] = DbmsSupport.All,
+        [new MatrixKey("BindNull")] = DbmsSupport.All,
         [new MatrixKey("ConditionIf")] = DbmsSupport.All,
         [new MatrixKey("As")] = DbmsSupport.All,
         [new MatrixKey("Asc")] = DbmsSupport.All,

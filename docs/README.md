@@ -15,6 +15,9 @@ Task-oriented paths from your current project to SqlArtisan.
   and InterpolatedSql — and when NOT to choose SqlArtisan.
 - **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
   the greenfield path: packages → table classes → executed queries.
+- **[Oracle Array-Bind Execution with SqlArtisan.ArrayBind](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md)** —
+  run any SqlArtisan-built statement for N rows in one round trip via ODP.NET
+  array binding.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
   the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
   AI-written queries.
