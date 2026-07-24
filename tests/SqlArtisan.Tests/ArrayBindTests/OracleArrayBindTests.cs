@@ -130,6 +130,46 @@ public class OracleArrayBindTests
     }
 
     [Fact]
+    public void ExecuteArrayBind_ConflictingDbTypeHints_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(t, t.Id, t.Code).Values(1L, BindNull(System.Data.DbType.Int32)),
+            InsertInto(t, t.Id, t.Code).Values(2L, BindNull(System.Data.DbType.String)),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind requires every row's Sql.BindNull(dbType) hint at parameter :1 to agree; "
+                + "found both DbType.Int32 and DbType.String.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ExecuteArrayBind_DbTypeHintConflictsWithRealValue_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(t, t.Id, t.CreatedAt).Values(1L, new DateTime(2026, 1, 1)),
+            InsertInto(t, t.Id, t.CreatedAt).Values(2L, BindNull(System.Data.DbType.Int32)),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind cannot bind parameter :1 as OracleDbType.Int32 from Sql.BindNull(DbType.Int32); "
+                + "another row binds a DateTime value there, which maps to OracleDbType.TimeStamp instead.",
+            ex.Message);
+    }
+
+    [Fact]
     public void ExecuteArrayBind_MismatchedShape_ThrowsArgumentException()
     {
         using OracleConnection connection = new();

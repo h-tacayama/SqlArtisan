@@ -55,7 +55,9 @@ value at that position across the whole batch — supported types are `int`,
 `long`, `short`, `decimal`, `string`, and `DateTime` (binds as `TIMESTAMP`; a
 `DATE` column's own engine-side conversion truncates it to second precision).
 If every row's value at a position is null, pass the type explicitly on at
-least one row: `Sql.BindNull(DbType.Int32)`.
+least one row: `Sql.BindNull(DbType.Int32)`. A `dbType` you pass must still
+agree with whatever real value another row supplies at that position — it
+is a required fallback for the all-null case, not an override.
 
 ## 3. Execute
 
@@ -103,6 +105,13 @@ Misuse fails loudly at the call, before anything reaches the database:
 - Every value at a position is null with no type hint — `ExecuteArrayBind
   cannot infer an OracleDbType for parameter :...; every bound value is null.
   Use Sql.BindNull(dbType) on at least one row to state the type explicitly.`
+- Two rows hint different `dbType`s at the same position — `ExecuteArrayBind
+  requires every row's Sql.BindNull(dbType) hint at parameter :... to agree;
+  found both DbType.... and DbType.....`
+- A `dbType` hint disagrees with a real value at the same position —
+  `ExecuteArrayBind cannot bind parameter :... as OracleDbType.... from
+  Sql.BindNull(DbType....); another row binds a ... value there, which maps
+  to OracleDbType.... instead.`
 
 `SqlArtisan.ArrayBind` is an optional companion package — the core stays a
 pure query builder. The package is a host for provider-specific array-bind

@@ -45,9 +45,29 @@ internal static class OracleArrayBindCommandFactory
             built[r].Parameters.ForEach((_, bindValue) =>
             {
                 values[p][r] = bindValue.Value;
-                dbTypeHints[p] ??= bindValue.DbType;
+
+                if (bindValue.DbType.HasValue)
+                {
+                    if (dbTypeHints[p].HasValue && dbTypeHints[p]!.Value != bindValue.DbType.Value)
+                    {
+                        throw new ArgumentException(
+                            $"ExecuteArrayBind requires every row's Sql.BindNull(dbType) hint at parameter :{p} "
+                                + $"to agree; found both DbType.{dbTypeHints[p]!.Value} and DbType.{bindValue.DbType.Value}.");
+                    }
+
+                    dbTypeHints[p] = bindValue.DbType;
+                }
+
                 p++;
             });
+        }
+
+        // Resolved before the command exists: every position's type is known-good — or the
+        // guard has already thrown — before any OracleCommand/OracleParameter is allocated.
+        OracleDbType[] resolvedTypes = new OracleDbType[parameterCount];
+        for (int p = 0; p < parameterCount; p++)
+        {
+            resolvedTypes[p] = ResolveOracleDbType(p, dbTypeHints[p], values[p]);
         }
 
         OracleCommand command = connection.CreateCommand();
@@ -64,7 +84,7 @@ internal static class OracleArrayBindCommandFactory
             command.Parameters.Add(new OracleParameter
             {
                 ParameterName = p.ToString(CultureInfo.InvariantCulture),
-                OracleDbType = ResolveOracleDbType(p, dbTypeHints[p], values[p]),
+                OracleDbType = resolvedTypes[p],
                 Value = values[p],
             });
         }
@@ -72,21 +92,42 @@ internal static class OracleArrayBindCommandFactory
         return command;
     }
 
-    // A row can leave every value at a position DBNull (no CLR type to infer
-    // from), so an explicit Sql.BindNull(dbType) hint takes precedence when set.
+    // A row can leave every value at a position DBNull (no CLR type to infer from), so an
+    // explicit Sql.BindNull(dbType) hint is required then — but it must still agree with
+    // whatever real CLR value another row supplies at the same position.
     private static OracleDbType ResolveOracleDbType(int position, DbType? dbTypeHint, object[] values)
     {
-        if (dbTypeHint.HasValue)
-        {
-            return MapDbType(position, dbTypeHint.Value);
-        }
-
+        Type? clrType = null;
         foreach (object value in values)
         {
             if (value is not DBNull)
             {
-                return MapClrType(value.GetType());
+                clrType = value.GetType();
+                break;
             }
+        }
+
+        if (dbTypeHint.HasValue)
+        {
+            OracleDbType hinted = MapDbType(position, dbTypeHint.Value);
+            if (clrType is not null)
+            {
+                OracleDbType fromClrType = MapClrType(clrType);
+                if (fromClrType != hinted)
+                {
+                    throw new ArgumentException(
+                        $"ExecuteArrayBind cannot bind parameter :{position} as OracleDbType.{hinted} from "
+                            + $"Sql.BindNull(DbType.{dbTypeHint.Value}); another row binds a {clrType.Name} value "
+                            + $"there, which maps to OracleDbType.{fromClrType} instead.");
+                }
+            }
+
+            return hinted;
+        }
+
+        if (clrType is not null)
+        {
+            return MapClrType(clrType);
         }
 
         throw new ArgumentException(

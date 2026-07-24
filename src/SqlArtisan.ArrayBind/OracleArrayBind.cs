@@ -23,7 +23,7 @@ public static partial class OracleArrayBind
     /// </param>
     /// <param name="transaction">The transaction to execute in, or <see langword="null"/> for none.</param>
     /// <returns>The number of rows affected.</returns>
-    /// <exception cref="ArgumentException">The statement set is empty, the statements don't build identical SQL text, or a bound value's type has no Oracle mapping.</exception>
+    /// <exception cref="ArgumentException">The statement set is empty, the statements don't build identical SQL text, a bound value's type has no Oracle mapping, or a <see cref="Sql.BindNull(System.Data.DbType?)"/> hint disagrees with another row's bound type at the same position.</exception>
     public static int ExecuteArrayBind(
         this OracleConnection connection,
         IReadOnlyCollection<ISqlBuilder> statements,
