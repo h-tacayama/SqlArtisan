@@ -17,7 +17,7 @@ namespace SqlArtisan.Tests;
 //       "> file is the deep-ingestion counterpart."; \
 //     for f in README.md docs/README.md docs/query-statements.md docs/expressions.md \
 //         docs/functions.md docs/analyzer.md docs/cookbook.md docs/comparison.md \
-//         docs/guides/dapper-quickstart.md docs/guides/bulkcopy-oracle.md \
+//         docs/guides/dapper-quickstart.md docs/guides/oracle-array-bind.md \
 //         docs/guides/ai-assistants.md \
 //         docs/versioning.md CHANGELOG.md; do \
 //       printf '\n<!-- %s -->\n<!-- SOURCE: %s -->\n<!-- %s -->\n\n' \

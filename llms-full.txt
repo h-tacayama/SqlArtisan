@@ -78,7 +78,7 @@ All the convenience, minimal overhead: an **allocation-light, fast** builder [be
 - **Automatic parameterization**: literals become bind parameters, preventing SQL injection.
 - **Dynamic conditions**: add or drop `WHERE` parts at runtime with helpers like `ConditionIf`.
 - **Dapper integration**: optional `SqlArtisan.Dapper` adds one-call execution.
-- **Oracle bulk insert**: optional `SqlArtisan.BulkCopy` inserts thousands of rows in one round trip via ODP.NET array binding.
+- **Oracle array-bind execution**: optional `SqlArtisan.ArrayBind` runs any SqlArtisan-built statement for thousands of rows in one round trip via ODP.NET array binding.
 - **Dialect-aware analyzer**: an opt-in Roslyn analyzer that deterministically flags constructs your target dialect does not support — the second layer of the guard-rail stack ([docs](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)).
 
 ---
@@ -113,7 +113,7 @@ The **allocation lead is firm** (lightweight builders allocate the same bytes ev
 | :------------------------- | :---------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
 | `SqlArtisan`               | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                       | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg)](https://www.nuget.org/packages/SqlArtisan/)                             | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan)](https://www.nuget.org/packages/SqlArtisan/)                             |
 | `SqlArtisan.Dapper`        | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.Dapper)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               |
-| `SqlArtisan.BulkCopy`      | High-throughput Oracle bulk INSERT for SqlArtisan table classes via ODP.NET array binding.                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.BulkCopy.svg)](https://www.nuget.org/packages/SqlArtisan.BulkCopy/)           | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.BulkCopy)](https://www.nuget.org/packages/SqlArtisan.BulkCopy/)           |
+| `SqlArtisan.ArrayBind`     | High-throughput Oracle array-bind execution for any SqlArtisan-built statement via ODP.NET.                                   | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.ArrayBind.svg)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.ArrayBind)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         |
 | `SqlArtisan.TableClassGen` | A .NET tool that generates C# table classes from your database, enabling IntelliSense and type safety with SqlArtisan. | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
 
 ---
@@ -125,16 +125,16 @@ The **allocation lead is firm** (lightweight builders allocate the same bytes ev
 - **.NET 8.0 or later.**
 - **Choose the API for your target DBMS** (e.g. `Systimestamp` for Oracle vs `CurrentTimestamp` for PostgreSQL). Bind-parameter prefixes (`:` / `@`) are then handled for you — verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
 - **(Optional) `SqlArtisan.Dapper`** auto-detects the dialect from your `IDbConnection` and adds execution methods.
-- **(Optional) `SqlArtisan.BulkCopy`** adds Oracle bulk insert (array binding) for table classes.
+- **(Optional) `SqlArtisan.ArrayBind`** adds Oracle array-bind execution for any SqlArtisan-built statement.
 
 ### Installation
 
 Packages are pre-release, so pass `--prerelease`:
 
 ```bash
-dotnet add package SqlArtisan          # core query builder
-dotnet add package SqlArtisan.Dapper   # optional: Dapper execution
-dotnet add package SqlArtisan.BulkCopy # optional: Oracle bulk insert
+dotnet add package SqlArtisan           # core query builder
+dotnet add package SqlArtisan.Dapper    # optional: Dapper execution
+dotnet add package SqlArtisan.ArrayBind # optional: Oracle array-bind execution
 ```
 
 ### Quick Start
@@ -263,7 +263,7 @@ The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLit
 
 | Reference | Covers |
 |---|---|
-| **Guides** | [Comparison guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md) · [Dapper + SqlArtisan from scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md) · [Oracle bulk insert with SqlArtisan.BulkCopy](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/bulkcopy-oracle.md) · [Using SqlArtisan with AI coding assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md) |
+| **Guides** | [Comparison guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/comparison.md) · [Dapper + SqlArtisan from scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md) · [Oracle array-bind execution with SqlArtisan.ArrayBind](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) · [Using SqlArtisan with AI coding assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md) |
 | **[Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)** | Realistic end-to-end queries, each pinned by an exact-SQL unit test — [reporting](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#reporting-queries) · [dynamic search screens](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#dynamic-search-screens) · [batch and UPSERT DML](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#batch-and-upsert-dml) |
 | **[Query Statements](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md)** | **Read** — [SELECT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#select-clause) · [FROM](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#from-clause) · [WHERE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#where-clause) · [JOIN](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#join-clause) · [ORDER BY](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#order-by-clause) · [GROUP BY / HAVING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause) · [Set Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#set-operators) · [FOR UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#for-update-clause) · [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) |
 | | **Write** — [DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#delete-statement) · [UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#update-statement) — [joined](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete) · [INSERT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#insert-statement) — [multi-row](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#multiple-rows), [SET-like](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#alternative-syntax-set-like), [INSERT … SELECT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#insert-select-syntax), [UPSERT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#upsert-insert-update-or-skip), [MERGE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement) · [WITH / CTE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#with-clause-common-table-expressions) · [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause) · [OUTPUT (SQL Server)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#output-clause-sql-server) |
@@ -322,9 +322,9 @@ Task-oriented paths from your current project to SqlArtisan.
   and InterpolatedSql — and when NOT to choose SqlArtisan.
 - **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
   the greenfield path: packages → table classes → executed queries.
-- **[Oracle Bulk Insert with SqlArtisan.BulkCopy](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/bulkcopy-oracle.md)** —
-  one-round-trip multi-row INSERT via ODP.NET array binding, mapped from
-  table classes.
+- **[Oracle Array-Bind Execution with SqlArtisan.ArrayBind](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md)** —
+  run any SqlArtisan-built statement for N rows in one round trip via ODP.NET
+  array binding.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
   the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
   AI-written queries.
@@ -4373,28 +4373,28 @@ builds on this pattern, and the
 pins all of its own recipes this way.
 
 <!-- ============================================================ -->
-<!-- SOURCE: docs/guides/bulkcopy-oracle.md -->
+<!-- SOURCE: docs/guides/oracle-array-bind.md -->
 <!-- ============================================================ -->
 
-# Guide: Oracle Bulk Insert with SqlArtisan.BulkCopy
+# Guide: Oracle Array-Bind Execution with SqlArtisan.ArrayBind
 
 [← Back to README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md) ·
 [Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
 Oracle has no multi-row `VALUES`, so batch loads through the core builder run
 row by row — fine for a handful of rows, a ceiling for thousands.
-`SqlArtisan.BulkCopy` is the execution-layer companion for that case: it sends
-every row in **one round trip** via ODP.NET array binding
-(`OracleCommand.ArrayBindCount`), mapping your table class's columns to
-same-named properties of your row objects. It builds no SQL through the query
-builder — one fixed `INSERT INTO t (c1, c2) VALUES (:0, :1)` command carries an
-array of values per column.
+`SqlArtisan.ArrayBind` is the execution-layer companion for that case: build N
+statements of identical shape (typically one `INSERT`/`UPDATE`/`DELETE` per
+row) the normal way, through the query builder, and it runs them together in
+**one round trip** via ODP.NET array binding (`OracleCommand.ArrayBindCount`).
+It builds no SQL itself — every statement comes from `SqlArtisan`.
 
 ## Contents
 
 - [1. Install the package](#1-install-the-package)
-- [2. Map rows to a table class](#2-map-rows-to-a-table-class)
-- [3. Insert](#3-insert)
+- [2. Build one statement per row](#2-build-one-statement-per-row)
+- [3. Execute](#3-execute)
+- [Beyond INSERT](#beyond-insert)
 - [Failure modes](#failure-modes)
 
 ## 1. Install the package
@@ -4403,84 +4403,88 @@ The package is pre-release, so pass `--prerelease`. It pulls
 `Oracle.ManagedDataAccess.Core` (ODP.NET) transitively.
 
 ```bash
-dotnet add package SqlArtisan.BulkCopy --prerelease
+dotnet add package SqlArtisan.ArrayBind --prerelease
 ```
 
-## 2. Map rows to a table class
+## 2. Build one statement per row
 
-`BulkInsert` inserts into the table named by a
-[table class](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md#2-create-table-classes)
-— every public `DbColumn` property of the table class must have a same-named
-public property on the row type:
-
-```csharp
-internal sealed class UsersTable : DbTableBase
-{
-    public UsersTable(string alias = "") : base("users", alias)
-    {
-        Id = new DbColumn(this, "id");
-        Name = new DbColumn(this, "name");
-        CreatedAt = new DbColumn(this, "created_at");
-    }
-
-    public DbColumn Id { get; }
-    public DbColumn Name { get; }
-    public DbColumn CreatedAt { get; }
-}
-
-internal sealed class UserRow
-{
-    public long Id { get; init; }
-    public string? Name { get; init; }
-    public DateTime? CreatedAt { get; init; }
-}
-```
-
-Supported property types — `int`, `long`, `short`, `decimal`, `string`, and
-`DateTime`, plus their nullable forms. A `null` value inserts SQL `NULL`.
-Two Oracle-specific notes:
-
-- Model a `NUMBER(1)` flag column as `int` / `int?` — Oracle has no SQL
-  `BOOLEAN` column type, so `bool` properties are rejected.
-- `DateTime` binds as `DATE` (whole-second precision — Oracle `DATE` has no
-  sub-second component).
-
-## 3. Insert
-
-`BulkInsert` / `BulkInsertAsync` are extension methods on `OracleConnection`;
-both return the number of rows inserted and accept an optional transaction:
+Build each row's statement through the ordinary fluent builder, keeping the
+same columns and clause shape across rows — only the bound values differ.
+Use `Sql.BindNull()` instead of a bare `null` literal for any value that can
+be null: a bare `null` inlines the `NULL` keyword directly into the SQL text
+(changing it row to row), while `BindNull()` reserves a real parameter, so a
+null row binds the same marker a non-null row does.
 
 ```csharp
-using SqlArtisan.BulkCopy;
-
 UsersTable users = new();
 UserRow[] rows = LoadRows(); // thousands of rows
+
+List<ISqlBuilder> statements = rows.Select(row =>
+    InsertInto(users, users.Id, users.Name, users.CreatedAt)
+        .Values(
+            row.Id,
+            row.Name is null ? BindNull() : row.Name,
+            row.CreatedAt is null ? BindNull() : row.CreatedAt))
+    .ToList();
+```
+
+Each bound position's `OracleDbType` is inferred from the first non-null
+value at that position across the whole batch — supported types are `int`,
+`long`, `short`, `decimal`, `string`, and `DateTime` (binds as `TIMESTAMP`; a
+`DATE` column's own engine-side conversion truncates it to second precision).
+If every row's value at a position is null, pass the type explicitly on at
+least one row: `Sql.BindNull(DbType.Int32)`.
+
+## 3. Execute
+
+`ExecuteArrayBind` / `ExecuteArrayBindAsync` are extension methods on
+`OracleConnection`; both return the number of rows affected and accept an
+optional transaction:
+
+```csharp
+using SqlArtisan.ArrayBind;
 
 using OracleConnection connection = new(connectionString);
 connection.Open();
 using OracleTransaction transaction = connection.BeginTransaction();
 
-int inserted = connection.BulkInsert(users, rows, transaction);
-// or: await connection.BulkInsertAsync(users, rows, transaction, cancellationToken);
+int inserted = connection.ExecuteArrayBind(statements, transaction);
+// or: await connection.ExecuteArrayBindAsync(statements, transaction, cancellationToken);
 
 transaction.Commit();
+```
+
+## Beyond INSERT
+
+`ExecuteArrayBind` takes any `ISqlBuilder`, so the same call array-binds an
+`UPDATE` or `DELETE` just as well — one statement per row, same shape:
+
+```csharp
+List<ISqlBuilder> statements = rows.Select(row =>
+        Update(users).Set(users.Name == row.Name).Where(users.Id == row.Id))
+    .ToList();
+
+int updated = connection.ExecuteArrayBind(statements, transaction);
 ```
 
 ## Failure modes
 
 Misuse fails loudly at the call, before anything reaches the database:
 
-- An empty row set — `BulkInsert requires at least one row.`
-- A table-class column with no matching row property — `BulkInsert requires
-  the row type '...' to have a public property '...' matching table class
-  '...'.`
-- A property type outside the supported set — `BulkInsert cannot map property
-  '...' of type ... to an OracleDbType; supported types are int, long, short,
-  decimal, string, and DateTime, plus their nullable forms.`
+- An empty statement set — `ExecuteArrayBind requires at least one statement.`
+- Statements that don't build identical SQL text — `ExecuteArrayBind requires
+  every statement to build identical SQL text; statement at index ... differs
+  from index 0.`
+- A bound value's type outside the supported set — `ExecuteArrayBind cannot
+  map bound value of type ... to an OracleDbType; supported types are int,
+  long, short, decimal, string, and DateTime.`
+- Every value at a position is null with no type hint — `ExecuteArrayBind
+  cannot infer an OracleDbType for parameter :...; every bound value is null.
+  Use Sql.BindNull(dbType) on at least one row to state the type explicitly.`
 
-`SqlArtisan.BulkCopy` is an optional companion package — the core stays a pure
-query builder. The package is a host for provider-specific bulk paths; Oracle
-array binding is the first, and other providers may join it.
+`SqlArtisan.ArrayBind` is an optional companion package — the core stays a
+pure query builder. The package is a host for provider-specific array-bind
+paths; Oracle is the first, and other providers may join it.
 
 <!-- ============================================================ -->
 <!-- SOURCE: docs/guides/ai-assistants.md -->
@@ -4635,7 +4639,7 @@ SQL reviewable — and regression-locked — in the diff.
 [Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
 How version numbers, breaking changes, deprecations, and support windows work
-for the published packages — `SqlArtisan`, `SqlArtisan.BulkCopy`,
+for the published packages — `SqlArtisan`, `SqlArtisan.ArrayBind`,
 `SqlArtisan.Dapper`, and `SqlArtisan.TableClassGen`.
 
 ## SemVer commitment
@@ -4712,8 +4716,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- Added the `SqlArtisan.BulkCopy` package — Oracle high-throughput bulk INSERT via ODP.NET array binding (`OracleCommand.ArrayBindCount`): `connection.BulkInsert(table, rows)` / `BulkInsertAsync(...)` map a table class's columns to same-named row-object properties, send every row in one round trip, and fail loudly on an empty row set, a missing row property, or an unmapped property type. See the [Oracle bulk insert guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/bulkcopy-oracle.md). (#90)
-- Added `DbTableBase.TableName`, a public read of the table's SQL identifier as declared (e.g. `"users"`) — the table-level counterpart to `DbColumn.Name`, completing the public surface a satellite package needs to compose per-table SQL from a table class. (#90)
+- Added `Sql.BindNull(dbType)`, an explicit bind-parameter handle for a SQL `NULL` — unlike a bare `null` literal, which inlines the `NULL` keyword directly into the SQL text, this reserves a real parameter marker, so the statement's shape stays identical whether or not the value is null. `Bind(value)` still rejects `null`; reach for `BindNull()` when you deliberately want a bound `NULL`, e.g. so an array-bind execution batch keeps one fixed command text across rows regardless of which rows are null. (#90)
+- Added the `SqlArtisan.ArrayBind` package — Oracle array-bind execution via ODP.NET (`OracleCommand.ArrayBindCount`): `connection.ExecuteArrayBind(statements)` / `ExecuteArrayBindAsync(...)` run N independently built SqlArtisan statements of identical shape (e.g. one `INSERT`/`UPDATE` per row) in one round trip, and fail loudly on an empty statement set, mismatched SQL text, or a bound value's type with no Oracle mapping. See the [Oracle array-bind guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md). (#90)
 - Added `DbColumn.Name`, a public read of a column's SQL identifier as declared (e.g. `"created_at"`) — lets an integration or tooling package resolve a table class's columns by reflecting over its public `DbColumn` properties, without reaching into internals. (#90)
 - Added `CommonTableExpression.WithColumnList()` — opts a plain-`WITH` CTE into emitting its column list, derived from the first query block's select items (`WITH "cte"(code) AS (...)`), the form Oracle requires for a recursive CTE (Oracle rejects the `RECURSIVE` keyword, so `WithRecursive()` cannot target it). Chain it onto the CTE binding: `With(cte.As(...).WithColumnList())`. CTEs that don't opt in are unchanged. See [WITH Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#with-clause-common-table-expressions). (#348)
 - Added `SQLA0003` and the `sqlartisan_target_version` (`<SqlArtisanTargetVersion>`) config key it reads: a build-time warning when a construct is supported on the target dialect but not until a *newer* engine version than the one you've declared — e.g. `MERGE` before PostgreSQL 15, `DATETRUNC` before SQL Server 2022. The matrix now carries an optional minimum-version floor per construct/dialect, sourced only from evidence already on record; declaring no version (or one that meets every bound) reproduces today's behavior exactly, and `sqlartisan_construct_*` overrides still keep the last word. A pinned `gvenzl/oracle-free:23-slim-faststart` integration lane live-proves the Oracle bounds against a real 23ai engine. See [Version-aware warnings](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-aware-warnings-sqla0003). (#263)

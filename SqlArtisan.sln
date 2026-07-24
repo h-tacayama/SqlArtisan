@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.Analyzers.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.TableClassGen.Tests", "tests\SqlArtisan.TableClassGen.Tests\SqlArtisan.TableClassGen.Tests.csproj", "{0CB6AAA2-99EE-4672-8B63-391C76C7B6B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.BulkCopy", "src\SqlArtisan.BulkCopy\SqlArtisan.BulkCopy.csproj", "{48A1283A-000E-40C8-9165-2B3209E3A9D5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlArtisan.ArrayBind", "src\SqlArtisan.ArrayBind\SqlArtisan.ArrayBind.csproj", "{48A1283A-000E-40C8-9165-2B3209E3A9D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

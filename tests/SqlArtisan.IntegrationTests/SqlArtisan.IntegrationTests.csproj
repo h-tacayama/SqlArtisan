@@ -33,7 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SqlArtisan.Analyzers\SqlArtisan.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\SqlArtisan.BulkCopy\SqlArtisan.BulkCopy.csproj" />
+    <ProjectReference Include="..\..\src\SqlArtisan.ArrayBind\SqlArtisan.ArrayBind.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan.Dapper\SqlArtisan.Dapper.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan.TableClassGen\SqlArtisan.TableClassGen.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan\SqlArtisan.csproj" />

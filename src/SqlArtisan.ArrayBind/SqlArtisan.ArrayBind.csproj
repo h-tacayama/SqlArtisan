@@ -9,8 +9,8 @@
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
-    <Description>Oracle bulk insert for SqlArtisan: high-throughput multi-row INSERT in one round trip via ODP.NET array binding, mapped from your table classes.</Description>
-    <PackageTags>database sql sqlbuilder query querybuilder oracle bulkinsert bulkcopy arraybinding</PackageTags>
+    <Description>Oracle array-bind execution for SqlArtisan: run any SqlArtisan-built INSERT/UPDATE/DELETE statement for N rows in one round trip via ODP.NET array binding (OracleCommand.ArrayBindCount).</Description>
+    <PackageTags>database sql sqlbuilder query querybuilder oracle arraybind arraybinding bulkinsert</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 

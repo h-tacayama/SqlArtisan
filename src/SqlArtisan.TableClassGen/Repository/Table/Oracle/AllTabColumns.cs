@@ -13,7 +13,7 @@ internal sealed class AllTabColumns : DbTableBase
 
     public DbColumn Owner { get; }
 
-    public new DbColumn TableName { get; }
+    public DbColumn TableName { get; }
 
     public DbColumn ColumnName { get; }
 

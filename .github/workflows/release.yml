@@ -1,6 +1,6 @@
 name: Release
 
-# Publishes the four packages (SqlArtisan / SqlArtisan.BulkCopy /
+# Publishes the four packages (SqlArtisan / SqlArtisan.ArrayBind /
 # SqlArtisan.Dapper / SqlArtisan.TableClassGen) to nuget.org. Triggered by pushing a version tag
 # (e.g. v0.4.0-beta.1); the package version comes from Directory.Build.props,
 # not the tag, so keep the tag in sync with VersionPrefix/VersionSuffix.
@@ -71,7 +71,7 @@ jobs:
       - name: Pack
         run: |
           dotnet pack src/SqlArtisan/SqlArtisan.csproj -c Release -o artifacts
-          dotnet pack src/SqlArtisan.BulkCopy/SqlArtisan.BulkCopy.csproj -c Release -o artifacts
+          dotnet pack src/SqlArtisan.ArrayBind/SqlArtisan.ArrayBind.csproj -c Release -o artifacts
           dotnet pack src/SqlArtisan.Dapper/SqlArtisan.Dapper.csproj -c Release -o artifacts
           dotnet pack src/SqlArtisan.TableClassGen/SqlArtisan.TableClassGen.csproj -c Release -o artifacts
 

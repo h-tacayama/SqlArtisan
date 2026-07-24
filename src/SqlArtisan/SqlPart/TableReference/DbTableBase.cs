@@ -20,11 +20,6 @@ public abstract class DbTableBase : TableReference
         _tableAlias = tableAlias;
     }
 
-    /// <summary>
-    /// Gets the table name as it appears in SQL.
-    /// </summary>
-    public string TableName => _name;
-
     internal override string CorrelationName => _tableAlias;
 
     // Whether this table carries an alias — read by the DML-target guard, since

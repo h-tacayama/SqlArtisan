@@ -27,7 +27,6 @@ public class DialectMatrixCoverageTests
         ["Cte.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
         ["DbColumn.Name"] = "C#-side metadata; the column reference itself is dialect-neutral.",
         ["DbTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
-        ["DbTableBase.TableName"] = "C#-side metadata; the table reference itself is dialect-neutral.",
         ["DerivedTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
         ["SubqueryDerivedTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",
         ["UnnestDerivedTable.Column"] = "Emits a plain column reference — dialect-neutral by construction.",

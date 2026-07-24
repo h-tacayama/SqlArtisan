@@ -4,7 +4,7 @@
 [Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
 How version numbers, breaking changes, deprecations, and support windows work
-for the published packages — `SqlArtisan`, `SqlArtisan.BulkCopy`,
+for the published packages — `SqlArtisan`, `SqlArtisan.ArrayBind`,
 `SqlArtisan.Dapper`, and `SqlArtisan.TableClassGen`.
 
 ## SemVer commitment
