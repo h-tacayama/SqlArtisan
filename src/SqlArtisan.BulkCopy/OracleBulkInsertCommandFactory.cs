@@ -50,26 +50,11 @@ internal static class OracleBulkInsertCommandFactory
             oracleTypes[i] = MapOracleDbType(rowProperty);
         }
 
-        object[][] values = new object[columns.Length][];
-        for (int i = 0; i < values.Length; i++)
-        {
-            values[i] = new object[rows.Count];
-        }
-
-        int rowIndex = 0;
-        foreach (T row in rows)
-        {
-            for (int i = 0; i < rowProperties.Length; i++)
-            {
-                values[i][rowIndex] = rowProperties[i].GetValue(row) ?? DBNull.Value;
-            }
-
-            rowIndex++;
-        }
+        T[] rowArray = [.. rows];
 
         OracleCommand command = connection.CreateCommand();
         command.CommandText = BuildCommandText(table, columns);
-        command.ArrayBindCount = rows.Count;
+        command.ArrayBindCount = rowArray.Length;
 
         if (transaction is not null)
         {
@@ -78,15 +63,58 @@ internal static class OracleBulkInsertCommandFactory
 
         for (int i = 0; i < columns.Length; i++)
         {
-            command.Parameters.Add(new OracleParameter
-            {
-                ParameterName = i.ToString(CultureInfo.InvariantCulture),
-                OracleDbType = oracleTypes[i],
-                Value = values[i],
-            });
+            command.Parameters.Add(BuildParameter(i, oracleTypes[i], rowProperties[i], rowArray));
         }
 
         return command;
+    }
+
+    // OracleDbType.Date bound through a plain object[] silently inserts NULL under
+    // ArrayBindCount, even for a non-null element (live-verified, #90) — a value-type
+    // DateTime[] plus ArrayBindStatus is the array-bind-safe shape (and matches Oracle's
+    // own array-bind samples, which use typed arrays rather than object[]).
+    private static OracleParameter BuildParameter<T>(
+        int index, OracleDbType oracleDbType, PropertyInfo rowProperty, T[] rowArray)
+    {
+        OracleParameter parameter = new()
+        {
+            ParameterName = index.ToString(CultureInfo.InvariantCulture),
+            OracleDbType = oracleDbType,
+        };
+
+        if (oracleDbType == OracleDbType.Date)
+        {
+            DateTime[] values = new DateTime[rowArray.Length];
+            OracleParameterStatus[] status = new OracleParameterStatus[rowArray.Length];
+
+            for (int r = 0; r < rowArray.Length; r++)
+            {
+                if (rowProperty.GetValue(rowArray[r]) is DateTime value)
+                {
+                    values[r] = value;
+                    status[r] = OracleParameterStatus.Success;
+                }
+                else
+                {
+                    status[r] = OracleParameterStatus.NullInsert;
+                }
+            }
+
+            parameter.Value = values;
+            parameter.ArrayBindStatus = status;
+        }
+        else
+        {
+            object[] values = new object[rowArray.Length];
+            for (int r = 0; r < rowArray.Length; r++)
+            {
+                values[r] = rowProperty.GetValue(rowArray[r]) ?? DBNull.Value;
+            }
+
+            parameter.Value = values;
+        }
+
+        return parameter;
     }
 
     // Bare names and :n positional markers, matching the core's Oracle INSERT emission.
@@ -154,8 +182,6 @@ internal static class OracleBulkInsertCommandFactory
 
         if (type == typeof(DateTime))
         {
-            // OracleDbType.TimeStamp against a DATE column silently inserts NULL under
-            // ArrayBindCount (live-verified, #90) — Date is the array-bind-safe mapping.
             return OracleDbType.Date;
         }
 

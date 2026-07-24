@@ -44,7 +44,7 @@ internal sealed class BulkTestRow
 
     public string? Name { get; init; }
 
-    public DateTime CreatedAt { get; init; }
+    public DateTime? CreatedAt { get; init; }
 }
 
 internal sealed class BulkTestRowMissingProperty

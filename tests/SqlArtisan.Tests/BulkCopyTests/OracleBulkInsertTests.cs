@@ -85,7 +85,7 @@ public class OracleBulkInsertTests
                 new DateTime(2026, 1, 2, 3, 4, 5),
                 new DateTime(2026, 2, 3, 4, 5, 6),
             ],
-            (object[])command.Parameters[5].Value!);
+            (DateTime[])command.Parameters[5].Value!);
     }
 
     [Fact]
@@ -96,6 +96,27 @@ public class OracleBulkInsertTests
 
         Assert.Equal([10, DBNull.Value], (object[])command.Parameters[1].Value!);
         Assert.Equal(["a", DBNull.Value], (object[])command.Parameters[4].Value!);
+    }
+
+    [Fact]
+    public void BulkInsert_DateTimeColumn_SetsArrayBindStatusPerRow()
+    {
+        using OracleConnection connection = new();
+        BulkTestRow[] rows =
+        [
+            new() { Id = 1, Qty = 1, Price = 1m, CreatedAt = new DateTime(2026, 1, 1) },
+            new() { Id = 2, Qty = 2, Price = 2m, CreatedAt = null },
+        ];
+
+        using OracleCommand command = OracleBulkInsertCommandFactory.Create(
+            connection, new BulkTestTable(), rows, transaction: null);
+
+        Assert.Equal(
+            [OracleParameterStatus.Success, OracleParameterStatus.NullInsert],
+            command.Parameters[5].ArrayBindStatus);
+        Assert.Equal(
+            [new DateTime(2026, 1, 1), default],
+            (DateTime[])command.Parameters[5].Value!);
     }
 
     [Fact]
