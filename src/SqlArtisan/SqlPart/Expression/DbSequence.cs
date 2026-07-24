@@ -23,10 +23,7 @@ public sealed class DbSequence
         Name = name;
     }
 
-    /// <summary>
-    /// Gets the sequence name as it appears in SQL.
-    /// </summary>
-    public string Name { get; }
+    internal string Name { get; }
 
     /// <summary>
     /// Gets the sequence's current value: <c>name.CURRVAL</c> (Oracle syntax).
