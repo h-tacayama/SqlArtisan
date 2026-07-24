@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.7.0-beta.1] - 2026-07-24
 ### Added
 - Added `Sql.BindNull(dbType)`, an explicit bind-parameter handle for a SQL `NULL` — unlike a bare `null` literal, which inlines the `NULL` keyword directly into the SQL text, this reserves a real parameter marker, so the statement's shape stays identical whether or not the value is null. `Bind(value)` still rejects `null`; reach for `BindNull()` when you deliberately want a bound `NULL`, e.g. so an array-bind execution batch keeps one fixed command text across rows regardless of which rows are null. (#90)
 - Added the `SqlArtisan.ArrayBind` package — Oracle array-bind execution via ODP.NET (`OracleCommand.ArrayBindCount`): `connection.ExecuteArrayBind(statements)` / `ExecuteArrayBindAsync(...)` run N independently built SqlArtisan statements of identical shape (e.g. one `INSERT`/`UPDATE` per row) in one round trip, and fail loudly on an empty statement set, mismatched SQL text, a bound value's type with no Oracle mapping, or a position whose rows don't all bind the same type (including a `Sql.BindNull(dbType)` hint that disagrees with the values there). See the [Oracle array-bind guide](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md). (#90)
