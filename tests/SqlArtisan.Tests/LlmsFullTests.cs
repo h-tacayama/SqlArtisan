@@ -19,7 +19,7 @@ namespace SqlArtisan.Tests;
 //         docs/functions.md docs/analyzer.md docs/cookbook.md docs/comparison.md \
 //         docs/guides/dapper-quickstart.md docs/guides/oracle-array-bind.md \
 //         docs/guides/ai-assistants.md \
-//         docs/versioning.md CHANGELOG.md; do \
+//         docs/versioning.md; do \
 //       printf '\n<!-- %s -->\n<!-- SOURCE: %s -->\n<!-- %s -->\n\n' \
 //         '============================================================' "$f" \
 //         '============================================================'; \
