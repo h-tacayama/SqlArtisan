@@ -76,7 +76,12 @@ with availability left to the database"). ADR cross-references belong in
   2022+)", "(MySQL 8.0.20+)", "(SQLite 3.44+)" — inside the dialect note, not
   in the entry's one-line description.
 - README→docs and docs↔docs links are absolute GitHub `blob/main` URLs;
-  `llms.txt` uses `raw.githubusercontent.com` URLs; in-page anchors stay relative.
+  in-page anchors stay relative. In `llms.txt`, a page's URL form decides
+  whether it joins the `llms-full.txt` deep bundle: pages meant for ingestion
+  use `raw.githubusercontent.com` URLs (the `LlmsFullTxt_SourceOrder` gate
+  requires each to have a matching embedded section), while `## Optional`
+  pages kept *out* of the bundle use `github.com` browse URLs (`blob`/`tree`)
+  — the CHANGELOG (its history names since-removed APIs) and the ADR corpus.
 - Adding/renaming/moving a `## ` section in `docs/expressions.md` or
   `docs/functions.md` must update `docs/README.md`'s index **and** the root
   README capability-map row, both **in page order** — `DocsIndexTests` gates

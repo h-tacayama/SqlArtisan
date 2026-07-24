@@ -32,5 +32,5 @@ be rewritten across dialects.
 ## Optional
 
 - [Versioning & Support](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/docs/versioning.md): SemVer commitment, breaking-change definition (including emitted-SQL changes), deprecation process, verified engine versions, support window.
-- [CHANGELOG](https://raw.githubusercontent.com/h-tacayama/SqlArtisan/main/CHANGELOG.md): Version history.
+- [CHANGELOG](https://github.com/h-tacayama/SqlArtisan/blob/main/CHANGELOG.md): Version history — a browse link, not a raw one, so the accumulated change log (which names since-removed APIs) stays out of the `llms-full.txt` deep bundle, like the ADRs.
 - [Design (ADRs)](https://github.com/h-tacayama/SqlArtisan/tree/main/docs/adr): Architecture decisions — SQL fidelity and dialect handling, public API shape, performance, the analyzer's design, and the validity-enforcement boundary for AI-assisted SQL.
