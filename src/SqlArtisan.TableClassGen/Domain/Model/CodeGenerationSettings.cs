@@ -5,18 +5,20 @@ internal sealed class CodeGenerationSettings(
     bool lowercaseNames,
     string outputDirectory,
     bool createSubFolders,
-    string? specificTableName = null,
+    IReadOnlyList<string>? tableNames = null,
     string accessibility = "internal",
     bool qualifySchema = false)
 {
-    private readonly string _outputDirectory = outputDirectory;
     private readonly bool _createSubFolders = createSubFolders;
 
     public string OutputNamespace => outputNamespace;
 
     public bool LowercaseNames => lowercaseNames;
 
-    public string? SpecificTableName => specificTableName;
+    public string OutputDirectory => outputDirectory;
+
+    /// <summary>The tables to act on; empty means every table in the schema.</summary>
+    public IReadOnlyList<string> TableNames => tableNames ?? [];
 
     public string Accessibility => accessibility;
 
@@ -24,12 +26,12 @@ internal sealed class CodeGenerationSettings(
 
     // Path computation only: creating the directory here would make --dry-run and
     // --check, which both need the path without writing, touch the file system.
-    public string CreateOutputFilePath(string tableName)
+    public string CreateOutputFilePath(string className)
     {
-        string directory = _createSubFolders && tableName.Length > 0
-            ? Path.Combine(_outputDirectory, char.ToUpperInvariant(tableName[0]).ToString())
-            : _outputDirectory;
+        string directory = _createSubFolders && className.Length > 0
+            ? Path.Combine(outputDirectory, char.ToUpperInvariant(className[0]).ToString())
+            : outputDirectory;
 
-        return Path.Combine(directory, $"{tableName}.cs");
+        return Path.Combine(directory, $"{className}.cs");
     }
 }
