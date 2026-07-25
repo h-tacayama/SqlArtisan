@@ -97,7 +97,7 @@ sa-tableclassgen --config tablegen.json --fix
 Keeping the connection and output options in `tablegen.json` gives the
 assistant one invocation to remember, and the password stays in the
 environment rather than in a command it might echo. `--format json` returns
-the same report as data, and `--dry-run` shows what a run would write. See the
+the same report as data. See the
 [TableClassGen README](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md)
 for the full option list.
 

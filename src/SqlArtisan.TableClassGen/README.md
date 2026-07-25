@@ -23,9 +23,10 @@ sa-tableclassgen --fix [options]      # regenerate only the tables that drifted
 sa-tableclassgen                      # interactive prompts (terminal only)
 ```
 
-Run `sa-tableclassgen --help` for the full option list. The password is read from
-the `SQLARTISAN_DB_PASSWORD` environment variable — there is no password flag, so it
-never reaches a process listing or a shell history.
+Run `sa-tableclassgen --help` for the full option list. There is no password flag:
+an argument-driven run reads the password from the `SQLARTISAN_DB_PASSWORD`
+environment variable, so it never reaches a process listing or a shell history, and
+the interactive prompt asks for it.
 
 Prompts appear only when the tool is attached to a terminal. With stdin redirected —
 a CI job, a script, a coding agent — a missing option is reported by name and the

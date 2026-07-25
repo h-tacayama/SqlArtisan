@@ -195,7 +195,7 @@ dotnet add package SqlArtisan.ArrayBind # optional: Oracle array-bind execution
 
     **Alternative: Manual Execution**
 
-    Not using Dapper? Call `Build()` to get the SQL string and its parameters for raw ADO.NET, another micro-ORM, or debugging. `Build()` takes an optional `Dbms` (default `PostgreSql`) that sets dialect details like the parameter prefix (`:` vs `@`).
+    Not using Dapper? Call `Build()` to get the SQL string and its parameters for raw ADO.NET, another micro-ORM, or debugging. `Build()` takes an optional `Dbms` (default `PostgreSql`) that sets dialect details like the parameter prefix.
 
     ```csharp
     SqlStatement sql = Select(u.Id, u.Name).From(u).Where(u.Id == 10).Build();
@@ -203,7 +203,7 @@ dotnet add package SqlArtisan.ArrayBind # optional: Oracle array-bind execution
     // sql.Parameters => ":0" is 10
     ```
 
-    **Note:** the same rule applies — a builder is single-use, so calling `Build()` again on that instance throws. Rebuild the chain per call rather than holding a partial one across calls.
+    **Note:** the single-use rule above applies here too — calling `Build()` twice on the same instance throws.
 
 ---
 
@@ -211,9 +211,8 @@ dotnet add package SqlArtisan.ArrayBind # optional: Oracle array-bind execution
 
 ### Setting the Default DBMS
 
-As shown in the Quick Start, the `Build()` method can accept a `Dbms` argument. However, its default is PostgreSQL. To avoid specifying the DBMS in every call, you can set a global default once at application startup.
+`Build()`'s `Dbms` argument defaults to PostgreSQL. Set a global default once at startup instead of passing it in every call.
 
-**Example:**
 ```csharp
 // At application startup
 SqlArtisanConfig.SetDefaultDbms(Dbms.SqlServer);
@@ -242,7 +241,7 @@ NextValueFor("users_id_seq")       // SQL Server:  NEXT VALUE FOR users_id_seq
 
 So **cross-database portability is a deliberate non-goal**: target Oracle and you write Oracle SQL; target PostgreSQL and you write PostgreSQL SQL. You trade portability for fidelity — the full power of your database's SQL, never flattened to a lowest common denominator.
 
-Faithful emission is the foundation of a broader mission: SqlArtisan is a deterministic guard rail for SQL written alongside AI. The type system, the analyzer, exact-SQL unit tests, and the live-engine integration matrix form a ladder of deterministic verification — each layer rests on the one below. See [Why SqlArtisan?](#why-sqlartisan) for the full stack.
+Faithful emission is the foundation of a broader mission: SqlArtisan is a deterministic guard rail for SQL written alongside AI, where each verification layer rests on the one below. See [Why SqlArtisan?](#why-sqlartisan) for the full stack.
 
 ---
 
