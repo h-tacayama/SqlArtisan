@@ -28,8 +28,7 @@ internal sealed class TableResult(
 /// <summary>
 /// Generates, or compares against, the committed table classes. Comparison
 /// regenerates in memory and diffs against the files on disk — the classes are the
-/// only committed representation of the schema, so there is no second artifact to
-/// keep in step.
+/// only committed representation of the schema.
 /// </summary>
 internal sealed class TableClassGenService(ITableInfoRepository repository, RunOptions options)
 {
@@ -143,16 +142,16 @@ internal sealed class TableClassGenService(ITableInfoRepository repository, RunO
         }
 
         HashSet<string> expected = new(
-            results.Select(r => System.IO.Path.GetFullPath(r.Path)),
+            results.Select(r => Path.GetFullPath(r.Path)),
             StringComparer.Ordinal);
 
         return Directory
             .EnumerateFiles(_settings.OutputDirectory, "*.cs", SearchOption.AllDirectories)
-            .Where(p => !expected.Contains(System.IO.Path.GetFullPath(p)) && IsGeneratedTableClass(p))
+            .Where(p => !expected.Contains(Path.GetFullPath(p)) && IsGeneratedTableClass(p))
             // Named by file, not by table: the table is gone, so its catalog name is
             // no longer knowable.
             .Select(p => new TableResult(
-                System.IO.Path.GetFileName(p),
+                Path.GetFileName(p),
                 p,
                 TableStatus.Removed,
                 []))

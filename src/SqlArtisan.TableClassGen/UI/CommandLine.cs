@@ -10,10 +10,21 @@ internal static class CommandLine
 {
     public const string PasswordEnvironmentVariable = "SQLARTISAN_DB_PASSWORD";
 
-    // Flags that stand alone; everything else consumes the next argument.
+    // Both sets are stored normalized, because that is how every lookup arrives —
+    // spelling them with hyphens here silently broke --dry-run and --qualify-schema.
     private static readonly HashSet<string> Switches =
     [
-        "check", "fix", "dry-run", "verbose", "lowercase", "subfolders", "qualify-schema"
+        .. new[] { "check", "fix", "dry-run", "verbose", "lowercase", "subfolders", "qualify-schema" }
+            .Select(Normalize),
+    ];
+
+    private static readonly HashSet<string> KnownOptions =
+    [
+        .. new[]
+        {
+            "config", "dbms", "host", "port", "database", "schema", "user", "file",
+            "namespace", "output", "tables", "accessibility", "format",
+        }.Select(Normalize).Concat(Switches),
     ];
 
     public static string HelpText =>
@@ -94,9 +105,16 @@ internal static class CommandLine
 
             string name = Normalize(argument[2..]);
 
+            // An unrecognized option is rejected rather than ignored: a typo'd
+            // --tabels would otherwise generate every table without a word.
+            if (!KnownOptions.Contains(name))
+            {
+                throw new CommandLineException($"Unknown option '{argument}' (see --help)");
+            }
+
             if (Switches.Contains(name))
             {
-                values[Normalize(name)] = "true";
+                values[name] = "true";
                 continue;
             }
 
@@ -137,6 +155,18 @@ internal static class CommandLine
 
             foreach (JsonProperty property in document.RootElement.EnumerateObject())
             {
+                // "$schema" and friends are editor plumbing, not options.
+                if (property.Name.StartsWith("$", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (!KnownOptions.Contains(Normalize(property.Name)))
+                {
+                    throw new CommandLineException(
+                        $"Unknown key '{property.Name}' in {path} (see --help)");
+                }
+
                 values[Normalize(property.Name)] = property.Value.ValueKind switch
                 {
                     JsonValueKind.String => property.Value.GetString() ?? string.Empty,
@@ -201,11 +231,25 @@ internal static class CommandLine
         return new DbConnectionInfo(
             dbms,
             Required(values, "host"),
-            int.TryParse(Value(values, "port"), out int port) ? port : DefaultPort(dbms),
+            ResolvePort(values, dbms),
             database,
             ResolveSchema(values, dbms, database, user),
             user,
             Environment.GetEnvironmentVariable(PasswordEnvironmentVariable) ?? string.Empty);
+    }
+
+    // An unparseable port is an error rather than a fallback to the default: silently
+    // connecting to another port is the kind of misconfiguration nobody sees.
+    private static int ResolvePort(Dictionary<string, string> values, DbmsType dbms)
+    {
+        if (Value(values, "port") is not { } port)
+        {
+            return DefaultPort(dbms);
+        }
+
+        return int.TryParse(port, out int parsed)
+            ? parsed
+            : throw new CommandLineException($"--port must be a number (got '{port}')");
     }
 
     // MySQL has no schema layer above the database, and Oracle's schema is the user

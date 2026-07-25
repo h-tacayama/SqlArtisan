@@ -1,9 +1,7 @@
 namespace SqlArtisan.TableClassGen;
 
 // isNullable / hasDefault are tri-state: null means the catalog path could not
-// determine the fact, which is not the same as determining it false. Only a
-// determined fact reaches the generated class, so a reader of the emitted
-// attribute stays silent rather than reasoning from a guess.
+// determine the fact, which is not the same as determining it false.
 internal sealed class DbColumnInfo(
     string name,
     string dataType,

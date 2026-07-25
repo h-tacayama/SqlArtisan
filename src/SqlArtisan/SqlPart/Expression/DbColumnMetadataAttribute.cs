@@ -10,11 +10,9 @@ namespace SqlArtisan;
 /// Compile-time metadata only: nothing in SqlArtisan reads it at run time, so the
 /// library stays reflection-free and AOT/trimming-safe.
 /// </remarks>
-// Named properties rather than constructor parameters, because "unknown" has to be
-// representable: a positional parameter is mandatory, and `bool?` is rejected as an
-// attribute argument type (CS0655). An argument the generator did not write is
-// absent from Roslyn's AttributeData.NamedArguments, which is the unknown state the
-// analyzer needs in order to stay silent instead of guessing.
+// Named properties, not constructor parameters: "unknown" has to be representable,
+// a positional parameter is mandatory, and `bool?` is rejected as an attribute
+// argument type (CS0655). An unwritten argument is absent from NamedArguments.
 [AttributeUsage(AttributeTargets.Property, Inherited = false)]
 public sealed class DbColumnMetadataAttribute : Attribute
 {

@@ -30,7 +30,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. |
 | `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0006). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
-| `src/SqlArtisan.TableClassGen/` | Console tool that generates table classes from a live DB (Oracle/PgSql). |
+| `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
 | `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..W}.cs` mirror `Sql.{A..W}.cs`. |
 | `tests/SqlArtisan.Analyzers.Tests/` | Analyzer unit tests (matrix coverage/integrity, config resolution, diagnostic verification). |
 | `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests via Testcontainers (MySql, Oracle, PostgreSql, SqlServer, Sqlite). |
@@ -130,7 +130,8 @@ sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
   function nodes.
 - Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
   table-reference types under `src/SqlArtisan/SqlPart/TableReference/`, and
-  `DbColumn`/`BindValue` under `src/SqlArtisan/SqlPart/Expression/`. Types users must
+  `DbColumn`/`BindValue`/`DbColumnMetadataAttribute` under
+  `src/SqlArtisan/SqlPart/Expression/`. Types users must
   **name** in a declaration position (`SqlExpression`, `SqlCondition`,
   `ISubquery`, `SortOrder`, `ExpressionAlias`, `CommonTableExpression`,
   `DbSequence`) live in the root namespace. Everything under `Internal/` is

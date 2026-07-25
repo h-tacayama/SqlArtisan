@@ -47,6 +47,14 @@ internal sealed class Reporter(RunOptions options)
         int count = results.Count(r => r.Status != TableStatus.Removed);
 
         Console.WriteLine($"{verb} {count} table {(count == 1 ? "class" : "classes")} in {options.Settings.OutputDirectory}");
+
+        // The orphans are found in every full run, and --format json reports them
+        // either way, so the text output must not be the one that stays quiet.
+        if (Orphans(results) is { Count: > 0 } orphans)
+        {
+            Console.WriteLine();
+            Console.WriteLine(OrphanNotice(orphans));
+        }
     }
 
     private void ReportDrift(IReadOnlyList<TableResult> results)
@@ -83,7 +91,7 @@ internal sealed class Reporter(RunOptions options)
 
     private string NextStep(IReadOnlyList<TableResult> drifted)
     {
-        IReadOnlyList<TableResult> removed = [.. drifted.Where(r => r.Status == TableStatus.Removed)];
+        IReadOnlyList<TableResult> removed = Orphans(drifted);
 
         if (options.Mode == RunMode.Fix)
         {
@@ -91,7 +99,7 @@ internal sealed class Reporter(RunOptions options)
                 ? "All drifted tables were regenerated."
                 : "Their tables are gone from the database; delete these files by hand:"
                     + Environment.NewLine
-                    + string.Join(Environment.NewLine, removed.Select(r => $"  {r.Path}"));
+                    + Paths(removed);
         }
 
         StringBuilder next = new();
@@ -112,14 +120,22 @@ internal sealed class Reporter(RunOptions options)
                 next.AppendLine();
             }
 
-            next.Append(
-                "These files have no table in the database and are left untouched:"
-                + Environment.NewLine
-                + string.Join(Environment.NewLine, removed.Select(r => $"  {r.Path}")));
+            next.Append(OrphanNotice(removed));
         }
 
         return next.ToString();
     }
+
+    private static IReadOnlyList<TableResult> Orphans(IReadOnlyList<TableResult> results) =>
+        [.. results.Where(r => r.Status == TableStatus.Removed)];
+
+    private static string OrphanNotice(IReadOnlyList<TableResult> orphans) =>
+        "These files have no table in the database and are left untouched:"
+        + Environment.NewLine
+        + Paths(orphans);
+
+    private static string Paths(IReadOnlyList<TableResult> results) =>
+        string.Join(Environment.NewLine, results.Select(r => $"  {r.Path}"));
 
     private void ReportJson(IReadOnlyList<TableResult> results)
     {

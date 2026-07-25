@@ -35,6 +35,37 @@ public class CommandLineTests
         Assert.Equal("--check and --fix cannot be combined", ex.Message);
     }
 
+    // The switch set is matched against hyphen-stripped names, so spelling it with
+    // hyphens made these two demand a value instead of standing alone.
+    [Fact]
+    public void Parse_HyphenatedSwitches_StandAlone()
+    {
+        RunOptions options = CommandLine.Parse([.. MinimalSqlite, "--dry-run", "--qualify-schema"]);
+
+        Assert.True(options.DryRun);
+        Assert.True(options.Settings.QualifySchema);
+    }
+
+    [Fact]
+    public void Parse_UnknownOption_ThrowsCommandLineException()
+    {
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse([.. MinimalSqlite, "--tabels", "orders"]));
+
+        Assert.Equal("Unknown option '--tabels' (see --help)", ex.Message);
+    }
+
+    [Fact]
+    public void Parse_NonNumericPort_ThrowsCommandLineException()
+    {
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(
+                ["--dbms", "postgresql", "--host", "h", "--database", "d", "--schema", "s",
+                 "--user", "u", "--namespace", "N", "--port", "54x2"]));
+
+        Assert.Equal("--port must be a number (got '54x2')", ex.Message);
+    }
+
     [Fact]
     public void Parse_Tables_SplitsAndTrims()
     {
@@ -136,6 +167,28 @@ public class CommandLineTests
             ["--config", config.Path, "--namespace", "FromFlag"]);
 
         Assert.Equal("FromFlag", options.Settings.OutputNamespace);
+    }
+
+    [Fact]
+    public void Parse_UnknownConfigKey_ThrowsCommandLineException()
+    {
+        using TempFile config = TempFile.Create(
+            """{"dbms": "sqlite", "file": "app.db", "namespace": "N", "namesapce": "typo"}""");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal($"Unknown key 'namesapce' in {config.Path} (see --help)", ex.Message);
+    }
+
+    // "$schema" is editor plumbing every JSON config file is entitled to carry.
+    [Fact]
+    public void Parse_ConfigFile_IgnoresDollarPrefixedKeys()
+    {
+        using TempFile config = TempFile.Create(
+            """{"$schema": "https://example/schema.json", "dbms": "sqlite", "file": "a.db", "namespace": "N"}""");
+
+        Assert.Equal("N", CommandLine.Parse(["--config", config.Path]).Settings.OutputNamespace);
     }
 
     [Fact]

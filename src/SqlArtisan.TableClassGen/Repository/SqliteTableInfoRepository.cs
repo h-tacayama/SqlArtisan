@@ -89,8 +89,6 @@ internal sealed class SqliteTableInfoRepository(
         {
             // A lone INTEGER PRIMARY KEY aliases the rowid: the pragma reports it as
             // nullable with no default, yet it never holds NULL and is auto-assigned.
-            // Recorded verbatim it would read as "an INSERT must supply this, and it
-            // may be NULL" — both wrong.
             bool isRowIdAlias = keyColumnCount == 1
                 && row.Pk == 1
                 && string.Equals(row.Type, "INTEGER", StringComparison.OrdinalIgnoreCase);
