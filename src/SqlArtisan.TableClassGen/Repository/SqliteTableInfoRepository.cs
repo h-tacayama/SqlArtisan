@@ -58,24 +58,48 @@ internal sealed class SqliteTableInfoRepository(
     {
         table = null;
 
-        List<DbColumnInfo> columns = [];
+        List<(string Name, string Type, bool NotNull, bool HasDefault, int Pk)> rows = [];
         using (IDbCommand command = conn.CreateCommand())
         {
-            command.CommandText = "SELECT name, type FROM pragma_table_info(@table)";
+            command.CommandText =
+                "SELECT name, type, \"notnull\", dflt_value, pk FROM pragma_table_info(@table)";
             AddParameter(command, "@table", tableName);
 
             using IDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                string columnName = NormalizeName(reader.GetString(0));
-                string dataType = reader.GetString(1);
-                columns.Add(new DbColumnInfo(columnName, dataType));
+                rows.Add((
+                    NormalizeName(reader.GetString(0)),
+                    reader.GetString(1),
+                    reader.GetInt32(2) != 0,
+                    !reader.IsDBNull(3),
+                    reader.GetInt32(4)));
             }
         }
 
-        if (columns.Count == 0)
+        if (rows.Count == 0)
         {
             return false;
+        }
+
+        int keyColumnCount = rows.Count(r => r.Pk > 0);
+
+        List<DbColumnInfo> columns = [];
+        foreach ((string Name, string Type, bool NotNull, bool HasDefault, int Pk) row in rows)
+        {
+            // A lone INTEGER PRIMARY KEY aliases the rowid: the pragma reports it as
+            // nullable with no default, yet it never holds NULL and is auto-assigned.
+            // Recorded verbatim it would read as "an INSERT must supply this, and it
+            // may be NULL" — both wrong.
+            bool isRowIdAlias = keyColumnCount == 1
+                && row.Pk == 1
+                && string.Equals(row.Type, "INTEGER", StringComparison.OrdinalIgnoreCase);
+
+            columns.Add(new DbColumnInfo(
+                row.Name,
+                row.Type,
+                isNullable: !isRowIdAlias && !row.NotNull,
+                hasDefault: isRowIdAlias || row.HasDefault));
         }
 
         table = new DbTableInfo(tableName, columns);

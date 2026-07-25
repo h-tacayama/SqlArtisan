@@ -21,12 +21,12 @@ internal sealed class SingleTableClassGenerator(
             return;
         }
 
-        string code = table.GenerateCode(_settings.OutputNamespace);
+        string code = table.GenerateCode(_settings);
         string outputPath = _settings.CreateOutputFilePath(table.ClassName);
 
         try
         {
-            File.WriteAllText(outputPath, code);
+            GeneratedFileWriter.Write(outputPath, code);
             _ui.ShowSuccess($"Successfully generated class for table '{tableName}' at {outputPath}");
         }
         catch (Exception ex)

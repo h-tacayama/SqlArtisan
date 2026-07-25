@@ -77,7 +77,9 @@ internal sealed class InformationSchemaTableInfoRepository(
         ISqlBuilder sql2 =
             Select(
                 c.ColumnName,
-                c.DataType)
+                c.DataType,
+                c.IsNullable,
+                c.ColumnDefault)
             .From(c)
             .Where(
                 c.TableSchema == _connInfo.Schema
@@ -92,7 +94,11 @@ internal sealed class InformationSchemaTableInfoRepository(
             {
                 string columnName = Normalize(reader.GetString(0));
                 string dataType = reader.GetString(1);
-                columns.Add(new DbColumnInfo(columnName, dataType));
+                columns.Add(new DbColumnInfo(
+                    columnName,
+                    dataType,
+                    isNullable: ReadIsNullable(reader, 2),
+                    hasDefault: ReadHasDefault(reader, 3)));
             }
         }
 
@@ -101,9 +107,20 @@ internal sealed class InformationSchemaTableInfoRepository(
             return false;
         }
 
-        table = new DbTableInfo(Normalize(tableName), columns);
+        table = new DbTableInfo(Normalize(tableName), columns, _connInfo.Schema);
         return true;
     }
+
+    private static bool? ReadIsNullable(IDataReader reader, int ordinal) =>
+        reader.IsDBNull(ordinal)
+            ? null
+            : string.Equals(reader.GetString(ordinal), "YES", StringComparison.OrdinalIgnoreCase);
+
+    // Only the positive answer is decidable here: an identity or auto-increment
+    // column is engine-assigned yet reports no column_default, so an absent default
+    // stays unknown rather than being recorded as "an INSERT must supply this".
+    private static bool? ReadHasDefault(IDataReader reader, int ordinal) =>
+        reader.IsDBNull(ordinal) ? null : true;
 
     private string Normalize(string name) => _lowercaseNames ? name.ToLower() : name;
 

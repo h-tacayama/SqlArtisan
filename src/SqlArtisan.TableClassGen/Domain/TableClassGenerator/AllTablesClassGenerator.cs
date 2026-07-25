@@ -25,12 +25,12 @@ internal sealed class AllTablesClassGenerator(
 
         foreach (DbTableInfo table in tables)
         {
-            string code = table.GenerateCode(_settings.OutputNamespace);
+            string code = table.GenerateCode(_settings);
             string outputPath = _settings.CreateOutputFilePath(table.ClassName);
 
             try
             {
-                File.WriteAllText(outputPath, code);
+                GeneratedFileWriter.Write(outputPath, code);
                 successCount++;
             }
             catch (Exception ex)
