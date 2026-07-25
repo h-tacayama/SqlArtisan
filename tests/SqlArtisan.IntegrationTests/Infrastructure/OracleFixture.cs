@@ -20,6 +20,8 @@ public sealed class OracleFixture : IAsyncLifetime, IDatabaseFixture
 
     public Dbms Dbms => Dbms.Oracle;
 
+    public string ConnectionString => _container.GetConnectionString();
+
     public IDbConnection OpenConnection()
     {
         OracleConnection connection = new(_container.GetConnectionString());
