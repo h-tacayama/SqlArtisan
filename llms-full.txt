@@ -4525,6 +4525,7 @@ This page is the setup that makes those checks bite.
 
 - [Feed the assistant the reference](#feed-the-assistant-the-reference)
 - [Configure the analyzer target](#configure-the-analyzer-target)
+- [Keep the table classes in step with the database](#keep-the-table-classes-in-step-with-the-database)
 - [Pin generated queries with exact-SQL tests](#pin-generated-queries-with-exact-sql-tests)
 - [Rules snippet for your agent file](#rules-snippet-for-your-agent-file)
 
@@ -4581,6 +4582,31 @@ dotnet_diagnostic.SQLA0002.severity = error
 The [analyzer reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
 covers the rules, per-construct overrides, mixed-dialect projects, and CI
 gates.
+
+## Keep the table classes in step with the database
+
+Table classes are what make an assistant's column names compile-checked, so a
+class that has fallen behind the schema quietly removes that check. The
+`SqlArtisan.TableClassGen` tool is fully argument-driven, which means an
+assistant can regenerate and verify them itself whenever a database is
+reachable (a `docker compose` development database, for example):
+
+```bash
+export SQLARTISAN_DB_PASSWORD=...
+
+# report drift; exits 1 when the committed classes are behind
+sa-tableclassgen --config tablegen.json --check
+
+# regenerate only the tables that drifted
+sa-tableclassgen --config tablegen.json --fix
+```
+
+Keeping the connection and output options in `tablegen.json` gives the
+assistant one invocation to remember, and the password stays in the
+environment rather than in a command it might echo. `--format json` returns
+the same report as data, and `--dry-run` shows what a run would write. See the
+[TableClassGen README](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md)
+for the full option list.
 
 ## Pin generated queries with exact-SQL tests
 
