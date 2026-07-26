@@ -51,7 +51,7 @@ internal sealed class TableClassGenService(ITableInfoRepository repository, RunO
 
             if (ShouldWrite(result.Status) && !options.DryRun)
             {
-                GeneratedFileWriter.Write(path, code);
+                WriteTableClass(path, code);
             }
         }
 
@@ -81,6 +81,18 @@ internal sealed class TableClassGenService(ITableInfoRepository repository, RunO
         }
 
         return tables;
+    }
+
+    private static void WriteTableClass(string path, string code)
+    {
+        string? directory = Path.GetDirectoryName(path);
+
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        File.WriteAllText(path, code);
     }
 
     private static TableResult Compare(DbTableInfo table, string path, string code)
