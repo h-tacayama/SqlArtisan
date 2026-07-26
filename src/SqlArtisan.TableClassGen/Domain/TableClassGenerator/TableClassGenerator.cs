@@ -25,11 +25,8 @@ internal sealed class TableResult(
     public IReadOnlyList<string> Changes => changes;
 }
 
-/// <summary>
-/// Generates, or compares against, the committed table classes. Comparison
-/// regenerates in memory and diffs against the files on disk — the classes are the
-/// only committed representation of the schema.
-/// </summary>
+// Comparison regenerates in memory and diffs against the files on disk: the
+// generated classes are the only committed representation of the schema.
 internal sealed class TableClassGenerator(ITableInfoRepository repository, RunOptions options)
 {
     private static readonly Regex ColumnPattern =

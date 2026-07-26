@@ -4,11 +4,8 @@ using System.Text.Json;
 
 namespace SqlArtisan.TableClassGen;
 
-/// <summary>
-/// Writes the run's outcome. Quiet by default — a summary line, plus the drift
-/// detail a caller has to act on — because the output is context every scripted
-/// caller carries.
-/// </summary>
+// Quiet by default — a summary line plus the drift detail a caller has to act on —
+// because this output is context every scripted caller carries.
 internal sealed class Reporter(RunOptions options)
 {
     public void Report(IReadOnlyList<TableResult> results)

@@ -17,7 +17,7 @@ internal sealed class CodeGenerationSettings(
 
     public string OutputDirectory => outputDirectory;
 
-    /// <summary>The tables to act on; empty means every table in the schema.</summary>
+    // Empty means every table in the schema.
     public IReadOnlyList<string> TableNames => tableNames ?? [];
 
     public string Accessibility => accessibility;
