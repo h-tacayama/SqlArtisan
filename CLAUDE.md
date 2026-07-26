@@ -70,7 +70,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests` + `Analyzers.Tests`). |
+| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`). |
 | `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests against 5 engines in parallel via Testcontainers. |
 | `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 3 NuGet packages. |
 

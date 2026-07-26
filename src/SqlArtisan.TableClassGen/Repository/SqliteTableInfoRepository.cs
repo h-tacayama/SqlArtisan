@@ -88,11 +88,11 @@ internal sealed class SqliteTableInfoRepository(
         List<DbColumnInfo> columns = [];
         foreach ((string Name, string Type, bool NotNull, bool HasDefault, int Pk) row in rows)
         {
-            // A lone INTEGER PRIMARY KEY aliases the rowid: the pragma reports it as
-            // nullable with no default, yet it never holds NULL and is auto-assigned.
-            // PRIMARY KEY DESC and WITHOUT ROWID look identical in table_info but are
-            // real keys, not aliases; both are told apart by their pk-origin index,
-            // which a genuine alias never has.
+            // A lone INTEGER PRIMARY KEY usually aliases the rowid — never NULL,
+            // auto-assigned — and table_info reports the spellings that are real keys
+            // identically. The discriminator is the pk-origin index a genuine alias
+            // never has, not the DESC or WITHOUT ROWID wording: PRIMARY KEY(id DESC)
+            // written as a table constraint is still an alias.
             bool isRowIdAlias = keyColumnCount == 1
                 && row.Pk == 1
                 && string.Equals(row.Type, "INTEGER", StringComparison.OrdinalIgnoreCase)

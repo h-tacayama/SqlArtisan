@@ -17,8 +17,9 @@ public sealed class DbColumnMetadataAttribute : Attribute
     public bool Nullable { get; init; }
 
     /// <summary>
-    /// Whether an <c>INSERT</c> may omit the column — it has a <c>DEFAULT</c>, or the
-    /// engine assigns it (identity, auto-increment, generated).
+    /// Whether the column has a <c>DEFAULT</c> or is assigned by the engine (identity,
+    /// auto-increment, generated) — what lets a <c>NOT NULL</c> column be omitted from
+    /// an <c>INSERT</c>.
     /// </summary>
     public bool HasDefault { get; init; }
 }
