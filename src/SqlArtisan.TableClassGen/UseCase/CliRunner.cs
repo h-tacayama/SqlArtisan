@@ -65,9 +65,11 @@ internal static class CliRunner
     private static int ExitCode(RunOptions options, IReadOnlyList<TableResult> results) =>
         options.Mode switch
         {
-            // A removed table's file is reported, never deleted, so --fix cannot
-            // clear that drift on its own.
             RunMode.Check => results.Any(r => r.Status != TableStatus.Unchanged) ? 1 : 0,
+            // A dry --fix fixed nothing, so any drift still stands; a real --fix
+            // clears all but removed-table files, which are reported, never deleted.
+            RunMode.Fix when options.DryRun =>
+                results.Any(r => r.Status != TableStatus.Unchanged) ? 1 : 0,
             RunMode.Fix => results.Any(r => r.Status == TableStatus.Removed) ? 1 : 0,
             _ => 0,
         };

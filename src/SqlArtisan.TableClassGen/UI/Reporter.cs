@@ -93,7 +93,9 @@ internal sealed class Reporter(RunOptions options)
         if (options.Mode == RunMode.Fix)
         {
             return removed.Count == 0
-                ? "All drifted tables were regenerated."
+                ? options.DryRun
+                    ? "Re-run without --dry-run to regenerate them."
+                    : "All drifted tables were regenerated."
                 : "Their tables are gone from the database; delete these files by hand:"
                     + Environment.NewLine
                     + Paths(removed);

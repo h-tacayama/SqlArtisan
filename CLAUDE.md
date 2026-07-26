@@ -27,7 +27,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`). |
 | `src/SqlArtisan/Internal/SqlPart/Keywords.cs` | All SQL keyword string constants. |
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
-| `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL (`SqlPart.Format`). |
+| `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`). Compile-time data, never rendered and never read at run time. |
 | `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0006). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
@@ -131,8 +131,9 @@ sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
   function nodes.
 - Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
   table-reference types under `src/SqlArtisan/SqlPart/TableReference/`,
-  `DbColumn`/`BindValue` under `src/SqlArtisan/SqlPart/Expression/`, and the
-  schema-metadata attributes under `src/SqlArtisan/Metadata/`. Types users must
+  `DbColumn`/`BindValue` under `src/SqlArtisan/SqlPart/Expression/`, the
+  function-argument enums under `src/SqlArtisan/SqlPart/FunctionArgument/`, and
+  the schema-metadata attributes under `src/SqlArtisan/Metadata/`. Types users must
   **name** in a declaration position (`SqlExpression`, `SqlCondition`,
   `ISubquery`, `SortOrder`, `ExpressionAlias`, `CommonTableExpression`,
   `DbSequence`) live in the root namespace. Everything under `Internal/` is

@@ -83,15 +83,20 @@ internal sealed class SqliteTableInfoRepository(
         }
 
         int keyColumnCount = rows.Count(r => r.Pk > 0);
+        bool hasPkIndex = HasPkOriginIndex(conn, tableName);
 
         List<DbColumnInfo> columns = [];
         foreach ((string Name, string Type, bool NotNull, bool HasDefault, int Pk) row in rows)
         {
             // A lone INTEGER PRIMARY KEY aliases the rowid: the pragma reports it as
             // nullable with no default, yet it never holds NULL and is auto-assigned.
+            // PRIMARY KEY DESC and WITHOUT ROWID look identical in table_info but are
+            // real keys, not aliases; both are told apart by their pk-origin index,
+            // which a genuine alias never has.
             bool isRowIdAlias = keyColumnCount == 1
                 && row.Pk == 1
-                && string.Equals(row.Type, "INTEGER", StringComparison.OrdinalIgnoreCase);
+                && string.Equals(row.Type, "INTEGER", StringComparison.OrdinalIgnoreCase)
+                && !hasPkIndex;
 
             columns.Add(new DbColumnInfo(
                 row.Name,
@@ -102,6 +107,16 @@ internal sealed class SqliteTableInfoRepository(
 
         table = new DbTableInfo(tableName, columns);
         return true;
+    }
+
+    private static bool HasPkOriginIndex(IDbConnection conn, string tableName)
+    {
+        using IDbCommand command = conn.CreateCommand();
+        command.CommandText =
+            "SELECT COUNT(*) FROM pragma_index_list(@table) WHERE origin = 'pk'";
+        AddParameter(command, "@table", tableName);
+
+        return Convert.ToInt64(command.ExecuteScalar()) > 0;
     }
 
     private string NormalizeName(string name) =>

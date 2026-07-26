@@ -20,4 +20,40 @@ public class CliRunnerTests
 
         Assert.Equal(2, CliRunner.Run([]));
     }
+
+    // A dry --fix regenerates nothing, so drift must still exit 1 — reporting
+    // "fixed" via exit 0 would let a scripted caller skip the real run.
+    [Fact]
+    public void Run_FixDryRunWithDrift_ExitsOne()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT);");
+        string outputDirectory = Path.Combine(
+            Path.GetTempPath(), $"sqlartisan_tcg_cli_{Guid.NewGuid():N}");
+
+        try
+        {
+            string[] args =
+            [
+                "--dbms", "sqlite", "--file", db.ConnectionInfo.ServiceName,
+                "--namespace", "N", "--output", outputDirectory,
+            ];
+
+            Assert.Equal(0, CliRunner.Run(args));
+
+            db.Execute("ALTER TABLE item ADD COLUMN note TEXT");
+
+            Assert.Equal(1, CliRunner.Run([.. args, "--fix", "--dry-run"]));
+            Assert.Equal(1, CliRunner.Run([.. args, "--check"]));
+            Assert.Equal(0, CliRunner.Run([.. args, "--fix"]));
+            Assert.Equal(0, CliRunner.Run([.. args, "--check"]));
+        }
+        finally
+        {
+            if (Directory.Exists(outputDirectory))
+            {
+                Directory.Delete(outputDirectory, recursive: true);
+            }
+        }
+    }
 }
