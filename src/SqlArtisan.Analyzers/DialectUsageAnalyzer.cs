@@ -37,6 +37,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
         DiagnosticDescriptors.ConstantNullPredicate,
         DiagnosticDescriptors.NotInNullableSubquery,
+        DiagnosticDescriptors.InsertMissingRequiredColumn,
         DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
@@ -55,6 +56,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeCorrelatedDml, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeSchemaNullability, OperationKind.PropertyReference);
         context.RegisterOperationAction(AnalyzeNotInSubquery, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeInsertColumns, OperationKind.Invocation);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -220,6 +222,28 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         NotInNullableSubqueryRule.Check(context, invocation);
+    }
+
+    // Only the explicit-column-list overload: the positional form supplies every
+    // column by construction, and InsertIgnoreInto asked for failures to be
+    // skipped, which is what omitting a required column would produce.
+    private static void AnalyzeInsertColumns(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (invocation.TargetMethod.Name != "InsertInto"
+            || invocation.Arguments.Length != 2
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        InsertMissingRequiredColumnRule.Check(context, invocation);
     }
 
     // Both DML heads (#256) — the static Sql members and the WithBuilder instance

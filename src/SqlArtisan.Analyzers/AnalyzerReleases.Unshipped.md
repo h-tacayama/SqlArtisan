@@ -13,3 +13,4 @@ SQLA0005 | SqlArtisan.Dialect | Warning | A correlated UPDATE or DELETE has an u
 SQLA0006 | SqlArtisan.Dialect | Warning | A SQL identifier literal exceeds the target dialect's identifier-length limit.
 SQLA0007 | SqlArtisan.Dialect | Warning | IS NULL / IS NOT NULL on a column the generated table class declares NOT NULL, so the predicate is constant.
 SQLA0008 | SqlArtisan.Dialect | Warning | NOT IN over a subquery whose selected column is nullable, which matches no rows at all when the subquery yields a NULL.
+SQLA0009 | SqlArtisan.Dialect | Warning | An INSERT column list omits a column the generated table class declares NOT NULL with no default.

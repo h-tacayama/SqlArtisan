@@ -93,6 +93,18 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
+    // Names no dialect, though MySQL outside strict mode substitutes an implicit
+    // default instead of failing — a docs caveat, not a reason to stay silent
+    // where the same statement is rejected everywhere else.
+    public static readonly DiagnosticDescriptor InsertMissingRequiredColumn = new(
+        id: "SQLA0009",
+        title: "INSERT omits a column that is NOT NULL with no default",
+        messageFormat: "'{0}' is NOT NULL with no default and is missing from this INSERT's column list",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
     public static readonly DiagnosticDescriptor IdentifierTooLong = new(
         id: "SQLA0006",
         title: "SQL identifier exceeds the dialect's length limit",

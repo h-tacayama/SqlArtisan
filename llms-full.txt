@@ -3049,6 +3049,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0006` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
 | `SQLA0007` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0008` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0009` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 
 `SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
@@ -3441,6 +3442,27 @@ Reach for `NOT EXISTS` instead, or filter the NULLs out of the subquery
 (`.Where(s.Ref.IsNotNull)`). `IN` is unaffected — there a NULL merely fails to
 match — so only `NOT IN` is reported.
 
+The third is a row the engine cannot construct: an `INSERT` whose column list
+leaves out a column that is `NOT NULL` and has no default.
+
+```csharp
+var sql = InsertInto(t, t.Note).Values("x").Build();
+// warning SQLA0009: 'Code' is NOT NULL with no default and is missing from
+// this INSERT's column list
+```
+
+A column the engine assigns itself — identity, auto-increment, generated, or
+one with a `DEFAULT` — is recorded as defaulted and never reported; omitting it
+is the normal thing to do. Only the explicit-column-list form is checked: the
+positional `InsertInto(t).Values(...)` supplies every column by construction,
+and `InsertIgnoreInto` asked for error-raising rows to be skipped.
+
+> **MySQL caveat.** Outside strict mode MySQL does not reject this statement —
+> it substitutes an implicit default (`0`, `''`) and warns. `STRICT_TRANS_TABLES`
+> is on by default from MySQL 5.7, so the warning matches what the default
+> configuration does; on a non-strict server, read it as flagging a column that
+> will silently receive an implicit default rather than the value you meant.
+
 **Both are silent unless the fact was recorded.** An attribute the generator
 never wrote, a fact it could not determine (an absent named argument), a
 hand-written table class, or a column reached through
@@ -3448,7 +3470,9 @@ hand-written table class, or a column reached through
 all produce nothing. Regenerate your table classes to opt in; nothing else
 changes. `SQLA0008` additionally reads only a select list it can see: a
 subquery held in a variable, or one selecting anything other than a single
-column, is left alone.
+column, is left alone. `SQLA0009` skips a statement whose column list it cannot
+read in full — a column array built elsewhere — since a column it failed to
+read would otherwise look omitted.
 
 Like every rule here, it stays silent until `sqlartisan_target_dbms` is set,
 even though the verdict itself is dialect-independent. Suppression is per rule
