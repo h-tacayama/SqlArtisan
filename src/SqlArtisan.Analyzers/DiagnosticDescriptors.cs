@@ -105,6 +105,18 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
+    // The only rule here that reports correct code — counting non-NULL values is a
+    // real intent — so it is off until asked for, and Info rather than Warning when
+    // a category-wide severity turns it on.
+    public static readonly DiagnosticDescriptor CountNullableColumn = new(
+        id: "SQLA0010",
+        title: "COUNT of a nullable column counts values, not rows",
+        messageFormat: "'{0}' is nullable, so this COUNT skips its NULL rows. Use Count(Asterisk) to count rows.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Info,
+        isEnabledByDefault: false,
+        helpLinkUri: HelpLinkUri);
+
     public static readonly DiagnosticDescriptor IdentifierTooLong = new(
         id: "SQLA0006",
         title: "SQL identifier exceeds the dialect's length limit",

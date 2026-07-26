@@ -38,6 +38,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.ConstantNullPredicate,
         DiagnosticDescriptors.NotInNullableSubquery,
         DiagnosticDescriptors.InsertMissingRequiredColumn,
+        DiagnosticDescriptors.CountNullableColumn,
         DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
@@ -57,6 +58,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeSchemaNullability, OperationKind.PropertyReference);
         context.RegisterOperationAction(AnalyzeNotInSubquery, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeInsertColumns, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeCountArgument, OperationKind.Invocation);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -244,6 +246,28 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         InsertMissingRequiredColumnRule.Check(context, invocation);
+    }
+
+    // Count(Asterisk) shares the arity, and COUNT(DISTINCT col) is asking for
+    // values by construction, so only the plain object overload is a candidate.
+    private static void AnalyzeCountArgument(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (invocation.TargetMethod.Name != "Count"
+            || invocation.Arguments.Length != 1
+            || invocation.TargetMethod.Parameters[0].Type.SpecialType != SpecialType.System_Object
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        CountNullableColumnRule.Check(context, invocation);
     }
 
     // Both DML heads (#256) — the static Sql members and the WithBuilder instance

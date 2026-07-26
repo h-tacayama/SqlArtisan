@@ -29,7 +29,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`). Compile-time data, never rendered and never read at run time. |
-| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0009). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0010). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
 | `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..W}.cs` mirror `Sql.{A..W}.cs`. |
@@ -93,7 +93,7 @@ OrderedSetAggregate, Sequence, StringAggregate.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships nine diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships ten diagnostics:
 
 - **SQLA0001** — Invalid analyzer configuration (unrecognized `.editorconfig`
   value).
@@ -112,8 +112,10 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships nine diagnostics:
   NULL and the query matches nothing.
 - **SQLA0009** — `INSERT` column list omitting a NOT NULL column with no
   default.
+- **SQLA0010** — `Count(col)` on a nullable column, which counts values rather
+  than rows. Advice on correct code, so it is Info and off by default.
 
-SQLA0007–0009 read the `DbColumnMetadata` attributes TableClassGen emits;
+SQLA0007–0010 read the `DbColumnMetadata` attributes TableClassGen emits;
 absence of a fact is silence.
 
 The analyzer is bundled inside the main `SqlArtisan` NuGet package (not

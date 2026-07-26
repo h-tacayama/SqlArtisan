@@ -3050,6 +3050,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0007` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Silent in any statement with an outer join, where the anti-join makes exactly this predicate meaningful — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0008` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0009` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0010` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 
 `SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
@@ -3471,7 +3472,26 @@ and `InsertIgnoreInto` asked for error-raising rows to be skipped.
 > configuration does; on a non-strict server, read it as flagging a column that
 > will silently receive an implicit default rather than the value you meant.
 
-**All three are silent unless the fact was recorded.** An attribute the generator
+The fourth is not a mistake at all, which is why it ships switched off.
+`COUNT(column)` counts the rows where that column is not NULL — correct SQL, and
+sometimes exactly what you meant, but a surprise when you wanted the row count:
+
+```ini
+[*.cs]
+dotnet_diagnostic.SQLA0010.severity = suggestion
+```
+
+```csharp
+var sql = Select(Count(t.Note)).From(t).Build();   // t.Note is nullable
+// info SQLA0010: 'Note' is nullable, so this COUNT skips its NULL rows.
+// Use Count(Asterisk) to count rows.
+```
+
+Only the plain `Count(expr)` form is considered: `Count(Asterisk)` counts rows
+already, and `Count(Distinct, expr)` asks for distinct values, which `COUNT(*)`
+cannot give. A `NOT NULL` column counts rows either way and is never reported.
+
+**All four are silent unless the fact was recorded.** An attribute the generator
 never wrote, a fact it could not determine (an absent named argument), a
 hand-written table class, or a column reached through
 `new DbTable("t").Column("x")` — which has no declaration to carry metadata —
