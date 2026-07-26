@@ -3,6 +3,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using Npgsql;
+using Oracle.ManagedDataAccess.Client;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.TableClassGen;
 
@@ -122,6 +123,36 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
     }
 }
 
+[Trait("Engine", "Oracle")]
+public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
+{
+    private readonly OracleFixture _fixture;
+
+    public OracleTableClassGenTests(OracleFixture fixture) => _fixture = fixture;
+
+    // Oracle reads ALL_TAB_COLUMNS rather than information_schema, so its column
+    // order and its NULLABLE mapping are only proven here.
+    [Fact]
+    public void GenerateTables_Oracle_ExtractsSeededSchema()
+    {
+        OracleConnectionStringBuilder builder = new(_fixture.ConnectionString);
+        string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
+
+        DbConnectionInfo connInfo = new(
+            DbmsType.Oracle,
+            dataSource[0],
+            dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1521,
+            dataSource.Length > 2 ? dataSource[2] : "XEPDB1",
+            builder.UserID,
+            builder.UserID,
+            builder.Password);
+
+        OracleTableInfoRepository repository = new(connInfo, lowercaseNames: true);
+
+        TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+    }
+}
+
 internal static class TableClassGenAssertions
 {
     // The seeded schema (TestSchema): `users` and `orders`. SQL Server's master db
@@ -134,6 +165,15 @@ internal static class TableClassGenAssertions
             users.Columns.Select(c => c.Name.ToLowerInvariant()));
         Assert.Equal("UsersTable", users.ClassName);
 
+        // The metadata #266 reasons over, proven per engine rather than assumed:
+        // the primary key is NOT NULL on every engine, and a plain column is not.
+        Assert.False(Column(users, "id").IsNullable);
+        Assert.True(Column(users, "name").IsNullable);
+
+        // No column of the seeded schema has a DEFAULT, and an absent default is
+        // unknown here — an identity column reports none either.
+        Assert.All(users.Columns, c => Assert.Null(c.HasDefault));
+
         DbTableInfo orders = Find(tables, "orders");
         Assert.Equal(
             ["id", "user_id", "amount"],
@@ -142,4 +182,7 @@ internal static class TableClassGenAssertions
 
     private static DbTableInfo Find(IReadOnlyList<DbTableInfo> tables, string name) =>
         tables.Single(t => string.Equals(t.TableName, name, StringComparison.OrdinalIgnoreCase));
+
+    private static DbColumnInfo Column(DbTableInfo table, string name) =>
+        table.Columns.Single(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase));
 }

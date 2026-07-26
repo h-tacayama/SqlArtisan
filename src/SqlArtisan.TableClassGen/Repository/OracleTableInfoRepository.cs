@@ -69,14 +69,19 @@ internal sealed class OracleTableInfoRepository(
 
         AllTabColumns atc = new();
 
+        // DATA_DEFAULT is deliberately not read: it is a LONG, whose retrieval needs
+        // provider-specific handling, and identity columns carry their own flag — so
+        // HasDefault stays unknown here until both are verified against a live engine.
         ISqlBuilder sql =
             Select(
                 atc.ColumnName,
-                atc.DataType)
+                atc.DataType,
+                atc.Nullable)
             .From(atc)
             .Where(
                 atc.Owner == _connInfo.Schema.ToUpper()
-                & atc.TableName == tableName.ToUpper());
+                & atc.TableName == tableName.ToUpper())
+            .OrderBy(atc.ColumnId);
 
         List<DbColumnInfo> columns = [];
 
@@ -88,7 +93,10 @@ internal sealed class OracleTableInfoRepository(
                     ? reader.GetString(0).ToLower()
                     : reader.GetString(0);
                 string dataType = reader.GetString(1);
-                columns.Add(new DbColumnInfo(columnName, dataType));
+                columns.Add(new DbColumnInfo(
+                    columnName,
+                    dataType,
+                    isNullable: ReadIsNullable(reader, 2)));
             }
         }
 
@@ -100,10 +108,16 @@ internal sealed class OracleTableInfoRepository(
         table = new DbTableInfo(_lowercaseNames
             ? tableName.ToLower()
             : tableName.ToUpper(),
-            columns);
+            columns,
+            _connInfo.Schema.ToUpper());
 
         return true;
     }
+
+    private static bool? ReadIsNullable(IDataReader reader, int ordinal) =>
+        reader.IsDBNull(ordinal)
+            ? null
+            : string.Equals(reader.GetString(ordinal), "Y", StringComparison.OrdinalIgnoreCase);
 
     private bool ExistsTable(IDbConnection conn, string tableName)
     {

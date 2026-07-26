@@ -9,6 +9,7 @@ internal sealed class AllTabColumns : DbTableBase
         ColumnName = new DbColumn(this, "column_name");
         DataType = new DbColumn(this, "data_type");
         ColumnId = new DbColumn(this, "column_id");
+        Nullable = new DbColumn(this, "nullable");
     }
 
     public DbColumn Owner { get; }
@@ -20,4 +21,6 @@ internal sealed class AllTabColumns : DbTableBase
     public DbColumn DataType { get; }
 
     public DbColumn ColumnId { get; }
+
+    public DbColumn Nullable { get; }
 }

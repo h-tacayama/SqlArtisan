@@ -206,7 +206,7 @@ dotnet add package SqlArtisan.ArrayBind # optional: Oracle array-bind execution
 
     **Alternative: Manual Execution**
 
-    Not using Dapper? Call `Build()` to get the SQL string and its parameters for raw ADO.NET, another micro-ORM, or debugging. `Build()` takes an optional `Dbms` (default `PostgreSql`) that sets dialect details like the parameter prefix (`:` vs `@`).
+    Not using Dapper? Call `Build()` to get the SQL string and its parameters for raw ADO.NET, another micro-ORM, or debugging. `Build()` takes an optional `Dbms` (default `PostgreSql`) that sets dialect details like the parameter prefix.
 
     ```csharp
     SqlStatement sql = Select(u.Id, u.Name).From(u).Where(u.Id == 10).Build();
@@ -214,7 +214,7 @@ dotnet add package SqlArtisan.ArrayBind # optional: Oracle array-bind execution
     // sql.Parameters => ":0" is 10
     ```
 
-    **Note:** the same rule applies — a builder is single-use, so calling `Build()` again on that instance throws. Rebuild the chain per call rather than holding a partial one across calls.
+    **Note:** the single-use rule above applies here too — calling `Build()` twice on the same instance throws.
 
 ---
 
@@ -222,9 +222,8 @@ dotnet add package SqlArtisan.ArrayBind # optional: Oracle array-bind execution
 
 ### Setting the Default DBMS
 
-As shown in the Quick Start, the `Build()` method can accept a `Dbms` argument. However, its default is PostgreSQL. To avoid specifying the DBMS in every call, you can set a global default once at application startup.
+`Build()`'s `Dbms` argument defaults to PostgreSQL. Set a global default once at startup instead of passing it in every call.
 
-**Example:**
 ```csharp
 // At application startup
 SqlArtisanConfig.SetDefaultDbms(Dbms.SqlServer);
@@ -253,7 +252,7 @@ NextValueFor("users_id_seq")       // SQL Server:  NEXT VALUE FOR users_id_seq
 
 So **cross-database portability is a deliberate non-goal**: target Oracle and you write Oracle SQL; target PostgreSQL and you write PostgreSQL SQL. You trade portability for fidelity — the full power of your database's SQL, never flattened to a lowest common denominator.
 
-Faithful emission is the foundation of a broader mission: SqlArtisan is a deterministic guard rail for SQL written alongside AI. The type system, the analyzer, exact-SQL unit tests, and the live-engine integration matrix form a ladder of deterministic verification — each layer rests on the one below. See [Why SqlArtisan?](#why-sqlartisan) for the full stack.
+Faithful emission is the foundation of a broader mission: SqlArtisan is a deterministic guard rail for SQL written alongside AI, where each verification layer rests on the one below. See [Why SqlArtisan?](#why-sqlartisan) for the full stack.
 
 ---
 
@@ -1141,7 +1140,7 @@ SqlStatement sql =
 
 **Note:** SqlArtisan's `Set()` method uses `Column == Value` for SQL-like assignment, unlike standard C# `==` (comparison). In `Where()` clauses, `==` is used for comparison as expected.
 
-**Dialect note:** As with `DELETE`, on SQL Server the `UPDATE` target cannot be aliased — pass an unaliased table; building an aliased target for SQL Server throws. MySQL, Oracle, PostgreSQL, and SQLite accept an aliased target.
+**Dialect note:** As with `DELETE`, on SQL Server the `UPDATE` target cannot be aliased — pass an unaliased table; building an aliased target for SQL Server throws.
 
 ### Correlated UPDATE / DELETE
 
@@ -4525,6 +4524,7 @@ This page is the setup that makes those checks bite.
 
 - [Feed the assistant the reference](#feed-the-assistant-the-reference)
 - [Configure the analyzer target](#configure-the-analyzer-target)
+- [Keep the table classes in step with the database](#keep-the-table-classes-in-step-with-the-database)
 - [Pin generated queries with exact-SQL tests](#pin-generated-queries-with-exact-sql-tests)
 - [Rules snippet for your agent file](#rules-snippet-for-your-agent-file)
 
@@ -4581,6 +4581,31 @@ dotnet_diagnostic.SQLA0002.severity = error
 The [analyzer reference](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)
 covers the rules, per-construct overrides, mixed-dialect projects, and CI
 gates.
+
+## Keep the table classes in step with the database
+
+Table classes are what make an assistant's column names compile-checked, so a
+class that has fallen behind the schema quietly removes that check. The
+`SqlArtisan.TableClassGen` tool is fully argument-driven, which means an
+assistant can regenerate and verify them itself whenever a database is
+reachable (a `docker compose` development database, for example):
+
+```bash
+export SQLARTISAN_DB_PASSWORD=...
+
+# report drift; exits 1 when the committed classes are behind
+sa-tableclassgen --config tablegen.json --check
+
+# regenerate only the tables that drifted
+sa-tableclassgen --config tablegen.json --fix
+```
+
+Keeping the connection and output options in `tablegen.json` gives the
+assistant one invocation to remember, and the password stays in the
+environment rather than in a command it might echo. `--format json` returns
+the same report as data. See the
+[TableClassGen README](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.TableClassGen/README.md)
+for the full option list.
 
 ## Pin generated queries with exact-SQL tests
 

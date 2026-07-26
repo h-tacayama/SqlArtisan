@@ -58,28 +58,65 @@ internal sealed class SqliteTableInfoRepository(
     {
         table = null;
 
-        List<DbColumnInfo> columns = [];
+        List<(string Name, string Type, bool NotNull, bool HasDefault, int Pk)> rows = [];
         using (IDbCommand command = conn.CreateCommand())
         {
-            command.CommandText = "SELECT name, type FROM pragma_table_info(@table)";
+            command.CommandText =
+                "SELECT name, type, \"notnull\", dflt_value, pk FROM pragma_table_info(@table)";
             AddParameter(command, "@table", tableName);
 
             using IDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                string columnName = NormalizeName(reader.GetString(0));
-                string dataType = reader.GetString(1);
-                columns.Add(new DbColumnInfo(columnName, dataType));
+                rows.Add((
+                    NormalizeName(reader.GetString(0)),
+                    reader.GetString(1),
+                    reader.GetInt32(2) != 0,
+                    !reader.IsDBNull(3),
+                    reader.GetInt32(4)));
             }
         }
 
-        if (columns.Count == 0)
+        if (rows.Count == 0)
         {
             return false;
         }
 
+        int keyColumnCount = rows.Count(r => r.Pk > 0);
+        bool hasPkIndex = HasPkOriginIndex(conn, tableName);
+
+        List<DbColumnInfo> columns = [];
+        foreach ((string Name, string Type, bool NotNull, bool HasDefault, int Pk) row in rows)
+        {
+            // A lone INTEGER PRIMARY KEY usually aliases the rowid — never NULL,
+            // auto-assigned — and table_info reports the spellings that are real keys
+            // identically. The discriminator is the pk-origin index a genuine alias
+            // never has, not the DESC or WITHOUT ROWID wording: PRIMARY KEY(id DESC)
+            // written as a table constraint is still an alias.
+            bool isRowIdAlias = keyColumnCount == 1
+                && row.Pk == 1
+                && string.Equals(row.Type, "INTEGER", StringComparison.OrdinalIgnoreCase)
+                && !hasPkIndex;
+
+            columns.Add(new DbColumnInfo(
+                row.Name,
+                row.Type,
+                isNullable: !isRowIdAlias && !row.NotNull,
+                hasDefault: isRowIdAlias || row.HasDefault));
+        }
+
         table = new DbTableInfo(tableName, columns);
         return true;
+    }
+
+    private static bool HasPkOriginIndex(IDbConnection conn, string tableName)
+    {
+        using IDbCommand command = conn.CreateCommand();
+        command.CommandText =
+            "SELECT COUNT(*) FROM pragma_index_list(@table) WHERE origin = 'pk'";
+        AddParameter(command, "@table", tableName);
+
+        return Convert.ToInt64(command.ExecuteScalar()) > 0;
     }
 
     private string NormalizeName(string name) =>

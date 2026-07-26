@@ -110,16 +110,13 @@ internal sealed class ConsoleUI
 
         Console.Write("Specific table name (leave empty for all tables): ");
         string specificTableName = Console.ReadLine() ?? string.Empty;
-        specificTableName = string.IsNullOrWhiteSpace(specificTableName)
-            ? string.Empty
-            : specificTableName;
 
         return new CodeGenerationSettings(
             @namespace,
             lowercaseNames,
             outputDirectory,
             createSubFolders,
-            specificTableName);
+            string.IsNullOrWhiteSpace(specificTableName) ? [] : [specificTableName.Trim()]);
     }
 
     private static DbmsType ParseDatabaseType(string dbTypeInput)

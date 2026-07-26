@@ -74,6 +74,115 @@ public class SqliteTableInfoRepositoryTests
     }
 
     [Fact]
+    public void GetAllTables_CollectsNullabilityAndDefaults()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE item (
+                code TEXT NOT NULL,
+                note TEXT,
+                qty INTEGER NOT NULL DEFAULT 0);
+            """);
+
+        DbTableInfo table = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([false, true, false], table.Columns.Select(c => c.IsNullable));
+        Assert.Equal([false, false, true], table.Columns.Select(c => c.HasDefault));
+    }
+
+    [Fact]
+    public void GetAllTables_RowIdAlias_IsNotNullableAndDefaulted()
+    {
+        // The pragma reports a lone INTEGER PRIMARY KEY as nullable with no default,
+        // though it never holds NULL and is auto-assigned.
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT NOT NULL);");
+
+        DbTableInfo table = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        DbColumnInfo id = table.Columns[0];
+        Assert.False(id.IsNullable);
+        Assert.True(id.HasDefault);
+    }
+
+    [Fact]
+    public void GetAllTables_CompositeKey_IsNotTreatedAsRowIdAlias()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE pair (a INTEGER NOT NULL, b INTEGER NOT NULL, PRIMARY KEY (a, b));");
+
+        DbTableInfo table = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([false, false], table.Columns.Select(c => c.HasDefault));
+    }
+
+    // INTEGER PRIMARY KEY DESC is a real key, not a rowid alias: it accepts NULL and
+    // nothing is auto-assigned, though table_info reports it identically to an alias.
+    [Fact]
+    public void GetAllTables_DescendingIntegerKey_IsNotTreatedAsRowIdAlias()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE item (id INTEGER PRIMARY KEY DESC, name TEXT);");
+
+        DbColumnInfo id = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables())
+            .Columns[0];
+
+        Assert.True(id.IsNullable);
+        Assert.False(id.HasDefault);
+    }
+
+    [Fact]
+    public void GetAllTables_WithoutRowId_KeyIsNotNullableAndNotDefaulted()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT) WITHOUT ROWID;");
+
+        DbColumnInfo id = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables())
+            .Columns[0];
+
+        Assert.False(id.IsNullable);
+        Assert.False(id.HasDefault);
+    }
+
+    [Fact]
+    public void GetAllTables_WithoutRowIdCompositeKey_KeyColumnsAreNotNullable()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE pair (a TEXT, b TEXT, c TEXT, PRIMARY KEY (a, b)) WITHOUT ROWID;");
+
+        DbTableInfo table = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([false, false, true], table.Columns.Select(c => c.IsNullable));
+    }
+
+    [Fact]
+    public void GetAllTables_TextSingleKey_IsNotTreatedAsRowIdAlias()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE item (code TEXT NOT NULL PRIMARY KEY, name TEXT);");
+
+        DbColumnInfo code = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables())
+            .Columns[0];
+
+        Assert.False(code.IsNullable);
+        Assert.False(code.HasDefault);
+    }
+
+    [Fact]
     public void GeneratedCode_Compiles()
     {
         using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
@@ -83,6 +192,6 @@ public class SqliteTableInfoRepositoryTests
                 .GetAllTables();
 
         GeneratedCodeCompiler.AssertCompiles(
-            tables.Select(t => t.GenerateCode("Generated.Tables")));
+            tables.Select(t => t.GenerateCode(TestSettings.Create())));
     }
 }

@@ -10,6 +10,8 @@ internal sealed class InformationSchemaColumns : DbTableBase
         ColumnName = new DbColumn(this, "column_name");
         OrdinalPosition = new DbColumn(this, "ordinal_position");
         DataType = new DbColumn(this, "data_type");
+        IsNullable = new DbColumn(this, "is_nullable");
+        ColumnDefault = new DbColumn(this, "column_default");
     }
 
     public DbColumn TableSchema { get; }
@@ -21,4 +23,8 @@ internal sealed class InformationSchemaColumns : DbTableBase
     public DbColumn OrdinalPosition { get; }
 
     public DbColumn DataType { get; }
+
+    public DbColumn IsNullable { get; }
+
+    public DbColumn ColumnDefault { get; }
 }

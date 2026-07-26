@@ -27,10 +27,11 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`). |
 | `src/SqlArtisan/Internal/SqlPart/Keywords.cs` | All SQL keyword string constants. |
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
-| `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. |
+| `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
+| `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`). Compile-time data, never rendered and never read at run time. |
 | `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0006). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
-| `src/SqlArtisan.TableClassGen/` | Console tool that generates table classes from a live DB (Oracle/PgSql). |
+| `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
 | `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..W}.cs` mirror `Sql.{A..W}.cs`. |
 | `tests/SqlArtisan.Analyzers.Tests/` | Analyzer unit tests (matrix coverage/integrity, config resolution, diagnostic verification). |
 | `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests via Testcontainers (MySql, Oracle, PostgreSql, SqlServer, Sqlite). |
@@ -69,7 +70,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests` + `Analyzers.Tests`). |
+| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`). |
 | `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests against 5 engines in parallel via Testcontainers. |
 | `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 3 NuGet packages. |
 
@@ -129,8 +130,10 @@ sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
 - Keep DBMS-specific syntax inside `DbmsDialect`; never branch on `Dbms` inside
   function nodes.
 - Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
-  table-reference types under `src/SqlArtisan/SqlPart/TableReference/`, and
-  `DbColumn`/`BindValue` under `src/SqlArtisan/SqlPart/Expression/`. Types users must
+  table-reference types under `src/SqlArtisan/SqlPart/TableReference/`,
+  `DbColumn`/`BindValue` under `src/SqlArtisan/SqlPart/Expression/`, the
+  function-argument enums under `src/SqlArtisan/SqlPart/FunctionArgument/`, and
+  the schema-metadata attributes under `src/SqlArtisan/Metadata/`. Types users must
   **name** in a declaration position (`SqlExpression`, `SqlCondition`,
   `ISubquery`, `SortOrder`, `ExpressionAlias`, `CommonTableExpression`,
   `DbSequence`) live in the root namespace. Everything under `Internal/` is

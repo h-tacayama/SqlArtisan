@@ -44,6 +44,15 @@ internal sealed class TempSqliteDatabase : IDisposable
         return db;
     }
 
+    public void Execute(string ddl)
+    {
+        using SqliteConnection connection = new($"Data Source={_path}");
+        connection.Open();
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = ddl;
+        command.ExecuteNonQuery();
+    }
+
     public void Dispose()
     {
         SqliteConnection.ClearAllPools();
