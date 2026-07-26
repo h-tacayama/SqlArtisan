@@ -24,8 +24,12 @@ internal static class CountNullableColumnRule
             argument = conversion.Operand;
         }
 
+        // Past an outer join, counting the column is how you count matched rows —
+        // COUNT(*) counts the unmatched ones too, so the advice would be wrong.
         if (argument is not IPropertyReferenceOperation column
-            || SchemaMetadata.Fact(column, SchemaMetadata.NullableArgument) is not true)
+            || SchemaMetadata.Fact(column, SchemaMetadata.NullableArgument) is not true
+            || !FluentChain.HasVisibleStatementHead(count)
+            || FluentChain.HasOuterJoin(count))
         {
             return;
         }

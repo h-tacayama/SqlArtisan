@@ -3047,7 +3047,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0004` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0004). |
 | `SQLA0005` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0005). |
 | `SQLA0006` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
-| `SQLA0007` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Silent in any statement with an outer join, where the anti-join makes exactly this predicate meaningful — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0007` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0008` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0009` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0010` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
@@ -3425,12 +3425,23 @@ var sql = Select(t.Code).From(t).Where(t.Code.IsNull).Build();
 Neither is a dialect fact: the column's own declaration decides it on every
 engine.
 
-A statement containing an **outer join** is never reported: past a
-`LeftJoin` / `RightJoin` / `FullJoin` (or a lateral / `OuterApply` form), a
-NOT NULL column is legitimately NULL on the null-supplied side, and
-`.Where(r.Id.IsNull)` after a `LeftJoin` is the idiomatic anti-join. The rule
-does not work out which side the join null-supplies — any outer join in the
-statement silences it, trading missed warnings for none that are wrong.
+Past an **outer join** a NOT NULL column is legitimately NULL on the
+null-supplied side, and `.Where(r.Id.IsNull)` after a `LeftJoin` is the
+idiomatic anti-join — so the rule reports only where it can see there is no
+such join. That takes two conditions, both required:
+
+- The statement contains **no outer join** — no `LeftJoin`, `RightJoin`,
+  `FullJoin`, `NaturalLeftJoin`, `NaturalRightJoin`, `NaturalFullJoin`,
+  `LeftJoinLateral`, or `OuterApply`. Which side a join null-supplies is not
+  worked out; any one of them silences the statement. (`InnerJoin` and
+  `NaturalJoin` null-supply nothing and are not on the list.)
+- The statement **builds its own query** — the chain starts at `Select` /
+  `Update` / `DeleteFrom` / `MergeInto` / `With` right there. A chain held in a
+  variable, returned by a helper method, or kept in a field is left alone: the
+  join that would decide the answer is somewhere this rule cannot read.
+
+The trade is deliberate — the rule misses real constant predicates in order not
+to call a working anti-join a mistake.
 
 The second is SQL's oldest trap. `NOT IN` over a subquery is not "none of
 these" when the subquery can yield a NULL — the comparison becomes NULL for
@@ -3451,8 +3462,10 @@ adding `.Where(s.Ref.IsNotNull)` also silences the warning. `IN` is
 unaffected — there a NULL merely fails to match — so only `NOT IN` is
 reported.
 
-The third is a row the engine cannot construct: an `INSERT` whose column list
-leaves out a column that is `NOT NULL` and has no default.
+The third is a row the engine rejects: an `INSERT` whose column list leaves out
+a column that is `NOT NULL` and has no default. What the catalog cannot show is
+a `BEFORE INSERT` trigger that fills the column in — where one exists, the
+statement is valid and the warning is a false alarm to suppress.
 
 ```csharp
 var sql = InsertInto(t, t.Note).Values("x").Build();
@@ -3474,7 +3487,9 @@ and `InsertIgnoreInto` asked for error-raising rows to be skipped.
 
 The fourth is not a mistake at all, which is why it ships switched off.
 `COUNT(column)` counts the rows where that column is not NULL — correct SQL, and
-sometimes exactly what you meant, but a surprise when you wanted the row count:
+sometimes exactly what you meant, but a surprise when you wanted the row count.
+Name it explicitly to turn it on; a category-wide severity does not reach a
+rule that is disabled by default:
 
 ```ini
 [*.cs]
@@ -3487,9 +3502,17 @@ var sql = Select(Count(t.Note)).From(t).Build();   // t.Note is nullable
 // Use Count(Asterisk) to count rows.
 ```
 
+At `suggestion` this appears in the IDE and in a SARIF log, but **not** in
+`dotnet build` output at any verbosity — a plain build prints nothing below
+warning level. Use `dotnet_diagnostic.SQLA0010.severity = warning` to see it in
+a build or in CI.
+
 Only the plain `Count(expr)` form is considered: `Count(Asterisk)` counts rows
 already, and `Count(Distinct, expr)` asks for distinct values, which `COUNT(*)`
-cannot give. A `NOT NULL` column counts rows either way and is never reported.
+cannot give. Like `SQLA0007` it stays out of any statement with an outer join,
+where counting the column is precisely how you count the matched rows and
+`COUNT(*)` would count the unmatched ones too — the same reason a `NOT NULL`
+column is never reported in a plain query, where it and `COUNT(*)` agree.
 
 **All four are silent unless the fact was recorded.** An attribute the generator
 never wrote, a fact it could not determine (an absent named argument), a
@@ -3608,10 +3631,11 @@ for, not a bug in the matrix.
   way. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
-- **`SQLA0005` needs a configured target too.** The correlated-DML mistake
-  it reports is dialect-independent, but the analyzer as a whole stays
-  silent until `sqlartisan_target_dbms` is set — without a target, the
-  `Build()` guard is the only report.
+- **The dialect-independent rules need a configured target too.**
+  `SQLA0005` and the schema-aware `SQLA0007`–`SQLA0010` report facts that
+  hold on every engine, but the analyzer as a whole stays silent until
+  `sqlartisan_target_dbms` is set — without a target, `SQLA0005`'s `Build()`
+  guard is the only report and the schema rules have none.
 
 <!-- ============================================================ -->
 <!-- SOURCE: docs/cookbook.md -->
@@ -4828,7 +4852,7 @@ Three cases are specific to this library, beyond the usual API-level changes:
   caller who hasn't rebuilt against the new version — the same class of risk
   the emitted-SQL rule above guards against.
 
-Analyzer diagnostic updates (SQLA0001–SQLA0006) may also land in a
+Analyzer diagnostic updates (SQLA0001–SQLA0010) may also land in a
 minor release: they change build-time diagnostics, never runtime behavior.
 
 ## Deprecation

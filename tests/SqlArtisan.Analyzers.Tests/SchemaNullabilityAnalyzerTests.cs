@@ -36,6 +36,9 @@ public class SchemaNullabilityAnalyzerTests
 
         class C
         {
+            static ISelectBuilderFrom Joined(T t, T r) =>
+                Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code);
+
             void M()
             {
                 T t = new T();
@@ -66,22 +69,16 @@ public class SchemaNullabilityAnalyzerTests
             .WithArguments(column, predicate, constant);
 
     [Fact]
-    public Task IsNull_NotNullColumn_Warns() =>
-        RunReporting(
-            "var c = {|#0:t.Code.IsNull|};",
-            Expected("Code", "IsNull", "false"));
-
-    [Fact]
-    public Task IsNotNull_NotNullColumn_Warns() =>
-        RunReporting(
-            "var c = {|#0:t.Code.IsNotNull|};",
-            Expected("Code", "IsNotNull", "true"));
-
-    [Fact]
     public Task IsNull_InsideWhere_Warns() =>
         RunReporting(
             "var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}).Build();",
             Expected("Code", "IsNull", "false"));
+
+    [Fact]
+    public Task IsNotNull_InsideWhere_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNotNull|}).Build();",
+            Expected("Code", "IsNotNull", "true"));
 
     // The LEFT JOIN anti-join: past an outer join the NOT NULL column is
     // null-supplied, so the predicate is exactly not constant there.
@@ -99,6 +96,48 @@ public class SchemaNullabilityAnalyzerTests
             var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(r.Code.IsNotNull).Build();
             """);
 
+    // The NATURAL forms null-supply just the same, and need no split chain to
+    // defeat a suppression keyed on the explicit spellings alone.
+    [Fact]
+    public Task IsNull_NotNullColumnAfterNaturalLeftJoin_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var s = Select(t.Code).From(t).NaturalLeftJoin(r).Where(r.Code.IsNull).Build();
+            """);
+
+    [Fact]
+    public Task IsNull_NotNullColumnAfterNaturalRightJoin_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var s = Select(t.Code).From(t).NaturalRightJoin(r).Where(r.Code.IsNull).Build();
+            """);
+
+    [Fact]
+    public Task IsNull_NotNullColumnAfterNaturalFullJoin_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var s = Select(t.Code).From(t).NaturalFullJoin(r).Where(r.Code.IsNull).Build();
+            """);
+
+    [Fact]
+    public Task IsNull_NotNullColumnAfterOuterApply_Silent() =>
+        RunSilent(
+            """
+            DerivedTable d = new DerivedTable("d");
+            var s = Select(t.Code).From(t).OuterApply(Select(t.Code).From(t), d).Where(t.Code.IsNull).Build();
+            """,
+            dbms: "sqlserver");
+
+    // NATURAL JOIN is an inner join and null-supplies nothing.
+    [Fact]
+    public Task IsNull_NotNullColumnAfterNaturalJoin_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            var s = Select(t.Code).From(t).NaturalJoin(r).Where({|#0:r.Code.IsNull|}).Build();
+            """,
+            Expected("Code", "IsNull", "false"));
+
     // An inner join never null-supplies, so the warning stands.
     [Fact]
     public Task IsNull_NotNullColumnAfterInnerJoin_Warns() =>
@@ -109,31 +148,64 @@ public class SchemaNullabilityAnalyzerTests
             """,
             Expected("Code", "IsNull", "false"));
 
+    // The join lives in another statement, so this statement cannot show whether
+    // the column is null-supplied — the shape that made the outer-join
+    // suppression miss when it was scoped to one statement.
+    [Fact]
+    public Task IsNull_ChainHeldInLocal_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var prefix = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code);
+            var s = prefix.Where(r.Code.IsNull).Build();
+            """);
+
+    [Fact]
+    public Task IsNull_ConditionHeldInLocal_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            SqlCondition c = r.Code.IsNull;
+            var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(c).Build();
+            """);
+
+    [Fact]
+    public Task IsNull_ChainFromHelperMethod_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var s = Joined(t, r).Where(r.Code.IsNull).Build();
+            """);
+
+    // Outside a query there is no join context to read at all.
+    [Fact]
+    public Task IsNull_OutsideAStatement_Silent() =>
+        RunSilent("var c = t.Code.IsNull;");
+
+    // Every fact-driven silence below is asserted in a statement that would
+    // otherwise report, so it is the fact doing the silencing.
     [Fact]
     public Task IsNull_NullableColumn_Silent() =>
-        RunSilent("var c = t.Note.IsNull;");
+        RunSilent("var s = Select(t.Code).From(t).Where(t.Note.IsNull).Build();");
 
     [Fact]
     public Task IsNotNull_NullableColumn_Silent() =>
-        RunSilent("var c = t.Note.IsNotNull;");
+        RunSilent("var s = Select(t.Code).From(t).Where(t.Note.IsNotNull).Build();");
 
     // Absence of the attribute is absence of a claim — a hand-written table class
     // must never acquire a diagnostic it never carried the facts for.
     [Fact]
     public Task IsNull_ColumnWithoutMetadata_Silent() =>
-        RunSilent("var c = t.Legacy.IsNull;");
+        RunSilent("var s = Select(t.Code).From(t).Where(t.Legacy.IsNull).Build();");
 
     // The tri-state that the whole design rests on: HasDefault was determined,
     // Nullable was not, so nullability claims nothing.
     [Fact]
     public Task IsNull_ColumnWithUndeterminedNullability_Silent() =>
-        RunSilent("var c = t.Partial.IsNull;");
+        RunSilent("var s = Select(t.Code).From(t).Where(t.Partial.IsNull).Build();");
 
     [Fact]
     public Task IsNull_NoTargetConfigured_Silent() =>
-        RunSilent("var c = t.Code.IsNull;", dbms: null);
+        RunSilent("var s = Select(t.Code).From(t).Where(t.Code.IsNull).Build();", dbms: null);
 
     [Fact]
     public Task IsNull_NonColumnExpression_Silent() =>
-        RunSilent("var c = Upper(t.Code).IsNull;");
+        RunSilent("var s = Select(t.Code).From(t).Where(Upper(t.Code).IsNull).Build();");
 }

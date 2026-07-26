@@ -105,9 +105,9 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // The only rule here that reports correct code — counting non-NULL values is a
-    // real intent — so it is off until asked for, and Info rather than Warning when
-    // a category-wide severity turns it on.
+    // Counting non-NULL values is a real intent, so this is advice on code that may
+    // well be right — off until named explicitly (a category-wide severity does not
+    // reach a disabled rule), and Info so it stays out of build output.
     public static readonly DiagnosticDescriptor CountNullableColumn = new(
         id: "SQLA0010",
         title: "COUNT of a nullable column counts values, not rows",

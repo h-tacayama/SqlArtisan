@@ -107,7 +107,8 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships ten diagnostics:
   same violation `Build()` rejects, surfaced early.
 - **SQLA0006** — Identifier too long for the target dialect's limit.
 - **SQLA0007** — Constant NULL predicate: `IS [NOT] NULL` on a column the
-  generated table class declares NOT NULL (silent past an outer join).
+  generated table class declares NOT NULL. Reported only in a statement that
+  visibly builds its own query and has no outer join.
 - **SQLA0008** — `NOT IN` over a subquery selecting a nullable column — one
   NULL and the query matches nothing.
 - **SQLA0009** — `INSERT` column list omitting a NOT NULL column with no

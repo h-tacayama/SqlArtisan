@@ -96,6 +96,24 @@ public class CountNullableColumnAnalyzerTests
         Assert.Equal(DiagnosticSeverity.Info, descriptor.DefaultSeverity);
     }
 
+    // Past an outer join, counting the column is how you count matched rows —
+    // COUNT(*) would count the unmatched ones too, so the advice would be wrong.
+    [Fact]
+    public Task Count_NullableColumnAfterLeftJoin_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var sql = Select(t.Id, Count(r.Note)).From(t).LeftJoin(r).On(t.Id == r.Id).GroupBy(t.Id).Build();
+            """);
+
+    // Built apart from the query, the count carries no join context to read.
+    [Fact]
+    public Task Count_HeldInLocal_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var counted = Count(r.Note);
+            var sql = Select(t.Id, counted).From(t).LeftJoin(r).On(t.Id == r.Id).GroupBy(t.Id).Build();
+            """);
+
     [Fact]
     public Task Count_NotNullColumn_Silent() =>
         RunSilent("var sql = Select(Count(t.Id)).From(t).Build();");
