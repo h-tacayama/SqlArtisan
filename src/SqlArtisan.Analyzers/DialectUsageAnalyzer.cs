@@ -35,6 +35,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
         DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
+        DiagnosticDescriptors.ConstantNullPredicate,
         DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
@@ -51,6 +52,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
         context.RegisterOperationAction(AnalyzeContextRules, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeCorrelatedDml, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeSchemaNullability, OperationKind.PropertyReference);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -173,6 +175,27 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         {
             ContextRules.CheckGroupingRequiresWithRollup(context, invocation, dialectName);
         }
+    }
+
+    // IsNull / IsNotNull are SqlExpression properties, so the column under test is
+    // the receiver. Gated on a configured target like every other rule, though the
+    // verdict itself is dialect-independent.
+    private static void AnalyzeSchemaNullability(OperationAnalysisContext context)
+    {
+        var reference = (IPropertyReferenceOperation)context.Operation;
+        if (reference.Property.Name is not ("IsNull" or "IsNotNull")
+            || !IsFromSqlArtisan(reference.Property.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        ConstantNullPredicateRule.Check(context, reference);
     }
 
     // Both DML heads (#256) — the static Sql members and the WithBuilder instance

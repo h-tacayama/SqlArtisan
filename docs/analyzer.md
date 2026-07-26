@@ -17,6 +17,7 @@ target.
 - [Version-aware warnings (SQLA0003)](#version-aware-warnings-sqla0003)
 - [Context rules (SQLA0004)](#context-rules-sqla0004)
 - [Correlated DML target (SQLA0005)](#correlated-dml-target-sqla0005)
+- [Schema-aware warnings (SQLA0007)](#schema-aware-warnings-sqla0007)
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
 - [Verified-against versions](#verified-against-versions)
@@ -58,6 +59,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0004` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0004). |
 | `SQLA0005` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0005). |
 | `SQLA0006` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
+| `SQLA0007` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 
 `SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
@@ -406,6 +408,42 @@ Suppression is per rule ID, the standard Roslyn way
 `dotnet_diagnostic.SQLA0005.severity`). The `sqlartisan_construct_*`
 override keys do not apply — the construct's dialect support is not what
 this rule reports.
+
+---
+
+## Schema-aware warnings (SQLA0007)
+
+`SqlArtisan.TableClassGen` records what the catalog says about each column on
+the generated table class:
+
+```csharp
+[DbColumnMetadata(Nullable = false, HasDefault = false)]
+public DbColumn Code { get; }
+```
+
+Where a fact is recorded, the analyzer can settle questions the query text
+alone cannot. The first is a predicate whose answer never depends on the data:
+
+```csharp
+// sqlartisan_target_dbms = postgresql
+var sql = Select(t.Code).From(t).Where(t.Code.IsNull).Build();
+// warning SQLA0007: 'Code' is NOT NULL, so 'IsNull' is always false
+```
+
+`IS NOT NULL` on the same column reports the mirror image — always `true`.
+Neither is a dialect fact: the column's own declaration decides it on every
+engine.
+
+**It is silent unless the fact was recorded.** An attribute the generator never
+wrote, a fact it could not determine (an absent named argument), a hand-written
+table class, or a column reached through `new DbTable("t").Column("x")` — which
+has no declaration to carry metadata — all produce nothing. Regenerate your
+table classes to opt in; nothing else changes.
+
+Like every rule here, it stays silent until `sqlartisan_target_dbms` is set,
+even though the verdict itself is dialect-independent. Suppression is per rule
+ID, the standard Roslyn way; the `sqlartisan_construct_*` override keys do not
+apply, since the construct's dialect support is not what this rule reports.
 
 ---
 

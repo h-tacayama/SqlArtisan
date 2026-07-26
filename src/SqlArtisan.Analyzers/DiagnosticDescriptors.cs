@@ -71,6 +71,17 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
+    // Schema-derived, so it names no dialect: the column's own declaration decides
+    // the answer on every engine. Silent unless the table class carries the fact.
+    public static readonly DiagnosticDescriptor ConstantNullPredicate = new(
+        id: "SQLA0007",
+        title: "SQL predicate is constant for a NOT NULL column",
+        messageFormat: "'{0}' is NOT NULL, so '{1}' is always {2}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
     public static readonly DiagnosticDescriptor IdentifierTooLong = new(
         id: "SQLA0006",
         title: "SQL identifier exceeds the dialect's length limit",
