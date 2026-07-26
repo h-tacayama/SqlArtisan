@@ -3052,6 +3052,22 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0009` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0010` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 
+The rules fall into two categories, so a bulk-severity setting can reach one
+family without the other:
+
+| Category | Rules | Answers |
+|---|---|---|
+| `SqlArtisan.Dialect` | `SQLA0001`–`SQLA0006` | will this run on the engine you configured? |
+| `SqlArtisan.Schema` | `SQLA0007`–`SQLA0010` | does it agree with what your table classes say the columns are? |
+
+```ini
+# every schema rule as an error, dialect rules untouched
+dotnet_analyzer_diagnostic.category-SqlArtisan.Schema.severity = error
+```
+
+A bulk setting reaches only rules that are enabled by default, so `SQLA0010`
+still needs naming by ID.
+
 `SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
 CI, and an IDE's Error List after an explicit build — check that the list's

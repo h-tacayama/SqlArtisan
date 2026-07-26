@@ -117,7 +117,9 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships ten diagnostics:
   than rows. Advice on correct code, so it is Info and off by default.
 
 SQLA0007–0010 read the `DbColumnMetadata` attributes TableClassGen emits;
-absence of a fact is silence.
+absence of a fact is silence. They sit in their own `SqlArtisan.Schema`
+category (SQLA0001–0006 are `SqlArtisan.Dialect`) so a bulk-severity setting
+reaches one family without the other.
 
 The analyzer is bundled inside the main `SqlArtisan` NuGet package (not
 shipped separately). Its dialect support matrix (`DialectMatrix.cs`) is verified

@@ -9,7 +9,12 @@ namespace SqlArtisan.Analyzers;
 // key), and push everything else to docs/analyzer.md via the help link.
 internal static class DiagnosticDescriptors
 {
-    private const string Category = "SqlArtisan.Dialect";
+    private const string DialectCategory = "SqlArtisan.Dialect";
+
+    // Separate from the dialect family (#266): a bulk-severity setting aimed at
+    // the matrix rules should not silently carry to rules that read the schema.
+    private const string SchemaCategory = "SqlArtisan.Schema";
+
     private const string HelpLinkUri = "https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md";
 
     // {2} carries its own "one of: "/"a numeric ..." lead-in per call site (the
@@ -19,7 +24,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0001",
         title: "Invalid SqlArtisan analyzer configuration",
         messageFormat: "Invalid value '{1}' for '{0}' (expected {2})",
-        category: Category,
+        category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri,
@@ -29,7 +34,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0002",
         title: "SQL construct not supported on the target dialect",
         messageFormat: "'{0}' is not supported on {1}. Set '{2} = supported' in .editorconfig if your engine version supports it.",
-        category: Category,
+        category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
@@ -42,7 +47,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0003",
         title: "SQL construct requires a newer engine version than the declared target",
         messageFormat: "'{0}' requires {1} {2}+ but the declared target version is {3}. Set '{4} = supported' in .editorconfig if your engine supports it.",
-        category: Category,
+        category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
@@ -53,7 +58,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0004",
         title: "SQL construct not supported in this position on the target dialect",
         messageFormat: "'{0}' is not supported {1} on {2}",
-        category: Category,
+        category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
@@ -66,7 +71,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0005",
         title: "Correlated UPDATE or DELETE target is not aliased",
         messageFormat: "The target of a correlated UPDATE or DELETE must be aliased",
-        category: Category,
+        category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
@@ -77,7 +82,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0007",
         title: "SQL predicate is constant for a NOT NULL column",
         messageFormat: "'{0}' is NOT NULL, so '{1}' is always {2}",
-        category: Category,
+        category: SchemaCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
@@ -88,7 +93,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0008",
         title: "NOT IN over a nullable subquery column returns no rows when it yields NULL",
         messageFormat: "'{0}' is nullable, so this NOT IN matches no rows at all when the subquery yields a NULL",
-        category: Category,
+        category: SchemaCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
@@ -100,7 +105,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0009",
         title: "INSERT omits a column that is NOT NULL with no default",
         messageFormat: "'{0}' is NOT NULL with no default and is missing from this INSERT's column list",
-        category: Category,
+        category: SchemaCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
@@ -112,7 +117,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0010",
         title: "COUNT of a nullable column counts values, not rows",
         messageFormat: "'{0}' is nullable, so this COUNT skips its NULL rows. Use Count(Asterisk) to count rows.",
-        category: Category,
+        category: SchemaCategory,
         defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: false,
         helpLinkUri: HelpLinkUri);
@@ -121,7 +126,7 @@ internal static class DiagnosticDescriptors
         id: "SQLA0006",
         title: "SQL identifier exceeds the dialect's length limit",
         messageFormat: "Identifier '{0}' exceeds {1}'s identifier limit of {2} {3}",
-        category: Category,
+        category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
