@@ -87,6 +87,23 @@ public class NotInSubqueryAnalyzerTests
             "var sql = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(Select(s.Ref).From(s).Where(s.Key > 0))|}).Build();",
             "Ref");
 
+    // The documented remediation: filtering the NULLs out must silence the rule.
+    [Fact]
+    public Task NotIn_NullableColumnFilteredByIsNotNull_Silent() =>
+        RunSilent("var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(s.Ref.IsNotNull))).Build();");
+
+    [Fact]
+    public Task NotIn_NullableColumnFilteredByIsNotNullAmongOthers_Silent() =>
+        RunSilent("var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(s.Ref.IsNotNull & s.Key > 0))).Build();");
+
+    // IsNotNull on some other column does not clear the selected one. Legacy
+    // carries no facts, so the filter itself trips nothing.
+    [Fact]
+    public Task NotIn_IsNotNullOnDifferentColumn_Warns() =>
+        RunReporting(
+            "var sql = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(Select(s.Ref).From(s).Where(s.Legacy.IsNotNull))|}).Build();",
+            "Ref");
+
     [Fact]
     public Task NotIn_NotNullSubqueryColumn_Silent() =>
         RunSilent("var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Key).From(s))).Build();");

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -18,8 +19,9 @@ internal static class NotInNullableSubqueryRule
 {
     public static void Check(OperationAnalysisContext context, IInvocationOperation notIn)
     {
-        if (SoleSelectItem(Head(notIn.Arguments[0].Value)) is not { } item
-            || SchemaMetadata.Fact(item, SchemaMetadata.NullableArgument) is not true)
+        if (SoleSelectItem(Head(notIn.Arguments[0].Value)) is not IPropertyReferenceOperation item
+            || SchemaMetadata.Fact(item, SchemaMetadata.NullableArgument) is not true
+            || FiltersOutNulls(notIn.Arguments[0].Value, item.Property))
         {
             return;
         }
@@ -27,7 +29,36 @@ internal static class NotInNullableSubqueryRule
         context.ReportDiagnostic(Diagnostic.Create(
             DiagnosticDescriptors.NotInNullableSubquery,
             notIn.Syntax.GetLocation(),
-            ((IPropertyReferenceOperation)item).Property.Name));
+            item.Property.Name));
+    }
+
+    // The documented remediation is `.Where(col.IsNotNull)`, so the rule must go
+    // quiet when it sees it. Presence anywhere in the subquery is enough: an
+    // IsNotNull that does not actually exclude the NULLs (under an OR, in a
+    // different clause) yields a false negative, never a false positive.
+    private static bool FiltersOutNulls(IOperation subquery, IPropertySymbol column)
+    {
+        Stack<IOperation> pending = new();
+        pending.Push(subquery);
+
+        while (pending.Count > 0)
+        {
+            IOperation current = pending.Pop();
+
+            if (current is IPropertyReferenceOperation { Property.Name: "IsNotNull" } filter
+                && Unwrap(filter.Instance!) is IPropertyReferenceOperation filtered
+                && SymbolEqualityComparer.Default.Equals(filtered.Property, column))
+            {
+                return true;
+            }
+
+            foreach (IOperation child in current.ChildOperations)
+            {
+                pending.Push(child);
+            }
+        }
+
+        return false;
     }
 
     // The subquery argument is the chain's tail, so the select list is found by
