@@ -30,7 +30,7 @@ internal sealed class TableResult(
 /// regenerates in memory and diffs against the files on disk — the classes are the
 /// only committed representation of the schema.
 /// </summary>
-internal sealed class TableClassGenService(ITableInfoRepository repository, RunOptions options)
+internal sealed class TableClassGenerator(ITableInfoRepository repository, RunOptions options)
 {
     private static readonly Regex ColumnPattern =
         new("""new DbColumn\(this, "(?<name>[^"]*)"\)""", RegexOptions.Compiled);

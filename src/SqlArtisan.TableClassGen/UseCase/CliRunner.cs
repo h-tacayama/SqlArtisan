@@ -20,7 +20,7 @@ internal static class CliRunner
                 ? ReadInteractively()
                 : CommandLine.Parse(args);
 
-            IReadOnlyList<TableResult> results = new TableClassGenService(
+            IReadOnlyList<TableResult> results = new TableClassGenerator(
                 TableInfoRepositoryFactory.Create(options.Connection, options.Settings.LowercaseNames),
                 options).Run();
 

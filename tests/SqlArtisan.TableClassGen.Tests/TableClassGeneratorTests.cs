@@ -4,7 +4,7 @@ namespace SqlArtisan.TableClassGen.Tests;
 
 // The drift lane end to end: generate against a live (SQLite) schema, then let the
 // schema and the committed files diverge and assert what --check reports.
-public class TableClassGenServiceTests : IDisposable
+public class TableClassGeneratorTests : IDisposable
 {
     private const string Schema =
         """
@@ -185,7 +185,7 @@ public class TableClassGenServiceTests : IDisposable
             TestSettings.Create(outputDirectory: _outputDirectory, tableNames: tableNames),
             dryRun);
 
-        return new TableClassGenService(
+        return new TableClassGenerator(
             TableInfoRepositoryFactory.Create(db.ConnectionInfo, lowercaseNames: false),
             options).Run();
     }
