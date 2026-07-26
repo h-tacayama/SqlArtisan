@@ -2,21 +2,18 @@ namespace SqlArtisan;
 
 /// <summary>
 /// Records what the schema says about the column a <see cref="DbColumn"/> property
-/// exposes. SqlArtisan.TableClassGen emits it; the analyzer reads it at compile time
-/// for schema-aware diagnostics. Leave a property unset when the fact is unknown —
-/// an unset property, like a missing attribute, produces no diagnostics.
+/// exposes. Leave a property unset when the fact is unknown — like a missing
+/// attribute, it then carries no claim about the column.
 /// </summary>
-/// <remarks>
-/// Compile-time metadata only: nothing in SqlArtisan reads it at run time, so the
-/// library stays reflection-free and AOT/trimming-safe.
-/// </remarks>
-// Named properties, not constructor parameters: "unknown" has to be representable,
-// a positional parameter is mandatory, and `bool?` is rejected as an attribute
-// argument type (CS0655). An unwritten argument is absent from NamedArguments.
+// Named properties, not constructor parameters: a positional parameter is mandatory
+// and `bool?` is rejected as an attribute argument (CS0655), so unknown = unwritten.
+// Compile-time only — nothing reads this at run time, keeping the core reflection-free.
 [AttributeUsage(AttributeTargets.Property, Inherited = false)]
 public sealed class DbColumnMetadataAttribute : Attribute
 {
-    /// <summary>Whether the column accepts <c>NULL</c>.</summary>
+    /// <summary>
+    /// Whether the column accepts <c>NULL</c>.
+    /// </summary>
     public bool Nullable { get; init; }
 
     /// <summary>
