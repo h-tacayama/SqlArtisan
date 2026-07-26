@@ -29,7 +29,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`). Compile-time data, never rendered and never read at run time. |
-| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0006). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0009). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
 | `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..W}.cs` mirror `Sql.{A..W}.cs`. |
@@ -93,7 +93,7 @@ OrderedSetAggregate, Sequence, StringAggregate.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships six diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships nine diagnostics:
 
 - **SQLA0001** — Invalid analyzer configuration (unrecognized `.editorconfig`
   value).
@@ -106,6 +106,15 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships six diagnostics:
 - **SQLA0005** — Correlated `UPDATE`/`DELETE` with an unaliased target — the
   same violation `Build()` rejects, surfaced early.
 - **SQLA0006** — Identifier too long for the target dialect's limit.
+- **SQLA0007** — Constant NULL predicate: `IS [NOT] NULL` on a column the
+  generated table class declares NOT NULL (silent past an outer join).
+- **SQLA0008** — `NOT IN` over a subquery selecting a nullable column — one
+  NULL and the query matches nothing.
+- **SQLA0009** — `INSERT` column list omitting a NOT NULL column with no
+  default.
+
+SQLA0007–0009 read the `DbColumnMetadata` attributes TableClassGen emits;
+absence of a fact is silence.
 
 The analyzer is bundled inside the main `SqlArtisan` NuGet package (not
 shipped separately). Its dialect support matrix (`DialectMatrix.cs`) is verified

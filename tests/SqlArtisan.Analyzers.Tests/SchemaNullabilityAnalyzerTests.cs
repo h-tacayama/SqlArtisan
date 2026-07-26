@@ -83,6 +83,32 @@ public class SchemaNullabilityAnalyzerTests
             "var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}).Build();",
             Expected("Code", "IsNull", "false"));
 
+    // The LEFT JOIN anti-join: past an outer join the NOT NULL column is
+    // null-supplied, so the predicate is exactly not constant there.
+    [Fact]
+    public Task IsNull_NotNullColumnAfterLeftJoin_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(r.Code.IsNull).Build();
+            """);
+
+    [Fact]
+    public Task IsNotNull_NotNullColumnAfterLeftJoin_Silent() =>
+        RunSilent("""
+            T r = new T("r");
+            var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(r.Code.IsNotNull).Build();
+            """);
+
+    // An inner join never null-supplies, so the warning stands.
+    [Fact]
+    public Task IsNull_NotNullColumnAfterInnerJoin_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            var s = Select(t.Code).From(t).InnerJoin(r).On(t.Code == r.Code).Where({|#0:r.Code.IsNull|}).Build();
+            """,
+            Expected("Code", "IsNull", "false"));
+
     [Fact]
     public Task IsNull_NullableColumn_Silent() =>
         RunSilent("var c = t.Note.IsNull;");

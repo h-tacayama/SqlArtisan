@@ -3047,7 +3047,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0004` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0004). |
 | `SQLA0005` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0005). |
 | `SQLA0006` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
-| `SQLA0007` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0007` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Silent in any statement with an outer join, where the anti-join makes exactly this predicate meaningful — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0008` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0009` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 
@@ -3424,6 +3424,13 @@ var sql = Select(t.Code).From(t).Where(t.Code.IsNull).Build();
 Neither is a dialect fact: the column's own declaration decides it on every
 engine.
 
+A statement containing an **outer join** is never reported: past a
+`LeftJoin` / `RightJoin` / `FullJoin` (or a lateral / `OuterApply` form), a
+NOT NULL column is legitimately NULL on the null-supplied side, and
+`.Where(r.Id.IsNull)` after a `LeftJoin` is the idiomatic anti-join. The rule
+does not work out which side the join null-supplies — any outer join in the
+statement silences it, trading missed warnings for none that are wrong.
+
 The second is SQL's oldest trap. `NOT IN` over a subquery is not "none of
 these" when the subquery can yield a NULL — the comparison becomes NULL for
 every row, and the query matches nothing at all:
@@ -3470,10 +3477,11 @@ hand-written table class, or a column reached through
 `new DbTable("t").Column("x")` — which has no declaration to carry metadata —
 all produce nothing. Regenerate your table classes to opt in; nothing else
 changes. `SQLA0008` additionally reads only a select list it can see: a
-subquery held in a variable, or one selecting anything other than a single
-column, is left alone. `SQLA0009` skips a statement whose column list it cannot
-read in full — a column array built elsewhere — since a column it failed to
-read would otherwise look omitted.
+subquery held in a variable, one whose chain does not begin at `Select(...)`
+(a `WITH`-headed query), or one selecting anything other than a single column,
+is left alone. `SQLA0009` skips a statement whose column list it cannot read in
+full — a column array built elsewhere — since a column it failed to read would
+otherwise look omitted.
 
 Like every rule here, it stays silent until `sqlartisan_target_dbms` is set,
 even though the verdict itself is dialect-independent. Suppression is per rule
