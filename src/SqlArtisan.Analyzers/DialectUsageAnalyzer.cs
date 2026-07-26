@@ -36,6 +36,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.ContextRestrictedConstruct,
         DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
         DiagnosticDescriptors.ConstantNullPredicate,
+        DiagnosticDescriptors.NotInNullableSubquery,
         DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
@@ -53,6 +54,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeContextRules, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeCorrelatedDml, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeSchemaNullability, OperationKind.PropertyReference);
+        context.RegisterOperationAction(AnalyzeNotInSubquery, OperationKind.Invocation);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -196,6 +198,28 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         ConstantNullPredicateRule.Check(context, reference);
+    }
+
+    // The value overloads take the same name and arity, so the parameter type is
+    // what selects the subquery form.
+    private static void AnalyzeNotInSubquery(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (invocation.TargetMethod.Name != "NotIn"
+            || invocation.Arguments.Length != 1
+            || invocation.TargetMethod.Parameters[0].Type.ToDisplayString() != "SqlArtisan.ISubquery"
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        NotInNullableSubqueryRule.Check(context, invocation);
     }
 
     // Both DML heads (#256) — the static Sql members and the WithBuilder instance

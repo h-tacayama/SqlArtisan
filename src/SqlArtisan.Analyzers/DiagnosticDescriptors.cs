@@ -82,6 +82,17 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
+    // States the consequence rather than "is nullable": the failure is total and
+    // silent — no rows at all — which is what makes it worth a warning.
+    public static readonly DiagnosticDescriptor NotInNullableSubquery = new(
+        id: "SQLA0008",
+        title: "NOT IN over a nullable subquery column returns no rows when it yields NULL",
+        messageFormat: "'{0}' is nullable, so this NOT IN matches no rows at all when the subquery yields a NULL",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
     public static readonly DiagnosticDescriptor IdentifierTooLong = new(
         id: "SQLA0006",
         title: "SQL identifier exceeds the dialect's length limit",
