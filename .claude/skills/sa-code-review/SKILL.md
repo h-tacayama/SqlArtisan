@@ -180,6 +180,14 @@ behavior — this is the mechanics of *where* to look; §8 sets the bar for
 
 ## 8. What counts as a defect
 
+Find candidates without limiting yourself upfront — list everything that
+looks off first, then classify each one against the rule below. Filtering by
+"is this reportable" belongs at classification time, not at detection time —
+narrowing the search itself under-reports real defects. Only the defect
+classification below reaches the report; a candidate that turns out to be a
+non-defect "better way to write this" suggestion is discarded here, not
+reported (it belongs to `sa-code-review-deep` instead, on a separate run).
+
 Everything reported here must be **wrong** — not merely improvable. A
 "this would read better as..." suggestion with no rule/ADR/precedent to cite
 belongs to `sa-code-review-deep`, not here; this skill never reports one, not
@@ -226,17 +234,20 @@ contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
 - Any "better way to write this" suggestion with no rule/ADR/precedent to
   cite, for code or docs — run `sa-code-review-deep` for that pass instead.
 
-## 9. Adversarial verification (mandatory final pass)
+## 9. Adversarial verification (final pass)
 
 A confirming review checks that things look right; only a refuting pass
 reliably catches the plausible overclaim (#267/#319: a neutral docs pass
 accepted "every analyzer entry is executed against a live engine" — the
 adversarial pass read `MatrixSweepCatalog.cs` and found the two excluded
-entries). **This pass is not optional.**
+entries). Run this pass — an independent-context refutation catches
+overclaims your own drafting pass cannot see past.
 
-After the findings are drafted, spawn an independent subagent
-(`sa-reviewer`) with an explicitly adversarial mission — "try to refute
-this", never "check this is right":
+Spawn **one** independent subagent (`sa-reviewer`) with an explicitly
+adversarial mission — "try to refute this", never "check this is right".
+One subagent covering all findings is the right shape here; do not spawn
+several to split the work or to re-verify each other — this is refutation of
+the draft, not a parallelizable search:
 
 - **Refute both directions** — the deliverable's own claims (docs, XML docs,
   CHANGELOG, commit-message wording) *and* your draft findings.
@@ -271,6 +282,15 @@ with no notification, `TaskStop` on the agent's ID doubles as a status probe:
 an error (e.g. "no task found") confirms it already ended without notifying,
 and is the cue to run the fallback pass yourself rather than continue waiting.
 
+**Do not add more self-verification than this.** The single independent-context
+pass above is the complete verification step for this skill. If you are aware
+you are running as a model with strong built-in self-checking (e.g. Claude
+Opus 5 or later), do not additionally re-verify your own findings before or
+after spawning the subagent, and do not spawn extra subagents "just to be
+sure" — that duplicates work the model already does internally and burns
+tokens without improving the report. If you cannot tell which model you are,
+run exactly the one pass described above; that is correct for every model.
+
 ## Report
 
 Lead with the verdict (mergeable or not) and a short list of recommended
@@ -283,3 +303,7 @@ author / analyzer). Include the adversarial pass's coverage: which claims
 were challenged, what survived, and the DEFECT / OVERREACH / INCONSISTENCY
 classification of what fell. This skill never reports non-defect improvement
 suggestions — re-run as `sa-code-review-deep` for those.
+
+Match the report's length to what the findings need: cover every finding at
+the detail level above, but do not pad with filler recap sections, restated
+summaries, or boilerplate closing paragraphs.

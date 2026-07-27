@@ -120,16 +120,19 @@ Score the docs against these. The scripts cover 2–5 and parts of 6/10.
   for wording/ordering/trims that are judgment calls, propose options and
   confirm before applying.
 
-## Adversarial verification (mandatory final pass)
+## Adversarial verification (final pass)
 
 The dimensions above confirm; this pass refutes. A neutral pass accepted
 "every analyzer entry is executed against a live engine" (#267/#319) — the
 adversarial pass read `MatrixSweepCatalog.cs` and found the two excluded
-entries. **This pass is not optional.**
+entries. Run this pass — an independent-context refutation catches
+overclaims your own drafting pass cannot see past.
 
-After the findings are drafted, spawn an independent subagent
-(`sa-reviewer`) with an explicitly adversarial mission — "try to refute
-this", never "check this is right". Prime refutation targets in docs:
+Spawn **one** independent subagent (`sa-reviewer`) with an explicitly
+adversarial mission — "try to refute this", never "check this is right".
+One subagent covering all findings is the right shape here; do not spawn
+several to split the work or to re-verify each other. Prime refutation
+targets in docs:
 
 - **Quantifiers** — every / all / always / never / only. One real exception
   turns the sentence into an OVERREACH.
@@ -167,6 +170,14 @@ with no notification, `TaskStop` on the agent's ID doubles as a status probe:
 an error (e.g. "no task found") confirms it already ended without notifying,
 and is the cue to run the fallback pass yourself rather than continue waiting.
 
+**Do not add more self-verification than this.** The single independent-context
+pass above is the complete verification step for this skill. If you are aware
+you are running as a model with strong built-in self-checking (e.g. Claude
+Opus 5 or later), do not additionally re-verify your own findings before or
+after spawning the subagent, and do not spawn extra subagents "just to be
+sure". If you cannot tell which model you are, run exactly the one pass
+described above; that is correct for every model.
+
 ## Output
 
 Summarise per dimension (pass / findings), list concrete fixes with file:line,
@@ -174,3 +185,7 @@ and state what was verified empirically (links resolve, N/N examples match,
 coverage clean). State which claims the adversarial pass challenged and what
 survived, with the DEFECT / OVERREACH / INCONSISTENCY classification of what
 fell. Re-run the relevant script after fixes to confirm green.
+
+Match this report's length to what the findings need: cover every finding at
+the detail level above, but do not pad with filler recap sections, restated
+summaries, or boilerplate closing paragraphs.
