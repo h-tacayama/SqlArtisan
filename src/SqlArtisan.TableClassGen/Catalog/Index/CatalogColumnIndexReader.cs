@@ -7,7 +7,7 @@ namespace SqlArtisan.TableClassGen;
 // alone exposes it there — so each dialect gets its own catalog query. The shape is
 // shared: leading column name, plus the expression text when the key is an
 // expression rather than a column.
-internal sealed class CatalogColumnIndexReader(DbmsType dbmsType, string schema)
+internal sealed class CatalogColumnIndexReader(Dbms dbmsType, string schema)
     : IColumnIndexReader
 {
     public ColumnIndexInfo Read(IDbConnection conn, string tableName)
@@ -22,7 +22,7 @@ internal sealed class CatalogColumnIndexReader(DbmsType dbmsType, string schema)
                 conn, tableName, LeadingKeyQuery(),
                 leadingColumns, expressionTexts, partialLeadingColumns);
         }
-        catch (DbException) when (dbmsType == DbmsType.MySql)
+        catch (DbException) when (dbmsType == Dbms.MySql)
         {
             // STATISTICS.EXPRESSION arrived with functional indexes in 8.0.13, so a
             // server that rejects the column has no expression index to miss.
@@ -31,7 +31,7 @@ internal sealed class CatalogColumnIndexReader(DbmsType dbmsType, string schema)
                 leadingColumns, expressionTexts, partialLeadingColumns);
         }
 
-        return dbmsType == DbmsType.Oracle && HasFunctionBasedIndex(conn, tableName)
+        return dbmsType == Dbms.Oracle && HasFunctionBasedIndex(conn, tableName)
             ? ColumnIndexInfo.Unknown
             : new ColumnIndexInfo(leadingColumns, expressionTexts, partialLeadingColumns);
     }
@@ -74,13 +74,13 @@ internal sealed class CatalogColumnIndexReader(DbmsType dbmsType, string schema)
     // A row may carry both a name and an expression text — see ReadLeadingKeys.
     private string LeadingKeyQuery() => dbmsType switch
     {
-        DbmsType.MySql =>
+        Dbms.MySql =>
             "SELECT COLUMN_NAME, EXPRESSION, 0 FROM information_schema.STATISTICS "
             + "WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1",
 
         // indkey is 0 at a subscript whose key is an expression, and no attribute has
         // attnum 0, so the join drops exactly those rows to a null column name.
-        DbmsType.PostgreSql =>
+        Dbms.PostgreSql =>
             "SELECT a.attname, pg_get_expr(i.indexprs, i.indrelid), i.indpred IS NOT NULL "
             + "FROM pg_index i "
             + "JOIN pg_class c ON c.oid = i.indrelid "
@@ -90,7 +90,7 @@ internal sealed class CatalogColumnIndexReader(DbmsType dbmsType, string schema)
 
         // T-SQL indexes no expression directly; the equivalent is an index whose
         // leading key is a computed column, whose definition names the real columns.
-        DbmsType.SqlServer =>
+        Dbms.SqlServer =>
             "SELECT c.name, cc.definition, i.has_filter "
             + "FROM sys.indexes i "
             + "JOIN sys.index_columns ic ON ic.object_id = i.object_id "
@@ -104,7 +104,7 @@ internal sealed class CatalogColumnIndexReader(DbmsType dbmsType, string schema)
 
         // COLUMN_EXPRESSION is a LONG, so nothing is read from it here; a
         // function-based index instead disqualifies the whole table below.
-        DbmsType.Oracle =>
+        Dbms.Oracle =>
             "SELECT COLUMN_NAME, NULL, 0 FROM ALL_IND_COLUMNS "
             + "WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name AND COLUMN_POSITION = 1",
 
@@ -128,7 +128,7 @@ internal sealed class CatalogColumnIndexReader(DbmsType dbmsType, string schema)
     // hand down a name already lowercased for emission — matching the rest of the
     // Oracle reader, which compares against ToUpper() throughout.
     private string CatalogName(string name) =>
-        dbmsType == DbmsType.Oracle ? name.ToUpper() : name;
+        dbmsType == Dbms.Oracle ? name.ToUpper() : name;
 
     // Suffixed because Oracle rejects a bind variable named after a reserved word:
     // a bare ":table" fails with ORA-01745, verified against a live engine.
@@ -137,7 +137,7 @@ internal sealed class CatalogColumnIndexReader(DbmsType dbmsType, string schema)
     private const string TableParameter = "table_name";
 
     private string ParameterName(string name) =>
-        dbmsType == DbmsType.Oracle ? $":{name}" : $"@{name}";
+        dbmsType == Dbms.Oracle ? $":{name}" : $"@{name}";
 
     private static void AddParameter(IDbCommand command, string name, string value)
     {

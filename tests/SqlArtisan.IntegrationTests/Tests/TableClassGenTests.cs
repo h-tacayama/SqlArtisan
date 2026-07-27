@@ -26,7 +26,7 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
     {
         MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
         DbConnectionInfo connInfo = new(
-            DbmsType.MySql,
+            Dbms.MySql,
             builder.Server,
             (int)builder.Port,
             builder.Database,
@@ -65,7 +65,7 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
     {
         MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
         return new DbConnectionInfo(
-            DbmsType.MySql,
+            Dbms.MySql,
             builder.Server,
             (int)builder.Port,
             builder.Database,
@@ -94,7 +94,7 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         SqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
         string[] dataSource = builder.DataSource.Replace("tcp:", string.Empty).Split(',', 2);
         DbConnectionInfo connInfo = new(
-            DbmsType.SqlServer,
+            Dbms.SqlServer,
             dataSource[0],
             dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1433,
             string.IsNullOrEmpty(builder.InitialCatalog) ? "master" : builder.InitialCatalog,
@@ -146,7 +146,7 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         SqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
         string[] dataSource = builder.DataSource.Replace("tcp:", string.Empty).Split(',', 2);
         return new DbConnectionInfo(
-            DbmsType.SqlServer,
+            Dbms.SqlServer,
             dataSource[0],
             dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1433,
             string.IsNullOrEmpty(builder.InitialCatalog) ? "master" : builder.InitialCatalog,
@@ -233,7 +233,7 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
     {
         NpgsqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
         return new DbConnectionInfo(
-            DbmsType.PostgreSql,
+            Dbms.PostgreSql,
             builder.Host!,
             builder.Port,
             builder.Database!,
@@ -265,7 +265,7 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
 
         DbConnectionInfo connInfo = new(
-            DbmsType.Oracle,
+            Dbms.Oracle,
             dataSource[0],
             dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1521,
             dataSource.Length > 2 ? dataSource[2] : "XEPDB1",
@@ -360,7 +360,7 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
 
         return new DbConnectionInfo(
-            DbmsType.Oracle,
+            Dbms.Oracle,
             dataSource[0],
             dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1521,
             dataSource.Length > 2 ? dataSource[2] : "XEPDB1",

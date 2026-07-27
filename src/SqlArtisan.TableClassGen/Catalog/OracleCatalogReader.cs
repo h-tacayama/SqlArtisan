@@ -85,7 +85,7 @@ internal sealed class OracleCatalogReader(
             .OrderBy(atc.ColumnId);
 
         ColumnIndexInfo indexes =
-            new CatalogColumnIndexReader(DbmsType.Oracle, _connInfo.Schema)
+            new CatalogColumnIndexReader(Dbms.Oracle, _connInfo.Schema)
                 .Read(conn, tableName);
 
         List<CatalogColumn> columns = [];
