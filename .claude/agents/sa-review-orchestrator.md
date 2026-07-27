@@ -52,7 +52,7 @@ You are the orchestrator for SqlArtisan code review. Your role is to:
    touch core logic.
 
 5. **Never execute the review yourself** — you only classify and route.
-   Sonnet reviewers do the actual review execution.
+   The execution-stage reviewer agents do the actual review execution.
 
 ## Constraints
 

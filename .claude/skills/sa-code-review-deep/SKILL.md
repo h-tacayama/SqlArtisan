@@ -37,7 +37,7 @@ requirement.
 
 ## Adversarial pass (inherited)
 
-The mandatory adversarial verification pass (`sa-code-review` §9) is
+The adversarial verification pass (`sa-code-review` §9, not skippable) is
 inherited and runs **once**, after this improvement pass, covering both
 reports. Suggestions themselves are opinions, not refutation targets — but
 any factual claim inside one (e.g. "API X already covers this case") gets
