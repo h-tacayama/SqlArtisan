@@ -9,7 +9,7 @@ using SqlArtisan.TableClassGen;
 
 namespace SqlArtisan.IntegrationTests.Tests;
 
-// Verifies the TableClassGen repositories against live engines: the SqlArtisan
+// Verifies the TableClassGen catalog readers against live engines: the SqlArtisan
 // information_schema builder path resolves the right dialect from the connection
 // and extracts the seeded schema. SQLite's bespoke path is covered in the fast
 // unit lane (SqlArtisan.TableClassGen.Tests).
@@ -34,9 +34,9 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
             builder.UserID,
             builder.Password);
 
-        InformationSchemaCatalogReader repository = new(connInfo, lowercaseNames: false);
+        InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
 
-        TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
     }
 
     // MySQL spells a functional index with a doubly-parenthesized expression
@@ -48,10 +48,10 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
         Execute("CREATE INDEX ix_upper_name ON users ((upper(name)))");
         try
         {
-            InformationSchemaCatalogReader repository = new(ConnInfo(), lowercaseNames: false);
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
             TableClassGenAssertions.AssertCompositeAndExpression(
-                repository.GetAllTables(),
+                reader.GetAllTables(),
                 expectedForExpressionColumn: null);
         }
         finally
@@ -102,9 +102,9 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
             builder.UserID,
             builder.Password);
 
-        InformationSchemaCatalogReader repository = new(connInfo, lowercaseNames: false);
+        InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
 
-        TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
     }
 
     // T-SQL indexes no expression directly; the equivalent is an index whose
@@ -118,9 +118,9 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         Execute("CREATE INDEX ix_filtered ON users (is_active) WHERE age > 0");
         try
         {
-            InformationSchemaCatalogReader repository = new(ConnInfo(), lowercaseNames: false);
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
-            IReadOnlyList<CatalogTable> tables = repository.GetAllTables();
+            IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
             TableClassGenAssertions.AssertCompositeAndExpression(
                 tables,
                 expectedForExpressionColumn: null);
@@ -172,9 +172,9 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
     [Fact]
     public void GenerateTables_PostgreSql_ExtractsSeededSchema()
     {
-        InformationSchemaCatalogReader repository = new(ConnInfo(), lowercaseNames: false);
+        InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
-        TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
     }
 
     // #323: PostgreSQL's information_schema comparison is case-sensitive, so a
@@ -186,9 +186,9 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         Execute("CREATE TABLE IF NOT EXISTS \"MixedCaseTbl\" (\"Id\" integer, \"Val\" varchar(10))");
         try
         {
-            InformationSchemaCatalogReader repository = new(ConnInfo(), lowercaseNames: true);
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
 
-            IReadOnlyList<CatalogTable> tables = repository.GetAllTables();
+            IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
 
             Assert.Contains(tables, t => t.TableName == "mixedcasetbl");
         }
@@ -209,9 +209,9 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         Execute("CREATE INDEX ix_partial ON users (is_active) WHERE age > 0");
         try
         {
-            InformationSchemaCatalogReader repository = new(ConnInfo(), lowercaseNames: false);
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
-            IReadOnlyList<CatalogTable> tables = repository.GetAllTables();
+            IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
             TableClassGenAssertions.AssertCompositeAndExpression(
                 tables,
                 expectedForExpressionColumn: null);
@@ -273,10 +273,10 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
             builder.UserID,
             builder.Password);
 
-        OracleCatalogReader repository = new(connInfo, lowercaseNames: true);
+        OracleCatalogReader reader = new(connInfo, lowercaseNames: true);
 
         TableClassGenAssertions.AssertSeededSchema(
-            repository.GetAllTables(),
+            reader.GetAllTables(),
             expectedHasDefault: false);
     }
 
@@ -288,10 +288,10 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
         try
         {
-            OracleCatalogReader repository = new(ConnInfo(), lowercaseNames: true);
+            OracleCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
 
             TableClassGenAssertions.AssertCompositeAndExpression(
-                repository.GetAllTables(),
+                reader.GetAllTables(),
                 expectedForExpressionColumn: false);
 
             Execute("CREATE INDEX ix_upper_name ON users (upper(name))");
