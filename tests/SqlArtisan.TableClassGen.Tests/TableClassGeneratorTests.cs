@@ -186,7 +186,7 @@ public class TableClassGeneratorTests : IDisposable
             dryRun);
 
         return new TableClassGenerator(
-            TableInfoRepositoryFactory.Create(db.ConnectionInfo, lowercaseNames: false),
+            CatalogReaderFactory.Create(db.ConnectionInfo, lowercaseNames: false),
             options).Run();
     }
 

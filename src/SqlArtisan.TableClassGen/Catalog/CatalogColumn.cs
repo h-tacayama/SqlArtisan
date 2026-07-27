@@ -2,7 +2,7 @@ namespace SqlArtisan.TableClassGen;
 
 // Every fact is tri-state: null means the catalog path could not determine it,
 // which is not the same as determining it false.
-internal sealed class DbColumnInfo(
+internal sealed class CatalogColumn(
     string name,
     string dataType,
     bool? isNullable = null,

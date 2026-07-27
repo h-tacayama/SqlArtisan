@@ -21,7 +21,7 @@ internal static class CliRunner
                 : CommandLine.Parse(args);
 
             IReadOnlyList<TableResult> results = new TableClassGenerator(
-                TableInfoRepositoryFactory.Create(options.Connection, options.Settings.LowercaseNames),
+                CatalogReaderFactory.Create(options.Connection, options.Settings.LowercaseNames),
                 options).Run();
 
             new Reporter(options).Report(results);

@@ -5,7 +5,7 @@ namespace SqlArtisan.TableClassGen;
 // pragma_index_info marks an expression column with cid -2 and a null name, and
 // carries no text for it — the expression is only in the index's DDL, so the two
 // pragmas locate the indexes and sqlite_master supplies what to scan.
-internal sealed class SqliteColumnIndexRepository : IColumnIndexRepository
+internal sealed class SqliteColumnIndexReader : IColumnIndexReader
 {
     public ColumnIndexInfo Read(IDbConnection conn, string tableName)
     {

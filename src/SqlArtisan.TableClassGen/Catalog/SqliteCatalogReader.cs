@@ -4,16 +4,16 @@ namespace SqlArtisan.TableClassGen;
 
 // SQLite exposes its catalog through sqlite_master and the pragma_table_info
 // table-valued function, neither of which the SqlArtisan builder can express, so
-// this repository reads them with raw ADO.NET. SQLite has no schema concept, so
+// this reader uses raw ADO.NET. SQLite has no schema concept, so
 // _connInfo.Schema is unused.
-internal sealed class SqliteTableInfoRepository(
+internal sealed class SqliteCatalogReader(
     DbConnectionInfo connInfo,
-    bool lowercaseNames) : ITableInfoRepository
+    bool lowercaseNames) : ICatalogReader
 {
     private readonly DbConnectionInfo _connInfo = connInfo;
     private readonly bool _lowercaseNames = lowercaseNames;
 
-    public IReadOnlyList<DbTableInfo> GetAllTables()
+    public IReadOnlyList<CatalogTable> GetAllTables()
     {
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
@@ -33,10 +33,10 @@ internal sealed class SqliteTableInfoRepository(
             }
         }
 
-        List<DbTableInfo> tables = [];
+        List<CatalogTable> tables = [];
         foreach (string tableName in tableNames)
         {
-            if (TryGetTableInfo(conn, tableName, out DbTableInfo? table)
+            if (TryGetTable(conn, tableName, out CatalogTable? table)
                 && table is not null)
             {
                 tables.Add(table);
@@ -46,15 +46,15 @@ internal sealed class SqliteTableInfoRepository(
         return tables;
     }
 
-    public bool TryGetTableInfo(string tableName, out DbTableInfo? table)
+    public bool TryGetTable(string tableName, out CatalogTable? table)
     {
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
 
-        return TryGetTableInfo(conn, tableName, out table);
+        return TryGetTable(conn, tableName, out table);
     }
 
-    private bool TryGetTableInfo(IDbConnection conn, string tableName, out DbTableInfo? table)
+    private bool TryGetTable(IDbConnection conn, string tableName, out CatalogTable? table)
     {
         table = null;
 
@@ -85,9 +85,9 @@ internal sealed class SqliteTableInfoRepository(
 
         int keyColumnCount = rows.Count(r => r.Pk > 0);
         bool hasPkIndex = HasPkOriginIndex(conn, tableName);
-        ColumnIndexInfo indexes = new SqliteColumnIndexRepository().Read(conn, tableName);
+        ColumnIndexInfo indexes = new SqliteColumnIndexReader().Read(conn, tableName);
 
-        List<DbColumnInfo> columns = [];
+        List<CatalogColumn> columns = [];
         foreach ((string Name, string CatalogName, string Type, bool NotNull, bool HasDefault, int Pk) row in rows)
         {
             // A lone INTEGER PRIMARY KEY usually aliases the rowid — never NULL,
@@ -103,7 +103,7 @@ internal sealed class SqliteTableInfoRepository(
             // The alias carries no index row of its own, yet a predicate on it is a
             // rowid lookup — verified by EXPLAIN QUERY PLAN — and wrapping it loses
             // that exactly as wrapping an indexed column does.
-            columns.Add(new DbColumnInfo(
+            columns.Add(new CatalogColumn(
                 row.Name,
                 row.Type,
                 isNullable: !isRowIdAlias && !row.NotNull,
@@ -111,7 +111,7 @@ internal sealed class SqliteTableInfoRepository(
                 isIndexed: isRowIdAlias ? true : indexes.IsIndexed(row.CatalogName)));
         }
 
-        table = new DbTableInfo(tableName, columns);
+        table = new CatalogTable(tableName, columns);
         return true;
     }
 

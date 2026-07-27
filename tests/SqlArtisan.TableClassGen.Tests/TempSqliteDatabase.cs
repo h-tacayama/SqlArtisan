@@ -4,7 +4,7 @@ using SqlArtisan.TableClassGen;
 namespace SqlArtisan.TableClassGen.Tests;
 
 // A throwaway on-disk SQLite database. On-disk (not :memory:) because the
-// repository opens its own connection via DbConnectionInfo, so the schema must
+// reader opens its own connection via DbConnectionInfo, so the schema must
 // outlive the seeding connection.
 internal sealed class TempSqliteDatabase : IDisposable
 {

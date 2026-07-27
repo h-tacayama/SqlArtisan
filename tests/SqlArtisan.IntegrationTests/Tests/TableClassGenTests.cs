@@ -9,7 +9,7 @@ using SqlArtisan.TableClassGen;
 
 namespace SqlArtisan.IntegrationTests.Tests;
 
-// Verifies the TableClassGen repositories against live engines: the SqlArtisan
+// Verifies the TableClassGen catalog readers against live engines: the SqlArtisan
 // information_schema builder path resolves the right dialect from the connection
 // and extracts the seeded schema. SQLite's bespoke path is covered in the fast
 // unit lane (SqlArtisan.TableClassGen.Tests).
@@ -34,9 +34,9 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
             builder.UserID,
             builder.Password);
 
-        InformationSchemaTableInfoRepository repository = new(connInfo, lowercaseNames: false);
+        InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
 
-        TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
     }
 
     // MySQL spells a functional index with a doubly-parenthesized expression
@@ -48,10 +48,10 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
         Execute("CREATE INDEX ix_upper_name ON users ((upper(name)))");
         try
         {
-            InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
             TableClassGenAssertions.AssertCompositeAndExpression(
-                repository.GetAllTables(),
+                reader.GetAllTables(),
                 expectedForExpressionColumn: null);
         }
         finally
@@ -102,9 +102,9 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
             builder.UserID,
             builder.Password);
 
-        InformationSchemaTableInfoRepository repository = new(connInfo, lowercaseNames: false);
+        InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
 
-        TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
     }
 
     // T-SQL indexes no expression directly; the equivalent is an index whose
@@ -118,14 +118,14 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         Execute("CREATE INDEX ix_filtered ON users (is_active) WHERE age > 0");
         try
         {
-            InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
-            IReadOnlyList<DbTableInfo> tables = repository.GetAllTables();
+            IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
             TableClassGenAssertions.AssertCompositeAndExpression(
                 tables,
                 expectedForExpressionColumn: null);
 
-            DbTableInfo users = tables.Single(
+            CatalogTable users = tables.Single(
                 t => string.Equals(t.TableName, "users", StringComparison.OrdinalIgnoreCase));
             // The computed column leads its index, so it is claimed even though the
             // same row carries the definition that suppresses the real column.
@@ -172,9 +172,9 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
     [Fact]
     public void GenerateTables_PostgreSql_ExtractsSeededSchema()
     {
-        InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
+        InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
-        TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
     }
 
     // #323: PostgreSQL's information_schema comparison is case-sensitive, so a
@@ -186,9 +186,9 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         Execute("CREATE TABLE IF NOT EXISTS \"MixedCaseTbl\" (\"Id\" integer, \"Val\" varchar(10))");
         try
         {
-            InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: true);
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
 
-            IReadOnlyList<DbTableInfo> tables = repository.GetAllTables();
+            IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
 
             Assert.Contains(tables, t => t.TableName == "mixedcasetbl");
         }
@@ -209,14 +209,14 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         Execute("CREATE INDEX ix_partial ON users (is_active) WHERE age > 0");
         try
         {
-            InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
-            IReadOnlyList<DbTableInfo> tables = repository.GetAllTables();
+            IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
             TableClassGenAssertions.AssertCompositeAndExpression(
                 tables,
                 expectedForExpressionColumn: null);
 
-            DbTableInfo users = tables.Single(t => t.TableName == "users");
+            CatalogTable users = tables.Single(t => t.TableName == "users");
             Assert.True(users.Columns.Single(c => c.Name == "created_at").IsIndexed);
             Assert.Null(users.Columns.Single(c => c.Name == "is_active").IsIndexed);
         }
@@ -273,10 +273,10 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
             builder.UserID,
             builder.Password);
 
-        OracleTableInfoRepository repository = new(connInfo, lowercaseNames: true);
+        OracleCatalogReader reader = new(connInfo, lowercaseNames: true);
 
         TableClassGenAssertions.AssertSeededSchema(
-            repository.GetAllTables(),
+            reader.GetAllTables(),
             expectedHasDefault: false);
     }
 
@@ -288,16 +288,16 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
         try
         {
-            OracleTableInfoRepository repository = new(ConnInfo(), lowercaseNames: true);
+            OracleCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
 
             TableClassGenAssertions.AssertCompositeAndExpression(
-                repository.GetAllTables(),
+                reader.GetAllTables(),
                 expectedForExpressionColumn: false);
 
             Execute("CREATE INDEX ix_upper_name ON users (upper(name))");
 
-            IReadOnlyList<DbTableInfo> tables =
-                new OracleTableInfoRepository(ConnInfo(), lowercaseNames: true).GetAllTables();
+            IReadOnlyList<CatalogTable> tables =
+                new OracleCatalogReader(ConnInfo(), lowercaseNames: true).GetAllTables();
 
             Assert.All(
                 tables.Single(t => t.TableName == "users").Columns,
@@ -328,7 +328,7 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
             """);
         try
         {
-            DbTableInfo table = new OracleTableInfoRepository(ConnInfo(), lowercaseNames: true)
+            CatalogTable table = new OracleCatalogReader(ConnInfo(), lowercaseNames: true)
                 .GetAllTables()
                 .Single(t => t.TableName == "default_probe");
 
@@ -381,10 +381,10 @@ internal static class TableClassGenAssertions
     // The seeded schema (TestSchema): `users` and `orders`. SQL Server's master db
     // also carries system base tables, so assert presence, not an exact table set.
     public static void AssertSeededSchema(
-        IReadOnlyList<DbTableInfo> tables,
+        IReadOnlyList<CatalogTable> tables,
         bool? expectedHasDefault = null)
     {
-        DbTableInfo users = Find(tables, "users");
+        CatalogTable users = Find(tables, "users");
         Assert.Equal(
             ["id", "name", "age", "department_id", "created_at", "is_active", "data"],
             users.Columns.Select(c => c.Name.ToLowerInvariant()));
@@ -405,7 +405,7 @@ internal static class TableClassGenAssertions
         Assert.True(Column(users, "id").IsIndexed);
         Assert.False(Column(users, "name").IsIndexed);
 
-        DbTableInfo orders = Find(tables, "orders");
+        CatalogTable orders = Find(tables, "orders");
         Assert.Equal(
             ["id", "user_id", "amount"],
             orders.Columns.Select(c => c.Name.ToLowerInvariant()));
@@ -415,19 +415,19 @@ internal static class TableClassGenAssertions
     // column of a composite index is claimed, and a column an index expression
     // names is claimed either way.
     public static void AssertCompositeAndExpression(
-        IReadOnlyList<DbTableInfo> tables,
+        IReadOnlyList<CatalogTable> tables,
         bool? expectedForExpressionColumn)
     {
-        DbTableInfo users = Find(tables, "users");
+        CatalogTable users = Find(tables, "users");
 
         Assert.True(Column(users, "age").IsIndexed);
         Assert.False(Column(users, "department_id").IsIndexed);
         Assert.Equal(expectedForExpressionColumn, Column(users, "name").IsIndexed);
     }
 
-    private static DbTableInfo Find(IReadOnlyList<DbTableInfo> tables, string name) =>
+    private static CatalogTable Find(IReadOnlyList<CatalogTable> tables, string name) =>
         tables.Single(t => string.Equals(t.TableName, name, StringComparison.OrdinalIgnoreCase));
 
-    private static DbColumnInfo Column(DbTableInfo table, string name) =>
+    private static CatalogColumn Column(CatalogTable table, string name) =>
         table.Columns.Single(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase));
 }
