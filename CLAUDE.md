@@ -64,8 +64,8 @@ violation. The SDK version is pinned by `global.json` (`latestPatch`
 roll-forward); treat CI as the authoritative format gate.
 
 Integration tests (`tests/SqlArtisan.IntegrationTests/`) run against live
-database engines via Testcontainers. They are triggered nightly and on release
-— not part of the default local test workflow.
+database engines — containers via Testcontainers, SQLite in-process. They are
+triggered nightly and on release — not part of the default local test workflow.
 
 ## CI
 
@@ -95,7 +95,7 @@ Most function node classes sit in a category folder under
 `ComparisonFunction`, `ConversionFunction`, `DateTimeFunction`,
 `FullTextSearchFunction`, `GroupingFunction`, `JsonFunction`, `NumericFunction`,
 `OrderedSetAggregateFunction`, `SequenceFunction`, `StringAggregateFunction`.
-Shared bases and a few nodes belonging to no category sit at that folder's root.
+Shared bases and one uncategorized node sit at that folder's root.
 
 ## Analyzer
 

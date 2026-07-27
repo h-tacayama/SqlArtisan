@@ -644,7 +644,9 @@ public method, property, field, or overloaded operator ships without a matrix
 entry or a documented dialect-neutral exclusion, and an integration-test sweep
 executes the entries against a live engine per dialect (the versions in the
 table below), asserting that accept/reject outcomes match the matrix both ways.
-A few entries are excluded by name where no statement can isolate them.
+Two entries are excluded by name, and a dozen more skip individual engines
+where the shared runner or the container image cannot execute the statement —
+SQL Server's image ships without Full-Text Search, for example.
 
 ---
 
