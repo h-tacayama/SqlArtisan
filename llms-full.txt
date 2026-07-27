@@ -3059,7 +3059,7 @@ family without the other:
 | Category | Rules | Answers |
 |---|---|---|
 | `SqlArtisan.Dialect` | `SQLA0001`–`SQLA0006` | will this run on the engine you configured? |
-| `SqlArtisan.Schema` | `SQLA0007`–`SQLA0010` | does it agree with what your table classes say the columns are? |
+| `SqlArtisan.Schema` | `SQLA0007`–`SQLA0011` | does it agree with what your table classes say the columns are? |
 
 ```ini
 # every schema rule as an error, dialect rules untouched
@@ -3551,13 +3551,22 @@ itself, which the generator then records as unknown and the rule stops reporting
 Only `WHERE` and `ON` are checked. The same call in a select list or an
 `ORDER BY` costs no index, and `HAVING` filters groups after any index has done
 its work. A condition built apart from its clause is left alone: nothing at that
-point shows it will ever reach a `WHERE`.
+point shows it will ever reach a `WHERE`. A call that *is* the predicate —
+full-text `Contains` / `Freetext`, the JSONB and array operators — is never a
+wrapping: those are often exactly the spelling that uses the index on that
+column, so only an expression around the column counts.
 
 `Indexed` records only whether the column **leads** an index. A composite index
 on `(a, b)` is fully usable from a predicate on `a` alone, so `a` is recorded and
 `b` is not — a predicate on `b` alone could not have used that index anyway, and
 "the query constrains `b` but not `a`" is a cost judgment (Oracle's index skip
-scan and MySQL's skip-scan optimization both exist) rather than a fact.
+scan and MySQL's skip-scan optimization both exist) rather than a fact. A
+**partial** (filtered) index claims nothing either way: whether its predicate
+covers your query is an expression the generator refuses to interpret, so a
+column that leads only a partial index stays unknown. On Oracle, one
+function-based index makes **every** column of that table record nothing — its
+expression text is stored in a form the tool does not read, so the whole table
+degrades to unknown rather than guess.
 
 **All five are silent unless the fact was recorded.** An attribute the generator
 never wrote, a fact it could not determine (an absent named argument), a
@@ -3677,7 +3686,7 @@ for, not a bug in the matrix.
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
 - **The dialect-independent rules need a configured target too.**
-  `SQLA0005` and the schema-aware `SQLA0007`–`SQLA0010` report facts that
+  `SQLA0005` and the schema-aware `SQLA0007`–`SQLA0011` report facts that
   hold on every engine, but the analyzer as a whole stays silent until
   `sqlartisan_target_dbms` is set — without a target, `SQLA0005`'s `Build()`
   guard is the only report and the schema rules have none.

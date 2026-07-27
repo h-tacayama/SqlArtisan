@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Testing;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// The empirical no-false-positive gate for the schema rules (SQLA0007–SQLA0010):
+/// The empirical no-false-positive gate for the schema rules (SQLA0007–SQLA0011):
 /// one catalog of hazard shapes, asserted silent against every rule that reads the
 /// surrounding query, so a shape added here becomes a regression test for all of
 /// them at once.

@@ -14,21 +14,26 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
     {
         List<string> leadingColumns = [];
         List<string> expressionTexts = [];
+        List<string> partialLeadingColumns = [];
 
         try
         {
-            ReadLeadingKeys(conn, tableName, LeadingKeyQuery(), leadingColumns, expressionTexts);
+            ReadLeadingKeys(
+                conn, tableName, LeadingKeyQuery(),
+                leadingColumns, expressionTexts, partialLeadingColumns);
         }
         catch (DbException) when (dbmsType == DbmsType.MySql)
         {
             // STATISTICS.EXPRESSION arrived with functional indexes in 8.0.13, so a
             // server that rejects the column has no expression index to miss.
-            ReadLeadingKeys(conn, tableName, MySqlLegacyQuery, leadingColumns, expressionTexts);
+            ReadLeadingKeys(
+                conn, tableName, MySqlLegacyQuery,
+                leadingColumns, expressionTexts, partialLeadingColumns);
         }
 
         return dbmsType == DbmsType.Oracle && HasFunctionBasedIndex(conn, tableName)
             ? ColumnIndexInfo.Unknown
-            : new ColumnIndexInfo(leadingColumns, expressionTexts);
+            : new ColumnIndexInfo(leadingColumns, expressionTexts, partialLeadingColumns);
     }
 
     private void ReadLeadingKeys(
@@ -36,7 +41,8 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
         string tableName,
         string sql,
         List<string> leadingColumns,
-        List<string> expressionTexts)
+        List<string> expressionTexts,
+        List<string> partialLeadingColumns)
     {
         using IDbCommand command = conn.CreateCommand();
         command.CommandText = sql;
@@ -46,33 +52,39 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
         using IDataReader reader = command.ExecuteReader();
         while (reader.Read())
         {
+            // A mixed row carries both: PostgreSQL names indkey[0] and the whole
+            // expression list in one row, and SQL Server pairs a computed leading
+            // column with its definition — the column leads the index either way.
             if (!reader.IsDBNull(1))
             {
                 expressionTexts.Add(reader.GetString(1));
             }
-            else if (!reader.IsDBNull(0))
+
+            if (!reader.IsDBNull(0))
             {
-                leadingColumns.Add(reader.GetString(0));
+                bool partial = !reader.IsDBNull(2) && Convert.ToBoolean(reader.GetValue(2));
+                (partial ? partialLeadingColumns : leadingColumns).Add(reader.GetString(0));
             }
         }
     }
 
     private const string MySqlLegacyQuery =
-        "SELECT COLUMN_NAME, NULL FROM information_schema.STATISTICS "
+        "SELECT COLUMN_NAME, NULL, 0 FROM information_schema.STATISTICS "
         + "WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1";
 
-    // Each returns (leading column name, index expression text) with exactly one of
-    // the two non-null per row.
+    // Each returns (leading column name, index expression text, is-partial). A row
+    // may carry both name and text — see ReadLeadingKeys. MySQL and Oracle have no
+    // partial indexes, so their third column is a literal.
     private string LeadingKeyQuery() => dbmsType switch
     {
         DbmsType.MySql =>
-            "SELECT COLUMN_NAME, EXPRESSION FROM information_schema.STATISTICS "
+            "SELECT COLUMN_NAME, EXPRESSION, 0 FROM information_schema.STATISTICS "
             + "WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1",
 
         // indkey is 0 at a subscript whose key is an expression, and no attribute has
         // attnum 0, so the join drops exactly those rows to a null column name.
         DbmsType.PostgreSql =>
-            "SELECT a.attname, pg_get_expr(i.indexprs, i.indrelid) "
+            "SELECT a.attname, pg_get_expr(i.indexprs, i.indrelid), i.indpred IS NOT NULL "
             + "FROM pg_index i "
             + "JOIN pg_class c ON c.oid = i.indrelid "
             + "JOIN pg_namespace n ON n.oid = c.relnamespace "
@@ -82,7 +94,7 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
         // T-SQL indexes no expression directly; the equivalent is an index whose
         // leading key is a computed column, whose definition names the real columns.
         DbmsType.SqlServer =>
-            "SELECT c.name, cc.definition "
+            "SELECT c.name, cc.definition, i.has_filter "
             + "FROM sys.indexes i "
             + "JOIN sys.index_columns ic ON ic.object_id = i.object_id "
             + "AND ic.index_id = i.index_id AND ic.key_ordinal = 1 "
@@ -96,7 +108,7 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
         // COLUMN_EXPRESSION is a LONG, so nothing is read from it here; a
         // function-based index instead disqualifies the whole table below.
         DbmsType.Oracle =>
-            "SELECT COLUMN_NAME, NULL FROM ALL_IND_COLUMNS "
+            "SELECT COLUMN_NAME, NULL, 0 FROM ALL_IND_COLUMNS "
             + "WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name AND COLUMN_POSITION = 1",
 
         _ => throw new ArgumentOutOfRangeException(nameof(dbmsType)),

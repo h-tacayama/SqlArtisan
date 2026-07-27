@@ -23,12 +23,31 @@ internal static class UnusableIndexPredicateRule
 
     public static void CheckFunctionCall(OperationAnalysisContext context, IInvocationOperation call)
     {
-        if (IndexedArgument(call) is not { } column || !IsInsideFilter(call))
+        // A call returning a condition IS the predicate — full-text CONTAINS, the
+        // JSONB operators — and is often the spelling that uses the index, so only
+        // an expression wrap can be a wrapping.
+        if (ReturnsCondition(call.TargetMethod.ReturnType)
+            || IndexedArgument(call) is not { } column
+            || !IsInsideFilter(call))
         {
             return;
         }
 
         Report(context, call, column.Property.Name, $"wrapped in {call.TargetMethod.Name}");
+    }
+
+    private static bool ReturnsCondition(ITypeSymbol? type)
+    {
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        {
+            if (current.Name == "SqlCondition"
+                && DialectUsageAnalyzer.IsFromSqlArtisan(current.ContainingAssembly))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static void CheckLike(OperationAnalysisContext context, IInvocationOperation like)

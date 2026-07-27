@@ -115,16 +115,26 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
         Execute("ALTER TABLE users ADD upper_name AS UPPER(name)");
         Execute("CREATE INDEX ix_upper_name ON users (upper_name)");
+        Execute("CREATE INDEX ix_filtered ON users (is_active) WHERE age > 0");
         try
         {
             InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
 
+            IReadOnlyList<DbTableInfo> tables = repository.GetAllTables();
             TableClassGenAssertions.AssertCompositeAndExpression(
-                repository.GetAllTables(),
+                tables,
                 expectedForExpressionColumn: null);
+
+            DbTableInfo users = tables.Single(
+                t => string.Equals(t.TableName, "users", StringComparison.OrdinalIgnoreCase));
+            // The computed column leads its index, so it is claimed even though the
+            // same row carries the definition that suppresses the real column.
+            Assert.True(users.Columns.Single(c => c.Name == "upper_name").IsIndexed);
+            Assert.Null(users.Columns.Single(c => c.Name == "is_active").IsIndexed);
         }
         finally
         {
+            Execute("DROP INDEX ix_filtered ON users");
             Execute("DROP INDEX ix_upper_name ON users");
             Execute("ALTER TABLE users DROP COLUMN upper_name");
             Execute("DROP INDEX ix_age_dept ON users");
@@ -193,16 +203,27 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
     {
         Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
         Execute("CREATE INDEX ix_upper_name ON users (upper(name))");
+        // The mixed row: pg_index reports indkey[0] and the expression list in ONE
+        // row, so created_at must survive as a claimed lead beside the expression.
+        Execute("CREATE INDEX ix_mixed ON users (created_at, lower(name))");
+        Execute("CREATE INDEX ix_partial ON users (is_active) WHERE age > 0");
         try
         {
             InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
 
+            IReadOnlyList<DbTableInfo> tables = repository.GetAllTables();
             TableClassGenAssertions.AssertCompositeAndExpression(
-                repository.GetAllTables(),
+                tables,
                 expectedForExpressionColumn: null);
+
+            DbTableInfo users = tables.Single(t => t.TableName == "users");
+            Assert.True(users.Columns.Single(c => c.Name == "created_at").IsIndexed);
+            Assert.Null(users.Columns.Single(c => c.Name == "is_active").IsIndexed);
         }
         finally
         {
+            Execute("DROP INDEX IF EXISTS ix_partial");
+            Execute("DROP INDEX IF EXISTS ix_mixed");
             Execute("DROP INDEX IF EXISTS ix_upper_name");
             Execute("DROP INDEX IF EXISTS ix_age_dept");
         }

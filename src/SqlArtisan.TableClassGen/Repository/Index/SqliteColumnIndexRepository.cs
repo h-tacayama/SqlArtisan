@@ -9,23 +9,24 @@ internal sealed class SqliteColumnIndexRepository : IColumnIndexRepository
 {
     public ColumnIndexInfo Read(IDbConnection conn, string tableName)
     {
-        List<string> indexNames = [];
+        List<(string Name, bool Partial)> indexes = [];
         using (IDbCommand command = conn.CreateCommand())
         {
-            command.CommandText = "SELECT name FROM pragma_index_list(@table)";
+            command.CommandText = "SELECT name, \"partial\" FROM pragma_index_list(@table)";
             AddParameter(command, "@table", tableName);
 
             using IDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                indexNames.Add(reader.GetString(0));
+                indexes.Add((reader.GetString(0), reader.GetInt32(1) != 0));
             }
         }
 
         List<string> leadingColumns = [];
+        List<string> partialLeadingColumns = [];
         List<string> expressionIndexNames = [];
 
-        foreach (string indexName in indexNames)
+        foreach ((string indexName, bool partial) in indexes)
         {
             using IDbCommand command = conn.CreateCommand();
             command.CommandText = "SELECT seqno, name FROM pragma_index_info(@index)";
@@ -40,12 +41,15 @@ internal sealed class SqliteColumnIndexRepository : IColumnIndexRepository
                 }
                 else if (reader.GetInt32(0) == 0)
                 {
-                    leadingColumns.Add(reader.GetString(1));
+                    (partial ? partialLeadingColumns : leadingColumns).Add(reader.GetString(1));
                 }
             }
         }
 
-        return new ColumnIndexInfo(leadingColumns, ExpressionTexts(conn, expressionIndexNames));
+        return new ColumnIndexInfo(
+            leadingColumns,
+            ExpressionTexts(conn, expressionIndexNames),
+            partialLeadingColumns);
     }
 
     // Only the expression-bearing indexes are scanned: a plain index's DDL names

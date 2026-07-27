@@ -148,6 +148,30 @@ public class UnusableIndexPredicateAnalyzerTests
             var s = Select(t.Id).From(t).Where(held).Build();
             """);
 
+    // A call returning a condition IS the predicate, and full-text CONTAINS is the
+    // spelling that uses the index on exactly that column — the shape that shipped
+    // as a live false positive before this test existed.
+    [Fact]
+    public Task Where_FullTextContains_Silent() =>
+        RunSilent(
+            """var s = Select(t.Id).From(t).Where(Contains(t.Name, "smith")).Build(Dbms.SqlServer);""",
+            dbms: "sqlserver");
+
+    [Fact]
+    public Task Where_FullTextFreetext_Silent() =>
+        RunSilent(
+            """var s = Select(t.Id).From(t).Where(Freetext(t.Name, "smith")).Build(Dbms.SqlServer);""",
+            dbms: "sqlserver");
+
+    // ToTsvector is an expression wrap and stays reported deliberately: the cure is
+    // a GIN expression index, which the generator then records as unknown.
+    [Fact]
+    public Task Where_TsMatchOverToTsvector_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where(TsMatch({|#0:ToTsvector(t.Name)|}, ToTsquery("x"))).Build();""",
+            "Name",
+            "wrapped in ToTsvector");
+
     [Fact]
     public Task Where_NoTargetConfigured_Silent() =>
         RunSilent("""var s = Select(t.Id).From(t).Where(Upper(t.Name) == "X").Build();""", dbms: null);

@@ -243,6 +243,26 @@ public class SqliteTableInfoRepositoryTests
         Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
     }
 
+    // Whether the partial predicate covers a query is an expression to interpret,
+    // so a partial-only lead claims nothing; a full-index lead beside it still does.
+    [Fact]
+    public void GetAllTables_PartialIndex_LeadingColumnIsUnknown()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE task (status TEXT, amount INTEGER, owner TEXT);
+            CREATE INDEX ix_status ON task(status) WHERE amount > 0;
+            CREATE INDEX ix_owner_full ON task(owner);
+            CREATE INDEX ix_owner_part ON task(owner) WHERE amount > 0;
+            """);
+
+        DbTableInfo table = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([null, false, true], table.Columns.Select(c => c.IsIndexed));
+    }
+
     [Fact]
     public void GetAllTables_UniqueIndex_LeadsLikeAnyOther()
     {
