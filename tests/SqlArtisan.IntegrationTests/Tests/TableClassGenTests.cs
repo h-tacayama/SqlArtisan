@@ -282,8 +282,21 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         }
         finally
         {
-            Execute("DROP INDEX ix_upper_name");
-            Execute("DROP INDEX ix_age_dept");
+            // Oracle XE has no DROP INDEX IF EXISTS, and an assertion that throws
+            // before the second CREATE would otherwise mask itself with ORA-01418.
+            TryExecute("DROP INDEX ix_upper_name");
+            TryExecute("DROP INDEX ix_age_dept");
+        }
+    }
+
+    private void TryExecute(string sql)
+    {
+        try
+        {
+            Execute(sql);
+        }
+        catch (OracleException)
+        {
         }
     }
 

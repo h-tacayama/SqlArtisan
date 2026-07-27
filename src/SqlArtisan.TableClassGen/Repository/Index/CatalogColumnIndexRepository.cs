@@ -40,8 +40,8 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
     {
         using IDbCommand command = conn.CreateCommand();
         command.CommandText = sql;
-        AddParameter(command, ParameterName("schema"), schema);
-        AddParameter(command, ParameterName("table"), tableName);
+        AddParameter(command, ParameterName(SchemaParameter), schema);
+        AddParameter(command, ParameterName(TableParameter), tableName);
 
         using IDataReader reader = command.ExecuteReader();
         while (reader.Read())
@@ -59,7 +59,7 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
 
     private const string MySqlLegacyQuery =
         "SELECT COLUMN_NAME, NULL FROM information_schema.STATISTICS "
-        + "WHERE TABLE_SCHEMA = @schema AND TABLE_NAME = @table AND SEQ_IN_INDEX = 1";
+        + "WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1";
 
     // Each returns (leading column name, index expression text) with exactly one of
     // the two non-null per row.
@@ -67,7 +67,7 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
     {
         DbmsType.MySql =>
             "SELECT COLUMN_NAME, EXPRESSION FROM information_schema.STATISTICS "
-            + "WHERE TABLE_SCHEMA = @schema AND TABLE_NAME = @table AND SEQ_IN_INDEX = 1",
+            + "WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1",
 
         // indkey is 0 at a subscript whose key is an expression, and no attribute has
         // attnum 0, so the join drops exactly those rows to a null column name.
@@ -77,7 +77,7 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
             + "JOIN pg_class c ON c.oid = i.indrelid "
             + "JOIN pg_namespace n ON n.oid = c.relnamespace "
             + "LEFT JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = i.indkey[0] "
-            + "WHERE c.relname = @table AND n.nspname = @schema",
+            + "WHERE c.relname = @table_name AND n.nspname = @schema_name",
 
         // T-SQL indexes no expression directly; the equivalent is an index whose
         // leading key is a computed column, whose definition names the real columns.
@@ -91,13 +91,13 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
             + "AND cc.column_id = c.column_id "
             + "JOIN sys.tables t ON t.object_id = i.object_id "
             + "JOIN sys.schemas s ON s.schema_id = t.schema_id "
-            + "WHERE t.name = @table AND s.name = @schema",
+            + "WHERE t.name = @table_name AND s.name = @schema_name",
 
         // COLUMN_EXPRESSION is a LONG, so nothing is read from it here; a
         // function-based index instead disqualifies the whole table below.
         DbmsType.Oracle =>
             "SELECT COLUMN_NAME, NULL FROM ALL_IND_COLUMNS "
-            + "WHERE TABLE_OWNER = :schema AND TABLE_NAME = :table AND COLUMN_POSITION = 1",
+            + "WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name AND COLUMN_POSITION = 1",
 
         _ => throw new ArgumentOutOfRangeException(nameof(dbmsType)),
     };
@@ -107,13 +107,19 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
         using IDbCommand command = conn.CreateCommand();
         command.CommandText =
             "SELECT COUNT(*) FROM ALL_INDEXES "
-            + "WHERE TABLE_OWNER = :schema AND TABLE_NAME = :table "
+            + "WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name "
             + "AND INDEX_TYPE LIKE 'FUNCTION-BASED%'";
-        AddParameter(command, ":schema", schema);
-        AddParameter(command, ":table", tableName);
+        AddParameter(command, ParameterName(SchemaParameter), schema);
+        AddParameter(command, ParameterName(TableParameter), tableName);
 
         return Convert.ToInt64(command.ExecuteScalar()) > 0;
     }
+
+    // Suffixed because Oracle rejects a bind variable named after a reserved word:
+    // a bare ":table" fails with ORA-01745, verified against a live engine.
+    private const string SchemaParameter = "schema_name";
+
+    private const string TableParameter = "table_name";
 
     private string ParameterName(string name) =>
         dbmsType == DbmsType.Oracle ? $":{name}" : $"@{name}";
