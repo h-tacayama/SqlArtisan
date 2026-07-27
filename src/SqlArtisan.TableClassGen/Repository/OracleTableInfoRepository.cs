@@ -69,14 +69,15 @@ internal sealed class OracleTableInfoRepository(
 
         AllTabColumns atc = new();
 
-        // DATA_DEFAULT is deliberately not read: it is a LONG, whose retrieval needs
-        // provider-specific handling, and identity columns carry their own flag — so
-        // HasDefault stays unknown here until both are verified against a live engine.
+        // DEFAULT_LENGTH stands in for DATA_DEFAULT, which is a LONG needing
+        // provider-specific retrieval; only its presence matters here.
         ISqlBuilder sql =
             Select(
                 atc.ColumnName,
                 atc.DataType,
-                atc.Nullable)
+                atc.Nullable,
+                atc.DefaultLength,
+                atc.IdentityColumn)
             .From(atc)
             .Where(
                 atc.Owner == _connInfo.Schema.ToUpper()
@@ -99,6 +100,7 @@ internal sealed class OracleTableInfoRepository(
                     _lowercaseNames ? catalogName.ToLower() : catalogName,
                     dataType,
                     isNullable: ReadIsNullable(reader, 2),
+                    hasDefault: ReadHasDefault(reader, 3, 4),
                     isIndexed: indexes.IsIndexed(catalogName)));
             }
         }
@@ -116,6 +118,14 @@ internal sealed class OracleTableInfoRepository(
 
         return true;
     }
+
+    // Decidable here, unlike on information_schema: Oracle records an identity
+    // column's sequence and a virtual column's expression in DATA_DEFAULT, and flags
+    // identity separately — so an absent default really is no default.
+    private static bool ReadHasDefault(IDataReader reader, int lengthOrdinal, int identityOrdinal) =>
+        !reader.IsDBNull(lengthOrdinal)
+        || (!reader.IsDBNull(identityOrdinal)
+            && string.Equals(reader.GetString(identityOrdinal), "YES", StringComparison.OrdinalIgnoreCase));
 
     private static bool? ReadIsNullable(IDataReader reader, int ordinal) =>
         reader.IsDBNull(ordinal)

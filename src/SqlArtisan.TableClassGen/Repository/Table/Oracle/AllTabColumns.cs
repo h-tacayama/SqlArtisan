@@ -10,6 +10,8 @@ internal sealed class AllTabColumns : DbTableBase
         DataType = new DbColumn(this, "data_type");
         ColumnId = new DbColumn(this, "column_id");
         Nullable = new DbColumn(this, "nullable");
+        DefaultLength = new DbColumn(this, "default_length");
+        IdentityColumn = new DbColumn(this, "identity_column");
     }
 
     public DbColumn Owner { get; }
@@ -23,4 +25,10 @@ internal sealed class AllTabColumns : DbTableBase
     public DbColumn ColumnId { get; }
 
     public DbColumn Nullable { get; }
+
+    // The length of DATA_DEFAULT rather than the value: the value is a LONG, and
+    // its presence is the only thing this needs.
+    public DbColumn DefaultLength { get; }
+
+    public DbColumn IdentityColumn { get; }
 }

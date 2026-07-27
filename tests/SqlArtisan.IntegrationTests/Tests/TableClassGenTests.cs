@@ -254,7 +254,9 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
 
         OracleTableInfoRepository repository = new(connInfo, lowercaseNames: true);
 
-        TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+        TableClassGenAssertions.AssertSeededSchema(
+            repository.GetAllTables(),
+            expectedHasDefault: false);
     }
 
     // ALL_IND_EXPRESSIONS.COLUMN_EXPRESSION is a LONG, so the collector never reads
@@ -286,6 +288,37 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
             // before the second CREATE would otherwise mask itself with ORA-01418.
             TryExecute("DROP INDEX ix_upper_name");
             TryExecute("DROP INDEX ix_age_dept");
+        }
+    }
+
+    // The four shapes HasDefault has to tell apart. Oracle records the identity
+    // sequence and the virtual column's expression in DATA_DEFAULT, so DEFAULT_LENGTH
+    // answers all three engine-assigned cases without reading the LONG.
+    [Fact]
+    public void GenerateTables_Oracle_HasDefault_DistinguishesEngineAssignedColumns()
+    {
+        Execute(
+            """
+            CREATE TABLE default_probe (
+                plain NUMBER(10),
+                defaulted NUMBER(10) DEFAULT 7,
+                generated_id NUMBER(10) GENERATED ALWAYS AS IDENTITY,
+                virtual_col NUMBER(10) GENERATED ALWAYS AS (plain * 2))
+            """);
+        try
+        {
+            DbTableInfo table = new OracleTableInfoRepository(ConnInfo(), lowercaseNames: true)
+                .GetAllTables()
+                .Single(t => t.TableName == "default_probe");
+
+            Assert.Equal(
+                ["plain", "defaulted", "generated_id", "virtual_col"],
+                table.Columns.Select(c => c.Name));
+            Assert.Equal([false, true, true, true], table.Columns.Select(c => c.HasDefault));
+        }
+        finally
+        {
+            TryExecute("DROP TABLE default_probe");
         }
     }
 
@@ -326,7 +359,9 @@ internal static class TableClassGenAssertions
 {
     // The seeded schema (TestSchema): `users` and `orders`. SQL Server's master db
     // also carries system base tables, so assert presence, not an exact table set.
-    public static void AssertSeededSchema(IReadOnlyList<DbTableInfo> tables)
+    public static void AssertSeededSchema(
+        IReadOnlyList<DbTableInfo> tables,
+        bool? expectedHasDefault = null)
     {
         DbTableInfo users = Find(tables, "users");
         Assert.Equal(
@@ -339,9 +374,10 @@ internal static class TableClassGenAssertions
         Assert.False(Column(users, "id").IsNullable);
         Assert.True(Column(users, "name").IsNullable);
 
-        // No column of the seeded schema has a DEFAULT, and an absent default is
-        // unknown here — an identity column reports none either.
-        Assert.All(users.Columns, c => Assert.Null(c.HasDefault));
+        // No column of the seeded schema has a DEFAULT. On information_schema that
+        // reads as unknown — an identity column reports none either — while Oracle
+        // can tell the two apart and answers false.
+        Assert.All(users.Columns, c => Assert.Equal(expectedHasDefault, c.HasDefault));
 
         // The primary key is indexed on every engine, and the seeded schema has no
         // other index — so this proves each engine's leading-key query both ways.
