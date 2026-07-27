@@ -2982,6 +2982,8 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type
 
+`Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: a bare `null` literal inlines the `NULL` keyword into the SQL text, while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
+
 <!-- ============================================================ -->
 <!-- SOURCE: docs/analyzer.md -->
 <!-- ============================================================ -->
@@ -3631,7 +3633,8 @@ the safety net, and this repository enforces it. A coverage test fails when any
 public method, property, field, or overloaded operator ships without a matrix
 entry or a documented dialect-neutral exclusion, and an integration-test sweep
 executes the entries against a live engine per dialect (the versions in the
-table below), asserting each accept/reject outcome matches the matrix both ways.
+table below), asserting that accept/reject outcomes match the matrix both ways.
+A few entries are excluded by name where no statement can isolate them.
 
 ---
 
@@ -3644,7 +3647,7 @@ against):
 | Dialect | Verified against |
 |---|---|
 | MySQL | MySQL 8.0 |
-| Oracle | Oracle Database XE 21c (the `Testcontainers.Oracle` module's default `gvenzl/oracle-xe:21.3.0-slim-faststart` image) |
+| Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0003` reports |
 | PostgreSQL | PostgreSQL 16 |
 | SQLite | the SQLite build bundled with `Microsoft.Data.Sqlite` 9.0.5 |
 | SQL Server | SQL Server 2022 |
@@ -4926,7 +4929,8 @@ bug — please open an
 - **Verified engines**: every release passes the
   [integration test matrix](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.IntegrationTests)
   against one representative version each of MySQL, Oracle, PostgreSQL,
-  SQLite, and SQL Server (exact versions in the analyzer's
+  SQLite, and SQL Server — Oracle at two, since its version-bound entries are
+  proven at 23ai (exact versions in the analyzer's
   [verified-against table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions)).
   Other engine versions generally work — the emitted SQL is plain text —
   but dialect-availability claims are only made for the verified ones.

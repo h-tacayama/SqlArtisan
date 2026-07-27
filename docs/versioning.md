@@ -56,7 +56,8 @@ bug — please open an
 - **Verified engines**: every release passes the
   [integration test matrix](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.IntegrationTests)
   against one representative version each of MySQL, Oracle, PostgreSQL,
-  SQLite, and SQL Server (exact versions in the analyzer's
+  SQLite, and SQL Server — Oracle at two, since its version-bound entries are
+  proven at 23ai (exact versions in the analyzer's
   [verified-against table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions)).
   Other engine versions generally work — the emitted SQL is plain text —
   but dialect-availability claims are only made for the verified ones.
