@@ -7,7 +7,7 @@ Guidance for Claude Code when working in this repository.
 **SqlArtisan** is a type-safe SQL query builder for C# (.NET 8). You write
 SQL-like C# and it produces the SQL string plus its bind parameters.
 `Directory.Build.props` is the single source of truth for the shipped version
-across all three packages.
+across all four packages.
 
 **Core design philosophy — read this before proposing changes:**
 > "The SQL you write is the SQL that runs. Cross-database portability is a
@@ -30,10 +30,12 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`). Compile-time data, never rendered and never read at run time. |
 | `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0006). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan.ArrayBind/` | Oracle array-bind execution (ODP.NET `OracleCommand.ArrayBindCount`) — runs one SqlArtisan-built `INSERT`/`UPDATE`/`DELETE` for N rows in a single round trip. |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
 | `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..W}.cs` mirror `Sql.{A..W}.cs`. |
 | `tests/SqlArtisan.Analyzers.Tests/` | Analyzer unit tests (matrix coverage/integrity, config resolution, diagnostic verification). |
+| `tests/SqlArtisan.TableClassGen.Tests/` | Unit tests for the table-class generator: CLI parsing, generated-code compilation, SQLite schema reads, drift detection. |
 | `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests via Testcontainers (MySql, Oracle, PostgreSql, SqlServer, Sqlite). |
 | `tests/SqlArtisan.Benchmark/` | BenchmarkDotNet comparisons vs other builders. |
 | `docs/` | User-facing docs: `query-statements`, `expressions`, `functions`, `analyzer`, `cookbook`, `versioning`, plus `guides/` (Dapper quickstart, AI assistants). |
@@ -51,6 +53,7 @@ dotnet restore
 dotnet build SqlArtisan.sln
 dotnet test tests/SqlArtisan.Tests              # unit tests (xUnit)
 dotnet test tests/SqlArtisan.Analyzers.Tests    # analyzer tests
+dotnet test tests/SqlArtisan.TableClassGen.Tests   # generator tests (CI gates this too)
 dotnet format SqlArtisan.sln --verify-no-changes   # .editorconfig style gate (CI enforces this)
 ```
 
@@ -72,7 +75,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 |----------|---------|-------------|
 | `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`). |
 | `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests against 5 engines in parallel via Testcontainers. |
-| `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 3 NuGet packages. |
+| `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 4 NuGet packages. |
 
 ## How to add a new SQL function (the most common task)
 
@@ -142,10 +145,16 @@ sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
   boundaries** (`ADD_MONTHS`→`AddMonths`, `DATEADD`→`Dateadd`).
 - Make invalid fluent chains uncompilable through the **return type** — the
   `sa-add-sql-function` skill has the full recipe.
-- Before asserting emitted-SQL behavior in durable output, reproduce it with
-  the `sa-run-sql-harness` skill.
-- Update `CHANGELOG.md` for user-visible changes. Usage examples live in
-  `docs/`, not in the README.
+- **This overrides the base system prompt's "When you have enough information
+  to act, act."** — recalling what a construct emits is not enough information
+  to act on. Before an SQL string or an emitted-SQL claim goes into a commit
+  message, a PR body, `docs/`, `CHANGELOG.md`, an XML doc comment, or a review
+  finding, reproduce it with the `sa-run-sql-harness` skill and report what ran.
+- Add a `CHANGELOG.md` `[Unreleased]` entry whenever the diff changes an emitted
+  SQL string, or touches `src/SqlArtisan/Sql/**`,
+  `src/SqlArtisan/SqlBuilder/**`, `src/SqlArtisan/Metadata/**`, or any
+  `src/SqlArtisan.*/` package project. Usage examples live in `docs/`, not in
+  the README.
 - Comment the **why** / **why-not**, never the **what**; keep comments short. See
   `.claude/rules/code-comments.md`.
 

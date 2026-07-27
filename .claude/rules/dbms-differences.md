@@ -1,7 +1,8 @@
 ---
 description: Classifying a DBMS syntax difference — dialect-layer token vs separate per-dialect construct
 paths:
-  - "src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**/*.cs"
+  - "src/SqlArtisan/Sql/*.cs"
+  - "src/SqlArtisan/Internal/SqlBuilder/**/*.cs"
 ---
 
 # Handling a DBMS syntax difference
@@ -9,6 +10,11 @@ paths:
 Before adding a capability flag or per-dialect spelling to `IDbmsDialect`,
 classify the difference (ADR 0001/0002). Getting this wrong ships a **silent
 semantic rewrite** — the failure the `WITH ROLLUP` example below caused.
+
+The paths above deliberately reach past `DbmsDialect/**` to `Sql/*.cs` and the
+statement builders: by the time a `DbmsDialect` file is open the classification
+has already been made, and the `WITH ROLLUP` misclassification was committed in
+the public factory, not in the dialect layer.
 
 - **Token-level → dialect layer (belongs here).** A *substitution that does not
   change the statement's shape or how the construct composes*: identifier

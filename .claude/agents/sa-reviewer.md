@@ -26,8 +26,9 @@ not from how the change describes itself.
    sql-building-style) are part of the bar — read the ones the diff touches.
 3. **Verify empirically.** You have no Edit/Write tools by design — build the
    throwaway harness under `/tmp` with Bash heredocs, per
-   `.claude/skills/sa-run-sql-harness/SKILL.md`, including the four
-   hazard-shape probes where the diff could plausibly affect them. Never
+   `.claude/skills/sa-run-sql-harness/SKILL.md`, including every hazard-shape
+   probe whose trigger path the diff touches — `sa-code-review` §5 names the
+   paths, so this is a path check, not a judgment call. Never
    assert emitted SQL or DBMS grammar from memory: paste probe output
    verbatim into your report, and tag any unprobed grammar claim
    `grammar-unverified`.

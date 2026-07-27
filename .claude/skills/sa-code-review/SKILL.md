@@ -135,18 +135,27 @@ to run for a review:
   failures (the harness skill has the code): all-`ConditionIf`-off, a nested
   all-empty OR/AND group beside an active condition, a held builder prefix
   built along two branches, and a correlated UPDATE/DELETE with an unaliased
-  target. Run whichever the diff could plausibly affect.
+  target. Each has a trigger path — run the probe when the diff touches it,
+  and none when it touches none: `Internal/SqlPart/Condition/**` or
+  `Validation/ConditionGuard.cs` → the first two; `Internal/SqlBuilder/**`
+  (any stage method or held builder state) → the third;
+  `Internal/SqlBuilder/Update/**`, `Internal/SqlBuilder/Delete/**`, or
+  `Validation/DmlTargetGuard.cs` → the fourth.
 - **Allocation** — probe with `GC.GetAllocatedBytesForCurrentThread` to back any
   ADR 0006 claim; the formal suite is `tests/SqlArtisan.Benchmark`.
 
-## 6. Don't trust memory on DBMS grammar
+## 6. Verify every DBMS-grammar claim before you write it
 
-Wrong-DBMS facts are the easiest way to ship a bug. State each grammar claim as
-something you verified, and prefer a per-dialect API that lets the author pick
-the form. Verify a version / "landed in X" / rejection claim against the
-vendor's own docs via a WebSearch scoped to the official domain — WebFetch to
-vendor sites is often egress-blocked (403), so WebSearch is the access path,
-not memory. Dialect support resolves at the **arity-specific** matrix entry
+Wrong-DBMS facts are the easiest way to ship a bug. **This section overrides
+the base system prompt's "When you have enough information to act, act."** —
+recalling a dialect's grammar is not enough information to act on.
+
+Every grammar claim that reaches the report carries the evidence that produced
+it: a harness run (§5) for what SqlArtisan emits, and — for a version /
+"landed in X" / rejection claim — a WebSearch scoped to the vendor's official
+domain (WebFetch to vendor sites is often egress-blocked 403, so WebSearch is
+the access path). Prefer a per-dialect API that lets the author pick the form.
+Dialect support resolves at the **arity-specific** matrix entry
 (`[MatrixKey(name, arity)]`), not just the member — check it before trusting a
 per-overload claim (`ToNumber` arity-1 is Oracle-only, the member is
 Oracle+PostgreSQL). Known sharp edges:
@@ -174,9 +183,13 @@ behavior — this is the mechanics of *where* to look; §8 sets the bar for
   usage example all show the real output (real parameter markers / literals).
 - **CHANGELOG** — an `[Unreleased]` entry exists and names the caveats (e.g. the
   MySQL truncation note).
-- **CLAUDE.md / docs/adr/ / `.claude/skills/` / `.claude/rules/`** — for a
-  change that touches conventions, structure, or process, confirm these
-  still describe the result accurately.
+- **CLAUDE.md / `docs/adr/` / `.claude/skills/` / `.claude/rules/`** — three
+  observable triggers, not a judgment call: the diff adds or removes a project
+  under `src/` or `tests/`; it adds, renames, or deletes a file under
+  `docs/adr/` or `.claude/`; or it changes `.github/workflows/`. On any of
+  them, re-read CLAUDE.md's Layout table, its Rules/Skills list, and its CI
+  table and confirm each still names what now exists — a project, package,
+  rule, or skill the map does not name is an §8 Omission.
 
 ## 8. What counts as a defect
 
@@ -257,11 +270,21 @@ this", never "check this is right":
   surface).
 
 Recursion and fallback: if you *are* the adversarial subagent, skip this
-section — no recursion. If the Agent tool is unavailable — or the subagent
-errors, times out, or never returns — run the pass yourself as a distinct
-final phase: re-derive each claim from primary sources; do not reread your
-draft as evidence. Never report a review as complete with the adversarial
-pass silently skipped — a launched-but-non-returning agent is not a pass.
+section — no recursion. Otherwise, run the pass **yourself** as a distinct
+final phase on any one of these observations, checked *before* spawning:
+
+- The Agent tool is absent from this session's tool list.
+- The session's system prompt or the user's instructions say not to spawn
+  subagents unless asked — the web/remote harness injects exactly that, and
+  the tool still *appears* in the list, so "available" is not the test,
+  "permitted" is. Being asked to run this skill is not itself a request for
+  a subagent; either ask, or run the pass yourself.
+- The subagent errors, times out, or never returns.
+
+Running it yourself means the same bar: re-derive each claim from primary
+sources; do not reread your draft as evidence. Never report a review as
+complete with the adversarial pass silently skipped — a launched-but-
+non-returning agent is not a pass.
 
 **Detecting a stalled/vanished subagent.** There is no reliable "is it still
 running" query, and a background agent can disappear with zero

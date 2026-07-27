@@ -3,6 +3,10 @@ description: Public API design decisions — naming categories, overload split f
 paths:
   - "src/SqlArtisan/Sql/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
+  - "src/SqlArtisan/SqlBuilder/**/*.cs"
+  - "src/SqlArtisan/Metadata/**/*.cs"
+  - "src/SqlArtisan.Dapper/**/*.cs"
+  - "src/SqlArtisan.ArrayBind/**/*.cs"
   - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
   - "tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs"
 ---
@@ -12,6 +16,11 @@ paths:
 Decision principles distilled from the #225 expressibility triage
 (#231–#245). The mechanical six-touch-point procedure stays in the
 `sa-add-sql-function` skill; this rule covers the *decisions* made before it.
+
+It governs every shipped public surface, not just the function factories: the
+builder types under `src/SqlArtisan/SqlBuilder/`, the metadata attributes, and
+the `Dapper` / `ArrayBind` packages are in scope too — most of the recorded
+trade-offs at the end come from those surfaces rather than from `Sql/*.cs`.
 
 ## Naming: three categories, in priority order
 

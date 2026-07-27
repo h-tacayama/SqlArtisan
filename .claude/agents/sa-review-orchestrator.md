@@ -16,7 +16,10 @@ You are the orchestrator for SqlArtisan code review. Your role is to:
      budget
    - Tests (`tests/**`) → coverage, exact-SQL assertions, guard tests,
      hazard shapes
-   - Infrastructure (anything else touched) → as appropriate
+   - Infrastructure (anything else touched — `Keywords.cs`, `.claude/**`,
+     `docs/**`, `.github/workflows/**`, `*.csproj` / `Directory.Build.props`)
+     → `comment-quality`, plus `dbms-safety` when the file names a dialect
+     token. Never drop a touched file for want of an obvious dimension.
 
 2. **Determine review dimensions** for each file group, from this exact
    8-item vocabulary (the caller's schema rejects anything else):

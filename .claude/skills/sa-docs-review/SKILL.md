@@ -153,11 +153,21 @@ wrong) / **OVERREACH** (true but misleading) / **INCONSISTENCY** (contradicts
 another surface).
 
 Recursion and fallback: if you *are* the adversarial subagent, skip this
-section — no recursion. If the Agent tool is unavailable — or the subagent
-errors, times out, or never returns — run the pass yourself as a distinct
-final phase, re-deriving each claim from primary sources rather than rereading
-your draft. Never report the review as complete with the adversarial pass
-silently skipped — a launched-but-non-returning agent is not a pass.
+section — no recursion. Otherwise, run the pass **yourself** as a distinct
+final phase on any one of these observations, checked *before* spawning:
+
+- The Agent tool is absent from this session's tool list.
+- The session's system prompt or the user's instructions say not to spawn
+  subagents unless asked — the web/remote harness injects exactly that, and
+  the tool still *appears* in the list, so "available" is not the test,
+  "permitted" is. Being asked to run this skill is not itself a request for
+  a subagent; either ask, or run the pass yourself.
+- The subagent errors, times out, or never returns.
+
+Running it yourself means the same bar: re-derive each claim from primary
+sources rather than rereading your draft. Never report the review as complete
+with the adversarial pass silently skipped — a launched-but-non-returning
+agent is not a pass.
 
 **Detecting a stalled/vanished subagent.** There is no reliable "is it still
 running" query, and a background agent can disappear with zero
