@@ -3553,7 +3553,7 @@ Only `WHERE` and `ON` are checked. The same call in a select list or an
 its work. A condition built apart from its clause is left alone: nothing at that
 point shows it will ever reach a `WHERE`. A call that *is* the predicate — full-text
 `Contains` / `Freetext`, the JSONB containment and existence predicates
-(`JsonbContains`, `JsonbExists`), the array predicates (`ArrayOverlaps`,
+(`JsonbContains`, `JsonbExists*`), the array predicates (`ArrayOverlaps`,
 `ArrayContains`, `ArrayContainedBy`) — is never a wrapping: those are often
 exactly the spelling that uses the index on that column. The JSON *element
 access* operators (`->`, `->>`, `#>`, `#>>`) are different — they return a
