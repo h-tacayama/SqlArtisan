@@ -6,8 +6,25 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
 {
     private const string Indent = "    ";
 
+    // A property of one of these names hides a member the consumer can see, which
+    // warns (CS0108) and fails a warnings-as-errors build. Gated against
+    // DbTableBase's real surface by TableClassEmitterTests.
+    internal static readonly HashSet<string> HidesBaseMember =
+    [
+        "Asterisk",
+        "Equals",
+        "Finalize",
+        "GetHashCode",
+        "GetType",
+        "MemberwiseClone",
+        "ReferenceEquals",
+        "ToString",
+    ];
+
     public string Emit(CatalogTable table)
     {
+        GuardPropertyNames(table);
+
         StringBuilder code = new();
 
         // The header marks the file as generated so a consumer's format and style
@@ -24,13 +41,13 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
         code.AppendLine("{");
 
         code.AppendLine(
-            $"{Indent}public {table.ClassName}(string tableAlias = \"\") : base(\"{EmittedTableName(table)}\", tableAlias)");
+            $"{Indent}public {table.ClassName}(string tableAlias = \"\") : base({Quote(EmittedTableName(table))}, tableAlias)");
         code.AppendLine($"{Indent}{{");
 
         foreach (CatalogColumn column in table.Columns)
         {
             code.AppendLine(
-                $"{Indent}{Indent}{column.PascalCaseName} = new DbColumn(this, \"{column.Name}\");");
+                $"{Indent}{Indent}{column.PascalCaseName} = new DbColumn(this, {Quote(column.Name)});");
         }
 
         code.AppendLine($"{Indent}}}");
@@ -44,7 +61,9 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
                 code.AppendLine($"{Indent}{attribute}");
             }
 
-            code.AppendLine($"{Indent}public DbColumn {column.PascalCaseName} {{ get; }}");
+            string modifier = HidesBaseMember.Contains(column.PascalCaseName) ? "new " : string.Empty;
+
+            code.AppendLine($"{Indent}public {modifier}DbColumn {column.PascalCaseName} {{ get; }}");
         }
 
         code.AppendLine("}");
@@ -52,10 +71,62 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
         return code.ToString();
     }
 
+    // Neither collision can compile, and the tool has no name-mapping option, so
+    // the schema is the only place to resolve them.
+    private static void GuardPropertyNames(CatalogTable table)
+    {
+        Dictionary<string, string> byProperty = new(StringComparer.Ordinal);
+
+        foreach (CatalogColumn column in table.Columns)
+        {
+            if (column.PascalCaseName == table.ClassName)
+            {
+                throw new CommandLineException(
+                    $"Column '{column.Name}' in table '{table.TableName}' generates the property "
+                        + $"{column.PascalCaseName}, which is also the class name; rename the column.");
+            }
+
+            if (byProperty.TryGetValue(column.PascalCaseName, out string? first))
+            {
+                throw new CommandLineException(
+                    $"Columns '{first}' and '{column.Name}' in table '{table.TableName}' both "
+                        + $"generate the property {column.PascalCaseName}; rename one of them.");
+            }
+
+            byProperty[column.PascalCaseName] = column.Name;
+        }
+    }
+
     private string EmittedTableName(CatalogTable table) =>
         settings.QualifySchema && table.Schema.Length > 0
             ? $"{table.Schema}.{table.TableName}"
             : table.TableName;
+
+    // A quoted identifier admits a quote, a backslash, and even a newline, any of
+    // which would otherwise close or re-escape the C# literal it is written into.
+    private static string Quote(string value)
+    {
+        StringBuilder quoted = new(value.Length + 2);
+        quoted.Append('"');
+
+        foreach (char c in value)
+        {
+            switch (c)
+            {
+                case '"':
+                    quoted.Append("\\\"");
+                    break;
+                case '\\':
+                    quoted.Append(@"\\");
+                    break;
+                default:
+                    quoted.Append(char.IsControl(c) ? $"\\u{(int)c:X4}" : c.ToString());
+                    break;
+            }
+        }
+
+        return quoted.Append('"').ToString();
+    }
 
     // Only facts the catalog path determined are written: an omitted argument is the
     // unknown state, which reads as "no information" rather than "false".

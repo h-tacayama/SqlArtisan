@@ -39,8 +39,11 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
     public IReadOnlyList<TableResult> Run()
     {
         List<TableResult> results = [];
+        IReadOnlyList<CatalogTable> tables = [.. ResolveTables()];
 
-        foreach (CatalogTable table in ResolveTables())
+        GuardClassNames(tables);
+
+        foreach (CatalogTable table in tables)
         {
             string code = _emitter.Emit(table);
             string path = _settings.CreateOutputFilePath(table.ClassName);
@@ -57,6 +60,25 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
         results.AddRange(FindRemoved(results));
 
         return results;
+    }
+
+    // Left unguarded, the second table would overwrite the first's file and vanish
+    // from the output, and --check would then report a drift no --fix could clear.
+    private static void GuardClassNames(IReadOnlyList<CatalogTable> tables)
+    {
+        Dictionary<string, string> byClassName = new(StringComparer.Ordinal);
+
+        foreach (CatalogTable table in tables)
+        {
+            if (byClassName.TryGetValue(table.ClassName, out string? first))
+            {
+                throw new CommandLineException(
+                    $"Tables '{first}' and '{table.TableName}' both generate the class "
+                        + $"{table.ClassName}; rename one of them or narrow the run with --tables.");
+            }
+
+            byClassName[table.ClassName] = table.TableName;
+        }
     }
 
     private IEnumerable<CatalogTable> ResolveTables()

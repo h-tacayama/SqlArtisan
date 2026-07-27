@@ -1,3 +1,4 @@
+using System.Reflection;
 using SqlArtisan.TableClassGen;
 
 namespace SqlArtisan.TableClassGen.Tests;
@@ -91,5 +92,99 @@ public class TableClassEmitterTests
     public void Emit_SameInput_IsByteIdentical()
     {
         Assert.Equal(Emit(Table()), Emit(Table()));
+    }
+
+    // A quoted identifier admits both on every engine, and either would end the
+    // C# literal early — the shape that shipped as uncompilable output.
+    [Fact]
+    public void Emit_NameWithQuoteOrBackslash_EscapesTheLiteral()
+    {
+        CatalogTable table = new(
+            "quoted",
+            [new CatalogColumn("say \"hi\"", "TEXT"), new CatalogColumn("back\\slash", "TEXT")]);
+
+        string code = Emit(table);
+
+        Assert.Contains("""new DbColumn(this, "say \"hi\"")""", code);
+        Assert.Contains("""new DbColumn(this, "back\\slash")""", code);
+    }
+
+    [Fact]
+    public void Emit_TableNameWithQuote_EscapesTheLiteral() =>
+        Assert.Contains(
+            """base("say \"hi\"", tableAlias)""",
+            Emit(new CatalogTable("say \"hi\"", [new CatalogColumn("id", "INTEGER")])));
+
+    [Fact]
+    public void Emit_NameWithControlCharacter_EscapesTheLiteral() =>
+        Assert.Contains(
+            """new DbColumn(this, "a\u000Ab")""",
+            Emit(new CatalogTable("t", [new CatalogColumn("a\nb", "TEXT")])));
+
+    [Fact]
+    public void Emit_NameHidingABaseMember_EmitsNew() =>
+        Assert.Contains(
+            "public new DbColumn Asterisk { get; }",
+            Emit(new CatalogTable("t", [new CatalogColumn("asterisk", "TEXT")])));
+
+    [Fact]
+    public void Emit_OrdinaryName_EmitsNoNew() =>
+        Assert.Contains("public DbColumn Id { get; }", Emit(Table()));
+
+    // Reflection over the real base, so a member added to DbTableBase or
+    // TableReference later cannot silently reintroduce the CS0108 it warns on.
+    [Fact]
+    public void HidesBaseMember_CoversEveryMemberAConsumerCanSee()
+    {
+        const BindingFlags All = BindingFlags.Public | BindingFlags.NonPublic
+            | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy;
+
+        HashSet<string> visible =
+        [
+            .. typeof(DbTableBase).GetMembers(All)
+                .Where(m => m switch
+                {
+                    MethodBase b => b.IsPublic || b.IsFamily || b.IsFamilyOrAssembly,
+                    PropertyInfo p => (p.GetMethod ?? p.SetMethod) is { } a
+                        && (a.IsPublic || a.IsFamily || a.IsFamilyOrAssembly),
+                    FieldInfo f => f.IsPublic || f.IsFamily || f.IsFamilyOrAssembly,
+                    _ => false,
+                })
+                .Select(m => m.Name)
+                // Constructors and property accessors carry no source-level name a
+                // generated property could collide with.
+                .Where(n => !n.StartsWith('.') && !n.StartsWith("get_") && !n.StartsWith("set_")),
+        ];
+
+        Assert.Equal(visible.OrderBy(n => n, StringComparer.Ordinal),
+            TableClassEmitter.HidesBaseMember.OrderBy(n => n, StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void Emit_TwoColumnsWithOnePropertyName_ThrowsCommandLineException()
+    {
+        CatalogTable table = new(
+            "collide",
+            [new CatalogColumn("user_name", "TEXT"), new CatalogColumn("user__name", "TEXT")]);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(() => Emit(table));
+
+        Assert.Equal(
+            "Columns 'user_name' and 'user__name' in table 'collide' both generate the property "
+                + "UserName; rename one of them.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Emit_ColumnNamedAfterTheClass_ThrowsCommandLineException()
+    {
+        CatalogTable table = new("user", [new CatalogColumn("user_table", "TEXT")]);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(() => Emit(table));
+
+        Assert.Equal(
+            "Column 'user_table' in table 'user' generates the property UserTable, which is also "
+                + "the class name; rename the column.",
+            ex.Message);
     }
 }
