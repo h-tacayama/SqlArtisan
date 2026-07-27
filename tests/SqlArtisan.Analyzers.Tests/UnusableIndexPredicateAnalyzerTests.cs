@@ -148,9 +148,7 @@ public class UnusableIndexPredicateAnalyzerTests
             var s = Select(t.Id).From(t).Where(held).Build();
             """);
 
-    // A call returning a condition IS the predicate, and full-text CONTAINS is the
-    // spelling that uses the index on exactly that column — the shape that shipped
-    // as a live false positive before this test existed.
+    // The shape that shipped as a live false positive: see ReturnsCondition.
     [Fact]
     public Task Where_FullTextContains_Silent() =>
         RunSilent(

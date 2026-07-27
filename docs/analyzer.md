@@ -563,10 +563,13 @@ itself, which the generator then records as unknown and the rule stops reporting
 Only `WHERE` and `ON` are checked. The same call in a select list or an
 `ORDER BY` costs no index, and `HAVING` filters groups after any index has done
 its work. A condition built apart from its clause is left alone: nothing at that
-point shows it will ever reach a `WHERE`. A call that *is* the predicate —
-full-text `Contains` / `Freetext`, the JSONB and array operators — is never a
-wrapping: those are often exactly the spelling that uses the index on that
-column, so only an expression around the column counts.
+point shows it will ever reach a `WHERE`. A call that *is* the predicate — full-text
+`Contains` / `Freetext`, the JSONB containment and existence predicates
+(`JsonbContains`, `JsonbExists`), the array predicates (`ArrayOverlaps`,
+`ArrayContains`, `ArrayContainedBy`) — is never a wrapping: those are often
+exactly the spelling that uses the index on that column. The JSON *element
+access* operators (`->`, `->>`, `#>`, `#>>`) are different — they return a
+value, not a condition, so wrapping a column in one still reports.
 
 `Indexed` records only whether the column **leads** an index. A composite index
 on `(a, b)` is fully usable from a predicate on `a` alone, so `a` is recorded and

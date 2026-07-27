@@ -160,8 +160,8 @@ that index; a non-leading column of a composite index records `false`. A column
 named by an index *expression* records nothing — an expression index exists
 precisely so the wrapped predicate can be written — and a column leading only a
 partial (filtered) index records nothing either, since whether its predicate
-covers a query is not decidable from the catalog. On Oracle (12c+), one
-function-based index leaves every column of that table unrecorded.
+covers a query is not decidable from the catalog. On Oracle, one function-based
+index leaves every column of that table unrecorded.
 
 ## License
 

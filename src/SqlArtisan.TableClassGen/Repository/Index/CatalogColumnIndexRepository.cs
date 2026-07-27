@@ -52,9 +52,8 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
         using IDataReader reader = command.ExecuteReader();
         while (reader.Read())
         {
-            // A mixed row carries both: PostgreSQL names indkey[0] and the whole
-            // expression list in one row, and SQL Server pairs a computed leading
-            // column with its definition — the column leads the index either way.
+            // A mixed row carries both — see LeadingKeyQuery — and the column still
+            // leads the index either way.
             if (!reader.IsDBNull(1))
             {
                 expressionTexts.Add(reader.GetString(1));
@@ -72,9 +71,7 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
         "SELECT COLUMN_NAME, NULL, 0 FROM information_schema.STATISTICS "
         + "WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1";
 
-    // Each returns (leading column name, index expression text, is-partial). A row
-    // may carry both name and text — see ReadLeadingKeys. MySQL and Oracle have no
-    // partial indexes, so their third column is a literal.
+    // A row may carry both a name and an expression text — see ReadLeadingKeys.
     private string LeadingKeyQuery() => dbmsType switch
     {
         DbmsType.MySql =>

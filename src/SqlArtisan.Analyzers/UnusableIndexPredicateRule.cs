@@ -23,9 +23,8 @@ internal static class UnusableIndexPredicateRule
 
     public static void CheckFunctionCall(OperationAnalysisContext context, IInvocationOperation call)
     {
-        // A call returning a condition IS the predicate — full-text CONTAINS, the
-        // JSONB operators — and is often the spelling that uses the index, so only
-        // an expression wrap can be a wrapping.
+        // A call returning a condition IS the predicate, often the very spelling
+        // that uses the index — full-text CONTAINS, JSONB containment.
         if (ReturnsCondition(call.TargetMethod.ReturnType)
             || IndexedArgument(call) is not { } column
             || !IsInsideFilter(call))
