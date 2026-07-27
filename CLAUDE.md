@@ -151,10 +151,10 @@ sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
   message, a PR body, `docs/`, `CHANGELOG.md`, an XML doc comment, or a review
   finding, reproduce it with the `sa-run-sql-harness` skill and report what ran.
 - Add a `CHANGELOG.md` `[Unreleased]` entry whenever the diff changes an emitted
-  SQL string, or touches `src/SqlArtisan/Sql/**`,
-  `src/SqlArtisan/SqlBuilder/**`, `src/SqlArtisan/Metadata/**`, or any
-  `src/SqlArtisan.*/` package project. Usage examples live in `docs/`, not in
-  the README.
+  SQL string, or touches the public surface the "Public API lives in" bullet
+  above defines — including the public `src/SqlArtisan/SqlPart/` types it names
+  — or any `src/SqlArtisan.*/` package project. Usage examples live in `docs/`,
+  not in the README.
 - Comment the **why** / **why-not**, never the **what**; keep comments short. See
   `.claude/rules/code-comments.md`.
 

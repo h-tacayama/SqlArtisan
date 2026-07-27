@@ -112,8 +112,16 @@ inline-literal separator path is lighter than the bound-parameter path because
 binding grows the parameter list.
 
 **4. Hazard shapes.** The four shapes behind the #225 audit's silent-failure
-findings. Each has a trigger path — `sa-code-review` §5 maps shape to path, so
-which ones to run is a path check on the diff, not a judgment call:
+findings. Which ones to run is a path check on the diff, not a judgment call —
+run a shape when the diff touches its trigger path, and none when it touches
+none:
+
+| Shape | Trigger path |
+|---|---|
+| (a) all conditions off, (b) nested all-empty group | `Internal/SqlPart/Condition/**`, `Validation/ConditionGuard.cs` |
+| (c) held prefix built along two branches | `Internal/SqlBuilder/**` (any stage method or held builder state) |
+| (d) correlated UPDATE/DELETE, unaliased target | `Internal/SqlBuilder/Update/**`, `Internal/SqlBuilder/Delete/**`, `Validation/DmlTargetGuard.cs` |
+
 
 ```csharp
 using SqlArtisan.Internal;                              // SqlCondition lives here

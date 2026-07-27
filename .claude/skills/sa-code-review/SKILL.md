@@ -135,12 +135,8 @@ to run for a review:
   failures (the harness skill has the code): all-`ConditionIf`-off, a nested
   all-empty OR/AND group beside an active condition, a held builder prefix
   built along two branches, and a correlated UPDATE/DELETE with an unaliased
-  target. Each has a trigger path — run the probe when the diff touches it,
-  and none when it touches none: `Internal/SqlPart/Condition/**` or
-  `Validation/ConditionGuard.cs` → the first two; `Internal/SqlBuilder/**`
-  (any stage method or held builder state) → the third;
-  `Internal/SqlBuilder/Update/**`, `Internal/SqlBuilder/Delete/**`, or
-  `Validation/DmlTargetGuard.cs` → the fourth.
+  target. Which ones to run is a path check on the diff, not a judgment call —
+  the harness skill carries the shape-to-path table beside the probe code.
 - **Allocation** — probe with `GC.GetAllocatedBytesForCurrentThread` to back any
   ADR 0006 claim; the formal suite is `tests/SqlArtisan.Benchmark`.
 
