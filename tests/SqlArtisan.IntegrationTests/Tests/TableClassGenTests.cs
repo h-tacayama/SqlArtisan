@@ -38,6 +38,47 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
 
         TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
     }
+
+    // MySQL spells a functional index with a doubly-parenthesized expression
+    // (8.0.13+), and reports it in STATISTICS.EXPRESSION with a null COLUMN_NAME.
+    [Fact]
+    public void GenerateTables_MySql_ClaimsLeadingColumnOnly()
+    {
+        Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
+        Execute("CREATE INDEX ix_upper_name ON users ((upper(name)))");
+        try
+        {
+            InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
+
+            TableClassGenAssertions.AssertCompositeAndExpression(
+                repository.GetAllTables(),
+                expectedForExpressionColumn: null);
+        }
+        finally
+        {
+            Execute("DROP INDEX ix_upper_name ON users");
+            Execute("DROP INDEX ix_age_dept ON users");
+        }
+    }
+
+    private DbConnectionInfo ConnInfo()
+    {
+        MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+        return new DbConnectionInfo(
+            DbmsType.MySql,
+            builder.Server,
+            (int)builder.Port,
+            builder.Database,
+            builder.Database,
+            builder.UserID,
+            builder.Password);
+    }
+
+    private void Execute(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(sql);
+    }
 }
 
 [Trait("Engine", "SqlServer")]
@@ -64,6 +105,50 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         InformationSchemaTableInfoRepository repository = new(connInfo, lowercaseNames: false);
 
         TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
+    }
+
+    // T-SQL indexes no expression directly; the equivalent is an index whose
+    // leading key is a computed column, whose definition names the real column.
+    [Fact]
+    public void GenerateTables_SqlServer_ClaimsLeadingColumnOnly()
+    {
+        Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
+        Execute("ALTER TABLE users ADD upper_name AS UPPER(name)");
+        Execute("CREATE INDEX ix_upper_name ON users (upper_name)");
+        try
+        {
+            InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
+
+            TableClassGenAssertions.AssertCompositeAndExpression(
+                repository.GetAllTables(),
+                expectedForExpressionColumn: null);
+        }
+        finally
+        {
+            Execute("DROP INDEX ix_upper_name ON users");
+            Execute("ALTER TABLE users DROP COLUMN upper_name");
+            Execute("DROP INDEX ix_age_dept ON users");
+        }
+    }
+
+    private DbConnectionInfo ConnInfo()
+    {
+        SqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+        string[] dataSource = builder.DataSource.Replace("tcp:", string.Empty).Split(',', 2);
+        return new DbConnectionInfo(
+            DbmsType.SqlServer,
+            dataSource[0],
+            dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1433,
+            string.IsNullOrEmpty(builder.InitialCatalog) ? "master" : builder.InitialCatalog,
+            "dbo",
+            builder.UserID,
+            builder.Password);
+    }
+
+    private void Execute(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(sql);
     }
 }
 
@@ -100,6 +185,26 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         finally
         {
             Execute("DROP TABLE IF EXISTS \"MixedCaseTbl\"");
+        }
+    }
+
+    [Fact]
+    public void GenerateTables_PostgreSql_ClaimsLeadingColumnOnly()
+    {
+        Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
+        Execute("CREATE INDEX ix_upper_name ON users (upper(name))");
+        try
+        {
+            InformationSchemaTableInfoRepository repository = new(ConnInfo(), lowercaseNames: false);
+
+            TableClassGenAssertions.AssertCompositeAndExpression(
+                repository.GetAllTables(),
+                expectedForExpressionColumn: null);
+        }
+        finally
+        {
+            Execute("DROP INDEX IF EXISTS ix_upper_name");
+            Execute("DROP INDEX IF EXISTS ix_age_dept");
         }
     }
 
@@ -151,6 +256,57 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
 
         TableClassGenAssertions.AssertSeededSchema(repository.GetAllTables());
     }
+
+    // ALL_IND_EXPRESSIONS.COLUMN_EXPRESSION is a LONG, so the collector never reads
+    // it: a function-based index disqualifies every column of the table instead.
+    [Fact]
+    public void GenerateTables_Oracle_FunctionBasedIndex_ClaimsNothingForTheTable()
+    {
+        Execute("CREATE INDEX ix_age_dept ON users (age, department_id)");
+        try
+        {
+            OracleTableInfoRepository repository = new(ConnInfo(), lowercaseNames: true);
+
+            TableClassGenAssertions.AssertCompositeAndExpression(
+                repository.GetAllTables(),
+                expectedForExpressionColumn: false);
+
+            Execute("CREATE INDEX ix_upper_name ON users (upper(name))");
+
+            IReadOnlyList<DbTableInfo> tables =
+                new OracleTableInfoRepository(ConnInfo(), lowercaseNames: true).GetAllTables();
+
+            Assert.All(
+                tables.Single(t => t.TableName == "users").Columns,
+                c => Assert.Null(c.IsIndexed));
+        }
+        finally
+        {
+            Execute("DROP INDEX ix_upper_name");
+            Execute("DROP INDEX ix_age_dept");
+        }
+    }
+
+    private DbConnectionInfo ConnInfo()
+    {
+        OracleConnectionStringBuilder builder = new(_fixture.ConnectionString);
+        string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
+
+        return new DbConnectionInfo(
+            DbmsType.Oracle,
+            dataSource[0],
+            dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1521,
+            dataSource.Length > 2 ? dataSource[2] : "XEPDB1",
+            builder.UserID,
+            builder.UserID,
+            builder.Password);
+    }
+
+    private void Execute(string sql)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute(sql);
+    }
 }
 
 internal static class TableClassGenAssertions
@@ -174,10 +330,29 @@ internal static class TableClassGenAssertions
         // unknown here — an identity column reports none either.
         Assert.All(users.Columns, c => Assert.Null(c.HasDefault));
 
+        // The primary key is indexed on every engine, and the seeded schema has no
+        // other index — so this proves each engine's leading-key query both ways.
+        Assert.True(Column(users, "id").IsIndexed);
+        Assert.False(Column(users, "name").IsIndexed);
+
         DbTableInfo orders = Find(tables, "orders");
         Assert.Equal(
             ["id", "user_id", "amount"],
             orders.Columns.Select(c => c.Name.ToLowerInvariant()));
+    }
+
+    // The two collection boundaries #266 requires proving live: only the leading
+    // column of a composite index is claimed, and a column an index expression
+    // names is claimed either way.
+    public static void AssertCompositeAndExpression(
+        IReadOnlyList<DbTableInfo> tables,
+        bool? expectedForExpressionColumn)
+    {
+        DbTableInfo users = Find(tables, "users");
+
+        Assert.True(Column(users, "age").IsIndexed);
+        Assert.False(Column(users, "department_id").IsIndexed);
+        Assert.Equal(expectedForExpressionColumn, Column(users, "name").IsIndexed);
     }
 
     private static DbTableInfo Find(IReadOnlyList<DbTableInfo> tables, string name) =>
