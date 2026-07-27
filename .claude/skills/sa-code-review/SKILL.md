@@ -1,6 +1,6 @@
 ---
 name: sa-code-review
-description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory. Reports defects only — never idiom/style/"better way to write this" suggestions; use `sa-code-review-deep` for those. Ends with a mandatory adversarial verification pass — an independent subagent attempts to refute the deliverable's claims and the draft findings against primary sources. Accepts an optional scope argument (default: the diff's hunks only; `files`; `paths:<glob>`).
+description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory. Reports defects only — never idiom/style/"better way to write this" suggestions; use `sa-code-review-deep` for those. Ends with an adversarial verification pass (one independent subagent, not skippable) that attempts to refute the deliverable's claims and the draft findings against primary sources. Accepts an optional scope argument (default: the diff's hunks only; `files`; `paths:<glob>`).
 ---
 
 # Review SqlArtisan changes
@@ -184,9 +184,11 @@ Find candidates without limiting yourself upfront — list everything that
 looks off first, then classify each one against the rule below. Filtering by
 "is this reportable" belongs at classification time, not at detection time —
 narrowing the search itself under-reports real defects. Only the defect
-classification below reaches the report; a candidate that turns out to be a
-non-defect "better way to write this" suggestion is discarded here, not
-reported (it belongs to `sa-code-review-deep` instead, on a separate run).
+classification below reaches this skill's report; a candidate that turns out
+to be a non-defect "better way to write this" suggestion is not reported
+here — it belongs to `sa-code-review-deep`'s improvement pass instead. If you
+are running as `sa-code-review-deep`, that pass is part of the same run: hand
+the candidate to it, don't discard it.
 
 Everything reported here must be **wrong** — not merely improvable. A
 "this would read better as..." suggestion with no rule/ADR/precedent to cite
@@ -283,7 +285,8 @@ an error (e.g. "no task found") confirms it already ended without notifying,
 and is the cue to run the fallback pass yourself rather than continue waiting.
 
 **Do not add more self-verification than this.** The single independent-context
-pass above is the complete verification step for this skill. If you are aware
+pass above is the complete *findings*-verification step (separate from §5's
+empirical harness verification, which still applies). If you are aware
 you are running as a model with strong built-in self-checking (e.g. Claude
 Opus 5 or later), do not additionally re-verify your own findings before or
 after spawning the subagent, and do not spawn extra subagents "just to be
