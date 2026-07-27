@@ -256,10 +256,9 @@ public abstract class SqlExpression : SqlPart
     /// <returns>The <c>IN</c> condition.</returns>
     /// <exception cref="ArgumentException"><paramref name="values"/> is empty.</exception>
     /// <remarks>
-    /// A typed sibling of the <see cref="IReadOnlyCollection{T}"/> overload: a
-    /// reference-type array (<c>string[]</c>) is covariantly convertible to
-    /// <c>object[]</c>, so without this it would be ambiguous with the
-    /// <c>params object[]</c> overload. It binds one value per element either way.
+    /// A typed sibling of the <see cref="IReadOnlyCollection{T}"/> overload,
+    /// needed because a reference-type array is covariantly convertible to
+    /// <c>object[]</c> and would otherwise be ambiguous with the <c>params</c> one.
     /// </remarks>
     public InCondition In<T>(T[] values)
     {
