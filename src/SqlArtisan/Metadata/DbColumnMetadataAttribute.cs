@@ -22,4 +22,13 @@ public sealed class DbColumnMetadataAttribute : Attribute
     /// an <c>INSERT</c>.
     /// </summary>
     public bool HasDefault { get; init; }
+
+    /// <summary>
+    /// Whether the column is the leading column of a full index, so a predicate on
+    /// it alone can use that index. A non-leading column of a composite index
+    /// records <see langword="false"/>: there is no index for such a predicate to
+    /// lose. A column leading only a partial index is left unset — whether its
+    /// predicate covers a query is not decidable from the catalog.
+    /// </summary>
+    public bool Indexed { get; init; }
 }

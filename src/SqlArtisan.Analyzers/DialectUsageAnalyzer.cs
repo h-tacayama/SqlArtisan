@@ -35,6 +35,11 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
         DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
+        DiagnosticDescriptors.ConstantNullPredicate,
+        DiagnosticDescriptors.NotInNullableSubquery,
+        DiagnosticDescriptors.InsertMissingRequiredColumn,
+        DiagnosticDescriptors.CountNullableColumn,
+        DiagnosticDescriptors.UnusableIndexPredicate,
         DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
@@ -51,6 +56,11 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
         context.RegisterOperationAction(AnalyzeContextRules, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeCorrelatedDml, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeSchemaNullability, OperationKind.PropertyReference);
+        context.RegisterOperationAction(AnalyzeNotInSubquery, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeInsertColumns, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeCountArgument, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeIndexedColumnFilter, OperationKind.Invocation);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -173,6 +183,118 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         {
             ContextRules.CheckGroupingRequiresWithRollup(context, invocation, dialectName);
         }
+    }
+
+    // IsNull / IsNotNull are SqlExpression properties, so the column under test is
+    // the receiver. Gated on a configured target like every other rule, though the
+    // verdict itself is dialect-independent.
+    private static void AnalyzeSchemaNullability(OperationAnalysisContext context)
+    {
+        var reference = (IPropertyReferenceOperation)context.Operation;
+        if (reference.Property.Name is not ("IsNull" or "IsNotNull")
+            || !IsFromSqlArtisan(reference.Property.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        ConstantNullPredicateRule.Check(context, reference);
+    }
+
+    // The value overloads take the same name and arity, so the parameter type is
+    // what selects the subquery form.
+    private static void AnalyzeNotInSubquery(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (invocation.TargetMethod.Name != "NotIn"
+            || invocation.Arguments.Length != 1
+            || invocation.TargetMethod.Parameters[0].Type.ToDisplayString() != "SqlArtisan.ISubquery"
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        NotInNullableSubqueryRule.Check(context, invocation);
+    }
+
+    // Only the explicit-column-list overload: the positional form supplies every
+    // column by construction, and InsertIgnoreInto asked for failures to be
+    // skipped, which is what omitting a required column would produce.
+    private static void AnalyzeInsertColumns(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (invocation.TargetMethod.Name != "InsertInto"
+            || invocation.Arguments.Length != 2
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        InsertMissingRequiredColumnRule.Check(context, invocation);
+    }
+
+    // Count(Asterisk) shares the arity, and COUNT(DISTINCT col) is asking for
+    // values by construction, so only the plain object overload is a candidate.
+    private static void AnalyzeCountArgument(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (invocation.TargetMethod.Name != "Count"
+            || invocation.Arguments.Length != 1
+            || invocation.TargetMethod.Parameters[0].Type.SpecialType != SpecialType.System_Object
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        CountNullableColumnRule.Check(context, invocation);
+    }
+
+    // Like carries the column as its receiver; every other shape wraps it as an
+    // argument, so the two enter the rule by different doors.
+    private static void AnalyzeIndexedColumnFilter(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (!IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        if (invocation.TargetMethod.Name is "Like" or "NotLike" && invocation.Arguments.Length == 1)
+        {
+            UnusableIndexPredicateRule.CheckLike(context, invocation);
+            return;
+        }
+
+        UnusableIndexPredicateRule.CheckFunctionCall(context, invocation);
     }
 
     // Both DML heads (#256) — the static Sql members and the WithBuilder instance

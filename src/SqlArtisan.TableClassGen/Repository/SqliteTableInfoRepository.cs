@@ -58,7 +58,7 @@ internal sealed class SqliteTableInfoRepository(
     {
         table = null;
 
-        List<(string Name, string Type, bool NotNull, bool HasDefault, int Pk)> rows = [];
+        List<(string Name, string CatalogName, string Type, bool NotNull, bool HasDefault, int Pk)> rows = [];
         using (IDbCommand command = conn.CreateCommand())
         {
             command.CommandText =
@@ -70,6 +70,7 @@ internal sealed class SqliteTableInfoRepository(
             {
                 rows.Add((
                     NormalizeName(reader.GetString(0)),
+                    reader.GetString(0),
                     reader.GetString(1),
                     reader.GetInt32(2) != 0,
                     !reader.IsDBNull(3),
@@ -84,9 +85,10 @@ internal sealed class SqliteTableInfoRepository(
 
         int keyColumnCount = rows.Count(r => r.Pk > 0);
         bool hasPkIndex = HasPkOriginIndex(conn, tableName);
+        ColumnIndexInfo indexes = new SqliteColumnIndexRepository().Read(conn, tableName);
 
         List<DbColumnInfo> columns = [];
-        foreach ((string Name, string Type, bool NotNull, bool HasDefault, int Pk) row in rows)
+        foreach ((string Name, string CatalogName, string Type, bool NotNull, bool HasDefault, int Pk) row in rows)
         {
             // A lone INTEGER PRIMARY KEY usually aliases the rowid — never NULL,
             // auto-assigned — and table_info reports the spellings that are real keys
@@ -98,11 +100,15 @@ internal sealed class SqliteTableInfoRepository(
                 && string.Equals(row.Type, "INTEGER", StringComparison.OrdinalIgnoreCase)
                 && !hasPkIndex;
 
+            // The alias carries no index row of its own, yet a predicate on it is a
+            // rowid lookup — verified by EXPLAIN QUERY PLAN — and wrapping it loses
+            // that exactly as wrapping an indexed column does.
             columns.Add(new DbColumnInfo(
                 row.Name,
                 row.Type,
                 isNullable: !isRowIdAlias && !row.NotNull,
-                hasDefault: isRowIdAlias || row.HasDefault));
+                hasDefault: isRowIdAlias || row.HasDefault,
+                isIndexed: isRowIdAlias ? true : indexes.IsIndexed(row.CatalogName)));
         }
 
         table = new DbTableInfo(tableName, columns);

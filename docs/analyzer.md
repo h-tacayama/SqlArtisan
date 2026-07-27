@@ -17,6 +17,7 @@ target.
 - [Version-aware warnings (SQLA0003)](#version-aware-warnings-sqla0003)
 - [Context rules (SQLA0004)](#context-rules-sqla0004)
 - [Correlated DML target (SQLA0005)](#correlated-dml-target-sqla0005)
+- [Schema-aware warnings (SQLA0007)](#schema-aware-warnings-sqla0007)
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
 - [Verified-against versions](#verified-against-versions)
@@ -58,6 +59,27 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0004` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0004). |
 | `SQLA0005` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0005). |
 | `SQLA0006` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
+| `SQLA0007` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0008` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0009` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0010` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0011` | Warning | A `WHERE` or `ON` predicate wraps an indexed column in a function, or matches it with a leading-wildcard pattern, so no index on it can be used. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+
+The rules fall into two categories, so a bulk-severity setting can reach one
+family without the other:
+
+| Category | Rules | Answers |
+|---|---|---|
+| `SqlArtisan.Dialect` | `SQLA0001`–`SQLA0006` | will this run on the engine you configured? |
+| `SqlArtisan.Schema` | `SQLA0007`–`SQLA0011` | does it agree with what your table classes say the columns are? |
+
+```ini
+# every schema rule as an error, dialect rules untouched
+dotnet_analyzer_diagnostic.category-SqlArtisan.Schema.severity = error
+```
+
+A bulk setting reaches only rules that are enabled by default, so `SQLA0010`
+still needs naming by ID.
 
 `SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
@@ -409,6 +431,177 @@ this rule reports.
 
 ---
 
+## Schema-aware warnings (SQLA0007)
+
+`SqlArtisan.TableClassGen` records what the catalog says about each column on
+the generated table class:
+
+```csharp
+[DbColumnMetadata(Nullable = false, HasDefault = false)]
+public DbColumn Code { get; }
+```
+
+Where a fact is recorded, the analyzer can settle questions the query text
+alone cannot. The first is a predicate whose answer never depends on the data:
+
+```csharp
+// sqlartisan_target_dbms = postgresql
+var sql = Select(t.Code).From(t).Where(t.Code.IsNull).Build();
+// warning SQLA0007: 'Code' is NOT NULL, so 'IsNull' is always false
+```
+
+`IS NOT NULL` on the same column reports the mirror image — always `true`.
+Neither is a dialect fact: the column's own declaration decides it on every
+engine.
+
+Past an **outer join** a NOT NULL column is legitimately NULL on the
+null-supplied side, and `.Where(r.Id.IsNull)` after a `LeftJoin` is the
+idiomatic anti-join — so the rule reports only where it can see there is no
+such join. That takes two conditions, both required:
+
+- The statement contains **no outer join** — no `LeftJoin`, `RightJoin`,
+  `FullJoin`, `NaturalLeftJoin`, `NaturalRightJoin`, `NaturalFullJoin`,
+  `LeftJoinLateral`, or `OuterApply`. Which side a join null-supplies is not
+  worked out; any one of them silences the statement. (`InnerJoin` and
+  `NaturalJoin` null-supply nothing and are not on the list.)
+- The statement **builds its own query** — the chain starts at `Select` /
+  `Update` / `DeleteFrom` / `MergeInto` / `With` right there. A chain held in a
+  variable, returned by a helper method, or kept in a field is left alone: the
+  join that would decide the answer is somewhere this rule cannot read.
+
+The trade is deliberate — the rule misses real constant predicates in order not
+to call a working anti-join a mistake.
+
+The second is SQL's oldest trap. `NOT IN` over a subquery is not "none of
+these" when the subquery can yield a NULL — the comparison becomes NULL for
+every row, and the query matches nothing at all:
+
+```csharp
+var sql =
+    Select(t.Id)
+    .From(t)
+    .Where(t.Id.NotIn(Select(s.Ref).From(s)))   // s.Ref is nullable
+    .Build();
+// warning SQLA0008: 'Ref' is nullable, so this NOT IN matches no rows at all
+// when the subquery yields a NULL
+```
+
+Reach for `NOT EXISTS` instead, or filter the NULLs out of the subquery —
+adding `.Where(s.Ref.IsNotNull)` also silences the warning. `IN` is
+unaffected — there a NULL merely fails to match — so only `NOT IN` is
+reported.
+
+The third is a row the engine rejects: an `INSERT` whose column list leaves out
+a column that is `NOT NULL` and has no default. What the catalog cannot show is
+a `BEFORE INSERT` trigger that fills the column in — where one exists, the
+statement is valid and the warning is a false alarm to suppress.
+
+```csharp
+var sql = InsertInto(t, t.Note).Values("x").Build();
+// warning SQLA0009: 'Code' is NOT NULL with no default and is missing from
+// this INSERT's column list
+```
+
+A column the engine assigns itself — identity, auto-increment, generated, or
+one with a `DEFAULT` — is recorded as defaulted and never reported; omitting it
+is the normal thing to do. Only the explicit-column-list form is checked: the
+positional `InsertInto(t).Values(...)` supplies every column by construction,
+and `InsertIgnoreInto` asked for error-raising rows to be skipped.
+
+> **MySQL caveat.** Outside strict mode MySQL does not reject this statement —
+> it substitutes an implicit default (`0`, `''`) and warns. `STRICT_TRANS_TABLES`
+> is on by default from MySQL 5.7, so the warning matches what the default
+> configuration does; on a non-strict server, read it as flagging a column that
+> will silently receive an implicit default rather than the value you meant.
+
+The fourth is not a mistake at all, which is why it ships switched off.
+`COUNT(column)` counts the rows where that column is not NULL — correct SQL, and
+sometimes exactly what you meant, but a surprise when you wanted the row count.
+Name it explicitly to turn it on; a category-wide severity does not reach a
+rule that is disabled by default:
+
+```ini
+[*.cs]
+dotnet_diagnostic.SQLA0010.severity = suggestion
+```
+
+```csharp
+var sql = Select(Count(t.Note)).From(t).Build();   // t.Note is nullable
+// info SQLA0010: 'Note' is nullable, so this COUNT skips its NULL rows.
+// Use Count(Asterisk) to count rows.
+```
+
+At `suggestion` this appears in the IDE and in a SARIF log, but **not** in
+`dotnet build` output at any verbosity — a plain build prints nothing below
+warning level. Use `dotnet_diagnostic.SQLA0010.severity = warning` to see it in
+a build or in CI.
+
+Only the plain `Count(expr)` form is considered: `Count(Asterisk)` counts rows
+already, and `Count(Distinct, expr)` asks for distinct values, which `COUNT(*)`
+cannot give. Like `SQLA0007` it stays out of any statement with an outer join,
+where counting the column is precisely how you count the matched rows and
+`COUNT(*)` would count the unmatched ones too — the same reason a `NOT NULL`
+column is never reported in a plain query, where it and `COUNT(*)` agree.
+
+The fifth is about the shape of a filter, not its cost. An index on a column can
+only be used when the filtered side is the bare column: wrap it in a function, or
+anchor the pattern with a leading `%`, and the engine has to look at every row.
+
+```csharp
+var sql = Select(t.Id).From(t).Where(Upper(t.Name) == "SMITH").Build();
+// warning SQLA0011: 'Name' leads an index, but this filter has it wrapped in
+// Upper, so no index on it can be used
+```
+
+Whether the planner *would* have chosen the index is a cost question, and cost
+questions stay out — statistics and data volume are the optimizer's domain. What
+this reports is only the form: the predicate as written gives the index nothing
+to range over. The remediation is the same in every case — leave the column bare
+on the filtered side and move the work to the other side, or index the expression
+itself, which the generator then records as unknown and the rule stops reporting.
+
+Only `WHERE` and `ON` are checked. The same call in a select list or an
+`ORDER BY` costs no index, and `HAVING` filters groups after any index has done
+its work. A condition built apart from its clause is left alone: nothing at that
+point shows it will ever reach a `WHERE`. A call that *is* the predicate — full-text
+`Contains` / `Freetext`, the JSONB containment and existence predicates
+(`JsonbContains`, `JsonbExists*`), the array predicates (`ArrayOverlaps`,
+`ArrayContains`, `ArrayContainedBy`) — is never a wrapping: those are often
+exactly the spelling that uses the index on that column. The JSON *element
+access* operators (`->`, `->>`, `#>`, `#>>`) are different — they return a
+value, not a condition, so wrapping a column in one still reports.
+
+`Indexed` records only whether the column **leads** an index. A composite index
+on `(a, b)` is fully usable from a predicate on `a` alone, so `a` is recorded and
+`b` is not — a predicate on `b` alone could not have used that index anyway, and
+"the query constrains `b` but not `a`" is a cost judgment (Oracle's index skip
+scan and MySQL's skip-scan optimization both exist) rather than a fact. A
+**partial** (filtered) index claims nothing either way: whether its predicate
+covers your query is an expression the generator refuses to interpret, so a
+column that leads only a partial index stays unknown. On Oracle, one
+function-based index makes **every** column of that table record nothing — its
+expression text is stored in a form the tool does not read, so the whole table
+degrades to unknown rather than guess.
+
+**All five are silent unless the fact was recorded.** An attribute the generator
+never wrote, a fact it could not determine (an absent named argument), a
+hand-written table class, or a column reached through
+`new DbTable("t").Column("x")` — which has no declaration to carry metadata —
+all produce nothing. Regenerate your table classes to opt in; nothing else
+changes. `SQLA0008` additionally reads only a select list it can see: a
+subquery held in a variable, one whose chain does not begin at `Select(...)`
+(a `WITH`-headed query), or one selecting anything other than a single column,
+is left alone. `SQLA0009` skips a statement whose column list it cannot read in
+full — a column array built elsewhere — since a column it failed to read would
+otherwise look omitted.
+
+Like every rule here, it stays silent until `sqlartisan_target_dbms` is set,
+even though the verdict itself is dialect-independent. Suppression is per rule
+ID, the standard Roslyn way; the `sqlartisan_construct_*` override keys do not
+apply, since the construct's dialect support is not what this rule reports.
+
+---
+
 ## Mixed-dialect projects
 
 `.editorconfig` sections scope by file path, so a project that emits SQL for
@@ -507,7 +700,8 @@ for, not a bug in the matrix.
   way. See
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
-- **`SQLA0005` needs a configured target too.** The correlated-DML mistake
-  it reports is dialect-independent, but the analyzer as a whole stays
-  silent until `sqlartisan_target_dbms` is set — without a target, the
-  `Build()` guard is the only report.
+- **The dialect-independent rules need a configured target too.**
+  `SQLA0005` and the schema-aware `SQLA0007`–`SQLA0011` report facts that
+  hold on every engine, but the analyzer as a whole stays silent until
+  `sqlartisan_target_dbms` is set — without a target, `SQLA0005`'s `Build()`
+  guard is the only report and the schema rules have none.

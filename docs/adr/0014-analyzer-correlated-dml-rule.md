@@ -90,7 +90,10 @@ Identity decisions follow ADR 0013: standard Roslyn suppression only, no
 finding — the construct's dialect support is not what is wrong), one shared
 category (`SqlArtisan.Dialect`; a second category would split users'
 bulk-severity configuration for one rule, recorded as the rejected
-alternative), and the analyzer-wide opt-in gate (silent until
+alternative — the #266 schema rules later took a `SqlArtisan.Schema`
+category of their own, where the split buys a knob over a whole family
+rather than over one rule; this rule stays where it is), and the
+analyzer-wide opt-in gate (silent until
 `sqlartisan_target_dbms` resolves; the violation is dialect-independent, so
 the rule fires on every configured target).
 
