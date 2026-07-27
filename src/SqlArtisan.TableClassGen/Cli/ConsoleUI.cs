@@ -8,11 +8,11 @@ internal sealed class ConsoleUI
         Console.WriteLine("Please enter database information.");
 
         Console.Write(DatabaseTypePrompt);
-        string dbTypeInput = Console.ReadLine() ?? string.Empty;
-        Dbms dbType = ParseDatabaseType(dbTypeInput);
+        string answer = Console.ReadLine() ?? string.Empty;
+        Dbms dbms = ParseDatabaseType(answer);
 
         // SQLite is file-based, so it skips the host/port/credentials prompts.
-        if (dbType == Dbms.Sqlite)
+        if (dbms == Dbms.Sqlite)
         {
             return ReadSqliteConnectionInfo();
         }
@@ -23,25 +23,25 @@ internal sealed class ConsoleUI
         Console.Write("Port: ");
         string portStr = Console.ReadLine() ?? string.Empty;
         int port = string.IsNullOrWhiteSpace(portStr)
-            ? DbmsOption.DefaultPort(dbType)
+            ? DbmsOption.DefaultPort(dbms)
             : int.Parse(portStr);
 
         Console.Write("Service name (or database name): ");
         string serviceName = Console.ReadLine() ?? string.Empty;
 
         string? schema = null;
-        if (dbType == Dbms.PostgreSql)
+        if (dbms == Dbms.PostgreSql)
         {
             Console.Write("Schema: ");
             schema = Console.ReadLine() ?? string.Empty;
         }
-        else if (dbType == Dbms.SqlServer)
+        else if (dbms == Dbms.SqlServer)
         {
             Console.Write("Schema (default dbo): ");
             string schemaInput = Console.ReadLine() ?? string.Empty;
             schema = string.IsNullOrWhiteSpace(schemaInput) ? "dbo" : schemaInput;
         }
-        else if (dbType == Dbms.MySql)
+        else if (dbms == Dbms.MySql)
         {
             // MySQL has no schema layer above the database, so information_schema
             // is filtered by the database name itself.
@@ -55,7 +55,7 @@ internal sealed class ConsoleUI
         string password = GetPasswordFromConsole();
 
         return new DbConnectionInfo(
-            dbType,
+            dbms,
             host,
             port,
             serviceName,
@@ -123,9 +123,9 @@ internal sealed class ConsoleUI
     internal static string DatabaseTypePrompt =>
         $"Database type ({string.Join("/", Choices.Select((c, i) => $"{i + 1}.{c.Label}"))}): ";
 
-    internal static Dbms ParseDatabaseType(string dbTypeInput)
+    internal static Dbms ParseDatabaseType(string answer)
     {
-        string value = dbTypeInput.Trim();
+        string value = answer.Trim();
 
         return int.TryParse(value, out int choice) && choice >= 1 && choice <= Choices.Length
             ? Choices[choice - 1].Dbms

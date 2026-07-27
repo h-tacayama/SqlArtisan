@@ -7,7 +7,7 @@ namespace SqlArtisan.TableClassGen;
 // alone exposes it there — so each dialect gets its own catalog query. The shape is
 // shared: leading column name, plus the expression text when the key is an
 // expression rather than a column.
-internal sealed class CatalogColumnIndexReader(Dbms dbmsType, string schema)
+internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
     : IColumnIndexReader
 {
     public ColumnIndexInfo Read(IDbConnection conn, string tableName)
@@ -22,7 +22,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbmsType, string schema)
                 conn, tableName, LeadingKeyQuery(),
                 leadingColumns, expressionTexts, partialLeadingColumns);
         }
-        catch (DbException) when (dbmsType == Dbms.MySql)
+        catch (DbException) when (dbms == Dbms.MySql)
         {
             // STATISTICS.EXPRESSION arrived with functional indexes in 8.0.13, so a
             // server that rejects the column has no expression index to miss.
@@ -31,7 +31,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbmsType, string schema)
                 leadingColumns, expressionTexts, partialLeadingColumns);
         }
 
-        return dbmsType == Dbms.Oracle && HasFunctionBasedIndex(conn, tableName)
+        return dbms == Dbms.Oracle && HasFunctionBasedIndex(conn, tableName)
             ? ColumnIndexInfo.Unknown
             : new ColumnIndexInfo(leadingColumns, expressionTexts, partialLeadingColumns);
     }
@@ -72,7 +72,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbmsType, string schema)
         + "WHERE TABLE_SCHEMA = @schema_name AND TABLE_NAME = @table_name AND SEQ_IN_INDEX = 1";
 
     // A row may carry both a name and an expression text — see ReadLeadingKeys.
-    private string LeadingKeyQuery() => dbmsType switch
+    private string LeadingKeyQuery() => dbms switch
     {
         Dbms.MySql =>
             "SELECT COLUMN_NAME, EXPRESSION, 0 FROM information_schema.STATISTICS "
@@ -108,7 +108,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbmsType, string schema)
             "SELECT COLUMN_NAME, NULL, 0 FROM ALL_IND_COLUMNS "
             + "WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name AND COLUMN_POSITION = 1",
 
-        _ => throw new ArgumentOutOfRangeException(nameof(dbmsType)),
+        _ => throw new ArgumentOutOfRangeException(nameof(dbms)),
     };
 
     private bool HasFunctionBasedIndex(IDbConnection conn, string tableName)
@@ -128,7 +128,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbmsType, string schema)
     // hand down a name already lowercased for emission — matching the rest of the
     // Oracle reader, which compares against ToUpper() throughout.
     private string CatalogName(string name) =>
-        dbmsType == Dbms.Oracle ? name.ToUpper() : name;
+        dbms == Dbms.Oracle ? name.ToUpper() : name;
 
     // Suffixed because Oracle rejects a bind variable named after a reserved word:
     // a bare ":table" fails with ORA-01745, verified against a live engine.
@@ -137,7 +137,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbmsType, string schema)
     private const string TableParameter = "table_name";
 
     private string ParameterName(string name) =>
-        dbmsType == Dbms.Oracle ? $":{name}" : $"@{name}";
+        dbms == Dbms.Oracle ? $":{name}" : $"@{name}";
 
     private static void AddParameter(IDbCommand command, string name, string value)
     {
