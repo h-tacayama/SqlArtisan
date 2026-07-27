@@ -46,8 +46,8 @@ public class DbmsOptionTests
             ex.Message);
     }
 
-    // The interactive path reports through CliRunner's handler, which only knows
-    // CommandLineException — a raw ArgumentException used to escape it.
+    // One exception type across both paths: the interactive one threw
+    // ArgumentException, so the two reported the same mistake differently.
     [Fact]
     public void ParseDatabaseType_UnknownSpelling_ThrowsCommandLineException() =>
         Assert.Throws<CommandLineException>(() => ConsoleUI.ParseDatabaseType("db2"));
