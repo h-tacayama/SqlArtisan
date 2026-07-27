@@ -11,9 +11,9 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 internal static class FluentChain
 {
-    // NaturalJoin is absent deliberately: it is an inner join and null-supplies
-    // nothing.
-    private static readonly HashSet<string> OuterJoinSteps =
+    // Internal for the parity gate: a join step the core adds must be classified
+    // here deliberately, not discovered through a user's false positive.
+    internal static readonly HashSet<string> OuterJoinSteps =
     [
         "LeftJoin", "LeftJoinLateral", "RightJoin", "FullJoin", "OuterApply",
         "NaturalLeftJoin", "NaturalRightJoin", "NaturalFullJoin"

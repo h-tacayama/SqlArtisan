@@ -119,7 +119,10 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships ten diagnostics:
 SQLA0007–0010 read the `DbColumnMetadata` attributes TableClassGen emits;
 absence of a fact is silence. They sit in their own `SqlArtisan.Schema`
 category (SQLA0001–0006 are `SqlArtisan.Dialect`) so a bulk-severity setting
-reaches one family without the other.
+reaches one family without the other. What Tier 2 may collect and conclude —
+and the parity catalog every rule reading the query must stay silent on
+(`SchemaRuleParityTests`) — is fixed by **ADR 0010**; add a hazard shape
+there, not to one rule's suite.
 
 The analyzer is bundled inside the main `SqlArtisan` NuGet package (not
 shipped separately). Its dialect support matrix (`DialectMatrix.cs`) is verified
