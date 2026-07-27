@@ -182,6 +182,83 @@ public class SqliteTableInfoRepositoryTests
         Assert.False(code.HasDefault);
     }
 
+    // The whole #266 matrix in one table: only a leading column of a plain index
+    // may be claimed, and the column an index expression names claims nothing.
+    [Fact]
+    public void GetAllTables_IndexedIsLeadingColumnOnly()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE doc (
+                id INTEGER PRIMARY KEY,
+                code TEXT,
+                email TEXT,
+                a TEXT,
+                b TEXT,
+                plain TEXT);
+            CREATE INDEX ix_code ON doc(code);
+            CREATE INDEX ix_ab ON doc(a, b);
+            CREATE INDEX ix_expr ON doc(upper(email));
+            """);
+
+        DbTableInfo table = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal(
+            [true, true, null, true, false, false],
+            table.Columns.Select(c => c.IsIndexed));
+    }
+
+    // The rowid alias carries no index row of its own, yet EXPLAIN QUERY PLAN
+    // reports SEARCH ... USING INTEGER PRIMARY KEY for a predicate on it.
+    [Fact]
+    public void GetAllTables_RowIdAlias_IsIndexed()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE note (id INTEGER PRIMARY KEY, body TEXT);");
+
+        DbTableInfo table = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
+    }
+
+    // A plain index's DDL names its own column, so scanning every index would mark
+    // each indexed column unknown; only expression-bearing indexes are scanned.
+    [Fact]
+    public void GetAllTables_PlainIndexDdl_DoesNotSuppressItsOwnColumn()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE person (name TEXT, nickname TEXT);
+            CREATE INDEX ix_name ON person(name);
+            """);
+
+        DbTableInfo table = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
+    }
+
+    [Fact]
+    public void GetAllTables_UniqueIndex_LeadsLikeAnyOther()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE account (login TEXT, region TEXT);
+            CREATE UNIQUE INDEX ux_login ON account(login);
+            """);
+
+        DbTableInfo table = Assert.Single(
+            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
+    }
+
     [Fact]
     public void GeneratedCode_Compiles()
     {

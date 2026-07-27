@@ -122,6 +122,18 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: false,
         helpLinkUri: HelpLinkUri);
 
+    // One ID for every shape because the remediation is one: leave the column bare
+    // on the filtered side. States the form, never the cost — whether the planner
+    // would have taken the index is Tier 3.
+    public static readonly DiagnosticDescriptor UnusableIndexPredicate = new(
+        id: "SQLA0011",
+        title: "Filter shapes an indexed column so no index on it can be used",
+        messageFormat: "'{0}' leads an index, but this filter has it {1}, so no index on it can be used",
+        category: SchemaCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
     public static readonly DiagnosticDescriptor IdentifierTooLong = new(
         id: "SQLA0006",
         title: "SQL identifier exceeds the dialect's length limit",

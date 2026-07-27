@@ -86,19 +86,24 @@ internal sealed class InformationSchemaTableInfoRepository(
                 & c.TableName == tableName)
             .OrderBy(c.OrdinalPosition);
 
+        ColumnIndexInfo indexes =
+            new CatalogColumnIndexRepository(_connInfo.DbmsType, _connInfo.Schema)
+                .Read(conn, tableName);
+
         List<DbColumnInfo> columns = [];
 
         using (IDataReader reader = conn.ExecuteReader(sql2))
         {
             while (reader.Read())
             {
-                string columnName = Normalize(reader.GetString(0));
+                string catalogName = reader.GetString(0);
                 string dataType = reader.GetString(1);
                 columns.Add(new DbColumnInfo(
-                    columnName,
+                    Normalize(catalogName),
                     dataType,
                     isNullable: ReadIsNullable(reader, 2),
-                    hasDefault: ReadHasDefault(reader, 3)));
+                    hasDefault: ReadHasDefault(reader, 3),
+                    isIndexed: indexes.IsIndexed(catalogName)));
             }
         }
 

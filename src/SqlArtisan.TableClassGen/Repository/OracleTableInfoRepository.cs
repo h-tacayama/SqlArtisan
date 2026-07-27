@@ -83,20 +83,23 @@ internal sealed class OracleTableInfoRepository(
                 & atc.TableName == tableName.ToUpper())
             .OrderBy(atc.ColumnId);
 
+        ColumnIndexInfo indexes =
+            new CatalogColumnIndexRepository(DbmsType.Oracle, _connInfo.Schema)
+                .Read(conn, tableName);
+
         List<DbColumnInfo> columns = [];
 
         using (IDataReader reader = conn.ExecuteReader(sql))
         {
             while (reader.Read())
             {
-                string columnName = _lowercaseNames
-                    ? reader.GetString(0).ToLower()
-                    : reader.GetString(0);
+                string catalogName = reader.GetString(0);
                 string dataType = reader.GetString(1);
                 columns.Add(new DbColumnInfo(
-                    columnName,
+                    _lowercaseNames ? catalogName.ToLower() : catalogName,
                     dataType,
-                    isNullable: ReadIsNullable(reader, 2)));
+                    isNullable: ReadIsNullable(reader, 2),
+                    isIndexed: indexes.IsIndexed(catalogName)));
             }
         }
 

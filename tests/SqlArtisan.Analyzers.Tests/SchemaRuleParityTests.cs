@@ -40,6 +40,7 @@ public class SchemaRuleParityTests
             {
                 Code = new DbColumn(this, "code");
                 Note = new DbColumn(this, "note");
+                Key = new DbColumn(this, "key");
             }
 
             [DbColumnMetadata(Nullable = false, HasDefault = false)]
@@ -47,6 +48,9 @@ public class SchemaRuleParityTests
 
             [DbColumnMetadata(Nullable = true, HasDefault = false)]
             public DbColumn Note { get; }
+
+            [DbColumnMetadata(Nullable = true, HasDefault = false, Indexed = true)]
+            public DbColumn Key { get; }
         }
 
         class C
@@ -109,6 +113,13 @@ public class SchemaRuleParityTests
             """
             var counted = Count(r.Note);
             var s = Select(t.Code, counted).From(t).LeftJoin(r).On(t.Code == r.Code).GroupBy(t.Code).Build();
+            """,
+            ""
+        },
+        {
+            """
+            SqlCondition wrapped = Upper(t.Key) == "X";
+            var s = Select(t.Code).From(t).Where(wrapped).Build();
             """,
             ""
         },

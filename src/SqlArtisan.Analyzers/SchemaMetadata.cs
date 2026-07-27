@@ -21,6 +21,8 @@ internal static class SchemaMetadata
 
     public const string HasDefaultArgument = "HasDefault";
 
+    public const string IndexedArgument = "Indexed";
+
     public static bool? Fact(IOperation? operation, string argument) =>
         operation is IPropertyReferenceOperation column
             ? Fact(column.Property, argument)

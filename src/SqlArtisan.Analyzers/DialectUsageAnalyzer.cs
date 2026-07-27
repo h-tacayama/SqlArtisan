@@ -39,6 +39,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.NotInNullableSubquery,
         DiagnosticDescriptors.InsertMissingRequiredColumn,
         DiagnosticDescriptors.CountNullableColumn,
+        DiagnosticDescriptors.UnusableIndexPredicate,
         DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
@@ -59,6 +60,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeNotInSubquery, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeInsertColumns, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeCountArgument, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeIndexedColumnFilter, OperationKind.Invocation);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -268,6 +270,31 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         CountNullableColumnRule.Check(context, invocation);
+    }
+
+    // Like carries the column as its receiver; every other shape wraps it as an
+    // argument, so the two enter the rule by different doors.
+    private static void AnalyzeIndexedColumnFilter(OperationAnalysisContext context)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (!IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        if (invocation.TargetMethod.Name is "Like" or "NotLike" && invocation.Arguments.Length == 1)
+        {
+            UnusableIndexPredicateRule.CheckLike(context, invocation);
+            return;
+        }
+
+        UnusableIndexPredicateRule.CheckFunctionCall(context, invocation);
     }
 
     // Both DML heads (#256) — the static Sql members and the WithBuilder instance

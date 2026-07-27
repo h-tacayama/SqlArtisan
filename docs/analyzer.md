@@ -63,6 +63,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0008` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0009` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0010` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0011` | Warning | A `WHERE` or `ON` predicate wraps an indexed column in a function, or matches it with a leading-wildcard pattern, so no index on it can be used. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 
 The rules fall into two categories, so a bulk-severity setting can reach one
 family without the other:
@@ -542,7 +543,35 @@ where counting the column is precisely how you count the matched rows and
 `COUNT(*)` would count the unmatched ones too — the same reason a `NOT NULL`
 column is never reported in a plain query, where it and `COUNT(*)` agree.
 
-**All four are silent unless the fact was recorded.** An attribute the generator
+The fifth is about the shape of a filter, not its cost. An index on a column can
+only be used when the filtered side is the bare column: wrap it in a function, or
+anchor the pattern with a leading `%`, and the engine has to look at every row.
+
+```csharp
+var sql = Select(t.Id).From(t).Where(Upper(t.Name) == "SMITH").Build();
+// warning SQLA0011: 'Name' leads an index, but this filter has it wrapped in
+// Upper, so no index on it can be used
+```
+
+Whether the planner *would* have chosen the index is a cost question, and cost
+questions stay out — statistics and data volume are the optimizer's domain. What
+this reports is only the form: the predicate as written gives the index nothing
+to range over. The remediation is the same in every case — leave the column bare
+on the filtered side and move the work to the other side, or index the expression
+itself, which the generator then records as unknown and the rule stops reporting.
+
+Only `WHERE` and `ON` are checked. The same call in a select list or an
+`ORDER BY` costs no index, and `HAVING` filters groups after any index has done
+its work. A condition built apart from its clause is left alone: nothing at that
+point shows it will ever reach a `WHERE`.
+
+`Indexed` records only whether the column **leads** an index. A composite index
+on `(a, b)` is fully usable from a predicate on `a` alone, so `a` is recorded and
+`b` is not — a predicate on `b` alone could not have used that index anyway, and
+"the query constrains `b` but not `a`" is a cost judgment (Oracle's index skip
+scan and MySQL's skip-scan optimization both exist) rather than a fact.
+
+**All five are silent unless the fact was recorded.** An attribute the generator
 never wrote, a fact it could not determine (an absent named argument), a
 hand-written table class, or a column reached through
 `new DbTable("t").Column("x")` — which has no declaration to carry metadata —

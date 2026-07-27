@@ -84,6 +84,11 @@ internal sealed class DbTableInfo(
             arguments.Add($"HasDefault = {Literal(hasDefault)}");
         }
 
+        if (column.IsIndexed is { } isIndexed)
+        {
+            arguments.Add($"Indexed = {Literal(isIndexed)}");
+        }
+
         return arguments.Count == 0
             ? null
             : $"[DbColumnMetadata({string.Join(", ", arguments)})]";

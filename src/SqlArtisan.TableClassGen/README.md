@@ -139,21 +139,26 @@ internal sealed class UsersTable : DbTableBase
         CreatedAt = new DbColumn(this, "created_at");
     }
 
-    [DbColumnMetadata(Nullable = false, HasDefault = true)]
+    [DbColumnMetadata(Nullable = false, HasDefault = true, Indexed = true)]
     public DbColumn Id { get; }
 
-    [DbColumnMetadata(Nullable = false, HasDefault = false)]
+    [DbColumnMetadata(Nullable = false, HasDefault = false, Indexed = true)]
     public DbColumn Name { get; }
 
-    [DbColumnMetadata(Nullable = true, HasDefault = false)]
+    [DbColumnMetadata(Nullable = true, HasDefault = false, Indexed = false)]
     public DbColumn CreatedAt { get; }
 }
 ```
 
 `DbColumnMetadata` records what the catalog says about each column. It is
 compile-time data only — nothing reads it at run time — and an argument is written
-only for a fact the tool could actually determine, so a column whose nullability or
-default could not be read carries no claim about it.
+only for a fact the tool could actually determine, so a column whose nullability,
+default, or index membership could not be read carries no claim about it.
+
+`Indexed` means the column **leads** an index, so a predicate on it alone can use
+that index; a non-leading column of a composite index records `false`. A column
+named by an index *expression* records nothing — an expression index exists
+precisely so the wrapped predicate can be written.
 
 ## License
 
