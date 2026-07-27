@@ -67,7 +67,7 @@ ${FULL_CODEBASE_GLOBS.map((p) => `- ${p}`).join('\n')}
 Exclude bin/ and obj/ build output. Return the full list as changedFiles.`
   : `Report scope="diff" for the current branch.
 
-Per the sa-review-changes skill: local main is often stale, so a raw
+Per the sa-code-review skill: local main is often stale, so a raw
 "git diff main...HEAD" (or a merge-base against local main) can pull in
 unrelated already-merged work — merge-base succeeds even when the local ref
 is stale, so it will not warn you. Always anchor against the remote-tracking
@@ -125,7 +125,7 @@ None — no files in scope.
 
 // ---------------------------------------------------------------------------
 // PHASE 2: Gates — run once, up front, so reviewers don't re-derive
-// failures the toolchain already catches (sa-review-changes skill, step 2).
+// failures the toolchain already catches (sa-code-review skill, step 2).
 // ---------------------------------------------------------------------------
 phase('Gates')
 
@@ -141,7 +141,7 @@ const GATES_SCHEMA = {
 }
 
 const gates = await agent(
-  `Run the SqlArtisan review gates (sa-review-changes skill, step 2) and report
+  `Run the SqlArtisan review gates (sa-code-review skill, step 2) and report
 pass/fail for each. Do not fix anything — detection only.
 
 dotnet build src/SqlArtisan/SqlArtisan.csproj -c Release
@@ -159,7 +159,7 @@ counts against the bar. Summarize any failure in one or two lines.`,
 
 log(`Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}`)
 
-// A failing gate is itself a MUST FIX (sa-review-changes skill: "a finding
+// A failing gate is itself a MUST FIX (sa-code-review skill: "a finding
 // the tools already catch is wasted review budget"). Short-circuit before
 // the expensive Orchestrate/Execute phases instead of spending them on code
 // that may not even compile.
@@ -178,7 +178,7 @@ if (!gates.buildPassed || !gates.testsPassed || !gates.formatClean) {
 Not mergeable
 
 ## Summary
-A review gate failed before the deep review began. Per the sa-review-changes
+A review gate failed before the deep review began. Per the sa-code-review
 skill, a tool-catchable failure is a MUST FIX on its own, and reviewing
 further code before it's fixed wastes review budget — the deep-review phases
 were skipped.

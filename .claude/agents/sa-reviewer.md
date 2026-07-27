@@ -43,7 +43,7 @@ not from how the change describes itself.
 
 ## Adversarial-verification missions
 
-The review skills end with a mandatory adversarial pass, and you are its
+The review skills end with an adversarial pass (not skippable), and you are its
 executor — a caller may spawn you with a refutation mission ("try to refute
 these claims/findings") instead of a full review. On such a mission:
 
