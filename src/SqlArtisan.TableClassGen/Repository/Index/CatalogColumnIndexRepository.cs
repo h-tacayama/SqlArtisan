@@ -40,8 +40,8 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
     {
         using IDbCommand command = conn.CreateCommand();
         command.CommandText = sql;
-        AddParameter(command, ParameterName(SchemaParameter), schema);
-        AddParameter(command, ParameterName(TableParameter), tableName);
+        AddParameter(command, ParameterName(SchemaParameter), CatalogName(schema));
+        AddParameter(command, ParameterName(TableParameter), CatalogName(tableName));
 
         using IDataReader reader = command.ExecuteReader();
         while (reader.Read())
@@ -109,11 +109,17 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
             "SELECT COUNT(*) FROM ALL_INDEXES "
             + "WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name "
             + "AND INDEX_TYPE LIKE 'FUNCTION-BASED%'";
-        AddParameter(command, ParameterName(SchemaParameter), schema);
-        AddParameter(command, ParameterName(TableParameter), tableName);
+        AddParameter(command, ParameterName(SchemaParameter), CatalogName(schema));
+        AddParameter(command, ParameterName(TableParameter), CatalogName(tableName));
 
         return Convert.ToInt64(command.ExecuteScalar()) > 0;
     }
+
+    // Oracle stores unquoted identifiers folded to upper case, and the caller may
+    // hand down a name already lowercased for emission — matching the rest of the
+    // Oracle repository, which compares against ToUpper() throughout.
+    private string CatalogName(string name) =>
+        dbmsType == DbmsType.Oracle ? name.ToUpper() : name;
 
     // Suffixed because Oracle rejects a bind variable named after a reserved word:
     // a bare ":table" fails with ORA-01745, verified against a live engine.
