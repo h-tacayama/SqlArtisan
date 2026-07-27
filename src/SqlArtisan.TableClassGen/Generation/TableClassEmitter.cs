@@ -2,22 +2,11 @@ using System.Text;
 
 namespace SqlArtisan.TableClassGen;
 
-internal sealed class DbTableInfo(
-    string tableName,
-    IReadOnlyList<DbColumnInfo> columns,
-    string? schema = null)
+internal sealed class TableClassEmitter(CodeGenerationSettings settings)
 {
     private const string Indent = "    ";
 
-    public string TableName => tableName;
-
-    public string Schema => schema ?? string.Empty;
-
-    public string ClassName => $"{CaseConverter.SnakeToPascalCase(tableName)}Table";
-
-    public IReadOnlyList<DbColumnInfo> Columns => columns;
-
-    public string GenerateCode(CodeGenerationSettings settings)
+    public string Emit(CatalogTable table)
     {
         StringBuilder code = new();
 
@@ -31,14 +20,14 @@ internal sealed class DbTableInfo(
         code.AppendLine();
         code.AppendLine($"namespace {settings.OutputNamespace};");
         code.AppendLine();
-        code.AppendLine($"{settings.Accessibility} sealed class {ClassName} : DbTableBase");
+        code.AppendLine($"{settings.Accessibility} sealed class {table.ClassName} : DbTableBase");
         code.AppendLine("{");
 
         code.AppendLine(
-            $"{Indent}public {ClassName}(string tableAlias = \"\") : base(\"{EmittedTableName(settings)}\", tableAlias)");
+            $"{Indent}public {table.ClassName}(string tableAlias = \"\") : base(\"{EmittedTableName(table)}\", tableAlias)");
         code.AppendLine($"{Indent}{{");
 
-        foreach (DbColumnInfo column in Columns)
+        foreach (CatalogColumn column in table.Columns)
         {
             code.AppendLine(
                 $"{Indent}{Indent}{column.PascalCaseName} = new DbColumn(this, \"{column.Name}\");");
@@ -46,7 +35,7 @@ internal sealed class DbTableInfo(
 
         code.AppendLine($"{Indent}}}");
 
-        foreach (DbColumnInfo column in Columns)
+        foreach (CatalogColumn column in table.Columns)
         {
             code.AppendLine();
 
@@ -63,14 +52,14 @@ internal sealed class DbTableInfo(
         return code.ToString();
     }
 
-    private string EmittedTableName(CodeGenerationSettings settings) =>
-        settings.QualifySchema && Schema.Length > 0
-            ? $"{Schema}.{TableName}"
-            : TableName;
+    private string EmittedTableName(CatalogTable table) =>
+        settings.QualifySchema && table.Schema.Length > 0
+            ? $"{table.Schema}.{table.TableName}"
+            : table.TableName;
 
     // Only facts the catalog path determined are written: an omitted argument is the
     // unknown state, which reads as "no information" rather than "false".
-    private static string? MetadataAttribute(DbColumnInfo column)
+    private static string? MetadataAttribute(CatalogColumn column)
     {
         List<string> arguments = [];
 

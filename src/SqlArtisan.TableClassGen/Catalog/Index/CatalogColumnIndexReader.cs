@@ -7,8 +7,8 @@ namespace SqlArtisan.TableClassGen;
 // alone exposes it there — so each dialect gets its own catalog query. The shape is
 // shared: leading column name, plus the expression text when the key is an
 // expression rather than a column.
-internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string schema)
-    : IColumnIndexRepository
+internal sealed class CatalogColumnIndexReader(DbmsType dbmsType, string schema)
+    : IColumnIndexReader
 {
     public ColumnIndexInfo Read(IDbConnection conn, string tableName)
     {
@@ -126,7 +126,7 @@ internal sealed class CatalogColumnIndexRepository(DbmsType dbmsType, string sch
 
     // Oracle stores unquoted identifiers folded to upper case, and the caller may
     // hand down a name already lowercased for emission — matching the rest of the
-    // Oracle repository, which compares against ToUpper() throughout.
+    // Oracle reader, which compares against ToUpper() throughout.
     private string CatalogName(string name) =>
         dbmsType == DbmsType.Oracle ? name.ToUpper() : name;
 

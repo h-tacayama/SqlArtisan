@@ -4,14 +4,14 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.TableClassGen;
 
-internal sealed class OracleTableInfoRepository(
+internal sealed class OracleCatalogReader(
     DbConnectionInfo connInfo,
-    bool lowercaseNames) : ITableInfoRepository
+    bool lowercaseNames) : ICatalogReader
 {
     private readonly DbConnectionInfo _connInfo = connInfo;
     private readonly bool _lowercaseNames = lowercaseNames;
 
-    public IReadOnlyList<DbTableInfo> GetAllTables()
+    public IReadOnlyList<CatalogTable> GetAllTables()
     {
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
@@ -24,7 +24,7 @@ internal sealed class OracleTableInfoRepository(
             .Where(t.Owner == _connInfo.Schema.ToUpper())
             .OrderBy(t.TableName);
 
-        List<DbTableInfo> tables = [];
+        List<CatalogTable> tables = [];
 
         List<string> tableNames = [];
         using (IDataReader reader = conn.ExecuteReader(sql))
@@ -40,7 +40,7 @@ internal sealed class OracleTableInfoRepository(
 
         foreach (string tableName in tableNames)
         {
-            if (TryGetTableInfo(conn, tableName, out DbTableInfo? table)
+            if (TryGetTable(conn, tableName, out CatalogTable? table)
                 && table is not null)
             {
                 tables.Add(table);
@@ -50,15 +50,15 @@ internal sealed class OracleTableInfoRepository(
         return tables;
     }
 
-    public bool TryGetTableInfo(string tableName, out DbTableInfo? table)
+    public bool TryGetTable(string tableName, out CatalogTable? table)
     {
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
 
-        return TryGetTableInfo(conn, tableName, out table);
+        return TryGetTable(conn, tableName, out table);
     }
 
-    private bool TryGetTableInfo(IDbConnection conn, string tableName, out DbTableInfo? table)
+    private bool TryGetTable(IDbConnection conn, string tableName, out CatalogTable? table)
     {
         table = null;
 
@@ -85,10 +85,10 @@ internal sealed class OracleTableInfoRepository(
             .OrderBy(atc.ColumnId);
 
         ColumnIndexInfo indexes =
-            new CatalogColumnIndexRepository(DbmsType.Oracle, _connInfo.Schema)
+            new CatalogColumnIndexReader(DbmsType.Oracle, _connInfo.Schema)
                 .Read(conn, tableName);
 
-        List<DbColumnInfo> columns = [];
+        List<CatalogColumn> columns = [];
 
         using (IDataReader reader = conn.ExecuteReader(sql))
         {
@@ -96,7 +96,7 @@ internal sealed class OracleTableInfoRepository(
             {
                 string catalogName = reader.GetString(0);
                 string dataType = reader.GetString(1);
-                columns.Add(new DbColumnInfo(
+                columns.Add(new CatalogColumn(
                     _lowercaseNames ? catalogName.ToLower() : catalogName,
                     dataType,
                     isNullable: ReadIsNullable(reader, 2),
@@ -110,7 +110,7 @@ internal sealed class OracleTableInfoRepository(
             return false;
         }
 
-        table = new DbTableInfo(_lowercaseNames
+        table = new CatalogTable(_lowercaseNames
             ? tableName.ToLower()
             : tableName.ToUpper(),
             columns,

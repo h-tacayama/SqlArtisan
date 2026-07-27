@@ -7,7 +7,7 @@ namespace SqlArtisan.TableClassGen.Tests;
 // engine that cannot use the information_schema builder — is verified here in the
 // fast unit lane. MySQL/SQL Server are verified against live engines in the
 // integration suite.
-public class SqliteTableInfoRepositoryTests
+public class SqliteCatalogReaderTests
 {
     private const string Schema =
         """
@@ -23,13 +23,13 @@ public class SqliteTableInfoRepositoryTests
     {
         using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
 
-        IReadOnlyList<DbTableInfo> tables =
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        IReadOnlyList<CatalogTable> tables =
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables();
 
         Assert.Equal(["order_line", "user_account"], tables.Select(t => t.TableName));
 
-        DbTableInfo userAccount = tables[1];
+        CatalogTable userAccount = tables[1];
         Assert.Equal("UserAccountTable", userAccount.ClassName);
         Assert.Equal(
             ["id", "user_name", "created_at"],
@@ -48,11 +48,11 @@ public class SqliteTableInfoRepositoryTests
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE AppConfig (ConfigKey TEXT, ConfigValue TEXT);");
 
-        IReadOnlyList<DbTableInfo> tables =
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: true)
+        IReadOnlyList<CatalogTable> tables =
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: true)
                 .GetAllTables();
 
-        DbTableInfo table = Assert.Single(tables);
+        CatalogTable table = Assert.Single(tables);
         Assert.Equal("appconfig", table.TableName);
         Assert.Equal(["configkey", "configvalue"], table.Columns.Select(c => c.Name));
     }
@@ -65,11 +65,11 @@ public class SqliteTableInfoRepositoryTests
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE item (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);");
 
-        IReadOnlyList<DbTableInfo> tables =
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        IReadOnlyList<CatalogTable> tables =
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables();
 
-        DbTableInfo table = Assert.Single(tables);
+        CatalogTable table = Assert.Single(tables);
         Assert.Equal("item", table.TableName);
     }
 
@@ -84,8 +84,8 @@ public class SqliteTableInfoRepositoryTests
                 qty INTEGER NOT NULL DEFAULT 0);
             """);
 
-        DbTableInfo table = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
         Assert.Equal([false, true, false], table.Columns.Select(c => c.IsNullable));
@@ -100,11 +100,11 @@ public class SqliteTableInfoRepositoryTests
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT NOT NULL);");
 
-        DbTableInfo table = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
-        DbColumnInfo id = table.Columns[0];
+        CatalogColumn id = table.Columns[0];
         Assert.False(id.IsNullable);
         Assert.True(id.HasDefault);
     }
@@ -115,8 +115,8 @@ public class SqliteTableInfoRepositoryTests
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE pair (a INTEGER NOT NULL, b INTEGER NOT NULL, PRIMARY KEY (a, b));");
 
-        DbTableInfo table = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
         Assert.Equal([false, false], table.Columns.Select(c => c.HasDefault));
@@ -130,8 +130,8 @@ public class SqliteTableInfoRepositoryTests
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE item (id INTEGER PRIMARY KEY DESC, name TEXT);");
 
-        DbColumnInfo id = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogColumn id = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables())
             .Columns[0];
 
@@ -145,8 +145,8 @@ public class SqliteTableInfoRepositoryTests
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT) WITHOUT ROWID;");
 
-        DbColumnInfo id = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogColumn id = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables())
             .Columns[0];
 
@@ -160,8 +160,8 @@ public class SqliteTableInfoRepositoryTests
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE pair (a TEXT, b TEXT, c TEXT, PRIMARY KEY (a, b)) WITHOUT ROWID;");
 
-        DbTableInfo table = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
         Assert.Equal([false, false, true], table.Columns.Select(c => c.IsNullable));
@@ -173,8 +173,8 @@ public class SqliteTableInfoRepositoryTests
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE item (code TEXT NOT NULL PRIMARY KEY, name TEXT);");
 
-        DbColumnInfo code = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogColumn code = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables())
             .Columns[0];
 
@@ -201,8 +201,8 @@ public class SqliteTableInfoRepositoryTests
             CREATE INDEX ix_expr ON doc(upper(email));
             """);
 
-        DbTableInfo table = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
         Assert.Equal(
@@ -218,8 +218,8 @@ public class SqliteTableInfoRepositoryTests
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE note (id INTEGER PRIMARY KEY, body TEXT);");
 
-        DbTableInfo table = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
         Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
@@ -236,8 +236,8 @@ public class SqliteTableInfoRepositoryTests
             CREATE INDEX ix_name ON person(name);
             """);
 
-        DbTableInfo table = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
         Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
@@ -256,8 +256,8 @@ public class SqliteTableInfoRepositoryTests
             CREATE INDEX ix_owner_part ON task(owner) WHERE amount > 0;
             """);
 
-        DbTableInfo table = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
         Assert.Equal([null, false, true], table.Columns.Select(c => c.IsIndexed));
@@ -272,8 +272,8 @@ public class SqliteTableInfoRepositoryTests
             CREATE UNIQUE INDEX ux_login ON account(login);
             """);
 
-        DbTableInfo table = Assert.Single(
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables());
 
         Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
@@ -284,11 +284,12 @@ public class SqliteTableInfoRepositoryTests
     {
         using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
 
-        IReadOnlyList<DbTableInfo> tables =
-            new SqliteTableInfoRepository(db.ConnectionInfo, lowercaseNames: false)
+        IReadOnlyList<CatalogTable> tables =
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
                 .GetAllTables();
 
-        GeneratedCodeCompiler.AssertCompiles(
-            tables.Select(t => t.GenerateCode(TestSettings.Create())));
+        TableClassEmitter emitter = new(TestSettings.Create());
+
+        GeneratedCodeCompiler.AssertCompiles(tables.Select(emitter.Emit));
     }
 }

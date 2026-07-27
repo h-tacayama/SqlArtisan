@@ -27,20 +27,22 @@ internal sealed class TableResult(
 
 // Comparison regenerates in memory and diffs against the files on disk: the
 // generated classes are the only committed representation of the schema.
-internal sealed class TableClassGenerator(ITableInfoRepository repository, RunOptions options)
+internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions options)
 {
     private static readonly Regex ColumnPattern =
         new("""new DbColumn\(this, "(?<name>[^"]*)"\)""", RegexOptions.Compiled);
 
     private readonly CodeGenerationSettings _settings = options.Settings;
 
+    private readonly TableClassEmitter _emitter = new(options.Settings);
+
     public IReadOnlyList<TableResult> Run()
     {
         List<TableResult> results = [];
 
-        foreach (DbTableInfo table in ResolveTables())
+        foreach (CatalogTable table in ResolveTables())
         {
-            string code = table.GenerateCode(_settings);
+            string code = _emitter.Emit(table);
             string path = _settings.CreateOutputFilePath(table.ClassName);
 
             TableResult result = Compare(table, path, code);
@@ -57,18 +59,18 @@ internal sealed class TableClassGenerator(ITableInfoRepository repository, RunOp
         return results;
     }
 
-    private IEnumerable<DbTableInfo> ResolveTables()
+    private IEnumerable<CatalogTable> ResolveTables()
     {
         if (_settings.TableNames.Count == 0)
         {
-            return repository.GetAllTables();
+            return catalog.GetAllTables();
         }
 
-        List<DbTableInfo> tables = [];
+        List<CatalogTable> tables = [];
 
         foreach (string name in _settings.TableNames)
         {
-            if (!repository.TryGetTableInfo(name, out DbTableInfo? table) || table is null)
+            if (!catalog.TryGetTable(name, out CatalogTable? table) || table is null)
             {
                 throw new CommandLineException(
                     $"--tables names '{name}', which the schema does not contain");
@@ -92,7 +94,7 @@ internal sealed class TableClassGenerator(ITableInfoRepository repository, RunOp
         File.WriteAllText(path, code);
     }
 
-    private static TableResult Compare(DbTableInfo table, string path, string code)
+    private static TableResult Compare(CatalogTable table, string path, string code)
     {
         if (!File.Exists(path))
         {

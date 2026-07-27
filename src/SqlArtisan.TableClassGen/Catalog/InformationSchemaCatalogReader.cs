@@ -7,14 +7,14 @@ namespace SqlArtisan.TableClassGen;
 // Reads table metadata from the SQL-standard information_schema, shared by every
 // engine that exposes it; the dialect is resolved from the connection, so the
 // emitted catalog queries are dialected automatically. Oracle and SQLite differ.
-internal sealed class InformationSchemaTableInfoRepository(
+internal sealed class InformationSchemaCatalogReader(
     DbConnectionInfo connInfo,
-    bool lowercaseNames) : ITableInfoRepository
+    bool lowercaseNames) : ICatalogReader
 {
     private readonly DbConnectionInfo _connInfo = connInfo;
     private readonly bool _lowercaseNames = lowercaseNames;
 
-    public IReadOnlyList<DbTableInfo> GetAllTables()
+    public IReadOnlyList<CatalogTable> GetAllTables()
     {
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
@@ -29,7 +29,7 @@ internal sealed class InformationSchemaTableInfoRepository(
                 & t.TableType == "BASE TABLE")
             .OrderBy(t.TableName);
 
-        List<DbTableInfo> tables = [];
+        List<CatalogTable> tables = [];
 
         List<string> tableNames = [];
         using (IDataReader reader = conn.ExecuteReader(sql))
@@ -42,7 +42,7 @@ internal sealed class InformationSchemaTableInfoRepository(
 
         foreach (string tableName in tableNames)
         {
-            if (TryGetTableInfo(conn, tableName, out DbTableInfo? table)
+            if (TryGetTable(conn, tableName, out CatalogTable? table)
                 && table is not null)
             {
                 tables.Add(table);
@@ -52,18 +52,18 @@ internal sealed class InformationSchemaTableInfoRepository(
         return tables;
     }
 
-    public bool TryGetTableInfo(string tableName, out DbTableInfo? table)
+    public bool TryGetTable(string tableName, out CatalogTable? table)
     {
         using IDbConnection conn = _connInfo.CreateConnection();
         conn.Open();
 
-        return TryGetTableInfo(conn, tableName, out table);
+        return TryGetTable(conn, tableName, out table);
     }
 
     // tableName is the catalog's stored name, reused verbatim as the re-lookup
     // key; lowercasing is applied only to the emitted names, so a case-sensitive
     // collation cannot drop a mixed-case table on re-lookup.
-    private bool TryGetTableInfo(IDbConnection conn, string tableName, out DbTableInfo? table)
+    private bool TryGetTable(IDbConnection conn, string tableName, out CatalogTable? table)
     {
         table = null;
 
@@ -87,10 +87,10 @@ internal sealed class InformationSchemaTableInfoRepository(
             .OrderBy(c.OrdinalPosition);
 
         ColumnIndexInfo indexes =
-            new CatalogColumnIndexRepository(_connInfo.DbmsType, _connInfo.Schema)
+            new CatalogColumnIndexReader(_connInfo.DbmsType, _connInfo.Schema)
                 .Read(conn, tableName);
 
-        List<DbColumnInfo> columns = [];
+        List<CatalogColumn> columns = [];
 
         using (IDataReader reader = conn.ExecuteReader(sql2))
         {
@@ -98,7 +98,7 @@ internal sealed class InformationSchemaTableInfoRepository(
             {
                 string catalogName = reader.GetString(0);
                 string dataType = reader.GetString(1);
-                columns.Add(new DbColumnInfo(
+                columns.Add(new CatalogColumn(
                     Normalize(catalogName),
                     dataType,
                     isNullable: ReadIsNullable(reader, 2),
@@ -112,7 +112,7 @@ internal sealed class InformationSchemaTableInfoRepository(
             return false;
         }
 
-        table = new DbTableInfo(Normalize(tableName), columns, _connInfo.Schema);
+        table = new CatalogTable(Normalize(tableName), columns, _connInfo.Schema);
         return true;
     }
 
