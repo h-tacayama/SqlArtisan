@@ -16,5 +16,6 @@ public interface ISqlBuilder
     /// </summary>
     /// <param name="dbms">The target engine, whose dialect shapes parameter markers, identifier quoting, and pagination.</param>
     /// <returns>The rendered SQL text and its bound parameters.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="dbms"/> is <see cref="Dbms.Unknown"/> or an undefined value.</exception>
     SqlStatement Build(Dbms dbms);
 }
