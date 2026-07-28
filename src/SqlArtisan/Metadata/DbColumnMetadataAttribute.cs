@@ -35,7 +35,7 @@ public sealed class DbColumnMetadataAttribute : Attribute
     /// <summary>
     /// The column's type reduced to one coarse category. A type name the generator
     /// does not recognize leaves this unset, which reads as
-    /// <see cref="DbColumnType.Unknown"/>.
+    /// <see cref="DbTypeCategory.Unknown"/>.
     /// </summary>
-    public DbColumnType ColumnType { get; init; }
+    public DbTypeCategory ColumnType { get; init; }
 }

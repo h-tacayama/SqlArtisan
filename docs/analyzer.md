@@ -438,7 +438,7 @@ this rule reports.
 the generated table class:
 
 ```csharp
-[DbColumnMetadata(Nullable = false, HasDefault = false, ColumnType = DbColumnType.Text)]
+[DbColumnMetadata(Nullable = false, HasDefault = false, ColumnType = DbTypeCategory.Text)]
 public DbColumn Code { get; }
 ```
 

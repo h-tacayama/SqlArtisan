@@ -22,13 +22,13 @@ public class ColumnTypeMismatchAnalyzerTests
                 Legacy = new DbColumn(this, "legacy");
             }
 
-            [DbColumnMetadata(ColumnType = DbColumnType.Text)]
+            [DbColumnMetadata(ColumnType = DbTypeCategory.Text)]
             public DbColumn Code { get; }
 
-            [DbColumnMetadata(ColumnType = DbColumnType.Numeric)]
+            [DbColumnMetadata(ColumnType = DbTypeCategory.Numeric)]
             public DbColumn Amount { get; }
 
-            [DbColumnMetadata(ColumnType = DbColumnType.Temporal)]
+            [DbColumnMetadata(ColumnType = DbTypeCategory.Temporal)]
             public DbColumn CreatedAt { get; }
 
             [DbColumnMetadata(Nullable = true)]

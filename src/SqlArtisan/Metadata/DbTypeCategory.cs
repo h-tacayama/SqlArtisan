@@ -9,7 +9,7 @@ namespace SqlArtisan;
 /// <c>int</c> is not a mismatch, and carrying width would invite judgments about
 /// values rather than types.
 /// </remarks>
-public enum DbColumnType
+public enum DbTypeCategory
 {
     /// <summary>
     /// The generator did not recognize the catalog's type name, so the column

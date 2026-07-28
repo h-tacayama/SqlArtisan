@@ -153,7 +153,7 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
         // code instead of leaving a stale literal behind.
         if (column.ColumnType is { } columnType)
         {
-            arguments.Add($"ColumnType = {nameof(DbColumnType)}.{columnType}");
+            arguments.Add($"ColumnType = {nameof(DbTypeCategory)}.{columnType}");
         }
 
         return arguments.Count == 0

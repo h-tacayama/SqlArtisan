@@ -40,7 +40,7 @@ public class SchemaMetadataParityTests
     [Fact]
     public void TheCoresColumnTypeMembers_AreExactlyTheOnesTheRuleNames()
     {
-        string[] declared = [.. Enum.GetNames(typeof(DbColumnType)).OrderBy(n => n, StringComparer.Ordinal)];
+        string[] declared = [.. Enum.GetNames(typeof(DbTypeCategory)).OrderBy(n => n, StringComparer.Ordinal)];
 
         string[] named =
         [
