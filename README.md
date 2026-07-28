@@ -74,7 +74,7 @@ All the convenience, minimal overhead: an **allocation-light, fast** builder [be
 
 ## Performance
 
-SqlArtisan minimizes heap allocations — string buffers are recycled from a pooled `ArrayPool<T>` — so it adds little GC pressure on hot paths. On a **fair, like-for-like** [BenchmarkDotNet](https://benchmarkdotnet.org/) workload, where every entrant builds the *same* query's SQL string **and** its bind parameters, it is the **lowest-allocation and fastest** builder; only a hand-written `StringBuilder` (no type safety, no parameters) is lighter.
+SqlArtisan minimizes heap allocations — string buffers are recycled from a pooled `ArrayPool<T>` — so it adds little GC pressure on hot paths. On a **fair, like-for-like** [BenchmarkDotNet](https://benchmarkdotnet.org/) workload, where every entrant builds the *same* query's SQL string **and** its bind parameters, it is the **lowest-allocation and fastest** builder; only a hand-written `StringBuilder` (no type safety, no dialect handling) is lighter.
 
 | Method | Category | Mean | Allocated |
 | :--- | :--- | ---: | ---: |
@@ -112,7 +112,7 @@ The **allocation lead is firm** (lightweight builders allocate the same bytes ev
 ### Prerequisites
 
 - **.NET 8.0 or later.**
-- **Choose the API for your target DBMS** (e.g. `Systimestamp` for Oracle vs `CurrentTimestamp` for PostgreSQL). Bind-parameter prefixes (`:` / `@`) are then handled for you — verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
+- **Choose the API for your target DBMS** (e.g. `Systimestamp` for Oracle vs `CurrentTimestamp` for PostgreSQL). Bind-parameter prefixes (`:` / `@` / `?`) are then handled for you — verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
 - **(Optional) `SqlArtisan.Dapper`** auto-detects the dialect from your `IDbConnection` and adds execution methods.
 - **(Optional) `SqlArtisan.ArrayBind`** adds Oracle array-bind execution for any SqlArtisan-built statement.
 

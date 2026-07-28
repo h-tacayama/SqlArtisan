@@ -100,4 +100,28 @@ public class ConfigTests : IDisposable
             "Unsupported DBMS. (Parameter 'dbms')\nActual value was 99.",
             ex.Message);
     }
+
+    // Build's guard shares SetDefaultDbms's message, so it is asserted beside it:
+    // the two reported different ParamNames while Build's named an internal one.
+    [Fact]
+    public void Build_UnknownDbms_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Select(_t.Code).From(_t).Build(Dbms.Unknown));
+
+        Assert.Equal(
+            "Unsupported DBMS. (Parameter 'dbms')\nActual value was Unknown.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Build_UndefinedDbms_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Select(_t.Code).From(_t).Build((Dbms)99));
+
+        Assert.Equal(
+            "Unsupported DBMS. (Parameter 'dbms')\nActual value was 99.",
+            ex.Message);
+    }
 }
