@@ -19,8 +19,10 @@ public class DiagnosticOrderingTests
         Assert.Equal([.. declared.OrderBy(id => id, StringComparer.Ordinal)], declared);
     }
 
-    // ID order is family order only while the numbering holds: the dialect rules
-    // were given 0001-0006 and the schema rules 0007 up.
+    // ID order doubles as family order only while the dialect rules stop at 0006,
+    // and that range is full. A seventh takes the next free ID rather than a
+    // renumbering that would break released suppressions, and this is where that
+    // shows up — expect to delete this test rather than satisfy it.
     [Fact]
     public void EveryDiagnostic_SitsInTheCategoryItsNumberImplies()
     {
@@ -30,7 +32,11 @@ public class DiagnosticOrderingTests
                 ? "SqlArtisan.Dialect"
                 : "SqlArtisan.Schema";
 
-            Assert.Equal(expected, descriptor.Category);
+            Assert.True(
+                expected == descriptor.Category,
+                $"{descriptor.Id} is {descriptor.Category}, which its number reads as {expected}. "
+                    + "A dialect rule past 0006 ends the family-order half of the numbering; "
+                    + "drop this test rather than renumber a released ID.");
         }
     }
 }

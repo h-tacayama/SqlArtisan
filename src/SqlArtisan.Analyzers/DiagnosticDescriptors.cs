@@ -10,7 +10,16 @@ namespace SqlArtisan.Analyzers;
 internal static class DiagnosticDescriptors
 {
     // Declared in ID order, which is also family order: the dialect rules were
-    // numbered 0001-0006 and the schema rules 0007 up, so one ordering carries both.
+    // numbered 0001-0006 and the schema rules 0007 up. Within the schema family the
+    // number tracks which metadata fact the rule reads, in the order the facts
+    // landed, so a new one takes the next ID. Renumbering across the families has
+    // happened once (0003 became 0006, #326/#349) — move the declaration with it.
+    //
+    // The dialect range holds no spare number, and renumbering after a release would
+    // break the per-ID suppressions users have written. So a seventh dialect rule
+    // takes the next free ID and ends the family-order half of the rule; keep ID
+    // order and let DiagnosticOrderingTests' category assertion be the place that
+    // says so.
     private const string DialectCategory = "SqlArtisan.Dialect";
 
     // Separate from the dialect family (#266): a bulk-severity setting aimed at
