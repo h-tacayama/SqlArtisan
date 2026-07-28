@@ -3,12 +3,9 @@ using SqlArtisan.Benchmark.EfCoreModel;
 
 namespace SqlArtisan.Benchmark;
 
-// One-time equivalence check, run *outside* the measured loop (via `dotnet run -- validate`).
-// It prints each entrant's parameter count and SQL, and asserts every entrant that must
-// parameterize the query (the baseline and all builders) produced exactly two bind
-// parameters. SQL text is not required to be byte-identical — dialects, alias generation,
-// and EF Core's pipeline all differ — only the logical query and the parameter count must
-// match. EF Core is reported for reference only and is not asserted.
+// Runs outside the measured loop (`dotnet run -- validate`). Only the parameter count is
+// asserted — SQL text differs legitimately by dialect and alias generation, so the logical
+// query is merely printed, which is how the SqlKata drift (#382) got through.
 public static class BenchmarkValidation
 {
     public static int Run()
