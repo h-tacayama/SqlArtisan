@@ -134,6 +134,18 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
+    // A defect diagnostic rather than a performance opinion: MySQL compares a string
+    // to a number as floating point, so rows the author did not mean can match. That
+    // the index also goes unused is the lesser half.
+    public static readonly DiagnosticDescriptor ColumnTypeMismatch = new(
+        id: "SQLA0012",
+        title: "Column compared to a value of another type category",
+        messageFormat: "'{0}' is {1}, but this compares it to {2}. Cast one side to say which you mean.",
+        category: SchemaCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
     public static readonly DiagnosticDescriptor IdentifierTooLong = new(
         id: "SQLA0006",
         title: "SQL identifier exceeds the dialect's length limit",

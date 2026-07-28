@@ -31,4 +31,16 @@ public sealed class DbColumnMetadataAttribute : Attribute
     /// predicate covers a query is not decidable from the catalog.
     /// </summary>
     public bool Indexed { get; init; }
+
+    /// <summary>
+    /// The column's type reduced to one coarse category — <c>text</c>,
+    /// <c>numeric</c>, <c>temporal</c>, <c>binary</c>, or <c>boolean</c>. A type
+    /// name the generator does not recognize leaves this unset.
+    /// </summary>
+    /// <remarks>
+    /// No precision, length, or scale: comparing a <c>numeric(10,2)</c> column to
+    /// an <c>int</c> is not a mismatch, and encoding width would invite judgments
+    /// about values rather than types.
+    /// </remarks>
+    public string? ColumnType { get; init; }
 }

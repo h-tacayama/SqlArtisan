@@ -149,6 +149,11 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
             arguments.Add($"Indexed = {Literal(isIndexed)}");
         }
 
+        if (column.ColumnType is { } columnType)
+        {
+            arguments.Add($"ColumnType = {Quote(columnType)}");
+        }
+
         return arguments.Count == 0
             ? null
             : $"[DbColumnMetadata({string.Join(", ", arguments)})]";

@@ -108,7 +108,8 @@ internal sealed class SqliteCatalogReader(
                 row.Type,
                 isNullable: !isRowIdAlias && !row.NotNull,
                 hasDefault: isRowIdAlias || row.HasDefault,
-                isIndexed: isRowIdAlias ? true : indexes.IsIndexed(row.CatalogName)));
+                isIndexed: isRowIdAlias ? true : indexes.IsIndexed(row.CatalogName),
+                dbms: Dbms.Sqlite));
         }
 
         table = new CatalogTable(tableName, columns);

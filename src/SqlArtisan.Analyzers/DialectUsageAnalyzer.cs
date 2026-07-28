@@ -40,6 +40,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.InsertMissingRequiredColumn,
         DiagnosticDescriptors.CountNullableColumn,
         DiagnosticDescriptors.UnusableIndexPredicate,
+        DiagnosticDescriptors.ColumnTypeMismatch,
         DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
@@ -101,8 +102,11 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     // never as invocations; OperatorMethod is null for built-in operators.
     private static void AnalyzeBinaryOperator(OperationAnalysisContext context)
     {
-        if (((IBinaryOperation)context.Operation).OperatorMethod is not { } method
-            || !IsFromSqlArtisan(method.ContainingAssembly))
+        IBinaryOperation binary = (IBinaryOperation)context.Operation;
+
+        ColumnTypeMismatchRule.Check(context, binary);
+
+        if (binary.OperatorMethod is not { } method || !IsFromSqlArtisan(method.ContainingAssembly))
         {
             return;
         }

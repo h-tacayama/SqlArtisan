@@ -23,14 +23,25 @@ internal static class SchemaMetadata
 
     public const string IndexedArgument = "Indexed";
 
+    public const string ColumnTypeArgument = "ColumnType";
+
     public static bool? Fact(IOperation? operation, string argument) =>
         operation is IPropertyReferenceOperation column
             ? Fact(column.Property, argument)
             : null;
 
+    public static bool? Fact(IPropertySymbol column, string argument) =>
+        Argument(column, argument)?.Value as bool?;
+
+    public static string? Category(IOperation? operation) =>
+        operation is IPropertyReferenceOperation column ? Category(column.Property) : null;
+
+    public static string? Category(IPropertySymbol column) =>
+        Argument(column, ColumnTypeArgument)?.Value as string;
+
     // The attribute is applied to nothing else, so its presence is the only test
     // needed — no check that the property is a DbColumn.
-    public static bool? Fact(IPropertySymbol column, string argument)
+    private static TypedConstant? Argument(IPropertySymbol column, string argument)
     {
         foreach (AttributeData attribute in column.GetAttributes())
         {
@@ -41,9 +52,9 @@ internal static class SchemaMetadata
 
             foreach (KeyValuePair<string, TypedConstant> named in attribute.NamedArguments)
             {
-                if (named.Key == argument && named.Value.Value is bool value)
+                if (named.Key == argument)
                 {
-                    return value;
+                    return named.Value;
                 }
             }
         }
