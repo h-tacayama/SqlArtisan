@@ -13,7 +13,7 @@ namespace SqlArtisan.Analyzers;
 /// a mismatch. Neither operand's category being decidable is silence, and an
 /// explicit <c>Cast</c> resolves to no category, so it silences the rule too.
 /// </remarks>
-internal static class ColumnTypeMismatchRule
+internal static class TypeCategoryMismatchRule
 {
     public static void Check(OperationAnalysisContext context, IBinaryOperation comparison)
     {
@@ -46,7 +46,7 @@ internal static class ColumnTypeMismatchRule
     {
         // The enum member names read as prose only in lower case.
         context.ReportDiagnostic(Diagnostic.Create(
-            DiagnosticDescriptors.ColumnTypeMismatch,
+            DiagnosticDescriptors.TypeCategoryMismatch,
             comparison.Syntax.GetLocation(),
             columnName,
             columnCategory.ToLowerInvariant(),
@@ -93,9 +93,9 @@ internal static class ColumnTypeMismatchRule
         {
             case SpecialType.System_String:
             case SpecialType.System_Char:
-                return ColumnCategories.Text;
+                return TypeCategories.Text;
             case SpecialType.System_Boolean:
-                return ColumnCategories.Boolean;
+                return TypeCategories.Boolean;
             case SpecialType.System_SByte:
             case SpecialType.System_Byte:
             case SpecialType.System_Int16:
@@ -107,20 +107,20 @@ internal static class ColumnTypeMismatchRule
             case SpecialType.System_Decimal:
             case SpecialType.System_Single:
             case SpecialType.System_Double:
-                return ColumnCategories.Numeric;
+                return TypeCategories.Numeric;
             case SpecialType.System_DateTime:
-                return ColumnCategories.Temporal;
+                return TypeCategories.Temporal;
         }
 
         if (type is IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte })
         {
-            return ColumnCategories.Binary;
+            return TypeCategories.Binary;
         }
 
         return type.ToDisplayString() switch
         {
             "System.DateTimeOffset" or "System.TimeSpan" or "System.DateOnly"
-                or "System.TimeOnly" => ColumnCategories.Temporal,
+                or "System.TimeOnly" => TypeCategories.Temporal,
             _ => null,
         };
     }

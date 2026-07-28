@@ -38,13 +38,13 @@ public class SchemaMetadataParityTests
     // SQLA0012 resolves the enum member's name and compares it to its own copy, so
     // the two lists are the same coupling the argument names are.
     [Fact]
-    public void TheCoresColumnTypeMembers_AreExactlyTheOnesTheRuleNames()
+    public void TheCoresTypeCategoryMembers_AreExactlyTheOnesTheRuleNames()
     {
         string[] declared = [.. Enum.GetNames(typeof(DbTypeCategory)).OrderBy(n => n, StringComparer.Ordinal)];
 
         string[] named =
         [
-            .. typeof(ColumnCategories)
+            .. typeof(TypeCategories)
                 .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static
                     | BindingFlags.DeclaredOnly)
                 .Where(f => f.IsLiteral && f.FieldType == typeof(string))

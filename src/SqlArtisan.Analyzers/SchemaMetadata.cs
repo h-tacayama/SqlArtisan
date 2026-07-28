@@ -51,7 +51,7 @@ internal static class SchemaMetadata
             if (member is IFieldSymbol { HasConstantValue: true } field
                 && Equals(field.ConstantValue, fact.Value))
             {
-                return field.Name == ColumnCategories.Unknown ? null : field.Name;
+                return field.Name == TypeCategories.Unknown ? null : field.Name;
             }
         }
 

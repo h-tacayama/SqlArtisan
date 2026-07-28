@@ -137,7 +137,7 @@ internal static class DiagnosticDescriptors
     // A defect diagnostic rather than a performance opinion: MySQL compares a string
     // to a number as floating point, so rows the author did not mean can match. That
     // the index also goes unused is the lesser half.
-    public static readonly DiagnosticDescriptor ColumnTypeMismatch = new(
+    public static readonly DiagnosticDescriptor TypeCategoryMismatch = new(
         id: "SQLA0012",
         title: "Column compared to a value of another type category",
         messageFormat: "'{0}' is {1}, but this compares it to {2}. Cast one side to say which you mean.",

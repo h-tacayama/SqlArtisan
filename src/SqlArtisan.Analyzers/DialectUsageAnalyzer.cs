@@ -40,7 +40,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.InsertMissingRequiredColumn,
         DiagnosticDescriptors.CountNullableColumn,
         DiagnosticDescriptors.UnusableIndexPredicate,
-        DiagnosticDescriptors.ColumnTypeMismatch,
+        DiagnosticDescriptors.TypeCategoryMismatch,
         DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
@@ -104,7 +104,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     {
         IBinaryOperation binary = (IBinaryOperation)context.Operation;
 
-        ColumnTypeMismatchRule.Check(context, binary);
+        TypeCategoryMismatchRule.Check(context, binary);
 
         if (binary.OperatorMethod is not { } method || !IsFromSqlArtisan(method.ContainingAssembly))
         {

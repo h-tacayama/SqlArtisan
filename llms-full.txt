@@ -3593,10 +3593,10 @@ the column is unusable either way, but the wrong-rows half is why this is a
 warning rather than a note about speed.
 
 The category is coarse on purpose — `Text`, `Numeric`, `Temporal`, `Binary`,
-`Boolean` — carrying no length, precision, or scale. A `numeric(10,2)` column compared to an
-`int` is one category against itself and reports nothing, and so is a `varchar`
-column compared to a `char`. Carrying width would mean judging values rather
-than types.
+`Boolean` — carrying no length, precision, or scale. A `numeric(10,2)` column
+compared to an `int` is one category against itself and reports nothing, and so
+is a `varchar` column compared to a `char`. Carrying width would mean judging
+values rather than types.
 
 An explicit `Cast(...)` on either side silences it: you have said which type you
 mean, so there is nothing left for the engine to decide. A type name the

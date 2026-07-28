@@ -73,7 +73,7 @@ public class TableClassEmitterTests
     }
 
     [Fact]
-    public void Emit_RecognizedColumnType_EmitsTheCategory()
+    public void Emit_RecognizedTypeCategory_EmitsTheArgument()
     {
         CatalogTable table = new(
             "t",
@@ -83,7 +83,7 @@ public class TableClassEmitterTests
     }
 
     [Fact]
-    public void Emit_UnrecognizedColumnType_OmitsTheArgument()
+    public void Emit_UnrecognizedTypeCategory_OmitsTheArgument()
     {
         CatalogTable table = new(
             "t",

@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Testing;
 
 namespace SqlArtisan.Analyzers.Tests;
 
-public class ColumnTypeMismatchAnalyzerTests
+public class TypeCategoryMismatchAnalyzerTests
 {
     private static string Usage(string statements) => $$"""
         using System;

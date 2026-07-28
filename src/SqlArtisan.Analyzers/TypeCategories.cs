@@ -3,7 +3,7 @@ namespace SqlArtisan.Analyzers;
 // The core's DbTypeCategory member names, which the generator writes symbolically
 // and this reads back by name (ADR 0009 — no reference in either direction).
 // SchemaMetadataParityTests keeps the two lists identical.
-internal static class ColumnCategories
+internal static class TypeCategories
 {
     public const string Unknown = "Unknown";
 
