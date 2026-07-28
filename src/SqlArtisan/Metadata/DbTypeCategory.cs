@@ -2,7 +2,7 @@ namespace SqlArtisan;
 
 /// <summary>
 /// A column's type reduced to one coarse category, as
-/// <see cref="DbColumnMetadataAttribute.ColumnType"/> records it.
+/// <see cref="DbColumnMetadataAttribute.TypeCategory"/> records it.
 /// </summary>
 /// <remarks>
 /// No precision, length, or scale: comparing a <c>numeric(10,2)</c> column to an

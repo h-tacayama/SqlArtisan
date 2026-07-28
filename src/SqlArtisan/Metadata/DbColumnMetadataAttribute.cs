@@ -37,5 +37,5 @@ public sealed class DbColumnMetadataAttribute : Attribute
     /// does not recognize leaves this unset, which reads as
     /// <see cref="DbTypeCategory.Unknown"/>.
     /// </summary>
-    public DbTypeCategory ColumnType { get; init; }
+    public DbTypeCategory TypeCategory { get; init; }
 }

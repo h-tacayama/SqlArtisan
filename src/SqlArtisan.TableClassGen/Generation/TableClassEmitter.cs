@@ -151,9 +151,9 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
 
         // The member name, so a rename in the core follows through to the emitted
         // code instead of leaving a stale literal behind.
-        if (column.ColumnType is { } columnType)
+        if (column.TypeCategory is { } typeCategory)
         {
-            arguments.Add($"ColumnType = {nameof(DbTypeCategory)}.{columnType}");
+            arguments.Add($"TypeCategory = {nameof(DbTypeCategory)}.{typeCategory}");
         }
 
         return arguments.Count == 0

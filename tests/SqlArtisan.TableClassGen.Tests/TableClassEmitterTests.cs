@@ -79,7 +79,7 @@ public class TableClassEmitterTests
             "t",
             [new CatalogColumn("c", "varchar", dbms: Dbms.PostgreSql)]);
 
-        Assert.Contains("[DbColumnMetadata(ColumnType = DbTypeCategory.Text)]", Emit(table));
+        Assert.Contains("[DbColumnMetadata(TypeCategory = DbTypeCategory.Text)]", Emit(table));
     }
 
     [Fact]

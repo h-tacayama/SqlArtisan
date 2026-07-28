@@ -23,7 +23,7 @@ internal static class SchemaMetadata
 
     public const string IndexedArgument = "Indexed";
 
-    public const string ColumnTypeArgument = "ColumnType";
+    public const string TypeCategoryArgument = "TypeCategory";
 
     public static bool? Fact(IOperation? operation, string argument) =>
         operation is IPropertyReferenceOperation column
@@ -40,7 +40,7 @@ internal static class SchemaMetadata
     // members must not silently change what a generated table class claims.
     public static string? Category(IPropertySymbol column)
     {
-        if (Argument(column, ColumnTypeArgument) is not { Kind: TypedConstantKind.Enum } fact
+        if (Argument(column, TypeCategoryArgument) is not { Kind: TypedConstantKind.Enum } fact
             || fact.Type is not INamedTypeSymbol enumType)
         {
             return null;
