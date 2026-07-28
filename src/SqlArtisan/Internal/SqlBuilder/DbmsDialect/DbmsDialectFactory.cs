@@ -10,16 +10,18 @@ internal static class DbmsDialectFactory
     private static readonly SqliteDialect s_sqlite = new();
     private static readonly SqlServerDialect s_sqlServer = new();
 
-    internal static IDbmsDialect Create(Dbms dbmsType)
+    // Named to match ISqlBuilder.Build(Dbms dbms): the guard below surfaces
+    // through it, so its ParamName has to name what the caller wrote.
+    internal static IDbmsDialect Create(Dbms dbms)
     {
-        return dbmsType switch
+        return dbms switch
         {
             Dbms.MySql => s_mySql,
             Dbms.Oracle => s_oracle,
             Dbms.PostgreSql => s_postgreSql,
             Dbms.Sqlite => s_sqlite,
             Dbms.SqlServer => s_sqlServer,
-            _ => throw new ArgumentOutOfRangeException(nameof(dbmsType), dbmsType, "Unsupported DBMS.")
+            _ => throw new ArgumentOutOfRangeException(nameof(dbms), dbms, "Unsupported DBMS.")
         };
     }
 }
