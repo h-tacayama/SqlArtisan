@@ -33,7 +33,10 @@ between the core and the analyzer is limited to a **three-point contract** —
    containing-assembly *name* (`"SqlArtisan"`); there is no build reference in
    either direction.
 2. **Member names** — matrix keys mirror the core's public member names,
-   enforced both ways by the integrity and coverage gate tests.
+   enforced both ways by the integrity and coverage gate tests. The schema
+   tier (#266) couples the same way to a second set of names: the fully
+   qualified `DbColumnMetadataAttribute` and its argument names, gated by
+   `SchemaMetadataParityTests`.
 3. **Configuration surface** — the `sqlartisan_target_dbms` /
    `sqlartisan_construct_*` `.editorconfig` keys and the
    `build_property.SqlArtisanTargetDbms` MSBuild property.
@@ -53,7 +56,13 @@ with its owner and the core package merely carries it.
   the analyzer from the package later would silently drop diagnostics for
   every consumer; any future extraction would have to be an additive
   compatibility shim, not a removal.
-- **The three-point contract is the complete list of seams.** If extraction is
+- **A fourth seam runs to TableClassGen, not to the core.** The generator
+  writes the `ColumnType` categories SQLA0012 reads (#362), so those spellings
+  are a contract too — held apart in `ColumnCategory` and `ColumnCategories`
+  and gated by `ColumnCategoryParityTests`, which reaches both only through a
+  test-only project reference. The shipped assemblies still reference each
+  other nowhere.
+- **The contract above is the complete list of seams.** If extraction is
   ever genuinely needed (it is not planned), the analyzer plus its unit tests,
   gates, and dialect sweep move as one unit and reference the core as a NuGet
   package; nothing else holds them here.
