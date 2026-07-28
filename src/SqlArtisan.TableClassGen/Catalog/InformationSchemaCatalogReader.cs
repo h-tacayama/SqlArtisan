@@ -87,7 +87,7 @@ internal sealed class InformationSchemaCatalogReader(
             .OrderBy(c.OrdinalPosition);
 
         ColumnIndexInfo indexes =
-            new CatalogColumnIndexReader(_connInfo.DbmsType, _connInfo.Schema)
+            new CatalogColumnIndexReader(_connInfo.Dbms, _connInfo.Schema)
                 .Read(conn, tableName);
 
         List<CatalogColumn> columns = [];

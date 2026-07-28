@@ -13,7 +13,7 @@ public class CommandLineTests
         RunOptions options = CommandLine.Parse(MinimalSqlite);
 
         Assert.Equal(RunMode.Generate, options.Mode);
-        Assert.Equal(DbmsType.Sqlite, options.Connection.DbmsType);
+        Assert.Equal(Dbms.Sqlite, options.Connection.Dbms);
         Assert.Equal("app.db", options.Connection.ServiceName);
         Assert.Equal("MyApp.Tables", options.Settings.OutputNamespace);
         Assert.Empty(options.Settings.TableNames);

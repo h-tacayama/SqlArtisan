@@ -11,16 +11,18 @@ connection extensions, so it exercises the whole path — builder → `DbmsResol
 (dialect inferred from the connection type) → dialect → real DB. It catches
 grammar/semantic bugs only the engine itself rejects (window functions, `MERGE`,
 per-dialect pagination, Oracle identifier folding), which the exact-SQL unit
-tests cannot. The four container engines run via Testcontainers; SQLite is
+tests cannot. The five container lanes run via Testcontainers; SQLite is
 in-process.
 
-Each engine is one xUnit class tagged with an `Engine=` trait
-(`Sqlite` / `PostgreSql` / `MySql` / `SqlServer` / `Oracle`), so you select a
-lane with `--filter`.
+Each lane is one xUnit class tagged with an `Engine=` trait
+(`Sqlite` / `PostgreSql` / `MySql` / `SqlServer` / `Oracle` / `Oracle23ai`), so you
+select one with `--filter`. `Oracle23ai` is a second, narrower Oracle lane (#263):
+it proves the analyzer's version-bound entries at 23ai rather than repeating the
+full suite, so it does not derive from `IntegrationTestBase`.
 
 ## Prerequisites
 
-- **A running Docker daemon** for the four container engines (Testcontainers
+- **A running Docker daemon** for the five container lanes (Testcontainers
   pulls and starts a container per lane). SQLite needs nothing.
 - First run pulls images; **Oracle (`gvenzl/oracle-xe:21.3.0-slim-faststart`,
   XE 21c — pinned in `OracleFixture`, same version the docs cite) is large and
@@ -29,10 +31,10 @@ lane with `--filter`.
 ## Run it
 
 ```bash
-# Whole matrix (needs Docker; pulls 4 images on first run)
+# Whole matrix (needs Docker; pulls 5 images on first run)
 dotnet test tests/SqlArtisan.IntegrationTests -c Release
 
-# One engine — Engine ∈ { Sqlite, PostgreSql, MySql, SqlServer, Oracle }
+# One lane — Engine ∈ { Sqlite, PostgreSql, MySql, SqlServer, Oracle, Oracle23ai }
 dotnet test tests/SqlArtisan.IntegrationTests -c Release --filter "Engine=Sqlite"
 dotnet test tests/SqlArtisan.IntegrationTests -c Release --filter "Engine=PostgreSql"
 ```
@@ -48,19 +50,17 @@ dotnet test tests/SqlArtisan.IntegrationTests --filter "Engine=Sqlite"
 
 This managed environment has **no Docker daemon** and **Docker Hub is blocked**
 (only `mcr.microsoft.com` is reachable), so locally here you can run **only
-`Engine=Sqlite`**. The four container lanes (PostgreSQL, MySQL, SQL Server,
-Oracle) must run on a real Docker host — a local dev machine or CI. Don't
-interpret a container-lane failure *here* as a product bug; it's the missing
-daemon. Verify those four in CI (below).
+`Engine=Sqlite`**. The five container lanes (PostgreSQL, MySQL, SQL Server,
+Oracle, Oracle23ai) must run on a real Docker host — a local dev machine or CI.
+Don't interpret a container-lane failure *here* as a product bug; it's the missing
+daemon. Verify those five in CI (below).
 
 Worse in a cloud session with only the .NET 8 SDK: `global.json` pins .NET 10,
 so `dotnet build`/`test` fails outright and you can't even **compile** the
-integration project locally. And the per-PR `ci.yml` builds only
-`SqlArtisan.Tests` and `SqlArtisan.Analyzers.Tests` — **not**
-`SqlArtisan.IntegrationTests` — so a compile error in an integration test never
-surfaces on the PR either. When you touch this project from such a session, the
-dispatched integration run (below) is your *only* gate: it both compiles and
-executes the tests.
+integration project locally. The per-PR `ci.yml` does *build* it — its build step
+is `dotnet build SqlArtisan.sln`, and the solution includes this project — so a
+compile error does fail the PR. What `ci.yml` never does is **run** these tests;
+the dispatched integration run (below) is the only thing that executes them.
 
 ## Run it in CI
 

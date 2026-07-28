@@ -25,9 +25,11 @@ each applies and why token-like inventions (`CountAll`) are rejected. For a
 token name:
 - Pick the function `<Category>` folder under
   `src/SqlArtisan/Internal/SqlPart/Expression/Function/`. Existing categories:
-  `AggregateFunction`, `AnalyticFunction`, `CharacterFunction`,
+  `AggregateFunction`, `AnalyticFunction`, `ArrayFunction`, `CharacterFunction`,
   `ComparisonFunction`, `ConversionFunction`, `DateTimeFunction`,
-  `NumericFunction`, `OrderedSetAggregateFunction`, `SequenceFunction`.
+  `FullTextSearchFunction`, `GroupingFunction`, `JsonFunction`,
+  `NumericFunction`, `OrderedSetAggregateFunction`, `SequenceFunction`,
+  `StringAggregateFunction`.
 - `<Name>` is derived from the SQL token by treating **underscores as the only
   word boundaries**: capitalize the first letter of each underscore-delimited
   segment and lowercase the rest. A token with **no** underscore becomes a

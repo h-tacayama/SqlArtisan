@@ -173,6 +173,42 @@ public class TableClassGeneratorTests : IDisposable
         Assert.Equal("--tables names 'nope', which the schema does not contain", ex.Message);
     }
 
+    // Unguarded, the second table overwrote the first's file and disappeared,
+    // leaving a drift that --fix could not clear.
+    [Fact]
+    public void Run_TwoTablesWithOneClassName_ThrowsCommandLineException()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE dupe_class (id INTEGER);
+            CREATE TABLE dupe__class (id INTEGER);
+            """);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate));
+
+        Assert.Equal(
+            "Tables 'dupe__class' and 'dupe_class' both generate the class DupeClassTable; "
+                + "rename one of them or narrow the run with --tables.",
+            ex.Message);
+    }
+
+    // The escape hatch the message names has to work.
+    [Fact]
+    public void Run_TwoTablesWithOneClassName_NarrowedByTables_Generates()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE dupe_class (id INTEGER);
+            CREATE TABLE dupe__class (id INTEGER);
+            """);
+
+        TableResult only = Assert.Single(
+            Run(db, RunMode.Generate, tableNames: ["dupe_class"]));
+
+        Assert.Equal("dupe_class", only.TableName);
+    }
+
     private IReadOnlyList<TableResult> Run(
         TempSqliteDatabase db,
         RunMode mode,

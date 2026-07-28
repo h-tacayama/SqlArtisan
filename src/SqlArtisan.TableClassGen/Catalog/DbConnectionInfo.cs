@@ -8,7 +8,7 @@ using Oracle.ManagedDataAccess.Client;
 namespace SqlArtisan.TableClassGen;
 
 internal sealed class DbConnectionInfo(
-    DbmsType databaseType,
+    Dbms dbms,
     string host,
     int port,
     string serviceName,
@@ -16,7 +16,7 @@ internal sealed class DbConnectionInfo(
     string username,
     string password)
 {
-    public DbmsType DbmsType => databaseType;
+    public Dbms Dbms => dbms;
 
     public string Host => host;
 
@@ -31,31 +31,31 @@ internal sealed class DbConnectionInfo(
     public string Password => password;
 
     public IDbConnection CreateConnection() =>
-        DbmsType switch
+        Dbms switch
         {
-            DbmsType.Oracle => new OracleConnection(GetConnectionString()),
-            DbmsType.PostgreSql => new NpgsqlConnection(GetConnectionString()),
-            DbmsType.MySql => new MySqlConnection(GetConnectionString()),
-            DbmsType.Sqlite => new SqliteConnection(GetConnectionString()),
-            DbmsType.SqlServer => new SqlConnection(GetConnectionString()),
-            _ => throw new ArgumentOutOfRangeException(nameof(DbmsType))
+            Dbms.Oracle => new OracleConnection(GetConnectionString()),
+            Dbms.PostgreSql => new NpgsqlConnection(GetConnectionString()),
+            Dbms.MySql => new MySqlConnection(GetConnectionString()),
+            Dbms.Sqlite => new SqliteConnection(GetConnectionString()),
+            Dbms.SqlServer => new SqlConnection(GetConnectionString()),
+            _ => throw new ArgumentOutOfRangeException(nameof(Dbms))
         };
 
     private string GetConnectionString() =>
-        DbmsType switch
+        Dbms switch
         {
-            DbmsType.Oracle =>
+            Dbms.Oracle =>
                 $"User Id={Username};Password={Password};Data Source={Host}:{Port}/{ServiceName}",
-            DbmsType.PostgreSql =>
+            Dbms.PostgreSql =>
                 $"Host={Host};Port={Port};Database={ServiceName};Username={Username};Password={Password}",
-            DbmsType.MySql =>
+            Dbms.MySql =>
                 $"Server={Host};Port={Port};Database={ServiceName};User ID={Username};Password={Password}",
             // SQLite is file-based: ServiceName carries the database path.
-            DbmsType.Sqlite =>
+            Dbms.Sqlite =>
                 $"Data Source={ServiceName}",
             // SQL Server takes host,port (comma); TrustServerCertificate eases dev/container TLS.
-            DbmsType.SqlServer =>
+            Dbms.SqlServer =>
                 $"Server={Host},{Port};Database={ServiceName};User ID={Username};Password={Password};TrustServerCertificate=True",
-            _ => throw new ArgumentOutOfRangeException(nameof(DbmsType))
+            _ => throw new ArgumentOutOfRangeException(nameof(Dbms))
         };
 }

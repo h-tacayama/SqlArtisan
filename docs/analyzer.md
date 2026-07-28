@@ -643,7 +643,10 @@ the safety net, and this repository enforces it. A coverage test fails when any
 public method, property, field, or overloaded operator ships without a matrix
 entry or a documented dialect-neutral exclusion, and an integration-test sweep
 executes the entries against a live engine per dialect (the versions in the
-table below), asserting each accept/reject outcome matches the matrix both ways.
+table below), asserting that accept/reject outcomes match the matrix both ways.
+Two entries are excluded by name, and a dozen more skip individual engines
+where the shared runner or the container image cannot execute the statement —
+SQL Server's image ships without Full-Text Search, for example.
 
 ---
 
@@ -656,7 +659,7 @@ against):
 | Dialect | Verified against |
 |---|---|
 | MySQL | MySQL 8.0 |
-| Oracle | Oracle Database XE 21c (the `Testcontainers.Oracle` module's default `gvenzl/oracle-xe:21.3.0-slim-faststart` image) |
+| Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0003` reports |
 | PostgreSQL | PostgreSQL 16 |
 | SQLite | the SQLite build bundled with `Microsoft.Data.Sqlite` 9.0.5 |
 | SQL Server | SQL Server 2022 |

@@ -7,7 +7,7 @@ Guidance for Claude Code when working in this repository.
 **SqlArtisan** is a type-safe SQL query builder for C# (.NET 8). You write
 SQL-like C# and it produces the SQL string plus its bind parameters.
 `Directory.Build.props` is the single source of truth for the shipped version
-across all three packages.
+across all four shipped packages.
 
 **Core design philosophy — read this before proposing changes:**
 > "The SQL you write is the SQL that runs. Cross-database portability is a
@@ -30,13 +30,15 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`). Compile-time data, never rendered and never read at run time. |
 | `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0011). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan.ArrayBind/` | Oracle array-bind execution (one round trip per batch, not per row). |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
 | `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..W}.cs` mirror `Sql.{A..W}.cs`. |
 | `tests/SqlArtisan.Analyzers.Tests/` | Analyzer unit tests (matrix coverage/integrity, config resolution, diagnostic verification). |
-| `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests via Testcontainers (MySql, Oracle, PostgreSql, SqlServer, Sqlite). |
+| `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests: MySql, Oracle, Oracle23ai, PostgreSql, SqlServer via Testcontainers; Sqlite in-process. |
+| `tests/SqlArtisan.TableClassGen.Tests/` | TableClassGen unit tests (catalog reading, emitted code, drift detection). |
 | `tests/SqlArtisan.Benchmark/` | BenchmarkDotNet comparisons vs other builders. |
-| `docs/` | User-facing docs: `query-statements`, `expressions`, `functions`, `analyzer`, `cookbook`, `versioning`, plus `guides/` (Dapper quickstart, AI assistants). |
+| `docs/` | User-facing docs: `query-statements`, `expressions`, `functions`, `analyzer`, `cookbook`, `comparison`, `versioning`, plus `guides/` (Dapper quickstart, AI assistants, Oracle array bind). |
 | `docs/adr/` | Architecture Decision Records (see `docs/adr/README.md` for the index). |
 | `llms.txt` | LLM-friendly index with raw GitHub URLs to all documentation. |
 | `Directory.Build.props` | Centralized version, Source Link, AOT compatibility, analyzer mode. |
@@ -51,6 +53,7 @@ dotnet restore
 dotnet build SqlArtisan.sln
 dotnet test tests/SqlArtisan.Tests              # unit tests (xUnit)
 dotnet test tests/SqlArtisan.Analyzers.Tests    # analyzer tests
+dotnet test tests/SqlArtisan.TableClassGen.Tests   # TableClassGen tests
 dotnet format SqlArtisan.sln --verify-no-changes   # .editorconfig style gate (CI enforces this)
 ```
 
@@ -61,8 +64,8 @@ violation. The SDK version is pinned by `global.json` (`latestPatch`
 roll-forward); treat CI as the authoritative format gate.
 
 Integration tests (`tests/SqlArtisan.IntegrationTests/`) run against live
-database engines via Testcontainers. They are triggered nightly and on release
-— not part of the default local test workflow.
+database engines — containers via Testcontainers, SQLite in-process. They are
+triggered nightly and on release — not part of the default local test workflow.
 
 ## CI
 
@@ -71,8 +74,8 @@ Three GitHub Actions workflows in `.github/workflows/`:
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
 | `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`). |
-| `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests against 5 engines in parallel via Testcontainers. |
-| `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 3 NuGet packages. |
+| `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests across 6 lanes in parallel (Oracle runs at both 21c and 23ai). |
+| `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 4 NuGet packages. |
 
 ## How to add a new SQL function (the most common task)
 
@@ -86,10 +89,13 @@ The **`sa-add-sql-function` skill** walks through all six with templates and
 reference implementations (`AbsFunction`, `AddMonthsFunction`, …) — follow it
 for the full procedure.
 
-Function node classes are organized into categories under
-`Internal/SqlPart/Expression/Function/`: Aggregate, Analytic, Character,
-Comparison, Conversion, DateTime, FullTextSearch, Grouping, Json, Numeric,
-OrderedSetAggregate, Sequence, StringAggregate.
+Most function node classes sit in a category folder under
+`Internal/SqlPart/Expression/Function/`, named with the `Function` suffix:
+`AggregateFunction`, `AnalyticFunction`, `ArrayFunction`, `CharacterFunction`,
+`ComparisonFunction`, `ConversionFunction`, `DateTimeFunction`,
+`FullTextSearchFunction`, `GroupingFunction`, `JsonFunction`, `NumericFunction`,
+`OrderedSetAggregateFunction`, `SequenceFunction`, `StringAggregateFunction`.
+Shared bases and one uncategorized node sit at that folder's root.
 
 ## Analyzer
 

@@ -14,7 +14,7 @@ internal sealed class TempSqliteDatabase : IDisposable
     {
         _path = path;
         ConnectionInfo = new DbConnectionInfo(
-            DbmsType.Sqlite,
+            Dbms.Sqlite,
             string.Empty,
             0,
             path,

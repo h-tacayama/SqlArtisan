@@ -204,7 +204,7 @@ internal static class CommandLine
             throw new CommandLineException($"--format must be text or json (got '{format}')");
         }
 
-        DbmsType dbms = ParseDbms(Required(values, "dbms"));
+        Dbms dbms = DbmsOption.Parse(Required(values, "dbms"));
 
         return new RunOptions(
             check ? RunMode.Check : fix ? RunMode.Fix : RunMode.Generate,
@@ -216,9 +216,9 @@ internal static class CommandLine
     }
 
     private static DbConnectionInfo BuildConnection(
-        Dictionary<string, string> values, DbmsType dbms)
+        Dictionary<string, string> values, Dbms dbms)
     {
-        if (dbms == DbmsType.Sqlite)
+        if (dbms == Dbms.Sqlite)
         {
             return new DbConnectionInfo(
                 dbms, string.Empty, 0, Required(values, "file"), string.Empty,
@@ -240,11 +240,11 @@ internal static class CommandLine
 
     // An unparseable port is an error rather than a fallback to the default: silently
     // connecting to another port is the kind of misconfiguration nobody sees.
-    private static int ResolvePort(Dictionary<string, string> values, DbmsType dbms)
+    private static int ResolvePort(Dictionary<string, string> values, Dbms dbms)
     {
         if (Value(values, "port") is not { } port)
         {
-            return DefaultPort(dbms);
+            return DbmsOption.DefaultPort(dbms);
         }
 
         return int.TryParse(port, out int parsed)
@@ -255,11 +255,11 @@ internal static class CommandLine
     // MySQL has no schema layer above the database, and Oracle's schema is the user
     // unless one is named, so neither makes --schema mandatory.
     private static string ResolveSchema(
-        Dictionary<string, string> values, DbmsType dbms, string database, string user) =>
+        Dictionary<string, string> values, Dbms dbms, string database, string user) =>
         dbms switch
         {
-            DbmsType.MySql => Value(values, "schema") ?? database,
-            DbmsType.Oracle => Value(values, "schema") ?? user,
+            Dbms.MySql => Value(values, "schema") ?? database,
+            Dbms.Oracle => Value(values, "schema") ?? user,
             _ => Required(values, "schema"),
         };
 
@@ -287,28 +287,6 @@ internal static class CommandLine
         string.IsNullOrWhiteSpace(tables)
             ? []
             : [.. tables.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
-
-    private static DbmsType ParseDbms(string value) =>
-        value.Trim().ToLowerInvariant() switch
-        {
-            "mysql" => DbmsType.MySql,
-            "oracle" => DbmsType.Oracle,
-            "postgresql" or "postgres" => DbmsType.PostgreSql,
-            "sqlite" => DbmsType.Sqlite,
-            "sqlserver" or "mssql" => DbmsType.SqlServer,
-            _ => throw new CommandLineException(
-                $"--dbms must be one of mysql, oracle, postgresql, sqlite, sqlserver (got '{value}')"),
-        };
-
-    private static int DefaultPort(DbmsType dbms) =>
-        dbms switch
-        {
-            DbmsType.Oracle => 1521,
-            DbmsType.PostgreSql => 5432,
-            DbmsType.MySql => 3306,
-            DbmsType.SqlServer => 1433,
-            _ => 0,
-        };
 
     private static string? Value(Dictionary<string, string> values, string key) =>
         values.TryGetValue(Normalize(key), out string? value) ? value : null;

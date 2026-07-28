@@ -218,3 +218,5 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Date/Time**: `DateTime`, `DateOnly`, `TimeOnly`
 - **Numeric**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `float`, `double`, `decimal`, `Complex`
 - **Enum**: Any `enum` type
+
+`Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: a bare `null` literal inlines the `NULL` keyword into the SQL text, while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.

@@ -60,7 +60,8 @@ internal sealed class Reporter(RunOptions options)
 
         if (drifted.Count == 0)
         {
-            Console.WriteLine($"In sync: {results.Count} tables match {options.Settings.OutputDirectory}");
+            Console.WriteLine(
+                $"In sync: {results.Count} {(results.Count == 1 ? "table" : "tables")} match {options.Settings.OutputDirectory}");
             return;
         }
 

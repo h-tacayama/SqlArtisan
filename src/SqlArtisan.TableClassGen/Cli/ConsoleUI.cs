@@ -7,12 +7,12 @@ internal sealed class ConsoleUI
         Console.WriteLine();
         Console.WriteLine("Please enter database information.");
 
-        Console.Write("Database type (1.Oracle/2.PostgreSQL/3.MySQL/4.SQLite/5.SQLServer): ");
-        string dbTypeInput = Console.ReadLine() ?? string.Empty;
-        DbmsType dbType = ParseDatabaseType(dbTypeInput);
+        Console.Write(DatabaseTypePrompt);
+        string answer = Console.ReadLine() ?? string.Empty;
+        Dbms dbms = ParseDatabaseType(answer);
 
         // SQLite is file-based, so it skips the host/port/credentials prompts.
-        if (dbType == DbmsType.Sqlite)
+        if (dbms == Dbms.Sqlite)
         {
             return ReadSqliteConnectionInfo();
         }
@@ -23,25 +23,25 @@ internal sealed class ConsoleUI
         Console.Write("Port: ");
         string portStr = Console.ReadLine() ?? string.Empty;
         int port = string.IsNullOrWhiteSpace(portStr)
-            ? DefaultPort(dbType)
+            ? DbmsOption.DefaultPort(dbms)
             : int.Parse(portStr);
 
         Console.Write("Service name (or database name): ");
         string serviceName = Console.ReadLine() ?? string.Empty;
 
         string? schema = null;
-        if (dbType == DbmsType.PostgreSql)
+        if (dbms == Dbms.PostgreSql)
         {
             Console.Write("Schema: ");
             schema = Console.ReadLine() ?? string.Empty;
         }
-        else if (dbType == DbmsType.SqlServer)
+        else if (dbms == Dbms.SqlServer)
         {
             Console.Write("Schema (default dbo): ");
             string schemaInput = Console.ReadLine() ?? string.Empty;
             schema = string.IsNullOrWhiteSpace(schemaInput) ? "dbo" : schemaInput;
         }
-        else if (dbType == DbmsType.MySql)
+        else if (dbms == Dbms.MySql)
         {
             // MySQL has no schema layer above the database, so information_schema
             // is filtered by the database name itself.
@@ -55,7 +55,7 @@ internal sealed class ConsoleUI
         string password = GetPasswordFromConsole();
 
         return new DbConnectionInfo(
-            dbType,
+            dbms,
             host,
             port,
             serviceName,
@@ -70,7 +70,7 @@ internal sealed class ConsoleUI
         string filePath = Console.ReadLine() ?? string.Empty;
 
         return new DbConnectionInfo(
-            DbmsType.Sqlite,
+            Dbms.Sqlite,
             string.Empty,
             0,
             filePath,
@@ -78,16 +78,6 @@ internal sealed class ConsoleUI
             string.Empty,
             string.Empty);
     }
-
-    private static int DefaultPort(DbmsType dbType) =>
-        dbType switch
-        {
-            DbmsType.Oracle => 1521,
-            DbmsType.PostgreSql => 5432,
-            DbmsType.MySql => 3306,
-            DbmsType.SqlServer => 1433,
-            _ => throw new ArgumentOutOfRangeException(nameof(dbType))
-        };
 
     public CodeGenerationSettings ReadCodeGenerationSettings()
     {
@@ -119,17 +109,27 @@ internal sealed class ConsoleUI
             string.IsNullOrWhiteSpace(specificTableName) ? [] : [specificTableName.Trim()]);
     }
 
-    private static DbmsType ParseDatabaseType(string dbTypeInput)
+    // The prompt is rendered from this table and the numbers are read back from
+    // it, so a choice can never be offered by a number the parser does not know.
+    private static readonly (string Label, Dbms Dbms)[] Choices =
+    [
+        ("Oracle", Dbms.Oracle),
+        ("PostgreSQL", Dbms.PostgreSql),
+        ("MySQL", Dbms.MySql),
+        ("SQLite", Dbms.Sqlite),
+        ("SQLServer", Dbms.SqlServer),
+    ];
+
+    internal static string DatabaseTypePrompt =>
+        $"Database type ({string.Join("/", Choices.Select((c, i) => $"{i + 1}.{c.Label}"))}): ";
+
+    internal static Dbms ParseDatabaseType(string answer)
     {
-        return dbTypeInput.Trim().ToLowerInvariant() switch
-        {
-            "1" or "oracle" => DbmsType.Oracle,
-            "2" or "postgres" => DbmsType.PostgreSql,
-            "3" or "mysql" => DbmsType.MySql,
-            "4" or "sqlite" => DbmsType.Sqlite,
-            "5" or "sqlserver" or "mssql" => DbmsType.SqlServer,
-            _ => throw new ArgumentException($"Unsupported database type: {dbTypeInput}")
-        };
+        string value = answer.Trim();
+
+        return int.TryParse(value, out int choice) && choice >= 1 && choice <= Choices.Length
+            ? Choices[choice - 1].Dbms
+            : DbmsOption.Parse(value);
     }
 
     private static string GetPasswordFromConsole()
