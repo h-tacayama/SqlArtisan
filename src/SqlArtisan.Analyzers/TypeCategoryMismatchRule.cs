@@ -24,7 +24,7 @@ internal static class TypeCategoryMismatchRule
     public static void Check(OperationAnalysisContext context, IBinaryOperation comparison)
     {
         if (!IsComparison(comparison)
-            || IsAssignment(comparison)
+            || !IsComparisonPosition(comparison)
             || Side(comparison.LeftOperand) is not { } left
             || Side(comparison.RightOperand) is not { } right
             || Compatible(left.Category, right.Category))
@@ -70,9 +70,10 @@ internal static class TypeCategoryMismatchRule
     private static bool IsTruthy(TypeCategory category) =>
         category is TypeCategory.Boolean or TypeCategory.Numeric;
 
-    // The first SqlArtisan step enclosing the operand decides, matching how
-    // UnusableIndexPredicateRule locates its filtering clause.
-    private static bool IsAssignment(IOperation node)
+    // The first enclosing SqlArtisan step decides, and a condition built apart
+    // from its clause is left alone rather than guessed at — the same trade
+    // UnusableIndexPredicateRule makes to find its filtering clause.
+    private static bool IsComparisonPosition(IOperation node)
     {
         IOperation current = node;
 
@@ -82,7 +83,7 @@ internal static class TypeCategoryMismatchRule
                 && DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly)
                 && step.Instance is not null)
             {
-                return AssignmentSteps.Contains(step.TargetMethod.Name);
+                return !AssignmentSteps.Contains(step.TargetMethod.Name);
             }
 
             current = parent;

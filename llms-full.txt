@@ -3605,7 +3605,9 @@ Comparing a boolean column to text still reports.
 
 Only comparisons are checked. `SET` spells its assignment with `==` as well, but
 assignment coercion is fixed per engine and cannot change which rows match — and
-there would be no second side to cast.
+there would be no second side to cast. A condition built apart from its clause —
+held in a variable, returned by a helper — is left alone rather than guessed at,
+since nothing at that point shows which of the two it will become.
 
 An explicit `Cast(...)` on either side silences it: you have said which type you
 mean, so there is nothing left for the engine to decide. A type name the

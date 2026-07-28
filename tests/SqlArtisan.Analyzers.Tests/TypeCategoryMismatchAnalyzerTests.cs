@@ -201,6 +201,27 @@ public class TypeCategoryMismatchAnalyzerTests
             "boolean",
             "text");
 
+    // Neither clause is visible from a condition built apart from it, so the rule
+    // declines to guess which one it will become.
+    [Fact]
+    public Task Where_ConditionHeldInAVariable_Silent() =>
+        RunSilent(
+            "SqlCondition c = t.Code == 1;"
+                + " var s = Select(t.Code).From(t).Where(c).Build();");
+
+    [Fact]
+    public Task Set_AssignmentHeldInAVariable_Silent() =>
+        RunSilent(
+            "SqlArtisan.Internal.EqualityBasedCondition a = t.Code == 1;"
+                + " var s = Update(t).Set(a).Build();");
+
+    [Fact]
+    public Task ThenUpdateSet_AssignmentOfAnotherCategory_Silent() =>
+        RunSilent(
+            "T r = new T(\"r\");"
+                + " var s = MergeInto(t).Using(r).On(t.Code == r.Code)"
+                + ".WhenMatched().ThenUpdateSet(t.Code == 1).Build();");
+
     // SET spells its assignment with ==, and an assignment has no side to cast.
     [Fact]
     public Task Set_AssignmentOfAnotherCategory_Silent() =>
