@@ -62,6 +62,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeInsertColumns, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeCountArgument, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeIndexedColumnFilter, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeTypeCategoryMismatch, OperationKind.Binary);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -102,16 +103,24 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     // never as invocations; OperatorMethod is null for built-in operators.
     private static void AnalyzeBinaryOperator(OperationAnalysisContext context)
     {
-        IBinaryOperation binary = (IBinaryOperation)context.Operation;
-
-        TypeCategoryMismatchRule.Check(context, binary);
-
-        if (binary.OperatorMethod is not { } method || !IsFromSqlArtisan(method.ContainingAssembly))
+        if (((IBinaryOperation)context.Operation).OperatorMethod is not { } method
+            || !IsFromSqlArtisan(method.ContainingAssembly))
         {
             return;
         }
 
         AnalyzeUsage(context, method.Name, method.Parameters.Length);
+    }
+
+    private static void AnalyzeTypeCategoryMismatch(OperationAnalysisContext context)
+    {
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        TypeCategoryMismatchRule.Check(context, (IBinaryOperation)context.Operation);
     }
 
     private static void AnalyzeCompoundAssignment(OperationAnalysisContext context)

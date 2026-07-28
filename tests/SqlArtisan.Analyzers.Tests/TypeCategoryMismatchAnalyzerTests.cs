@@ -62,6 +62,18 @@ public class TypeCategoryMismatchAnalyzerTests
     private static Task RunSilent(string statements) =>
         RunAsync(AnalyzerVerifier.Unmarked(Usage(statements)), []);
 
+    // Every rule here stays silent until a target dialect is named, even though
+    // this verdict does not depend on one.
+    [Fact]
+    public Task Where_NoTargetDialectConfigured_Silent()
+    {
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(
+                Usage("var s = Select(t.Code).From(t).Where(t.Code == Bind(1)).Build();")),
+            editorConfig: null);
+        return test.RunAsync();
+    }
+
     private static Task RunAsync(string source, DiagnosticResult[] expected)
     {
         var test = AnalyzerVerifier.Create(source, EditorConfig());
