@@ -35,17 +35,25 @@ public class SchemaMetadataParityTests
             .Where(p => p.CanWrite)
             .Select(p => p.Name)];
 
-    // A member the analyzer's enum lacks does not parse, so it reads as silence
-    // rather than a verdict — but only against a core built elsewhere. In this
-    // repo the two must agree, or SQLA0012 would go quiet on a real category.
+    // One direction only: a name the rule uses that the core does not declare can
+    // never match. The reverse would force a category with no C# counterpart into
+    // the rule's enum, and every comparison of such a column would then report.
     [Fact]
-    public void TheCoresTypeCategoryMembers_AreExactlyTheOnesTheRuleNames() =>
-        Assert.Equal(
-            Names(typeof(DbTypeCategory)),
-            Names(typeof(TypeCategory)));
+    public void EveryCategoryTheRuleNames_IsDeclaredByTheCore()
+    {
+        string[] unmatchable =
+        [
+            .. Enum.GetNames(typeof(TypeCategory))
+                .Except(Enum.GetNames(typeof(DbTypeCategory)), StringComparer.Ordinal)
+                .OrderBy(name => name, StringComparer.Ordinal),
+        ];
 
-    private static string[] Names(Type enumType) =>
-        [.. Enum.GetNames(enumType).OrderBy(name => name, StringComparer.Ordinal)];
+        Assert.True(
+            unmatchable.Length == 0,
+            $"{unmatchable.Length} categor(y|ies) in the analyzer's TypeCategory name nothing on "
+                + $"DbTypeCategory, so SQLA0012 can never match them:\n  "
+                + string.Join("\n  ", unmatchable));
+    }
 
     [Fact]
     public void AttributeName_MatchesTheRealAttributesFullName() =>
