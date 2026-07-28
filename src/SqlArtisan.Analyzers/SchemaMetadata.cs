@@ -15,7 +15,7 @@ namespace SqlArtisan.Analyzers;
 /// </remarks>
 internal static class SchemaMetadata
 {
-    private const string AttributeName = "SqlArtisan.DbColumnMetadataAttribute";
+    public const string AttributeName = "SqlArtisan.DbColumnMetadataAttribute";
 
     public const string NullableArgument = "Nullable";
 
