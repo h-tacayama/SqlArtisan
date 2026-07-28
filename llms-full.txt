@@ -3598,6 +3598,15 @@ compared to an `int` is one category against itself and reports nothing, and so
 is a `varchar` column compared to a `char`. Carrying width would mean judging
 values rather than types.
 
+A truth value and a number count as one category. T-SQL offers no boolean
+literal, so `WHERE is_active = 1` on a `bit` column is the only spelling it has,
+and MySQL's `BOOLEAN` is `TINYINT(1)`, so the mirror of that is idiomatic there.
+Comparing a boolean column to text still reports.
+
+Only comparisons are checked. `SET` spells its assignment with `==` as well, but
+assignment coercion is fixed per engine and cannot change which rows match — and
+there would be no second side to cast.
+
 An explicit `Cast(...)` on either side silences it: you have said which type you
 mean, so there is nothing left for the engine to decide. A type name the
 generator does not recognize records no category, and a comparison between two

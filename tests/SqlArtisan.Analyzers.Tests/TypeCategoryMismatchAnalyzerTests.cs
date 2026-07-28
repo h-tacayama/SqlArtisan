@@ -19,6 +19,7 @@ public class TypeCategoryMismatchAnalyzerTests
                 Code = new DbColumn(this, "code");
                 Amount = new DbColumn(this, "amount");
                 CreatedAt = new DbColumn(this, "created_at");
+                Active = new DbColumn(this, "active");
                 Legacy = new DbColumn(this, "legacy");
             }
 
@@ -31,13 +32,23 @@ public class TypeCategoryMismatchAnalyzerTests
             [DbColumnMetadata(TypeCategory = DbTypeCategory.Temporal)]
             public DbColumn CreatedAt { get; }
 
+            [DbColumnMetadata(TypeCategory = DbTypeCategory.Boolean)]
+            public DbColumn Active { get; }
+
             [DbColumnMetadata(Nullable = true)]
             public DbColumn Legacy { get; }
         }
 
+        class Dto
+        {
+            public string Name { get; set; } = "";
+
+            public decimal? Total { get; set; }
+        }
+
         class C
         {
-            void M(object untyped)
+            void M(object untyped, Dto dto)
             {
                 T t = new T();
                 {{statements}}
@@ -170,4 +181,52 @@ public class TypeCategoryMismatchAnalyzerTests
     [Fact]
     public Task Where_TwoColumnsOfTheSameCategory_Silent() =>
         RunSilent("var s = Select(t.Code).From(t).Where(t.Code == new T(\"r\").Code).Build();");
+
+    // T-SQL has no boolean literal, so `bit = 1` is the only spelling it offers;
+    // MySQL's BOOLEAN is TINYINT(1), so the mirror shape is idiomatic there.
+    [Fact]
+    public Task Where_BooleanColumnComparedToNumber_Silent() =>
+        RunSilent("var s = Select(t.Code).From(t).Where(t.Active == 1).Build();");
+
+    [Fact]
+    public Task Where_NumericColumnComparedToBool_Silent() =>
+        RunSilent("var s = Select(t.Code).From(t).Where(t.Amount == true).Build();");
+
+    // A truth value against text is still a mismatch on every engine.
+    [Fact]
+    public Task Where_BooleanColumnComparedToText_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code).From(t).Where({|#0:t.Active == \"yes\"|}).Build();",
+            "Active",
+            "boolean",
+            "text");
+
+    // SET spells its assignment with ==, and an assignment has no side to cast.
+    [Fact]
+    public Task Set_AssignmentOfAnotherCategory_Silent() =>
+        RunSilent("var s = Update(t).Set(t.Code == 1).Where(t.Amount > 0).Build();");
+
+    [Fact]
+    public Task DoUpdateSet_AssignmentOfAnotherCategory_Silent() =>
+        RunSilent(
+            "var s = InsertInto(t, t.Code).Values(\"x\").OnConflict(t.Code)"
+                + ".DoUpdateSet(t.CreatedAt == \"2024-01-01\").Build();");
+
+    // A property with no recorded category is judged by its C# type, as a field
+    // or local already was.
+    [Fact]
+    public Task Where_ColumnComparedToPlainProperty_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code).From(t).Where({|#0:t.Amount == dto.Name|}).Build();",
+            "Amount",
+            "numeric",
+            "text");
+
+    [Fact]
+    public Task Where_ColumnComparedToNullableValue_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code).From(t).Where({|#0:t.Code == dto.Total|}).Build();",
+            "Code",
+            "text",
+            "numeric");
 }

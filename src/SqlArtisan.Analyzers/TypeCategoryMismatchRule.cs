@@ -15,12 +15,19 @@ namespace SqlArtisan.Analyzers;
 /// </remarks>
 internal static class TypeCategoryMismatchRule
 {
+    // Where == spells an assignment rather than a comparison. SET coerces by
+    // rules fixed per engine and cannot change which rows match, and "cast one
+    // side" would name a side that is not there.
+    private static readonly HashSet<string> AssignmentSteps =
+        ["DoUpdateSet", "OnDuplicateKeyUpdate", "Set", "ThenUpdateSet"];
+
     public static void Check(OperationAnalysisContext context, IBinaryOperation comparison)
     {
         if (!IsComparison(comparison)
+            || IsAssignment(comparison)
             || Side(comparison.LeftOperand) is not { } left
             || Side(comparison.RightOperand) is not { } right
-            || left.Category == right.Category)
+            || Compatible(left.Category, right.Category))
         {
             return;
         }
@@ -53,6 +60,37 @@ internal static class TypeCategoryMismatchRule
             otherCategory.ToString().ToLowerInvariant()));
     }
 
+    // A truth value and a number are one category in practice: T-SQL offers no
+    // boolean literal, so `bit = 1` is its only spelling, and MySQL's BOOLEAN is
+    // TINYINT(1). Only PostgreSQL rejects the pair, and it does so loudly.
+    private static bool Compatible(TypeCategory left, TypeCategory right) =>
+        left == right
+        || (IsTruthy(left) && IsTruthy(right));
+
+    private static bool IsTruthy(TypeCategory category) =>
+        category is TypeCategory.Boolean or TypeCategory.Numeric;
+
+    // The first SqlArtisan step enclosing the operand decides, matching how
+    // UnusableIndexPredicateRule locates its filtering clause.
+    private static bool IsAssignment(IOperation node)
+    {
+        IOperation current = node;
+
+        while (current.Parent is { } parent and not IBlockOperation)
+        {
+            if (parent is IInvocationOperation step
+                && DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly)
+                && step.Instance is not null)
+            {
+                return AssignmentSteps.Contains(step.TargetMethod.Name);
+            }
+
+            current = parent;
+        }
+
+        return false;
+    }
+
     private static bool IsComparison(IBinaryOperation comparison) =>
         comparison.OperatorMethod is { } method
         && DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly)
@@ -63,11 +101,12 @@ internal static class TypeCategoryMismatchRule
     {
         IOperation? node = Unwrap(operand);
 
-        if (node is IPropertyReferenceOperation column)
+        // A property carrying no category is not necessarily a column: it falls
+        // through to be judged by its C# type, the way a field or local is.
+        if (node is IPropertyReferenceOperation column
+            && SchemaMetadata.Category(column.Property) is { } category)
         {
-            return SchemaMetadata.Category(column.Property) is { } category
-                ? (category, column.Property.Name)
-                : null;
+            return (category, column.Property.Name);
         }
 
         // Bind carries the value one level down; its own type says nothing.
@@ -89,6 +128,13 @@ internal static class TypeCategoryMismatchRule
     // rule wants.
     private static TypeCategory? ClrCategory(ITypeSymbol type)
     {
+        // int? carries exactly the type int does; a DTO's nullable field is one of
+        // the commonest ways a value reaches a comparison.
+        if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable)
+        {
+            type = nullable.TypeArguments[0];
+        }
+
         switch (type.SpecialType)
         {
             case SpecialType.System_String:

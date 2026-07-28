@@ -33,9 +33,6 @@ internal static class SchemaMetadata
     public static bool? Fact(IPropertySymbol column, string argument) =>
         Argument(column, argument)?.Value as bool?;
 
-    public static TypeCategory? Category(IOperation? operation) =>
-        operation is IPropertyReferenceOperation column ? Category(column.Property) : null;
-
     // By the enum member's name, never its underlying integer: renumbering the
     // members must not silently change what a generated table class claims.
     public static TypeCategory? Category(IPropertySymbol column)
