@@ -79,20 +79,20 @@ SqlArtisan minimizes heap allocations — string buffers are recycled from a poo
 | Method | Category | Mean | Allocated |
 | :--- | :--- | ---: | ---: |
 | StringBuilder_DapperDynamicParams | Baseline¹ | 630.9 ns | 1.92 KB |
-| **SqlArtisan_SpecificParams** | Builder | **1,451.6 ns** | **2.16 KB** |
-| Sqlify_SpecificParams | Builder | 1,871.0 ns | 3.13 KB |
-| **SqlArtisan_DapperDynamicParams** | Builder | 1,892.5 ns | 2.84 KB |
-| InterpolatedSql_SpecificParams | Builder | 2,749.7 ns | 5.11 KB |
-| DapperSqlBuilder_DapperDynamicParams | Builder | 2,762.2 ns | 5.70 KB |
-| Linq2db_TypedParams | Builder | 44,173.3 ns | 19.13 KB |
-| SqlKata_SpecificParams | Builder | 50,577.6 ns | 40.54 KB |
+| **SqlArtisan_SpecificParams** | Builders | **1,451.6 ns** | **2.16 KB** |
+| Sqlify_SpecificParams | Builders | 1,871.0 ns | 3.13 KB |
+| **SqlArtisan_DapperDynamicParams** | Builders | 1,892.5 ns | 2.84 KB |
+| InterpolatedSql_SpecificParams | Builders | 2,749.7 ns | 5.11 KB |
+| DapperSqlBuilder_DapperDynamicParams | Builders | 2,762.2 ns | 5.70 KB |
+| Linq2db_TypedParams | Builders | 44,173.3 ns | 19.13 KB |
+| SqlKata_SpecificParams | Builders | 50,577.6 ns | 40.54 KB |
 | EfCore_Reference | ORM reference² | 49,728.5 ns | 12.86 KB |
 
 The **allocation lead is firm** (lightweight builders allocate the same bytes every run); treat the timing order as directional, since run-to-run variance grows for the heavier entrants.
 
 ¹ Raw `StringBuilder` + Dapper `DynamicParameters` — the floor, with no type safety or dialect handling. ² EF Core is a full-ORM **reference** (different work, caches compiled queries), shown only for scale.
 
-*Measured on .NET 8.0.28, i5-1135G7 / 16 GB / Windows 11, PostgreSQL dialect. Query shape, library versions, and re-run instructions are in the [benchmark project](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.Benchmark).*
+*Measured on .NET 8.0.28, i5-1135G7 / 16 GB / Windows 11, PostgreSQL dialect. Query shape, library versions, and re-run instructions are in the [benchmark project's README](https://github.com/h-tacayama/SqlArtisan/blob/main/tests/SqlArtisan.Benchmark/README.md).*
 
 ---
 
