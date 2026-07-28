@@ -16,9 +16,9 @@ dotnet run --project $P -c Release -- --filter '*SqlBuilderBenchmarks*'
 dotnet run --project $P -c Release                                    # pick a suite
 ```
 
-Quote the filter: unquoted, the shell expands `*SqlBuilderBenchmarks*` against
-the project directory and BenchmarkDotNet is handed `SqlBuilderBenchmarks.cs`,
-which matches nothing.
+Keep the filter quoted. Run from the project directory instead and the unquoted
+pattern matches `SqlBuilderBenchmarks.cs`, so the shell hands BenchmarkDotNet a
+filename that matches no benchmark.
 
 `validate` asserts that every entrant required to parameterize the query produced
 exactly two bind parameters, and prints each entrant's SQL so the logical query
