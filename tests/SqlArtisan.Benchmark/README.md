@@ -34,7 +34,7 @@ to the root README's figures.
 ## What is measured
 
 Every entrant builds the SQL string **and** its bind-parameter collection for the
-same logical query, so the comparison is like-for-like:
+same logical query, so the comparison is meant to be like-for-like:
 
 ```csharp
 Select(u.Id.As("user_id"), u.Name.As("user_name"), Count(o.Id).As("order_count"))
@@ -60,6 +60,10 @@ Entrants fall into three categories, and only one of them is a comparison:
 | `Baseline` | A hand-written `StringBuilder` + Dapper `DynamicParameters` | The floor — no type safety, no dialect handling |
 | `ORM reference` | EF Core | Materially different work; shown only for scale |
 
+One `Builders` row is not comparable today: the SqlKata entrant builds a
+different query — no aggregate, and a mangled `GROUP BY` key — which `validate`
+does not catch for the reason above. Tracked as #382.
+
 linq2db and EF Core reuse a connection object and a `DbContext` created once in
 `[GlobalSetup]` — neither is ever opened — and EF Core caches the compiled query
 plan, so the loop measures warm steady state rather than first-call cost.
@@ -71,7 +75,10 @@ the cross-library comparison.
 
 The comparison is only meaningful against the versions it was run with. The
 direct ones are pinned in `SqlArtisan.Benchmark.csproj`; update this table when
-they move.
+they move. The last two rows are transitive — listed because their versions
+float free of any direct pin, so a restore can move them without touching the
+csproj. Other transitive packages in the measured path (EF Core's `Relational`
+and caching assemblies) move in lockstep with the direct pin above them.
 
 | Package | Version | |
 |---|---|---|
@@ -83,14 +90,16 @@ they move.
 | Npgsql.EntityFrameworkCore.PostgreSQL | 8.0.11 | |
 | Sqlify | 0.3.14 | |
 | SqlKata | 4.0.1 | |
-| Dapper | 2.1.66 | transitive; measured by the baseline and `SqlArtisan+Dapper` |
+| Dapper | 2.1.66 | transitive; `DynamicParameters` is measured by the baseline, Dapper.SqlBuilder and `SqlArtisan+Dapper` |
 | Npgsql | 8.0.6 | transitive; under the EF Core reference |
 
 The runtime is part of this list too, and it has moved: the project targets
-`net10.0`, while the root README's figures were taken on .NET 8. Re-running here
-reproduces the ordering but not the exact numbers — allocations shift by a few
-percent on the newer runtime — so compare a fresh run against another fresh run,
-not against the published table.
+`net10.0`, while the root README's figures were taken on .NET 8. A fresh run
+reproduces the *allocation* ordering and lands within a few percent of the
+published bytes, but **not** the timing ordering — the mid- and heavy-weight
+entrants change places (a full run put Dapper.SqlBuilder ahead of InterpolatedSql
+and SqlKata ahead of linq2db). Compare a fresh run against another fresh run, not
+against the published table.
 
 ## Reading the results
 
