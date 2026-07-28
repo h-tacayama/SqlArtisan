@@ -102,7 +102,7 @@ public class ConfigTests : IDisposable
     }
 
     // Build's guard shares SetDefaultDbms's message, so it is asserted beside it:
-    // the two disagreed on ParamName until Build's named an internal parameter.
+    // the two reported different ParamNames while Build's named an internal one.
     [Fact]
     public void Build_UnknownDbms_ThrowsArgumentOutOfRangeException()
     {
