@@ -35,25 +35,17 @@ public class SchemaMetadataParityTests
             .Where(p => p.CanWrite)
             .Select(p => p.Name)];
 
-    // SQLA0012 resolves the enum member's name and compares it to its own copy, so
-    // the two lists are the same coupling the argument names are.
+    // A member the analyzer's enum lacks does not parse, so it reads as silence
+    // rather than a verdict — but only against a core built elsewhere. In this
+    // repo the two must agree, or SQLA0012 would go quiet on a real category.
     [Fact]
-    public void TheCoresTypeCategoryMembers_AreExactlyTheOnesTheRuleNames()
-    {
-        string[] declared = [.. Enum.GetNames(typeof(DbTypeCategory)).OrderBy(n => n, StringComparer.Ordinal)];
+    public void TheCoresTypeCategoryMembers_AreExactlyTheOnesTheRuleNames() =>
+        Assert.Equal(
+            Names(typeof(DbTypeCategory)),
+            Names(typeof(TypeCategory)));
 
-        string[] named =
-        [
-            .. typeof(TypeCategories)
-                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static
-                    | BindingFlags.DeclaredOnly)
-                .Where(f => f.IsLiteral && f.FieldType == typeof(string))
-                .Select(f => (string)f.GetRawConstantValue()!)
-                .OrderBy(n => n, StringComparer.Ordinal),
-        ];
-
-        Assert.Equal(declared, named);
-    }
+    private static string[] Names(Type enumType) =>
+        [.. Enum.GetNames(enumType).OrderBy(name => name, StringComparer.Ordinal)];
 
     [Fact]
     public void AttributeName_MatchesTheRealAttributesFullName() =>

@@ -41,16 +41,16 @@ internal static class TypeCategoryMismatchRule
         OperationAnalysisContext context,
         IBinaryOperation comparison,
         string columnName,
-        string columnCategory,
-        string otherCategory)
+        TypeCategory columnCategory,
+        TypeCategory otherCategory)
     {
-        // The enum member names read as prose only in lower case.
+        // The member names read as prose only in lower case.
         context.ReportDiagnostic(Diagnostic.Create(
             DiagnosticDescriptors.TypeCategoryMismatch,
             comparison.Syntax.GetLocation(),
             columnName,
-            columnCategory.ToLowerInvariant(),
-            otherCategory.ToLowerInvariant()));
+            columnCategory.ToString().ToLowerInvariant(),
+            otherCategory.ToString().ToLowerInvariant()));
     }
 
     private static bool IsComparison(IBinaryOperation comparison) =>
@@ -59,7 +59,7 @@ internal static class TypeCategoryMismatchRule
         && method.Name is "op_Equality" or "op_Inequality" or "op_LessThan"
             or "op_GreaterThan" or "op_LessThanOrEqual" or "op_GreaterThanOrEqual";
 
-    private static (string Category, string? ColumnName)? Side(IOperation? operand)
+    private static (TypeCategory Category, string? ColumnName)? Side(IOperation? operand)
     {
         IOperation? node = Unwrap(operand);
 
@@ -87,15 +87,15 @@ internal static class TypeCategoryMismatchRule
     // Only what a C# type settles. An expression node — a function call, a Cast —
     // lands here as its own type and resolves to nothing, which is the silence the
     // rule wants.
-    private static string? ClrCategory(ITypeSymbol type)
+    private static TypeCategory? ClrCategory(ITypeSymbol type)
     {
         switch (type.SpecialType)
         {
             case SpecialType.System_String:
             case SpecialType.System_Char:
-                return TypeCategories.Text;
+                return TypeCategory.Text;
             case SpecialType.System_Boolean:
-                return TypeCategories.Boolean;
+                return TypeCategory.Boolean;
             case SpecialType.System_SByte:
             case SpecialType.System_Byte:
             case SpecialType.System_Int16:
@@ -107,20 +107,20 @@ internal static class TypeCategoryMismatchRule
             case SpecialType.System_Decimal:
             case SpecialType.System_Single:
             case SpecialType.System_Double:
-                return TypeCategories.Numeric;
+                return TypeCategory.Numeric;
             case SpecialType.System_DateTime:
-                return TypeCategories.Temporal;
+                return TypeCategory.Temporal;
         }
 
         if (type is IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte })
         {
-            return TypeCategories.Binary;
+            return TypeCategory.Binary;
         }
 
         return type.ToDisplayString() switch
         {
             "System.DateTimeOffset" or "System.TimeSpan" or "System.DateOnly"
-                or "System.TimeOnly" => TypeCategories.Temporal,
+                or "System.TimeOnly" => TypeCategory.Temporal,
             _ => null,
         };
     }

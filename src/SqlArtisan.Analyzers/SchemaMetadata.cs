@@ -33,12 +33,12 @@ internal static class SchemaMetadata
     public static bool? Fact(IPropertySymbol column, string argument) =>
         Argument(column, argument)?.Value as bool?;
 
-    public static string? Category(IOperation? operation) =>
+    public static TypeCategory? Category(IOperation? operation) =>
         operation is IPropertyReferenceOperation column ? Category(column.Property) : null;
 
     // By the enum member's name, never its underlying integer: renumbering the
     // members must not silently change what a generated table class claims.
-    public static string? Category(IPropertySymbol column)
+    public static TypeCategory? Category(IPropertySymbol column)
     {
         if (Argument(column, TypeCategoryArgument) is not { Kind: TypedConstantKind.Enum } fact
             || fact.Type is not INamedTypeSymbol enumType)
@@ -51,7 +51,10 @@ internal static class SchemaMetadata
             if (member is IFieldSymbol { HasConstantValue: true } field
                 && Equals(field.ConstantValue, fact.Value))
             {
-                return field.Name == TypeCategories.Unknown ? null : field.Name;
+                return Enum.TryParse(field.Name, out TypeCategory category)
+                    && category != TypeCategory.Unknown
+                    ? category
+                    : null;
             }
         }
 
