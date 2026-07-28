@@ -28,8 +28,8 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/Internal/SqlPart/Keywords.cs` | All SQL keyword string constants. |
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
-| `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`). Compile-time data, never rendered and never read at run time. |
-| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0011). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`, `DbTypeCategory`). Compile-time data, never rendered and never read at run time. |
+| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0012). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.ArrayBind/` | Oracle array-bind execution (one round trip per batch, not per row). |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
@@ -99,7 +99,7 @@ Shared bases and one uncategorized node sit at that folder's root.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships eleven diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships twelve diagnostics:
 
 - **SQLA0001** — Invalid analyzer configuration (unrecognized `.editorconfig`
   value).
@@ -123,8 +123,13 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships eleven diagnostics:
   than rows. Advice on correct code, so it is Info and off by default.
 - **SQLA0011** — a `WHERE`/`ON` predicate that wraps an indexed column in a
   function or leads its pattern with `%`, so no index on it can be used.
+- **SQLA0012** — a column compared to a value of another type category. MySQL
+  reconciles the two as floating point, so the mismatch changes which rows
+  match. The category is the public `DbTypeCategory` enum, which TableClassGen
+  emits symbolically and the analyzer resolves by member name (never by the
+  underlying integer), gated by `SchemaMetadataParityTests`.
 
-SQLA0007–0011 read the `DbColumnMetadata` attributes TableClassGen emits;
+SQLA0007–0012 read the `DbColumnMetadata` attributes TableClassGen emits;
 absence of a fact is silence. They sit in their own `SqlArtisan.Schema`
 category (SQLA0001–0006 are `SqlArtisan.Dialect`) so a bulk-severity setting
 reaches one family without the other. What Tier 2 may collect and conclude —

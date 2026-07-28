@@ -31,4 +31,11 @@ public sealed class DbColumnMetadataAttribute : Attribute
     /// predicate covers a query is not decidable from the catalog.
     /// </summary>
     public bool Indexed { get; init; }
+
+    /// <summary>
+    /// The column's type reduced to one coarse category. A type name the generator
+    /// does not recognize leaves this unset, which reads as
+    /// <see cref="DbTypeCategory.Unknown"/>.
+    /// </summary>
+    public DbTypeCategory TypeCategory { get; init; }
 }

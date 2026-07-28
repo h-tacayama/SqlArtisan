@@ -16,3 +16,4 @@ SQLA0008 | SqlArtisan.Schema | Warning | NOT IN over a subquery whose selected c
 SQLA0009 | SqlArtisan.Schema | Warning | An INSERT column list omits a column the generated table class declares NOT NULL with no default.
 SQLA0010 | SqlArtisan.Schema | Disabled | COUNT of a column the generated table class declares nullable, which counts values rather than rows.
 SQLA0011 | SqlArtisan.Schema | Warning | A filter wraps an indexed column in a function or matches it with a leading-wildcard pattern, so no index on it can be used.
+SQLA0012 | SqlArtisan.Schema | Warning | A column is compared to a value of another type category, which can change which rows match, not just how fast.

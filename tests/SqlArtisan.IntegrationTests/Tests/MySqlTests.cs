@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.Common;
+using Dapper;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -220,5 +221,34 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             Select(Grouping(u.DepartmentId)).From(u).GroupBy(u.DepartmentId)));
+    }
+
+    // #362: SQLA0012's live proof, and the reason it is a Warning rather than a
+    // performance note. MySQL compares a string to a number as floating point, so
+    // the mismatch changes which rows come back — not merely how fast.
+    [Fact]
+    public void TextColumnComparedToNumber_MatchesRowsThatAreNotEqualAsText()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        connection.Execute("CREATE TEMPORARY TABLE zip_probe (code varchar(16))");
+
+        try
+        {
+            connection.Execute(
+                "INSERT INTO zip_probe (code) VALUES ('150'), ('0150'), ('150abc'), ('abc')");
+
+            IEnumerable<string> asNumber = connection.Query<string>(
+                "SELECT code FROM zip_probe WHERE code = 150 ORDER BY code");
+
+            IEnumerable<string> asText = connection.Query<string>(
+                "SELECT code FROM zip_probe WHERE code = '150' ORDER BY code");
+
+            Assert.Equal(new[] { "0150", "150", "150abc" }, asNumber);
+            Assert.Equal(new[] { "150" }, asText);
+        }
+        finally
+        {
+            connection.Execute("DROP TEMPORARY TABLE IF EXISTS zip_probe");
+        }
     }
 }

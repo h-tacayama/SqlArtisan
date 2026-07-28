@@ -33,7 +33,10 @@ between the core and the analyzer is limited to a **three-point contract** —
    containing-assembly *name* (`"SqlArtisan"`); there is no build reference in
    either direction.
 2. **Member names** — matrix keys mirror the core's public member names,
-   enforced both ways by the integrity and coverage gate tests.
+   enforced both ways by the integrity and coverage gate tests. The schema
+   tier (#266) couples the same way to a second set of names: the fully
+   qualified `DbColumnMetadataAttribute` and its argument names, gated by
+   `SchemaMetadataParityTests`.
 3. **Configuration surface** — the `sqlartisan_target_dbms` /
    `sqlartisan_construct_*` `.editorconfig` keys and the
    `build_property.SqlArtisanTargetDbms` MSBuild property.

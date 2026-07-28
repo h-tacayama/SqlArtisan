@@ -149,6 +149,13 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
             arguments.Add($"Indexed = {Literal(isIndexed)}");
         }
 
+        // The member name, so a rename in the core follows through to the emitted
+        // code instead of leaving a stale literal behind.
+        if (column.TypeCategory is { } typeCategory)
+        {
+            arguments.Add($"TypeCategory = {nameof(DbTypeCategory)}.{typeCategory}");
+        }
+
         return arguments.Count == 0
             ? null
             : $"[DbColumnMetadata({string.Join(", ", arguments)})]";

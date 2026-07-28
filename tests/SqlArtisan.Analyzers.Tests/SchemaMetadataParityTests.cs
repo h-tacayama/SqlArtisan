@@ -35,6 +35,26 @@ public class SchemaMetadataParityTests
             .Where(p => p.CanWrite)
             .Select(p => p.Name)];
 
+    // One direction only: a name the rule uses that the core does not declare can
+    // never match. The reverse would force a category with no C# counterpart into
+    // the rule's enum, and every comparison of such a column would then report.
+    [Fact]
+    public void EveryCategoryTheRuleNames_IsDeclaredByTheCore()
+    {
+        string[] unmatchable =
+        [
+            .. Enum.GetNames(typeof(TypeCategory))
+                .Except(Enum.GetNames(typeof(DbTypeCategory)), StringComparer.Ordinal)
+                .OrderBy(name => name, StringComparer.Ordinal),
+        ];
+
+        Assert.True(
+            unmatchable.Length == 0,
+            $"{unmatchable.Length} categor(y|ies) in the analyzer's TypeCategory name nothing on "
+                + $"DbTypeCategory, so SQLA0012 can never match them:\n  "
+                + string.Join("\n  ", unmatchable));
+    }
+
     [Fact]
     public void AttributeName_MatchesTheRealAttributesFullName() =>
         Assert.Equal(SchemaMetadata.AttributeName, AttributeType.FullName);

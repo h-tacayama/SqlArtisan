@@ -73,6 +73,26 @@ public class TableClassEmitterTests
     }
 
     [Fact]
+    public void Emit_RecognizedTypeCategory_EmitsTheArgument()
+    {
+        CatalogTable table = new(
+            "t",
+            [new CatalogColumn("c", "varchar", dbms: Dbms.PostgreSql)]);
+
+        Assert.Contains("[DbColumnMetadata(TypeCategory = DbTypeCategory.Text)]", Emit(table));
+    }
+
+    [Fact]
+    public void Emit_UnrecognizedTypeCategory_OmitsTheArgument()
+    {
+        CatalogTable table = new(
+            "t",
+            [new CatalogColumn("c", "geography", isNullable: true, dbms: Dbms.PostgreSql)]);
+
+        Assert.Contains("[DbColumnMetadata(Nullable = true)]", Emit(table));
+    }
+
+    [Fact]
     public void Emit_QualifySchema_EmitsSchemaQualifiedTableName()
     {
         string code = Emit(Table(), TestSettings.Create(qualifySchema: true));

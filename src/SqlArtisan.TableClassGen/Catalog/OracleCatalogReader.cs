@@ -101,7 +101,8 @@ internal sealed class OracleCatalogReader(
                     dataType,
                     isNullable: ReadIsNullable(reader, 2),
                     hasDefault: ReadHasDefault(reader, 3, 4),
-                    isIndexed: indexes.IsIndexed(catalogName)));
+                    isIndexed: indexes.IsIndexed(catalogName),
+                    dbms: Dbms.Oracle));
             }
         }
 

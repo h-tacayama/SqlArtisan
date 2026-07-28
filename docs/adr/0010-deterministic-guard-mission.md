@@ -102,7 +102,7 @@ an explicit, sourced, suppressible diagnostic or a docs note.
   context-bounded facts the construct-level matrix cannot express are
   recorded as docs notes plus #232 seeds — never as wrong matrix entries.
 - Growth is bounded by the admission test, not by ambition: with `Nullable`,
-  `HasDefault`, `Indexed` (#266) and `DataType` (#362) the categorical
+  `HasDefault`, `Indexed` (#266) and `TypeCategory` (#362) the categorical
   questions are close to exhausted, and a new one costs five bespoke catalog
   queries plus live verification per engine.
 - The no-false-positive property is spent one noisy diagnostic at a time, so

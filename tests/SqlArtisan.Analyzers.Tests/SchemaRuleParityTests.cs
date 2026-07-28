@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Testing;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// The empirical no-false-positive gate for the schema rules (SQLA0007–SQLA0011):
+/// The empirical no-false-positive gate for the schema rules (SQLA0007–SQLA0012):
 /// one catalog of hazard shapes, asserted silent against every rule that reads the
 /// surrounding query, so a shape added here becomes a regression test for all of
 /// them at once.
@@ -43,7 +43,7 @@ public class SchemaRuleParityTests
                 Key = new DbColumn(this, "key");
             }
 
-            [DbColumnMetadata(Nullable = false, HasDefault = false)]
+            [DbColumnMetadata(Nullable = false, HasDefault = false, TypeCategory = DbTypeCategory.Text)]
             public DbColumn Code { get; }
 
             [DbColumnMetadata(Nullable = true, HasDefault = false)]
@@ -122,6 +122,17 @@ public class SchemaRuleParityTests
             var s = Select(t.Code).From(t).Where(wrapped).Build();
             """,
             ""
+        },
+        {
+            """
+            SqlCondition mismatched = t.Code == 1;
+            var s = Select(t.Code).From(t).Where(mismatched).Build();
+            """,
+            ""
+        },
+        {
+            "var s = Update(t).Set(Assigned(t)).Build();",
+            "static EqualityBasedCondition Assigned(T t) => t.Code == 1;"
         },
     };
 

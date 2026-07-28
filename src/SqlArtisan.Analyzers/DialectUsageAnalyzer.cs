@@ -40,6 +40,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.InsertMissingRequiredColumn,
         DiagnosticDescriptors.CountNullableColumn,
         DiagnosticDescriptors.UnusableIndexPredicate,
+        DiagnosticDescriptors.TypeCategoryMismatch,
         DiagnosticDescriptors.IdentifierTooLong);
 
     public override void Initialize(AnalysisContext context)
@@ -61,6 +62,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeInsertColumns, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeCountArgument, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeIndexedColumnFilter, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeTypeCategoryMismatch, OperationKind.Binary);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 
@@ -108,6 +110,17 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         AnalyzeUsage(context, method.Name, method.Parameters.Length);
+    }
+
+    private static void AnalyzeTypeCategoryMismatch(OperationAnalysisContext context)
+    {
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        if (AnalyzerConfigResolver.ResolveTarget(options) is null)
+        {
+            return;
+        }
+
+        TypeCategoryMismatchRule.Check(context, (IBinaryOperation)context.Operation);
     }
 
     private static void AnalyzeCompoundAssignment(OperationAnalysisContext context)

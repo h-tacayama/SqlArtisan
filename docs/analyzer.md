@@ -64,6 +64,7 @@ the analyzer never reports anything — enabling it is purely additive.
 | `SQLA0009` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0010` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 | `SQLA0011` | Warning | A `WHERE` or `ON` predicate wraps an indexed column in a function, or matches it with a leading-wildcard pattern, so no index on it can be used. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0012` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two for you, and on MySQL that changes which rows match. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
 
 The rules fall into two categories, so a bulk-severity setting can reach one
 family without the other:
@@ -71,7 +72,7 @@ family without the other:
 | Category | Rules | Answers |
 |---|---|---|
 | `SqlArtisan.Dialect` | `SQLA0001`–`SQLA0006` | will this run on the engine you configured? |
-| `SqlArtisan.Schema` | `SQLA0007`–`SQLA0011` | does it agree with what your table classes say the columns are? |
+| `SqlArtisan.Schema` | `SQLA0007`–`SQLA0012` | does it agree with what your table classes say the columns are? |
 
 ```ini
 # every schema rule as an error, dialect rules untouched
@@ -437,7 +438,7 @@ this rule reports.
 the generated table class:
 
 ```csharp
-[DbColumnMetadata(Nullable = false, HasDefault = false)]
+[DbColumnMetadata(Nullable = false, HasDefault = false, TypeCategory = DbTypeCategory.Text)]
 public DbColumn Code { get; }
 ```
 
@@ -583,7 +584,47 @@ function-based index makes **every** column of that table record nothing — its
 expression text is stored in a form the tool does not read, so the whole table
 degrades to unknown rather than guess.
 
-**All five are silent unless the fact was recorded.** An attribute the generator
+The sixth can change which rows come back, not just how fast they come back. A
+column compared to a value of another type category leaves the engine to
+reconcile the two, and MySQL reconciles by turning both sides into
+floating-point numbers:
+
+```csharp
+var sql = Select(t.Id).From(t).Where(t.ZipCode == Bind(1500001)).Build();
+// warning SQLA0012: 'ZipCode' is text, but this compares it to numeric.
+// Cast one side to say which you mean.
+```
+
+On MySQL that predicate also matches `'01500001'` and `'1500001 Nowhere St'`,
+because each converts to the same number — the query answers a question you did
+not ask. On PostgreSQL the same comparison is rejected outright (`operator does
+not exist: character varying = integer`), which is at least loud. The index on
+the column is unusable either way, but the wrong-rows half is why this is a
+warning rather than a note about speed.
+
+The category is coarse on purpose — `Text`, `Numeric`, `Temporal`, `Binary`,
+`Boolean` — carrying no length, precision, or scale. A `numeric(10,2)` column
+compared to an `int` is one category against itself and reports nothing, and so
+is a `varchar` column compared to a `char`. Carrying width would mean judging
+values rather than types.
+
+A truth value and a number count as one category. T-SQL offers no boolean
+literal, so `WHERE is_active = 1` on a `bit` column is the only spelling it has,
+and MySQL's `BOOLEAN` is `TINYINT(1)`, so the mirror of that is idiomatic there.
+Comparing a boolean column to text still reports.
+
+Only comparisons are checked. `SET` spells its assignment with `==` as well, but
+assignment coercion is fixed per engine and cannot change which rows match — and
+there would be no second side to cast. A condition built apart from its clause —
+held in a variable, returned by a helper — is left alone rather than guessed at,
+since nothing at that point shows which of the two it will become.
+
+An explicit `Cast(...)` on either side silences it: you have said which type you
+mean, so there is nothing left for the engine to decide. A type name the
+generator does not recognize records no category, and a comparison between two
+bound values names no column, so neither reports.
+
+**All six are silent unless the fact was recorded.** An attribute the generator
 never wrote, a fact it could not determine (an absent named argument), a
 hand-written table class, or a column reached through
 `new DbTable("t").Column("x")` — which has no declaration to carry metadata —
@@ -704,7 +745,7 @@ for, not a bug in the matrix.
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
 - **The dialect-independent rules need a configured target too.**
-  `SQLA0005` and the schema-aware `SQLA0007`–`SQLA0011` report facts that
+  `SQLA0005` and the schema-aware `SQLA0007`–`SQLA0012` report facts that
   hold on every engine, but the analyzer as a whole stays silent until
   `sqlartisan_target_dbms` is set — without a target, `SQLA0005`'s `Build()`
   guard is the only report and the schema rules have none.

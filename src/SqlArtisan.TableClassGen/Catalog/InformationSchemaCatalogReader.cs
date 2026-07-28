@@ -103,7 +103,8 @@ internal sealed class InformationSchemaCatalogReader(
                     dataType,
                     isNullable: ReadIsNullable(reader, 2),
                     hasDefault: ReadHasDefault(reader, 3),
-                    isIndexed: indexes.IsIndexed(catalogName)));
+                    isIndexed: indexes.IsIndexed(catalogName),
+                    dbms: _connInfo.Dbms));
             }
         }
 
