@@ -6,19 +6,26 @@ The numbers live there and only there; this page is how you reproduce them.
 
 ## Running it
 
+From the repo root. No database is needed — every entrant generates SQL offline,
+so nothing here opens a connection.
+
 ```bash
-dotnet run -c Release -- validate                          # equivalence check, not a measurement
-dotnet run -c Release -- --filter *SqlBuilderBenchmarks*   # the cross-library comparison
-dotnet run -c Release                                      # pick a suite interactively
+P=tests/SqlArtisan.Benchmark
+dotnet run --project $P -c Release -- validate                        # not a measurement
+dotnet run --project $P -c Release -- --filter '*SqlBuilderBenchmarks*'
+dotnet run --project $P -c Release                                    # pick a suite
 ```
 
-`validate` is the one-time check that the entrants are actually comparable. It
-prints each entrant's SQL and parameter count and asserts that everyone required
-to parameterize the query produced exactly two bind parameters. SQL text is *not*
-required to be byte-identical — dialects, alias generation, and EF Core's
-pipeline all differ — only the logical query and the parameter count. Run it
-after touching any entrant; a change that quietly stops parameterizing would
-otherwise look like a win.
+Quote the filter: unquoted, the shell expands `*SqlBuilderBenchmarks*` against
+the project directory and BenchmarkDotNet is handed `SqlBuilderBenchmarks.cs`,
+which matches nothing.
+
+`validate` asserts that every entrant required to parameterize the query produced
+exactly two bind parameters, and prints each entrant's SQL so the logical query
+can be compared by eye — that half is not asserted, so an entrant that drifts
+into building a *different* query still passes. Run it after touching any
+entrant; a change that quietly stops parameterizing would otherwise look like a
+win.
 
 **Release configuration is required.** BenchmarkDotNet refuses to run a Debug
 build, and a measurement taken on a shared or virtualized host is not comparable
@@ -41,9 +48,9 @@ Select(u.Id.As("user_id"), u.Name.As("user_name"), Count(o.Id).As("order_count")
 ```
 
 An `INNER JOIN` plus a `GROUP BY` aggregate, filtered by two date parameters, on
-the PostgreSQL dialect. Each `[Benchmark]` returns the produced
-`(Sql, ParameterCount)` tuple so BenchmarkDotNet consumes both outputs and cannot
-dead-code-eliminate the work.
+the PostgreSQL dialect. Every entrant in `SqlBuilderBenchmarks` returns the
+produced `(Sql, ParameterCount)` tuple so BenchmarkDotNet consumes both outputs
+and cannot dead-code-eliminate the work.
 
 Entrants fall into three categories, and only one of them is a comparison:
 
@@ -53,28 +60,37 @@ Entrants fall into three categories, and only one of them is a comparison:
 | `Baseline` | A hand-written `StringBuilder` + Dapper `DynamicParameters` | The floor — no type safety, no dialect handling |
 | `ORM reference` | EF Core | Materially different work; shown only for scale |
 
-linq2db and EF Core cache compiled queries and reuse a long-lived connection or
-context created once in `[GlobalSetup]`, so the loop measures warm steady state
-rather than first-call cost.
+linq2db and EF Core reuse a connection object and a `DbContext` created once in
+`[GlobalSetup]` — neither is ever opened — and EF Core caches the compiled query
+plan, so the loop measures warm steady state rather than first-call cost.
 
 `SqlBuildingBufferBenchmark` covers `SqlBuildingBuffer` on its own, away from
 the cross-library comparison.
 
 ## Pinned library versions
 
-The comparison is only meaningful against the versions it was run with. These
-are pinned in `SqlArtisan.Benchmark.csproj`; update this table when they move.
+The comparison is only meaningful against the versions it was run with. The
+direct ones are pinned in `SqlArtisan.Benchmark.csproj`; update this table when
+they move.
 
-| Package | Version |
-|---|---|
-| BenchmarkDotNet | 0.15.8 |
-| Dapper.SqlBuilder | 2.1.66 |
-| InterpolatedSql | 2.5.1 |
-| linq2db | 6.3.0 |
-| Microsoft.EntityFrameworkCore | 8.0.11 |
-| Npgsql.EntityFrameworkCore.PostgreSQL | 8.0.11 |
-| Sqlify | 0.3.14 |
-| SqlKata | 4.0.1 |
+| Package | Version | |
+|---|---|---|
+| BenchmarkDotNet | 0.15.8 | |
+| Dapper.SqlBuilder | 2.1.66 | |
+| InterpolatedSql | 2.5.1 | |
+| linq2db | 6.3.0 | |
+| Microsoft.EntityFrameworkCore | 8.0.11 | |
+| Npgsql.EntityFrameworkCore.PostgreSQL | 8.0.11 | |
+| Sqlify | 0.3.14 | |
+| SqlKata | 4.0.1 | |
+| Dapper | 2.1.66 | transitive; measured by the baseline and `SqlArtisan+Dapper` |
+| Npgsql | 8.0.6 | transitive; under the EF Core reference |
+
+The runtime is part of this list too, and it has moved: the project targets
+`net10.0`, while the root README's figures were taken on .NET 8. Re-running here
+reproduces the ordering but not the exact numbers — allocations shift by a few
+percent on the newer runtime — so compare a fresh run against another fresh run,
+not against the published table.
 
 ## Reading the results
 
