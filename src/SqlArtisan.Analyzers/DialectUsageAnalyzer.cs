@@ -35,28 +35,31 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
         DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
+        DiagnosticDescriptors.IdentifierTooLong,
         DiagnosticDescriptors.ConstantNullPredicate,
         DiagnosticDescriptors.NotInNullableSubquery,
         DiagnosticDescriptors.InsertMissingRequiredColumn,
         DiagnosticDescriptors.CountNullableColumn,
         DiagnosticDescriptors.UnusableIndexPredicate,
-        DiagnosticDescriptors.TypeCategoryMismatch,
-        DiagnosticDescriptors.IdentifierTooLong);
+        DiagnosticDescriptors.TypeCategoryMismatch);
 
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
+        // The generic walkers first — they serve SQLA0002/0003 together and key on
+        // the operation kind, not a rule — then one dispatcher per rule in ID order,
+        // then the compilation action, which is not an operation action at all.
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzePropertyReference, OperationKind.PropertyReference);
         context.RegisterOperationAction(AnalyzeFieldReference, OperationKind.FieldReference);
         context.RegisterOperationAction(AnalyzeBinaryOperator, OperationKind.Binary);
         context.RegisterOperationAction(AnalyzeCompoundAssignment, OperationKind.CompoundAssignment);
-        context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.Invocation);
-        context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
         context.RegisterOperationAction(AnalyzeContextRules, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeCorrelatedDml, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.Invocation);
+        context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
         context.RegisterOperationAction(AnalyzeSchemaNullability, OperationKind.PropertyReference);
         context.RegisterOperationAction(AnalyzeNotInSubquery, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeInsertColumns, OperationKind.Invocation);
