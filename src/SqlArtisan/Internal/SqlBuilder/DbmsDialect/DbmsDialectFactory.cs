@@ -10,8 +10,6 @@ internal static class DbmsDialectFactory
     private static readonly SqliteDialect s_sqlite = new();
     private static readonly SqlServerDialect s_sqlServer = new();
 
-    // Named to match ISqlBuilder.Build(Dbms dbms): the guard below surfaces
-    // through it, so its ParamName has to name what the caller wrote.
     internal static IDbmsDialect Create(Dbms dbms)
     {
         return dbms switch
