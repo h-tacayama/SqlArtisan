@@ -9,6 +9,8 @@ namespace SqlArtisan.Analyzers;
 // key), and push everything else to docs/analyzer.md via the help link.
 internal static class DiagnosticDescriptors
 {
+    // Declared in ID order, which is also family order: the dialect rules were
+    // numbered 0001-0006 and the schema rules 0007 up, so one ordering carries both.
     private const string DialectCategory = "SqlArtisan.Dialect";
 
     // Separate from the dialect family (#266): a bulk-severity setting aimed at
@@ -71,6 +73,15 @@ internal static class DiagnosticDescriptors
         id: "SQLA0005",
         title: "Correlated UPDATE or DELETE target is not aliased",
         messageFormat: "The target of a correlated UPDATE or DELETE must be aliased",
+        category: DialectCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
+    public static readonly DiagnosticDescriptor IdentifierTooLong = new(
+        id: "SQLA0006",
+        title: "SQL identifier exceeds the dialect's length limit",
+        messageFormat: "Identifier '{0}' exceeds {1}'s identifier limit of {2} {3}",
         category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -142,15 +153,6 @@ internal static class DiagnosticDescriptors
         title: "Column compared to a value of another type category",
         messageFormat: "'{0}' is {1}, but this compares it to {2}. Cast one side to say which you mean.",
         category: SchemaCategory,
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true,
-        helpLinkUri: HelpLinkUri);
-
-    public static readonly DiagnosticDescriptor IdentifierTooLong = new(
-        id: "SQLA0006",
-        title: "SQL identifier exceeds the dialect's length limit",
-        messageFormat: "Identifier '{0}' exceeds {1}'s identifier limit of {2} {3}",
-        category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
