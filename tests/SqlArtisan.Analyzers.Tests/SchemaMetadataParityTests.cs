@@ -35,6 +35,26 @@ public class SchemaMetadataParityTests
             .Where(p => p.CanWrite)
             .Select(p => p.Name)];
 
+    // SQLA0012 resolves the enum member's name and compares it to its own copy, so
+    // the two lists are the same coupling the argument names are.
+    [Fact]
+    public void TheCoresColumnTypeMembers_AreExactlyTheOnesTheRuleNames()
+    {
+        string[] declared = [.. Enum.GetNames(typeof(DbColumnType)).OrderBy(n => n, StringComparer.Ordinal)];
+
+        string[] named =
+        [
+            .. typeof(ColumnCategories)
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static
+                    | BindingFlags.DeclaredOnly)
+                .Where(f => f.IsLiteral && f.FieldType == typeof(string))
+                .Select(f => (string)f.GetRawConstantValue()!)
+                .OrderBy(n => n, StringComparer.Ordinal),
+        ];
+
+        Assert.Equal(declared, named);
+    }
+
     [Fact]
     public void AttributeName_MatchesTheRealAttributesFullName() =>
         Assert.Equal(SchemaMetadata.AttributeName, AttributeType.FullName);

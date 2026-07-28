@@ -56,13 +56,7 @@ with its owner and the core package merely carries it.
   the analyzer from the package later would silently drop diagnostics for
   every consumer; any future extraction would have to be an additive
   compatibility shim, not a removal.
-- **A fourth seam runs to TableClassGen, not to the core.** The generator
-  writes the `ColumnType` categories SQLA0012 reads (#362), so those spellings
-  are a contract too — held apart in `ColumnCategory` and `ColumnCategories`
-  and gated by `ColumnCategoryParityTests`, which reaches both only through a
-  test-only project reference. The shipped assemblies still reference each
-  other nowhere.
-- **The contract above is the complete list of seams.** If extraction is
+- **The three-point contract is the complete list of seams.** If extraction is
   ever genuinely needed (it is not planned), the analyzer plus its unit tests,
   gates, and dialect sweep move as one unit and reference the core as a NuGet
   package; nothing else holds them here.

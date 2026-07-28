@@ -7,97 +7,87 @@ namespace SqlArtisan.TableClassGen;
 // category, so neither side needs a five-dialect type table.
 internal static class ColumnCategory
 {
-    public const string Text = "text";
-
-    public const string Numeric = "numeric";
-
-    public const string Temporal = "temporal";
-
-    public const string Binary = "binary";
-
-    public const string Boolean = "boolean";
-
     // Names that mean the same thing on every engine that has them. The ones that
     // do not are resolved by Collides before this is consulted.
-    private static readonly IReadOnlyDictionary<string, string> Shared =
-        new Dictionary<string, string>(StringComparer.Ordinal)
+    private static readonly IReadOnlyDictionary<string, DbColumnType> Shared =
+        new Dictionary<string, DbColumnType>(StringComparer.Ordinal)
         {
-            ["char"] = Text,
-            ["char varying"] = Text,
-            ["character"] = Text,
-            ["character varying"] = Text,
-            ["clob"] = Text,
-            ["long"] = Text,
-            ["longtext"] = Text,
-            ["mediumtext"] = Text,
-            ["nchar"] = Text,
-            ["nclob"] = Text,
-            ["ntext"] = Text,
-            ["nvarchar"] = Text,
-            ["nvarchar2"] = Text,
-            ["text"] = Text,
-            ["tinytext"] = Text,
-            ["varchar"] = Text,
-            ["varchar2"] = Text,
+            ["char"] = DbColumnType.Text,
+            ["char varying"] = DbColumnType.Text,
+            ["character"] = DbColumnType.Text,
+            ["character varying"] = DbColumnType.Text,
+            ["clob"] = DbColumnType.Text,
+            ["long"] = DbColumnType.Text,
+            ["longtext"] = DbColumnType.Text,
+            ["mediumtext"] = DbColumnType.Text,
+            ["nchar"] = DbColumnType.Text,
+            ["nclob"] = DbColumnType.Text,
+            ["ntext"] = DbColumnType.Text,
+            ["nvarchar"] = DbColumnType.Text,
+            ["nvarchar2"] = DbColumnType.Text,
+            ["text"] = DbColumnType.Text,
+            ["tinytext"] = DbColumnType.Text,
+            ["varchar"] = DbColumnType.Text,
+            ["varchar2"] = DbColumnType.Text,
 
-            ["bigint"] = Numeric,
-            ["binary_double"] = Numeric,
-            ["binary_float"] = Numeric,
-            ["dec"] = Numeric,
-            ["decimal"] = Numeric,
-            ["double"] = Numeric,
-            ["double precision"] = Numeric,
-            ["fixed"] = Numeric,
-            ["float"] = Numeric,
-            ["float4"] = Numeric,
-            ["float8"] = Numeric,
-            ["int"] = Numeric,
-            ["int2"] = Numeric,
-            ["int4"] = Numeric,
-            ["int8"] = Numeric,
-            ["integer"] = Numeric,
-            ["mediumint"] = Numeric,
-            ["money"] = Numeric,
-            ["number"] = Numeric,
-            ["numeric"] = Numeric,
-            ["real"] = Numeric,
-            ["smallint"] = Numeric,
-            ["smallmoney"] = Numeric,
-            ["tinyint"] = Numeric,
+            ["bigint"] = DbColumnType.Numeric,
+            ["binary_double"] = DbColumnType.Numeric,
+            ["binary_float"] = DbColumnType.Numeric,
+            ["dec"] = DbColumnType.Numeric,
+            ["decimal"] = DbColumnType.Numeric,
+            ["double"] = DbColumnType.Numeric,
+            ["double precision"] = DbColumnType.Numeric,
+            ["fixed"] = DbColumnType.Numeric,
+            ["float"] = DbColumnType.Numeric,
+            ["float4"] = DbColumnType.Numeric,
+            ["float8"] = DbColumnType.Numeric,
+            ["int"] = DbColumnType.Numeric,
+            ["int2"] = DbColumnType.Numeric,
+            ["int4"] = DbColumnType.Numeric,
+            ["int8"] = DbColumnType.Numeric,
+            ["integer"] = DbColumnType.Numeric,
+            ["mediumint"] = DbColumnType.Numeric,
+            ["money"] = DbColumnType.Numeric,
+            ["number"] = DbColumnType.Numeric,
+            ["numeric"] = DbColumnType.Numeric,
+            ["real"] = DbColumnType.Numeric,
+            ["smallint"] = DbColumnType.Numeric,
+            ["smallmoney"] = DbColumnType.Numeric,
+            ["tinyint"] = DbColumnType.Numeric,
 
-            ["date"] = Temporal,
-            ["datetime"] = Temporal,
-            ["datetime2"] = Temporal,
-            ["datetimeoffset"] = Temporal,
-            ["interval"] = Temporal,
-            ["smalldatetime"] = Temporal,
-            ["time"] = Temporal,
-            ["time with time zone"] = Temporal,
-            ["time without time zone"] = Temporal,
-            ["timestamp with local time zone"] = Temporal,
-            ["timestamp with time zone"] = Temporal,
-            ["timestamp without time zone"] = Temporal,
-            ["timestamptz"] = Temporal,
-            ["timetz"] = Temporal,
-            ["year"] = Temporal,
+            ["date"] = DbColumnType.Temporal,
+            ["datetime"] = DbColumnType.Temporal,
+            ["datetime2"] = DbColumnType.Temporal,
+            ["datetimeoffset"] = DbColumnType.Temporal,
+            ["interval"] = DbColumnType.Temporal,
+            ["smalldatetime"] = DbColumnType.Temporal,
+            ["time"] = DbColumnType.Temporal,
+            ["time with time zone"] = DbColumnType.Temporal,
+            ["time without time zone"] = DbColumnType.Temporal,
+            ["timestamp with local time zone"] = DbColumnType.Temporal,
+            ["timestamp with time zone"] = DbColumnType.Temporal,
+            ["timestamp without time zone"] = DbColumnType.Temporal,
+            ["timestamptz"] = DbColumnType.Temporal,
+            ["timetz"] = DbColumnType.Temporal,
+            ["year"] = DbColumnType.Temporal,
 
-            ["bfile"] = Binary,
-            ["binary"] = Binary,
-            ["blob"] = Binary,
-            ["bytea"] = Binary,
-            ["image"] = Binary,
-            ["longblob"] = Binary,
-            ["mediumblob"] = Binary,
-            ["raw"] = Binary,
-            ["rowversion"] = Binary,
-            ["tinyblob"] = Binary,
-            ["varbinary"] = Binary,
+            ["bfile"] = DbColumnType.Binary,
+            ["binary"] = DbColumnType.Binary,
+            ["blob"] = DbColumnType.Binary,
+            ["bytea"] = DbColumnType.Binary,
+            ["image"] = DbColumnType.Binary,
+            ["longblob"] = DbColumnType.Binary,
+            ["mediumblob"] = DbColumnType.Binary,
+            ["raw"] = DbColumnType.Binary,
+            ["rowversion"] = DbColumnType.Binary,
+            ["tinyblob"] = DbColumnType.Binary,
+            ["varbinary"] = DbColumnType.Binary,
 
-            ["bool"] = Boolean,
-            ["boolean"] = Boolean,
+            ["bool"] = DbColumnType.Boolean,
+            ["boolean"] = DbColumnType.Boolean,
         };
 
-    public static string? Of(Dbms dbms, string dataType)
+    public static DbColumnType? Of(Dbms dbms, string dataType)
     {
         // Which engine wrote the name decides what it means, so without one there
         // is nothing to decide.
@@ -115,7 +105,7 @@ internal static class ColumnCategory
 
         return Collides(name)
             ? PerEngine(dbms, name)
-            : Shared.TryGetValue(name, out string? category) ? category : null;
+            : Shared.TryGetValue(name, out DbColumnType category) ? category : null;
     }
 
     private static bool Collides(string name) => name is "timestamp" or "bit";
@@ -123,10 +113,10 @@ internal static class ColumnCategory
     // T-SQL's timestamp is a row version rather than a time, and its bit is a truth
     // value where a MySQL BIT(n) or a PostgreSQL bit string is a bit vector —
     // comparing one of those is not the mistake this records, so it stays unknown.
-    private static string? PerEngine(Dbms dbms, string name) => name switch
+    private static DbColumnType? PerEngine(Dbms dbms, string name) => name switch
     {
-        "timestamp" => dbms == Dbms.SqlServer ? Binary : Temporal,
-        "bit" => dbms == Dbms.SqlServer ? Boolean : null,
+        "timestamp" => dbms == Dbms.SqlServer ? DbColumnType.Binary : DbColumnType.Temporal,
+        "bit" => dbms == Dbms.SqlServer ? DbColumnType.Boolean : null,
         _ => null,
     };
 
@@ -149,27 +139,27 @@ internal static class ColumnCategory
     // The final "everything else is NUMERIC" rule is deliberately not applied: it
     // would call a DATETIME column numeric, and dates are conventionally stored as
     // text there, so the fact stays unknown instead.
-    private static string? Affinity(string dataType)
+    private static DbColumnType? Affinity(string dataType)
     {
         string name = dataType.ToUpperInvariant();
 
         if (name.IndexOf("INT", StringComparison.Ordinal) >= 0)
         {
-            return Numeric;
+            return DbColumnType.Numeric;
         }
 
         if (Contains(name, "CHAR") || Contains(name, "CLOB") || Contains(name, "TEXT"))
         {
-            return Text;
+            return DbColumnType.Text;
         }
 
         if (Contains(name, "BLOB") || name.Length == 0)
         {
-            return Binary;
+            return DbColumnType.Binary;
         }
 
         return Contains(name, "REAL") || Contains(name, "FLOA") || Contains(name, "DOUB")
-            ? Numeric
+            ? DbColumnType.Numeric
             : null;
     }
 

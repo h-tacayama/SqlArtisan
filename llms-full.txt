@@ -3428,7 +3428,7 @@ this rule reports.
 the generated table class:
 
 ```csharp
-[DbColumnMetadata(Nullable = false, HasDefault = false, ColumnType = "text")]
+[DbColumnMetadata(Nullable = false, HasDefault = false, ColumnType = DbColumnType.Text)]
 public DbColumn Code { get; }
 ```
 
@@ -3592,8 +3592,8 @@ not exist: character varying = integer`), which is at least loud. The index on
 the column is unusable either way, but the wrong-rows half is why this is a
 warning rather than a note about speed.
 
-The category is coarse on purpose — text, numeric, temporal, binary, boolean —
-carrying no length, precision, or scale. A `numeric(10,2)` column compared to an
+The category is coarse on purpose — `Text`, `Numeric`, `Temporal`, `Binary`,
+`Boolean` — carrying no length, precision, or scale. A `numeric(10,2)` column compared to an
 `int` is one category against itself and reports nothing, and so is a `varchar`
 column compared to a `char`. Carrying width would mean judging values rather
 than types.

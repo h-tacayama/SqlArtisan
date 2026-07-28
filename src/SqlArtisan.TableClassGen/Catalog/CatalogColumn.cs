@@ -18,7 +18,7 @@ internal sealed class CatalogColumn(
 
     // Derived rather than stored, so the catalog's own type name and the category
     // it reduces to can never disagree.
-    public string? ColumnType => ColumnCategory.Of(dbms, dataType);
+    public DbColumnType? ColumnType => ColumnCategory.Of(dbms, dataType);
 
     public bool? IsNullable => isNullable;
 

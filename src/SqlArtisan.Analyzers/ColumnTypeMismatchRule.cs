@@ -44,12 +44,13 @@ internal static class ColumnTypeMismatchRule
         string columnCategory,
         string otherCategory)
     {
+        // The enum member names read as prose only in lower case.
         context.ReportDiagnostic(Diagnostic.Create(
             DiagnosticDescriptors.ColumnTypeMismatch,
             comparison.Syntax.GetLocation(),
             columnName,
-            columnCategory,
-            otherCategory));
+            columnCategory.ToLowerInvariant(),
+            otherCategory.ToLowerInvariant()));
     }
 
     private static bool IsComparison(IBinaryOperation comparison) =>

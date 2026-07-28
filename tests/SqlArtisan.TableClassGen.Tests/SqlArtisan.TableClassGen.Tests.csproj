@@ -24,9 +24,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <!-- Test-only, to hold both copies of the ColumnType vocabulary at once; the
-         shipped assemblies stay unreferenced in either direction (ADR 0009). -->
-    <ProjectReference Include="..\..\src\SqlArtisan.Analyzers\SqlArtisan.Analyzers.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan.TableClassGen\SqlArtisan.TableClassGen.csproj" />
     <ProjectReference Include="..\..\src\SqlArtisan\SqlArtisan.csproj" />
   </ItemGroup>

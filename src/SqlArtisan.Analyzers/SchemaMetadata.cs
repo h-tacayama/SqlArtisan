@@ -36,8 +36,27 @@ internal static class SchemaMetadata
     public static string? Category(IOperation? operation) =>
         operation is IPropertyReferenceOperation column ? Category(column.Property) : null;
 
-    public static string? Category(IPropertySymbol column) =>
-        Argument(column, ColumnTypeArgument)?.Value as string;
+    // By the enum member's name, never its underlying integer: renumbering the
+    // members must not silently change what a generated table class claims.
+    public static string? Category(IPropertySymbol column)
+    {
+        if (Argument(column, ColumnTypeArgument) is not { Kind: TypedConstantKind.Enum } fact
+            || fact.Type is not INamedTypeSymbol enumType)
+        {
+            return null;
+        }
+
+        foreach (ISymbol member in enumType.GetMembers())
+        {
+            if (member is IFieldSymbol { HasConstantValue: true } field
+                && Equals(field.ConstantValue, fact.Value))
+            {
+                return field.Name == ColumnCategories.Unknown ? null : field.Name;
+            }
+        }
+
+        return null;
+    }
 
     // The attribute is applied to nothing else, so its presence is the only test
     // needed — no check that the property is a DbColumn.

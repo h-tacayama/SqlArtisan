@@ -1,18 +1,19 @@
 namespace SqlArtisan.Analyzers;
 
-// The generator reduces every catalog type name to one of these and writes it as
-// the ColumnType argument; the analyzer only ever sees the category. Matched by
-// string, never by a shared type (ADR 0009) — TableClassGen holds the other copy,
-// and ColumnCategoryParityTests keeps the two spellings identical.
+// The core's DbColumnType member names, which the generator writes symbolically
+// and this reads back by name (ADR 0009 — no reference in either direction).
+// SchemaMetadataParityTests keeps the two lists identical.
 internal static class ColumnCategories
 {
-    public const string Text = "text";
+    public const string Unknown = "Unknown";
 
-    public const string Numeric = "numeric";
+    public const string Text = "Text";
 
-    public const string Temporal = "temporal";
+    public const string Numeric = "Numeric";
 
-    public const string Binary = "binary";
+    public const string Temporal = "Temporal";
 
-    public const string Boolean = "boolean";
+    public const string Binary = "Binary";
+
+    public const string Boolean = "Boolean";
 }

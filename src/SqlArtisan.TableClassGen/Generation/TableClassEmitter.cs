@@ -149,9 +149,11 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
             arguments.Add($"Indexed = {Literal(isIndexed)}");
         }
 
+        // The member name, so a rename in the core follows through to the emitted
+        // code instead of leaving a stale literal behind.
         if (column.ColumnType is { } columnType)
         {
-            arguments.Add($"ColumnType = {Quote(columnType)}");
+            arguments.Add($"ColumnType = {nameof(DbColumnType)}.{columnType}");
         }
 
         return arguments.Count == 0
