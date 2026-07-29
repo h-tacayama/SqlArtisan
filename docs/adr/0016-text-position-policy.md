@@ -65,10 +65,14 @@ alongside the bind-parameter types.
 
 ## Consequences
 
-- **The guarantee is scoped, and the scope is now written down.** A value can
-  never reach the SQL text; a grammar-forced literal is always escaped. Those
-  two are the library's security surface, and a bypass of either is a
-  vulnerability. An identifier is not covered.
+- **The guarantee is scoped, and the scope is now written down.** A caller
+  string is bound, or — where the grammar demands a literal — inlined with its
+  quotes escaped; either way it never reaches the SQL text raw. The slots that
+  do inline a value unescaped — an `ORDER BY` ordinal, a `LAG` / `LEAD` offset,
+  a window-frame bound, and the other numeric arguments the grammar fixes — are
+  `int`- or `double`-typed at the factory, or verified numeric first, so none
+  can carry a string. That is the library's security surface, and a bypass of
+  it is a vulnerability. An identifier is not covered.
 - **Building an identifier from untrusted input is an application concern.**
   The library ships no sanitizer for it and will not grow one — reaching these
   positions requires the application to derive an alias, type, or table name

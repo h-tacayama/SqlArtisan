@@ -23,9 +23,10 @@ worth attacking:
   (e.g. `LIKE ... ESCAPE`, string-aggregation separators) double `'` on every
   dialect and `\` on MySQL; a bypass is a vulnerability.
 
-A few slots do inline a value unescaped — an `ORDER BY` ordinal, a `LAG` /
-`LEAD` offset, a window-frame bound — but each is typed `int` in C# or checked
-numeric before it is written, so nothing else can reach them.
+Several slots do inline a value unescaped — an `ORDER BY` ordinal, a `LAG` /
+`LEAD` offset, a window-frame bound, `NTILE`'s bucket count and `FOR UPDATE
+WAIT`'s seconds among them. None can carry a string: each is `int`- or
+`double`-typed at the factory, or verified numeric before it is written.
 
 The two guarantees above are the whole protected surface. **Identifier positions
 are emitted verbatim by design** — an alias, a table or column name, a `CAST`
