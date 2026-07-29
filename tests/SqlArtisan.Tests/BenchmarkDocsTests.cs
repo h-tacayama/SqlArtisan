@@ -102,8 +102,11 @@ public class BenchmarkDocsTests
         Assert.True(expected.Success, $"BenchmarkValidation no longer declares {constant}.");
         Assert.Contains(
             string.Format(phrasing, NumberWord(expected.Groups["count"].Value)),
-            ReadDocs(root));
+            Unwrapped(ReadDocs(root)));
     }
+
+    // The claim is the subject here, not the line layout it happens to be wrapped at.
+    private static string Unwrapped(string markdown) => Regex.Replace(markdown, @"\s+", " ");
 
     private static string ReadDocs(string root) =>
         File.ReadAllText(Path.Combine(root, BenchmarkDir, "README.md"));

@@ -6,8 +6,8 @@ public static class SqlKataBenchmark
 {
     public static (string Sql, int ParameterCount) Run()
     {
-        // Select() quotes what it is given as an identifier, so the aggregate needs
-        // SelectRaw and each GROUP BY key its own argument (#382).
+        // Every clause builder quotes what it is given as one identifier, so the aggregate
+        // needs SelectRaw and each GROUP BY key its own argument (#382).
         Query query = new Query()
             .Select("users.id AS user_id", "users.name AS user_name")
             .SelectRaw("COUNT(orders.id) AS order_count")

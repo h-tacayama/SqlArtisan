@@ -20,12 +20,13 @@ Keep the filter quoted. Run from the project directory instead and the unquoted
 pattern matches `SqlBuilderBenchmarks.cs`, so the shell hands BenchmarkDotNet a
 filename that matches no benchmark.
 
-`validate` asserts that every entrant in the comparison built the shared query:
-exactly two bind parameters, an aggregate, and two `GROUP BY` keys. It checks the
-shape rather than the text, because dialects, alias generation and EF Core's
-pipeline all spell the same query differently. Run it after touching any entrant
-— a change that quietly stops parameterizing, or stops aggregating, would
-otherwise look like a win.
+`validate` asserts that each entrant built the shared query: exactly two bind
+parameters, an aggregate outside the sort, and two `GROUP BY` keys. It checks
+that shape rather than the text, because dialects and alias generation spell the
+same query differently — and it checks nothing else, so a wrong join or filter
+would still pass. The EF Core reference is printed but not checked. Run it after
+touching any entrant; a change that quietly stops parameterizing, or stops
+aggregating, would otherwise look like a win.
 
 **Release configuration is required.** BenchmarkDotNet refuses to run a Debug
 build, and a measurement taken on a shared or virtualized host is not comparable
@@ -91,11 +92,13 @@ and caching assemblies) move in lockstep with the direct pin above them.
 
 The runtime is part of this list too, and it has moved: the project targets
 `net10.0`, while the root README's figures were taken on .NET 8. A fresh run
-reproduces the *allocation* ordering and lands within a few percent of the
-published bytes, but **not** the timing ordering — the mid- and heavy-weight
-entrants change places (a full run put Dapper.SqlBuilder ahead of InterpolatedSql
-and SqlKata ahead of linq2db). Compare a fresh run against another fresh run, not
-against the published table.
+reproduces the *allocation* ordering, but **not** the timing ordering — the mid-
+and heavy-weight entrants change places (a full run put Dapper.SqlBuilder ahead
+of InterpolatedSql and SqlKata ahead of linq2db). Most rows land within a few
+percent of the published bytes; SqlKata does not, because its entrant was
+rebuilt after that table was measured (#382) and now allocates about half again
+as much. Compare a fresh run against another fresh run, not against the published
+table.
 
 ## Reading the results
 

@@ -11,7 +11,8 @@ public static class BenchmarkValidation
 {
     private static readonly Regex AggregateCall = new(@"\bCOUNT\s*\(", RegexOptions.IgnoreCase);
 
-    // Each dialect spells the keys differently, so only their number is comparable.
+    // Each dialect spells the keys differently, so only their number is comparable —
+    // counted by comma, which is exact while every entrant groups by bare columns.
     private static readonly Regex GroupByKeys = new(
         @"GROUP BY (?<keys>.*?)(?: ORDER BY | HAVING |$)",
         RegexOptions.IgnoreCase | RegexOptions.Singleline);
@@ -32,7 +33,7 @@ public static class BenchmarkValidation
         using DataConnection linq2db = Linq2dbBenchmark.CreateConnection();
         using BenchmarkDbContext efCore = EfCoreBenchmark.CreateContext();
 
-        (string Name, Func<(string Sql, int ParameterCount)> Build, bool InComparison)[] entrants =
+        (string Name, Func<(string Sql, int ParameterCount)> Build, bool BuildsSharedQuery)[] entrants =
         [
             ("StringBuilder", StringBuilderBenchmark.Run, true),
             ("DapperSqlBuilder", DapperSqlBuilderBenchmark.Run, true),
@@ -46,10 +47,10 @@ public static class BenchmarkValidation
         ];
 
         bool ok = true;
-        foreach ((string name, Func<(string Sql, int ParameterCount)> build, bool inComparison) in entrants)
+        foreach ((string name, Func<(string Sql, int ParameterCount)> build, bool shared) in entrants)
         {
             (string sql, int parameterCount) = build();
-            string? drift = inComparison
+            string? drift = shared
                 ? Drift(sql, parameterCount, expectedParameters, expectedGroupByKeys)
                 : null;
             ok &= drift is null;
@@ -62,7 +63,7 @@ public static class BenchmarkValidation
         if (ok)
         {
             Console.WriteLine(
-                $"OK: every comparison entrant built the shared query with {expectedParameters} bind parameters.");
+                $"OK: every checked entrant built the shared query with {expectedParameters} bind parameters.");
             return 0;
         }
 
@@ -79,7 +80,11 @@ public static class BenchmarkValidation
 
         string bare = QuotedIdentifier.Replace(Whitespace.Replace(sql, " "), "_");
 
-        if (!AggregateCall.IsMatch(bare))
+        // Sqlify sorts by COUNT(*), so searching the whole statement would let an
+        // aggregate in ORDER BY vouch for a projection that is no longer there.
+        int sort = bare.LastIndexOf(" ORDER BY ", StringComparison.OrdinalIgnoreCase);
+
+        if (!AggregateCall.IsMatch(sort < 0 ? bare : bare[..sort]))
         {
             return "NO AGGREGATE — not the shared query";
         }
@@ -87,6 +92,8 @@ public static class BenchmarkValidation
         Match groupBy = GroupByKeys.Match(bare);
         int keys = groupBy.Success ? groupBy.Groups["keys"].Value.Split(',').Length : 0;
 
-        return keys == expectedKeys ? null : $"GROUP BY NAMES {keys} KEYS, EXPECTED {expectedKeys}";
+        return keys == expectedKeys
+            ? null
+            : $"GROUP BY NAMES {keys} {(keys == 1 ? "KEY" : "KEYS")}, EXPECTED {expectedKeys}";
     }
 }
