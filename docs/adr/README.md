@@ -39,6 +39,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0013](0013-analyzer-context-rules.md) | Analyzer context rules: position-dependent verdicts under their own diagnostic | Analyzer | Accepted |
 | [0014](0014-analyzer-correlated-dml-rule.md) | Analyzer advisory duplication of a runtime guard: the correlated-DML rule | Analyzer | Accepted |
 | [0015](0015-analyzer-version-bounds.md) | Analyzer version bounds: interval annotations on the dialect matrix, evaluated against a declared engine version | Analyzer | Accepted |
+| [0016](0016-text-position-policy.md) | Text positions: what is bound, what is escaped, and what is emitted verbatim | | Accepted |
 
 ### Clusters
 

@@ -71,6 +71,24 @@ public class CastTests
         Assert.Equal(expected, sql.Text);
     }
 
+    // The target type is an identifier position — a type name cannot be quoted
+    // at all (`DECIMAL(10,2)`), so it is emitted verbatim (ADR 0016).
+    [Fact]
+    public void Cast_TypeWithQuote_EmitsVerbatim()
+    {
+        // Arrange
+        string expected = "SELECT CAST(code AS INT) ; DROP TABLE users --) FROM test_table";
+
+        // Act
+        SqlStatement sql =
+            Select(Cast(_t.Code, "INT) ; DROP TABLE users --"))
+            .From(_t)
+            .Build();
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
     [Fact]
     public void Cast_NullType_ThrowsArgumentException()
     {

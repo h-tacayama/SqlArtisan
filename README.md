@@ -64,7 +64,7 @@ All the convenience, minimal overhead: an **allocation-light, fast** builder [be
 - **SQL-like API**: queries read like the SQL they emit.
 - **Schema IntelliSense**: table/column completion from generated table classes — no stringly-typed names.
 - **Allocation-light & fast**: pooled buffers keep it nearly as lean as a hand-written `StringBuilder` ([benchmarks](#performance)).
-- **Automatic parameterization**: literals become bind parameters, preventing SQL injection.
+- **Automatic parameterization**: literals become bind parameters, preventing SQL injection through values.
 - **Dynamic conditions**: add or drop `WHERE` parts at runtime with helpers like `ConditionIf`.
 - **Dapper integration**: optional `SqlArtisan.Dapper` adds one-call execution.
 - **Oracle array-bind execution**: optional `SqlArtisan.ArrayBind` runs any SqlArtisan-built statement for thousands of rows in one round trip via ODP.NET array binding.

@@ -386,6 +386,25 @@ public class SelectTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // An alias is an identifier position: the string lands between the dialect's
+    // alias quotes verbatim, never doubled (ADR 0016).
+    [Fact]
+    public void Select_ColumnAliasWithDoubleQuote_EmitsVerbatim()
+    {
+        SqlStatement sql =
+            Select(_t.Code.As("x\"; DROP TABLE users --"))
+            .From(_t)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".code \"x\"; DROP TABLE users --\" ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     [Fact]
     public void Select_WithHints_CorrectSql()
     {

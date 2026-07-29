@@ -22,6 +22,16 @@ worth attacking:
   (e.g. `LIKE ... ESCAPE`, string-aggregation separators) escape them; a
   bypass is a vulnerability.
 
+Those two are the whole surface. **Identifier positions are emitted verbatim by
+design** — an alias, a table or column name, a `CAST` target type, a sequence
+name in the Oracle (`s.NEXTVAL`) and SQL Server (`NEXT VALUE FOR s`) spellings,
+and the `Sql.Hints` raw-SQL escape hatch. These carry tokens you wrote, so the
+library neither escapes nor sanitizes them; the SQL you write is the SQL that
+runs. Deriving one from untrusted input is an application-level issue — validate
+it against an allowlist at that boundary — not a vulnerability in SqlArtisan.
+(PostgreSQL's `NEXTVAL('s')` *is* escaped: its grammar takes the sequence name
+as a string literal, so it falls under the second guarantee above.)
+
 Rejected SQL or a wrong dialect-availability claim is an ordinary bug — open
 a public [issue](https://github.com/h-tacayama/SqlArtisan/issues) for those.
 
