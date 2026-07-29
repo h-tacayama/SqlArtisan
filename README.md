@@ -64,7 +64,7 @@ All the convenience, minimal overhead: an **allocation-light, fast** builder [be
 - **SQL-like API**: queries read like the SQL they emit.
 - **Schema IntelliSense**: table/column completion from generated table classes — no stringly-typed names.
 - **Allocation-light & fast**: pooled buffers keep it nearly as lean as a hand-written `StringBuilder` ([benchmarks](#performance)).
-- **Automatic parameterization**: literals become bind parameters, preventing SQL injection.
+- **Automatic parameterization**: literals become bind parameters, preventing SQL injection through values.
 - **Dynamic conditions**: add or drop `WHERE` parts at runtime with helpers like `ConditionIf`.
 - **Dapper integration**: optional `SqlArtisan.Dapper` adds one-call execution.
 - **Oracle array-bind execution**: optional `SqlArtisan.ArrayBind` runs any SqlArtisan-built statement for thousands of rows in one round trip via ODP.NET array binding.
@@ -231,7 +231,7 @@ SqlArtisan's principle is simple: **the SQL you write is the SQL that runs.** Yo
 
 Full ORMs hide SQL behind object graphs; portability-focused builders rewrite your query per database. SqlArtisan does neither. It's for developers who *want* to write SQL — type-safely and composably in C#, not as fragile strings.
 
-It normalizes only the mechanical — bind-parameter markers (`:0` vs `@0`) and identifier quoting — and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
+It normalizes only the mechanical — bind-parameter markers (`:0` vs `@0`) and the identifier quote character (`"` vs MySQL's backtick) — and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
 
 ```csharp
 Sequence("users_id_seq").Nextval   // Oracle:      users_id_seq.NEXTVAL

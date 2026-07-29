@@ -75,7 +75,7 @@ All the convenience, minimal overhead: an **allocation-light, fast** builder [be
 - **SQL-like API**: queries read like the SQL they emit.
 - **Schema IntelliSense**: table/column completion from generated table classes — no stringly-typed names.
 - **Allocation-light & fast**: pooled buffers keep it nearly as lean as a hand-written `StringBuilder` ([benchmarks](#performance)).
-- **Automatic parameterization**: literals become bind parameters, preventing SQL injection.
+- **Automatic parameterization**: literals become bind parameters, preventing SQL injection through values.
 - **Dynamic conditions**: add or drop `WHERE` parts at runtime with helpers like `ConditionIf`.
 - **Dapper integration**: optional `SqlArtisan.Dapper` adds one-call execution.
 - **Oracle array-bind execution**: optional `SqlArtisan.ArrayBind` runs any SqlArtisan-built statement for thousands of rows in one round trip via ODP.NET array binding.
@@ -242,7 +242,7 @@ SqlArtisan's principle is simple: **the SQL you write is the SQL that runs.** Yo
 
 Full ORMs hide SQL behind object graphs; portability-focused builders rewrite your query per database. SqlArtisan does neither. It's for developers who *want* to write SQL — type-safely and composably in C#, not as fragile strings.
 
-It normalizes only the mechanical — bind-parameter markers (`:0` vs `@0`) and identifier quoting — and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
+It normalizes only the mechanical — bind-parameter markers (`:0` vs `@0`) and the identifier quote character (`"` vs MySQL's backtick) — and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
 
 ```csharp
 Sequence("users_id_seq").Nextval   // Oracle:      users_id_seq.NEXTVAL
@@ -490,7 +490,7 @@ SqlStatement sql =
 ```
 Both markers are valid only in a `SELECT` or `RETURNING` list, with one exception: `Count(Asterisk)` emits `COUNT(*)` — the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile.
 
-Do **not** write `Select("*")` — a string is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the equivalent `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
+Do **not** write `Select("*")` — a string in a value position is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the equivalent `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
 
 #### Column Aliases
 ```csharp
@@ -2466,7 +2466,7 @@ SqlStatement sql =
 
 ### Bind-Parameter Count in CASE
 
-Every `WHEN`, `THEN`, and `ELSE` literal becomes a bind parameter — the 3-arm simple CASE above produces 7 binds (3 match values + 3 result values + 1 ELSE). A 3-column pivot built from single-arm CASEs produces 9. This is the same literals-are-binds design used everywhere else: it guarantees injection safety and lets the engine reuse the execution plan when only the label values change.
+Every `WHEN`, `THEN`, and `ELSE` literal becomes a bind parameter — the 3-arm simple CASE above produces 7 binds (3 match values + 3 result values + 1 ELSE). A 3-column pivot built from single-arm CASEs produces 9. This is the same literals-are-binds design used everywhere else: these values never reach the SQL text, which keeps them injection-safe and lets the engine reuse the execution plan when only the label values change.
 
 Most engines handle this comfortably — older SQLite versions cap at 999 parameters per statement (modern SQLite allows 32,766) and SQL Server caps at 2,100. A CASE in a `SELECT` list that also appears in `GROUP BY` doubles the bind count because the expression is repeated; wrapping the CASE in a CTE or subquery and grouping on its alias avoids the duplication.
 
@@ -2983,6 +2983,13 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Enum**: Any `enum` type
 
 `Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: a bare `null` literal inlines the `NULL` keyword into the SQL text, while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
+
+Two kinds of string never become a bind parameter, and they behave differently:
+
+- **Grammar-forced literals** — positions where the dialect rejects a bind marker: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and SQL Server's `STRING_AGG` separator, a JSON path, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL).
+- **Identifiers** — an alias, a table or column name, a `Cast(...)` target type, and the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
+
+So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.
 
 <!-- ============================================================ -->
 <!-- SOURCE: docs/analyzer.md -->

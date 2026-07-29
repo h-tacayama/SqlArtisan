@@ -220,3 +220,10 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 - **Enum**: Any `enum` type
 
 `Sql.Bind(value)` rejects `null`. For a bound `NULL`, use `Sql.BindNull()`: a bare `null` literal inlines the `NULL` keyword into the SQL text, while `BindNull()` reserves a real parameter marker, so the statement's shape stays the same whether or not the value is null.
+
+Two kinds of string never become a bind parameter, and they behave differently:
+
+- **Grammar-forced literals** — positions where the dialect rejects a bind marker: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and SQL Server's `STRING_AGG` separator, a JSON path, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL).
+- **Identifiers** — an alias, a table or column name, a `Cast(...)` target type, and the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
+
+So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.

@@ -6,6 +6,8 @@ public sealed class NextvalFunction : SqlExpression
 
     internal NextvalFunction(string sequenceName)
     {
+        StringGuard.ThrowIfNullOrEmpty(sequenceName, "NEXTVAL requires a sequence name.");
+
         _sequenceName = sequenceName;
     }
 

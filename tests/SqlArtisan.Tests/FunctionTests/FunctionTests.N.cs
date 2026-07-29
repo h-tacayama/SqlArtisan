@@ -48,6 +48,22 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Nextval_NullSequenceName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Nextval(null!));
+
+        Assert.Equal("NEXTVAL requires a sequence name.", ex.Message);
+    }
+
+    [Fact]
+    public void Nextval_EmptySequenceName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Nextval(""));
+
+        Assert.Equal("NEXTVAL requires a sequence name.", ex.Message);
+    }
+
+    [Fact]
     public void NextValueFor_SequenceName_CorrectSql()
     {
         SqlStatement sql =
@@ -59,6 +75,38 @@ public partial class FunctionTests
         expected.Append("NEXT VALUE FOR seq_test");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // The sequence name reaches an identifier position here, unlike the
+    // PostgreSQL spelling above, so it is emitted verbatim (ADR 0016).
+    [Fact]
+    public void NextValueFor_SequenceNameWithQuote_EmitsVerbatim()
+    {
+        SqlStatement sql =
+            Select(NextValueFor("seq\"; DROP TABLE users; --"))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("NEXT VALUE FOR seq\"; DROP TABLE users; --");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void NextValueFor_NullSequenceName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => NextValueFor(null!));
+
+        Assert.Equal("NEXT VALUE FOR requires a sequence name.", ex.Message);
+    }
+
+    [Fact]
+    public void NextValueFor_EmptySequenceName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => NextValueFor(""));
+
+        Assert.Equal("NEXT VALUE FOR requires a sequence name.", ex.Message);
     }
 
     [Fact]
