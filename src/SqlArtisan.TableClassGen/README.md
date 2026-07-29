@@ -103,6 +103,10 @@ clean run. A schema whose tables were genuinely dropped still reports its
 committed classes as removed, so only a run with nothing at all to say fails here.
 On SQLite the option to check is `--file`: a path that does not exist is created
 as an empty database rather than rejected, so a typo there connects successfully.
+A `--schema` that is spelled right but lacks privileges reads the same as one
+that does not exist: MySQL, Oracle, PostgreSQL, and SQL Server all filter their
+catalogs by privilege rather than raise an error for one, so the message above
+is the answer either way.
 
 For scripting, `--format json` reports the same result as data, and `--dry-run`
 reports what a run would write without writing it.
