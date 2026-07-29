@@ -177,10 +177,13 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
     }
 
     // #386: a login mapped to a user with no grants still connects — CONNECT
-    // comes via the public role — but sees none of the seeded tables, the same
-    // empty catalog an unknown --schema produces.
+    // comes via the public role. The read never throws, which is the property
+    // in question, but it is not empty: master carries legacy compatibility
+    // tables (spt_fallback_db and siblings) SQL Server grants to public by
+    // default, so those are the only rows visible — proving the filtering,
+    // not a bare empty result.
     [Fact]
-    public void GenerateTables_SqlServer_NoPrivileges_ReturnsEmptyLikeAnUnknownSchema()
+    public void GenerateTables_SqlServer_NoPrivileges_FiltersRatherThanThrows()
     {
         Execute("CREATE LOGIN sqlartisan_restricted WITH PASSWORD = 'Restricted-Pw1!'");
         Execute("CREATE USER sqlartisan_restricted FOR LOGIN sqlartisan_restricted");
@@ -199,7 +202,10 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
 
             InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
 
-            Assert.Empty(reader.GetAllTables());
+            IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
+
+            Assert.NotEmpty(tables);
+            Assert.DoesNotContain(tables, t => t.TableName == "users" || t.TableName == "orders");
         }
         finally
         {
