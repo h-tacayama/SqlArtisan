@@ -209,6 +209,34 @@ public class TableClassGeneratorTests : IDisposable
         Assert.Equal("dupe_class", only.TableName);
     }
 
+    // A schema that resolves to nothing used to generate nothing and exit 0, so a
+    // misspelled --schema looked like a clean run.
+    [Fact]
+    public void Run_CatalogWithNoTables_FailsNamingTheOptionThatSelectsIt()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE gone (id INTEGER); DROP TABLE gone;");
+
+        CommandLineException error = Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate));
+
+        Assert.Contains("No tables found", error.Message, StringComparison.Ordinal);
+        Assert.Contains("--service-name", error.Message, StringComparison.Ordinal);
+    }
+
+    // --check is where the silence cost most: no tables read reports no drift, so a
+    // scheduled job goes green against a schema it never opened.
+    [Fact]
+    public void Run_CheckOnCatalogWithNoTables_FailsRatherThanReportingClean()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+
+        db.Execute("DROP TABLE item; DROP TABLE tag;");
+
+        Assert.Throws<CommandLineException>(() => Run(db, RunMode.Check));
+    }
+
     private IReadOnlyList<TableResult> Run(
         TempSqliteDatabase db,
         RunMode mode,

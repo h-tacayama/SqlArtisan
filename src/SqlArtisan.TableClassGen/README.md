@@ -97,6 +97,12 @@ rewrite. A file whose table is gone from the database is reported, never deleted
 The database is the authority here: SqlArtisan generates no DDL and runs no
 migrations, so drift always means the committed files are stale.
 
+A schema that holds no tables is an error in every mode, not an empty success —
+otherwise a misspelled `--schema` would look identical to a clean run, and
+`--check` would report no drift against a schema it never opened. On SQLite the
+option to check is `--service-name`: a path that does not exist is created as an
+empty database rather than rejected, so a typo there connects successfully.
+
 For scripting, `--format json` reports the same result as data, and `--dry-run`
 reports what a run would write without writing it.
 
