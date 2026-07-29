@@ -30,7 +30,56 @@ internal sealed class DbConnectionInfo(
 
     public string Password => password;
 
-    public IDbConnection CreateConnection() =>
+    public IDbConnection OpenConnection()
+    {
+        IDbConnection connection = CreateConnection();
+
+        try
+        {
+            connection.Open();
+        }
+        catch (Exception ex)
+        {
+            connection.Dispose();
+
+            throw new CommandLineException(
+                $"{CannotConnectMessage} The driver reported: {ex.Message}");
+        }
+
+        return connection;
+    }
+
+    // MySQL and Oracle default --schema to --database and --user, so naming --schema
+    // alone would point a user at an option they never passed.
+    public string EmptyCatalogMessage =>
+        Dbms switch
+        {
+            Dbms.Sqlite =>
+                $"No tables found in the SQLite database file '{ServiceName}'; check --file, "
+                    + "since a path that does not exist is created empty rather than rejected",
+            Dbms.MySql =>
+                $"No tables found in schema '{Schema}'; check --schema, or --database, which "
+                    + "it defaults to (see --help)",
+            Dbms.Oracle =>
+                $"No tables found in schema '{Schema}'; check --schema, or --user, which it "
+                    + "defaults to (see --help)",
+            _ =>
+                $"No tables found in schema '{Schema}'; check --schema and --database "
+                    + "(see --help)",
+        };
+
+    // The driver reports what it observed, never which option produced it, so the
+    // options that built the connection string are named here.
+    private string CannotConnectMessage =>
+        Dbms switch
+        {
+            Dbms.Sqlite => $"Cannot open the SQLite database file '{ServiceName}' (--file).",
+            _ =>
+                $"Cannot connect to {Host}:{Port} as '{Username}'; check --host, --port, "
+                    + "--database, --user, and SQLARTISAN_DB_PASSWORD (see --help).",
+        };
+
+    private IDbConnection CreateConnection() =>
         Dbms switch
         {
             Dbms.Oracle => new OracleConnection(GetConnectionString()),

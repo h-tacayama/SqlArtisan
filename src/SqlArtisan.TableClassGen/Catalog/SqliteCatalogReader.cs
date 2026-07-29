@@ -15,8 +15,7 @@ internal sealed class SqliteCatalogReader(
 
     public IReadOnlyList<CatalogTable> GetAllTables()
     {
-        using IDbConnection conn = _connInfo.CreateConnection();
-        conn.Open();
+        using IDbConnection conn = _connInfo.OpenConnection();
 
         List<string> tableNames = [];
         using (IDbCommand command = conn.CreateCommand())
@@ -48,8 +47,7 @@ internal sealed class SqliteCatalogReader(
 
     public bool TryGetTable(string tableName, out CatalogTable? table)
     {
-        using IDbConnection conn = _connInfo.CreateConnection();
-        conn.Open();
+        using IDbConnection conn = _connInfo.OpenConnection();
 
         return TryGetTable(conn, tableName, out table);
     }

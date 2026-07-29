@@ -59,7 +59,19 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
         results.AddRange(FindRemoved(results));
 
+        GuardNothingToReport(results);
+
         return results;
+    }
+
+    // An emptied schema still reports its committed files as removed, so only a run
+    // with nothing at all to say cannot tell a wrong schema name from a right one.
+    private void GuardNothingToReport(IReadOnlyList<TableResult> results)
+    {
+        if (results.Count == 0)
+        {
+            throw new CommandLineException(options.Connection.EmptyCatalogMessage);
+        }
     }
 
     // Left unguarded, the second table would overwrite the first's file and vanish

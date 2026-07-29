@@ -209,6 +209,37 @@ public class TableClassGeneratorTests : IDisposable
         Assert.Equal("dupe_class", only.TableName);
     }
 
+    // Nothing read and nothing committed used to be a successful run reporting
+    // nothing, so a misspelled --schema was indistinguishable from a clean one.
+    [Fact]
+    public void Run_NothingReadAndNothingCommitted_FailsNamingTheOptionThatSelectsTables()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE gone (id INTEGER); DROP TABLE gone;");
+
+        CommandLineException error = Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate));
+
+        Assert.Contains("No tables found", error.Message, StringComparison.Ordinal);
+        Assert.Contains("--file", error.Message, StringComparison.Ordinal);
+    }
+
+    // The guard must not swallow this: an emptied schema whose classes are still
+    // committed has a real answer — every one of them is removed.
+    [Fact]
+    public void Run_CheckAfterEverySourceTableDropped_ReportsThemRemoved()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+
+        db.Execute("DROP TABLE item; DROP TABLE tag;");
+
+        IReadOnlyList<TableResult> results = Run(db, RunMode.Check);
+
+        Assert.Equal(2, results.Count);
+        Assert.All(results, r => Assert.Equal(TableStatus.Removed, r.Status));
+    }
+
     private IReadOnlyList<TableResult> Run(
         TempSqliteDatabase db,
         RunMode mode,
