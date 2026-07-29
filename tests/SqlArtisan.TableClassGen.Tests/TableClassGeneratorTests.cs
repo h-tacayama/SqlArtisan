@@ -209,10 +209,10 @@ public class TableClassGeneratorTests : IDisposable
         Assert.Equal("dupe_class", only.TableName);
     }
 
-    // A schema that resolves to nothing used to generate nothing and exit 0, so a
-    // misspelled --schema looked like a clean run.
+    // Nothing read and nothing committed used to be a successful run reporting
+    // nothing, so a misspelled --schema was indistinguishable from a clean one.
     [Fact]
-    public void Run_CatalogWithNoTables_FailsNamingTheOptionThatSelectsIt()
+    public void Run_NothingReadAndNothingCommitted_FailsNamingTheOptionThatSelectsTables()
     {
         using TempSqliteDatabase db = TempSqliteDatabase.Create(
             "CREATE TABLE gone (id INTEGER); DROP TABLE gone;");
@@ -224,17 +224,20 @@ public class TableClassGeneratorTests : IDisposable
         Assert.Contains("--service-name", error.Message, StringComparison.Ordinal);
     }
 
-    // --check is where the silence cost most: no tables read reports no drift, so a
-    // scheduled job goes green against a schema it never opened.
+    // The guard must not swallow this: an emptied schema whose classes are still
+    // committed has a real answer — every one of them is removed.
     [Fact]
-    public void Run_CheckOnCatalogWithNoTables_FailsRatherThanReportingClean()
+    public void Run_CheckAfterEverySourceTableDropped_ReportsThemRemoved()
     {
         using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
         Run(db, RunMode.Generate);
 
         db.Execute("DROP TABLE item; DROP TABLE tag;");
 
-        Assert.Throws<CommandLineException>(() => Run(db, RunMode.Check));
+        IReadOnlyList<TableResult> results = Run(db, RunMode.Check);
+
+        Assert.Equal(2, results.Count);
+        Assert.All(results, r => Assert.Equal(TableStatus.Removed, r.Status));
     }
 
     private IReadOnlyList<TableResult> Run(

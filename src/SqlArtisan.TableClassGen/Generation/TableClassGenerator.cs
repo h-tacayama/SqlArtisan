@@ -41,7 +41,6 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
         List<TableResult> results = [];
         IReadOnlyList<CatalogTable> tables = [.. ResolveTables()];
 
-        GuardCatalogNotEmpty(tables);
         GuardClassNames(tables);
 
         foreach (CatalogTable table in tables)
@@ -60,14 +59,16 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
         results.AddRange(FindRemoved(results));
 
+        GuardNothingToReport(results);
+
         return results;
     }
 
-    // Nothing downstream tells an empty schema from a misspelled one, and --check
-    // reads no tables as no drift — calling a schema it never looked at clean.
-    private void GuardCatalogNotEmpty(IReadOnlyList<CatalogTable> tables)
+    // An emptied schema still reports its committed files as removed, so only a run
+    // with nothing at all to say cannot tell a wrong schema name from a right one.
+    private void GuardNothingToReport(IReadOnlyList<TableResult> results)
     {
-        if (tables.Count == 0)
+        if (results.Count == 0)
         {
             throw new CommandLineException(options.Connection.EmptyCatalogMessage);
         }
