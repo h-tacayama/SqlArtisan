@@ -5,17 +5,9 @@ using SqlArtisan.Benchmark.EfCoreModel;
 
 namespace SqlArtisan.Benchmark;
 
-// Every entrant builds the SQL string *and* its bind-parameter collection for the same
-// logical query (an INNER JOIN + GROUP BY aggregate filtered by two date parameters), so
-// the comparison is apples-to-apples. Each [Benchmark] returns the produced
-// (Sql, ParameterCount) tuple so BenchmarkDotNet consumes both outputs and cannot
-// dead-code-eliminate the work.
-//
-// Builder libraries sit in the "Builders" category. The hand-written StringBuilder is a
-// labeled "Baseline" floor and EF Core a labeled "ORM reference"; both do materially
-// different work, so they are kept out of the builder comparison. linq2db and EF Core
-// cache compiled queries and reuse a long-lived connection/context created once in
-// [GlobalSetup], so the loop measures realistic warm steady-state.
+// Returning the (Sql, ParameterCount) tuple is what stops BenchmarkDotNet
+// dead-code-eliminating the work. The Baseline and ORM-reference entrants are labeled out
+// of the comparison rather than dropped: a floor and a scale marker. See README.md.
 [MemoryDiagnoser]
 [CategoriesColumn]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
