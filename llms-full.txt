@@ -242,7 +242,7 @@ SqlArtisan's principle is simple: **the SQL you write is the SQL that runs.** Yo
 
 Full ORMs hide SQL behind object graphs; portability-focused builders rewrite your query per database. SqlArtisan does neither. It's for developers who *want* to write SQL — type-safely and composably in C#, not as fragile strings.
 
-It normalizes only the mechanical — bind-parameter markers (`:0` vs `@0`) and identifier quoting — and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
+It normalizes only the mechanical — bind-parameter markers (`:0` vs `@0`) and the identifier quote character (`"` vs MySQL's backtick) — and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
 
 ```csharp
 Sequence("users_id_seq").Nextval   // Oracle:      users_id_seq.NEXTVAL
