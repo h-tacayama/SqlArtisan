@@ -61,43 +61,39 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
         }
     }
 
-    // #386: a fresh user authenticates, but MySQL denies selecting a database
-    // the user has no grant on before any catalog row is read — and identically
-    // whether the name is real or made up — so the connection-time message
-    // #387 already builds covers this case with no further code change.
+    // #386: the fixture's own connecting user has grants on the seeded database
+    // only (Testcontainers' default MySQL account carries no CREATE USER, so a
+    // restricted second account cannot be minted here) — that user still
+    // authenticates against the real "mysql" system schema, but information_schema
+    // shows none of its tables, exactly as it shows none for a schema that does
+    // not exist at all.
     [Fact]
-    public void GenerateTables_MySql_NoPrivileges_FailsAtConnectLikeAnUnknownDatabase()
+    public void GenerateTables_MySql_NoPrivileges_ReturnsEmptyLikeAnUnknownSchema()
     {
-        Execute("CREATE USER 'sqlartisan_restricted'@'%' IDENTIFIED BY 'Restricted-Pw1!'");
-        try
-        {
-            MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+        MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
 
-            CommandLineException realDatabase = Assert.Throws<CommandLineException>(
-                () => RestrictedReader(builder, builder.Database).GetAllTables());
-            CommandLineException unknownDatabase = Assert.Throws<CommandLineException>(
-                () => RestrictedReader(builder, "sqlartisan_unknown_db").GetAllTables());
+        IReadOnlyList<CatalogTable> realSchemaNoGrant = SchemaReader(builder, "mysql").GetAllTables();
+        IReadOnlyList<CatalogTable> unknownSchema =
+            SchemaReader(builder, "sqlartisan_unknown_schema").GetAllTables();
 
-            Assert.Contains("Cannot connect", realDatabase.Message, StringComparison.Ordinal);
-            Assert.Contains("Cannot connect", unknownDatabase.Message, StringComparison.Ordinal);
-        }
-        finally
-        {
-            Execute("DROP USER 'sqlartisan_restricted'@'%'");
-        }
+        Assert.Empty(realSchemaNoGrant);
+        Assert.Empty(unknownSchema);
     }
 
-    private static InformationSchemaCatalogReader RestrictedReader(
-        MySqlConnectionStringBuilder builder, string database) =>
+    // The connection string's Database (what USE selects) stays the seeded,
+    // granted database; only the schema the WHERE clause filters by changes —
+    // so this never touches the CREATE-USER-requiring connect-time path.
+    private static InformationSchemaCatalogReader SchemaReader(
+        MySqlConnectionStringBuilder builder, string schema) =>
         new(
             new DbConnectionInfo(
                 Dbms.MySql,
                 builder.Server,
                 (int)builder.Port,
-                database,
-                database,
-                "sqlartisan_restricted",
-                "Restricted-Pw1!"),
+                builder.Database,
+                schema,
+                builder.UserID,
+                builder.Password),
             lowercaseNames: false);
 
     private DbConnectionInfo ConnInfo()
@@ -207,6 +203,10 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         }
         finally
         {
+            // The reader's connection is disposed, but ADO.NET pooling keeps the
+            // underlying session alive server-side — DROP LOGIN fails against a
+            // login that still looks logged in without this.
+            SqlConnection.ClearAllPools();
             Execute("DROP USER sqlartisan_restricted");
             Execute("DROP LOGIN sqlartisan_restricted");
         }
@@ -444,12 +444,14 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
     }
 
     // #386: ALL_TABLES is privilege-filtered like the other engines' catalogs —
-    // the seeded app user has no grant into SYSTEM's own tables, so pointing
-    // --schema there returns an empty catalog exactly like a schema that does
-    // not exist. No restricted user is needed: the app user's own CONNECT +
-    // RESOURCE grant already excludes it from SYSTEM's objects.
+    // reading it never throws for a schema the app user has no grant into. It is
+    // not empty here: SYSTEM owns a handful of tables (HELP, OL$...) Oracle grants
+    // to PUBLIC by default, so those are the only rows visible — proving the
+    // filtering, not a bare empty result. No restricted user is needed: the app
+    // user's own CONNECT + RESOURCE grant already excludes it from everything else
+    // SYSTEM owns.
     [Fact]
-    public void GenerateTables_Oracle_NoPrivilegesOnRealSchema_ReturnsEmptyLikeAnUnknownSchema()
+    public void GenerateTables_Oracle_NoPrivileges_FiltersRatherThanThrows()
     {
         OracleConnectionStringBuilder builder = new(_fixture.ConnectionString);
         string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
@@ -465,7 +467,10 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
 
         OracleCatalogReader reader = new(connInfo, lowercaseNames: true);
 
-        Assert.Empty(reader.GetAllTables());
+        IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
+
+        Assert.NotEmpty(tables);
+        Assert.DoesNotContain(tables, t => t.TableName == "users" || t.TableName == "orders");
     }
 
     private void TryExecute(string sql)
