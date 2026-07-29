@@ -1,21 +1,39 @@
+using System.Text.RegularExpressions;
 using LinqToDB.Data;
 using SqlArtisan.Benchmark.EfCoreModel;
 
 namespace SqlArtisan.Benchmark;
 
-// Runs outside the measured loop (`dotnet run -- validate`). Only the parameter count is
-// asserted — SQL text differs legitimately by dialect and alias generation, so the logical
-// query is merely printed, which is how the SqlKata drift (#382) got through.
+// Runs outside the measured loop (`dotnet run -- validate`). Asserts the shape every
+// comparison entrant must share rather than the SQL text, which differs legitimately by
+// dialect and alias generation — a parameter-count-only check let #382 through.
 public static class BenchmarkValidation
 {
+    private static readonly Regex AggregateCall = new(@"\bCOUNT\s*\(", RegexOptions.IgnoreCase);
+
+    // Each dialect spells the keys differently, so only their number is comparable —
+    // counted by comma, which is exact while every entrant groups by bare columns.
+    private static readonly Regex GroupByKeys = new(
+        @"GROUP BY (?<keys>.*?)(?: ORDER BY | HAVING |$)",
+        RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+    // linq2db pretty-prints across lines, so the clause boundaries only line up once
+    // every run of whitespace is one space.
+    private static readonly Regex Whitespace = new(@"\s+");
+
+    // #382 hid an expression inside a quoted identifier — "COUNT(orders"."id)" — which
+    // reads as both an aggregate and two GROUP BY keys until the quotes are collapsed.
+    private static readonly Regex QuotedIdentifier = new("\"[^\"]*\"");
+
     public static int Run()
     {
         const int expectedParameters = 2;
+        const int expectedGroupByKeys = 2;
 
         using DataConnection linq2db = Linq2dbBenchmark.CreateConnection();
         using BenchmarkDbContext efCore = EfCoreBenchmark.CreateContext();
 
-        (string Name, Func<(string Sql, int ParameterCount)> Build, bool MustParameterize)[] entrants =
+        (string Name, Func<(string Sql, int ParameterCount)> Build, bool BuildsSharedQuery)[] entrants =
         [
             ("StringBuilder", StringBuilderBenchmark.Run, true),
             ("DapperSqlBuilder", DapperSqlBuilderBenchmark.Run, true),
@@ -29,24 +47,53 @@ public static class BenchmarkValidation
         ];
 
         bool ok = true;
-        foreach ((string name, Func<(string Sql, int ParameterCount)> build, bool mustParameterize) in entrants)
+        foreach ((string name, Func<(string Sql, int ParameterCount)> build, bool shared) in entrants)
         {
             (string sql, int parameterCount) = build();
-            bool entrantOk = !mustParameterize || parameterCount == expectedParameters;
-            ok &= entrantOk;
+            string? drift = shared
+                ? Drift(sql, parameterCount, expectedParameters, expectedGroupByKeys)
+                : null;
+            ok &= drift is null;
 
-            Console.WriteLine($"=== {name} === parameters: {parameterCount}{(entrantOk ? "" : $"  <-- EXPECTED {expectedParameters}")}");
+            Console.WriteLine($"=== {name} === parameters: {parameterCount}{(drift is null ? "" : $"  <-- {drift}")}");
             Console.WriteLine(sql);
             Console.WriteLine();
         }
 
         if (ok)
         {
-            Console.WriteLine($"OK: every parameterizing entrant produced {expectedParameters} parameters.");
+            Console.WriteLine(
+                $"OK: every checked entrant built the shared query with {expectedParameters} bind parameters.");
             return 0;
         }
 
-        Console.WriteLine("FAIL: an entrant did not parameterize the query as expected.");
+        Console.WriteLine("FAIL: an entrant did not build the shared query as expected.");
         return 1;
+    }
+
+    private static string? Drift(string sql, int parameters, int expectedParameters, int expectedKeys)
+    {
+        if (parameters != expectedParameters)
+        {
+            return $"EXPECTED {expectedParameters} PARAMETERS";
+        }
+
+        string bare = QuotedIdentifier.Replace(Whitespace.Replace(sql, " "), "_");
+
+        // Sqlify sorts by COUNT(*), so searching the whole statement would let an
+        // aggregate in ORDER BY vouch for a projection that is no longer there.
+        int sort = bare.LastIndexOf(" ORDER BY ", StringComparison.OrdinalIgnoreCase);
+
+        if (!AggregateCall.IsMatch(sort < 0 ? bare : bare[..sort]))
+        {
+            return "NO AGGREGATE — not the shared query";
+        }
+
+        Match groupBy = GroupByKeys.Match(bare);
+        int keys = groupBy.Success ? groupBy.Groups["keys"].Value.Split(',').Length : 0;
+
+        return keys == expectedKeys
+            ? null
+            : $"GROUP BY NAMES {keys} {(keys == 1 ? "KEY" : "KEYS")}, EXPECTED {expectedKeys}";
     }
 }
