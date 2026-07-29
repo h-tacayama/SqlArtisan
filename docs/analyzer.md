@@ -584,12 +584,15 @@ function-based index makes **every** column of that table record nothing — its
 expression text is stored in a form the tool does not read, so the whole table
 degrades to unknown rather than guess.
 
-To learn what the planner actually did, ask the engine: run `sql.Text` with its
-bind parameters through your database's `EXPLAIN` (or its equivalent — SQL
-Server spells it `SET SHOWPLAN_XML ON`), against data of production-like volume.
-That last part is the whole condition: the choice turns on table sizes and
-statistics your test database does not have, so a plan read there describes that
-dataset rather than what production will do with the same query.
+To learn what the planner actually did, ask the engine: feed `sql.Text` and its
+bind parameters to your engine's plan report, and read it against data of
+production-like volume. The spelling differs — MySQL `EXPLAIN`, Oracle
+`EXPLAIN PLAN` (which writes to `PLAN_TABLE` for you to read back), PostgreSQL
+`EXPLAIN`, SQLite `EXPLAIN QUERY PLAN` (plain `EXPLAIN` there returns bytecode),
+SQL Server the `SET SHOWPLAN_XML ON` session option. That volume condition is
+the whole of it: the choice turns on table sizes and statistics your test
+database does not have, so a plan read there describes that dataset rather than
+what production will do with the same query.
 
 The sixth can change which rows come back, not just how fast they come back. A
 column compared to a value of another type category leaves the engine to
