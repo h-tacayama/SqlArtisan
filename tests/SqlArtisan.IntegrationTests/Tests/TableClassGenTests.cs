@@ -61,6 +61,45 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
         }
     }
 
+    // #386: a fresh user authenticates, but MySQL denies selecting a database
+    // the user has no grant on before any catalog row is read — and identically
+    // whether the name is real or made up — so the connection-time message
+    // #387 already builds covers this case with no further code change.
+    [Fact]
+    public void GenerateTables_MySql_NoPrivileges_FailsAtConnectLikeAnUnknownDatabase()
+    {
+        Execute("CREATE USER 'sqlartisan_restricted'@'%' IDENTIFIED BY 'Restricted-Pw1!'");
+        try
+        {
+            MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+
+            CommandLineException realDatabase = Assert.Throws<CommandLineException>(
+                () => RestrictedReader(builder, builder.Database).GetAllTables());
+            CommandLineException unknownDatabase = Assert.Throws<CommandLineException>(
+                () => RestrictedReader(builder, "sqlartisan_unknown_db").GetAllTables());
+
+            Assert.Contains("Cannot connect", realDatabase.Message, StringComparison.Ordinal);
+            Assert.Contains("Cannot connect", unknownDatabase.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Execute("DROP USER 'sqlartisan_restricted'@'%'");
+        }
+    }
+
+    private static InformationSchemaCatalogReader RestrictedReader(
+        MySqlConnectionStringBuilder builder, string database) =>
+        new(
+            new DbConnectionInfo(
+                Dbms.MySql,
+                builder.Server,
+                (int)builder.Port,
+                database,
+                database,
+                "sqlartisan_restricted",
+                "Restricted-Pw1!"),
+            lowercaseNames: false);
+
     private DbConnectionInfo ConnInfo()
     {
         MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
@@ -138,6 +177,38 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
             Execute("DROP INDEX ix_upper_name ON users");
             Execute("ALTER TABLE users DROP COLUMN upper_name");
             Execute("DROP INDEX ix_age_dept ON users");
+        }
+    }
+
+    // #386: a login mapped to a user with no grants still connects — CONNECT
+    // comes via the public role — but sees none of the seeded tables, the same
+    // empty catalog an unknown --schema produces.
+    [Fact]
+    public void GenerateTables_SqlServer_NoPrivileges_ReturnsEmptyLikeAnUnknownSchema()
+    {
+        Execute("CREATE LOGIN sqlartisan_restricted WITH PASSWORD = 'Restricted-Pw1!'");
+        Execute("CREATE USER sqlartisan_restricted FOR LOGIN sqlartisan_restricted");
+        try
+        {
+            SqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+            string[] dataSource = builder.DataSource.Replace("tcp:", string.Empty).Split(',', 2);
+            DbConnectionInfo connInfo = new(
+                Dbms.SqlServer,
+                dataSource[0],
+                dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1433,
+                string.IsNullOrEmpty(builder.InitialCatalog) ? "master" : builder.InitialCatalog,
+                "dbo",
+                "sqlartisan_restricted",
+                "Restricted-Pw1!");
+
+            InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
+
+            Assert.Empty(reader.GetAllTables());
+        }
+        finally
+        {
+            Execute("DROP USER sqlartisan_restricted");
+            Execute("DROP LOGIN sqlartisan_restricted");
         }
     }
 
@@ -226,6 +297,35 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
             Execute("DROP INDEX IF EXISTS ix_mixed");
             Execute("DROP INDEX IF EXISTS ix_upper_name");
             Execute("DROP INDEX IF EXISTS ix_age_dept");
+        }
+    }
+
+    // #386: a fresh role connects fine — CONNECT is PUBLIC-granted by default —
+    // but sees none of the seeded tables, the same empty catalog an unknown
+    // --schema produces.
+    [Fact]
+    public void GenerateTables_PostgreSql_NoPrivileges_ReturnsEmptyLikeAnUnknownSchema()
+    {
+        Execute("CREATE ROLE sqlartisan_restricted LOGIN PASSWORD 'Restricted-Pw1!'");
+        try
+        {
+            NpgsqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+            DbConnectionInfo connInfo = new(
+                Dbms.PostgreSql,
+                builder.Host!,
+                builder.Port,
+                builder.Database!,
+                "public",
+                "sqlartisan_restricted",
+                "Restricted-Pw1!");
+
+            InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
+
+            Assert.Empty(reader.GetAllTables());
+        }
+        finally
+        {
+            Execute("DROP ROLE sqlartisan_restricted");
         }
     }
 
@@ -341,6 +441,31 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         {
             TryExecute("DROP TABLE default_probe");
         }
+    }
+
+    // #386: ALL_TABLES is privilege-filtered like the other engines' catalogs —
+    // the seeded app user has no grant into SYSTEM's own tables, so pointing
+    // --schema there returns an empty catalog exactly like a schema that does
+    // not exist. No restricted user is needed: the app user's own CONNECT +
+    // RESOURCE grant already excludes it from SYSTEM's objects.
+    [Fact]
+    public void GenerateTables_Oracle_NoPrivilegesOnRealSchema_ReturnsEmptyLikeAnUnknownSchema()
+    {
+        OracleConnectionStringBuilder builder = new(_fixture.ConnectionString);
+        string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
+
+        DbConnectionInfo connInfo = new(
+            Dbms.Oracle,
+            dataSource[0],
+            dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1521,
+            dataSource.Length > 2 ? dataSource[2] : "XEPDB1",
+            "SYSTEM",
+            builder.UserID,
+            builder.Password);
+
+        OracleCatalogReader reader = new(connInfo, lowercaseNames: true);
+
+        Assert.Empty(reader.GetAllTables());
     }
 
     private void TryExecute(string sql)
