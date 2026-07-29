@@ -561,13 +561,6 @@ to range over. The remediation is the same in every case — leave the column ba
 on the filtered side and move the work to the other side, or index the expression
 itself, which the generator then records as unknown and the rule stops reporting.
 
-To learn what the planner actually did, ask the engine: run `sql.Text` with its
-bind parameters through your database's `EXPLAIN` (or its equivalent — SQL
-Server spells it `SET SHOWPLAN_XML ON`), against data of production-like volume.
-That last part is the whole condition: the choice turns on table sizes and
-statistics your test database does not have, so a plan read there describes that
-dataset rather than what production will do with the same query.
-
 Only `WHERE` and `ON` are checked. The same call in a select list or an
 `ORDER BY` costs no index, and `HAVING` filters groups after any index has done
 its work. A condition built apart from its clause is left alone: nothing at that
@@ -590,6 +583,13 @@ column that leads only a partial index stays unknown. On Oracle, one
 function-based index makes **every** column of that table record nothing — its
 expression text is stored in a form the tool does not read, so the whole table
 degrades to unknown rather than guess.
+
+To learn what the planner actually did, ask the engine: run `sql.Text` with its
+bind parameters through your database's `EXPLAIN` (or its equivalent — SQL
+Server spells it `SET SHOWPLAN_XML ON`), against data of production-like volume.
+That last part is the whole condition: the choice turns on table sizes and
+statistics your test database does not have, so a plan read there describes that
+dataset rather than what production will do with the same query.
 
 The sixth can change which rows come back, not just how fast they come back. A
 column compared to a value of another type category leaves the engine to
