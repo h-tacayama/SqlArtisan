@@ -20,12 +20,12 @@ Keep the filter quoted. Run from the project directory instead and the unquoted
 pattern matches `SqlBuilderBenchmarks.cs`, so the shell hands BenchmarkDotNet a
 filename that matches no benchmark.
 
-`validate` asserts that every entrant required to parameterize the query produced
-exactly two bind parameters, and prints each entrant's SQL so the logical query
-can be compared by eye — that half is not asserted, so an entrant that drifts
-into building a *different* query still passes. Run it after touching any
-entrant; a change that quietly stops parameterizing would otherwise look like a
-win.
+`validate` asserts that every entrant in the comparison built the shared query:
+exactly two bind parameters, an aggregate, and two `GROUP BY` keys. It checks the
+shape rather than the text, because dialects, alias generation and EF Core's
+pipeline all spell the same query differently. Run it after touching any entrant
+— a change that quietly stops parameterizing, or stops aggregating, would
+otherwise look like a win.
 
 **Release configuration is required.** BenchmarkDotNet refuses to run a Debug
 build, and a measurement taken on a shared or virtualized host is not comparable
@@ -34,7 +34,7 @@ to the root README's figures.
 ## What is measured
 
 Every entrant builds the SQL string **and** its bind-parameter collection for the
-same logical query, so the comparison is meant to be like-for-like:
+same logical query, so the comparison is like-for-like:
 
 ```csharp
 Select(u.Id.As("user_id"), u.Name.As("user_name"), Count(o.Id).As("order_count"))
@@ -59,10 +59,6 @@ Entrants fall into three categories, and only one of them is a comparison:
 | `Builders` | SqlArtisan (twice — specific and Dapper dynamic parameters), Dapper.SqlBuilder, InterpolatedSql, linq2db, Sqlify, SqlKata | The like-for-like set |
 | `Baseline` | A hand-written `StringBuilder` + Dapper `DynamicParameters` | The floor — no type safety, no dialect handling |
 | `ORM reference` | EF Core | Materially different work; shown only for scale |
-
-One `Builders` row is not comparable today: the SqlKata entrant builds a
-different query — no aggregate, and a mangled `GROUP BY` key — which `validate`
-does not catch for the reason above. Tracked as #382.
 
 linq2db and EF Core reuse a connection object and a `DbContext` created once in
 `[GlobalSetup]` — neither is ever opened — and EF Core caches the compiled query

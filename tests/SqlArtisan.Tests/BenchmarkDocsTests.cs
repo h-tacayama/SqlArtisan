@@ -88,18 +88,20 @@ public class BenchmarkDocsTests
         }
     }
 
-    [Fact]
-    public void ValidateDescription_ExpectedParameterCount_MatchesTheSource()
+    [Theory]
+    [InlineData("expectedParameters", "exactly {0} bind parameters")]
+    [InlineData("expectedGroupByKeys", "{0} `GROUP BY` keys")]
+    public void ValidateDescription_AssertedShape_MatchesTheSource(string constant, string phrasing)
     {
         string root = FindRepoRoot();
         string source = File.ReadAllText(
             Path.Combine(root, BenchmarkDir, "Benchmark", "BenchmarkValidation.cs"));
 
-        Match expected = Regex.Match(source, @"const int expectedParameters = (?<count>\d+);");
+        Match expected = Regex.Match(source, $@"const int {constant} = (?<count>\d+);");
 
-        Assert.True(expected.Success, "BenchmarkValidation no longer names its expected count.");
+        Assert.True(expected.Success, $"BenchmarkValidation no longer declares {constant}.");
         Assert.Contains(
-            $"exactly {NumberWord(expected.Groups["count"].Value)} bind parameters",
+            string.Format(phrasing, NumberWord(expected.Groups["count"].Value)),
             ReadDocs(root));
     }
 
