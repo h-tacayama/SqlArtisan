@@ -61,6 +61,41 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
         }
     }
 
+    // #386: the fixture's own connecting user has grants on the seeded database
+    // only (Testcontainers' default MySQL account carries no CREATE USER, so a
+    // restricted second account cannot be minted here) — that user still
+    // authenticates against the real "mysql" system schema, but information_schema
+    // shows none of its tables, exactly as it shows none for a schema that does
+    // not exist at all.
+    [Fact]
+    public void GenerateTables_MySql_NoPrivileges_ReturnsEmptyLikeAnUnknownSchema()
+    {
+        MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+
+        IReadOnlyList<CatalogTable> realSchemaNoGrant = SchemaReader(builder, "mysql").GetAllTables();
+        IReadOnlyList<CatalogTable> unknownSchema =
+            SchemaReader(builder, "sqlartisan_unknown_schema").GetAllTables();
+
+        Assert.Empty(realSchemaNoGrant);
+        Assert.Empty(unknownSchema);
+    }
+
+    // The connection string's Database (what USE selects) stays the seeded,
+    // granted database; only the schema the WHERE clause filters by changes —
+    // so this never touches the CREATE-USER-requiring connect-time path.
+    private static InformationSchemaCatalogReader SchemaReader(
+        MySqlConnectionStringBuilder builder, string schema) =>
+        new(
+            new DbConnectionInfo(
+                Dbms.MySql,
+                builder.Server,
+                (int)builder.Port,
+                builder.Database,
+                schema,
+                builder.UserID,
+                builder.Password),
+            lowercaseNames: false);
+
     private DbConnectionInfo ConnInfo()
     {
         MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
@@ -138,6 +173,48 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
             Execute("DROP INDEX ix_upper_name ON users");
             Execute("ALTER TABLE users DROP COLUMN upper_name");
             Execute("DROP INDEX ix_age_dept ON users");
+        }
+    }
+
+    // #386: a login mapped to a user with no grants still connects — CONNECT
+    // comes via the public role. The read never throws, which is the property
+    // in question, but it is not empty: master carries legacy compatibility
+    // tables (spt_fallback_db and siblings) SQL Server grants to public by
+    // default, so those are the only rows visible — proving the filtering,
+    // not a bare empty result.
+    [Fact]
+    public void GenerateTables_SqlServer_NoPrivileges_FiltersRatherThanThrows()
+    {
+        Execute("CREATE LOGIN sqlartisan_restricted WITH PASSWORD = 'Restricted-Pw1!'");
+        Execute("CREATE USER sqlartisan_restricted FOR LOGIN sqlartisan_restricted");
+        try
+        {
+            SqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+            string[] dataSource = builder.DataSource.Replace("tcp:", string.Empty).Split(',', 2);
+            DbConnectionInfo connInfo = new(
+                Dbms.SqlServer,
+                dataSource[0],
+                dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1433,
+                string.IsNullOrEmpty(builder.InitialCatalog) ? "master" : builder.InitialCatalog,
+                "dbo",
+                "sqlartisan_restricted",
+                "Restricted-Pw1!");
+
+            InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
+
+            IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
+
+            Assert.NotEmpty(tables);
+            Assert.DoesNotContain(tables, t => t.TableName == "users" || t.TableName == "orders");
+        }
+        finally
+        {
+            // The reader's connection is disposed, but ADO.NET pooling keeps the
+            // underlying session alive server-side — DROP LOGIN fails against a
+            // login that still looks logged in without this.
+            SqlConnection.ClearAllPools();
+            Execute("DROP USER sqlartisan_restricted");
+            Execute("DROP LOGIN sqlartisan_restricted");
         }
     }
 
@@ -226,6 +303,35 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
             Execute("DROP INDEX IF EXISTS ix_mixed");
             Execute("DROP INDEX IF EXISTS ix_upper_name");
             Execute("DROP INDEX IF EXISTS ix_age_dept");
+        }
+    }
+
+    // #386: a fresh role connects fine — CONNECT is PUBLIC-granted by default —
+    // but sees none of the seeded tables, the same empty catalog an unknown
+    // --schema produces.
+    [Fact]
+    public void GenerateTables_PostgreSql_NoPrivileges_ReturnsEmptyLikeAnUnknownSchema()
+    {
+        Execute("CREATE ROLE sqlartisan_restricted LOGIN PASSWORD 'Restricted-Pw1!'");
+        try
+        {
+            NpgsqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+            DbConnectionInfo connInfo = new(
+                Dbms.PostgreSql,
+                builder.Host!,
+                builder.Port,
+                builder.Database!,
+                "public",
+                "sqlartisan_restricted",
+                "Restricted-Pw1!");
+
+            InformationSchemaCatalogReader reader = new(connInfo, lowercaseNames: false);
+
+            Assert.Empty(reader.GetAllTables());
+        }
+        finally
+        {
+            Execute("DROP ROLE sqlartisan_restricted");
         }
     }
 
@@ -341,6 +447,36 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         {
             TryExecute("DROP TABLE default_probe");
         }
+    }
+
+    // #386: ALL_TABLES is privilege-filtered like the other engines' catalogs —
+    // reading it never throws for a schema the app user has no grant into. It is
+    // not empty here: SYSTEM owns a handful of tables (HELP, OL$...) Oracle grants
+    // to PUBLIC by default, so those are the only rows visible — proving the
+    // filtering, not a bare empty result. No restricted user is needed: the app
+    // user's own CONNECT + RESOURCE grant already excludes it from everything else
+    // SYSTEM owns.
+    [Fact]
+    public void GenerateTables_Oracle_NoPrivileges_FiltersRatherThanThrows()
+    {
+        OracleConnectionStringBuilder builder = new(_fixture.ConnectionString);
+        string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
+
+        DbConnectionInfo connInfo = new(
+            Dbms.Oracle,
+            dataSource[0],
+            dataSource.Length > 1 ? int.Parse(dataSource[1]) : 1521,
+            dataSource.Length > 2 ? dataSource[2] : "XEPDB1",
+            "SYSTEM",
+            builder.UserID,
+            builder.Password);
+
+        OracleCatalogReader reader = new(connInfo, lowercaseNames: true);
+
+        IReadOnlyList<CatalogTable> tables = reader.GetAllTables();
+
+        Assert.NotEmpty(tables);
+        Assert.DoesNotContain(tables, t => t.TableName == "users" || t.TableName == "orders");
     }
 
     private void TryExecute(string sql)
