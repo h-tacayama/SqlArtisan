@@ -6,10 +6,8 @@ namespace SqlArtisan.TableClassGen.Tests;
 // the commonest failure is testable without a container.
 public class DbConnectionInfoTests
 {
-    [Fact]
-    public void OpenConnection_Refused_NamesTheConnectionOptionsAndKeepsTheDriverMessage()
-    {
-        DbConnectionInfo info = new(
+    private static DbConnectionInfo Refused() =>
+        new(
             Dbms.PostgreSql,
             host: "127.0.0.1",
             port: 1,
@@ -18,36 +16,46 @@ public class DbConnectionInfoTests
             username: "u",
             password: "p");
 
+    [Fact]
+    public void OpenConnection_Refused_NamesOptionsTheCommandLineAccepts()
+    {
         CommandLineException error =
-            Assert.Throws<CommandLineException>(() => info.OpenConnection());
+            Assert.Throws<CommandLineException>(() => Refused().OpenConnection());
 
         Assert.Contains("--host", error.Message, StringComparison.Ordinal);
+        Assert.Contains("--database", error.Message, StringComparison.Ordinal);
+        Assert.Contains("--user,", error.Message, StringComparison.Ordinal);
         Assert.Contains("SQLARTISAN_DB_PASSWORD", error.Message, StringComparison.Ordinal);
-
-        // The driver's own text carries the detail a rewritten message would drop,
-        // and is what a user searches with.
-        Assert.Contains("127.0.0.1:1", error.Message, StringComparison.Ordinal);
-        Assert.Contains("The driver reported:", error.Message, StringComparison.Ordinal);
     }
 
-    // Naming a DBMS the tool's own parser would reject is the bug DbmsOption records;
-    // the message stays clear of engine spellings altogether.
-    [Fact]
-    public void OpenConnection_Refused_DoesNotSpellTheEngineName()
+    // The bug this pins: an earlier version named --service-name and --username,
+    // which are DbConnectionInfo's constructor parameters, not options the parser
+    // accepts — so following the advice produced "Unknown option".
+    [Theory]
+    [InlineData("--service-name")]
+    [InlineData("--username")]
+    public void OpenConnection_Refused_NamesNoOptionTheCommandLineWouldReject(string absent)
     {
-        DbConnectionInfo info = new(
-            Dbms.PostgreSql,
-            host: "127.0.0.1",
-            port: 1,
-            serviceName: "db",
-            schema: "public",
-            username: "u",
-            password: "p");
+        CommandLineException error =
+            Assert.Throws<CommandLineException>(() => Refused().OpenConnection());
+
+        Assert.DoesNotContain(absent, error.Message, StringComparison.Ordinal);
+    }
+
+    // Asserting the driver's own words would pin a message that changes with the
+    // provider, so what is pinned is that something survives the marker.
+    [Fact]
+    public void OpenConnection_Refused_KeepsTheDriverMessageAsTheCause()
+    {
+        const string Marker = "The driver reported: ";
 
         CommandLineException error =
-            Assert.Throws<CommandLineException>(() => info.OpenConnection());
+            Assert.Throws<CommandLineException>(() => Refused().OpenConnection());
 
-        Assert.DoesNotContain("PostgreSql", error.Message, StringComparison.Ordinal);
+        int at = error.Message.IndexOf(Marker, StringComparison.Ordinal);
+
+        Assert.True(at >= 0, $"no '{Marker}' in: {error.Message}");
+        Assert.NotEmpty(error.Message[(at + Marker.Length)..].Trim());
     }
 
     [Fact]
@@ -62,12 +70,34 @@ public class DbConnectionInfoTests
             username: string.Empty,
             password: string.Empty);
 
-        Assert.Contains("--service-name", info.EmptyCatalogMessage, StringComparison.Ordinal);
+        Assert.Contains("--file", info.EmptyCatalogMessage, StringComparison.Ordinal);
         Assert.Contains("/tmp/missing.db", info.EmptyCatalogMessage, StringComparison.Ordinal);
     }
 
+    // --schema is optional on these two, so the option it falls back to is the one
+    // the user can actually have got wrong.
+    [Theory]
+    [InlineData(Dbms.MySql, "--database")]
+    [InlineData(Dbms.Oracle, "--user")]
+    public void EmptyCatalogMessage_SchemaDefaultingEngine_NamesWhatItDefaultsTo(
+        Dbms dbms,
+        string expected)
+    {
+        DbConnectionInfo info = new(
+            dbms,
+            host: "localhost",
+            port: 1521,
+            serviceName: "db",
+            schema: "typo",
+            username: "u",
+            password: "p");
+
+        Assert.Contains("--schema", info.EmptyCatalogMessage, StringComparison.Ordinal);
+        Assert.Contains(expected, info.EmptyCatalogMessage, StringComparison.Ordinal);
+    }
+
     [Fact]
-    public void EmptyCatalogMessage_SchemaEngine_NamesTheSchemaOption()
+    public void EmptyCatalogMessage_RequiredSchemaEngine_NamesTheSchemaOption()
     {
         DbConnectionInfo info = new(
             Dbms.PostgreSql,

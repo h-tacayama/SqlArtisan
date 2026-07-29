@@ -221,7 +221,7 @@ public class TableClassGeneratorTests : IDisposable
             () => Run(db, RunMode.Generate));
 
         Assert.Contains("No tables found", error.Message, StringComparison.Ordinal);
-        Assert.Contains("--service-name", error.Message, StringComparison.Ordinal);
+        Assert.Contains("--file", error.Message, StringComparison.Ordinal);
     }
 
     // The guard must not swallow this: an emptied schema whose classes are still

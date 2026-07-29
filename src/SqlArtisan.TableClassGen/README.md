@@ -101,9 +101,8 @@ A run that reads no tables and finds no generated files to report on is an error
 not an empty success — otherwise a misspelled `--schema` would look identical to a
 clean run. A schema whose tables were genuinely dropped still reports its
 committed classes as removed, so only a run with nothing at all to say fails here.
-On SQLite the option to check is `--service-name`: a path that does not exist is
-created as an empty database rather than rejected, so a typo there connects
-successfully.
+On SQLite the option to check is `--file`: a path that does not exist is created
+as an empty database rather than rejected, so a typo there connects successfully.
 
 For scripting, `--format json` reports the same result as data, and `--dry-run`
 reports what a run would write without writing it.
