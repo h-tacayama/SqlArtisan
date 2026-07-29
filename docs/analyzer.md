@@ -561,6 +561,12 @@ to range over. The remediation is the same in every case — leave the column ba
 on the filtered side and move the work to the other side, or index the expression
 itself, which the generator then records as unknown and the rule stops reporting.
 
+To learn what the planner actually did, ask the engine: run `sql.Text` with its
+bind parameters through your database's `EXPLAIN` (or its equivalent), against
+data of production-like volume. Read it anywhere else and it will mislead you —
+on a small test dataset a full scan *is* the cheapest plan, so the answer says
+more about the row count than about the query.
+
 Only `WHERE` and `ON` are checked. The same call in a select list or an
 `ORDER BY` costs no index, and `HAVING` filters groups after any index has done
 its work. A condition built apart from its clause is left alone: nothing at that
