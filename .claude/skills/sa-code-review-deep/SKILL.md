@@ -49,3 +49,10 @@ Append a **Suggestions (optional, non-blocking)** zone after
 `sa-code-review`'s must-fix findings, each tagged `file:line`. Never mix a
 suggestion into the must-fix zone, and never let one block the mergeable
 verdict.
+
+A suggestion is still something you are proposing the author *do* — a change
+they could apply. An observation with no change attached ("worth knowing",
+"already fine") is not a suggestion and belongs nowhere in the report. **An
+empty suggestions zone is a normal result**: being invoked as the deep variant
+does not oblige you to find something, and inventing a suggestion to fill the
+zone costs the author more attention than it returns.
