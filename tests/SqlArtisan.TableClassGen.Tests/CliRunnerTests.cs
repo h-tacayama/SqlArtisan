@@ -4,6 +4,12 @@ namespace SqlArtisan.TableClassGen.Tests;
 
 public class CliRunnerTests
 {
+    private const string TwoTables =
+        """
+        CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT);
+        CREATE TABLE tag (id INTEGER PRIMARY KEY, label TEXT);
+        """;
+
     [Fact]
     public void Run_Help_ExitsSuccessfully()
     {
@@ -21,134 +27,42 @@ public class CliRunnerTests
         Assert.Equal(2, CliRunner.Run([]));
     }
 
-    // The two must agree: a dry run that promises nothing followed by a real run
-    // claiming three writes reads as a broken preview, and the --verbose listing
-    // would name files whose timestamps never moved.
+    // Skipping the write must not make a table invisible: the run has to stay
+    // distinguishable from one that never read the table at all.
     [Fact]
-    public void Run_OnInSyncTree_DryRunAndRealRunAgreeOnNoWrites()
+    public void Run_InSyncTree_ReportsEveryTableReadAndNoneWritten()
     {
-        using TempSqliteDatabase db = TempSqliteDatabase.Create(
-            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT);");
-        string outputDirectory = Path.Combine(
-            Path.GetTempPath(), $"sqlartisan_tcg_cli_{Guid.NewGuid():N}");
-        TextWriter original = Console.Out;
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(TwoTables);
+        using TempOutputDirectory output = new();
 
-        try
-        {
-            string[] args =
-            [
-                "--dbms", "sqlite", "--file", db.ConnectionInfo.ServiceName,
-                "--namespace", "N", "--output", outputDirectory,
-            ];
+        Assert.Equal(0, CliRunner.Run(output.Args(db)));
 
-            Assert.Equal(0, CliRunner.Run(args));
+        string report = Capture(() => CliRunner.Run([.. output.Args(db), "--verbose"]));
 
-            StringWriter captured = new();
-            Console.SetOut(captured);
-            Assert.Equal(0, CliRunner.Run([.. args, "--verbose"]));
-            Console.SetOut(original);
-
-            string output = captured.ToString();
-
-            Assert.Contains("Generated 0 table classes", output, StringComparison.Ordinal);
-            Assert.DoesNotContain("ItemTable.cs", output, StringComparison.Ordinal);
-        }
-        finally
-        {
-            Console.SetOut(original);
-
-            if (Directory.Exists(outputDirectory))
-            {
-                Directory.Delete(outputDirectory, recursive: true);
-            }
-        }
+        Assert.Contains("Generated 0 of 2 table classes", report, StringComparison.Ordinal);
+        Assert.Contains("unchanged", LineNaming(report, "ItemTable.cs"), StringComparison.Ordinal);
+        Assert.Contains("unchanged", LineNaming(report, "TagTable.cs"), StringComparison.Ordinal);
     }
 
-    // --dry-run promises what a real run would write, and a real run stopped
-    // rewriting files that are already current — so an in-sync tree must promise
-    // nothing. Naming files here would send a scripted caller to review an empty
-    // change. Console is safe to redirect: CliRunner is driven only from this
-    // class, whose tests xUnit runs as one serialized collection.
+    // A dry run is only useful as a preview if it states the pair the real run
+    // will: a different denominator on either side reads as a broken preview.
     [Fact]
-    public void Run_DryRunOnInSyncTree_PromisesNoWrites()
+    public void Run_WithDrift_DryRunAndRealRunReportTheSameCounts()
     {
-        using TempSqliteDatabase db = TempSqliteDatabase.Create(
-            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT);");
-        string outputDirectory = Path.Combine(
-            Path.GetTempPath(), $"sqlartisan_tcg_cli_{Guid.NewGuid():N}");
-        TextWriter original = Console.Out;
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(TwoTables);
+        using TempOutputDirectory output = new();
 
-        try
-        {
-            string[] args =
-            [
-                "--dbms", "sqlite", "--file", db.ConnectionInfo.ServiceName,
-                "--namespace", "N", "--output", outputDirectory,
-            ];
+        Assert.Equal(0, CliRunner.Run(output.Args(db)));
+        db.Execute("ALTER TABLE item ADD COLUMN note TEXT");
 
-            Assert.Equal(0, CliRunner.Run(args));
+        string dry = Capture(() => CliRunner.Run([.. output.Args(db), "--dry-run", "--verbose"]));
+        string real = Capture(() => CliRunner.Run([.. output.Args(db), "--verbose"]));
 
-            StringWriter captured = new();
-            Console.SetOut(captured);
-            Assert.Equal(0, CliRunner.Run([.. args, "--dry-run", "--verbose"]));
-            Console.SetOut(original);
-
-            string output = captured.ToString();
-
-            Assert.Contains("Would generate 0 table classes", output, StringComparison.Ordinal);
-            Assert.DoesNotContain("ItemTable.cs", output, StringComparison.Ordinal);
-        }
-        finally
-        {
-            Console.SetOut(original);
-
-            if (Directory.Exists(outputDirectory))
-            {
-                Directory.Delete(outputDirectory, recursive: true);
-            }
-        }
-    }
-
-    // The legal twin: a dry run with real work to do must still name it.
-    [Fact]
-    public void Run_DryRunWithDrift_PromisesTheDriftedTable()
-    {
-        using TempSqliteDatabase db = TempSqliteDatabase.Create(
-            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT);");
-        string outputDirectory = Path.Combine(
-            Path.GetTempPath(), $"sqlartisan_tcg_cli_{Guid.NewGuid():N}");
-        TextWriter original = Console.Out;
-
-        try
-        {
-            string[] args =
-            [
-                "--dbms", "sqlite", "--file", db.ConnectionInfo.ServiceName,
-                "--namespace", "N", "--output", outputDirectory,
-            ];
-
-            Assert.Equal(0, CliRunner.Run(args));
-            db.Execute("ALTER TABLE item ADD COLUMN note TEXT");
-
-            StringWriter captured = new();
-            Console.SetOut(captured);
-            Assert.Equal(0, CliRunner.Run([.. args, "--dry-run", "--verbose"]));
-            Console.SetOut(original);
-
-            string output = captured.ToString();
-
-            Assert.Contains("Would generate 1 table class", output, StringComparison.Ordinal);
-            Assert.Contains("ItemTable.cs", output, StringComparison.Ordinal);
-        }
-        finally
-        {
-            Console.SetOut(original);
-
-            if (Directory.Exists(outputDirectory))
-            {
-                Directory.Delete(outputDirectory, recursive: true);
-            }
-        }
+        Assert.Contains("Would generate 1 of 2 table classes", dry, StringComparison.Ordinal);
+        Assert.Contains("Generated 1 of 2 table classes", real, StringComparison.Ordinal);
+        Assert.Contains("modified", LineNaming(dry, "ItemTable.cs"), StringComparison.Ordinal);
+        Assert.Contains("modified", LineNaming(real, "ItemTable.cs"), StringComparison.Ordinal);
+        Assert.Contains("unchanged", LineNaming(real, "TagTable.cs"), StringComparison.Ordinal);
     }
 
     // A dry --fix regenerates nothing, so drift must still exit 1 — reporting
@@ -183,6 +97,54 @@ public class CliRunnerTests
             if (Directory.Exists(outputDirectory))
             {
                 Directory.Delete(outputDirectory, recursive: true);
+            }
+        }
+    }
+
+    // Returns stdout; a non-zero exit fails here rather than surfacing later as a
+    // puzzling assertion on missing text. Redirecting Console is safe because
+    // CliRunner is driven only from this class, which xUnit runs as one collection.
+    private static string Capture(Func<int> run)
+    {
+        TextWriter original = Console.Out;
+        StringWriter captured = new();
+
+        try
+        {
+            Console.SetOut(captured);
+            Assert.Equal(0, run());
+        }
+        finally
+        {
+            Console.SetOut(original);
+        }
+
+        return captured.ToString();
+    }
+
+    // Asserting the padded column width would pin the format string rather than
+    // the status, so the status is read off the line naming the file.
+    private static string LineNaming(string report, string fileName) =>
+        Assert.Single(
+            report.Split(Environment.NewLine)
+                .Where(line => line.Contains(fileName, StringComparison.Ordinal)));
+
+    private sealed class TempOutputDirectory : IDisposable
+    {
+        private readonly string _path = Path.Combine(
+            Path.GetTempPath(), $"sqlartisan_tcg_cli_{Guid.NewGuid():N}");
+
+        public string[] Args(TempSqliteDatabase db) =>
+        [
+            "--dbms", "sqlite", "--file", db.ConnectionInfo.ServiceName,
+            "--namespace", "N", "--output", _path,
+        ];
+
+        public void Dispose()
+        {
+            if (Directory.Exists(_path))
+            {
+                Directory.Delete(_path, recursive: true);
             }
         }
     }

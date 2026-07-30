@@ -34,7 +34,7 @@ internal static class CommandLine
         Usage:
           sa-tableclassgen [options]            generate table classes
           sa-tableclassgen --check [options]    report drift, write nothing
-          sa-tableclassgen --fix [options]      regenerate only the tables that drifted
+          sa-tableclassgen --fix [options]      regenerate the drifted tables, report them
           sa-tableclassgen                      interactive prompts (terminal only)
 
         Connection:

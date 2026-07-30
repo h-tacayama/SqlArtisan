@@ -19,7 +19,7 @@ dotnet tool install --global SqlArtisan.TableClassGen --prerelease
 ```bash
 sa-tableclassgen [options]            # generate table classes
 sa-tableclassgen --check [options]    # report drift, write nothing
-sa-tableclassgen --fix [options]      # regenerate only the tables that drifted
+sa-tableclassgen --fix [options]      # regenerate the drifted tables, report them
 sa-tableclassgen                      # interactive prompts (terminal only)
 ```
 
@@ -67,6 +67,18 @@ sa-tableclassgen --config tablegen.json
 Flags win over the file, so a one-off `--tables` or `--output` overrides it without
 editing anything.
 
+Re-running is cheap and quiet: every table is read, but a file whose content would
+not change is left untouched, so a regeneration does not restamp the directory and
+trigger a rebuild of everything downstream. The summary reports both numbers, and
+`--verbose` names each table it read with what it decided:
+
+```
+$ sa-tableclassgen --config tablegen.json --verbose
+  modified  src/MyApp/Tables/OrdersTable.cs
+  unchanged src/MyApp/Tables/CustomersTable.cs
+Generated 1 of 2 table classes in src/MyApp/Tables
+```
+
 ### Detecting drift
 
 Generated classes are committed once and then quietly fall behind the schema.
@@ -90,9 +102,10 @@ These files have no table in the database and are left untouched:
 ```
 
 `--check` writes nothing and exits `1` on drift, so it belongs in a scheduled job
-against a real environment. `--fix` then regenerates exactly the tables that differ,
-leaving the rest byte-identical — a reviewable diff rather than a whole-directory
-rewrite. A file whose table is gone from the database is reported, never deleted.
+against a real environment. `--fix` is the remediation step after it: same writes a
+plain run would make, but it reports what drifted and exits `1` while an orphan
+file remains, so a script cannot mistake "fixed" for "nothing left to do". A file
+whose table is gone from the database is reported, never deleted.
 
 The database is the authority here: SqlArtisan generates no DDL and runs no
 migrations, so drift always means the committed files are stale.

@@ -32,23 +32,27 @@ internal sealed class Reporter(RunOptions options)
 
     private void ReportGenerated(IReadOnlyList<TableResult> results)
     {
-        // A file already current is not rewritten, so both the count and the listing
-        // report the writes — otherwise a dry run would not preview the real run.
-        IReadOnlyList<TableResult> written =
-            [.. results.Where(r => r.Status is TableStatus.Added or TableStatus.Modified)];
+        IReadOnlyList<TableResult> scanned =
+            [.. results.Where(r => r.Status != TableStatus.Removed)];
+        int written = scanned.Count(r => r.Status is TableStatus.Added or TableStatus.Modified);
 
         if (options.Verbose)
         {
-            foreach (TableResult result in written)
+            // Every table read, not only the writes: a file left alone because it is
+            // already current would otherwise read as one the run never looked at.
+            foreach (TableResult result in scanned)
             {
-                Console.WriteLine($"  {result.Path}");
+                Console.WriteLine($"  {Label(result.Status),-9} {result.Path}");
             }
         }
 
         string verb = options.DryRun ? "Would generate" : "Generated";
-        int count = written.Count;
+        string noun = scanned.Count == 1 ? "class" : "classes";
 
-        Console.WriteLine($"{verb} {count} table {(count == 1 ? "class" : "classes")} in {options.Settings.OutputDirectory}");
+        // Both counts, so the line answers "what changed" and "what was read" at
+        // once — and a dry run states the same pair a real run will.
+        Console.WriteLine(
+            $"{verb} {written} of {scanned.Count} table {noun} in {options.Settings.OutputDirectory}");
 
         // The orphans are found in every full run, and --format json reports them
         // either way, so the text output must not be the one that stays quiet.
