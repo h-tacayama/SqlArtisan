@@ -34,7 +34,7 @@ internal sealed class Reporter(RunOptions options)
     {
         IReadOnlyList<TableResult> scanned =
             [.. results.Where(r => r.Status != TableStatus.Removed)];
-        int written = scanned.Count(r => r.Status is TableStatus.Added or TableStatus.Modified);
+        int written = scanned.Count(r => r.NeedsWrite);
 
         if (options.Verbose)
         {
@@ -111,8 +111,7 @@ internal sealed class Reporter(RunOptions options)
         }
 
         StringBuilder next = new();
-        IReadOnlyList<TableResult> fixable =
-            [.. drifted.Where(r => r.Status is TableStatus.Added or TableStatus.Modified)];
+        IReadOnlyList<TableResult> fixable = [.. drifted.Where(r => r.NeedsWrite)];
 
         if (fixable.Count > 0)
         {

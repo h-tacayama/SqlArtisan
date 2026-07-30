@@ -23,6 +23,11 @@ internal sealed class TableResult(
     public TableStatus Status => status;
 
     public IReadOnlyList<string> Changes => changes;
+
+    // Rewriting a byte-identical file still bumps its mtime, which MSBuild and file
+    // watchers read as a change — a regeneration would rebuild every table class.
+    // The report reads this too, so a count cannot claim a write that never happened.
+    public bool NeedsWrite => Status is TableStatus.Added or TableStatus.Modified;
 }
 
 // Comparison regenerates in memory and diffs against the files on disk: the
@@ -51,7 +56,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
             TableResult result = Compare(table, path, code);
             results.Add(result);
 
-            if (ShouldWrite(result.Status) && !options.DryRun)
+            if (ShouldWrite(result) && !options.DryRun)
             {
                 WriteTableClass(path, code);
             }
@@ -169,11 +174,8 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
     private static List<string> ColumnNames(string code) =>
         [.. ColumnPattern.Matches(code).Select(m => m.Groups["name"].Value)];
 
-    // Rewriting a byte-identical file still bumps its mtime, which MSBuild and file
-    // watchers read as a change — a full regeneration would rebuild every table class.
-    private bool ShouldWrite(TableStatus status) =>
-        options.Mode is RunMode.Generate or RunMode.Fix
-        && status is TableStatus.Added or TableStatus.Modified;
+    private bool ShouldWrite(TableResult result) =>
+        options.Mode is RunMode.Generate or RunMode.Fix && result.NeedsWrite;
 
     // Only meaningful over the whole schema: a run scoped by --tables never looked
     // at the other tables, so their absence from the results proves nothing.
