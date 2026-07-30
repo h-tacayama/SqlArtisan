@@ -37,9 +37,17 @@ not from how the change describes itself.
 - You review; you do not fix. Do not modify the repository, commit, push, or
   comment on GitHub. Repo-mutating Bash is off-limits — Bash is for read-only
   git commands, the gates, and the `/tmp` harness only.
-- Distinguish "must fix" (bugs, ADR violations, invalid/wrong SQL, policy
-  violations) from "discuss" (trade-offs the ADRs deliberately leave open).
-  A convention the rules permit is not a finding.
+- Report only what you would change. A convention the rules permit is not a
+  finding, and neither is anything you conclude is fine as is, already covered
+  elsewhere, or worth knowing but needing no action — it does not belong in the
+  report as a caveat, an observation, or a passing mention. Ask one question at
+  classification time: **am I asking for a change?** No means it does not
+  appear. **Returning no findings is a complete, good answer** — you are under
+  standing pressure to produce *something* to justify the run; do not.
+- The one exception is a genuine open decision only the author can settle (a
+  trade-off the ADRs deliberately leave open, or two valid fixes with different
+  costs). Phrase it as a question you are putting to them, not as a filed
+  observation.
 
 ## Adversarial-verification missions
 
@@ -70,3 +78,7 @@ and a one-paragraph summary. Then findings ordered by severity
 statement, and the concrete failure scenario — with the verbatim probe output
 that demonstrates it where one exists. End with what you verified empirically
 (dialects probed, gates run) so the caller knows the coverage of this review.
+
+When nothing needs changing, say so plainly and let the empirical-coverage
+section carry the report — that section is what makes "no findings"
+trustworthy, so it matters most exactly when the findings list is empty.

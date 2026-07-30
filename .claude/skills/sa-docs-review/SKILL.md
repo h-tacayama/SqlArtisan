@@ -153,7 +153,11 @@ text or memory. Surviving findings carry severity (High/Medium/Low) plus the
 evidence that survived refutation (verbatim probe output or the primary
 source's `file:line`). Fallen claims are classified **DEFECT** (factually
 wrong) / **OVERREACH** (true but misleading) / **INCONSISTENCY** (contradicts
-another surface).
+another surface). Tell the subagent that "nothing falls" is a complete
+answer and that it reports only what it would change — a refuting pass is
+under more pressure than any other to return *something*, which is how
+non-actionable "worth knowing" items reach a report. Drop anything it hands
+back that you would not act on; do not forward it.
 
 Recursion and fallback: if you *are* the adversarial subagent, skip this
 section — no recursion. If the Agent tool is unavailable — or the subagent
@@ -181,11 +185,24 @@ described above; that is correct for every model.
 
 ## Output
 
-Summarise per dimension (pass / findings), list concrete fixes with file:line,
-and state what was verified empirically (links resolve, N/N examples match,
-coverage clean). State which claims the adversarial pass challenged and what
-survived, with the DEFECT / OVERREACH / INCONSISTENCY classification of what
-fell. Re-run the relevant script after fixes to confirm green.
+**Report only what you are asking to change.** A finding earns its place by
+having a fix worth making. If your own conclusion is "this is fine", "already
+covered elsewhere", or "worth knowing but needs no action", it does not go in
+the report — not as a caveat, an observation, or a passing mention. **Zero
+findings is a normal, good result**, not evidence the review was shallow: say
+the docs are clean and stop. Being asked for a review does not oblige you to
+return a finding, and padding one out with non-actionable items buries the ones
+that need action. The test is one question — **am I asking for a change?** No
+means it does not appear.
+
+List concrete fixes with file:line, and state what was verified empirically
+(links resolve, N/N examples match, coverage clean) — that evidence is the
+report's substance when there are no findings. Give the per-dimension rundown
+only where a dimension produced a fix; a dimension that passed needs no
+paragraph. Name the DEFECT / OVERREACH / INCONSISTENCY classification of
+whatever the adversarial pass knocked down, and cover its survivals in one
+line rather than itemising them. Re-run the relevant script after fixes to
+confirm green.
 
 Match this report's length to what the findings need: cover every finding at
 the detail level above, but do not pad with filler recap sections, restated

@@ -235,6 +235,15 @@ contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
   only whether the words stayed *true and complete*, not how many there are.
 - Any "better way to write this" suggestion with no rule/ADR/precedent to
   cite, for code or docs — run `sa-code-review-deep` for that pass instead.
+- **Anything you would not change.** If your own conclusion is "this is fine as
+  is", "already covered elsewhere", or "worth knowing but needs no action", the
+  classification is done and the answer is silence. Do not relabel it as a
+  caveat, an observation, a note, or a "weakest point" to keep it in the
+  report — a reader cannot act on it, and it dilutes the findings that need
+  action.
+
+The test at classification time is one question: **am I asking for a change?**
+No means it does not appear anywhere in the output.
 
 ## 9. Adversarial verification (final pass)
 
@@ -261,6 +270,12 @@ the draft, not a parallelizable search:
   in-repo primary sources but **cannot check a DBMS-vendor-spec / version /
   grammar claim** against the vendor's docs — keep those with the orchestrator's
   WebSearch, and don't read subagent silence on them as verification.
+- **Hold the subagent to §8's bar too**, and say so in its mission: it reports
+  what it would change, and "nothing falls" is a complete answer. A refuting
+  pass is under more pressure than any other to produce *something* — that is
+  exactly how non-actionable "worth the caller's attention" items get into a
+  report. Anything it returns that you would not act on is dropped, not
+  forwarded.
 - **Severity + evidence on every surviving finding** — High/Medium/Low plus
   the evidence that survived refutation: verbatim probe output or the
   primary source's `file:line`.
@@ -296,16 +311,28 @@ run exactly the one pass described above; that is correct for every model.
 
 ## Report
 
+**Report only what you are asking the author to change.** A finding earns its
+place by having a fix worth making; if you would not change it, it does not go
+in the report — not as a "discuss" item, not as an observation, not as a
+passing mention. **Zero findings is a normal, good result**, not a sign the
+review was shallow: say "no findings" and stop. A review that was asked for
+does not owe anyone a finding, and padding one out with things that need no
+action buries the ones that do.
+
+The one exception is a genuine **open decision only the author can settle** —
+a permissive-API trade-off the ADRs deliberately leave open, or two valid fixes
+with different costs. That is a question you are putting to them, not an
+observation you are filing; phrase it as a question and keep it to what
+actually blocks you.
+
 Lead with the verdict (mergeable or not) and a short list of recommended
 actions, most important first. Then every finding tagged with a `file:line`
 and severity (**High/Medium/Low**) — a doc gap can be Low severity and still
-must-fix; severity ranks the queue, it does not gate inclusion. Separate
-"must fix" (bugs, ADR violations, invalid SQL, any doc/comment gap from §8)
-from "discuss" (permissive-API trade-offs the ADRs deliberately leave to the
-author / analyzer). Include the adversarial pass's coverage: which claims
-were challenged, what survived, and the DEFECT / OVERREACH / INCONSISTENCY
-classification of what fell. This skill never reports non-defect improvement
-suggestions — re-run as `sa-code-review-deep` for those.
+must-fix; severity ranks the queue, it does not gate inclusion. Include the
+adversarial pass's coverage: which claims were challenged, and the DEFECT /
+OVERREACH / INCONSISTENCY classification of anything that fell — state
+survivals as one line, not an itemised list. This skill never reports
+non-defect improvement suggestions — re-run as `sa-code-review-deep` for those.
 
 Match the report's length to what the findings need: cover every finding at
 the detail level above, but do not pad with filler recap sections, restated

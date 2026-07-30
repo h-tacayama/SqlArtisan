@@ -178,6 +178,11 @@ sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
   `docs/`, not in the README.
 - Comment the **why** / **why-not**, never the **what**; keep comments short. See
   `.claude/rules/code-comments.md`.
+- Report only what you are asking someone to change. Anything you would not
+  change — fine as is, already covered elsewhere, worth knowing but needing no
+  action — stays out entirely, under any label; **finding nothing is a good
+  result**, not a shallow one. Being asked to look does not oblige you to
+  return something.
 
 ## Git
 
