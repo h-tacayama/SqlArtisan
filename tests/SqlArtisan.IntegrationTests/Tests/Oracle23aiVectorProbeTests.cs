@@ -52,6 +52,12 @@ public sealed class Oracle23aiVectorProbeTests : IClassFixture<Oracle23aiFixture
     }
 
     [Fact]
+    public void Probe_ImplicitBindString_Distance()
+    {
+        Assert.Null(TryScalar("SELECT (:0 <-> :1) FROM dual", "[1,2]", "[3,4]"));
+    }
+
+    [Fact]
     public void Probe_CosineAndInner_ToVectorLiteral()
     {
         Assert.Null(TryScalar("SELECT (TO_VECTOR('[1,2]') <=> TO_VECTOR('[3,4]')) FROM dual"));
