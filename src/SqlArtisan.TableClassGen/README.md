@@ -74,8 +74,8 @@ trigger a rebuild of everything downstream. The summary reports both numbers, an
 
 ```
 $ sa-tableclassgen --config tablegen.json --verbose
-  modified  src/MyApp/Tables/OrdersTable.cs
   unchanged src/MyApp/Tables/CustomersTable.cs
+  modified  src/MyApp/Tables/OrdersTable.cs
 Generated 1 of 2 table classes in src/MyApp/Tables
 ```
 

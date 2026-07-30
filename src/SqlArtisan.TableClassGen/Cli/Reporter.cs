@@ -49,8 +49,7 @@ internal sealed class Reporter(RunOptions options)
         string verb = options.DryRun ? "Would generate" : "Generated";
         string noun = scanned.Count == 1 ? "class" : "classes";
 
-        // Both counts, so the line answers "what changed" and "what was read" at
-        // once — and a dry run states the same pair a real run will.
+        // A dry run prints the same pair, so a preview cannot disagree with the run.
         Console.WriteLine(
             $"{verb} {written} of {scanned.Count} table {noun} in {options.Settings.OutputDirectory}");
 
