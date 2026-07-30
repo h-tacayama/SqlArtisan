@@ -4,11 +4,13 @@ using Testcontainers.PostgreSql;
 
 namespace SqlArtisan.IntegrationTests.Infrastructure;
 
-/// <summary>PostgreSQL fixture, backed by a Testcontainers <c>postgres</c> container.</summary>
+/// <summary>PostgreSQL fixture, backed by a Testcontainers <c>pgvector/pgvector</c>
+/// container — stock PostgreSQL 16 plus the pgvector extension the vector-operator
+/// sweep cases install via <c>CREATE EXTENSION</c>.</summary>
 public sealed class PostgreSqlFixture : IAsyncLifetime, IDatabaseFixture
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
+        .WithImage("pgvector/pgvector:0.8.6-pg16")
         .Build();
 
     public Dbms Dbms => Dbms.PostgreSql;
