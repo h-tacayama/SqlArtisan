@@ -22,13 +22,21 @@ Decision principles distilled from the #225 expressibility triage
    internal capitals). CLAUDE.md carries the one-line summary; this is the
    full rule.
 2. **Symbol-only operators → glyph names, but only for value-returning
-   (expression) operators** — precedent `JsonArrow` (`->`) / `JsonArrowText`
-   (`->>`) / `DoublePipe` (`||`, #234). A symbol operator that returns a
-   *predicate* instead gets a semantic name: `ArrayContains` (`@>`),
-   `ArrayContainedBy` (`<@`), `ArrayOverlaps` (`&&`), `JsonbContains` (`@>`),
-   `JsonbExists`/`JsonbExistsAll`/`JsonbExistsAny` (`?`/`?&`/`?|`), `TsMatch`
-   (`@@`) all took the semantic name, not a glyph. When adding a new symbol
-   operator, check which side it falls on before naming it.
+   (expression) operators whose glyph has a canonical reading** — precedent
+   `JsonArrow` (`->`) / `JsonArrowText` (`->>`) / `DoublePipe` (`||`, #234).
+   A symbol operator that returns a *predicate* instead gets a semantic name:
+   `ArrayContains` (`@>`), `ArrayContainedBy` (`<@`), `ArrayOverlaps` (`&&`),
+   `JsonbContains` (`@>`), `JsonbExists`/`JsonbExistsAll`/`JsonbExistsAny`
+   (`?`/`?&`/`?|`), `TsMatch` (`@@`) all took the semantic name, not a glyph.
+   So does a value-returning operator whose glyph has no established reading:
+   the six pgvector distance operators (#343) are `L2Distance` (`<->`),
+   `CosineDistance` (`<=>`), `NegativeInnerProduct` (`<#>`), `L1Distance`
+   (`<+>`), `HammingDistance` (`<~>`), `JaccardDistance` (`<%>`) — pgvector's
+   own docs name them by distance, nobody says "less-hash-greater", and a
+   glyph name would collide with unrelated same-glyph constructs elsewhere
+   (MySQL's `<=>` is NULL-safe equality). None of the six collides with a
+   common BCL static-utility type. When adding a new symbol operator, check
+   which side it falls on before naming it.
 3. **Non-token helpers** (`ConditionIf`, `Hints`, `Group`, `Bind`,
    `BindArray`, `Sequence`, `Asterisk`) — invented names are allowed *only*
    here, for API affordances that correspond to no SQL token.

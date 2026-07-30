@@ -20,6 +20,7 @@
 - [Conditions](#conditions)
 - [JSON Operators](#json-operators)
 - [Array Operators](#array-operators)
+- [Vector Distance Operators](#vector-distance-operators)
 - [Full-Text Search](#full-text-search)
 - [Scalar Subquery](#scalar-subquery)
 - [ALL / ANY / SOME](#all--any--some)
@@ -439,6 +440,31 @@ PostgreSQL only. `ArrayOverlaps` (`&&`) tests whether two arrays share at least 
 String elements form a `text[]`; for another element type, pass typed values (`Array(1, 2)` binds an integer array).
 
 To filter a column against a whole .NET collection bound as a single parameter, see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql); to expand an array into rows, see [UNNEST as a Table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#unnest-as-a-table-postgresql).
+
+---
+
+## Vector Distance Operators
+
+Order by vector similarity with the pgvector distance operators: `L2Distance` (`<->`), `CosineDistance` (`<=>`), `NegativeInnerProduct` (`<#>`), and `L1Distance` (`<+>`) between `vector` values, plus `HammingDistance` (`<~>`) and `JaccardDistance` (`<%>`) between `bit` values. Each returns a distance expression — smallest first is nearest-neighbor order.
+
+```csharp
+SqlStatement sql =
+    Select(u.Id, u.Name)
+    .From(u)
+    .OrderBy(L2Distance(u.Embedding, Cast("[0.1,0.2,0.3]", "vector")))
+    .Limit(5)
+    .Build(Dbms.PostgreSql);
+
+// SELECT id, name FROM users
+// ORDER BY (embedding <-> CAST(:0 AS vector))
+// LIMIT :1
+```
+
+`L2Distance` (`<->`), `CosineDistance` (`<=>`), and `NegativeInnerProduct` (`<#>`) work on Oracle (23ai+) and PostgreSQL; `L1Distance` (`<+>`), `HammingDistance` (`<~>`), and `JaccardDistance` (`<%>`) are PostgreSQL only (pgvector 0.7.0+). On PostgreSQL all six need the [pgvector](https://github.com/pgvector/pgvector) extension installed in the database (`CREATE EXTENSION vector`); on Oracle 23ai the three shared operators are built in.
+
+A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar. On MySQL, `<=>` is the NULL-safe equality operator — the same glyph as `CosineDistance` with entirely different meaning — so keep cosine-distance queries off MySQL connections.
+
+To bind a `Pgvector.Vector` instance instead of a cast string literal, construct the bind directly — `new BindValue(vector)` — and register pgvector's Dapper type handler (`VectorTypeHandler`) plus `UseVector()` on the Npgsql data source; the held value then flows to the driver untouched.
 
 ---
 
