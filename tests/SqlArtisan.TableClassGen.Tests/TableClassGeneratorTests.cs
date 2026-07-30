@@ -136,6 +136,28 @@ public class TableClassGeneratorTests : IDisposable
         Assert.Equal(tagWrittenAt, File.GetLastWriteTimeUtc(tagPath));
     }
 
+    // A plain regeneration used to rewrite every file, byte-identical ones included,
+    // so the whole output directory looked new to MSBuild and to file watchers.
+    [Fact]
+    public void Run_Generate_UnchangedTable_LeavesItsFileUntouched()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+
+        string tagPath = Path.Combine(_outputDirectory, "TagTable.cs");
+        DateTime tagWrittenAt = File.GetLastWriteTimeUtc(tagPath);
+        db.Execute("ALTER TABLE item ADD COLUMN note TEXT");
+
+        Run(db, RunMode.Generate);
+
+        Assert.Equal(tagWrittenAt, File.GetLastWriteTimeUtc(tagPath));
+        // The legal twin: skipping the unchanged file must not skip the changed one.
+        Assert.Contains(
+            "note",
+            File.ReadAllText(Path.Combine(_outputDirectory, "ItemTable.cs")),
+            StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Run_Tables_LimitsTheRunToTheNamedTables()
     {

@@ -32,18 +32,26 @@ internal sealed class Reporter(RunOptions options)
 
     private void ReportGenerated(IReadOnlyList<TableResult> results)
     {
+        IReadOnlyList<TableResult> scanned =
+            [.. results.Where(r => r.Status != TableStatus.Removed)];
+        int written = scanned.Count(r => r.NeedsWrite);
+
         if (options.Verbose)
         {
-            foreach (TableResult result in results.Where(r => r.Status != TableStatus.Removed))
+            // Every table read, not only the writes: a file left alone because it is
+            // already current would otherwise read as one the run never looked at.
+            foreach (TableResult result in scanned)
             {
-                Console.WriteLine($"  {result.Path}");
+                Console.WriteLine($"  {Label(result.Status),-9} {result.Path}");
             }
         }
 
         string verb = options.DryRun ? "Would generate" : "Generated";
-        int count = results.Count(r => r.Status != TableStatus.Removed);
+        string noun = scanned.Count == 1 ? "class" : "classes";
 
-        Console.WriteLine($"{verb} {count} table {(count == 1 ? "class" : "classes")} in {options.Settings.OutputDirectory}");
+        // A dry run prints the same pair, so a preview cannot disagree with the run.
+        Console.WriteLine(
+            $"{verb} {written} of {scanned.Count} table {noun} in {options.Settings.OutputDirectory}");
 
         // The orphans are found in every full run, and --format json reports them
         // either way, so the text output must not be the one that stays quiet.
@@ -103,8 +111,7 @@ internal sealed class Reporter(RunOptions options)
         }
 
         StringBuilder next = new();
-        IReadOnlyList<TableResult> fixable =
-            [.. drifted.Where(r => r.Status is TableStatus.Added or TableStatus.Modified)];
+        IReadOnlyList<TableResult> fixable = [.. drifted.Where(r => r.NeedsWrite)];
 
         if (fixable.Count > 0)
         {
