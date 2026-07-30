@@ -584,6 +584,17 @@ public static partial class Sql
         new(Resolve(column), Resolve(query), label);
 
     /// <summary>
+    /// The <c>(a &lt;=&gt; b)</c> cosine distance operator between two vectors
+    /// (Oracle 23ai+, PostgreSQL). On PostgreSQL it requires the pgvector
+    /// extension.
+    /// </summary>
+    /// <param name="leftVector">The first vector.</param>
+    /// <param name="rightVector">The second vector.</param>
+    /// <returns>A <c>&lt;=&gt;</c> operator expression.</returns>
+    public static CosineDistanceOperator CosineDistance(object leftVector, object rightVector) =>
+        new(Resolve(leftVector), Resolve(rightVector));
+
+    /// <summary>
     /// The <c>COUNT(*)</c> aggregate function (the number of rows in the group,
     /// <c>NULL</c>s included).
     /// </summary>

@@ -8,11 +8,14 @@ internal static class Operators
     internal const string ArrayContains = "@>";
     internal const string ArrayOverlaps = "&&";
     internal const string Asterisk = "*";
+    internal const string CosineDistance = "<=>";
     internal const string DoublePipe = "||";
     internal const string Equality = "=";
     internal const string GreaterThan = ">";
     internal const string GreaterThanOrEqual = ">=";
+    internal const string HammingDistance = "<~>";
     internal const string Inequality = "<>";
+    internal const string JaccardDistance = "<%>";
     internal const string JsonArrow = "->";
     internal const string JsonArrowText = "->>";
     internal const string JsonbContains = "@>";
@@ -21,9 +24,12 @@ internal static class Operators
     internal const string JsonbExistsAny = "?|";
     internal const string JsonHashArrow = "#>";
     internal const string JsonHashArrowText = "#>>";
+    internal const string L1Distance = "<+>";
+    internal const string L2Distance = "<->";
     internal const string LessThan = "<";
     internal const string LessThanOrEqual = "<=";
     internal const string Minus = "-";
+    internal const string NegativeInnerProduct = "<#>";
     internal const string Percent = "%";
     internal const string Plus = "+";
     internal const string Slash = "/";

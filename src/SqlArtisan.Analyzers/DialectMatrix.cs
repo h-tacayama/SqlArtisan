@@ -155,6 +155,23 @@ internal static class DialectMatrix
         [new MatrixKey("BindArray")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("Unnest")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
 
+        // --- pgvector distance operators (#343; pgvector README — <+>/<~>/<%> need
+        // pgvector 0.7.0+). On PostgreSQL all six ride on the pgvector extension, a
+        // per-database install VersionBounds cannot express (bool == baseline>=bound has
+        // no "extension present" axis) — so plain true cells + the docs caveat.
+        // Oracle 23ai natively supports <->, <=>, <#> (AI Vector Search User's Guide,
+        // 23ai shorthand operators) — those three carry oracle Bounds rows below;
+        // <+>/<~>/<%> have no Oracle spelling and stay unbounded false.
+        // MySQL trap: <=> is MySQL's NULL-safe equality operator, not a distance — the
+        // negative sweep rejects only because CAST(... AS vector) fails to parse there,
+        // so the sweep cases' casts are load-bearing.
+        [new MatrixKey("L2Distance")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("CosineDistance")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("NegativeInnerProduct")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("L1Distance")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("HammingDistance")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("JaccardDistance")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+
         // --- Numeric/character Oracle-only helpers (XML docs "Oracle syntax" + FunctionTests) ---
         [new MatrixKey("Lengthb")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Substrb")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
@@ -592,6 +609,12 @@ internal static class DialectMatrix
         // the register's "accepted at 23ai" premise. The Entries comment carries the
         // per-image error codes.
         [new MatrixKey("WithRecursive")] = new VersionBounds(mySql: V("8.0")),
+        // Oracle 23ai added the <->, <=>, <#> vector distance shorthands (Oracle AI
+        // Vector Search User's Guide 23ai); the 21c baseline lacks them. <+>/<~>/<%>
+        // have no Oracle spelling at any version, so they carry no row.
+        [new MatrixKey("L2Distance")] = new VersionBounds(oracle: V("23")),
+        [new MatrixKey("CosineDistance")] = new VersionBounds(oracle: V("23")),
+        [new MatrixKey("NegativeInnerProduct")] = new VersionBounds(oracle: V("23")),
 
         // --- MySQL 8.0.x point releases (matrix comments above; #263 register) ---
         [new MatrixKey("Grouping", 1)] = new VersionBounds(mySql: V("8.0.1")),

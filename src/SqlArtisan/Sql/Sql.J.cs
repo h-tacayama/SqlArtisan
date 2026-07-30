@@ -6,6 +6,16 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
+    /// The <c>(a &lt;%&gt; b)</c> Jaccard distance operator between two bit
+    /// vectors (PostgreSQL). Requires the pgvector extension (0.7.0+).
+    /// </summary>
+    /// <param name="leftBits">The first bit vector.</param>
+    /// <param name="rightBits">The second bit vector.</param>
+    /// <returns>A <c>&lt;%&gt;</c> operator expression.</returns>
+    public static JaccardDistanceOperator JaccardDistance(object leftBits, object rightBits) =>
+        new(Resolve(leftBits), Resolve(rightBits));
+
+    /// <summary>
     /// The <c>JSON_EXTRACT(jsonDoc, 'path')</c> function: extracts a value from
     /// a JSON document at the given <paramref name="path"/> (MySQL, SQLite).
     /// </summary>
