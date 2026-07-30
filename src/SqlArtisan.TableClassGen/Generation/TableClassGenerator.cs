@@ -169,13 +169,11 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
     private static List<string> ColumnNames(string code) =>
         [.. ColumnPattern.Matches(code).Select(m => m.Groups["name"].Value)];
 
+    // Rewriting a byte-identical file still bumps its mtime, which MSBuild and file
+    // watchers read as a change — a full regeneration would rebuild every table class.
     private bool ShouldWrite(TableStatus status) =>
-        options.Mode switch
-        {
-            RunMode.Generate => true,
-            RunMode.Fix => status is TableStatus.Added or TableStatus.Modified,
-            _ => false,
-        };
+        options.Mode is RunMode.Generate or RunMode.Fix
+        && status is TableStatus.Added or TableStatus.Modified;
 
     // Only meaningful over the whole schema: a run scoped by --tables never looked
     // at the other tables, so their absence from the results proves nothing.
