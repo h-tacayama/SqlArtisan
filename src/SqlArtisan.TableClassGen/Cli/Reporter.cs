@@ -32,16 +32,22 @@ internal sealed class Reporter(RunOptions options)
 
     private void ReportGenerated(IReadOnlyList<TableResult> results)
     {
+        // The two verbs answer different questions: a dry run promises what a real
+        // run would write, while "Generated" describes what the directory now holds.
+        IReadOnlyList<TableResult> listed = options.DryRun
+            ? [.. results.Where(r => r.Status is TableStatus.Added or TableStatus.Modified)]
+            : [.. results.Where(r => r.Status != TableStatus.Removed)];
+
         if (options.Verbose)
         {
-            foreach (TableResult result in results.Where(r => r.Status != TableStatus.Removed))
+            foreach (TableResult result in listed)
             {
                 Console.WriteLine($"  {result.Path}");
             }
         }
 
         string verb = options.DryRun ? "Would generate" : "Generated";
-        int count = results.Count(r => r.Status != TableStatus.Removed);
+        int count = listed.Count;
 
         Console.WriteLine($"{verb} {count} table {(count == 1 ? "class" : "classes")} in {options.Settings.OutputDirectory}");
 
