@@ -161,7 +161,9 @@ internal static class DialectMatrix
         // no "extension present" axis) — so plain true cells + the docs caveat.
         // Oracle 23ai natively supports <->, <=>, <#> (AI Vector Search User's Guide,
         // 23ai shorthand operators) — those three carry oracle Bounds rows below;
-        // <+>/<~>/<%> have no Oracle spelling and stay unbounded false.
+        // <+>/<~>/<%> have no Oracle spelling and stay unbounded false. 23ai accepts
+        // string operands implicitly (live-proven, bound and literal) but rejects
+        // CAST(... AS vector) itself with ORA-22849 — hence the sweep's Oracle branch.
         // MySQL trap: <=> is MySQL's NULL-safe equality operator, not a distance — the
         // negative sweep rejects only because CAST(... AS vector) fails to parse there,
         // so the sweep cases' casts are load-bearing.
