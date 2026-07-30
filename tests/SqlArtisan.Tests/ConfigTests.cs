@@ -86,7 +86,7 @@ public class ConfigTests : IDisposable
             SqlArtisanConfig.SetDefaultDbms(Dbms.Unknown));
 
         Assert.Equal(
-            "Unsupported DBMS. (Parameter 'dbms')\nActual value was Unknown.",
+            $"Unsupported DBMS. (Parameter 'dbms'){Environment.NewLine}Actual value was Unknown.",
             ex.Message);
     }
 
@@ -97,7 +97,7 @@ public class ConfigTests : IDisposable
             SqlArtisanConfig.SetDefaultDbms((Dbms)99));
 
         Assert.Equal(
-            "Unsupported DBMS. (Parameter 'dbms')\nActual value was 99.",
+            $"Unsupported DBMS. (Parameter 'dbms'){Environment.NewLine}Actual value was 99.",
             ex.Message);
     }
 
@@ -110,7 +110,7 @@ public class ConfigTests : IDisposable
             Select(_t.Code).From(_t).Build(Dbms.Unknown));
 
         Assert.Equal(
-            "Unsupported DBMS. (Parameter 'dbms')\nActual value was Unknown.",
+            $"Unsupported DBMS. (Parameter 'dbms'){Environment.NewLine}Actual value was Unknown.",
             ex.Message);
     }
 
@@ -121,7 +121,7 @@ public class ConfigTests : IDisposable
             Select(_t.Code).From(_t).Build((Dbms)99));
 
         Assert.Equal(
-            "Unsupported DBMS. (Parameter 'dbms')\nActual value was 99.",
+            $"Unsupported DBMS. (Parameter 'dbms'){Environment.NewLine}Actual value was 99.",
             ex.Message);
     }
 }
