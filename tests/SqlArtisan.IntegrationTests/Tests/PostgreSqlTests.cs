@@ -362,6 +362,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync();
 
         connection.Execute("CREATE EXTENSION IF NOT EXISTS vector");
+        // The data source loaded its type catalog before the extension existed;
+        // without a reload, writing Pgvector.Vector fails to resolve 'vector'.
+        await connection.ReloadTypesAsync();
         connection.Execute("CREATE TABLE vector_probe (id integer, embedding vector(3))");
         try
         {
