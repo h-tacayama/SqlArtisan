@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public abstract class ArithmeticOperator(
+public abstract class BinaryOperator(
     SqlExpression leftSide,
     string @operator,
     SqlExpression rightSide) : SqlExpression

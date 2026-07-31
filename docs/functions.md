@@ -172,7 +172,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 
 Exposed per dialect (no unified rewrite); each emits its dialect-native syntax verbatim.
 
-- `StringAgg(expr, sep)` for `STRING_AGG(expr, sep)` (PostgreSQL/SQL Server). Order with an `OrderBy(...)` argument — `StringAgg(expr, sep, OrderBy(...))` (PostgreSQL, inline) — or chain `.WithinGroup(OrderBy(...))` (SQL Server)
+- `StringAgg(expr, sep)` for `STRING_AGG(expr, sep)` (PostgreSQL/SQLite 3.44+/SQL Server). Order with an `OrderBy(...)` argument — `StringAgg(expr, sep, OrderBy(...))` (PostgreSQL/SQLite 3.44+, inline) — or chain `.WithinGroup(OrderBy(...))` (SQL Server)
 - `Listagg(expr, sep).WithinGroup(OrderBy(...))` for `LISTAGG(expr, sep) WITHIN GROUP (ORDER BY ...)` (Oracle)
 - `GroupConcat(expr)` for `GROUP_CONCAT(expr)` (MySQL/SQLite)
 - `GroupConcat(expr, sep)` for `GROUP_CONCAT(expr, sep)` (SQLite, positional separator)

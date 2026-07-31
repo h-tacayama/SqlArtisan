@@ -720,7 +720,7 @@ against):
 | MySQL | MySQL 8.0 |
 | Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0003` reports |
 | PostgreSQL | PostgreSQL 16 |
-| SQLite | the SQLite build bundled with `Microsoft.Data.Sqlite` 9.0.5 |
+| SQLite | `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 (via `Microsoft.Data.Sqlite` 9.0.5) |
 | SQL Server | SQL Server 2022 |
 
 An older or newer engine version may disagree with a `false` entry in
