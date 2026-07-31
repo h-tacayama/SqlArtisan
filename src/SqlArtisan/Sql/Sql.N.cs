@@ -7,6 +7,19 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
+    /// The <c>(leftVector &lt;#&gt; rightVector)</c> negative inner product
+    /// operator between two vectors — smaller means more similar (Oracle 23ai+,
+    /// PostgreSQL). On PostgreSQL it requires the pgvector extension.
+    /// </summary>
+    /// <param name="leftVector">The first vector.</param>
+    /// <param name="rightVector">The second vector.</param>
+    /// <returns>A <c>&lt;#&gt;</c> operator expression.</returns>
+    public static NegativeInnerProductOperator NegativeInnerProduct(
+        object leftVector,
+        object rightVector) =>
+        new(Resolve(leftVector), Resolve(rightVector));
+
+    /// <summary>
     /// The <c>NEXTVAL('sequenceName')</c> function: the next value of the named
     /// sequence.
     /// </summary>

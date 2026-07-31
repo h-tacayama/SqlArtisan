@@ -266,7 +266,7 @@ The same type-safe C# emits idiomatic SQL for **MySQL, Oracle, PostgreSQL, SQLit
 | **[Query Cookbook](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md)** | Realistic end-to-end queries, each pinned by an exact-SQL unit test — [reporting](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#reporting-queries) · [dynamic search screens](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#dynamic-search-screens) · [batch and UPSERT DML](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/cookbook.md#batch-and-upsert-dml) |
 | **[Query Statements](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md)** | **Read** — [SELECT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#select-clause) · [FROM](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#from-clause) · [WHERE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#where-clause) · [JOIN](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#join-clause) · [ORDER BY](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#order-by-clause) · [GROUP BY / HAVING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#group-by-and-having-clause) · [Set Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#set-operators) · [FOR UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#for-update-clause) · [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination) |
 | | **Write** — [DELETE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#delete-statement) · [UPDATE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#update-statement) — [joined](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#joined-update--delete) · [INSERT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#insert-statement) — [multi-row](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#multiple-rows), [SET-like](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#alternative-syntax-set-like), [INSERT … SELECT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#insert-select-syntax), [UPSERT](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#upsert-insert-update-or-skip), [MERGE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement) · [WITH / CTE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#with-clause-common-table-expressions) · [RETURNING](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#returning-clause) · [OUTPUT (SQL Server)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#output-clause-sql-server) |
-| **[Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md)** | [NULL](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#null-literal) · [Arithmetic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#arithmetic-operators) · [String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation) · [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions) · [JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators) · [Array Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#array-operators) · [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search) · [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery) · [ALL / ANY / SOME](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#all--any--some) · [CASE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#case-expressions) · [CAST](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#cast) · [Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions) · [Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter) · [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-aggregation) · [Sequence](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#sequence) |
+| **[Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md)** | [NULL](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#null-literal) · [Arithmetic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#arithmetic-operators) · [String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation) · [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions) · [JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators) · [Array Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#array-operators) · [Vector Distance](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#vector-distance-operators) · [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search) · [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery) · [ALL / ANY / SOME](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#all--any--some) · [CASE](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#case-expressions) · [CAST](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#cast) · [Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions) · [Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter) · [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-aggregation) · [Sequence](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#sequence) |
 | **[Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md)** | [Numeric](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#numeric-functions) · [Character](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#character-functions) (incl. `REGEXP_*`) · [Date & Time](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#date-and-time-functions) (incl. `ADD_MONTHS`, `DATE_TRUNC`) · [Conversion](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#conversion-functions) · [Comparison](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#comparison-functions) (`GREATEST`, `LEAST`) · [JSON](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#json-functions) (`JSON_EXTRACT`, `JSON_VALUE`, `JSON_QUERY`) · [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#full-text-search-functions) (`MATCH ... AGAINST`, `CONTAINS`, `@@`, FTS5 `MATCH`, `FREETEXT`) · [Aggregate](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#aggregate-functions) · [String Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#string-aggregation-functions) (`STRING_AGG`, `LISTAGG`, `GROUP_CONCAT`) · [Window / Analytic](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#window-functions) (`ROW_NUMBER`, `LAG`/`LEAD`, `PERCENTILE_CONT`) · [Bind Parameter Types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types) |
 | **[Analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)** | Opt-in Roslyn analyzer — [enabling it](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it), [rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules), [correcting a warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys), [mixed-dialect projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects), [CI gates](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#ci-gates-and-stricter-enforcement) |
 
@@ -382,6 +382,7 @@ Values, predicates, and computed expressions.
 [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions) ·
 [JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators) ·
 [Array Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#array-operators) ·
+[Vector Distance Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#vector-distance-operators) ·
 [Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search) ·
 [Scalar Subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#scalar-subquery) ·
 [ALL / ANY / SOME](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#all--any--some) ·
@@ -1794,6 +1795,7 @@ SqlStatement sql =
 - [Conditions](#conditions)
 - [JSON Operators](#json-operators)
 - [Array Operators](#array-operators)
+- [Vector Distance Operators](#vector-distance-operators)
 - [Full-Text Search](#full-text-search)
 - [Scalar Subquery](#scalar-subquery)
 - [ALL / ANY / SOME](#all--any--some)
@@ -2213,6 +2215,31 @@ PostgreSQL only. `ArrayOverlaps` (`&&`) tests whether two arrays share at least 
 String elements form a `text[]`; for another element type, pass typed values (`Array(1, 2)` binds an integer array).
 
 To filter a column against a whole .NET collection bound as a single parameter, see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql); to expand an array into rows, see [UNNEST as a Table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#unnest-as-a-table-postgresql).
+
+---
+
+## Vector Distance Operators
+
+Order by vector similarity with the pgvector distance operators: `L2Distance` (`<->`), `CosineDistance` (`<=>`), `NegativeInnerProduct` (`<#>`), and `L1Distance` (`<+>`) between `vector` values, plus `HammingDistance` (`<~>`) and `JaccardDistance` (`<%>`) between `bit` values. Each returns a distance expression — smallest first is nearest-neighbor order.
+
+```csharp
+SqlStatement sql =
+    Select(u.Id, u.Name)
+    .From(u)
+    .OrderBy(L2Distance(u.Embedding, Cast("[0.1,0.2,0.3]", "vector")))
+    .Limit(5)
+    .Build(Dbms.PostgreSql);
+
+// SELECT id, name FROM users
+// ORDER BY (embedding <-> CAST(:0 AS vector))
+// LIMIT :1
+```
+
+`L2Distance` (`<->`), `CosineDistance` (`<=>`), and `NegativeInnerProduct` (`<#>`) work on Oracle (23ai+) and PostgreSQL; `L1Distance` (`<+>`), `HammingDistance` (`<~>`), and `JaccardDistance` (`<%>`) are PostgreSQL only (pgvector 0.7.0+). On PostgreSQL all six need the [pgvector](https://github.com/pgvector/pgvector) extension installed in the database (`CREATE EXTENSION vector`); on Oracle 23ai the three shared operators are built in.
+
+A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle 23ai rejects `CAST(... AS vector)` outright (ORA-22849); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar. On MySQL, `<=>` is the NULL-safe equality operator — the same glyph as `CosineDistance` with entirely different meaning — so keep cosine-distance queries off MySQL connections.
+
+To bind a `Pgvector.Vector` instance instead of a cast string literal, construct the bind directly — `new BindValue(vector)` — and register pgvector's Dapper type handler (`VectorTypeHandler`, from the `Pgvector.Dapper` package) plus `UseVector()` on the Npgsql data source (from the `Pgvector` package); the held value then flows to the driver untouched.
 
 ---
 
@@ -3257,10 +3284,14 @@ Suppression is per rule ID, the standard Roslyn way
 
 ### Version-bound constructs
 
-Every construct below has a recorded minimum version on the named dialect;
-below that version the matrix's plain `supported`/`not supported` verdict
-holds instead — declaring no version, or a version at or above the bound,
-reproduces that verdict exactly.
+Every construct below has a recorded minimum version on the named dialect.
+Declaring a version below the bound reports the construct as version-bound
+(`SQLA0003`); declaring no version keeps the matrix's plain
+`supported`/`not supported` verdict, and a version at or above the bound
+resolves the construct as supported. For most rows that reproduces the plain
+verdict exactly; where the bound sits above the dialect's verified baseline
+(the Oracle 23 row below), the plain verdict is `not supported`, and declaring
+the version is what lifts it.
 
 | Construct | Dialect | Minimum version | Why |
 |---|---|---|---|
@@ -3271,6 +3302,7 @@ reproduces that verdict exactly.
 | `OnDuplicateKeyUpdate`, `Excluded` | MySQL | 8.0.19 | SqlArtisan always emits the row-alias UPSERT form (`... AS new ON DUPLICATE KEY UPDATE col = new.col`), which needs the row alias MySQL added in 8.0.19 — the pre-8.0.19 `VALUES()` function form is never emitted. |
 | `JsonValue` | MySQL | 8.0.21 | `JSON_VALUE` landed in 8.0.21. |
 | `Except`, `ExceptAll`, `IntersectAll`, `MinusAll` | Oracle | 21 | `EXCEPT`, `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` landed in Oracle 21c (plain `INTERSECT`/`MINUS` predate it) — live-verified forward-compatible on Oracle 23ai too. |
+| `L2Distance`, `CosineDistance`, `NegativeInnerProduct` | Oracle | 23 | The `<->`, `<=>`, and `<#>` vector distance shorthands landed with Oracle 23ai's AI Vector Search (the other three pgvector operators have no Oracle spelling at any version). |
 | `MergeInto`, `Using`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete`, the 3-argument `Values` (MERGE `USING` literal rows) | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. |
 | `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr` | PostgreSQL | 15 | The `REGEXP_*` function family landed in PostgreSQL 15. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
@@ -3308,7 +3340,10 @@ Database 21c, per the
 [21c New Features Guide](https://docs.oracle.com/en/database/oracle/oracle-database/21/nfcon/)
 and the
 [21c SQL Language Reference](https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/sql-language-reference.pdf)
-(the set-operators section).
+(the set-operators section). The `<->` / `<=>` / `<#>` vector distance
+shorthands are documented in the
+[Oracle AI Vector Search User's Guide](https://docs.oracle.com/en/database/oracle/oracle-database/23/vecse/vector-distance-functions-and-operators.html)
+as new in Oracle Database 23ai.
 
 **PostgreSQL** — the
 [version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)

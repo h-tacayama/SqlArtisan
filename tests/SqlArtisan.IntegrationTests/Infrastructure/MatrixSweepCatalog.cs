@@ -541,6 +541,25 @@ internal static class MatrixSweepCatalog
         Add("JsonbExists", _ => WherePredicate(JsonbExists(u.Data, "name")));
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
+        // pgvector distance operators (#343). Keep the CAST operands: MySQL parses <=>
+        // as its NULL-safe equality operator, so the negative verdict there rides on
+        // CAST(... AS vector) failing to parse, not on the glyph being unknown. The
+        // three Oracle-bounded cases (L2/Cosine/NegativeInnerProduct) also run on the
+        // 23ai lane via Oracle23aiBoundSweepTests — with bare string operands there,
+        // because 23ai rejects CAST(... AS vector) itself (ORA-22849; a raw-SQL probe
+        // proved the operators fine over TO_VECTOR or implicitly converted strings).
+        Add("L2Distance", dbms => dbms == Dbms.Oracle
+            ? Scalar(L2Distance("[1,2]", "[3,4]"))
+            : Scalar(L2Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
+        Add("CosineDistance", dbms => dbms == Dbms.Oracle
+            ? Scalar(CosineDistance("[1,2]", "[3,4]"))
+            : Scalar(CosineDistance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
+        Add("NegativeInnerProduct", dbms => dbms == Dbms.Oracle
+            ? Scalar(NegativeInnerProduct("[1,2]", "[3,4]"))
+            : Scalar(NegativeInnerProduct(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
+        Add("L1Distance", _ => Scalar(L1Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
+        Add("HammingDistance", _ => Scalar(HammingDistance(Cast("101", "bit(3)"), Cast("111", "bit(3)"))));
+        Add("JaccardDistance", _ => Scalar(JaccardDistance(Cast("101", "bit(3)"), Cast("111", "bit(3)"))));
         // The single array-typed bind (= ANY (:0)) doubles as the live proof of the
         // Dapper ArrayQueryParameter path.
         cases.Add(new SweepCase(new MatrixKey("BindArray"),

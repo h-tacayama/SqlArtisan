@@ -1,5 +1,6 @@
 using System.Data;
 using Dapper;
+using Npgsql;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -343,5 +344,58 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             .Query<int>(Select(t.Column("v")).From(t).OrderBy(t.Column("v")));
 
         Assert.Equal(new[] { 10, 20, 30 }, values);
+    }
+
+    [Fact]
+    public async Task L2Distance_BoundVector_OrderByRoundTrips()
+    {
+        // Sql.Bind's allowlist excludes Pgvector.Vector by design; the sanctioned
+        // route for a held provider-specific value is the public BindValue
+        // constructor, whose raw value reaches Dapper's type handlers.
+        global::Dapper.SqlMapper.AddTypeHandler(new Pgvector.Dapper.VectorTypeHandler());
+
+        // A plain NpgsqlConnection cannot serialize Pgvector.Vector — the data
+        // source must opt in via UseVector().
+        NpgsqlDataSourceBuilder dataSourceBuilder = new(_fixture.ConnectionString);
+        dataSourceBuilder.UseVector();
+        await using NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+        await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync();
+
+        connection.Execute("CREATE EXTENSION IF NOT EXISTS vector");
+        // The data source loaded its type catalog before the extension existed;
+        // without a reload, writing Pgvector.Vector fails to resolve 'vector'.
+        await connection.ReloadTypesAsync();
+        connection.Execute("CREATE TABLE vector_probe (id integer, embedding vector(3))");
+        try
+        {
+            connection.Execute(
+                "INSERT INTO vector_probe VALUES (1, '[0,0,0]'), (2, '[1,1,1]')");
+
+            VectorProbeTable t = new();
+            Pgvector.Vector query = new(new float[] { 0.9f, 0.9f, 0.9f });
+            IEnumerable<int> ids = connection.Query<int>(
+                Select(t.Id)
+                .From(t)
+                .OrderBy(L2Distance(t.Embedding, new BindValue(query))));
+
+            Assert.Equal(new[] { 2, 1 }, ids);
+        }
+        finally
+        {
+            connection.Execute("DROP TABLE vector_probe");
+        }
+    }
+
+    private sealed class VectorProbeTable : DbTableBase
+    {
+        public VectorProbeTable(string alias = "") : base("vector_probe", alias)
+        {
+            Id = new DbColumn(this, "id");
+            Embedding = new DbColumn(this, "embedding");
+        }
+
+        public DbColumn Id { get; }
+
+        public DbColumn Embedding { get; }
     }
 }

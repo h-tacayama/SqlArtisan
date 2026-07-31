@@ -212,6 +212,14 @@ public sealed class PostgreSqlMatrixSweepTests : MatrixSweepTestBase, IClassFixt
     public PostgreSqlMatrixSweepTests(PostgreSqlFixture fixture) : base(fixture)
     {
     }
+
+    protected override void PrepareEngine(IDbConnection connection)
+    {
+        // The vector/bit distance operators (#343) exist only once pgvector is loaded.
+        // No try/catch: IF NOT EXISTS is idempotent, and a missing pgvector install
+        // should fail here, not as six confusing sweep failures.
+        connection.Execute("CREATE EXTENSION IF NOT EXISTS vector");
+    }
 }
 
 [Trait("Engine", "MySql")]

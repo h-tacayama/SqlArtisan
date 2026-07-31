@@ -6,6 +6,27 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
+    /// The <c>(leftVector &lt;+&gt; rightVector)</c> L1 (taxicab) distance operator
+    /// between two vectors (PostgreSQL). Requires the pgvector extension (0.7.0+).
+    /// </summary>
+    /// <param name="leftVector">The first vector.</param>
+    /// <param name="rightVector">The second vector.</param>
+    /// <returns>A <c>&lt;+&gt;</c> operator expression.</returns>
+    public static L1DistanceOperator L1Distance(object leftVector, object rightVector) =>
+        new(Resolve(leftVector), Resolve(rightVector));
+
+    /// <summary>
+    /// The <c>(leftVector &lt;-&gt; rightVector)</c> L2 (Euclidean) distance
+    /// operator between two vectors (Oracle 23ai+, PostgreSQL). On PostgreSQL it
+    /// requires the pgvector extension.
+    /// </summary>
+    /// <param name="leftVector">The first vector.</param>
+    /// <param name="rightVector">The second vector.</param>
+    /// <returns>A <c>&lt;-&gt;</c> operator expression.</returns>
+    public static L2DistanceOperator L2Distance(object leftVector, object rightVector) =>
+        new(Resolve(leftVector), Resolve(rightVector));
+
+    /// <summary>
     /// The <c>LAG(expr)</c> analytic function: the value of
     /// <paramref name="expr"/> from the row one position before the current row
     /// in the window.
