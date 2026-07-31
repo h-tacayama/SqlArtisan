@@ -260,10 +260,14 @@ Suppression is per rule ID, the standard Roslyn way
 
 ### Version-bound constructs
 
-Every construct below has a recorded minimum version on the named dialect;
-below that version the matrix's plain `supported`/`not supported` verdict
-holds instead — declaring no version, or a version at or above the bound,
-reproduces that verdict exactly.
+Every construct below has a recorded minimum version on the named dialect.
+Declaring a version below the bound reports the construct as version-bound
+(`SQLA0003`); declaring no version keeps the matrix's plain
+`supported`/`not supported` verdict, and a version at or above the bound
+resolves the construct as supported. For most rows that reproduces the plain
+verdict exactly; where the bound sits above the dialect's verified baseline
+(the Oracle 23 row below), the plain verdict is `not supported`, and declaring
+the version is what lifts it.
 
 | Construct | Dialect | Minimum version | Why |
 |---|---|---|---|

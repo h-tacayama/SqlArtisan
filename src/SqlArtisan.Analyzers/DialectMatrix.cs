@@ -159,14 +159,11 @@ internal static class DialectMatrix
         // pgvector 0.7.0+). On PostgreSQL all six ride on the pgvector extension, a
         // per-database install VersionBounds cannot express (bool == baseline>=bound has
         // no "extension present" axis) — so plain true cells + the docs caveat.
-        // Oracle 23ai natively supports <->, <=>, <#> (AI Vector Search User's Guide,
-        // 23ai shorthand operators) — those three carry oracle Bounds rows below;
-        // <+>/<~>/<%> have no Oracle spelling and stay unbounded false. 23ai accepts
-        // string operands implicitly (live-proven, bound and literal) but rejects
-        // CAST(... AS vector) itself with ORA-22849 — hence the sweep's Oracle branch.
-        // MySQL trap: <=> is MySQL's NULL-safe equality operator, not a distance — the
-        // negative sweep rejects only because CAST(... AS vector) fails to parse there,
-        // so the sweep cases' casts are load-bearing.
+        // Oracle 23ai natively supports <->, <=>, <#> (AI Vector Search User's Guide) —
+        // those three carry oracle Bounds rows below; <+>/<~>/<%> have no Oracle spelling
+        // and stay unbounded false. MySQL trap: <=> is MySQL's NULL-safe equality
+        // operator — the same-glyph hazard this false cell exists to flag (operand
+        // mechanics beside the sweep cases in MatrixSweepCatalog).
         [new MatrixKey("L2Distance")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("CosineDistance")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("NegativeInnerProduct")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),

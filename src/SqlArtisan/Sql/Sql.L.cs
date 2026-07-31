@@ -6,8 +6,8 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// The <c>(a &lt;+&gt; b)</c> L1 (taxicab) distance operator between two
-    /// vectors (PostgreSQL). Requires the pgvector extension (0.7.0+).
+    /// The <c>(leftVector &lt;+&gt; rightVector)</c> L1 (taxicab) distance operator
+    /// between two vectors (PostgreSQL). Requires the pgvector extension (0.7.0+).
     /// </summary>
     /// <param name="leftVector">The first vector.</param>
     /// <param name="rightVector">The second vector.</param>
@@ -16,9 +16,9 @@ public static partial class Sql
         new(Resolve(leftVector), Resolve(rightVector));
 
     /// <summary>
-    /// The <c>(a &lt;-&gt; b)</c> L2 (Euclidean) distance operator between two
-    /// vectors (Oracle 23ai+, PostgreSQL). On PostgreSQL it requires the
-    /// pgvector extension.
+    /// The <c>(leftVector &lt;-&gt; rightVector)</c> L2 (Euclidean) distance
+    /// operator between two vectors (Oracle 23ai+, PostgreSQL). On PostgreSQL it
+    /// requires the pgvector extension.
     /// </summary>
     /// <param name="leftVector">The first vector.</param>
     /// <param name="rightVector">The second vector.</param>

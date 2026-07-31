@@ -6,8 +6,8 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// The <c>(a &lt;%&gt; b)</c> Jaccard distance operator between two bit
-    /// vectors (PostgreSQL). Requires the pgvector extension (0.7.0+).
+    /// The <c>(leftBits &lt;%&gt; rightBits)</c> Jaccard distance operator between
+    /// two bit vectors (PostgreSQL). Requires the pgvector extension (0.7.0+).
     /// </summary>
     /// <param name="leftBits">The first bit vector.</param>
     /// <param name="rightBits">The second bit vector.</param>

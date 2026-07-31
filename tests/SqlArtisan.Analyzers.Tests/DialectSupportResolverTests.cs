@@ -122,10 +122,10 @@ public class DialectSupportResolverTests
         Assert.False(result.Value.IsVersionBound);
     }
 
-    // No seeded bound sits on a false cell today (WithRecursive's Oracle-23
-    // candidate was disproven live, #263), so a false cell with a declared
-    // version keeps the plain-bool verdict — the flip direction stays covered
-    // by the ADR 0015 live-proof discipline, not by a data row.
+    // WithRecursive's Oracle false cell carries no bound (the Oracle-23 candidate
+    // was disproven live, #263), so a declared version keeps the plain-bool verdict.
+    // The flip direction — a false cell whose bound is met — is covered by the
+    // #343 Oracle 23 vector rows and their 23ai live-proof lane.
     [Fact]
     public void Resolve_FalseCellWithDeclaredVersionAndNoBound_StaysUnsupported()
     {

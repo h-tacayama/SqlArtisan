@@ -2239,7 +2239,7 @@ SqlStatement sql =
 
 A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle 23ai rejects `CAST(... AS vector)` outright (ORA-22849); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar. On MySQL, `<=>` is the NULL-safe equality operator — the same glyph as `CosineDistance` with entirely different meaning — so keep cosine-distance queries off MySQL connections.
 
-To bind a `Pgvector.Vector` instance instead of a cast string literal, construct the bind directly — `new BindValue(vector)` — and register pgvector's Dapper type handler (`VectorTypeHandler`) plus `UseVector()` on the Npgsql data source; the held value then flows to the driver untouched.
+To bind a `Pgvector.Vector` instance instead of a cast string literal, construct the bind directly — `new BindValue(vector)` — and register pgvector's Dapper type handler (`VectorTypeHandler`, from the `Pgvector.Dapper` package) plus `UseVector()` on the Npgsql data source (from the `Pgvector` package); the held value then flows to the driver untouched.
 
 ---
 
@@ -3284,10 +3284,14 @@ Suppression is per rule ID, the standard Roslyn way
 
 ### Version-bound constructs
 
-Every construct below has a recorded minimum version on the named dialect;
-below that version the matrix's plain `supported`/`not supported` verdict
-holds instead — declaring no version, or a version at or above the bound,
-reproduces that verdict exactly.
+Every construct below has a recorded minimum version on the named dialect.
+Declaring a version below the bound reports the construct as version-bound
+(`SQLA0003`); declaring no version keeps the matrix's plain
+`supported`/`not supported` verdict, and a version at or above the bound
+resolves the construct as supported. For most rows that reproduces the plain
+verdict exactly; where the bound sits above the dialect's verified baseline
+(the Oracle 23 row below), the plain verdict is `not supported`, and declaring
+the version is what lifts it.
 
 | Construct | Dialect | Minimum version | Why |
 |---|---|---|---|

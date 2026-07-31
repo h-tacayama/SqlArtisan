@@ -7,9 +7,9 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// The <c>(a &lt;#&gt; b)</c> negative inner product operator between two
-    /// vectors — smaller means more similar (Oracle 23ai+, PostgreSQL). On
-    /// PostgreSQL it requires the pgvector extension.
+    /// The <c>(leftVector &lt;#&gt; rightVector)</c> negative inner product
+    /// operator between two vectors — smaller means more similar (Oracle 23ai+,
+    /// PostgreSQL). On PostgreSQL it requires the pgvector extension.
     /// </summary>
     /// <param name="leftVector">The first vector.</param>
     /// <param name="rightVector">The second vector.</param>
