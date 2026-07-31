@@ -67,7 +67,7 @@ All the convenience, minimal overhead: an **allocation-light, fast** builder [be
 - **Automatic parameterization**: literals become bind parameters, preventing SQL injection through values.
 - **Dynamic conditions**: add or drop `WHERE` parts at runtime with helpers like `ConditionIf`.
 - **Dapper integration**: optional `SqlArtisan.Dapper` adds one-call execution.
-- **Oracle array-bind execution**: optional `SqlArtisan.ArrayBind` runs any SqlArtisan-built statement for thousands of rows in one round trip via ODP.NET array binding.
+- **Oracle array-bind execution**: optional `SqlArtisan.ArrayBind` runs SqlArtisan-built statements for thousands of rows in one round trip via ODP.NET array binding.
 - **Dialect-aware analyzer**: an opt-in Roslyn analyzer that deterministically flags constructs your target dialect does not support — the second layer of the guard-rail stack ([docs](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)).
 
 ---
@@ -101,7 +101,7 @@ The **allocation lead is firm** (lightweight builders allocate the same bytes ev
 | Package                    | Description                                                                                                                   | NuGet                                                                                                                                | Downloads                                                                                                                      |
 | :------------------------- | :---------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
 | `SqlArtisan`               | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                       | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg)](https://www.nuget.org/packages/SqlArtisan/)                             | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan)](https://www.nuget.org/packages/SqlArtisan/)                             |
-| `SqlArtisan.ArrayBind`     | High-throughput Oracle array-bind execution for any SqlArtisan-built statement via ODP.NET.                                   | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.ArrayBind.svg)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.ArrayBind)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         |
+| `SqlArtisan.ArrayBind`     | High-throughput Oracle array-bind execution for SqlArtisan-built statements via ODP.NET.                                      | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.ArrayBind.svg)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.ArrayBind)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         |
 | `SqlArtisan.Dapper`        | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.Dapper)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               |
 | `SqlArtisan.TableClassGen` | A .NET tool that generates C# table classes from your database, enabling IntelliSense and type safety with SqlArtisan. | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
 
@@ -114,7 +114,7 @@ The **allocation lead is firm** (lightweight builders allocate the same bytes ev
 - **.NET 8.0 or later.**
 - **Choose the API for your target DBMS** (e.g. `Systimestamp` for Oracle vs `CurrentTimestamp` for PostgreSQL). Bind-parameter prefixes (`:` / `@` / `?`) are then handled for you — verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
 - **(Optional) `SqlArtisan.Dapper`** auto-detects the dialect from your `IDbConnection` and adds execution methods.
-- **(Optional) `SqlArtisan.ArrayBind`** adds Oracle array-bind execution for any SqlArtisan-built statement.
+- **(Optional) `SqlArtisan.ArrayBind`** adds Oracle array-bind execution for SqlArtisan-built statements.
 
 ### Installation
 

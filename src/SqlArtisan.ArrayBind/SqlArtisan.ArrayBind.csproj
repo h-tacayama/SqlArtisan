@@ -9,7 +9,7 @@
     <Copyright>Copyright (c) h.tacayama 2025</Copyright>
 
     <Authors>h.tacayama</Authors>
-    <Description>Oracle array-bind execution for SqlArtisan: run any SqlArtisan-built INSERT/UPDATE/DELETE statement for N rows in one round trip via ODP.NET array binding (OracleCommand.ArrayBindCount).</Description>
+    <Description>Oracle array-bind execution for SqlArtisan: run SqlArtisan-built INSERT/UPDATE/DELETE statements for N rows in one round trip via ODP.NET array binding (OracleCommand.ArrayBindCount).</Description>
     <PackageTags>database sql sqlbuilder query querybuilder oracle arraybind arraybinding bulkinsert</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

@@ -78,7 +78,7 @@ All the convenience, minimal overhead: an **allocation-light, fast** builder [be
 - **Automatic parameterization**: literals become bind parameters, preventing SQL injection through values.
 - **Dynamic conditions**: add or drop `WHERE` parts at runtime with helpers like `ConditionIf`.
 - **Dapper integration**: optional `SqlArtisan.Dapper` adds one-call execution.
-- **Oracle array-bind execution**: optional `SqlArtisan.ArrayBind` runs any SqlArtisan-built statement for thousands of rows in one round trip via ODP.NET array binding.
+- **Oracle array-bind execution**: optional `SqlArtisan.ArrayBind` runs SqlArtisan-built statements for thousands of rows in one round trip via ODP.NET array binding.
 - **Dialect-aware analyzer**: an opt-in Roslyn analyzer that deterministically flags constructs your target dialect does not support — the second layer of the guard-rail stack ([docs](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md)).
 
 ---
@@ -112,7 +112,7 @@ The **allocation lead is firm** (lightweight builders allocate the same bytes ev
 | Package                    | Description                                                                                                                   | NuGet                                                                                                                                | Downloads                                                                                                                      |
 | :------------------------- | :---------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
 | `SqlArtisan`               | The core query builder library for writing SQL in C# with a SQL-like fluent experience.                                       | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.svg)](https://www.nuget.org/packages/SqlArtisan/)                             | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan)](https://www.nuget.org/packages/SqlArtisan/)                             |
-| `SqlArtisan.ArrayBind`     | High-throughput Oracle array-bind execution for any SqlArtisan-built statement via ODP.NET.                                   | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.ArrayBind.svg)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.ArrayBind)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         |
+| `SqlArtisan.ArrayBind`     | High-throughput Oracle array-bind execution for SqlArtisan-built statements via ODP.NET.                                      | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.ArrayBind.svg)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.ArrayBind)](https://www.nuget.org/packages/SqlArtisan.ArrayBind/)         |
 | `SqlArtisan.Dapper`        | Provides extension methods to seamlessly execute queries built by SqlArtisan using Dapper.                                    | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.Dapper.svg)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.Dapper)](https://www.nuget.org/packages/SqlArtisan.Dapper/)               |
 | `SqlArtisan.TableClassGen` | A .NET tool that generates C# table classes from your database, enabling IntelliSense and type safety with SqlArtisan. | [![NuGet](https://img.shields.io/nuget/vpre/SqlArtisan.TableClassGen.svg)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) | [![Nuget](https://img.shields.io/nuget/dt/SqlArtisan.TableClassGen)](https://www.nuget.org/packages/SqlArtisan.TableClassGen/) |
 
@@ -125,7 +125,7 @@ The **allocation lead is firm** (lightweight builders allocate the same bytes ev
 - **.NET 8.0 or later.**
 - **Choose the API for your target DBMS** (e.g. `Systimestamp` for Oracle vs `CurrentTimestamp` for PostgreSQL). Bind-parameter prefixes (`:` / `@` / `?`) are then handled for you — verified for **MySQL, Oracle, PostgreSQL, SQLite, and SQL Server**.
 - **(Optional) `SqlArtisan.Dapper`** auto-detects the dialect from your `IDbConnection` and adds execution methods.
-- **(Optional) `SqlArtisan.ArrayBind`** adds Oracle array-bind execution for any SqlArtisan-built statement.
+- **(Optional) `SqlArtisan.ArrayBind`** adds Oracle array-bind execution for SqlArtisan-built statements.
 
 ### Installation
 
@@ -322,7 +322,7 @@ Task-oriented paths from your current project to SqlArtisan.
 - **[Dapper + SqlArtisan from Scratch](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/dapper-quickstart.md)** —
   the greenfield path: packages → table classes → executed queries.
 - **[Oracle Array-Bind Execution with SqlArtisan.ArrayBind](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md)** —
-  run any SqlArtisan-built statement for N rows in one round trip via ODP.NET
+  run SqlArtisan-built statements for N rows in one round trip via ODP.NET
   array binding.
 - **[Using SqlArtisan with AI Coding Assistants](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/ai-assistants.md)** —
   the analyzer target, the `llms.txt` feed, and exact-SQL test pinning for
@@ -2962,7 +2962,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 
 Exposed per dialect (no unified rewrite); each emits its dialect-native syntax verbatim.
 
-- `StringAgg(expr, sep)` for `STRING_AGG(expr, sep)` (PostgreSQL/SQL Server). Order with an `OrderBy(...)` argument — `StringAgg(expr, sep, OrderBy(...))` (PostgreSQL, inline) — or chain `.WithinGroup(OrderBy(...))` (SQL Server)
+- `StringAgg(expr, sep)` for `STRING_AGG(expr, sep)` (PostgreSQL/SQLite 3.44+/SQL Server). Order with an `OrderBy(...)` argument — `StringAgg(expr, sep, OrderBy(...))` (PostgreSQL/SQLite 3.44+, inline) — or chain `.WithinGroup(OrderBy(...))` (SQL Server)
 - `Listagg(expr, sep).WithinGroup(OrderBy(...))` for `LISTAGG(expr, sep) WITHIN GROUP (ORDER BY ...)` (Oracle)
 - `GroupConcat(expr)` for `GROUP_CONCAT(expr)` (MySQL/SQLite)
 - `GroupConcat(expr, sep)` for `GROUP_CONCAT(expr, sep)` (SQLite, positional separator)
@@ -3744,7 +3744,7 @@ against):
 | MySQL | MySQL 8.0 |
 | Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0003` reports |
 | PostgreSQL | PostgreSQL 16 |
-| SQLite | the SQLite build bundled with `Microsoft.Data.Sqlite` 9.0.5 |
+| SQLite | `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 (via `Microsoft.Data.Sqlite` 9.0.5) |
 | SQL Server | SQL Server 2022 |
 
 An older or newer engine version may disagree with a `false` entry in
@@ -5007,7 +5007,7 @@ Three cases are specific to this library, beyond the usual API-level changes:
   caller who hasn't rebuilt against the new version — the same class of risk
   the emitted-SQL rule above guards against.
 
-Analyzer diagnostic updates (SQLA0001–SQLA0011) may also land in a
+Analyzer diagnostic updates (the SQLA rules) may also land in a
 minor release: they change build-time diagnostics, never runtime behavior.
 
 ## Deprecation
