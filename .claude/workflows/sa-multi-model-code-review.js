@@ -35,14 +35,20 @@ const SCOPE_SCHEMA = {
 
 // `SqlBuilder/**` and `SqlPart/**` appear twice, deliberately: the
 // `Internal/`-prefixed path is implementation detail, the bare path is the
-// public surface (ADR 0005) — don't collapse them into one glob.
+// public surface (ADR 0005) — don't collapse them into one glob. Each pattern
+// below must be non-overlapping with the others: the Scope agent globs them
+// independently and concatenates, so an overlap would hand the orchestrator
+// a changedFiles list with duplicates baked in before it ever partitions
+// anything.
 const FULL_CODEBASE_GLOBS = [
   'src/SqlArtisan/Sql/*.cs',
-  'src/SqlArtisan/Internal/SqlPart/Expression/Function/**',
+  'src/SqlArtisan/Internal/SqlPart/**',
   'src/SqlArtisan/Internal/SqlBuilder/**',
-  'src/SqlArtisan/Internal/SqlPart/Keywords.cs',
+  'src/SqlArtisan/Internal/Extensions/**',
   'src/SqlArtisan/SqlBuilder/**',
   'src/SqlArtisan/SqlPart/**',
+  'src/SqlArtisan/Metadata/**',
+  'src/SqlArtisan.ArrayBind/**',
   'src/SqlArtisan.Dapper/**',
   'src/SqlArtisan.TableClassGen/**',
   'src/SqlArtisan.Analyzers/**',
@@ -50,6 +56,7 @@ const FULL_CODEBASE_GLOBS = [
   'tests/SqlArtisan.Benchmark/**',
   'tests/SqlArtisan.Analyzers.Tests/**',
   'tests/SqlArtisan.IntegrationTests/**',
+  'tests/SqlArtisan.TableClassGen.Tests/**',
 ]
 
 // args.paths lets a caller scope a run to a subset (e.g. just the Public API
@@ -140,20 +147,33 @@ const GATES_SCHEMA = {
   required: ['buildPassed', 'testsPassed', 'formatClean', 'summary'],
 }
 
+// fullCodebase mode reviews Analyzers/TableClassGen/Dapper/ArrayBind too, so
+// the core-only build+test the sa-code-review skill uses for a diff is not
+// enough of a gate — a red test in one of those projects would otherwise go
+// undetected while its source still gets reviewed as if it passed CI.
+const gatesCommands = scopeInfo.scope === 'fullCodebase'
+  ? `dotnet build SqlArtisan.sln -c Release
+dotnet test tests/SqlArtisan.Tests
+dotnet test tests/SqlArtisan.Analyzers.Tests
+dotnet test tests/SqlArtisan.TableClassGen.Tests
+dotnet format SqlArtisan.sln --verify-no-changes`
+  : `dotnet build src/SqlArtisan/SqlArtisan.csproj -c Release
+dotnet test tests/SqlArtisan.Tests
+dotnet format SqlArtisan.sln --verify-no-changes`
+
 const gates = await agent(
   `Run the SqlArtisan review gates (sa-code-review skill, step 2) and report
 pass/fail for each. Do not fix anything — detection only.
 
-dotnet build src/SqlArtisan/SqlArtisan.csproj -c Release
-dotnet test tests/SqlArtisan.Tests
-dotnet format SqlArtisan.sln --verify-no-changes
+${gatesCommands}
 
 0 warnings is the bar for the build (AnalysisMode=Recommended, including
 CS1574 cref resolution) — with one named exception: a SourceLink warning
 reading "Source control information is not available" is a known artifact
 of a sandboxed git remote that isn't a real github.com host, not a
 code-quality issue. Disregard only that exact warning; anything else still
-counts against the bar. Summarize any failure in one or two lines.`,
+counts against the bar. Summarize any failure in one or two lines (if
+multiple test suites ran, name which one failed).`,
   { model: 'haiku', effort: 'low', label: 'gates', phase: 'Gates', schema: GATES_SCHEMA }
 )
 
@@ -303,6 +323,18 @@ for (const group of plan.fileGroups) {
       })
     }
   }
+}
+
+// Synthesize concatenates every chunk's full verified review text into one
+// prompt (see below) — at full-codebase scale that can exceed a single
+// agent's context. There's no good in-workflow fix short of a map-reduce
+// synthesis this task doesn't warrant; surface the risk instead of eating it
+// silently, and point at the escape hatch (args.paths) that already exists.
+const SYNTHESIS_CHUNK_WARNING_THRESHOLD = 40
+if (scopeInfo.scope === 'fullCodebase' && reviewUnits.length > SYNTHESIS_CHUNK_WARNING_THRESHOLD) {
+  log(`Warning: ${reviewUnits.length} chunks in a fullCodebase run — Synthesize concatenates every
+chunk's full review text into one prompt and may exceed context at this scale. Consider re-running
+with args.paths scoped to one layer of CLAUDE.md's Layout table at a time instead of the full sweep.`)
 }
 
 // A length subtraction alone only catches under-coverage and can go
