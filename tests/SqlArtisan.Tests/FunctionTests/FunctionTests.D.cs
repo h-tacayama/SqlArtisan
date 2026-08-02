@@ -188,6 +188,17 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Decode_EmptyPairs_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Decode(_t.Code, [], 999));
+
+        Assert.Equal(
+            "DECODE requires at least one (search, result) pair.",
+            ex.Message);
+    }
+
+    [Fact]
     public void Decode_OnePair_CorrectSql()
     {
         SqlStatement sql =

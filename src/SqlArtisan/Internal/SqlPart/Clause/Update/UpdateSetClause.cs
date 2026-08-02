@@ -13,6 +13,8 @@ internal sealed class UpdateSetClause : SqlPart
 
     internal static UpdateSetClause Parse(EqualityBasedCondition[] items, DmlJoinState state)
     {
+        CollectionGuard.ThrowIfEmpty(items, "SET requires at least one assignment.");
+
         var assignments = new EqualityCondition[items.Length];
 
         for (int i = 0; i < items.Length; i++)

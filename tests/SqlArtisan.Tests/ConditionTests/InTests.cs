@@ -136,6 +136,20 @@ public class InTests
     }
 
     [Fact]
+    public void In_EmptyParamsArray_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => _t.Code.In());
+        Assert.Equal("IN requires at least one value.", ex.Message);
+    }
+
+    [Fact]
+    public void NotIn_EmptyParamsArray_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => _t.Code.NotIn());
+        Assert.Equal("NOT IN requires at least one value.", ex.Message);
+    }
+
+    [Fact]
     public void In_NullCollection_ThrowsArgumentNullException()
     {
         IReadOnlyCollection<int> nullCollection = null!;

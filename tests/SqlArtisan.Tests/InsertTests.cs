@@ -269,6 +269,39 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_SetNoAssignments_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Set());
+
+        Assert.Equal("SET requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_ValuesNoArguments_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Values());
+
+        Assert.Equal("A VALUES row requires at least one value.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_SetNoAssignments_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertIgnoreInto(t).Set());
+
+        Assert.Equal("SET requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
     public void InsertIgnoreInto_MySql_WithColumnList_CorrectSql()
     {
         TestTable t = new();

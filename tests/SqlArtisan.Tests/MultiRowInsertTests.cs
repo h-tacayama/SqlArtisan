@@ -193,6 +193,17 @@ public class MultiRowInsertTests
     }
 
     [Fact]
+    public void Values_EmptyRowWithinArray_ThrowsArgumentException()
+    {
+        object[][] rows = [[1, "a"], []];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code, _t.Name).Values(rows));
+
+        Assert.Equal("A VALUES row requires at least one value.", ex.Message);
+    }
+
+    [Fact]
     public void Values_NullRowCollection_ThrowsArgumentNullException()
     {
         IEnumerable<object[]> nullRows = null!;
