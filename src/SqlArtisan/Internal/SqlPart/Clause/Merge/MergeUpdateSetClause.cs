@@ -13,7 +13,8 @@ internal sealed class MergeUpdateSetClause : SqlPart
 
     internal static MergeUpdateSetClause Parse(EqualityBasedCondition[] items) =>
         new(UpsertAssignmentResolver.Resolve(
-            items, "UPDATE SET requires at least one assignment."));
+            items,
+            "UPDATE SET requires at least one assignment."));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Update} {Keywords.Set} ")

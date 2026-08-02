@@ -11,7 +11,8 @@ internal sealed class OnDuplicateKeyUpdateClause : SqlPart
 
     internal static OnDuplicateKeyUpdateClause Parse(EqualityBasedCondition[] items) =>
         new(UpsertAssignmentResolver.Resolve(
-            items, "ON DUPLICATE KEY UPDATE requires at least one assignment."));
+            items,
+            "ON DUPLICATE KEY UPDATE requires at least one assignment."));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.On} {Keywords.Duplicate} {Keywords.Key} {Keywords.Update} ")
