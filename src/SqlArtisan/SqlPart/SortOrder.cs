@@ -13,7 +13,7 @@ public sealed class SortOrder : SqlPart
 {
     private readonly SqlPart _exprOrAlias;
     private readonly SortDirection _direction;
-    private NullOrdering _nullOrdering;
+    private readonly NullOrdering _nullOrdering;
 
     internal SortOrder(SqlPart exprOrAlias)
         : this(exprOrAlias, SortDirection.None, NullOrdering.None)
@@ -43,7 +43,7 @@ public sealed class SortOrder : SqlPart
     /// </summary>
     /// <remarks>Not available on MySQL or SQL Server; SQLite 3.30+.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NullsFirst => SetNullOrdering(NullOrdering.NullsFirst);
+    public SortOrder NullsFirst => new(_exprOrAlias, _direction, NullOrdering.NullsFirst);
 
     /// <summary>
     /// Gets this sort key with its <see langword="null"/> values sorted last
@@ -51,7 +51,7 @@ public sealed class SortOrder : SqlPart
     /// </summary>
     /// <remarks>Not available on MySQL or SQL Server; SQLite 3.30+.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NullsLast => SetNullOrdering(NullOrdering.NullsLast);
+    public SortOrder NullsLast => new(_exprOrAlias, _direction, NullOrdering.NullsLast);
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
@@ -76,11 +76,5 @@ public sealed class SortOrder : SqlPart
                 buffer.Append($" {Keywords.Nulls} {Keywords.Last}");
                 break;
         }
-    }
-
-    private SortOrder SetNullOrdering(NullOrdering value)
-    {
-        _nullOrdering = value;
-        return this;
     }
 }

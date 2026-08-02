@@ -107,13 +107,21 @@ check the diff against each:
   clause (Oracle `LISTAGG` needs `WITHIN GROUP`); keep it optional when the
   clause is genuinely optional (SQL Server `STRING_AGG`, MySQL `GROUP_CONCAT`
   ordering).
-- **Mutable builder fields returning `this`** are acceptable as an
-  implementation — there is precedent (`SortOrder.SetNullOrdering`). Not a
-  finding on its own, **but** the reuse contract is (#245): a stage call after
-  `Build()` must throw once the freeze-after-Build guard lands, and docs must
-  never *promise* mutation (the contract wording is "a partial chain is
-  one-way"), keeping copy-on-write open as a later bug-fix. Flag docs or code
-  that locks mutation in.
+- **Mutable builder fields returning `this`** are acceptable **only on a
+  single-owner fluent-chain step** — precedent: `TopClause.Percent`/`WithTies`,
+  `StringAggFunction.WithinGroup`. No guard reaches these node-level mutators
+  (the #245 freeze-after-Build guard intercepts statement-builder stages
+  only), so the acceptability rests on the idiom: the node is configured
+  inline and handed straight to its statement, not held. Docs must never
+  *promise* mutation (the contract wording is "a partial chain is one-way"),
+  keeping copy-on-write open as a later bug-fix. Flag the same shape on a
+  **value-like node a caller might hold and derive from more than once** (an
+  accumulator pattern — combining `SqlCondition`s with `&`/`|`, deriving
+  `SortOrder` variants, anything similar): mutating the receiver there aliases
+  or cross-contaminates the derivations, since both point at the same object.
+  `AndCondition`/`OrCondition` and `SortOrder.NullsFirst`/`.NullsLast` are
+  copy-on-write for exactly this reason — require the same of any new node
+  shaped like them.
 - **Comment audit.** Comments are part of the diff — hold them to the same bar.
   Run the `.claude/rules/code-comments.md` smell checklist (1–8) and length
   defaults over every added or changed `//` and `///`; delete restatements and
