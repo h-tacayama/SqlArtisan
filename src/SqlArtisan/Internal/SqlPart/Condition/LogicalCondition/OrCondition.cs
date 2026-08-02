@@ -6,13 +6,33 @@ public sealed class OrCondition : SqlCondition
     private readonly SqlCondition _second;
 
     // Third and later operands of a chained `a | b | c` only; the common binary
-    // OR keeps this null and allocates no list.
-    private List<SqlCondition>? _rest;
+    // OR keeps this null and allocates no array.
+    private readonly SqlCondition[]? _rest;
 
     internal OrCondition(SqlCondition leftSide, SqlCondition rightSide)
     {
         _first = leftSide;
         _second = rightSide;
+    }
+
+    // Copy-on-write extension of an existing OrCondition by one more operand
+    // (operator |, #399): a fresh array so `existing` — possibly still held and
+    // reused by other code — is never mutated.
+    internal OrCondition(OrCondition existing, SqlCondition additionalOperand)
+    {
+        _first = existing._first;
+        _second = existing._second;
+
+        if (existing._rest is null)
+        {
+            _rest = [additionalOperand];
+        }
+        else
+        {
+            _rest = new SqlCondition[existing._rest.Length + 1];
+            Array.Copy(existing._rest, _rest, existing._rest.Length);
+            _rest[^1] = additionalOperand;
+        }
     }
 
     // Same emptiness rule as AndCondition.IsEmpty.
@@ -27,7 +47,7 @@ public sealed class OrCondition : SqlCondition
 
             if (_rest is not null)
             {
-                for (int i = 0; i < _rest.Count; i++)
+                for (int i = 0; i < _rest.Length; i++)
                 {
                     if (!_rest[i].IsEmpty)
                     {
@@ -49,17 +69,11 @@ public sealed class OrCondition : SqlCondition
 
         if (_rest is not null)
         {
-            for (int i = 0; i < _rest.Count; i++)
+            for (int i = 0; i < _rest.Length; i++)
             {
                 FormatOperand(buffer, _rest[i], ref added);
             }
         }
-    }
-
-    internal void Add(SqlCondition condition)
-    {
-        _rest ??= [];
-        _rest.Add(condition);
     }
 
     private static void FormatOperand(

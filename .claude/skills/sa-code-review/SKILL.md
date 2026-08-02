@@ -108,12 +108,18 @@ check the diff against each:
   clause is genuinely optional (SQL Server `STRING_AGG`, MySQL `GROUP_CONCAT`
   ordering).
 - **Mutable builder fields returning `this`** are acceptable as an
-  implementation — there is precedent (`SortOrder.SetNullOrdering`). Not a
-  finding on its own, **but** the reuse contract is (#245): a stage call after
-  `Build()` must throw once the freeze-after-Build guard lands, and docs must
-  never *promise* mutation (the contract wording is "a partial chain is
-  one-way"), keeping copy-on-write open as a later bug-fix. Flag docs or code
-  that locks mutation in.
+  implementation — there is precedent (`TopClause.Percent`/`WithTies`,
+  `StringAggFunction.WithinGroup`). Not a finding on its own, **but** the reuse
+  contract is (#245): a stage call after `Build()` must throw once the
+  freeze-after-Build guard lands, and docs must never *promise* mutation (the
+  contract wording is "a partial chain is one-way"), keeping copy-on-write open
+  as a later bug-fix. `SortOrder.NullsFirst`/`NullsLast` and the `AndCondition`/
+  `OrCondition` built by `&`/`|` were exactly this shape until #399: a caller
+  holding the node and deriving along two branches (`held.NullsFirst` /
+  `held.NullsLast`, or `held & x` / `held & y`) silently aliased or
+  cross-contaminated, so both moved to copy-on-write. Flag a *held, re-derived*
+  node of this shape especially hard — it is the one the mutation caveat
+  actually bit.
 - **Comment audit.** Comments are part of the diff — hold them to the same bar.
   Run the `.claude/rules/code-comments.md` smell checklist (1–8) and length
   defaults over every added or changed `//` and `///`; delete restatements and

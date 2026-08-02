@@ -88,10 +88,17 @@ operand *beside* an active one still drops out inside a non-empty AND/OR (that i
   A **value-domain guard** (an argument value no engine accepts, e.g. a
   percentile fraction outside 0..1) is also eager — its three admission
   conditions are ADR 0012 (#295); never domain-check a bound value.
-- **At Build()/format time** when later mutation can change the fact:
-  conditions (`operator &` mutates a held `AndCondition`, so an empty tree at
-  `.Where(...)` time can legitimately become non-empty before `Build()`) and
-  builder stages. An eager check here would misfire on legal code.
+- **At Build()/format time** when the position's own architecture calls for
+  it: conditions (`WhereClause`/`HavingClause`/etc. are shared by every
+  statement type that embeds them — SELECT/UPDATE/DELETE and the aggregate
+  `FILTER` — so the throw lives in the clause node's own `Format`, letting one
+  implementation serve all of them; see "no elision" above) and builder stages
+  (`SqlBuilderBase._parts` only reaches its final shape once every stage call
+  has run). An eager check here would misfire on legal code. Before #399,
+  `operator &`/`|` also mutated a held `AndCondition`/`OrCondition` in place,
+  so an empty tree at `.Where(...)` time could legitimately become non-empty
+  before `Build()` — conditions are copy-on-write now, so that specific path
+  no longer applies, but the timing stays at Build() for the reasons above.
 
 ## Message grammar
 

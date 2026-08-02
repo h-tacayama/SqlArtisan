@@ -6,13 +6,33 @@ public sealed class AndCondition : SqlCondition
     private readonly SqlCondition _second;
 
     // Third and later operands of a chained `a & b & c` only; the common binary
-    // AND keeps this null and allocates no list.
-    private List<SqlCondition>? _rest;
+    // AND keeps this null and allocates no array.
+    private readonly SqlCondition[]? _rest;
 
     internal AndCondition(SqlCondition leftSide, SqlCondition rightSide)
     {
         _first = leftSide;
         _second = rightSide;
+    }
+
+    // Copy-on-write extension of an existing AndCondition by one more operand
+    // (operator &, #399): a fresh array so `existing` — possibly still held and
+    // reused by other code — is never mutated.
+    internal AndCondition(AndCondition existing, SqlCondition additionalOperand)
+    {
+        _first = existing._first;
+        _second = existing._second;
+
+        if (existing._rest is null)
+        {
+            _rest = [additionalOperand];
+        }
+        else
+        {
+            _rest = new SqlCondition[existing._rest.Length + 1];
+            Array.Copy(existing._rest, _rest, existing._rest.Length);
+            _rest[^1] = additionalOperand;
+        }
     }
 
     // An AND group is empty only when every operand is empty; a lone empty operand
@@ -28,7 +48,7 @@ public sealed class AndCondition : SqlCondition
 
             if (_rest is not null)
             {
-                for (int i = 0; i < _rest.Count; i++)
+                for (int i = 0; i < _rest.Length; i++)
                 {
                     if (!_rest[i].IsEmpty)
                     {
@@ -50,17 +70,11 @@ public sealed class AndCondition : SqlCondition
 
         if (_rest is not null)
         {
-            for (int i = 0; i < _rest.Count; i++)
+            for (int i = 0; i < _rest.Length; i++)
             {
                 FormatOperand(buffer, _rest[i], ref added);
             }
         }
-    }
-
-    internal void Add(SqlCondition condition)
-    {
-        _rest ??= [];
-        _rest.Add(condition);
     }
 
     private static void FormatOperand(

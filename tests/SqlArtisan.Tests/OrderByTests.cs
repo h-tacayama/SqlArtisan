@@ -96,6 +96,31 @@ public class OrderByTests
     }
 
     [Fact]
+    public void NullsFirst_HeldSortOrderDerivedAlongTwoBranches_BranchesStayIsolated()
+    {
+        // #399: NullsFirst/NullsLast used to mutate the receiving SortOrder in
+        // place, so two derivations from one held SortOrder aliased to whichever
+        // was applied last.
+        SortOrder baseOrder = _t.Code.Asc;
+        SortOrder branch1 = baseOrder.NullsFirst;
+        SortOrder branch2 = baseOrder.NullsLast;
+
+        SqlStatement baseSql = Select(_t.Code).From(_t).OrderBy(baseOrder).Build();
+        SqlStatement branch1Sql = Select(_t.Code).From(_t).OrderBy(branch1).Build();
+        SqlStatement branch2Sql = Select(_t.Code).From(_t).OrderBy(branch2).Build();
+
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\" ORDER BY \"t\".code ASC",
+            baseSql.Text);
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\" ORDER BY \"t\".code ASC NULLS FIRST",
+            branch1Sql.Text);
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\" ORDER BY \"t\".code ASC NULLS LAST",
+            branch2Sql.Text);
+    }
+
+    [Fact]
     public void OrderBy_WithNoItems_ThrowsArgumentException()
     {
         // Act & Assert

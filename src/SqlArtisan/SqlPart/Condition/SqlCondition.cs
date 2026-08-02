@@ -25,8 +25,7 @@ public abstract class SqlCondition : SqlPart
     {
         if (leftSide is AndCondition andCondition)
         {
-            andCondition.Add(rightSide);
-            return andCondition;
+            return new(andCondition, rightSide);
         }
         else
         {
@@ -48,8 +47,7 @@ public abstract class SqlCondition : SqlPart
     {
         if (leftSide is OrCondition orCondition)
         {
-            orCondition.Add(rightSide);
-            return orCondition;
+            return new(orCondition, rightSide);
         }
         else
         {
