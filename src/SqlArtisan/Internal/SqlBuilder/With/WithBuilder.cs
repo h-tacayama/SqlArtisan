@@ -24,20 +24,22 @@ internal sealed class WithBuilder : IWithBuilderWith
     public IInsertIgnoreBuilderTable InsertIgnoreInto(DbTableBase table) =>
         new InsertBuilder(
             table,
+            0,
             _withPart,
             new InsertIgnoreIntoClause(table));
 
     public IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(table, _withPart, new InsertIgnoreIntoClause(table, columns));
+        new InsertBuilder(table, columns.Length, _withPart, new InsertIgnoreIntoClause(table, columns));
 
     public IInsertBuilderTable InsertInto(DbTableBase table) =>
         new InsertBuilder(
             table,
+            0,
             _withPart,
             new InsertIntoClause(table));
 
     public IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(table, _withPart, new InsertIntoClause(table, columns));
+        new InsertBuilder(table, columns.Length, _withPart, new InsertIntoClause(table, columns));
 
     public ISelectBuilderSelect Select(params object[] selectItems) =>
         new SelectBuilder(_withPart, SelectClause.Parse(selectItems));

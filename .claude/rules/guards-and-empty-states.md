@@ -56,13 +56,14 @@ The empty `IN`/`NOT IN` collection and empty `VALUES` row guards (ERG-05/ERG-07,
 #243) shipped in #396, alongside the same sweep's guards for empty `SET`
 (`UpdateBuilder`/`InsertBuilder`), empty `DO UPDATE SET` / `ON DUPLICATE KEY
 UPDATE` / MERGE `.ThenUpdateSet()`, an empty `SELECT` `.From()`, and an empty
-`Sql.Decode(...)` pairs array. New guards must land on this policy; never
+`Sql.Decode(...)` pairs array; #397 added the INSERT column-list/VALUES-row
+width cross-check alongside them. New guards must land on this policy; never
 cite a row as already-enforced without checking the code.
 
 | Position | All-empty behavior |
 |---|---|
 | Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` | **throw at Build()** |
-| Empty SELECT list (#236); empty `SELECT`/`UPDATE` `.From()`; empty `IN`/`NOT IN`, empty `VALUES` row (#243); empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396) | throw **eagerly** |
+| Empty SELECT list (#236); empty `SELECT`/`UPDATE` `.From()`; empty `IN`/`NOT IN`, empty `VALUES` row (#243); empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); INSERT column-list vs. `VALUES` row width mismatch (#397) | throw **eagerly** |
 
 There is **no elision** — omitting a clause is the only "no restriction". The
 throw lives in the clause node's own `Format` (Build()-time), so it fires

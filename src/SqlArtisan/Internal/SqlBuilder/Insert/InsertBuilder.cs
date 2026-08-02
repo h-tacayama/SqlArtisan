@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootParts) :
+internal sealed class InsertBuilder(DbTableBase table, int columnCount, params SqlPart[] rootParts) :
     SelectBuilder(rootParts),
     IInsertBuilderColumns,
     IInsertBuilderColumnsOutput,
@@ -130,6 +130,13 @@ internal sealed class InsertBuilder(DbTableBase table, params SqlPart[] rootPart
     {
         if (_valuesClause is null)
         {
+            if (columnCount > 0 && values.Length > 0 && values.Length != columnCount)
+            {
+                throw new ArgumentException(
+                    $"The INSERT column list declares {columnCount} column(s), " +
+                    $"but this VALUES row has {values.Length} value(s).");
+            }
+
             _valuesClause = InsertValuesClause.Parse(values);
             AddPart(_valuesClause);
         }

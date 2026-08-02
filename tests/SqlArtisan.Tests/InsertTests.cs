@@ -291,6 +291,32 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_ValuesRowWidthExceedsColumnList_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code).Values(1, "a"));
+
+        Assert.Equal(
+            "The INSERT column list declares 1 column(s), but this VALUES row has 2 value(s).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_ValuesRowWidthBelowColumnList_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name).Values(1));
+
+        Assert.Equal(
+            "The INSERT column list declares 2 column(s), but this VALUES row has 1 value(s).",
+            ex.Message);
+    }
+
+    [Fact]
     public void InsertIgnoreInto_SetNoAssignments_ThrowsArgumentException()
     {
         TestTable t = new();
