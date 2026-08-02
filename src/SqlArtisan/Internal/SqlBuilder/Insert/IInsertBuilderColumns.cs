@@ -8,7 +8,7 @@ public interface IInsertBuilderColumns : ISelectBuilder, IWithBuilder
     /// <summary>
     /// Appends a <c>VALUES (...)</c> row matching the declared column list.
     /// </summary>
-    /// <param name="values">The row values, one per listed column; literals are auto-parameterized.</param>
+    /// <param name="values">The row values, one per listed column; must be non-empty, and literals are auto-parameterized.</param>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c> or an upsert clause, or build.</returns>
     IInsertBuilderValues Values(params object[] values);
 
