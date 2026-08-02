@@ -253,6 +253,32 @@ public class MergeTests
     }
 
     [Fact]
+    public void Merge_WhenMatched_ThenUpdateSetNoAssignments_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet()
+            .Build(Dbms.Oracle));
+
+        Assert.Equal("UPDATE SET requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
+    public void Merge_WhenNotMatchedBySource_ThenUpdateSetNoAssignments_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenNotMatchedBySource().ThenUpdateSet()
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal("UPDATE SET requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
     public void Merge_WhenNotMatchedConditionExcluded_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>

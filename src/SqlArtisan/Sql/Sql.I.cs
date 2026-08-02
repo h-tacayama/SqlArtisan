@@ -13,7 +13,7 @@ public static partial class Sql
     /// <param name="table">The target table.</param>
     /// <returns>An insert builder awaiting the values to insert.</returns>
     public static IInsertBuilderTable InsertInto(DbTableBase table) =>
-        new InsertBuilder(table, new InsertIntoClause(table));
+        new InsertBuilder(table, 0, new InsertIntoClause(table));
 
     /// <summary>
     /// Starts an <c>INSERT INTO table (c1, c2)</c> statement naming
@@ -25,7 +25,7 @@ public static partial class Sql
     /// parenthesized list after the table.</param>
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
     public static IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(table, new InsertIntoClause(table, columns));
+        new InsertBuilder(table, columns.Length, new InsertIntoClause(table, columns));
 
     /// <summary>
     /// Starts an <c>INSERT IGNORE INTO table</c> statement (MySQL): rows whose
@@ -38,7 +38,7 @@ public static partial class Sql
     /// <remarks>MySQL syntax. On PostgreSQL/SQLite express the do-nothing UPSERT
     /// with <c>InsertInto(...).Values(...).OnConflict().DoNothing()</c> instead.</remarks>
     public static IInsertIgnoreBuilderTable InsertIgnoreInto(DbTableBase table) =>
-        new InsertBuilder(table, new InsertIgnoreIntoClause(table));
+        new InsertBuilder(table, 0, new InsertIgnoreIntoClause(table));
 
     /// <summary>
     /// Starts an <c>INSERT IGNORE INTO table (c1, c2)</c> statement (MySQL) naming
@@ -53,7 +53,7 @@ public static partial class Sql
     /// <remarks>MySQL syntax. On PostgreSQL/SQLite express the do-nothing UPSERT
     /// with <c>InsertInto(...).Values(...).OnConflict().DoNothing()</c> instead.</remarks>
     public static IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(table, new InsertIgnoreIntoClause(table, columns));
+        new InsertBuilder(table, columns.Length, new InsertIgnoreIntoClause(table, columns));
 
     /// <summary>
     /// References <paramref name="column"/> of the <c>INSERTED</c> pseudo-table in

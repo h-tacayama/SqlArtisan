@@ -495,6 +495,15 @@ public class SelectTests
     }
 
     [Fact]
+    public void Select_FromNoTables_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From());
+
+        Assert.Equal("FROM requires at least one table.", ex.Message);
+    }
+
+    [Fact]
     public void Select_SqlServer_Top_CorrectSql()
     {
         SqlStatement sql = Select(Top(5), _t.Code).From(_t).Build(Dbms.SqlServer);

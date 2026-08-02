@@ -220,10 +220,15 @@ public abstract class SqlExpression : SqlPart
     /// <summary>
     /// The <c>expr IN (<paramref name="expressions"/>)</c> condition.
     /// </summary>
-    /// <param name="expressions">The candidate values.</param>
+    /// <param name="expressions">The candidate values; must be non-empty.</param>
     /// <returns>The <c>IN</c> condition.</returns>
-    public InCondition In(params object[] expressions) =>
-        new(this, Resolve(expressions));
+    /// <exception cref="ArgumentException"><paramref name="expressions"/> is empty (an
+    /// empty <c>IN</c> list is invalid SQL).</exception>
+    public InCondition In(params object[] expressions)
+    {
+        CollectionGuard.ThrowIfEmpty(expressions, "IN requires at least one value.");
+        return new(this, Resolve(expressions));
+    }
 
     /// <summary>
     /// The <c>expr IN (<paramref name="values"/>)</c> condition, one bind per
@@ -277,10 +282,15 @@ public abstract class SqlExpression : SqlPart
     /// <summary>
     /// The <c>expr NOT IN (<paramref name="expressions"/>)</c> condition.
     /// </summary>
-    /// <param name="expressions">The candidate values.</param>
+    /// <param name="expressions">The candidate values; must be non-empty.</param>
     /// <returns>The <c>NOT IN</c> condition.</returns>
-    public NotInCondition NotIn(params object[] expressions) =>
-        new(this, Resolve(expressions));
+    /// <exception cref="ArgumentException"><paramref name="expressions"/> is empty (an
+    /// empty <c>NOT IN</c> list is invalid SQL).</exception>
+    public NotInCondition NotIn(params object[] expressions)
+    {
+        CollectionGuard.ThrowIfEmpty(expressions, "NOT IN requires at least one value.");
+        return new(this, Resolve(expressions));
+    }
 
     /// <inheritdoc cref="In{T}(System.Collections.Generic.IReadOnlyCollection{T})"/>
     /// <summary>

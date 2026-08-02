@@ -217,6 +217,29 @@ public class UpsertTests
     }
 
     [Fact]
+    public void DoUpdateSet_NoAssignments_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnConflict(_t.Code)
+            .DoUpdateSet());
+
+        Assert.Equal("DO UPDATE SET requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_NoAssignments_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnDuplicateKeyUpdate());
+
+        Assert.Equal("ON DUPLICATE KEY UPDATE requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
     public void OnConflict_DoUpdateSet_MultiRowValues_CorrectSql()
     {
         // Arrange

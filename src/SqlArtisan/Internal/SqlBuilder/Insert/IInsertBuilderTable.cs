@@ -15,7 +15,7 @@ public interface IInsertBuilderTable
     /// <summary>
     /// Appends a positional <c>VALUES (...)</c> row for the table's columns in declaration order.
     /// </summary>
-    /// <param name="values">The row values, one per column; literals are auto-parameterized.</param>
+    /// <param name="values">The row values, one per column; must be non-empty, and literals are auto-parameterized.</param>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c> or an upsert clause, or build.</returns>
     IInsertBuilderValues Values(params object[] values);
 

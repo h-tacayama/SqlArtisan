@@ -2,8 +2,10 @@ namespace SqlArtisan.Internal;
 
 internal static class UpsertAssignmentResolver
 {
-    internal static EqualityCondition[] Resolve(EqualityBasedCondition[] items)
+    internal static EqualityCondition[] Resolve(EqualityBasedCondition[] items, string emptyMessage)
     {
+        CollectionGuard.ThrowIfEmpty(items, emptyMessage);
+
         var assignments = new EqualityCondition[items.Length];
 
         for (int i = 0; i < items.Length; i++)

@@ -269,6 +269,65 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_SetNoAssignments_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Set());
+
+        Assert.Equal("SET requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_ValuesNoArguments_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Values());
+
+        Assert.Equal("A VALUES row requires at least one value.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_ValuesRowWidthExceedsColumnList_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code).Values(1, "a"));
+
+        Assert.Equal(
+            "The INSERT column list declares 1 column(s), but this VALUES row has 2 value(s).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_ValuesRowWidthBelowColumnList_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name).Values(1));
+
+        Assert.Equal(
+            "The INSERT column list declares 2 column(s), but this VALUES row has 1 value(s).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_SetNoAssignments_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertIgnoreInto(t).Set());
+
+        Assert.Equal("SET requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
     public void InsertIgnoreInto_MySql_WithColumnList_CorrectSql()
     {
         TestTable t = new();

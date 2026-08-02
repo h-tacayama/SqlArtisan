@@ -155,6 +155,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public ISelectBuilderFrom From(params TableReference[] tables)
     {
+        CollectionGuard.ThrowIfEmpty(tables, "FROM requires at least one table.");
         AddPart(new FromClause(tables));
         return this;
     }

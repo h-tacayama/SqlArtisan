@@ -455,6 +455,27 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_SetNoAssignments_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set());
+
+        Assert.Equal("SET requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_Join_SetNoAssignments_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t).InnerJoin(s).On(t.Code == s.Code).Set());
+
+        Assert.Equal("SET requires at least one assignment.", ex.Message);
+    }
+
+    [Fact]
     public void Update_SqlServer_Output_CorrectSql()
     {
         // OUTPUT sits after SET and before WHERE; UPDATE sees both pseudo-tables.

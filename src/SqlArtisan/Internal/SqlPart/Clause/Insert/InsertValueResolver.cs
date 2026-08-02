@@ -6,6 +6,8 @@ internal static class InsertValueResolver
 {
     internal static SqlExpression[] Resolve(object?[] values)
     {
+        CollectionGuard.ThrowIfEmpty(values, "A VALUES row requires at least one value.");
+
         var resolved = new SqlExpression[values.Length];
 
         for (int i = 0; i < values.Length; i++)

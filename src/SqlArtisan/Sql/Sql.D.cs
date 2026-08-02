@@ -108,17 +108,26 @@ public static partial class Sql
     /// returns the matching result, or <paramref name="default"/> when none match.
     /// </summary>
     /// <param name="expr">The value to compare against each search.</param>
-    /// <param name="searchResultPairs">The <c>(search, result)</c> pairs tested in order.</param>
+    /// <param name="searchResultPairs">The <c>(search, result)</c> pairs tested in
+    /// order; must be non-empty.</param>
     /// <param name="default">The result when no search matches (the <c>default</c> keyword parameter).</param>
     /// <returns>The <c>DECODE</c> function expression.</returns>
+    /// <exception cref="ArgumentException"><paramref name="searchResultPairs"/> is
+    /// empty.</exception>
     /// <remarks>This is Oracle's form.</remarks>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result)[] searchResultPairs,
-        object @default) => new(
+        object @default)
+    {
+        CollectionGuard.ThrowIfEmpty(
+            searchResultPairs,
+            "DECODE requires at least one (search, result) pair.");
+        return new(
             Resolve(expr),
             Resolve(searchResultPairs),
             Resolve(@default));
+    }
 
     /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
     public static DecodeFunction Decode(
