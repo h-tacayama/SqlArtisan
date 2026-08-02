@@ -94,11 +94,7 @@ operand *beside* an active one still drops out inside a non-empty AND/OR (that i
   `FILTER` — so the throw lives in the clause node's own `Format`, letting one
   implementation serve all of them; see "no elision" above) and builder stages
   (`SqlBuilderBase._parts` only reaches its final shape once every stage call
-  has run). An eager check here would misfire on legal code. Before #399,
-  `operator &`/`|` also mutated a held `AndCondition`/`OrCondition` in place,
-  so an empty tree at `.Where(...)` time could legitimately become non-empty
-  before `Build()` — conditions are copy-on-write now, so that specific path
-  no longer applies, but the timing stays at Build() for the reasons above.
+  has run). An eager check here would misfire on legal code.
 
 ## Message grammar
 
