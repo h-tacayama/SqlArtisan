@@ -15,7 +15,8 @@ internal static class OutputClauseGuard
         }
     }
 
-    internal static void ThrowIfDeleteCombinedWithUsing(OutputClause? output, DeleteUsingClause? using_)
+    internal static void ThrowIfDeleteCombinedWithUsing(
+        OutputClause? output, DeleteUsingClause? using_)
     {
         if (output is not null && using_ is not null)
         {
@@ -25,7 +26,9 @@ internal static class OutputClauseGuard
     }
 
     internal static void ThrowIfInsertCombinedWithUpsert(
-        OutputClause? output, OnConflictClause? onConflict, OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate)
+        OutputClause? output,
+        OnConflictClause? onConflict,
+        OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate)
     {
         if (output is not null && (onConflict is not null || onDuplicateKeyUpdate is not null))
         {
