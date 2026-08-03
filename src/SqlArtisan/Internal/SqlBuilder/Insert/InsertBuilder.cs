@@ -193,9 +193,8 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
 
         OutputClause? output = FindPart<OutputClause>();
-        bool hasReturning = FindPart<ReturningClause>() is not null
-            || FindPart<ReturningIntoClause>() is not null;
-        OutputClauseGuard.ThrowIfCombinedWithReturning(output, hasReturning);
+        OutputClauseGuard.ThrowIfCombinedWithReturning(
+            output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(
             output, FindPart<OnConflictClause>(), FindPart<OnDuplicateKeyUpdateClause>());
     }

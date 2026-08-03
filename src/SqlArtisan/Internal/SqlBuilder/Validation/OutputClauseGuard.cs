@@ -5,9 +5,10 @@ namespace SqlArtisan.Internal;
 // the same shape as SelectBuilder's TOP + OFFSET/FETCH exclusivity check.
 internal static class OutputClauseGuard
 {
-    internal static void ThrowIfCombinedWithReturning(OutputClause? output, bool hasReturning)
+    internal static void ThrowIfCombinedWithReturning(
+        OutputClause? output, ReturningClause? returning, ReturningIntoClause? returningInto)
     {
-        if (output is not null && hasReturning)
+        if (output is not null && (returning is not null || returningInto is not null))
         {
             throw new ArgumentException(
                 "OUTPUT cannot be combined with RETURNING; use one or the other.");

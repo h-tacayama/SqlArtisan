@@ -118,9 +118,8 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
         }
 
         OutputClause? output = FindPart<OutputClause>();
-        bool hasReturning = FindPart<ReturningClause>() is not null
-            || FindPart<ReturningIntoClause>() is not null;
-        OutputClauseGuard.ThrowIfCombinedWithReturning(output, hasReturning);
+        OutputClauseGuard.ThrowIfCombinedWithReturning(
+            output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfDeleteCombinedWithUsing(output, FindPart<DeleteUsingClause>());
     }
 
