@@ -14,22 +14,26 @@ for an incomplete construct.
 ADR 0007's dividing test is literal: *is there any supported dialect, in any
 configuration, where this exact text is valid SQL? If no → incomplete → reject.
 If yes-somewhere → dialect availability → permissive.* The #420 review checked
-this per member and per dialect, live, against real engines (`sqlite3` CLI
-3.45.1, PostgreSQL 16, MySQL 8.0.46 — installed and run directly in the review
-environment; Oracle and SQL Server were not reachable there and remain sourced
-to each vendor's own ANSI-join documentation, unchanged from prior belief). The
-live run **corrected the first draft of this ADR**: an initial pass, sourced to
-web-search summaries of SQLite's documentation, claimed `LeftJoin`/`RightJoin`/
-`FullJoin` were syntax errors without a predicate on every dialect. Running the
-actual engine falsified that — SQLite accepts the omission on all three, not
-just `InnerJoin`. The live results:
+this per member and per dialect, live, against real engines: `sqlite3` CLI
+3.45.1, PostgreSQL 16, and MySQL 8.0.46, installed and run directly in the
+review environment; then Oracle 21c and SQL Server 2022, run via the project's
+own Testcontainers-backed integration suite in CI (`OracleTests.
+OmittedJoinPredicate_Rejected`, `SqlServerTests.OmittedJoinPredicate_Rejected`,
+alongside a `CrossJoin_ProducesCartesianProduct` control in each — both suites
+passed in full, 78/78 and 77/77 non-skipped). The live run **corrected the
+first draft of this ADR**: an initial pass, sourced to web-search summaries of
+SQLite's documentation, claimed `LeftJoin`/`RightJoin`/`FullJoin` were syntax
+errors without a predicate on every dialect. Running the actual engine
+falsified that — SQLite accepts the omission on all three, not just
+`InnerJoin`. The live results, now covering all five supported dialects:
 
 | Engine | `INNER`/bare `JOIN` omitted | `LEFT`/`RIGHT`/`FULL JOIN` omitted | `CROSS JOIN` (control) |
 |---|---|---|---|
 | SQLite 3.45.1 | Accepted — cartesian product | **Accepted — cartesian product**, identical row-for-row to the `INNER`/`CROSS` case; no implicit same-name-column matching is attempted even though both test tables shared a column name | Accepted |
 | PostgreSQL 16 | `ERROR: syntax error at or near ";"` | `ERROR: syntax error at or near ";"` | Accepted |
 | MySQL 8.0.46 | Accepted — cartesian product | `ERROR 1064 (42000)` (`FullJoin` isn't a MySQL construct at all — separate, pre-existing dialect-availability fact) | Accepted |
-| Oracle, SQL Server | Not run live; each vendor's ANSI-join reference documents `ON`/`USING` as mandatory for every listed join type, `CROSS JOIN` excepted | (same, not run live) | — |
+| Oracle 21c (Testcontainers) | Rejected (`ORA` syntax error) | Rejected | Accepted |
+| SQL Server 2022 (Testcontainers) | Rejected (T-SQL syntax error) | Rejected | Accepted |
 
 So the omission is accepted **somewhere** for every one of the five members —
 just not the same "somewhere" for each: `InnerJoin`/`JoinLateral` (which emits
@@ -107,12 +111,12 @@ justification, no per-member split.
   claim as a result. Treat this as the standing argument for why a grammar
   claim backing a design decision gets run against the real engine before it's
   written down, not sourced to a summary of a summary.
-- **Oracle and SQL Server remain grammar-unverified against a live engine** —
-  neither was reachable in the review environment (no Docker daemon, no
-  feasible from-scratch install). Both vendors' own ANSI-join reference
-  documentation states `ON`/`USING` is mandatory for every listed join type
-  except `CROSS JOIN`, and nothing in this review contradicts that, but given
-  what just happened with SQLite, treat it as unconfirmed until the live
-  integration matrix — including these two engines specifically — runs, per
-  the #414 epic's outstanding "run the integration matrix" item.
+- **No engine in this ADR's table is grammar-unverified anymore.** Oracle and
+  SQL Server were not reachable in the local review environment (no Docker
+  daemon there), but the same claim is now anchored by
+  `OracleTests.OmittedJoinPredicate_Rejected` and
+  `SqlServerTests.OmittedJoinPredicate_Rejected` running against the project's
+  own Testcontainers-backed CI, executed on demand for this ADR and passing in
+  full — closing the one item this cluster still owed the #414 epic's
+  "run the integration matrix" backlog for this construct.
 - Complements ADR 0007 and ADR 0011; supersedes neither. See #400, #420.
