@@ -13,7 +13,7 @@ or wrong SQL (bare `WHERE`, `()` from nested empty groups, correlated-DML
 tautologies). Guards exist to convert that failure class into loud errors —
 follow these conventions so every new guard lands on the same policy.
 
-## The enforcement boundary (ADR 0007 + 0011 + 0012)
+## The enforcement boundary (ADR 0007 + 0011 + 0012 + 0017)
 
 This table synthesizes the current boundary from the ADR cluster. Use it as
 the first check when deciding whether a new case should throw; the ADRs carry
@@ -29,7 +29,9 @@ the full rationale.
 **Enumerated instances of each rejection category:**
 
 - *Incomplete*: window/analytic function without `.Over(...)` (#150); ordered-set
-  aggregate without `.WithinGroup(...)` (#190).
+  aggregate without `.WithinGroup(...)` (#190); `InnerJoin`/`JoinLateral` with no
+  `.On(...)`/`.Using(...)` — accepted on MySQL/SQLite as an unlabeled `CROSS JOIN`
+  spelling, not a construct with independent meaning (ADR 0017).
 - *Value-domain*: percentile fraction — finite (pre-existing) and 0..1 (#295).
 - *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
   (ADR 0011).

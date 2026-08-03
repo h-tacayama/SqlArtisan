@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
-- **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate — the omission previously reached the database as an `ON`-less/`USING`-less `JOIN`, valid nowhere. `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
+- **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate. `LeftJoin`/`RightJoin`/`FullJoin` with the predicate omitted is a syntax error on every dialect; `InnerJoin`/`JoinLateral` omitted is a syntax error everywhere except MySQL and SQLite, which silently read it as an unlabeled `CROSS JOIN` — a spelling the library already exposes under its own name (`CrossJoin`). `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error on every dialect; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
 
 ### Fixed
 - `OrderBy(2.5)` formatted a numeric sort key with the current culture, so under a comma-decimal culture (e.g. `de-DE`) it emitted `ORDER BY 2,5` — one sort key silently split into two. Numeric `ORDER BY` literals are now formatted with the invariant culture, matching every other numeric literal site in the library. (#398)
