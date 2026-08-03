@@ -172,32 +172,40 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             result.OverrideKeyHint));
     }
 
-    // Both shipped context rules (#264) are MySQL facts; name-filter first so
-    // config resolution is paid only on trigger names.
+    // Name-filter first so config resolution is paid only on trigger names. Each
+    // rule pairs its trigger with the one dialect whose grammar restricts it;
+    // elsewhere the matrix entry already answers (#264).
     private static void AnalyzeContextRules(OperationAnalysisContext context)
     {
         var invocation = (IInvocationOperation)context.Operation;
         string name = invocation.TargetMethod.Name;
-        if (name is not ("Limit" or "Grouping")
+        if (name is not ("Limit" or "Grouping" or "PercentileCont" or "PercentileDisc"
+                or "Inserted" or "Deleted")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
         }
 
         AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
-        if (AnalyzerConfigResolver.ResolveTarget(options) is not TargetDbms.MySql)
+        TargetDbms? target = AnalyzerConfigResolver.ResolveTarget(options);
+        switch (name)
         {
-            return;
-        }
-
-        string dialectName = DisplayName(TargetDbms.MySql);
-        if (name == "Limit")
-        {
-            ContextRules.CheckLimitInQuantifiedSubquery(context, invocation, dialectName);
-        }
-        else
-        {
-            ContextRules.CheckGroupingRequiresWithRollup(context, invocation, dialectName);
+            case "Limit" when target is TargetDbms.MySql:
+                ContextRules.CheckLimitInQuantifiedSubquery(
+                    context, invocation, DisplayName(TargetDbms.MySql));
+                break;
+            case "Grouping" when target is TargetDbms.MySql:
+                ContextRules.CheckGroupingRequiresWithRollup(
+                    context, invocation, DisplayName(TargetDbms.MySql));
+                break;
+            case "PercentileCont" or "PercentileDisc" when target is TargetDbms.SqlServer:
+                ContextRules.CheckPercentileRequiresOver(
+                    context, invocation, DisplayName(TargetDbms.SqlServer));
+                break;
+            case "Inserted" or "Deleted" when target is TargetDbms.SqlServer:
+                ContextRules.CheckPseudoTableRequiresOutput(
+                    context, invocation, DisplayName(TargetDbms.SqlServer));
+                break;
         }
     }
 

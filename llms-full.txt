@@ -3372,8 +3372,8 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0004` fires when the offending position is visible in the
-expression where the construct is used. Two rules ship today, both MySQL
-facts, live-verified against the engine.
+expression where the construct is used. Four rules ship today — two MySQL
+facts and two SQL Server facts — each live-verified against the engine.
 
 **`LIMIT` inside an `IN` / `NOT IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL
 rejects a row-limited query directly under these positions ("This version of
@@ -3400,6 +3400,28 @@ var q = Select(u.DepartmentId, Grouping(u.DepartmentId))
 // warning SQLA0004: 'Grouping' is not supported outside a WITH ROLLUP query on MySQL
 ```
 
+**`PERCENTILE_CONT` / `PERCENTILE_DISC` outside an `OVER` clause.** SQL Server
+exposes both percentiles only as window functions, so the plain
+`WithinGroup(...)` form Oracle and PostgreSQL accept has no spelling there —
+chain `.Over()` (optionally with `PartitionBy(...)`) after `.WithinGroup(...)`.
+
+```csharp
+// sqlartisan_target_dbms = sqlserver
+var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u);
+// warning SQLA0004: 'PercentileCont' is not supported outside an OVER clause on SQL Server
+```
+
+**`INSERTED` / `DELETED` outside an `OUTPUT` clause.** The pseudo-tables are
+bound by the `OUTPUT` clause itself, so `Inserted(...)` / `Deleted(...)`
+resolve against no table anywhere else — read the row images inside
+`Output(...)`, and filter on the target table's own columns instead.
+
+```csharp
+// sqlartisan_target_dbms = sqlserver
+var q = Select(u.Id).From(u).Where(Inserted(u.Id) == 1);
+// warning SQLA0004: 'Inserted' is not supported outside an OUTPUT clause on SQL Server
+```
+
 A context rule warns only when the position is provable from the expression
 itself. A subquery held in a variable, a builder chain continued from a
 helper method, or any shape the analyzer doesn't recognize stays silent —
@@ -3407,7 +3429,10 @@ the same under-warn-but-never-false-positive principle the matrix follows.
 The absence side is equally strict: `Grouping` warns only when the chain
 shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
 point the builder's type can never accept the suffix — and a chain that
-still ends at `.GroupBy(...)` stays silent.
+still ends at `.GroupBy(...)` stays silent. The percentile rule reads the
+same way: it warns only where the expression is passed straight into the
+clause that consumes it, since a percentile parked in a variable can still
+acquire `.Over()` on a later line.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0004`, a `[SuppressMessage]` attribute, or
