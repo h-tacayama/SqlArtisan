@@ -40,7 +40,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0014](0014-analyzer-correlated-dml-rule.md) | Analyzer advisory duplication of a runtime guard: the correlated-DML rule | Analyzer | Accepted |
 | [0015](0015-analyzer-version-bounds.md) | Analyzer version bounds: interval annotations on the dialect matrix, evaluated against a declared engine version | Analyzer | Accepted |
 | [0016](0016-text-position-policy.md) | Text positions: what is bound, what is escaped, and what is emitted verbatim | | Accepted |
-| [0017](0017-join-predicate-completeness.md) | Join predicate completeness: rejecting an omitted `ON`/`USING` two dialects silently reinterpret as `CROSS JOIN` | Boundary | Accepted |
+| [0017](0017-join-predicate-completeness.md) | Join predicate completeness: rejecting an omitted `ON`/`USING` that some dialects silently reinterpret as `CROSS JOIN` | Boundary | Accepted |
 
 ### Clusters
 
@@ -49,9 +49,8 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   permissive); 0011 carves one enumerated exception (aliased DML target on
   SQL Server); 0012 adds value-domain guards (a universally invalid embedded
   value also rejects); 0017 adds a second enumerated exception (an omitted
-  `InnerJoin`/`JoinLateral` predicate two dialects silently reinterpret as
-  `CROSS JOIN`). All four are required to answer "will the library throw for
-  this?"
+  join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
+  are required to answer "will the library throw for this?"
 - **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015) — *How does the
   dialect analyzer work?* 0003 chooses the permissive-API + opt-in-analyzer
   approach; 0008 designs the override configuration; 0009 decides bundled

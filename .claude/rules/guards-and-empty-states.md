@@ -29,9 +29,11 @@ the full rationale.
 **Enumerated instances of each rejection category:**
 
 - *Incomplete*: window/analytic function without `.Over(...)` (#150); ordered-set
-  aggregate without `.WithinGroup(...)` (#190); `InnerJoin`/`JoinLateral` with no
-  `.On(...)`/`.Using(...)` — accepted on MySQL/SQLite as an unlabeled `CROSS JOIN`
-  spelling, not a construct with independent meaning (ADR 0017).
+  aggregate without `.WithinGroup(...)` (#190); any of `InnerJoin`/`LeftJoin`/
+  `RightJoin`/`FullJoin`/`JoinLateral` with no `.On(...)`/`.Using(...)` —
+  accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as an
+  unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
+  (ADR 0017).
 - *Value-domain*: percentile fraction — finite (pre-existing) and 0..1 (#295).
 - *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
   (ADR 0011).
