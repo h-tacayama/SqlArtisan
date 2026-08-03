@@ -410,4 +410,53 @@ public class DeleteTests
         Assert.Equal(
             "The destination table of OUTPUT ... INTO must not be aliased.", ex.Message);
     }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_OutputAndReturning_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+            .Output(Deleted(t.Code))
+            .Returning(t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with RETURNING; use one or the other.", ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_OutputIntoAndReturning_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+            .Output(Deleted(t.Code))
+            .Into(a, a.Code)
+            .Returning(t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with RETURNING; use one or the other.", ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_OutputAndUsing_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+            .Output(Deleted(t.Code))
+            .Using(s)
+            .Where(t.Code == s.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with USING; use one or the other.", ex.Message);
+    }
 }

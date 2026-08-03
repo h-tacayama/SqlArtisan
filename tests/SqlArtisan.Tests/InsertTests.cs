@@ -481,4 +481,75 @@ public class InsertTests
         Assert.Equal(
             "The destination table of OUTPUT ... INTO must not be aliased.", ex.Message);
     }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputAndReturning_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+            .Output(Inserted(t.Code))
+            .Values(1)
+            .Returning(t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with RETURNING; use one or the other.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputIntoAndReturning_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+            .Output(Inserted(t.Code))
+            .Into(a, a.Code)
+            .Values(1)
+            .Returning(t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with RETURNING; use one or the other.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputAndOnConflict_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+            .Output(Inserted(t.Code))
+            .Values(1)
+            .OnConflict(t.Code)
+            .DoNothing()
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with ON CONFLICT or ON DUPLICATE KEY UPDATE; "
+                + "use one or the other.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputAndOnDuplicateKeyUpdate_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name)
+            .Output(Inserted(t.Code))
+            .Values(1, "a")
+            .OnDuplicateKeyUpdate(t.Name == "b")
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with ON CONFLICT or ON DUPLICATE KEY UPDATE; "
+                + "use one or the other.",
+            ex.Message);
+    }
 }

@@ -33,7 +33,9 @@ the full rationale.
   `RightJoin`/`FullJoin`/`JoinLateral` with no `.On(...)`/`.Using(...)` —
   accepted on SQLite (all five) or MySQL (`InnerJoin`/`JoinLateral` only) as an
   unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
-  (ADR 0017).
+  (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
+  `Using(...)` on `DELETE`, or with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
+  on `INSERT` — no dialect accepts both halves of any pairing (#400).
 - *Value-domain*: percentile fraction — finite (pre-existing) and 0..1 (#295).
 - *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
   (ADR 0011).

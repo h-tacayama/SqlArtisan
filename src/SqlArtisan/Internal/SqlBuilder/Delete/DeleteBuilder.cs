@@ -116,6 +116,11 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
         {
             DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         }
+
+        OutputClause? output = FindPart<OutputClause>();
+        OutputClauseGuard.ThrowIfCombinedWithReturning(
+            output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
+        OutputClauseGuard.ThrowIfDeleteCombinedWithUsing(output, FindPart<DeleteUsingClause>());
     }
 
     private void AddJoin(SqlPart joinClause)

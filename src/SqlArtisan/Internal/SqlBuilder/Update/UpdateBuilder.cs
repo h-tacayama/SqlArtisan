@@ -152,6 +152,9 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         {
             DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         }
+
+        OutputClauseGuard.ThrowIfCombinedWithReturning(
+            FindPart<OutputClause>(), FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
     }
 
     private void AddJoin(SqlPart joinClause)

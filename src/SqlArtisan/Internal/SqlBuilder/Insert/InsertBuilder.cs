@@ -188,6 +188,14 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
         return this;
     }
 
-    protected override void Validate(Dbms dbms) =>
+    protected override void Validate(Dbms dbms)
+    {
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
+
+        OutputClause? output = FindPart<OutputClause>();
+        OutputClauseGuard.ThrowIfCombinedWithReturning(
+            output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
+        OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(
+            output, FindPart<OnConflictClause>(), FindPart<OnDuplicateKeyUpdateClause>());
+    }
 }
