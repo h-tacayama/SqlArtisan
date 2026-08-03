@@ -19,6 +19,8 @@ public sealed class StringAggFunction : SqlExpression
         string separator,
         OrderByClause? orderByClause = null)
     {
+        ArgumentNullException.ThrowIfNull(separator);
+
         _expr = expr;
         _separator = separator;
         _orderByClause = orderByClause;

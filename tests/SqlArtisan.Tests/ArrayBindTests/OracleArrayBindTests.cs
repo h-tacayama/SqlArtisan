@@ -283,6 +283,26 @@ public class OracleArrayBindTests
     }
 
     [Fact]
+    public void ExecuteArrayBind_NullStatementElement_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(t, t.Id).Values(1L),
+            null!,
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind requires every statement to be non-null; "
+                + "statement at index 1 is null.",
+            ex.Message);
+    }
+
+    [Fact]
     public void ExecuteArrayBind_EmptyStatements_ThrowsArgumentException()
     {
         using OracleConnection connection = new();

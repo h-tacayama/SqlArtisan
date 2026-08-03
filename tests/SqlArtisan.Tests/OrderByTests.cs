@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using static SqlArtisan.Sql;
 
@@ -121,6 +122,30 @@ public class OrderByTests
     }
 
     [Fact]
+    public void OrderBy_NumericLiteralUnderCommaDecimalCulture_RendersInvariantSql()
+    {
+        // Arrange
+        CultureInfo original = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+
+        try
+        {
+            string expected =
+                "SELECT \"t\".code FROM test_table \"t\" ORDER BY 2.5";
+
+            // Act
+            SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.5).Build();
+
+            // Assert
+            Assert.Equal(expected, sql.Text);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
+    }
+
+    [Fact]
     public void OrderBy_WithNoItems_ThrowsArgumentException()
     {
         // Act & Assert
@@ -132,5 +157,16 @@ public class OrderByTests
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => OrderBy(null!));
+    }
+
+    [Fact]
+    public void OrderBy_WithNullItem_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            OrderBy(_t.Code, null!));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'orderByItem')",
+            ex.Message);
     }
 }

@@ -280,6 +280,19 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_SetNullAssignment_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(t).Set(t.Code == 1, null!));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            ex.Message);
+    }
+
+    [Fact]
     public void InsertInto_ValuesNoArguments_ThrowsArgumentException()
     {
         TestTable t = new();

@@ -382,4 +382,17 @@ public class DeleteTests
 
         Assert.Equal("OUTPUT requires at least one expression.", ex.Message);
     }
+
+    [Fact]
+    public void DeleteFrom_OutputNullExpression_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            DeleteFrom(t).Output(Deleted(t.Code), null!));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'selectItem')",
+            ex.Message);
+    }
 }

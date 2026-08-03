@@ -53,6 +53,26 @@ public class StringAggregationTests
         Assert.Equal(expected, sql.Text);
     }
 
+    [Fact]
+    public void StringAgg_EmptySeparator_CorrectSql()
+    {
+        // Arrange
+        string expected = "SELECT STRING_AGG(name, '')";
+
+        // Act
+        SqlStatement sql = Select(StringAgg(_t.Name, "")).Build(Dbms.PostgreSql);
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void StringAgg_NullSeparator_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => StringAgg(_t.Name, null!));
+    }
+
     // --- LISTAGG (Oracle) -----------------------------------------------------
 
     [Fact]

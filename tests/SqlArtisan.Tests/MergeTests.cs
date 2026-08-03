@@ -266,6 +266,21 @@ public class MergeTests
     }
 
     [Fact]
+    public void Merge_WhenMatched_ThenUpdateSetNullAssignment_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet(_t.Name == _s.Name, null!)
+            .Build(Dbms.Oracle));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Merge_WhenNotMatchedBySource_ThenUpdateSetNoAssignments_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
