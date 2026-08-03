@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- `OrderBy(2.5)` formatted a numeric sort key with the current culture, so under a comma-decimal culture (e.g. `de-DE`) it emitted `ORDER BY 2,5` — one sort key silently split into two. Numeric `ORDER BY` literals are now formatted with the invariant culture, matching every other numeric literal site in the library. (#398)
 
 ## [0.8.0-beta.1] - 2026-08-02
 ### Added

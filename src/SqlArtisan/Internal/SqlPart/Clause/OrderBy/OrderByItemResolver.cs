@@ -1,3 +1,4 @@
+using System.Globalization;
 using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan.Internal;
@@ -38,7 +39,11 @@ internal static class OrderByItemResolver
         }
         else if (IsNumeric(orderByItem))
         {
-            return new LiteralValue(orderByItem.ToString() ?? "");
+            // Plain ToString() is culture-dependent (comma-decimal cultures split
+            // a single sort key into two tokens, e.g. "2.5" -> "2,5"); IsNumeric
+            // guarantees IFormattable here.
+            string text = ((IFormattable)orderByItem).ToString(null, CultureInfo.InvariantCulture);
+            return new LiteralValue(text);
         }
         else if (IsBindable(orderByItem))
         {

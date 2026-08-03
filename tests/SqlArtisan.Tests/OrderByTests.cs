@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using static SqlArtisan.Sql;
 
@@ -118,6 +119,30 @@ public class OrderByTests
         Assert.Equal(
             "SELECT \"t\".code FROM test_table \"t\" ORDER BY \"t\".code ASC NULLS LAST",
             branch2Sql.Text);
+    }
+
+    [Fact]
+    public void OrderBy_NumericLiteralUnderCommaDecimalCulture_RendersInvariantSql()
+    {
+        // Arrange
+        CultureInfo original = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+
+        try
+        {
+            string expected =
+                "SELECT \"t\".code FROM test_table \"t\" ORDER BY 2.5";
+
+            // Act
+            SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.5).Build();
+
+            // Assert
+            Assert.Equal(expected, sql.Text);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
     }
 
     [Fact]
