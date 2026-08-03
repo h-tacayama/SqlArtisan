@@ -215,6 +215,9 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         connection.Execute("DELETE FROM users OUTPUT DELETED.id WHERE id = -1");
 
+        // A wrapping function keeps the reference bound, so the rule must not warn there.
+        connection.Execute("DELETE FROM users OUTPUT COALESCE(DELETED.id, 0) WHERE id = -1");
+
         Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT INSERTED.id FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT DELETED.id FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.Execute(

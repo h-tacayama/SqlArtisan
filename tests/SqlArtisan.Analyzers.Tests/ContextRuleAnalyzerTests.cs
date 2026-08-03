@@ -281,6 +281,12 @@ public class ContextRuleAnalyzerTests
             var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(t.Id))).From(t);
             """, dbms: null);
 
+    [Fact]
+    public Task PercentileNestedInFunctionWithOver_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Coalesce(PercentileCont(0.5).WithinGroup(OrderBy(t.Id)).Over(), 0)).From(t);
+            """, "sqlserver");
+
     // The receiver leaves the expression, so a later .Over() is invisible (ADR 0003).
     [Fact]
     public Task PercentileContViaVariable_SqlServer_StaysSilent() =>
@@ -336,5 +342,11 @@ public class ContextRuleAnalyzerTests
         RunSilent("""
             var i = Inserted(t.Id);
             var q = InsertInto(t, t.Id).Output(i).Values(1);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedNestedInFunctionInsideOutput_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = InsertInto(t, t.Id).Output(Coalesce(Inserted(t.Id), 0)).Values(1);
             """, "sqlserver");
 }

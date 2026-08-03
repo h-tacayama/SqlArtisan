@@ -117,9 +117,19 @@ internal static class ContextRules
     public static void CheckPseudoTableRequiresOutput(
         OperationAnalysisContext context, IInvocationOperation pseudoTable, string dialectName)
     {
-        if (FindArgumentHost(pseudoTable) is not { } host || host.TargetMethod.Name == "Output")
+        if (FindArgumentHost(pseudoTable) is not { } host)
         {
             return;
+        }
+
+        // Every enclosing host counts, not just the innermost: the clause binds the
+        // pseudo-table through a wrapping function too (OUTPUT COALESCE(INSERTED.c, 0)).
+        for (IInvocationOperation? cursor = host; cursor is not null; cursor = FindArgumentHost(cursor))
+        {
+            if (cursor.TargetMethod.Name == "Output")
+            {
+                return;
+            }
         }
 
         context.ReportDiagnostic(Diagnostic.Create(
