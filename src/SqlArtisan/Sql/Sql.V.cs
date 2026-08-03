@@ -18,7 +18,7 @@ public static partial class Sql
     public static ValuesDerivedTable Values(
         string alias, string[] columnNames, object[][] rows)
     {
-        ArgumentException.ThrowIfNullOrEmpty(alias);
+        StringGuard.ThrowIfNullOrEmpty(alias, "A derived table requires an alias.");
         CollectionGuard.ThrowIfEmpty(columnNames, "A VALUES source requires at least one column.");
         CollectionGuard.ThrowIfEmpty(rows, "A VALUES source requires at least one row.");
 

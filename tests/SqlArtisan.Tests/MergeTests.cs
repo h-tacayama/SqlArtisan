@@ -427,6 +427,15 @@ public class MergeTests
     }
 
     [Fact]
+    public void Values_EmptyAlias_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Values("", ["code"], [[1]]));
+
+        Assert.Equal("A derived table requires an alias.", ex.Message);
+    }
+
+    [Fact]
     public void Values_NoRows_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>

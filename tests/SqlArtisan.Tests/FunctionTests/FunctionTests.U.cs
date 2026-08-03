@@ -91,6 +91,53 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Unnest_AsTable_MultipleArraysNoColumnList_CorrectSql()
+    {
+        UnnestDerivedTable t = Unnest(BindArray([1]), BindArray(["a"])).AsTable("t");
+
+        SqlStatement sql =
+            Select(t.Asterisk)
+            .From(t)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT \"t\".* FROM UNNEST(:0, :1) \"t\"", sql.Text);
+    }
+
+    [Fact]
+    public void Unnest_AsTable_FewerColumnsThanArrays_CorrectSql()
+    {
+        UnnestDerivedTable t = Unnest(BindArray([1]), BindArray(["a"])).AsTable("t", "x");
+
+        SqlStatement sql =
+            Select(t.Column("x"))
+            .From(t)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT \"t\".x FROM UNNEST(:0, :1) \"t\" (x)", sql.Text);
+    }
+
+    [Fact]
+    public void Unnest_AsTable_MoreColumnsThanArrays_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Unnest(BindArray([1])).AsTable("t", "x", "y"));
+
+        Assert.Equal(
+            "An UNNEST column alias list must not name more columns than there are "
+                + "unnested arrays; UNNEST has 1 array(s), but the column list has 2.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Unnest_AsTable_EmptyAlias_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Unnest(BindArray([1])).AsTable(""));
+
+        Assert.Equal("A derived table requires an alias.", ex.Message);
+    }
+
+    [Fact]
     public void Upper_CharacterValue_CorrectSql()
     {
         SqlStatement sql =

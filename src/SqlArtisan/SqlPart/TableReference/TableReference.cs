@@ -16,8 +16,13 @@ public abstract class TableReference : SqlPart
     /// Names the relation explicitly.
     /// </summary>
     /// <param name="name">The relation name as it appears in SQL.</param>
-    private protected TableReference(string name)
+    /// <param name="emptyNameMessage">
+    /// The message to throw with when <paramref name="name"/> is null or
+    /// empty, worded for the calling subclass's construct.
+    /// </param>
+    private protected TableReference(string name, string emptyNameMessage)
     {
+        StringGuard.ThrowIfNullOrEmpty(name, emptyNameMessage);
         _name = name;
     }
 

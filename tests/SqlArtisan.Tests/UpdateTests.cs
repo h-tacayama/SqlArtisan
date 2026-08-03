@@ -535,4 +535,20 @@ public class UpdateTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Update_SqlServer_OutputIntoAliasedTarget_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(t.Name == "a")
+            .Output(Inserted(t.Name))
+            .Into(a, a.Name));
+
+        Assert.Equal(
+            "The destination table of OUTPUT ... INTO must not be aliased.", ex.Message);
+    }
 }

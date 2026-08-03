@@ -167,6 +167,51 @@ public class DerivedTableTests
     }
 
     [Fact]
+    public void DerivedTable_EmptyAlias_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new DerivedTable(""));
+
+        Assert.Equal("A derived table requires an alias.", ex.Message);
+    }
+
+    [Fact]
+    public void Subquery_AsTable_EmptyAlias_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_s.Code).From(_s).AsTable(""));
+
+        Assert.Equal("A derived table requires an alias.", ex.Message);
+    }
+
+    [Fact]
+    public void TestDerivedTable_EmptyName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new TestDerivedTable(""));
+
+        Assert.Equal("A derived table requires an alias.", ex.Message);
+    }
+
+    [Fact]
+    public void Cte_EmptyName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new Cte(""));
+
+        Assert.Equal("A CTE requires a name.", ex.Message);
+    }
+
+    [Fact]
+    public void TestCte_EmptyName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new TestCte(""));
+
+        Assert.Equal("A CTE requires a name.", ex.Message);
+    }
+
+    [Fact]
     public void Cte_ColumnFromAlias_CorrectSql()
     {
         Cte cte = new("cte");

@@ -198,4 +198,25 @@ public class DbTableTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void DbTable_EmptyTableName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new DbTable(""));
+
+        Assert.Equal("A table requires a name.", ex.Message);
+    }
+
+    [Fact]
+    public void DbTable_EmptyAlias_CorrectSql()
+    {
+        // An empty alias is the legitimate "no alias" spelling, distinct from
+        // an empty table name — it must build, not throw.
+        DbTable u = new("users", "");
+
+        SqlStatement sql = Select(u.Column("id")).From(u).Build();
+
+        Assert.Equal("SELECT id FROM users", sql.Text);
+    }
 }
