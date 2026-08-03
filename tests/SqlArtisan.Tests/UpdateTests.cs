@@ -551,4 +551,38 @@ public class UpdateTests
         Assert.Equal(
             "The destination table of OUTPUT ... INTO must not be aliased.", ex.Message);
     }
+
+    [Fact]
+    public void Update_SqlServer_OutputAndReturning_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(t.Name == "a")
+            .Output(Inserted(t.Name))
+            .Returning(t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with RETURNING; use one or the other.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SqlServer_OutputIntoAndReturning_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(t.Name == "a")
+            .Output(Inserted(t.Name))
+            .Into(a, a.Name)
+            .Returning(t.Code)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "OUTPUT cannot be combined with RETURNING; use one or the other.", ex.Message);
+    }
 }
