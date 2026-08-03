@@ -335,4 +335,21 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) FROM users"));
     }
+
+    [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420) — Oracle's ANSI
+           // join grammar requires ON/USING for every listed join type except
+           // CROSS JOIN, so the omission SqlArtisan now rejects at compile time was
+           // always a syntax error here, never a silent wrong-result risk.
+    public void OmittedJoinPredicate_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute("SELECT * FROM users CROSS JOIN orders");
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users INNER JOIN orders"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users JOIN orders"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users LEFT JOIN orders"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users RIGHT JOIN orders"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users FULL JOIN orders"));
+    }
 }

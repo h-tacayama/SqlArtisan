@@ -174,6 +174,23 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "DELETE FROM users AS \"cu\" WHERE \"cu\".id = 1"));
     }
 
+    [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420) — SQL Server's
+           // ANSI join grammar requires ON/USING for every listed join type except
+           // CROSS JOIN, so the omission SqlArtisan now rejects at compile time was
+           // always a syntax error here, never a silent wrong-result risk.
+    public void OmittedJoinPredicate_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute("SELECT * FROM users CROSS JOIN orders");
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users INNER JOIN orders"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users JOIN orders"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users LEFT JOIN orders"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users RIGHT JOIN orders"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users FULL JOIN orders"));
+    }
+
     [Fact] // #241 (GAP-19): SQL Server matches GROUP BY expressions syntactically,
            // so a parameterized SELECT expression repeated with fresh markers fails
            // with Msg 8120 (live-verified). Raw SQL by necessity — SqlArtisan now
