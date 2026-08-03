@@ -8,7 +8,7 @@ namespace SqlArtisan;
 /// <see cref="Sql.With(CommonTableExpression[])"/>.
 /// </summary>
 /// <param name="name">The CTE name as it appears in SQL.</param>
-public abstract class CteBase(string name) : TableReference(name)
+public abstract class CteBase(string name) : TableReference(name, "A CTE requires a name.")
 {
     /// <summary>
     /// Binds <paramref name="subquery"/> to this CTE's name, producing a

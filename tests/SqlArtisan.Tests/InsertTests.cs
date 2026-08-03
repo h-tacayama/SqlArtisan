@@ -466,4 +466,19 @@ public class InsertTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputIntoAliasedTarget_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name)
+            .Output(Inserted(t.Code), Inserted(t.Name))
+            .Into(a, a.Code, a.Name));
+
+        Assert.Equal(
+            "The destination table of OUTPUT ... INTO must not be aliased.", ex.Message);
+    }
 }

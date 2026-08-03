@@ -15,7 +15,8 @@ public abstract class DbTableBase : TableReference
     /// </summary>
     /// <param name="tableName">The table name as it appears in SQL.</param>
     /// <param name="tableAlias">The table alias, or an empty string for none.</param>
-    public DbTableBase(string tableName, string tableAlias) : base(tableName)
+    public DbTableBase(string tableName, string tableAlias)
+        : base(tableName, "A table requires a name.")
     {
         _tableAlias = tableAlias;
     }

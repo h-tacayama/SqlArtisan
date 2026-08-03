@@ -57,4 +57,18 @@ internal static class DmlTargetGuard
                 "A joined DELETE ... FROM must re-list the target table in the FROM clause.");
         }
     }
+
+    // OUTPUT ... INTO is SQL Server-only, and its destination is a plain
+    // INSERT target (FormatAsDmlTarget) — an alias there renders as
+    // `INTO archive AS "a" (...)`, which T-SQL rejects the same way it rejects
+    // an aliased primary DML target. The alias is fixed at the call, so this
+    // throws eagerly rather than waiting for Build(Dbms).
+    internal static void ThrowIfOutputIntoTargetAliased(DbTableBase table)
+    {
+        if (table.HasAlias)
+        {
+            throw new ArgumentException(
+                "The destination table of OUTPUT ... INTO must not be aliased.");
+        }
+    }
 }

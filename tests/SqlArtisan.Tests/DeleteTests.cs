@@ -395,4 +395,19 @@ public class DeleteTests
             "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'selectItem')",
             ex.Message);
     }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_OutputIntoAliasedTarget_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+            .Output(Deleted(t.Code))
+            .Into(a, a.Code));
+
+        Assert.Equal(
+            "The destination table of OUTPUT ... INTO must not be aliased.", ex.Message);
+    }
 }

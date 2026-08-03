@@ -8,7 +8,8 @@ namespace SqlArtisan;
 /// <see cref="DbColumn"/> members; for a one-off, use the inline
 /// <see cref="DerivedTable"/> instead.
 /// </summary>
-public abstract class DerivedTableBase(string name) : TableReference(name)
+public abstract class DerivedTableBase(string name)
+    : TableReference(name, "A derived table requires an alias.")
 {
     internal override string CorrelationName => _name;
 
