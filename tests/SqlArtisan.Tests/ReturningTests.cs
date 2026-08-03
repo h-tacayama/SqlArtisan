@@ -223,6 +223,18 @@ public class ReturningTests
     }
 
     [Fact]
+    public void Returning_WithNullItem_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            DeleteFrom(_t)
+            .Returning(_t.Code, null!));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'selectItem')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Returning_WithExpressionAlias_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>

@@ -19,7 +19,17 @@ internal static class OracleArrayBindCommandFactory
             throw new ArgumentException("ExecuteArrayBind requires at least one statement.");
         }
 
-        SqlStatement[] built = [.. statements.Select(s => s.Build(Dbms.Oracle))];
+        SqlStatement[] built = [.. statements.Select((s, i) =>
+        {
+            if (s is null)
+            {
+                throw new ArgumentException(
+                    $"ExecuteArrayBind requires every statement to be non-null; "
+                        + $"statement at index {i} is null.");
+            }
+
+            return s.Build(Dbms.Oracle);
+        })];
 
         for (int i = 1; i < built.Length; i++)
         {

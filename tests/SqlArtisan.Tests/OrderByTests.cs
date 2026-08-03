@@ -158,4 +158,15 @@ public class OrderByTests
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => OrderBy(null!));
     }
+
+    [Fact]
+    public void OrderBy_WithNullItem_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            OrderBy(_t.Code, null!));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'orderByItem')",
+            ex.Message);
+    }
 }

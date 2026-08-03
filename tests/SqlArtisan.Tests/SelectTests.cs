@@ -8,6 +8,17 @@ public class SelectTests
     private readonly TestTable _t = new("t");
 
     [Fact]
+    public void Select_WithNullItem_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Select(_t.Code, null!));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'selectItem')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Select_WithoutTableAlias_CorrectSql()
     {
         TestTable t = new();

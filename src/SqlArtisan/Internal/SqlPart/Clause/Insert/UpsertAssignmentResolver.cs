@@ -10,13 +10,18 @@ internal static class UpsertAssignmentResolver
 
         for (int i = 0; i < items.Length; i++)
         {
-            if (items[i] is not EqualityCondition assignment)
+            if (items[i] is null)
+            {
+                throw new ArgumentNullException(
+                    nameof(items), ExpressionResolver.NullValueMessage);
+            }
+            else if (items[i] is not EqualityCondition)
             {
                 throw new ArgumentException(
                     $"Invalid type for EqualityCondition: {items[i].GetType()}");
             }
 
-            assignments[i] = assignment;
+            assignments[i] = (EqualityCondition)items[i];
         }
 
         return assignments;

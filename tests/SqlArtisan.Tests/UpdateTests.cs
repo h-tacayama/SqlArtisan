@@ -464,6 +464,17 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_SetNullAssignment_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Update(_t).Set(_t.Code == 1, null!));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Update_Join_SetNoAssignments_ThrowsArgumentException()
     {
         TestTable t = new("t");

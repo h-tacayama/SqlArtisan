@@ -229,6 +229,20 @@ public class UpsertTests
     }
 
     [Fact]
+    public void DoUpdateSet_NullAssignment_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnConflict(_t.Code)
+            .DoUpdateSet(_t.Name == Excluded(_t.Name), null!));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            ex.Message);
+    }
+
+    [Fact]
     public void OnDuplicateKeyUpdate_NoAssignments_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>

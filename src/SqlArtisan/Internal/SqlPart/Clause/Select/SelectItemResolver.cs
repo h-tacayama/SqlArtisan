@@ -27,7 +27,12 @@ internal static class SelectItemResolver
 
     internal static SqlPart Resolve(object selectItem)
     {
-        if (selectItem is SqlExpression expr)
+        if (selectItem is null)
+        {
+            throw new ArgumentNullException(
+                nameof(selectItem), ExpressionResolver.NullValueMessage);
+        }
+        else if (selectItem is SqlExpression expr)
         {
             return expr;
         }

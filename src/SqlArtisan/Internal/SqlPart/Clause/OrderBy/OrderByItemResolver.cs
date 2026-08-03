@@ -25,7 +25,12 @@ internal static class OrderByItemResolver
 
     internal static SqlPart Resolve(object orderByItem)
     {
-        if (orderByItem is SqlExpression expr)
+        if (orderByItem is null)
+        {
+            throw new ArgumentNullException(
+                nameof(orderByItem), ExpressionResolver.NullValueMessage);
+        }
+        else if (orderByItem is SqlExpression expr)
         {
             return expr;
         }
