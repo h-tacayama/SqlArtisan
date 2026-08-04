@@ -80,7 +80,7 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(ToNumber("01"))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

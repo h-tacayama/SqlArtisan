@@ -406,6 +406,8 @@ public class CaseTests
             .Append("WHEN :2 THEN :3 ")
             .Append("WHEN :4 THEN :5 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -426,6 +428,8 @@ public class CaseTests
             .Append("WHEN :0 THEN :1 ")
             .Append("ELSE :2 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -448,6 +452,8 @@ public class CaseTests
             .Append("WHEN :2 THEN :3 ")
             .Append("ELSE :4 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -472,6 +478,8 @@ public class CaseTests
             .Append("WHEN :4 THEN :5 ")
             .Append("ELSE :6 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -498,6 +506,8 @@ public class CaseTests
             .Append("WHEN :6 THEN :7 ")
             .Append("ELSE :8 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -526,6 +536,8 @@ public class CaseTests
             .Append("WHEN :8 THEN :9 ")
             .Append("ELSE :10 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -556,6 +568,8 @@ public class CaseTests
             .Append("WHEN :10 THEN :11 ")
             .Append("ELSE :12 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -588,6 +602,8 @@ public class CaseTests
             .Append("WHEN :12 THEN :13 ")
             .Append("ELSE :14 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -622,6 +638,8 @@ public class CaseTests
             .Append("WHEN :14 THEN :15 ")
             .Append("ELSE :16 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -658,6 +676,8 @@ public class CaseTests
             .Append("WHEN :16 THEN :17 ")
             .Append("ELSE :18 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -696,6 +716,8 @@ public class CaseTests
             .Append("WHEN :18 THEN :19 ")
             .Append("ELSE :20 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]
@@ -738,6 +760,8 @@ public class CaseTests
             .Append("WHEN :20 THEN :21 ")
             .Append("ELSE :22 ")
             .Append("END");
+
+        Assert.Equal(expected.ToString(), sql.Text);
 
         Assert.Equal(23, sql.Parameters.Count);
         Assert.Equal("a", sql.Parameters.Get<string>(":0"));

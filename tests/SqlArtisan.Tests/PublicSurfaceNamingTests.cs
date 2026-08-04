@@ -93,7 +93,7 @@ public class PublicSurfaceNamingTests
     [Fact]
     public void DbSequence_SharedHandleField_CorrectSql()
     {
-        SqlStatement sql = Select(CodeSeq.Nextval).Build();
+        SqlStatement sql = Select(CodeSeq.Nextval).Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT code_seq.NEXTVAL");
