@@ -25,12 +25,16 @@ public static class BenchmarkValidation
     // reads as both an aggregate and two GROUP BY keys until the quotes are collapsed.
     private static readonly Regex QuotedIdentifier = new("\"[^\"]*\"");
 
-    // \b fails to match a keyword fused onto an adjacent identifier ("u.idWHERE"), so a
-    // template that drops its separator (as the Dapper SqlBuilder template's bare
-    // Append/AppendLine calls can) fails this match instead of passing silently.
     private static readonly Regex ClauseBoundaries = new(
         @"\bSELECT\b.*\bFROM\b.*\bJOIN\b.*\bWHERE\b.*\bGROUP BY\b.*\bORDER BY\b",
         RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+    // Ordering alone cannot see a keyword fused onto the text before it: "users uINNER
+    // JOIN" still leaves a standalone JOIN for the sequence above to match. The Dapper
+    // template abuts a bare Append on a clause marker, so that is the shape at risk.
+    private static readonly Regex FusedKeyword = new(
+        @"\w(?:SELECT|FROM|INNER|LEFT|RIGHT|FULL|CROSS|JOIN|WHERE|GROUP BY|ORDER BY|HAVING)\b",
+        RegexOptions.IgnoreCase);
 
     public static int Run()
     {
@@ -89,7 +93,12 @@ public static class BenchmarkValidation
 
         if (!ClauseBoundaries.IsMatch(bare))
         {
-            return "CLAUSE KEYWORDS MISSING OR OUT OF ORDER — a template may have glued two clauses together";
+            return "CLAUSE KEYWORDS MISSING OR OUT OF ORDER";
+        }
+
+        if (FusedKeyword.Match(bare) is { Success: true } fused)
+        {
+            return $"CLAUSE KEYWORD FUSED ONTO THE TEXT BEFORE IT: '{fused.Value}'";
         }
 
         // Sqlify sorts by COUNT(*), so searching the whole statement would let an

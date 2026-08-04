@@ -18,9 +18,10 @@ public sealed record SmokeCase(string Name, Func<ISqlBuilder> Build, Dbms[] Engi
 /// construct fails on which engine — surfacing "emits but won't execute" bugs
 /// (cf. #165, #168) across the whole surface at once.
 ///
-/// Scope note: sequences (which need DDL), JSON, UNNEST, LISTAGG, and the
-/// full-text family have no entry here — the MatrixSweep lane exercises those
-/// live. Set/clause builders are covered by the dedicated tests, not here.
+/// Scope note: the catalog is not exhaustive. A construct needing DDL or engine
+/// setup this schema does not provide (sequences, full-text) has no entry, nor do
+/// several other families; <see cref="MatrixSweepCatalog"/> is the broader
+/// per-construct catalog. Set/clause builders have their own dedicated tests.
 /// </summary>
 internal static class SmokeCatalog
 {

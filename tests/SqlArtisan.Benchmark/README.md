@@ -21,8 +21,9 @@ pattern matches `SqlBuilderBenchmarks.cs`, so the shell hands BenchmarkDotNet a
 filename that matches no benchmark.
 
 `validate` asserts that each entrant built the shared query: exactly two bind
-parameters, `SELECT`/`FROM`/`JOIN`/`WHERE`/`GROUP BY`/`ORDER BY` present and in
-order, an aggregate outside the sort, and two `GROUP BY` keys. It checks that
+parameters, `SELECT`/`FROM`/`JOIN`/`WHERE`/`GROUP BY`/`ORDER BY` present, in
+order, and none of them fused onto the text before it, an aggregate outside the
+sort, and two `GROUP BY` keys. It checks that
 shape rather than the text, because dialects and alias generation spell the
 same query differently — and it checks nothing else, so a wrong join or filter
 would still pass. The EF Core reference is printed but not checked. Run it after
