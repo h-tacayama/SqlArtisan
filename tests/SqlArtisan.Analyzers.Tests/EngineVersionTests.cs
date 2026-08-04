@@ -61,6 +61,19 @@ public class EngineVersionTests
         Assert.True(EngineVersion.Parse("2022") >= EngineVersion.Parse("2019"));
     }
 
+    [Theory]
+    [InlineData("23", "23.0")]
+    [InlineData("8.0", "8.0.0")]
+    [InlineData("23ai", "23")]
+    public void GetHashCode_EqualValues_Matches(string left, string right)
+    {
+        EngineVersion first = EngineVersion.Parse(left);
+        EngineVersion second = EngineVersion.Parse(right);
+
+        Assert.True(first.Equals(second));
+        Assert.Equal(first.GetHashCode(), second.GetHashCode());
+    }
+
     [Fact]
     public void ToString_PreservesOriginalSpelling()
     {

@@ -8,7 +8,7 @@ public class NotInSubqueryAnalyzerTests
 {
     // Two tables so the subquery reads a different one, as the trap normally
     // appears: the outer column's own nullability is irrelevant here.
-    private static string Usage(string statements) => $$"""
+    private static string Usage(string statements, string members = "") => $$"""
         using SqlArtisan;
         using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
@@ -42,12 +42,26 @@ public class NotInSubqueryAnalyzerTests
             public DbColumn Legacy { get; }
         }
 
+        class Cte : CteBase
+        {
+            public Cte(string name = "c") : base(name)
+            {
+                Note = new DbColumn(this, "note");
+            }
+
+            [DbColumnMetadata(Nullable = true, HasDefault = false)]
+            public DbColumn Note { get; }
+        }
+
         class C
         {
+            {{members}}
+
             void M()
             {
                 T t = new T();
                 S s = new S();
+                Cte cte = new Cte();
                 {{statements}}
             }
         }
@@ -61,9 +75,9 @@ public class NotInSubqueryAnalyzerTests
                 .WithLocation(0)
                 .WithArguments(column)]);
 
-    private static Task RunSilent(string statements, string? dbms = "postgresql") =>
+    private static Task RunSilent(string statements, string? dbms = "postgresql", string members = "") =>
         RunAsync(
-            AnalyzerVerifier.Unmarked(Usage(statements)),
+            AnalyzerVerifier.Unmarked(Usage(statements, members)),
             dbms is null ? null : AnalyzerVerifier.EditorConfig(dbms),
             []);
 
@@ -96,12 +110,26 @@ public class NotInSubqueryAnalyzerTests
     public Task NotIn_NullableColumnFilteredByIsNotNullAmongOthers_Silent() =>
         RunSilent("var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(s.Ref.IsNotNull & s.Key > 0))).Build();");
 
+    // NOT (col IS NULL) excludes the NULLs the same way col.IsNotNull does — IS
+    // NULL is the one predicate three-valued logic never leaves UNKNOWN.
+    [Fact]
+    public Task NotIn_NullableColumnFilteredByNotIsNull_Silent() =>
+        RunSilent("var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(Not(s.Ref.IsNull)))).Build();");
+
     // IsNotNull on some other column does not clear the selected one. Legacy
     // carries no facts, so the filter itself trips nothing.
     [Fact]
     public Task NotIn_IsNotNullOnDifferentColumn_Warns() =>
         RunReporting(
             "var sql = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(Select(s.Ref).From(s).Where(s.Legacy.IsNotNull))|}).Build();",
+            "Ref");
+
+    // A column on a CTE class — a sibling typed table reference, not a
+    // DbTableBase — must be readable the same way a table class's is.
+    [Fact]
+    public Task NotIn_IsNotNullOnCteColumn_Warns() =>
+        RunReporting(
+            "var sql = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(Select(s.Ref).From(s).Where(cte.Note.IsNotNull))|}).Build();",
             "Ref");
 
     [Fact]
@@ -123,6 +151,53 @@ public class NotInSubqueryAnalyzerTests
     [Fact]
     public Task In_NullableSubqueryColumn_Silent() =>
         RunSilent("var sql = Select(t.Id).From(t).Where(t.Id.In(Select(s.Ref).From(s))).Build();");
+
+    // The remediation arrives held in a variable as readily as written inline,
+    // and a predicate the rule cannot read may be the one that filters.
+    [Fact]
+    public Task NotIn_IsNotNullHeldInLocal_Silent() =>
+        RunSilent("""
+            SqlCondition filter = s.Ref.IsNotNull;
+            var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(filter))).Build();
+            """);
+
+    // The same hazard one level down: only the column, not the whole
+    // condition, is held in a local — FiltersOutNulls can't match its
+    // receiver back to the flagged column either.
+    [Fact]
+    public Task NotIn_IsNotNullReceiverHeldInLocal_Silent() =>
+        RunSilent("""
+            DbColumn c = s.Ref;
+            var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(c.IsNotNull))).Build();
+            """);
+
+    // The same hazard through a helper property: it is a property reference too,
+    // but not one declared on a table class, so its value is just as opaque as
+    // the local/field cases above.
+    [Fact]
+    public Task NotIn_IsNotNullReceiverHeldInHelperProperty_Silent() =>
+        RunSilent(
+            "var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(Col.IsNotNull))).Build();",
+            members: "static DbColumn Col => new S().Ref;");
+
+    // Accepted false negative: COALESCE does not propagate NULL the way a
+    // receiver check can see through, so this filter does NOT actually exclude
+    // the NULLs — but a function-wrapped receiver is opaque regardless of
+    // whether the wrapper happens to propagate NULL, so the rule stays silent.
+    [Fact]
+    public Task NotIn_IsNotNullOnCoalesceWrappedColumn_Silent() =>
+        RunSilent(
+            "var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(Coalesce(s.Ref, \"x\").IsNotNull))).Build();");
+
+    // Only a condition it cannot read silences the rule; a bound value does not.
+    [Fact]
+    public Task NotIn_SubqueryFilteredByValueLocal_Warns() =>
+        RunReporting(
+            """
+            int n = 0;
+            var sql = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(Select(s.Ref).From(s).Where(s.Ref > n))|}).Build();
+            """,
+            "Ref");
 
     [Fact]
     public Task NotIn_SubqueryHeldInVariable_Silent() =>

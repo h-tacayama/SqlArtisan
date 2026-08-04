@@ -80,6 +80,20 @@ public class SchemaNullabilityAnalyzerTests
             "var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNotNull|}).Build();",
             Expected("Code", "IsNotNull", "true"));
 
+    // A static factory only wraps the predicate in argument position; the chain
+    // it feeds is the one this statement builds.
+    [Fact]
+    public Task IsNull_WrappedInConditionIf_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code).From(t).Where(ConditionIf(true, {|#0:t.Code.IsNull|})).Build();",
+            Expected("Code", "IsNull", "false"));
+
+    [Fact]
+    public Task IsNull_WrappedInNot_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code).From(t).Where(Not({|#0:t.Code.IsNull|})).Build();",
+            Expected("Code", "IsNull", "false"));
+
     // The LEFT JOIN anti-join: past an outer join the NOT NULL column is
     // null-supplied, so the predicate is exactly not constant there.
     [Fact]

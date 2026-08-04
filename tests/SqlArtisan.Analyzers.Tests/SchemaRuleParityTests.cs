@@ -80,8 +80,9 @@ public class SchemaRuleParityTests
         { "OuterApply(Select(t.Code).From(t), d)", "sqlserver" },
     };
 
-    // A chain the reporting statement cannot see the whole of. The join that
-    // decides the answer is one statement, one method, or one field away.
+    // A chain the reporting statement cannot see the whole of: the join that
+    // decides the answer — or the predicate that would silence the rule — is one
+    // statement, one method, or one field away.
     public static TheoryData<string, string> HiddenChains => new()
     {
         {
@@ -133,6 +134,40 @@ public class SchemaRuleParityTests
         {
             "var s = Update(t).Set(Assigned(t)).Build();",
             "static EqualityBasedCondition Assigned(T t) => t.Code == 1;"
+        },
+        // A static factory wrapping the predicate must not re-open a chain or a
+        // condition the statement still cannot see.
+        {
+            """
+            var prefix = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code);
+            var s = prefix.Where(Not(t.Code.IsNull)).Build();
+            """,
+            ""
+        },
+        {
+            """
+            SqlCondition c = r.Code.IsNull;
+            var s = Select(t.Code).From(t).Where(ConditionIf(true, c)).Build();
+            """,
+            ""
+        },
+        {
+            """
+            SqlCondition filter = r.Note.IsNotNull;
+            var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Note).From(r).Where(filter))).Build();
+            """,
+            ""
+        },
+        {
+            """
+            DbColumn c = r.Note;
+            var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Note).From(r).Where(c.IsNotNull))).Build();
+            """,
+            ""
+        },
+        {
+            "var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Note).From(r).Where(Col.IsNotNull))).Build();",
+            "static DbColumn Col => new T(\"r\").Note;"
         },
     };
 

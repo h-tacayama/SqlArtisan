@@ -58,7 +58,18 @@ internal static class FluentChain
             if (parent is IInvocationOperation step
                 && DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly))
             {
-                return IsStatementHead(step);
+                if (IsStatementHead(step))
+                {
+                    return true;
+                }
+
+                // A static factory (Not, ConditionIf, Coalesce) only wraps the
+                // node in argument position; the chain it feeds is further out. A
+                // step with a receiver is the chain, and its head did not resolve.
+                if (step.Instance is not null)
+                {
+                    return false;
+                }
             }
 
             current = parent;
@@ -102,6 +113,44 @@ internal static class FluentChain
             foreach (IOperation child in current.ChildOperations)
             {
                 pending.Push(child);
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="type"/> is a SqlArtisan condition — the type a
+    /// predicate has wherever it is written, held, or returned from.
+    /// </summary>
+    public static bool IsCondition(ITypeSymbol? type)
+    {
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        {
+            if (current.Name == "SqlCondition"
+                && DialectUsageAnalyzer.IsFromSqlArtisan(current.ContainingAssembly))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="type"/> derives from <c>TableReference</c> — the
+    /// shared base every typed table, CTE, and derived-table subclass sits on —
+    /// so a property declared on it is a genuine column, not an arbitrary
+    /// DbColumn-typed value.
+    /// </summary>
+    public static bool IsTableReference(ITypeSymbol? type)
+    {
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        {
+            if (current.Name == "TableReference"
+                && DialectUsageAnalyzer.IsFromSqlArtisan(current.ContainingAssembly))
+            {
+                return true;
             }
         }
 

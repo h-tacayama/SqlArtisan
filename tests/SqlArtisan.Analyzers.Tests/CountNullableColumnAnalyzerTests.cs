@@ -82,6 +82,11 @@ public class CountNullableColumnAnalyzerTests
             "var sql = Select(t.Id).From(t).GroupBy(t.Id).Having({|#0:Count(t.Note)|} > 0).Build();",
             "Note");
 
+    // An expression wrapping the count does not hide the query it sits in.
+    [Fact]
+    public Task Count_WrappedInCoalesce_Warns() =>
+        RunReporting("var sql = Select(Coalesce({|#0:Count(t.Note)|}, 0)).From(t).Build();", "Note");
+
     // The rule reports correct code, so it must stay off until asked for. Asserted
     // on the descriptor because the test harness force-enables every supported
     // diagnostic, and so cannot observe the default.
