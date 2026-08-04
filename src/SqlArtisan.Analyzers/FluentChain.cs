@@ -137,6 +137,26 @@ internal static class FluentChain
         return false;
     }
 
+    /// <summary>
+    /// Whether <paramref name="type"/> derives from <c>TableReference</c> — the
+    /// shared base every typed table, CTE, and derived-table subclass sits on —
+    /// so a property declared on it is a genuine column, not an arbitrary
+    /// DbColumn-typed value.
+    /// </summary>
+    public static bool IsTableReference(ITypeSymbol? type)
+    {
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        {
+            if (current.Name == "TableReference"
+                && DialectUsageAnalyzer.IsFromSqlArtisan(current.ContainingAssembly))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static bool IsStatementHead(IInvocationOperation step)
     {
         IOperation current = step;

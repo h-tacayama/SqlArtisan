@@ -354,9 +354,7 @@ internal static class CorrelatedDmlRule
     private static bool IsThisOrStatic(IFieldReferenceOperation field) =>
         field.Instance is null or IInstanceReferenceOperation;
 
-    // Internal: NotInNullableSubqueryRule reuses this to tell an actual column
-    // reference apart from an arbitrary DbColumn-typed property.
-    internal static bool DerivesFromDbTableBase(ITypeSymbol? type)
+    private static bool DerivesFromDbTableBase(ITypeSymbol? type)
     {
         for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
         {

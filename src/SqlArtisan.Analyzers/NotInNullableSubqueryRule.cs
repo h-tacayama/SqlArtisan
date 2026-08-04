@@ -103,8 +103,8 @@ internal static class NotInNullableSubqueryRule
     }
 
     // A condition the walk can descend into: one the core itself builds here.
-    // IsNotNull/IsNull is readable only past a receiver that is itself a table
-    // class's column — an arbitrary DbColumn-typed property is structurally a
+    // IsNotNull/IsNull is readable only past a receiver declared on a table
+    // reference — an arbitrary DbColumn-typed property is structurally a
     // property reference too, but its value is opaque the same way a local or a
     // field's is, so it must not pass this check either.
     private static bool IsReadable(IOperation condition) => condition switch
@@ -112,7 +112,7 @@ internal static class NotInNullableSubqueryRule
         IPropertyReferenceOperation { Property.Name: "IsNotNull" or "IsNull" } nullCheck =>
             DialectUsageAnalyzer.IsFromSqlArtisan(nullCheck.Property.ContainingAssembly)
                 && Unwrap(nullCheck.Instance!) is IPropertyReferenceOperation receiver
-                && CorrelatedDmlRule.DerivesFromDbTableBase(receiver.Property.ContainingType),
+                && FluentChain.IsTableReference(receiver.Property.ContainingType),
         IPropertyReferenceOperation property =>
             DialectUsageAnalyzer.IsFromSqlArtisan(property.Property.ContainingAssembly),
         IInvocationOperation call =>

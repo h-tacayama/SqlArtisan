@@ -42,6 +42,17 @@ public class NotInSubqueryAnalyzerTests
             public DbColumn Legacy { get; }
         }
 
+        class Cte : CteBase
+        {
+            public Cte(string name = "c") : base(name)
+            {
+                Note = new DbColumn(this, "note");
+            }
+
+            [DbColumnMetadata(Nullable = true, HasDefault = false)]
+            public DbColumn Note { get; }
+        }
+
         class C
         {
             {{members}}
@@ -50,6 +61,7 @@ public class NotInSubqueryAnalyzerTests
             {
                 T t = new T();
                 S s = new S();
+                Cte cte = new Cte();
                 {{statements}}
             }
         }
@@ -110,6 +122,14 @@ public class NotInSubqueryAnalyzerTests
     public Task NotIn_IsNotNullOnDifferentColumn_Warns() =>
         RunReporting(
             "var sql = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(Select(s.Ref).From(s).Where(s.Legacy.IsNotNull))|}).Build();",
+            "Ref");
+
+    // A column on a CTE class — a sibling typed table reference, not a
+    // DbTableBase — must be readable the same way a table class's is.
+    [Fact]
+    public Task NotIn_IsNotNullOnCteColumn_Warns() =>
+        RunReporting(
+            "var sql = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(Select(s.Ref).From(s).Where(cte.Note.IsNotNull))|}).Build();",
             "Ref");
 
     [Fact]
