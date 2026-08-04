@@ -14,7 +14,7 @@ internal sealed class MergeInsertClause(DbColumn[] columns) : SqlPart
         {
             buffer.AppendSpace()
                 .OpenParenthesis()
-                .AppendCsv(_columns)
+                .AppendUnqualifiedColumnsCsv(_columns)
                 .CloseParenthesis();
         }
     }

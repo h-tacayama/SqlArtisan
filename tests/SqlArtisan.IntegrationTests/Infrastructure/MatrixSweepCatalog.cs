@@ -619,11 +619,10 @@ internal static class MatrixSweepCatalog
         cases.Add(new SweepCase(new MatrixKey("Values", 3), _ =>
         {
             UsersTable t = new("t");
-            UsersTable c = new();
             ValuesDerivedTable s = Values("s", ["id", "name"], [[701, "Sweep"]]);
             return MergeInto(t).Using(s).On(t.Id == s.Column("id"))
-                .WhenMatched().ThenUpdateSet(c.Name == s.Column("name"))
-                .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Column("id"), s.Column("name"));
+                .WhenMatched().ThenUpdateSet(t.Name == s.Column("name"))
+                .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Column("id"), s.Column("name"));
         }, Mutating: true));
         AddMutating("WhenMatched", _ => MergeUpdateShape());
         AddMutating("ThenUpdateSet", _ => MergeUpdateShape());
@@ -702,20 +701,18 @@ internal static class MatrixSweepCatalog
         {
             UsersTable t = new("t");
             UsersTable s = new("s");
-            UsersTable c = new();
             return MergeInto(t)
                 .Using(s)
                 .On(t.Id == s.Id)
-                .WhenMatched().ThenUpdateSet(c.Name == s.Name)
-                .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Id, s.Name);
+                .WhenMatched().ThenUpdateSet(t.Name == s.Name)
+                .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id, s.Name);
         }
 
         ISqlBuilder MergeUpdateShape()
         {
             UsersTable t = new("t");
             UsersTable s = new("s");
-            UsersTable c = new();
-            return MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenUpdateSet(c.Name == s.Name);
+            return MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenUpdateSet(t.Name == s.Name);
         }
     }
 }
