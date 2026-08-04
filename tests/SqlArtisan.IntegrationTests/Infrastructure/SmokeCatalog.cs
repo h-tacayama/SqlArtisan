@@ -18,9 +18,9 @@ public sealed record SmokeCase(string Name, Func<ISqlBuilder> Build, Dbms[] Engi
 /// construct fails on which engine — surfacing "emits but won't execute" bugs
 /// (cf. #165, #168) across the whole surface at once.
 ///
-/// Scope note: sequence functions need sequence DDL and are deferred to a
-/// follow-up. CASE and set/clause builders are covered by the dedicated
-/// tests, not here.
+/// Scope note: sequences (which need DDL), JSON, UNNEST, LISTAGG, and the
+/// full-text family have no entry here — the MatrixSweep lane exercises those
+/// live. Set/clause builders are covered by the dedicated tests, not here.
 /// </summary>
 internal static class SmokeCatalog
 {
