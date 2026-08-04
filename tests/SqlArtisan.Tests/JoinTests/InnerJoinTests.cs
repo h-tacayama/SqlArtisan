@@ -61,6 +61,7 @@ public class InnerJoinTests
         expected.Append("\"t\".code > :0");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]

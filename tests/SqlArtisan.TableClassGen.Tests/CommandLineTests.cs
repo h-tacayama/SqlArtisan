@@ -192,6 +192,17 @@ public class CommandLineTests
     }
 
     [Fact]
+    public void Parse_MalformedConfigJson_ThrowsCommandLineException()
+    {
+        using TempFile config = TempFile.Create("{ not valid json");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.StartsWith($"--config file is not valid JSON: {config.Path} (", ex.Message);
+    }
+
+    [Fact]
     public void Parse_MissingConfigFile_ThrowsCommandLineException()
     {
         CommandLineException ex = Assert.Throws<CommandLineException>(

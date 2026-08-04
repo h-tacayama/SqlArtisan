@@ -81,10 +81,24 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
+    public async Task AliasAtSqlServerCharLimit_StaysSilent()
+    {
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(AliasUsage(Repeat('a', 128))), AnalyzerVerifier.EditorConfig("sqlserver"));
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task AliasOverOracleByteLimit_ReportsSqla0006()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 129)), AnalyzerVerifier.EditorConfig("oracle"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task AliasAtOracleByteLimit_StaysSilent()
+    {
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(AliasUsage(Repeat('a', 128))), AnalyzerVerifier.EditorConfig("oracle"));
         await test.RunAsync();
     }
 

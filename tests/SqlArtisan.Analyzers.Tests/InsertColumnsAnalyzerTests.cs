@@ -81,15 +81,18 @@ public class InsertColumnsAnalyzerTests
     // The engine supplies it, so omitting it is the normal thing to do.
     [Fact]
     public Task Insert_OmittingDefaultedNotNullColumn_Silent() =>
-        RunSilent("""var sql = InsertInto(t, t.Code).Values("c").Build();""");
+        RunSilent(
+            """var sql = InsertInto(t, t.Code, t.Note, t.Legacy).Values("c", "x", "l").Build();""");
 
     [Fact]
     public Task Insert_OmittingNullableColumn_Silent() =>
-        RunSilent("""var sql = InsertInto(t, t.Code).Values("c").Build();""");
+        RunSilent(
+            """var sql = InsertInto(t, t.Code, t.Ident, t.Legacy).Values("c", 1, "l").Build();""");
 
     [Fact]
     public Task Insert_OmittingColumnWithoutMetadata_Silent() =>
-        RunSilent("""var sql = InsertInto(t, t.Code).Values("c").Build();""");
+        RunSilent(
+            """var sql = InsertInto(t, t.Code, t.Ident, t.Note).Values("c", 1, "x").Build();""");
 
     // The positional form supplies every column by construction.
     [Fact]

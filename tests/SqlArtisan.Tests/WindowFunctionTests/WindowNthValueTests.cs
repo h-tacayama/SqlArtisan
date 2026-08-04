@@ -27,6 +27,23 @@ public class WindowNthValueTests
     }
 
     [Fact]
+    public void NthValue_OverPartitionByOrderBy_CorrectSql()
+    {
+        // Arrange
+        string expected =
+            "SELECT NTH_VALUE(code, 2) OVER (PARTITION BY name ORDER BY code)";
+
+        // Act
+        SqlStatement sql =
+            Select(
+                NthValue(_t.Code, 2).Over(PartitionBy(_t.Name).OrderBy(_t.Code)))
+            .Build();
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
     public void NthValue_OverFrameBetween_CorrectSql()
     {
         // Arrange

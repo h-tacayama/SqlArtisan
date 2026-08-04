@@ -24,7 +24,10 @@ public class CliRunnerTests
     {
         Assert.True(Console.IsInputRedirected, "the test host must redirect stdin for this test");
 
-        Assert.Equal(2, CliRunner.Run([]));
+        string stderr = CaptureError(() => CliRunner.Run([]));
+
+        Assert.Contains(
+            "error: No options given and stdin is not a terminal.", stderr, StringComparison.Ordinal);
     }
 
     // Skipping the write must not make a table invisible: the run has to stay
@@ -117,6 +120,26 @@ public class CliRunnerTests
         finally
         {
             Console.SetOut(original);
+        }
+
+        return captured.ToString();
+    }
+
+    // The Reporter.Error path writes to stderr, not stdout — Capture() above never
+    // sees it, so an untested exit-2 path could silently drop the error message.
+    private static string CaptureError(Func<int> run)
+    {
+        TextWriter original = Console.Error;
+        StringWriter captured = new();
+
+        try
+        {
+            Console.SetError(captured);
+            Assert.Equal(2, run());
+        }
+        finally
+        {
+            Console.SetError(original);
         }
 
         return captured.ToString();

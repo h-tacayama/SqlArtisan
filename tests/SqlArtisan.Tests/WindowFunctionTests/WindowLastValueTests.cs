@@ -27,6 +27,23 @@ public class WindowLastValueTests
     }
 
     [Fact]
+    public void LastValue_OverPartitionByOrderBy_CorrectSql()
+    {
+        // Arrange
+        string expected =
+            "SELECT LAST_VALUE(code) OVER (PARTITION BY name ORDER BY code)";
+
+        // Act
+        SqlStatement sql =
+            Select(
+                LastValue(_t.Code).Over(PartitionBy(_t.Name).OrderBy(_t.Code)))
+            .Build();
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
     public void LastValue_OverFrameBetween_CorrectSql()
     {
         // Arrange
