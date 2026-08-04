@@ -88,10 +88,18 @@ internal readonly struct EngineVersion : IComparable<EngineVersion>, IEquatable<
 
     public override int GetHashCode()
     {
-        int hash = 17;
-        foreach (int segment in _segments ?? [])
+        // Equality reads a missing trailing segment as 0, so "23" and "23.0" are
+        // one value and a trailing zero must not reach the hash.
+        int last = (_segments?.Length ?? 0) - 1;
+        while (last >= 0 && _segments![last] == 0)
         {
-            hash = (hash * 31) + segment;
+            last--;
+        }
+
+        int hash = 17;
+        for (int i = 0; i <= last; i++)
+        {
+            hash = (hash * 31) + _segments![i];
         }
 
         return hash;

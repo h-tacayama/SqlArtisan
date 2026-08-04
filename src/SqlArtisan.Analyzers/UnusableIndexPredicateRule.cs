@@ -25,7 +25,7 @@ internal static class UnusableIndexPredicateRule
     {
         // A call returning a condition IS the predicate, often the very spelling
         // that uses the index — full-text CONTAINS, JSONB containment.
-        if (ReturnsCondition(call.TargetMethod.ReturnType)
+        if (FluentChain.IsCondition(call.TargetMethod.ReturnType)
             || IndexedArgument(call) is not { } column
             || !IsInsideFilter(call))
         {
@@ -33,20 +33,6 @@ internal static class UnusableIndexPredicateRule
         }
 
         Report(context, call, column.Property.Name, $"wrapped in {call.TargetMethod.Name}");
-    }
-
-    private static bool ReturnsCondition(ITypeSymbol? type)
-    {
-        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
-        {
-            if (current.Name == "SqlCondition"
-                && DialectUsageAnalyzer.IsFromSqlArtisan(current.ContainingAssembly))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public static void CheckLike(OperationAnalysisContext context, IInvocationOperation like)

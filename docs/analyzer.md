@@ -675,7 +675,8 @@ all produce nothing. Regenerate your table classes to opt in; nothing else
 changes. `SQLA0008` additionally reads only a select list it can see: a
 subquery held in a variable, one whose chain does not begin at `Select(...)`
 (a `WITH`-headed query), or one selecting anything other than a single column,
-is left alone. `SQLA0009` skips a statement whose column list it cannot read in
+is left alone — as is one whose own filter it cannot read, since a condition
+held in a variable may be the `.Where(s.Ref.IsNotNull)` that already fixes it. `SQLA0009` skips a statement whose column list it cannot read in
 full — a column array built elsewhere — since a column it failed to read would
 otherwise look omitted.
 

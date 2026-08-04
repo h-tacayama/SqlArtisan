@@ -21,7 +21,8 @@ internal static class NotInNullableSubqueryRule
     {
         if (SoleSelectItem(Head(notIn.Arguments[0].Value)) is not IPropertyReferenceOperation item
             || SchemaMetadata.Fact(item, SchemaMetadata.NullableArgument) is not true
-            || FiltersOutNulls(notIn.Arguments[0].Value, item.Property))
+            || FiltersOutNulls(notIn.Arguments[0].Value, item.Property)
+            || HidesACondition(notIn.Arguments[0].Value))
         {
             return;
         }
@@ -60,6 +61,43 @@ internal static class NotInNullableSubqueryRule
 
         return false;
     }
+
+    // The remediation reaches the subquery held in a local or a field as often as
+    // written inline, and there the walk above sees only the reference. A
+    // predicate this rule cannot read might already filter the NULLs out.
+    private static bool HidesACondition(IOperation subquery)
+    {
+        Stack<IOperation> pending = new();
+        pending.Push(subquery);
+
+        while (pending.Count > 0)
+        {
+            IOperation current = pending.Pop();
+
+            if (FluentChain.IsCondition(current.Type) && !IsReadable(current))
+            {
+                return true;
+            }
+
+            foreach (IOperation child in current.ChildOperations)
+            {
+                pending.Push(child);
+            }
+        }
+
+        return false;
+    }
+
+    // A condition the walk can descend into: one the core itself builds here.
+    private static bool IsReadable(IOperation condition) => condition switch
+    {
+        IPropertyReferenceOperation property =>
+            DialectUsageAnalyzer.IsFromSqlArtisan(property.Property.ContainingAssembly),
+        IInvocationOperation call =>
+            DialectUsageAnalyzer.IsFromSqlArtisan(call.TargetMethod.ContainingAssembly),
+        IBinaryOperation or IConversionOperation or IObjectCreationOperation => true,
+        _ => false,
+    };
 
     // The subquery argument is the chain's tail, so the select list is found by
     // walking receivers down to the static head the chain started from.

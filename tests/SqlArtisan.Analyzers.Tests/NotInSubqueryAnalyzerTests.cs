@@ -124,6 +124,25 @@ public class NotInSubqueryAnalyzerTests
     public Task In_NullableSubqueryColumn_Silent() =>
         RunSilent("var sql = Select(t.Id).From(t).Where(t.Id.In(Select(s.Ref).From(s))).Build();");
 
+    // The remediation arrives held in a variable as readily as written inline,
+    // and a predicate the rule cannot read may be the one that filters.
+    [Fact]
+    public Task NotIn_IsNotNullHeldInLocal_Silent() =>
+        RunSilent("""
+            SqlCondition filter = s.Ref.IsNotNull;
+            var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(filter))).Build();
+            """);
+
+    // Only a condition it cannot read silences the rule; a bound value does not.
+    [Fact]
+    public Task NotIn_SubqueryFilteredByValueLocal_Warns() =>
+        RunReporting(
+            """
+            int n = 0;
+            var sql = Select(t.Id).From(t).Where({|#0:t.Id.NotIn(Select(s.Ref).From(s).Where(s.Ref > n))|}).Build();
+            """,
+            "Ref");
+
     [Fact]
     public Task NotIn_SubqueryHeldInVariable_Silent() =>
         RunSilent("""
