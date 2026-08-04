@@ -56,22 +56,24 @@ public class TypeCategoryMismatchAnalyzerTests
         }
         """;
 
-    private static string EditorConfig() => """
+    private static string EditorConfig(string dbms = "postgresql") => $"""
         root = true
 
         [*.cs]
-        sqlartisan_target_dbms = postgresql
+        sqlartisan_target_dbms = {dbms}
         """;
 
-    private static Task RunReporting(string statements, string column, string was, string got) =>
+    private static Task RunReporting(
+        string statements, string column, string was, string got, string dbms = "postgresql") =>
         RunAsync(
             Usage(statements),
             [new DiagnosticResult("SQLA0012", DiagnosticSeverity.Warning)
                 .WithLocation(0)
-                .WithArguments(column, was, got)]);
+                .WithArguments(column, was, got)],
+            dbms);
 
-    private static Task RunSilent(string statements) =>
-        RunAsync(AnalyzerVerifier.Unmarked(Usage(statements)), []);
+    private static Task RunSilent(string statements, string dbms = "postgresql") =>
+        RunAsync(AnalyzerVerifier.Unmarked(Usage(statements)), [], dbms);
 
     // Every rule here stays silent until a target dialect is named, even though
     // this verdict does not depend on one.
@@ -85,9 +87,9 @@ public class TypeCategoryMismatchAnalyzerTests
         return test.RunAsync();
     }
 
-    private static Task RunAsync(string source, DiagnosticResult[] expected)
+    private static Task RunAsync(string source, DiagnosticResult[] expected, string dbms = "postgresql")
     {
-        var test = AnalyzerVerifier.Create(source, EditorConfig());
+        var test = AnalyzerVerifier.Create(source, EditorConfig(dbms));
         test.ExpectedDiagnostics.AddRange(expected);
         return test.RunAsync();
     }
@@ -232,6 +234,13 @@ public class TypeCategoryMismatchAnalyzerTests
         RunSilent(
             "var s = InsertInto(t, t.Code).Values(\"x\").OnConflict(t.Code)"
                 + ".DoUpdateSet(t.CreatedAt == \"2024-01-01\").Build();");
+
+    [Fact]
+    public Task OnDuplicateKeyUpdate_AssignmentOfAnotherCategory_Silent() =>
+        RunSilent(
+            "var s = InsertInto(t, t.Code).Values(\"x\")"
+                + ".OnDuplicateKeyUpdate(t.CreatedAt == \"2024-01-01\").Build();",
+            dbms: "mysql");
 
     // A property with no recorded category is judged by its C# type, as a field
     // or local already was.

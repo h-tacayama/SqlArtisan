@@ -45,9 +45,9 @@ public class DbmsResolverTests
     }
 
     [Fact]
-    public void Resolve_SqlConnection_ReturnsSqlite()
+    public void Resolve_SqlConnection_ReturnsSqlServer()
     {
-        IDbConnection conn = new Microsoft.Data.SqlClient.SqlConnection(); ;
+        IDbConnection conn = new Microsoft.Data.SqlClient.SqlConnection();
         Dbms dbms = DbmsResolver.Resolve(conn);
         Assert.Equal(Dbms.SqlServer, dbms);
     }

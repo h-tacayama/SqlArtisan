@@ -21,12 +21,15 @@ pattern matches `SqlBuilderBenchmarks.cs`, so the shell hands BenchmarkDotNet a
 filename that matches no benchmark.
 
 `validate` asserts that each entrant built the shared query: exactly two bind
-parameters, an aggregate outside the sort, and two `GROUP BY` keys. It checks
-that shape rather than the text, because dialects and alias generation spell the
+parameters, `SELECT`/`FROM`/`JOIN`/`WHERE`/`GROUP BY`/`ORDER BY` present, in
+order, and none of them fused onto the text before it, an aggregate outside the
+sort, and two `GROUP BY` keys. It checks that
+shape rather than the text, because dialects and alias generation spell the
 same query differently — and it checks nothing else, so a wrong join or filter
 would still pass. The EF Core reference is printed but not checked. Run it after
-touching any entrant; a change that quietly stops parameterizing, or stops
-aggregating, would otherwise look like a win.
+touching any entrant; a change that quietly stops parameterizing, stops
+aggregating, or glues a template clause onto its neighbor, would otherwise look
+like a win.
 
 **Release configuration is required.** BenchmarkDotNet refuses to run a Debug
 build, and a measurement taken on a shared or virtualized host is not comparable
@@ -64,9 +67,6 @@ Entrants fall into three categories, and only one of them is a comparison:
 linq2db and EF Core reuse a connection object and a `DbContext` created once in
 `[GlobalSetup]` — neither is ever opened — and EF Core caches the compiled query
 plan, so the loop measures warm steady state rather than first-call cost.
-
-`SqlBuildingBufferBenchmark` covers `SqlBuildingBuffer` on its own, away from
-the cross-library comparison.
 
 ## Pinned library versions
 

@@ -33,12 +33,20 @@ internal sealed class TempSqliteDatabase : IDisposable
 
         TempSqliteDatabase db = new(path);
 
-        using (SqliteConnection connection = new($"Data Source={path}"))
+        try
         {
-            connection.Open();
-            using SqliteCommand command = connection.CreateCommand();
-            command.CommandText = schemaDdl;
-            command.ExecuteNonQuery();
+            using (SqliteConnection connection = new($"Data Source={path}"))
+            {
+                connection.Open();
+                using SqliteCommand command = connection.CreateCommand();
+                command.CommandText = schemaDdl;
+                command.ExecuteNonQuery();
+            }
+        }
+        catch
+        {
+            db.Dispose();
+            throw;
         }
 
         return db;

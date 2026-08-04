@@ -229,8 +229,9 @@ public class ContextRuleAnalyzerTests
             var q = Select(t.Id).From(t).Where(t.Id.In(Select(Grouping(s.Dep)).From(s).GroupBy(s.Dep).WithRollup()));
             """);
 
-    // Regression for a cross-query misattribution: climbing through the WHERE/IN
-    // boundary and the outer AND must never reach the unrelated outer Having.
+    // Grouping() as a Where() argument never reaches a recognized clause anchor
+    // (Select/Having/OrderBy), so the rule exits before it looks for a GroupBy —
+    // regardless of the surrounding query nesting, IN, or AND shown here.
     [Fact]
     public Task GroupingInWhereOfDifferentQuery_MySql_StaysSilent() =>
         RunSilent("""

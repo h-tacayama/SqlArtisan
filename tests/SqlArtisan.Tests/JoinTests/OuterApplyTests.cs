@@ -58,4 +58,31 @@ public class OuterApplyTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    // SQLite has no OUTER APPLY grammar (SQLA0002 flags it), but the builder
+    // emits it faithfully anyway — portability is a deliberate non-goal.
+    [Fact]
+    public void OuterApply_Sqlite_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Name)
+            .From(_t)
+            .OuterApply(
+                Select(_s.Code).From(_s).Where(_s.Code == _t.Code),
+                _x)
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("\"t\".name ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("OUTER APPLY ");
+        expected.Append("(");
+        expected.Append("SELECT \"s\".code FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
+        expected.Append(") ");
+        expected.Append("\"x\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

@@ -37,6 +37,38 @@ public class MergeTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // The sibling upsert test above uses only column references in both branches,
+    // so a bug swapping a WHEN MATCHED literal with a WHEN NOT MATCHED one would
+    // still render identical text. Literals in both branches close that gap.
+    [Fact]
+    public void Merge_Oracle_MatchedUpdateWithLiteral_NotMatchedInsertWithLiteral_CorrectSql()
+    {
+        // Arrange
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING test_table \"s\" ");
+        expected.Append("ON (\"t\".code = \"s\".code) ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = :0 ");
+        expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
+        expected.Append("VALUES (:1, :2)");
+
+        // Act
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet(_t.Name == "updated-name")
+            .WhenNotMatched().ThenInsert(_cols.Code, _cols.Name).Values(99, "new-row")
+            .Build(Dbms.Oracle);
+
+        // Assert
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(3, sql.Parameters.Count);
+        Assert.Equal("updated-name", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(99, sql.Parameters.Get<int>(":1"));
+        Assert.Equal("new-row", sql.Parameters.Get<string>(":2"));
+    }
+
     [Fact]
     public void Merge_Oracle_WhenMatchedWithExtraCondition()
     {

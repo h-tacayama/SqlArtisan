@@ -85,6 +85,10 @@ public sealed class Oracle23aiBoundSweepTests : IClassFixture<Oracle23aiFixture>
         {
             return ex.Message.Split('\n')[0].Trim();
         }
+        catch (Exception ex)
+        {
+            return ex.Message.Split('\n')[0].Trim();
+        }
     }
 
     private static string Label(MatrixKey key) => key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName;

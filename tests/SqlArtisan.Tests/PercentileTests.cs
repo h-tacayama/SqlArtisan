@@ -31,7 +31,7 @@ public class PercentileTests
         // Act
         SqlStatement sql =
             Select(PercentileCont(0.5).WithinGroup(OrderBy(_t.Code)).Over())
-            .Build();
+            .Build(Dbms.SqlServer);
 
         // Assert
         Assert.Equal(expected, sql.Text);
@@ -50,7 +50,7 @@ public class PercentileTests
                 PercentileCont(0.5)
                     .WithinGroup(OrderBy(_t.Code))
                     .Over(PartitionBy(_t.Name)))
-            .Build();
+            .Build(Dbms.SqlServer);
 
         // Assert
         Assert.Equal(expected, sql.Text);
@@ -101,7 +101,7 @@ public class PercentileTests
                 PercentileDisc(0.5)
                     .WithinGroup(OrderBy(_t.Code))
                     .Over(PartitionBy(_t.Name)))
-            .Build();
+            .Build(Dbms.SqlServer);
 
         // Assert
         Assert.Equal(expected, sql.Text);
