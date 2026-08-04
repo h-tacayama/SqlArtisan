@@ -45,9 +45,42 @@ public class ContextRuleContractTests
         Assert.Equal(["ISelectBuilderGroupBy"], declaringInterfaces);
     }
 
+    [Fact]
+    public void Over_IsReachableOnlyFromThePercentileWithinGroupStage()
+    {
+        // The rule's absence proof: .Over() hangs off the node WithinGroup(...)
+        // returns, so a percentile consumed without it can never acquire one.
+        Type pending = Assert.Single(
+            Core.GetExportedTypes().Where(t => t.Name == "PercentileContFunction"));
+        MethodInfo withinGroup = Assert.Single(
+            pending.GetMethods().Where(m => m.Name == "WithinGroup"));
+
+        Assert.Equal("PercentileFunction", withinGroup.ReturnType.Name);
+        Assert.NotEmpty(withinGroup.ReturnType.GetMethods().Where(m => m.Name == "Over"));
+    }
+
+    [Theory]
+    [InlineData("Inserted")]
+    [InlineData("Deleted")]
+    public void OutputPseudoTable_ReachesAClauseOnlyAsAnExpressionArgument(string factory)
+    {
+        // The rule reads the name of the invocation hosting the argument, which is
+        // sound only while these stay plain expressions with no clause step of their own.
+        MethodInfo method = Assert.Single(
+            typeof(Sql).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .Where(m => m.Name == factory));
+
+        Assert.True(typeof(SqlExpression).IsAssignableFrom(method.ReturnType));
+        Assert.Empty(method.ReturnType.GetMethods().Where(m => m.Name == "Output"));
+    }
+
     [Theory]
     [InlineData("Limit")]
     [InlineData("Grouping")]
+    [InlineData("PercentileCont")]
+    [InlineData("PercentileDisc")]
+    [InlineData("Inserted")]
+    [InlineData("Deleted")]
     public void TriggerMember_ExistsInCoreApi(string methodName)
     {
         bool exists = Core.GetExportedTypes()

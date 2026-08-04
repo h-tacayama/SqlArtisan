@@ -30,8 +30,8 @@ public class ContextRuleAnalyzerTests
         }
         """;
 
-    private static Task RunReporting(string statements) =>
-        RunAsync(Usage(statements), AnalyzerVerifier.EditorConfig("mysql"), expectWarning: true);
+    private static Task RunReporting(string statements, string dbms = "mysql") =>
+        RunAsync(Usage(statements), AnalyzerVerifier.EditorConfig(dbms), expectWarning: true);
 
     private static Task RunSilent(string statements, string? dbms = "mysql") =>
         RunAsync(
@@ -238,4 +238,115 @@ public class ContextRuleAnalyzerTests
                 t.Id.In(Select(s.Dep).From(s).Where(Grouping(s.Dep) == 0).GroupBy(s.Dep).WithRollup().Having(s.Dep > 0))
                 & (t.Dep > 0));
             """);
+
+    [Fact]
+    public Task PercentileContWithoutOver_SqlServer_ReportsSqla0004() =>
+        RunReporting("""
+            var q = Select({|#0:PercentileCont(0.5)|}.WithinGroup(OrderBy(t.Id))).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task PercentileDiscWithoutOver_SqlServer_ReportsSqla0004() =>
+        RunReporting("""
+            var q = Select({|#0:PercentileDisc(0.5)|}.WithinGroup(OrderBy(t.Id))).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task PercentileContAliasedWithoutOver_SqlServer_ReportsSqla0004() =>
+        RunReporting("""
+            var q = Select({|#0:PercentileCont(0.5)|}.WithinGroup(OrderBy(t.Id)).As("p")).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task PercentileContWithOver_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(t.Id)).Over()).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task PercentileContWithPartitionedOver_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(t.Id)).Over(PartitionBy(t.Dep))).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task PercentileContWithoutOver_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(t.Id))).From(t);
+            """, "postgresql");
+
+    [Fact]
+    public Task PercentileContWithoutOver_NoTargetConfigured_StaysSilent() =>
+        RunSilent("""
+            var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(t.Id))).From(t);
+            """, dbms: null);
+
+    [Fact]
+    public Task PercentileNestedInFunctionWithOver_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Coalesce(PercentileCont(0.5).WithinGroup(OrderBy(t.Id)).Over(), 0)).From(t);
+            """, "sqlserver");
+
+    // The receiver leaves the expression, so a later .Over() is invisible (ADR 0003).
+    [Fact]
+    public Task PercentileContViaVariable_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var p = PercentileCont(0.5).WithinGroup(OrderBy(t.Id));
+            var q = Select(p.Over()).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedInOutput_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = InsertInto(t, t.Id).Output(Inserted(t.Id)).Values(1);
+            """, "sqlserver");
+
+    [Fact]
+    public Task DeletedInOutput_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = DeleteFrom(t).Output(Deleted(t.Id));
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedAliasedInOutput_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = InsertInto(t, t.Id).Output(Inserted(t.Id).As("i")).Values(1);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedInSelectList_SqlServer_ReportsSqla0004() =>
+        RunReporting("""
+            var q = Select({|#0:Inserted(t.Id)|}).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task DeletedInSelectList_SqlServer_ReportsSqla0004() =>
+        RunReporting("""
+            var q = Select({|#0:Deleted(t.Id)|}).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedInWhere_SqlServer_ReportsSqla0004() =>
+        RunReporting("""
+            var q = Select(t.Id).From(t).Where({|#0:Inserted(t.Id)|} == 1);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedOutsideOutput_NoTargetConfigured_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Inserted(t.Id)).From(t);
+            """, dbms: null);
+
+    [Fact]
+    public Task InsertedViaVariable_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var i = Inserted(t.Id);
+            var q = InsertInto(t, t.Id).Output(i).Values(1);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertedNestedInFunctionInsideOutput_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = InsertInto(t, t.Id).Output(Coalesce(Inserted(t.Id), 0)).Values(1);
+            """, "sqlserver");
 }

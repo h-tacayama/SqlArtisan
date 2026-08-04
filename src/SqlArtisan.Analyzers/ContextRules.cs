@@ -75,11 +75,85 @@ internal static class ContextRules
             dialectName));
     }
 
+    /// <summary>
+    /// SQL Server exposes the percentiles only as window functions, so the bare
+    /// <c>WITHIN GROUP</c> form Oracle and PostgreSQL accept has no spelling there.
+    /// </summary>
+    public static void CheckPercentileRequiresOver(
+        OperationAnalysisContext context, IInvocationOperation percentile, string dialectName)
+    {
+        if (FindArgumentHost(percentile) is null)
+        {
+            return;
+        }
+
+        bool withinGroup = false;
+        bool over = false;
+        IOperation current = percentile;
+        while (FluentChain.Parent(current) is { } link)
+        {
+            withinGroup |= link.TargetMethod.Name == "WithinGroup";
+            over |= link.TargetMethod.Name == "Over";
+            current = link;
+        }
+
+        if (!withinGroup || over)
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            percentile.Syntax.GetLocation(),
+            percentile.TargetMethod.Name,
+            "outside an OVER clause",
+            dialectName));
+    }
+
+    /// <summary>
+    /// The <c>INSERTED</c>/<c>DELETED</c> pseudo-tables name the row images an
+    /// <c>OUTPUT</c> clause reads; elsewhere the reference binds to no table.
+    /// </summary>
+    public static void CheckPseudoTableRequiresOutput(
+        OperationAnalysisContext context, IInvocationOperation pseudoTable, string dialectName)
+    {
+        if (FindArgumentHost(pseudoTable) is not { } host)
+        {
+            return;
+        }
+
+        // Every enclosing host counts, not just the innermost: the clause binds the
+        // pseudo-table through a wrapping function too (OUTPUT COALESCE(INSERTED.c, 0)).
+        for (IInvocationOperation? cursor = host; cursor is not null; cursor = FindArgumentHost(cursor))
+        {
+            if (cursor.TargetMethod.Name == "Output")
+            {
+                return;
+            }
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            pseudoTable.Syntax.GetLocation(),
+            pseudoTable.TargetMethod.Name,
+            "outside an OUTPUT clause",
+            dialectName));
+    }
+
     // Climbs to the SELECT-list/HAVING/ORDER BY invocation hosting Grouping(); any
     // other argument host stops the climb rather than risk crossing into another query.
-    private static IInvocationOperation? FindClauseAnchor(IInvocationOperation grouping)
+    private static IInvocationOperation? FindClauseAnchor(IInvocationOperation grouping) =>
+        FindArgumentHost(grouping) is { } host
+            && host.TargetMethod.Name is "Select" or "Having" or "OrderBy"
+                ? host
+                : null;
+
+    // Climbs to the invocation the expression is an argument of. Reaching one proves
+    // the expression is consumed where it is written, so the chain between the two is
+    // the whole chain — a receiver parked in a variable stops the climb instead.
+    private static IInvocationOperation? FindArgumentHost(IInvocationOperation start)
     {
-        IOperation current = grouping;
+        IOperation current = start;
         while (true)
         {
             IOperation? parent = current.Parent;
@@ -97,8 +171,8 @@ internal static class ContextRules
                     current = parent;
                     break;
                 case IArgumentOperation { Parent: IInvocationOperation host }
-                    when DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly)
-                        && host.TargetMethod.Name is "Select" or "Having" or "OrderBy":
+                    when DialectUsageAnalyzer.IsFromSqlArtisan(
+                        host.TargetMethod.ContainingAssembly):
                     return host;
                 default:
                     return null;

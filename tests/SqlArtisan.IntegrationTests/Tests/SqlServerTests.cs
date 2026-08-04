@@ -191,6 +191,39 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users FULL JOIN orders"));
     }
 
+    [Fact] // #400: anchors the SQLA0004 percentile rule — SQL Server exposes the
+           // percentiles only as window functions, so the bare WITHIN GROUP form
+           // Oracle and PostgreSQL accept is a syntax error here.
+    public void BarePercentileWithinGroup_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute("SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY age) OVER () FROM users");
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY age) FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "SELECT PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY age) FROM users"));
+    }
+
+    [Fact] // #400: anchors the SQLA0004 INSERTED/DELETED rule — the pseudo-tables
+           // are bound by the OUTPUT clause itself, so a reference outside one has
+           // no table to resolve against. The control deletes no row.
+    public void OutputPseudoTableOutsideOutput_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute("DELETE FROM users OUTPUT DELETED.id WHERE id = -1");
+
+        // A wrapping function keeps the reference bound, so the rule must not warn there.
+        connection.Execute("DELETE FROM users OUTPUT COALESCE(DELETED.id, 0) WHERE id = -1");
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT INSERTED.id FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT DELETED.id FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "DELETE FROM users WHERE DELETED.id = -1"));
+    }
+
     [Fact] // #241 (GAP-19): SQL Server matches GROUP BY expressions syntactically,
            // so a parameterized SELECT expression repeated with fresh markers fails
            // with Msg 8120 (live-verified). Raw SQL by necessity — SqlArtisan now
