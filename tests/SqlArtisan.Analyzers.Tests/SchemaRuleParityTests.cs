@@ -165,6 +165,10 @@ public class SchemaRuleParityTests
             """,
             ""
         },
+        {
+            "var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Note).From(r).Where(Col.IsNotNull))).Build();",
+            "static DbColumn Col => new T(\"r\").Note;"
+        },
     };
 
     /// <summary>

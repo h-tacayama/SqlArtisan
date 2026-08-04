@@ -34,9 +34,11 @@ internal static class NotInNullableSubqueryRule
     }
 
     // The documented remediation is `.Where(col.IsNotNull)`, so the rule must go
-    // quiet when it sees it. Presence anywhere in the subquery is enough: an
-    // IsNotNull that does not actually exclude the NULLs (under an OR, in a
-    // different clause) yields a false negative, never a false positive.
+    // quiet when it sees it — or its `Not(col.IsNull)` twin, since IS NULL is the
+    // one predicate three-valued logic never leaves UNKNOWN. Presence anywhere in
+    // the subquery is enough: a filter that does not actually exclude the NULLs
+    // (under an OR, in a different clause) yields a false negative, never a false
+    // positive.
     private static bool FiltersOutNulls(IOperation subquery, IPropertySymbol column)
     {
         Stack<IOperation> pending = new();
@@ -46,9 +48,7 @@ internal static class NotInNullableSubqueryRule
         {
             IOperation current = pending.Pop();
 
-            if (current is IPropertyReferenceOperation { Property.Name: "IsNotNull" } filter
-                && Unwrap(filter.Instance!) is IPropertyReferenceOperation filtered
-                && SymbolEqualityComparer.Default.Equals(filtered.Property, column))
+            if (IsNotNullFilter(current, column))
             {
                 return true;
             }
@@ -61,6 +61,20 @@ internal static class NotInNullableSubqueryRule
 
         return false;
     }
+
+    private static bool IsNotNullFilter(IOperation candidate, IPropertySymbol column) =>
+        candidate is IPropertyReferenceOperation { Property.Name: "IsNotNull" } direct
+            ? MatchesColumn(direct.Instance, column)
+            : candidate is IInvocationOperation { TargetMethod.Name: "Not" } negation
+                && DialectUsageAnalyzer.IsFromSqlArtisan(negation.TargetMethod.ContainingAssembly)
+                && negation.Arguments.Length == 1
+                && Unwrap(negation.Arguments[0].Value) is IPropertyReferenceOperation
+                { Property.Name: "IsNull" } negatedNull
+                && MatchesColumn(negatedNull.Instance, column);
+
+    private static bool MatchesColumn(IOperation? instance, IPropertySymbol column) =>
+        Unwrap(instance!) is IPropertyReferenceOperation filtered
+        && SymbolEqualityComparer.Default.Equals(filtered.Property, column);
 
     // The remediation reaches the subquery held in a local or a field as often as
     // written inline, and there the walk above sees only the reference. A
@@ -89,14 +103,16 @@ internal static class NotInNullableSubqueryRule
     }
 
     // A condition the walk can descend into: one the core itself builds here.
-    // IsNotNull/IsNull is readable only past a receiver FiltersOutNulls can
-    // itself match — a column held one level down defeats that match the same
-    // way the whole condition does.
+    // IsNotNull/IsNull is readable only past a receiver that is itself a table
+    // class's column — an arbitrary DbColumn-typed property is structurally a
+    // property reference too, but its value is opaque the same way a local or a
+    // field's is, so it must not pass this check either.
     private static bool IsReadable(IOperation condition) => condition switch
     {
         IPropertyReferenceOperation { Property.Name: "IsNotNull" or "IsNull" } nullCheck =>
             DialectUsageAnalyzer.IsFromSqlArtisan(nullCheck.Property.ContainingAssembly)
-                && Unwrap(nullCheck.Instance!) is IPropertyReferenceOperation,
+                && Unwrap(nullCheck.Instance!) is IPropertyReferenceOperation receiver
+                && CorrelatedDmlRule.DerivesFromDbTableBase(receiver.Property.ContainingType),
         IPropertyReferenceOperation property =>
             DialectUsageAnalyzer.IsFromSqlArtisan(property.Property.ContainingAssembly),
         IInvocationOperation call =>

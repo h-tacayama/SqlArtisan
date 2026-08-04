@@ -8,7 +8,7 @@ public class NotInSubqueryAnalyzerTests
 {
     // Two tables so the subquery reads a different one, as the trap normally
     // appears: the outer column's own nullability is irrelevant here.
-    private static string Usage(string statements) => $$"""
+    private static string Usage(string statements, string members = "") => $$"""
         using SqlArtisan;
         using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
@@ -44,6 +44,8 @@ public class NotInSubqueryAnalyzerTests
 
         class C
         {
+            {{members}}
+
             void M()
             {
                 T t = new T();
@@ -61,9 +63,9 @@ public class NotInSubqueryAnalyzerTests
                 .WithLocation(0)
                 .WithArguments(column)]);
 
-    private static Task RunSilent(string statements, string? dbms = "postgresql") =>
+    private static Task RunSilent(string statements, string? dbms = "postgresql", string members = "") =>
         RunAsync(
-            AnalyzerVerifier.Unmarked(Usage(statements)),
+            AnalyzerVerifier.Unmarked(Usage(statements, members)),
             dbms is null ? null : AnalyzerVerifier.EditorConfig(dbms),
             []);
 
@@ -95,6 +97,12 @@ public class NotInSubqueryAnalyzerTests
     [Fact]
     public Task NotIn_NullableColumnFilteredByIsNotNullAmongOthers_Silent() =>
         RunSilent("var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(s.Ref.IsNotNull & s.Key > 0))).Build();");
+
+    // NOT (col IS NULL) excludes the NULLs the same way col.IsNotNull does — IS
+    // NULL is the one predicate three-valued logic never leaves UNKNOWN.
+    [Fact]
+    public Task NotIn_NullableColumnFilteredByNotIsNull_Silent() =>
+        RunSilent("var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(Not(s.Ref.IsNull)))).Build();");
 
     // IsNotNull on some other column does not clear the selected one. Legacy
     // carries no facts, so the filter itself trips nothing.
@@ -142,6 +150,15 @@ public class NotInSubqueryAnalyzerTests
             DbColumn c = s.Ref;
             var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(c.IsNotNull))).Build();
             """);
+
+    // The same hazard through a helper property: it is a property reference too,
+    // but not one declared on a table class, so its value is just as opaque as
+    // the local/field cases above.
+    [Fact]
+    public Task NotIn_IsNotNullReceiverHeldInHelperProperty_Silent() =>
+        RunSilent(
+            "var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(Col.IsNotNull))).Build();",
+            members: "static DbColumn Col => new S().Ref;");
 
     // Only a condition it cannot read silences the rule; a bound value does not.
     [Fact]
