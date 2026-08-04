@@ -25,6 +25,13 @@ public static class BenchmarkValidation
     // reads as both an aggregate and two GROUP BY keys until the quotes are collapsed.
     private static readonly Regex QuotedIdentifier = new("\"[^\"]*\"");
 
+    // \b fails to match a keyword fused onto an adjacent identifier ("u.idWHERE"), so a
+    // template that drops its separator (as the Dapper SqlBuilder template's bare
+    // Append/AppendLine calls can) fails this match instead of passing silently.
+    private static readonly Regex ClauseBoundaries = new(
+        @"\bSELECT\b.*\bFROM\b.*\bJOIN\b.*\bWHERE\b.*\bGROUP BY\b.*\bORDER BY\b",
+        RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
     public static int Run()
     {
         const int expectedParameters = 2;
@@ -79,6 +86,11 @@ public static class BenchmarkValidation
         }
 
         string bare = QuotedIdentifier.Replace(Whitespace.Replace(sql, " "), "_");
+
+        if (!ClauseBoundaries.IsMatch(bare))
+        {
+            return "CLAUSE KEYWORDS MISSING OR OUT OF ORDER — a template may have glued two clauses together";
+        }
 
         // Sqlify sorts by COUNT(*), so searching the whole statement would let an
         // aggregate in ORDER BY vouch for a projection that is no longer there.

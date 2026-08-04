@@ -26,7 +26,6 @@ public static class SqlArtisanBenchmark
             .Build();
 
         string sqlText = sql.Text;
-        // Parameters is Dictionary<string, BindValue>
         SqlParameters parameters = sql.Parameters;
 
         return (sqlText, parameters.Count);
