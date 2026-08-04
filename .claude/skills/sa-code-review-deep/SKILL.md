@@ -19,7 +19,7 @@ here.
 
 - **Code** — a helper you'd have named or factored differently; a duplication
   with a cleaner solution that is not (yet) an established in-repo pattern (if
-  it *is* an established pattern, that's a defect — see `sa-code-review` §8,
+  it *is* an established pattern, that's a defect — see `sa-code-review` §9,
   not this section); a simplification that no ADR/rule requires.
 - **Docs** — an example that still runs and makes no false recommendation
   claim, but no longer uses the current idiom once a simpler API covers the
@@ -37,7 +37,7 @@ requirement.
 
 ## Adversarial pass (inherited)
 
-The adversarial verification pass (`sa-code-review` §9, not skippable) is
+The adversarial verification pass (`sa-code-review` §10, not skippable) is
 inherited and runs **once**, after this improvement pass, covering both
 reports. Suggestions themselves are opinions, not refutation targets — but
 any factual claim inside one (e.g. "API X already covers this case") gets

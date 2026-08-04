@@ -1,6 +1,6 @@
 ---
 name: sa-code-review
-description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, and verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory. Reports defects only — never idiom/style/"better way to write this" suggestions; use `sa-code-review-deep` for those. Ends with an adversarial verification pass (one independent subagent, not skippable) that attempts to refute the deliverable's claims and the draft findings against primary sources. Accepts an optional scope argument (default: the diff's hunks only; `files`; `paths:<glob>`).
+description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory, and checks the change against the goal its own issue states rather than only against its own comments. Reports defects only — never idiom/style/"better way to write this" suggestions; use `sa-code-review-deep` for those. Ends with an adversarial verification pass (one independent subagent, not skippable) that attempts to refute the deliverable's claims and the draft findings against primary sources. Accepts an optional scope argument (default: the diff's hunks only; `files`; `paths:<glob>`).
 ---
 
 # Review SqlArtisan changes
@@ -12,7 +12,7 @@ build a throwaway console that references the project and observe the real SQL,
 the real failure modes, and the real allocations. Do not reason about emitted
 SQL or DBMS grammar from memory.
 
-This skill reports **defects only** (§8). For non-defect "better way to write
+This skill reports **defects only** (§9). For non-defect "better way to write
 this" suggestions, use `sa-code-review-deep` instead — it runs this skill in
 full and adds an improvement pass on top.
 
@@ -174,7 +174,7 @@ Oracle+PostgreSQL). Known sharp edges:
 ## 7. Check docs match the source
 
 For every changed surface, confirm the doc/comment coverage matches current
-behavior — this is the mechanics of *where* to look; §8 sets the bar for
+behavior — this is the mechanics of *where* to look; §9 sets the bar for
 *whether* to report what you find there:
 - **XML docs** on the public factory and node — the described form equals what
   `Format` emits; `cref`s resolve (covered by §2's 0-warning bar).
@@ -186,7 +186,35 @@ behavior — this is the mechanics of *where* to look; §8 sets the bar for
   change that touches conventions, structure, or process, confirm these
   still describe the result accurately.
 
-## 8. What counts as a defect
+## 8. Check the change against the goal it was written for
+
+§7 asks whether the prose still matches the code. This asks the prior
+question: does the code do the thing it was written to do? A change that is
+internally consistent — comment, test and implementation all agreeing — can
+still miss the goal its issue set, and nothing above catches that, because
+every surface it contradicts is one the change also wrote.
+
+Read the originating issue (and the PR body / commit message, which state the
+same goal in the author's words), then name the concrete case the goal implies
+and check that case specifically:
+
+- **Take the goal's own example.** An issue naming a failure — a construct, a
+  call site, a template — is naming the case the fix has to cover. Probe *that*
+  case, not a representative one you chose; the two diverge exactly where the
+  fix is thin.
+- **A guard is judged by what it rejects**, not by what it accepts. Feed it the
+  input the issue complained about and confirm it now fails; a guard that
+  passes everything you tried is unverified, not proven.
+- **Partial credit is a shortfall.** A fix covering three of the four shapes
+  its issue named is reportable under §9(d) even when the three it covers work
+  and every comment about them is accurate.
+
+The trap this closes is narrow-framing: checking behavior against the change's
+*own* claims (its comment, its test name) rather than against the goal. Both
+readings sound like verification; only the second can find a fix that does
+less than it was asked to.
+
+## 9. What counts as a defect
 
 Find candidates without limiting yourself upfront — list everything that
 looks off first, then classify each one against the rule below. Filtering by
@@ -205,13 +233,17 @@ even as a passing mention.
 
 **Code.** Reportable only if it (a) produces wrong/invalid output for a
 permitted input, (b) violates a specific ADR clause or a rule in
-`.claude/rules/` — cite which — or (c) **reinvents a shared pattern that
+`.claude/rules/` — cite which — (c) **reinvents a shared pattern that
 already exists in-repo for this exact recurring shape** (e.g. a `*Core` base
 class built to unify near-identical `Format` logic across sibling functions)
-— cite the precedent by file. (c) is a defect, not a preference, because the
-divergence breaks consistency with an *established* convention; a factoring
-you'd merely have done differently, with no such precedent to cite, is not
-reportable here.
+— cite the precedent by file — or (d) **falls short of the goal its own issue
+or commit message states** (§8): the case the goal named still fails, or only
+some of the shapes it named are covered. (c) is a defect, not a preference,
+because the divergence breaks consistency with an *established* convention; a
+factoring you'd merely have done differently, with no such precedent to cite,
+is not reportable here. For (d), cite the goal's wording and the failing case
+— a shortfall is reportable even when everything the change *does* cover is
+correct and accurately described.
 
 **Docs & comments** — reportable wherever a reader is left **misinformed**,
 regardless of severity or fix cost (a cheap fix that misinforms is exactly the
@@ -253,7 +285,7 @@ contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
 The test at classification time is one question: **am I asking for a change?**
 No means it does not appear anywhere in the output.
 
-## 9. Adversarial verification (final pass)
+## 10. Adversarial verification (final pass)
 
 A confirming review checks that things look right; only a refuting pass
 reliably catches the plausible overclaim (#267/#319: a neutral docs pass
@@ -270,6 +302,15 @@ the draft, not a parallelizable search:
 
 - **Refute both directions** — the deliverable's own claims (docs, XML docs,
   CHANGELOG, commit-message wording) *and* your draft findings.
+- **State the mission, not the questions.** Give the subagent the scope, the
+  defect bar and the deliverable's claims — then let it choose what to probe
+  and how to frame the test. Do **not** hand it a list of "worth checking:"
+  sub-questions. A supplied question carries your framing with it, and the
+  narrow frame is what a refuting pass exists to escape: asked "does the
+  behavior match this comment?", a subagent will answer that and stop, even
+  standing on evidence that the change misses its goal (§8) — a question you
+  did not think to ask, so it did not either. Naming the files or claims you
+  are unsure of is fine; phrasing the test for the subagent is not.
 - **Primary sources only.** Every factual claim is checked against the code
   itself, a test catalog (e.g. `MatrixSweepCatalog.cs`), an ADR, or a live
   harness probe — never against the claim's own text, the diff description,
@@ -278,7 +319,7 @@ the draft, not a parallelizable search:
   in-repo primary sources but **cannot check a DBMS-vendor-spec / version /
   grammar claim** against the vendor's docs — keep those with the orchestrator's
   WebSearch, and don't read subagent silence on them as verification.
-- **Hold the subagent to §8's bar too**, and say so in its mission: it reports
+- **Hold the subagent to §9's bar too**, and say so in its mission: it reports
   what it would change, and "nothing falls" is a complete answer. A refuting
   pass is under more pressure than any other to produce *something* — that is
   exactly how non-actionable "worth the caller's attention" items get into a
