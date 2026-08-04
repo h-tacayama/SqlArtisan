@@ -106,7 +106,10 @@ internal static class NotInNullableSubqueryRule
     // IsNotNull/IsNull is readable only past a receiver declared on a table
     // reference — an arbitrary DbColumn-typed property is structurally a
     // property reference too, but its value is opaque the same way a local or a
-    // field's is, so it must not pass this check either.
+    // field's is, so it must not pass this check either. A function-wrapped
+    // receiver (Upper(col), Coalesce(col, x)) is opaque the same way: whether
+    // the wrapper still propagates NULL is not asked, so this yields a false
+    // negative there too, never a false positive.
     private static bool IsReadable(IOperation condition) => condition switch
     {
         IPropertyReferenceOperation { Property.Name: "IsNotNull" or "IsNull" } nullCheck =>
