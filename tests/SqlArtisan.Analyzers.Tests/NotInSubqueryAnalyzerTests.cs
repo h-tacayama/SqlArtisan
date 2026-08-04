@@ -133,6 +133,16 @@ public class NotInSubqueryAnalyzerTests
             var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(filter))).Build();
             """);
 
+    // The same hazard one level down: only the column, not the whole
+    // condition, is held in a local — FiltersOutNulls can't match its
+    // receiver back to the flagged column either.
+    [Fact]
+    public Task NotIn_IsNotNullReceiverHeldInLocal_Silent() =>
+        RunSilent("""
+            DbColumn c = s.Ref;
+            var sql = Select(t.Id).From(t).Where(t.Id.NotIn(Select(s.Ref).From(s).Where(c.IsNotNull))).Build();
+            """);
+
     // Only a condition it cannot read silences the rule; a bound value does not.
     [Fact]
     public Task NotIn_SubqueryFilteredByValueLocal_Warns() =>

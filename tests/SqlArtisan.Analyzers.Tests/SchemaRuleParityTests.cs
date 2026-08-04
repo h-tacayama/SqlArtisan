@@ -158,6 +158,13 @@ public class SchemaRuleParityTests
             """,
             ""
         },
+        {
+            """
+            DbColumn c = r.Note;
+            var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Note).From(r).Where(c.IsNotNull))).Build();
+            """,
+            ""
+        },
     };
 
     /// <summary>

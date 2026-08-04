@@ -89,8 +89,14 @@ internal static class NotInNullableSubqueryRule
     }
 
     // A condition the walk can descend into: one the core itself builds here.
+    // IsNotNull/IsNull is readable only past a receiver FiltersOutNulls can
+    // itself match — a column held one level down defeats that match the same
+    // way the whole condition does.
     private static bool IsReadable(IOperation condition) => condition switch
     {
+        IPropertyReferenceOperation { Property.Name: "IsNotNull" or "IsNull" } nullCheck =>
+            DialectUsageAnalyzer.IsFromSqlArtisan(nullCheck.Property.ContainingAssembly)
+                && Unwrap(nullCheck.Instance!) is IPropertyReferenceOperation,
         IPropertyReferenceOperation property =>
             DialectUsageAnalyzer.IsFromSqlArtisan(property.Property.ContainingAssembly),
         IInvocationOperation call =>
