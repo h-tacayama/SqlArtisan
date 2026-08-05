@@ -1,6 +1,6 @@
 ---
 name: sa-panel-full-review
-description: High-confidence review of a SqlArtisan scope in its entirety — a subsystem, a layer of the Layout table, or the docs corpus — by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Unlike sa-panel-diff-review it ignores what the branch changed and reads the named scope as it currently stands, so it finds standing defects no diff review can see. Use for a pre-release audit, a subsystem review, or when explicitly asked for a multi-model / independent / panel audit of existing code or docs. The scope must be bounded — name it (a path glob, a subsystem, the docs corpus); for the whole ~700-file codebase use the sa-review-sweep workflow instead, which chunks it. Costs roughly three full reviews of whatever you name.
+description: High-confidence review of a SqlArtisan scope in its entirety — a subsystem, a layer of the Layout table, or the docs corpus — by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Unlike sa-panel-diff-review it ignores what the branch changed and reads the named scope as it currently stands, so it finds standing defects no diff review can see. Use for a pre-release audit, a subsystem review, or when explicitly asked for a multi-model / independent / panel audit of existing code or docs. The scope must be bounded — name it (a path glob, a subsystem, the docs corpus); for the whole ~700-file codebase use the sa-audit-sweep workflow instead, which chunks it. Costs roughly three full reviews of whatever you name.
 ---
 
 # Panel review of a whole scope
@@ -31,12 +31,12 @@ CLAUDE.md's Layout table, or the docs corpus (README, `docs/**`, `llms.txt`,
 
 **Bounded is not a style preference — it is what makes the panel possible.**
 Every panelist reads the *same* scope, so that scope has to fit one context
-three times over. `src` + `tests` is ~700 files; `sa-review-sweep` chunks that
+three times over. `src` + `tests` is ~700 files; `sa-audit-sweep` chunks that
 across many single-reviewer agents and still warns past 40 chunks. Tripling it
 is not a bigger version of this skill, it is a different tool.
 
 So if the named scope runs past roughly a few dozen files, either slice it
-(one Layout-table layer per run) or hand the volume to `sa-review-sweep` and
+(one Layout-table layer per run) or hand the volume to `sa-audit-sweep` and
 reserve the panel for the slice that carries the real risk. Either way, say in
 the report which slices you did **not** cover — silently reviewing a subset of
 what you were asked for is the failure this skill exists to avoid.
