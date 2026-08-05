@@ -1,9 +1,9 @@
 ---
-name: sa-diff-review-suggest
-description: sa-diff-review over the same diff, plus a second pass that surfaces non-defect "better way to write this" suggestions for code and docs (idiom, factoring, style). It widens the finding *types*, not the scope — the files reviewed are identical to sa-diff-review's, so it is not a wider audit; for a corpus-wide docs sweep use sa-docs-audit. Use when the user explicitly asks for a deep/thorough review, or for improvement/idiom/style suggestions on top of the usual defect check. Do not use for a routine pre-push check — use sa-diff-review for that; it stays quieter by design. Accepts the same scope argument as sa-diff-review (default: the diff's hunks only; `files`; `paths:<glob>`).
+name: sa-diff-review-refine
+description: sa-diff-review over the same diff, plus a refinement pass that surfaces non-defect "better way to write this" findings for code and docs (idiom, factoring, style). It widens the finding *types*, not the scope — the files reviewed are identical to sa-diff-review's, so it is not a wider audit; for a corpus-wide docs sweep use sa-docs-audit. Use when the user explicitly asks for a deep/thorough review, or for improvement/idiom/style suggestions on top of the usual defect check. Do not use for a routine pre-push check — use sa-diff-review for that; it stays quieter by design. Accepts the same scope argument as sa-diff-review (default: the diff's hunks only; `files`; `paths:<glob>`).
 ---
 
-# Review a diff, with improvement suggestions
+# Review a diff, with refinements
 
 This is `sa-diff-review` plus one more pass. Run `sa-diff-review`'s full
 procedure first, unchanged, with whatever scope argument you were given —
@@ -11,7 +11,7 @@ every gate, every ADR check, the empirical harness, and its defect-only
 Report. Everything below is **additive**: a second, non-blocking pass that
 only this skill runs.
 
-## Improvement axis
+## Refinement axis
 
 A finding here is a **better way to write something that is not wrong** — if
 it were wrong, it belongs in `sa-diff-review`'s defect report instead, not
@@ -28,7 +28,7 @@ here.
   a stale idiom can be reproduced verbatim in generated code — worth
   surfacing here even though it is not a defect.
 
-A suggestion must still be **concrete** (name the alternative) and must not
+A refinement must still be **concrete** (name the alternative) and must not
 contradict an ADR — you cannot pitch as an "improvement" something ADR 0001 or
 `guards-and-empty-states.md` deliberately rejects. Beyond that, general idiom
 and taste are legitimately in scope here, *because reaching this skill was a
@@ -38,21 +38,21 @@ requirement.
 ## Adversarial pass (inherited)
 
 The adversarial verification pass (`sa-diff-review` §10, not skippable) is
-inherited and runs **once**, after this improvement pass, covering both
-reports. Suggestions themselves are opinions, not refutation targets — but
+inherited and runs **once**, after this refinement pass, covering both
+reports. Refinements themselves are opinions, not refutation targets — but
 any factual claim inside one (e.g. "API X already covers this case") gets
 the primary-source check before it is reported.
 
 ## Report
 
-Append a **Suggestions (optional, non-blocking)** zone after
+Append a **Refinements (optional, non-blocking)** zone after
 `sa-diff-review`'s must-fix findings, each tagged `file:line`. Never mix a
-suggestion into the must-fix zone, and never let one block the mergeable
+refinement into the must-fix zone, and never let one block the mergeable
 verdict.
 
-A suggestion is still something you are proposing the author *do* — a change
+A refinement is still something you are proposing the author *do* — a change
 they could apply. An observation with no change attached ("worth knowing",
-"already fine") is not a suggestion and belongs nowhere in the report. **An
-empty suggestions zone is a normal result**: being invoked as the deep variant
-does not oblige you to find something, and inventing a suggestion to fill the
-zone costs the author more attention than it returns.
+"already fine") is not a refinement and belongs nowhere in the report. **An
+empty refinements zone is a normal result**: reaching for this variant does
+not oblige you to find something, and inventing one to fill the zone costs the
+author more attention than it returns.

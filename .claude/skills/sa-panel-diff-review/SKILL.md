@@ -1,6 +1,6 @@
 ---
 name: sa-panel-diff-review
-description: High-confidence review of a SqlArtisan branch diff by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Same scope as sa-diff-review — the branch-point diff — but reviewed three times over by models that cannot see each other's work or yours; the main agent then re-derives every finding against primary sources and issues the verdict. Each reviewer runs fresh with no knowledge of the fix history, so no one is anchored by how the change came to be. Use before merging something high-stakes, when the implementing session went through several fix rounds, or when explicitly asked for a multi-model / independent / panel review. Costs roughly three full reviews — do NOT use as the routine pre-push check (`sa-diff-review`) or for idiom suggestions (`sa-diff-review-suggest`). For an existing scope rather than a change, use `sa-panel-full-review`.
+description: High-confidence review of a SqlArtisan branch diff by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Same scope as sa-diff-review — the branch-point diff — but reviewed three times over by models that cannot see each other's work or yours; the main agent then re-derives every finding against primary sources and issues the verdict. Each reviewer runs fresh with no knowledge of the fix history, so no one is anchored by how the change came to be. Use before merging something high-stakes, when the implementing session went through several fix rounds, or when explicitly asked for a multi-model / independent / panel review. Costs roughly three full reviews — do NOT use as the routine pre-push check (`sa-diff-review`) or for idiom suggestions (`sa-diff-review-refine`). For an existing scope rather than a change, use `sa-panel-full-review`.
 ---
 
 # Panel review of a branch diff
@@ -11,7 +11,7 @@ reviewed three times by three different models that cannot see each other's
 work or yours, then adjudicated here.
 
 The axis is **confidence in the verdict**, not breadth of finding types — for
-"better way to write this" suggestions, run `sa-diff-review-suggest` instead;
+"better way to write this" suggestions, run `sa-diff-review-refine` instead;
 for an existing scope rather than a change, `sa-panel-full-review`.
 
 ## What this supersedes

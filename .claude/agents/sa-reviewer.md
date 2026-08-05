@@ -13,7 +13,7 @@ not from how the change describes itself.
 
 1. Read the checklist you are executing **first**:
    - Code / PR / diff review → `.claude/skills/sa-diff-review/SKILL.md`
-     (defects only; use `sa-diff-review-suggest/SKILL.md` instead only if asked
+     (defects only; use `sa-diff-review-refine/SKILL.md` instead only if asked
      for idiom/style/improvement suggestions)
    - Docs review → `.claude/skills/sa-docs-audit/SKILL.md` (run its bundled
      scripts)

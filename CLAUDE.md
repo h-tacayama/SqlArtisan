@@ -152,7 +152,7 @@ there, not here — a pointer line in this list is enough.
 guards-and-empty-states, public-api-design, sql-building-style, unit-tests.
 
 **Skills** (`.claude/skills/`): sa-add-sql-function, sa-diff-review,
-sa-diff-review-suggest, sa-docs-audit, sa-panel-diff-review,
+sa-diff-review-refine, sa-docs-audit, sa-panel-diff-review,
 sa-panel-full-review, sa-run-benchmark, sa-run-integration-tests,
 sa-run-sql-harness, sa-write-xml-docs.
 
@@ -163,7 +163,7 @@ Review-surface names state their **scope** first: `diff` reads what the branch
 changed, `full` reads a named scope entire, and `docs` names the documentation
 corpus (`sa-docs-audit`, the corpus's single-reviewer entry). A `sa-panel-`
 prefix means three independent models review it and the main agent
-adjudicates; a `-suggest` suffix adds non-defect improvement findings. Prefix
+adjudicates; a `-refine` suffix adds non-defect improvement findings. Prefix
 says *who reviews*, suffix says *what is reported*. A panel needs a bounded
 scope — the whole ~700-file codebase belongs to `sa-review-sweep`, which
 chunks it across single reviewers instead of tripling it.
