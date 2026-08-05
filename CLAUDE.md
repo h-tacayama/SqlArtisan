@@ -152,7 +152,7 @@ there, not here — a pointer line in this list is enough.
 guards-and-empty-states, public-api-design, sql-building-style, unit-tests.
 
 **Skills** (`.claude/skills/`): sa-add-sql-function, sa-code-review,
-sa-code-review-deep, sa-docs-review, sa-run-benchmark,
+sa-code-review-deep, sa-docs-review, sa-review-panel, sa-run-benchmark,
 sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
 
 - Style is enforced by `.editorconfig`. Match it. Key rules: 4-space indent,
