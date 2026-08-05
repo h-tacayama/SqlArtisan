@@ -2,6 +2,7 @@ using SqlArtisan.TableClassGen;
 
 namespace SqlArtisan.TableClassGen.Tests;
 
+[Collection(ConsoleRedirectionCollection.Name)]
 public class DbmsOptionTests
 {
     public static TheoryData<string, Dbms> Spellings =>

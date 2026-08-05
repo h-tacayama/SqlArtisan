@@ -5,6 +5,7 @@ namespace SqlArtisan.TableClassGen.Tests;
 // The regression this guards: the --fix headline counted every drifted table,
 // Removed included, though Fix only ever regenerates the NeedsWrite ones — the
 // count disagreed with the file list NextStep prints right below it.
+[Collection(ConsoleRedirectionCollection.Name)]
 public class ReporterTests
 {
     [Fact]
