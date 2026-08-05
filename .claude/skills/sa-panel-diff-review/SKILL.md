@@ -1,17 +1,18 @@
 ---
-name: sa-review-panel
-description: High-confidence review of a SqlArtisan change or docs edit by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Each reviewer runs fresh with no knowledge of the fix history, so no one is anchored by how the change came to be; the main agent then re-derives every finding against primary sources and issues the verdict. Use before merging something high-stakes, when the implementing session went through several fix rounds, or when explicitly asked for a multi-model / independent / panel review. Costs roughly three full reviews — do NOT use as the routine pre-push check (`sa-diff-review`) or for idiom suggestions (`sa-diff-review-suggest`). Accepts a target argument: `diff` (default), `docs`, or `both`.
+name: sa-panel-diff-review
+description: High-confidence review of a SqlArtisan branch diff by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Same scope as sa-diff-review — the branch-point diff — but reviewed three times over by models that cannot see each other's work or yours; the main agent then re-derives every finding against primary sources and issues the verdict. Each reviewer runs fresh with no knowledge of the fix history, so no one is anchored by how the change came to be. Use before merging something high-stakes, when the implementing session went through several fix rounds, or when explicitly asked for a multi-model / independent / panel review. Costs roughly three full reviews — do NOT use as the routine pre-push check (`sa-diff-review`) or for idiom suggestions (`sa-diff-review-suggest`). For the docs corpus instead of a diff, use `sa-panel-docs-audit`.
 ---
 
-# Review by an independent model panel
+# Panel review of a branch diff
 
-`sa-diff-review` and `sa-docs-audit` each run **one** reviewer and buy
-confidence through *depth*. This skill buys it through *independence and model
-diversity*: the same scope, reviewed three times by three different models that
-cannot see each other's work or yours, then adjudicated here.
+`sa-diff-review` runs **one** reviewer and buys confidence through *depth*.
+This skill buys it through *independence and model diversity*: the same diff,
+reviewed three times by three different models that cannot see each other's
+work or yours, then adjudicated here.
 
 The axis is **confidence in the verdict**, not breadth of finding types — for
-"better way to write this" suggestions, run `sa-diff-review-suggest` instead.
+"better way to write this" suggestions, run `sa-diff-review-suggest` instead;
+for the docs corpus rather than a diff, `sa-panel-docs-audit`.
 
 ## What this supersedes
 
@@ -33,12 +34,10 @@ Each panelist still runs §10 *within its own review* (`sa-reviewer` has no
 Agent tool, so it self-verifies as that section's fallback). Every report
 reaching you is therefore already self-refuted once.
 
-## 1. Fix the scope and the rubric
+## 1. Fix the scope
 
-Resolve the target from the argument (`diff` default, `docs`, or `both`) and
-take the scope from the rubric it names — this skill fixes a *method*, not a
-scope. `diff` reviews the **branch-point** diff, never a stale-`main` diff;
-`docs` audits the whole docs corpus:
+The rubric is `sa-diff-review`, and the scope is what that skill would review:
+the **branch-point** diff, never a stale-`main` diff.
 
 ```bash
 git fetch origin main
@@ -46,8 +45,7 @@ git merge-base origin/main HEAD      # the base; never trust local main
 git diff <base>..HEAD --stat
 ```
 
-Rubric per target: `diff` → `sa-diff-review`; `docs` → `sa-docs-audit`;
-`both` → each panelist runs both, in that order.
+A scope argument (`files`, `paths:<glob>`) widens it exactly as it does there.
 
 ## 2. Run the deterministic checks once, up front
 
@@ -61,10 +59,9 @@ dotnet test tests/SqlArtisan.Tests
 dotnet format SqlArtisan.sln --verify-no-changes
 ```
 
-For a `docs` or `both` target, also run `sa-docs-audit`'s four bundled
-scripts. Pass the verbatim results into the briefing and tell panelists not to
-re-run them — but say they *may* if they doubt a result, so a misread gate
-can still be caught rather than inherited three times over.
+Pass the verbatim results into the briefing and tell panelists not to re-run
+them — but say they *may* if they doubt a result, so a misread gate can still
+be caught rather than inherited three times over.
 
 A failing gate is itself a must-fix: fix it before convening the panel rather
 than spending three deep reviews on code the toolchain already rejects.
