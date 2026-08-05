@@ -1,6 +1,6 @@
 ---
-name: sa-review
-description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory, and checks the change against the goal its own issue states rather than only against its own comments. Reports defects only — never idiom/style/"better way to write this" suggestions; use `sa-review-refinement` for those. Ends with an adversarial verification pass (one independent subagent, not skippable) that attempts to refute the deliverable's claims and the draft findings against primary sources. Accepts an optional scope argument (default: the diff's hunks only; `files`; `paths:<glob>`).
+name: sa-diff-review
+description: Review a SqlArtisan change, PR, or diff for correctness, ADR conformance, convention consistency, and doc alignment. Use when the user asks to review changes/a PR/a diff in this repo, or to check a feature before pushing. Adds SqlArtisan-specific checks (ADRs, dialect grammar, allocation budget) on top of a generic code review, verifies behavior empirically by building and running a throwaway harness rather than reasoning from memory, and checks the change against the goal its own issue states rather than only against its own comments. Reports defects only — never idiom/style/"better way to write this" suggestions; use `sa-diff-review-refinement` for those. Ends with an adversarial verification pass (one independent subagent, not skippable) that attempts to refute the deliverable's claims and the draft findings against primary sources. Accepts an optional scope argument (default: the diff's hunks only; `files`; `paths:<glob>`).
 ---
 
 # Review SqlArtisan changes
@@ -13,7 +13,7 @@ the real failure modes, and the real allocations. Do not reason about emitted
 SQL or DBMS grammar from memory.
 
 This skill reports **defects only** (§9). For non-defect "better way to write
-this" suggestions, use `sa-review-refinement` instead — it runs this skill in
+this" suggestions, use `sa-diff-review-refinement` instead — it runs this skill in
 full and adds an improvement pass on top.
 
 ## 1. Scope the review
@@ -222,13 +222,13 @@ looks off first, then classify each one against the rule below. Filtering by
 narrowing the search itself under-reports real defects. Only the defect
 classification below reaches this skill's report; a candidate that turns out
 to be a non-defect "better way to write this" suggestion is not reported
-here — it belongs to `sa-review-refinement`'s improvement pass instead. If you
-are running as `sa-review-refinement`, that pass is part of the same run: hand
+here — it belongs to `sa-diff-review-refinement`'s improvement pass instead. If you
+are running as `sa-diff-review-refinement`, that pass is part of the same run: hand
 the candidate to it, don't discard it.
 
 Everything reported here must be **wrong** — not merely improvable. A
 "this would read better as..." suggestion with no rule/ADR/precedent to cite
-belongs to `sa-review-refinement`, not here; this skill never reports one, not
+belongs to `sa-diff-review-refinement`, not here; this skill never reports one, not
 even as a passing mention.
 
 **Code.** Reportable only if it (a) produces wrong/invalid output for a
@@ -262,7 +262,7 @@ contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
   the recommended/idiomatic form* that a newer, simpler API has since
   superseded (the recommendation claim is now false; name the superseding
   API). An example that merely *uses* an older idiom without claiming it is
-  preferred is not inaccurate — that's `sa-review-refinement`'s territory.
+  preferred is not inaccurate — that's `sa-diff-review-refinement`'s territory.
 - **Misleading ambiguity** — wording a reader could plausibly misread into an
   incorrect belief about behavior, not merely wording you'd have chosen
   differently.
@@ -274,7 +274,7 @@ contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
   `.claude/rules/code-comments.md` smell checklist in §4. This section governs
   only whether the words stayed *true and complete*, not how many there are.
 - Any "better way to write this" suggestion with no rule/ADR/precedent to
-  cite, for code or docs — run `sa-review-refinement` for that pass instead.
+  cite, for code or docs — run `sa-diff-review-refinement` for that pass instead.
 - **Anything you would not change.** If your own conclusion is "this is fine as
   is", "already covered elsewhere", or "worth knowing but needs no action", the
   classification is done and the answer is silence. Do not relabel it as a
@@ -381,7 +381,7 @@ must-fix; severity ranks the queue, it does not gate inclusion. Include the
 adversarial pass's coverage: which claims were challenged, and the DEFECT /
 OVERREACH / INCONSISTENCY classification of anything that fell — state
 survivals as one line, not an itemised list. This skill never reports
-non-defect improvement suggestions — re-run as `sa-review-refinement` for those.
+non-defect improvement suggestions — re-run as `sa-diff-review-refinement` for those.
 
 Match the report's length to what the findings need: cover every finding at
 the detail level above, but do not pad with filler recap sections, restated

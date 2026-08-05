@@ -1,5 +1,5 @@
 ---
-name: sa-review-orchestrator
+name: sa-diff-review-orchestrator
 model: fable
 tools: Read, Grep, Glob, Bash
 description: Orchestrator for multi-dimensional SqlArtisan code review — classifies files and assigns review dimensions; does not review or edit
