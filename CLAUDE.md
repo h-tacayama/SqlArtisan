@@ -151,9 +151,17 @@ there, not here — a pointer line in this list is enough.
 **Rules** (`.claude/rules/`): code-comments, dbms-differences, docs-style,
 guards-and-empty-states, public-api-design, sql-building-style, unit-tests.
 
-**Skills** (`.claude/skills/`): sa-add-sql-function, sa-code-review,
-sa-code-review-deep, sa-docs-review, sa-review-panel, sa-run-benchmark,
+**Skills** (`.claude/skills/`): sa-add-sql-function, sa-diff-review,
+sa-diff-review-suggest, sa-docs-audit, sa-review-panel, sa-run-benchmark,
 sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
+
+**Workflows** (`.claude/workflows/`): sa-review-sweep. The `-sweep` suffix is
+reserved for workflows — a skill never carries it.
+
+Review-surface names encode their scope: `review` reads a **diff**, `audit`
+reads a **corpus**, and a target word (`docs`) appears only when the scope is
+a corpus, since a diff already selects its own files. `-suggest` adds
+non-defect improvement findings; `-panel` runs three independent models.
 
 - Style is enforced by `.editorconfig`. Match it. Key rules: 4-space indent,
   100-column line limit, explicit types (no `var`), Allman braces.

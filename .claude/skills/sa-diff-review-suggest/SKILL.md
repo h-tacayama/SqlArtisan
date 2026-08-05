@@ -1,11 +1,11 @@
 ---
-name: sa-code-review-deep
-description: Thorough variant of sa-code-review — runs its full defect review, then additionally surfaces non-defect "better way to write this" suggestions for code and docs (idiom, factoring, style). Use when the user explicitly asks for a deep/thorough review, or for improvement/idiom/style suggestions on top of the usual defect check. Do not use for a routine pre-push check — use sa-code-review for that; it stays quieter by design. Accepts the same scope argument as sa-code-review (default: the diff's hunks only; `files`; `paths:<glob>`).
+name: sa-diff-review-suggest
+description: sa-diff-review over the same diff, plus a second pass that surfaces non-defect "better way to write this" suggestions for code and docs (idiom, factoring, style). It widens the finding *types*, not the scope — the files reviewed are identical to sa-diff-review's, so it is not a wider audit; for a corpus-wide docs sweep use sa-docs-audit. Use when the user explicitly asks for a deep/thorough review, or for improvement/idiom/style suggestions on top of the usual defect check. Do not use for a routine pre-push check — use sa-diff-review for that; it stays quieter by design. Accepts the same scope argument as sa-diff-review (default: the diff's hunks only; `files`; `paths:<glob>`).
 ---
 
-# Deep-review SqlArtisan changes
+# Review a diff, with improvement suggestions
 
-This is `sa-code-review` plus one more pass. Run `sa-code-review`'s full
+This is `sa-diff-review` plus one more pass. Run `sa-diff-review`'s full
 procedure first, unchanged, with whatever scope argument you were given —
 every gate, every ADR check, the empirical harness, and its defect-only
 Report. Everything below is **additive**: a second, non-blocking pass that
@@ -14,12 +14,12 @@ only this skill runs.
 ## Improvement axis
 
 A finding here is a **better way to write something that is not wrong** — if
-it were wrong, it belongs in `sa-code-review`'s defect report instead, not
+it were wrong, it belongs in `sa-diff-review`'s defect report instead, not
 here.
 
 - **Code** — a helper you'd have named or factored differently; a duplication
   with a cleaner solution that is not (yet) an established in-repo pattern (if
-  it *is* an established pattern, that's a defect — see `sa-code-review` §9,
+  it *is* an established pattern, that's a defect — see `sa-diff-review` §9,
   not this section); a simplification that no ADR/rule requires.
 - **Docs** — an example that still runs and makes no false recommendation
   claim, but no longer uses the current idiom once a simpler API covers the
@@ -37,7 +37,7 @@ requirement.
 
 ## Adversarial pass (inherited)
 
-The adversarial verification pass (`sa-code-review` §10, not skippable) is
+The adversarial verification pass (`sa-diff-review` §10, not skippable) is
 inherited and runs **once**, after this improvement pass, covering both
 reports. Suggestions themselves are opinions, not refutation targets — but
 any factual claim inside one (e.g. "API X already covers this case") gets
@@ -46,7 +46,7 @@ the primary-source check before it is reported.
 ## Report
 
 Append a **Suggestions (optional, non-blocking)** zone after
-`sa-code-review`'s must-fix findings, each tagged `file:line`. Never mix a
+`sa-diff-review`'s must-fix findings, each tagged `file:line`. Never mix a
 suggestion into the must-fix zone, and never let one block the mergeable
 verdict.
 

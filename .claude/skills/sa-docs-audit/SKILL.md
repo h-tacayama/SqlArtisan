@@ -1,11 +1,11 @@
 ---
-name: sa-docs-review
-description: Review SqlArtisan's user-facing documentation (README, docs/, llms.txt, CHANGELOG) for structure, completeness, accuracy, consistency, links, persuasiveness, and conciseness. Use when asked to review/audit the docs, check the README, validate a docs change before pushing, or confirm docs match the code. Complements sa-code-review (code) with doc-specific checks and bundles scripts that verify links, API coverage, terminology, and emitted SQL empirically. Ends with an adversarial verification pass (one independent subagent, not skippable) that attempts to refute the docs' factual claims against primary sources.
+name: sa-docs-audit
+description: Audit SqlArtisan's user-facing documentation corpus (README, docs/, llms.txt, CHANGELOG) for structure, completeness, accuracy, consistency, links, persuasiveness, and conciseness. Corpus-wide by design, not diff-scoped — its bundled scripts sweep every page regardless of what changed, so it catches the coverage and link defects a diff review structurally cannot. Use when asked to review/audit the docs, check the README, validate a docs change before pushing, or confirm docs match the code; for docs changes inside a branch diff, sa-diff-review already covers them. Bundles scripts that verify links, API coverage, terminology, and emitted SQL empirically. Ends with an adversarial verification pass (one independent subagent, not skippable) that attempts to refute the docs' factual claims against primary sources.
 ---
 
-# Review SqlArtisan documentation
+# Audit the SqlArtisan documentation corpus
 
-This audits the **docs**, not the code (use `sa-code-review` / `code-review` for
+This audits the **docs**, not the code (use `sa-diff-review` / `code-review` for
 code). The highest-value moves are **empirical and bidirectional**: verify the
 emitted SQL by running the real builder (never from memory), and check coverage
 both ways (every public API documented; every documented API real).
@@ -20,7 +20,7 @@ index. Conventions live in `.claude/rules/docs-style.md`.
 From the repo root (`dotnet` SDK required for the last one):
 
 ```bash
-S=.claude/skills/sa-docs-review/scripts
+S=.claude/skills/sa-docs-audit/scripts
 python3 $S/check_links.py          # anchor/link integrity across README + docs + llms.txt
 python3 $S/check_api_coverage.py   # deficiency (undocumented API) + surplus (phantom API)
 python3 $S/check_terms.py          # terminology + em-dash + whitespace lint vs docs-style.md

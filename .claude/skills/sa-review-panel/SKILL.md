@@ -1,21 +1,21 @@
 ---
 name: sa-review-panel
-description: High-confidence review of a SqlArtisan change or docs edit by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Each reviewer runs fresh with no knowledge of the fix history, so no one is anchored by how the change came to be; the main agent then re-derives every finding against primary sources and issues the verdict. Use before merging something high-stakes, when the implementing session went through several fix rounds, or when explicitly asked for a multi-model / independent / panel review. Costs roughly three full reviews — do NOT use as the routine pre-push check (`sa-code-review`) or for idiom suggestions (`sa-code-review-deep`). Accepts a target argument: `code` (default), `docs`, or `both`.
+description: High-confidence review of a SqlArtisan change or docs edit by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Each reviewer runs fresh with no knowledge of the fix history, so no one is anchored by how the change came to be; the main agent then re-derives every finding against primary sources and issues the verdict. Use before merging something high-stakes, when the implementing session went through several fix rounds, or when explicitly asked for a multi-model / independent / panel review. Costs roughly three full reviews — do NOT use as the routine pre-push check (`sa-diff-review`) or for idiom suggestions (`sa-diff-review-suggest`). Accepts a target argument: `diff` (default), `docs`, or `both`.
 ---
 
 # Review by an independent model panel
 
-`sa-code-review` and `sa-docs-review` each run **one** reviewer and buy
+`sa-diff-review` and `sa-docs-audit` each run **one** reviewer and buy
 confidence through *depth*. This skill buys it through *independence and model
 diversity*: the same scope, reviewed three times by three different models that
 cannot see each other's work or yours, then adjudicated here.
 
 The axis is **confidence in the verdict**, not breadth of finding types — for
-"better way to write this" suggestions, run `sa-code-review-deep` instead.
+"better way to write this" suggestions, run `sa-diff-review-suggest` instead.
 
 ## What this supersedes
 
-`sa-code-review` §10 says to spawn exactly one adversarial subagent and warns
+`sa-diff-review` §10 says to spawn exactly one adversarial subagent and warns
 against spawning more "just to be sure". **This skill deliberately replaces
 that pass**, and does not violate its reasoning: §10 argues against *redundant
 self-checking by the same model*, which a strong model already does
@@ -35,9 +35,10 @@ reaching you is therefore already self-refuted once.
 
 ## 1. Fix the scope and the rubric
 
-Resolve the target from the argument (`code` default, `docs`, or `both`) and
-the review scope exactly as the underlying skill would — for code, the
-**branch-point** diff, never a stale-`main` diff:
+Resolve the target from the argument (`diff` default, `docs`, or `both`) and
+take the scope from the rubric it names — this skill fixes a *method*, not a
+scope. `diff` reviews the **branch-point** diff, never a stale-`main` diff;
+`docs` audits the whole docs corpus:
 
 ```bash
 git fetch origin main
@@ -45,7 +46,7 @@ git merge-base origin/main HEAD      # the base; never trust local main
 git diff <base>..HEAD --stat
 ```
 
-Rubric per target: `code` → `sa-code-review`; `docs` → `sa-docs-review`;
+Rubric per target: `diff` → `sa-diff-review`; `docs` → `sa-docs-audit`;
 `both` → each panelist runs both, in that order.
 
 ## 2. Run the deterministic checks once, up front
@@ -60,7 +61,7 @@ dotnet test tests/SqlArtisan.Tests
 dotnet format SqlArtisan.sln --verify-no-changes
 ```
 
-For a `docs` or `both` target, also run `sa-docs-review`'s four bundled
+For a `docs` or `both` target, also run `sa-docs-audit`'s four bundled
 scripts. Pass the verbatim results into the briefing and tell panelists not to
 re-run them — but say they *may* if they doubt a result, so a misread gate
 can still be caught rather than inherited three times over.
@@ -84,7 +85,7 @@ findings, yours or another panelist's. No list of what was already fixed, how
 many rounds it took, or which concerns are settled. No draft verdict. Nothing
 about what you suspect or are unsure of.
 
-That last exclusion is stricter than `sa-code-review` §10, which permits
+That last exclusion is stricter than `sa-diff-review` §10, which permits
 naming the claims you are unsure of to a single subagent. Here it is
 forbidden: a hint given to all three lands identically in all three and buys
 you three correlated opinions at triple the price. Withholding it is the
@@ -143,7 +144,7 @@ are themselves unreviewed changes.
 
 ## 6. Report
 
-Report only findings you are asking someone to change (`sa-code-review` §9's
+Report only findings you are asking someone to change (`sa-diff-review` §9's
 bar applies unchanged). Beyond the usual verdict and severity ordering, the
 panel adds two obligations:
 

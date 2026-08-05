@@ -1,6 +1,6 @@
 export const meta = {
-  name: 'sa-multi-model-code-review',
-  description: 'Fable orchestrates, Sonnet (via sa-reviewer) executes and adversarially verifies a deep multi-dimensional SqlArtisan review',
+  name: 'sa-review-sweep',
+  description: 'Chunked review sweep over a branch diff or a whole-codebase glob — fans files out to sa-reviewer in parallel, adversarially verifies each chunk, then synthesizes',
   phases: [
     { title: 'Scope', model: 'haiku', detail: 'Detect branch-point diff (cheap, mechanical)' },
     { title: 'Gates', model: 'haiku', detail: 'Run build/test/format gates once, up front' },
@@ -74,7 +74,7 @@ ${FULL_CODEBASE_GLOBS.map((p) => `- ${p}`).join('\n')}
 Exclude bin/ and obj/ build output. Return the full list as changedFiles.`
   : `Report scope="diff" for the current branch.
 
-Per the sa-code-review skill: local main is often stale, so a raw
+Per the sa-diff-review skill: local main is often stale, so a raw
 "git diff main...HEAD" (or a merge-base against local main) can pull in
 unrelated already-merged work — merge-base succeeds even when the local ref
 is stale, so it will not warn you. Always anchor against the remote-tracking
@@ -132,7 +132,7 @@ None — no files in scope.
 
 // ---------------------------------------------------------------------------
 // PHASE 2: Gates — run once, up front, so reviewers don't re-derive
-// failures the toolchain already catches (sa-code-review skill, step 2).
+// failures the toolchain already catches (sa-diff-review skill, step 2).
 // ---------------------------------------------------------------------------
 phase('Gates')
 
@@ -148,7 +148,7 @@ const GATES_SCHEMA = {
 }
 
 // fullCodebase mode reviews Analyzers/TableClassGen/Dapper/ArrayBind too, so
-// the core-only build+test the sa-code-review skill uses for a diff is not
+// the core-only build+test the sa-diff-review skill uses for a diff is not
 // enough of a gate — a red test in one of those projects would otherwise go
 // undetected while its source still gets reviewed as if it passed CI.
 const gatesCommands = scopeInfo.scope === 'fullCodebase'
@@ -162,7 +162,7 @@ dotnet test tests/SqlArtisan.Tests
 dotnet format SqlArtisan.sln --verify-no-changes`
 
 const gates = await agent(
-  `Run the SqlArtisan review gates (sa-code-review skill, step 2) and report
+  `Run the SqlArtisan review gates (sa-diff-review skill, step 2) and report
 pass/fail for each. Do not fix anything — detection only.
 
 ${gatesCommands}
@@ -179,7 +179,7 @@ multiple test suites ran, name which one failed).`,
 
 log(`Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}`)
 
-// A failing gate is itself a MUST FIX (sa-code-review skill: "a finding
+// A failing gate is itself a MUST FIX (sa-diff-review skill: "a finding
 // the tools already catch is wasted review budget"). Short-circuit before
 // the expensive Orchestrate/Execute phases instead of spending them on code
 // that may not even compile.
@@ -198,7 +198,7 @@ if (!gates.buildPassed || !gates.testsPassed || !gates.formatClean) {
 Not mergeable
 
 ## Summary
-A review gate failed before the deep review began. Per the sa-code-review
+A review gate failed before the deep review began. Per the sa-diff-review
 skill, a tool-catchable failure is a MUST FIX on its own, and reviewing
 further code before it's fixed wastes review budget — the deep-review phases
 were skipped.
@@ -355,7 +355,7 @@ if (!coverageClean) {
 // PHASE 4+5: Execute, then adversarially Verify — one pipeline, no barrier:
 // each chunk's verification starts as soon as its review lands. Execute runs
 // via the sa-reviewer agent so every chunk inherits its read-only tool
-// restriction and its pointer to the sa-code-review / sa-run-sql-harness
+// restriction and its pointer to the sa-diff-review / sa-run-sql-harness
 // skills, instead of re-deriving (and risking drift from) that procedure
 // inline in this prompt. Verify re-enters sa-reviewer on its
 // adversarial-verification mission (refute, don't confirm) so no finding
@@ -379,7 +379,7 @@ ${unit.chunkFiles.map((f) => `- ${f}`).join('\n')}
 DIMENSIONS TO APPLY:
 ${unit.reviewDimensions.map((d) => `- ${d}`).join('\n')}
 
-Follow the sa-code-review skill's checklist for whichever of these
+Follow the sa-diff-review skill's checklist for whichever of these
 dimensions apply, and use the sa-run-sql-harness skill for any empirical
 verification (DBMS grammar, guard enforcement, allocation) — do not assume
 emitted SQL or allocation behavior from memory. Skip the skill's own gate
