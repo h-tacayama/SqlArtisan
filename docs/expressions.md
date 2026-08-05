@@ -813,7 +813,7 @@ SqlStatement sql =
 ```
 
 - `LastValue` is frame-sensitive: the default frame ends at the current row, so pair it with an explicit frame such as `RowsBetween(UnboundedPreceding, UnboundedFollowing)` to read the last row of the whole partition.
-- `NthValue`'s position is emitted as an integer literal, and is **not supported by SQL Server**.
+- `NthValue`'s position is positive, emitted as an integer literal, and **not supported by SQL Server**.
 
 ### Example using an Aggregate
 
@@ -856,8 +856,9 @@ SqlStatement sql =
 // FROM users
 ```
 
-- Bounds: `UnboundedPreceding`, `CurrentRow`, `UnboundedFollowing`, `Preceding(n)`, `Following(n)`.
+- Bounds: `UnboundedPreceding`, `CurrentRow`, `UnboundedFollowing`, `Preceding(n)`, `Following(n)`; the offset is non-negative.
 - A single bound uses `Rows(bound)` / `Range(bound)` (e.g. `Rows(UnboundedPreceding)`); `RowsBetween(start, end)` / `RangeBetween(start, end)` produce `ROWS/RANGE BETWEEN ... AND ...`.
+- A mis-ordered frame throws `ArgumentException` — no engine accepts a single bound past `CurrentRow` (use the `BETWEEN` form for `Following(n)` / `UnboundedFollowing`) or a `BETWEEN` start ranking later than its end.
 - A frame requires `ORDER BY`, so `Rows(...)` / `Range(...)` are available only after `OrderBy(...)` (optionally with `PartitionBy(...)`).
 - Requires MySQL 8.0+, Oracle, PostgreSQL, SQLite 3.25+, or SQL Server 2012+.
 
