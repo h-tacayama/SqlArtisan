@@ -41,9 +41,12 @@ the full rationale.
   `FOLLOWING` frame-bound offset — non-negative; a window frame's bound kind
   order (`UNBOUNDED PRECEDING` < `PRECEDING` < `CURRENT ROW` < `FOLLOWING` <
   `UNBOUNDED FOLLOWING`) — a `BETWEEN` start must not rank later than its end,
-  and a single bound (implicitly paired with `CURRENT ROW`) must not rank past
-  it; the numeric offset itself is never compared, so two bounds of the same
-  kind may legally invert (`BETWEEN 3 PRECEDING AND 5 PRECEDING`) (#402).
+  a `BETWEEN` end must not be `UNBOUNDED PRECEDING` and a `BETWEEN` start must
+  not be `UNBOUNDED FOLLOWING` (both absolute, so a same-kind pair of either is
+  rejected outright), and a single bound (implicitly paired with `CURRENT ROW`)
+  must not rank past it; the numeric offset itself is never compared, so two
+  `PRECEDING`/`FOLLOWING` bounds of the same kind may still legally invert
+  (`BETWEEN 3 PRECEDING AND 5 PRECEDING`) (#402).
 - *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
   (ADR 0011).
 
