@@ -251,4 +251,34 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.Execute("DROP TEMPORARY TABLE IF EXISTS zip_probe");
         }
     }
+
+    [Fact] // ADR 0012 (#402): anchors the "no engine accepts it" premise for the
+           // NTILE/NTH_VALUE/window-frame guards — raw SQL by necessity, since
+           // WindowFrameGuard now rejects these client-side.
+    public void WindowFrame_ValueDomainViolations_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Each in-range/well-ordered form is valid (so the table and column are right).
+        connection.ExecuteScalar("SELECT NTILE(4) OVER (ORDER BY age) FROM users");
+        connection.ExecuteScalar("SELECT NTH_VALUE(age, 1) OVER (ORDER BY age) FROM users");
+        connection.ExecuteScalar(
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 PRECEDING) FROM users");
+
+        // The only difference each time — the value-domain violation — is what MySQL rejects.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT NTILE(0) OVER (ORDER BY age) FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT NTH_VALUE(age, 0) OVER (ORDER BY age) FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT SUM(age) OVER (ORDER BY age ROWS -1 PRECEDING) FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT SUM(age) OVER (ORDER BY age ROWS 1 FOLLOWING) FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
+    }
 }

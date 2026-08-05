@@ -7,6 +7,11 @@ internal sealed class WindowFrame : SqlPart
 
     internal WindowFrame(string unit, SqlPart extent)
     {
+        if (extent is FrameBound bound)
+        {
+            WindowFrameGuard.ValidateSoleExtent(bound);
+        }
+
         _unit = unit;
         _extent = extent;
     }

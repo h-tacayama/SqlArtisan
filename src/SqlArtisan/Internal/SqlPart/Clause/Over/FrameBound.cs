@@ -9,26 +9,35 @@ public sealed class FrameBound : SqlPart
     private readonly string? _offset;
     private readonly string _keyword;
 
-    private FrameBound(string? offset, string keyword)
+    private FrameBound(string? offset, string keyword, FrameBoundKind kind)
     {
         _offset = offset;
         _keyword = keyword;
+        Kind = kind;
     }
 
+    internal FrameBoundKind Kind { get; }
+
     internal static FrameBound UnboundedPreceding() =>
-        new(null, $"{Keywords.Unbounded} {Keywords.Preceding}");
+        new(null, $"{Keywords.Unbounded} {Keywords.Preceding}", FrameBoundKind.UnboundedPreceding);
 
     internal static FrameBound Preceding(int offset) =>
-        new(offset.ToInvariantString(), Keywords.Preceding);
+        new(
+            WindowFrameGuard.ValidateOffset(offset, Keywords.Preceding).ToInvariantString(),
+            Keywords.Preceding,
+            FrameBoundKind.Preceding);
 
     internal static FrameBound CurrentRow() =>
-        new(null, $"{Keywords.Current} {Keywords.Row}");
+        new(null, $"{Keywords.Current} {Keywords.Row}", FrameBoundKind.CurrentRow);
 
     internal static FrameBound Following(int offset) =>
-        new(offset.ToInvariantString(), Keywords.Following);
+        new(
+            WindowFrameGuard.ValidateOffset(offset, Keywords.Following).ToInvariantString(),
+            Keywords.Following,
+            FrameBoundKind.Following);
 
     internal static FrameBound UnboundedFollowing() =>
-        new(null, $"{Keywords.Unbounded} {Keywords.Following}");
+        new(null, $"{Keywords.Unbounded} {Keywords.Following}", FrameBoundKind.UnboundedFollowing);
 
     internal override void Format(SqlBuildingBuffer buffer)
     {

@@ -84,7 +84,7 @@ public static partial class Sql
     /// A <c>n PRECEDING</c> window-frame bound (offset rows/range before the
     /// current row).
     /// </summary>
-    /// <param name="offset">The number of rows or range units before the current row.</param>
+    /// <param name="offset">The number of rows or range units before the current row; non-negative.</param>
     /// <returns>A <c>PRECEDING</c> window-frame bound.</returns>
     public static FrameBound Preceding(int offset) => FrameBound.Preceding(offset);
 }

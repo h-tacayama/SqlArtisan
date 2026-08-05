@@ -12,6 +12,16 @@ public class WindowNthValueTests
         Assert.Throws<ArgumentException>(() => Select(NthValue(_t.Name, 2)).Build());
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void NthValue_NonPositivePosition_ThrowsArgumentException(int position)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => NthValue(_t.Code, position));
+
+        Assert.Equal("NTH_VALUE requires a positive position.", ex.Message);
+    }
+
     [Fact]
     public void NthValue_OverOrderBy_CorrectSql()
     {

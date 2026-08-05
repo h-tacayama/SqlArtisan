@@ -6,7 +6,7 @@ public sealed class AnalyticNtileFunction : AnalyticFunction
 
     internal AnalyticNtileFunction(int buckets)
     {
-        _buckets = buckets;
+        _buckets = WindowFrameGuard.ValidateNtileBuckets(buckets);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
