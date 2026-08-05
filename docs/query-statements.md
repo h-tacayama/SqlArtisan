@@ -1043,14 +1043,13 @@ are per-dialect and SqlArtisan does not rewrite them.
 ```csharp
 UsersTable t = new("t");   // target, aliased
 UsersTable s = new("s");   // source, aliased
-UsersTable c = new();      // unaliased, for the INSERT column list
 
 SqlStatement sql =
     MergeInto(t)
     .Using(s)
     .On(t.Id == s.Id)
     .WhenMatched().ThenUpdateSet(t.Name == s.Name)
-    .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Id, s.Name)
+    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id, s.Name)
     .Build(Dbms.SqlServer);
 
 // MERGE INTO users "t"
@@ -1060,8 +1059,9 @@ SqlStatement sql =
 // WHEN NOT MATCHED THEN INSERT (id, name) VALUES ("s".id, "s".name);
 ```
 
-The `INSERT` column list names target columns and must **not** be
-alias-qualified (pass columns from an unaliased table instance, as `c` above).
+`UPDATE SET` and the `INSERT` column list both name target columns, which the
+engine resolves against the target table alone — passing the aliased target's
+own columns (`t.Name`, `t.Id`) still renders the bare, unqualified names above.
 
 #### MERGE source forms
 

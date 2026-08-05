@@ -24,19 +24,24 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         UsersTable s = new("s");
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Execute(
-            MergeInto(t)
-            .Using(s)
-            .On(t.Id == s.Id)
-            .WhenMatched().ThenUpdateSet(t.Name == s.Name)
-            .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id, s.Name));
-
         Assert.ThrowsAny<Exception>(() => connection.Execute(
             "MERGE INTO users AS t USING users AS s ON t.id = s.id "
                 + "WHEN MATCHED THEN UPDATE SET t.name = s.name"));
         Assert.ThrowsAny<Exception>(() => connection.Execute(
             "MERGE INTO users AS t USING users AS s ON t.id = s.id "
                 + "WHEN NOT MATCHED THEN INSERT (t.id, t.name) VALUES (s.id, s.name)"));
+
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            MergeInto(t)
+            .Using(s)
+            .On(t.Id == s.Id)
+            .WhenMatched().ThenUpdateSet(t.Name == s.Name)
+            .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id, s.Name),
+            transaction);
+
+        transaction.Rollback();
     }
 
     [Fact]
