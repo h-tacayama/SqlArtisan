@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SqlArtisan.TableClassGen;
@@ -34,8 +35,10 @@ internal sealed class TableResult(
 // generated classes are the only committed representation of the schema.
 internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions options)
 {
+    // Matches the escaped literal TableClassEmitter.Quote produces, so a column
+    // name carrying a quote or backslash still round-trips through the diff.
     private static readonly Regex ColumnPattern =
-        new("""new DbColumn\(this, "(?<name>[^"]*)"\)""", RegexOptions.Compiled);
+        new("""new DbColumn\(this, "(?<name>(?:[^"\\]|\\.)*)"\)""", RegexOptions.Compiled);
 
     private readonly CodeGenerationSettings _settings = options.Settings;
 
@@ -172,7 +175,36 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
     }
 
     private static List<string> ColumnNames(string code) =>
-        [.. ColumnPattern.Matches(code).Select(m => m.Groups["name"].Value)];
+        [.. ColumnPattern.Matches(code).Select(m => Unescape(m.Groups["name"].Value))];
+
+    // Reverses TableClassEmitter.Quote's escaping, so a diff names the column as it
+    // reads in the database rather than as it reads inside a C# string literal.
+    private static string Unescape(string literal)
+    {
+        StringBuilder unescaped = new(literal.Length);
+
+        for (int i = 0; i < literal.Length; i++)
+        {
+            if (literal[i] != '\\')
+            {
+                unescaped.Append(literal[i]);
+                continue;
+            }
+
+            char next = literal[++i];
+            if (next == 'u')
+            {
+                unescaped.Append((char)Convert.ToInt32(literal.Substring(i + 1, 4), 16));
+                i += 4;
+            }
+            else
+            {
+                unescaped.Append(next);
+            }
+        }
+
+        return unescaped.ToString();
+    }
 
     private bool ShouldWrite(TableResult result) =>
         options.Mode is RunMode.Generate or RunMode.Fix && result.NeedsWrite;

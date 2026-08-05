@@ -61,6 +61,23 @@ public class TableClassGeneratorTests : IDisposable
         Assert.Equal(["+ note"], item.Changes);
     }
 
+    // The emitter escapes a quote in a column name to keep the C# literal valid
+    // (TableClassEmitter.Quote); the diff regex has to match that escaped form, not
+    // just a plain name, or the column silently disappears from the reported diff.
+    [Fact]
+    public void Run_Check_AddedColumnWithQuoteInName_ReportsModifiedWithTheColumn()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+
+        db.Execute("""ALTER TABLE item ADD COLUMN "a""b" TEXT""");
+
+        TableResult item = Single(Run(db, RunMode.Check), "item");
+
+        Assert.Equal(TableStatus.Modified, item.Status);
+        Assert.Equal(["+ a\"b"], item.Changes);
+    }
+
     [Fact]
     public void Run_Check_MetadataOnlyChange_ReportsModifiedWithoutNamingColumns()
     {
