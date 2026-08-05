@@ -94,25 +94,28 @@ public class WindowFrameTests
         Assert.Equal(expected, sql.Text);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void Preceding_NonNegativeOffset_ThrowsArgumentException(int offset)
+    [Fact]
+    public void Preceding_NegativeOffset_ThrowsArgumentException()
     {
-        if (offset == 0)
-        {
-            // 0 PRECEDING is CURRENT ROW's own spelling \u2014 legal, not a guard case.
-            SqlStatement sql =
-                Select(Sum(_t.Code).Over(OrderBy(_t.Code).Rows(Preceding(offset))))
-                .Build();
-
-            Assert.Equal("SELECT SUM(code) OVER (ORDER BY code ROWS 0 PRECEDING)", sql.Text);
-            return;
-        }
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => Preceding(offset));
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Preceding(-1));
 
         Assert.Equal("PRECEDING requires a non-negative offset.", ex.Message);
+    }
+
+    [Fact]
+    public void Preceding_ZeroOffset_CorrectSql()
+    {
+        // Arrange \u2014 0 PRECEDING is CURRENT ROW's own spelling; the guard only
+        // rejects a negative offset, so zero must still build.
+        string expected = "SELECT SUM(code) OVER (ORDER BY code ROWS 0 PRECEDING)";
+
+        // Act
+        SqlStatement sql =
+            Select(Sum(_t.Code).Over(OrderBy(_t.Code).Rows(Preceding(0))))
+            .Build();
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
     }
 
     [Fact]

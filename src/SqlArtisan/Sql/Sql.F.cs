@@ -28,7 +28,7 @@ public static partial class Sql
     /// A <c>n FOLLOWING</c> window-frame bound (offset rows/range after the
     /// current row).
     /// </summary>
-    /// <param name="offset">The number of rows/range units after the current row.</param>
+    /// <param name="offset">The number of rows/range units after the current row; non-negative.</param>
     /// <returns>A <see cref="FrameBound"/> for the <c>n FOLLOWING</c> bound.</returns>
     public static FrameBound Following(int offset) => FrameBound.Following(offset);
 

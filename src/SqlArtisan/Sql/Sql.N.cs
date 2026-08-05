@@ -75,7 +75,7 @@ public static partial class Sql
     /// frame.
     /// </summary>
     /// <param name="expr">The expression whose value is taken.</param>
-    /// <param name="n">The 1-based position within the window frame.</param>
+    /// <param name="n">The 1-based position within the window frame; positive.</param>
     /// <returns>An <c>NTH_VALUE</c> analytic function expression.</returns>
     /// <remarks>Not supported by SQL Server.</remarks>
     public static AnalyticNthValueFunction NthValue(object expr, int n) =>
@@ -85,7 +85,7 @@ public static partial class Sql
     /// The <c>NTILE(buckets)</c> analytic function: distributes the ordered rows
     /// of each window partition into <paramref name="buckets"/> ranked groups.
     /// </summary>
-    /// <param name="buckets">The number of ranked groups to distribute rows into.</param>
+    /// <param name="buckets">The number of ranked groups to distribute rows into; positive.</param>
     /// <returns>An <c>NTILE</c> analytic function expression.</returns>
     public static AnalyticNtileFunction Ntile(int buckets) => new(buckets);
 
