@@ -20,11 +20,7 @@ internal sealed class ConsoleUI
         Console.Write("Host: ");
         string host = Console.ReadLine() ?? "localhost";
 
-        Console.Write("Port: ");
-        string portStr = Console.ReadLine() ?? string.Empty;
-        int port = string.IsNullOrWhiteSpace(portStr)
-            ? DbmsOption.DefaultPort(dbms)
-            : int.Parse(portStr);
+        int port = ReadPort(dbms);
 
         Console.Write("Service name (or database name): ");
         string serviceName = Console.ReadLine() ?? string.Empty;
@@ -64,6 +60,27 @@ internal sealed class ConsoleUI
             password);
     }
 
+    internal static int ReadPort(Dbms dbms)
+    {
+        while (true)
+        {
+            Console.Write("Port: ");
+            string portStr = Console.ReadLine() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(portStr))
+            {
+                return DbmsOption.DefaultPort(dbms);
+            }
+
+            if (int.TryParse(portStr, out int port) && port is > 0 and <= 65535)
+            {
+                return port;
+            }
+
+            Console.WriteLine("Enter a port number between 1 and 65535.");
+        }
+    }
+
     private static DbConnectionInfo ReadSqliteConnectionInfo()
     {
         Console.Write("Database file path: ");
@@ -89,14 +106,16 @@ internal sealed class ConsoleUI
 
         Console.Write("Convert object names to lowercase (y/n): ");
         string lowercaseNamesStr = Console.ReadLine() ?? "n";
-        bool lowercaseNames = lowercaseNamesStr.Trim().ToLower().StartsWith("y");
+        bool lowercaseNames =
+            lowercaseNamesStr.Trim().StartsWith("y", StringComparison.OrdinalIgnoreCase);
 
         Console.Write("Output directory: ");
         string outputDirectory = Console.ReadLine() ?? ".";
 
         Console.Write("Create subfolders by table name initial (y/n): ");
         string createSubFoldersStr = Console.ReadLine() ?? "n";
-        bool createSubFolders = createSubFoldersStr.Trim().ToLower().StartsWith("y");
+        bool createSubFolders =
+            createSubFoldersStr.Trim().StartsWith("y", StringComparison.OrdinalIgnoreCase);
 
         Console.Write("Specific table name (leave empty for all tables): ");
         string specificTableName = Console.ReadLine() ?? string.Empty;
