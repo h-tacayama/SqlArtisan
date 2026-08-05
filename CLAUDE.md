@@ -151,9 +151,28 @@ there, not here — a pointer line in this list is enough.
 **Rules** (`.claude/rules/`): code-comments, dbms-differences, docs-style,
 guards-and-empty-states, public-api-design, sql-building-style, unit-tests.
 
-**Skills** (`.claude/skills/`): sa-add-sql-function, sa-code-review,
-sa-code-review-deep, sa-docs-review, sa-run-benchmark,
-sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
+**Skills** (`.claude/skills/`): sa-add-sql-function, sa-diff-review,
+sa-diff-review-refinement, sa-docs-audit, sa-panel-audit,
+sa-panel-diff-review, sa-run-benchmark, sa-run-integration-tests,
+sa-run-sql-harness, sa-write-xml-docs.
+
+**Workflows** (`.claude/workflows/`): sa-audit-sweep. The `-sweep` suffix is
+reserved for workflows — a skill never carries it.
+
+Review-surface names **state their scope in a word of its own**: `diff` reads
+what the branch changed, `audit` reads a whole scope as it stands (`docs`
+names the documentation corpus). `review` already implies a change in this
+register, so `diff-review` is deliberate reinforcement — the scope is meant to
+be readable without knowing the convention, and the redundancy costs less than
+the ambiguity would. `audit` takes no scope adjective: it already means the
+whole thing, and pairing one with `review` produced the misleading
+"full-review" this convention replaced.
+
+A `sa-panel-` prefix means three independent models work it and the main agent
+adjudicates; a `-refinement` suffix adds non-defect improvement findings.
+Prefix says *who reviews*, suffix says *what is reported*. A panel needs a
+bounded scope — the whole ~700-file codebase belongs to `sa-audit-sweep`,
+which chunks it across single reviewers instead of tripling it.
 
 - Style is enforced by `.editorconfig`. Match it. Key rules: 4-space indent,
   100-column line limit, explicit types (no `var`), Allman braces.

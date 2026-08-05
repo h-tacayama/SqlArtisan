@@ -1,8 +1,8 @@
 export const meta = {
-  name: 'sa-multi-model-code-review',
-  description: 'Fable orchestrates, Sonnet (via sa-reviewer) executes and adversarially verifies a deep multi-dimensional SqlArtisan review',
+  name: 'sa-audit-sweep',
+  description: 'Chunked audit of the codebase as it stands — globs the scope, fans the files out to sa-reviewer in parallel, adversarially verifies each chunk, then synthesizes. Whole-scope only; for a branch diff use the sa-diff-review skills.',
   phases: [
-    { title: 'Scope', model: 'haiku', detail: 'Detect branch-point diff (cheap, mechanical)' },
+    { title: 'Scope', model: 'haiku', detail: 'Glob the audit scope (cheap, mechanical)' },
     { title: 'Gates', model: 'haiku', detail: 'Run build/test/format gates once, up front' },
     { title: 'Orchestrate', model: 'fable', detail: 'Classify files and assign review dimensions' },
     { title: 'Execute', model: 'sonnet', detail: 'Deep review per file chunk via sa-reviewer' },
@@ -12,7 +12,7 @@ export const meta = {
 }
 
 // ---------------------------------------------------------------------------
-// PHASE 1: Scope — mechanical git work, cheapest model in the fleet.
+// PHASE 1: Scope — mechanical globbing, cheapest model in the fleet.
 // ---------------------------------------------------------------------------
 phase('Scope')
 
@@ -25,12 +25,10 @@ log(`args received: ${JSON.stringify(runArgs)}`)
 const SCOPE_SCHEMA = {
   type: 'object',
   properties: {
-    scope: { type: 'string', enum: ['diff', 'fullCodebase'] },
-    branchPoint: { type: 'string' },
-    changedFiles: { type: 'array', items: { type: 'string' } },
-    diffStat: { type: 'string' },
+    scopeLabel: { type: 'string' },
+    files: { type: 'array', items: { type: 'string' } },
   },
-  required: ['scope', 'changedFiles'],
+  required: ['files'],
 }
 
 // `SqlBuilder/**` and `SqlPart/**` appear twice, deliberately: the
@@ -38,7 +36,7 @@ const SCOPE_SCHEMA = {
 // public surface (ADR 0005) — don't collapse them into one glob. Each pattern
 // below must be non-overlapping with the others: the Scope agent globs them
 // independently and concatenates, so an overlap would hand the orchestrator
-// a changedFiles list with duplicates baked in before it ever partitions
+// a file list with duplicates baked in before it ever partitions
 // anything.
 const FULL_CODEBASE_GLOBS = [
   'src/SqlArtisan/Sql/*.cs',
@@ -59,69 +57,52 @@ const FULL_CODEBASE_GLOBS = [
   'tests/SqlArtisan.TableClassGen.Tests/**',
 ]
 
-// args.paths lets a caller scope a run to a subset (e.g. just the Public API
-// surface) instead of the full CLAUDE.md Layout table — useful for trying
-// the workflow's fullCodebase-style path on a smaller, cheaper slice first.
-const scopePrompt = runArgs.paths
-  ? `Report scope="fullCodebase". Use Glob (not git) to list every file
-matching these patterns:
-${runArgs.paths.map((p) => `- ${p}`).join('\n')}
-Exclude bin/ and obj/ build output. Return the full list as changedFiles.`
-  : runArgs.reviewFullCodebase
-  ? `Report scope="fullCodebase". Use Glob (not git) to list every file under
-the paths in CLAUDE.md's Layout table (read it if unsure of the exact set):
-${FULL_CODEBASE_GLOBS.map((p) => `- ${p}`).join('\n')}
-Exclude bin/ and obj/ build output. Return the full list as changedFiles.`
-  : `Report scope="diff" for the current branch.
+// This workflow audits the tree as it stands; it never reads a diff. args.paths
+// narrows the sweep to a slice (one Layout-table layer, say) — cheaper than the
+// default and the recommended way to run it at all, given the whole-codebase
+// scale warned about further down.
+const scopeLabel = runArgs.paths ? 'paths' : 'fullCodebase'
+const scopeGlobs = runArgs.paths ?? FULL_CODEBASE_GLOBS
 
-Per the sa-code-review skill: local main is often stale, so a raw
-"git diff main...HEAD" (or a merge-base against local main) can pull in
-unrelated already-merged work — merge-base succeeds even when the local ref
-is stale, so it will not warn you. Always anchor against the remote-tracking
-ref, never the local branch:
+const scopeInfo = await agent(
+  `Use Glob (not git — this audit ignores what the branch changed) to list
+every file matching these patterns:
+${scopeGlobs.map((p) => `- ${p}`).join('\n')}
+Exclude bin/ and obj/ build output. Report scopeLabel="${scopeLabel}" and
+return the full list as files.`,
+  {
+    model: 'haiku',
+    effort: 'low',
+    label: 'scope-detection',
+    phase: 'Scope',
+    schema: SCOPE_SCHEMA,
+  }
+)
 
-1. git fetch origin main
-2. git merge-base origin/main HEAD
-3. git diff <merge-base>..HEAD --name-only
-4. git diff <merge-base>..HEAD --stat
+log(`Scope: ${scopeLabel}, ${scopeInfo.files.length} file(s)`)
 
-Execute these commands for real — do not guess. Return the merge-base commit
-as branchPoint, the file list as changedFiles, and the stat text as diffStat.`
-
-const scopeInfo = await agent(scopePrompt, {
-  model: 'haiku',
-  effort: 'low',
-  label: 'scope-detection',
-  phase: 'Scope',
-  schema: SCOPE_SCHEMA,
-})
-
-log(`Scope: ${scopeInfo.scope}, ${scopeInfo.changedFiles.length} file(s)`)
-
-// Nothing to review — skip straight to a report instead of spending
+// Nothing to audit — skip straight to a report instead of spending
 // Gates/Orchestrate/Execute/Synthesize on an empty file list.
-if (scopeInfo.changedFiles.length === 0) {
-  log('No files in scope — nothing to review, skipping the remaining phases')
+if (scopeInfo.files.length === 0) {
+  log('No files in scope — nothing to audit, skipping the remaining phases')
   return {
-    scope: scopeInfo.scope,
-    branchPoint: scopeInfo.branchPoint,
-    diffStat: scopeInfo.diffStat,
+    scope: scopeLabel,
     gates: null,
     chunksReviewed: '0/0 (skipped — no files in scope)',
     highRiskFiles: [],
-    finalReport: `# SqlArtisan Code Review: ${scopeInfo.scope === 'diff' ? 'Branch Diff' : 'Full Codebase'}
+    finalReport: `# SqlArtisan Audit: ${scopeLabel}
 
 ## Verdict
-Mergeable
+Clean
 
 ## Summary
-No files were in scope for this review (empty diff or empty glob match) — nothing to review.
+No files matched the audit scope (empty glob match) — nothing to audit.
 
 ## Findings by Severity
 None — no files in scope.
 
 ## Coverage
-- Scope: ${scopeInfo.scope}
+- Scope: ${scopeLabel}
 - Files in scope: 0
 - Gates/Orchestrate/Execute/Verify/Synthesize: skipped (empty scope)
 
@@ -132,7 +113,7 @@ None — no files in scope.
 
 // ---------------------------------------------------------------------------
 // PHASE 2: Gates — run once, up front, so reviewers don't re-derive
-// failures the toolchain already catches (sa-code-review skill, step 2).
+// failures the toolchain already catches (sa-diff-review skill, step 2).
 // ---------------------------------------------------------------------------
 phase('Gates')
 
@@ -147,25 +128,19 @@ const GATES_SCHEMA = {
   required: ['buildPassed', 'testsPassed', 'formatClean', 'summary'],
 }
 
-// fullCodebase mode reviews Analyzers/TableClassGen/Dapper/ArrayBind too, so
-// the core-only build+test the sa-code-review skill uses for a diff is not
-// enough of a gate — a red test in one of those projects would otherwise go
-// undetected while its source still gets reviewed as if it passed CI.
-const gatesCommands = scopeInfo.scope === 'fullCodebase'
-  ? `dotnet build SqlArtisan.sln -c Release
+// The sweep can reach Analyzers/TableClassGen/Dapper/ArrayBind, so the
+// core-only build+test the sa-diff-review skill runs for a diff is not enough
+// of a gate here — a red test in one of those projects would otherwise go
+// undetected while its source still gets audited as if it passed CI.
+const gates = await agent(
+  `Run the SqlArtisan review gates (sa-diff-review skill, step 2) and report
+pass/fail for each. Do not fix anything — detection only.
+
+dotnet build SqlArtisan.sln -c Release
 dotnet test tests/SqlArtisan.Tests
 dotnet test tests/SqlArtisan.Analyzers.Tests
 dotnet test tests/SqlArtisan.TableClassGen.Tests
-dotnet format SqlArtisan.sln --verify-no-changes`
-  : `dotnet build src/SqlArtisan/SqlArtisan.csproj -c Release
-dotnet test tests/SqlArtisan.Tests
-dotnet format SqlArtisan.sln --verify-no-changes`
-
-const gates = await agent(
-  `Run the SqlArtisan review gates (sa-code-review skill, step 2) and report
-pass/fail for each. Do not fix anything — detection only.
-
-${gatesCommands}
+dotnet format SqlArtisan.sln --verify-no-changes
 
 0 warnings is the bar for the build (AnalysisMode=Recommended, including
 CS1574 cref resolution) — with one named exception: a SourceLink warning
@@ -179,29 +154,26 @@ multiple test suites ran, name which one failed).`,
 
 log(`Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}`)
 
-// A failing gate is itself a MUST FIX (sa-code-review skill: "a finding
+// A failing gate is itself a MUST FIX (sa-diff-review skill: "a finding
 // the tools already catch is wasted review budget"). Short-circuit before
 // the expensive Orchestrate/Execute phases instead of spending them on code
 // that may not even compile.
 if (!gates.buildPassed || !gates.testsPassed || !gates.formatClean) {
   log('Gates failed — skipping Orchestrate/Execute/Synthesize and reporting the gate failure directly')
   return {
-    scope: scopeInfo.scope,
-    branchPoint: scopeInfo.branchPoint,
-    diffStat: scopeInfo.diffStat,
+    scope: scopeLabel,
     gates,
     chunksReviewed: '0/0 (skipped — gates failed)',
     highRiskFiles: [],
-    finalReport: `# SqlArtisan Code Review: ${scopeInfo.scope === 'diff' ? 'Branch Diff' : 'Full Codebase'}
+    finalReport: `# SqlArtisan Audit: ${scopeLabel}
 
 ## Verdict
-Not mergeable
+Not clean
 
 ## Summary
-A review gate failed before the deep review began. Per the sa-code-review
-skill, a tool-catchable failure is a MUST FIX on its own, and reviewing
-further code before it's fixed wastes review budget — the deep-review phases
-were skipped.
+A gate failed before the audit began. Per the sa-diff-review skill, a
+tool-catchable failure is a MUST FIX on its own, and auditing further code
+before it's fixed wastes review budget — the deep-audit phases were skipped.
 
 ## Findings by Severity
 
@@ -209,8 +181,8 @@ were skipped.
 - Gate failure: ${gates.summary}
 
 ## Coverage
-- Scope: ${scopeInfo.scope}
-- Files in scope: ${scopeInfo.changedFiles.length}
+- Scope: ${scopeLabel}
+- Files in scope: ${scopeInfo.files.length}
 - Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}
 - Orchestrate/Execute/Verify/Synthesize: skipped (fail-fast on gate failure)
 
@@ -228,7 +200,7 @@ phase('Orchestrate')
 
 // Shared by the schema (so a typo'd dimension fails validation) and the
 // orchestrate prompt below — prevents drift within this file only.
-// sa-review-orchestrator.md keeps its own hand-copied list; keep it in sync
+// sa-diff-review-orchestrator.md keeps its own hand-copied list; keep it in sync
 // manually when this array changes.
 const REVIEW_DIMENSIONS = [
   'adr-conformance',
@@ -264,8 +236,8 @@ const PLAN_SCHEMA = {
 
 const orchestratePrompt = `Classify these files and assign review dimensions.
 
-SCOPE: ${scopeInfo.scope}
-FILES: ${JSON.stringify(scopeInfo.changedFiles)}
+SCOPE: ${scopeLabel}
+FILES: ${JSON.stringify(scopeInfo.files)}
 GATES: ${gates.summary}
 
 Group by role:
@@ -284,7 +256,7 @@ or allocation-sensitive paths). Only include groups that actually have files
 in FILES.`
 
 const plan = await agent(orchestratePrompt, {
-  agentType: 'sa-review-orchestrator',
+  agentType: 'sa-diff-review-orchestrator',
   phase: 'Orchestrate',
   schema: PLAN_SCHEMA,
 })
@@ -292,9 +264,9 @@ const plan = await agent(orchestratePrompt, {
 // Enforce the orchestrator spec's "highRiskFiles must be a subset of the
 // input" constraint here, symmetric with the fileGroups partition check
 // below — the spec states the contract but can't enforce it itself.
-const changedFilesSet = new Set(scopeInfo.changedFiles)
-const highRiskFiles = (plan.highRiskFiles ?? []).filter((f) => changedFilesSet.has(f))
-const invalidHighRiskFiles = (plan.highRiskFiles ?? []).filter((f) => !changedFilesSet.has(f))
+const scopeFilesSet = new Set(scopeInfo.files)
+const highRiskFiles = (plan.highRiskFiles ?? []).filter((f) => scopeFilesSet.has(f))
+const invalidHighRiskFiles = (plan.highRiskFiles ?? []).filter((f) => !scopeFilesSet.has(f))
 if (invalidHighRiskFiles.length > 0) {
   log(`Note: orchestrator flagged ${invalidHighRiskFiles.length} highRiskFiles(s) not in scope — dropped: ${invalidHighRiskFiles.join(', ')}`)
 }
@@ -331,7 +303,7 @@ for (const group of plan.fileGroups) {
 // synthesis this task doesn't warrant; surface the risk instead of eating it
 // silently, and point at the escape hatch (args.paths) that already exists.
 const SYNTHESIS_CHUNK_WARNING_THRESHOLD = 40
-if (scopeInfo.scope === 'fullCodebase' && reviewUnits.length > SYNTHESIS_CHUNK_WARNING_THRESHOLD) {
+if (reviewUnits.length > SYNTHESIS_CHUNK_WARNING_THRESHOLD) {
   log(`Warning: ${reviewUnits.length} chunks in a fullCodebase run — Synthesize concatenates every
 chunk's full review text into one prompt and may exceed context at this scale. Consider re-running
 with args.paths scoped to one layer of CLAUDE.md's Layout table at a time instead of the full sweep.`)
@@ -343,7 +315,7 @@ const assignedFiles = reviewUnits.flatMap((u) => u.chunkFiles)
 const assignedCounts = new Map()
 for (const f of assignedFiles) assignedCounts.set(f, (assignedCounts.get(f) ?? 0) + 1)
 
-const missingFiles = scopeInfo.changedFiles.filter((f) => !assignedCounts.has(f))
+const missingFiles = scopeInfo.files.filter((f) => !assignedCounts.has(f))
 const duplicateFiles = [...assignedCounts].filter(([, n]) => n > 1).map(([f]) => f)
 const coverageClean = missingFiles.length === 0 && duplicateFiles.length === 0
 
@@ -355,7 +327,7 @@ if (!coverageClean) {
 // PHASE 4+5: Execute, then adversarially Verify — one pipeline, no barrier:
 // each chunk's verification starts as soon as its review lands. Execute runs
 // via the sa-reviewer agent so every chunk inherits its read-only tool
-// restriction and its pointer to the sa-code-review / sa-run-sql-harness
+// restriction and its pointer to the sa-diff-review / sa-run-sql-harness
 // skills, instead of re-deriving (and risking drift from) that procedure
 // inline in this prompt. Verify re-enters sa-reviewer on its
 // adversarial-verification mission (refute, don't confirm) so no finding
@@ -379,7 +351,7 @@ ${unit.chunkFiles.map((f) => `- ${f}`).join('\n')}
 DIMENSIONS TO APPLY:
 ${unit.reviewDimensions.map((d) => `- ${d}`).join('\n')}
 
-Follow the sa-code-review skill's checklist for whichever of these
+Follow the sa-diff-review skill's checklist for whichever of these
 dimensions apply, and use the sa-run-sql-harness skill for any empirical
 verification (DBMS grammar, guard enforcement, allocation) — do not assume
 emitted SQL or allocation behavior from memory. Skip the skill's own gate
@@ -459,12 +431,11 @@ if (unverifiedChunks.length > 0) {
 phase('Synthesize')
 
 const synthesisPrompt = `Synthesize ${reviewUnits.length} chunk reviews of a
-SqlArtisan ${scopeInfo.scope === 'diff' ? 'branch diff' : 'full codebase pass'} into one report.
+SqlArtisan audit (scope: ${scopeLabel}) into one report.
 Each chunk went through adversarial verification, except any listed below as
 unverified (its review stands as drafted, unchallenged).
 
 GATES: ${gates.summary}
-BRANCH POINT: ${scopeInfo.branchPoint ?? 'n/a'}
 ${!coverageClean ? `
 COVERAGE GAP — call this out explicitly in the report:
 ${missingFiles.length > 0 ? `- Missing (in scope, never assigned to a group): ${missingFiles.join(', ')}\n` : ''}${duplicateFiles.length > 0 ? `- Duplicated (assigned to more than one group, reviewed redundantly): ${duplicateFiles.join(', ')}\n` : ''}` : ''}${failedChunks.length > 0 ? `
@@ -490,17 +461,16 @@ Tasks:
    unavailable...)" was never verified — say so in Coverage and treat its
    findings as unverified.
 3. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
-4. Decide a verdict: Mergeable / Mergeable after must-fix / Not mergeable.
-   A failing gate above is itself a MUST FIX and blocks "Mergeable" — and so
-   is a coverage gap (a missing or duplicated file above) and a chunk
-   failure (a chunk above that never returned a result): both mean files
-   in scope were silently never reviewed, which is exactly the kind of
-   silent failure this workflow exists to catch, so treat either the same
-   as a failing gate.
+4. Decide a verdict: Clean / Clean after must-fix / Not clean. A failing gate
+   above is itself a MUST FIX and blocks "Clean" — and so is a coverage gap
+   (a missing or duplicated file above) and a chunk failure (a chunk above
+   that never returned a result): both mean files in scope were silently
+   never audited, which is exactly the kind of silent failure this workflow
+   exists to catch, so treat either the same as a failing gate.
 
 Output as a headed report:
 
-# SqlArtisan Code Review: ${scopeInfo.scope === 'diff' ? 'Branch Diff' : 'Full Codebase'}
+# SqlArtisan Audit: ${scopeLabel}
 
 ## Verdict
 ...
@@ -514,10 +484,10 @@ Output as a headed report:
 ### NITS
 
 ## Coverage
-- Branch point: ${scopeInfo.branchPoint ?? 'n/a'}
+- Scope: ${scopeLabel}
 - Chunks reviewed: ${reviewedUnits.length}/${reviewUnits.length}
 - Chunks adversarially verified: ${reviewedUnits.length - unverifiedChunks.length}/${reviewedUnits.length}${unverifiedChunks.length > 0 ? ` (unverified: ${unverifiedChunks.join(', ')})` : ''}
-- Files in scope: ${scopeInfo.changedFiles.length}
+- Files in scope: ${scopeInfo.files.length}
 - Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}
 - Empirical probes actually run (from chunk reviews and verification): ...
 
@@ -533,9 +503,7 @@ const finalReport = await agent(synthesisPrompt, {
 log('Review synthesis complete')
 
 return {
-  scope: scopeInfo.scope,
-  branchPoint: scopeInfo.branchPoint,
-  diffStat: scopeInfo.diffStat,
+  scope: scopeLabel,
   gates,
   chunksReviewed: `${reviewedUnits.length}/${reviewUnits.length}`,
   highRiskFiles,
