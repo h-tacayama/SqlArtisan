@@ -153,18 +153,20 @@ guards-and-empty-states, public-api-design, sql-building-style, unit-tests.
 
 **Skills** (`.claude/skills/`): sa-add-sql-function, sa-diff-review,
 sa-diff-review-suggest, sa-docs-audit, sa-panel-diff-review,
-sa-panel-docs-audit, sa-run-benchmark, sa-run-integration-tests,
+sa-panel-full-review, sa-run-benchmark, sa-run-integration-tests,
 sa-run-sql-harness, sa-write-xml-docs.
 
 **Workflows** (`.claude/workflows/`): sa-review-sweep. The `-sweep` suffix is
 reserved for workflows — a skill never carries it.
 
-Review-surface names encode their scope: `review` reads a **diff**, `audit`
-reads a **corpus**, and a target word (`docs`) appears only when the scope is
-a corpus, since a diff already selects its own files. A `sa-panel-` prefix
-means three independent models review it and the main agent adjudicates; a
-`-suggest` suffix adds non-defect improvement findings. Prefix says *who
-reviews*, suffix says *what is reported*.
+Review-surface names state their **scope** first: `diff` reads what the branch
+changed, `full` reads a named scope entire, and `docs` names the documentation
+corpus (`sa-docs-audit`, the corpus's single-reviewer entry). A `sa-panel-`
+prefix means three independent models review it and the main agent
+adjudicates; a `-suggest` suffix adds non-defect improvement findings. Prefix
+says *who reviews*, suffix says *what is reported*. A panel needs a bounded
+scope — the whole ~700-file codebase belongs to `sa-review-sweep`, which
+chunks it across single reviewers instead of tripling it.
 
 - Style is enforced by `.editorconfig`. Match it. Key rules: 4-space indent,
   100-column line limit, explicit types (no `var`), Allman braces.
