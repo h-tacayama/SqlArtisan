@@ -8,9 +8,36 @@ public class MergeTests
     private readonly TestTable _t = new("t");
     private readonly TestTable _s = new("s");
 
-    // Unaliased columns for the INSERT column list, which names target columns
-    // and must not be alias-qualified.
+    // The other spelling of the target's columns; both must render the same,
+    // since MERGE's action clauses name target columns and never qualify them.
     private readonly TestTable _cols = new();
+
+    // PostgreSQL rejects a qualified name in either action clause, so passing the
+    // aliased target's own columns must still emit the bare column names (#401).
+    [Fact]
+    public void Merge_PostgreSql_AliasedTargetColumns_CorrectSql()
+    {
+        // Arrange
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING test_table \"s\" ");
+        expected.Append("ON (\"t\".code = \"s\".code) ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"s\".name ");
+        expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
+        expected.Append("VALUES (\"s\".code, \"s\".name)");
+
+        // Act
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet(_t.Name == _s.Name)
+            .WhenNotMatched().ThenInsert(_t.Code, _t.Name).Values(_s.Code, _s.Name)
+            .Build(Dbms.PostgreSql);
+
+        // Assert
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 
     [Fact]
     public void Merge_Oracle_MatchedUpdate_NotMatchedInsert()
@@ -20,7 +47,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING test_table \"s\" ");
         expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"s\".name ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"s\".name ");
         expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
         expected.Append("VALUES (\"s\".code, \"s\".name)");
 
@@ -48,7 +75,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING test_table \"s\" ");
         expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = :0 ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = :0 ");
         expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
         expected.Append("VALUES (:1, :2)");
 
@@ -77,7 +104,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING test_table \"s\" ");
         expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN MATCHED AND \"s\".name = :0 THEN UPDATE SET \"t\".name = \"s\".name");
+        expected.Append("WHEN MATCHED AND \"s\".name = :0 THEN UPDATE SET name = \"s\".name");
 
         // Act
         SqlStatement sql =
@@ -101,7 +128,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING test_table \"s\" ");
         expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"s\".name ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"s\".name ");
         expected.Append("DELETE WHERE \"t\".name IS NULL");
 
         // Act
@@ -124,7 +151,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING test_table \"s\" ");
         expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"s\".name ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"s\".name ");
         expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
         expected.Append("VALUES (\"s\".code, \"s\".name);");
 
@@ -171,7 +198,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING test_table \"s\" ");
         expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN NOT MATCHED BY SOURCE THEN UPDATE SET \"t\".name = @0;");
+        expected.Append("WHEN NOT MATCHED BY SOURCE THEN UPDATE SET name = @0;");
 
         // Act
         SqlStatement sql =
@@ -217,7 +244,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING test_table \"s\" ");
         expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"s\".name ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"s\".name ");
         expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
         expected.Append("VALUES (\"s\".code, \"s\".name)");
 
@@ -375,7 +402,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING (SELECT \"s\".code, \"s\".name FROM test_table \"s\") \"q\" ");
         expected.Append("ON (\"t\".code = \"q\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"q\".name");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"q\".name");
 
         SubqueryDerivedTable q = Select(_s.Code, _s.Name).From(_s).AsTable("q");
         SqlStatement sql =
@@ -395,7 +422,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING (SELECT \"s\".code, \"s\".name FROM test_table \"s\") \"q\" ");
         expected.Append("ON (\"t\".code = \"q\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"q\".name;");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"q\".name;");
 
         SubqueryDerivedTable q = Select(_s.Code, _s.Name).From(_s).AsTable("q");
         SqlStatement sql =
@@ -415,7 +442,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING (VALUES (@0, @1), (@2, @3)) \"s\" (code, name) ");
         expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"s\".name ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"s\".name ");
         expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
         expected.Append("VALUES (\"s\".code, \"s\".name);");
 
@@ -440,7 +467,7 @@ public class MergeTests
         expected.Append("MERGE INTO test_table \"t\" ");
         expected.Append("USING (VALUES (:0, :1), (:2, :3)) \"s\" (code, name) ");
         expected.Append("ON (\"t\".code = \"s\".code) ");
-        expected.Append("WHEN MATCHED THEN UPDATE SET \"t\".name = \"s\".name ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"s\".name ");
         expected.Append("WHEN NOT MATCHED THEN INSERT (code, name) ");
         expected.Append("VALUES (\"s\".code, \"s\".name)");
 

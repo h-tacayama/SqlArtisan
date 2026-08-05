@@ -16,7 +16,10 @@ internal sealed class MergeUpdateSetClause : SqlPart
             items,
             "UPDATE SET requires at least one assignment."));
 
+    // MERGE's SET target is a target-table column by grammar, so PostgreSQL
+    // rejects any qualification on it — unlike the SQL Server / MySQL joined
+    // UPDATE, which qualifies its SET target (UpdateSetClause).
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Update} {Keywords.Set} ")
-        .AppendCsv(_assignments);
+        .AppendAssignmentsCsv(_assignments);
 }

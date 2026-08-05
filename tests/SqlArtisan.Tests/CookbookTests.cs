@@ -440,16 +440,15 @@ public class CookbookTests
     public void Upsert_Oracle_SingleRowMerge_CorrectSql()
     {
         CookbookProduct t = new("t");
-        CookbookProduct cols = new();
         SqlStatement sql =
             MergeInto(t).Using(Dual).On(t.ProductId == 1)
                 .WhenMatched().ThenUpdateSet(t.Price == 990)
-                .WhenNotMatched().ThenInsert(cols.ProductId, cols.Price).Values(1, 990)
+                .WhenNotMatched().ThenInsert(t.ProductId, t.Price).Values(1, 990)
                 .Build(Dbms.Oracle);
 
         Assert.Equal(
             "MERGE INTO product \"t\" USING DUAL ON (\"t\".product_id = :0) "
-            + "WHEN MATCHED THEN UPDATE SET \"t\".price = :1 "
+            + "WHEN MATCHED THEN UPDATE SET price = :1 "
             + "WHEN NOT MATCHED THEN INSERT (product_id, price) VALUES (:2, :3)",
             sql.Text);
     }
@@ -461,18 +460,17 @@ public class CookbookTests
         expected.Append("MERGE INTO product \"t\" USING staging_product \"s\" ");
         expected.Append("ON (\"t\".product_id = \"s\".product_id) ");
         expected.Append("WHEN MATCHED AND \"t\".price <> \"s\".price ");
-        expected.Append("THEN UPDATE SET \"t\".price = \"s\".price ");
+        expected.Append("THEN UPDATE SET price = \"s\".price ");
         expected.Append("WHEN NOT MATCHED THEN INSERT (product_id, name, price) ");
         expected.Append("VALUES (\"s\".product_id, \"s\".name, \"s\".price) ");
         expected.Append("WHEN NOT MATCHED BY SOURCE THEN DELETE;");
 
         CookbookProduct t = new("t");
         CookbookStagingProduct s = new("s");
-        CookbookProduct cols = new();
         SqlStatement sql =
             MergeInto(t).Using(s).On(t.ProductId == s.ProductId)
                 .WhenMatched(t.Price != s.Price).ThenUpdateSet(t.Price == s.Price)
-                .WhenNotMatched().ThenInsert(cols.ProductId, cols.Name, cols.Price)
+                .WhenNotMatched().ThenInsert(t.ProductId, t.Name, t.Price)
                     .Values(s.ProductId, s.Name, s.Price)
                 .WhenNotMatchedBySource().ThenDelete()
                 .Build(Dbms.SqlServer);
@@ -494,7 +492,7 @@ public class CookbookTests
         Assert.Equal(
             "MERGE INTO product \"t\" USING staging_product \"s\" "
             + "ON (\"t\".product_id = \"s\".product_id) "
-            + "WHEN MATCHED THEN UPDATE SET \"t\".price = \"s\".price "
+            + "WHEN MATCHED THEN UPDATE SET price = \"s\".price "
             + "DELETE WHERE \"t\".active = :0",
             sql.Text);
         Assert.False(sql.Parameters.Get<bool>(":0"));
