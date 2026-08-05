@@ -42,6 +42,21 @@ internal static class WindowFrameGuard
             throw new ArgumentException(
                 "A window frame's BETWEEN start bound must not be later than its end bound.");
         }
+
+        // The kind-order check above only catches a start/end crossing; it can't see
+        // these two absolute-position violations, since UNBOUNDED PRECEDING and
+        // UNBOUNDED FOLLOWING are the ordering's own min/max and never cross themselves.
+        if (end.Kind == FrameBoundKind.UnboundedPreceding)
+        {
+            throw new ArgumentException(
+                "A window frame's BETWEEN end bound must not be UNBOUNDED PRECEDING.");
+        }
+
+        if (start.Kind == FrameBoundKind.UnboundedFollowing)
+        {
+            throw new ArgumentException(
+                "A window frame's BETWEEN start bound must not be UNBOUNDED FOLLOWING.");
+        }
     }
 
     // A single bound is shorthand for BETWEEN bound AND CURRENT ROW, so the

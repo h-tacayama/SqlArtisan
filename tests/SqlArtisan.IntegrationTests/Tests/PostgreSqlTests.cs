@@ -318,6 +318,10 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT SUM(age) OVER (ORDER BY age ROWS 1 FOLLOWING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
 
     [Fact]

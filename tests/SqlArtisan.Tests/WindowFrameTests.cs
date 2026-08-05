@@ -223,4 +223,28 @@ public class WindowFrameTests
         // Assert
         Assert.Equal(expected, sql.Text);
     }
+
+    [Fact]
+    public void RowsBetween_UnboundedPrecedingThenUnboundedPreceding_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Sum(_t.Code).Over(
+                OrderBy(_t.Code).RowsBetween(UnboundedPreceding, UnboundedPreceding)))
+            .Build());
+
+        Assert.Equal(
+            "A window frame's BETWEEN end bound must not be UNBOUNDED PRECEDING.", ex.Message);
+    }
+
+    [Fact]
+    public void RowsBetween_UnboundedFollowingThenUnboundedFollowing_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Sum(_t.Code).Over(
+                OrderBy(_t.Code).RowsBetween(UnboundedFollowing, UnboundedFollowing)))
+            .Build());
+
+        Assert.Equal(
+            "A window frame's BETWEEN start bound must not be UNBOUNDED FOLLOWING.", ex.Message);
+    }
 }

@@ -61,7 +61,11 @@ requirement) and is exact-message tested:
 > `The percentile fraction must be in the range 0 to 1.`
 
 Enumerated instances: the percentile fraction guards on `PercentileCont` /
-`PercentileDisc` — finite (pre-existing) and 0..1 (#295).
+`PercentileDisc` — finite (pre-existing) and 0..1 (#295); `Ntile(buckets)` and
+`NthValue(expr, n)` — both positive; a `PRECEDING`/`FOLLOWING` frame-bound
+offset — non-negative; a window frame's bound kind order — a `BETWEEN` start
+must not rank later than its end, and a single bound must not rank past
+`CURRENT ROW` (#402).
 
 ## Consequences
 
