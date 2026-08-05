@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Data.Sqlite;
 using SqlArtisan.TableClassGen;
 
@@ -55,6 +56,35 @@ public class SqliteCatalogReaderTests
         CatalogTable table = Assert.Single(tables);
         Assert.Equal("appconfig", table.TableName);
         Assert.Equal(["configkey", "configvalue"], table.Columns.Select(c => c.Name));
+    }
+
+    // Under tr-TR, culture-sensitive ToLower() turns "BILLING" into "bıllıng"
+    // (dotless ı) rather than "billing" — a table name pragma_table_info's
+    // case-insensitive ASCII lookup no longer matches, so the table went missing
+    // from the results entirely rather than merely being cased wrong.
+    [Fact]
+    public void GetAllTables_LowercaseNamesUnderTurkishCulture_UsesInvariantCasing()
+    {
+        CultureInfo original = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
+
+        try
+        {
+            using TempSqliteDatabase db = TempSqliteDatabase.Create(
+                "CREATE TABLE BILLING (TITLE TEXT);");
+
+            IReadOnlyList<CatalogTable> tables =
+                new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: true)
+                    .GetAllTables();
+
+            CatalogTable table = Assert.Single(tables);
+            Assert.Equal("billing", table.TableName);
+            Assert.Equal(["title"], table.Columns.Select(c => c.Name));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
     }
 
     [Fact]

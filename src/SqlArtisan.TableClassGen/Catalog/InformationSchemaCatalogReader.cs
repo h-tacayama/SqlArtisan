@@ -126,7 +126,7 @@ internal sealed class InformationSchemaCatalogReader(
     private static bool? ReadHasDefault(IDataReader reader, int ordinal) =>
         reader.IsDBNull(ordinal) ? null : true;
 
-    private string Normalize(string name) => _lowercaseNames ? name.ToLower() : name;
+    private string Normalize(string name) => _lowercaseNames ? name.ToLowerInvariant() : name;
 
     private bool ExistsTable(IDbConnection conn, string tableName)
     {
