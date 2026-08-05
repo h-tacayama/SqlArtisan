@@ -10,6 +10,7 @@ internal sealed class FrameBetween : SqlPart
 
     internal FrameBetween(FrameBound start, FrameBound end)
     {
+        WindowFrameGuard.ValidateBetween(start, end);
         _start = start;
         _end = end;
     }

@@ -12,6 +12,16 @@ public class WindowNtileTests
         Assert.Throws<ArgumentException>(() => Select(Ntile(4)).Build());
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Ntile_NonPositiveBuckets_ThrowsArgumentException(int buckets)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Ntile(buckets));
+
+        Assert.Equal("NTILE requires a positive bucket count.", ex.Message);
+    }
+
     [Fact]
     public void Ntile_OverOrderBy_CorrectSql()
     {

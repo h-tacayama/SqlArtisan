@@ -8,7 +8,7 @@ public sealed class AnalyticNthValueFunction : ValueAnalyticFunction
     internal AnalyticNthValueFunction(SqlExpression expr, int n)
     {
         _expr = expr;
-        _n = n;
+        _n = WindowFrameGuard.ValidateNthValuePosition(n);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
