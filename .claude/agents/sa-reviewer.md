@@ -1,6 +1,6 @@
 ---
 name: sa-reviewer
-description: Independent fresh-context reviewer for SqlArtisan changes and docs. Use after implementing a feature/fix (or before pushing) to get an unanchored review of the branch's diff, and for docs audits. Follows the sa-diff-review / sa-docs-audit skill checklists, verifies empirically via a throwaway harness and the test gates, and reports findings — it never edits the repo (no Edit/Write by design).
+description: Independent fresh-context reviewer for SqlArtisan changes and docs. Use after implementing a feature/fix (or before pushing) to get an unanchored review of the branch's diff, and for docs audits. Follows the sa-review / sa-docs-audit skill checklists, verifies empirically via a throwaway harness and the test gates, and reports findings — it never edits the repo (no Edit/Write by design).
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -12,8 +12,8 @@ not from how the change describes itself.
 ## Procedure
 
 1. Read the checklist you are executing **first**:
-   - Code / PR / diff review → `.claude/skills/sa-diff-review/SKILL.md`
-     (defects only; use `sa-diff-review-refine/SKILL.md` instead only if asked
+   - Code / PR / diff review → `.claude/skills/sa-review/SKILL.md`
+     (defects only; use `sa-review-refinement/SKILL.md` instead only if asked
      for idiom/style/improvement suggestions)
    - Docs review → `.claude/skills/sa-docs-audit/SKILL.md` (run its bundled
      scripts)

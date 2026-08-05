@@ -113,7 +113,7 @@ None — no files in scope.
 
 // ---------------------------------------------------------------------------
 // PHASE 2: Gates — run once, up front, so reviewers don't re-derive
-// failures the toolchain already catches (sa-diff-review skill, step 2).
+// failures the toolchain already catches (sa-review skill, step 2).
 // ---------------------------------------------------------------------------
 phase('Gates')
 
@@ -129,11 +129,11 @@ const GATES_SCHEMA = {
 }
 
 // The sweep can reach Analyzers/TableClassGen/Dapper/ArrayBind, so the
-// core-only build+test the sa-diff-review skill runs for a diff is not enough
+// core-only build+test the sa-review skill runs for a diff is not enough
 // of a gate here — a red test in one of those projects would otherwise go
 // undetected while its source still gets audited as if it passed CI.
 const gates = await agent(
-  `Run the SqlArtisan review gates (sa-diff-review skill, step 2) and report
+  `Run the SqlArtisan review gates (sa-review skill, step 2) and report
 pass/fail for each. Do not fix anything — detection only.
 
 dotnet build SqlArtisan.sln -c Release
@@ -154,7 +154,7 @@ multiple test suites ran, name which one failed).`,
 
 log(`Gates: build=${gates.buildPassed} test=${gates.testsPassed} format=${gates.formatClean}`)
 
-// A failing gate is itself a MUST FIX (sa-diff-review skill: "a finding
+// A failing gate is itself a MUST FIX (sa-review skill: "a finding
 // the tools already catch is wasted review budget"). Short-circuit before
 // the expensive Orchestrate/Execute phases instead of spending them on code
 // that may not even compile.
@@ -171,7 +171,7 @@ if (!gates.buildPassed || !gates.testsPassed || !gates.formatClean) {
 Not clean
 
 ## Summary
-A gate failed before the audit began. Per the sa-diff-review skill, a
+A gate failed before the audit began. Per the sa-review skill, a
 tool-catchable failure is a MUST FIX on its own, and auditing further code
 before it's fixed wastes review budget — the deep-audit phases were skipped.
 
@@ -327,7 +327,7 @@ if (!coverageClean) {
 // PHASE 4+5: Execute, then adversarially Verify — one pipeline, no barrier:
 // each chunk's verification starts as soon as its review lands. Execute runs
 // via the sa-reviewer agent so every chunk inherits its read-only tool
-// restriction and its pointer to the sa-diff-review / sa-run-sql-harness
+// restriction and its pointer to the sa-review / sa-run-sql-harness
 // skills, instead of re-deriving (and risking drift from) that procedure
 // inline in this prompt. Verify re-enters sa-reviewer on its
 // adversarial-verification mission (refute, don't confirm) so no finding
@@ -351,7 +351,7 @@ ${unit.chunkFiles.map((f) => `- ${f}`).join('\n')}
 DIMENSIONS TO APPLY:
 ${unit.reviewDimensions.map((d) => `- ${d}`).join('\n')}
 
-Follow the sa-diff-review skill's checklist for whichever of these
+Follow the sa-review skill's checklist for whichever of these
 dimensions apply, and use the sa-run-sql-harness skill for any empirical
 verification (DBMS grammar, guard enforcement, allocation) — do not assume
 emitted SQL or allocation behavior from memory. Skip the skill's own gate

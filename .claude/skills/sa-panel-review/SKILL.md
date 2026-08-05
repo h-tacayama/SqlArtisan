@@ -1,22 +1,22 @@
 ---
-name: sa-panel-diff-review
-description: High-confidence review of a SqlArtisan branch diff by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Same scope as sa-diff-review — the branch-point diff — but reviewed three times over by models that cannot see each other's work or yours; the main agent then re-derives every finding against primary sources and issues the verdict. Each reviewer runs fresh with no knowledge of the fix history, so no one is anchored by how the change came to be. Use before merging something high-stakes, when the implementing session went through several fix rounds, or when explicitly asked for a multi-model / independent / panel review. Costs roughly three full reviews — do NOT use as the routine pre-push check (`sa-diff-review`) or for idiom suggestions (`sa-diff-review-refine`). For an existing scope rather than a change, use `sa-panel-full-review`.
+name: sa-panel-review
+description: High-confidence review of a SqlArtisan branch diff by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Same scope as sa-review — the branch-point diff — but reviewed three times over by models that cannot see each other's work or yours; the main agent then re-derives every finding against primary sources and issues the verdict. Each reviewer runs fresh with no knowledge of the fix history, so no one is anchored by how the change came to be. Use before merging something high-stakes, when the implementing session went through several fix rounds, or when explicitly asked for a multi-model / independent / panel review. Costs roughly three full reviews — do NOT use as the routine pre-push check (`sa-review`) or for idiom suggestions (`sa-review-refinement`). For an existing scope rather than a change, use `sa-panel-audit`.
 ---
 
-# Panel review of a branch diff
+# Panel review of a change
 
-`sa-diff-review` runs **one** reviewer and buys confidence through *depth*.
+`sa-review` runs **one** reviewer and buys confidence through *depth*.
 This skill buys it through *independence and model diversity*: the same diff,
 reviewed three times by three different models that cannot see each other's
 work or yours, then adjudicated here.
 
 The axis is **confidence in the verdict**, not breadth of finding types — for
-"better way to write this" suggestions, run `sa-diff-review-refine` instead;
-for an existing scope rather than a change, `sa-panel-full-review`.
+"better way to write this" suggestions, run `sa-review-refinement` instead;
+for an existing scope rather than a change, `sa-panel-audit`.
 
 ## What this supersedes
 
-`sa-diff-review` §10 says to spawn exactly one adversarial subagent and warns
+`sa-review` §10 says to spawn exactly one adversarial subagent and warns
 against spawning more "just to be sure". **This skill deliberately replaces
 that pass**, and does not violate its reasoning: §10 argues against *redundant
 self-checking by the same model*, which a strong model already does
@@ -36,7 +36,7 @@ reaching you is therefore already self-refuted once.
 
 ## 1. Fix the scope
 
-The rubric is `sa-diff-review`, and the scope is what that skill would review:
+The rubric is `sa-review`, and the scope is what that skill would review:
 the **branch-point** diff, never a stale-`main` diff.
 
 ```bash
@@ -82,7 +82,7 @@ findings, yours or another panelist's. No list of what was already fixed, how
 many rounds it took, or which concerns are settled. No draft verdict. Nothing
 about what you suspect or are unsure of.
 
-That last exclusion is stricter than `sa-diff-review` §10, which permits
+That last exclusion is stricter than `sa-review` §10, which permits
 naming the claims you are unsure of to a single subagent. Here it is
 forbidden: a hint given to all three lands identically in all three and buys
 you three correlated opinions at triple the price. Withholding it is the
@@ -141,7 +141,7 @@ are themselves unreviewed changes.
 
 ## 6. Report
 
-Report only findings you are asking someone to change (`sa-diff-review` §9's
+Report only findings you are asking someone to change (`sa-review` §9's
 bar applies unchanged). Beyond the usual verdict and severity ordering, the
 panel adds two obligations:
 

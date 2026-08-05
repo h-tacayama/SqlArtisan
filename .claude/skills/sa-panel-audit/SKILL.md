@@ -1,11 +1,11 @@
 ---
-name: sa-panel-full-review
-description: High-confidence review of a SqlArtisan scope in its entirety — a subsystem, a layer of the Layout table, or the docs corpus — by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Unlike sa-panel-diff-review it ignores what the branch changed and reads the named scope as it currently stands, so it finds standing defects no diff review can see. Use for a pre-release audit, a subsystem review, or when explicitly asked for a multi-model / independent / panel audit of existing code or docs. The scope must be bounded — name it (a path glob, a subsystem, the docs corpus); for the whole ~700-file codebase use the sa-audit-sweep workflow instead, which chunks it. Costs roughly three full reviews of whatever you name.
+name: sa-panel-audit
+description: High-confidence review of a SqlArtisan scope in its entirety — a subsystem, a layer of the Layout table, or the docs corpus — by an independent three-model panel (Sonnet, Opus, Fable), adjudicated by the main agent. Unlike sa-panel-review it ignores what the branch changed and reads the named scope as it currently stands, so it finds standing defects no diff review can see. Use for a pre-release audit, a subsystem review, or when explicitly asked for a multi-model / independent / panel audit of existing code or docs. The scope must be bounded — name it (a path glob, a subsystem, the docs corpus); for the whole ~700-file codebase use the sa-audit-sweep workflow instead, which chunks it. Costs roughly three full reviews of whatever you name.
 ---
 
-# Panel review of a whole scope
+# Panel audit of a whole scope
 
-Same panel *method* as `sa-panel-diff-review`, pointed at existing code rather
+Same panel *method* as `sa-panel-review`, pointed at existing code rather
 than a change. Its "What this supersedes" section and its §3–§6 (briefing
 discipline, dispatch, adjudication, report) apply here **unchanged** and are
 the substance of this skill — read that file. Only its §1 and §2, restated
@@ -43,7 +43,7 @@ what you were asked for is the failure this skill exists to avoid.
 
 ## 2. Run the deterministic checks once, up front
 
-Same rule as the diff panel's §2 — mechanical output is not what must stay
+Same rule as sa-panel-review's §2 — mechanical output is not what must stay
 independent, so run it yourself rather than paying three panelists to
 re-derive identical results. Which checks depends on the scope:
 
