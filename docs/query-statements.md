@@ -1078,7 +1078,7 @@ SubqueryDerivedTable s =
 MergeInto(t)
     .Using(s)
     .On(t.Id == s.Column("id"))
-    .WhenMatched().ThenUpdateSet(c.Name == s.Column("name"))
+    .WhenMatched().ThenUpdateSet(t.Name == s.Column("name"))
     .Build(Dbms.PostgreSql);
 
 // MERGE INTO users "t"
@@ -1094,8 +1094,8 @@ ValuesDerivedTable s = Values("s", ["id", "name"], [[1, "Ann"], [2, "Bo"]]);
 MergeInto(t)
     .Using(s)
     .On(t.Id == s.Column("id"))
-    .WhenMatched().ThenUpdateSet(c.Name == s.Column("name"))
-    .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Column("id"), s.Column("name"))
+    .WhenMatched().ThenUpdateSet(t.Name == s.Column("name"))
+    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Column("id"), s.Column("name"))
     .Build(Dbms.SqlServer);
 
 // MERGE INTO users "t"
