@@ -440,11 +440,10 @@ public class CookbookTests
     public void Upsert_Oracle_SingleRowMerge_CorrectSql()
     {
         CookbookProduct t = new("t");
-        CookbookProduct cols = new();
         SqlStatement sql =
             MergeInto(t).Using(Dual).On(t.ProductId == 1)
                 .WhenMatched().ThenUpdateSet(t.Price == 990)
-                .WhenNotMatched().ThenInsert(cols.ProductId, cols.Price).Values(1, 990)
+                .WhenNotMatched().ThenInsert(t.ProductId, t.Price).Values(1, 990)
                 .Build(Dbms.Oracle);
 
         Assert.Equal(
@@ -468,11 +467,10 @@ public class CookbookTests
 
         CookbookProduct t = new("t");
         CookbookStagingProduct s = new("s");
-        CookbookProduct cols = new();
         SqlStatement sql =
             MergeInto(t).Using(s).On(t.ProductId == s.ProductId)
                 .WhenMatched(t.Price != s.Price).ThenUpdateSet(t.Price == s.Price)
-                .WhenNotMatched().ThenInsert(cols.ProductId, cols.Name, cols.Price)
+                .WhenNotMatched().ThenInsert(t.ProductId, t.Name, t.Price)
                     .Values(s.ProductId, s.Name, s.Price)
                 .WhenNotMatchedBySource().ThenDelete()
                 .Build(Dbms.SqlServer);

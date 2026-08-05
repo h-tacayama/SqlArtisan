@@ -695,8 +695,6 @@ internal static class MatrixSweepCatalog
             return Select(fts.Column("name")).From(fts).Where(Match(fts, "alice"));
         }
 
-        // The SET left side uses the unaliased column (PostgreSQL rejects a qualified target
-        // column there — same rule as UPDATE ... SET; Oracle and SQL Server accept both forms).
         ISqlBuilder MergeShape()
         {
             UsersTable t = new("t");
