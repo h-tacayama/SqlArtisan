@@ -44,7 +44,7 @@ public class CorrelatedDmlAnalyzerTests
         var test = AnalyzerVerifier.Create(source, editorConfig);
         if (expectWarning)
         {
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0005").WithLocation(0));
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0300").WithLocation(0));
         }
 
         await test.RunAsync();

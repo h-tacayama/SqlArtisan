@@ -29,7 +29,7 @@ as a guess.
 
 **A sparse, optional minimum-version floor per (construct, dialect) cell,
 evaluated against a declared `sqlartisan_target_version`, reported as a new
-diagnostic `SQLA0003`.**
+diagnostic `SQLA0101`.**
 
 - **Interval annotations, browserslist-style.** `DialectMatrix` gains a
   second table, `Bounds : Dictionary<MatrixKey, VersionBounds>`, keyed
@@ -59,11 +59,11 @@ diagnostic `SQLA0003`.**
   Per the #262 reservation, `sqlartisan_construct_*` overrides are checked
   *before* either table, so they keep the last word regardless of what a
   bound says.
-- **`SQLA0003`, not `SQLA0002`.** A version shortfall and a dialect mismatch
+- **`SQLA0101`, not `SQLA0100`.** A version shortfall and a dialect mismatch
   are different findings with different remediations — "declare a higher
   version, or override once you've verified your actual engine handles it"
   versus "this dialect fundamentally does not support the construct." Folding
-  the version case into `SQLA0002`'s message would either drop the version
+  the version case into `SQLA0100`'s message would either drop the version
   numbers or force one message shape to explain two unrelated situations.
 - **`EngineVersion`, a purpose-built comparable type.** `System.Version`
   rejects a bare single-segment string (`"2022"` needs at least a
@@ -120,7 +120,7 @@ diagnostic `SQLA0003`.**
 
 - **A full version × dialect × construct matrix.** Rejected in Context above
   — verification cost, and most constructs have no known boundary to encode.
-- **Reusing `SQLA0002` with a version argument appended.** Same rule ID for
+- **Reusing `SQLA0100` with a version argument appended.** Same rule ID for
   two causally different findings (dialect rejects it outright vs. dialect
   accepts it only from some version on) would make severity/suppression
   configuration unable to distinguish them, and the override-key remediation

@@ -67,7 +67,7 @@ public class TypeCategoryMismatchAnalyzerTests
         string statements, string column, string was, string got, string dbms = "postgresql") =>
         RunAsync(
             Usage(statements),
-            [new DiagnosticResult("SQLA0012", DiagnosticSeverity.Warning)
+            [new DiagnosticResult("SQLA0205", DiagnosticSeverity.Warning)
                 .WithLocation(0)
                 .WithArguments(column, was, got)],
             dbms);

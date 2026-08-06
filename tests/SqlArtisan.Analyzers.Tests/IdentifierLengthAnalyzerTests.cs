@@ -26,7 +26,7 @@ public class IdentifierLengthAnalyzerTests
     public async Task AliasOverPostgreSqlByteLimit_ReportsSqla0006()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 64)), AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -43,7 +43,7 @@ public class IdentifierLengthAnalyzerTests
         // 22 three-byte characters = 66 bytes (over 63) while only 22 characters — proves
         // the limit is measured in UTF-8 bytes, not characters.
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('あ', 22)), AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -61,7 +61,7 @@ public class IdentifierLengthAnalyzerTests
         // MySQL's alias limit is 256 characters (its 64-char limit is for table/column
         // names, not aliases), so an alias only warns past 256.
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 257)), AnalyzerVerifier.EditorConfig("mysql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -76,7 +76,7 @@ public class IdentifierLengthAnalyzerTests
     public async Task AliasOverSqlServerCharLimit_ReportsSqla0006()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 129)), AnalyzerVerifier.EditorConfig("sqlserver"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -91,7 +91,7 @@ public class IdentifierLengthAnalyzerTests
     public async Task AliasOverOracleByteLimit_ReportsSqla0006()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 129)), AnalyzerVerifier.EditorConfig("oracle"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -174,7 +174,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -194,7 +194,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -214,7 +214,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -254,7 +254,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("oracle"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -274,7 +274,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -295,7 +295,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -337,7 +337,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 }

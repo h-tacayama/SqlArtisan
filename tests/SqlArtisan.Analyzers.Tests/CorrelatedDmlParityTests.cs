@@ -5,7 +5,7 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// The empirical no-false-positive gate for SQLA0005: every shape the analyzer
+/// The empirical no-false-positive gate for SQLA0300: every shape the analyzer
 /// reports must throw the same finding at Build(), and the exempt shapes must
 /// build — parity proven by execution, not argument.
 /// </summary>

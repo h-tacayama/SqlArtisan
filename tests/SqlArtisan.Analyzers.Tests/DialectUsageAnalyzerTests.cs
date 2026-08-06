@@ -69,7 +69,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -101,7 +101,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -110,7 +110,7 @@ public class DialectUsageAnalyzerTests
     public async Task VersionBoundConstructBelowDeclaredTarget_ReportsSqla0003()
     {
         var test = AnalyzerVerifier.Create(DatetruncUsageTemplate, AnalyzerVerifier.EditorConfig("sqlserver", "2019"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -126,12 +126,12 @@ public class DialectUsageAnalyzerTests
 
     // WithRecursive is oracle:false with NO oracle bound (the 23ai candidate was
     // disproven live, #263) — a declared version, even a high one, keeps the
-    // plain-bool SQLA0002 verdict rather than inventing a version story.
+    // plain-bool SQLA0100 verdict rather than inventing a version story.
     [Fact]
     public async Task VersionBoundConstruct_OracleDeclaredVersionNoBound_ReportsSqla0002()
     {
         var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle", "23"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -140,19 +140,19 @@ public class DialectUsageAnalyzerTests
     public async Task VersionBoundConstruct_OracleNoDeclaredVersion_ReportsSqla0002()
     {
         var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
 
     // WithRecursive is mysql:true in the plain matrix but bound to 8.0 (no CTE
     // support before it) — a declared version below the bound reports the
-    // shortfall as SQLA0003, not silence.
+    // shortfall as SQLA0101, not silence.
     [Fact]
     public async Task VersionBoundConstruct_MySqlBelowBound_ReportsSqla0003()
     {
         var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("mysql", "5.7"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -243,7 +243,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
 
         await test.RunAsync();
@@ -276,7 +276,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -309,8 +309,8 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(1));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(1));
 
         await test.RunAsync();
     }
@@ -434,7 +434,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -465,8 +465,8 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(1));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(1));
 
         await test.RunAsync();
     }
@@ -523,7 +523,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -556,7 +556,7 @@ public class DialectUsageAnalyzerTests
 
         // Locks the operator display mapping (the C# glyph, not "op_Modulus") and the
         // member-level override key the message names — neither is asserted anywhere else.
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100")
             .WithLocation(0)
             .WithArguments("operator %", "Oracle", "sqlartisan_construct_op_modulus"));
 
@@ -672,7 +672,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }

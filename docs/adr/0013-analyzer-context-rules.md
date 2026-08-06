@@ -24,18 +24,18 @@ anchor a rule on.
 ## Decision
 
 **Context rules: per-rule operation-tree walks in `ContextRules.cs`,
-reported under a new diagnostic ID `SQLA0004`, registered from the same
+reported under a new diagnostic ID `SQLA0102`, registered from the same
 `DialectUsageAnalyzer`.**
 
-- **A new ID, one ID for all context rules.** `SQLA0002`'s message embeds
+- **A new ID, one ID for all context rules.** `SQLA0100`'s message embeds
   the construct-override remediation (`Set '<key> = supported' ...`), which
   is wrong here — the construct *is* supported, and an ADR 0008 key that
   silenced a context warning would also silence that construct's real matrix
-  warnings. One shared ID (not one per rule) matches how `SQLA0002` covers
-  ~230 constructs and `SQLA0006` covers many positions; per-rule severity is
+  warnings. One shared ID (not one per rule) matches how `SQLA0100` covers
+  ~230 constructs and `SQLA0103` covers many positions; per-rule severity is
   the same known granularity limit those rules already document.
 - **Suppression is standard Roslyn only** (`#pragma`, `[SuppressMessage]`,
-  `dotnet_diagnostic.SQLA0004.severity`). No new `.editorconfig` key family
+  `dotnet_diagnostic.SQLA0102.severity`). No new `.editorconfig` key family
   ships now — `ValidateConfiguration` (SQLA0001) is untouched. If MySQL ever
   lifts a restriction version-wise or the register grows enough for per-rule
   opt-out, rule-scoped keys (`sqlartisan_context_*`) are the compatible later
@@ -70,7 +70,7 @@ reported under a new diagnostic ID `SQLA0004`, registered from the same
 
 ## Rejected alternatives
 
-- **Reusing `SQLA0002`.** Needs a second message format under one ID and
+- **Reusing `SQLA0100`.** Needs a second message format under one ID and
   entangles construct-key suppression with context verdicts (above).
 - **A sibling `DiagnosticAnalyzer`.** Duplicates the config-resolution and
   assembly-gate plumbing for no isolation benefit; the housed-rule-class
@@ -83,7 +83,7 @@ reported under a new diagnostic ID `SQLA0004`, registered from the same
 ## Consequences
 
 - A query can legitimately draw both warnings — `GroupBy(Rollup(x))` on
-  MySQL fires `SQLA0002` for `Rollup` and `SQLA0004` for a `Grouping` in the
+  MySQL fires `SQLA0100` for `Rollup` and `SQLA0102` for a `Grouping` in the
   same query (it has no `WITH ROLLUP`). Both are facts; neither is
   special-cased away.
 - False negatives are accepted by design: any shape the walks don't
@@ -93,5 +93,5 @@ reported under a new diagnostic ID `SQLA0004`, registered from the same
 - The trigger set is deliberately minimal: `Limit` alone covers the
   quantified-subquery rule (`Offset` rides the same chain;
   `OffsetRows`/`FetchNext`/`FetchFirst` are already matrix-`false` on MySQL,
-  so `SQLA0002` fires regardless of position).
+  so `SQLA0100` fires regardless of position).
 - The Analyzer ADR cluster grows to 0003 + 0008 + 0009 + 0013.

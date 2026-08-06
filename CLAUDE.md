@@ -29,7 +29,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`, `DbTypeCategory`). Compile-time data, never rendered and never read at run time. |
-| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0012). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0205). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.ArrayBind/` | Oracle array-bind execution (one round trip per batch, not per row). |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
@@ -103,36 +103,41 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships twelve diagnostics:
 
 - **SQLA0001** — Invalid analyzer configuration (unrecognized `.editorconfig`
   value).
-- **SQLA0002** — SQL construct not supported on the target dialect. Fires when a
+- **SQLA0100** — SQL construct not supported on the target dialect. Fires when a
   `Sql.*` call is unsupported for the configured DBMS.
-- **SQLA0003** — Version-bound construct. Supported on the target dialect, but
+- **SQLA0101** — Version-bound construct. Supported on the target dialect, but
   not until a newer engine version than the one declared.
-- **SQLA0004** — Context-restricted construct. A construct the target supports,
+- **SQLA0102** — Context-restricted construct. A construct the target supports,
   used in a position that dialect rejects.
-- **SQLA0005** — Correlated `UPDATE`/`DELETE` with an unaliased target — the
-  same violation `Build()` rejects, surfaced early.
-- **SQLA0006** — Identifier too long for the target dialect's limit.
-- **SQLA0007** — Constant NULL predicate: `IS [NOT] NULL` on a column the
+- **SQLA0103** — Identifier too long for the target dialect's limit.
+- **SQLA0200** — Constant NULL predicate: `IS [NOT] NULL` on a column the
   generated table class declares NOT NULL. Reported only in a statement that
   visibly builds its own query and has no outer join.
-- **SQLA0008** — `NOT IN` over a subquery selecting a nullable column — one
+- **SQLA0201** — `NOT IN` over a subquery selecting a nullable column — one
   NULL and the query matches nothing.
-- **SQLA0009** — `INSERT` column list omitting a NOT NULL column with no
+- **SQLA0202** — `INSERT` column list omitting a NOT NULL column with no
   default.
-- **SQLA0010** — `Count(col)` on a nullable column, which counts values rather
+- **SQLA0203** — `Count(col)` on a nullable column, which counts values rather
   than rows. Advice on correct code, so it is Info and off by default.
-- **SQLA0011** — a `WHERE`/`ON` predicate that wraps an indexed column in a
+- **SQLA0204** — a `WHERE`/`ON` predicate that wraps an indexed column in a
   function or leads its pattern with `%`, so no index on it can be used.
-- **SQLA0012** — a column compared to a value of another type category. MySQL
+- **SQLA0205** — a column compared to a value of another type category. MySQL
   reconciles the two as floating point, so the mismatch changes which rows
   match. The category is the public `DbTypeCategory` enum, which TableClassGen
   emits symbolically and the analyzer resolves by member name (never by the
   underlying integer), gated by `SchemaMetadataParityTests`.
+- **SQLA0300** — Correlated `UPDATE`/`DELETE` with an unaliased target — the
+  same violation `Build()` rejects, surfaced early.
 
-SQLA0007–0012 read the `DbColumnMetadata` attributes TableClassGen emits;
-absence of a fact is silence. They sit in their own `SqlArtisan.Schema`
-category (SQLA0001–0006 are `SqlArtisan.Dialect`) so a bulk-severity setting
-reaches one family without the other. What Tier 2 may collect and conclude —
+Each ID sits in a numbered band that **is** its category, so a family gains a
+rule without renumbering and a bulk-severity setting reaches one family only
+(**ADR 0018**): `SQLA0001`–`0099` `SqlArtisan.Configuration`, `SQLA0100`–`0199`
+`SqlArtisan.Dialect`, `SQLA0200`–`0299` `SqlArtisan.Schema`, `SQLA0300`–`0399`
+`SqlArtisan.Validity`. A new rule takes the next ID **inside its band**, never
+the next free number overall; `DiagnosticOrderingTests` gates the pairing.
+
+SQLA0200–0205 read the `DbColumnMetadata` attributes TableClassGen emits;
+absence of a fact is silence. What Tier 2 may collect and conclude —
 and the parity catalog every rule reading the query must stay silent on
 (`SchemaRuleParityTests`) — is fixed by **ADR 0010**; add a hazard shape
 there, not to one rule's suite.

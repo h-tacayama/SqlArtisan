@@ -34,21 +34,21 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.UnsupportedDialectConstruct,
         DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
-        DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
         DiagnosticDescriptors.IdentifierTooLong,
         DiagnosticDescriptors.ConstantNullPredicate,
         DiagnosticDescriptors.NotInNullableSubquery,
         DiagnosticDescriptors.InsertMissingRequiredColumn,
         DiagnosticDescriptors.CountNullableColumn,
         DiagnosticDescriptors.UnusableIndexPredicate,
-        DiagnosticDescriptors.TypeCategoryMismatch);
+        DiagnosticDescriptors.TypeCategoryMismatch,
+        DiagnosticDescriptors.CorrelatedDmlTargetNotAliased);
 
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
-        // The generic walkers first — they serve SQLA0002/0003 together and key on
+        // The generic walkers first — they serve SQLA0100/0003 together and key on
         // the operation kind, not a rule — then one dispatcher per rule in ID order,
         // then the compilation action, which is not an operation action at all.
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);

@@ -14,10 +14,10 @@ target.
 - [Enabling it](#enabling-it)
 - [Rules](#rules)
 - [Correcting a warning: the override keys](#correcting-a-warning-the-override-keys)
-- [Version-aware warnings (SQLA0003)](#version-aware-warnings-sqla0003)
-- [Context rules (SQLA0004)](#context-rules-sqla0004)
-- [Correlated DML target (SQLA0005)](#correlated-dml-target-sqla0005)
-- [Schema-aware warnings (SQLA0007)](#schema-aware-warnings-sqla0007)
+- [Version-aware warnings (SQLA0101)](#version-aware-warnings-sqla0101)
+- [Context rules (SQLA0102)](#context-rules-sqla0102)
+- [Correlated DML target (SQLA0300)](#correlated-dml-target-sqla0300)
+- [Schema-aware warnings (SQLA0200)](#schema-aware-warnings-sqla0200)
 - [Mixed-dialect projects](#mixed-dialect-projects)
 - [CI gates and stricter enforcement](#ci-gates-and-stricter-enforcement)
 - [Verified-against versions](#verified-against-versions)
@@ -54,46 +54,49 @@ the analyzer never reports anything — enabling it is purely additive.
 | ID | Severity | Reports |
 |---|---|---|
 | `SQLA0001` | Warning | A `sqlartisan_target_dbms` or `sqlartisan_construct_*` value could not be recognized. |
-| `SQLA0002` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
-| `SQLA0003` | Warning | A construct is supported on the target dialect, but not at the declared `sqlartisan_target_version` — see [Version-aware warnings](#version-aware-warnings-sqla0003). |
-| `SQLA0004` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0004). |
-| `SQLA0005` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0005). |
-| `SQLA0006` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
-| `SQLA0007` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
-| `SQLA0008` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
-| `SQLA0009` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
-| `SQLA0010` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
-| `SQLA0011` | Warning | A `WHERE` or `ON` predicate wraps an indexed column in a function, or matches it with a leading-wildcard pattern, so no index on it can be used. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
-| `SQLA0012` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two for you, and on MySQL that changes which rows match. See [Schema-aware warnings](#schema-aware-warnings-sqla0007). |
+| `SQLA0100` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
+| `SQLA0101` | Warning | A construct is supported on the target dialect, but not at the declared `sqlartisan_target_version` — see [Version-aware warnings](#version-aware-warnings-sqla0101). |
+| `SQLA0102` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
+| `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
+| `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0203` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0204` | Warning | A `WHERE` or `ON` predicate wraps an indexed column in a function, or matches it with a leading-wildcard pattern, so no index on it can be used. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0205` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two for you, and on MySQL that changes which rows match. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0300` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
 
-The rules fall into two categories, so a bulk-severity setting can reach one
-family without the other:
+**Each ID sits in a numbered band, and the band is the category** — so a
+bulk-severity setting reaches one family without the others, and a rule added
+later keeps its family's numbering instead of taking the next free number:
 
-| Category | Rules | Answers |
+| Band | Category | Answers |
 |---|---|---|
-| `SqlArtisan.Dialect` | `SQLA0001`–`SQLA0006` | will this run on the engine you configured? |
-| `SqlArtisan.Schema` | `SQLA0007`–`SQLA0012` | does it agree with what your table classes say the columns are? |
+| `SQLA0001`–`SQLA0099` | `SqlArtisan.Configuration` | is the analyzer itself configured correctly? |
+| `SQLA0100`–`SQLA0199` | `SqlArtisan.Dialect` | will this run on the engine you configured? |
+| `SQLA0200`–`SQLA0299` | `SqlArtisan.Schema` | does it agree with what your table classes say the columns are? |
+| `SQLA0300`–`SQLA0399` | `SqlArtisan.Validity` | is this a statement `Build()` would reject? |
 
 ```ini
-# every schema rule as an error, dialect rules untouched
+# every schema rule as an error, the other families untouched
 dotnet_analyzer_diagnostic.category-SqlArtisan.Schema.severity = error
 ```
 
-A bulk setting reaches only rules that are enabled by default, so `SQLA0010`
+A bulk setting reaches only rules that are enabled by default, so `SQLA0203`
 still needs naming by ID.
 
 `SQLA0001` is a compilation-end diagnostic reported once per distinct
 (key, value) with no file location: it appears in **build** output (CLI and
 CI, and an IDE's Error List after an explicit build — check that the list's
 source filter includes Build entries), but not in the editor's live
-analysis, which never runs compilation-end actions. `SQLA0002`, by
+analysis, which never runs compilation-end actions. `SQLA0100`, by
 contrast, is a per-usage diagnostic and shows up live as you type.
 
-`SQLA0002` only ever fires for a construct the matrix has confirmed — one
+`SQLA0100` only ever fires for a construct the matrix has confirmed — one
 without a matrix entry stays silent rather than guessed at, so an incomplete
 matrix can under-warn but never produce a false positive.
 
-`SQLA0006` checks compile-time identifier literals — table and expression
+`SQLA0103` checks compile-time identifier literals — table and expression
 aliases (`.As(...)`), CTE and derived-table names, `VALUES` column names, and
 the Oracle `RETURNING ... INTO` output variable — against each dialect's limit:
 
@@ -111,16 +114,16 @@ the sharpest edge: it does not error on an over-long identifier but silently
 truncates it (only a notice), so two long names can collide after truncation,
 and the analyzer is the only place this surfaces before the database does.
 Only constant identifiers are checked; a name built at run time is left alone.
-Like `SQLA0002`, it is a per-usage diagnostic suppressible at one site
-(`#pragma warning disable SQLA0006`, a `[SuppressMessage]` attribute, or
-`dotnet_diagnostic.SQLA0006.severity`).
+Like `SQLA0100`, it is a per-usage diagnostic suppressible at one site
+(`#pragma warning disable SQLA0103`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0103.severity`).
 
 ```csharp
 using static SqlArtisan.Sql;
 
 // sqlartisan_target_dbms = mysql
 var g = Rollup(t.Code, t.Name);
-// warning SQLA0002: 'Rollup' is not supported on MySQL. Set
+// warning SQLA0100: 'Rollup' is not supported on MySQL. Set
 // 'sqlartisan_construct_rollup = supported' in .editorconfig if your
 // engine version supports it.
 ```
@@ -128,12 +131,12 @@ var g = Rollup(t.Code, t.Name);
 Severity is controlled the standard Roslyn way, per rule ID:
 
 ```ini
-dotnet_diagnostic.SQLA0002.severity = error   # promote to a build error
+dotnet_diagnostic.SQLA0100.severity = error   # promote to a build error
 dotnet_diagnostic.SQLA0001.severity = none    # suppress entirely
 ```
 
 Because severity is per rule ID, it cannot be scoped to one construct —
-promoting `SQLA0002` to `error` makes *every* dialect mismatch a build
+promoting `SQLA0100` to `error` makes *every* dialect mismatch a build
 failure, not just a chosen one. If you need to forbid a specific construct
 as a team policy rather than a dialect fact, reach for
 [`BannedApiAnalyzers`](https://www.nuget.org/packages/Microsoft.CodeAnalysis.BannedApiAnalyzers)
@@ -144,7 +147,7 @@ supports/doesn't support this," not "we've decided not to use this."
 
 ## Correcting a warning: the override keys
 
-Every `SQLA0002` message names the override key that would silence it. Two
+Every `SQLA0100` message names the override key that would silence it. Two
 kinds exist:
 
 - **Member-level** — `sqlartisan_construct_<name>` — applies to *every*
@@ -196,13 +199,13 @@ after adding one, check the key against the message text exactly.
 
 ---
 
-## Version-aware warnings (SQLA0003)
+## Version-aware warnings (SQLA0101)
 
 Some constructs are only newer than *some* engine versions on an otherwise
 supported dialect — `MERGE` before PostgreSQL 15, `DATETRUNC` before SQL
 Server 2022. Declare your engine's version with `sqlartisan_target_version`
-and the matrix's version bounds warn on those too, as `SQLA0003` — the same
-"this could break in production" fact `SQLA0002` reports for a dialect
+and the matrix's version bounds warn on those too, as `SQLA0101` — the same
+"this could break in production" fact `SQLA0100` reports for a dialect
 mismatch, just for a version shortfall instead:
 
 ```ini
@@ -217,7 +220,7 @@ sqlartisan_target_version = 2019
 using static SqlArtisan.Sql;
 
 var g = Datetrunc(DateTimePart.Day, "created_at");
-// warning SQLA0003: 'Datetrunc' requires SQL Server 2022+ but the declared
+// warning SQLA0101: 'Datetrunc' requires SQL Server 2022+ but the declared
 // target version is 2019. Set 'sqlartisan_construct_datetrunc = supported'
 // in .editorconfig if your engine supports it.
 ```
@@ -255,14 +258,14 @@ Or, if you prefer an MSBuild property:
   is flagged as `SQLA0001` and otherwise treated as unset.
 
 Suppression is per rule ID, the standard Roslyn way
-(`#pragma warning disable SQLA0003`, a `[SuppressMessage]` attribute, or
-`dotnet_diagnostic.SQLA0003.severity`).
+(`#pragma warning disable SQLA0101`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0101.severity`).
 
 ### Version-bound constructs
 
 Every construct below has a recorded minimum version on the named dialect.
 Declaring a version below the bound reports the construct as version-bound
-(`SQLA0003`); declaring no version keeps the matrix's plain
+(`SQLA0101`); declaring no version keeps the matrix's plain
 `supported`/`not supported` verdict, and a version at or above the bound
 resolves the construct as supported. For most rows that reproduces the plain
 verdict exactly; where the bound sits above the dialect's verified baseline
@@ -342,12 +345,12 @@ list both `MERGE` and the `regexp_count` / `regexp_instr` / `regexp_like` /
 
 ---
 
-## Context rules (SQLA0004)
+## Context rules (SQLA0102)
 
 A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
-rules**: `SQLA0004` fires when the offending position is visible in the
+rules**: `SQLA0102` fires when the offending position is visible in the
 expression where the construct is used. Four rules ship today — two MySQL
 facts and two SQL Server facts — each live-verified against the engine.
 
@@ -362,7 +365,7 @@ or CTE instead. Scalar, `EXISTS`, CTE, and derived-table positions accept
 // sqlartisan_target_dbms = mysql
 var q = Select(u.Id).From(u)
     .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2)));
-// warning SQLA0004: 'Limit' is not supported inside an IN/ANY/ALL/SOME subquery on MySQL
+// warning SQLA0102: 'Limit' is not supported inside an IN/ANY/ALL/SOME subquery on MySQL
 ```
 
 **`GROUPING()` outside a `WITH ROLLUP` query.** MySQL accepts `Grouping(...)`
@@ -373,7 +376,7 @@ only when the query's `GROUP BY` carries the `WITH ROLLUP` suffix — chain
 // sqlartisan_target_dbms = mysql
 var q = Select(u.DepartmentId, Grouping(u.DepartmentId))
     .From(u).GroupBy(u.DepartmentId).OrderBy(u.DepartmentId);
-// warning SQLA0004: 'Grouping' is not supported outside a WITH ROLLUP query on MySQL
+// warning SQLA0102: 'Grouping' is not supported outside a WITH ROLLUP query on MySQL
 ```
 
 **`PERCENTILE_CONT` / `PERCENTILE_DISC` outside an `OVER` clause.** SQL Server
@@ -384,7 +387,7 @@ chain `.Over()` (optionally with `PartitionBy(...)`) after `.WithinGroup(...)`.
 ```csharp
 // sqlartisan_target_dbms = sqlserver
 var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u);
-// warning SQLA0004: 'PercentileCont' is not supported outside an OVER clause on SQL Server
+// warning SQLA0102: 'PercentileCont' is not supported outside an OVER clause on SQL Server
 ```
 
 **`INSERTED` / `DELETED` outside an `OUTPUT` clause.** The pseudo-tables are
@@ -395,7 +398,7 @@ resolve against no table anywhere else — read the row images inside
 ```csharp
 // sqlartisan_target_dbms = sqlserver
 var q = Select(u.Id).From(u).Where(Inserted(u.Id) == 1);
-// warning SQLA0004: 'Inserted' is not supported outside an OUTPUT clause on SQL Server
+// warning SQLA0102: 'Inserted' is not supported outside an OUTPUT clause on SQL Server
 ```
 
 A context rule warns only when the position is provable from the expression
@@ -411,20 +414,20 @@ clause that consumes it, since a percentile parked in a variable can still
 acquire `.Over()` on a later line.
 
 Suppression is per rule ID, the standard Roslyn way
-(`#pragma warning disable SQLA0004`, a `[SuppressMessage]` attribute, or
-`dotnet_diagnostic.SQLA0004.severity`). The `sqlartisan_construct_*`
+(`#pragma warning disable SQLA0102`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0102.severity`). The `sqlartisan_construct_*`
 override keys do **not** apply here — they answer "does my engine support
 this construct," which is not what a context rule reports.
 
 ---
 
-## Correlated DML target (SQLA0005)
+## Correlated DML target (SQLA0300)
 
 An UPDATE or DELETE whose subquery references a column of the **unaliased**
 target table is a silent tautology: the bare outer column resolves to the
 inner table, so the condition compares a row to itself and the statement
 updates or deletes every row. `Build()` rejects exactly this statement at
-run time; `SQLA0005` is the same finding surfaced at compile time, where
+run time; `SQLA0300` is the same finding surfaced at compile time, where
 the fix is cheapest.
 
 ```csharp
@@ -433,7 +436,7 @@ UsersTable u = new();
 OrdersTable o = new("o");
 var q = DeleteFrom(u)
     .Where(Exists(Select(o.Id).From(o).Where(o.UserId == u.Id)));
-// warning SQLA0005: The target of a correlated UPDATE or DELETE must be aliased
+// warning SQLA0300: The target of a correlated UPDATE or DELETE must be aliased
 ```
 
 The fix is the one the run-time guard demands: alias the target
@@ -458,14 +461,14 @@ silent. A missing warning therefore never means the statement is safe;
 `Build()` remains the enforcement.
 
 Suppression is per rule ID, the standard Roslyn way
-(`#pragma warning disable SQLA0005`, a `[SuppressMessage]` attribute, or
-`dotnet_diagnostic.SQLA0005.severity`). The `sqlartisan_construct_*`
+(`#pragma warning disable SQLA0300`, a `[SuppressMessage]` attribute, or
+`dotnet_diagnostic.SQLA0300.severity`). The `sqlartisan_construct_*`
 override keys do not apply — the construct's dialect support is not what
 this rule reports.
 
 ---
 
-## Schema-aware warnings (SQLA0007)
+## Schema-aware warnings (SQLA0200)
 
 `SqlArtisan.TableClassGen` records what the catalog says about each column on
 the generated table class:
@@ -481,7 +484,7 @@ alone cannot. The first is a predicate whose answer never depends on the data:
 ```csharp
 // sqlartisan_target_dbms = postgresql
 var sql = Select(t.Code).From(t).Where(t.Code.IsNull).Build();
-// warning SQLA0007: 'Code' is NOT NULL, so 'IsNull' is always false
+// warning SQLA0200: 'Code' is NOT NULL, so 'IsNull' is always false
 ```
 
 `IS NOT NULL` on the same column reports the mirror image — always `true`.
@@ -516,7 +519,7 @@ var sql =
     .From(t)
     .Where(t.Id.NotIn(Select(s.Ref).From(s)))   // s.Ref is nullable
     .Build();
-// warning SQLA0008: 'Ref' is nullable, so this NOT IN matches no rows at all
+// warning SQLA0201: 'Ref' is nullable, so this NOT IN matches no rows at all
 // when the subquery yields a NULL
 ```
 
@@ -532,7 +535,7 @@ statement is valid and the warning is a false alarm to suppress.
 
 ```csharp
 var sql = InsertInto(t, t.Note).Values("x").Build();
-// warning SQLA0009: 'Code' is NOT NULL with no default and is missing from
+// warning SQLA0202: 'Code' is NOT NULL with no default and is missing from
 // this INSERT's column list
 ```
 
@@ -556,23 +559,23 @@ rule that is disabled by default:
 
 ```ini
 [*.cs]
-dotnet_diagnostic.SQLA0010.severity = suggestion
+dotnet_diagnostic.SQLA0203.severity = suggestion
 ```
 
 ```csharp
 var sql = Select(Count(t.Note)).From(t).Build();   // t.Note is nullable
-// info SQLA0010: 'Note' is nullable, so this COUNT skips its NULL rows.
+// info SQLA0203: 'Note' is nullable, so this COUNT skips its NULL rows.
 // Use Count(Asterisk) to count rows.
 ```
 
 At `suggestion` this appears in the IDE and in a SARIF log, but **not** in
 `dotnet build` output at any verbosity — a plain build prints nothing below
-warning level. Use `dotnet_diagnostic.SQLA0010.severity = warning` to see it in
+warning level. Use `dotnet_diagnostic.SQLA0203.severity = warning` to see it in
 a build or in CI.
 
 Only the plain `Count(expr)` form is considered: `Count(Asterisk)` counts rows
 already, and `Count(Distinct, expr)` asks for distinct values, which `COUNT(*)`
-cannot give. Like `SQLA0007` it stays out of any statement with an outer join,
+cannot give. Like `SQLA0200` it stays out of any statement with an outer join,
 where counting the column is precisely how you count the matched rows and
 `COUNT(*)` would count the unmatched ones too — the same reason a `NOT NULL`
 column is never reported in a plain query, where it and `COUNT(*)` agree.
@@ -583,7 +586,7 @@ anchor the pattern with a leading `%`, and the engine has to look at every row.
 
 ```csharp
 var sql = Select(t.Id).From(t).Where(Upper(t.Name) == "SMITH").Build();
-// warning SQLA0011: 'Name' leads an index, but this filter has it wrapped in
+// warning SQLA0204: 'Name' leads an index, but this filter has it wrapped in
 // Upper, so no index on it can be used
 ```
 
@@ -634,7 +637,7 @@ floating-point numbers:
 
 ```csharp
 var sql = Select(t.Id).From(t).Where(t.ZipCode == Bind(1500001)).Build();
-// warning SQLA0012: 'ZipCode' is text, but this compares it to numeric.
+// warning SQLA0205: 'ZipCode' is text, but this compares it to numeric.
 // Cast one side to say which you mean.
 ```
 
@@ -672,11 +675,11 @@ never wrote, a fact it could not determine (an absent named argument), a
 hand-written table class, or a column reached through
 `new DbTable("t").Column("x")` — which has no declaration to carry metadata —
 all produce nothing. Regenerate your table classes to opt in; nothing else
-changes. `SQLA0008` additionally reads only a select list it can see: a
+changes. `SQLA0201` additionally reads only a select list it can see: a
 subquery held in a variable, one whose chain does not begin at `Select(...)`
 (a `WITH`-headed query), or one selecting anything other than a single column,
 is left alone — as is one whose own filter it cannot read, since a condition
-held in a variable may be the `.Where(s.Ref.IsNotNull)` that already fixes it. `SQLA0009` skips a statement whose column list it cannot read in
+held in a variable may be the `.Where(s.Ref.IsNotNull)` that already fixes it. `SQLA0202` skips a statement whose column list it cannot read in
 full — a column array built elsewhere — since a column it failed to read would
 otherwise look omitted.
 
@@ -714,14 +717,14 @@ comes only from its `.editorconfig` scope or the MSBuild property.
 **Promote a dialect mismatch to a hard failure:**
 
 ```ini
-dotnet_diagnostic.SQLA0002.severity = error
+dotnet_diagnostic.SQLA0100.severity = error
 ```
 
 Every confirmed mismatch fails the build; escape hatches (`supported`
 overrides) still apply first, so only genuinely unconfirmed constructs fail.
 
 **Whitelist mode** — failing on any construct the matrix hasn't verified — is
-deliberately not offered. `SQLA0002` fires only on a *confirmed* mismatch (a
+deliberately not offered. `SQLA0100` fires only on a *confirmed* mismatch (a
 construct the matrix doesn't know stays silent rather than guess), so there is
 no "unverified construct" diagnostic to promote: the matrix's completeness is
 the safety net, and this repository enforces it. A coverage test fails when any
@@ -744,7 +747,7 @@ against):
 | Dialect | Verified against |
 |---|---|
 | MySQL | MySQL 8.0 |
-| Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0003` reports |
+| Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0101` reports |
 | PostgreSQL | PostgreSQL 16 |
 | SQLite | `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 (via `Microsoft.Data.Sqlite` 9.0.5) |
 | SQL Server | SQL Server 2022 |
@@ -789,7 +792,7 @@ for, not a bug in the matrix.
   [`DialectMatrix.cs`](https://github.com/h-tacayama/SqlArtisan/blob/main/src/SqlArtisan.Analyzers/DialectMatrix.cs)
   for what's entered.
 - **The dialect-independent rules need a configured target too.**
-  `SQLA0005` and the schema-aware `SQLA0007`–`SQLA0012` report facts that
+  `SQLA0300` and the schema-aware `SQLA0200`–`SQLA0205` report facts that
   hold on every engine, but the analyzer as a whole stays silent until
-  `sqlartisan_target_dbms` is set — without a target, `SQLA0005`'s `Build()`
+  `sqlartisan_target_dbms` is set — without a target, `SQLA0300`'s `Build()`
   guard is the only report and the schema rules have none.

@@ -64,7 +64,7 @@ public class SchemaNullabilityAnalyzerTests
     }
 
     private static DiagnosticResult Expected(string column, string predicate, string constant) =>
-        new DiagnosticResult("SQLA0007", Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
+        new DiagnosticResult("SQLA0200", Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
             .WithLocation(0)
             .WithArguments(column, predicate, constant);
 

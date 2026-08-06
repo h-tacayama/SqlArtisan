@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0005 when a correlated UPDATE/DELETE has a provably unaliased
+/// Reports SQLA0300 when a correlated UPDATE/DELETE has a provably unaliased
 /// target — the violation the core's Build()-time guard rejects, surfaced at
 /// compile time (#256). Advisory: suppressing it does not disable the throw.
 /// </summary>

@@ -46,14 +46,14 @@ public class CountNullableColumnAnalyzerTests
 
         [*.cs]
         sqlartisan_target_dbms = postgresql
-        dotnet_diagnostic.SQLA0010.severity = {severity}
+        dotnet_diagnostic.SQLA0203.severity = {severity}
         """;
 
     private static Task RunReporting(string statements, string column) =>
         RunAsync(
             Usage(statements),
             EditorConfig("suggestion"),
-            [new DiagnosticResult("SQLA0010", DiagnosticSeverity.Info)
+            [new DiagnosticResult("SQLA0203", DiagnosticSeverity.Info)
                 .WithLocation(0)
                 .WithArguments(column)]);
 
@@ -95,7 +95,7 @@ public class CountNullableColumnAnalyzerTests
     {
         DiagnosticDescriptor descriptor = Assert.Single(
             new DialectUsageAnalyzer().SupportedDiagnostics,
-            d => d.Id == "SQLA0010");
+            d => d.Id == "SQLA0203");
 
         Assert.False(descriptor.IsEnabledByDefault);
         Assert.Equal(DiagnosticSeverity.Info, descriptor.DefaultSeverity);
@@ -146,5 +146,5 @@ public class CountNullableColumnAnalyzerTests
     public Task Count_NoTargetConfigured_Silent() =>
         RunSilent(
             "var sql = Select(Count(t.Note)).From(t).Build();",
-            "root = true\n\n[*.cs]\ndotnet_diagnostic.SQLA0010.severity = suggestion");
+            "root = true\n\n[*.cs]\ndotnet_diagnostic.SQLA0203.severity = suggestion");
 }
