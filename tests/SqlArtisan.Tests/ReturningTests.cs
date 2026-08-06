@@ -314,7 +314,7 @@ public class ReturningTests
     }
 
     [Fact]
-    public void ReturningInto_OnSqlServer_UsesDialectParameterMarker()
+    public void ReturningInto_SqlServer_UsesDialectParameterMarker()
     {
         SqlStatement sql =
             DeleteFrom(_t)
