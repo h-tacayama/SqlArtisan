@@ -1,13 +1,15 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The row-limiting clauses that can follow a query. The forms are per-dialect: <c>LIMIT</c>/<c>OFFSET</c> (PostgreSQL/MySQL/SQLite) versus <c>OFFSET ... ROWS</c> / <c>FETCH ... ROWS ONLY</c> (Oracle 12c+/SQL Server 2012+).
+/// The row-limiting clauses that can follow a query. The forms are per-dialect: <c>LIMIT</c>/<c>OFFSET</c> (MySQL/PostgreSQL/SQLite) versus <c>OFFSET ... ROWS</c> / <c>FETCH ... ROWS ONLY</c> (Oracle 12c+/PostgreSQL/SQL Server 2012+).
 /// </summary>
 public interface IPagination
 {
     /// <summary>
-    /// Appends <c>LIMIT n</c>. Dialect-specific (PostgreSQL / MySQL / SQLite).
-    /// For Oracle 12c+ / SQL Server 2012+ use <see cref="FetchFirst(int)"/>.
+    /// Appends <c>LIMIT n</c>. Dialect-specific (MySQL / PostgreSQL / SQLite).
+    /// On Oracle 12c+ use <see cref="FetchFirst(int)"/>; on SQL Server 2012+ use
+    /// <see cref="OffsetRows(int)"/> followed by
+    /// <see cref="IOffsetFetchBuilder.FetchNext(int)"/>.
     /// </summary>
     /// <param name="count">The maximum number of rows to return.</param>
     /// <returns>The builder positioned to optionally add an <c>OFFSET</c>, or build.</returns>
@@ -35,7 +37,7 @@ public interface IPagination
     /// Appends <c>FETCH FIRST n ROWS ONLY</c> with no offset. Valid standalone on
     /// Oracle 12c+ (and PostgreSQL). SQL Server requires an <c>OFFSET</c>, so there
     /// use <see cref="OffsetRows(int)"/> followed by
-    /// <see cref="IOffsetFetchBuilder.FetchNext(int)"/>. For PostgreSQL / MySQL /
+    /// <see cref="IOffsetFetchBuilder.FetchNext(int)"/>. For MySQL / PostgreSQL /
     /// SQLite, <see cref="Limit(int)"/> is the more common form.
     /// </summary>
     /// <param name="count">The maximum number of rows to return.</param>

@@ -15,7 +15,7 @@ internal sealed class ReturningBuilder : IReturningBuilder
     {
         CollectionGuard.ThrowIfEmpty(
             expressions,
-            "At least one expression is required for Returning().");
+            "RETURNING requires at least one expression.");
 
         SqlPart[] resolved = SelectItemResolver.Resolve(expressions);
 
@@ -24,8 +24,8 @@ internal sealed class ReturningBuilder : IReturningBuilder
             if (resolved[i] is ExpressionAlias)
             {
                 throw new ArgumentException(
-                    "Use plain column expressions in Returning(). " +
-                    "To specify INTO variables, chain .Into(\"var1\", \"var2\").");
+                    "RETURNING requires plain column expressions; " +
+                    "name INTO variables with Into(new OutputParameter(...)).");
             }
         }
 
@@ -36,13 +36,13 @@ internal sealed class ReturningBuilder : IReturningBuilder
     {
         CollectionGuard.ThrowIfEmpty(
             outputs,
-            "At least one output parameter is required for Into().");
+            "INTO requires at least one output parameter.");
 
         if (outputs.Length != _expressions.Length)
         {
             throw new ArgumentException(
-                $"Into() requires {_expressions.Length} output parameter(s) to match " +
-                $"the {_expressions.Length} expression(s) in Returning(), but {outputs.Length} were provided.");
+                "INTO requires one output parameter per RETURNING expression " +
+                $"({_expressions.Length} expected, {outputs.Length} provided).");
         }
 
         _inner.AddPart(new ReturningIntoClause(_expressions, outputs));

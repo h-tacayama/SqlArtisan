@@ -11,7 +11,7 @@ public interface ISubquery
 
     /// <summary>
     /// Aliases this subquery as a scalar expression for use in a <c>SELECT</c>
-    /// list: <c>(SELECT ...) AS "alias"</c>.
+    /// list: <c>(SELECT ...) "alias"</c>.
     /// </summary>
     /// <param name="alias">The column alias.</param>
     /// <returns>An aliased scalar-subquery expression.</returns>

@@ -39,6 +39,7 @@ public sealed class SqlParameters
     /// <param name="name">The parameter marker name to look up.</param>
     /// <returns>The value cast to <typeparamref name="T"/>, or <see langword="default"/> if no parameter has that name.</returns>
     /// <exception cref="InvalidCastException">The stored value is not a <typeparamref name="T"/>.</exception>
+    /// <exception cref="NullReferenceException">The stored value is <see langword="null"/> and <typeparamref name="T"/> is a non-nullable value type.</exception>
     public T? Get<T>(string name)
     {
         foreach (KeyValuePair<string, BindValue> parameter in _parameters)

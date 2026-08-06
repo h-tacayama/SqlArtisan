@@ -216,10 +216,12 @@ public class ReturningTests
     [Fact]
     public void Returning_NoArguments_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning([])
             .Build());
+
+        Assert.Equal("RETURNING requires at least one expression.", ex.Message);
     }
 
     [Fact]
@@ -237,29 +239,41 @@ public class ReturningTests
     [Fact]
     public void Returning_WithExpressionAlias_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning(_t.Code.As("b"))
             .Build());
+
+        Assert.Equal(
+            "RETURNING requires plain column expressions; "
+            + "name INTO variables with Into(new OutputParameter(...)).",
+            ex.Message);
     }
 
     [Fact]
     public void ReturningInto_NoArguments_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
             .Into());
+
+        Assert.Equal("INTO requires at least one output parameter.", ex.Message);
     }
 
     [Fact]
     public void ReturningInto_VariableCountMismatch_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
             .Into(new OutputParameter("b", DbType.Int32))
             .Build());
+
+        Assert.Equal(
+            "INTO requires one output parameter per RETURNING expression "
+            + "(2 expected, 1 provided).",
+            ex.Message);
     }
 
     [Fact]
