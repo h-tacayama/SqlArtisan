@@ -103,7 +103,7 @@ public static partial class Sql
     /// <param name="expr">The value evaluated for each row of the window.</param>
     /// <param name="offset">The number of rows to look ahead from the current row.</param>
     /// <returns>An <see cref="AnalyticLeadFunction"/> emitting <c>LEAD(expr, offset)</c>.</returns>
-    /// <remarks>The offset is emitted as an integer literal.</remarks>
+    /// <inheritdoc cref="Lag(object, int)" path="/remarks"/>
     public static AnalyticLeadFunction Lead(object expr, int offset) =>
         new(Resolve(expr), offset);
 
@@ -117,8 +117,7 @@ public static partial class Sql
     /// <param name="offset">The number of rows to look ahead from the current row.</param>
     /// <param name="defaultValue">The value returned when the offset row falls outside the partition.</param>
     /// <returns>An <see cref="AnalyticLeadFunction"/> emitting <c>LEAD(expr, offset, default)</c>.</returns>
-    /// <remarks>The offset is emitted as an integer literal; the default value is
-    /// parameterized.</remarks>
+    /// <inheritdoc cref="Lag(object, int, object)" path="/remarks"/>
     public static AnalyticLeadFunction Lead(object expr, int offset, object defaultValue) =>
         new(Resolve(expr), offset, Resolve(defaultValue));
 

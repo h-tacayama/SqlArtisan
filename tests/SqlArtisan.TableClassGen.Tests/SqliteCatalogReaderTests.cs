@@ -4,10 +4,9 @@ using SqlArtisan.TableClassGen;
 
 namespace SqlArtisan.TableClassGen.Tests;
 
-// SQLite runs in-process (no container), so the generator's SQLite path — the one
-// engine that cannot use the information_schema builder — is verified here in the
-// fast unit lane. MySQL/SQL Server are verified against live engines in the
-// integration suite.
+// SQLite runs in-process (no container), so its reader — one of the two that
+// cannot use the information_schema builder, Oracle's being the other — is
+// verified here in the fast unit lane rather than the integration suite.
 public class SqliteCatalogReaderTests
 {
     private const string Schema =

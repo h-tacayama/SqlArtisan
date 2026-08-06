@@ -16,9 +16,8 @@ public sealed class GroupingSet : SqlPart
         _columns = columns;
     }
 
-    // A single column renders bare: `(a)` and `a` are equivalent groupings, so the
-    // redundant parentheses are dropped. Two or more columns render as a
-    // parenthesized list, and an empty set renders as `()`.
+    // `(a)` and `a` are equivalent groupings, so a single column drops the
+    // redundant parentheses.
     internal override void Format(SqlBuildingBuffer buffer)
     {
         if (_columns.Length == 1)

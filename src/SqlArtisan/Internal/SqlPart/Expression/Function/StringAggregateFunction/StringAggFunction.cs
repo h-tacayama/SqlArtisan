@@ -40,10 +40,8 @@ public sealed class StringAggFunction : SqlExpression
         .Append(Keywords.StringAgg)
         .OpenParenthesis()
         .Append(_expr)
-        // The separator is emitted as an inline string literal, not a bind
-        // parameter: SQL Server requires STRING_AGG's separator to be a literal
-        // (ADR 0004; same reason GROUP_CONCAT's SEPARATOR and LIKE ... ESCAPE
-        // are inlined). #168
+        // Inlined as a string literal, never bound: SQL Server requires
+        // STRING_AGG's separator to be a literal (ADR 0004, #168).
         .Append(", ")
         .AppendStringLiteral(_separator)
         .PrependSpaceIfNotNull(_orderByClause)

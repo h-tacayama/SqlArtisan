@@ -56,7 +56,8 @@ internal static class ExpressionResolver
 
     // A T[]-typed sibling of the IReadOnlyCollection<T> overload: foreach over a
     // concrete array is a compiler-recognized zero-allocation loop, while the same
-    // foreach through the interface boxes the array's enumerator (measured 16 B/call).
+    // foreach through the interface allocates the array's enumerator (measured
+    // 32 B/call, ADR 0006). Every other array foreach in the library is this shape.
     internal static SqlExpression[] Resolve<T>(T[] items)
     {
         var resolved = new SqlExpression[items.Length];

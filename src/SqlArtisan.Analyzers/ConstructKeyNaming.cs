@@ -5,12 +5,10 @@ namespace SqlArtisan.Analyzers;
 
 /// <summary>
 /// Derives the <c>.editorconfig</c> override key for a matrix entry from its C#
-/// member name, e.g. <c>MergeInto</c> -&gt; <c>sqlartisan_construct_merge_into</c>,
-/// <c>DateTrunc</c> -&gt; <c>sqlartisan_construct_date_trunc</c>. A single-word name
-/// with no internal capital (e.g. <c>Dateadd</c>, from the underscore-free SQL
-/// token <c>DATEADD</c>) round-trips to a single-word key (<c>dateadd</c>) since
-/// there is no capital-letter boundary to split on — this mirrors CLAUDE.md's
-/// naming rule (one leading capital per underscore-delimited SQL segment).
+/// member name: <c>MergeInto</c> -&gt; <c>sqlartisan_construct_merge_into</c>. A
+/// name with no internal capital has no boundary to split on and round-trips as
+/// one word, which mirrors the naming rule that gives each underscore-delimited
+/// SQL segment one leading capital.
 /// </summary>
 internal static class ConstructKeyNaming
 {

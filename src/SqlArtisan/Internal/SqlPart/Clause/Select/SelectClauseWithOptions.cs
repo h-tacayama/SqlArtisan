@@ -3,7 +3,6 @@ namespace SqlArtisan.Internal;
 internal sealed class SelectClauseWithOptions : SqlPart, ISelectItemsClause
 {
     private readonly SqlHints _hints;
-    // Either DISTINCT (DistinctKeyword) or DISTINCT ON (...) (DistinctOnKeyword).
     private readonly SqlPart _distinct;
     private readonly SqlPart[] _selectItems;
 

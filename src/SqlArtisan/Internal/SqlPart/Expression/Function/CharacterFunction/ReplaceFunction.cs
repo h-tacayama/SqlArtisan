@@ -8,7 +8,6 @@ public sealed class ReplaceFunction : SqlExpression
 
     internal ReplaceFunction(SqlExpression source, SqlExpression search, SqlExpression replacement)
     {
-
         _source = source;
         _search = search;
         _replacement = replacement;

@@ -112,9 +112,6 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
             throw new ArgumentException(NoRowsMessage);
         }
 
-        // foreach over the concrete array (not the IEnumerable<object[]> overload
-        // above) avoids boxing the array's enumerator — a compiler-recognized
-        // zero-allocation loop, per ADR 0006.
         foreach (object[] row in rows)
         {
             AddValuesRow(row);

@@ -4,11 +4,9 @@ namespace SqlArtisan.TableClassGen;
 
 internal static class CaseConverter
 {
-    // Converts a database name to a PascalCase C# identifier. Splits on any
-    // character that cannot appear in an identifier — underscores plus DB-allowed
-    // punctuation such as Oracle's '$' and '#' — so those never leak into the
-    // result, prefixes an underscore when the name would otherwise start with a
-    // digit, and falls back to "_" for a name that is entirely separators.
+    // Splits on any character that cannot appear in a C# identifier — not only
+    // underscores, but DB-allowed punctuation such as Oracle's '$' and '#' — so
+    // none of it can leak into the emitted identifier.
     public static string SnakeToPascalCase(string snakeCase)
     {
         if (string.IsNullOrEmpty(snakeCase))
