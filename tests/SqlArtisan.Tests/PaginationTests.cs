@@ -302,7 +302,7 @@ public class PaginationTests
     }
 
     [Fact]
-    public void OffsetRowsFetchNext_OnSqlServer_UsesDialectParameterMarker()
+    public void OffsetRowsFetchNext_SqlServer_UsesDialectParameterMarker()
     {
         SqlStatement sql =
             Select(_t.Code)

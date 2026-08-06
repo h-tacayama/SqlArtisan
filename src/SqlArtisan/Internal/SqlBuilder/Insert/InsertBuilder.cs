@@ -112,38 +112,12 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
             throw new ArgumentException(NoRowsMessage);
         }
 
-        // foreach over the concrete array (not the IEnumerable<object[]> overload
-        // above) avoids boxing the array's enumerator — a compiler-recognized
-        // zero-allocation loop, per ADR 0006.
         foreach (object[] row in rows)
         {
             AddValuesRow(row);
         }
 
         return this;
-    }
-
-    // The single-row append shared by every Values overload. A repeat call grows
-    // the held clause via AddRow (which validates row width), bypassing AddPart's
-    // once-per-part guard.
-    private void AddValuesRow(object[] values)
-    {
-        if (_valuesClause is null)
-        {
-            if (columnCount > 0 && values.Length > 0 && values.Length != columnCount)
-            {
-                throw new ArgumentException(
-                    $"The INSERT column list declares {columnCount} column(s), " +
-                    $"but this VALUES row has {values.Length} value(s).");
-            }
-
-            _valuesClause = InsertValuesClause.Parse(values);
-            AddPart(_valuesClause);
-        }
-        else
-        {
-            _valuesClause.AddRow(values);
-        }
     }
 
     IInsertIgnoreBuilderValues IInsertIgnoreBuilderColumns.Values(params object[] values) =>
@@ -197,5 +171,28 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(
             output, FindPart<OnConflictClause>(), FindPart<OnDuplicateKeyUpdateClause>());
+    }
+
+    // The single-row append shared by every Values overload. A repeat call grows
+    // the held clause via AddRow (which validates row width), bypassing AddPart's
+    // once-per-part guard.
+    private void AddValuesRow(object[] values)
+    {
+        if (_valuesClause is null)
+        {
+            if (columnCount > 0 && values.Length > 0 && values.Length != columnCount)
+            {
+                throw new ArgumentException(
+                    $"The INSERT column list declares {columnCount} column(s), " +
+                    $"but this VALUES row has {values.Length} value(s).");
+            }
+
+            _valuesClause = InsertValuesClause.Parse(values);
+            AddPart(_valuesClause);
+        }
+        else
+        {
+            _valuesClause.AddRow(values);
+        }
     }
 }

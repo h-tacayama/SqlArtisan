@@ -42,12 +42,10 @@ internal static class GroupByItemResolver
         }
     }
 
-    // Resolves the elements of ROLLUP(...) / CUBE(...): a required leading element
-    // plus zero or more trailing ones, each an ordinary grouping expression or a
-    // Sql.Group(...) composite column. The leading element is taken separately so
-    // the factory can pass its `params` array straight through — a null array (the
-    // C# binding for e.g. Rollup(a, null)) then throws a clear ArgumentNullException
-    // instead of failing with an NRE when spread into a collection expression.
+    // The leading element is taken separately from the `params` tail so the factory
+    // can pass its array straight through: a null array — the C# binding for e.g.
+    // Rollup(a, null) — then throws ArgumentNullException here instead of failing
+    // with an NRE when spread into a collection expression.
     internal static SqlPart[] ResolveElements(object element, params object[] elements)
     {
         if (elements is null)

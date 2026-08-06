@@ -103,7 +103,7 @@ public static partial class Sql
     /// <param name="expr">The value evaluated for each row of the window.</param>
     /// <param name="offset">The number of rows to look ahead from the current row.</param>
     /// <returns>An <see cref="AnalyticLeadFunction"/> emitting <c>LEAD(expr, offset)</c>.</returns>
-    /// <remarks>The offset is emitted as an integer literal.</remarks>
+    /// <inheritdoc cref="Lag(object, int)" path="/remarks"/>
     public static AnalyticLeadFunction Lead(object expr, int offset) =>
         new(Resolve(expr), offset);
 
@@ -117,8 +117,7 @@ public static partial class Sql
     /// <param name="offset">The number of rows to look ahead from the current row.</param>
     /// <param name="defaultValue">The value returned when the offset row falls outside the partition.</param>
     /// <returns>An <see cref="AnalyticLeadFunction"/> emitting <c>LEAD(expr, offset, default)</c>.</returns>
-    /// <remarks>The offset is emitted as an integer literal; the default value is
-    /// parameterized.</remarks>
+    /// <inheritdoc cref="Lag(object, int, object)" path="/remarks"/>
     public static AnalyticLeadFunction Lead(object expr, int offset, object defaultValue) =>
         new(Resolve(expr), offset, Resolve(defaultValue));
 
@@ -128,6 +127,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expressions">The values to compare.</param>
     /// <returns>The LEAST construct.</returns>
+    /// <remarks>SQLite has no <c>LEAST</c> — its multi-argument
+    /// <c>MIN(a, b, ...)</c> is the equivalent; SQL Server 2022+.</remarks>
     public static LeastFunction Least(params object[] expressions) =>
         new(Resolve(expressions));
 
@@ -204,7 +205,9 @@ public static partial class Sql
     /// <inheritdoc cref="Ltrim(object)"/>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip from the left.</param>
-    /// <remarks>Not supported by MySQL.</remarks>
+    /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax; SQL
+    /// Server also requires database compatibility level 160, the default for
+    /// new databases.</remarks>
     public static LtrimFunction Ltrim(object source, object trimChars) =>
         new(Resolve(source), Resolve(trimChars));
 }

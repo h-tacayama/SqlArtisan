@@ -56,7 +56,8 @@ internal static class ExpressionResolver
 
     // A T[]-typed sibling of the IReadOnlyCollection<T> overload: foreach over a
     // concrete array is a compiler-recognized zero-allocation loop, while the same
-    // foreach through the interface boxes the array's enumerator (measured 16 B/call).
+    // foreach through the interface allocates the array's enumerator (measured
+    // 32 B/call, ADR 0006). Every other array foreach in the library is this shape.
     internal static SqlExpression[] Resolve<T>(T[] items)
     {
         var resolved = new SqlExpression[items.Length];
@@ -67,6 +68,51 @@ internal static class ExpressionResolver
             resolved[i++] = Resolve(item!);
         }
 
+        return resolved;
+    }
+
+    // A variadic function's arguments resolved into one array. Resolving the
+    // params tail on its own and then spread-merging it into the leading
+    // arguments allocates a second array per construction (ADR 0006). Each
+    // overload resolves its leading arguments first, so a null there still
+    // reports before a null tail does.
+    internal static SqlExpression[] ResolveVariadic(object first, object[] items)
+    {
+        SqlExpression resolvedFirst = Resolve(first);
+        SqlExpression[] resolved = NewVariadicArray(items, 1);
+
+        resolved[0] = resolvedFirst;
+        ResolveInto(items, resolved, 1);
+        return resolved;
+    }
+
+    internal static SqlExpression[] ResolveVariadic(object first, object second, object[] items)
+    {
+        SqlExpression resolvedFirst = Resolve(first);
+        SqlExpression resolvedSecond = Resolve(second);
+        SqlExpression[] resolved = NewVariadicArray(items, 2);
+
+        resolved[0] = resolvedFirst;
+        resolved[1] = resolvedSecond;
+        ResolveInto(items, resolved, 2);
+        return resolved;
+    }
+
+    internal static SqlExpression[] ResolveVariadic(
+        object first,
+        object second,
+        object third,
+        object[] items)
+    {
+        SqlExpression resolvedFirst = Resolve(first);
+        SqlExpression resolvedSecond = Resolve(second);
+        SqlExpression resolvedThird = Resolve(third);
+        SqlExpression[] resolved = NewVariadicArray(items, 3);
+
+        resolved[0] = resolvedFirst;
+        resolved[1] = resolvedSecond;
+        resolved[2] = resolvedThird;
+        ResolveInto(items, resolved, 3);
         return resolved;
     }
 
@@ -109,6 +155,26 @@ internal static class ExpressionResolver
                 $"{item.GetType().Name} is not a complete SQL expression. {incomplete.CompletionHint}")
             : new ArgumentException(
                 $"Invalid type for {position}: {item.GetType()}");
+
+    // The tail parameter is named `items` here and above so a null tail keeps the
+    // message every other array-taking resolver entry point produces.
+    private static SqlExpression[] NewVariadicArray(object[] items, int leadingCount)
+    {
+        if (items is null)
+        {
+            throw new ArgumentNullException(nameof(items), NullValueMessage);
+        }
+
+        return new SqlExpression[items.Length + leadingCount];
+    }
+
+    private static void ResolveInto(object[] items, SqlExpression[] target, int offset)
+    {
+        for (int i = 0; i < items.Length; i++)
+        {
+            target[i + offset] = Resolve(items[i]);
+        }
+    }
 
     internal static bool IsBindable(object value) =>
         IsBoolean(value)

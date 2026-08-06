@@ -1,7 +1,7 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The builder state after <c>GROUP BY</c>: filter groups with <c>HAVING</c>, order, paginate, build, or (MySQL) append <c>WITH ROLLUP</c>.
+/// The builder state after <c>GROUP BY</c>: filter groups with <c>HAVING</c>, order, paginate, build, or append <c>WITH ROLLUP</c> (MySQL and SQL Server).
 /// </summary>
 public interface ISelectBuilderGroupBy : ISqlBuilder, ISetOperator, ISubquery, IPagination
 {
@@ -18,9 +18,12 @@ public interface ISelectBuilderGroupBy : ISqlBuilder, ISetOperator, ISubquery, I
 
     /// <summary>
     /// Appends the <c>WITH ROLLUP</c> suffix to the <c>GROUP BY</c> clause
-    /// (<c>GROUP BY a, b WITH ROLLUP</c>). MySQL's grouping syntax; SQL Server
-    /// accepts this legacy form too. On other dialects use the standard
-    /// <c>Sql.Rollup(...)</c> function form.
+    /// (<c>GROUP BY a, b WITH ROLLUP</c>).
     /// </summary>
+    /// <remarks>
+    /// MySQL's grouping syntax, which SQL Server accepts as a legacy form. On
+    /// Oracle and PostgreSQL use the standard <c>Sql.Rollup(...)</c> function
+    /// form; SQLite has neither.
+    /// </remarks>
     ISelectBuilderWithRollup WithRollup();
 }

@@ -9,9 +9,9 @@ public sealed class ConcatFunction : SqlExpression
         _core = new(Keywords.Concat, primary, secondary);
     }
 
-    internal ConcatFunction(SqlExpression primary, SqlExpression secondary, SqlExpression third, SqlExpression[] others)
+    internal ConcatFunction(SqlExpression[] args)
     {
-        _core = new(Keywords.Concat, [primary, secondary, third, .. others]);
+        _core = new(Keywords.Concat, args);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>

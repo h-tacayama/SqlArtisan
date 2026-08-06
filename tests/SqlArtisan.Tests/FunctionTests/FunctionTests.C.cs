@@ -107,6 +107,30 @@ public partial class FunctionTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // Past the three declared parameters the arguments arrive as a params tail
+    // merged after them, so this pins the merged order.
+    [Fact]
+    public void Concat_MoreValuesThanDeclaredParameters_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Concat(_t.Name, "a", "b", "c", _t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CONCAT(\"t\".name, :0, :1, :2, \"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+
+        // "c" and the trailing column are the params tail; "a" and "b" are declared
+        // parameters. The literals render as interchangeable markers, so only the
+        // bind values pin the order the two groups were merged in.
+        Assert.Equal(3, sql.Parameters.Count);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("b", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("c", sql.Parameters.Get<string>(":2"));
+    }
+
     [Fact]
     public void Contains_SqlServer_CorrectSql()
     {

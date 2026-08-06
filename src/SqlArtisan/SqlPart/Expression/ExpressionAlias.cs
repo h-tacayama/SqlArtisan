@@ -13,13 +13,10 @@ public sealed class ExpressionAlias : SqlPart, ISortable
 {
     private readonly SqlExpression _expr;
 
-    // When the alias names a CTE / derived-table handle column (As(DbColumn)),
-    // it must be emitted bare — exactly as that column is later referenced
-    // (DbColumn renders the name unquoted). Quoting only the definition would,
-    // on case-folding engines like Oracle, leave the definition lowercase while
-    // the reference folds to uppercase, so the column cannot be resolved (#165).
-    // A string alias (As("...")) stays alias-quoted: it is arbitrary text the
-    // caller chose and is only ever referenced through this same handle.
+    // A CTE / derived-table handle column (As(DbColumn)) must be emitted bare,
+    // exactly as DbColumn later references it: quoting only the definition leaves
+    // it lowercase on a case-folding engine like Oracle, where the reference folds
+    // to uppercase and no longer resolves (#165).
     private readonly bool _quoteAlias;
 
     internal ExpressionAlias(SqlExpression expr, string name, bool quoteAlias = true)

@@ -1,11 +1,12 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The <c>STRING_AGG(expr, separator)</c> string aggregate (PostgreSQL and
-/// SQL Server). Ordering is dialect-specific: PostgreSQL takes an inline
-/// <c>ORDER BY</c> passed as an argument to <c>Sql.StringAgg(...)</c> (it sits
-/// inside the call), while SQL Server uses a trailing
-/// <c>WITHIN GROUP (ORDER BY ...)</c> via <see cref="WithinGroup(OrderByClause)"/>.
+/// The <c>STRING_AGG(expr, separator)</c> string aggregate (PostgreSQL,
+/// SQLite 3.44+, and SQL Server). Ordering is dialect-specific: PostgreSQL and
+/// SQLite take an inline <c>ORDER BY</c> passed as an argument to
+/// <c>Sql.StringAgg(...)</c> (it sits inside the call), while SQL Server uses a
+/// trailing <c>WITHIN GROUP (ORDER BY ...)</c> via
+/// <see cref="WithinGroup(OrderByClause)"/>.
 /// </summary>
 public sealed class StringAggFunction : SqlExpression
 {
@@ -40,10 +41,8 @@ public sealed class StringAggFunction : SqlExpression
         .Append(Keywords.StringAgg)
         .OpenParenthesis()
         .Append(_expr)
-        // The separator is emitted as an inline string literal, not a bind
-        // parameter: SQL Server requires STRING_AGG's separator to be a literal
-        // (ADR 0004; same reason GROUP_CONCAT's SEPARATOR and LIKE ... ESCAPE
-        // are inlined). #168
+        // Inlined as a string literal, never bound: SQL Server requires
+        // STRING_AGG's separator to be a literal (ADR 0004, #168).
         .Append(", ")
         .AppendStringLiteral(_separator)
         .PrependSpaceIfNotNull(_orderByClause)

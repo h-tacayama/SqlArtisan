@@ -4,9 +4,9 @@ public sealed class GroupingIdFunction : SqlExpression
 {
     private readonly VariadicFunctionCore _core;
 
-    internal GroupingIdFunction(SqlExpression expr, SqlExpression[] others)
+    internal GroupingIdFunction(SqlExpression[] args)
     {
-        _core = new(Keywords.GroupingId, [expr, .. others]);
+        _core = new(Keywords.GroupingId, args);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>

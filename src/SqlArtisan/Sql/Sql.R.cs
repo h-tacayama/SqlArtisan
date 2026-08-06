@@ -99,11 +99,13 @@ public static partial class Sql
             Resolve(pattern),
             Resolve(replacement));
 
-    /// <inheritdoc cref="RegexpReplace(object, object, object)"/>
+    /// <inheritdoc cref="RegexpReplace(object, object, object)" path="/summary"/>
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <param name="position">The 1-based character position to start searching from.</param>
+    /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -114,12 +116,14 @@ public static partial class Sql
             Resolve(replacement),
             Resolve(position));
 
-    /// <inheritdoc cref="RegexpReplace(object, object, object)"/>
+    /// <inheritdoc cref="RegexpReplace(object, object, object)" path="/summary"/>
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <param name="position">The 1-based character position to start searching from.</param>
     /// <param name="occurrence">Which match to replace; <c>0</c> replaces all.</param>
+    /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -132,13 +136,15 @@ public static partial class Sql
             Resolve(position),
             Resolve(occurrence));
 
-    /// <inheritdoc cref="RegexpReplace(object, object, object)"/>
+    /// <inheritdoc cref="RegexpReplace(object, object, object)" path="/summary"/>
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <param name="position">The 1-based character position to start searching from.</param>
     /// <param name="occurrence">Which match to replace; <c>0</c> replaces all.</param>
     /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
+    /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -188,10 +194,12 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to round.</param>
     /// <returns>A <c>ROUND</c> function expression.</returns>
+    /// <remarks>SQL Server's <c>ROUND</c> requires the decimal count — pass
+    /// <c>0</c> to <see cref="Round(object, object)"/> there.</remarks>
     public static RoundFunction Round(object expr) =>
         new(Resolve(expr));
 
-    /// <inheritdoc cref="Round(object)"/>
+    /// <inheritdoc cref="Round(object)" path="/summary"/>
     /// <param name="expr">The numeric expression to round.</param>
     /// <param name="decimals">The number of decimal places to round to.</param>
     /// <returns>A <c>ROUND(x, n)</c> function expression.</returns>
@@ -229,7 +237,9 @@ public static partial class Sql
     /// <inheritdoc cref="Rtrim(object)"/>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip instead of spaces.</param>
-    /// <remarks>Not supported by MySQL.</remarks>
+    /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax; SQL
+    /// Server also requires database compatibility level 160, the default for
+    /// new databases.</remarks>
     public static RtrimFunction Rtrim(object source, object trimChars) =>
         new(Resolve(source), Resolve(trimChars));
 

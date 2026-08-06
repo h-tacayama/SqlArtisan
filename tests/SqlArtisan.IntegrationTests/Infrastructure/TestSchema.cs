@@ -15,14 +15,10 @@ namespace SqlArtisan.IntegrationTests.Infrastructure;
 /// </summary>
 internal static class TestSchema
 {
-    // INTEGER / VARCHAR / DECIMAL are accepted verbatim by PostgreSQL, MySQL,
-    // SQLite, and SQL Server (INTEGER is a SQL Server synonym for INT).
-    // Used by MySQL and SQLite, which have no sequences. INTEGER / VARCHAR /
-    // DECIMAL are accepted verbatim across these engines.
-    // The trailing `data` column carries a JSON document, exercised by the JSON
-    // functions/operators. MySQL needs its native JSON type for the `->`/`->>`
-    // operators; SQLite accepts the type name and stores the text (JSON functions
-    // operate on it regardless of declared affinity).
+    // Used by MySQL and SQLite alone; the other three engines each take their own
+    // DDL below. `data` carries a JSON document for the JSON functions — MySQL
+    // needs its native JSON type for `->`/`->>`, while SQLite operates on the text
+    // regardless of declared affinity.
     public static readonly string[] StandardDdl =
     [
         "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER, created_at TIMESTAMP, is_active BOOLEAN, data JSON)",

@@ -17,7 +17,7 @@ internal static class CountNullableColumnRule
 {
     public static void Check(OperationAnalysisContext context, IInvocationOperation count)
     {
-        // The parameter is object, so the column arrives behind a boxing conversion.
+        // The parameter is object, so the column arrives behind an implicit conversion.
         IOperation argument = count.Arguments[0].Value;
         if (argument is IConversionOperation conversion)
         {

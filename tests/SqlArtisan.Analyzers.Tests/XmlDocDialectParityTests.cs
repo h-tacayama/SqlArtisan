@@ -37,6 +37,8 @@ public class XmlDocDialectParityTests
         ["M:SqlArtisan.Sql.ToNumber(System.Object,System.Object)", "ToNumber", 2],
         ["M:SqlArtisan.Sql.Of(SqlArtisan.DbColumn)", "Of", 1],
         ["P:SqlArtisan.Sql.Nowait", "Nowait", null!],
+        ["P:SqlArtisan.Sql.SkipLocked", "SkipLocked", null!],
+        ["M:SqlArtisan.Sql.RegexpReplace(System.Object,System.Object,System.Object)", "RegexpReplace", 3],
         ["M:SqlArtisan.Sql.Trim(System.Object,System.Object)", "Trim", 2],
         ["M:SqlArtisan.Sql.Substr(System.Object,System.Object)", "Substr", 2],
         ["M:SqlArtisan.Sql.Rtrim(System.Object,System.Object)", "Rtrim", 2],

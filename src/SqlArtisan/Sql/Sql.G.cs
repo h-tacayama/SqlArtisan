@@ -11,6 +11,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expressions">The values to compare.</param>
     /// <returns>The <c>GREATEST</c> function expression.</returns>
+    /// <remarks>SQLite has no <c>GREATEST</c> — its multi-argument
+    /// <c>MAX(a, b, ...)</c> is the equivalent; SQL Server 2022+.</remarks>
     public static GreatestFunction Greatest(params object[] expressions) =>
         new(Resolve(expressions));
 
@@ -170,7 +172,7 @@ public static partial class Sql
     /// form (use <see cref="GroupingId(object, object[])"/> there instead), and
     /// neither SQLite nor SQL Server support it.</remarks>
     public static GroupingFunction Grouping(object expr1, object expr2, params object[] others) =>
-        new(Resolve(expr1), Resolve(expr2), Resolve(others));
+        new(ResolveVariadic(expr1, expr2, others));
 
     /// <summary>
     /// The <c>GROUPING_ID(<paramref name="expr"/>, ...)</c> bitmask function: each
@@ -184,7 +186,7 @@ public static partial class Sql
     /// <remarks>Oracle and SQL Server syntax; for MySQL/PostgreSQL's equivalent
     /// bitmask use <see cref="Grouping(object, object, object[])"/> instead.</remarks>
     public static GroupingIdFunction GroupingId(object expr, params object[] others) =>
-        new(Resolve(expr), Resolve(others));
+        new(ResolveVariadic(expr, others));
 
     /// <summary>
     /// The <c>GROUPING SETS(...)</c> GROUP BY grouping extension, built from one or

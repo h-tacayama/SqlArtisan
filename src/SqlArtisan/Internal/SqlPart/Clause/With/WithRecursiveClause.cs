@@ -2,11 +2,10 @@ namespace SqlArtisan.Internal;
 
 internal sealed class WithRecursiveClause : SqlPart
 {
-    // The CTE column list (`cte(a, b) AS ...`) is emitted unconditionally,
-    // derived from the anchor query block's select items: the engines that
-    // accept WITH RECURSIVE (MySQL/PostgreSQL/SQLite) all accept the list, so
-    // one uniform shape needs no per-dialect branch. Derivation is eager — the
-    // anchor's resolved items are fixed at the WithRecursive(...) call.
+    // The CTE column list (`cte(a, b) AS ...`) is emitted unconditionally: every
+    // engine that accepts WITH RECURSIVE accepts the list, so one uniform shape
+    // needs no per-dialect branch. Deriving it is eager — the anchor's resolved
+    // select items are fixed at the WithRecursive(...) call.
     private readonly CommonTableExpressions _ctes;
     private readonly string[][] _columnNames;
 

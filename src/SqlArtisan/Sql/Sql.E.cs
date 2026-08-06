@@ -21,6 +21,9 @@ public static partial class Sql
     /// <param name="column">The conflicting-insert column to reference.</param>
     /// <returns>An <see cref="ExcludedColumn"/> referencing the proposed row's
     /// value of <paramref name="column"/>.</returns>
+    /// <remarks>MySQL 8.0.19+ (SqlArtisan always emits the row-alias form).
+    /// Oracle and SQL Server have no UPSERT excluded row — use <c>MERGE</c>
+    /// there.</remarks>
     public static ExcludedColumn Excluded(DbColumn column) => new(column);
 
     /// <summary>
