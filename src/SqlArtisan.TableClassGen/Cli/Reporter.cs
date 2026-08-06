@@ -77,14 +77,16 @@ internal sealed class Reporter(RunOptions options)
             ? options.DryRun ? "Would regenerate" : "Regenerated"
             : "Drift detected against";
 
-        // Fix mode only ever writes NeedsWrite tables, so its headline count must
-        // match — the Removed entries below are files Fix leaves untouched.
-        int headlineCount = options.Mode == RunMode.Fix
-            ? drifted.Count(r => r.NeedsWrite)
-            : drifted.Count;
+        // Fix writes only the NeedsWrite tables, so it states that against the drift
+        // total — the shortfall is the orphans below, which it can only report.
+        string count = options.Mode == RunMode.Fix
+            ? $"{drifted.Count(r => r.NeedsWrite)} of {drifted.Count}"
+            : drifted.Count.ToString();
+
+        string noun = drifted.Count == 1 ? "table" : "tables";
 
         Console.WriteLine(
-            $"{headline} {options.Settings.OutputDirectory} ({headlineCount} {(headlineCount == 1 ? "table" : "tables")}):");
+            $"{headline} {options.Settings.OutputDirectory} ({count} {noun}):");
         Console.WriteLine();
 
         foreach (TableResult result in drifted)
