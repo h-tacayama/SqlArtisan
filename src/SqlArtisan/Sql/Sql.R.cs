@@ -104,6 +104,7 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <param name="position">The 1-based character position to start searching from.</param>
+    /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
@@ -121,6 +122,7 @@ public static partial class Sql
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <param name="position">The 1-based character position to start searching from.</param>
     /// <param name="occurrence">Which match to replace; <c>0</c> replaces all.</param>
+    /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
@@ -141,6 +143,7 @@ public static partial class Sql
     /// <param name="position">The 1-based character position to start searching from.</param>
     /// <param name="occurrence">Which match to replace; <c>0</c> replaces all.</param>
     /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
+    /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,

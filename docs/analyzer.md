@@ -280,7 +280,7 @@ the version is what lifts it.
 | `Except`, `ExceptAll`, `IntersectAll`, `MinusAll` | Oracle | 21 | `EXCEPT`, `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` landed in Oracle 21c (plain `INTERSECT`/`MINUS` predate it) — live-verified forward-compatible on Oracle 23ai too. |
 | `L2Distance`, `CosineDistance`, `NegativeInnerProduct` | Oracle | 23 | The `<->`, `<=>`, and `<#>` vector distance shorthands landed with Oracle 23ai's AI Vector Search (the other three pgvector operators have no Oracle spelling at any version). |
 | `MergeInto`, `Using`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete`, the 3-argument `Values` (MERGE `USING` literal rows) | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. |
-| `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr` | PostgreSQL | 15 | The `REGEXP_*` function family landed in PostgreSQL 15. |
+| `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr` | PostgreSQL | 15 | `regexp_like`, `regexp_count`, and `regexp_substr` landed in PostgreSQL 15. `regexp_replace` predates it — 15 is where it gained the position and occurrence arguments — but the bound covers every `RegexpReplace` overload, so a 3-argument call is reported below 15 too. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
 | `StringAgg` (both overloads), `Concat` (both overloads) | SQLite | 3.44 | `string_agg`/`concat` landed in SQLite 3.44. |

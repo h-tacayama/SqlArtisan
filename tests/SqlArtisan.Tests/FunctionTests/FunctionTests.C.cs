@@ -122,8 +122,9 @@ public partial class FunctionTests
 
         Assert.Equal(expected.ToString(), sql.Text);
 
-        // The three tail literals render as interchangeable markers, so only the
-        // bind values pin the order they were merged in.
+        // "c" and the trailing column are the params tail; "a" and "b" are declared
+        // parameters. The literals render as interchangeable markers, so only the
+        // bind values pin the order the two groups were merged in.
         Assert.Equal(3, sql.Parameters.Count);
         Assert.Equal("a", sql.Parameters.Get<string>(":0"));
         Assert.Equal("b", sql.Parameters.Get<string>(":1"));
