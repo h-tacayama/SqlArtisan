@@ -73,20 +73,7 @@ internal sealed class Reporter(RunOptions options)
             return;
         }
 
-        string headline = options.Mode == RunMode.Fix
-            ? options.DryRun ? "Would regenerate" : "Regenerated"
-            : "Drift detected against";
-
-        // Fix writes only the NeedsWrite tables, so it states that against the drift
-        // total — the shortfall is the orphans below, which it can only report.
-        string count = options.Mode == RunMode.Fix
-            ? $"{drifted.Count(r => r.NeedsWrite)} of {drifted.Count}"
-            : drifted.Count.ToString();
-
-        string noun = drifted.Count == 1 ? "table" : "tables";
-
-        Console.WriteLine(
-            $"{headline} {options.Settings.OutputDirectory} ({count} {noun}):");
+        Console.WriteLine($"{Headline(drifted)}:");
         Console.WriteLine();
 
         foreach (TableResult result in drifted)
@@ -102,6 +89,30 @@ internal sealed class Reporter(RunOptions options)
         Console.WriteLine();
         Console.WriteLine(NextStep(drifted));
     }
+
+    // Fix acts on two populations, so it states both: one count would leave the
+    // reader subtracting. "untouched", not "removed" — it never deletes the files.
+    private string Headline(IReadOnlyList<TableResult> drifted)
+    {
+        string directory = options.Settings.OutputDirectory;
+
+        if (options.Mode != RunMode.Fix)
+        {
+            return $"Drift detected against {directory} ({Count(drifted.Count, "table")})";
+        }
+
+        int written = drifted.Count(r => r.NeedsWrite);
+        int orphans = drifted.Count - written;
+        string verb = options.DryRun ? "Would regenerate" : "Regenerated";
+
+        return orphans == 0
+            ? $"{verb} {Count(written, "table")} in {directory}"
+            : $"{verb} {Count(written, "table")} in {directory}, "
+                + $"leaving {Count(orphans, "file")} untouched";
+    }
+
+    private static string Count(int count, string noun) =>
+        $"{count} {noun}{(count == 1 ? string.Empty : "s")}";
 
     private string NextStep(IReadOnlyList<TableResult> drifted)
     {
