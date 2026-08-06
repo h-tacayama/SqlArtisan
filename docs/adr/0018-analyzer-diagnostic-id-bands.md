@@ -110,12 +110,15 @@ and that trade is not worth making.
   anything. Leaving `SQLA0004` in ADR 0013 would have made it describe a
   diagnostic that does not exist. The same reasoning does **not** extend to
   `CHANGELOG.md`, whose entries are timestamped claims about what a given release
-  shipped and remain true only in the old numbering; those keep their old IDs,
-  and the anchor links they carry into `docs/analyzer.md` no longer resolve.
+  shipped and remain true only in the old numbering; those keep their old IDs.
 - **Heading anchors in `docs/analyzer.md` changed once more.** IDs stay in the
   headings — a user reading `SQLA0101` out of build output should be able to
   find the section — and because the bands remove the pressure that caused both
-  previous renumbers, this is intended to be the last time they move.
+  previous renumbers, this is intended to be the last time they move. The
+  released `CHANGELOG.md` entries that link into those headings were repointed
+  to the current anchors: the link *text* names no ID, so the href is a pointer
+  into living documentation rather than part of the historical claim, and a
+  working link beats a dead one with nothing gained.
 
 Related: #433 (this change), #264 (the first renumber, into semantic order),
 #326 / #349 (the `0003` → `0006` move), #266 (the `SqlArtisan.Schema` split),
