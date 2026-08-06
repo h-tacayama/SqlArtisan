@@ -128,6 +128,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expressions">The values to compare.</param>
     /// <returns>The LEAST construct.</returns>
+    /// <remarks>SQLite has no <c>LEAST</c> — its multi-argument
+    /// <c>MIN(a, b, ...)</c> is the equivalent; SQL Server 2022+.</remarks>
     public static LeastFunction Least(params object[] expressions) =>
         new(Resolve(expressions));
 
@@ -204,7 +206,7 @@ public static partial class Sql
     /// <inheritdoc cref="Ltrim(object)"/>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip from the left.</param>
-    /// <remarks>Not supported by MySQL.</remarks>
+    /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax.</remarks>
     public static LtrimFunction Ltrim(object source, object trimChars) =>
         new(Resolve(source), Resolve(trimChars));
 }

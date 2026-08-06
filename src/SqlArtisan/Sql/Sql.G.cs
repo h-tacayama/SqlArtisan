@@ -11,6 +11,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expressions">The values to compare.</param>
     /// <returns>The <c>GREATEST</c> function expression.</returns>
+    /// <remarks>SQLite has no <c>GREATEST</c> — its multi-argument
+    /// <c>MAX(a, b, ...)</c> is the equivalent; SQL Server 2022+.</remarks>
     public static GreatestFunction Greatest(params object[] expressions) =>
         new(Resolve(expressions));
 

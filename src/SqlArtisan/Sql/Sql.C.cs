@@ -499,8 +499,9 @@ public static partial class Sql
     /// <param name="primary">The first string expression.</param>
     /// <param name="secondary">The second string expression.</param>
     /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b)</c>.</returns>
-    /// <remarks>Supported on every dialect. For three or more arguments — where Oracle's
-    /// <c>CONCAT</c> differs — see <see cref="Concat(object, object, object, object[])"/>.</remarks>
+    /// <remarks>Supported on every dialect (SQLite 3.44+). For three or more arguments —
+    /// where Oracle's <c>CONCAT</c> differs — see
+    /// <see cref="Concat(object, object, object, object[])"/>.</remarks>
     public static ConcatFunction Concat(object primary, object secondary) =>
         new(Resolve(primary), Resolve(secondary));
 
@@ -513,10 +514,10 @@ public static partial class Sql
     /// <param name="third">The third string expression.</param>
     /// <param name="others">Any further string expressions, appended in order.</param>
     /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b, c, ...)</c>.</returns>
-    /// <remarks>Oracle's <c>CONCAT</c> takes exactly two arguments and rejects this
-    /// three-or-more form — nest two-argument calls there instead, or use
+    /// <remarks>Requires SQLite 3.44+. Oracle's <c>CONCAT</c> takes exactly two arguments
+    /// and rejects this three-or-more form — nest two-argument calls there instead, or use
     /// <see cref="DoublePipe(object, object, object[])"/> to chain any number without
-    /// nesting (also valid on PostgreSQL and SQLite 3.44+).</remarks>
+    /// nesting (also valid on PostgreSQL and SQLite).</remarks>
     public static ConcatFunction Concat(
         object primary,
         object secondary,

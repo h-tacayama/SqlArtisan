@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-// Renders MySQL's `WITH ROLLUP` GROUP BY suffix. The user-facing contract lives
+// The user-facing contract, including which dialects accept this suffix, lives
 // on ISelectBuilderGroupBy.WithRollup(); this is the clause it appends.
 internal sealed class WithRollupClause : SqlPart
 {

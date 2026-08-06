@@ -65,7 +65,7 @@ public static partial class Sql
     /// The <c>NOWAIT</c> lock behavior for a <c>FOR UPDATE</c> clause: fail
     /// immediately rather than block when a row is already locked.
     /// </summary>
-    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
+    /// <remarks>MySQL 8.0+, Oracle, and PostgreSQL syntax.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static NowaitBehavior Nowait => new();
 

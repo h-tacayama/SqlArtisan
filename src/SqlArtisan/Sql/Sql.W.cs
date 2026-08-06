@@ -11,6 +11,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="seconds">The number of seconds to wait.</param>
     /// <returns>A <c>WAIT</c> lock behavior.</returns>
+    /// <remarks>Oracle syntax; MySQL and PostgreSQL accept only
+    /// <see cref="Nowait"/> or <see cref="SkipLocked"/>.</remarks>
     public static WaitBehavior Wait(int seconds) => new(seconds);
 
     /// <summary>

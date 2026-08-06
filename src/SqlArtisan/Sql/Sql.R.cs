@@ -90,7 +90,7 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -188,10 +188,12 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to round.</param>
     /// <returns>A <c>ROUND</c> function expression.</returns>
+    /// <remarks>SQL Server's <c>ROUND</c> requires the decimal count — pass
+    /// <c>0</c> to <see cref="Round(object, object)"/> there.</remarks>
     public static RoundFunction Round(object expr) =>
         new(Resolve(expr));
 
-    /// <inheritdoc cref="Round(object)"/>
+    /// <inheritdoc cref="Round(object)" path="/summary"/>
     /// <param name="expr">The numeric expression to round.</param>
     /// <param name="decimals">The number of decimal places to round to.</param>
     /// <returns>A <c>ROUND(x, n)</c> function expression.</returns>
@@ -229,7 +231,7 @@ public static partial class Sql
     /// <inheritdoc cref="Rtrim(object)"/>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip instead of spaces.</param>
-    /// <remarks>Not supported by MySQL.</remarks>
+    /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax.</remarks>
     public static RtrimFunction Rtrim(object source, object trimChars) =>
         new(Resolve(source), Resolve(trimChars));
 
