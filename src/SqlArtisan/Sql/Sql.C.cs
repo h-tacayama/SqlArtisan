@@ -487,10 +487,8 @@ public static partial class Sql
     public static CoalesceFunction Coalesce(
         object primary,
         object secondary,
-        params object[] others) => new(
-            Resolve(primary),
-            Resolve(secondary),
-            Resolve(others));
+        params object[] others) =>
+        new(ResolveVariadic(primary, secondary, others));
 
     /// <summary>
     /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>)</c>
@@ -522,11 +520,8 @@ public static partial class Sql
         object primary,
         object secondary,
         object third,
-        params object[] others) => new(
-            Resolve(primary),
-            Resolve(secondary),
-            Resolve(third),
-            Resolve(others));
+        params object[] others) =>
+        new(ResolveVariadic(primary, secondary, third, others));
 
     /// <summary>
     /// Drops <paramref name="condition"/> out of a <c>WHERE</c> clause based on a

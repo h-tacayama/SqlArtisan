@@ -9,9 +9,9 @@ public sealed class GroupingFunction : SqlExpression
         _core = new(Keywords.Grouping, expr);
     }
 
-    internal GroupingFunction(SqlExpression expr1, SqlExpression expr2, SqlExpression[] others)
+    internal GroupingFunction(SqlExpression[] args)
     {
-        _core = new(Keywords.Grouping, [expr1, expr2, .. others]);
+        _core = new(Keywords.Grouping, args);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>

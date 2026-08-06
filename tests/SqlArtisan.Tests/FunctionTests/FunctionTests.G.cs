@@ -67,6 +67,28 @@ public partial class FunctionTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // Past the two declared parameters the arguments arrive as a params tail
+    // merged after them, so this pins the merged order.
+    [Fact]
+    public void Grouping_MoreColumnsThanDeclaredParameters_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Grouping(_t.Code, _t.Name, _t.CreatedAt))
+            .From(_t)
+            .GroupBy(Rollup(_t.Code, _t.Name, _t.CreatedAt))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("GROUPING(\"t\".code, \"t\".name, \"t\".created_at) ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("GROUP BY ");
+        expected.Append("ROLLUP(\"t\".code, \"t\".name, \"t\".created_at)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
     [Fact]
     public void GroupingId_MultipleColumns_CorrectSql()
     {

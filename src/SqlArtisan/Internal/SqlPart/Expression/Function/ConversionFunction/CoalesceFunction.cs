@@ -4,12 +4,9 @@ public sealed class CoalesceFunction : SqlExpression
 {
     private readonly VariadicFunctionCore _core;
 
-    internal CoalesceFunction(
-        SqlExpression primary,
-        SqlExpression secondary,
-        SqlExpression[] others)
+    internal CoalesceFunction(SqlExpression[] args)
     {
-        _core = new(Keywords.Coalesce, [primary, secondary, .. others]);
+        _core = new(Keywords.Coalesce, args);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>
