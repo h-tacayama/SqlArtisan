@@ -2,10 +2,11 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>STRING_AGG(expr, separator)</c> string aggregate (PostgreSQL,
-/// SQLite 3.44+, and SQL Server). Ordering is dialect-specific: PostgreSQL takes
-/// an inline <c>ORDER BY</c> passed as an argument to <c>Sql.StringAgg(...)</c> (it sits
-/// inside the call), while SQL Server uses a trailing
-/// <c>WITHIN GROUP (ORDER BY ...)</c> via <see cref="WithinGroup(OrderByClause)"/>.
+/// SQLite 3.44+, and SQL Server). Ordering is dialect-specific: PostgreSQL and
+/// SQLite take an inline <c>ORDER BY</c> passed as an argument to
+/// <c>Sql.StringAgg(...)</c> (it sits inside the call), while SQL Server uses a
+/// trailing <c>WITHIN GROUP (ORDER BY ...)</c> via
+/// <see cref="WithinGroup(OrderByClause)"/>.
 /// </summary>
 public sealed class StringAggFunction : SqlExpression
 {

@@ -205,7 +205,9 @@ public static partial class Sql
     /// <inheritdoc cref="Ltrim(object)"/>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip from the left.</param>
-    /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax.</remarks>
+    /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax; SQL
+    /// Server also requires database compatibility level 160, the default for
+    /// new databases.</remarks>
     public static LtrimFunction Ltrim(object source, object trimChars) =>
         new(Resolve(source), Resolve(trimChars));
 }
