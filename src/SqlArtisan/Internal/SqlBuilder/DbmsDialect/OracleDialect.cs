@@ -11,8 +11,6 @@ internal sealed class OracleDialect : IDbmsDialect
     // table name separated only by a space.
     public string DmlTableAliasSeparator => " ";
 
-    public char ParameterMarker => ':';
-
     // Oracle has no ON CONFLICT / ON DUPLICATE KEY UPDATE construct, so reaching
     // this is wrong-DBMS usage. Emit the canonical token faithfully (ADR 0001) and
     // let the database reject the statement rather than throwing at build time.
@@ -20,4 +18,6 @@ internal sealed class OracleDialect : IDbmsDialect
 
     // Oracle's MERGE needs no terminating token.
     public string MergeTerminator => "";
+
+    public char ParameterMarker => ':';
 }

@@ -25,8 +25,6 @@ internal interface IDbmsDialect
     /// </summary>
     string DmlTableAliasSeparator { get; }
 
-    char ParameterMarker { get; }
-
     /// <summary>
     /// The name that refers to the row proposed for insertion inside an
     /// UPSERT update clause: <c>EXCLUDED</c> (PostgreSQL), <c>excluded</c>
@@ -44,4 +42,6 @@ internal interface IDbmsDialect
     /// caller or driver.
     /// </summary>
     string MergeTerminator { get; }
+
+    char ParameterMarker { get; }
 }

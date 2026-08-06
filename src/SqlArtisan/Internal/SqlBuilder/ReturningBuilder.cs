@@ -32,6 +32,12 @@ internal sealed class ReturningBuilder : IReturningBuilder
         return new ReturningBuilder(inner, resolved);
     }
 
+    public SqlStatement Build() =>
+        _inner.BuildWithPart(new ReturningClause(_expressions));
+
+    public SqlStatement Build(Dbms dbms) =>
+        _inner.BuildWithPart(new ReturningClause(_expressions), dbms);
+
     public ISqlBuilder Into(params OutputParameter[] outputs)
     {
         CollectionGuard.ThrowIfEmpty(
@@ -48,10 +54,4 @@ internal sealed class ReturningBuilder : IReturningBuilder
         _inner.AddPart(new ReturningIntoClause(_expressions, outputs));
         return (ISqlBuilder)_inner;
     }
-
-    public SqlStatement Build() =>
-        _inner.BuildWithPart(new ReturningClause(_expressions));
-
-    public SqlStatement Build(Dbms dbms) =>
-        _inner.BuildWithPart(new ReturningClause(_expressions), dbms);
 }
