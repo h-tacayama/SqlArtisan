@@ -48,7 +48,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
-        // The generic walkers first — they serve SQLA0100/0003 together and key on
+        // The generic walkers first — they serve SQLA0100/0101 together and key on
         // the operation kind, not a rule — then one dispatcher per rule in ID order,
         // then the compilation action, which is not an operation action at all.
         context.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
@@ -57,7 +57,6 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeBinaryOperator, OperationKind.Binary);
         context.RegisterOperationAction(AnalyzeCompoundAssignment, OperationKind.CompoundAssignment);
         context.RegisterOperationAction(AnalyzeContextRules, OperationKind.Invocation);
-        context.RegisterOperationAction(AnalyzeCorrelatedDml, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeIdentifierLength, OperationKind.ObjectCreation);
         context.RegisterOperationAction(AnalyzeSchemaNullability, OperationKind.PropertyReference);
@@ -66,6 +65,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeCountArgument, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeIndexedColumnFilter, OperationKind.Invocation);
         context.RegisterOperationAction(AnalyzeTypeCategoryMismatch, OperationKind.Binary);
+        context.RegisterOperationAction(AnalyzeCorrelatedDml, OperationKind.Invocation);
         context.RegisterCompilationAction(ValidateConfiguration);
     }
 

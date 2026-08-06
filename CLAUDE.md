@@ -29,7 +29,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`, `DbTypeCategory`). Compile-time data, never rendered and never read at run time. |
-| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0205). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0300). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.ArrayBind/` | Oracle array-bind execution (one round trip per batch, not per row). |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
