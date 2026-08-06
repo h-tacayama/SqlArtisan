@@ -5012,7 +5012,7 @@ treated as a bug — please open an
 
 ## What counts as breaking
 
-Four cases are specific to this library, beyond the usual API-level changes:
+Three cases are specific to this library, beyond the usual API-level changes:
 
 - **Emitted SQL is part of the contract.** A change to the SQL text emitted
   for the same input is at minimum a **minor** release, even as a bug fix,
@@ -5025,11 +5025,6 @@ Four cases are specific to this library, beyond the usual API-level changes:
   `IReturning`, `IUpsert`) exist only to type the fluent chain; all
   implementations are internal. Adding a member to any of them is a
   **minor** change; caller compatibility is preserved as usual.
-- **`SqlArtisan.Internal` is implementation detail.** A type there is `public`
-  only where the fluent chain's own signatures reach it, so narrowing one to
-  `internal` or reshaping it is **not** a breaking change. The exception is
-  `EqualityBasedCondition`, which you name to type an assignment list built at
-  run time; it is covered by the usual API-level rules.
 - **Public enum values are append-only.** `Dbms`, `DateTimePart`,
   `SearchModifier`, and `RegexpOptions` carry explicit numeric values;
   a new value gets the next unused number, and no existing value's number
