@@ -11,6 +11,6 @@ internal static class CatalogReaderFactory
             Dbms.PostgreSql or Dbms.MySql or Dbms.SqlServer =>
                 new InformationSchemaCatalogReader(connInfo, lowercaseNames),
             Dbms.Sqlite => new SqliteCatalogReader(connInfo, lowercaseNames),
-            _ => throw new ArgumentOutOfRangeException(nameof(connInfo.Dbms))
+            _ => throw new ArgumentOutOfRangeException(nameof(connInfo))
         };
 }

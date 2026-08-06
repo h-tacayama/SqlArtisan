@@ -125,7 +125,7 @@ internal sealed class SqliteCatalogReader(
     }
 
     private string NormalizeName(string name) =>
-        _lowercaseNames ? name.ToLower() : name;
+        _lowercaseNames ? name.ToLowerInvariant() : name;
 
     private static void AddParameter(IDbCommand command, string name, string value)
     {

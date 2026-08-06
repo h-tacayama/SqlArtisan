@@ -20,7 +20,7 @@ internal sealed class OracleCatalogReader(
         ISqlBuilder sql =
             Select(t.TableName)
             .From(t)
-            .Where(t.Owner == _connInfo.Schema.ToUpper())
+            .Where(t.Owner == _connInfo.Schema.ToUpperInvariant())
             .OrderBy(t.TableName);
 
         List<CatalogTable> tables = [];
@@ -31,7 +31,7 @@ internal sealed class OracleCatalogReader(
             while (reader.Read())
             {
                 string tableName = _lowercaseNames
-                    ? reader.GetString(0).ToLower()
+                    ? reader.GetString(0).ToLowerInvariant()
                     : reader.GetString(0);
                 tableNames.Add(tableName);
             }
@@ -78,8 +78,8 @@ internal sealed class OracleCatalogReader(
                 atc.IdentityColumn)
             .From(atc)
             .Where(
-                atc.Owner == _connInfo.Schema.ToUpper()
-                & atc.TableName == tableName.ToUpper())
+                atc.Owner == _connInfo.Schema.ToUpperInvariant()
+                & atc.TableName == tableName.ToUpperInvariant())
             .OrderBy(atc.ColumnId);
 
         ColumnIndexInfo indexes =
@@ -95,7 +95,7 @@ internal sealed class OracleCatalogReader(
                 string catalogName = reader.GetString(0);
                 string dataType = reader.GetString(1);
                 columns.Add(new CatalogColumn(
-                    _lowercaseNames ? catalogName.ToLower() : catalogName,
+                    _lowercaseNames ? catalogName.ToLowerInvariant() : catalogName,
                     dataType,
                     isNullable: ReadIsNullable(reader, 2),
                     hasDefault: ReadHasDefault(reader, 3, 4),
@@ -110,10 +110,10 @@ internal sealed class OracleCatalogReader(
         }
 
         table = new CatalogTable(_lowercaseNames
-            ? tableName.ToLower()
-            : tableName.ToUpper(),
+            ? tableName.ToLowerInvariant()
+            : tableName.ToUpperInvariant(),
             columns,
-            _connInfo.Schema.ToUpper());
+            _connInfo.Schema.ToUpperInvariant());
 
         return true;
     }
@@ -139,8 +139,8 @@ internal sealed class OracleCatalogReader(
             Select(Count(t.TableName))
             .From(t)
             .Where(
-                t.Owner == _connInfo.Schema.ToUpper()
-                & t.TableName == tableName.ToUpper());
+                t.Owner == _connInfo.Schema.ToUpperInvariant()
+                & t.TableName == tableName.ToUpperInvariant());
 
         int tableCount = Convert.ToInt32(conn.ExecuteScalar(sql));
         return tableCount > 0;

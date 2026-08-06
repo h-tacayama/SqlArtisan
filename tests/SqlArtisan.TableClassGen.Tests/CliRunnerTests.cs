@@ -2,6 +2,7 @@ using SqlArtisan.TableClassGen;
 
 namespace SqlArtisan.TableClassGen.Tests;
 
+[Collection(ConsoleRedirectionCollection.Name)]
 public class CliRunnerTests
 {
     private const string TwoTables =
@@ -105,8 +106,8 @@ public class CliRunnerTests
     }
 
     // Returns stdout; a non-zero exit fails here rather than surfacing later as a
-    // puzzling assertion on missing text. Redirecting Console is safe because
-    // CliRunner is driven only from this class, which xUnit runs as one collection.
+    // puzzling assertion on missing text. Redirecting Console is safe because every
+    // redirecting class serializes through ConsoleRedirectionCollection.
     private static string Capture(Func<int> run)
     {
         TextWriter original = Console.Out;

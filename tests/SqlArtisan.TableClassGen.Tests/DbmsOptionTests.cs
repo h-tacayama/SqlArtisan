@@ -2,6 +2,7 @@ using SqlArtisan.TableClassGen;
 
 namespace SqlArtisan.TableClassGen.Tests;
 
+[Collection(ConsoleRedirectionCollection.Name)]
 public class DbmsOptionTests
 {
     public static TheoryData<string, Dbms> Spellings =>
@@ -80,4 +81,40 @@ public class DbmsOptionTests
     [InlineData(Dbms.Sqlite, 0)]
     public void DefaultPort_EveryDbms_ReturnsThePort(Dbms dbms, int expected) =>
         Assert.Equal(expected, DbmsOption.DefaultPort(dbms));
+
+    [Fact]
+    public void ReadPort_BlankAnswer_ReturnsTheDbmsDefault() =>
+        Assert.Equal(5432, WithInput("\n", () => ConsoleUI.ReadPort(Dbms.PostgreSql)));
+
+    [Fact]
+    public void ReadPort_ValidNumber_ReturnsIt() =>
+        Assert.Equal(6543, WithInput("6543\n", () => ConsoleUI.ReadPort(Dbms.PostgreSql)));
+
+    // Used to throw FormatException straight out of the prompt loop; a bad answer
+    // must reprompt instead of crashing the interactive flow.
+    [Fact]
+    public void ReadPort_NonNumericThenValid_RepromptsAndReturnsTheValidAnswer() =>
+        Assert.Equal(6543, WithInput("abc\n6543\n", () => ConsoleUI.ReadPort(Dbms.PostgreSql)));
+
+    [Fact]
+    public void ReadPort_OutOfRangeThenValid_RepromptsAndReturnsTheValidAnswer() =>
+        Assert.Equal(6543, WithInput("70000\n6543\n", () => ConsoleUI.ReadPort(Dbms.PostgreSql)));
+
+    private static int WithInput(string input, Func<int> read)
+    {
+        TextReader originalIn = Console.In;
+        TextWriter originalOut = Console.Out;
+
+        try
+        {
+            Console.SetIn(new StringReader(input));
+            Console.SetOut(TextWriter.Null);
+            return read();
+        }
+        finally
+        {
+            Console.SetIn(originalIn);
+            Console.SetOut(originalOut);
+        }
+    }
 }

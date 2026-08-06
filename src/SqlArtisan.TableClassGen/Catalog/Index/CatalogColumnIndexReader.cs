@@ -126,9 +126,9 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
 
     // Oracle stores unquoted identifiers folded to upper case, and the caller may
     // hand down a name already lowercased for emission — matching the rest of the
-    // Oracle reader, which compares against ToUpper() throughout.
+    // Oracle reader, which compares against ToUpperInvariant() throughout.
     private string CatalogName(string name) =>
-        dbms == Dbms.Oracle ? name.ToUpper() : name;
+        dbms == Dbms.Oracle ? name.ToUpperInvariant() : name;
 
     // Suffixed because Oracle rejects a bind variable named after a reserved word:
     // a bare ":table" fails with ORA-01745, verified against a live engine.
