@@ -15,10 +15,10 @@ namespace SqlArtisan.IntegrationTests.Infrastructure;
 /// </summary>
 internal static class TestSchema
 {
-    // Used by MySQL and SQLite, which have no sequences; PostgreSQL and SQL Server
-    // take their own DDL below. `data` carries a JSON document for the JSON
-    // functions — MySQL needs its native JSON type for `->`/`->>`, while SQLite
-    // operates on the text regardless of declared affinity.
+    // Used by MySQL and SQLite alone; the other three engines each take their own
+    // DDL below. `data` carries a JSON document for the JSON functions — MySQL
+    // needs its native JSON type for `->`/`->>`, while SQLite operates on the text
+    // regardless of declared affinity.
     public static readonly string[] StandardDdl =
     [
         "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER, created_at TIMESTAMP, is_active BOOLEAN, data JSON)",

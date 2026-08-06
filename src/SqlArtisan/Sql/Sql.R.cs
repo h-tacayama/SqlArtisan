@@ -90,7 +90,7 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
+    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -99,11 +99,12 @@ public static partial class Sql
             Resolve(pattern),
             Resolve(replacement));
 
-    /// <inheritdoc cref="RegexpReplace(object, object, object)"/>
+    /// <inheritdoc cref="RegexpReplace(object, object, object)" path="/summary"/>
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <param name="position">The 1-based character position to start searching from.</param>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -114,12 +115,13 @@ public static partial class Sql
             Resolve(replacement),
             Resolve(position));
 
-    /// <inheritdoc cref="RegexpReplace(object, object, object)"/>
+    /// <inheritdoc cref="RegexpReplace(object, object, object)" path="/summary"/>
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <param name="position">The 1-based character position to start searching from.</param>
     /// <param name="occurrence">Which match to replace; <c>0</c> replaces all.</param>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -132,13 +134,14 @@ public static partial class Sql
             Resolve(position),
             Resolve(occurrence));
 
-    /// <inheritdoc cref="RegexpReplace(object, object, object)"/>
+    /// <inheritdoc cref="RegexpReplace(object, object, object)" path="/summary"/>
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <param name="position">The 1-based character position to start searching from.</param>
     /// <param name="occurrence">Which match to replace; <c>0</c> replaces all.</param>
     /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,

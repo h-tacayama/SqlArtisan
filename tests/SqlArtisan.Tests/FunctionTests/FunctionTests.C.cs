@@ -121,6 +121,13 @@ public partial class FunctionTests
         expected.Append("CONCAT(\"t\".name, :0, :1, :2, \"t\".code)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+
+        // The three tail literals render as interchangeable markers, so only the
+        // bind values pin the order they were merged in.
+        Assert.Equal(3, sql.Parameters.Count);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("b", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("c", sql.Parameters.Get<string>(":2"));
     }
 
     [Fact]
