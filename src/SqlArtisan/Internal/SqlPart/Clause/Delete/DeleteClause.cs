@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class DeleteClause : SqlPart
+internal sealed class DeleteClause : SqlPart
 {
     private readonly DbTableBase _table;
     private readonly DmlJoinState _state;

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class EqualityCondition(
+internal sealed class EqualityCondition(
     SqlExpression leftSide,
     SqlExpression rightSide) : EqualityBasedCondition
 {
