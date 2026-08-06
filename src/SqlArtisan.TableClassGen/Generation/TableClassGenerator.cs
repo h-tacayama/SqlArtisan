@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -192,9 +193,19 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
             }
 
             char next = literal[++i];
-            if (next == 'u')
+
+            // A malformed \u (short or non-hex) can only reach here from a hand-edited
+            // or corrupted committed file — Quote never emits one — so it is read back
+            // literally rather than aborting the whole --check/--fix run over one file.
+            if (next == 'u'
+                && i + 4 < literal.Length
+                && int.TryParse(
+                    literal.AsSpan(i + 1, 4),
+                    NumberStyles.AllowHexSpecifier,
+                    CultureInfo.InvariantCulture,
+                    out int code))
             {
-                unescaped.Append((char)Convert.ToInt32(literal.Substring(i + 1, 4), 16));
+                unescaped.Append((char)code);
                 i += 4;
             }
             else

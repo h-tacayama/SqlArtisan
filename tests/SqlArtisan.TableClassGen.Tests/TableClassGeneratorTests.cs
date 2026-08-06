@@ -78,6 +78,27 @@ public class TableClassGeneratorTests : IDisposable
         Assert.Equal(["+ a\"b"], item.Changes);
     }
 
+    // Quote never emits a short or non-hex \u — only a hand-edited or corrupted
+    // committed file can carry one. It must read back literally rather than abort
+    // the whole run over one file.
+    [Fact]
+    public void Run_Check_CommittedFileHasMalformedUnicodeEscape_ReportsDriftInsteadOfThrowing()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+
+        string itemPath = Path.Combine(_outputDirectory, "ItemTable.cs");
+        File.WriteAllText(
+            itemPath,
+            File.ReadAllText(itemPath).Replace(
+                "new DbColumn(this, \"code\")", "new DbColumn(this, \"co\\uAB\")"));
+
+        TableResult item = Single(Run(db, RunMode.Check), "item");
+
+        Assert.Equal(TableStatus.Modified, item.Status);
+        Assert.Equal(["+ code", "- couAB"], item.Changes);
+    }
+
     [Fact]
     public void Run_Check_MetadataOnlyChange_ReportsModifiedWithoutNamingColumns()
     {
