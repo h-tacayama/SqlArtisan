@@ -169,7 +169,7 @@ internal sealed class UsersTable : DbTableBase
     [DbColumnMetadata(Nullable = false, HasDefault = false, Indexed = true, TypeCategory = DbTypeCategory.Text)]
     public DbColumn Name { get; }
 
-    [DbColumnMetadata(Nullable = true, HasDefault = false, Indexed = false)]
+    [DbColumnMetadata(Nullable = true, HasDefault = false, Indexed = false, TypeCategory = DbTypeCategory.Temporal)]
     public DbColumn CreatedAt { get; }
 }
 ```
@@ -178,8 +178,8 @@ internal sealed class UsersTable : DbTableBase
 compile-time data only — nothing reads it at run time — and an argument is written
 only for a fact the tool could actually determine, so a column whose nullability,
 default, index membership, or type category could not be read carries no claim
-about it — `CreatedAt` above has no `TypeCategory` because its catalog type
-didn't resolve to one of the five recognized categories.
+about it — a catalog type name the generator doesn't recognize leaves
+`TypeCategory` off the attribute entirely, rather than guessing `Unknown`.
 
 `Indexed` means the column **leads** an index, so a predicate on it alone can use
 that index; a non-leading column of a composite index records `false`. A column

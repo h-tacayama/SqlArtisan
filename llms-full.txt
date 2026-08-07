@@ -3289,11 +3289,11 @@ matrix loop runs. Forcing a construct unsupported reports exactly one
 ### An empty set is reported, not silent
 
 `sqlartisan_syntax_oracle = none` with no other `sqlartisan_syntax_*` key
-resolves to an empty set — every rule's "is a dialect configured" gate then
-reads as "unconfigured," and the whole analyzer goes quiet. `SQLA0001`
-reports this once per compilation when the family is present but every key
-resolves to `none`, so a project doesn't lose analyzer coverage from one
-typo-adjacent `none` without a visible reason.
+resolves to an empty set for that scope — every rule's "is a dialect
+configured" gate then reads as "unconfigured," and the analyzer goes quiet
+there. `SQLA0001` reports this once per compilation the first time any file's
+family is present but every key resolves to `none`, so a project doesn't lose
+analyzer coverage from one typo-adjacent `none` without a visible reason.
 
 ### A typo in the key name is now detectable
 

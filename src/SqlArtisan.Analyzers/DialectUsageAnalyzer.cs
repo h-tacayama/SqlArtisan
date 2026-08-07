@@ -623,8 +623,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) => assembly?.Name == SqlArtisanAssemblyName;
 
-    // "MySQL", "MySQL and Oracle", "MySQL, Oracle and PostgreSQL" — the SQLA0100
-    // join wording for a construct that fails on more than one configured DBMS.
+    // SQLA0100's join wording for a construct failing on more than one configured
+    // DBMS — "MySQL, Oracle and PostgreSQL", the serial comma dropped before "and".
     private static string JoinDisplayNames(IReadOnlyList<string> names) => names.Count switch
     {
         1 => names[0],

@@ -167,10 +167,10 @@ sqlartisan_syntax_sqlite     = any
   escape hatch (not `SQLA0001`, not the `SqlArtisan.Configuration` category
   setting — silencing the nag must never silence real config-error
   detection).
-- `DialectMatrix` and `MatrixSweepCatalog` are unchanged — this feature adds
-  no dialect data, reusing all 310 entries as-is, which is what keeps it
-  cheap and lets the existing coverage gate keep "silence = verified" true
-  across a set exactly as it did for one target.
+- `DialectMatrix` and `MatrixSweepCatalog` are unchanged by this feature — it
+  adds no dialect data, which is what keeps it cheap and lets the existing
+  coverage gate keep "silence = verified" true across a set exactly as it did
+  for one target.
 - The Analyzer cluster (`docs/adr/README.md`) grows to
   0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019. This ADR refines
   ADR 0008's precedence section specifically (a family key now exists

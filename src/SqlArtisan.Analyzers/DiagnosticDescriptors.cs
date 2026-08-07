@@ -54,11 +54,14 @@ internal static class DiagnosticDescriptors
     // A third SQLA0001 report reason (#432): every rule's "set non-empty" gate
     // reads an all-`none` family exactly like "unconfigured" — the same silent
     // failure mode the legacy pair's Backward Compatibility section calls out,
-    // reachable here by one typo-adjacent `none`.
+    // reachable here by one typo-adjacent `none`. Scoped to "at least one file"
+    // rather than the whole build: a deliberate path-scoped `none` carve-out
+    // (docs/analyzer.md's own example) makes this true for that path alone
+    // while other files still resolve a real set.
     public static readonly DiagnosticDescriptor ConfigurationDisablesAllDialects = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
-        messageFormat: "Every configured 'sqlartisan_syntax_*' key is 'none', so the analyzer has no dialect left to check",
+        messageFormat: "In at least one file's effective configuration, every 'sqlartisan_syntax_*' key is 'none', so that file has no dialect left to check",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

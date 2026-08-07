@@ -515,8 +515,9 @@ public class MultiDialectSyntaxAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithMessage("Every configured 'sqlartisan_syntax_*' key is 'none', so the analyzer has no dialect left to check"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
+            "In at least one file's effective configuration, every 'sqlartisan_syntax_*' key is 'none', "
+                + "so that file has no dialect left to check"));
 
         await test.RunAsync();
     }
