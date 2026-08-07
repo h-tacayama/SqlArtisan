@@ -301,10 +301,11 @@ favor of the family:
 +sqlartisan_syntax_postgresql = 16
 ```
 
-Using either legacy key reports `SQLA0002` once per compilation, including
-when the pair resolves perfectly correctly — the warning is what makes the
-pair's eventual removal in a future major version expected rather than
-sudden. If your project has `TreatWarningsAsErrors` and cannot migrate
+Using either legacy key with no `sqlartisan_syntax_*` key present reports
+`SQLA0002` once per compilation, including when the pair resolves perfectly
+correctly — the warning is what makes the pair's eventual removal in a
+future major version expected rather than sudden. (Once a family key is
+present, the family governs and `SQLA0002` yields to the rules below.) If your project has `TreatWarningsAsErrors` and cannot migrate
 immediately, suppress `SQLA0002` specifically — not `SQLA0001`, and not the
 whole `SqlArtisan.Configuration` category — so silencing the nag never
 silences real config-error detection. Like `SQLA0001`, it carries no file

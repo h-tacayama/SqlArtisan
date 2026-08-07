@@ -89,8 +89,9 @@ sqlartisan_syntax_sqlite     = any
   unnoticed (a bad key name, a bad value, an empty resolved set); a
   Warning-severity deprecation nag sharing that id would hand every
   `NoWarn`/severity override that silences the nag the same reach into
-  real config-error detection. `SQLA0002` fires unconditionally — even when
-  the pair resolves perfectly correctly — and at Warning, not Info: a nag
+  real config-error detection. `SQLA0002` fires whenever the legacy pair
+  governs the resolution (no family key present) — even when the pair
+  resolves perfectly correctly — and at Warning, not Info: a nag
   that only fires on misuse, or that stays out of build output, tells a
   `TreatWarningsAsErrors` project nothing before the major version that
   removes the pair does it for them. Both ids stay in `SqlArtisan.Configuration`
