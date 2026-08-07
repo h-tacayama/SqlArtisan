@@ -44,26 +44,17 @@ its category, and `DiagnosticOrderingTests` gates the pairing.**
 | `SQLA0200`–`0299` | `SqlArtisan.Schema` | does it agree with what the table classes say? |
 | `SQLA0300`–`0399` | `SqlArtisan.Validity` | is this a statement `Build()` would reject? |
 
-Old → new, behavior unchanged in every row:
+Old → new, behavior unchanged in every case (full mapping, with what each rule
+reports, in `CHANGELOG.md`):
 
-| Old | New | Rule |
-|---|---|---|
-| `SQLA0001` | `SQLA0001` | Invalid analyzer configuration |
-| `SQLA0002` | `SQLA0100` | Construct unsupported on the target dialect |
-| `SQLA0003` | `SQLA0101` | Construct version-bound above the declared version |
-| `SQLA0004` | `SQLA0102` | Construct restricted in this position |
-| `SQLA0006` | `SQLA0103` | Identifier exceeds the dialect's length limit |
-| `SQLA0007` | `SQLA0200` | Constant NULL predicate |
-| `SQLA0008` | `SQLA0201` | `NOT IN` over a nullable subquery column |
-| `SQLA0009` | `SQLA0202` | `INSERT` omits a required column |
-| `SQLA0010` | `SQLA0203` | `Count(col)` on a nullable column |
-| `SQLA0011` | `SQLA0204` | Filter makes an index unusable |
-| `SQLA0012` | `SQLA0205` | Column compared across type categories |
-| `SQLA0005` | `SQLA0300` | Correlated UPDATE/DELETE target not aliased |
+`0001`→`0001`, `0002`→`0100`, `0003`→`0101`, `0004`→`0102`, `0006`→`0103`,
+`0007`→`0200`, `0008`→`0201`, `0009`→`0202`, `0010`→`0203`, `0011`→`0204`,
+`0012`→`0205`, `0005`→`0300`.
 
 Within the dialect band #264's ordering survives with `0005` lifted out: exists
 on the dialect → exists at the declared version → allowed in this position → a
-property of what is named.
+property of what is named. (Listed last above for the same reason — it moves
+out of the band the other four stay in.)
 
 ### `SqlArtisan.Validity` — a new category ADR 0014 rejected
 
@@ -96,7 +87,7 @@ and that trade is not worth making.
 - **Breaking for users' suppressions**, the second time after #264. A
   `dotnet_diagnostic.SQLA000x.severity` line, `#pragma warning disable`, or
   `[SuppressMessage]` written against `0.8.0-beta.1` now targets a different
-  diagnostic or none at all. `CHANGELOG.md` carries the full mapping.
+  diagnostic or none at all.
 - **`AnalyzerReleases.Shipped.md` was empty**, so the renumber is a rewrite of
   the `Unshipped` table with no `### Removed Rules` / `### Changed Rules`
   bookkeeping. That is a fact about the RS2000 release-tracking ledger, not
