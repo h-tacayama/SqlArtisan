@@ -512,10 +512,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             }
 
             bool hasUnrecognizedSyntaxValue = false;
-            foreach (TargetDbms dbms in AnalyzerConfigResolver.AllDbms)
+            foreach ((string key, string value) in AnalyzerConfigResolver.SetSyntaxValues(options))
             {
-                string key = AnalyzerConfigResolver.SyntaxKey(dbms);
-                if (!options.TryGetValue(key, out string? value) || AnalyzerConfigResolver.IsRecognizedSyntaxValue(value))
+                if (AnalyzerConfigResolver.IsRecognizedSyntaxValue(value))
                 {
                     continue;
                 }

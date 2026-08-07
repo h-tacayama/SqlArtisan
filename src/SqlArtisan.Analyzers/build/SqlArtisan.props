@@ -18,10 +18,11 @@
 
   <!--
     The #432 sqlartisan_syntax_* family's MSBuild-property fallback, one per
-    DBMS (build_property.SqlArtisanSyntax<Dbms>). Presence of any one of these
-    — or its .editorconfig counterpart — makes the family govern the whole
-    resolution; the legacy pair above is not consulted, even to fill in a DBMS
-    the family didn't name.
+    DBMS (build_property.SqlArtisanSyntax<Dbms>). Declaring these emits a key
+    for each on every consuming build, empty when the consumer set nothing —
+    so the resolver reads a blank value as unset. Only a property the consumer
+    actually set makes the family govern (and then the legacy pair above is not
+    consulted, even to fill in a DBMS the family didn't name).
   -->
   <ItemGroup>
     <CompilerVisibleProperty Include="SqlArtisanSyntaxMySql" />

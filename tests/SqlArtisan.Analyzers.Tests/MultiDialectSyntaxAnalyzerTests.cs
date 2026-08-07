@@ -307,8 +307,84 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_syntax_oracle = tru
             """;
 
+        // Asserted by arguments, not just by id: the empty-set reason shares
+        // SQLA0001, so a bare CompilerWarning("SQLA0001") would pass against
+        // either message and prove nothing about which one won the dedup.
         var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_syntax_oracle",
+                "tru",
+                "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+
+        await test.RunAsync();
+    }
+
+    // The same bad value through the MSBuild-property surface must report the
+    // same value-validation reason — reading only the .editorconfig key left
+    // the resolved set empty and reported "every key is 'none'", which no
+    // configuration here says.
+    [Fact]
+    public async Task InvalidValuedFamilyProperty_ReportsValueValidation_NotEmptySet()
+    {
+        const string globalConfig = """
+            is_global = true
+            build_property.SqlArtisanSyntaxOracle = tru
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig: null);
+        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "build_property.SqlArtisanSyntaxOracle",
+                "tru",
+                "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+
+        await test.RunAsync();
+    }
+
+    // The shipped props declares a CompilerVisibleProperty per DBMS, and the
+    // SDK emits every declared property as a key — empty when unset — so these
+    // five reach every package consumer. Reading them as "family present"
+    // hijacked the resolution: a legacy-configured project lost its SQLA0100
+    // and got a coexistence report naming a key it never wrote.
+    [Fact]
+    public async Task BlankFamilyPropertiesBesideLegacyPair_LeaveLegacyResolutionIntact()
+    {
+        const string globalConfig = """
+            is_global = true
+            build_property.SqlArtisanSyntaxMySql =
+            build_property.SqlArtisanSyntaxOracle =
+            build_property.SqlArtisanSyntaxPostgreSql =
+            build_property.SqlArtisanSyntaxSqlite =
+            build_property.SqlArtisanSyntaxSqlServer =
+            """;
+
+        var test = AnalyzerVerifier.Create(RollupUsageTemplate, AnalyzerVerifier.LegacyEditorConfig("mysql"));
+        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_mysql = any"));
+
+        await test.RunAsync();
+    }
+
+    // The zero-config half of the same hazard: the analyzer must stay
+    // completely silent for a package consumer that configured nothing.
+    [Fact]
+    public async Task BlankFamilyPropertiesWithNoOtherConfig_StaySilent()
+    {
+        const string globalConfig = """
+            is_global = true
+            build_property.SqlArtisanSyntaxMySql =
+            build_property.SqlArtisanSyntaxOracle =
+            build_property.SqlArtisanSyntaxPostgreSql =
+            build_property.SqlArtisanSyntaxSqlite =
+            build_property.SqlArtisanSyntaxSqlServer =
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig: null);
+        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
 
         await test.RunAsync();
     }

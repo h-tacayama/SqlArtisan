@@ -61,24 +61,61 @@ internal static class AnalyzerConfigResolver
     }
 
     /// <summary>
-    /// Whether any <c>sqlartisan_syntax_*</c> key is present anywhere in this
-    /// file's effective options — <c>.editorconfig</c> or the MSBuild-property
-    /// fallback, valid value or not. Presence alone makes the family govern
-    /// the whole resolution (#432's family-wins-outright precedence); an
-    /// invalid value still counts, so a typo'd family key never silently lets
-    /// the legacy pair take over.
+    /// Whether any <c>sqlartisan_syntax_*</c> key carries a value anywhere in
+    /// this file's effective options — <c>.editorconfig</c> or the
+    /// MSBuild-property fallback, a *recognized* value or not. Any value makes
+    /// the family govern the whole resolution (#432's family-wins-outright
+    /// precedence); an invalid one still counts, so a typo'd family key never
+    /// silently lets the legacy pair take over.
     /// </summary>
     public static bool IsFamilyPresent(AnalyzerConfigOptions options)
     {
         foreach (TargetDbms dbms in AllDbms)
         {
-            if (options.TryGetValue(SyntaxKey(dbms), out _) || options.TryGetValue(SyntaxMSBuildPropertyKey(dbms), out _))
+            if (HasValue(options, SyntaxKey(dbms)) || HasValue(options, SyntaxMSBuildPropertyKey(dbms)))
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Every family key carrying a value in this file's effective options,
+    /// across both surfaces — for value validation, since a typo in the
+    /// MSBuild property is exactly as silent as one in the
+    /// <c>.editorconfig</c> key.
+    /// </summary>
+    public static IEnumerable<(string Key, string Value)> SetSyntaxValues(AnalyzerConfigOptions options)
+    {
+        foreach (TargetDbms dbms in AllDbms)
+        {
+            if (TryGetSetValue(options, SyntaxKey(dbms), out string editorConfigValue))
+            {
+                yield return (SyntaxKey(dbms), editorConfigValue);
+            }
+
+            if (TryGetSetValue(options, SyntaxMSBuildPropertyKey(dbms), out string msBuildValue))
+            {
+                yield return (SyntaxMSBuildPropertyKey(dbms), msBuildValue);
+            }
+        }
+    }
+
+    private static bool HasValue(AnalyzerConfigOptions options, string key) => TryGetSetValue(options, key, out _);
+
+    /// <summary>
+    /// Reads <paramref name="key"/>, treating a blank value as unset: the
+    /// shipped props declares a <c>CompilerVisibleProperty</c> per DBMS, and
+    /// the SDK emits every declared property as a key — with an empty value
+    /// when the consumer never set it — so testing key presence alone would
+    /// make the family govern in every project referencing the package.
+    /// </summary>
+    private static bool TryGetSetValue(AnalyzerConfigOptions options, string key, out string value)
+    {
+        value = options.TryGetValue(key, out string? raw) && !string.IsNullOrWhiteSpace(raw) ? raw : string.Empty;
+        return value.Length > 0;
     }
 
     /// <summary>

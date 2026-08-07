@@ -3236,20 +3236,26 @@ named it — the only way to carve an exception out of a family that has no
 single "primary" key to override:
 
 ```ini
-# repo-wide: check every DBMS but SQLite
+# repo-wide: this product ships against all five
 [*.cs]
 sqlartisan_syntax_mysql      = any
 sqlartisan_syntax_oracle     = any
 sqlartisan_syntax_postgresql = any
+sqlartisan_syntax_sqlite     = any
 sqlartisan_syntax_sqlserver  = any
 
-# this one area also ships to SQLite
-[src/EmbeddedReports/**.cs]
-sqlartisan_syntax_sqlite = any
+# except this area, which never runs on the embedded engine
+[src/Reporting/**.cs]
+sqlartisan_syntax_sqlite = none
 ```
 
+Omitting a key from the narrower section would not do this: `.editorconfig`
+sections layer, so the broader `sqlartisan_syntax_sqlite = any` still applies
+to those files. Only `none` overrides it back off.
+
 No aliases beyond these two — no `true`/`yes`/`off`. A smaller value domain
-is easier to document and validate.
+is easier to document and validate. A key set to nothing at all
+(`sqlartisan_syntax_oracle =`) reads as unset, not as `none`.
 
 ### SQLA0100 joins; SQLA0101 and SQLA0103 report one per dialect
 

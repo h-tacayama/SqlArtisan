@@ -167,6 +167,56 @@ public class AnalyzerConfigResolverTests
         Assert.True(AnalyzerConfigResolver.IsFamilyPresent(options));
     }
 
+    // The SDK emits a key for every declared CompilerVisibleProperty, with an
+    // empty value when the consumer never set one — so the five properties the
+    // shipped props declares reach every package consumer. Reading those as
+    // "family present" would make the family govern in projects that named no
+    // dialect at all, silently dropping a legacy-configured target.
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void IsFamilyPresent_BlankValuedKeys_ReadAsUnset(string blank)
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.Oracle)] = blank,
+            [AnalyzerConfigResolver.SyntaxKey(TargetDbms.MySql)] = blank,
+        });
+
+        Assert.False(AnalyzerConfigResolver.IsFamilyPresent(options));
+    }
+
+    [Fact]
+    public void ResolveTargets_LegacyPairBesideBlankValuedFamilyKeys_StillDesugarsLegacy()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.TargetDbmsKey] = "mysql",
+            [AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.MySql)] = string.Empty,
+            [AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.Oracle)] = string.Empty,
+        });
+
+        Assert.True(AnalyzerConfigResolver.ResolveTargets(options).Contains(TargetDbms.MySql));
+    }
+
+    [Fact]
+    public void SetSyntaxValues_SkipsBlanksAndReadsBothSurfaces()
+    {
+        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
+        {
+            [AnalyzerConfigResolver.SyntaxKey(TargetDbms.Oracle)] = "19",
+            [AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.MySql)] = "tru",
+            [AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.Sqlite)] = string.Empty,
+        });
+
+        Assert.Equal(
+            [
+                (AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(TargetDbms.MySql), "tru"),
+                (AnalyzerConfigResolver.SyntaxKey(TargetDbms.Oracle), "19"),
+            ],
+            [.. AnalyzerConfigResolver.SetSyntaxValues(options)]);
+    }
+
     [Fact]
     public void ResolveTargets_LegacyPairAlone_DesugarsToSingleDbms()
     {
