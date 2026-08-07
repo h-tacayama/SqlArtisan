@@ -75,6 +75,28 @@ jobs:
           dotnet pack src/SqlArtisan.Dapper/SqlArtisan.Dapper.csproj -c Release -o artifacts
           dotnet pack src/SqlArtisan.TableClassGen/SqlArtisan.TableClassGen.csproj -c Release -o artifacts
 
+      # The analyzer DLL and props reach the SqlArtisan.*.nupkg through
+      # SqlArtisan.csproj's own pack targets, not a NuGet-verified mechanism —
+      # nothing else in CI opens the package to check. A silent packaging
+      # regression (e.g. the SDK renaming the internal _GetPackageFiles target
+      # SqlArtisan.csproj hooks) would otherwise ship a package with no
+      # analyzer and reach nuget.org undetected.
+      - name: Verify analyzer packaging
+        run: |
+          set -euo pipefail
+          pkg=$(ls artifacts/SqlArtisan.[0-9]*.nupkg)
+          echo "Inspecting $pkg"
+          missing=0
+          for entry in "analyzers/dotnet/cs/SqlArtisan.Analyzers.dll" "buildTransitive/SqlArtisan.props"; do
+            if unzip -l "$pkg" | awk '{print $4}' | grep -qxF "$entry"; then
+              echo "OK: $entry"
+            else
+              echo "::error::$pkg is missing $entry"
+              missing=1
+            fi
+          done
+          exit $missing
+
       # --skip-duplicate makes re-running the workflow on the same version a no-op.
       - name: Push to NuGet
         run: >
