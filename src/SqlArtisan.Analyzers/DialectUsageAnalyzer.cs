@@ -541,8 +541,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConfigurationDisablesAllDialects, Location.None));
             }
 
+            // Only when the family does not itself name the legacy DBMS: the report
+            // exists for the silent replacement ("adding oracle" that in fact drops
+            // postgresql). A family key set for that DBMS — a version, an explicit
+            // `none`, even an invalid value — is the user's own statement about it,
+            // and each of those sub-cases already carries its correct diagnostic;
+            // firing here too would claim a checked dialect is unchecked.
             if (familyPresent
                 && AnalyzerConfigResolver.ResolveTarget(options) is { } droppedDbms
+                && !AnalyzerConfigResolver.IsFamilyKeySet(options, droppedDbms)
                 && reportedDroppedDbms.Add(droppedDbms))
             {
                 context.ReportDiagnostic(Diagnostic.Create(

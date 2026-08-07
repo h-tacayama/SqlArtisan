@@ -3118,7 +3118,7 @@ still needs naming by ID.
 
 | ID | Severity | Reports |
 |---|---|---|
-| `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value, a `sqlartisan_target_dbms` / `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect at all, or the legacy pair coexisting with a present `sqlartisan_syntax_*` key — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once). |
+| `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value, a `sqlartisan_target_dbms` / `sqlartisan_target_version` / `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect at all, or the legacy pair coexisting with a family that doesn't name its DBMS — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once). |
 | `SQLA0002` | Warning | `sqlartisan_target_dbms` / `sqlartisan_target_version` are deprecated in favor of `sqlartisan_syntax_*` — see [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
 | `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
@@ -3363,6 +3363,13 @@ exactly the coverage loss `SQLA0001` exists to flag: adding
 fact *replaces* PostgreSQL. The message names the dropped DBMS and the key
 that would keep it checked — this is a distinct `SQLA0001` report, not
 `SQLA0002`; the two never fire for the same configuration.
+
+The report fires only when the family doesn't itself name the legacy pair's
+DBMS. Mid-migration — `sqlartisan_syntax_postgresql = 16` written, the old
+`sqlartisan_target_dbms = postgresql` line not yet deleted — nothing is
+dropped: the family already covers PostgreSQL, so no configuration
+diagnostic fires and the leftover legacy line is simply inert. Delete it at
+leisure.
 
 ---
 

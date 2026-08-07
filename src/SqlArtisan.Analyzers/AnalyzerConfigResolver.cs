@@ -65,14 +65,16 @@ internal static class AnalyzerConfigResolver
     /// this file's effective options — <c>.editorconfig</c> or the
     /// MSBuild-property fallback, a *recognized* value or not. Any value makes
     /// the family govern the whole resolution (#432's family-wins-outright
-    /// precedence); an invalid one still counts, so a typo'd family key never
-    /// silently lets the legacy pair take over.
+    /// precedence); an invalid one still counts, so a mistyped family *value*
+    /// never silently lets the legacy pair take over. (A mistyped key *name*
+    /// does — no exact key matches — which is what the separate
+    /// <see cref="TryEnumerateSyntaxKeys"/> validation exists to flag.)
     /// </summary>
     public static bool IsFamilyPresent(AnalyzerConfigOptions options)
     {
         foreach (TargetDbms dbms in AllDbms)
         {
-            if (HasValue(options, SyntaxKey(dbms)) || HasValue(options, SyntaxMSBuildPropertyKey(dbms)))
+            if (IsFamilyKeySet(options, dbms))
             {
                 return true;
             }
@@ -80,6 +82,10 @@ internal static class AnalyzerConfigResolver
 
         return false;
     }
+
+    /// <summary>Whether the family names <paramref name="dbms"/> on either surface, with any non-blank value.</summary>
+    public static bool IsFamilyKeySet(AnalyzerConfigOptions options, TargetDbms dbms) =>
+        HasValue(options, SyntaxKey(dbms)) || HasValue(options, SyntaxMSBuildPropertyKey(dbms));
 
     /// <summary>
     /// Every family key carrying a value in this file's effective options,

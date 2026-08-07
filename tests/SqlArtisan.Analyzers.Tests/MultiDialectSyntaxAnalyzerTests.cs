@@ -410,6 +410,73 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
+    // The mid-migration state: the family names the same DBMS the legacy pair
+    // does, so nothing is dropped — a coexistence report here would claim a
+    // checked dialect is unchecked while an SQLA0101 in the same build proves
+    // it is checked, and would prescribe adding a key that is already written.
+    [Fact]
+    public async Task LegacyAndFamilyNameSameDbms_ReportsOnlyTheDialectDiagnostic_NoCoexistenceReport()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            sqlartisan_syntax_postgresql = 14
+            """;
+
+        var test = AnalyzerVerifier.Create(MergeIntoUsageTemplate, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101")
+            .WithLocation(0)
+            .WithArguments("MergeInto", "PostgreSQL", "15", "14", "sqlartisan_construct_merge_into"));
+
+        await test.RunAsync();
+    }
+
+    // `none` for the legacy pair's own DBMS is the user's explicit statement
+    // about it — not a silent drop — so only the empty-set reason reports.
+    [Fact]
+    public async Task LegacyDbmsSetToNoneInFamily_ReportsEmptySetOnly_NoCoexistenceReport()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            sqlartisan_syntax_postgresql = none
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithMessage("Every configured 'sqlartisan_syntax_*' key is 'none', so the analyzer has no dialect left to check"));
+
+        await test.RunAsync();
+    }
+
+    // An invalid family value for the legacy pair's own DBMS: the
+    // value-validation reason already names the key and the value, so neither
+    // the coexistence report nor SQLA0002 fires on top of it.
+    [Fact]
+    public async Task LegacyDbmsWithInvalidFamilyValueForSameDbms_ReportsValueValidationOnly()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            sqlartisan_syntax_postgresql = tru
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_syntax_postgresql",
+                "tru",
+                "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+
+        await test.RunAsync();
+    }
+
     // The pitfall docs/analyzer.md documents for the legacy pair ("a version
     // alone identifies no engine") still earns the deprecation nag: the key
     // itself resolves even though it has no dialect effect.

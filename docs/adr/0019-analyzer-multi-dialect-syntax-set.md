@@ -110,9 +110,15 @@ sqlartisan_syntax_sqlite     = any
   reasons join the id: a family present but every key resolved to `none`
   (the same "went quiet with no error" failure the legacy pair's backward
   compatibility section already names, reachable here by one
-  typo-adjacent `none`), and the legacy pair coexisting with a present
-  family (naming the DBMS the legacy pair would have contributed, since a
-  message naming only the ignored key leaves "replaces, not adds" invisible).
+  typo-adjacent `none`), and the legacy pair coexisting with a family that
+  doesn't itself name the legacy pair's DBMS (naming the DBMS the legacy
+  pair would have contributed, since a message naming only the ignored key
+  leaves "replaces, not adds" invisible). A family that *does* name that
+  DBMS — a version, an explicit `none`, even an invalid value — is the
+  user's own statement about it, so nothing is silently dropped and the
+  coexistence report stays quiet: the mid-migration state, where the new
+  key is written and the old line not yet deleted, must not produce a
+  diagnostic that claims a checked dialect is unchecked.
   Four report reasons under one id is expressed as four `DiagnosticDescriptor`
   instances sharing `SQLA0001` — Roslyn allows more than one descriptor per
   id, and `DiagnosticOrderingTests`' stable sort keeps them in declared order.
