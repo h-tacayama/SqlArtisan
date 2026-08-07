@@ -257,7 +257,8 @@ public class MultiDialectSyntaxAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_syntax_postgres", "mysql/oracle/postgresql/sqlite/sqlserver"));
 
         await test.RunAsync();
     }
@@ -273,7 +274,9 @@ public class MultiDialectSyntaxAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_syntax_oracle", "tru", "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
 
         await test.RunAsync();
     }
@@ -297,7 +300,8 @@ public class MultiDialectSyntaxAnalyzerTests
                 "build_property.SqlArtisanTargetVersion",
                 "16 or so",
                 "a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_postgresql = any"));
 
         await test.RunAsync();
     }
@@ -335,7 +339,9 @@ public class MultiDialectSyntaxAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
+            "In at least one file's effective configuration, every 'sqlartisan_syntax_*' key is 'none', "
+                + "so that file has no dialect left to check"));
 
         await test.RunAsync();
     }

@@ -213,7 +213,8 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(DatetruncUsageTemplate), editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_<dbms> = <version-or-any>"));
         await test.RunAsync();
     }
 
@@ -242,7 +243,8 @@ public class DialectUsageAnalyzerTests
 
         string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_target_dbms", "postgres", "one of: mysql/oracle/postgresql/sqlite/sqlserver"));
 
         await test.RunAsync();
     }
@@ -257,8 +259,11 @@ public class DialectUsageAnalyzerTests
 
         string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_target_version", "latest", "a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_postgresql = any"));
 
         await test.RunAsync();
     }
@@ -276,7 +281,8 @@ public class DialectUsageAnalyzerTests
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_construct_rollup", "maybe", "supported/unsupported"));
 
         await test.RunAsync();
     }
