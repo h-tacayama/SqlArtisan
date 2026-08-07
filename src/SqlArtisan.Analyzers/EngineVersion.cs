@@ -61,7 +61,16 @@ internal readonly struct EngineVersion : IComparable<EngineVersion>, IEquatable<
         }
 
         // A trailing letter run is a release-name suffix (23ai, 21c) rather than
-        // a version fact, so it is dropped rather than rejected.
+        // a version fact, so it is dropped rather than rejected; anything else
+        // after the digits is a typo the SQLA0001 value check must catch.
+        for (int i = digitCount; i < segment.Length; i++)
+        {
+            if (segment[i] is not ((>= 'a' and <= 'z') or (>= 'A' and <= 'Z')))
+            {
+                return false;
+            }
+        }
+
         return digitCount > 0 && int.TryParse(segment.Substring(0, digitCount), out value);
     }
 

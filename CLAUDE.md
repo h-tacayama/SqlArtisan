@@ -99,10 +99,14 @@ Shared bases and one uncategorized node sit at that folder's root.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships twelve diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships thirteen diagnostics:
 
-- **SQLA0001** — Invalid analyzer configuration (unrecognized `.editorconfig`
-  value).
+- **SQLA0001** — Analyzer configuration problem: an unrecognized key name or
+  value, a `sqlartisan_syntax_*` family resolving to no dialect at all, or a
+  legacy pair whose DBMS a coexisting family silently drops.
+- **SQLA0002** — Deprecated legacy config. The `sqlartisan_target_dbms` /
+  `sqlartisan_target_version` pair still governs (no family key present) —
+  migrate to `sqlartisan_syntax_<dbms>`.
 - **SQLA0100** — SQL construct not supported on the target dialect. Fires when a
   `Sql.*` call is unsupported for the configured DBMS.
 - **SQLA0101** — Version-bound construct. Supported on the target dialect, but

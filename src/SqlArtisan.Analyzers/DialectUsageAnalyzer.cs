@@ -555,7 +555,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     AnalyzerConfigResolver.TargetDbmsKey,
                     LegacyDbmsRawValue(options, droppedDbms),
                     TargetDbmsNames.Display(droppedDbms),
-                    AnalyzerConfigResolver.SyntaxKey(droppedDbms)));
+                    FamilyKeySuggestion(options, droppedDbms)));
             }
 
             if (!familyPresent && !reportedDeprecation
@@ -590,8 +590,14 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     private static string LegacyReplacementSuggestion(AnalyzerConfigOptions options) =>
         AnalyzerConfigResolver.ResolveTarget(options) is { } dbms
-            ? $"{AnalyzerConfigResolver.SyntaxKey(dbms)} = {AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString() ?? AnalyzerConfigResolver.AnyValue}"
+            ? FamilyKeySuggestion(options, dbms)
             : "sqlartisan_syntax_<dbms> = <version-or-any>";
+
+    // Always a full `key = value` line: a bare key would remediate nothing (a blank
+    // value reads as unset), and dropping the legacy version would silently shed the
+    // dialect's SQLA0101 coverage along with it.
+    private static string FamilyKeySuggestion(AnalyzerConfigOptions options, TargetDbms dbms) =>
+        $"{AnalyzerConfigResolver.SyntaxKey(dbms)} = {AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString() ?? AnalyzerConfigResolver.AnyValue}";
 
     internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) => assembly?.Name == SqlArtisanAssemblyName;
 

@@ -278,6 +278,28 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
+    // Non-letter junk after the digits is a typo, not a release-name suffix like
+    // 23ai — it must hit the value check, not silently resolve to its digits.
+    [Fact]
+    public async Task SyntaxValueWithTrailingJunk_ReportsSqla0001()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_postgresql = 14!!
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_syntax_postgresql",
+                "14!!",
+                "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+
+        await test.RunAsync();
+    }
+
     [Fact]
     public async Task FamilyPresentButEveryKeyIsNone_ReportsSqla0001()
     {
@@ -405,7 +427,29 @@ public class MultiDialectSyntaxAnalyzerTests
 
         var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "postgresql", "PostgreSQL", "sqlartisan_syntax_postgresql"));
+            .WithArguments("sqlartisan_target_dbms", "postgresql", "PostgreSQL", "sqlartisan_syntax_postgresql = any"));
+
+        await test.RunAsync();
+    }
+
+    // The suggestion carries the legacy version over: a bare key would remediate
+    // nothing (blank reads as unset), and `= any` would silently shed the
+    // dialect's SQLA0101 coverage.
+    [Fact]
+    public async Task LegacyPairWithVersionAndFamilyCoexist_SuggestionCarriesTheVersion()
+    {
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            sqlartisan_target_version = 16
+            sqlartisan_syntax_oracle = any
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_target_dbms", "postgresql", "PostgreSQL", "sqlartisan_syntax_postgresql = 16"));
 
         await test.RunAsync();
     }

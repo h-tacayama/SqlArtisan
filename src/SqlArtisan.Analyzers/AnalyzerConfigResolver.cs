@@ -280,7 +280,7 @@ internal static class AnalyzerConfigResolver
     /// <summary>
     /// The declared target version for this syntax tree, or <see langword="null"/>
     /// if unset or unparseable (an unparseable value is separately flagged as
-    /// SQLA0001; either way version bounds simply do not apply).
+    /// SQLA0001; either way version bounds do not apply).
     /// </summary>
     public static EngineVersion? ResolveTargetVersion(AnalyzerConfigOptions options)
     {
