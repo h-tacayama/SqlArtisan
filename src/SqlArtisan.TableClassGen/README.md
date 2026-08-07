@@ -163,10 +163,10 @@ internal sealed class UsersTable : DbTableBase
         CreatedAt = new DbColumn(this, "created_at");
     }
 
-    [DbColumnMetadata(Nullable = false, HasDefault = true, Indexed = true)]
+    [DbColumnMetadata(Nullable = false, HasDefault = true, Indexed = true, TypeCategory = DbTypeCategory.Numeric)]
     public DbColumn Id { get; }
 
-    [DbColumnMetadata(Nullable = false, HasDefault = false, Indexed = true)]
+    [DbColumnMetadata(Nullable = false, HasDefault = false, Indexed = true, TypeCategory = DbTypeCategory.Text)]
     public DbColumn Name { get; }
 
     [DbColumnMetadata(Nullable = true, HasDefault = false, Indexed = false)]
@@ -177,7 +177,9 @@ internal sealed class UsersTable : DbTableBase
 `DbColumnMetadata` records what the catalog says about each column. It is
 compile-time data only — nothing reads it at run time — and an argument is written
 only for a fact the tool could actually determine, so a column whose nullability,
-default, or index membership could not be read carries no claim about it.
+default, index membership, or type category could not be read carries no claim
+about it — `CreatedAt` above has no `TypeCategory` because its catalog type
+didn't resolve to one of the five recognized categories.
 
 `Indexed` means the column **leads** an index, so a predicate on it alone can use
 that index; a non-leading column of a composite index records `false`. A column

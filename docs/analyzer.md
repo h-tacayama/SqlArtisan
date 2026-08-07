@@ -359,8 +359,9 @@ kinds exist:
 - **Arity-level** — `sqlartisan_construct_<name>_arity<N>` — applies only to
   the overload with exactly `N` declared parameters. Use this when the
   matrix (or your own knowledge) says only one shape of an overloaded member
-  differs — e.g. `StringAgg`'s 3-argument inline-`ORDER BY` form is
-  PostgreSQL-only while its 2-argument form also runs on SQL Server:
+  differs — e.g. `StringAgg`'s 2-argument form runs on PostgreSQL, SQLite
+  (3.44+), and SQL Server, but its 3-argument inline-`ORDER BY` form has no
+  SQL Server spelling (there it's `WITHIN GROUP (ORDER BY ...)` instead):
 
   ```ini
   sqlartisan_construct_string_agg_arity3 = unsupported   # only the 3-arg form
@@ -705,9 +706,10 @@ such join. That takes two conditions, both required:
   worked out; any one of them silences the statement. (`InnerJoin` and
   `NaturalJoin` null-supply nothing and are not on the list.)
 - The statement **builds its own query** — the chain starts at `Select` /
-  `Update` / `DeleteFrom` / `MergeInto` / `With` right there. A chain held in a
-  variable, returned by a helper method, or kept in a field is left alone: the
-  join that would decide the answer is somewhere this rule cannot read.
+  `Update` / `DeleteFrom` / `MergeInto` / `With` / `WithRecursive` right there.
+  A chain held in a variable, returned by a helper method, or kept in a field
+  is left alone: the join that would decide the answer is somewhere this rule
+  cannot read.
 
 The trade is deliberate — the rule misses real constant predicates in order not
 to call a working anti-join a mistake.
