@@ -423,6 +423,16 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         IdentifierLengthRule.Check(context, member, arguments, targets);
     }
 
+    private static readonly string[] LegacyDbmsKeys =
+    [
+        AnalyzerConfigResolver.TargetDbmsKey, AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey,
+    ];
+
+    private static readonly string[] LegacyVersionKeys =
+    [
+        AnalyzerConfigResolver.TargetVersionKey, AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey,
+    ];
+
     private static void ValidateConfiguration(CompilationAnalysisContext context)
     {
         var reportedTargetValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -435,28 +445,40 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         {
             AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
 
-            if (options.TryGetValue(AnalyzerConfigResolver.TargetDbmsKey, out string? targetValue)
-                && !AnalyzerConfigResolver.IsRecognizedTargetValue(targetValue)
-                && reportedTargetValues.Add(targetValue))
+            // Both surfaces, like the family keys' SetSyntaxValues: a typo in the
+            // MSBuild property is exactly as silent as one in the .editorconfig key.
+            // Blank property values are skipped — the SDK emits every declared
+            // CompilerVisibleProperty as a key, empty when the consumer set nothing.
+            foreach (string targetKey in LegacyDbmsKeys)
             {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticDescriptors.InvalidConfiguration,
-                    Location.None,
-                    AnalyzerConfigResolver.TargetDbmsKey,
-                    targetValue,
-                    $"one of: {validTargetNames}"));
+                if (options.TryGetValue(targetKey, out string? targetValue)
+                    && !string.IsNullOrWhiteSpace(targetValue)
+                    && !AnalyzerConfigResolver.IsRecognizedTargetValue(targetValue)
+                    && reportedTargetValues.Add(targetValue))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        DiagnosticDescriptors.InvalidConfiguration,
+                        Location.None,
+                        targetKey,
+                        targetValue,
+                        $"one of: {validTargetNames}"));
+                }
             }
 
-            if (options.TryGetValue(AnalyzerConfigResolver.TargetVersionKey, out string? versionValue)
-                && !AnalyzerConfigResolver.IsRecognizedVersionValue(versionValue)
-                && reportedVersionValues.Add(versionValue))
+            foreach (string versionKey in LegacyVersionKeys)
             {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticDescriptors.InvalidConfiguration,
-                    Location.None,
-                    AnalyzerConfigResolver.TargetVersionKey,
-                    versionValue,
-                    "a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+                if (options.TryGetValue(versionKey, out string? versionValue)
+                    && !string.IsNullOrWhiteSpace(versionValue)
+                    && !AnalyzerConfigResolver.IsRecognizedVersionValue(versionValue)
+                    && reportedVersionValues.Add(versionValue))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        DiagnosticDescriptors.InvalidConfiguration,
+                        Location.None,
+                        versionKey,
+                        versionValue,
+                        "a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+                }
             }
 
             foreach (string overrideKey in overrideKeys)

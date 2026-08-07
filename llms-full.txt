@@ -3361,9 +3361,10 @@ Here only Oracle is checked — PostgreSQL is silently dropped, which is
 exactly the coverage loss `SQLA0001` exists to flag: adding
 `sqlartisan_syntax_oracle` to a scope that already carries
 `sqlartisan_target_dbms = postgresql` reads as *adding* Oracle, when it in
-fact *replaces* PostgreSQL. The message names the dropped DBMS and the key
-that would keep it checked — this is a distinct `SQLA0001` report, not
-`SQLA0002`; the two never fire for the same configuration.
+fact *replaces* PostgreSQL. The message names the dropped DBMS and the full
+`key = value` line that would keep it checked, carrying the declared version
+over — this is a distinct `SQLA0001` report, not `SQLA0002`; the two never
+fire for the same configuration.
 
 The report fires only when the family doesn't itself name the legacy pair's
 DBMS. Mid-migration — `sqlartisan_syntax_postgresql = 16` written, the old

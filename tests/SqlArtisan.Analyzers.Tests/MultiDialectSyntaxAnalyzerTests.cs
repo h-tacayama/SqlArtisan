@@ -278,6 +278,30 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
+    // The legacy pair's value validation reads both surfaces too — a junk
+    // version through the MSBuild property must not silently resolve to unset
+    // (losing SQLA0101 coverage with no visible reason).
+    [Fact]
+    public async Task LegacyVersionJunkViaMSBuildProperty_ReportsSqla0001()
+    {
+        const string globalConfig = """
+            is_global = true
+            build_property.SqlArtisanTargetDbms = postgresql
+            build_property.SqlArtisanTargetVersion = 16 or so
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig: null);
+        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "build_property.SqlArtisanTargetVersion",
+                "16 or so",
+                "a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002"));
+
+        await test.RunAsync();
+    }
+
     // Non-letter junk after the digits is a typo, not a release-name suffix like
     // 23ai — it must hit the value check, not silently resolve to its digits.
     [Fact]
