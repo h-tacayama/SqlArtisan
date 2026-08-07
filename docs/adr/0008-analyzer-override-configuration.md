@@ -1,6 +1,9 @@
 # ADR 0008 — Analyzer override configuration: keys, precedence, and what's out of scope
 
-**Status:** Accepted
+**Status:** Accepted — the precedence section refined by
+[ADR 0019](0019-analyzer-multi-dialect-syntax-set.md), which adds the
+`sqlartisan_syntax_*` family and resolves a `sqlartisan_construct_*` override
+once per usage rather than once per target. Everything else here stands.
 
 ## Context
 

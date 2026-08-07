@@ -46,7 +46,7 @@ internal static class DialectMatrix
         [TargetDbms.MySql] = "MySQL 8.0 (Testcontainers `mysql:8.0`)",
         [TargetDbms.Oracle] = "Oracle Database XE 21c (Testcontainers.Oracle module default image, gvenzl/oracle-xe:21.3.0-slim-faststart)",
         [TargetDbms.PostgreSql] = "PostgreSQL 16 (Testcontainers `pgvector/pgvector:0.8.6-pg16`)",
-        [TargetDbms.Sqlite] = "the SQLite version bundled with Microsoft.Data.Sqlite 9.0.5 (in-process, no container)",
+        [TargetDbms.Sqlite] = "the SQLite engine shipped by the pinned SQLitePCLRaw.bundle_e_sqlite3 3.0.3, via Microsoft.Data.Sqlite 9.0.5 (in-process, no container)",
         [TargetDbms.SqlServer] = "SQL Server 2022 (Testcontainers `mcr.microsoft.com/mssql/server:2022-latest`)",
     };
 
@@ -80,7 +80,7 @@ internal static class DialectMatrix
 
         // --- String aggregation (CHANGELOG 0.3.0-beta.1, #88) ---
         // StringAgg's 2-arg form is PostgreSQL + SQL Server + SQLite (3.44 added string_agg as
-        // a group_concat alias — live-verified by the dialect sweep on the bundled 3.46); the
+        // a group_concat alias — live-verified by the dialect sweep on the bundled engine); the
         // 3-arg form (inline ORDER BY) additionally works on SQLite via 3.44's
         // ORDER-BY-inside-aggregates, but not on SQL Server, which orders via the separate
         // .WithinGroup(...) chain instead (Sql.S.cs remarks; docs/expressions.md).
@@ -548,9 +548,9 @@ internal static class DialectMatrix
         [new MatrixKey("PlaintoTsquery")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- MERGE / UPSERT chain steps (same scope as their statements) ---
-        // MergeBuilder's arity-1 Using(TableReference); see the JOIN's arity-2 entry above (#197).
-        // The subquery source rides this key (a TableReference subtype through the same
-        // Using overload); only the VALUES source below narrows the scope (Oracle excluded).
+        // Arity-1 Using collides MergeBuilder.Using(TableReference) with DeleteBuilder's
+        // plain DELETE ... USING — see the MatrixKey collision caveat above; the entry is
+        // their support union. See the JOIN's arity-2 entry above (#197) for USING(column).
         [new MatrixKey("Using")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         // Sql.Values(alias, columnNames, rows) — the MERGE USING literal-row source; arity 3
         // keeps it out of the arity-less Values union above (the builder's instance
@@ -627,8 +627,9 @@ internal static class DialectMatrix
         [new MatrixKey("Excluded")] = new VersionBounds(mySql: V("8.0.19")),
 
         // --- PostgreSQL 15 (matrix comments above: MERGE and the REGEXP_* family) ---
+        // Using carries no bound: the key is shared with DeleteBuilder's plain DELETE ...
+        // USING, which predates PostgreSQL 15. MergeInto's own bound still flags MERGE.
         [new MatrixKey("MergeInto")] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("Using")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("WhenMatched")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("WhenNotMatched")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenInsert")] = new VersionBounds(postgreSql: V("15")),
@@ -668,8 +669,9 @@ internal static class DialectMatrix
     /// <summary>
     /// The machine-comparable floor of each dialect's <see cref="VerifiedAgainstVersion"/>
     /// baseline — the anchor the <c>bool == (baseline &gt;= bound)</c> invariant
-    /// gate checks every <see cref="Bounds"/> row against. MySQL is a floor, not
-    /// an exact pin, because the <c>mysql:8.0</c> integration tag floats.
+    /// gate checks every <see cref="Bounds"/> row against. MySQL and SQLite are
+    /// floors, not exact pins: the <c>mysql:8.0</c> integration tag floats, and
+    /// the pinned SQLitePCLRaw bundle ships a newer engine (3.50.x at 3.0.3).
     /// </summary>
     internal static readonly IReadOnlyDictionary<TargetDbms, EngineVersion> BaselineVersion = new Dictionary<TargetDbms, EngineVersion>
     {

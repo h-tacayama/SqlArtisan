@@ -39,10 +39,29 @@ internal static class AnalyzerVerifier
         root = true
 
         [*.cs]
-        sqlartisan_target_dbms = {dbms}
+        sqlartisan_syntax_{dbms} = any
         """;
 
     public static string EditorConfig(string dbms, string version) => $"""
+        root = true
+
+        [*.cs]
+        sqlartisan_syntax_{dbms} = {version}
+        """;
+
+    /// <summary>
+    /// The deprecated legacy pair, for the SQLA0002 deprecation-suite tests only —
+    /// every other test in this project builds its <c>.editorconfig</c> from the
+    /// family via <see cref="EditorConfig(string)"/> so it stays green untouched.
+    /// </summary>
+    public static string LegacyEditorConfig(string dbms) => $"""
+        root = true
+
+        [*.cs]
+        sqlartisan_target_dbms = {dbms}
+        """;
+
+    public static string LegacyEditorConfig(string dbms, string version) => $"""
         root = true
 
         [*.cs]

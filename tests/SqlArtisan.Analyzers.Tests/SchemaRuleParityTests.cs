@@ -247,7 +247,7 @@ public class SchemaRuleParityTests
         root = true
 
         [*.cs]
-        sqlartisan_target_dbms = {dbms}
+        sqlartisan_syntax_{dbms} = any
         dotnet_diagnostic.SQLA0203.severity = suggestion
         """;
 }

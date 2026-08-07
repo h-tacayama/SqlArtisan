@@ -110,6 +110,8 @@ dialect it doesn't support.
 
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·
+[Checking a Set of Dialects at Once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once) ·
+[Migrating from the Legacy Target Key](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#migrating-from-the-legacy-target-key) ·
 [Correcting a Warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys) ·
 [Version-Aware Warnings (SQLA0101)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-aware-warnings-sqla0101) ·
 [Context Rules (SQLA0102)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102) ·

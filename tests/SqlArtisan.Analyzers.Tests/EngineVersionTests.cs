@@ -6,6 +6,7 @@ public class EngineVersionTests
     [InlineData("8.0.16")]
     [InlineData("23")]
     [InlineData("23ai")]
+    [InlineData("21c")]
     [InlineData("3.44")]
     [InlineData("2022")]
     [InlineData("21.3")]
@@ -20,6 +21,9 @@ public class EngineVersionTests
     [InlineData("8..0")]
     [InlineData(".5")]
     [InlineData("v8")]
+    [InlineData("14!!")]
+    [InlineData("16 or so")]
+    [InlineData("23ai+")]
     [InlineData(null)]
     public void TryParse_UnrecognizedFormat_Fails(string? value)
     {

@@ -45,7 +45,7 @@ public class CountNullableColumnAnalyzerTests
         root = true
 
         [*.cs]
-        sqlartisan_target_dbms = postgresql
+        sqlartisan_syntax_postgresql = any
         dotnet_diagnostic.SQLA0203.severity = {severity}
         """;
 

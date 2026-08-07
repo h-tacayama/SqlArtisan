@@ -5,9 +5,10 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-SQLA0001 | SqlArtisan.Configuration | Warning | A SqlArtisan analyzer .editorconfig value could not be recognized.
-SQLA0100 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used against a configured target dialect it is not supported on.
-SQLA0101 | SqlArtisan.Dialect | Warning | A construct's minimum engine version, per the matrix's version bounds, exceeds the declared sqlartisan_target_version.
+SQLA0001 | SqlArtisan.Configuration | Warning | A SqlArtisan analyzer configuration problem: an unrecognized key name or value, a 'sqlartisan_syntax_*' family resolving to no dialect, or the legacy target pair coexisting with the family.
+SQLA0002 | SqlArtisan.Configuration | Warning | 'sqlartisan_target_dbms' / 'sqlartisan_target_version' are deprecated in favor of 'sqlartisan_syntax_*'.
+SQLA0100 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used against a configured dialect it is not supported on.
+SQLA0101 | SqlArtisan.Dialect | Warning | A construct's minimum engine version, per the matrix's version bounds, exceeds the version declared for a configured dialect.
 SQLA0102 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used in a syntactic position the target dialect rejects it in.
 SQLA0103 | SqlArtisan.Dialect | Warning | A SQL identifier literal exceeds the target dialect's identifier-length limit.
 SQLA0200 | SqlArtisan.Schema | Warning | IS NULL / IS NOT NULL on a column the generated table class declares NOT NULL, so the predicate is constant.

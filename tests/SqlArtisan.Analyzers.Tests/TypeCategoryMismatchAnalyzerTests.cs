@@ -60,7 +60,7 @@ public class TypeCategoryMismatchAnalyzerTests
         root = true
 
         [*.cs]
-        sqlartisan_target_dbms = {dbms}
+        sqlartisan_syntax_{dbms} = any
         """;
 
     private static Task RunReporting(
