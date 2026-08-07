@@ -71,7 +71,7 @@ public class NotInSubqueryAnalyzerTests
         RunAsync(
             Usage(statements),
             AnalyzerVerifier.EditorConfig("postgresql"),
-            [new DiagnosticResult("SQLA0008", DiagnosticSeverity.Warning)
+            [new DiagnosticResult("SQLA0201", DiagnosticSeverity.Warning)
                 .WithLocation(0)
                 .WithArguments(column)]);
 

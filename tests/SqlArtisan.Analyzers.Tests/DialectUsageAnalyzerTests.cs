@@ -59,7 +59,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task UnsupportedConstructForTarget_ReportsSqla0002()
+    public async Task UnsupportedConstructForTarget_ReportsSqla0100()
     {
         const string editorConfig = """
             root = true
@@ -69,13 +69,13 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task MemberOverrideSupported_SilencesSqla0002()
+    public async Task MemberOverrideSupported_SilencesSqla0100()
     {
         const string editorConfig = """
             root = true
@@ -90,7 +90,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task MemberOverrideUnsupported_ForcesSqla0002OnOtherwiseSupportedDialect()
+    public async Task MemberOverrideUnsupported_ForcesSqla0100OnOtherwiseSupportedDialect()
     {
         const string editorConfig = """
             root = true
@@ -101,16 +101,16 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task VersionBoundConstructBelowDeclaredTarget_ReportsSqla0003()
+    public async Task VersionBoundConstructBelowDeclaredTarget_ReportsSqla0101()
     {
         var test = AnalyzerVerifier.Create(DatetruncUsageTemplate, AnalyzerVerifier.EditorConfig("sqlserver", "2019"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -126,33 +126,33 @@ public class DialectUsageAnalyzerTests
 
     // WithRecursive is oracle:false with NO oracle bound (the 23ai candidate was
     // disproven live, #263) — a declared version, even a high one, keeps the
-    // plain-bool SQLA0002 verdict rather than inventing a version story.
+    // plain-bool SQLA0100 verdict rather than inventing a version story.
     [Fact]
-    public async Task VersionBoundConstruct_OracleDeclaredVersionNoBound_ReportsSqla0002()
+    public async Task VersionBoundConstruct_OracleDeclaredVersionNoBound_ReportsSqla0100()
     {
         var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle", "23"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task VersionBoundConstruct_OracleNoDeclaredVersion_ReportsSqla0002()
+    public async Task VersionBoundConstruct_OracleNoDeclaredVersion_ReportsSqla0100()
     {
         var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
 
     // WithRecursive is mysql:true in the plain matrix but bound to 8.0 (no CTE
     // support before it) — a declared version below the bound reports the
-    // shortfall as SQLA0003, not silence.
+    // shortfall as SQLA0101, not silence.
     [Fact]
-    public async Task VersionBoundConstruct_MySqlBelowBound_ReportsSqla0003()
+    public async Task VersionBoundConstruct_MySqlBelowBound_ReportsSqla0101()
     {
         var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("mysql", "5.7"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0003").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101").WithLocation(0));
 
         await test.RunAsync();
     }
@@ -181,7 +181,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task VersionBoundConstruct_MemberOverrideSupported_SilencesSqla0003()
+    public async Task VersionBoundConstruct_MemberOverrideSupported_SilencesSqla0101()
     {
         const string editorConfig = """
             root = true
@@ -232,7 +232,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task InvalidOverrideValue_ReportsSqla0001AlongsideSqla0002()
+    public async Task InvalidOverrideValue_ReportsSqla0001AlongsideSqla0100()
     {
         const string editorConfig = """
             root = true
@@ -243,14 +243,14 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
 
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task StringAggThreeArgForm_OnSqlServer_ReportsSqla0002ButTwoArgFormDoesNot()
+    public async Task StringAggThreeArgForm_OnSqlServer_ReportsSqla0100ButTwoArgFormDoesNot()
     {
         // Real matrix arity split (not synthetic): StringAgg's 2-arg form is PostgreSQL + SQL
         // Server, but the 3-arg inline-ORDER-BY form is PostgreSQL-only — SQL Server orders via
@@ -276,13 +276,13 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task MatchOverloads_OnTargetWhereNeitherIsSupported_BothReportSqla0002()
+    public async Task MatchOverloads_OnTargetWhereNeitherIsSupported_BothReportSqla0100()
     {
         // Real matrix union entry (not synthetic): MySQL's Match(object, params object[]) and
         // SQLite's Match(DbTableBase, object) both declare 2 parameters, so they collapse into
@@ -309,8 +309,8 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(1));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(1));
 
         await test.RunAsync();
     }
@@ -409,7 +409,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task RoundOneArgForm_OnSqlServer_ReportsSqla0002ButTwoArgFormDoesNot()
+    public async Task RoundOneArgForm_OnSqlServer_ReportsSqla0100ButTwoArgFormDoesNot()
     {
         // Real matrix arity split: T-SQL's ROUND requires 2-3 arguments, so the 1-arg overload
         // is invalid on SQL Server while the 2-arg overload is universal.
@@ -434,13 +434,13 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task BindArrayAndUnnest_OnMySql_ReportSqla0002()
+    public async Task BindArrayAndUnnest_OnMySql_ReportSqla0100()
     {
         // The Any/All/Some keys stay the subquery-form union (arity-1 collision, see
         // DialectMatrix), so off-PG the array form is flagged through BindArray/Unnest.
@@ -465,8 +465,8 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(1));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(1));
 
         await test.RunAsync();
     }
@@ -500,7 +500,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task DualProperty_UnsupportedTarget_ReportsSqla0002()
+    public async Task DualProperty_UnsupportedTarget_ReportsSqla0100()
     {
         const string source = """
             using SqlArtisan;
@@ -523,13 +523,13 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task ModulusOperator_OnOracleTarget_ReportsSqla0002()
+    public async Task ModulusOperator_OnOracleTarget_ReportsSqla0100()
     {
         // Overloaded operators reach the analyzer as binary operations (#219): Oracle has no
         // % arithmetic operator (its spelling is MOD(n, m)).
@@ -556,7 +556,7 @@ public class DialectUsageAnalyzerTests
 
         // Locks the operator display mapping (the C# glyph, not "op_Modulus") and the
         // member-level override key the message names — neither is asserted anywhere else.
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100")
             .WithLocation(0)
             .WithArguments("operator %", "Oracle", "sqlartisan_construct_op_modulus"));
 
@@ -618,7 +618,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task ModulusOperator_MemberOverrideSupported_SilencesSqla0002()
+    public async Task ModulusOperator_MemberOverrideSupported_SilencesSqla0100()
     {
         // Proves the CLR-name-derived override key (op_Modulus -> sqlartisan_construct_op_modulus)
         // round-trips through the resolver.
@@ -647,7 +647,7 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
-    public async Task ModulusCompoundAssignment_OnOracleTarget_ReportsSqla0002()
+    public async Task ModulusCompoundAssignment_OnOracleTarget_ReportsSqla0100()
     {
         // e %= 2 compiles (ModulusOperator derives from SqlExpression) and reaches Roslyn as a
         // compound assignment, not a binary operation — a separate registration.
@@ -672,7 +672,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
     }

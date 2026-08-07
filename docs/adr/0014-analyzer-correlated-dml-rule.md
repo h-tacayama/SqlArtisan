@@ -1,6 +1,9 @@
 # ADR 0014 — Analyzer advisory duplication of a runtime guard: the correlated-DML rule
 
-**Status:** Accepted
+**Status:** Accepted — the shared-category decision superseded in part by
+[ADR 0018](0018-analyzer-diagnostic-id-bands.md), which gives this rule the
+`SqlArtisan.Validity` category the *Identity decisions* paragraph below
+rejects. Everything else here stands.
 
 ## Context
 
@@ -19,7 +22,7 @@ types → analyzer → tests → matrix).
 
 ## Decision
 
-**A new diagnostic `SQLA0005`, implemented as `CorrelatedDmlRule` in the
+**A new diagnostic `SQLA0300`, implemented as `CorrelatedDmlRule` in the
 existing `DialectUsageAnalyzer`, reporting the provable subset of the
 runtime guard's verdict.** Three properties are new to the analyzer and
 define the rule class:
@@ -99,7 +102,7 @@ the rule fires on every configured target).
 
 ## Rejected alternatives
 
-- **Reusing `SQLA0004`.** Context rules answer "this position on this
+- **Reusing `SQLA0102`.** Context rules answer "this position on this
   dialect"; this rule is dialect-independent and duplicates a runtime
   guard — different message shape, different remediation, different
   soundness machinery.

@@ -51,7 +51,7 @@ public class SchemaMetadataParityTests
         Assert.True(
             unmatchable.Length == 0,
             $"{unmatchable.Length} categor(y|ies) in the analyzer's TypeCategory name nothing on "
-                + $"DbTypeCategory, so SQLA0012 can never match them:\n  "
+                + $"DbTypeCategory, so SQLA0205 can never match them:\n  "
                 + string.Join("\n  ", unmatchable));
     }
 

@@ -191,7 +191,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users FULL JOIN orders"));
     }
 
-    [Fact] // #400: anchors the SQLA0004 percentile rule — SQL Server exposes the
+    [Fact] // #400: anchors the SQLA0102 percentile rule — SQL Server exposes the
            // percentiles only as window functions, so the bare WITHIN GROUP form
            // Oracle and PostgreSQL accept is a syntax error here.
     public void BarePercentileWithinGroup_Rejected()
@@ -206,7 +206,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY age) FROM users"));
     }
 
-    [Fact] // #400: anchors the SQLA0004 INSERTED/DELETED rule — the pseudo-tables
+    [Fact] // #400: anchors the SQLA0102 INSERTED/DELETED rule — the pseudo-tables
            // are bound by the OUTPUT clause itself, so a reference outside one has
            // no table to resolve against. The control deletes no row.
     public void OutputPseudoTableOutsideOutput_Rejected()

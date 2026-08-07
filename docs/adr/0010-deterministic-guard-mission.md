@@ -69,9 +69,9 @@ tri-state's unknown, and unknown is silence.
 
 ### What Tier 2 may conclude: query-shape-dependent judgments
 
-A diagnostic that reads only the column's own facts (SQLA0008, SQLA0009) is
+A diagnostic that reads only the column's own facts (SQLA0201, SQLA0202) is
 cheap and sound. One whose verdict also depends on the shape of the
-surrounding query — which joins null-supply the row (SQLA0007, SQLA0010) — is
+surrounding query — which joins null-supply the row (SQLA0200, SQLA0203) — is
 where the false positives live, and every finding of #365's review landed
 there. Such a rule reports only where the statement **visibly builds its own
 query**; a chain assembled across statements, in a helper method, or in a

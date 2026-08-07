@@ -44,26 +44,26 @@ public class CorrelatedDmlAnalyzerTests
         var test = AnalyzerVerifier.Create(source, editorConfig);
         if (expectWarning)
         {
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0005").WithLocation(0));
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0300").WithLocation(0));
         }
 
         await test.RunAsync();
     }
 
     [Fact]
-    public Task Update_LocalUnaliasedTargetCorrelatedSetSubquery_ReportsSqla0005() =>
+    public Task Update_LocalUnaliasedTargetCorrelatedSetSubquery_ReportsSqla0300() =>
         RunReporting("""
             var q = Update(t).Set(t.Id == Select(Max(r.Id)).From(r).Where(r.Dep == {|#0:t.Dep|}));
             """);
 
     [Fact]
-    public Task DeleteFrom_LocalUnaliasedTargetCorrelatedExistsSubquery_ReportsSqla0005() =>
+    public Task DeleteFrom_LocalUnaliasedTargetCorrelatedExistsSubquery_ReportsSqla0300() =>
         RunReporting("""
             var q = DeleteFrom(t).Where(Exists(Select(r.Id).From(r).Where(r.Id == {|#0:t.Id|})));
             """);
 
     [Fact]
-    public Task Update_ReadonlyFieldUnaliasedTarget_ReportsSqla0005() =>
+    public Task Update_ReadonlyFieldUnaliasedTarget_ReportsSqla0300() =>
         RunAsync("""
             using SqlArtisan;
             using SqlArtisan.Internal;
@@ -89,34 +89,34 @@ public class CorrelatedDmlAnalyzerTests
             """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: true);
 
     [Fact]
-    public Task DeleteFrom_SameInstanceInInnerSelect_ReportsSqla0005() =>
+    public Task DeleteFrom_SameInstanceInInnerSelect_ReportsSqla0300() =>
         RunReporting("""
             var q = DeleteFrom(t).Where(t.Id.In(Select({|#0:t.Id|}).From(t)));
             """);
 
     [Fact]
-    public Task DeleteFrom_TargetViaExplicitEmptyAlias_ReportsSqla0005() =>
+    public Task DeleteFrom_TargetViaExplicitEmptyAlias_ReportsSqla0300() =>
         RunReporting("""
             T u = new T("");
             var q = DeleteFrom(u).Where(Exists(Select(r.Id).From(r).Where(r.Id == {|#0:u.Id|})));
             """);
 
     [Fact]
-    public Task DeleteFrom_TargetViaNamedEmptyAliasArgument_ReportsSqla0005() =>
+    public Task DeleteFrom_TargetViaNamedEmptyAliasArgument_ReportsSqla0300() =>
         RunReporting("""
             T u = new T(alias: "");
             var q = DeleteFrom(u).Where(Exists(Select(r.Id).From(r).Where(r.Id == {|#0:u.Id|})));
             """);
 
     [Fact]
-    public Task DeleteFrom_NestedSubquery_ReportsSqla0005() =>
+    public Task DeleteFrom_NestedSubquery_ReportsSqla0300() =>
         RunReporting("""
             T s = new T("s");
             var q = DeleteFrom(t).Where(t.Id.In(Select(r.Id).From(r).Where(r.Id.In(Select(s.Id).From(s).Where(s.Dep == {|#0:t.Dep|})))));
             """);
 
     [Fact]
-    public Task DeleteFrom_WithCtePrefixCorrelatedWhere_ReportsSqla0005() =>
+    public Task DeleteFrom_WithCtePrefixCorrelatedWhere_ReportsSqla0300() =>
         RunReporting("""
             var cte = new Cte("c");
             var q = With(cte.As(Select(r.Id).From(r))).DeleteFrom(t).Where(Exists(Select(r.Dep).From(r).Where(r.Id == {|#0:t.Id|})));
@@ -128,7 +128,7 @@ public class CorrelatedDmlAnalyzerTests
     [InlineData("postgresql")]
     [InlineData("sqlite")]
     [InlineData("sqlserver")]
-    public Task DeleteFrom_EveryConfiguredDialect_ReportsSqla0005(string dbms) =>
+    public Task DeleteFrom_EveryConfiguredDialect_ReportsSqla0300(string dbms) =>
         RunAsync(Usage("""
             var q = DeleteFrom(t).Where(Exists(Select(r.Id).From(r).Where(r.Id == {|#0:t.Id|})));
             """), AnalyzerVerifier.EditorConfig(dbms), expectWarning: true);
@@ -200,7 +200,7 @@ public class CorrelatedDmlAnalyzerTests
 
     // A deconstruction of a different local must not silence a genuine report.
     [Fact]
-    public Task DeleteFrom_UnrelatedTupleDeconstruction_ReportsSqla0005() =>
+    public Task DeleteFrom_UnrelatedTupleDeconstruction_ReportsSqla0300() =>
         RunReporting("""
             T other = new T();
             int x;

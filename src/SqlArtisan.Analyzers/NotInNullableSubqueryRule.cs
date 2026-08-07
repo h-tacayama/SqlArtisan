@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0008 for <c>NOT IN (subquery)</c> whose selected column is
+/// Reports SQLA0201 for <c>NOT IN (subquery)</c> whose selected column is
 /// nullable: one NULL in the subquery makes the predicate NULL for every row,
 /// so the statement silently returns nothing (#266).
 /// </summary>

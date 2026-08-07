@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0011 when a filter shapes an indexed column so no index on it can
+/// Reports SQLA0204 when a filter shapes an indexed column so no index on it can
 /// be used — the column wrapped in a function, or matched with a leading-wildcard
 /// <c>LIKE</c> (#266).
 /// </summary>

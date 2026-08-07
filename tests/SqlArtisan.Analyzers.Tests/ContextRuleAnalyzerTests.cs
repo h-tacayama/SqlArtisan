@@ -6,7 +6,7 @@ namespace SqlArtisan.Analyzers.Tests;
 public class ContextRuleAnalyzerTests
 {
     // The marked span is the whole trigger invocation (receiver chain included) —
-    // the same location SQLA0002 reports for an instance-chain member.
+    // the same location SQLA0100 reports for an instance-chain member.
     private static string Usage(string statements) => $$"""
         using SqlArtisan;
         using SqlArtisan.Internal;
@@ -44,44 +44,44 @@ public class ContextRuleAnalyzerTests
         var test = AnalyzerVerifier.Create(source, editorConfig);
         if (expectWarning)
         {
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0004").WithLocation(0));
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0102").WithLocation(0));
         }
 
         await test.RunAsync();
     }
 
     [Fact]
-    public Task LimitInInSubquery_MySql_ReportsSqla0004() =>
+    public Task LimitInInSubquery_MySql_ReportsSqla0102() =>
         RunReporting("""
             var q = Select(t.Id).From(t).Where(t.Id.In({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|}));
             """);
 
     [Fact]
-    public Task LimitInNotInSubquery_MySql_ReportsSqla0004() =>
+    public Task LimitInNotInSubquery_MySql_ReportsSqla0102() =>
         RunReporting("""
             SqlCondition c = t.Id.NotIn({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|});
             """);
 
     [Fact]
-    public Task LimitInAnySubquery_MySql_ReportsSqla0004() =>
+    public Task LimitInAnySubquery_MySql_ReportsSqla0102() =>
         RunReporting("""
             SqlCondition c = t.Id > Any({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|});
             """);
 
     [Fact]
-    public Task LimitInAllSubquery_MySql_ReportsSqla0004() =>
+    public Task LimitInAllSubquery_MySql_ReportsSqla0102() =>
         RunReporting("""
             SqlCondition c = t.Id > All({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|});
             """);
 
     [Fact]
-    public Task LimitInSomeSubquery_MySql_ReportsSqla0004() =>
+    public Task LimitInSomeSubquery_MySql_ReportsSqla0102() =>
         RunReporting("""
             SqlCondition c = t.Id == Some({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|});
             """);
 
     [Fact]
-    public Task LimitOffsetInInSubquery_MySql_ReportsSqla0004() =>
+    public Task LimitOffsetInInSubquery_MySql_ReportsSqla0102() =>
         RunReporting("""
             SqlCondition c = t.Id.In({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|}.Offset(1));
             """);
@@ -162,31 +162,31 @@ public class ContextRuleAnalyzerTests
             """, AnalyzerVerifier.EditorConfig("mysql"), expectWarning: false);
 
     [Fact]
-    public Task GroupingWithoutWithRollup_MySql_ReportsSqla0004() =>
+    public Task GroupingWithoutWithRollup_MySql_ReportsSqla0102() =>
         RunReporting("""
             var q = Select(t.Dep, {|#0:Grouping(t.Dep)|}).From(t).GroupBy(t.Dep).OrderBy(t.Dep);
             """);
 
     [Fact]
-    public Task GroupingMultiArgWithoutWithRollup_MySql_ReportsSqla0004() =>
+    public Task GroupingMultiArgWithoutWithRollup_MySql_ReportsSqla0102() =>
         RunReporting("""
             var q = Select({|#0:Grouping(t.Dep, t.Id)|}).From(t).GroupBy(t.Dep, t.Id).OrderBy(t.Dep);
             """);
 
     [Fact]
-    public Task GroupingInHavingWithoutWithRollup_MySql_ReportsSqla0004() =>
+    public Task GroupingInHavingWithoutWithRollup_MySql_ReportsSqla0102() =>
         RunReporting("""
             var q = Select(t.Dep).From(t).GroupBy(t.Dep).Having({|#0:Grouping(t.Dep)|} == 0);
             """);
 
     [Fact]
-    public Task GroupingAliasedWithoutWithRollup_MySql_ReportsSqla0004() =>
+    public Task GroupingAliasedWithoutWithRollup_MySql_ReportsSqla0102() =>
         RunReporting("""
             var q = Select({|#0:Grouping(t.Dep)|}.As("g"), t.Dep).From(t).GroupBy(t.Dep).OrderBy(t.Dep);
             """);
 
     [Fact]
-    public Task GroupingSplitChainWithGroupByVisible_MySql_ReportsSqla0004() =>
+    public Task GroupingSplitChainWithGroupByVisible_MySql_ReportsSqla0102() =>
         RunReporting("""
             var q = Select(t.Dep).From(t);
             var r = q.GroupBy(t.Dep).Having({|#0:Grouping(t.Dep)|} == 0);
@@ -241,19 +241,19 @@ public class ContextRuleAnalyzerTests
             """);
 
     [Fact]
-    public Task PercentileContWithoutOver_SqlServer_ReportsSqla0004() =>
+    public Task PercentileContWithoutOver_SqlServer_ReportsSqla0102() =>
         RunReporting("""
             var q = Select({|#0:PercentileCont(0.5)|}.WithinGroup(OrderBy(t.Id))).From(t);
             """, "sqlserver");
 
     [Fact]
-    public Task PercentileDiscWithoutOver_SqlServer_ReportsSqla0004() =>
+    public Task PercentileDiscWithoutOver_SqlServer_ReportsSqla0102() =>
         RunReporting("""
             var q = Select({|#0:PercentileDisc(0.5)|}.WithinGroup(OrderBy(t.Id))).From(t);
             """, "sqlserver");
 
     [Fact]
-    public Task PercentileContAliasedWithoutOver_SqlServer_ReportsSqla0004() =>
+    public Task PercentileContAliasedWithoutOver_SqlServer_ReportsSqla0102() =>
         RunReporting("""
             var q = Select({|#0:PercentileCont(0.5)|}.WithinGroup(OrderBy(t.Id)).As("p")).From(t);
             """, "sqlserver");
@@ -315,19 +315,19 @@ public class ContextRuleAnalyzerTests
             """, "sqlserver");
 
     [Fact]
-    public Task InsertedInSelectList_SqlServer_ReportsSqla0004() =>
+    public Task InsertedInSelectList_SqlServer_ReportsSqla0102() =>
         RunReporting("""
             var q = Select({|#0:Inserted(t.Id)|}).From(t);
             """, "sqlserver");
 
     [Fact]
-    public Task DeletedInSelectList_SqlServer_ReportsSqla0004() =>
+    public Task DeletedInSelectList_SqlServer_ReportsSqla0102() =>
         RunReporting("""
             var q = Select({|#0:Deleted(t.Id)|}).From(t);
             """, "sqlserver");
 
     [Fact]
-    public Task InsertedInWhere_SqlServer_ReportsSqla0004() =>
+    public Task InsertedInWhere_SqlServer_ReportsSqla0102() =>
         RunReporting("""
             var q = Select(t.Id).From(t).Where({|#0:Inserted(t.Id)|} == 1);
             """, "sqlserver");

@@ -59,7 +59,7 @@ public class OuterApplyTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // SQLite has no OUTER APPLY grammar (SQLA0002 flags it), but the builder
+    // SQLite has no OUTER APPLY grammar (SQLA0100 flags it), but the builder
     // emits it faithfully anyway — portability is a deliberate non-goal.
     [Fact]
     public void OuterApply_Sqlite_CorrectSql()

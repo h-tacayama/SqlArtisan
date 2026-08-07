@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0010 for <c>COUNT(column)</c> on a column the schema declares
+/// Reports SQLA0203 for <c>COUNT(column)</c> on a column the schema declares
 /// nullable — a count of values where <c>COUNT(*)</c> counts rows (#266).
 /// </summary>
 /// <remarks>

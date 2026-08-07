@@ -23,10 +23,10 @@ public class IdentifierLengthAnalyzerTests
     private static string Repeat(char c, int count) => new(c, count);
 
     [Fact]
-    public async Task AliasOverPostgreSqlByteLimit_ReportsSqla0006()
+    public async Task AliasOverPostgreSqlByteLimit_ReportsSqla0103()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 64)), AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -38,12 +38,12 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task MultiByteAliasOverPostgreSqlByteLimit_ReportsSqla0006()
+    public async Task MultiByteAliasOverPostgreSqlByteLimit_ReportsSqla0103()
     {
         // 22 three-byte characters = 66 bytes (over 63) while only 22 characters — proves
         // the limit is measured in UTF-8 bytes, not characters.
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('あ', 22)), AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -56,12 +56,12 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task AliasOverMySqlCharLimit_ReportsSqla0006()
+    public async Task AliasOverMySqlCharLimit_ReportsSqla0103()
     {
         // MySQL's alias limit is 256 characters (its 64-char limit is for table/column
         // names, not aliases), so an alias only warns past 256.
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 257)), AnalyzerVerifier.EditorConfig("mysql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -73,10 +73,10 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task AliasOverSqlServerCharLimit_ReportsSqla0006()
+    public async Task AliasOverSqlServerCharLimit_ReportsSqla0103()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 129)), AnalyzerVerifier.EditorConfig("sqlserver"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -88,10 +88,10 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task AliasOverOracleByteLimit_ReportsSqla0006()
+    public async Task AliasOverOracleByteLimit_ReportsSqla0103()
     {
         var test = AnalyzerVerifier.Create(AliasUsage(Repeat('a', 129)), AnalyzerVerifier.EditorConfig("oracle"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -159,7 +159,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task CteNameOverLimit_ReportsSqla0006()
+    public async Task CteNameOverLimit_ReportsSqla0103()
     {
         string source = $$"""
             using SqlArtisan;
@@ -174,12 +174,12 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task DerivedTableNameOverLimit_ReportsSqla0006()
+    public async Task DerivedTableNameOverLimit_ReportsSqla0103()
     {
         string source = $$"""
             using SqlArtisan;
@@ -194,12 +194,12 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task DbTableAliasOverLimit_ReportsSqla0006()
+    public async Task DbTableAliasOverLimit_ReportsSqla0103()
     {
         string source = $$"""
             using SqlArtisan;
@@ -214,7 +214,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -239,7 +239,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task OutputParameterVariableOverLimit_ReportsSqla0006()
+    public async Task OutputParameterVariableOverLimit_ReportsSqla0103()
     {
         string source = $$"""
             using System.Data;
@@ -254,12 +254,12 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("oracle"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task ValuesAliasOverLimit_ReportsSqla0006()
+    public async Task ValuesAliasOverLimit_ReportsSqla0103()
     {
         string source = $$"""
             using SqlArtisan;
@@ -274,12 +274,12 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
     [Fact]
-    public async Task ValuesColumnNameOverLimit_ReportsSqla0006PerElement()
+    public async Task ValuesColumnNameOverLimit_ReportsSqla0103PerElement()
     {
         // Only the over-limit column of the list warns, at its own location.
         string source = $$"""
@@ -295,7 +295,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 
@@ -325,7 +325,7 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
-    public async Task TypedCteBaseNameOverLimit_ReportsSqla0006()
+    public async Task TypedCteBaseNameOverLimit_ReportsSqla0103()
     {
         // The name reaches the base constructor through a subclass initializer.
         string source = $$"""
@@ -337,7 +337,7 @@ public class IdentifierLengthAnalyzerTests
             }
             """;
         var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
-        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0006").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
 }

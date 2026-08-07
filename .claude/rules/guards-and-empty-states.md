@@ -52,7 +52,7 @@ the full rationale.
 
 "Structurally invisible to the analyzer" is a per-guard fact, not a law: the
 correlated-DML guard's provable subset now has an advisory analyzer duplicate
-(SQLA0005, ADR 0014) — the `Build()` guard remains the enforcement boundary,
+(SQLA0300, ADR 0014) — the `Build()` guard remains the enforcement boundary,
 and suppressing the diagnostic never disables the throw.
 
 ## The empty-state policy (#236)

@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0012 when a column is compared to a value of another type category
+/// Reports SQLA0205 when a column is compared to a value of another type category
 /// — a text column against a number, say (#362).
 /// </summary>
 /// <remarks>

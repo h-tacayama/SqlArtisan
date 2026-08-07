@@ -5,7 +5,7 @@ using System.Reflection;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// Pins the core-API facts the SQLA0005 rule keys on (the ADR 0009 name
+/// Pins the core-API facts the SQLA0300 rule keys on (the ADR 0009 name
 /// contract): if the API drifts, these fail loudly instead of the rule silently
 /// dying or losing its no-false-positive soundness.
 /// </summary>

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Testing;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// The empirical no-false-positive gate for the schema rules (SQLA0007–SQLA0012):
+/// The empirical no-false-positive gate for the schema rules (SQLA0200–SQLA0205):
 /// one catalog of hazard shapes, asserted silent against every rule that reads the
 /// surrounding query, so a shape added here becomes a regression test for all of
 /// them at once.
@@ -215,7 +215,7 @@ public class SchemaRuleParityTests
     public Task ConstantNullPredicate_PastInnerJoin_Reports() =>
         RunReporting(
             "var s = Select(t.Code).From(t).InnerJoin(r).On(t.Code == r.Code).Where({|#0:r.Code.IsNull|}).Build();",
-            new DiagnosticResult("SQLA0007", DiagnosticSeverity.Warning)
+            new DiagnosticResult("SQLA0200", DiagnosticSeverity.Warning)
                 .WithLocation(0)
                 .WithArguments("Code", "IsNull", "false"));
 
@@ -223,7 +223,7 @@ public class SchemaRuleParityTests
     public Task CountNullableColumn_PlainQuery_Reports() =>
         RunReporting(
             "var s = Select({|#0:Count(t.Note)|}).From(t).Build();",
-            new DiagnosticResult("SQLA0010", DiagnosticSeverity.Info)
+            new DiagnosticResult("SQLA0203", DiagnosticSeverity.Info)
                 .WithLocation(0)
                 .WithArguments("Note"));
 
@@ -242,12 +242,12 @@ public class SchemaRuleParityTests
         return test.RunAsync();
     }
 
-    // SQLA0010 is opt-in, so the whole family is only observable with it named.
+    // SQLA0203 is opt-in, so the whole family is only observable with it named.
     private static string EditorConfig(string dbms) => $"""
         root = true
 
         [*.cs]
         sqlartisan_target_dbms = {dbms}
-        dotnet_diagnostic.SQLA0010.severity = suggestion
+        dotnet_diagnostic.SQLA0203.severity = suggestion
         """;
 }

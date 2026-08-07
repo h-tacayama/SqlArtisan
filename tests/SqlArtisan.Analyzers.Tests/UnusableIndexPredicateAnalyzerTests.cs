@@ -48,7 +48,7 @@ public class UnusableIndexPredicateAnalyzerTests
     private static Task RunReporting(string statements, string column, string shape) =>
         RunAsync(
             Usage(statements),
-            [new DiagnosticResult("SQLA0011", DiagnosticSeverity.Warning)
+            [new DiagnosticResult("SQLA0204", DiagnosticSeverity.Warning)
                 .WithLocation(0)
                 .WithArguments(column, shape)]);
 

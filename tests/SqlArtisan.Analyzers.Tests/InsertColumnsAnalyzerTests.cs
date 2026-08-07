@@ -51,7 +51,7 @@ public class InsertColumnsAnalyzerTests
             Usage(statements),
             AnalyzerVerifier.EditorConfig("postgresql"),
             [.. columns.Select(c =>
-                new DiagnosticResult("SQLA0009", DiagnosticSeverity.Warning)
+                new DiagnosticResult("SQLA0202", DiagnosticSeverity.Warning)
                     .WithLocation(0)
                     .WithArguments(c))]);
 

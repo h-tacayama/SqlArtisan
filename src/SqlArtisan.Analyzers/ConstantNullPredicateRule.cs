@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0007 for <c>IS NULL</c> / <c>IS NOT NULL</c> on a column the
+/// Reports SQLA0200 for <c>IS NULL</c> / <c>IS NOT NULL</c> on a column the
 /// schema declares NOT NULL — a predicate whose answer is fixed before the
 /// query runs (#266).
 /// </summary>
