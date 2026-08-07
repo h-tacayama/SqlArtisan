@@ -8,8 +8,10 @@
     (sqlartisan_target_dbms / sqlartisan_target_version) for projects that
     prefer setting the target in a .csproj / Directory.Build.props instead —
     the analyzer's config resolver checks both. Deprecated (#432) in favor of
-    <SqlArtisanSyntax*> below, but kept working; a project setting either
-    still gets SQLA0002 unless a sqlartisan_syntax_* key is also present.
+    <SqlArtisanSyntax*> below: consulted (and reported as SQLA0002) only when
+    no sqlartisan_syntax_* key is present anywhere in the file's effective
+    options — present, the family governs outright and these are bypassed,
+    not merely superseded.
   -->
   <ItemGroup>
     <CompilerVisibleProperty Include="SqlArtisanTargetDbms" />
