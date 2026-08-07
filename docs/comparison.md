@@ -118,8 +118,9 @@ NextValueFor("users_id_seq")       // SQL Server:  NEXT VALUE FOR users_id_seq
 ```
 
 The opt-in Roslyn analyzer warns if you reach for a construct that is not
-available on your target dialect, so a wrong-dialect call fails the build
-rather than emitting unexpected SQL.
+available on your target dialect, so a wrong-dialect call surfaces as a
+build-time warning — promotable to a build error for CI — rather than
+emitting unexpected SQL.
 
 The trade-off: a dialect compiler is friendlier for teams targeting
 multiple engines from one codebase; per-dialect APIs are for teams that

@@ -33,7 +33,8 @@ Three cases are specific to this library, beyond the usual API-level changes:
   implementations are internal. Adding a member to any of them is a
   **minor** change; caller compatibility is preserved as usual.
 - **Public enum values are append-only.** `Dbms`, `DateTimePart`,
-  `SearchModifier`, and `RegexpOptions` carry explicit numeric values;
+  `SearchModifier`, `RegexpOptions`, and `DbTypeCategory` carry explicit
+  numeric values;
   a new value gets the next unused number, and no existing value's number
   changes. Reassigning a shipped value would silently change behavior for a
   caller who hasn't rebuilt against the new version — the same class of risk

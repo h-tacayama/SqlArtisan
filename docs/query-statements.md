@@ -425,7 +425,7 @@ Select(s.Region, s.Product, Sum(s.Amount))
 // GROUP BY region, product WITH ROLLUP
 ```
 
-`Build(Dbms)` emits every form faithfully and does not police DBMS availability — an unsupported combination such as `Cube` / `GroupingSets` on MySQL, the function-form `Rollup(...)` on MySQL, or any extension on SQLite, is emitted as written, leaving it for the database (and the planned opt-in analyzer) to flag rather than silently rewriting the query.
+`Build(Dbms)` emits every form faithfully and does not police DBMS availability — an unsupported combination such as `Cube` / `GroupingSets` on MySQL, the function-form `Rollup(...)` on MySQL, or any extension on SQLite, is emitted as written, leaving it for the database (and the opt-in analyzer) to flag rather than silently rewriting the query.
 
 A subtotal row from `Rollup(...)` / `Cube(...)` / `GroupingSets(...)` has `NULL` in the aggregated-away column — indistinguishable from a genuine `NULL` data value without `Grouping(...)`, which returns `1` for a subtotal row and `0` for a data row. Use it to label subtotal rows, typically via a `Case`:
 

@@ -20,25 +20,25 @@ public enum DbTypeCategory
     /// <summary>
     /// Character data — <c>char</c>, <c>varchar</c>, <c>text</c>, <c>clob</c>.
     /// </summary>
-    Text,
+    Text = 1,
 
     /// <summary>
     /// Numbers, exact or approximate — <c>int</c>, <c>decimal</c>, <c>float</c>.
     /// </summary>
-    Numeric,
+    Numeric = 2,
 
     /// <summary>
     /// Dates, times, and intervals.
     /// </summary>
-    Temporal,
+    Temporal = 3,
 
     /// <summary>
     /// Raw bytes — <c>blob</c>, <c>bytea</c>, <c>varbinary</c>.
     /// </summary>
-    Binary,
+    Binary = 4,
 
     /// <summary>
     /// A truth value.
     /// </summary>
-    Boolean,
+    Boolean = 5,
 }

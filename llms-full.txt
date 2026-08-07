@@ -859,7 +859,7 @@ Select(s.Region, s.Product, Sum(s.Amount))
 // GROUP BY region, product WITH ROLLUP
 ```
 
-`Build(Dbms)` emits every form faithfully and does not police DBMS availability — an unsupported combination such as `Cube` / `GroupingSets` on MySQL, the function-form `Rollup(...)` on MySQL, or any extension on SQLite, is emitted as written, leaving it for the database (and the planned opt-in analyzer) to flag rather than silently rewriting the query.
+`Build(Dbms)` emits every form faithfully and does not police DBMS availability — an unsupported combination such as `Cube` / `GroupingSets` on MySQL, the function-form `Rollup(...)` on MySQL, or any extension on SQLite, is emitted as written, leaving it for the database (and the opt-in analyzer) to flag rather than silently rewriting the query.
 
 A subtotal row from `Rollup(...)` / `Cube(...)` / `GroupingSets(...)` has `NULL` in the aggregated-away column — indistinguishable from a genuine `NULL` data value without `Grouping(...)`, which returns `1` for a subtotal row and `0` for a data row. Use it to label subtotal rows, typically via a `Case`:
 
@@ -4672,8 +4672,9 @@ NextValueFor("users_id_seq")       // SQL Server:  NEXT VALUE FOR users_id_seq
 ```
 
 The opt-in Roslyn analyzer warns if you reach for a construct that is not
-available on your target dialect, so a wrong-dialect call fails the build
-rather than emitting unexpected SQL.
+available on your target dialect, so a wrong-dialect call surfaces as a
+build-time warning — promotable to a build error for CI — rather than
+emitting unexpected SQL.
 
 The trade-off: a dialect compiler is friendlier for teams targeting
 multiple engines from one codebase; per-dialect APIs are for teams that
@@ -4844,8 +4845,9 @@ int affected = await connection.ExecuteAsync(
     Update(w).Set(w.Name == "renamed").Where(w.Id == 1));
 ```
 
-The core Dapper verb set is mirrored (`Query`, `QueryFirst`, `QuerySingle`,
-`Execute`, `ExecuteScalar`, `QueryMultiple`, `ExecuteReader`, and their
+The core Dapper verb set is mirrored (`Query`, `QueryFirst`,
+`QueryFirstOrDefault`, `QuerySingle`, `QuerySingleOrDefault`, `Execute`,
+`ExecuteScalar`, `QueryMultiple`, `ExecuteReader`, and their
 `...Async` twins), each taking the usual `transaction` / `commandTimeout`
 arguments — the multi-map `Query` overloads and `CommandDefinition`-based
 calls aren't, so build the statement and call `sql.Parameters.ToDynamicParameters()`
@@ -5249,7 +5251,8 @@ Three cases are specific to this library, beyond the usual API-level changes:
   implementations are internal. Adding a member to any of them is a
   **minor** change; caller compatibility is preserved as usual.
 - **Public enum values are append-only.** `Dbms`, `DateTimePart`,
-  `SearchModifier`, and `RegexpOptions` carry explicit numeric values;
+  `SearchModifier`, `RegexpOptions`, and `DbTypeCategory` carry explicit
+  numeric values;
   a new value gets the next unused number, and no existing value's number
   changes. Reassigning a shipped value would silently change behavior for a
   caller who hasn't rebuilt against the new version — the same class of risk
