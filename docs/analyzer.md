@@ -136,8 +136,13 @@ Severity is controlled the standard Roslyn way, per rule ID:
 
 ```ini
 dotnet_diagnostic.SQLA0100.severity = error   # promote to a build error
-dotnet_diagnostic.SQLA0001.severity = none    # suppress entirely
+dotnet_diagnostic.SQLA0204.severity = none    # suppress entirely
 ```
+
+The one exception is `SQLA0001`: it carries no file location, so a
+file-scoped `.editorconfig` severity line never reaches it. Suppress it from
+a global analyzer config (a `.globalconfig` file with `is_global = true`) or
+with `<NoWarn>SQLA0001</NoWarn>` in the project file.
 
 Because severity is per rule ID, it cannot be scoped to one construct —
 promoting `SQLA0100` to `error` makes *every* dialect mismatch a build

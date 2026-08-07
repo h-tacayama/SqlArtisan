@@ -85,7 +85,7 @@ and that trade is not worth making.
 ## Consequences
 
 - **Breaking for users' suppressions**, the second time after #264. A
-  `dotnet_diagnostic.SQLA000x.severity` line, `#pragma warning disable`, or
+  `dotnet_diagnostic.SQLA00xx.severity` line, `#pragma warning disable`, or
   `[SuppressMessage]` written against `0.8.0-beta.1` now targets a different
   diagnostic or none at all.
 - **`AnalyzerReleases.Shipped.md` was empty**, so the renumber is a rewrite of
