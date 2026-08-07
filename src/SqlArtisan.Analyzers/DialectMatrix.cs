@@ -548,9 +548,9 @@ internal static class DialectMatrix
         [new MatrixKey("PlaintoTsquery")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- MERGE / UPSERT chain steps (same scope as their statements) ---
-        // MergeBuilder's arity-1 Using(TableReference); see the JOIN's arity-2 entry above (#197).
-        // The subquery source rides this key (a TableReference subtype through the same
-        // Using overload); only the VALUES source below narrows the scope (Oracle excluded).
+        // Arity-1 Using collides MergeBuilder.Using(TableReference) with DeleteBuilder's
+        // plain DELETE ... USING — see the MatrixKey collision caveat above; the entry is
+        // their support union. See the JOIN's arity-2 entry above (#197) for USING(column).
         [new MatrixKey("Using")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         // Sql.Values(alias, columnNames, rows) — the MERGE USING literal-row source; arity 3
         // keeps it out of the arity-less Values union above (the builder's instance
@@ -627,8 +627,9 @@ internal static class DialectMatrix
         [new MatrixKey("Excluded")] = new VersionBounds(mySql: V("8.0.19")),
 
         // --- PostgreSQL 15 (matrix comments above: MERGE and the REGEXP_* family) ---
+        // Using carries no bound: the key is shared with DeleteBuilder's plain DELETE ...
+        // USING, which predates PostgreSQL 15. MergeInto's own bound still flags MERGE.
         [new MatrixKey("MergeInto")] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("Using")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("WhenMatched")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("WhenNotMatched")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenInsert")] = new VersionBounds(postgreSql: V("15")),

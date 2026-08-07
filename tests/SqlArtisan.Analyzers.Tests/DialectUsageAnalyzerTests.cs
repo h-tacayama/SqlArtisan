@@ -166,6 +166,39 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
+    // DeleteBuilder.Using(params TableReference[]) (plain DELETE ... USING) shares its
+    // arity-1 matrix key with MergeBuilder.Using(TableReference), which carries no
+    // PostgreSQL 15 bound of its own — MERGE's bound lives on MergeInto instead. A
+    // declared version below 15 must not report SQLA0101 for the DELETE form.
+    [Fact]
+    public async Task DeleteUsing_PostgreSqlBelowMergeVersion_StaysSilent()
+    {
+        const string template = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class T : DbTableBase
+            {
+                public T(string alias) : base("t", alias) { }
+                public DbColumn Code => new(this, "code");
+            }
+
+            class C
+            {
+                void M()
+                {
+                    T t = new("t");
+                    T s = new("s");
+                    var x = DeleteFrom(t).Using(s).Where(t.Code == s.Code);
+                }
+            }
+            """;
+
+        var test = AnalyzerVerifier.Create(template, AnalyzerVerifier.EditorConfig("postgresql", "14"));
+
+        await test.RunAsync();
+    }
+
     // sqlartisan_target_version alone identifies no engine (the legacy pair's
     // documented pitfall) — but the key itself still resolves, so it still
     // earns the SQLA0002 deprecation nag even though it has no dialect effect.
