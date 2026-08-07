@@ -6,6 +6,7 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 SQLA0001 | SqlArtisan.Configuration | Warning | A SqlArtisan analyzer .editorconfig value could not be recognized.
+SQLA0002 | SqlArtisan.Configuration | Warning | 'sqlartisan_target_dbms' / 'sqlartisan_target_version' are deprecated in favor of 'sqlartisan_syntax_*'.
 SQLA0100 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used against a configured target dialect it is not supported on.
 SQLA0101 | SqlArtisan.Dialect | Warning | A construct's minimum engine version, per the matrix's version bounds, exceeds the declared sqlartisan_target_version.
 SQLA0102 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used in a syntactic position the target dialect rejects it in.

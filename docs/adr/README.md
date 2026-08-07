@@ -42,6 +42,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0016](0016-text-position-policy.md) | Text positions: what is bound, what is escaped, and what is emitted verbatim | | Accepted |
 | [0017](0017-join-predicate-completeness.md) | Join predicate completeness: rejecting an omitted `ON`/`USING` that some dialects silently reinterpret as `CROSS JOIN` | Boundary | Accepted |
 | [0018](0018-analyzer-diagnostic-id-bands.md) | Analyzer diagnostic ID bands: one numbered range per category | Analyzer | Accepted |
+| [0019](0019-analyzer-multi-dialect-syntax-set.md) | Analyzer multi-dialect syntax set: `sqlartisan_syntax_*`, one key per DBMS | Analyzer | Accepted |
 
 ### Clusters
 
@@ -52,14 +53,16 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   value also rejects); 0017 adds a second enumerated exception (an omitted
   join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
   are required to answer "will the library throw for this?"
-- **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018) — *How does the
-  dialect analyzer work?* 0003 chooses the permissive-API + opt-in-analyzer
-  approach; 0008 designs the override configuration; 0009 decides bundled
-  distribution; 0013 adds position-dependent context rules (SQLA0102); 0014
-  adds the advisory correlated-DML rule (SQLA0300) duplicating the runtime
-  guard; 0015 adds version-interval bounds evaluated against a declared
-  engine version (SQLA0101); 0018 bands the diagnostic IDs by category,
-  superseding 0014's shared-category decision.
+- **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019) — *How
+  does the dialect analyzer work?* 0003 chooses the permissive-API +
+  opt-in-analyzer approach; 0008 designs the override configuration; 0009
+  decides bundled distribution; 0013 adds position-dependent context rules
+  (SQLA0102); 0014 adds the advisory correlated-DML rule (SQLA0300)
+  duplicating the runtime guard; 0015 adds version-interval bounds evaluated
+  against a declared engine version (SQLA0101); 0018 bands the diagnostic IDs
+  by category, superseding 0014's shared-category decision; 0019 lets a
+  project check a *set* of dialects instead of one (`sqlartisan_syntax_*`),
+  refining 0008's precedence section and adding SQLA0002.
 
 ## Consolidation trigger
 

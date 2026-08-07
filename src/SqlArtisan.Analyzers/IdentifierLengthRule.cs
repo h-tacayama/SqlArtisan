@@ -41,8 +41,7 @@ internal static class IdentifierLengthRule
         OperationAnalysisContext context,
         IMethodSymbol member,
         ImmutableArray<IArgumentOperation> arguments,
-        DialectIdentifierLimit limit,
-        string dialectName)
+        DialectTargetSet targets)
     {
         if (ResolveIdentifierParams(member) is not { } identifierParams)
         {
@@ -53,7 +52,7 @@ internal static class IdentifierLengthRule
         {
             if (FindArgument(arguments, identifier.Name) is { } argument)
             {
-                CheckArgument(context, argument.Value, identifier.IsList, limit, dialectName);
+                CheckArgument(context, argument.Value, identifier.IsList, targets);
             }
         }
     }
@@ -81,13 +80,13 @@ internal static class IdentifierLengthRule
     }
 
     private static void CheckArgument(
-        OperationAnalysisContext context, IOperation value, bool isList, DialectIdentifierLimit limit, string dialectName)
+        OperationAnalysisContext context, IOperation value, bool isList, DialectTargetSet targets)
     {
         IOperation unwrapped = value is IConversionOperation conversion ? conversion.Operand : value;
 
         if (!isList)
         {
-            Report(context, unwrapped, limit, dialectName);
+            Report(context, unwrapped, targets);
             return;
         }
 
@@ -97,7 +96,7 @@ internal static class IdentifierLengthRule
         // pinned Roslyn version does not expose.
         foreach (IOperation element in Elements(unwrapped))
         {
-            Report(context, element, limit, dialectName);
+            Report(context, element, targets);
         }
     }
 
@@ -106,26 +105,32 @@ internal static class IdentifierLengthRule
             ? initializer.ElementValues
             : value.ChildOperations;
 
-    private static void Report(
-        OperationAnalysisContext context, IOperation value, DialectIdentifierLimit limit, string dialectName)
+    // One diagnostic per DBMS in the set whose limit the identifier exceeds
+    // (#432) — the limit and its unit are per-dialect, so unlike SQLA0100 the
+    // failing dialects cannot join into one message.
+    private static void Report(OperationAnalysisContext context, IOperation value, DialectTargetSet targets)
     {
         if (value.ConstantValue is not { HasValue: true, Value: string identifier })
         {
             return;
         }
 
-        if (IdentifierLengthLimits.Measure(identifier, limit.Unit) <= limit.Limit)
+        foreach (TargetDbms dbms in targets.Members)
         {
-            return;
-        }
+            if (IdentifierLengthLimits.For(dbms) is not { } limit
+                || IdentifierLengthLimits.Measure(identifier, limit.Unit) <= limit.Limit)
+            {
+                continue;
+            }
 
-        context.ReportDiagnostic(Diagnostic.Create(
-            DiagnosticDescriptors.IdentifierTooLong,
-            value.Syntax.GetLocation(),
-            identifier,
-            dialectName,
-            limit.Limit,
-            limit.Unit == LengthUnit.Bytes ? "bytes" : "characters"));
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.IdentifierTooLong,
+                value.Syntax.GetLocation(),
+                identifier,
+                TargetDbmsNames.Display(dbms),
+                limit.Limit,
+                limit.Unit == LengthUnit.Bytes ? "bytes" : "characters"));
+        }
     }
 
     private readonly struct IdentifierParam

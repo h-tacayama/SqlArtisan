@@ -7,11 +7,28 @@
     These are alternatives to the primary .editorconfig keys
     (sqlartisan_target_dbms / sqlartisan_target_version) for projects that
     prefer setting the target in a .csproj / Directory.Build.props instead —
-    the analyzer's config resolver checks both.
+    the analyzer's config resolver checks both. Deprecated (#432) in favor of
+    <SqlArtisanSyntax*> below, but kept working; a project setting either
+    still gets SQLA0002 unless a sqlartisan_syntax_* key is also present.
   -->
   <ItemGroup>
     <CompilerVisibleProperty Include="SqlArtisanTargetDbms" />
     <CompilerVisibleProperty Include="SqlArtisanTargetVersion" />
+  </ItemGroup>
+
+  <!--
+    The #432 sqlartisan_syntax_* family's MSBuild-property fallback, one per
+    DBMS (build_property.SqlArtisanSyntax<Dbms>). Presence of any one of these
+    — or its .editorconfig counterpart — makes the family govern the whole
+    resolution; the legacy pair above is not consulted, even to fill in a DBMS
+    the family didn't name.
+  -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="SqlArtisanSyntaxMySql" />
+    <CompilerVisibleProperty Include="SqlArtisanSyntaxOracle" />
+    <CompilerVisibleProperty Include="SqlArtisanSyntaxPostgreSql" />
+    <CompilerVisibleProperty Include="SqlArtisanSyntaxSqlite" />
+    <CompilerVisibleProperty Include="SqlArtisanSyntaxSqlServer" />
   </ItemGroup>
 
 </Project>

@@ -14,3 +14,17 @@ internal enum TargetDbms
     Sqlite,
     SqlServer,
 }
+
+/// <summary>The display spelling diagnostic messages use, shared by every rule that names a <see cref="TargetDbms"/>.</summary>
+internal static class TargetDbmsNames
+{
+    public static string Display(TargetDbms dbms) => dbms switch
+    {
+        TargetDbms.MySql => "MySQL",
+        TargetDbms.Oracle => "Oracle",
+        TargetDbms.PostgreSql => "PostgreSQL",
+        TargetDbms.Sqlite => "SQLite",
+        TargetDbms.SqlServer => "SQL Server",
+        _ => dbms.ToString(),
+    };
+}

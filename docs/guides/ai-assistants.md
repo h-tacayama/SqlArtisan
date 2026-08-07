@@ -53,17 +53,21 @@ data mixes all five dialects. Declare your engine once in `.editorconfig`:
 
 ```ini
 [*.cs]
-sqlartisan_target_dbms = postgresql   # mysql | oracle | postgresql | sqlite | sqlserver
+sqlartisan_syntax_postgresql = 16   # engine version, or `any` for no version bound
 ```
 
 From then on, a generated query that reaches for another dialect's construct
 gets a build-time warning:
 
 ```csharp
-// sqlartisan_target_dbms = mysql
+// sqlartisan_syntax_mysql = any
 var g = Rollup(t.Code, t.Name);
 // warning SQLA0100: 'Rollup' is not supported on MySQL. ...
 ```
+
+Shipping against more than one engine (or migrating between two)? Set more
+than one `sqlartisan_syntax_*` key — every rule then checks the whole set;
+see [Checking a set of dialects at once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once).
 
 For an AI-heavy workflow, promote it to a build error so wrong-dialect code
 cannot merge:

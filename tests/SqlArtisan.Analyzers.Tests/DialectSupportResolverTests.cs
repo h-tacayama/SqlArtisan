@@ -5,28 +5,24 @@ namespace SqlArtisan.Analyzers.Tests;
 public class DialectSupportResolverTests
 {
     [Fact]
-    public void Resolve_NoOverrideRealMatrixEntry_UsesMatrix()
+    public void ResolveOverride_NoOverrideSet_ReturnsNull()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
 
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(options, "Rollup", arity: null, TargetDbms.MySql);
+        DialectSupportResolver.OverrideResult? result = DialectSupportResolver.ResolveOverride(options, "Rollup", arity: null);
 
-        Assert.NotNull(result);
-        Assert.False(result!.Value.IsSupported);
-        Assert.Equal("sqlartisan_construct_rollup", result.Value.OverrideKeyHint);
+        Assert.Null(result);
     }
 
     [Fact]
-    public void Resolve_MemberOverrideSupported_WinsOverMatrix()
+    public void ResolveOverride_MemberOverrideSupported_ReturnsSupported()
     {
-        // Rollup is MySql:false in the shipped matrix; the override forces it supported
-        // (e.g. the caller has verified their own MySQL variant/version handles it).
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
         {
             ["sqlartisan_construct_rollup"] = "supported",
         });
 
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(options, "Rollup", arity: null, TargetDbms.MySql);
+        DialectSupportResolver.OverrideResult? result = DialectSupportResolver.ResolveOverride(options, "Rollup", arity: null);
 
         Assert.NotNull(result);
         Assert.True(result!.Value.IsSupported);
@@ -34,19 +30,16 @@ public class DialectSupportResolverTests
     }
 
     [Fact]
-    public void Resolve_ArityOverride_WinsOverMemberOverride()
+    public void ResolveOverride_ArityOverride_WinsOverMemberOverride()
     {
-        // Synthetic member name (this test exercises the resolver's own precedence
-        // logic, not a real SqlArtisan dialect fact — neither key needs a matrix entry
-        // since an override short-circuits before the matrix is even consulted).
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
         {
             ["sqlartisan_construct_synthetic"] = "unsupported",
             ["sqlartisan_construct_synthetic_arity2"] = "supported",
         });
 
-        DialectSupportResolver.Result? oneArg = DialectSupportResolver.Resolve(options, "Synthetic", arity: 1, TargetDbms.MySql);
-        DialectSupportResolver.Result? twoArg = DialectSupportResolver.Resolve(options, "Synthetic", arity: 2, TargetDbms.MySql);
+        DialectSupportResolver.OverrideResult? oneArg = DialectSupportResolver.ResolveOverride(options, "Synthetic", arity: 1);
+        DialectSupportResolver.OverrideResult? twoArg = DialectSupportResolver.ResolveOverride(options, "Synthetic", arity: 2);
 
         Assert.False(oneArg!.Value.IsSupported);
         Assert.False(oneArg.Value.IsArityLevel);
@@ -56,70 +49,60 @@ public class DialectSupportResolverTests
     }
 
     [Fact]
-    public void Resolve_PropertyReferenceHasNoArity_MemberOverrideStillApplies()
+    public void ResolveOverride_PropertyReferenceHasNoArity_MemberOverrideStillApplies()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
         {
             ["sqlartisan_construct_dual"] = "supported",
         });
 
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(options, "Dual", arity: null, TargetDbms.MySql);
+        DialectSupportResolver.OverrideResult? result = DialectSupportResolver.ResolveOverride(options, "Dual", arity: null);
 
         Assert.NotNull(result);
         Assert.True(result!.Value.IsSupported);
     }
 
     [Fact]
-    public void Resolve_UnknownMemberNoOverride_ReturnsNull()
+    public void MatchMatrixEntry_UnknownMember_ReturnsNull()
     {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+        DialectSupportResolver.MatrixMatch? match = DialectSupportResolver.MatchMatrixEntry("NotInMatrix", arity: null);
 
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(options, "NotInMatrix", arity: null, TargetDbms.MySql);
+        Assert.Null(match);
+    }
 
-        Assert.Null(result);
+    [Fact]
+    public void MatchMatrixEntry_RealEntry_CarriesTheMemberLevelOverrideHint()
+    {
+        DialectSupportResolver.MatrixMatch? match = DialectSupportResolver.MatchMatrixEntry("Rollup", arity: null);
+
+        Assert.NotNull(match);
+        Assert.Equal("sqlartisan_construct_rollup", match!.Value.OverrideKeyHint);
+        Assert.False(match.Value.IsArityLevel);
+    }
+
+    [Fact]
+    public void Evaluate_NoDeclaredVersion_UsesPlainMatrixBool()
+    {
+        DialectSupportResolver.MatrixMatch match = DialectSupportResolver.MatchMatrixEntry("Rollup", arity: null)!.Value;
+
+        DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(match, TargetDbms.MySql, targetVersion: null);
+
+        Assert.False(verdict.IsSupported);
+        Assert.False(verdict.IsVersionBound);
     }
 
     // Rollup has no version bound recorded (DialectMatrix.AllBounds) — declaring
     // a target version must not change its verdict from the plain matrix bool.
     [Fact]
-    public void Resolve_DeclaredVersionEntryHasNoBound_FallsBackToMatrixBool()
+    public void Evaluate_DeclaredVersionEntryHasNoBound_FallsBackToMatrixBool()
     {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+        DialectSupportResolver.MatrixMatch match = DialectSupportResolver.MatchMatrixEntry("Rollup", arity: null)!.Value;
 
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
-            options, "Rollup", arity: null, TargetDbms.MySql, EngineVersion.Parse("8.0.16"));
+        DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(match, TargetDbms.MySql, EngineVersion.Parse("8.0.16"));
 
-        Assert.NotNull(result);
-        Assert.False(result!.Value.IsSupported);
-        Assert.False(result.Value.IsVersionBound);
-        Assert.Null(result.Value.RequiredVersion);
-    }
-
-    [Fact]
-    public void Resolve_NoDeclaredVersion_BehavesExactlyAsBeforeVersionBounds()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
-
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(options, "Rollup", arity: null, TargetDbms.MySql);
-
-        Assert.NotNull(result);
-        Assert.False(result!.Value.IsVersionBound);
-    }
-
-    [Fact]
-    public void Resolve_MemberOverride_WinsEvenWithADeclaredVersion()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            ["sqlartisan_construct_rollup"] = "supported",
-        });
-
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
-            options, "Rollup", arity: null, TargetDbms.MySql, EngineVersion.Parse("5.7"));
-
-        Assert.NotNull(result);
-        Assert.True(result!.Value.IsSupported);
-        Assert.False(result.Value.IsVersionBound);
+        Assert.False(verdict.IsSupported);
+        Assert.False(verdict.IsVersionBound);
+        Assert.Null(verdict.RequiredVersion);
     }
 
     // WithRecursive's Oracle false cell carries no bound (the Oracle-23 candidate
@@ -127,49 +110,43 @@ public class DialectSupportResolverTests
     // The flip direction — a false cell whose bound is met — is covered by the
     // #343 Oracle 23 vector rows and their 23ai live-proof lane.
     [Fact]
-    public void Resolve_FalseCellWithDeclaredVersionAndNoBound_StaysUnsupported()
+    public void Evaluate_FalseCellWithDeclaredVersionAndNoBound_StaysUnsupported()
     {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+        DialectSupportResolver.MatrixMatch match = DialectSupportResolver.MatchMatrixEntry("WithRecursive", arity: null)!.Value;
 
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
-            options, "WithRecursive", arity: null, TargetDbms.Oracle, EngineVersion.Parse("23"));
+        DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(match, TargetDbms.Oracle, EngineVersion.Parse("23"));
 
-        Assert.NotNull(result);
-        Assert.False(result!.Value.IsSupported);
-        Assert.False(result.Value.IsVersionBound);
+        Assert.False(verdict.IsSupported);
+        Assert.False(verdict.IsVersionBound);
     }
 
     // WithRecursive is mysql:true in the plain matrix but bound to 8.0 (no CTE
     // support before it) — a declared version below the bound must report the
     // shortfall, not fall back to the (also-true) plain bool.
     [Fact]
-    public void Resolve_TrueCellWithDeclaredVersionBelowBound_ReportsVersionBoundForMySql()
+    public void Evaluate_TrueCellWithDeclaredVersionBelowBound_ReportsVersionBoundForMySql()
     {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+        DialectSupportResolver.MatrixMatch match = DialectSupportResolver.MatchMatrixEntry("WithRecursive", arity: null)!.Value;
 
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
-            options, "WithRecursive", arity: null, TargetDbms.MySql, EngineVersion.Parse("5.7"));
+        DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(match, TargetDbms.MySql, EngineVersion.Parse("5.7"));
 
-        Assert.NotNull(result);
-        Assert.False(result!.Value.IsSupported);
-        Assert.True(result.Value.IsVersionBound);
-        Assert.Equal("8.0", result.Value.RequiredVersion);
+        Assert.False(verdict.IsSupported);
+        Assert.True(verdict.IsVersionBound);
+        Assert.Equal("8.0", verdict.RequiredVersion);
     }
 
     // Datetrunc is sqlServer:true in the plain matrix but bound to 2022 — a
     // declared version below the bound must report SQLA0101, not silence.
     [Fact]
-    public void Resolve_TrueCellWithDeclaredVersionBelowBound_ReportsVersionBound()
+    public void Evaluate_TrueCellWithDeclaredVersionBelowBound_ReportsVersionBound()
     {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+        DialectSupportResolver.MatrixMatch match = DialectSupportResolver.MatchMatrixEntry("Datetrunc", arity: null)!.Value;
 
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
-            options, "Datetrunc", arity: null, TargetDbms.SqlServer, EngineVersion.Parse("2019"));
+        DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(match, TargetDbms.SqlServer, EngineVersion.Parse("2019"));
 
-        Assert.NotNull(result);
-        Assert.False(result!.Value.IsSupported);
-        Assert.True(result.Value.IsVersionBound);
-        Assert.Equal("2022", result.Value.RequiredVersion);
+        Assert.False(verdict.IsSupported);
+        Assert.True(verdict.IsVersionBound);
+        Assert.Equal("2022", verdict.RequiredVersion);
     }
 
     // Trim has both a member-level bound (2017, the 1-arg form) and a narrower
@@ -180,32 +157,14 @@ public class DialectSupportResolverTests
     [InlineData(1, "2016", false, "2017")]
     [InlineData(2, "2019", false, "2022")]
     [InlineData(2, "2022", true, null)]
-    public void Resolve_ArityBoundAndMemberBound_PickExactMatchedKey(
+    public void Evaluate_ArityBoundAndMemberBound_PicksExactMatchedKey(
         int arity, string declared, bool expectedSupported, string? expectedRequired)
     {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
+        DialectSupportResolver.MatrixMatch match = DialectSupportResolver.MatchMatrixEntry("Trim", arity)!.Value;
 
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
-            options, "Trim", arity, TargetDbms.SqlServer, EngineVersion.Parse(declared));
+        DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(match, TargetDbms.SqlServer, EngineVersion.Parse(declared));
 
-        Assert.NotNull(result);
-        Assert.Equal(expectedSupported, result!.Value.IsSupported);
-        Assert.Equal(expectedRequired, result.Value.RequiredVersion);
-    }
-
-    [Fact]
-    public void Resolve_MemberOverride_WinsOverAVersionBoundInBothDirections()
-    {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
-        {
-            ["sqlartisan_construct_datetrunc"] = "supported",
-        });
-
-        DialectSupportResolver.Result? result = DialectSupportResolver.Resolve(
-            options, "Datetrunc", arity: null, TargetDbms.SqlServer, EngineVersion.Parse("2019"));
-
-        Assert.NotNull(result);
-        Assert.True(result!.Value.IsSupported);
-        Assert.False(result.Value.IsVersionBound);
+        Assert.Equal(expectedSupported, verdict.IsSupported);
+        Assert.Equal(expectedRequired, verdict.RequiredVersion);
     }
 }

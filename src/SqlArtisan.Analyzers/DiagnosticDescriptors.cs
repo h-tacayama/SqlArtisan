@@ -24,11 +24,69 @@ internal static class DiagnosticDescriptors
 
     // {2} carries its own "one of: "/"a numeric ..." lead-in per call site (the
     // target-dbms/override-value/target-version keys don't all read naturally
-    // under one fixed lead-in phrase).
+    // under one fixed lead-in phrase). Retitled under #432: this id now also
+    // reports a valid-but-lossy configuration (an empty resolved set, a
+    // coexisting legacy pair), not only an unrecognized value.
     public static readonly DiagnosticDescriptor InvalidConfiguration = new(
         id: "SQLA0001",
-        title: "Invalid SqlArtisan analyzer configuration",
+        title: "SqlArtisan analyzer configuration problem",
         messageFormat: "Invalid value '{1}' for '{0}' (expected {2})",
+        category: ConfigurationCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri,
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
+    // A second SQLA0001 report reason (#432): the DBMS-in-the-key-name shape
+    // Keys enumeration makes typo-detectable, unlike the legacy pair's
+    // DBMS-in-the-value shape (docs/analyzer.md's now-corrected claim that a
+    // key-name typo can never be caught).
+    public static readonly DiagnosticDescriptor UnrecognizedConfigurationKey = new(
+        id: "SQLA0001",
+        title: "SqlArtisan analyzer configuration problem",
+        messageFormat: "'{0}' is not a recognized 'sqlartisan_syntax_*' key (expected one of: {1})",
+        category: ConfigurationCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri,
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
+    // A third SQLA0001 report reason (#432): every rule's "set non-empty" gate
+    // reads an all-`none` family exactly like "unconfigured" — the same silent
+    // failure mode the legacy pair's Backward Compatibility section calls out,
+    // reachable here by one typo-adjacent `none`.
+    public static readonly DiagnosticDescriptor ConfigurationDisablesAllDialects = new(
+        id: "SQLA0001",
+        title: "SqlArtisan analyzer configuration problem",
+        messageFormat: "Every configured 'sqlartisan_syntax_*' key is 'none', so the analyzer has no dialect left to check",
+        category: ConfigurationCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri,
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
+    // A fourth SQLA0001 report reason (#432): the legacy pair and the family
+    // resolve independently (family wins outright, never merged), so a project
+    // adding sqlartisan_syntax_* alongside an existing legacy pair silently
+    // drops the legacy pair's DBMS unless told.
+    public static readonly DiagnosticDescriptor LegacyConfigurationIgnored = new(
+        id: "SQLA0001",
+        title: "SqlArtisan analyzer configuration problem",
+        messageFormat: "'{0} = {1}' is ignored where 'sqlartisan_syntax_*' is set, so {2} is not checked. Add '{3}' to keep it.",
+        category: ConfigurationCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri,
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
+    // A dedicated id (#432), not a fifth SQLA0001 reason: SQLA0001 exists so a
+    // misconfiguration never goes silently unnoticed, and sharing an id with a
+    // Warning-severity nag would give every NoWarn/severity-override lever
+    // that silences the nag the same reach into real config-error detection.
+    public static readonly DiagnosticDescriptor LegacyConfigDeprecated = new(
+        id: "SQLA0002",
+        title: "'sqlartisan_target_dbms' / 'sqlartisan_target_version' are deprecated",
+        messageFormat: "'sqlartisan_target_dbms'/'sqlartisan_target_version' are deprecated; use '{0}' instead",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

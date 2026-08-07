@@ -416,6 +416,8 @@ dialect it doesn't support.
 
 [Enabling It](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#enabling-it) ·
 [Rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#rules) ·
+[Checking a Set of Dialects at Once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once) ·
+[Migrating from the Legacy Target Key](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#migrating-from-the-legacy-target-key) ·
 [Correcting a Warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys) ·
 [Version-Aware Warnings (SQLA0101)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-aware-warnings-sqla0101) ·
 [Context Rules (SQLA0102)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102) ·
@@ -3030,14 +3032,17 @@ So automatic parameterization prevents injection **through values**. Build ident
 The analyzer is the second layer of SqlArtisan's deterministic guard-rail
 stack — after compile-time type safety and before exact-SQL tests. It warns
 at build time when your code uses a construct that is not supported on your
-project's target dialect. It ships inside the `SqlArtisan` package — no
-extra package reference — and is completely silent until you configure a
-target.
+project's target dialect — or, for a project that ships against more than
+one engine, any dialect in the set you configure. It ships inside the
+`SqlArtisan` package — no extra package reference — and is completely silent
+until you configure a target.
 
 ## Contents
 
 - [Enabling it](#enabling-it)
 - [Rules](#rules)
+- [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once)
+- [Migrating from the legacy target key](#migrating-from-the-legacy-target-key)
 - [Correcting a warning: the override keys](#correcting-a-warning-the-override-keys)
 - [Version-aware warnings (SQLA0101)](#version-aware-warnings-sqla0101)
 - [Context rules (SQLA0102)](#context-rules-sqla0102)
@@ -3058,19 +3063,31 @@ Set a target dialect in `.editorconfig`:
 root = true
 
 [*.cs]
-sqlartisan_target_dbms = postgresql   # mysql | oracle | postgresql | sqlite | sqlserver
+sqlartisan_syntax_postgresql = 16   # engine version, or `any` for no version bound
 ```
 
-Or, if you prefer an MSBuild property (e.g. in `Directory.Build.props`):
+The key names the dialect (`sqlartisan_syntax_mysql` / `_oracle` /
+`_postgresql` / `_sqlite` / `_sqlserver`); its value is the engine version to
+check against, or `any` to check the dialect with no version floor. Or, if
+you prefer an MSBuild property (e.g. in `Directory.Build.props`):
 
 ```xml
 <PropertyGroup>
-  <SqlArtisanTargetDbms>postgresql</SqlArtisanTargetDbms>
+  <SqlArtisanSyntaxPostgreSql>16</SqlArtisanSyntaxPostgreSql>
 </PropertyGroup>
 ```
 
-`.editorconfig` wins when both are set. With no target configured either way,
-the analyzer never reports anything — enabling it is purely additive.
+`.editorconfig` wins when both are set, per dialect. With no target
+configured either way, the analyzer never reports anything — enabling it is
+purely additive. To check more than one dialect at once — an ISV shipping
+against several engines, a migration in progress, "standard SQL only" — set
+more than one key; see
+[Checking a set of dialects at once](#checking-a-set-of-dialects-at-once).
+
+An older `sqlartisan_target_dbms` / `sqlartisan_target_version` pair still
+works exactly as before, but is deprecated (`SQLA0002`) — see
+[Migrating from the legacy target key](#migrating-from-the-legacy-target-key)
+below.
 
 ---
 
@@ -3101,11 +3118,12 @@ still needs naming by ID.
 
 | ID | Severity | Reports |
 |---|---|---|
-| `SQLA0001` | Warning | A `sqlartisan_target_dbms` or `sqlartisan_construct_*` value could not be recognized. |
-| `SQLA0100` | Warning | A SqlArtisan construct is used against the configured target dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. |
-| `SQLA0101` | Warning | A construct is supported on the target dialect, but not at the declared `sqlartisan_target_version` — see [Version-aware warnings](#version-aware-warnings-sqla0101). |
-| `SQLA0102` | Warning | A construct the target dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
-| `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than the target dialect allows. |
+| `SQLA0001` | Warning | A SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name or value, a `sqlartisan_target_dbms` / `sqlartisan_construct_*` value that could not be recognized, a `sqlartisan_syntax_*` family that resolves to no dialect at all, or the legacy pair coexisting with a present `sqlartisan_syntax_*` key — see [Checking a set of dialects at once](#checking-a-set-of-dialects-at-once). |
+| `SQLA0002` | Warning | `sqlartisan_target_dbms` / `sqlartisan_target_version` are deprecated in favor of `sqlartisan_syntax_*` — see [Migrating from the legacy target key](#migrating-from-the-legacy-target-key). |
+| `SQLA0100` | Warning | A SqlArtisan construct is used against a configured dialect, and the dialect matrix has a **verified** entry saying that dialect doesn't support it. Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
+| `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
+| `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -3114,12 +3132,12 @@ still needs naming by ID.
 | `SQLA0205` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two for you, and on MySQL that changes which rows match. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0300` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
 
-`SQLA0001` is a compilation-end diagnostic reported once per distinct
-(key, value) with no file location: it appears in **build** output (CLI and
-CI, and an IDE's Error List after an explicit build — check that the list's
-source filter includes Build entries), but not in the editor's live
-analysis, which never runs compilation-end actions. `SQLA0100`, by
-contrast, is a per-usage diagnostic and shows up live as you type.
+`SQLA0001` and `SQLA0002` are both compilation-end diagnostics with no file
+location: they appear in **build** output (CLI and CI, and an IDE's Error
+List after an explicit build — check that the list's source filter includes
+Build entries), but not in the editor's live analysis, which never runs
+compilation-end actions. `SQLA0100`, by contrast, is a per-usage diagnostic
+and shows up live as you type.
 
 `SQLA0100` only ever fires for a construct the matrix has confirmed — one
 without a matrix entry stays silent rather than guessed at, so an incomplete
@@ -3150,7 +3168,7 @@ Like `SQLA0100`, it is a per-usage diagnostic suppressible at one site
 ```csharp
 using static SqlArtisan.Sql;
 
-// sqlartisan_target_dbms = mysql
+// sqlartisan_syntax_mysql = any
 var g = Rollup(t.Code, t.Name);
 // warning SQLA0100: 'Rollup' is not supported on MySQL. Set
 // 'sqlartisan_construct_rollup = supported' in .editorconfig if your
@@ -3164,10 +3182,11 @@ dotnet_diagnostic.SQLA0100.severity = error   # promote to a build error
 dotnet_diagnostic.SQLA0204.severity = none    # suppress entirely
 ```
 
-The one exception is `SQLA0001`: it carries no file location, so a
-file-scoped `.editorconfig` severity line never reaches it. Suppress it from
-a global analyzer config (a `.globalconfig` file with `is_global = true`) or
-with `<NoWarn>SQLA0001</NoWarn>` in the project file.
+The exceptions are `SQLA0001` and `SQLA0002`: neither carries a file
+location, so a file-scoped `.editorconfig` severity line never reaches
+either. Suppress from a global analyzer config (a `.globalconfig` file with
+`is_global = true`) or with `<NoWarn>SQLA0001</NoWarn>` /
+`<NoWarn>SQLA0002</NoWarn>` in the project file.
 
 Because severity is per rule ID, it cannot be scoped to one construct —
 promoting `SQLA0100` to `error` makes *every* dialect mismatch a build
@@ -3176,6 +3195,168 @@ as a team policy rather than a dialect fact, reach for
 [`BannedApiAnalyzers`](https://www.nuget.org/packages/Microsoft.CodeAnalysis.BannedApiAnalyzers)
 instead — `sqlartisan_construct_*` expresses "my engine actually
 supports/doesn't support this," not "we've decided not to use this."
+
+---
+
+## Checking a set of dialects at once
+
+Most projects write for one engine, and `sqlartisan_syntax_<dbms> = <version>`
+is all they need. A second population exists: an ISV shipping one codebase
+against whichever database the customer picks, an Oracle → PostgreSQL
+migration keeping the old dialect checked while the new one comes online, or
+a procurement requirement to run on several named engines. Set more than one
+`sqlartisan_syntax_*` key to check all of them from the same build:
+
+```ini
+root = true
+
+[*.cs]
+sqlartisan_syntax_postgresql = 16
+sqlartisan_syntax_oracle     = 19
+sqlartisan_syntax_sqlite     = any
+```
+
+Every rule now evaluates against the whole set. No dialect in the set is
+privileged — a construct failing on your migration target carries the same
+weight as one failing on today's dialect. A construct can fail two different
+ways across the set at once (unsupported on one dialect, merely version-bound
+on another), and both are reported — dropping either would hide a real,
+differently-actionable fact.
+
+**"Standard SQL only"** is the degenerate case: name all five DBMS.
+
+### `any` and `none`
+
+A key's value is either an engine version (same format as
+[Version-aware warnings](#version-aware-warnings-sqla0101) — `8.0.16`, `23`,
+`16`, `3.44`, `2022`) or the literal `any`, meaning "check this dialect, no
+version floor." `none` explicitly excludes a dialect in a narrower
+`.editorconfig` section even when a broader scope (or the MSBuild property)
+named it — the only way to carve an exception out of a family that has no
+single "primary" key to override:
+
+```ini
+# repo-wide: check every DBMS but SQLite
+[*.cs]
+sqlartisan_syntax_mysql      = any
+sqlartisan_syntax_oracle     = any
+sqlartisan_syntax_postgresql = any
+sqlartisan_syntax_sqlserver  = any
+
+# this one area also ships to SQLite
+[src/EmbeddedReports/**.cs]
+sqlartisan_syntax_sqlite = any
+```
+
+No aliases beyond these two — no `true`/`yes`/`off`. A smaller value domain
+is easier to document and validate.
+
+### SQLA0100 joins; SQLA0101 and SQLA0103 report one per dialect
+
+`SQLA0100`'s message has one slot for the dialect name, so every failing
+dialect in the set joins into a single diagnostic:
+
+```csharp
+// sqlartisan_syntax_mysql = any
+// sqlartisan_syntax_oracle = any
+// sqlartisan_syntax_sqlite = any
+var g = Rollup(t.Code, t.Name);
+// warning SQLA0100: 'Rollup' is not supported on MySQL and SQLite. Set
+// 'sqlartisan_construct_rollup = supported' in .editorconfig if your
+// engine version supports it.
+```
+
+`SQLA0101` and `SQLA0103` each carry a *per-dialect* value in their message
+(a required version, a length limit and its unit) that can't join without
+losing information, so they report once per failing dialect instead — a
+construct version-bound on two configured dialects reports twice, one
+diagnostic for each.
+
+### `sqlartisan_construct_*` overrides are resolved once, not per dialect
+
+A `sqlartisan_construct_*` override is your own claim about your
+configuration, which under a set reads as "fine on every DBMS I've named" —
+dialect-independent, so it is resolved once per usage, before the per-DBMS
+matrix loop runs. Forcing a construct unsupported reports exactly one
+`SQLA0100`, naming every dialect in the set, never one diagnostic per DBMS.
+
+### An empty set is reported, not silent
+
+`sqlartisan_syntax_oracle = none` with no other `sqlartisan_syntax_*` key
+resolves to an empty set — every rule's "is a dialect configured" gate then
+reads as "unconfigured," and the whole analyzer goes quiet. `SQLA0001`
+reports this once per compilation when the family is present but every key
+resolves to `none`, so a project doesn't lose analyzer coverage from one
+typo-adjacent `none` without a visible reason.
+
+### A typo in the key name is now detectable
+
+Unlike a `sqlartisan_construct_*` key (see
+[Correcting a warning](#correcting-a-warning-the-override-keys) below),
+`sqlartisan_syntax_*` puts the DBMS name in the key itself, which the
+analyzer can enumerate and check — `sqlartisan_syntax_postgres` (missing the
+`ql`) reports `SQLA0001` naming the valid suffixes, rather than silently
+checking nothing.
+
+### Staged adoption
+
+Naming a new DBMS can light up many warnings at once. The same levers a
+single-dialect project already has apply here too: promote or demote one
+rule ID at a time (`dotnet_diagnostic.SQLA0100.severity = suggestion` while
+triaging), scope the new key to one path first
+(`[src/NewEngineArea/**.cs]`), and reach for `sqlartisan_construct_*`
+overrides on constructs your specific engine version actually supports
+ahead of the shipped matrix's baseline.
+
+---
+
+## Migrating from the legacy target key
+
+`sqlartisan_target_dbms` / `sqlartisan_target_version` still work — they
+desugar to a single-DBMS `sqlartisan_syntax_*` set — but are deprecated in
+favor of the family:
+
+```diff
+-sqlartisan_target_dbms = postgresql
+-sqlartisan_target_version = 16
++sqlartisan_syntax_postgresql = 16
+```
+
+Using either legacy key reports `SQLA0002` once per compilation, including
+when the pair resolves perfectly correctly — the warning is what makes the
+pair's eventual removal in a future major version expected rather than
+sudden. If your project has `TreatWarningsAsErrors` and cannot migrate
+immediately, suppress `SQLA0002` specifically — not `SQLA0001`, and not the
+whole `SqlArtisan.Configuration` category — so silencing the nag never
+silences real config-error detection. Like `SQLA0001`, it carries no file
+location, so a file-scoped `.editorconfig` severity line never reaches it —
+use a global analyzer config instead (a `.globalconfig` file with
+`is_global = true`):
+
+```ini
+is_global = true
+dotnet_diagnostic.SQLA0002.severity = none
+```
+
+or `<NoWarn>SQLA0002</NoWarn>` in the project file.
+
+**The family governs outright — it is never merged with the legacy pair.**
+If any `sqlartisan_syntax_*` key is present anywhere in a file's effective
+options, the legacy pair is not consulted at all for that file, even to fill
+in a DBMS the family didn't name:
+
+```ini
+sqlartisan_target_dbms = postgresql
+sqlartisan_syntax_oracle = any
+```
+
+Here only Oracle is checked — PostgreSQL is silently dropped, which is
+exactly the coverage loss `SQLA0001` exists to flag: adding
+`sqlartisan_syntax_oracle` to a scope that already carries
+`sqlartisan_target_dbms = postgresql` reads as *adding* Oracle, when it in
+fact *replaces* PostgreSQL. The message names the dropped DBMS and the key
+that would keep it checked — this is a distinct `SQLA0001` report, not
+`SQLA0002`; the two never fire for the same configuration.
 
 ---
 
@@ -3222,14 +3403,17 @@ An arity-level key always wins over a member-level key for the same member,
 and any override always wins over the shipped matrix:
 
 ```ini
-sqlartisan_target_dbms = postgresql
+sqlartisan_syntax_postgresql = 15
 sqlartisan_construct_merge_into = supported   # e.g. targeting PostgreSQL 15+, where MERGE landed
 ```
 
-A typo in a key name is not detectable — Roslyn does not let an analyzer
-enumerate which `.editorconfig` keys exist, only look one up by exact name —
-so a misspelled override silently does nothing. If a warning doesn't clear
-after adding one, check the key against the message text exactly.
+A typo in a `sqlartisan_construct_*` key name is not detectable — its member
+name lives entirely in an arbitrary key suffix Roslyn has no reference list
+for, so a misspelled override silently does nothing. If a warning doesn't
+clear after adding one, check the key against the message text exactly. (A
+typo in a `sqlartisan_syntax_*` key name *is* detectable, since the DBMS
+suffix is one of only five — see
+[Checking a set of dialects at once](#checking-a-set-of-dialects-at-once).)
 
 ---
 
@@ -3237,17 +3421,16 @@ after adding one, check the key against the message text exactly.
 
 Some constructs are only newer than *some* engine versions on an otherwise
 supported dialect — `MERGE` before PostgreSQL 15, `DATETRUNC` before SQL
-Server 2022. Declare your engine's version with `sqlartisan_target_version`
-and the matrix's version bounds warn on those too, as `SQLA0101` — the same
-"this could break in production" fact `SQLA0100` reports for a dialect
+Server 2022. Declare your engine's version as `sqlartisan_syntax_<dbms>`'s
+value and the matrix's version bounds warn on those too, as `SQLA0101` — the
+same "this could break in production" fact `SQLA0100` reports for a dialect
 mismatch, just for a version shortfall instead:
 
 ```ini
 root = true
 
 [*.cs]
-sqlartisan_target_dbms = sqlserver
-sqlartisan_target_version = 2019
+sqlartisan_syntax_sqlserver = 2019
 ```
 
 ```csharp
@@ -3263,7 +3446,7 @@ Or, if you prefer an MSBuild property:
 
 ```xml
 <PropertyGroup>
-  <SqlArtisanTargetVersion>2019</SqlArtisanTargetVersion>
+  <SqlArtisanSyntaxSqlServer>2019</SqlArtisanSyntaxSqlServer>
 </PropertyGroup>
 ```
 
@@ -3273,11 +3456,9 @@ Or, if you prefer an MSBuild property:
   compare by numeric segment (`8.0.20` is newer than `8.0.16`, and a bare
   `8.0` reads as `8.0.0` — declare the precise patch version if an 8.0.x
   bound matters to you); trailing letters in a segment are ignored (`23ai`
-  reads as `23`).
-- **Unset means today's behavior.** With no declared version, version
-  bounds never fire and the analyzer behaves exactly as the rest of this
-  page describes. The key also has no effect without
-  `sqlartisan_target_dbms` — a version alone identifies no engine.
+  reads as `23`). `any` checks the dialect with no version floor — version
+  bounds never fire for it, and the analyzer falls back to the matrix's plain
+  supported/not-supported verdict.
 - **Your overrides keep the last word.** A version bound refines the
   shipped matrix's verdict, not yours: resolution stays *your arity-level
   override → your member-level override → the matrix (version-refined) →
@@ -3287,9 +3468,10 @@ Or, if you prefer an MSBuild property:
 - **No new false positives.** A version bound only ever refines a construct
   the matrix already has an entry for; a construct without an entry stays
   silent whether or not a version is declared.
-- **Same plumbing as the target key.** Resolved per source file,
-  `.editorconfig` wins over the MSBuild property, and an unrecognized value
-  is flagged as `SQLA0001` and otherwise treated as unset.
+- **Same plumbing as every `sqlartisan_syntax_*` key.** Resolved per source
+  file and per DBMS, `.editorconfig` wins over the MSBuild property, and an
+  unrecognized value is flagged as `SQLA0001` and otherwise treated as
+  unset for that DBMS.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0101`, a `[SuppressMessage]` attribute, or
@@ -3396,7 +3578,7 @@ or CTE instead. Scalar, `EXISTS`, CTE, and derived-table positions accept
 `LIMIT` and stay silent.
 
 ```csharp
-// sqlartisan_target_dbms = mysql
+// sqlartisan_syntax_mysql = any
 var q = Select(u.Id).From(u)
     .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2)));
 // warning SQLA0102: 'Limit' is not supported inside an IN/ANY/ALL/SOME subquery on MySQL
@@ -3407,7 +3589,7 @@ only when the query's `GROUP BY` carries the `WITH ROLLUP` suffix — chain
 `.WithRollup()` after `.GroupBy(...)`.
 
 ```csharp
-// sqlartisan_target_dbms = mysql
+// sqlartisan_syntax_mysql = any
 var q = Select(u.DepartmentId, Grouping(u.DepartmentId))
     .From(u).GroupBy(u.DepartmentId).OrderBy(u.DepartmentId);
 // warning SQLA0102: 'Grouping' is not supported outside a WITH ROLLUP query on MySQL
@@ -3419,7 +3601,7 @@ exposes both percentiles only as window functions, so the plain
 chain `.Over()` (optionally with `PartitionBy(...)`) after `.WithinGroup(...)`.
 
 ```csharp
-// sqlartisan_target_dbms = sqlserver
+// sqlartisan_syntax_sqlserver = any
 var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u);
 // warning SQLA0102: 'PercentileCont' is not supported outside an OVER clause on SQL Server
 ```
@@ -3430,7 +3612,7 @@ resolve against no table anywhere else — read the row images inside
 `Output(...)`, and filter on the target table's own columns instead.
 
 ```csharp
-// sqlartisan_target_dbms = sqlserver
+// sqlartisan_syntax_sqlserver = any
 var q = Select(u.Id).From(u).Where(Inserted(u.Id) == 1);
 // warning SQLA0102: 'Inserted' is not supported outside an OUTPUT clause on SQL Server
 ```
@@ -3465,7 +3647,7 @@ run time; `SQLA0300` is the same finding surfaced at compile time, where
 the fix is cheapest.
 
 ```csharp
-// sqlartisan_target_dbms = postgresql
+// sqlartisan_syntax_postgresql = any
 UsersTable u = new();
 OrdersTable o = new("o");
 var q = DeleteFrom(u)
@@ -3516,7 +3698,7 @@ Where a fact is recorded, the analyzer can settle questions the query text
 alone cannot. The first is a predicate whose answer never depends on the data:
 
 ```csharp
-// sqlartisan_target_dbms = postgresql
+// sqlartisan_syntax_postgresql = any
 var sql = Select(t.Code).From(t).Where(t.Code.IsNull).Build();
 // warning SQLA0200: 'Code' is NOT NULL, so 'IsNull' is always false
 ```
@@ -3717,8 +3899,8 @@ held in a variable may be the `.Where(s.Ref.IsNotNull)` that already fixes it. `
 full — a column array built elsewhere — since a column it failed to read would
 otherwise look omitted.
 
-Like every rule here, it stays silent until `sqlartisan_target_dbms` is set,
-even though the verdict itself is dialect-independent. Suppression is per rule
+Like every rule here, it stays silent until a dialect is configured, even
+though the verdict itself is dialect-independent. Suppression is per rule
 ID, the standard Roslyn way; the `sqlartisan_construct_*` override keys do not
 apply, since the construct's dialect support is not what this rule reports.
 
@@ -3727,22 +3909,30 @@ apply, since the construct's dialect support is not what this rule reports.
 ## Mixed-dialect projects
 
 `.editorconfig` sections scope by file path, so a project that emits SQL for
-more than one engine can give each area its own target:
+more than one engine — each **file** written for one dialect — can give each
+area its own target:
 
 ```ini
 root = true
 
 [src/Reporting/Postgres/**.cs]
-sqlartisan_target_dbms = postgresql
+sqlartisan_syntax_postgresql = any
 
 [src/Reporting/MySql/**.cs]
-sqlartisan_target_dbms = mysql
+sqlartisan_syntax_mysql = any
 ```
 
 The analyzer resolves the target per source file, so this is the supported
-pattern for mixed-dialect codebases — there is no per-call target inference
+pattern for a codebase split by file — there is no per-call target inference
 (e.g. reading the literal argument to `.Build(Dbms.MySql)`); a file's target
 comes only from its `.editorconfig` scope or the MSBuild property.
+
+This is a different axis from
+[checking a set of dialects at once](#checking-a-set-of-dialects-at-once): a
+path-scoped section picks *one* dialect per file, while
+`sqlartisan_syntax_*` can name *several* dialects for the same file. The two
+compose freely — a path-scoped section can itself set more than one
+`sqlartisan_syntax_*` key.
 
 ---
 
@@ -3810,12 +4000,13 @@ for, not a bug in the matrix.
   Oracle+PostgreSQL, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry and never
   warns either way.
-- **Typo'd keys fail silently** (see above) — there is no diagnostic for an
-  unrecognized `sqlartisan_construct_*` *key name*, only for a recognized
-  key with an unrecognized *value*. Value validation covers the keys derived
-  from the matrix; an override key naming a member the matrix has no entry
-  for is honored when its value is valid, but a typo in its *value* is
-  silently ignored too.
+- **`sqlartisan_construct_*` key names fail silently on a typo** (see above)
+  — there is no diagnostic for an unrecognized `sqlartisan_construct_*` *key
+  name*, only for a recognized key with an unrecognized *value*. Value
+  validation covers the keys derived from the matrix; an override key naming
+  a member the matrix has no entry for is honored when its value is valid,
+  but a typo in its *value* is silently ignored too. `sqlartisan_syntax_*`
+  key names do not share this gap — a typo there is `SQLA0001`.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a
@@ -3827,9 +4018,9 @@ for, not a bug in the matrix.
   for what's entered.
 - **The dialect-independent rules need a configured target too.**
   `SQLA0300` and the schema-aware `SQLA0200`–`SQLA0205` report facts that
-  hold on every engine, but the analyzer as a whole stays silent until
-  `sqlartisan_target_dbms` is set — without a target, `SQLA0300`'s `Build()`
-  guard is the only report and the schema rules have none.
+  hold on every engine, but the analyzer as a whole stays silent until a
+  dialect is configured — without one, `SQLA0300`'s `Build()` guard is the
+  only report and the schema rules have none.
 
 <!-- ============================================================ -->
 <!-- SOURCE: docs/cookbook.md -->
@@ -4889,17 +5080,21 @@ data mixes all five dialects. Declare your engine once in `.editorconfig`:
 
 ```ini
 [*.cs]
-sqlartisan_target_dbms = postgresql   # mysql | oracle | postgresql | sqlite | sqlserver
+sqlartisan_syntax_postgresql = 16   # engine version, or `any` for no version bound
 ```
 
 From then on, a generated query that reaches for another dialect's construct
 gets a build-time warning:
 
 ```csharp
-// sqlartisan_target_dbms = mysql
+// sqlartisan_syntax_mysql = any
 var g = Rollup(t.Code, t.Name);
 // warning SQLA0100: 'Rollup' is not supported on MySQL. ...
 ```
+
+Shipping against more than one engine (or migrating between two)? Set more
+than one `sqlartisan_syntax_*` key — every rule then checks the whole set;
+see [Checking a set of dialects at once](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#checking-a-set-of-dialects-at-once).
 
 For an AI-heavy workflow, promote it to a build error so wrong-dialect code
 cannot merge:

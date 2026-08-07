@@ -65,7 +65,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = mysql
+            sqlartisan_syntax_mysql = any
             """;
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
@@ -81,7 +81,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = mysql
+            sqlartisan_syntax_mysql = any
             sqlartisan_construct_rollup = supported
             """;
 
@@ -96,7 +96,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = oracle
+            sqlartisan_syntax_oracle = any
             sqlartisan_construct_rollup = unsupported
             """;
 
@@ -166,8 +166,11 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
+    // sqlartisan_target_version alone identifies no engine (the legacy pair's
+    // documented pitfall) — but the key itself still resolves, so it still
+    // earns the SQLA0002 deprecation nag even though it has no dialect effect.
     [Fact]
-    public async Task VersionBoundConstruct_OnlyVersionDeclaredNoTargetDbms_StaysSilent()
+    public async Task VersionBoundConstruct_OnlyVersionDeclaredNoTargetDbms_StaysSilentOnDialectRulesButReportsSqla0002()
     {
         const string editorConfig = """
             root = true
@@ -177,6 +180,7 @@ public class DialectUsageAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(DatetruncUsageTemplate), editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002"));
         await test.RunAsync();
     }
 
@@ -187,8 +191,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = sqlserver
-            sqlartisan_target_version = 2019
+            sqlartisan_syntax_sqlserver = 2019
             sqlartisan_construct_datetrunc = supported
             """;
 
@@ -196,15 +199,13 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
+    // An invalid legacy dbms value never resolves, so it never earns the
+    // SQLA0002 deprecation nag on top — SQLA0001's value-validation reason is
+    // the only report.
     [Fact]
     public async Task InvalidTargetValue_ReportsSqla0001()
     {
-        const string editorConfig = """
-            root = true
-
-            [*.cs]
-            sqlartisan_target_dbms = postgres
-            """;
+        string editorConfig = AnalyzerVerifier.LegacyEditorConfig("postgres");
 
         string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -213,20 +214,18 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
+    // Unlike the sibling above, the dbms half resolves here (postgresql is
+    // valid) — only the version is bad — so this earns SQLA0002 alongside
+    // SQLA0001's value-validation reason.
     [Fact]
-    public async Task InvalidTargetVersionValue_ReportsSqla0001()
+    public async Task InvalidTargetVersionValue_ReportsSqla0001AndSqla0002()
     {
-        const string editorConfig = """
-            root = true
-
-            [*.cs]
-            sqlartisan_target_dbms = postgresql
-            sqlartisan_target_version = latest
-            """;
+        string editorConfig = AnalyzerVerifier.LegacyEditorConfig("postgresql", "latest");
 
         string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
         var test = AnalyzerVerifier.Create(source, editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002"));
 
         await test.RunAsync();
     }
@@ -238,7 +237,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = mysql
+            sqlartisan_syntax_mysql = any
             sqlartisan_construct_rollup = maybe
             """;
 
@@ -272,7 +271,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = sqlserver
+            sqlartisan_syntax_sqlserver = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -305,7 +304,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = oracle
+            sqlartisan_syntax_oracle = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -341,7 +340,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = mysql
+            sqlartisan_syntax_mysql = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -372,7 +371,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = oracle
+            sqlartisan_syntax_oracle = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -401,7 +400,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = postgresql
+            sqlartisan_syntax_postgresql = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -430,7 +429,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = sqlserver
+            sqlartisan_syntax_sqlserver = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -461,7 +460,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = mysql
+            sqlartisan_syntax_mysql = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -491,7 +490,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = postgresql
+            sqlartisan_syntax_postgresql = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -519,7 +518,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = postgresql
+            sqlartisan_syntax_postgresql = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -549,7 +548,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = oracle
+            sqlartisan_syntax_oracle = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -584,7 +583,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = sqlserver
+            sqlartisan_syntax_sqlserver = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -610,7 +609,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = oracle
+            sqlartisan_syntax_oracle = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
@@ -638,7 +637,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = oracle
+            sqlartisan_syntax_oracle = any
             sqlartisan_construct_op_modulus = supported
             """;
 
@@ -668,7 +667,7 @@ public class DialectUsageAnalyzerTests
             root = true
 
             [*.cs]
-            sqlartisan_target_dbms = oracle
+            sqlartisan_syntax_oracle = any
             """;
 
         var test = AnalyzerVerifier.Create(source, editorConfig);
