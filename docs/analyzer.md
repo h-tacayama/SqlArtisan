@@ -1000,7 +1000,10 @@ for, not a bug in the matrix.
   `Trunc(expr[, format])` is the example: a numeric argument is
   Oracle+PostgreSQL, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry and never
-  warns either way.
+  warns either way. The `IntervalLiteral(...)` field markers (`Year(...)`,
+  `Month(...)`, ..., `ToSecond(...)`) share this gap for the same reason:
+  Oracle's leading/fractional-digit precision is an optional argument, not a
+  separate overload, so the matrix can't see whether a call used it.
 - **`sqlartisan_construct_*` key names fail silently on a typo** (see above)
   — there is no diagnostic for an unrecognized `sqlartisan_construct_*` *key
   name*, only for a recognized key with an unrecognized *value*. Value

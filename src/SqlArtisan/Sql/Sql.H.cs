@@ -25,4 +25,15 @@ public static partial class Sql
     /// <param name="hints">The hint text, emitted verbatim into the statement.</param>
     /// <returns>A hint clause for <c>Sql.Select(hints, ...)</c>.</returns>
     public static SqlHints Hints(string hints) => new(hints);
+
+    /// <summary>
+    /// The <c>HOUR</c> interval field, for the sole-field overload of
+    /// <see cref="IntervalLiteral(string, IntervalField)"/> or as the leading
+    /// field of <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
+    /// (e.g. <c>HOUR TO SECOND</c>).
+    /// </summary>
+    /// <param name="precision">The leading field's digit count (0-9); omit for
+    /// Oracle's own default of 2.</param>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>HOUR</c> or <c>HOUR(precision)</c>.</returns>
+    public static IntervalField Hour(int? precision = null) => new(DateTimePart.Hour, precision);
 }

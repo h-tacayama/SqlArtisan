@@ -329,11 +329,11 @@ internal static class MatrixSweepCatalog
         // whether MySQL's own grammar would also accept another dialect's spelling there.
         Add("Interval", _ => Scalar(u.CreatedAt + Interval(30, DateTimePart.Day)));
         AddArity("IntervalLiteral", 1, _ => Scalar(u.CreatedAt + IntervalLiteral("30 days")));
-        AddArity("IntervalLiteral", 2, _ => Scalar(u.CreatedAt + IntervalLiteral("30", DateTimePart.Day)));
+        AddArity("IntervalLiteral", 2, _ => Scalar(u.CreatedAt + IntervalLiteral("30", Day())));
         AddArity(
             "IntervalLiteral",
             3,
-            _ => Scalar(u.CreatedAt + IntervalLiteral("1-2", DateTimePart.Year, DateTimePart.Month)));
+            _ => Scalar(u.CreatedAt + IntervalLiteral("1-2", Year(), ToMonth)));
         Add("LastDay", _ => Scalar(LastDay(u.CreatedAt)));
         Add("MonthsBetween", _ => Scalar(MonthsBetween(u.CreatedAt, u.CreatedAt)));
         Add("Sysdate", _ => Select(Sysdate).From(Dual));

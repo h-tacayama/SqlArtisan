@@ -360,7 +360,7 @@ public class ContextRuleAnalyzerTests
     [Fact]
     public Task IntervalLiteralArity2BareSelectItem_MySql_ReportsSqla0102() =>
         RunReporting("""
-            var q = Select({|#0:IntervalLiteral("30", DateTimePart.Day)|}).From(t);
+            var q = Select({|#0:IntervalLiteral("30", Day())|}).From(t);
             """);
 
     [Fact]
@@ -390,7 +390,7 @@ public class ContextRuleAnalyzerTests
     [Fact]
     public Task IntervalLiteralArity2AsSubtractionOperand_MySql_StaysSilent() =>
         RunSilent("""
-            var q = Select(t.Id - IntervalLiteral("30", DateTimePart.Day)).From(t);
+            var q = Select(t.Id - IntervalLiteral("30", Day())).From(t);
             """);
 
     // The receiver leaves the expression at the point of the Interval(...) call, so

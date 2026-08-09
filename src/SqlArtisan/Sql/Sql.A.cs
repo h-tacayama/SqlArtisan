@@ -29,7 +29,7 @@ public static partial class Sql
     /// <see cref="Dateadd(DateTimePart, object, object)"/> with the month part
     /// instead; on MySQL/PostgreSQL use
     /// <see cref="Interval(object, DateTimePart)"/> /
-    /// <see cref="IntervalLiteral(string, DateTimePart)"/> with the <c>+</c> operator.
+    /// <see cref="IntervalLiteral(string, IntervalField)"/> with the <c>+</c> operator.
     /// </remarks>
     /// <param name="dateTime">The date/time expression to shift.</param>
     /// <param name="months">The number of months to add.</param>

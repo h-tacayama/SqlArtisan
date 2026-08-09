@@ -18,6 +18,20 @@ public static partial class Sql
     public static ScoreFunction Score(int label) => new(label);
 
     /// <summary>
+    /// The <c>SECOND</c> interval field, for the sole-field overload of
+    /// <see cref="IntervalLiteral(string, IntervalField)"/>. <c>SECOND</c> is
+    /// never a leading field of a range — use <see cref="ToSecond(int?)"/> for
+    /// a range's trailing field.
+    /// </summary>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>SECOND</c>.</returns>
+    /// <remarks>
+    /// No precision overload: Oracle's standalone <c>SECOND</c> takes a
+    /// <c>(leading_precision, fractional_seconds_precision)</c> pair, not the
+    /// single-value form every other field takes — unsupported for now.
+    /// </remarks>
+    public static IntervalField Second() => new(DateTimePart.Second, null);
+
+    /// <summary>
     /// Begins a <c>SELECT</c> statement projecting <paramref name="selectItems"/>.
     /// Continue with <c>.From(...)</c> and the remaining clauses. Each item is a
     /// column, expression, or <c>expr.As("alias")</c>.

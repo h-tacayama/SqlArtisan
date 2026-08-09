@@ -45,6 +45,18 @@ public class DialectMatrixCoverageTests
         ["OutputParameter.Variable"] = "Output-parameter binding metadata for RETURNING ... INTO; the construct is the Into entry.",
         ["Sql.Trunc"] = "Deliberately unentered: dialect support depends on the argument's runtime type (numeric "
             + "vs. date TRUNC), which neither declared type nor arity distinguishes — see docs/analyzer.md.",
+        ["Sql.Year"] = "An IntervalField argument for IntervalLiteral(...), not an independent construct — its "
+            + "own entries govern availability. The optional precision is Oracle-only, but a call's declared "
+            + "arity is the same whether precision is passed, so the matrix key can't see it (Trunc's reasoning).",
+        ["Sql.Month"] = "See Sql.Year.",
+        ["Sql.Day"] = "See Sql.Year.",
+        ["Sql.Hour"] = "See Sql.Year.",
+        ["Sql.Minute"] = "See Sql.Year.",
+        ["Sql.Second"] = "See Sql.Year.",
+        ["Sql.ToMonth"] = "See Sql.Year.",
+        ["Sql.ToHour"] = "See Sql.Year.",
+        ["Sql.ToMinute"] = "See Sql.Year.",
+        ["Sql.ToSecond"] = "See Sql.Year.",
         ["SqlArtisanConfig.DefaultDbms"] = "Configuration-time API; never appears in a query expression.",
         ["SqlArtisanConfig.SetDefaultDbms"] = "Configuration-time API; never appears in a query expression.",
         ["SqlParameters.ForEach"] = "Result-object surface (bind values of a built statement), not a query construct.",

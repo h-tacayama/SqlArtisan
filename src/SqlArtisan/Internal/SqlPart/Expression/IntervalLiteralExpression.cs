@@ -3,15 +3,20 @@ namespace SqlArtisan.Internal;
 public sealed class IntervalLiteralExpression : SqlExpression
 {
     private readonly string _value;
-    private readonly DateTimePart? _field;
-    private readonly DateTimePart? _trailingField;
+    private readonly IntervalField? _field;
+    private readonly IntervalField? _trailingField;
 
     internal IntervalLiteralExpression(
         string value,
-        DateTimePart? field = null,
-        DateTimePart? trailingField = null)
+        IntervalField? field = null,
+        IntervalField? trailingField = null)
     {
         StringGuard.ThrowIfNullOrEmpty(value, "INTERVAL requires a literal value.");
+
+        if (field is not null && trailingField is not null)
+        {
+            IntervalFieldGuard.ValidateRange(field, trailingField);
+        }
 
         _value = value;
         _field = field;
@@ -24,17 +29,17 @@ public sealed class IntervalLiteralExpression : SqlExpression
             .AppendSpace()
             .AppendStringLiteral(_value);
 
-        if (_field is DateTimePart field)
+        if (_field is IntervalField field)
         {
             buffer.AppendSpace()
-                .Append(DatepartKeywords.Of(field));
+                .Append(field);
 
-            if (_trailingField is DateTimePart trailingField)
+            if (_trailingField is IntervalField trailingField)
             {
                 buffer.AppendSpace()
                     .Append(Keywords.To)
                     .AppendSpace()
-                    .Append(DatepartKeywords.Of(trailingField));
+                    .Append(trailingField);
             }
         }
     }

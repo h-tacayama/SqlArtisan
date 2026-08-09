@@ -64,6 +64,17 @@ public static partial class Sql
     public static MinFunction Min(object expr) => new(Resolve(expr));
 
     /// <summary>
+    /// The <c>MINUTE</c> interval field, for the sole-field overload of
+    /// <see cref="IntervalLiteral(string, IntervalField)"/> or as the leading
+    /// field of <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
+    /// (e.g. <c>MINUTE TO SECOND</c>).
+    /// </summary>
+    /// <param name="precision">The leading field's digit count (0-9); omit for
+    /// Oracle's own default of 2.</param>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>MINUTE</c> or <c>MINUTE(precision)</c>.</returns>
+    public static IntervalField Minute(int? precision = null) => new(DateTimePart.Minute, precision);
+
+    /// <summary>
     /// The <c>MOD(<paramref name="dividend"/>, <paramref name="divisor"/>)</c>
     /// function: the remainder of <paramref name="dividend"/> divided by
     /// <paramref name="divisor"/>.
@@ -74,6 +85,17 @@ public static partial class Sql
     /// <remarks>Not supported by SQL Server — use the <c>%</c> operator there.</remarks>
     public static ModFunction Mod(object dividend, object divisor) =>
         new(Resolve(dividend), Resolve(divisor));
+
+    /// <summary>
+    /// The <c>MONTH</c> interval field, for the sole-field overload of
+    /// <see cref="IntervalLiteral(string, IntervalField)"/>. <c>MONTH</c> is
+    /// never a leading field of a range — use <see cref="ToMonth"/> for
+    /// <c>YEAR TO MONTH</c>'s trailing field.
+    /// </summary>
+    /// <param name="precision">The field's digit count (0-9); omit for
+    /// Oracle's own default of 2.</param>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>MONTH</c> or <c>MONTH(precision)</c>.</returns>
+    public static IntervalField Month(int? precision = null) => new(DateTimePart.Month, precision);
 
     /// <summary>
     /// The <c>MONTHS_BETWEEN(<paramref name="date1"/>, <paramref name="date2"/>)</c>

@@ -1873,7 +1873,7 @@ SqlStatement sql =
 
 ```csharp
 SqlStatement sql =
-    Select(u.CreatedAt - IntervalLiteral("30", DateTimePart.Day))
+    Select(u.CreatedAt - IntervalLiteral("30", Day()))
     .From(u)
     .Build(Dbms.Oracle);
 
@@ -1881,16 +1881,40 @@ SqlStatement sql =
 // FROM users
 ```
 
+`IntervalLiteral`'s field is one of `Year()`, `Month()`, `Day()`, `Hour()`,
+`Minute()`, `Second()` — always called, even with no argument, since these
+share their simple name with common ambient identifiers and invocation syntax
+keeps that name resolving to the right one. A range additionally takes a
+trailing field named `To…` — `ToMonth`, `ToHour`, `ToMinute`, `ToSecond()` —
+so `YEAR TO MONTH`/`DAY TO SECOND`/etc. read the way they sound:
+
+```csharp
+SqlStatement sql =
+    Select(IntervalLiteral("123-11", Year(3), ToMonth))
+    .Build(Dbms.Oracle);
+
+// SELECT INTERVAL '123-11' YEAR(3) TO MONTH
+```
+
+The optional `int?` on `Year`/`Month`/`Day`/`Hour`/`Minute` and `ToSecond` is
+Oracle's leading/fractional-digit precision (0-9; omit for Oracle's own
+default). Only the seven pairings Oracle's grammar allows can combine as a
+range — `IntervalLiteral(value, leadingField, trailingField)` throws
+`ArgumentException` for any other pairing (e.g. `Second()` can never lead, and
+`Year`/`Month` never cross into the `Day`/`Hour`/`Minute`/`Second` family).
+
 - **MySQL** — `Interval(quantity, unit)` for a bound quantity. MySQL's own
   grammar also accepts `IntervalLiteral(value, field)`'s spelling, but has no
   standalone `INTERVAL` value either way, so it only composes as a `+`/`-`
   operand or a `DATE_ADD`/`DATE_SUB` argument, never as a bare `SELECT` item.
 - **Oracle** — `IntervalLiteral(value, field)` (`INTERVAL '30' DAY`) or
   `IntervalLiteral(value, leadingField, trailingField)` for a range
-  (`INTERVAL '1-2' YEAR TO MONTH`); the field is always required.
-- **PostgreSQL** — the same two forms as Oracle, plus the bare
-  `IntervalLiteral(text)` overload with the unit folded into the text
-  (`INTERVAL '30 days'`).
+  (`INTERVAL '1-2' YEAR TO MONTH`); the field is always required, and either
+  side may carry a leading/fractional precision.
+- **PostgreSQL** — the same two forms as Oracle (without precision, which
+  PostgreSQL applies only via `Cast(...)`, never inside the literal itself),
+  plus the bare `IntervalLiteral(text)` overload with the unit folded into
+  the text (`INTERVAL '30 days'`).
 - **SQLite, SQL Server** — no `INTERVAL` construct; use `Dateadd(...)` on SQL
   Server instead.
 
@@ -4076,7 +4100,10 @@ for, not a bug in the matrix.
   `Trunc(expr[, format])` is the example: a numeric argument is
   Oracle+PostgreSQL, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry and never
-  warns either way.
+  warns either way. The `IntervalLiteral(...)` field markers (`Year(...)`,
+  `Month(...)`, ..., `ToSecond(...)`) share this gap for the same reason:
+  Oracle's leading/fractional-digit precision is an optional argument, not a
+  separate overload, so the matrix can't see whether a call used it.
 - **`sqlartisan_construct_*` key names fail silently on a typo** (see above)
   — there is no diagnostic for an unrecognized `sqlartisan_construct_*` *key
   name*, only for a recognized key with an unrecognized *value*. Value

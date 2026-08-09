@@ -20,7 +20,7 @@ public static partial class Sql
     /// This is SQL Server's form. For Oracle use
     /// <see cref="AddMonths(object, object)"/>; for MySQL/PostgreSQL date-shift
     /// arithmetic use <see cref="Interval(object, DateTimePart)"/> /
-    /// <see cref="IntervalLiteral(string, DateTimePart)"/> with the <c>+</c>/<c>-</c>
+    /// <see cref="IntervalLiteral(string, IntervalField)"/> with the <c>+</c>/<c>-</c>
     /// operators instead.
     /// </remarks>
     public static DateaddFunction Dateadd(DateTimePart datepart, object number, object dateTime) =>
@@ -103,6 +103,17 @@ public static partial class Sql
     /// </remarks>
     public static DatetruncFunction Datetrunc(DateTimePart datepart, object date) =>
         new(datepart, Resolve(date));
+
+    /// <summary>
+    /// The <c>DAY</c> interval field, for the sole-field overload of
+    /// <see cref="IntervalLiteral(string, IntervalField)"/> or as the leading
+    /// field of <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
+    /// (e.g. <c>DAY TO SECOND</c>).
+    /// </summary>
+    /// <param name="precision">The leading field's digit count (0-9); omit for
+    /// Oracle's own default of 2.</param>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>DAY</c> or <c>DAY(precision)</c>.</returns>
+    public static IntervalField Day(int? precision = null) => new(DateTimePart.Day, precision);
 
     /// <summary>
     /// The <c>DECODE(<paramref name="expr"/>, search, result, ..., <paramref name="default"/>)</c>

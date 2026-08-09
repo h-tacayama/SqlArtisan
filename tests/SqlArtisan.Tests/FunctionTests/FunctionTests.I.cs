@@ -120,7 +120,7 @@ public partial class FunctionTests
     public void IntervalLiteral_Oracle_WithField_CorrectSql()
     {
         SqlStatement sql =
-            Select(IntervalLiteral("30", DateTimePart.Day))
+            Select(IntervalLiteral("30", Day()))
             .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
@@ -131,10 +131,24 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void IntervalLiteral_Oracle_WithFieldPrecision_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("300", Month(3)))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '300' MONTH(3)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void IntervalLiteral_Oracle_WithLeadingAndTrailingField_CorrectSql()
     {
         SqlStatement sql =
-            Select(IntervalLiteral("1-2", DateTimePart.Year, DateTimePart.Month))
+            Select(IntervalLiteral("1-2", Year(), ToMonth))
             .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
@@ -142,6 +156,169 @@ public partial class FunctionTests
         expected.Append("INTERVAL '1-2' YEAR TO MONTH");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void IntervalLiteral_Oracle_LeadingFieldPrecision_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("123-11", Year(3), ToMonth))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '123-11' YEAR(3) TO MONTH");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void IntervalLiteral_Oracle_LeadingAndTrailingFieldPrecision_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("4 5:12:10.5", Day(3), ToSecond(2)))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '4 5:12:10.5' DAY(3) TO SECOND(2)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void IntervalLiteral_Oracle_DayToHour_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("2 3", Day(), ToHour))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '2 3' DAY TO HOUR");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void IntervalLiteral_Oracle_DayToMinute_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("2 3:4", Day(), ToMinute))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '2 3:4' DAY TO MINUTE");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void IntervalLiteral_Oracle_HourToMinute_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("3:4", Hour(), ToMinute))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '3:4' HOUR TO MINUTE");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void IntervalLiteral_Oracle_HourToSecond_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("3:4:5", Hour(), ToSecond()))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '3:4:5' HOUR TO SECOND");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void IntervalLiteral_Oracle_MinuteToSecond_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("4:5", Minute(), ToSecond()))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '4:5' MINUTE TO SECOND");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void IntervalLiteral_SoleSecondField_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("30", Second()))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '30' SECOND");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void IntervalLiteral_ReversedFieldRange_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => IntervalLiteral("30", Month(), Year()));
+
+        Assert.Equal("INTERVAL MONTH TO YEAR is not a valid field range.", ex.Message);
+    }
+
+    [Fact]
+    public void IntervalLiteral_SecondAsLeadingField_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => IntervalLiteral("30", Second(), ToMonth));
+
+        Assert.Equal("INTERVAL SECOND TO MONTH is not a valid field range.", ex.Message);
+    }
+
+    [Fact]
+    public void IntervalLiteral_CrossFamilyFieldRange_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => IntervalLiteral("30", Day(), ToMonth));
+
+        Assert.Equal("INTERVAL DAY TO MONTH is not a valid field range.", ex.Message);
+    }
+
+    [Fact]
+    public void Year_PrecisionAboveMaximum_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Year(10));
+
+        Assert.Equal("YEAR precision must be between 0 and 9.", ex.Message);
+    }
+
+    [Fact]
+    public void Year_PrecisionNegative_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Year(-1));
+
+        Assert.Equal("YEAR precision must be between 0 and 9.", ex.Message);
+    }
+
+    [Fact]
+    public void ToSecond_PrecisionAboveMaximum_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => ToSecond(10));
+
+        Assert.Equal("SECOND precision must be between 0 and 9.", ex.Message);
     }
 
     [Fact]
