@@ -16,6 +16,7 @@
 
 - [NULL Literal](#null-literal)
 - [Arithmetic Operators](#arithmetic-operators)
+- [Interval Expressions](#interval-expressions)
 - [String Concatenation](#string-concatenation)
 - [Conditions](#conditions)
 - [JSON Operators](#json-operators)
@@ -71,6 +72,48 @@ SqlStatement sql =
 
 On Oracle, `%` is not an arithmetic operator — use `Mod(a, b)` (`MOD(a, b)`)
 instead; the analyzer warns when a `%` expression targets Oracle.
+
+---
+
+## Interval Expressions
+
+`INTERVAL` has no common spelling across engines, so pick the factory for your
+target DBMS: `Interval(quantity, unit)` binds its quantity as a parameter
+(MySQL's own unquoted form), `IntervalLiteral(...)` emits its value inline as a
+quoted literal (Oracle/PostgreSQL). Combine either with `+`/`-` for date-shift
+arithmetic.
+
+```csharp
+SqlStatement sql =
+    Select(u.CreatedAt - Interval(30, DateTimePart.Day))
+    .From(u)
+    .Build(Dbms.MySql);
+
+// SELECT (created_at - INTERVAL ?0 DAY)
+// FROM users
+```
+
+```csharp
+SqlStatement sql =
+    Select(u.CreatedAt - IntervalLiteral("30", DateTimePart.Day))
+    .From(u)
+    .Build(Dbms.Oracle);
+
+// SELECT (created_at - INTERVAL '30' DAY)
+// FROM users
+```
+
+- **MySQL** — `Interval(quantity, unit)` only; the quantity is bound. MySQL has
+  no standalone `INTERVAL` value, so it only composes as a `+`/`-` operand or a
+  `DATE_ADD`/`DATE_SUB` argument, never as a bare `SELECT` item.
+- **Oracle** — `IntervalLiteral(value, field)` (`INTERVAL '30' DAY`) or
+  `IntervalLiteral(value, leadingField, trailingField)` for a range
+  (`INTERVAL '1-2' YEAR TO MONTH`); the field is always required.
+- **PostgreSQL** — the same two forms as Oracle, plus the bare
+  `IntervalLiteral(text)` overload with the unit folded into the text
+  (`INTERVAL '30 days'`).
+- **SQLite, SQL Server** — no `INTERVAL` construct; use `Dateadd(...)` on SQL
+  Server instead.
 
 ---
 
