@@ -110,10 +110,10 @@ public static partial class Sql
     /// <param name="unit">The date/time unit.</param>
     /// <returns>An <see cref="IntervalExpression"/> emitting <c>INTERVAL :n unit</c>.</returns>
     /// <remarks>
-    /// MySQL syntax — the unit is a bare keyword there, so the parameter never
-    /// needs a literal. For Oracle/PostgreSQL's quoted-literal form use
-    /// <see cref="IntervalLiteral(string, DateTimePart)"/> instead; MySQL does
-    /// not accept that quoted form.
+    /// MySQL's idiomatic form — the quantity is bound rather than an inline
+    /// literal. <see cref="IntervalLiteral(string, DateTimePart)"/> is the
+    /// Oracle/PostgreSQL spelling; MySQL's own grammar happens to accept that
+    /// spelling too, but this bound form is preferred there.
     /// </remarks>
     public static IntervalExpression Interval(object quantity, DateTimePart unit) =>
         new(Resolve(quantity), unit);

@@ -80,7 +80,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trunc()` for `TRUNC` (Date/Time Overload)
 
 > [!NOTE]
-> For MySQL/PostgreSQL date-shift arithmetic (`INTERVAL`), see
+> For MySQL/Oracle/PostgreSQL date-shift arithmetic (`INTERVAL`), see
 > [Expressions: Interval Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#interval-expressions).
 
 ---

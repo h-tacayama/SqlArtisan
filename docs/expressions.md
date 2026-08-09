@@ -103,9 +103,10 @@ SqlStatement sql =
 // FROM users
 ```
 
-- **MySQL** — `Interval(quantity, unit)` only; the quantity is bound. MySQL has
-  no standalone `INTERVAL` value, so it only composes as a `+`/`-` operand or a
-  `DATE_ADD`/`DATE_SUB` argument, never as a bare `SELECT` item.
+- **MySQL** — `Interval(quantity, unit)` for a bound quantity. MySQL's own
+  grammar also accepts `IntervalLiteral(value, field)`'s spelling, but has no
+  standalone `INTERVAL` value either way, so it only composes as a `+`/`-`
+  operand or a `DATE_ADD`/`DATE_SUB` argument, never as a bare `SELECT` item.
 - **Oracle** — `IntervalLiteral(value, field)` (`INTERVAL '30' DAY`) or
   `IntervalLiteral(value, leadingField, trailingField)` for a range
   (`INTERVAL '1-2' YEAR TO MONTH`); the field is always required.
