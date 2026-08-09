@@ -100,4 +100,62 @@ public static partial class Sql
             Resolve(substring),
             Resolve(position),
             Resolve(occurrence));
+
+    /// <summary>
+    /// The <c>INTERVAL <paramref name="quantity"/> unit</c> expression
+    /// (<paramref name="quantity"/> bound as a parameter, the unit emitted as a
+    /// bare keyword).
+    /// </summary>
+    /// <param name="quantity">The number of units, bound as a parameter.</param>
+    /// <param name="unit">The date/time unit.</param>
+    /// <returns>An <see cref="IntervalExpression"/> emitting <c>INTERVAL :n unit</c>.</returns>
+    /// <remarks>
+    /// MySQL syntax — the unit is a bare keyword there, so the parameter never
+    /// needs a literal. For Oracle/PostgreSQL's quoted-literal form use
+    /// <see cref="IntervalLiteral(string, DateTimePart)"/> instead; MySQL does
+    /// not accept that quoted form.
+    /// </remarks>
+    public static IntervalExpression Interval(object quantity, DateTimePart unit) =>
+        new(Resolve(quantity), unit);
+
+    /// <summary>
+    /// The <c>INTERVAL '<paramref name="text"/>'</c> literal, with its unit(s)
+    /// embedded in the text itself (e.g. <c>"30 days"</c>).
+    /// </summary>
+    /// <param name="text">The interval literal text, emitted inline between
+    /// single quotes (its own quotes doubled).</param>
+    /// <returns>An <see cref="IntervalLiteralExpression"/> emitting <c>INTERVAL 'text'</c>.</returns>
+    /// <remarks>PostgreSQL syntax.</remarks>
+    public static IntervalLiteralExpression IntervalLiteral(string text) => new(text);
+
+    /// <summary>
+    /// The <c>INTERVAL '<paramref name="value"/>' field</c> literal.
+    /// </summary>
+    /// <param name="value">The interval literal value, emitted inline between
+    /// single quotes (its own quotes doubled).</param>
+    /// <param name="field">The unit the literal is expressed in.</param>
+    /// <returns>An <see cref="IntervalLiteralExpression"/> emitting
+    /// <c>INTERVAL 'value' field</c>.</returns>
+    /// <remarks>
+    /// Oracle/PostgreSQL syntax. For MySQL's bindable, unquoted form use
+    /// <see cref="Interval(object, DateTimePart)"/> instead.
+    /// </remarks>
+    public static IntervalLiteralExpression IntervalLiteral(string value, DateTimePart field) =>
+        new(value, field);
+
+    /// <summary>
+    /// The <c>INTERVAL '<paramref name="value"/>' leadingField TO trailingField</c>
+    /// literal — a range of units (e.g. <c>YEAR TO MONTH</c>, <c>DAY TO SECOND</c>).
+    /// </summary>
+    /// <param name="value">The interval literal value, emitted inline between
+    /// single quotes (its own quotes doubled).</param>
+    /// <param name="leadingField">The most significant unit.</param>
+    /// <param name="trailingField">The least significant unit.</param>
+    /// <returns>An <see cref="IntervalLiteralExpression"/> emitting
+    /// <c>INTERVAL 'value' leadingField TO trailingField</c>.</returns>
+    /// <remarks>Oracle/PostgreSQL syntax.</remarks>
+    public static IntervalLiteralExpression IntervalLiteral(
+        string value,
+        DateTimePart leadingField,
+        DateTimePart trailingField) => new(value, leadingField, trailingField);
 }
