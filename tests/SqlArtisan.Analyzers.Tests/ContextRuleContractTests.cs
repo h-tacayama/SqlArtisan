@@ -81,6 +81,8 @@ public class ContextRuleContractTests
     [InlineData("PercentileDisc")]
     [InlineData("Inserted")]
     [InlineData("Deleted")]
+    [InlineData("Interval")]
+    [InlineData("IntervalLiteral")]
     public void TriggerMember_ExistsInCoreApi(string methodName)
     {
         bool exists = Core.GetExportedTypes()

@@ -350,4 +350,62 @@ public class ContextRuleAnalyzerTests
         RunSilent("""
             var q = InsertInto(t, t.Id).Output(Coalesce(Inserted(t.Id), 0)).Values(1);
             """, "sqlserver");
+
+    [Fact]
+    public Task IntervalBareSelectItem_MySql_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select({|#0:Interval(30, DateTimePart.Day)|}).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalLiteralArity2BareSelectItem_MySql_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select({|#0:IntervalLiteral("30", DateTimePart.Day)|}).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalBareAmongMultipleSelectItems_MySql_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select(t.Id, {|#0:Interval(30, DateTimePart.Day)|}).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalAsSubtractionOperand_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id - Interval(30, DateTimePart.Day)).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalAsAdditionOperand_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id + Interval(30, DateTimePart.Day)).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalAsLeftOperandOfAddition_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Interval(30, DateTimePart.Day) + t.Id).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalLiteralArity2AsSubtractionOperand_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id - IntervalLiteral("30", DateTimePart.Day)).From(t);
+            """);
+
+    // The receiver leaves the expression at the point of the Interval(...) call, so
+    // the +/- it later feeds is invisible to the walk — silent is the safe call
+    // (ADR 0003: a false negative here, never a false positive on this valid SQL).
+    [Fact]
+    public Task IntervalViaVariable_MySql_StaysSilent() =>
+        RunSilent("""
+            var i = Interval(30, DateTimePart.Day);
+            var q = Select(t.Id - i).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalBareSelectItem_NoTargetConfigured_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Interval(30, DateTimePart.Day)).From(t);
+            """, dbms: null);
 }
