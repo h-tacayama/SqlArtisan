@@ -279,4 +279,12 @@ public partial class FunctionTests
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal("database", sql.Parameters.Get<string>(":0"));
     }
+
+    [Fact]
+    public void ToSecond_PrecisionAboveMaximum_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => ToSecond(10));
+
+        Assert.Equal("SECOND precision must be between 0 and 9.", ex.Message);
+    }
 }

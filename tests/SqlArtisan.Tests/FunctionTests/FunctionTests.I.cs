@@ -298,27 +298,50 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Year_PrecisionAboveMaximum_ThrowsArgumentException()
+    public void IntervalLiteral_TrailingFieldPrecisionOnNonSecond_ThrowsArgumentException()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => Year(10));
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => IntervalLiteral("1 2", Day(), Hour(3)));
 
-        Assert.Equal("YEAR precision must be between 0 and 9.", ex.Message);
+        Assert.Equal(
+            "A trailing HOUR in an INTERVAL range does not support a precision; only TO SECOND does.",
+            ex.Message);
     }
 
     [Fact]
-    public void Year_PrecisionNegative_ThrowsArgumentException()
+    public void IntervalLiteral_TrailingMonthPrecision_ThrowsArgumentException()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => Year(-1));
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => IntervalLiteral("1-2", Year(), Month(3)));
 
-        Assert.Equal("YEAR precision must be between 0 and 9.", ex.Message);
+        Assert.Equal(
+            "A trailing MONTH in an INTERVAL range does not support a precision; only TO SECOND does.",
+            ex.Message);
     }
 
     [Fact]
-    public void ToSecond_PrecisionAboveMaximum_ThrowsArgumentException()
+    public void IntervalLiteral_SoleSecondFieldWithPrecision_ThrowsArgumentException()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => ToSecond(10));
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => IntervalLiteral("45", ToSecond(4)));
 
-        Assert.Equal("SECOND precision must be between 0 and 9.", ex.Message);
+        Assert.Equal(
+            "INTERVAL SECOND does not support a precision; use Second() without one.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void IntervalLiteral_SoleSecondFieldViaToSecond_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("45", ToSecond()))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '45' SECOND");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]

@@ -118,12 +118,19 @@ SqlStatement sql =
 // SELECT INTERVAL '123-11' YEAR(3) TO MONTH
 ```
 
-The optional `int?` on `Year`/`Month`/`Day`/`Hour`/`Minute` and `ToSecond` is
-Oracle's leading/fractional-digit precision (0-9; omit for Oracle's own
-default). Only the seven pairings Oracle's grammar allows can combine as a
-range — `IntervalLiteral(value, leadingField, trailingField)` throws
-`ArgumentException` for any other pairing (e.g. `Second()` can never lead, and
-`Year`/`Month` never cross into the `Day`/`Hour`/`Minute`/`Second` family).
+The optional `int?` on `Year`/`Month`/`Day`/`Hour`/`Minute` is Oracle's
+leading-digit precision, and the one on `ToSecond` is its fractional-seconds
+precision (both 0-9; omit for Oracle's own default). Oracle attaches a
+precision to the *leading* field of a range and, on the trailing side, only to
+`SECOND` — so `Year(3), ToMonth` is valid while a precision on any other
+trailing field throws.
+
+`IntervalLiteral(value, leadingField, trailingField)` throws
+`ArgumentException` for anything outside the seven pairings Oracle's grammar
+allows (e.g. `Second()` can never lead, and `Year`/`Month` never cross into the
+`Day`/`Hour`/`Minute`/`Second` family). A standalone `SECOND` takes a
+`(leading, fractional)` precision pair rather than the single value every other
+field takes, so it carries no precision option here and throws if given one.
 
 - **MySQL** — `Interval(quantity, unit)` for a bound quantity. MySQL's own
   grammar also accepts `IntervalLiteral(value, field)`'s spelling, but has no
@@ -131,8 +138,8 @@ range — `IntervalLiteral(value, leadingField, trailingField)` throws
   operand or a `DATE_ADD`/`DATE_SUB` argument, never as a bare `SELECT` item.
 - **Oracle** — `IntervalLiteral(value, field)` (`INTERVAL '30' DAY`) or
   `IntervalLiteral(value, leadingField, trailingField)` for a range
-  (`INTERVAL '1-2' YEAR TO MONTH`); the field is always required, and either
-  side may carry a leading/fractional precision.
+  (`INTERVAL '1-2' YEAR TO MONTH`); the field is always required, the leading
+  side may carry a precision, and the trailing side only when it is `SECOND`.
 - **PostgreSQL** — the same two forms as Oracle (without precision, which
   PostgreSQL applies only via `Cast(...)`, never inside the literal itself),
   plus the bare `IntervalLiteral(text)` overload with the unit folded into

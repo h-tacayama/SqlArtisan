@@ -21,7 +21,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 
 | Path | Purpose |
 |------|---------|
-| `src/SqlArtisan/Sql/Sql.{A..W}.cs` | Public API. `static partial class Sql`, one file per **leading letter** of the function name (gaps at K, Q, X–Z). |
+| `src/SqlArtisan/Sql/Sql.{A..Y}.cs` | Public API. `static partial class Sql`, one file per **leading letter** of the function name (gaps at K, Q, X, Z). |
 | `src/SqlArtisan/Internal/SqlPart/Expression/Function/**` | Internal function node classes (`*Function : SqlExpression`), organized into categories (see below). |
 | `src/SqlArtisan/Internal/SqlBuilder/**` | Statement builders (Select/Insert/Update/Delete/Merge/With), `SqlBuildingBuffer`, validation guards. |
 | `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`). |
@@ -33,7 +33,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan.ArrayBind/` | Oracle array-bind execution (one round trip per batch, not per row). |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
-| `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..W}.cs` mirror `Sql.{A..W}.cs`. |
+| `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..Y}.cs` mirror `Sql.{A..Y}.cs`. |
 | `tests/SqlArtisan.Analyzers.Tests/` | Analyzer unit tests (matrix coverage/integrity, config resolution, diagnostic verification). |
 | `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests: MySql, Oracle, Oracle23ai, PostgreSql, SqlServer via Testcontainers; Sqlite in-process. |
 | `tests/SqlArtisan.TableClassGen.Tests/` | TableClassGen unit tests (catalog reading, emitted code, drift detection). |

@@ -10,7 +10,7 @@ separated from internals that are free to change.
 ## Decision
 
 - The public API is one **`public static partial class Sql`**, split across
-  `src/SqlArtisan/Sql/Sql.{A..W}.cs` — one file per leading letter of the function
+  `src/SqlArtisan/Sql/Sql.{A..Y}.cs` — one file per leading letter of the function
   name.
 - The remaining public surface lives under `src/SqlArtisan/SqlBuilder/`.
 - A narrow set of **public table-reference types** lives under

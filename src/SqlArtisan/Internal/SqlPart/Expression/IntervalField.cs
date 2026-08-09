@@ -17,6 +17,8 @@ public sealed class IntervalField : SqlPart
 
     internal DateTimePart Field { get; }
 
+    internal bool HasPrecision => _precision is not null;
+
     internal override void Format(SqlBuildingBuffer buffer)
     {
         buffer.Append(DatepartKeywords.Of(Field));
