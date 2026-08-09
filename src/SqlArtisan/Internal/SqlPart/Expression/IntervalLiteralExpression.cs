@@ -17,10 +17,6 @@ public sealed class IntervalLiteralExpression : SqlExpression
         {
             IntervalFieldGuard.ValidateRange(field, trailingField);
         }
-        else if (field is not null)
-        {
-            IntervalFieldGuard.ValidateSoleField(field);
-        }
 
         _value = value;
         _field = field;

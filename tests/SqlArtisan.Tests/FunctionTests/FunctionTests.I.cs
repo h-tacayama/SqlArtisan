@@ -320,17 +320,6 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void IntervalLiteral_SoleSecondFieldWithPrecision_ThrowsArgumentException()
-    {
-        ArgumentException ex = Assert.Throws<ArgumentException>(
-            () => IntervalLiteral("45", ToSecond(4)));
-
-        Assert.Equal(
-            "INTERVAL SECOND does not support a precision; use Second() without one.",
-            ex.Message);
-    }
-
-    [Fact]
     public void IntervalLiteral_SoleSecondFieldViaToSecond_CorrectSql()
     {
         SqlStatement sql =
@@ -340,6 +329,22 @@ public partial class FunctionTests
         StringBuilder expected = new();
         expected.Append("SELECT ");
         expected.Append("INTERVAL '45' SECOND");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // A precision here is Oracle's leading-digit count, not ToSecond's usual
+    // fractional one — valid SQL, so emitted faithfully rather than guarded.
+    [Fact]
+    public void IntervalLiteral_SoleSecondFieldWithPrecision_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(IntervalLiteral("45", ToSecond(4)))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("INTERVAL '45' SECOND(4)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

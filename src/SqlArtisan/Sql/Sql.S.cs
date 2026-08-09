@@ -25,9 +25,9 @@ public static partial class Sql
     /// </summary>
     /// <returns>An <see cref="IntervalField"/> emitting <c>SECOND</c>.</returns>
     /// <remarks>
-    /// No precision overload: Oracle's standalone <c>SECOND</c> takes a
-    /// <c>(leading_precision, fractional_seconds_precision)</c> pair, not the
-    /// single-value form every other field takes — unsupported for now.
+    /// No precision parameter: Oracle's standalone <c>SECOND</c> takes a
+    /// <c>(leading, fractional)</c> pair, which has no spelling here. For the
+    /// single-value form, <see cref="ToSecond(int?)"/> emits <c>SECOND(n)</c>.
     /// </remarks>
     public static IntervalField Second() => new(DateTimePart.Second, null);
 

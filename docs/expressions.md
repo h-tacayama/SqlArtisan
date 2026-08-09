@@ -120,17 +120,18 @@ SqlStatement sql =
 
 The optional `int?` on `Year`/`Month`/`Day`/`Hour`/`Minute` is Oracle's
 leading-digit precision, and the one on `ToSecond` is its fractional-seconds
-precision (both 0-9; omit for Oracle's own default). Oracle attaches a
-precision to the *leading* field of a range and, on the trailing side, only to
-`SECOND` — so `Year(3), ToMonth` is valid while a precision on any other
-trailing field throws.
+precision (both 0-9; omit for Oracle's own default). A sole or leading field may
+carry a precision; on a range's trailing side only `SECOND` may, because that
+position *is* the fractional-seconds count — so `Year(3), ToMonth` is valid
+while a precision on any other trailing field throws.
 
 `IntervalLiteral(value, leadingField, trailingField)` throws
 `ArgumentException` for anything outside the seven pairings Oracle's grammar
 allows (e.g. `Second()` can never lead, and `Year`/`Month` never cross into the
-`Day`/`Hour`/`Minute`/`Second` family). A standalone `SECOND` takes a
-`(leading, fractional)` precision pair rather than the single value every other
-field takes, so it carries no precision option here and throws if given one.
+`Day`/`Hour`/`Minute`/`Second` family). `Second()` takes no precision parameter,
+since Oracle's standalone `SECOND` takes a `(leading, fractional)` pair; use
+`ToSecond(n)` as a sole field for the single-value `SECOND(n)` form, which
+Oracle reads as the leading precision.
 
 - **MySQL** — `Interval(quantity, unit)` for a bound quantity. MySQL's own
   grammar also accepts `IntervalLiteral(value, field)`'s spelling, but has no

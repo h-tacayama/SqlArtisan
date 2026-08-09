@@ -1,8 +1,9 @@
 namespace SqlArtisan.Internal;
 
-// Oracle interval literal field rules (ADR 0012): precision is fixed 0-9 and
-// only seven field pairings exist, both call-site-fixed facts true wherever
-// this literal shape is accepted at all — so both are eager guards.
+// Oracle interval literal field rules (ADR 0012). Each is call-site-fixed and
+// true wherever this literal shape is accepted at all, so each is eager. A
+// precision-bearing sole SECOND is deliberately *not* guarded: it renders
+// Oracle's leading precision, so it fails ADR 0012's universally-invalid test.
 internal static class IntervalFieldGuard
 {
     private static readonly HashSet<(DateTimePart Leading, DateTimePart Trailing)> ValidRanges =
@@ -22,18 +23,6 @@ internal static class IntervalFieldGuard
         {
             throw new ArgumentException(
                 $"{DatepartKeywords.Of(field)} precision must be between 0 and 9.");
-        }
-    }
-
-    // Oracle's standalone SECOND precision is a (leading, fractional) pair, not the
-    // single value every other field takes — deliberately unsupported, so reject the
-    // one marker that can reach this position carrying a precision (ToSecond).
-    internal static void ValidateSoleField(IntervalField field)
-    {
-        if (field.Field == DateTimePart.Second && field.HasPrecision)
-        {
-            throw new ArgumentException(
-                "INTERVAL SECOND does not support a precision; use Second() without one.");
         }
     }
 

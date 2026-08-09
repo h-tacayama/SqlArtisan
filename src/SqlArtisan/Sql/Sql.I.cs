@@ -161,7 +161,9 @@ public static partial class Sql
     /// <c>INTERVAL 'value' leadingField TO trailingField</c>.</returns>
     /// <exception cref="ArgumentException"><paramref name="leadingField"/> and
     /// <paramref name="trailingField"/> are not one of the seven valid Oracle
-    /// pairings.</exception>
+    /// pairings, or <paramref name="trailingField"/> carries a precision without
+    /// being <see cref="ToSecond(int?)"/> — Oracle attaches a trailing precision
+    /// to <c>SECOND</c> alone.</exception>
     /// <remarks>Oracle/PostgreSQL syntax.</remarks>
     public static IntervalLiteralExpression IntervalLiteral(
         string value,
