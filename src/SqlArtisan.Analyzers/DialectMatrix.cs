@@ -83,7 +83,10 @@ internal static class DialectMatrix
         // The bare-text arity-1 form is PostgreSQL's own idiom (units embedded in the string);
         // Oracle requires the separate field(s), so it only carries the arity-2/3 entries below.
         [new MatrixKey("IntervalLiteral", 1)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
-        [new MatrixKey("IntervalLiteral", 2)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // The arity-2 mySql:true is not idiomatic MySQL (Interval(object, DateTimePart) is) —
+        // MySQL's own `INTERVAL expr unit` grammar accepts a quoted-string expr too, so the
+        // dialect sweep live-caught `created_at + INTERVAL '30' DAY` as MySQL-accepted (#436).
+        [new MatrixKey("IntervalLiteral", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("IntervalLiteral", 3)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- String aggregation (CHANGELOG 0.3.0-beta.1, #88) ---

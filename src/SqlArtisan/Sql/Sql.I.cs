@@ -137,8 +137,9 @@ public static partial class Sql
     /// <returns>An <see cref="IntervalLiteralExpression"/> emitting
     /// <c>INTERVAL 'value' field</c>.</returns>
     /// <remarks>
-    /// Oracle/PostgreSQL syntax. For MySQL's bindable, unquoted form use
-    /// <see cref="Interval(object, DateTimePart)"/> instead.
+    /// Oracle/PostgreSQL syntax; MySQL's own grammar happens to accept this
+    /// exact spelling too, but prefer
+    /// <see cref="Interval(object, DateTimePart)"/> there for a bound quantity.
     /// </remarks>
     public static IntervalLiteralExpression IntervalLiteral(string value, DateTimePart field) =>
         new(value, field);
