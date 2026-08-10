@@ -324,6 +324,16 @@ internal static class MatrixSweepCatalog
         Add("Datetrunc", _ => Scalar(Datetrunc(DateTimePart.Month, u.CreatedAt)));
         Add("DateFormat", _ => Scalar(DateFormat(u.CreatedAt, "%Y-%m")));
         Add("AddMonths", _ => Scalar(AddMonths(u.CreatedAt, 1)));
+        // Swept as a date-arithmetic operand (`created_at + …`), not a bare SELECT item: MySQL's
+        // INTERVAL has no standalone value form, and embedding IntervalLiteral the same way tests
+        // whether MySQL's own grammar would also accept another dialect's spelling there.
+        Add("Interval", _ => Scalar(u.CreatedAt + Interval(30, DateTimePart.Day)));
+        AddArity("IntervalLiteral", 1, _ => Scalar(u.CreatedAt + IntervalLiteral("30 days")));
+        AddArity("IntervalLiteral", 2, _ => Scalar(u.CreatedAt + IntervalLiteral("30", Day())));
+        AddArity(
+            "IntervalLiteral",
+            3,
+            _ => Scalar(u.CreatedAt + IntervalLiteral("1-2", Year(), ToMonth)));
         Add("LastDay", _ => Scalar(LastDay(u.CreatedAt)));
         Add("MonthsBetween", _ => Scalar(MonthsBetween(u.CreatedAt, u.CreatedAt)));
         Add("Sysdate", _ => Select(Sysdate).From(Dual));

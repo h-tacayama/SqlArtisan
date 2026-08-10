@@ -100,4 +100,73 @@ public static partial class Sql
             Resolve(substring),
             Resolve(position),
             Resolve(occurrence));
+
+    /// <summary>
+    /// The <c>INTERVAL <paramref name="quantity"/> unit</c> expression
+    /// (<paramref name="quantity"/> bound as a parameter, the unit emitted as a
+    /// bare keyword).
+    /// </summary>
+    /// <param name="quantity">The number of units, bound as a parameter.</param>
+    /// <param name="unit">The date/time unit.</param>
+    /// <returns>An <see cref="IntervalExpression"/> emitting <c>INTERVAL :n unit</c>.</returns>
+    /// <remarks>
+    /// MySQL's idiomatic form — the quantity is bound rather than an inline
+    /// literal. <see cref="IntervalLiteral(string, IntervalField)"/> is the
+    /// Oracle/PostgreSQL spelling; MySQL's own grammar happens to accept that
+    /// spelling too, but this bound form is preferred there.
+    /// </remarks>
+    public static IntervalExpression Interval(object quantity, DateTimePart unit) =>
+        new(Resolve(quantity), unit);
+
+    /// <summary>
+    /// The <c>INTERVAL '<paramref name="text"/>'</c> literal, with its unit(s)
+    /// embedded in the text itself (e.g. <c>"30 days"</c>).
+    /// </summary>
+    /// <param name="text">The interval literal text, emitted inline between
+    /// single quotes (its own quotes doubled).</param>
+    /// <returns>An <see cref="IntervalLiteralExpression"/> emitting <c>INTERVAL 'text'</c>.</returns>
+    /// <remarks>PostgreSQL syntax.</remarks>
+    public static IntervalLiteralExpression IntervalLiteral(string text) => new(text);
+
+    /// <summary>
+    /// The <c>INTERVAL '<paramref name="value"/>' field</c> literal, where
+    /// <paramref name="field"/> is <see cref="Year(int?)"/>, <see cref="Month(int?)"/>,
+    /// <see cref="Day(int?)"/>, <see cref="Hour(int?)"/>, <see cref="Minute(int?)"/>,
+    /// or <see cref="Second()"/>.
+    /// </summary>
+    /// <param name="value">The interval literal value, emitted inline between
+    /// single quotes (its own quotes doubled).</param>
+    /// <param name="field">The field the literal is expressed in.</param>
+    /// <returns>An <see cref="IntervalLiteralExpression"/> emitting
+    /// <c>INTERVAL 'value' field</c>.</returns>
+    /// <remarks>
+    /// Oracle/PostgreSQL syntax; MySQL's own grammar happens to accept this
+    /// exact spelling too, but prefer
+    /// <see cref="Interval(object, DateTimePart)"/> there for a bound quantity.
+    /// </remarks>
+    public static IntervalLiteralExpression IntervalLiteral(string value, IntervalField field) =>
+        new(value, field);
+
+    /// <summary>
+    /// The <c>INTERVAL '<paramref name="value"/>' leadingField TO trailingField</c>
+    /// literal — a range of fields (e.g. <c>YEAR TO MONTH</c>, <c>DAY TO SECOND</c>).
+    /// </summary>
+    /// <param name="value">The interval literal value, emitted inline between
+    /// single quotes (its own quotes doubled).</param>
+    /// <param name="leadingField">The most significant field — <see cref="Year(int?)"/>,
+    /// <see cref="Day(int?)"/>, <see cref="Hour(int?)"/>, or <see cref="Minute(int?)"/>.</param>
+    /// <param name="trailingField">The least significant field — <see cref="ToMonth"/>,
+    /// <see cref="ToHour"/>, <see cref="ToMinute"/>, or <see cref="ToSecond(int?)"/>.</param>
+    /// <returns>An <see cref="IntervalLiteralExpression"/> emitting
+    /// <c>INTERVAL 'value' leadingField TO trailingField</c>.</returns>
+    /// <exception cref="ArgumentException"><paramref name="leadingField"/> and
+    /// <paramref name="trailingField"/> are not one of the seven valid Oracle
+    /// pairings, or <paramref name="trailingField"/> carries a precision without
+    /// being <see cref="ToSecond(int?)"/> — Oracle attaches a trailing precision
+    /// to <c>SECOND</c> alone.</exception>
+    /// <remarks>Oracle/PostgreSQL syntax.</remarks>
+    public static IntervalLiteralExpression IntervalLiteral(
+        string value,
+        IntervalField leadingField,
+        IntervalField trailingField) => new(value, leadingField, trailingField);
 }

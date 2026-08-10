@@ -140,6 +140,47 @@ internal static class ContextRules
             dialectName));
     }
 
+    /// <summary>
+    /// MySQL's <c>INTERVAL</c> keyword has no standalone value — it parses only
+    /// as an immediate operand of <c>+</c>/<c>-</c> date arithmetic, the same
+    /// restriction whether the spelling came from <c>Interval</c> or the
+    /// MySQL-accepted <c>IntervalLiteral</c> arity-2 form. Only the bare-argument
+    /// shape is provable here — the climb stops silently at a qualifying +/-
+    /// operator (correct) or at anything else, including a variable a later +/-
+    /// might still use (ADR 0003: false negative, never a false positive).
+    /// </summary>
+    public static void CheckIntervalRequiresArithmeticOperand(
+        OperationAnalysisContext context, IInvocationOperation interval, string dialectName)
+    {
+        IOperation current = interval;
+        while (true)
+        {
+            IOperation? parent = current.Parent;
+            switch (parent)
+            {
+                case IBinaryOperation { OperatorMethod: { Name: "op_Addition" or "op_Subtraction" } method }
+                    when DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly):
+                    return;
+                case IConversionOperation:
+                case IArrayCreationOperation:
+                case IArrayInitializerOperation:
+                    current = parent;
+                    break;
+                case IArgumentOperation { Parent: IInvocationOperation host }
+                    when DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly):
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        DiagnosticDescriptors.ContextRestrictedConstruct,
+                        interval.Syntax.GetLocation(),
+                        interval.TargetMethod.Name,
+                        "outside a +/- date-arithmetic expression",
+                        dialectName));
+                    return;
+                default:
+                    return;
+            }
+        }
+    }
+
     // Climbs to the SELECT-list/HAVING/ORDER BY invocation hosting Grouping(); any
     // other argument host stops the climb rather than risk crossing into another query.
     private static IInvocationOperation? FindClauseAnchor(IInvocationOperation grouping) =>

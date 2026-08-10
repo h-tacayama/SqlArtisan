@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using Dapper;
+using SqlArtisan;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -221,6 +222,18 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             Select(Grouping(u.DepartmentId)).From(u).GroupBy(u.DepartmentId)));
+    }
+
+    [Fact] // #436: SQLA0102's live proof for the Interval context rule. Positioned
+           // correctly (as a +/- operand) it is proven by the dialect sweep's MySQL
+           // branch; the missing arithmetic wrapper is the only difference.
+    public void ContextRule_IntervalOutsideArithmetic_Rejected()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(Interval(30, DateTimePart.Day)).From(u)));
     }
 
     // #362: SQLA0205's live proof, and the reason it is a Warning rather than a

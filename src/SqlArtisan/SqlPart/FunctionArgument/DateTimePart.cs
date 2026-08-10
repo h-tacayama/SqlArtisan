@@ -6,8 +6,9 @@ namespace SqlArtisan;
 /// <see cref="Sql.Datepart(DateTimePart, object)"/>,
 /// <see cref="Sql.Dateadd(DateTimePart, object, object)"/>,
 /// <see cref="Sql.Datediff(DateTimePart, object, object)"/>,
-/// <see cref="Sql.DateTrunc(DateTimePart, object)"/>, and
-/// <see cref="Sql.Datetrunc(DateTimePart, object)"/>; not every field is valid for
+/// <see cref="Sql.DateTrunc(DateTimePart, object)"/>,
+/// <see cref="Sql.Datetrunc(DateTimePart, object)"/>, and
+/// <see cref="Sql.Interval(object, DateTimePart)"/>; not every field is valid for
 /// every function or dialect.
 /// </summary>
 public enum DateTimePart

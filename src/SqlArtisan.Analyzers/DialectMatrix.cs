@@ -77,6 +77,17 @@ internal static class DialectMatrix
         // Datetrunc: SQL Server 2022+'s DATETRUNC (Sql.D.cs XML docs, #231) — a distinct
         // token from DateTrunc's PostgreSQL DATE_TRUNC above, not an alternate spelling of it.
         [new MatrixKey("Datetrunc")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        // Interval: MySQL's bindable INTERVAL n unit (Sql.I.cs XML docs, #436).
+        [new MatrixKey("Interval")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
+        // IntervalLiteral: Oracle/PostgreSQL's quoted interval literal (Sql.I.cs XML docs, #436).
+        // The bare-text arity-1 form is PostgreSQL's own idiom (units embedded in the string);
+        // Oracle requires the separate field(s), so it only carries the arity-2/3 entries below.
+        [new MatrixKey("IntervalLiteral", 1)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // The arity-2 mySql:true is not idiomatic MySQL (Interval(object, DateTimePart) is) —
+        // MySQL's own `INTERVAL expr unit` grammar accepts a quoted-string expr too, so the
+        // dialect sweep live-caught `created_at + INTERVAL '30' DAY` as MySQL-accepted (#436).
+        [new MatrixKey("IntervalLiteral", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("IntervalLiteral", 3)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- String aggregation (CHANGELOG 0.3.0-beta.1, #88) ---
         // StringAgg's 2-arg form is PostgreSQL + SQL Server + SQLite (3.44 added string_agg as

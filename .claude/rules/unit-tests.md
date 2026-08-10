@@ -40,7 +40,7 @@ paths:
 - **Assert the exact SQL** built with a `StringBuilder`; also assert
   `sql.Parameters` whenever a literal becomes a bind value (literals render as
   `:0`, `:1`, … and land in `Parameters`).
-- `FunctionTests.{A..W}.cs` mirror `Sql.{A..W}.cs`; put a function's tests in the
+- `FunctionTests.{A..Y}.cs` mirror `Sql.{A..Y}.cs`; put a function's tests in the
   file for its leading letter (`public partial class FunctionTests`).
 - Run `dotnet test tests/SqlArtisan.Tests` and `dotnet format SqlArtisan.sln`
   after changing tests; both gate CI.

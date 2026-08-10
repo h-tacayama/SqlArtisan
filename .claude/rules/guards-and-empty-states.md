@@ -46,7 +46,12 @@ the full rationale.
   rejected outright), and a single bound (implicitly paired with `CURRENT ROW`)
   must not rank past it; the numeric offset itself is never compared, so two
   `PRECEDING`/`FOLLOWING` bounds of the same kind may still legally invert
-  (`BETWEEN 3 PRECEDING AND 5 PRECEDING`) (#402).
+  (`BETWEEN 3 PRECEDING AND 5 PRECEDING`) (#402); an `IntervalLiteral` field's
+  precision — 0..9 — and its field range — one of the seven pairings Oracle's
+  grammar admits, with a trailing precision only on `SECOND`, that position
+  being the fractional-seconds count. A *sole* field's precision stays
+  unguarded even for `SECOND` (the digits read as Oracle's leading precision
+  there, so the text is valid and condition 1 fails) (#436).
 - *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
   (ADR 0011).
 

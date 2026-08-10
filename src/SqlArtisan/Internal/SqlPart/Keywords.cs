@@ -81,6 +81,7 @@ internal static class Keywords
     internal const string Inserted = "INSERTED";
     internal const string Instr = "INSTR";
     internal const string Intersect = "INTERSECT";
+    internal const string Interval = "INTERVAL";
     internal const string Into = "INTO";
     internal const string Is = "IS";
     internal const string Join = "JOIN";
@@ -181,6 +182,7 @@ internal static class Keywords
     internal const string Target = "TARGET";
     internal const string Then = "THEN";
     internal const string Ties = "TIES";
+    internal const string To = "TO";
     internal const string ToChar = "TO_CHAR";
     internal const string ToDate = "TO_DATE";
     internal const string ToNumber = "TO_NUMBER";

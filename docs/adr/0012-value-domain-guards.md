@@ -69,7 +69,13 @@ PRECEDING` and a `BETWEEN` start must not be `UNBOUNDED FOLLOWING` (both
 absolute, so a same-kind pair of either is rejected outright), and a single
 bound (implicitly paired with `CURRENT ROW`) must not rank past it; the
 numeric offset itself is never compared, so two `PRECEDING`/`FOLLOWING`
-bounds of the same kind may legally invert (#402).
+bounds of the same kind may legally invert (#402); an `IntervalLiteral`
+field's precision — 0..9 — and its field range — one of the seven pairings
+Oracle's grammar admits, with a trailing precision only on `SECOND`, that
+position being the fractional-seconds count (#436). A *sole* field's
+precision is deliberately unguarded even for `SECOND`, where the digits read
+as Oracle's leading precision: valid text there, so condition 1 fails and the
+permissive default stands.
 
 ## Consequences
 

@@ -246,7 +246,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         var invocation = (IInvocationOperation)context.Operation;
         string name = invocation.TargetMethod.Name;
         if (name is not ("Limit" or "Grouping" or "PercentileCont" or "PercentileDisc"
-                or "Inserted" or "Deleted")
+                or "Inserted" or "Deleted" or "Interval" or "IntervalLiteral")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
@@ -270,6 +270,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             case "Inserted" or "Deleted" when targets.Contains(TargetDbms.SqlServer):
                 ContextRules.CheckPseudoTableRequiresOutput(
                     context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
+                break;
+            case "Interval" when targets.Contains(TargetDbms.MySql):
+            // IntervalLiteral's other arities are already mySql:false in the matrix
+            // (SQLA0100 covers them); only arity-2 is the coincidental accept this
+            // rule exists for.
+            case "IntervalLiteral" when targets.Contains(TargetDbms.MySql)
+                && invocation.TargetMethod.Parameters.Length == 2:
+                ContextRules.CheckIntervalRequiresArithmeticOperand(
+                    context, invocation, TargetDbmsNames.Display(TargetDbms.MySql));
                 break;
         }
     }

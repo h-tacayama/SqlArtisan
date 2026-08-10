@@ -556,7 +556,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Four rules ship today — two MySQL
+expression where the construct is used. Five rules ship today — three MySQL
 facts and two SQL Server facts — each live-verified against the engine.
 
 **`LIMIT` inside an `IN` / `NOT IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL
@@ -582,6 +582,17 @@ only when the query's `GROUP BY` carries the `WITH ROLLUP` suffix — chain
 var q = Select(u.DepartmentId, Grouping(u.DepartmentId))
     .From(u).GroupBy(u.DepartmentId).OrderBy(u.DepartmentId);
 // warning SQLA0102: 'Grouping' is not supported outside a WITH ROLLUP query on MySQL
+```
+
+**`INTERVAL` outside a `+`/`-` date-arithmetic expression.** MySQL's
+`INTERVAL` keyword has no standalone value — it parses only as an immediate
+operand of `+`/`-`, whether the spelling came from `Interval(...)` or the
+2-argument `IntervalLiteral(...)` MySQL's grammar also happens to accept.
+
+```csharp
+// sqlartisan_syntax_mysql = any
+var q = Select(Interval(30, DateTimePart.Day)).From(u);
+// warning SQLA0102: 'Interval' is not supported outside a +/- date-arithmetic expression on MySQL
 ```
 
 **`PERCENTILE_CONT` / `PERCENTILE_DISC` outside an `OVER` clause.** SQL Server
@@ -989,7 +1000,10 @@ for, not a bug in the matrix.
   `Trunc(expr[, format])` is the example: a numeric argument is
   Oracle+PostgreSQL, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry and never
-  warns either way.
+  warns either way. The `IntervalLiteral(...)` field markers (`Year(...)`,
+  `Month(...)`, ..., `ToSecond(...)`) share this gap for the same reason:
+  Oracle's leading/fractional-digit precision is an optional argument, not a
+  separate overload, so the matrix can't see whether a call used it.
 - **`sqlartisan_construct_*` key names fail silently on a typo** (see above)
   — there is no diagnostic for an unrecognized `sqlartisan_construct_*` *key
   name*, only for a recognized key with an unrecognized *value*. Value
