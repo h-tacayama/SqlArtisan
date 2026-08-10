@@ -127,6 +127,8 @@ internal static class Keywords
     internal const string Null = "NULL";
     internal const string Nullif = "NULLIF";
     internal const string Nulls = "NULLS";
+    internal const string Numtodsinterval = "NUMTODSINTERVAL";
+    internal const string Numtoyminterval = "NUMTOYMINTERVAL";
     internal const string Nvl = "NVL";
     internal const string Of = "OF";
     internal const string Offset = "OFFSET";

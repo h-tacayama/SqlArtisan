@@ -51,7 +51,10 @@ the full rationale.
   grammar admits, with a trailing precision only on `SECOND`, that position
   being the fractional-seconds count. A *sole* field's precision stays
   unguarded even for `SECOND` (the digits read as Oracle's leading precision
-  there, so the text is valid and condition 1 fails) (#436).
+  there, so the text is valid and condition 1 fails) (#436); `Numtoyminterval`/
+  `Numtodsinterval`'s `interval_unit` — restricted to the exact set each
+  Oracle function accepts (`YEAR`/`MONTH`, `DAY`/`HOUR`/`MINUTE`/`SECOND`),
+  since no other engine has either function (#448).
 - *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
   (ADR 0011).
 

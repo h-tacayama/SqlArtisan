@@ -91,6 +91,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Decode()` for `DECODE`
 - `Format(value, format[, culture])` for `FORMAT(value, format[, culture])` (SQL Server)
 - `Nullif()` for `NULLIF`
+- `Numtodsinterval()` for `NUMTODSINTERVAL`
+- `Numtoyminterval()` for `NUMTOYMINTERVAL`
 - `Nvl()` for `NVL`
 - `ToChar()` for `TO_CHAR`
 - `ToDate()` for `TO_DATE`
