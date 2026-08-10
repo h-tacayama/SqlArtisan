@@ -187,6 +187,10 @@ internal static class DialectMatrix
         [new MatrixKey("Substrb")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Decode")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Nvl")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        // NUMTOYMINTERVAL/NUMTODSINTERVAL: Oracle-only conversion functions (Sql.N.cs XML
+        // remarks, docs/functions.md); no other engine defines either (#448).
+        [new MatrixKey("Numtoyminterval")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        [new MatrixKey("Numtodsinterval")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         // "Ceil" is emitted verbatim everywhere; SQL Server spells this function CEILING instead.
         [new MatrixKey("Ceil")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // "Ceiling" is SQL Server's/standard spelling; Oracle spells it CEIL only, but SQLite's

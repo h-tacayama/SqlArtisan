@@ -295,6 +295,8 @@ internal static class MatrixSweepCatalog
         Add("Substrb", _ => Scalar(Substrb("abcdef", 2)));
         Add("Decode", _ => Scalar(Decode(u.Age, (30, "thirty"), "other")));
         Add("Nvl", _ => Scalar(Nvl(u.Name, "x")));
+        Add("Numtodsinterval", _ => Scalar(Numtodsinterval(30, DateTimePart.Day)));
+        Add("Numtoyminterval", _ => Scalar(Numtoyminterval(3, DateTimePart.Month)));
 
         // --- Overloaded C# operators (#219) ---
         Add("op_Addition", _ => Scalar(u.Age + 1));

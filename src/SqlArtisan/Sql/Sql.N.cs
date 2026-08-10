@@ -106,6 +106,41 @@ public static partial class Sql
         new(Resolve(expr1), Resolve(expr2));
 
     /// <summary>
+    /// The <c>NUMTODSINTERVAL(<paramref name="n"/>, 'unit')</c> function:
+    /// converts <paramref name="n"/> into an <c>INTERVAL DAY TO SECOND</c>
+    /// value, in <paramref name="unit"/>.
+    /// </summary>
+    /// <param name="n">The number of <paramref name="unit"/>s.</param>
+    /// <param name="unit">The interval unit — <see cref="DateTimePart.Day"/>,
+    /// <see cref="DateTimePart.Hour"/>, <see cref="DateTimePart.Minute"/>, or
+    /// <see cref="DateTimePart.Second"/>.</param>
+    /// <returns>A <c>NUMTODSINTERVAL</c> function expression.</returns>
+    /// <exception cref="ArgumentException"><paramref name="unit"/> is none of
+    /// the four values Oracle's own function accepts.</exception>
+    /// <remarks>Oracle syntax — the bindable-quantity counterpart to
+    /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>'s
+    /// <c>DAY TO SECOND</c> literal.</remarks>
+    public static NumtodsintervalFunction Numtodsinterval(object n, DateTimePart unit) =>
+        new(Resolve(n), unit);
+
+    /// <summary>
+    /// The <c>NUMTOYMINTERVAL(<paramref name="n"/>, 'unit')</c> function:
+    /// converts <paramref name="n"/> into an <c>INTERVAL YEAR TO MONTH</c>
+    /// value, in <paramref name="unit"/>.
+    /// </summary>
+    /// <param name="n">The number of <paramref name="unit"/>s.</param>
+    /// <param name="unit">The interval unit — <see cref="DateTimePart.Year"/>
+    /// or <see cref="DateTimePart.Month"/>.</param>
+    /// <returns>A <c>NUMTOYMINTERVAL</c> function expression.</returns>
+    /// <exception cref="ArgumentException"><paramref name="unit"/> is neither
+    /// <see cref="DateTimePart.Year"/> nor <see cref="DateTimePart.Month"/>.</exception>
+    /// <remarks>Oracle syntax — the bindable-quantity counterpart to
+    /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>'s
+    /// <c>YEAR TO MONTH</c> literal.</remarks>
+    public static NumtoymintervalFunction Numtoyminterval(object n, DateTimePart unit) =>
+        new(Resolve(n), unit);
+
+    /// <summary>
     /// The <c>NVL(expr1, expr2)</c> function: returns <paramref name="expr1"/> when
     /// it is not <see langword="null"/>, otherwise <paramref name="expr2"/>.
     /// </summary>

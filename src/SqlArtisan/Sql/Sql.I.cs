@@ -113,7 +113,9 @@ public static partial class Sql
     /// MySQL's idiomatic form — the quantity is bound rather than an inline
     /// literal. <see cref="IntervalLiteral(string, IntervalField)"/> is the
     /// Oracle/PostgreSQL spelling; MySQL's own grammar happens to accept that
-    /// spelling too, but this bound form is preferred there.
+    /// spelling too, but this bound form is preferred there. On Oracle, bind a
+    /// quantity with <see cref="Numtoyminterval(object, DateTimePart)"/> or
+    /// <see cref="Numtodsinterval(object, DateTimePart)"/> instead.
     /// </remarks>
     public static IntervalExpression Interval(object quantity, DateTimePart unit) =>
         new(Resolve(quantity), unit);
@@ -143,6 +145,9 @@ public static partial class Sql
     /// Oracle/PostgreSQL syntax; MySQL's own grammar happens to accept this
     /// exact spelling too, but prefer
     /// <see cref="Interval(object, DateTimePart)"/> there for a bound quantity.
+    /// On Oracle, <see cref="Numtoyminterval(object, DateTimePart)"/> and
+    /// <see cref="Numtodsinterval(object, DateTimePart)"/> are the bound-quantity
+    /// counterparts to this literal form.
     /// </remarks>
     public static IntervalLiteralExpression IntervalLiteral(string value, IntervalField field) =>
         new(value, field);
@@ -164,7 +169,12 @@ public static partial class Sql
     /// pairings, or <paramref name="trailingField"/> carries a precision without
     /// being <see cref="ToSecond(int?)"/> — Oracle attaches a trailing precision
     /// to <c>SECOND</c> alone.</exception>
-    /// <remarks>Oracle/PostgreSQL syntax.</remarks>
+    /// <remarks>
+    /// Oracle/PostgreSQL syntax. On Oracle, <paramref name="value"/> always
+    /// renders as an inline literal — for a bound quantity there instead, use
+    /// <see cref="Numtoyminterval(object, DateTimePart)"/> (<c>YEAR TO MONTH</c>)
+    /// or <see cref="Numtodsinterval(object, DateTimePart)"/> (<c>DAY TO SECOND</c>).
+    /// </remarks>
     public static IntervalLiteralExpression IntervalLiteral(
         string value,
         IntervalField leadingField,

@@ -124,6 +124,72 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Numtodsinterval_BoundQuantity_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Numtodsinterval(30, DateTimePart.Day))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("NUMTODSINTERVAL(:0, 'DAY')");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(30, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void Numtodsinterval_ColumnQuantity_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Numtodsinterval(_t.Code, DateTimePart.Hour))
+            .From(_t)
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("NUMTODSINTERVAL(\"t\".code, 'HOUR') ");
+        expected.Append("FROM test_table \"t\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Theory]
+    [InlineData(DateTimePart.Year)]
+    [InlineData(DateTimePart.Month)]
+    [InlineData(DateTimePart.Week)]
+    public void Numtodsinterval_InvalidUnit_ThrowsArgumentException(DateTimePart unit)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Numtodsinterval(1, unit));
+
+        Assert.Equal("NUMTODSINTERVAL requires an interval unit of DAY, HOUR, MINUTE, or SECOND.", ex.Message);
+    }
+
+    [Fact]
+    public void Numtoyminterval_BoundQuantity_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Numtoyminterval(3, DateTimePart.Month))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("NUMTOYMINTERVAL(:0, 'MONTH')");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(3, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void Numtoyminterval_InvalidUnit_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Numtoyminterval(1, DateTimePart.Day));
+
+        Assert.Equal("NUMTOYMINTERVAL requires an interval unit of YEAR or MONTH.", ex.Message);
+    }
+
+    [Fact]
     public void Nvl_CharacterValue_CorrectSql()
     {
         SqlStatement sql =

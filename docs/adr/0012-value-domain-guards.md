@@ -75,7 +75,11 @@ Oracle's grammar admits, with a trailing precision only on `SECOND`, that
 position being the fractional-seconds count (#436). A *sole* field's
 precision is deliberately unguarded even for `SECOND`, where the digits read
 as Oracle's leading precision: valid text there, so condition 1 fails and the
-permissive default stands.
+permissive default stands. `Numtoyminterval`'s and `Numtodsinterval`'s
+`interval_unit` argument — restricted to `YEAR`/`MONTH` and
+`DAY`/`HOUR`/`MINUTE`/`SECOND` respectively, the exact sets Oracle's own
+function definitions accept; no other engine has either function, so any
+other value is invalid everywhere (#448).
 
 ## Consequences
 
