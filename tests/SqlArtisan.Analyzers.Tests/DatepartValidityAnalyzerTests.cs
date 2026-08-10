@@ -196,12 +196,12 @@ public class DatepartValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("oracle"),
             expectWarning: true);
 
+    // This pair runs the same `Extract(0, ...)` source against two dialects: 0
+    // resolves to DateTimePart.Century, which PostgreSQL's EXTRACT has and
+    // Oracle's does not, so the resolved member decides — not the literal.
     [Fact]
-    public Task Extract_Oracle_ImplicitZeroConstantValidField_StaysSilent() =>
+    public Task Extract_PostgreSql_ImplicitZeroConstantValidField_StaysSilent() =>
         RunAsync(
-            // 0 converts implicitly to DateTimePart.Century, which Oracle's
-            // EXTRACT does not have — but PostgreSQL's does, so target both to
-            // pin that the resolved member, not the literal, decides.
             "var s = Select(Extract(0, t.CreatedAt)).From(t).Build();",
             AnalyzerVerifier.EditorConfig("postgresql"),
             expectWarning: false);
