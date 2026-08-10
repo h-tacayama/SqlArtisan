@@ -113,7 +113,9 @@ public static partial class Sql
     /// MySQL's idiomatic form — the quantity is bound rather than an inline
     /// literal. <see cref="IntervalLiteral(string, IntervalField)"/> is the
     /// Oracle/PostgreSQL spelling; MySQL's own grammar happens to accept that
-    /// spelling too, but this bound form is preferred there.
+    /// spelling too, but this bound form is preferred there. On Oracle, bind a
+    /// quantity with <see cref="Numtoyminterval(object, DateTimePart)"/> or
+    /// <see cref="Numtodsinterval(object, DateTimePart)"/> instead.
     /// </remarks>
     public static IntervalExpression Interval(object quantity, DateTimePart unit) =>
         new(Resolve(quantity), unit);

@@ -1911,7 +1911,10 @@ its *leading* precision, so use `ToSecond(n)` as a sole field for that form.
   operand or a `DATE_ADD`/`DATE_SUB` argument, never as a bare `SELECT` item.
 - **Oracle** — `IntervalLiteral(value, field)` (`INTERVAL '30' DAY`) or
   `IntervalLiteral(value, leadingField, trailingField)` for a range
-  (`INTERVAL '1-2' YEAR TO MONTH`); the field is always required.
+  (`INTERVAL '1-2' YEAR TO MONTH`); the field is always required. An interval
+  literal never binds its value on Oracle, so for a bound quantity use
+  [`Numtoyminterval(n, unit)` / `Numtodsinterval(n, unit)`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#conversion-functions)
+  instead.
 - **PostgreSQL** — the same two forms as Oracle (without precision, which
   PostgreSQL applies only via `Cast(...)`, never inside the literal itself),
   plus the bare `IntervalLiteral(text)` overload with the unit folded into
