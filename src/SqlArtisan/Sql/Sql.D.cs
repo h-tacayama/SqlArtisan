@@ -49,9 +49,8 @@ public static partial class Sql
     /// <see cref="DateAdd(object, IntervalExpression)"/> /
     /// <see cref="DateSub(object, IntervalExpression)"/> instead — same letters,
     /// different case, different dialect. For PostgreSQL date-shift arithmetic
-    /// use <see cref="Interval(object, DateTimePart)"/> /
-    /// <see cref="IntervalLiteral(string, IntervalField)"/> with the <c>+</c>/<c>-</c>
-    /// operators instead.
+    /// use <see cref="IntervalLiteral(string, IntervalField)"/> with the
+    /// <c>+</c>/<c>-</c> operators instead.
     /// </remarks>
     public static DateaddFunction Dateadd(DateTimePart datepart, object number, object dateTime) =>
         new(datepart, Resolve(number), Resolve(dateTime));
