@@ -411,6 +411,20 @@ public class ContextRuleAnalyzerTests
             var q = Select(DateAdd(t.Id, IntervalLiteral("30", Day()))).From(t);
             """);
 
+    // The interval slot is exempt (above), but the date slot is not — DATE_ADD's
+    // first argument must be a date expression, so INTERVAL there is still bare.
+    [Fact]
+    public Task IntervalAsDateAddDateArgument_MySql_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select(DateAdd({|#0:Interval(30, DateTimePart.Day)|}, Interval(3, DateTimePart.Month))).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalAsDateSubDateArgument_MySql_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select(DateSub({|#0:Interval(30, DateTimePart.Day)|}, Interval(3, DateTimePart.Month))).From(t);
+            """);
+
     // The receiver leaves the expression at the point of the Interval(...) call, so
     // the +/- it later feeds is invisible to the walk — silent is the safe call
     // (ADR 0003: a false negative here, never a false positive on this valid SQL).
