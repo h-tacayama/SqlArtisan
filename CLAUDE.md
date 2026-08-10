@@ -99,7 +99,7 @@ Shared bases and one uncategorized node sit at that folder's root.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships thirteen diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fourteen diagnostics:
 
 - **SQLA0001** — Analyzer configuration problem: an unrecognized key name or
   value, a `sqlartisan_syntax_*` family resolving to no dialect at all, or a
@@ -114,6 +114,12 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships thirteen diagnostics:
 - **SQLA0102** — Context-restricted construct. A construct the target supports,
   used in a position that dialect rejects.
 - **SQLA0103** — Identifier too long for the target dialect's limit.
+- **SQLA0104** — A literal `DateTimePart` argument (`Extract`, `Datepart`,
+  `Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`, `Interval`) is not a value
+  the target dialect's grammar accepts for that function — a finer grain than
+  SQLA0100's whole-construct verdict. Resolved by matching the argument's
+  constant value against the enum's own members (never the underlying
+  integer), the same technique SQLA0205 uses for `DbTypeCategory`.
 - **SQLA0200** — Constant NULL predicate: `IS [NOT] NULL` on a column the
   generated table class declares NOT NULL. Reported only in a statement that
   visibly builds its own query and has no outer join.

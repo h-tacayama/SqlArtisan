@@ -366,6 +366,21 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
 
+    [Fact] // SQLA0104 (#449): anchors the OracleExtractFields list in
+           // DatepartValidity.cs — EPOCH is a PostgreSQL-only EXTRACT field.
+    public void Extract_EpochField_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The listed field is valid (so the table and column are right).
+        connection.ExecuteScalar("SELECT EXTRACT(YEAR FROM created_at) FROM users");
+
+        // The only difference — the field EXTRACT doesn't have on Oracle — is
+        // what Oracle rejects.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT EXTRACT(EPOCH FROM created_at) FROM users"));
+    }
+
     [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420) — Oracle's ANSI
            // join grammar requires ON/USING for every listed join type except
            // CROSS JOIN, so the omission SqlArtisan now rejects at compile time was

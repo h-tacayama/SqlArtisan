@@ -19,6 +19,7 @@ until you configure a target.
 - [Correcting a warning: the override keys](#correcting-a-warning-the-override-keys)
 - [Version-aware warnings (SQLA0101)](#version-aware-warnings-sqla0101)
 - [Context rules (SQLA0102)](#context-rules-sqla0102)
+- [Datepart validity (SQLA0104)](#datepart-validity-sqla0104)
 - [Correlated DML target (SQLA0300)](#correlated-dml-target-sqla0300)
 - [Schema-aware warnings (SQLA0200)](#schema-aware-warnings-sqla0200)
 - [Mixed-dialect projects](#mixed-dialect-projects)
@@ -97,6 +98,7 @@ still needs naming by ID.
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
+| `SQLA0104` | Warning | A literal `DateTimePart` argument to `Extract`/`Datepart`/`Dateadd`/`Datediff`/`DateTrunc`/`Datetrunc`/`Interval` is not a value the configured dialect's grammar accepts for that function — see [Datepart validity](#datepart-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -637,6 +639,58 @@ this construct," which is not what a context rule reports.
 
 ---
 
+## Datepart validity (SQLA0104)
+
+`DateTimePart` is a 42-member superset shared across `Extract`, `Datepart`,
+`Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`, and `Interval` — its own XML
+doc says explicitly that not every field is valid for every function or
+dialect. `SQLA0100` cannot express that: the construct itself *is* supported,
+so a call like `Extract(DateTimePart.Epoch, x)` targeting Oracle passes the
+construct-level check and fails only when the database runs it (`EPOCH` is a
+PostgreSQL-only `EXTRACT` field). `SQLA0104` closes that gap at the argument
+level, for the seven (function, dialect) pairings below:
+
+| Function | Checked dialect(s) |
+|---|---|
+| `Extract` | MySQL, Oracle, PostgreSQL — each against its own field list |
+| `Datepart`, `Dateadd`, `Datediff` | SQL Server — all three share one datepart list |
+| `DateTrunc` | PostgreSQL |
+| `Datetrunc` | SQL Server |
+| `Interval` | MySQL — the same unit list as MySQL's `Extract` |
+
+```csharp
+// sqlartisan_syntax_oracle = any
+var q = Select(Extract(DateTimePart.Epoch, u.CreatedAt)).From(u);
+// warning SQLA0104: 'Epoch' is not a valid datepart for 'Extract' on Oracle
+```
+
+```csharp
+// sqlartisan_syntax_sqlserver = any
+var q = Select(Datetrunc(DateTimePart.Weekday, u.CreatedAt)).From(u);
+// warning SQLA0104: 'Weekday' is not a valid datepart for 'Datetrunc' on SQL Server
+```
+
+Each list is built from the vendor's own reference and spot-verified against
+a live engine. Three cases stay silent, never a false positive:
+
+- **The argument is not a compile-time constant** — a variable holding a
+  computed `DateTimePart` cannot be resolved, the same
+  provable-from-the-expression-or-silent contract [Context
+  rules](#context-rules-sqla0102) follows.
+- **This rule has no list for the (function, dialect) pair** — e.g.
+  `Extract` targeting SQL Server, which `SQLA0100` already rejects outright.
+- **The matrix already flags the construct unsupported on that dialect at
+  its declared version** — `SQLA0100`/`SQLA0101` own that verdict; `SQLA0104`
+  would otherwise double-report the same usage.
+
+Suppression is per rule ID (`#pragma warning disable SQLA0104`, a
+`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`); the
+`sqlartisan_construct_*` override keys do not apply — overriding "this
+function runs on my engine" is not a claim that every `DateTimePart` value
+does.
+
+---
+
 ## Correlated DML target (SQLA0300)
 
 An UPDATE or DELETE whose subquery references a column of the **unaliased**
@@ -1004,6 +1058,16 @@ for, not a bug in the matrix.
   `Month(...)`, ..., `ToSecond(...)`) share this gap for the same reason:
   Oracle's leading/fractional-digit precision is an optional argument, not a
   separate overload, so the matrix can't see whether a call used it.
+- **`SQLA0104`'s lists don't model a source-type or column-type constraint.**
+  Oracle's `EXTRACT` rejects `HOUR`/`MINUTE`/`SECOND` on a plain `DATE`
+  source (it needs a `TIMESTAMP`) and the four `TIMEZONE_*` fields need
+  `TIMESTAMP WITH TIME ZONE` specifically — `SQLA0104` accepts all ten Oracle
+  fields regardless of what `Extract`'s own source expression evaluates to.
+  SQL Server's `DATETRUNC` similarly rejects `MICROSECOND` on a `datetime2`
+  column while accepting it elsewhere; `SQLA0104` treats `Microsecond` as
+  valid there unconditionally. Both are staying-permissive gaps, not
+  false-positive risks: an argument this rule accepts can still fail at
+  execution for a source-type reason it doesn't check.
 - **`sqlartisan_construct_*` key names fail silently on a typo** (see above)
   — there is no diagnostic for an unrecognized `sqlartisan_construct_*` *key
   name*, only for a recognized key with an unrecognized *value*. Value
