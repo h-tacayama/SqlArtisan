@@ -324,6 +324,38 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
 
+    [Fact] // SQLA0104 (#449): anchors the PostgreSqlExtractFields list in
+           // DatepartValidity.cs — WEEKDAY is a SQL Server/MySQL spelling, not a
+           // PostgreSQL EXTRACT field (PostgreSQL's day-of-week fields are DOW/ISODOW).
+    public void Extract_WeekdayField_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The listed field is valid (so the table and column are right).
+        connection.ExecuteScalar("SELECT EXTRACT(EPOCH FROM created_at) FROM users");
+
+        // The only difference — the field EXTRACT doesn't have on PostgreSQL —
+        // is what PostgreSQL rejects.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT EXTRACT(WEEKDAY FROM created_at) FROM users"));
+    }
+
+    [Fact] // SQLA0104 (#449): anchors the PostgreSqlDateTruncFields list in
+           // DatepartValidity.cs — EPOCH is EXTRACT-only; date_trunc has no epoch
+           // field to truncate to.
+    public void DateTrunc_EpochField_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The listed field is valid (so the table and column are right).
+        connection.ExecuteScalar("SELECT DATE_TRUNC('month', created_at) FROM users");
+
+        // The only difference — the field date_trunc doesn't have — is what
+        // PostgreSQL rejects.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT DATE_TRUNC('epoch', created_at) FROM users"));
+    }
+
     [Fact]
     public void JoinedUpdateFrom_Executes()
     {

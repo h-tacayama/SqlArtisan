@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
@@ -26,5 +29,13 @@ internal static class TargetDbmsNames
         TargetDbms.Sqlite => "SQLite",
         TargetDbms.SqlServer => "SQL Server",
         _ => dbms.ToString(),
+    };
+
+    // Shared by every rule that joins more than one failing dialect into a single
+    // message (SQLA0100, SQLA0104): "MySQL", "MySQL and Oracle", "MySQL, Oracle and PostgreSQL".
+    public static string JoinDisplayNames(IReadOnlyList<string> names) => names.Count switch
+    {
+        1 => names[0],
+        _ => string.Join(", ", names.Take(names.Count - 1)) + " and " + names[names.Count - 1],
     };
 }

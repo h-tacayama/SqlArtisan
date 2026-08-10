@@ -138,6 +138,18 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
+    // No override-key hint, like SQLA0102: a construct-level sqlartisan_construct_*
+    // override says the construct itself works on the caller's engine, not that
+    // every DateTimePart value does — suppression is per-ID only.
+    public static readonly DiagnosticDescriptor InvalidDatepartArgument = new(
+        id: "SQLA0104",
+        title: "Datepart argument not supported on the target dialect",
+        messageFormat: "'{1}' is not a valid datepart for '{0}' on {2}",
+        category: DialectCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
     // Schema-derived, so it names no dialect: the column's own declaration decides
     // the answer on every engine. Silent unless the table class carries the fact.
     public static readonly DiagnosticDescriptor ConstantNullPredicate = new(

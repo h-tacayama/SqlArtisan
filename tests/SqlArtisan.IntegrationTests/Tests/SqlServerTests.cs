@@ -287,6 +287,38 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
 
+    [Fact] // SQLA0104 (#449): anchors the SqlServerDatepartFields list in
+           // DatepartValidity.cs (shared by DATEPART/DATEADD/DATEDIFF) — EPOCH is
+           // a PostgreSQL spelling, not a T-SQL datepart.
+    public void Datepart_EpochDatepart_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The listed datepart is valid (so the table and column are right).
+        connection.ExecuteScalar("SELECT DATEPART(year, created_at) FROM users");
+
+        // The only difference — the datepart DATEPART doesn't have — is what
+        // SQL Server rejects.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT DATEPART(epoch, created_at) FROM users"));
+    }
+
+    [Fact] // SQLA0104 (#449): anchors the SqlServerDateTruncFields list in
+           // DatepartValidity.cs — learn.microsoft.com states weekday is not
+           // supported by DATETRUNC though DATEPART accepts it.
+    public void Datetrunc_WeekdayDatepart_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The listed datepart is valid (so the table and column are right).
+        connection.ExecuteScalar("SELECT DATETRUNC(day, created_at) FROM users");
+
+        // The only difference — DATETRUNC's own documented exclusion — is what
+        // SQL Server rejects.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT DATETRUNC(weekday, created_at) FROM users"));
+    }
+
     [Fact]
     public void JoinedUpdateFrom_Executes()
     {

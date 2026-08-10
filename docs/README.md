@@ -116,6 +116,7 @@ dialect it doesn't support.
 [Correcting a Warning](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correcting-a-warning-the-override-keys) ·
 [Version-Aware Warnings (SQLA0101)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-aware-warnings-sqla0101) ·
 [Context Rules (SQLA0102)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102) ·
+[Datepart Validity (SQLA0104)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#datepart-validity-sqla0104) ·
 [Correlated DML Target (SQLA0300)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#correlated-dml-target-sqla0300) ·
 [Schema-Aware Warnings (SQLA0200)](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#schema-aware-warnings-sqla0200) ·
 [Mixed-Dialect Projects](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#mixed-dialect-projects) ·

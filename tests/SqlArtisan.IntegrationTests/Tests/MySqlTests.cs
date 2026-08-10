@@ -294,4 +294,20 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
+
+    [Fact] // SQLA0104 (#449): anchors the MySqlTemporalUnits list in
+           // DatepartValidity.cs (shared by Extract and Interval) — EPOCH is a
+           // PostgreSQL-only field, not a MySQL EXTRACT()/DATE_ADD() unit.
+    public void Extract_EpochUnit_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The listed unit is valid (so the table and column are right).
+        connection.ExecuteScalar("SELECT EXTRACT(DAY FROM created_at) FROM users");
+
+        // The only difference — the unit EXTRACT() doesn't have on MySQL — is
+        // what MySQL rejects.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT EXTRACT(EPOCH FROM created_at) FROM users"));
+    }
 }

@@ -11,6 +11,7 @@ SQLA0100 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used against
 SQLA0101 | SqlArtisan.Dialect | Warning | A construct's minimum engine version, per the matrix's version bounds, exceeds the version declared for a configured dialect.
 SQLA0102 | SqlArtisan.Dialect | Warning | A SqlArtisan construct is used in a syntactic position the target dialect rejects it in.
 SQLA0103 | SqlArtisan.Dialect | Warning | A SQL identifier literal exceeds the target dialect's identifier-length limit.
+SQLA0104 | SqlArtisan.Dialect | Warning | A literal DateTimePart argument is not a value the target dialect accepts for that function.
 SQLA0200 | SqlArtisan.Schema | Warning | IS NULL / IS NOT NULL on a column the generated table class declares NOT NULL, so the predicate is constant.
 SQLA0201 | SqlArtisan.Schema | Warning | NOT IN over a subquery whose selected column is nullable, which matches no rows at all when the subquery yields a NULL.
 SQLA0202 | SqlArtisan.Schema | Warning | An INSERT column list omits a column the generated table class declares NOT NULL with no default.

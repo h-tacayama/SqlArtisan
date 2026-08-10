@@ -41,6 +41,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.VersionBoundConstruct,
         DiagnosticDescriptors.ContextRestrictedConstruct,
         DiagnosticDescriptors.IdentifierTooLong,
+        DiagnosticDescriptors.InvalidDatepartArgument,
         DiagnosticDescriptors.ConstantNullPredicate,
         DiagnosticDescriptors.NotInNullableSubquery,
         DiagnosticDescriptors.InsertMissingRequiredColumn,
@@ -76,6 +77,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(c => AnalyzeContextRules(c, targetCache), OperationKind.Invocation);
         context.RegisterOperationAction(c => AnalyzeIdentifierLength(c, targetCache), OperationKind.Invocation);
         context.RegisterOperationAction(c => AnalyzeIdentifierLength(c, targetCache), OperationKind.ObjectCreation);
+        context.RegisterOperationAction(c => AnalyzeDatepartValidity(c, targetCache), OperationKind.Invocation);
         context.RegisterOperationAction(c => AnalyzeSchemaNullability(c, targetCache), OperationKind.PropertyReference);
         context.RegisterOperationAction(c => AnalyzeNotInSubquery(c, targetCache), OperationKind.Invocation);
         context.RegisterOperationAction(c => AnalyzeInsertColumns(c, targetCache), OperationKind.Invocation);
@@ -181,7 +183,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 DiagnosticDescriptors.UnsupportedDialectConstruct,
                 context.Operation.Syntax.GetLocation(),
                 DisplayName(memberName, arity, overrideResult.IsArityLevel),
-                JoinDisplayNames([.. targets.Members.Select(TargetDbmsNames.Display)]),
+                TargetDbmsNames.JoinDisplayNames([.. targets.Members.Select(TargetDbmsNames.Display)]),
                 overrideResult.OverrideKeyHint));
             return;
         }
@@ -218,7 +220,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 DiagnosticDescriptors.UnsupportedDialectConstruct,
                 context.Operation.Syntax.GetLocation(),
                 DisplayName(memberName, arity, match.IsArityLevel),
-                JoinDisplayNames(unsupportedOn),
+                TargetDbmsNames.JoinDisplayNames(unsupportedOn),
                 match.OverrideKeyHint));
         }
 
@@ -281,6 +283,27 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     context, invocation, TargetDbmsNames.Display(TargetDbms.MySql));
                 break;
         }
+    }
+
+    // Name-filter first, like AnalyzeContextRules — only the seven DateTimePart
+    // consumers pay for target-set resolution.
+    private static void AnalyzeDatepartValidity(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (invocation.TargetMethod.Name is not ("Extract" or "Datepart" or "Dateadd" or "Datediff"
+                or "DateTrunc" or "Datetrunc" or "Interval")
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        DialectTargetSet targets = GetTargets(context, cache);
+        if (targets.IsEmpty)
+        {
+            return;
+        }
+
+        DatepartValidityRule.Check(context, invocation, targets);
     }
 
     // IsNull / IsNotNull are SqlExpression properties, so the column under test is
@@ -631,14 +654,6 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         $"{AnalyzerConfigResolver.SyntaxKey(dbms)} = {AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString() ?? AnalyzerConfigResolver.AnyValue}";
 
     internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) => assembly?.Name == SqlArtisanAssemblyName;
-
-    // SQLA0100's join wording for a construct failing on more than one configured
-    // DBMS — "MySQL, Oracle and PostgreSQL", the serial comma dropped before "and".
-    private static string JoinDisplayNames(IReadOnlyList<string> names) => names.Count switch
-    {
-        1 => names[0],
-        _ => string.Join(", ", names.Take(names.Count - 1)) + " and " + names[names.Count - 1],
-    };
 
     private static string DisplayName(string memberName, int? arity, bool isArityLevel) =>
         OperatorDisplayName(memberName)
