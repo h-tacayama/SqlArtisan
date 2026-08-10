@@ -187,6 +187,32 @@ public class DatepartValidityAnalyzerTests
 
     // --- Cross-cutting behavior ---
 
+    // A cast or implicit constant is still a compile-time constant the rule can
+    // resolve, so it must not fall through the non-constant escape.
+    [Fact]
+    public Task Extract_Oracle_CastConstantInvalidField_ReportsSqla0104() =>
+        RunAsync(
+            "var s = Select(Extract({|#0:(DateTimePart)10|}, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("oracle"),
+            expectWarning: true);
+
+    [Fact]
+    public Task Extract_Oracle_ImplicitZeroConstantValidField_StaysSilent() =>
+        RunAsync(
+            // 0 converts implicitly to DateTimePart.Century, which Oracle's
+            // EXTRACT does not have — but PostgreSQL's does, so target both to
+            // pin that the resolved member, not the literal, decides.
+            "var s = Select(Extract(0, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("postgresql"),
+            expectWarning: false);
+
+    [Fact]
+    public Task Extract_Oracle_ImplicitZeroConstantInvalidField_ReportsSqla0104() =>
+        RunAsync(
+            "var s = Select(Extract({|#0:0|}, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("oracle"),
+            expectWarning: true);
+
     [Fact]
     public Task NonConstantDatepart_StaysSilent()
     {

@@ -91,11 +91,16 @@ internal static class DatepartValidityRule
     // same technique SchemaMetadata.Category uses to resolve a TypeCategory
     // attribute argument, so no build reference to the core's DateTimePart is
     // needed (ADR 0009).
+    //
+    // Deliberately does not unwrap a conversion: a cast or implicit constant
+    // (`(DateTimePart)10`, `0`) is an IConversionOperation already typed
+    // DateTimePart and already carrying the constant, so unwrapping to the
+    // underlying int would lose the enum type and silently skip a value the
+    // rule can resolve.
     private static string? ResolveEnumMemberName(IOperation value)
     {
-        IOperation unwrapped = UnwrapConversion(value);
-        if (unwrapped.ConstantValue is not { HasValue: true } constant
-            || unwrapped.Type is not INamedTypeSymbol { TypeKind: TypeKind.Enum } enumType)
+        if (value.ConstantValue is not { HasValue: true } constant
+            || value.Type is not INamedTypeSymbol { TypeKind: TypeKind.Enum } enumType)
         {
             return null;
         }
@@ -104,15 +109,5 @@ internal static class DatepartValidityRule
             .OfType<IFieldSymbol>()
             .FirstOrDefault(f => f.HasConstantValue && Equals(f.ConstantValue, constant.Value))
             ?.Name;
-    }
-
-    private static IOperation UnwrapConversion(IOperation operation)
-    {
-        while (operation is IConversionOperation conversion)
-        {
-            operation = conversion.Operand;
-        }
-
-        return operation;
     }
 }

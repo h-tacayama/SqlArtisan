@@ -3755,7 +3755,7 @@ dialect. `SQLA0100` cannot express that: the construct itself *is* supported,
 so a call like `Extract(DateTimePart.Epoch, x)` targeting Oracle passes the
 construct-level check and fails only when the database runs it (`EPOCH` is a
 PostgreSQL-only `EXTRACT` field). `SQLA0104` closes that gap at the argument
-level, for the seven (function, dialect) pairings below:
+level, for the nine (function, dialect) pairings below:
 
 | Function | Checked dialect(s) |
 |---|---|

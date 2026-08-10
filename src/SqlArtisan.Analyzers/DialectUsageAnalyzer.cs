@@ -75,9 +75,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(c => AnalyzeBinaryOperator(c, targetCache), OperationKind.Binary);
         context.RegisterOperationAction(c => AnalyzeCompoundAssignment(c, targetCache), OperationKind.CompoundAssignment);
         context.RegisterOperationAction(c => AnalyzeContextRules(c, targetCache), OperationKind.Invocation);
-        context.RegisterOperationAction(c => AnalyzeDatepartValidity(c, targetCache), OperationKind.Invocation);
         context.RegisterOperationAction(c => AnalyzeIdentifierLength(c, targetCache), OperationKind.Invocation);
         context.RegisterOperationAction(c => AnalyzeIdentifierLength(c, targetCache), OperationKind.ObjectCreation);
+        context.RegisterOperationAction(c => AnalyzeDatepartValidity(c, targetCache), OperationKind.Invocation);
         context.RegisterOperationAction(c => AnalyzeSchemaNullability(c, targetCache), OperationKind.PropertyReference);
         context.RegisterOperationAction(c => AnalyzeNotInSubquery(c, targetCache), OperationKind.Invocation);
         context.RegisterOperationAction(c => AnalyzeInsertColumns(c, targetCache), OperationKind.Invocation);
