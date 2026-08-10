@@ -66,10 +66,12 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentDate` for `CURRENT_DATE`
 - `CurrentTime` for `CURRENT_TIME`
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
+- `DateAdd()` for `DATE_ADD` (MySQL — not `Dateadd()`, SQL Server's `DATEADD` below)
 - `Dateadd()` for `DATEADD` (SQL Server)
 - `Datediff()` for `DATEDIFF` (SQL Server)
 - `DateFormat()` for `DATE_FORMAT` (MySQL)
 - `Datepart()` for `DATEPART` (SQL Server)
+- `DateSub()` for `DATE_SUB` (MySQL)
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
 - `Datetrunc()` for `DATETRUNC` (SQL Server 2022+; use `Format()` on earlier versions)
 - `Extract()` for `EXTRACT` (Date/Time Overload)
@@ -80,7 +82,9 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trunc()` for `TRUNC` (Date/Time Overload)
 
 > [!NOTE]
-> For MySQL/Oracle/PostgreSQL date-shift arithmetic (`INTERVAL`), see
+> `DateAdd()`/`DateSub()` above take their shift amount from an `INTERVAL`
+> expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
+> `+`/`-` spelling), see
 > [Expressions: Interval Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#interval-expressions).
 
 ---

@@ -83,6 +83,8 @@ public class ContextRuleContractTests
     [InlineData("Deleted")]
     [InlineData("Interval")]
     [InlineData("IntervalLiteral")]
+    [InlineData("DateAdd")]
+    [InlineData("DateSub")]
     public void TriggerMember_ExistsInCoreApi(string methodName)
     {
         bool exists = Core.GetExportedTypes()

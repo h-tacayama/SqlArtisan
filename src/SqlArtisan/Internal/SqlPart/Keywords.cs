@@ -35,10 +35,12 @@ internal static class Keywords
     internal const string CurrentTime = "CURRENT_TIME";
     internal const string CurrentTimestamp = "CURRENT_TIMESTAMP";
     internal const string Currval = "CURRVAL";
+    internal const string DateAdd = "DATE_ADD";
     internal const string Dateadd = "DATEADD";
     internal const string Datediff = "DATEDIFF";
     internal const string DateFormat = "DATE_FORMAT";
     internal const string Datepart = "DATEPART";
+    internal const string DateSub = "DATE_SUB";
     internal const string DateTrunc = "DATE_TRUNC";
     internal const string Datetrunc = "DATETRUNC";
     internal const string Decode = "DECODE";

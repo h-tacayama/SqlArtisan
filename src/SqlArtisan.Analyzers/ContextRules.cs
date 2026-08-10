@@ -142,12 +142,13 @@ internal static class ContextRules
 
     /// <summary>
     /// MySQL's <c>INTERVAL</c> keyword has no standalone value — it parses only
-    /// as an immediate operand of <c>+</c>/<c>-</c> date arithmetic, the same
-    /// restriction whether the spelling came from <c>Interval</c> or the
-    /// MySQL-accepted <c>IntervalLiteral</c> arity-2 form. Only the bare-argument
-    /// shape is provable here — the climb stops silently at a qualifying +/-
-    /// operator (correct) or at anything else, including a variable a later +/-
-    /// might still use (ADR 0003: false negative, never a false positive).
+    /// as an immediate operand of <c>+</c>/<c>-</c> date arithmetic or of
+    /// <c>DATE_ADD</c>/<c>DATE_SUB</c>, the same restriction whether the
+    /// spelling came from <c>Interval</c> or the MySQL-accepted
+    /// <c>IntervalLiteral</c> arity-2 form. Only the bare-argument shape is
+    /// provable here — the climb stops silently at a qualifying operator/call
+    /// (correct) or at anything else, including a variable a later one might
+    /// still use (ADR 0003: false negative, never a false positive).
     /// </summary>
     public static void CheckIntervalRequiresArithmeticOperand(
         OperationAnalysisContext context, IInvocationOperation interval, string dialectName)
@@ -166,13 +167,16 @@ internal static class ContextRules
                 case IArrayInitializerOperation:
                     current = parent;
                     break;
+                case IArgumentOperation { Parent: IInvocationOperation { TargetMethod.Name: "DateAdd" or "DateSub" } host }
+                    when DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly):
+                    return;
                 case IArgumentOperation { Parent: IInvocationOperation host }
                     when DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly):
                     context.ReportDiagnostic(Diagnostic.Create(
                         DiagnosticDescriptors.ContextRestrictedConstruct,
                         interval.Syntax.GetLocation(),
                         interval.TargetMethod.Name,
-                        "outside a +/- date-arithmetic expression",
+                        "outside a +/- date-arithmetic expression or a DATE_ADD/DATE_SUB call",
                         dialectName));
                     return;
                 default:

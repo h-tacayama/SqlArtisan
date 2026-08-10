@@ -393,6 +393,24 @@ public class ContextRuleAnalyzerTests
             var q = Select(t.Id - IntervalLiteral("30", Day())).From(t);
             """);
 
+    [Fact]
+    public Task IntervalAsDateAddArgument_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(DateAdd(t.Id, Interval(30, DateTimePart.Day))).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalAsDateSubArgument_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(DateSub(t.Id, Interval(30, DateTimePart.Day))).From(t);
+            """);
+
+    [Fact]
+    public Task IntervalLiteralArity2AsDateAddArgument_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(DateAdd(t.Id, IntervalLiteral("30", Day()))).From(t);
+            """);
+
     // The receiver leaves the expression at the point of the Interval(...) call, so
     // the +/- it later feeds is invisible to the walk — silent is the safe call
     // (ADR 0003: a false negative here, never a false positive on this valid SQL).

@@ -7,6 +7,33 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
+    /// The <c>DATE_ADD(<paramref name="date"/>, <paramref name="interval"/>)</c>
+    /// function: <paramref name="date"/> shifted forward by
+    /// <paramref name="interval"/>.
+    /// </summary>
+    /// <param name="date">The date/time value to shift.</param>
+    /// <param name="interval">The amount to add, from
+    /// <see cref="Interval(object, DateTimePart)"/> or
+    /// <see cref="IntervalLiteral(string, IntervalField)"/>.</param>
+    /// <returns>The <c>DATE_ADD</c> function expression.</returns>
+    /// <remarks>
+    /// MySQL syntax — visually one capital letter away from
+    /// <see cref="Dateadd(DateTimePart, object, object)"/> (SQL Server's
+    /// <c>DATEADD</c>, a different argument shape entirely). For subtraction
+    /// use <see cref="DateSub(object, IntervalExpression)"/>.
+    /// </remarks>
+    public static DateAddFunction DateAdd(object date, IntervalExpression interval) =>
+        new(Resolve(date), interval);
+
+    /// <inheritdoc cref="DateAdd(object, IntervalExpression)"/>
+    /// <param name="date">The date/time value to shift.</param>
+    /// <param name="interval">The amount to add, from
+    /// <see cref="Interval(object, DateTimePart)"/> or
+    /// <see cref="IntervalLiteral(string, IntervalField)"/>.</param>
+    public static DateAddFunction DateAdd(object date, IntervalLiteralExpression interval) =>
+        new(Resolve(date), interval);
+
+    /// <summary>
     /// The <c>DATEADD(<paramref name="datepart"/>, <paramref name="number"/>, <paramref name="dateTime"/>)</c>
     /// function: <paramref name="dateTime"/> shifted by
     /// <paramref name="number"/> units of <paramref name="datepart"/>. Pass a
@@ -18,8 +45,11 @@ public static partial class Sql
     /// <returns>The <c>DATEADD</c> function expression.</returns>
     /// <remarks>
     /// This is SQL Server's form. For Oracle use
-    /// <see cref="AddMonths(object, object)"/>; for MySQL/PostgreSQL date-shift
-    /// arithmetic use <see cref="Interval(object, DateTimePart)"/> /
+    /// <see cref="AddMonths(object, object)"/>; for MySQL use
+    /// <see cref="DateAdd(object, IntervalExpression)"/> /
+    /// <see cref="DateSub(object, IntervalExpression)"/> instead — same letters,
+    /// different case, different dialect. For PostgreSQL date-shift arithmetic
+    /// use <see cref="Interval(object, DateTimePart)"/> /
     /// <see cref="IntervalLiteral(string, IntervalField)"/> with the <c>+</c>/<c>-</c>
     /// operators instead.
     /// </remarks>
@@ -73,6 +103,29 @@ public static partial class Sql
     /// </remarks>
     public static DatepartFunction Datepart(DateTimePart datepart, object source) =>
         new(datepart, Resolve(source));
+
+    /// <summary>
+    /// The <c>DATE_SUB(<paramref name="date"/>, <paramref name="interval"/>)</c>
+    /// function: <paramref name="date"/> shifted backward by
+    /// <paramref name="interval"/>.
+    /// </summary>
+    /// <param name="date">The date/time value to shift.</param>
+    /// <param name="interval">The amount to subtract, from
+    /// <see cref="Interval(object, DateTimePart)"/> or
+    /// <see cref="IntervalLiteral(string, IntervalField)"/>.</param>
+    /// <returns>The <c>DATE_SUB</c> function expression.</returns>
+    /// <remarks>MySQL syntax. For addition use
+    /// <see cref="DateAdd(object, IntervalExpression)"/>.</remarks>
+    public static DateSubFunction DateSub(object date, IntervalExpression interval) =>
+        new(Resolve(date), interval);
+
+    /// <inheritdoc cref="DateSub(object, IntervalExpression)"/>
+    /// <param name="date">The date/time value to shift.</param>
+    /// <param name="interval">The amount to subtract, from
+    /// <see cref="Interval(object, DateTimePart)"/> or
+    /// <see cref="IntervalLiteral(string, IntervalField)"/>.</param>
+    public static DateSubFunction DateSub(object date, IntervalLiteralExpression interval) =>
+        new(Resolve(date), interval);
 
     /// <summary>
     /// The <c>DATE_TRUNC('<paramref name="datepart"/>', <paramref name="source"/>)</c>

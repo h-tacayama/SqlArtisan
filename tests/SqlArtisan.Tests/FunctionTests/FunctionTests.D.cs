@@ -6,6 +6,64 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
+    public void DateAdd_MySql_WithInterval_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DateAdd(_t.CreatedAt, Interval(30, DateTimePart.Day)))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATE_ADD(`t`.created_at, INTERVAL ?0 DAY)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(30, sql.Parameters.Get<int>("?0"));
+    }
+
+    [Fact]
+    public void DateAdd_MySql_WithIntervalLiteral_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DateAdd(_t.CreatedAt, IntervalLiteral("30", Day())))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATE_ADD(`t`.created_at, INTERVAL '30' DAY)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DateSub_MySql_WithInterval_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DateSub(_t.CreatedAt, Interval(30, DateTimePart.Day)))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATE_SUB(`t`.created_at, INTERVAL ?0 DAY)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(30, sql.Parameters.Get<int>("?0"));
+    }
+
+    [Fact]
+    public void DateSub_MySql_WithIntervalLiteral_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(DateSub(_t.CreatedAt, IntervalLiteral("30", Day())))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATE_SUB(`t`.created_at, INTERVAL '30' DAY)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Dateadd_SqlServer_CorrectSql()
     {
         SqlStatement sql =
