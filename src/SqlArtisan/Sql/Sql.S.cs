@@ -190,6 +190,23 @@ public static partial class Sql
         new(Resolve(expr));
 
     /// <summary>
+    /// The <c>STRFTIME(<paramref name="format"/>, <paramref name="timevalue"/>, ...)</c>
+    /// function: <paramref name="timevalue"/> shifted/adjusted by each modifier in
+    /// order, then rendered as a string per <paramref name="format"/>'s
+    /// strftime-style specifiers (<c>%Y</c>, <c>%m</c>, <c>%d</c>, ...).
+    /// </summary>
+    /// <param name="format">The strftime-style format string.</param>
+    /// <param name="timevalue">The time value to format.</param>
+    /// <param name="modifiers">Modifier strings applied in order; optional.</param>
+    /// <returns>The <c>STRFTIME</c> function expression.</returns>
+    /// <remarks>
+    /// SQLite syntax — see <see cref="Date(object, object, object[])"/> for why
+    /// modifiers are plain strings.
+    /// </remarks>
+    public static StrftimeFunction Strftime(object format, object timevalue, params object[] modifiers) =>
+        new(ResolveVariadic(format, timevalue, modifiers));
+
+    /// <summary>
     /// The <c>STRING_AGG(expr, separator)</c> string aggregate: concatenates
     /// <paramref name="expr"/> across the group, separated by
     /// <paramref name="separator"/>.

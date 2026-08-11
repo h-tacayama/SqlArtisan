@@ -35,6 +35,7 @@ internal static class Keywords
     internal const string CurrentTime = "CURRENT_TIME";
     internal const string CurrentTimestamp = "CURRENT_TIMESTAMP";
     internal const string Currval = "CURRVAL";
+    internal const string Date = "DATE";
     internal const string DateAdd = "DATE_ADD";
     internal const string Dateadd = "DATEADD";
     internal const string Datediff = "DATEDIFF";
@@ -42,6 +43,7 @@ internal static class Keywords
     internal const string Datepart = "DATEPART";
     internal const string DateSub = "DATE_SUB";
     internal const string DateTrunc = "DATE_TRUNC";
+    internal const string Datetime = "DATETIME";
     internal const string Datetrunc = "DATETRUNC";
     internal const string Decode = "DECODE";
     internal const string Delete = "DELETE";
@@ -90,6 +92,7 @@ internal static class Keywords
     internal const string JsonExtract = "JSON_EXTRACT";
     internal const string JsonQuery = "JSON_QUERY";
     internal const string JsonValue = "JSON_VALUE";
+    internal const string Julianday = "JULIANDAY";
     internal const string Key = "KEY";
     internal const string Lag = "LAG";
     internal const string Language = "LANGUAGE";
@@ -177,6 +180,7 @@ internal static class Keywords
     internal const string Some = "SOME";
     internal const string Source = "SOURCE";
     internal const string Sqrt = "SQRT";
+    internal const string Strftime = "STRFTIME";
     internal const string StringAgg = "STRING_AGG";
     internal const string Substr = "SUBSTR";
     internal const string Substrb = "SUBSTRB";

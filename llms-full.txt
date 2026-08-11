@@ -2933,6 +2933,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentDate` for `CURRENT_DATE`
 - `CurrentTime` for `CURRENT_TIME`
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
+- `Date()` for `DATE` (SQLite; the 1-argument form is also MySQL/PostgreSQL)
 - `DateAdd()` for `DATE_ADD` (MySQL — not `Dateadd()`, SQL Server's `DATEADD` below)
 - `Dateadd()` for `DATEADD` (SQL Server)
 - `Datediff()` for `DATEDIFF` (SQL Server)
@@ -2940,10 +2941,13 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Datepart()` for `DATEPART` (SQL Server)
 - `DateSub()` for `DATE_SUB` (MySQL)
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
+- `Datetime()` for `DATETIME` (SQLite)
 - `Datetrunc()` for `DATETRUNC` (SQL Server 2022+; use `Format()` on earlier versions)
 - `Extract()` for `EXTRACT` (Date/Time Overload)
+- `Julianday()` for `JULIANDAY` (SQLite)
 - `LastDay()` for `LAST_DAY`
 - `MonthsBetween()` for `MONTHS_BETWEEN`
+- `Strftime()` for `STRFTIME` (SQLite)
 - `Sysdate` for `SYSDATE`
 - `Systimestamp` for `SYSTIMESTAMP`
 - `Timestampadd()` for `TIMESTAMPADD` (MySQL)
@@ -2955,6 +2959,13 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 > `+`/`-` spelling), see
 > [Expressions: Interval Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#interval-expressions).
+
+> [!NOTE]
+> `Date()`/`Datetime()`/`Julianday()`/`Strftime()` accept SQLite modifier
+> strings (`"+30 days"`, `"start of month"`) as trailing `params object[]`
+> arguments — plain strings rather than a fixed enum, since SQLite's modifier
+> grammar is open-ended. Each modifier binds as a parameter, same as the time
+> value itself.
 
 ---
 

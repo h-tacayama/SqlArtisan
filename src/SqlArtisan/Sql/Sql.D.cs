@@ -7,6 +7,37 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
+    /// The <c>DATE(<paramref name="timevalue"/>)</c> function: <paramref name="timevalue"/>
+    /// read as a date.
+    /// </summary>
+    /// <param name="timevalue">The time value to convert.</param>
+    /// <returns>The <c>DATE</c> function expression.</returns>
+    /// <remarks>
+    /// SQLite syntax. Also valid on MySQL (extracts the date part of a datetime)
+    /// and PostgreSQL (casts to <c>date</c>).
+    /// </remarks>
+    public static DateFunction Date(object timevalue) =>
+        new(Resolve(timevalue));
+
+    /// <summary>
+    /// The <c>DATE(<paramref name="timevalue"/>, <paramref name="modifier"/>, ...)</c>
+    /// function: <paramref name="timevalue"/> shifted/adjusted by each modifier in
+    /// order (e.g. <c>"+30 days"</c>, <c>"start of month"</c>), then read as a date.
+    /// </summary>
+    /// <param name="timevalue">The time value to convert.</param>
+    /// <param name="modifier">The first modifier string applied, in order.</param>
+    /// <param name="modifiers">Any further modifier strings, applied in order.</param>
+    /// <returns>The <c>DATE</c> function expression.</returns>
+    /// <remarks>
+    /// SQLite syntax. Modifiers are plain strings rather than a fixed type:
+    /// SQLite's modifier grammar is open-ended (arbitrary offsets like
+    /// <c>"+3 days"</c>), so no fixed enum can cover it. Each modifier binds as a
+    /// parameter, same as <paramref name="timevalue"/>.
+    /// </remarks>
+    public static DateFunction Date(object timevalue, object modifier, params object[] modifiers) =>
+        new(ResolveVariadic(timevalue, modifier, modifiers));
+
+    /// <summary>
     /// The <c>DATE_ADD(<paramref name="date"/>, <paramref name="interval"/>)</c>
     /// function: <paramref name="date"/> shifted forward by
     /// <paramref name="interval"/>.
@@ -140,6 +171,22 @@ public static partial class Sql
     /// </remarks>
     public static DateTruncFunction DateTrunc(DateTimePart datepart, object source) =>
         new(datepart, Resolve(source));
+
+    /// <summary>
+    /// The <c>DATETIME(<paramref name="timevalue"/>, ...)</c> function: <paramref name="timevalue"/>
+    /// shifted/adjusted by each modifier in order, then read as a
+    /// <c>YYYY-MM-DD HH:MM:SS</c> datetime.
+    /// </summary>
+    /// <param name="timevalue">The time value to convert.</param>
+    /// <param name="modifiers">Modifier strings applied in order (e.g. <c>"+1 hour"</c>,
+    /// <c>"utc"</c>); optional.</param>
+    /// <returns>The <c>DATETIME</c> function expression.</returns>
+    /// <remarks>
+    /// SQLite syntax — see <see cref="Date(object, object, object[])"/> for why
+    /// modifiers are plain strings.
+    /// </remarks>
+    public static DatetimeFunction Datetime(object timevalue, params object[] modifiers) =>
+        new(ResolveVariadic(timevalue, modifiers));
 
     /// <summary>
     /// The <c>DATETRUNC(<paramref name="datepart"/>, <paramref name="date"/>)</c>

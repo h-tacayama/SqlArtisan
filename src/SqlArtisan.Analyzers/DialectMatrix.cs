@@ -97,6 +97,16 @@ internal static class DialectMatrix
         // INTERVAL expression above and of SQL Server's Dateadd/Datediff.
         [new MatrixKey("Timestampadd")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Timestampdiff")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
+        // Date/Datetime/Julianday/Strftime: SQLite's date/time family (Sql.D.cs/Sql.J.cs/
+        // Sql.S.cs XML docs, #439) — STRFTIME/DATETIME/JULIANDAY have no equivalent on any
+        // other supported dialect. The 1-arg DATE(timevalue) form is split from the
+        // 3+-arg SQLite modifier form because MySQL (date-part extraction) and PostgreSQL
+        // (cast to date) both accept the bare 1-arg call too — live-verified by the sweep.
+        [new MatrixKey("Date", 1)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+        [new MatrixKey("Date", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
+        [new MatrixKey("Datetime")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
+        [new MatrixKey("Julianday")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
+        [new MatrixKey("Strftime")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
 
         // --- String aggregation (CHANGELOG 0.3.0-beta.1, #88) ---
         // StringAgg's 2-arg form is PostgreSQL + SQL Server + SQLite (3.44 added string_agg as

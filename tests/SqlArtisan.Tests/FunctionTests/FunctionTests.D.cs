@@ -6,6 +6,67 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
+    public void Date_Sqlite_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Date(_t.CreatedAt))
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal("SELECT DATE(\"t\".created_at)", sql.Text);
+    }
+
+    [Fact]
+    public void Date_MySql_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Date(_t.CreatedAt))
+            .Build(Dbms.MySql);
+
+        Assert.Equal("SELECT DATE(`t`.created_at)", sql.Text);
+    }
+
+    [Fact]
+    public void Date_PostgreSql_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Date(_t.CreatedAt))
+            .Build();
+
+        Assert.Equal("SELECT DATE(\"t\".created_at)", sql.Text);
+    }
+
+    [Fact]
+    public void Date_Sqlite_OneModifier_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Date(_t.CreatedAt, "+30 days"))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATE(\"t\".created_at, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("+30 days", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void Date_Sqlite_MultipleModifiers_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Date(_t.CreatedAt, "start of month", "+1 month"))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATE(\"t\".created_at, :0, :1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("start of month", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("+1 month", sql.Parameters.Get<string>(":1"));
+    }
+
+    [Fact]
     public void DateAdd_MySql_WithInterval_CorrectSql()
     {
         SqlStatement sql =
@@ -177,6 +238,31 @@ public partial class FunctionTests
         expected.Append("DATE_TRUNC('MONTH', \"t\".created_at)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Datetime_Sqlite_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Datetime(_t.CreatedAt))
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal("SELECT DATETIME(\"t\".created_at)", sql.Text);
+    }
+
+    [Fact]
+    public void Datetime_Sqlite_WithModifier_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Datetime(_t.CreatedAt, "+1 hour"))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("DATETIME(\"t\".created_at, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("+1 hour", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]

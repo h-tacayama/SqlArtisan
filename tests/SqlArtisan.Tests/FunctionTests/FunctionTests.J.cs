@@ -159,4 +159,25 @@ public partial class FunctionTests
 
         Assert.Equal("JSON_VALUE requires a path.", ex.Message);
     }
+
+    [Fact]
+    public void Julianday_Sqlite_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Julianday(_t.CreatedAt))
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal("SELECT JULIANDAY(\"t\".created_at)", sql.Text);
+    }
+
+    [Fact]
+    public void Julianday_Sqlite_WithModifier_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Julianday(_t.CreatedAt, "start of year"))
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal("SELECT JULIANDAY(\"t\".created_at, :0)", sql.Text);
+        Assert.Equal("start of year", sql.Parameters.Get<string>(":0"));
+    }
 }

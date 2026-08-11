@@ -55,6 +55,37 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Strftime_Sqlite_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Strftime("%Y-%m", _t.CreatedAt))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("STRFTIME(:0, \"t\".created_at)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("%Y-%m", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
+    public void Strftime_Sqlite_WithModifier_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Strftime("%Y-%m-%d", _t.CreatedAt, "+1 day"))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("STRFTIME(:0, \"t\".created_at, :1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("%Y-%m-%d", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("+1 day", sql.Parameters.Get<string>(":1"));
+    }
+
+    [Fact]
     public void Substr_CharacterPosition_CorrectSql()
     {
         SqlStatement sql =

@@ -340,6 +340,11 @@ internal static class MatrixSweepCatalog
         Add("DateSub", _ => Scalar(DateSub(u.CreatedAt, Interval(30, DateTimePart.Day))));
         Add("Timestampadd", _ => Scalar(Timestampadd(DateTimePart.Day, 1, u.CreatedAt)));
         Add("Timestampdiff", _ => Scalar(Timestampdiff(DateTimePart.Day, u.CreatedAt, u.CreatedAt)));
+        AddArity("Date", 1, _ => Scalar(Date(u.CreatedAt)));
+        AddArity("Date", 3, _ => Scalar(Date(u.CreatedAt, "+30 days")));
+        Add("Datetime", _ => Scalar(Datetime(u.CreatedAt, "+1 hour")));
+        Add("Julianday", _ => Scalar(Julianday(u.CreatedAt)));
+        Add("Strftime", _ => Scalar(Strftime("%Y-%m", u.CreatedAt)));
         Add("LastDay", _ => Scalar(LastDay(u.CreatedAt)));
         Add("MonthsBetween", _ => Scalar(MonthsBetween(u.CreatedAt, u.CreatedAt)));
         Add("Sysdate", _ => Select(Sysdate).From(Dual));
