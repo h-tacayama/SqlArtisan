@@ -135,6 +135,38 @@ public class DatepartValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("sqlserver"),
             expectWarning: true);
 
+    // --- Timestampadd x MySQL (MySqlTimestampUnits) ---
+
+    [Fact]
+    public Task Timestampadd_MySql_ValidUnit_StaysSilent() =>
+        RunAsync(
+            "var s = Select(Timestampadd(DateTimePart.Day, 1, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("mysql"),
+            expectWarning: false);
+
+    [Fact]
+    public Task Timestampadd_MySql_InvalidUnit_ReportsSqla0104() =>
+        RunAsync(
+            "var s = Select(Timestampadd({|#0:DateTimePart.DayHour|}, 1, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("mysql"),
+            expectWarning: true);
+
+    // --- Timestampdiff x MySQL (MySqlTimestampUnits) ---
+
+    [Fact]
+    public Task Timestampdiff_MySql_ValidUnit_StaysSilent() =>
+        RunAsync(
+            "var s = Select(Timestampdiff(DateTimePart.Day, t.CreatedAt, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("mysql"),
+            expectWarning: false);
+
+    [Fact]
+    public Task Timestampdiff_MySql_InvalidUnit_ReportsSqla0104() =>
+        RunAsync(
+            "var s = Select(Timestampdiff({|#0:DateTimePart.DayHour|}, t.CreatedAt, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("mysql"),
+            expectWarning: true);
+
     // --- DateTrunc x PostgreSQL (PostgreSqlDateTruncFields) ---
 
     [Fact]

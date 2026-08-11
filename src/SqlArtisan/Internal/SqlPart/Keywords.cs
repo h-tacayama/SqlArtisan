@@ -186,6 +186,8 @@ internal static class Keywords
     internal const string Target = "TARGET";
     internal const string Then = "THEN";
     internal const string Ties = "TIES";
+    internal const string Timestampadd = "TIMESTAMPADD";
+    internal const string Timestampdiff = "TIMESTAMPDIFF";
     internal const string To = "TO";
     internal const string ToChar = "TO_CHAR";
     internal const string ToDate = "TO_DATE";

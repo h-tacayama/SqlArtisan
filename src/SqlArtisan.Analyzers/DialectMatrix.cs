@@ -92,6 +92,11 @@ internal static class DialectMatrix
         // docs, #437) — a different token and argument shape from SQL Server's Dateadd above.
         [new MatrixKey("DateAdd")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("DateSub")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
+        // Timestampadd/Timestampdiff: MySQL's TIMESTAMPADD/TIMESTAMPDIFF (Sql.T.cs XML
+        // docs, #438) — a bare unit keyword and integer, independent of DateAdd/DateSub's
+        // INTERVAL expression above and of SQL Server's Dateadd/Datediff.
+        [new MatrixKey("Timestampadd")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
+        [new MatrixKey("Timestampdiff")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
 
         // --- String aggregation (CHANGELOG 0.3.0-beta.1, #88) ---
         // StringAgg's 2-arg form is PostgreSQL + SQL Server + SQLite (3.44 added string_agg as

@@ -9,9 +9,11 @@ namespace SqlArtisan;
 /// <see cref="Sql.DateTrunc(DateTimePart, object)"/>,
 /// <see cref="Sql.Datetrunc(DateTimePart, object)"/>,
 /// <see cref="Sql.Interval(object, DateTimePart)"/>,
-/// <see cref="Sql.Numtodsinterval(object, DateTimePart)"/>, and
-/// <see cref="Sql.Numtoyminterval(object, DateTimePart)"/>; not every field is
-/// valid for every function or dialect.
+/// <see cref="Sql.Numtodsinterval(object, DateTimePart)"/>,
+/// <see cref="Sql.Numtoyminterval(object, DateTimePart)"/>,
+/// <see cref="Sql.Timestampadd(DateTimePart, object, object)"/>, and
+/// <see cref="Sql.Timestampdiff(DateTimePart, object, object)"/>; not every
+/// field is valid for every function or dialect.
 /// </summary>
 public enum DateTimePart
 {

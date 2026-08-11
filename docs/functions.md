@@ -79,6 +79,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `MonthsBetween()` for `MONTHS_BETWEEN`
 - `Sysdate` for `SYSDATE`
 - `Systimestamp` for `SYSTIMESTAMP`
+- `Timestampadd()` for `TIMESTAMPADD` (MySQL)
+- `Timestampdiff()` for `TIMESTAMPDIFF` (MySQL)
 - `Trunc()` for `TRUNC` (Date/Time Overload)
 
 > [!NOTE]

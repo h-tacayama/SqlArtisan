@@ -5,12 +5,14 @@ namespace SqlArtisan.Analyzers;
 
 /// <summary>
 /// The per-(member, dialect) set of <c>DateTimePart</c> member names each
-/// vendor grammar accepts for SQLA0104. Six primary-source-verified lists
+/// vendor grammar accepts for SQLA0104. Seven primary-source-verified lists
 /// (WebSearch, since docs.oracle.com / postgresql.org / dev.mysql.com /
 /// learn.microsoft.com direct fetch is blocked in this environment) cover the
-/// nine (member, dialect) pairs, since MySQL's <c>EXTRACT</c>/<c>INTERVAL</c>
-/// share one unit list and SQL Server's <c>DATEPART</c>/<c>DATEADD</c>/
-/// <c>DATEDIFF</c> share one datepart list.
+/// eleven (member, dialect) pairs, since MySQL's <c>EXTRACT</c>/<c>INTERVAL</c>
+/// share one unit list, SQL Server's <c>DATEPART</c>/<c>DATEADD</c>/
+/// <c>DATEDIFF</c> share one datepart list, and MySQL's
+/// <c>TIMESTAMPADD</c>/<c>TIMESTAMPDIFF</c> share their own (simple-units-only)
+/// list.
 /// </summary>
 internal static class DatepartValidity
 {
@@ -21,6 +23,14 @@ internal static class DatepartValidity
         "Microsecond", "Second", "Minute", "Hour", "Day", "Week", "Month", "Quarter", "Year",
         "SecondMicrosecond", "MinuteMicrosecond", "MinuteSecond", "HourMicrosecond", "HourSecond",
         "HourMinute", "DayMicrosecond", "DaySecond", "DayMinute", "DayHour", "YearMonth",
+    };
+
+    // dev.mysql.com Date and Time Functions, TIMESTAMPADD/TIMESTAMPDIFF: the nine simple
+    // units only — unlike MySqlTemporalUnits above, these two reject the compound
+    // DAY_HOUR-style units (EXTRACT/INTERVAL/DATE_ADD/DATE_SUB's grammar, not theirs).
+    private static readonly HashSet<string> MySqlTimestampUnits = new(StringComparer.Ordinal)
+    {
+        "Microsecond", "Second", "Minute", "Hour", "Day", "Week", "Month", "Quarter", "Year",
     };
 
     // docs.oracle.com EXTRACT (datetime): YEAR/MONTH/DAY require a DATE-family
@@ -80,6 +90,8 @@ internal static class DatepartValidity
         [("DateTrunc", TargetDbms.PostgreSql)] = PostgreSqlDateTruncFields,
         [("Datetrunc", TargetDbms.SqlServer)] = SqlServerDateTruncFields,
         [("Interval", TargetDbms.MySql)] = MySqlTemporalUnits,
+        [("Timestampadd", TargetDbms.MySql)] = MySqlTimestampUnits,
+        [("Timestampdiff", TargetDbms.MySql)] = MySqlTimestampUnits,
     };
 
     // The parameter SQLA0104 reads the literal DateTimePart out of — "unit" for
@@ -94,6 +106,8 @@ internal static class DatepartValidity
         ["DateTrunc"] = "datepart",
         ["Datetrunc"] = "datepart",
         ["Interval"] = "unit",
+        ["Timestampadd"] = "unit",
+        ["Timestampdiff"] = "unit",
     };
 
     /// <summary>

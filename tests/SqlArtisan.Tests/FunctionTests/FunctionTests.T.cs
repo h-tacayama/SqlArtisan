@@ -6,6 +6,35 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
+    public void Timestampadd_MySql_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Timestampadd(DateTimePart.Day, 1, _t.CreatedAt))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TIMESTAMPADD(DAY, ?0, `t`.created_at)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+    }
+
+    [Fact]
+    public void Timestampdiff_MySql_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Timestampdiff(DateTimePart.Day, _t.CreatedAt, _t.CreatedAt))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("TIMESTAMPDIFF(DAY, `t`.created_at, `t`.created_at)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void ToChar_DateTimeValue_CorrectSql()
     {
         SqlStatement sql =
