@@ -101,7 +101,8 @@ internal static class DialectMatrix
         // Sql.S.cs XML docs, #439) — STRFTIME/DATETIME/JULIANDAY have no equivalent on any
         // other supported dialect. The 1-arg DATE(timevalue) form is split from the
         // 3+-arg SQLite modifier form because MySQL (date-part extraction) and PostgreSQL
-        // (cast to date) both accept the bare 1-arg call too — live-verified by the sweep.
+        // (cast to date) both accept the bare 1-arg call too, per each engine's own DATE()
+        // docs; the sweep case added alongside this entry live-verifies both going forward.
         [new MatrixKey("Date", 1)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("Date", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
         [new MatrixKey("Datetime")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
