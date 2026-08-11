@@ -94,9 +94,8 @@ internal static class DatepartValidity
         [("Timestampdiff", TargetDbms.MySql)] = MySqlTimestampUnits,
     };
 
-    // The parameter SQLA0104 reads the literal DateTimePart out of — "unit" for
-    // Interval, "datepart" for the other six (matches each factory's own
-    // parameter name in Sql.*.cs).
+    // The parameter SQLA0104 reads the literal DateTimePart out of — each entry
+    // matches that factory's own parameter name in Sql.*.cs.
     internal static readonly Dictionary<string, string> DatepartParameterName = new(StringComparer.Ordinal)
     {
         ["Extract"] = "datepart",

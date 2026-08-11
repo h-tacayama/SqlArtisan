@@ -35,7 +35,7 @@ public class DatepartValidityParityTests
     // One direction only, and deliberately not "every member is covered by
     // every consumer" — the core's own DateTimePart.cs doc says explicitly
     // that not every field is valid for every function or dialect. This
-    // checks a coarser fact: a member absent from all nine lists combined is
+    // checks a coarser fact: a member absent from every list combined is
     // a member SQLA0104 can never flag anywhere, which is worth knowing
     // about even though it is not on its own a defect (a member can
     // legitimately belong to no function this rule covers yet).
@@ -61,7 +61,11 @@ public class DatepartValidityParityTests
     [Fact]
     public void EveryDatepartConsumer_HasAParameterNameEntry()
     {
-        string[] consumers = ["Extract", "Datepart", "Dateadd", "Datediff", "DateTrunc", "Datetrunc", "Interval"];
+        string[] consumers =
+        [
+            "Extract", "Datepart", "Dateadd", "Datediff", "DateTrunc", "Datetrunc", "Interval",
+            "Timestampadd", "Timestampdiff",
+        ];
 
         string[] missing =
         [
