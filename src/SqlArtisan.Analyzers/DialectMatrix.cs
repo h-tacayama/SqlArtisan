@@ -88,6 +88,10 @@ internal static class DialectMatrix
         // dialect sweep live-caught `created_at + INTERVAL '30' DAY` as MySQL-accepted (#436).
         [new MatrixKey("IntervalLiteral", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("IntervalLiteral", 3)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // DateAdd/DateSub: MySQL's DATE_ADD/DATE_SUB(date, INTERVAL n unit) (Sql.D.cs XML
+        // docs, #437) — a different token and argument shape from SQL Server's Dateadd above.
+        [new MatrixKey("DateAdd")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
+        [new MatrixKey("DateSub")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
 
         // --- String aggregation (CHANGELOG 0.3.0-beta.1, #88) ---
         // StringAgg's 2-arg form is PostgreSQL + SQL Server + SQLite (3.44 added string_agg as

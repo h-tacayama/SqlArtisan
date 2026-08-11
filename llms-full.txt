@@ -2933,10 +2933,12 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentDate` for `CURRENT_DATE`
 - `CurrentTime` for `CURRENT_TIME`
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
+- `DateAdd()` for `DATE_ADD` (MySQL — not `Dateadd()`, SQL Server's `DATEADD` below)
 - `Dateadd()` for `DATEADD` (SQL Server)
 - `Datediff()` for `DATEDIFF` (SQL Server)
 - `DateFormat()` for `DATE_FORMAT` (MySQL)
 - `Datepart()` for `DATEPART` (SQL Server)
+- `DateSub()` for `DATE_SUB` (MySQL)
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
 - `Datetrunc()` for `DATETRUNC` (SQL Server 2022+; use `Format()` on earlier versions)
 - `Extract()` for `EXTRACT` (Date/Time Overload)
@@ -2947,7 +2949,9 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trunc()` for `TRUNC` (Date/Time Overload)
 
 > [!NOTE]
-> For MySQL/Oracle/PostgreSQL date-shift arithmetic (`INTERVAL`), see
+> `DateAdd()`/`DateSub()` above take their shift amount from an `INTERVAL`
+> expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
+> `+`/`-` spelling), see
 > [Expressions: Interval Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#interval-expressions).
 
 ---
@@ -3695,13 +3699,14 @@ var q = Select(u.DepartmentId, Grouping(u.DepartmentId))
 
 **`INTERVAL` outside a `+`/`-` date-arithmetic expression.** MySQL's
 `INTERVAL` keyword has no standalone value — it parses only as an immediate
-operand of `+`/`-`, whether the spelling came from `Interval(...)` or the
-2-argument `IntervalLiteral(...)` MySQL's grammar also happens to accept.
+operand of `+`/`-`, or as the second argument of `DateAdd(...)`/`DateSub(...)`,
+whether the spelling came from `Interval(...)` or the 2-argument
+`IntervalLiteral(...)` MySQL's grammar also happens to accept.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
 var q = Select(Interval(30, DateTimePart.Day)).From(u);
-// warning SQLA0102: 'Interval' is not supported outside a +/- date-arithmetic expression on MySQL
+// warning SQLA0102: 'Interval' is not supported outside a +/- date-arithmetic expression or a DATE_ADD/DATE_SUB call on MySQL
 ```
 
 **`PERCENTILE_CONT` / `PERCENTILE_DISC` outside an `OVER` clause.** SQL Server

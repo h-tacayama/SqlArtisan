@@ -588,13 +588,14 @@ var q = Select(u.DepartmentId, Grouping(u.DepartmentId))
 
 **`INTERVAL` outside a `+`/`-` date-arithmetic expression.** MySQL's
 `INTERVAL` keyword has no standalone value — it parses only as an immediate
-operand of `+`/`-`, whether the spelling came from `Interval(...)` or the
-2-argument `IntervalLiteral(...)` MySQL's grammar also happens to accept.
+operand of `+`/`-`, or as the second argument of `DateAdd(...)`/`DateSub(...)`,
+whether the spelling came from `Interval(...)` or the 2-argument
+`IntervalLiteral(...)` MySQL's grammar also happens to accept.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
 var q = Select(Interval(30, DateTimePart.Day)).From(u);
-// warning SQLA0102: 'Interval' is not supported outside a +/- date-arithmetic expression on MySQL
+// warning SQLA0102: 'Interval' is not supported outside a +/- date-arithmetic expression or a DATE_ADD/DATE_SUB call on MySQL
 ```
 
 **`PERCENTILE_CONT` / `PERCENTILE_DISC` outside an `OVER` clause.** SQL Server

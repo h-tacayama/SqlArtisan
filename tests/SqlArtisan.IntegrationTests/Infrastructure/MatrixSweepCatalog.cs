@@ -336,6 +336,8 @@ internal static class MatrixSweepCatalog
             "IntervalLiteral",
             3,
             _ => Scalar(u.CreatedAt + IntervalLiteral("1-2", Year(), ToMonth)));
+        Add("DateAdd", _ => Scalar(DateAdd(u.CreatedAt, Interval(30, DateTimePart.Day))));
+        Add("DateSub", _ => Scalar(DateSub(u.CreatedAt, Interval(30, DateTimePart.Day))));
         Add("LastDay", _ => Scalar(LastDay(u.CreatedAt)));
         Add("MonthsBetween", _ => Scalar(MonthsBetween(u.CreatedAt, u.CreatedAt)));
         Add("Sysdate", _ => Select(Sysdate).From(Dual));
