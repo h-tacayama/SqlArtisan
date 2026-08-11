@@ -285,13 +285,13 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    // Name-filter first, like AnalyzeContextRules — only the seven DateTimePart
+    // Name-filter first, like AnalyzeContextRules — only the nine DateTimePart
     // consumers pay for target-set resolution.
     private static void AnalyzeDatepartValidity(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
     {
         var invocation = (IInvocationOperation)context.Operation;
         if (invocation.TargetMethod.Name is not ("Extract" or "Datepart" or "Dateadd" or "Datediff"
-                or "DateTrunc" or "Datetrunc" or "Interval")
+                or "DateTrunc" or "Datetrunc" or "Interval" or "Timestampadd" or "Timestampdiff")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;

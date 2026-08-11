@@ -98,7 +98,7 @@ still needs naming by ID.
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
-| `SQLA0104` | Warning | A literal `DateTimePart` argument to `Extract`/`Datepart`/`Dateadd`/`Datediff`/`DateTrunc`/`Datetrunc`/`Interval` is not a value the configured dialect's grammar accepts for that function — see [Datepart validity](#datepart-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0104` | Warning | A literal `DateTimePart` argument to `Extract`/`Datepart`/`Dateadd`/`Datediff`/`DateTrunc`/`Datetrunc`/`Interval`/`Timestampadd`/`Timestampdiff` is not a value the configured dialect's grammar accepts for that function — see [Datepart validity](#datepart-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -643,13 +643,14 @@ this construct," which is not what a context rule reports.
 ## Datepart validity (SQLA0104)
 
 `DateTimePart` is a 42-member superset shared across `Extract`, `Datepart`,
-`Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`, and `Interval` — its own XML
-doc says explicitly that not every field is valid for every function or
-dialect. `SQLA0100` cannot express that: the construct itself *is* supported,
-so a call like `Extract(DateTimePart.Epoch, x)` targeting Oracle passes the
-construct-level check and fails only when the database runs it (`EPOCH` is a
-PostgreSQL-only `EXTRACT` field). `SQLA0104` closes that gap at the argument
-level, for the nine (function, dialect) pairings below:
+`Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`, `Interval`, `Timestampadd`,
+and `Timestampdiff` — its own XML doc says explicitly that not every field is
+valid for every function or dialect. `SQLA0100` cannot express that: the
+construct itself *is* supported, so a call like
+`Extract(DateTimePart.Epoch, x)` targeting Oracle passes the construct-level
+check and fails only when the database runs it (`EPOCH` is a PostgreSQL-only
+`EXTRACT` field). `SQLA0104` closes that gap at the argument level, for the
+eleven (function, dialect) pairings below:
 
 | Function | Checked dialect(s) |
 |---|---|
@@ -658,6 +659,7 @@ level, for the nine (function, dialect) pairings below:
 | `DateTrunc` | PostgreSQL |
 | `Datetrunc` | SQL Server |
 | `Interval` | MySQL — the same unit list as MySQL's `Extract` |
+| `Timestampadd`, `Timestampdiff` | MySQL — their own list of nine simple units, narrower than `Extract`'s (no compound units like `DAY_HOUR`) |
 
 ```csharp
 // sqlartisan_syntax_oracle = any

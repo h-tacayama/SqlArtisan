@@ -6,6 +6,46 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
+    /// The <c>TIMESTAMPADD(<paramref name="unit"/>, <paramref name="number"/>, <paramref name="dateTime"/>)</c>
+    /// function: <paramref name="dateTime"/> shifted by <paramref name="number"/>
+    /// units of <paramref name="unit"/>. Pass a negative <paramref name="number"/>
+    /// to subtract.
+    /// </summary>
+    /// <param name="unit">The unit to add (year, month, day, ...).</param>
+    /// <param name="number">The number of units to add; negative to subtract.</param>
+    /// <param name="dateTime">The date/time value to shift.</param>
+    /// <returns>The <c>TIMESTAMPADD</c> function expression.</returns>
+    /// <remarks>
+    /// MySQL syntax — independent of, and does not require,
+    /// <see cref="Interval(object, DateTimePart)"/>; the unit is a bare keyword,
+    /// not an <c>INTERVAL</c> expression.
+    /// </remarks>
+    public static TimestampaddFunction Timestampadd(DateTimePart unit, object number, object dateTime) =>
+        new(unit, Resolve(number), Resolve(dateTime));
+
+    /// <summary>
+    /// The <c>TIMESTAMPDIFF(<paramref name="unit"/>, <paramref name="startDate"/>, <paramref name="endDate"/>)</c>
+    /// function: <paramref name="endDate"/> minus <paramref name="startDate"/>,
+    /// counted in whole units of <paramref name="unit"/>.
+    /// </summary>
+    /// <param name="unit">The unit to count the difference in.</param>
+    /// <param name="startDate">The start date/time.</param>
+    /// <param name="endDate">The end date/time.</param>
+    /// <returns>The <c>TIMESTAMPDIFF</c> function expression.</returns>
+    /// <remarks>
+    /// MySQL syntax. Argument order is <paramref name="startDate"/> then
+    /// <paramref name="endDate"/> — the reverse of MySQL's own two-argument
+    /// <c>DATEDIFF(expr1, expr2)</c> (<c>expr1 - expr2</c>).
+    /// </remarks>
+    public static TimestampdiffFunction Timestampdiff(
+        DateTimePart unit,
+        object startDate,
+        object endDate) => new(
+            unit,
+            Resolve(startDate),
+            Resolve(endDate));
+
+    /// <summary>
     /// The <c>TO_CHAR(expr)</c> function: converts <paramref name="expr"/> to its
     /// default character representation.
     /// </summary>

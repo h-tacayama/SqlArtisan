@@ -34,11 +34,11 @@ public class DatepartValidityParityTests
 
     // One direction only, and deliberately not "every member is covered by
     // every consumer" — the core's own DateTimePart.cs doc says explicitly
-    // that not every field is valid for every function or dialect. This
-    // checks a coarser fact: a member absent from all nine lists combined is
-    // a member SQLA0104 can never flag anywhere, which is worth knowing
-    // about even though it is not on its own a defect (a member can
-    // legitimately belong to no function this rule covers yet).
+    // that not every field is valid for every function or dialect. The
+    // hazard here is the opposite of silence: the rule skips a (function,
+    // dialect) pair it has no list for, but within a pair it has one, it
+    // reports every member the list omits — so a member in no list at all
+    // is flagged wherever the rule looks, including dialects that accept it.
     [Fact]
     public void EveryRealDateTimePartMember_AppearsInAtLeastOneList()
     {
@@ -52,16 +52,20 @@ public class DatepartValidityParityTests
         Assert.True(
             uncovered.Length == 0,
             $"{uncovered.Length} DateTimePart member(s) appear in none of DatepartValidity's "
-                + "lists, so SQLA0104 never checks them for any function. If this is "
-                + "intentional (the member has no function this rule covers), reword this "
-                + $"test's assertion rather than silently leaving it failing:\n  "
+                + "lists, so SQLA0104 reports them for every (function, dialect) pair it does "
+                + "cover — a false positive on each dialect whose grammar accepts them. Add "
+                + $"each member to the lists that accept it:\n  "
                 + string.Join("\n  ", uncovered));
     }
 
     [Fact]
     public void EveryDatepartConsumer_HasAParameterNameEntry()
     {
-        string[] consumers = ["Extract", "Datepart", "Dateadd", "Datediff", "DateTrunc", "Datetrunc", "Interval"];
+        string[] consumers =
+        [
+            "Extract", "Datepart", "Dateadd", "Datediff", "DateTrunc", "Datetrunc", "Interval",
+            "Timestampadd", "Timestampdiff",
+        ];
 
         string[] missing =
         [
