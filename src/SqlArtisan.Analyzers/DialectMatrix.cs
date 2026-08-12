@@ -401,7 +401,7 @@ internal static class DialectMatrix
 
         // --- Functions with no dialect variance across the baselines ---
         [new MatrixKey("Abs")] = DbmsSupport.All,
-        // Floor/Power/Sqrt/Sign on SQLite are math functions (3.35+, SQLITE_ENABLE_MATH_FUNCTIONS;
+        // Exp/Floor/Power/Sqrt/Sign on SQLite are math functions (3.35+, SQLITE_ENABLE_MATH_FUNCTIONS;
         // enabled in the bundled e_sqlite3 build) — sweep-confirm along with Mod.
         [new MatrixKey("Floor")] = DbmsSupport.All,
         [new MatrixKey("Exp")] = DbmsSupport.All,
@@ -696,6 +696,8 @@ internal static class DialectMatrix
         [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpReplace")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15")),
+        // Log10 sits in this group by file position only, not by version — log10() itself
+        // landed in PostgreSQL 12, three releases before MERGE/REGEXP_*'s 15.
         [new MatrixKey("Log10")] = new VersionBounds(postgreSql: V("12")),
 
         // --- SQLite point releases (matrix comments above) ---
