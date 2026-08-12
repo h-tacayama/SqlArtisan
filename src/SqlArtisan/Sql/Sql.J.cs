@@ -139,4 +139,19 @@ public static partial class Sql
     /// <returns>A <c>JSON_VALUE</c> function expression.</returns>
     public static JsonValueFunction JsonValue(object jsonDoc, string path) =>
         new(Resolve(jsonDoc), path);
+
+    /// <summary>
+    /// The <c>JULIANDAY(<paramref name="timevalue"/>, ...)</c> function: <paramref name="timevalue"/>
+    /// shifted/adjusted by each modifier in order, then returned as a Julian day
+    /// number (days since noon in Greenwich on November 24, 4714 B.C.).
+    /// </summary>
+    /// <param name="timevalue">The time value to convert.</param>
+    /// <param name="modifiers">Modifier strings applied in order; optional.</param>
+    /// <returns>The <c>JULIANDAY</c> function expression.</returns>
+    /// <remarks>
+    /// SQLite syntax — see <see cref="Date(object, object, object[])"/> for why
+    /// modifiers are plain strings.
+    /// </remarks>
+    public static JuliandayFunction Julianday(object timevalue, params object[] modifiers) =>
+        new(ResolveVariadic(timevalue, modifiers));
 }
