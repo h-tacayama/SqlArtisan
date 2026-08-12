@@ -34,36 +34,29 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trunc()` for `TRUNC` (Numeric Overload)
 
 > [!WARNING]
-> **`LOG` is the one function whose meaning silently changes with the target.**
-> Both of its forms differ across engines, so pick the spelling for your target
-> rather than assuming the call travels:
+> **`LOG` is the one function whose meaning silently changes with the target** —
+> in both of its forms, so pick the spelling for your target rather than
+> assuming the call travels:
 >
 > | Call | MySQL | Oracle | PostgreSQL | SQLite | SQL Server |
 > |---|---|---|---|---|---|
 > | `Log(x)` → `LOG(x)` | base e | *(rejected)* | base 10 | base 10 | base e |
 > | `Log(b, x)` → `LOG(b, x)` | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>x</sub>b |
 >
-> Only Oracle rejects `Log(x)` outright; every other cell above runs and
-> returns a number — right or silently wrong depending on dialect. T-SQL
-> declares `LOG(float_expression [, base])` — the value first, the base
-> second — which is why the two-argument row inverts on SQL Server.
+> Only Oracle rejects `Log(x)`; every other cell runs and returns a number,
+> right or silently wrong. The bottom row inverts on SQL Server because T-SQL
+> declares `LOG(float_expression [, base])` — value first, base second.
 >
-> SqlArtisan does not rewrite either form to make it portable, and it does not
-> withhold the ambiguous spelling either: `LOG(x)` is the only way to write a
-> natural logarithm on SQL Server, so omitting it would leave a dialect unable
-> to express the query at all. The guard is the analyzer plus this note —
-> `SQLA0100` flags `Log(x)` on Oracle, the one case it is unconditionally
-> wrong. It also flags every two-argument `Log` call on SQL Server, since the
-> matrix can't see argument order: that includes the correct T-SQL spelling
-> (`Log(value, base)`), which has no other way to reach SQL Server through this
-> API — suppress that specific call with `sqlartisan_construct_log_arity2 = supported`.
+> `SQLA0100` flags `Log(x)` on Oracle, and — blind to argument order — *every*
+> two-argument `Log` on SQL Server, including the correct T-SQL
+> `Log(value, base)`; suppress that one call with
+> `sqlartisan_construct_log_arity2 = supported`.
 >
-> **When the base must not depend on the target, use a function that names it:**
-> `Ln(x)` (MySQL, Oracle, PostgreSQL, SQLite), `Log10(x)` (MySQL, PostgreSQL 12+,
-> SQLite, SQL Server), or `Log(base, x)` on the four base-first engines.
-> On PostgreSQL, `LOG(base, x)` is defined for `numeric` only — a
-> `double precision` argument has no two-argument overload there, and that
-> call fails at the database, not at the SqlArtisan layer.
+> **For a base that does not vary by target:** `Ln(x)` (MySQL, Oracle,
+> PostgreSQL, SQLite), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite, SQL Server),
+> or `Log(base, x)` on the four base-first engines — where PostgreSQL defines
+> that form for `numeric` only, so a `double precision` argument fails at the
+> database, not at the SqlArtisan layer.
 
 ---
 
