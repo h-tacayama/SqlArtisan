@@ -2933,7 +2933,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentDate` for `CURRENT_DATE`
 - `CurrentTime` for `CURRENT_TIME`
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
-- `Date(timevalue, modifier, ...)` for `DATE` (SQLite; 1-argument form also MySQL/PostgreSQL)
+- `Date(timevalue[, modifier, ...])` for `DATE` (SQLite; 1-argument form also MySQL/PostgreSQL)
 - `DateAdd()` for `DATE_ADD` (MySQL — not `Dateadd()`, SQL Server's `DATEADD` below)
 - `Dateadd()` for `DATEADD` (SQL Server)
 - `Datediff()` for `DATEDIFF` (SQL Server)
@@ -2941,13 +2941,13 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Datepart()` for `DATEPART` (SQL Server)
 - `DateSub()` for `DATE_SUB` (MySQL)
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
-- `Datetime(timevalue, modifier, ...)` for `DATETIME` (SQLite)
+- `Datetime(timevalue[, modifier, ...])` for `DATETIME` (SQLite)
 - `Datetrunc()` for `DATETRUNC` (SQL Server 2022+; use `Format()` on earlier versions)
 - `Extract()` for `EXTRACT` (Date/Time Overload)
-- `Julianday(timevalue, modifier, ...)` for `JULIANDAY` (SQLite)
+- `Julianday(timevalue[, modifier, ...])` for `JULIANDAY` (SQLite)
 - `LastDay()` for `LAST_DAY`
 - `MonthsBetween()` for `MONTHS_BETWEEN`
-- `Strftime(format, timevalue, modifier, ...)` for `STRFTIME` (SQLite)
+- `Strftime(format, timevalue[, modifier, ...])` for `STRFTIME` (SQLite)
 - `Sysdate` for `SYSDATE`
 - `Systimestamp` for `SYSTIMESTAMP`
 - `Timestampadd()` for `TIMESTAMPADD` (MySQL)
