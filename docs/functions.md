@@ -34,9 +34,8 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trunc()` for `TRUNC` (Numeric Overload)
 
 > [!WARNING]
-> **`LOG` is the one function whose meaning silently changes with the target** —
-> in both of its forms, so pick the spelling for your target rather than
-> assuming the call travels:
+> **`LOG` is the one function whose meaning silently changes with the
+> target** — in both of its forms:
 >
 > | Call | MySQL | Oracle | PostgreSQL | SQLite | SQL Server |
 > |---|---|---|---|---|---|
