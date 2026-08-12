@@ -139,7 +139,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Format(value, format[, culture])` for `FORMAT(value, format[, culture])` (SQL Server)
 - `If(condition, then, else)` for `IF(condition, then, else)` (MySQL; SQLite 3.48+ accepts it as a second name for `IIF`)
 - `Ifnull(expr, alt)` for `IFNULL(expr, alt)` (MySQL, SQLite)
-- `Iif(condition, then, else)` for `IIF(condition, then, else)` (SQL Server 2012+, SQLite 3.32+)
+- `Iif(condition, then, else)` for `IIF(condition, then, else)` (SQLite 3.32+, SQL Server 2012+)
 - `Isnull(expr, alt)` for `ISNULL(expr, alt)` (SQL Server)
 - `Nullif()` for `NULLIF`
 - `Numtodsinterval()` for `NUMTODSINTERVAL`

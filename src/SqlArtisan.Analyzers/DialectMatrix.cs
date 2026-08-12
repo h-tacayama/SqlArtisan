@@ -215,12 +215,7 @@ internal static class DialectMatrix
         // If: MySQL's own IF(cond, then, else). SQLite registered IF as a genuine second name
         // for IIF starting in 3.48 (source-verified against the sqlite/sqlite GitHub mirror,
         // func.c's aBuiltinFunc[] table — no "if" entry at tag version-3.47.0, present at
-        // version-3.48.0) — below the BaselineVersion table's documented 3.46 floor, but the
-        // dialect sweep's actual pinned engine (3.50.x via SQLitePCLRaw.bundle_e_sqlite3
-        // 3.0.3) already has it, so the plain bool here matches what that live sweep observes
-        // (VerifiedAgainstVersion's "floor, not exact pin" caveat for SQLite). No Bounds row:
-        // there is no separately-pinned older SQLite image to make a version-specific claim
-        // against, the way Oracle23aiBoundSweepTests does for the 21c/23ai split.
+        // version-3.48.0), so its sqlite cell carries a Bounds row like Iif's below.
         [new MatrixKey("If")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
         // IIF: SQL Server (2012+) and SQLite (3.32+, live-verified by the dialect sweep) both
         // spell it IIF; MySQL/Oracle/PostgreSQL have no equivalent single-call form.
@@ -340,7 +335,7 @@ internal static class DialectMatrix
         [new MatrixKey("Values")] = DbmsSupport.All,
         [new MatrixKey("InnerJoin")] = DbmsSupport.All,
         [new MatrixKey("LeftJoin")] = DbmsSupport.All,
-        // RightJoin: SQLite added RIGHT JOIN in 3.39 (bundled baseline 3.46+).
+        // RightJoin: SQLite added RIGHT JOIN in 3.39 (bundled baseline 3.50+).
         [new MatrixKey("RightJoin")] = DbmsSupport.All,
         [new MatrixKey("CrossJoin")] = DbmsSupport.All,
         // FullJoin: MySQL has no FULL [OUTER] JOIN at all; SQLite added it in 3.39 (baseline OK).
@@ -348,7 +343,7 @@ internal static class DialectMatrix
         // NATURAL JOIN family (#197): standard SQL, but SQL Server has no NATURAL JOIN spelling at all.
         [new MatrixKey("NaturalJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("NaturalLeftJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // NaturalRightJoin: SQLite added RIGHT JOIN in 3.39 (bundled baseline 3.46+), NATURAL included.
+        // NaturalRightJoin: SQLite added RIGHT JOIN in 3.39 (bundled baseline 3.50+), NATURAL included.
         [new MatrixKey("NaturalRightJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // NaturalFullJoin: MySQL has no FULL JOIN at all (see FullJoin above), so NATURAL FULL is out too.
         [new MatrixKey("NaturalFullJoin")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
@@ -456,7 +451,7 @@ internal static class DialectMatrix
         [new MatrixKey("CurrentTimestamp")] = DbmsSupport.All,
         // Concat split by declared arity (#234): Oracle's native CONCAT takes exactly 2
         // arguments, so the 2-arg form is universal but the 3+-arg form is invalid there.
-        // SQLite: concat() since 3.44 (baseline 3.46+); SQL Server: CONCAT since 2012.
+        // SQLite: concat() since 3.44 (baseline 3.50+); SQL Server: CONCAT since 2012.
         [new MatrixKey("Concat", 2)] = DbmsSupport.All,
         [new MatrixKey("Concat", 4)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         // DoublePipe (Sql.D.cs XML docs, #234): native on Oracle/PostgreSQL/SQLite (every
@@ -766,6 +761,9 @@ internal static class DialectMatrix
         // IIF: SQLite 3.32+ and SQL Server 2012+ (T-SQL Reference) — both bounds share this
         // one row since VersionBounds is keyed per-entry, not per-dialect-group.
         [new MatrixKey("Iif")] = new VersionBounds(sqlite: V("3.32"), sqlServer: V("2012")),
+        // If: SQLite only — MySQL has had IF since long before its 8.0 baseline, so that
+        // dialect's cell needs no bound.
+        [new MatrixKey("If")] = new VersionBounds(sqlite: V("3.48")),
 
         // --- SQL Server (matrix comments above; #263 register) ---
         [new MatrixKey("Datetrunc")] = new VersionBounds(sqlServer: V("2022")),
@@ -784,14 +782,18 @@ internal static class DialectMatrix
     /// baseline — the anchor the <c>bool == (baseline &gt;= bound)</c> invariant
     /// gate checks every <see cref="Bounds"/> row against. MySQL and SQLite are
     /// floors, not exact pins: the <c>mysql:8.0</c> integration tag floats, and
-    /// the pinned SQLitePCLRaw bundle ships a newer engine (3.50.x at 3.0.3).
+    /// the pinned SQLitePCLRaw bundle ships whichever engine that release carries.
+    /// Keep a floor tight against the engine actually pinned, not merely below it:
+    /// a bound landing between an understated floor and the real engine satisfies
+    /// neither side of the invariant, so it cannot be recorded at all and the
+    /// dialect silently loses its <c>SQLA0101</c> coverage there (#443).
     /// </summary>
     internal static readonly IReadOnlyDictionary<TargetDbms, EngineVersion> BaselineVersion = new Dictionary<TargetDbms, EngineVersion>
     {
         [TargetDbms.MySql] = V("8.0.31"),
         [TargetDbms.Oracle] = V("21.3"),
         [TargetDbms.PostgreSql] = V("16"),
-        [TargetDbms.Sqlite] = V("3.46"),
+        [TargetDbms.Sqlite] = V("3.50"),
         [TargetDbms.SqlServer] = V("2022"),
     };
 

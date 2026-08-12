@@ -53,7 +53,7 @@ public static partial class Sql
     /// <returns>An <c>IIF</c> function expression.</returns>
     /// <exception cref="ArgumentException"><paramref name="condition"/> is empty
     /// (every operand excluded).</exception>
-    /// <remarks>SQL Server/SQLite syntax. On MySQL use <see cref="If(SqlCondition, object, object)"/>
+    /// <remarks>SQLite/SQL Server syntax. On MySQL use <see cref="If(SqlCondition, object, object)"/>
     /// instead. Distinct from <see cref="ConditionIf(bool, SqlCondition)"/>, which
     /// drops a <c>WHERE</c>-clause condition based on a C#-side flag and emits no
     /// SQL of its own.</remarks>
