@@ -222,6 +222,7 @@ internal static class MatrixSweepCatalog
         // --- Universal functions ---
         Add("Abs", _ => Scalar(Abs(-5)));
         Add("Floor", _ => Scalar(Floor(1.7)));
+        Add("Exp", _ => Scalar(Exp(1)));
         Add("Power", _ => Scalar(Power(2, 3)));
         Add("Sqrt", _ => Scalar(Sqrt(16)));
         Add("Sign", _ => Scalar(Sign(-5)));
@@ -271,6 +272,18 @@ internal static class MatrixSweepCatalog
 
         // --- Character / numeric with dialect gaps ---
         Add("Mod", _ => Scalar(Mod(10, 3)));
+        Add("Ln", _ => Scalar(Ln(1)));
+        Add("Log10", _ => Scalar(Log10(1000)));
+        AddArity("Log", 1, _ => Scalar(Log(100)));
+        cases.Add(new SweepCase(new MatrixKey("Log", 2),
+            _ => Scalar(Log(2, 8)),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.SqlServer] = "T-SQL's LOG takes the value first and the base second "
+                    + "(LOG(float_expression [, base])), so the two-argument call text executes there "
+                    + "too — it just computes a different logarithm. Acceptance proves nothing about "
+                    + "the base-first form this entry describes.",
+            }));
         Add("Length", _ => Scalar(Length("abc")));
         Add("Substr", _ => Scalar(Substr("abcdef", 2, 3)));
         Add("Lpad", _ => Scalar(Lpad("x", 3, "0")));

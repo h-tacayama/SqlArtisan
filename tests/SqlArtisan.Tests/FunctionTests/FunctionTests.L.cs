@@ -70,6 +70,63 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Ln_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Ln(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("LN(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Log_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Log(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("LOG(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Log_BaseAndNumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Log(2, _t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("LOG(:0, \"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(2, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void Log10_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Log10(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("LOG10(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Lower_CharacterValue_CorrectSql()
     {
         SqlStatement sql =

@@ -21,13 +21,45 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Abs()` for `ABS`
 - `Ceil()` for `CEIL` (Oracle; MySQL/PostgreSQL/SQLite accept both spellings)
 - `Ceiling()` for `CEILING` (SQL Server; MySQL/PostgreSQL/SQLite accept both spellings)
+- `Exp()` for `EXP`
 - `Floor()` for `FLOOR`
+- `Ln()` for `LN` (not supported by SQL Server — its `LOG(x)` is the natural logarithm)
+- `Log(x)` for `LOG(x)`; `Log(base, x)` for `LOG(base, x)` — **the base differs per dialect, see below**
+- `Log10()` for `LOG10` (not supported by Oracle — spell it `Log(10, x)` there)
 - `Mod()` for `MOD` (not supported by SQL Server — use the `%` operator there)
 - `Power()` for `POWER`
 - `Round()` for `ROUND`
 - `Sign()` for `SIGN`
 - `Sqrt()` for `SQRT`
 - `Trunc()` for `TRUNC` (Numeric Overload)
+
+> [!WARNING]
+> **`LOG` is the one function whose meaning changes with the target and never
+> errors.** Both of its forms differ across engines, so pick the spelling for
+> your target rather than assuming the call travels:
+>
+> | Call | MySQL | Oracle | PostgreSQL | SQLite | SQL Server |
+> |---|---|---|---|---|---|
+> | `Log(x)` → `LOG(x)` | base e | *(rejected)* | base 10 | base 10 | base e |
+> | `Log(b, x)` → `LOG(b, x)` | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>x</sub>b |
+>
+> Only Oracle raises an error; everywhere else the wrong-dialect call runs and
+> returns a different number. T-SQL declares `LOG(float_expression [, base])` —
+> the value first, the base second — which is why the two-argument row inverts
+> on SQL Server.
+>
+> SqlArtisan does not rewrite either form to make it portable ([ADR 0001](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/adr/0001-faithful-sql-output.md)),
+> and it does not withhold the ambiguous spelling either: `LOG(x)` is the only
+> way to write a natural logarithm on SQL Server, so omitting it would leave a
+> dialect unable to express the query at all. The guard is the analyzer plus
+> this note — `SQLA0100` flags `Log(x)` on Oracle and `Log(base, x)` on SQL
+> Server, where each is provably wrong.
+>
+> **When the base must not depend on the target, use a function that names it:**
+> `Ln(x)` (MySQL, Oracle, PostgreSQL, SQLite), `Log10(x)` (MySQL, PostgreSQL 12+,
+> SQLite, SQL Server), or `Log(base, x)` on the four base-first engines.
+> On PostgreSQL, `LOG(base, x)` is defined for `numeric` only — a
+> `double precision` argument has no two-argument overload there.
 
 ---
 

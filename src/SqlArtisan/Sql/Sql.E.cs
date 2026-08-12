@@ -35,6 +35,15 @@ public static partial class Sql
     public static ExistsCondition Exists(ISubquery subquery) => new(subquery);
 
     /// <summary>
+    /// The <c>EXP(<paramref name="expr"/>)</c> function: e raised to the power of
+    /// <paramref name="expr"/>.
+    /// </summary>
+    /// <param name="expr">The exponent.</param>
+    /// <returns>An <c>EXP</c> function expression.</returns>
+    public static ExpFunction Exp(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
     /// The <c>EXTRACT(<paramref name="datepart"/> FROM <paramref name="source"/>)</c>
     /// function returning a single date/time field.
     /// </summary>

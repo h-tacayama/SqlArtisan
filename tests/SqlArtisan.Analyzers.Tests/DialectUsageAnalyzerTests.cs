@@ -478,6 +478,69 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task LogTwoArgForm_OnSqlServer_ReportsSqla0100ButOneArgFormDoesNot()
+    {
+        // #440: T-SQL reads LOG(value, base), the reverse of the base-first order the other
+        // four dialects use, so only the 2-arg overload is wrong on SQL Server — the 1-arg
+        // form is that dialect's natural logarithm and must stay silent.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = Log("price");
+                    var bad = {|#0:Log(2, "price")|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_sqlserver = any
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task LogOneArgForm_OnOracle_ReportsSqla0100ButTwoArgFormDoesNot()
+    {
+        // #440: the mirror of the SQL Server split — Oracle's LOG requires both arguments,
+        // so it is the one dialect that rejects the single-argument call outright.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = Log(2, "price");
+                    var bad = {|#0:Log("price")|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_oracle = any
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task BindArrayAndUnnest_OnMySql_ReportSqla0100()
     {
         // The Any/All/Some keys stay the subquery-form union (arity-1 collision, see
