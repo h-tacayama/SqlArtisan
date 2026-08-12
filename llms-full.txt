@@ -2901,9 +2901,9 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trunc()` for `TRUNC` (Numeric Overload)
 
 > [!WARNING]
-> **`LOG` silently changes meaning with the target — in both of its forms**,
-> and the matrix marks it supported wherever it runs, so the analyzer cannot
-> flag the divergence itself:
+> **`LOG` silently changes meaning with the target — in both of its forms.**
+> Nothing catches the single-argument form's base change: the matrix marks
+> `Log(x)` supported on all four engines that run it, so no diagnostic fires.
 >
 > | Call | MySQL | Oracle | PostgreSQL | SQLite | SQL Server |
 > |---|---|---|---|---|---|
