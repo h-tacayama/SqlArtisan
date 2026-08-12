@@ -3074,17 +3074,43 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `Max()` for `MAX`
 - `Min()` for `MIN`
 - `Sum()` for `SUM`
+- `StddevPop()` for `STDDEV_POP` (MySQL, Oracle, PostgreSQL; SQL Server spells this `Stdevp()`)
+- `StddevSamp()` for `STDDEV_SAMP` (MySQL, Oracle, PostgreSQL; SQL Server spells this `Stdev()`)
+- `Stddev()` for `STDDEV` (MySQL, Oracle, PostgreSQL — **not the same statistic on all three, see below**)
+- `Stdev()` for `STDEV`; `Stdevp()` for `STDEVP` (SQL Server — no double-D spelling there)
+- `VarPop()` for `VAR_POP` (MySQL, Oracle, PostgreSQL; SQL Server spells this `Varp()`)
+- `VarSamp()` for `VAR_SAMP` (MySQL, Oracle, PostgreSQL; SQL Server spells this `Var()`)
+- `Variance()` for `VARIANCE` (MySQL, Oracle, PostgreSQL — **not the same statistic on all three, see below**)
+- `Var()` for `VAR`; `Varp()` for `VARP` (SQL Server)
 
 > [!NOTE]
 > Chain `.Filter(condition)` on any of these for conditional aggregation —
 > `SUM(x) FILTER (WHERE ...)` (see
 > [Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
+> Chain `.Over(...)` to turn any of them into a window function (see
+> [Window Functions](#window-functions) below).
 
 > [!NOTE]
 > `COUNT(expr)` skips `NULL` values in `expr`; `COUNT(*)` counts every row.
 > Pick `Count(Asterisk)` for a row count and `Count(expr)` only when `NULL`-skipping is
 > the behavior you want — modern engines optimize `COUNT(*)` to the smallest
 > usable index rather than materializing every column.
+
+> [!WARNING]
+> **`STDDEV`/`VARIANCE` silently change which statistic they compute with the target.**
+> Both run on MySQL, Oracle, and PostgreSQL, but not as the same statistic:
+>
+> | Call | MySQL | Oracle | PostgreSQL |
+> |---|---|---|---|
+> | `Stddev(x)` → `STDDEV(x)` | population | sample | sample |
+> | `Variance(x)` → `VARIANCE(x)` | population | sample | sample |
+>
+> All three engines accept the call and return a number, so `SQLA0100` cannot
+> catch this — the construct is grammatically valid everywhere it runs; only
+> the value it computes differs. For a statistic that keeps its meaning across
+> dialects, use `StddevPop()`/`StddevSamp()` or `VarPop()`/`VarSamp()` instead
+> — SQL Server has no `STDDEV`/`VARIANCE` spelling at all, so a query that
+> needs to also run there has to pick one of those explicit forms regardless.
 
 ---
 

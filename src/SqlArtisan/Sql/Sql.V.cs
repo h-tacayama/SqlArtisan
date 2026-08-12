@@ -1,4 +1,5 @@
 using SqlArtisan.Internal;
+using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan;
 
@@ -40,4 +41,63 @@ public static partial class Sql
 
         return new ValuesDerivedTable(alias, columnNames, body);
     }
+
+    /// <summary>
+    /// The <c>VAR(<paramref name="expr"/>)</c> aggregate function: the sample
+    /// variance of <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="VarFunction"/> emitting <c>VAR(expr)</c>.</returns>
+    /// <remarks>SQL Server syntax. Other dialects spell this
+    /// <see cref="VarSamp(object)"/>.</remarks>
+    public static VarFunction Var(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>VAR_POP(<paramref name="expr"/>)</c> aggregate function: the
+    /// population variance of <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="VarPopFunction"/> emitting <c>VAR_POP(expr)</c>.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
+    /// <see cref="Varp(object)"/>.</remarks>
+    public static VarPopFunction VarPop(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>VAR_SAMP(<paramref name="expr"/>)</c> aggregate function: the
+    /// sample variance of <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="VarSampFunction"/> emitting <c>VAR_SAMP(expr)</c>.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
+    /// <see cref="Var(object)"/>.</remarks>
+    public static VarSampFunction VarSamp(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>VARIANCE(<paramref name="expr"/>)</c> aggregate function.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="VarianceFunction"/> emitting <c>VARIANCE(expr)</c>.</returns>
+    /// <remarks>
+    /// MySQL, Oracle, PostgreSQL — but not the same statistic on all three:
+    /// MySQL's <c>VARIANCE</c> is the population variance, Oracle's and
+    /// PostgreSQL's is the sample variance. For a value that keeps its meaning
+    /// across dialects, use <see cref="VarPop(object)"/> or
+    /// <see cref="VarSamp(object)"/> instead.
+    /// </remarks>
+    public static VarianceFunction Variance(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>VARP(<paramref name="expr"/>)</c> aggregate function: the
+    /// population variance of <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="VarpFunction"/> emitting <c>VARP(expr)</c>.</returns>
+    /// <remarks>SQL Server syntax. Other dialects spell this
+    /// <see cref="VarPop(object)"/>.</remarks>
+    public static VarpFunction Varp(object expr) =>
+        new(Resolve(expr));
 }

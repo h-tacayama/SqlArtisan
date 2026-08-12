@@ -416,6 +416,25 @@ internal static class DialectMatrix
         [new MatrixKey("Max")] = DbmsSupport.All,
         [new MatrixKey("Min")] = DbmsSupport.All,
         [new MatrixKey("Sum")] = DbmsSupport.All,
+        // Statistical aggregates (Sql.S.cs/Sql.V.cs XML docs, #442): StddevPop/StddevSamp/
+        // VarPop/VarSamp are MySQL/Oracle/PostgreSQL only — no SQLite spelling, and SQL Server
+        // uses its own distinct tokens (Stdevp/Stdev below) instead. Stddev/Variance are the
+        // same three dialects' short-form aliases, but not the same statistic on all three
+        // (MySQL: population; Oracle/PostgreSQL: sample) — the matrix asserts grammar
+        // acceptance only, not which statistic runs; see docs/functions.md's warning table
+        // for the semantic split. Stdev/Stdevp/Var/Varp are SQL Server's own tokens (no
+        // double-D spelling there) and appear on no other dialect. Sweep-confirm on all five
+        // live engines alongside this entry (#442).
+        [new MatrixKey("StddevPop")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("StddevSamp")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Stddev")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Stdev")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        [new MatrixKey("Stdevp")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        [new MatrixKey("VarPop")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("VarSamp")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Variance")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Var")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        [new MatrixKey("Varp")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("CurrentTimestamp")] = DbmsSupport.All,
         // Concat split by declared arity (#234): Oracle's native CONCAT takes exactly 2
         // arguments, so the 2-arg form is universal but the 3+-arg form is invalid there.

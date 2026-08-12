@@ -1,9 +1,9 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// Base class for a plain aggregate (<c>SUM</c>, <c>COUNT</c>, <c>AVG</c>,
-/// <c>MAX</c>, <c>MIN</c>) — one with no row filter yet, so it can be restricted to
-/// matching rows via <c>Filter(...)</c> (and windowed via <c>Over(...)</c>).
+/// Base class for a plain aggregate (e.g. <c>SUM</c>) — one with no row filter
+/// yet, so it can be restricted to matching rows via <c>Filter(...)</c> (and
+/// windowed via <c>Over(...)</c>).
 /// </summary>
 /// <remarks>
 /// Note: most databases do not support <c>DISTINCT</c> in a windowed aggregate

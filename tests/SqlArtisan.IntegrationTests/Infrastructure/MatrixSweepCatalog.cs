@@ -238,6 +238,16 @@ internal static class MatrixSweepCatalog
         Add("Max", _ => Select(Max(u.Age)).From(u));
         Add("Min", _ => Select(Min(u.Age)).From(u));
         Add("Sum", _ => Select(Sum(o.Amount)).From(o));
+        Add("StddevPop", _ => Select(StddevPop(o.Amount)).From(o));
+        Add("StddevSamp", _ => Select(StddevSamp(o.Amount)).From(o));
+        Add("Stddev", _ => Select(Stddev(o.Amount)).From(o));
+        Add("Stdev", _ => Select(Stdev(o.Amount)).From(o));
+        Add("Stdevp", _ => Select(Stdevp(o.Amount)).From(o));
+        Add("VarPop", _ => Select(VarPop(o.Amount)).From(o));
+        Add("VarSamp", _ => Select(VarSamp(o.Amount)).From(o));
+        Add("Variance", _ => Select(Variance(o.Amount)).From(o));
+        Add("Var", _ => Select(Var(o.Amount)).From(o));
+        Add("Varp", _ => Select(Varp(o.Amount)).From(o));
         Add("CurrentTimestamp", _ => Scalar(CurrentTimestamp));
         AddArity("Concat", 2, _ => Scalar(Concat("a", "b")));
         AddArity("Concat", 4, _ => Scalar(Concat("a", "b", "c")));
