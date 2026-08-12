@@ -222,7 +222,10 @@ internal static class MatrixSweepCatalog
         // --- Universal functions ---
         Add("Abs", _ => Scalar(Abs(-5)));
         Add("Floor", _ => Scalar(Floor(1.7)));
-        Add("Exp", _ => Scalar(Exp(1)));
+        // Rounded: Oracle computes EXP to its NUMBER default of 38 significant digits, which
+        // overflows System.Decimal (28-29 digits) and throws a client-side InvalidCastException
+        // that this sweep can't tell apart from a genuine engine rejection (#440 live-run finding).
+        Add("Exp", _ => Scalar(Round(Exp(1), 4)));
         Add("Power", _ => Scalar(Power(2, 3)));
         Add("Sqrt", _ => Scalar(Sqrt(16)));
         Add("Sign", _ => Scalar(Sign(-5)));
@@ -275,8 +278,11 @@ internal static class MatrixSweepCatalog
         Add("Ln", _ => Scalar(Ln(1)));
         Add("Log10", _ => Scalar(Log10(1000)));
         AddArity("Log", 1, _ => Scalar(Log(100)));
+        // Rounded for the same reason as Exp above: Oracle's LOG(base, x) is computed via an
+        // internal algorithm accurate to 38 significant digits, not guaranteed to land exactly on
+        // an integer even for log_2(8) — the residual overflows System.Decimal.
         cases.Add(new SweepCase(new MatrixKey("Log", 2),
-            _ => Scalar(Log(2, 8)),
+            _ => Scalar(Round(Log(2, 8), 4)),
             NegativeSkips: new Dictionary<Dbms, string>
             {
                 [Dbms.SqlServer] = "T-SQL's LOG takes the value first and the base second "
