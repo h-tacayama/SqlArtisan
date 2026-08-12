@@ -40,6 +40,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The exponent.</param>
     /// <returns>An <c>EXP</c> function expression.</returns>
+    /// <remarks>Supported on every dialect (SQLite 3.35+).</remarks>
     public static ExpFunction Exp(object expr) =>
         new(Resolve(expr));
 

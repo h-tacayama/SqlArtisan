@@ -34,8 +34,9 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trunc()` for `TRUNC` (Numeric Overload)
 
 > [!WARNING]
-> **`LOG` is the one function whose meaning silently changes with the
-> target** — in both of its forms:
+> **`LOG` silently changes meaning with the target — in both of its forms**,
+> and the matrix marks it supported wherever it runs, so the analyzer cannot
+> flag the divergence itself:
 >
 > | Call | MySQL | Oracle | PostgreSQL | SQLite | SQL Server |
 > |---|---|---|---|---|---|
@@ -49,15 +50,15 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > `SQLA0100` flags `Log(x)` on Oracle, and — blind to argument order — *every*
 > two-argument `Log` on SQL Server, including the correct T-SQL spelling: call
 > `Log(base, x)` with the arguments swapped, `Log(x, base)`, to reach an
-> arbitrary base there. `sqlartisan_construct_log_arity2 = supported` silences
-> every 2-arg `Log` call in its `.editorconfig` scope, not one call — narrow
-> the `[*.cs]` section to where the swapped order is actually intended.
+> arbitrary base there. To allow that one call, wrap it in
+> `#pragma warning disable SQLA0100`; `sqlartisan_construct_log_arity2 = supported`
+> silences every 2-arg `Log` call in its `.editorconfig` scope instead.
 >
 > **For a base that does not vary by target:** `Ln(x)` (MySQL, Oracle,
-> PostgreSQL, SQLite), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite, SQL Server),
-> or `Log(base, x)` on the four base-first engines — where PostgreSQL defines
-> that form for `numeric` only, so a `double precision` argument fails at the
-> database, not at the SqlArtisan layer.
+> PostgreSQL, SQLite 3.35+), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite 3.35+,
+> SQL Server), or `Log(base, x)` on the four base-first engines — where
+> PostgreSQL defines that form for `numeric` only, so a `double precision`
+> argument fails at the database, not at the SqlArtisan layer.
 
 ---
 
