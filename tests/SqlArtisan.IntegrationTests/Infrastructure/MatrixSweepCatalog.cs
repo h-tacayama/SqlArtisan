@@ -222,10 +222,11 @@ internal static class MatrixSweepCatalog
         // --- Universal functions ---
         Add("Abs", _ => Scalar(Abs(-5)));
         Add("Floor", _ => Scalar(Floor(1.7)));
-        // Rounded: Oracle computes EXP to its NUMBER default of 38 significant digits, which
-        // overflows System.Decimal (28-29 digits) and throws a client-side InvalidCastException
-        // that this sweep can't tell apart from a genuine engine rejection (#440 live-run finding).
-        Add("Exp", _ => Scalar(Round(Exp(1), 4)));
+        // Oracle-only rounding: Oracle computes EXP to its NUMBER default of 38 significant
+        // digits, overflowing System.Decimal and throwing a client-side InvalidCastException this
+        // sweep can't tell from a real rejection. PostgreSQL has no round(double precision, int)
+        // overload, so the wrap must not apply there (#440 live-run finding, twice).
+        Add("Exp", dbms => Scalar(dbms == Dbms.Oracle ? Round(Exp(1), 4) : Exp(1)));
         Add("Power", _ => Scalar(Power(2, 3)));
         Add("Sqrt", _ => Scalar(Sqrt(16)));
         Add("Sign", _ => Scalar(Sign(-5)));
@@ -278,11 +279,11 @@ internal static class MatrixSweepCatalog
         Add("Ln", _ => Scalar(Ln(1)));
         Add("Log10", _ => Scalar(Log10(1000)));
         AddArity("Log", 1, _ => Scalar(Log(100)));
-        // Rounded for the same reason as Exp above: Oracle's LOG(base, x) is computed via an
-        // internal algorithm accurate to 38 significant digits, not guaranteed to land exactly on
-        // an integer even for log_2(8) — the residual overflows System.Decimal.
+        // Oracle-only rounding, same reason as Exp above: Oracle's LOG(base, x) isn't guaranteed
+        // to land exactly on an integer even for log_2(8), and the residual overflows
+        // System.Decimal; PostgreSQL rejects round(double precision, int), so it must stay bare.
         cases.Add(new SweepCase(new MatrixKey("Log", 2),
-            _ => Scalar(Round(Log(2, 8), 4)),
+            dbms => Scalar(dbms == Dbms.Oracle ? Round(Log(2, 8), 4) : Log(2, 8)),
             NegativeSkips: new Dictionary<Dbms, string>
             {
                 [Dbms.SqlServer] = "T-SQL's LOG takes the value first and the base second "
