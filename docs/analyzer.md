@@ -491,8 +491,10 @@ the version is what lifts it.
 | `L2Distance`, `CosineDistance`, `NegativeInnerProduct` | Oracle | 23 | The `<->`, `<=>`, and `<#>` vector distance shorthands landed with Oracle 23ai's AI Vector Search (the other three pgvector operators have no Oracle spelling at any version). |
 | `MergeInto`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete`, the 3-argument `Values` (MERGE `USING` literal rows) | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. `Using` itself carries no bound — the key is shared with `DeleteBuilder`'s plain `DELETE ... USING`, which predates and does not require PostgreSQL 15; the `MergeInto` bound still flags a MERGE statement below 15. |
 | `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr` | PostgreSQL | 15 | `regexp_like`, `regexp_count`, and `regexp_substr` landed in PostgreSQL 15. `regexp_replace` predates it — 15 is where it gained the position and occurrence arguments — but the bound covers every `RegexpReplace` overload, so a 3-argument call is reported below 15 too. |
+| `Log10` | PostgreSQL | 12 | `log10()` landed in PostgreSQL 12; before it, base-10 was spelled `log(x)`. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
+| `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`); none of these functions exist below it. |
 | `StringAgg` (both overloads), `Concat` (both overloads) | SQLite | 3.44 | `string_agg`/`concat` landed in SQLite 3.44. |
 | `NullsFirst`, `NullsLast` | SQLite | 3.30 | `NULLS FIRST`/`NULLS LAST` landed in SQLite 3.30. |
 | `Trim` (1-argument form) | SQL Server | 2017 | `TRIM(...)` landed in SQL Server 2017. |
@@ -534,12 +536,15 @@ as new in Oracle Database 23ai.
 **PostgreSQL** — the
 [version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)
 list both `MERGE` and the `regexp_count` / `regexp_instr` / `regexp_like` /
-`regexp_substr` family as new in 15.
+`regexp_substr` family as new in 15. The
+[version 12 release notes](https://www.postgresql.org/docs/12/release-12.html)
+add `log10()` as a named alias for the base-10 `log()`.
 
 **SQLite** — the per-release change logs:
 
 - [`NULLS FIRST` / `NULLS LAST`](https://sqlite.org/releaselog/3_30_0.html) — 3.30.0 (2019-10-04).
 - [`RETURNING`](https://sqlite.org/releaselog/3_35_0.html) — 3.35.0 (2021-03-12).
+- [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sign`, `sqrt`) — 3.35.0, same release as `RETURNING`.
 - [`RIGHT JOIN` / `FULL OUTER JOIN`](https://sqlite.org/releaselog/3_39_0.html) — 3.39.0 (2022-06-25).
 - [`string_agg()` / `concat()`](https://sqlite.org/releaselog/3_44_0.html) — 3.44.0 (2023-11-01).
 

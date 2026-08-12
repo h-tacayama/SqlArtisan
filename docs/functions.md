@@ -21,13 +21,44 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Abs()` for `ABS`
 - `Ceil()` for `CEIL` (Oracle; MySQL/PostgreSQL/SQLite accept both spellings)
 - `Ceiling()` for `CEILING` (SQL Server; MySQL/PostgreSQL/SQLite accept both spellings)
+- `Exp()` for `EXP`
 - `Floor()` for `FLOOR`
+- `Ln()` for `LN` (not supported by SQL Server — its `LOG(x)` is the natural logarithm)
+- `Log(x)` for `LOG(x)`; `Log(base, x)` for `LOG(base, x)` — **the base differs per dialect, see below**
+- `Log10()` for `LOG10` (not supported by Oracle — spell it `Log(10, x)` there)
 - `Mod()` for `MOD` (not supported by SQL Server — use the `%` operator there)
 - `Power()` for `POWER`
 - `Round()` for `ROUND`
 - `Sign()` for `SIGN`
 - `Sqrt()` for `SQRT`
 - `Trunc()` for `TRUNC` (Numeric Overload)
+
+> [!WARNING]
+> **`LOG` silently changes meaning with the target — in both of its forms.**
+> Nothing catches the single-argument form's base change: the matrix marks
+> `Log(x)` supported on all four engines that run it, so no diagnostic fires.
+>
+> | Call | MySQL | Oracle | PostgreSQL | SQLite | SQL Server |
+> |---|---|---|---|---|---|
+> | `Log(x)` → `LOG(x)` | base e | *(rejected)* | base 10 | base 10 | base e |
+> | `Log(b, x)` → `LOG(b, x)` | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>x</sub>b |
+>
+> Only Oracle rejects `Log(x)`; every other cell runs and returns a number,
+> right or silently wrong. The bottom row inverts on SQL Server because T-SQL
+> declares `LOG(float_expression [, base])` — value first, base second.
+>
+> `SQLA0100` flags `Log(x)` on Oracle, and — blind to argument order — *every*
+> two-argument `Log` on SQL Server, including the correct T-SQL spelling: call
+> `Log(base, x)` with the arguments swapped, `Log(x, base)`, to reach an
+> arbitrary base there. To allow that one call, wrap it in
+> `#pragma warning disable SQLA0100`; `sqlartisan_construct_log_arity2 = supported`
+> silences every 2-arg `Log` call in its `.editorconfig` scope instead.
+>
+> **For a base that does not vary by target:** `Ln(x)` (MySQL, Oracle,
+> PostgreSQL, SQLite 3.35+), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite 3.35+,
+> SQL Server), or `Log(base, x)` on the four base-first engines — where
+> PostgreSQL defines that form for `numeric` only, so a `double precision`
+> argument fails at the database, not at the SqlArtisan layer.
 
 ---
 

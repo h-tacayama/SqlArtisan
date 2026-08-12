@@ -401,9 +401,10 @@ internal static class DialectMatrix
 
         // --- Functions with no dialect variance across the baselines ---
         [new MatrixKey("Abs")] = DbmsSupport.All,
-        // Floor/Power/Sqrt/Sign on SQLite are math functions (3.35+, SQLITE_ENABLE_MATH_FUNCTIONS;
+        // Exp/Floor/Power/Sqrt/Sign on SQLite are math functions (3.35+, SQLITE_ENABLE_MATH_FUNCTIONS;
         // enabled in the bundled e_sqlite3 build) — sweep-confirm along with Mod.
         [new MatrixKey("Floor")] = DbmsSupport.All,
+        [new MatrixKey("Exp")] = DbmsSupport.All,
         [new MatrixKey("Power")] = DbmsSupport.All,
         [new MatrixKey("Sqrt")] = DbmsSupport.All,
         [new MatrixKey("Sign")] = DbmsSupport.All,
@@ -456,6 +457,26 @@ internal static class DialectMatrix
         // --- Character/numeric functions with real dialect gaps (vendor docs, per row) ---
         // Mod: T-SQL has no MOD() function (only the % operator).
         [new MatrixKey("Mod")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // Log/Ln/Log10 (#440). Single-argument LOG(x) has no shared base: base 10 on
+        // PostgreSQL (docs "log(x) — base 10 logarithm") and SQLite (math functions page;
+        // harness-probed `select log(100)` -> 2 on the pinned bundle_e_sqlite3 3.0.3),
+        // natural on MySQL (LOG(X)) and SQL Server (LOG(float_expression [, base])).
+        // Only Oracle *rejects* the call — its LOG takes both arguments, no exception —
+        // so Oracle is the one false. The base divergence itself is a semantics fact no
+        // support bool can carry; it ships as the factory's XML remark and a docs note.
+        [new MatrixKey("Log", 1)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
+        // The 2-argument form reads base-first on MySQL/Oracle/PostgreSQL/SQLite, but
+        // T-SQL declares LOG(float_expression [, base]) — value first, base second — so
+        // the identical text runs on SQL Server and returns a different number. Valid SQL
+        // with silently different semantics: the DoublePipe-on-MySQL shape, entered false
+        // so SQLA0100 flags it (with a matching sweep NegativeSkip, since acceptance there
+        // proves nothing about support).
+        [new MatrixKey("Log", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // Ln: T-SQL has no LN() — its 1-argument LOG() is the natural logarithm.
+        [new MatrixKey("Ln")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // Log10: Oracle has no LOG10() — base-10 is spelled LOG(10, x) there. PostgreSQL
+        // gained log10() in 12 (below its verified baseline), hence the Bounds row.
+        [new MatrixKey("Log10")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         // Length: T-SQL spells this LEN(); no LENGTH().
         [new MatrixKey("Length")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // Substr: T-SQL spells this SUBSTRING(); no SUBSTR.
@@ -675,6 +696,9 @@ internal static class DialectMatrix
         [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpReplace")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15")),
+        // Log10 sits in this group by file position only, not by version — log10() itself
+        // landed in PostgreSQL 12, three releases before MERGE/REGEXP_*'s 15.
+        [new MatrixKey("Log10")] = new VersionBounds(postgreSql: V("12"), sqlite: V("3.35")),
 
         // --- SQLite point releases (matrix comments above) ---
         [new MatrixKey("RightJoin")] = new VersionBounds(sqlite: V("3.39")),
@@ -682,6 +706,20 @@ internal static class DialectMatrix
         [new MatrixKey("NaturalRightJoin")] = new VersionBounds(sqlite: V("3.39")),
         [new MatrixKey("NaturalFullJoin")] = new VersionBounds(sqlite: V("3.39")),
         [new MatrixKey("Returning")] = new VersionBounds(sqlite: V("3.35")),
+        // The math-functions extension (SQLITE_ENABLE_MATH_FUNCTIONS) landed in 3.35 — the
+        // same release as RETURNING above, but a separate feature; the Entries comments above
+        // name it per row (Ceil/Ceiling, Floor/Exp/Power/Sqrt/Sign, Mod, Log/Ln/Log10).
+        [new MatrixKey("Ceil")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Ceiling")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Floor")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Exp")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Power")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Sqrt")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Sign")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Mod")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Ln")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Log", 1)] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Log", 2)] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("StringAgg")] = new VersionBounds(sqlite: V("3.44")),
         [new MatrixKey("StringAgg", 3)] = new VersionBounds(sqlite: V("3.44")),
         [new MatrixKey("Concat", 2)] = new VersionBounds(sqlite: V("3.44")),

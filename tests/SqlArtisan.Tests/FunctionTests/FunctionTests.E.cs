@@ -6,6 +6,20 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
+    public void Exp_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Exp(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("EXP(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Extract_MySql_CorrectSql()
     {
         SqlStatement sql =

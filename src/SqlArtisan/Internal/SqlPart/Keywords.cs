@@ -59,6 +59,7 @@ internal static class Keywords
     internal const string Escape = "ESCAPE";
     internal const string Except = "EXCEPT";
     internal const string Exists = "EXISTS";
+    internal const string Exp = "EXP";
     internal const string Expansion = "EXPANSION";
     internal const string Extract = "EXTRACT";
     internal const string Fetch = "FETCH";
@@ -108,7 +109,10 @@ internal static class Keywords
     internal const string Like = "LIKE";
     internal const string Limit = "LIMIT";
     internal const string Listagg = "LISTAGG";
+    internal const string Ln = "LN";
     internal const string Locked = "LOCKED";
+    internal const string Log = "LOG";
+    internal const string Log10 = "LOG10";
     internal const string Lower = "LOWER";
     internal const string Lpad = "LPAD";
     internal const string Ltrim = "LTRIM";

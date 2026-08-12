@@ -165,6 +165,61 @@ public static partial class Sql
         new(Resolve(expr), Resolve(separator));
 
     /// <summary>
+    /// The <c>LN(<paramref name="expr"/>)</c> function: the natural (base e)
+    /// logarithm of <paramref name="expr"/>.
+    /// </summary>
+    /// <param name="expr">The value whose logarithm is taken.</param>
+    /// <returns>An <c>LN</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+) syntax. SQL Server has
+    /// no <c>LN</c> — its single-argument <see cref="Log(object)"/> is the
+    /// natural logarithm.</remarks>
+    public static LnFunction Ln(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>LOG(<paramref name="expr"/>)</c> function: the logarithm of
+    /// <paramref name="expr"/> in the target dialect's own default base.
+    /// </summary>
+    /// <param name="expr">The value whose logarithm is taken.</param>
+    /// <returns>A <c>LOG</c> function expression.</returns>
+    /// <remarks>The base is dialect-defined, and the difference is silent: 10 on
+    /// PostgreSQL and SQLite (3.35+), e on MySQL and SQL Server. Oracle has no
+    /// single-argument form. Where the base must not depend on the target, use
+    /// <see cref="Ln(object)"/>, <see cref="Log10(object)"/>, or
+    /// <see cref="Log(object, object)"/>.</remarks>
+    public static LogFunction Log(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>LOG(<paramref name="base"/>, <paramref name="expr"/>)</c> function:
+    /// the logarithm of <paramref name="expr"/> to base <paramref name="base"/>.
+    /// </summary>
+    /// <param name="base">The base of the logarithm.</param>
+    /// <param name="expr">The value whose logarithm is taken.</param>
+    /// <returns>A <c>LOG</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+) syntax — all four read
+    /// the base first. SQL Server takes the two arguments in the opposite order
+    /// (<c>LOG(value, base)</c>): for an arbitrary base there, call this same
+    /// overload with the arguments swapped — <c>Log(value, base)</c>. Its base-e
+    /// and base-10 spellings are <see cref="Log(object)"/> and
+    /// <see cref="Log10(object)"/>; it has no <see cref="Ln(object)"/>. On
+    /// PostgreSQL this form is defined for <c>numeric</c> only, not
+    /// <c>double precision</c>.</remarks>
+    public static LogFunction Log(object @base, object expr) =>
+        new(Resolve(@base), Resolve(expr));
+
+    /// <summary>
+    /// The <c>LOG10(<paramref name="expr"/>)</c> function: the base-10 logarithm
+    /// of <paramref name="expr"/>.
+    /// </summary>
+    /// <param name="expr">The value whose logarithm is taken.</param>
+    /// <returns>A <c>LOG10</c> function expression.</returns>
+    /// <remarks>MySQL, PostgreSQL (12+), SQLite (3.35+), SQL Server syntax.
+    /// Oracle has no <c>LOG10</c> — spell it <c>Log(10, expr)</c> there.</remarks>
+    public static Log10Function Log10(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
     /// The <c>LOWER(<paramref name="source"/>)</c> function: lowercases
     /// <paramref name="source"/>.
     /// </summary>

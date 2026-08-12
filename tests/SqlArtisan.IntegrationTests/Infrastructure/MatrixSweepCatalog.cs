@@ -222,6 +222,11 @@ internal static class MatrixSweepCatalog
         // --- Universal functions ---
         Add("Abs", _ => Scalar(Abs(-5)));
         Add("Floor", _ => Scalar(Floor(1.7)));
+        // Oracle-only rounding: Oracle computes EXP to its NUMBER default of 38 significant
+        // digits, overflowing System.Decimal and throwing a client-side InvalidCastException this
+        // sweep can't tell from a real rejection. PostgreSQL has no round(double precision, int)
+        // overload, so the wrap must not apply there (#440 live-run finding, twice).
+        Add("Exp", dbms => Scalar(dbms == Dbms.Oracle ? Round(Exp(1), 4) : Exp(1)));
         Add("Power", _ => Scalar(Power(2, 3)));
         Add("Sqrt", _ => Scalar(Sqrt(16)));
         Add("Sign", _ => Scalar(Sign(-5)));
@@ -271,6 +276,21 @@ internal static class MatrixSweepCatalog
 
         // --- Character / numeric with dialect gaps ---
         Add("Mod", _ => Scalar(Mod(10, 3)));
+        Add("Ln", _ => Scalar(Ln(1)));
+        Add("Log10", _ => Scalar(Log10(1000)));
+        AddArity("Log", 1, _ => Scalar(Log(100)));
+        // Oracle-only rounding, same reason as Exp above: Oracle's LOG(base, x) isn't guaranteed
+        // to land exactly on an integer even for log_2(8), and the residual overflows
+        // System.Decimal; PostgreSQL rejects round(double precision, int), so it must stay bare.
+        cases.Add(new SweepCase(new MatrixKey("Log", 2),
+            dbms => Scalar(dbms == Dbms.Oracle ? Round(Log(2, 8), 4) : Log(2, 8)),
+            NegativeSkips: new Dictionary<Dbms, string>
+            {
+                [Dbms.SqlServer] = "T-SQL's LOG takes the value first and the base second "
+                    + "(LOG(float_expression [, base])), so the two-argument call text executes there "
+                    + "too — it just computes a different logarithm. Acceptance proves nothing about "
+                    + "the base-first form this entry describes.",
+            }));
         Add("Length", _ => Scalar(Length("abc")));
         Add("Substr", _ => Scalar(Substr("abcdef", 2, 3)));
         Add("Lpad", _ => Scalar(Lpad("x", 3, "0")));
