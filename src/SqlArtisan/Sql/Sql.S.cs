@@ -190,6 +190,65 @@ public static partial class Sql
         new(Resolve(expr));
 
     /// <summary>
+    /// The <c>STDDEV(<paramref name="expr"/>)</c> aggregate function.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="StddevFunction"/> emitting <c>STDDEV(expr)</c>.</returns>
+    /// <remarks>
+    /// MySQL, Oracle, PostgreSQL — but not the same statistic on all three:
+    /// MySQL's <c>STDDEV</c> is the population standard deviation, Oracle's and
+    /// PostgreSQL's is the sample standard deviation. For a value that keeps its
+    /// meaning across dialects, use <see cref="StddevPop(object)"/> or
+    /// <see cref="StddevSamp(object)"/> instead.
+    /// </remarks>
+    public static StddevFunction Stddev(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>STDDEV_POP(<paramref name="expr"/>)</c> aggregate function: the
+    /// population standard deviation of <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="StddevPopFunction"/> emitting <c>STDDEV_POP(expr)</c>.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
+    /// <see cref="Stdevp(object)"/>.</remarks>
+    public static StddevPopFunction StddevPop(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>STDDEV_SAMP(<paramref name="expr"/>)</c> aggregate function: the
+    /// sample standard deviation of <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="StddevSampFunction"/> emitting <c>STDDEV_SAMP(expr)</c>.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
+    /// <see cref="Stdev(object)"/>.</remarks>
+    public static StddevSampFunction StddevSamp(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>STDEV(<paramref name="expr"/>)</c> aggregate function: the sample
+    /// standard deviation of <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="StdevFunction"/> emitting <c>STDEV(expr)</c>.</returns>
+    /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
+    /// spell this <see cref="StddevSamp(object)"/>.</remarks>
+    public static StdevFunction Stdev(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>STDEVP(<paramref name="expr"/>)</c> aggregate function: the
+    /// population standard deviation of <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="StdevpFunction"/> emitting <c>STDEVP(expr)</c>.</returns>
+    /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
+    /// spell this <see cref="StddevPop(object)"/>.</remarks>
+    public static StdevpFunction Stdevp(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
     /// The <c>STRFTIME(<paramref name="format"/>, <paramref name="timevalue"/>, ...)</c>
     /// function: <paramref name="timevalue"/> shifted/adjusted by each modifier in
     /// order, then rendered as a string per <paramref name="format"/>'s

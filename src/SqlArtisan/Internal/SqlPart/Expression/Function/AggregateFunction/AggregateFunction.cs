@@ -1,9 +1,8 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// Base class for the aggregate functions (<c>SUM</c>, <c>COUNT</c>, <c>AVG</c>,
-/// <c>MAX</c>, <c>MIN</c>), each of which can become a window function via
-/// <c>Over(...)</c>. An aggregate is either an
+/// Base class for the aggregate functions (e.g. <c>SUM</c>), each of which can
+/// become a window function via <c>Over(...)</c>. An aggregate is either an
 /// <see cref="UnfilteredAggregateFunction"/> or, once a row filter is applied, a
 /// <see cref="FilteredAggregateFunction"/>.
 /// </summary>

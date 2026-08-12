@@ -55,6 +55,76 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Stddev_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Stddev(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("STDDEV(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void StddevPop_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(StddevPop(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("STDDEV_POP(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void StddevSamp_NumericValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(StddevSamp(_t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("STDDEV_SAMP(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Stdev_SqlServer_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Stdev(_t.Code))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("STDEV(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Stdevp_SqlServer_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Stdevp(_t.Code))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("STDEVP(\"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Strftime_Sqlite_CorrectSql()
     {
         SqlStatement sql =

@@ -126,6 +126,47 @@ public class AggregateWindowTests
     }
 
     [Fact]
+    public void StddevPop_OverPartitionBy_CorrectSql()
+    {
+        // Arrange
+        string expected = "SELECT STDDEV_POP(code) OVER (PARTITION BY name)";
+
+        // Act
+        SqlStatement sql = Select(StddevPop(_t.Code).Over(PartitionBy(_t.Name))).Build();
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void VarSamp_OverPartitionBy_CorrectSql()
+    {
+        // Arrange
+        string expected = "SELECT VAR_SAMP(code) OVER (PARTITION BY name)";
+
+        // Act
+        SqlStatement sql = Select(VarSamp(_t.Code).Over(PartitionBy(_t.Name))).Build();
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void Stdev_SqlServer_OverPartitionBy_CorrectSql()
+    {
+        // Arrange
+        string expected = "SELECT STDEV(code) OVER (PARTITION BY name)";
+
+        // Act
+        SqlStatement sql =
+            Select(Stdev(_t.Code).Over(PartitionBy(_t.Name)))
+            .Build(Dbms.SqlServer);
+
+        // Assert
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
     public void PartitionBy_WithNoExpressions_ThrowsArgumentException()
     {
         // Act & Assert

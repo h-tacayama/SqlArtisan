@@ -541,6 +541,68 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task StddevPop_OnSqlServer_ReportsSqla0100ButStdevDoesNot()
+    {
+        // #442: SQL Server has no STDDEV_POP token — it spells population standard
+        // deviation STDEVP, the other three dialects' STDDEV_POP has no SQL Server form.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = Stdev("price");
+                    var bad = {|#0:StddevPop("price")|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_sqlserver = any
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task Stdev_OnPostgreSql_ReportsSqla0100ButStddevSampDoesNot()
+    {
+        // #442: the mirror split — SQL Server's own STDEV/STDEVP/VAR/VARP tokens have no
+        // spelling on MySQL/Oracle/PostgreSQL, which use STDDEV_SAMP/STDDEV_POP/... instead.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = StddevSamp("price");
+                    var bad = {|#0:Stdev("price")|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_postgresql = any
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task BindArrayAndUnnest_OnMySql_ReportSqla0100()
     {
         // The Any/All/Some keys stay the subquery-form union (arity-1 collision, see

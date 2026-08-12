@@ -238,6 +238,19 @@ internal static class MatrixSweepCatalog
         Add("Max", _ => Select(Max(u.Age)).From(u));
         Add("Min", _ => Select(Min(u.Age)).From(u));
         Add("Sum", _ => Select(Sum(o.Amount)).From(o));
+        // Same Oracle-only NUMBER-precision overflow as Exp/Log above (#442 live-run finding):
+        // STDDEV/STDDEV_POP/STDDEV_SAMP take a square root, so Oracle's default 38-digit NUMBER
+        // overflows System.Decimal; VAR_POP/VAR_SAMP/VARIANCE never take that root and don't need it.
+        Add("StddevPop", dbms => Select(dbms == Dbms.Oracle ? Round(StddevPop(o.Amount), 4) : StddevPop(o.Amount)).From(o));
+        Add("StddevSamp", dbms => Select(dbms == Dbms.Oracle ? Round(StddevSamp(o.Amount), 4) : StddevSamp(o.Amount)).From(o));
+        Add("Stddev", dbms => Select(dbms == Dbms.Oracle ? Round(Stddev(o.Amount), 4) : Stddev(o.Amount)).From(o));
+        Add("Stdev", _ => Select(Stdev(o.Amount)).From(o));
+        Add("Stdevp", _ => Select(Stdevp(o.Amount)).From(o));
+        Add("VarPop", _ => Select(VarPop(o.Amount)).From(o));
+        Add("VarSamp", _ => Select(VarSamp(o.Amount)).From(o));
+        Add("Variance", _ => Select(Variance(o.Amount)).From(o));
+        Add("Var", _ => Select(Var(o.Amount)).From(o));
+        Add("Varp", _ => Select(Varp(o.Amount)).From(o));
         Add("CurrentTimestamp", _ => Scalar(CurrentTimestamp));
         AddArity("Concat", 2, _ => Scalar(Concat("a", "b")));
         AddArity("Concat", 4, _ => Scalar(Concat("a", "b", "c")));

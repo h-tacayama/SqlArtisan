@@ -184,6 +184,11 @@ internal static class Keywords
     internal const string Some = "SOME";
     internal const string Source = "SOURCE";
     internal const string Sqrt = "SQRT";
+    internal const string Stddev = "STDDEV";
+    internal const string StddevPop = "STDDEV_POP";
+    internal const string StddevSamp = "STDDEV_SAMP";
+    internal const string Stdev = "STDEV";
+    internal const string Stdevp = "STDEVP";
     internal const string Strftime = "STRFTIME";
     internal const string StringAgg = "STRING_AGG";
     internal const string Substr = "SUBSTR";
@@ -215,6 +220,11 @@ internal static class Keywords
     internal const string Using = "USING";
     internal const string Value = "VALUE";
     internal const string Values = "VALUES";
+    internal const string Var = "VAR";
+    internal const string VarPop = "VAR_POP";
+    internal const string VarSamp = "VAR_SAMP";
+    internal const string Variance = "VARIANCE";
+    internal const string Varp = "VARP";
     internal const string Wait = "WAIT";
     internal const string When = "WHEN";
     internal const string Where = "WHERE";
