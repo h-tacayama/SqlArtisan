@@ -27,7 +27,9 @@ public abstract class SqlExpression : SqlPart
     public SortOrder Desc => new(this, SortDirection.Desc);
 
     /// <summary>
-    /// Gets the <c>expr IS NULL</c> condition.
+    /// Gets the <c>expr IS NULL</c> condition — not to be confused with
+    /// <see cref="Sql.Isnull(object, object)"/>, the two-argument SQL Server
+    /// <c>ISNULL(expr, alt)</c> fallback function.
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public IsNullCondition IsNull => new(this);

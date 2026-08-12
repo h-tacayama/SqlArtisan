@@ -527,7 +527,10 @@ public static partial class Sql
     /// Drops <paramref name="condition"/> out of a <c>WHERE</c> clause based on a
     /// runtime flag, without breaking the fluent chain: returns it when
     /// <paramref name="when"/> is <see langword="true"/>, otherwise an empty
-    /// condition that emits nothing.
+    /// condition that emits nothing. A C#-side helper — not to be confused with
+    /// <see cref="Sql.If(SqlCondition, object, object)"/> or
+    /// <see cref="Sql.Iif(SqlCondition, object, object)"/>, which emit a SQL
+    /// <c>IF</c>/<c>IIF</c> value expression.
     /// </summary>
     /// <param name="when">Whether to include <paramref name="condition"/>.</param>
     /// <param name="condition">The condition to include.</param>

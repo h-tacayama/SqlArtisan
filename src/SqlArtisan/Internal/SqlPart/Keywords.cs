@@ -79,7 +79,10 @@ internal static class Keywords
     internal const string Grouping = "GROUPING";
     internal const string GroupingId = "GROUPING_ID";
     internal const string Having = "HAVING";
+    internal const string If = "IF";
+    internal const string Ifnull = "IFNULL";
     internal const string Ignore = "IGNORE";
+    internal const string Iif = "IIF";
     internal const string In = "IN";
     internal const string Inner = "INNER";
     internal const string Insert = "INSERT";
@@ -89,6 +92,7 @@ internal static class Keywords
     internal const string Interval = "INTERVAL";
     internal const string Into = "INTO";
     internal const string Is = "IS";
+    internal const string Isnull = "ISNULL";
     internal const string Join = "JOIN";
     internal const string JsonExtract = "JSON_EXTRACT";
     internal const string JsonQuery = "JSON_QUERY";

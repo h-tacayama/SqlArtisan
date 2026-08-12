@@ -137,6 +137,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Coalesce()` for `COALESCE`
 - `Decode()` for `DECODE`
 - `Format(value, format[, culture])` for `FORMAT(value, format[, culture])` (SQL Server)
+- `If(condition, then, else)` for `IF(condition, then, else)` (MySQL; SQLite 3.48+ accepts it as a second name for `IIF`)
+- `Ifnull(expr, alt)` for `IFNULL(expr, alt)` (MySQL, SQLite)
+- `Iif(condition, then, else)` for `IIF(condition, then, else)` (SQL Server 2012+, SQLite 3.32+)
+- `Isnull(expr, alt)` for `ISNULL(expr, alt)` (SQL Server)
 - `Nullif()` for `NULLIF`
 - `Numtodsinterval()` for `NUMTODSINTERVAL`
 - `Numtoyminterval()` for `NUMTOYMINTERVAL`
@@ -153,6 +157,15 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > Neither matches SQL Server's .NET-style (`"yyyy-MM-dd"`) format strings, so a
 > call executes on both without erroring but not with the semantics this factory
 > targets — there is no MySQL or SQLite equivalent of SQL Server's `Format(...)`.
+
+> [!NOTE]
+> `Isnull(expr, alt)` is not `expr.IsNull` — the two-argument `ISNULL(expr, alt)`
+> fallback function above is a different construct from the no-argument
+> `expr IS NULL` predicate property on every `SqlExpression`. Likewise
+> `If(condition, then, else)` is not `ConditionIf(when, condition)` — `If`
+> emits a SQL `IF(...)` value expression, while `ConditionIf` is a C#-side
+> helper that drops a `WHERE`-clause condition based on a runtime flag and
+> emits no SQL of its own.
 
 ---
 

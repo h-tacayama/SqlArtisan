@@ -6,6 +6,66 @@ namespace SqlArtisan.Tests;
 public partial class FunctionTests
 {
     [Fact]
+    public void If_BasicPattern_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(If(_t.Code > 1, "adult", "minor"))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("IF(`t`.code > ?0, ?1, ?2)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void If_EmptyCondition_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(If(ConditionIf(false, _t.Code > 1), "a", "b")).Build());
+
+        Assert.Equal("IF(...) requires a condition.", ex.Message);
+    }
+
+    [Fact]
+    public void Ifnull_CharacterValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Ifnull(_t.Name, "Unknown"))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("IFNULL(`t`.name, ?0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Iif_BasicPattern_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Iif(_t.Code > 1, "adult", "minor"))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("IIF(\"t\".code > @0, @1, @2)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Iif_EmptyCondition_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Iif(ConditionIf(false, _t.Code > 1), "a", "b")).Build());
+
+        Assert.Equal("IIF(...) requires a condition.", ex.Message);
+    }
+
+    [Fact]
     public void Instr_BasicPattern_CorrectSql()
     {
         SqlStatement sql =
@@ -377,5 +437,19 @@ public partial class FunctionTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() => IntervalLiteral(""));
 
         Assert.Equal("INTERVAL requires a literal value.", ex.Message);
+    }
+
+    [Fact]
+    public void Isnull_CharacterValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Isnull(_t.Name, "Unknown"))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("ISNULL(\"t\".name, @0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 }

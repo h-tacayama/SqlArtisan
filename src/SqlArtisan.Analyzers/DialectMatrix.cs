@@ -207,6 +207,24 @@ internal static class DialectMatrix
         [new MatrixKey("Substrb")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Decode")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Nvl")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+
+        // --- Conditional NULL-handling / branching functions (#443): the dialect-faithful
+        // siblings of Coalesce/Nvl/Decode, and of a searched CASE WHEN. ---
+        [new MatrixKey("Ifnull")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
+        [new MatrixKey("Isnull")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
+        // If: MySQL's own IF(cond, then, else). SQLite registered IF as a genuine second name
+        // for IIF starting in 3.48 (source-verified against the sqlite/sqlite GitHub mirror,
+        // func.c's aBuiltinFunc[] table — no "if" entry at tag version-3.47.0, present at
+        // version-3.48.0) — below the BaselineVersion table's documented 3.46 floor, but the
+        // dialect sweep's actual pinned engine (3.50.x via SQLitePCLRaw.bundle_e_sqlite3
+        // 3.0.3) already has it, so the plain bool here matches what that live sweep observes
+        // (VerifiedAgainstVersion's "floor, not exact pin" caveat for SQLite). No Bounds row:
+        // there is no separately-pinned older SQLite image to make a version-specific claim
+        // against, the way Oracle23aiBoundSweepTests does for the 21c/23ai split.
+        [new MatrixKey("If")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
+        // IIF: SQL Server (2012+) and SQLite (3.32+, live-verified by the dialect sweep) both
+        // spell it IIF; MySQL/Oracle/PostgreSQL have no equivalent single-call form.
+        [new MatrixKey("Iif")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: true, sqlServer: true),
         // NUMTOYMINTERVAL/NUMTODSINTERVAL: Oracle-only conversion functions (Sql.N.cs XML
         // remarks, docs/functions.md); no other engine defines either (#448).
         [new MatrixKey("Numtoyminterval")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
@@ -745,6 +763,9 @@ internal static class DialectMatrix
         [new MatrixKey("Concat", 4)] = new VersionBounds(sqlite: V("3.44")),
         [new MatrixKey("NullsFirst")] = new VersionBounds(sqlite: V("3.30")),
         [new MatrixKey("NullsLast")] = new VersionBounds(sqlite: V("3.30")),
+        // IIF: SQLite 3.32+ and SQL Server 2012+ (T-SQL Reference) — both bounds share this
+        // one row since VersionBounds is keyed per-entry, not per-dialect-group.
+        [new MatrixKey("Iif")] = new VersionBounds(sqlite: V("3.32"), sqlServer: V("2012")),
 
         // --- SQL Server (matrix comments above; #263 register) ---
         [new MatrixKey("Datetrunc")] = new VersionBounds(sqlServer: V("2022")),

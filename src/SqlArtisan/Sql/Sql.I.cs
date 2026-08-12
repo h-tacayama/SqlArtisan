@@ -6,6 +6,61 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
+    /// The <c>IF(<paramref name="condition"/>, <paramref name="then"/>, <paramref name="else"/>)</c>
+    /// function: <paramref name="then"/> when <paramref name="condition"/> is
+    /// true, otherwise <paramref name="else"/>.
+    /// </summary>
+    /// <param name="condition">The condition to test.</param>
+    /// <param name="then">The value returned when <paramref name="condition"/> is true.</param>
+    /// <param name="else">The value returned when <paramref name="condition"/> is false.</param>
+    /// <returns>An <c>IF</c> function expression.</returns>
+    /// <exception cref="ArgumentException"><paramref name="condition"/> is empty
+    /// (every operand excluded).</exception>
+    /// <remarks>MySQL syntax; SQLite accepts it too (3.48+, as a second name for
+    /// <c>IIF</c> — use <see cref="Iif(SqlCondition, object, object)"/> there for
+    /// portability to older SQLite). Distinct from
+    /// <see cref="ConditionIf(bool, SqlCondition)"/>, which drops a
+    /// <c>WHERE</c>-clause condition based on a C#-side flag and emits no SQL of
+    /// its own — this factory emits the <c>IF(...)</c> value expression itself.
+    /// For a standard multi-branch equivalent use <c>CASE WHEN</c>
+    /// (<see cref="When(SqlCondition)"/>) instead.</remarks>
+    public static IfFunction If(SqlCondition condition, object then, object @else) =>
+        new(condition, Resolve(then), Resolve(@else));
+
+    /// <summary>
+    /// The <c>IFNULL(<paramref name="expr"/>, <paramref name="alt"/>)</c> function:
+    /// returns <paramref name="expr"/> when it is not <see langword="null"/>,
+    /// otherwise <paramref name="alt"/>.
+    /// </summary>
+    /// <param name="expr">The expression returned when it is not <see langword="null"/>.</param>
+    /// <param name="alt">The fallback returned when <paramref name="expr"/> is <see langword="null"/>.</param>
+    /// <returns>An <c>IFNULL</c> function expression.</returns>
+    /// <remarks>MySQL/SQLite syntax. For the standard equivalent use
+    /// <see cref="Coalesce(object, object, object[])"/>; for SQL Server's
+    /// spelling use <see cref="Isnull(object, object)"/>; for Oracle's use
+    /// <see cref="Nvl(object, object)"/>.</remarks>
+    public static IfnullFunction Ifnull(object expr, object alt) =>
+        new(Resolve(expr), Resolve(alt));
+
+    /// <summary>
+    /// The <c>IIF(<paramref name="condition"/>, <paramref name="then"/>, <paramref name="else"/>)</c>
+    /// function: <paramref name="then"/> when <paramref name="condition"/> is
+    /// true, otherwise <paramref name="else"/>.
+    /// </summary>
+    /// <param name="condition">The condition to test.</param>
+    /// <param name="then">The value returned when <paramref name="condition"/> is true.</param>
+    /// <param name="else">The value returned when <paramref name="condition"/> is false.</param>
+    /// <returns>An <c>IIF</c> function expression.</returns>
+    /// <exception cref="ArgumentException"><paramref name="condition"/> is empty
+    /// (every operand excluded).</exception>
+    /// <remarks>SQL Server/SQLite syntax. On MySQL use <see cref="If(SqlCondition, object, object)"/>
+    /// instead. Distinct from <see cref="ConditionIf(bool, SqlCondition)"/>, which
+    /// drops a <c>WHERE</c>-clause condition based on a C#-side flag and emits no
+    /// SQL of its own.</remarks>
+    public static IifFunction Iif(SqlCondition condition, object then, object @else) =>
+        new(condition, Resolve(then), Resolve(@else));
+
+    /// <summary>
     /// Starts an <c>INSERT INTO table</c> statement with no column list.
     /// Continue with <c>.Values(...)</c> to supply the rows, which must line up
     /// with the table's column order.
@@ -179,4 +234,21 @@ public static partial class Sql
         string value,
         IntervalField leadingField,
         IntervalField trailingField) => new(value, leadingField, trailingField);
+
+    /// <summary>
+    /// The <c>ISNULL(<paramref name="expr"/>, <paramref name="alt"/>)</c> function:
+    /// returns <paramref name="expr"/> when it is not <see langword="null"/>,
+    /// otherwise <paramref name="alt"/>.
+    /// </summary>
+    /// <param name="expr">The expression returned when it is not <see langword="null"/>.</param>
+    /// <param name="alt">The fallback returned when <paramref name="expr"/> is <see langword="null"/>.</param>
+    /// <returns>An <c>ISNULL</c> function expression.</returns>
+    /// <remarks>SQL Server syntax — not to be confused with
+    /// <see cref="SqlExpression.IsNull"/>, the no-argument <c>expr IS NULL</c>
+    /// predicate. For the standard equivalent use
+    /// <see cref="Coalesce(object, object, object[])"/>; for MySQL/SQLite's
+    /// spelling use <see cref="Ifnull(object, object)"/>; for Oracle's use
+    /// <see cref="Nvl(object, object)"/>.</remarks>
+    public static IsnullFunction Isnull(object expr, object alt) =>
+        new(Resolve(expr), Resolve(alt));
 }
