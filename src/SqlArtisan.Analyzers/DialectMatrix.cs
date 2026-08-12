@@ -698,7 +698,7 @@ internal static class DialectMatrix
         [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15")),
         // Log10 sits in this group by file position only, not by version — log10() itself
         // landed in PostgreSQL 12, three releases before MERGE/REGEXP_*'s 15.
-        [new MatrixKey("Log10")] = new VersionBounds(postgreSql: V("12")),
+        [new MatrixKey("Log10")] = new VersionBounds(postgreSql: V("12"), sqlite: V("3.35")),
 
         // --- SQLite point releases (matrix comments above) ---
         [new MatrixKey("RightJoin")] = new VersionBounds(sqlite: V("3.39")),
@@ -706,6 +706,20 @@ internal static class DialectMatrix
         [new MatrixKey("NaturalRightJoin")] = new VersionBounds(sqlite: V("3.39")),
         [new MatrixKey("NaturalFullJoin")] = new VersionBounds(sqlite: V("3.39")),
         [new MatrixKey("Returning")] = new VersionBounds(sqlite: V("3.35")),
+        // The math-functions extension (SQLITE_ENABLE_MATH_FUNCTIONS) landed in 3.35 — the
+        // same release as RETURNING above, but a separate feature; the Entries comments above
+        // name it per row (Ceil/Ceiling, Floor/Exp/Power/Sqrt/Sign, Mod, Log/Ln/Log10).
+        [new MatrixKey("Ceil")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Ceiling")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Floor")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Exp")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Power")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Sqrt")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Sign")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Mod")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Ln")] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Log", 1)] = new VersionBounds(sqlite: V("3.35")),
+        [new MatrixKey("Log", 2)] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("StringAgg")] = new VersionBounds(sqlite: V("3.44")),
         [new MatrixKey("StringAgg", 3)] = new VersionBounds(sqlite: V("3.44")),
         [new MatrixKey("Concat", 2)] = new VersionBounds(sqlite: V("3.44")),

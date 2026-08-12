@@ -47,9 +47,11 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > declares `LOG(float_expression [, base])` — value first, base second.
 >
 > `SQLA0100` flags `Log(x)` on Oracle, and — blind to argument order — *every*
-> two-argument `Log` on SQL Server, including the correct T-SQL
-> `Log(value, base)`; suppress that one call with
-> `sqlartisan_construct_log_arity2 = supported`.
+> two-argument `Log` on SQL Server, including the correct T-SQL spelling: call
+> `Log(base, x)` with the arguments swapped, `Log(x, base)`, to reach an
+> arbitrary base there. `sqlartisan_construct_log_arity2 = supported` silences
+> every 2-arg `Log` call in its `.editorconfig` scope, not one call — narrow
+> the `[*.cs]` section to where the swapped order is actually intended.
 >
 > **For a base that does not vary by target:** `Ln(x)` (MySQL, Oracle,
 > PostgreSQL, SQLite), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite, SQL Server),

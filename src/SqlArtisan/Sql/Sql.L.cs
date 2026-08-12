@@ -199,9 +199,10 @@ public static partial class Sql
     /// <returns>A <c>LOG</c> function expression.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite syntax — all four read the base
     /// first. SQL Server takes the two arguments in the opposite order
-    /// (<c>LOG(value, base)</c>), so the same text runs there and returns a
-    /// different number; spell that dialect's call <see cref="Log(object)"/> or
-    /// <see cref="Log10(object)"/> instead. On PostgreSQL this form is defined for
+    /// (<c>LOG(value, base)</c>): for an arbitrary base there, call this same
+    /// overload with the arguments swapped — <c>Log(value, base)</c>; only base
+    /// 10 and base e have their own factory (<see cref="Log10(object)"/>,
+    /// <see cref="Ln(object)"/>). On PostgreSQL this form is defined for
     /// <c>numeric</c> only, not <c>double precision</c>.</remarks>
     public static LogFunction Log(object @base, object expr) =>
         new(Resolve(@base), Resolve(expr));
