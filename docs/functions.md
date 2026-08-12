@@ -66,7 +66,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `CurrentDate` for `CURRENT_DATE`
 - `CurrentTime` for `CURRENT_TIME`
 - `CurrentTimestamp` for `CURRENT_TIMESTAMP`
-- `Date()` for `DATE` (SQLite; the 1-argument form is also MySQL/PostgreSQL)
+- `Date(timevalue, modifier, ...)` for `DATE` (SQLite; 1-argument form also MySQL/PostgreSQL)
 - `DateAdd()` for `DATE_ADD` (MySQL — not `Dateadd()`, SQL Server's `DATEADD` below)
 - `Dateadd()` for `DATEADD` (SQL Server)
 - `Datediff()` for `DATEDIFF` (SQL Server)
@@ -74,13 +74,13 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Datepart()` for `DATEPART` (SQL Server)
 - `DateSub()` for `DATE_SUB` (MySQL)
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
-- `Datetime()` for `DATETIME` (SQLite)
+- `Datetime(timevalue, modifier, ...)` for `DATETIME` (SQLite)
 - `Datetrunc()` for `DATETRUNC` (SQL Server 2022+; use `Format()` on earlier versions)
 - `Extract()` for `EXTRACT` (Date/Time Overload)
-- `Julianday()` for `JULIANDAY` (SQLite)
+- `Julianday(timevalue, modifier, ...)` for `JULIANDAY` (SQLite)
 - `LastDay()` for `LAST_DAY`
 - `MonthsBetween()` for `MONTHS_BETWEEN`
-- `Strftime()` for `STRFTIME` (SQLite)
+- `Strftime(format, timevalue, modifier, ...)` for `STRFTIME` (SQLite)
 - `Sysdate` for `SYSDATE`
 - `Systimestamp` for `SYSTIMESTAMP`
 - `Timestampadd()` for `TIMESTAMPADD` (MySQL)
@@ -94,11 +94,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > [Expressions: Interval Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#interval-expressions).
 
 > [!NOTE]
-> `Date()`/`Datetime()`/`Julianday()`/`Strftime()` accept SQLite modifier
-> strings (`"+30 days"`, `"start of month"`) as trailing `params object[]`
-> arguments — plain strings rather than a fixed enum, since SQLite's modifier
-> grammar is open-ended. Each modifier binds as a parameter, same as the time
-> value itself.
+> `Date()`/`Datetime()`/`Julianday()`/`Strftime()` apply each modifier in order
+> (`"start of month"`, `"+1 month"`). SQLite yields `NULL` rather than an error
+> for a modifier it doesn't recognize or a time value it can't parse, so a typo
+> surfaces as a silently empty column instead of a failed query.
 
 ---
 
