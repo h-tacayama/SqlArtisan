@@ -241,9 +241,11 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 > All three engines accept the call and return a number, so `SQLA0100` cannot
 > catch this — the construct is grammatically valid everywhere it runs; only
 > the value it computes differs. For a statistic that keeps its meaning across
-> dialects, use `StddevPop()`/`StddevSamp()` or `VarPop()`/`VarSamp()` instead
-> — SQL Server has no `STDDEV`/`VARIANCE` spelling at all, so a query that
-> needs to also run there has to pick one of those explicit forms regardless.
+> these three dialects, use `StddevPop()`/`StddevSamp()` or `VarPop()`/`VarSamp()`
+> instead. SQL Server runs none of those four — it has no `STDDEV`/`VARIANCE`
+> spelling either, and reaches the same statistics through its own
+> `Stdevp()`/`Stdev()`/`Varp()`/`Var()`, so a query targeting it has to name
+> the population/sample choice there too.
 
 ---
 

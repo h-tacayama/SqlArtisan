@@ -889,7 +889,7 @@ SqlStatement sql =
 
 ### Example using an Aggregate
 
-Aggregate functions (`Sum`, `Count`, `Avg`, `Max`, `Min`) can also be used as window functions via `Over(...)`.
+Aggregate functions — `Sum`, `Count`, `Avg`, `Max`, `Min`, and the statistical aggregates listed under [Functions: Aggregate](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#aggregate-functions) — can also be used as window functions via `Over(...)`.
 
 ```csharp
 UsersTable u = new();

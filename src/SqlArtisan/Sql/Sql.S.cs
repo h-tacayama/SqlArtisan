@@ -232,8 +232,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
     /// <returns>A <see cref="StdevFunction"/> emitting <c>STDEV(expr)</c>.</returns>
-    /// <remarks>SQL Server syntax — no double-D. Other dialects spell this
-    /// <see cref="StddevSamp(object)"/>.</remarks>
+    /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
+    /// spell this <see cref="StddevSamp(object)"/>.</remarks>
     public static StdevFunction Stdev(object expr) =>
         new(Resolve(expr));
 
@@ -243,8 +243,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
     /// <returns>A <see cref="StdevpFunction"/> emitting <c>STDEVP(expr)</c>.</returns>
-    /// <remarks>SQL Server syntax — no double-D. Other dialects spell this
-    /// <see cref="StddevPop(object)"/>.</remarks>
+    /// <remarks>SQL Server syntax — no double-D. MySQL, Oracle, and PostgreSQL
+    /// spell this <see cref="StddevPop(object)"/>.</remarks>
     public static StdevpFunction Stdevp(object expr) =>
         new(Resolve(expr));
 

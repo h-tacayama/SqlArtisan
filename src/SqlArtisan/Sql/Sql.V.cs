@@ -48,7 +48,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
     /// <returns>A <see cref="VarFunction"/> emitting <c>VAR(expr)</c>.</returns>
-    /// <remarks>SQL Server syntax. Other dialects spell this
+    /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
     /// <see cref="VarSamp(object)"/>.</remarks>
     public static VarFunction Var(object expr) =>
         new(Resolve(expr));
@@ -96,7 +96,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to aggregate.</param>
     /// <returns>A <see cref="VarpFunction"/> emitting <c>VARP(expr)</c>.</returns>
-    /// <remarks>SQL Server syntax. Other dialects spell this
+    /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
     /// <see cref="VarPop(object)"/>.</remarks>
     public static VarpFunction Varp(object expr) =>
         new(Resolve(expr));
