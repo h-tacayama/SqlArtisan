@@ -298,8 +298,8 @@ public static partial class Sql
     /// <param name="source">The string searched.</param>
     /// <param name="substring">The substring to search for.</param>
     /// <returns>A <see cref="StrposFunction"/> emitting <c>STRPOS(source, substring)</c>.</returns>
-    /// <remarks>PostgreSQL syntax. For MySQL's keyword form with the reverse
-    /// argument order, see <see cref="Position(object, object)"/>.</remarks>
+    /// <remarks>PostgreSQL syntax. For the keyword form (MySQL, PostgreSQL) with the
+    /// reverse argument order, see <see cref="Position(object, object)"/>.</remarks>
     public static StrposFunction Strpos(object source, object substring) =>
         new(Resolve(source), Resolve(substring));
 

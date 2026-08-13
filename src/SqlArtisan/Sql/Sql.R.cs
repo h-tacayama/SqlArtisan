@@ -178,6 +178,9 @@ public static partial class Sql
     /// <param name="source">The string to take characters from.</param>
     /// <param name="length">The number of characters to take.</param>
     /// <returns>The RIGHT construct.</returns>
+    /// <remarks>MySQL, PostgreSQL, and SQL Server syntax. Oracle and SQLite have no
+    /// <c>RIGHT</c> — slice with <see cref="Substr(object, object)"/> and a negative
+    /// position there.</remarks>
     public static RightFunction Right(object source, object length) =>
         new(Resolve(source), Resolve(length));
 

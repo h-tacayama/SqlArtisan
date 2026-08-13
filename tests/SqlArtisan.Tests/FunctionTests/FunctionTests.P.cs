@@ -36,15 +36,15 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Position_MySql_SubstringAndSource_CorrectSql()
+    public void Position_SubstringAndSource_CorrectSql()
     {
         SqlStatement sql =
             Select(Position("a", _t.Name))
-            .Build(Dbms.MySql);
+            .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("POSITION(?0 IN `t`.name)");
+        expected.Append("POSITION(:0 IN \"t\".name)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
