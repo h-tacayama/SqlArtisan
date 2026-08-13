@@ -328,6 +328,13 @@ internal static class MatrixSweepCatalog
         Add("Substrb", _ => Scalar(Substrb("abcdef", 2)));
         Add("Decode", _ => Scalar(Decode(u.Age, (30, "thirty"), "other")));
         Add("Nvl", _ => Scalar(Nvl(u.Name, "x")));
+        Add("Ifnull", _ => Scalar(Ifnull(u.Name, "x")));
+        // MySQL does define ISNULL, but as the 1-argument "is this NULL" predicate function
+        // (DbmsSupport false there) — the 2-argument call below rejects on arg count, not on
+        // the name being unrecognized; still a clean rejection for the sweep's purposes.
+        Add("Isnull", _ => Scalar(Isnull(u.Name, "x")));
+        Add("If", _ => Scalar(If(u.Age > 1, "adult", "minor")));
+        Add("Iif", _ => Scalar(Iif(u.Age > 1, "adult", "minor")));
         Add("Numtodsinterval", _ => Scalar(Numtodsinterval(30, DateTimePart.Day)));
         Add("Numtoyminterval", _ => Scalar(Numtoyminterval(3, DateTimePart.Month)));
 

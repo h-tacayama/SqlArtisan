@@ -3004,6 +3004,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Coalesce()` for `COALESCE`
 - `Decode()` for `DECODE`
 - `Format(value, format[, culture])` for `FORMAT(value, format[, culture])` (SQL Server)
+- `If(condition, then, else)` for `IF(condition, then, else)` (MySQL; SQLite 3.48+ accepts it as a second name for `IIF`)
+- `Ifnull(expr, alt)` for `IFNULL(expr, alt)` (MySQL, SQLite)
+- `Iif(condition, then, else)` for `IIF(condition, then, else)` (SQLite 3.32+, SQL Server 2012+)
+- `Isnull(expr, alt)` for `ISNULL(expr, alt)` (SQL Server)
 - `Nullif()` for `NULLIF`
 - `Numtodsinterval()` for `NUMTODSINTERVAL`
 - `Numtoyminterval()` for `NUMTOYMINTERVAL`
@@ -3020,6 +3024,12 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > Neither matches SQL Server's .NET-style (`"yyyy-MM-dd"`) format strings, so a
 > call executes on both without erroring but not with the semantics this factory
 > targets — there is no MySQL or SQLite equivalent of SQL Server's `Format(...)`.
+
+> [!NOTE]
+> Both names have a near-twin elsewhere in the API: `Isnull(expr, alt)` is this
+> fallback function, not the `expr IS NULL` predicate (that is the `IsNull`
+> property); `If(...)` emits a SQL `IF(...)` value, not `ConditionIf(...)`, the
+> C#-side helper that drops a `WHERE` condition and emits no SQL.
 
 ---
 
@@ -3677,6 +3687,9 @@ the version is what lifts it.
 | `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`); none of these functions exist below it. |
 | `StringAgg` (both overloads), `Concat` (both overloads) | SQLite | 3.44 | `string_agg`/`concat` landed in SQLite 3.44. |
 | `NullsFirst`, `NullsLast` | SQLite | 3.30 | `NULLS FIRST`/`NULLS LAST` landed in SQLite 3.30. |
+| `Iif` | SQLite | 3.32 | `IIF(...)` landed in SQLite 3.32. |
+| `If` | SQLite | 3.48 | SQLite registered `IF` as a second name for `IIF` in 3.48; earlier versions have `IIF` only. MySQL's own `IF` predates its 8.0 baseline, so that dialect carries no bound. |
+| `Iif` | SQL Server | 2012 | `IIF(...)` has been available since SQL Server 2012. |
 | `Trim` (1-argument form) | SQL Server | 2017 | `TRIM(...)` landed in SQL Server 2017. |
 | `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim`/`Trim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the trim-characters overloads all landed in SQL Server 2022. |
 
@@ -3727,11 +3740,13 @@ add `log10()` as a named alias for the base-10 `log()`.
 - [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sign`, `sqrt`) — 3.35.0, same release as `RETURNING`.
 - [`RIGHT JOIN` / `FULL OUTER JOIN`](https://sqlite.org/releaselog/3_39_0.html) — 3.39.0 (2022-06-25).
 - [`string_agg()` / `concat()`](https://sqlite.org/releaselog/3_44_0.html) — 3.44.0 (2023-11-01).
+- [`iif()`](https://sqlite.org/releaselog/3_32_0.html) — 3.32.0 (2020-05-22); `if()` was added as a second name for it in [3.48.0](https://sqlite.org/releaselog/3_48_0.html) (2025-01-14), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.47.0`, present at `version-3.48.0`).
 
 **SQL Server** — Microsoft Learn's "Applies to" notes:
 
 - [`TRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/trim-transact-sql) — 2017; its optional trim-characters argument — 2022.
 - [`DATETRUNC`](https://learn.microsoft.com/en-us/sql/t-sql/functions/datetrunc-transact-sql), [`GREATEST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-greatest-transact-sql), [`LEAST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-least-transact-sql), and the [`LTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/ltrim-transact-sql) / [`RTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/rtrim-transact-sql) trim-characters argument — 2022 (16.x).
+- [`IIF`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-iif-transact-sql) — 2012 (11.x).
 
 </details>
 

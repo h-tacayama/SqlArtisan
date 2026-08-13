@@ -137,6 +137,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Coalesce()` for `COALESCE`
 - `Decode()` for `DECODE`
 - `Format(value, format[, culture])` for `FORMAT(value, format[, culture])` (SQL Server)
+- `If(condition, then, else)` for `IF(condition, then, else)` (MySQL; SQLite 3.48+ accepts it as a second name for `IIF`)
+- `Ifnull(expr, alt)` for `IFNULL(expr, alt)` (MySQL, SQLite)
+- `Iif(condition, then, else)` for `IIF(condition, then, else)` (SQLite 3.32+, SQL Server 2012+)
+- `Isnull(expr, alt)` for `ISNULL(expr, alt)` (SQL Server)
 - `Nullif()` for `NULLIF`
 - `Numtodsinterval()` for `NUMTODSINTERVAL`
 - `Numtoyminterval()` for `NUMTOYMINTERVAL`
@@ -153,6 +157,12 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > Neither matches SQL Server's .NET-style (`"yyyy-MM-dd"`) format strings, so a
 > call executes on both without erroring but not with the semantics this factory
 > targets — there is no MySQL or SQLite equivalent of SQL Server's `Format(...)`.
+
+> [!NOTE]
+> Both names have a near-twin elsewhere in the API: `Isnull(expr, alt)` is this
+> fallback function, not the `expr IS NULL` predicate (that is the `IsNull`
+> property); `If(...)` emits a SQL `IF(...)` value, not `ConditionIf(...)`, the
+> C#-side helper that drops a `WHERE` condition and emits no SQL.
 
 ---
 
