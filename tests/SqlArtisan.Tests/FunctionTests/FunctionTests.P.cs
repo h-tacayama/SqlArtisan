@@ -36,7 +36,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Position_SubstringAndSource_CorrectSql()
+    public void Position_MySql_SubstringAndSource_CorrectSql()
     {
         SqlStatement sql =
             Select(Position("a", _t.Name))
