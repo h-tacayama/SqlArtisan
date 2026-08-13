@@ -173,6 +173,28 @@ public partial class FunctionTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // Past the three declared parameters the arguments arrive as a params tail
+    // merged after them, so this pins the merged order — mirrors Concat's own test.
+    [Fact]
+    public void ConcatWs_MoreValuesThanDeclaredParameters_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(ConcatWs("-", _t.Name, "a", "b", "c", _t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CONCAT_WS(:0, \"t\".name, :1, :2, :3, \"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+
+        Assert.Equal(4, sql.Parameters.Count);
+        Assert.Equal("-", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("a", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("b", sql.Parameters.Get<string>(":2"));
+        Assert.Equal("c", sql.Parameters.Get<string>(":3"));
+    }
+
     [Fact]
     public void Contains_SqlServer_CorrectSql()
     {
