@@ -226,6 +226,20 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Substring_SourcePositionLength_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Substring(_t.Name, 1, 3))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("SUBSTRING(\"t\".name, :0, :1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Sum_NumericValue_CorrectSql()
     {
         SqlStatement sql =

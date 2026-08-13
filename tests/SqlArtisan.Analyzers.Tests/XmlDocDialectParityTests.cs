@@ -41,6 +41,7 @@ public class XmlDocDialectParityTests
         ["M:SqlArtisan.Sql.RegexpReplace(System.Object,System.Object,System.Object)", "RegexpReplace", 3],
         ["M:SqlArtisan.Sql.Trim(System.Object,System.Object)", "Trim", 2],
         ["M:SqlArtisan.Sql.Substr(System.Object,System.Object)", "Substr", 2],
+        ["M:SqlArtisan.Sql.Substring(System.Object,System.Object,System.Object)", "Substring", 3],
         ["M:SqlArtisan.Sql.Rtrim(System.Object,System.Object)", "Rtrim", 2],
         ["M:SqlArtisan.Sql.Ltrim(System.Object,System.Object)", "Ltrim", 2],
         ["M:SqlArtisan.Sql.Rpad(System.Object,System.Object)", "Rpad", 2],

@@ -311,7 +311,8 @@ public static partial class Sql
     /// <param name="source">The string to slice.</param>
     /// <param name="position">The 1-based start position.</param>
     /// <returns>A <c>SUBSTR</c> function expression.</returns>
-    /// <remarks>Not supported by SQL Server.</remarks>
+    /// <remarks>Not supported by SQL Server — use <see cref="Substring(object, object, object)"/>
+    /// there instead.</remarks>
     public static SubstrFunction Substr(object source, object position) =>
         new(Resolve(source), Resolve(position));
 
@@ -338,6 +339,23 @@ public static partial class Sql
     /// <param name="position">The 1-based start position, in bytes.</param>
     /// <param name="length">The number of bytes to take.</param>
     public static SubstrbFunction Substrb(object source, object position, object length) =>
+        new(Resolve(source), Resolve(position), Resolve(length));
+
+    /// <summary>
+    /// The <c>SUBSTRING(source, position, length)</c> function: the substring of
+    /// <paramref name="source"/> from the 1-based <paramref name="position"/>, taking
+    /// <paramref name="length"/> characters.
+    /// </summary>
+    /// <param name="source">The string to slice.</param>
+    /// <param name="position">The 1-based start position.</param>
+    /// <param name="length">The number of characters to take.</param>
+    /// <returns>A <see cref="SubstringFunction"/> emitting <c>SUBSTRING(source, position, length)</c>.</returns>
+    /// <remarks>MySQL, PostgreSQL, SQLite (3.34+), and SQL Server syntax — SQL Server's
+    /// only substring spelling, since it has no <c>SUBSTR</c>. Use
+    /// <see cref="Substr(object, object, object)"/> where this construct is unavailable.
+    /// Unlike <c>Substr</c>, <paramref name="length"/> is required: this construct has no
+    /// 2-argument form.</remarks>
+    public static SubstringFunction Substring(object source, object position, object length) =>
         new(Resolve(source), Resolve(position), Resolve(length));
 
     /// <summary>

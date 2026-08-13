@@ -495,6 +495,7 @@ the version is what lifts it.
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
 | `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`); none of these functions exist below it. |
+| `Substring` | SQLite | 3.34 | SQLite registered `SUBSTRING` as a second name for `substr()` in 3.34. |
 | `StringAgg` (both overloads), `Concat` (both overloads), `ConcatWs` | SQLite | 3.44 | `string_agg`/`concat`/`concat_ws` landed in SQLite 3.44. |
 | `NullsFirst`, `NullsLast` | SQLite | 3.30 | `NULLS FIRST`/`NULLS LAST` landed in SQLite 3.30. |
 | `Iif` | SQLite | 3.32 | `IIF(...)` landed in SQLite 3.32. |
@@ -549,6 +550,7 @@ add `log10()` as a named alias for the base-10 `log()`.
 - [`RETURNING`](https://sqlite.org/releaselog/3_35_0.html) — 3.35.0 (2021-03-12).
 - [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sign`, `sqrt`) — 3.35.0, same release as `RETURNING`.
 - [`RIGHT JOIN` / `FULL OUTER JOIN`](https://sqlite.org/releaselog/3_39_0.html) — 3.39.0 (2022-06-25).
+- `substring()` as a second name for `substr()` — 3.34.0 (2020-12-01), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.33.0`, present at `version-3.34.0`).
 - [`string_agg()` / `concat()` / `concat_ws()`](https://sqlite.org/releaselog/3_44_0.html) — 3.44.0 (2023-11-01).
 - [`iif()`](https://sqlite.org/releaselog/3_32_0.html) — 3.32.0 (2020-05-22); `if()` was added as a second name for it in [3.48.0](https://sqlite.org/releaselog/3_48_0.html) (2025-01-14), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.47.0`, present at `version-3.48.0`).
 
