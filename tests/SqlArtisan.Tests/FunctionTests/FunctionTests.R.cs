@@ -48,6 +48,90 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void RegexpInstr_Pattern_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(RegexpInstr(_t.Name, "[abc]"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("REGEXP_INSTR(\"t\".name, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void RegexpInstr_PatternPosition_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(RegexpInstr(_t.Name, "[abc]", 2))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("REGEXP_INSTR(\"t\".name, :0, :1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void RegexpInstr_PatternPositionOccurrence_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(RegexpInstr(_t.Name, "[abc]", 2, 3))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("REGEXP_INSTR(\"t\".name, :0, :1, :2)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void RegexpInstr_PatternPositionOccurrenceReturnOption_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(RegexpInstr(_t.Name, "[abc]", 2, 3, 1))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("REGEXP_INSTR(\"t\".name, :0, :1, :2, :3)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void RegexpInstr_PatternPositionOccurrenceReturnOptionOptions_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(RegexpInstr(_t.Name, "[abc]", 2, 3, 1, RegexpOptions.CaseInsensitive))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("REGEXP_INSTR(\"t\".name, :0, :1, :2, :3, 'i')");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void RegexpInstr_PatternPositionOccurrenceReturnOptionOptionsSubPattern_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(RegexpInstr(_t.Name, "[abc]", 2, 3, 1, RegexpOptions.None, 4))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("REGEXP_INSTR(\"t\".name, :0, :1, :2, :3, '', :4)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void RegexpReplace_PatternReplacement_CorrectSql()
     {
         SqlStatement sql =

@@ -168,6 +168,7 @@ internal static class Keywords
     internal const string Rank = "RANK";
     internal const string Recursive = "RECURSIVE";
     internal const string RegexpCount = "REGEXP_COUNT";
+    internal const string RegexpInstr = "REGEXP_INSTR";
     internal const string RegexpLike = "REGEXP_LIKE";
     internal const string RegexpReplace = "REGEXP_REPLACE";
     internal const string RegexpSubstr = "REGEXP_SUBSTR";
