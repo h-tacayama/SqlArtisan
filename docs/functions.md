@@ -79,6 +79,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Rpad()` for `RPAD`
 - `Rtrim()` for `RTRIM`
 - `RegexpCount()` for `REGEXP_COUNT`
+- `RegexpInstr()` for `REGEXP_INSTR`
 - `RegexpReplace()` for `REGEXP_REPLACE`
 - `RegexpSubstr()` for `REGEXP_SUBSTR`
 - `Replace()` for `REPLACE`

@@ -58,6 +58,118 @@ public static partial class Sql
             options);
 
     /// <summary>
+    /// The <c>REGEXP_INSTR(source, pattern)</c> function: the 1-based position
+    /// where <paramref name="pattern"/> first matches in <paramref name="source"/>,
+    /// or 0 if it does not match.
+    /// </summary>
+    /// <param name="source">The string searched.</param>
+    /// <param name="pattern">The regular-expression pattern.</param>
+    /// <returns>A <c>REGEXP_INSTR</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
+    public static RegexpInstrFunction RegexpInstr(object source, object pattern) =>
+        new(Resolve(source), Resolve(pattern));
+
+    /// <inheritdoc cref="RegexpInstr(object, object)"/>
+    /// <param name="source">The string searched.</param>
+    /// <param name="pattern">The regular-expression pattern.</param>
+    /// <param name="position">The 1-based character position to start searching from.</param>
+    public static RegexpInstrFunction RegexpInstr(
+        object source,
+        object pattern,
+        object position) => new(
+            Resolve(source),
+            Resolve(pattern),
+            Resolve(position));
+
+    /// <inheritdoc cref="RegexpInstr(object, object)"/>
+    /// <param name="source">The string searched.</param>
+    /// <param name="pattern">The regular-expression pattern.</param>
+    /// <param name="position">The 1-based character position to start searching from.</param>
+    /// <param name="occurrence">Which match to return (1-based).</param>
+    public static RegexpInstrFunction RegexpInstr(
+        object source,
+        object pattern,
+        object position,
+        object occurrence) => new(
+            Resolve(source),
+            Resolve(pattern),
+            Resolve(position),
+            Resolve(occurrence));
+
+    /// <inheritdoc cref="RegexpInstr(object, object)"/>
+    /// <param name="source">The string searched.</param>
+    /// <param name="pattern">The regular-expression pattern.</param>
+    /// <param name="position">The 1-based character position to start searching from.</param>
+    /// <param name="occurrence">Which match to return (1-based).</param>
+    /// <param name="returnOption">
+    /// 0 for the position of the match's first character, 1 for the position
+    /// following the match.
+    /// </param>
+    public static RegexpInstrFunction RegexpInstr(
+        object source,
+        object pattern,
+        object position,
+        object occurrence,
+        object returnOption) => new(
+            Resolve(source),
+            Resolve(pattern),
+            Resolve(position),
+            Resolve(occurrence),
+            Resolve(returnOption));
+
+    /// <inheritdoc cref="RegexpInstr(object, object)"/>
+    /// <param name="source">The string searched.</param>
+    /// <param name="pattern">The regular-expression pattern.</param>
+    /// <param name="position">The 1-based character position to start searching from.</param>
+    /// <param name="occurrence">Which match to return (1-based).</param>
+    /// <param name="returnOption">
+    /// 0 for the position of the match's first character, 1 for the position
+    /// following the match.
+    /// </param>
+    /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
+    public static RegexpInstrFunction RegexpInstr(
+        object source,
+        object pattern,
+        object position,
+        object occurrence,
+        object returnOption,
+        RegexpOptions options) => new(
+            Resolve(source),
+            Resolve(pattern),
+            Resolve(position),
+            Resolve(occurrence),
+            Resolve(returnOption),
+            options);
+
+    /// <inheritdoc cref="RegexpInstr(object, object)"/>
+    /// <param name="source">The string searched.</param>
+    /// <param name="pattern">The regular-expression pattern.</param>
+    /// <param name="position">The 1-based character position to start searching from.</param>
+    /// <param name="occurrence">Which match to return (1-based).</param>
+    /// <param name="returnOption">
+    /// 0 for the position of the match's first character, 1 for the position
+    /// following the match.
+    /// </param>
+    /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
+    /// <param name="subPatternPos">The capture-group number whose position to return instead of the whole match's.</param>
+    /// <remarks>Oracle and PostgreSQL (15+) syntax — MySQL's <c>REGEXP_INSTR</c> has no <paramref name="subPatternPos"/> argument.</remarks>
+    public static RegexpInstrFunction RegexpInstr(
+        object source,
+        object pattern,
+        object position,
+        object occurrence,
+        object returnOption,
+        RegexpOptions options,
+        object subPatternPos) => new(
+            Resolve(source),
+            Resolve(pattern),
+            Resolve(position),
+            Resolve(occurrence),
+            Resolve(returnOption),
+            options,
+            Resolve(subPatternPos));
+
+    /// <summary>
     /// The <c>REGEXP_LIKE(source, pattern)</c> predicate: true when
     /// <paramref name="source"/> matches the regular-expression
     /// <paramref name="pattern"/>.

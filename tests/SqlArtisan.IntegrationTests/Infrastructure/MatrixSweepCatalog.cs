@@ -423,6 +423,8 @@ internal static class MatrixSweepCatalog
         Add("RegexpCount", _ => Scalar(RegexpCount(u.Name, "a")));
         Add("RegexpReplace", _ => Scalar(RegexpReplace(u.Name, "a", "b")));
         Add("RegexpSubstr", _ => Scalar(RegexpSubstr(u.Name, "A")));
+        Add("RegexpInstr", _ => Scalar(RegexpInstr(u.Name, "A")));
+        AddArity("RegexpInstr", 7, _ => Scalar(RegexpInstr(u.Name, "A", 1, 1, 0, RegexpOptions.None, 1)));
 
         // --- Aggregate chains ---
         Add("Filter", _ => Select(Count(u.Id).Filter(u.Age > 30)).From(u));
