@@ -2963,11 +2963,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > `Concat` doesn't.
 
 > [!NOTE]
-> `Position()` and `Strpos()` both find a substring's 1-based index, but MySQL
-> and PostgreSQL spell it as the keyword form `POSITION(substr IN str)`, while
-> PostgreSQL alone also accepts the function-call form `STRPOS(str, substr)` —
-> note the reversed argument order. Neither runs on Oracle, SQLite, or SQL
-> Server, which spell this `INSTR`/`CHARINDEX` instead.
+> `Position()` and `Strpos()` both give a substring's 1-based index, but take
+> their arguments in **reversed order** — `POSITION(substr IN str)` on MySQL and
+> PostgreSQL, `STRPOS(str, substr)` on PostgreSQL alone. On Oracle and SQLite,
+> use `Instr()` above instead.
 
 ---
 
