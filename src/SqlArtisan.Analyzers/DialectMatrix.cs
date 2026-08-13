@@ -256,8 +256,8 @@ internal static class DialectMatrix
         // --- REGEXP_* family: Oracle syntax; MySQL 8.0 has REGEXP_LIKE/REGEXP_REPLACE/
         // REGEXP_SUBSTR/REGEXP_INSTR (live-verified by the integration smoke catalog;
         // REGEXP_INSTR per dev.mysql.com 14.8.2) but no REGEXP_COUNT, and no trailing
-        // subexpr on REGEXP_SUBSTR/REGEXP_INSTR — RegexpInstr's arity row is below,
-        // RegexpSubstr's gap is #463. PostgreSQL 15 added all but REGEXP_REPLACE, which
+        // subexpr on REGEXP_SUBSTR/REGEXP_INSTR — both arity rows are below (#463 added
+        // RegexpSubstr's). PostgreSQL 15 added all but REGEXP_REPLACE, which
         // predates it (15 added its position/occurrence arguments; pgpedia.info,
         // PostgreSQL 15 release notes), so the PostgreSQL 16 baseline has all five —
         // RegexpLike's earlier Oracle-only classification was a false positive.
