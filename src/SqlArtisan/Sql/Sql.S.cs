@@ -353,8 +353,8 @@ public static partial class Sql
     /// <remarks>MySQL, PostgreSQL, SQLite (3.34+), and SQL Server syntax — SQL Server's
     /// only substring spelling, since it has no <c>SUBSTR</c>. Use
     /// <see cref="Substr(object, object, object)"/> where this construct is unavailable.
-    /// Unlike <c>Substr</c>, <paramref name="length"/> is required: this construct has no
-    /// 2-argument form.</remarks>
+    /// Unlike <c>Substr</c>, <paramref name="length"/> is required: SQL Server's grammar
+    /// has no 2-argument form.</remarks>
     public static SubstringFunction Substring(object source, object position, object length) =>
         new(Resolve(source), Resolve(position), Resolve(length));
 
