@@ -188,6 +188,20 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Right_CharacterAndLength_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Right(_t.Name, 3))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("RIGHT(\"t\".name, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Round_NumericValue_CorrectSql()
     {
         SqlStatement sql =

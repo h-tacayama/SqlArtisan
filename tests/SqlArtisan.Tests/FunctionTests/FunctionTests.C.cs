@@ -66,6 +66,20 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void CharLength_CharacterValue_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(CharLength(_t.Name))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CHAR_LENGTH(\"t\".name)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Coalesce_MultipleValues_CorrectSql()
     {
         SqlStatement sql =
@@ -129,6 +143,34 @@ public partial class FunctionTests
         Assert.Equal("a", sql.Parameters.Get<string>(":0"));
         Assert.Equal("b", sql.Parameters.Get<string>(":1"));
         Assert.Equal("c", sql.Parameters.Get<string>(":2"));
+    }
+
+    [Fact]
+    public void ConcatWs_TwoValues_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(ConcatWs("-", _t.Name, "a"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CONCAT_WS(:0, \"t\".name, :1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ConcatWs_MultipleValues_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(ConcatWs("-", _t.Name, "a", "b"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("CONCAT_WS(:0, \"t\".name, :1, :2)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
     }
 
     [Fact]

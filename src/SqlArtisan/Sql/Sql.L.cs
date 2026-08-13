@@ -133,6 +133,16 @@ public static partial class Sql
         new(Resolve(expressions));
 
     /// <summary>
+    /// The <c>LEFT(<paramref name="source"/>, <paramref name="length"/>)</c> function:
+    /// the leftmost <paramref name="length"/> characters of <paramref name="source"/>.
+    /// </summary>
+    /// <param name="source">The string to take characters from.</param>
+    /// <param name="length">The number of characters to take.</param>
+    /// <returns>The LEFT construct.</returns>
+    public static LeftFunction Left(object source, object length) =>
+        new(Resolve(source), Resolve(length));
+
+    /// <summary>
     /// The <c>LENGTH(<paramref name="source"/>)</c> function: the number of
     /// characters in <paramref name="source"/>.
     /// </summary>

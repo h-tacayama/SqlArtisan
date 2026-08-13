@@ -71,6 +71,19 @@ public static partial class Sql
         new(config, Resolve(text));
 
     /// <summary>
+    /// The <c>POSITION(<paramref name="substring"/> IN <paramref name="source"/>)</c>
+    /// function: the 1-based index of the first occurrence of
+    /// <paramref name="substring"/> in <paramref name="source"/>, or 0 if absent.
+    /// </summary>
+    /// <param name="substring">The substring to search for.</param>
+    /// <param name="source">The string searched.</param>
+    /// <returns>A <see cref="PositionFunction"/> emitting <c>POSITION(substring IN source)</c>.</returns>
+    /// <remarks>MySQL, PostgreSQL. For PostgreSQL's function-call form with the
+    /// reverse argument order, see <see cref="Strpos(object, object)"/>.</remarks>
+    public static PositionFunction Position(object substring, object source) =>
+        new(Resolve(substring), Resolve(source));
+
+    /// <summary>
     /// The <c>POWER(base, exponent)</c> function: <paramref name="base"/> raised
     /// to the power of <paramref name="exponent"/>.
     /// </summary>

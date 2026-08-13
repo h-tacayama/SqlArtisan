@@ -320,6 +320,12 @@ internal static class MatrixSweepCatalog
         AddArity("Round", 1, _ => Scalar(Round(1.7)));
         Add("Instr", _ => Scalar(Instr("abc", "b", 1)));
         AddArity("Instr", 2, _ => Scalar(Instr("abc", "b")));
+        Add("ConcatWs", _ => Scalar(ConcatWs("-", "a", "b")));
+        Add("CharLength", _ => Scalar(CharLength("abc")));
+        Add("Left", _ => Scalar(Left("abc", 2)));
+        Add("Right", _ => Scalar(Right("abc", 2)));
+        Add("Position", _ => Scalar(Position("b", "abc")));
+        Add("Strpos", _ => Scalar(Strpos("abc", "b")));
         Add("Greatest", _ => Scalar(Greatest(1, 2, 3)));
         Add("Least", _ => Scalar(Least(1, 2, 3)));
         Add("Ceil", _ => Scalar(Ceil(1.2)));

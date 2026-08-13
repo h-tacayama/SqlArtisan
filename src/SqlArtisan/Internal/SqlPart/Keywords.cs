@@ -22,8 +22,10 @@ internal static class Keywords
     internal const string Cast = "CAST";
     internal const string Ceil = "CEIL";
     internal const string Ceiling = "CEILING";
+    internal const string CharLength = "CHAR_LENGTH";
     internal const string Coalesce = "COALESCE";
     internal const string Concat = "CONCAT";
+    internal const string ConcatWs = "CONCAT_WS";
     internal const string Conflict = "CONFLICT";
     internal const string Contains = "CONTAINS";
     internal const string Count = "COUNT";
@@ -158,6 +160,7 @@ internal static class Keywords
     internal const string PercentileDisc = "PERCENTILE_DISC";
     internal const string PercentRank = "PERCENT_RANK";
     internal const string PlaintoTsquery = "PLAINTO_TSQUERY";
+    internal const string Position = "POSITION";
     internal const string Power = "POWER";
     internal const string Preceding = "PRECEDING";
     internal const string Query = "QUERY";
@@ -195,6 +198,7 @@ internal static class Keywords
     internal const string Stdevp = "STDEVP";
     internal const string Strftime = "STRFTIME";
     internal const string StringAgg = "STRING_AGG";
+    internal const string Strpos = "STRPOS";
     internal const string Substr = "SUBSTR";
     internal const string Substrb = "SUBSTRB";
     internal const string Sum = "SUM";

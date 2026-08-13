@@ -291,6 +291,19 @@ public static partial class Sql
         OrderByClause orderByClause) => new(Resolve(expr), separator, orderByClause);
 
     /// <summary>
+    /// The <c>STRPOS(<paramref name="source"/>, <paramref name="substring"/>)</c>
+    /// function: the 1-based index of the first occurrence of
+    /// <paramref name="substring"/> in <paramref name="source"/>, or 0 if absent.
+    /// </summary>
+    /// <param name="source">The string searched.</param>
+    /// <param name="substring">The substring to search for.</param>
+    /// <returns>A <see cref="StrposFunction"/> emitting <c>STRPOS(source, substring)</c>.</returns>
+    /// <remarks>PostgreSQL syntax. For MySQL's keyword form with the reverse
+    /// argument order, see <see cref="Position(object, object)"/>.</remarks>
+    public static StrposFunction Strpos(object source, object substring) =>
+        new(Resolve(source), Resolve(substring));
+
+    /// <summary>
     /// The <c>SUBSTR(source, position)</c> function: the substring of
     /// <paramref name="source"/> from the 1-based <paramref name="position"/> to the
     /// end.
