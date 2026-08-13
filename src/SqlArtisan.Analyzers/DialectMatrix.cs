@@ -541,6 +541,25 @@ internal static class DialectMatrix
         // SQL Server have no INSTR at any arity.
         [new MatrixKey("Instr")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("Instr", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: false, sqlite: true, sqlServer: false),
+        // ConcatWs: MySQL/PostgreSQL have had it since well below their baselines
+        // (dev.mysql.com; PostgreSQL 9.1, postgresql.org). No Oracle CONCAT_WS — ORA-00904
+        // (oracle forums). SQLite and SQL Server both carry a Bounds row below.
+        [new MatrixKey("ConcatWs")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
+        // CharLength: MySQL/PostgreSQL only (SQL99 CHARACTER_LENGTH synonym). Oracle spells
+        // this LENGTH(), SQL Server LEN(), SQLite has no CHAR_LENGTH at all (only length()).
+        [new MatrixKey("CharLength")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // Left/Right: MySQL/PostgreSQL/SQL Server native. Oracle has neither (SUBSTR is the
+        // documented equivalent); SQLite has neither either (learn.microsoft.com, sqlite.org
+        // core function list).
+        [new MatrixKey("Left")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("Right")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
+        // Position: only MySQL and PostgreSQL support the ANSI POSITION(x IN y) syntax.
+        // SQL Server has CHARINDEX instead, Oracle and SQLite have INSTR instead — neither
+        // accepts the IN-keyword form.
+        [new MatrixKey("Position")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
+        // Strpos: PostgreSQL syntax only. MySQL has no STRPOS (POSITION/LOCATE instead);
+        // Oracle, SQLite, and SQL Server have no STRPOS at all.
+        [new MatrixKey("Strpos")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         // Greatest/Least: no SQLite equivalent (it uses multi-argument scalar MAX/MIN instead);
         // SQL Server added GREATEST/LEAST in 2022 (the baseline).
         [new MatrixKey("Greatest")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
@@ -756,6 +775,9 @@ internal static class DialectMatrix
         [new MatrixKey("StringAgg", 3)] = new VersionBounds(sqlite: V("3.44")),
         [new MatrixKey("Concat", 2)] = new VersionBounds(sqlite: V("3.44")),
         [new MatrixKey("Concat", 4)] = new VersionBounds(sqlite: V("3.44")),
+        // ConcatWs: SQLite 3.44+ (sqlite.org release log, same release CONCAT() landed) and
+        // SQL Server 2017+ (learn.microsoft.com CONCAT_WS page).
+        [new MatrixKey("ConcatWs")] = new VersionBounds(sqlite: V("3.44"), sqlServer: V("2017")),
         [new MatrixKey("NullsFirst")] = new VersionBounds(sqlite: V("3.30")),
         [new MatrixKey("NullsLast")] = new VersionBounds(sqlite: V("3.30")),
         // IIF: SQLite 3.32+ and SQL Server 2012+ (T-SQL Reference) — both bounds share this

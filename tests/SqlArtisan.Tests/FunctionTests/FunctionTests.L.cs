@@ -42,6 +42,20 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Left_CharacterAndLength_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Left(_t.Name, 3))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("LEFT(\"t\".name, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Length_CharacterValue_CorrectSql()
     {
         SqlStatement sql =

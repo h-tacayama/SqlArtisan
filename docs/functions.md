@@ -65,18 +65,24 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 ## Character Functions
 
 - `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)`
+- `ConcatWs(sep, a, b, ...)` for `CONCAT_WS(sep, a, b, ...)`
+- `CharLength()` for `CHAR_LENGTH`
 - `Instr()` for `INSTR`
+- `Left()` for `LEFT`
 - `Lpad()` for `LPAD`
 - `Ltrim()` for `LTRIM`
 - `Length()` for `LENGTH`
 - `Lengthb()` for `LENGTHB`
 - `Lower()` for `LOWER`
+- `Position()` for `POSITION(substr IN str)`
+- `Right()` for `RIGHT`
 - `Rpad()` for `RPAD`
 - `Rtrim()` for `RTRIM`
 - `RegexpCount()` for `REGEXP_COUNT`
 - `RegexpReplace()` for `REGEXP_REPLACE`
 - `RegexpSubstr()` for `REGEXP_SUBSTR`
 - `Replace()` for `REPLACE`
+- `Strpos()` for `STRPOS`
 - `Substr()` for `SUBSTR`
 - `Substrb()` for `SUBSTRB`
 - `Trim()` for `TRIM`
@@ -88,6 +94,12 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > [Expressions: String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation)
 > for the full per-dialect guide, including a MySQL semantics trap `||` has that
 > `Concat` doesn't.
+
+> [!NOTE]
+> `Position()` and `Strpos()` both give a substring's 1-based index, but take
+> their arguments in **reversed order** — `POSITION(substr IN str)` on MySQL and
+> PostgreSQL, `STRPOS(str, substr)` on PostgreSQL alone. On Oracle and SQLite,
+> use `Instr()` above instead.
 
 ---
 

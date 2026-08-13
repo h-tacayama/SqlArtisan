@@ -172,6 +172,19 @@ public static partial class Sql
         new(Resolve(source), Resolve(search), Resolve(replacement));
 
     /// <summary>
+    /// The <c>RIGHT(<paramref name="source"/>, <paramref name="length"/>)</c> function:
+    /// the rightmost <paramref name="length"/> characters of <paramref name="source"/>.
+    /// </summary>
+    /// <param name="source">The string to take characters from.</param>
+    /// <param name="length">The number of characters to take.</param>
+    /// <returns>The RIGHT construct.</returns>
+    /// <remarks>MySQL, PostgreSQL, and SQL Server syntax. Oracle and SQLite have no
+    /// <c>RIGHT</c> — slice with <see cref="Substr(object, object)"/> and a negative
+    /// position there.</remarks>
+    public static RightFunction Right(object source, object length) =>
+        new(Resolve(source), Resolve(length));
+
+    /// <summary>
     /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Each element is an
     /// ordinary column or a <c>Sql.Group(...)</c> composite column (so
     /// <c>Rollup(Group(a, b), c)</c> emits <c>ROLLUP((a, b), c)</c>). Emitted as the

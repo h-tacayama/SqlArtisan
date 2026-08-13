@@ -156,6 +156,20 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Strpos_SourceAndSubstring_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(Strpos(_t.Name, "a"))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("STRPOS(\"t\".name, :0)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Substr_CharacterPosition_CorrectSql()
     {
         SqlStatement sql =

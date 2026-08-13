@@ -2932,18 +2932,24 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 ## Character Functions
 
 - `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)`
+- `ConcatWs(sep, a, b, ...)` for `CONCAT_WS(sep, a, b, ...)`
+- `CharLength()` for `CHAR_LENGTH`
 - `Instr()` for `INSTR`
+- `Left()` for `LEFT`
 - `Lpad()` for `LPAD`
 - `Ltrim()` for `LTRIM`
 - `Length()` for `LENGTH`
 - `Lengthb()` for `LENGTHB`
 - `Lower()` for `LOWER`
+- `Position()` for `POSITION(substr IN str)`
+- `Right()` for `RIGHT`
 - `Rpad()` for `RPAD`
 - `Rtrim()` for `RTRIM`
 - `RegexpCount()` for `REGEXP_COUNT`
 - `RegexpReplace()` for `REGEXP_REPLACE`
 - `RegexpSubstr()` for `REGEXP_SUBSTR`
 - `Replace()` for `REPLACE`
+- `Strpos()` for `STRPOS`
 - `Substr()` for `SUBSTR`
 - `Substrb()` for `SUBSTRB`
 - `Trim()` for `TRIM`
@@ -2955,6 +2961,12 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > [Expressions: String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation)
 > for the full per-dialect guide, including a MySQL semantics trap `||` has that
 > `Concat` doesn't.
+
+> [!NOTE]
+> `Position()` and `Strpos()` both give a substring's 1-based index, but take
+> their arguments in **reversed order** — `POSITION(substr IN str)` on MySQL and
+> PostgreSQL, `STRPOS(str, substr)` on PostgreSQL alone. On Oracle and SQLite,
+> use `Instr()` above instead.
 
 ---
 
@@ -3685,12 +3697,12 @@ the version is what lifts it.
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
 | `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`); none of these functions exist below it. |
-| `StringAgg` (both overloads), `Concat` (both overloads) | SQLite | 3.44 | `string_agg`/`concat` landed in SQLite 3.44. |
+| `StringAgg` (both overloads), `Concat` (both overloads), `ConcatWs` | SQLite | 3.44 | `string_agg`/`concat`/`concat_ws` landed in SQLite 3.44. |
 | `NullsFirst`, `NullsLast` | SQLite | 3.30 | `NULLS FIRST`/`NULLS LAST` landed in SQLite 3.30. |
 | `Iif` | SQLite | 3.32 | `IIF(...)` landed in SQLite 3.32. |
 | `If` | SQLite | 3.48 | SQLite registered `IF` as a second name for `IIF` in 3.48; earlier versions have `IIF` only. MySQL's own `IF` predates its 8.0 baseline, so that dialect carries no bound. |
 | `Iif` | SQL Server | 2012 | `IIF(...)` has been available since SQL Server 2012. |
-| `Trim` (1-argument form) | SQL Server | 2017 | `TRIM(...)` landed in SQL Server 2017. |
+| `Trim` (1-argument form), `ConcatWs` | SQL Server | 2017 | `TRIM(...)` and `CONCAT_WS(...)` both landed in SQL Server 2017. |
 | `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim`/`Trim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the trim-characters overloads all landed in SQL Server 2022. |
 
 <details>
@@ -3739,12 +3751,13 @@ add `log10()` as a named alias for the base-10 `log()`.
 - [`RETURNING`](https://sqlite.org/releaselog/3_35_0.html) — 3.35.0 (2021-03-12).
 - [The math-functions extension](https://sqlite.org/releaselog/3_35_0.html) (`ceil`, `ceiling`, `exp`, `floor`, `ln`, `log`, `log10`, `mod`, `power`, `sign`, `sqrt`) — 3.35.0, same release as `RETURNING`.
 - [`RIGHT JOIN` / `FULL OUTER JOIN`](https://sqlite.org/releaselog/3_39_0.html) — 3.39.0 (2022-06-25).
-- [`string_agg()` / `concat()`](https://sqlite.org/releaselog/3_44_0.html) — 3.44.0 (2023-11-01).
+- [`string_agg()` / `concat()` / `concat_ws()`](https://sqlite.org/releaselog/3_44_0.html) — 3.44.0 (2023-11-01).
 - [`iif()`](https://sqlite.org/releaselog/3_32_0.html) — 3.32.0 (2020-05-22); `if()` was added as a second name for it in [3.48.0](https://sqlite.org/releaselog/3_48_0.html) (2025-01-14), confirmed against the `aBuiltinFunc[]` table in `src/func.c` (absent at tag `version-3.47.0`, present at `version-3.48.0`).
 
 **SQL Server** — Microsoft Learn's "Applies to" notes:
 
 - [`TRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/trim-transact-sql) — 2017; its optional trim-characters argument — 2022.
+- [`CONCAT_WS`](https://learn.microsoft.com/en-us/sql/t-sql/functions/concat-ws-transact-sql) — 2017.
 - [`DATETRUNC`](https://learn.microsoft.com/en-us/sql/t-sql/functions/datetrunc-transact-sql), [`GREATEST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-greatest-transact-sql), [`LEAST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-least-transact-sql), and the [`LTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/ltrim-transact-sql) / [`RTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/rtrim-transact-sql) trim-characters argument — 2022 (16.x).
 - [`IIF`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-iif-transact-sql) — 2012 (11.x).
 

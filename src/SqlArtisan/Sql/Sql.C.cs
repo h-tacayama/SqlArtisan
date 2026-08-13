@@ -475,6 +475,17 @@ public static partial class Sql
         new(Resolve(expr));
 
     /// <summary>
+    /// The <c>CHAR_LENGTH(<paramref name="source"/>)</c> function (the number of
+    /// characters in a string).
+    /// </summary>
+    /// <param name="source">The string expression to measure.</param>
+    /// <returns>A <see cref="CharLengthFunction"/> emitting <c>CHAR_LENGTH(source)</c>.</returns>
+    /// <remarks>MySQL and PostgreSQL syntax. Oracle and SQLite count characters with
+    /// <see cref="Length(object)"/>; SQL Server spells it <c>LEN</c>.</remarks>
+    public static CharLengthFunction CharLength(object source) =>
+        new(Resolve(source));
+
+    /// <summary>
     /// The <c>COALESCE(<paramref name="primary"/>, <paramref name="secondary"/>, ...)</c>
     /// function (the first non-<c>NULL</c> argument).
     /// </summary>
@@ -522,6 +533,27 @@ public static partial class Sql
         object third,
         params object[] others) =>
         new(ResolveVariadic(primary, secondary, third, others));
+
+    /// <summary>
+    /// The <c>CONCAT_WS(<paramref name="separator"/>, <paramref name="primary"/>,
+    /// <paramref name="secondary"/>, ...)</c> function (the values joined with
+    /// <paramref name="separator"/> between each pair, skipping any <c>NULL</c> value).
+    /// </summary>
+    /// <param name="separator">The separator placed between each value.</param>
+    /// <param name="primary">The first value to join.</param>
+    /// <param name="secondary">The second value to join.</param>
+    /// <param name="others">Any further values to join, in order.</param>
+    /// <returns>A <see cref="ConcatWsFunction"/> emitting
+    /// <c>CONCAT_WS(sep, a, b, ...)</c>.</returns>
+    /// <remarks>MySQL, PostgreSQL, SQLite (3.44+), and SQL Server (2017+) syntax. Oracle
+    /// has no <c>CONCAT_WS</c> — join with <see cref="DoublePipe(object, object, object[])"/>
+    /// and repeat the separator there.</remarks>
+    public static ConcatWsFunction ConcatWs(
+        object separator,
+        object primary,
+        object secondary,
+        params object[] others) =>
+        new(ResolveVariadic(separator, primary, secondary, others));
 
     /// <summary>
     /// Drops <paramref name="condition"/> out of a <c>WHERE</c> clause based on a
