@@ -254,11 +254,12 @@ internal static class DialectMatrix
         // integration sweep — so both stay false here despite the call "working".
         [new MatrixKey("Format")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         // --- REGEXP_* family: Oracle syntax; MySQL 8.0 has REGEXP_LIKE/REGEXP_REPLACE/
-        // REGEXP_SUBSTR with matching signatures (live-verified by the integration smoke
-        // catalog) but no REGEXP_COUNT; PostgreSQL 15+ added all four with matching
-        // signatures (pgpedia.info; PostgreSQL 15 release notes), so the PostgreSQL 16
-        // baseline has them — the earlier Oracle-only classification of RegexpLike was a
-        // false positive for both MySQL and PostgreSQL users and is corrected here.
+        // REGEXP_SUBSTR/REGEXP_INSTR with matching signatures (live-verified by the
+        // integration smoke catalog; REGEXP_INSTR per dev.mysql.com 14.8.2) but no
+        // REGEXP_COUNT; PostgreSQL 15+ added all five with matching signatures
+        // (pgpedia.info; PostgreSQL 15 release notes), so the PostgreSQL 16 baseline has
+        // them — the earlier Oracle-only classification of RegexpLike was a false
+        // positive for both MySQL and PostgreSQL users and is corrected here.
         [new MatrixKey("RegexpLike")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpCount")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpReplace")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
