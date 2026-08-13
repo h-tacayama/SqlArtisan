@@ -514,7 +514,7 @@ internal static class DialectMatrix
         // Substr: T-SQL spells this SUBSTRING(); no SUBSTR.
         [new MatrixKey("Substr")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // Substring: SQL Server's spelling, but MySQL/PostgreSQL/SQLite accept it too (SQLite
-        // since 3.34 — Bounds row below). Oracle has no SUBSTRING() (ORA-00904); SUBSTR is the
+        // carries a Bounds row below). Oracle has no SUBSTRING() (ORA-00904); SUBSTR is the
         // documented equivalent there.
         [new MatrixKey("Substring")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         // Lpad/Rpad: no native LPAD/RPAD on SQLite or SQL Server (even 2022). MySQL's
