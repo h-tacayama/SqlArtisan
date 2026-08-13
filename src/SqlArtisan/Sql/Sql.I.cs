@@ -16,14 +16,9 @@ public static partial class Sql
     /// <returns>An <c>IF</c> function expression.</returns>
     /// <exception cref="ArgumentException"><paramref name="condition"/> is empty
     /// (every operand excluded).</exception>
-    /// <remarks>MySQL syntax; SQLite accepts it too (3.48+, as a second name for
-    /// <c>IIF</c> — use <see cref="Iif(SqlCondition, object, object)"/> there for
-    /// portability to older SQLite). Distinct from
-    /// <see cref="ConditionIf(bool, SqlCondition)"/>, which drops a
-    /// <c>WHERE</c>-clause condition based on a C#-side flag and emits no SQL of
-    /// its own — this factory emits the <c>IF(...)</c> value expression itself.
-    /// For a standard multi-branch equivalent use <c>CASE WHEN</c>
-    /// (<see cref="When(SqlCondition)"/>) instead.</remarks>
+    /// <remarks>MySQL syntax; SQLite 3.48+ accepts it as a second name for
+    /// <c>IIF</c>. Not <see cref="ConditionIf(bool, SqlCondition)"/>, the C#-side
+    /// helper that drops a <c>WHERE</c> condition and emits no SQL.</remarks>
     public static IfFunction If(SqlCondition condition, object then, object @else) =>
         new(condition, Resolve(then), Resolve(@else));
 
@@ -36,9 +31,7 @@ public static partial class Sql
     /// <param name="alt">The fallback returned when <paramref name="expr"/> is <see langword="null"/>.</param>
     /// <returns>An <c>IFNULL</c> function expression.</returns>
     /// <remarks>MySQL/SQLite syntax. For the standard equivalent use
-    /// <see cref="Coalesce(object, object, object[])"/>; for SQL Server's
-    /// spelling use <see cref="Isnull(object, object)"/>; for Oracle's use
-    /// <see cref="Nvl(object, object)"/>.</remarks>
+    /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
     public static IfnullFunction Ifnull(object expr, object alt) =>
         new(Resolve(expr), Resolve(alt));
 
@@ -53,10 +46,8 @@ public static partial class Sql
     /// <returns>An <c>IIF</c> function expression.</returns>
     /// <exception cref="ArgumentException"><paramref name="condition"/> is empty
     /// (every operand excluded).</exception>
-    /// <remarks>SQLite/SQL Server syntax. On MySQL use <see cref="If(SqlCondition, object, object)"/>
-    /// instead. Distinct from <see cref="ConditionIf(bool, SqlCondition)"/>, which
-    /// drops a <c>WHERE</c>-clause condition based on a C#-side flag and emits no
-    /// SQL of its own.</remarks>
+    /// <remarks>SQLite/SQL Server syntax; on MySQL use
+    /// <see cref="If(SqlCondition, object, object)"/>.</remarks>
     public static IifFunction Iif(SqlCondition condition, object then, object @else) =>
         new(condition, Resolve(then), Resolve(@else));
 
@@ -243,12 +234,9 @@ public static partial class Sql
     /// <param name="expr">The expression returned when it is not <see langword="null"/>.</param>
     /// <param name="alt">The fallback returned when <paramref name="expr"/> is <see langword="null"/>.</param>
     /// <returns>An <c>ISNULL</c> function expression.</returns>
-    /// <remarks>SQL Server syntax — not to be confused with
-    /// <see cref="SqlExpression.IsNull"/>, the no-argument <c>expr IS NULL</c>
-    /// predicate. For the standard equivalent use
-    /// <see cref="Coalesce(object, object, object[])"/>; for MySQL/SQLite's
-    /// spelling use <see cref="Ifnull(object, object)"/>; for Oracle's use
-    /// <see cref="Nvl(object, object)"/>.</remarks>
+    /// <remarks>SQL Server syntax — not <see cref="SqlExpression.IsNull"/>, the
+    /// no-argument <c>expr IS NULL</c> predicate. For the standard equivalent use
+    /// <see cref="Coalesce(object, object, object[])"/>.</remarks>
     public static IsnullFunction Isnull(object expr, object alt) =>
         new(Resolve(expr), Resolve(alt));
 }
