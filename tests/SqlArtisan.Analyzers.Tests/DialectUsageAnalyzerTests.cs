@@ -320,6 +320,38 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task RegexpSubstrSixArgForm_OnMySql_ReportsSqla0100ButFiveArgFormDoesNot()
+    {
+        // Real matrix arity split (not synthetic): RegexpSubstr's 5-arg form (through
+        // match options) runs on MySQL, but the 6-arg subPatternPos form doesn't —
+        // MySQL's REGEXP_SUBSTR has no subexpr argument (#463).
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = RegexpSubstr("name", "[abc]", 1, 1, RegexpOptions.None);
+                    var bad = {|#0:RegexpSubstr("name", "[abc]", 1, 1, RegexpOptions.None, 1)|};
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_mysql = any
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task MatchOverloads_OnTargetWhereNeitherIsSupported_BothReportSqla0100()
     {
         // Real matrix union entry (not synthetic): MySQL's Match(object, params object[]) and
