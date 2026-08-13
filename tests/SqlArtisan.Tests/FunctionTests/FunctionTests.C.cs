@@ -173,8 +173,8 @@ public partial class FunctionTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // Past the three declared parameters the arguments arrive as a params tail
-    // merged after them, so this pins the merged order — mirrors Concat's own test.
+    // Pins the same declared-vs-params-tail merge order Concat's test above does;
+    // ConcatWs shares that ResolveVariadic overload.
     [Fact]
     public void ConcatWs_MoreValuesThanDeclaredParameters_CorrectSql()
     {
