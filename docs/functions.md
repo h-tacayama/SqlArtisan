@@ -159,13 +159,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > targets — there is no MySQL or SQLite equivalent of SQL Server's `Format(...)`.
 
 > [!NOTE]
-> `Isnull(expr, alt)` is not `expr.IsNull` — the two-argument `ISNULL(expr, alt)`
-> fallback function above is a different construct from the no-argument
-> `expr IS NULL` predicate property on every `SqlExpression`. Likewise
-> `If(condition, then, else)` is not `ConditionIf(when, condition)` — `If`
-> emits a SQL `IF(...)` value expression, while `ConditionIf` is a C#-side
-> helper that drops a `WHERE`-clause condition based on a runtime flag and
-> emits no SQL of its own.
+> Both names have a near-twin elsewhere in the API: `Isnull(expr, alt)` is this
+> fallback function, not the `expr IS NULL` predicate (that is the `IsNull`
+> property); `If(...)` emits a SQL `IF(...)` value, not `ConditionIf(...)`, the
+> C#-side helper that drops a `WHERE` condition and emits no SQL.
 
 ---
 
