@@ -513,6 +513,10 @@ internal static class DialectMatrix
         [new MatrixKey("Length")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         // Substr: T-SQL spells this SUBSTRING(); no SUBSTR.
         [new MatrixKey("Substr")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // Substring: SQL Server's spelling, but MySQL/PostgreSQL/SQLite accept it too (SQLite
+        // carries a Bounds row below). Oracle has no SUBSTRING() (ORA-00904); SUBSTR is the
+        // documented equivalent there.
+        [new MatrixKey("Substring")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: true),
         // Lpad/Rpad: no native LPAD/RPAD on SQLite or SQL Server (even 2022). MySQL's
         // LPAD/RPAD require the pad argument (smoke-catalog note), so the 2-arg
         // pad-with-spaces form is Oracle/PostgreSQL only.
@@ -757,6 +761,10 @@ internal static class DialectMatrix
         [new MatrixKey("NaturalRightJoin")] = new VersionBounds(sqlite: V("3.39")),
         [new MatrixKey("NaturalFullJoin")] = new VersionBounds(sqlite: V("3.39")),
         [new MatrixKey("Returning")] = new VersionBounds(sqlite: V("3.35")),
+        // Substring: SQLite registered SUBSTRING as a second name for substr() in 3.34
+        // (source-verified against the sqlite/sqlite GitHub mirror, func.c's aBuiltinFunc[]
+        // table — no "substring" entry at tag version-3.33.0, present at version-3.34.0).
+        [new MatrixKey("Substring")] = new VersionBounds(sqlite: V("3.34")),
         // The math-functions extension (SQLITE_ENABLE_MATH_FUNCTIONS) landed in 3.35 — the
         // same release as RETURNING above, but a separate feature; the Entries comments above
         // name it per row (Ceil/Ceiling, Floor/Exp/Power/Sqrt/Sign, Mod, Log/Ln/Log10).

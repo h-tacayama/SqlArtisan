@@ -85,6 +85,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Strpos()` for `STRPOS`
 - `Substr()` for `SUBSTR`
 - `Substrb()` for `SUBSTRB`
+- `Substring()` for `SUBSTRING`
 - `Trim()` for `TRIM`
 - `Upper()` for `UPPER`
 

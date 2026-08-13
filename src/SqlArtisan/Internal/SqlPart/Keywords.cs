@@ -201,6 +201,7 @@ internal static class Keywords
     internal const string Strpos = "STRPOS";
     internal const string Substr = "SUBSTR";
     internal const string Substrb = "SUBSTRB";
+    internal const string Substring = "SUBSTRING";
     internal const string Sum = "SUM";
     internal const string Sysdate = "SYSDATE";
     internal const string Systimestamp = "SYSTIMESTAMP";

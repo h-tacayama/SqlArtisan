@@ -306,6 +306,7 @@ internal static class MatrixSweepCatalog
             }));
         Add("Length", _ => Scalar(Length("abc")));
         Add("Substr", _ => Scalar(Substr("abcdef", 2, 3)));
+        Add("Substring", _ => Scalar(Substring("abcdef", 2, 3)));
         Add("Lpad", _ => Scalar(Lpad("x", 3, "0")));
         AddArity("Lpad", 2, _ => Scalar(Lpad("x", 3)));
         Add("Rpad", _ => Scalar(Rpad("x", 3, "0")));
