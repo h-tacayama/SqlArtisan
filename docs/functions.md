@@ -103,10 +103,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > use `Instr()` above instead.
 
 > [!NOTE]
-> `Substr()` and `Substring()` both slice by 1-based position. SQL Server has no
-> `SUBSTR` — use `Substring()` there, with `length` required (no 2-argument
-> form; also runs on SQLite 3.34+). Oracle has no `SUBSTRING` — use `Substr()`
-> there instead.
+> `Substr()` and `Substring()` both slice by 1-based position. `Substring()` also
+> runs on MySQL, PostgreSQL, and SQLite (3.34+); SQL Server has no `SUBSTR` — use
+> `Substring()` there, with `length` required (no 2-argument form). Oracle has no
+> `SUBSTRING` — use `Substr()` there instead.
 
 ---
 
