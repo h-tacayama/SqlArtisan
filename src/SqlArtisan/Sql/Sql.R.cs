@@ -431,6 +431,8 @@ public static partial class Sql
     /// <param name="occurrence">Which match to return (1-based).</param>
     /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
     /// <param name="subPatternPos">The capture-group number to return instead of the whole match.</param>
+    /// <remarks>Oracle and PostgreSQL (15+) syntax — MySQL's <c>REGEXP_SUBSTR</c> has no
+    /// <paramref name="subPatternPos"/> argument.</remarks>
     public static RegexpSubstrFunction RegexpSubstr(
         object source,
         object pattern,

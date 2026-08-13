@@ -265,6 +265,10 @@ internal static class DialectMatrix
         [new MatrixKey("RegexpCount")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpReplace")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpSubstr")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // RegexpSubstr's 6-argument form adds subexpr, the capture-group position —
+        // MySQL's REGEXP_SUBSTR tops out at 5 arguments (match_type, no subexpr;
+        // dev.mysql.com 14.8.2), while Oracle's and PostgreSQL 15+'s both carry it (#463).
+        [new MatrixKey("RegexpSubstr", 6)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpInstr")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         // RegexpInstr's 7-argument form adds subexpr, the capture-group position —
         // MySQL's REGEXP_INSTR tops out at 6 arguments (return_option, no subexpr;
@@ -758,10 +762,12 @@ internal static class DialectMatrix
         [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpReplace")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("RegexpInstr")] = new VersionBounds(postgreSql: V("15")),
         // TryGetMinVersion looks up the matched key exactly, with no member-wide
-        // fallback (unlike Entries' TryGetEntryFrom) — the 7-arg key needs its own
-        // bound row or a 7-arg PostgreSQL call below 15 would go unflagged.
+        // fallback (unlike Entries' TryGetEntryFrom) — the 6-arg key needs its own
+        // bound row or a 6-arg PostgreSQL call below 15 would go unflagged.
+        [new MatrixKey("RegexpSubstr", 6)] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpInstr")] = new VersionBounds(postgreSql: V("15")),
+        // Same reasoning as RegexpSubstr's arity-6 row above.
         [new MatrixKey("RegexpInstr", 7)] = new VersionBounds(postgreSql: V("15")),
         // Log10 sits in this group by file position only, not by version — log10() itself
         // landed in PostgreSQL 12, three releases before MERGE/REGEXP_*'s 15.
