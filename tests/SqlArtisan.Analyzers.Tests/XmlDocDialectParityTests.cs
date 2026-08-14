@@ -106,9 +106,10 @@ public class XmlDocDialectParityTests
 
     private static readonly Regex WhitespaceRun = new(@"\s+");
 
-    // The clause ends at the first sentence, sub-clause, or em-dash aside, whichever
-    // comes first — the aside is where "— use <sibling> there" names another dialect.
-    private static readonly Regex ExclusionClause = new(@"Not supported by([^.;—]*)");
+    // The clause ends at the first sentence/sub-clause boundary (a period not
+    // inside a version number, or a semicolon) or em dash — defensively bounding
+    // a "— use <sibling> there" aside, which names a function, not a dialect.
+    private static readonly Regex ExclusionClause = new(@"Not supported by((?:\.\d|[^.;—])*)");
 
     private static bool HasSelect(Type type) =>
         type.GetInterfaces().Prepend(type)
