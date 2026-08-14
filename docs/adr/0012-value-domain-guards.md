@@ -53,12 +53,12 @@ all three of the following hold:
 3. **Dialect-independent.** The guard fires before any `Dbms` is chosen and
    behaves identically for every target — it encodes no per-engine knowledge. A
    domain any engine widens or narrows disqualifies the guard; divergent domains
-   stay permissive (analyzer / database). This turns on the domain's *source*,
-   not on how many dialects the construct supports: a single-dialect function
-   still fails this condition if its accepted set is copied from that vendor's
-   own grammar table rather than fixed by the construct's own definition — a
-   later revision to that table could turn a rejection into a false positive,
-   which condition 1 requires to be structurally impossible (#454).
+   stay permissive (analyzer / database). Dialect *count* does not decide this:
+   the dividing question is whether the domain is closed — fixed by the
+   construct's own definition or by a standard grammar unlikely to grow — or
+   open, a vendor's own accepted-value list that has changed, or could still
+   change, release to release. A domain attributed to "a vendor's grammar" can
+   still be closed in this sense (#454).
 
 The message follows the guard grammar (names the construct, states the
 requirement) and is exact-message tested:
@@ -97,11 +97,14 @@ other value is invalid everywhere (#448).
   vendor grammar table that has itself changed across releases (`MICROSECOND`
   was added, `FRAC_SECOND` deprecated), so the same value could become valid
   on a newer engine — condition 1's false positive is not structurally
-  impossible there, only currently absent. An eager guard has no version dial
-  to express that; `SQLA0104`'s per-(member, dialect) table already is one. The
-  two functions' argument sets look identical in shape (a literal
-  `DateTimePart`) but differ in this one respect, which is why they take
-  different routes.
+  impossible there, only currently absent. An eager guard, fixed before any
+  `Dbms` or version is known, would have to commit to one accepted set forever
+  and either over-reject a newer engine or under-reject an older one;
+  `SQLA0104`'s per-(member, dialect) table is a plain data set an analyzer
+  release can revise without touching the shipped throw behavior at all — the
+  reason this one stays a diagnostic rather than an exception. The two
+  functions' argument sets look identical in shape (a literal `DateTimePart`)
+  but differ in this one respect, which is why they take different routes.
 - **ADR 0007's dividing test is unchanged; its rationale now covers both ways
   to land on "no".** A construct can be valid nowhere because a mandatory
   element is missing (incomplete — ADR 0007) or because an embedded value lies
