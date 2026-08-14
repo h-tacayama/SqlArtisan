@@ -665,7 +665,7 @@ public static partial class Sql
     /// <c>Cube(Group(a, b), c)</c> emits <c>CUBE((a, b), c)</c>). Emitted as
     /// <c>CUBE(a, b)</c>.
     /// </summary>
-    /// <remarks>MySQL and SQLite do not support it; emitted as written for the
+    /// <remarks>Not supported by MySQL or SQLite; emitted as written for the
     /// database to reject.</remarks>
     public static CubeGrouping Cube(object element, params object[] elements) =>
         new(GroupByItemResolver.ResolveElements(element, elements));

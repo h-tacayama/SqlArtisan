@@ -8,9 +8,10 @@ using SqlArtisan.Internal;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// Guards #292's doc/behaviour drifts from recurring. Scoped to a curated
-/// member list — a whole-API remarks parser would be too brittle against
-/// free-text prose.
+/// Guards #292's doc/behaviour drifts from recurring.
+/// <see cref="RemarksDialectNote_MatchesMatrix"/> sweeps every public member
+/// with a <c>&lt;remarks&gt;</c> dialect note against a documented exclusion
+/// catalog (#470), rather than a curated inclusion list.
 /// </summary>
 public class XmlDocDialectParityTests
 {
@@ -30,28 +31,54 @@ public class XmlDocDialectParityTests
         Assert.True(HasSelect(typeof(IInsertIgnoreBuilderColumns)));
     }
 
-    // Each row: the member's <remarks> dialect note must match the matrix entry
-    // for (name, arity). Arity is the declared parameter count the analyzer keys on.
+    // Members whose <remarks> dialect note this parser cannot resolve to a single
+    // clause — catalogued instead of gated, so RemarkCases enumerates the rest of
+    // the public surface automatically (#470) rather than relying on a hand-picked
+    // list. Each entry is why the parser gives up, not a claim that the remark is wrong.
+    private static readonly IReadOnlySet<(string Name, int? Arity)> ExcludedMembers = new HashSet<(string, int?)>
+    {
+        // DialectMatrix keys these by (name, arity) only, as the *union* of two
+        // distinct APIs that collide on that key (see the matrix's own doc
+        // comment) — no single remark can represent a union.
+        ("Match", 2),
+        ("Nextval", 1),
+        ("Currval", 1),
+        ("GroupConcat", 2),
+
+        // The supported set spans more than the remark's first clause.
+        ("Ceil", 1),
+        ("Ceiling", 1),
+        ("Concat", 2),
+        ("Concat", 4),
+        ("Date", 1),
+        ("Excluded", 1),
+        ("Exp", 1),
+        ("If", 3),
+        ("IntervalLiteral", 2),
+
+        // The remark opens with a cross-reference or caveat, not a dialect list.
+        ("CosineDistance", 2),
+        ("Datediff", 3),
+        ("Dual", null),
+        ("MergeInto", 1),
+        ("Round", 1),
+        ("Separator", 1),
+    };
+
+    // Every member whose <remarks> names a dialect — i.e. contains one of
+    // DisplayNames' keys — and has a DialectMatrix entry, minus the documented
+    // exclusions above. A remark that never names a dialect (implementation
+    // notes, usage guidance) makes no matrix-parity claim to check, even when
+    // the member's matrix entry happens to be <see cref="DbmsSupport.All"/>.
     public static IEnumerable<object[]> RemarkCases() =>
-    [
-        ["M:SqlArtisan.Sql.ToNumber(System.Object)", "ToNumber", 1],
-        ["M:SqlArtisan.Sql.ToNumber(System.Object,System.Object)", "ToNumber", 2],
-        ["M:SqlArtisan.Sql.Of(SqlArtisan.DbColumn)", "Of", 1],
-        ["P:SqlArtisan.Sql.Nowait", "Nowait", null!],
-        ["P:SqlArtisan.Sql.SkipLocked", "SkipLocked", null!],
-        ["M:SqlArtisan.Sql.RegexpReplace(System.Object,System.Object,System.Object)", "RegexpReplace", 3],
-        ["M:SqlArtisan.Sql.Trim(System.Object,System.Object)", "Trim", 2],
-        ["M:SqlArtisan.Sql.Substr(System.Object,System.Object)", "Substr", 2],
-        ["M:SqlArtisan.Sql.Substring(System.Object,System.Object,System.Object)", "Substring", 3],
-        ["M:SqlArtisan.Sql.Rtrim(System.Object,System.Object)", "Rtrim", 2],
-        ["M:SqlArtisan.Sql.Ltrim(System.Object,System.Object)", "Ltrim", 2],
-        ["M:SqlArtisan.Sql.Rpad(System.Object,System.Object)", "Rpad", 2],
-        ["M:SqlArtisan.Sql.Rpad(System.Object,System.Object,System.Object)", "Rpad", 3],
-        ["M:SqlArtisan.Sql.Lpad(System.Object,System.Object)", "Lpad", 2],
-        ["M:SqlArtisan.Sql.Lpad(System.Object,System.Object,System.Object)", "Lpad", 3],
-        ["M:SqlArtisan.SqlExpression.op_Modulus(SqlArtisan.SqlExpression,System.Object)", "op_Modulus", 2],
-        ["M:SqlArtisan.Sql.Mod(System.Object,System.Object)", "Mod", 2],
-    ];
+        from member in LoadXmlDoc().Descendants("member")
+        let remark = member.Element("remarks")
+        where remark is not null && DisplayNames.Keys.Any(remark.Value.Contains)
+        let id = (string)member.Attribute("name")!
+        let parsed = ParseMemberId(id)
+        where !ExcludedMembers.Contains((parsed.Name, parsed.Arity))
+        where DialectMatrix.TryGetEntry(parsed.Name, parsed.Arity, out _, out _)
+        select new object[] { id, parsed.Name, parsed.Arity! };
 
     [Theory]
     [MemberData(nameof(RemarkCases))]
@@ -59,6 +86,11 @@ public class XmlDocDialectParityTests
     {
         string remark = ReadRemark(memberId);
         ISet<TargetDbms> claimed = ParseDialects(remark);
+
+        Assert.True(claimed.Count > 0,
+            $"{memberId} remark \"{remark}\" named no dialect — likely a parser gap, not a "
+                + "genuine claim of universal (non-)support. Add it to ExcludedMembers if the "
+                + "remark's shape is legitimately unparseable.");
 
         bool found = DialectMatrix.TryGetEntry(name, arity, out DbmsSupport support, out _);
         Assert.True(found, $"No DialectMatrix entry for {name}/{arity?.ToString() ?? "member"}.");
@@ -85,10 +117,11 @@ public class XmlDocDialectParityTests
         ["SQL Server"] = TargetDbms.SqlServer,
     };
 
-    // "Not supported by X." = all but X; "A, B, and C syntax." = exactly the
-    // named set — a remark uses one form or the other, never both. The exclusion
-    // reads only its own clause, so a dialect named elsewhere in the remark for a
-    // version floor is not swept into the excluded set (#469).
+    // "Not supported by X." / "Not available on X." = all but X; "A, B, and C
+    // syntax." = exactly the named set — a remark uses one form or the other,
+    // never both. Both branches read only their own clause, so a dialect named
+    // elsewhere in the remark — a version floor (#469), a cross-reference to a
+    // sibling factory — is not swept into either set.
     private static ISet<TargetDbms> ParseDialects(string remark)
     {
         // A doc comment wraps, so a display name can straddle a line break.
@@ -97,7 +130,7 @@ public class XmlDocDialectParityTests
 
         return exclusion.Success
             ? AllDbms.Except(NamedIn(exclusion.Groups[1].Value)).ToHashSet()
-            : [.. NamedIn(text)];
+            : [.. NamedIn(SupportedClause.Match(text).Value)];
     }
 
     // Substring match is safe: no display name contains another.
@@ -106,10 +139,56 @@ public class XmlDocDialectParityTests
 
     private static readonly Regex WhitespaceRun = new(@"\s+");
 
-    // The clause ends at the first sentence/sub-clause boundary (a period not
-    // inside a version number, or a semicolon) or em dash — defensively bounding
-    // a "— use <sibling> there" aside, which names a function, not a dialect.
-    private static readonly Regex ExclusionClause = new(@"Not supported by((?:\.\d|[^.;—])*)");
+    // The clause ends at the first sentence/sub-clause boundary — a period not
+    // inside a version number (".0") or a "Foo(...)" ellipsis, or a semicolon —
+    // or an em dash, defensively bounding a "— use <sibling> there" aside, which
+    // names a function, not a dialect.
+    private const string ClauseBody = @"(?:\.\.\.|\.\d|[^.;—])*";
+    private static readonly Regex SupportedClause = new(ClauseBody);
+    private static readonly Regex ExclusionClause = new($@"Not (?:supported by|available on)({ClauseBody})");
+
+    // memberId is "M:"/"P:"/"T:" plus a dotted signature, e.g.
+    // "M:SqlArtisan.Sql.ToNumber(System.Object,System.Object)" or
+    // "P:SqlArtisan.Sql.Nowait". Arity is the declared parameter count the
+    // analyzer keys on — null for a property.
+    private static (string Name, int? Arity) ParseMemberId(string memberId)
+    {
+        string signature = memberId[2..];
+        int parenIndex = signature.IndexOf('(');
+        if (parenIndex < 0)
+        {
+            return (signature[(signature.LastIndexOf('.') + 1)..], null);
+        }
+
+        string beforeParen = signature[..parenIndex];
+        string name = beforeParen[(beforeParen.LastIndexOf('.') + 1)..];
+
+        string parameters = signature[(parenIndex + 1)..^1];
+        if (parameters.Length == 0)
+        {
+            return (name, 0);
+        }
+
+        int depth = 0;
+        int arity = 1;
+        foreach (char c in parameters)
+        {
+            if (c is '{' or '(')
+            {
+                depth++;
+            }
+            else if (c is '}' or ')')
+            {
+                depth--;
+            }
+            else if (c == ',' && depth == 0)
+            {
+                arity++;
+            }
+        }
+
+        return (name, arity);
+    }
 
     private static bool HasSelect(Type type) =>
         type.GetInterfaces().Prepend(type)
