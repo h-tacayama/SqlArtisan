@@ -75,6 +75,36 @@ with availability left to the database"). ADR cross-references belong in
 - **Version boundary note**: parenthesized after the DBMS name — "(SQL Server
   2022+)", "(MySQL 8.0.20+)", "(SQLite 3.44+)" — inside the dialect note, not
   in the entry's one-line description.
+
+## Hazard callouts
+
+Which of `[!WARNING]`, `[!NOTE]`, or a plain dialect caveat bullet a hazard
+earns is keyed on whether a diagnostic can catch it, not on how alarming the
+hazard feels:
+
+- **`[!WARNING]`** — the construct compiles, the analyzer's `DialectMatrix.cs`
+  marks it supported on every engine that runs it (so `SQLA0100` stays
+  silent), the query executes everywhere, and the *result* is silently wrong
+  — a different, equally plausible number or behavior with no error at any
+  layer. Bold one-line statement of what silently changes, naming the
+  dialects (enum order) and the working alternative. At most one comparison
+  table. **Hard cap: 10 `> ` lines.** Escape hatches that only matter once the
+  trap is already hit (pragma spelling, `.editorconfig` key) go in plain prose
+  below the callout, not inside it.
+- **`[!NOTE]`** — the hazard is *catchable* by some layer (the analyzer fires,
+  the database rejects the call, or the divergence is a silent *absence*
+  rather than a wrong value — truncation, `NULL`) rather than a silently
+  plausible wrong answer. One to a few sentences, no table. **Hard cap: 5
+  `> ` lines.**
+- **Plain bullet / prose** — a straightforward per-dialect substitution with
+  no silent-wrongness risk, and any purely informational note (cross-reference
+  to another section, usage reminder). A callout that contains no hazard
+  language is a cross-reference — write it as prose with a link, never as a
+  `[!NOTE]`.
+
+A callout is for the hazard only. Move anything a reader needs only *after*
+already tripping the trap (pragma names, config keys, workaround mechanics)
+into ordinary prose immediately following it.
 - README→docs and docs↔docs links are absolute GitHub `blob/main` URLs;
   in-page anchors stay relative. In `llms.txt`, a page's URL form decides
   whether it joins the `llms-full.txt` deep bundle: pages meant for ingestion
