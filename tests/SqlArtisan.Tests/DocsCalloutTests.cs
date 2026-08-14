@@ -4,22 +4,29 @@ namespace SqlArtisan.Tests;
 
 // docs-style.md's Hazard callouts rule bounds `[!WARNING]` to 10 `> ` lines
 // and `[!NOTE]` to 5, with no table inside a NOTE — the length bound issue
-// #458 found nothing enforcing. This gate reads every doc page with callouts
-// and checks both mechanically, the same read-the-real-files philosophy as
-// DocsIndexTests.
+// #458 found nothing enforcing. This gate reads every page under docs/ and
+// checks both mechanically, the same read-the-real-files philosophy as
+// DocsIndexTests. It only classifies `[!WARNING]`/`[!NOTE]`: the rule does
+// not define a severity taxonomy for `[!IMPORTANT]`/`[!TIP]`/`[!CAUTION]`,
+// so those are left unchecked rather than silently under-enforced.
 public class DocsCalloutTests
 {
     private const int WarningMaxLines = 10;
     private const int NoteMaxLines = 5;
 
-    private static readonly string[] s_pagesWithCallouts =
-    [
-        "docs/functions.md",
-        "docs/expressions.md",
-        "docs/query-statements.md",
-    ];
+    private static readonly Regex s_tableRowPattern = new(
+        @"^>\s*\|(\s*:?-+:?\s*\|)+\s*$", RegexOptions.Compiled);
 
-    public static IEnumerable<object[]> Pages() => s_pagesWithCallouts.Select(p => new object[] { p });
+    public static IEnumerable<object[]> Pages()
+    {
+        string root = FindRepoRoot();
+        string docsDir = Path.Combine(root, "docs");
+
+        foreach (string path in Directory.EnumerateFiles(docsDir, "*.md", SearchOption.AllDirectories))
+        {
+            yield return [Path.GetRelativePath(root, path).Replace('\\', '/')];
+        }
+    }
 
     [Theory]
     [MemberData(nameof(Pages))]
@@ -32,7 +39,7 @@ public class DocsCalloutTests
 
         while (i < lines.Length)
         {
-            Match header = Regex.Match(lines[i], @"^> \[!(WARNING|NOTE|IMPORTANT|TIP|CAUTION)\]$");
+            Match header = Regex.Match(lines[i], @"^> \[!(WARNING|NOTE)\]$");
 
             if (!header.Success)
             {
@@ -56,15 +63,14 @@ public class DocsCalloutTests
                     lineCount <= WarningMaxLines,
                     $"{page}: [!WARNING] at line {start + 1} is {lineCount} lines (max {WarningMaxLines}).");
             }
-            else if (kind == "NOTE")
+            else
             {
                 Assert.True(
                     lineCount <= NoteMaxLines,
                     $"{page}: [!NOTE] at line {start + 1} is {lineCount} lines (max {NoteMaxLines}).");
 
-                string body = string.Join('\n', lines[start..i]);
                 Assert.False(
-                    body.Contains("|---", StringComparison.Ordinal),
+                    lines[start..i].Any(l => s_tableRowPattern.IsMatch(l)),
                     $"{page}: [!NOTE] at line {start + 1} contains a table — tables are WARNING-only.");
             }
         }
@@ -79,7 +85,11 @@ public class DocsCalloutTests
             dir = dir.Parent;
         }
 
-        Assert.NotNull(dir);
+        if (dir is null)
+        {
+            throw new InvalidOperationException("Could not find repo root (SqlArtisan.sln) above " + AppContext.BaseDirectory);
+        }
+
         return dir.FullName;
     }
 }

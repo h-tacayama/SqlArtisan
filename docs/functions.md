@@ -34,14 +34,14 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trunc()` for `TRUNC` (Numeric Overload)
 
 > [!WARNING]
-> **`LOG` silently changes meaning with the target, in both forms** — `SQLA0100` only catches Oracle's rejection of `Log(x)`; every other cell runs, right or silently wrong.
+> **`LOG` silently changes meaning with the target, in both forms.** `SQLA0100` catches Oracle's rejection of `Log(x)` and every 2-arg `Log` on SQL Server; every other cell below runs, right or silently wrong.
 >
 > | Call | MySQL | Oracle | PostgreSQL | SQLite | SQL Server |
 > |---|---|---|---|---|---|
 > | `Log(x)` → `LOG(x)` | base e | *(rejected)* | base 10 | base 10 | base e |
 > | `Log(b, x)` → `LOG(b, x)` | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>x</sub>b |
 >
-> SQL Server's row inverts (value first, base second); fixed-base alternatives are `Ln(x)`, `Log10(x)`, `Log(base, x)` elsewhere.
+> SQL Server's row inverts (value first, base second); fixed-base alternatives are `Ln(x)` (SQLite 3.35+), `Log10(x)` (PostgreSQL 12+, SQLite 3.35+), `Log(base, x)` elsewhere.
 
 `SQLA0100` also flags every two-argument `Log` call on SQL Server — blind to
 argument order — including the correct T-SQL spelling: call `Log(base, x)`

@@ -161,9 +161,15 @@ SqlStatement sql =
 ```
 
 - **Oracle, PostgreSQL, SQLite (every version)** — `DoublePipe(a, b, ...)` for the native `||` operator, chaining any number of arguments without nesting.
-- **MySQL** — `Concat(a, b)` / `Concat(a, b, c, ...)` for the `CONCAT` function. `DoublePipe(...)` is a trap on MySQL: under the default `sql_mode`, `||` is **logical OR**, not concatenation — valid SQL with a completely different result, not a syntax error, so nothing at the SQL level warns you. Use `Concat(...)` there.
+- **MySQL** — `Concat(a, b)` / `Concat(a, b, c, ...)` for the `CONCAT` function.
 - **SQL Server** — the existing `+` operator (`u.FirstName + " " + u.LastName`) for native concatenation, or the 2-argument `Concat(a, b)` function; SQL Server has no `||` operator at all.
 - **Oracle's `CONCAT`** takes exactly two arguments — `Concat(a, b, c)` (three or more) is invalid there; use `DoublePipe(...)` for chains of three or more on Oracle.
+
+> [!NOTE]
+> `DoublePipe(...)` is a trap on MySQL: under the default `sql_mode`, `||` is
+> **logical OR**, not concatenation — valid SQL with a completely different
+> result, not a syntax error. `SQLA0100` flags it there; use `Concat(...)`
+> instead.
 
 ---
 
