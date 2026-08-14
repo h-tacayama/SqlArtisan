@@ -1067,8 +1067,8 @@ for, not a bug in the matrix.
   never false-positive.
 - **A construct whose dialect support depends on the runtime value of an
   argument, not its declared type or arity, is not modeled at all.**
-  `Trunc(expr[, format])` is the example: a numeric argument is
-  Oracle+PostgreSQL, a date/time argument is Oracle-only, and both shapes
+  `Trunc(expr[, format])` is the example: a numeric argument is Oracle,
+  PostgreSQL and SQLite 3.35+, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry and never
   warns either way. The `IntervalLiteral(...)` field markers (`Year(...)`,
   `Month(...)`, ..., `ToSecond(...)`) share this gap for the same reason:

@@ -214,9 +214,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric or date value to truncate.</param>
     /// <returns>A <c>TRUNC</c> function expression.</returns>
-    /// <remarks>Oracle syntax; PostgreSQL supports the numeric form. To truncate
-    /// a timestamp to a date/time field on PostgreSQL use
-    /// <see cref="DateTrunc(DateTimePart, object)"/>.</remarks>
+    /// <remarks>Oracle syntax; PostgreSQL supports the numeric form, SQLite (3.35+)
+    /// its single-argument form. To truncate a timestamp to a date/time field on
+    /// PostgreSQL use <see cref="DateTrunc(DateTimePart, object)"/>.</remarks>
     public static TruncFunction Trunc(object expr) =>
         new(Resolve(expr));
 
