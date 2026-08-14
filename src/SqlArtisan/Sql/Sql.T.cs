@@ -201,8 +201,9 @@ public static partial class Sql
     /// <param name="trimChar">The character to strip from both ends instead of spaces.</param>
     /// <returns>A <c>TRIM</c> function expression.</returns>
     /// <remarks>
-    /// Emits the ANSI <c>TRIM(BOTH trimChar FROM source)</c> form. Not supported by
-    /// SQLite, whose grammar has no <c>BOTH ... FROM</c> clause; its positional
+    /// Emits the ANSI <c>TRIM(BOTH trimChar FROM source)</c> form, which SQL Server
+    /// accepts only on 2022+ (compatibility level 160). Not supported by SQLite,
+    /// whose grammar has no <c>BOTH ... FROM</c> clause; its positional
     /// <c>trim(source, trimChar)</c> is a separate function this does not emit.
     /// </remarks>
     public static TrimFunction Trim(object source, object trimChar) =>

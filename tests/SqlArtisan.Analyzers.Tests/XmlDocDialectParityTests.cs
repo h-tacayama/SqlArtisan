@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using SqlArtisan.Internal;
 
@@ -85,17 +86,30 @@ public class XmlDocDialectParityTests
     };
 
     // "Not supported by X." = all but X; "A, B, and C syntax." = exactly the
-    // named set. Substring match is safe: no display name contains another.
+    // named set — a remark uses one form or the other, never both. The exclusion
+    // reads only its own clause, so a dialect named elsewhere in the remark for a
+    // version floor is not swept into the excluded set (#469).
     private static ISet<TargetDbms> ParseDialects(string remark)
     {
-        IEnumerable<TargetDbms> named = DisplayNames
-            .Where(pair => remark.Contains(pair.Key))
-            .Select(pair => pair.Value);
+        // A doc comment wraps, so a display name can straddle a line break.
+        string text = WhitespaceRun.Replace(remark, " ");
+        Match exclusion = ExclusionClause.Match(text);
 
-        return remark.Contains("Not supported by")
-            ? AllDbms.Except(named).ToHashSet()
-            : [.. named];
+        return exclusion.Success
+            ? AllDbms.Except(NamedIn(exclusion.Groups[1].Value)).ToHashSet()
+            : [.. NamedIn(text)];
     }
+
+    // Substring match is safe: no display name contains another.
+    private static IEnumerable<TargetDbms> NamedIn(string text) =>
+        DisplayNames.Where(pair => text.Contains(pair.Key)).Select(pair => pair.Value);
+
+    private static readonly Regex WhitespaceRun = new(@"\s+");
+
+    // The clause ends at the first sentence/sub-clause boundary (a period not
+    // inside a version number, or a semicolon) or em dash — defensively bounding
+    // a "— use <sibling> there" aside, which names a function, not a dialect.
+    private static readonly Regex ExclusionClause = new(@"Not supported by((?:\.\d|[^.;—])*)");
 
     private static bool HasSelect(Type type) =>
         type.GetInterfaces().Prepend(type)
