@@ -125,7 +125,8 @@ Those three are the **whole** taxonomy: a hazard picks one of them, never
 `[!IMPORTANT]`/`[!TIP]`/`[!CAUTION]`. Reaching for a fourth kind is how a
 hazard escapes the severity question and the length cap at once — the drift
 this section exists to stop. The corpus's one `[!IMPORTANT]`
-(`docs/query-statements.md`, SQL Server `MERGE`) is a statement-level usage
-advisory, not a per-construct hazard, and stays outside the taxonomy; the
-10-line cap still binds it, and `DocsCalloutTests` enforces that cap on every
-callout kind regardless of tier.
+(`docs/query-statements.md`, SQL Server `MERGE`) predates this section and is
+grandfathered, not a precedent — a new callout that reads as a usage advisory
+still picks `[!WARNING]`/`[!NOTE]`/prose like any other, per the criteria
+above. `DocsCalloutTests` bounds the grandfathered one to 10 lines like every
+other kind, so it cannot grow unchecked while it stands.

@@ -2919,7 +2919,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > | `Log(x)` → `LOG(x)` | base e | *(rejected)* | base 10 | base 10 | base e |
 > | `Log(b, x)` → `LOG(b, x)` | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>x</sub>b |
 >
-> SQL Server's row inverts (value first, base second). For a base that does not vary: `Ln(x)` (MySQL, Oracle, PostgreSQL, SQLite 3.35+), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite 3.35+, SQL Server), or `Log(base, x)` on the four base-first engines.
+> SQL Server's row inverts (value first, base second). For a base that does not vary: `Ln(x)` (MySQL, Oracle, PostgreSQL, SQLite 3.35+), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite 3.35+, SQL Server), or `Log(base, x)` on the four base-first engines (SQLite 3.35+).
 
 `SQLA0100` also flags every two-argument `Log` call on SQL Server — blind to
 argument order — including the correct T-SQL spelling: call `Log(base, x)`
