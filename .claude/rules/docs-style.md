@@ -87,3 +87,46 @@ with availability left to the database"). ADR cross-references belong in
   README capability-map row, both **in page order** — `DocsIndexTests` gates
   missing links on both, plus order and stale anchors on the root README row
   (#210, #340) — and usually `llms.txt` (descriptor prose, ungated).
+
+## Hazard callouts
+
+Which of `[!WARNING]`, `[!NOTE]`, or a plain dialect caveat bullet a hazard
+earns is keyed on whether the specific silently-wrong case is caught, not on
+how alarming the hazard feels:
+
+- **`[!WARNING]`** — the same call's meaning silently changes with context —
+  the target dialect, or a change over time such as schema drift — and for
+  at least one context where it executes and returns a plausible-but-wrong
+  answer, nothing diagnoses it (a *different* dialect of the same construct
+  may separately be flagged unsupported elsewhere in the matrix — that
+  doesn't disqualify the hazard). Bold one-line statement of what silently
+  changes, naming the dialects (enum order) when the hazard is dialect-keyed,
+  and the working alternative. At most one comparison table. **Hard cap: 10
+  `> ` lines.** Escape hatches that only matter once the trap is already hit
+  (pragma spelling, `.editorconfig` key) go in plain prose below the callout,
+  not inside it.
+- **`[!NOTE]`** — the hazard is *catchable* by some layer (the analyzer
+  fires, the database rejects the call, or the divergence is a silent
+  *absence* rather than a wrong value — truncation, `NULL`), or it is two
+  separate, correctly-named factories whose argument order or spelling
+  invites mixing them up, rather than one call whose own meaning drifts. One
+  to a few sentences, no table. **Hard cap: 5 `> ` lines.**
+- **Plain bullet / prose** — a straightforward per-dialect substitution with
+  no silent-wrongness risk, and any purely informational note (cross-reference
+  to another section, usage reminder). A callout that contains no hazard
+  language is a cross-reference — write it as prose with a link, never as a
+  `[!NOTE]`.
+
+A callout is for the hazard only. Move anything a reader needs only *after*
+already tripping the trap (pragma names, config keys, workaround mechanics)
+into ordinary prose immediately following it.
+
+Those three are the **whole** taxonomy: a hazard picks one of them, never
+`[!IMPORTANT]`/`[!TIP]`/`[!CAUTION]`. Reaching for a fourth kind is how a
+hazard escapes the severity question and the length cap at once — the drift
+this section exists to stop. The corpus's one `[!IMPORTANT]`
+(`docs/query-statements.md`, SQL Server `MERGE`) predates this section and is
+grandfathered, not a precedent — a new callout that reads as a usage advisory
+still picks `[!WARNING]`/`[!NOTE]`/prose like any other, per the criteria
+above. `DocsCalloutTests` bounds the grandfathered one to 10 lines like every
+other kind, so it cannot grow unchecked while it stands.

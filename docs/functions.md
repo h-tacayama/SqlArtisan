@@ -34,31 +34,23 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trunc()` for `TRUNC` (Numeric Overload)
 
 > [!WARNING]
-> **`LOG` silently changes meaning with the target — in both of its forms.**
-> Nothing catches the single-argument form's base change: the matrix marks
-> `Log(x)` supported on all four engines that run it, so no diagnostic fires.
+> **`LOG` silently changes meaning with the target, in both forms.** `SQLA0100` catches Oracle's rejection of `Log(x)` and every 2-arg `Log` on SQL Server; every other cell below runs, right or silently wrong.
 >
 > | Call | MySQL | Oracle | PostgreSQL | SQLite | SQL Server |
 > |---|---|---|---|---|---|
 > | `Log(x)` → `LOG(x)` | base e | *(rejected)* | base 10 | base 10 | base e |
 > | `Log(b, x)` → `LOG(b, x)` | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>x</sub>b |
 >
-> Only Oracle rejects `Log(x)`; every other cell runs and returns a number,
-> right or silently wrong. The bottom row inverts on SQL Server because T-SQL
-> declares `LOG(float_expression [, base])` — value first, base second.
->
-> `SQLA0100` flags `Log(x)` on Oracle, and — blind to argument order — *every*
-> two-argument `Log` on SQL Server, including the correct T-SQL spelling: call
-> `Log(base, x)` with the arguments swapped, `Log(x, base)`, to reach an
-> arbitrary base there. To allow that one call, wrap it in
-> `#pragma warning disable SQLA0100`; `sqlartisan_construct_log_arity2 = supported`
-> silences every 2-arg `Log` call in its `.editorconfig` scope instead.
->
-> **For a base that does not vary by target:** `Ln(x)` (MySQL, Oracle,
-> PostgreSQL, SQLite 3.35+), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite 3.35+,
-> SQL Server), or `Log(base, x)` on the four base-first engines — where
-> PostgreSQL defines that form for `numeric` only, so a `double precision`
-> argument fails at the database, not at the SqlArtisan layer.
+> SQL Server's row inverts (value first, base second). For a base that does not vary: `Ln(x)` (MySQL, Oracle, PostgreSQL, SQLite 3.35+), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite 3.35+, SQL Server), or `Log(base, x)` on the four base-first engines (SQLite 3.35+).
+
+`SQLA0100` also flags every two-argument `Log` call on SQL Server — blind to
+argument order — including the correct T-SQL spelling: call `Log(base, x)`
+with the arguments swapped, `Log(x, base)`, to reach an arbitrary base there.
+To allow that one call, wrap it in `#pragma warning disable SQLA0100`;
+`sqlartisan_construct_log_arity2 = supported` silences every 2-arg `Log` call
+in its `.editorconfig` scope instead. On PostgreSQL, `Log(base, x)` is defined
+for `numeric` only, so a `double precision` argument fails at the database,
+not at the SqlArtisan layer.
 
 ---
 
@@ -90,12 +82,11 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Trim()` for `TRIM`
 - `Upper()` for `UPPER`
 
-> [!NOTE]
-> On Oracle, chain two-argument `Concat(a, b)` calls (`Concat(Concat(a, b), c)`)
-> for three or more arguments, or use the `||` operator instead — see
-> [Expressions: String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation)
-> for the full per-dialect guide, including a MySQL semantics trap `||` has that
-> `Concat` doesn't.
+On Oracle, chain two-argument `Concat(a, b)` calls (`Concat(Concat(a, b), c)`)
+for three or more arguments, or use the `||` operator instead — see
+[Expressions: String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation)
+for the full per-dialect guide, including a MySQL semantics trap `||` has that
+`Concat` doesn't.
 
 > [!NOTE]
 > `Position()` and `Strpos()` both give a substring's 1-based index, but take
@@ -132,11 +123,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Timestampdiff()` for `TIMESTAMPDIFF` (MySQL)
 - `Trunc()` for `TRUNC` (Date/Time Overload)
 
-> [!NOTE]
-> `DateAdd()`/`DateSub()` above take their shift amount from an `INTERVAL`
-> expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
-> `+`/`-` spelling), see
-> [Expressions: Interval Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#interval-expressions).
+`DateAdd()`/`DateSub()` above take their shift amount from an `INTERVAL`
+expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
+`+`/`-` spelling), see
+[Expressions: Interval Expressions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#interval-expressions).
 
 > [!NOTE]
 > `Date()`/`Datetime()`/`Julianday()`/`Strftime()` apply each modifier in order
@@ -165,12 +155,10 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `ToTimestamp()` for `TO_TIMESTAMP`
 
 > [!NOTE]
-> MySQL and SQLite each have their own same-named but incompatible `FORMAT()`.
-> MySQL's formats a number to a fixed decimal count (`FORMAT(number, decimals[, locale])`);
-> SQLite's (3.38+) is a `printf()` alias using substitution directives (`%s`, `%d`).
-> Neither matches SQL Server's .NET-style (`"yyyy-MM-dd"`) format strings, so a
-> call executes on both without erroring but not with the semantics this factory
-> targets — there is no MySQL or SQLite equivalent of SQL Server's `Format(...)`.
+> MySQL and SQLite each have their own same-named but incompatible `FORMAT()`
+> (MySQL: fixed decimal count; SQLite 3.38+: a `printf()` alias). Neither
+> matches SQL Server's .NET-style format strings — a call executes on both
+> without erroring, but there is no MySQL/SQLite equivalent of this factory.
 
 > [!NOTE]
 > Both names have a near-twin elsewhere in the API: `Isnull(expr, alt)` is this
@@ -195,11 +183,10 @@ JSON paths are emitted as inline string literals (SQL Server and Oracle require 
 - `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL 8.0.21+, Oracle, SQL Server)
 - `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, SQL Server)
 
-> [!NOTE]
-> JSON **operators** (`->`, `->>`, `#>`, `#>>`, and the JSONB predicates
-> `@>` / `?` / `?|` / `?&`) live in
-> [Expressions: JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators)
-> because they are infix operators, not function calls.
+JSON **operators** (`->`, `->>`, `#>`, `#>>`, and the JSONB predicates
+`@>` / `?` / `?|` / `?&`) live in
+[Expressions: JSON Operators](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#json-operators)
+because they are infix operators, not function calls.
 
 ---
 
@@ -218,9 +205,8 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `Contains(column, searchCondition)` for `CONTAINS(column, searchCondition)` (SQL Server, predicate)
 - `Freetext(column, freetext)` for `FREETEXT(column, freetext)` (SQL Server, predicate)
 
-> [!NOTE]
-> Usage examples and each engine's full-text index prerequisite live in
-> [Expressions: Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search).
+Usage examples and each engine's full-text index prerequisite live in
+[Expressions: Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search).
 
 ---
 
@@ -240,12 +226,11 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `Variance()` for `VARIANCE` (MySQL, Oracle, PostgreSQL — **not the same statistic on all three, see below**)
 - `Var()` for `VAR`; `Varp()` for `VARP` (SQL Server)
 
-> [!NOTE]
-> Chain `.Filter(condition)` on any of these for conditional aggregation —
-> `SUM(x) FILTER (WHERE ...)` (see
-> [Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
-> Chain `.Over(...)` to turn any of them into a window function (see
-> [Window Functions](#window-functions) below).
+Chain `.Filter(condition)` on any of these for conditional aggregation —
+`SUM(x) FILTER (WHERE ...)` (see
+[Expressions: Conditional Aggregation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditional-aggregation-filter)).
+Chain `.Over(...)` to turn any of them into a window function (see
+[Window Functions](#window-functions) below).
 
 > [!NOTE]
 > `COUNT(expr)` skips `NULL` values in `expr`; `COUNT(*)` counts every row.
@@ -254,20 +239,14 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 > usable index rather than materializing every column.
 
 > [!WARNING]
-> **`STDDEV`/`VARIANCE` silently change which statistic they compute with the target.**
-> Both run on MySQL, Oracle, and PostgreSQL, but not as the same statistic:
+> **`STDDEV`/`VARIANCE` silently change which statistic they compute with the target.** All three engines accept the call and return a number, so `SQLA0100` cannot catch this — only the value differs:
 >
 > | Call | MySQL | Oracle | PostgreSQL |
 > |---|---|---|---|
 > | `Stddev(x)` → `STDDEV(x)` | population | sample | sample |
 > | `Variance(x)` → `VARIANCE(x)` | population | sample | sample |
 >
-> All three engines accept the call and return a number, so `SQLA0100` cannot
-> catch this — the construct is grammatically valid everywhere it runs; only
-> the value it computes differs. Name the statistic instead:
-> `StddevPop()`/`StddevSamp()`, `VarPop()`/`VarSamp()` — or, on SQL Server
-> (which has no `STDDEV`/`VARIANCE` spelling at all), the `Stdevp()`/`Stdev()`/
-> `Varp()`/`Var()` forms above.
+> Name the statistic instead: `StddevPop()`/`StddevSamp()`, `VarPop()`/`VarSamp()` — or, on SQL Server, `Stdevp()`/`Stdev()`/`Varp()`/`Var()`.
 
 ---
 
@@ -303,12 +282,11 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `Rank()` for `RANK()`
 - `RowNumber()` for `ROW_NUMBER()`
 
-> [!NOTE]
-> A window function is invalid without `OVER`, so complete each one with
-> `.Over(...)` (see [Expressions: Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions)).
-> The library enforces this: a bare `Rank()`, `RowNumber()`, etc. is not a usable
-> expression, so passing one to `Select(...)` is rejected rather than emitting an
-> `OVER`-less token the database would reject.
+A window function is invalid without `OVER`, so complete each one with
+`.Over(...)` (see [Expressions: Window Functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions)).
+The library enforces this: a bare `Rank()`, `RowNumber()`, etc. is not a usable
+expression, so passing one to `Select(...)` is rejected rather than emitting an
+`OVER`-less token the database would reject.
 
 ---
 

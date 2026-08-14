@@ -224,12 +224,17 @@ SqlStatement sql =
 - `CrossJoin()` for `CROSS JOIN`
 - `NaturalJoin()` for `NATURAL JOIN`, and `NaturalLeftJoin()` / `NaturalRightJoin()` / `NaturalFullJoin()` for the outer forms
 
-A `NATURAL` join takes no `On(...)` — it matches on **every** column name the two
-tables share, so adding or renaming a column on either side silently changes the
-join; reach for it only when that coupling is acceptable. On SQL Server, which
-has no `NATURAL JOIN`, write the match explicitly with `On(...)`; on MySQL, which
-has no `FULL JOIN` at all, `NaturalFullJoin()` is unsupported too — emulate it
-with `LeftJoin(...).On(...)` unioned with `RightJoin(...).On(...)` there.
+> [!WARNING]
+> **`NATURAL JOIN` silently changes which columns it matches on schema drift.**
+> It takes no `On(...)` — it matches on **every** column name the two tables
+> share, so adding or renaming a column on either side silently changes the
+> join, with no error at any layer. Reach for it only when that coupling is
+> acceptable; write the match explicitly with `On(...)` when it isn't.
+
+On SQL Server, which has no `NATURAL JOIN`, write the match explicitly with
+`On(...)`; on MySQL, which has no `FULL JOIN` at all, `NaturalFullJoin()` is
+unsupported too — emulate it with `LeftJoin(...).On(...)` unioned with
+`RightJoin(...).On(...)` there.
 
 #### JOIN ... USING
 
