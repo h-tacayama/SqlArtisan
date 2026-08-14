@@ -690,7 +690,7 @@ internal static class DialectMatrix
         [new MatrixKey("Separator")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
 
         // --- Trunc is deliberately NOT entered: Sql.Trunc(expr[, format]) carries one dialect
-        // support set for a numeric argument (Oracle+PostgreSQL) and a DIFFERENT, disjoint one for
+        // support set for a numeric argument (Oracle/PostgreSQL/SQLite) and a DIFFERENT one for
         // a date/time argument (Oracle only) — same two overloads, distinguished only by the
         // call site's runtime value, not by arity or declared parameter type. The current
         // MatrixKey (member name + declared arity) cannot express this; asserting either dialect
