@@ -6,9 +6,10 @@ namespace SqlArtisan.Tests;
 // and `[!NOTE]` to 5, with no table inside a NOTE — the length bound issue
 // #458 found nothing enforcing. This gate reads every page under docs/ and
 // checks both mechanically, the same read-the-real-files philosophy as
-// DocsIndexTests. It only classifies `[!WARNING]`/`[!NOTE]`: the rule does
-// not define a severity taxonomy for `[!IMPORTANT]`/`[!TIP]`/`[!CAUTION]`,
-// so those are left unchecked rather than silently under-enforced.
+// DocsIndexTests. The 10-line cap applies to every callout kind, not just
+// the two the taxonomy names: leaving `[!IMPORTANT]`/`[!TIP]`/`[!CAUTION]`
+// unbounded would let a hazard dodge both the severity question and the cap
+// by picking a fourth kind — the drift #458 filed against.
 public class DocsCalloutTests
 {
     private const int WarningMaxLines = 10;
@@ -39,7 +40,7 @@ public class DocsCalloutTests
 
         while (i < lines.Length)
         {
-            Match header = Regex.Match(lines[i], @"^> \[!(WARNING|NOTE)\]$");
+            Match header = Regex.Match(lines[i], @"^> \[!(WARNING|NOTE|IMPORTANT|TIP|CAUTION)\]$");
 
             if (!header.Success)
             {
@@ -57,18 +58,14 @@ public class DocsCalloutTests
 
             int lineCount = i - start;
 
-            if (kind == "WARNING")
-            {
-                Assert.True(
-                    lineCount <= WarningMaxLines,
-                    $"{page}: [!WARNING] at line {start + 1} is {lineCount} lines (max {WarningMaxLines}).");
-            }
-            else
-            {
-                Assert.True(
-                    lineCount <= NoteMaxLines,
-                    $"{page}: [!NOTE] at line {start + 1} is {lineCount} lines (max {NoteMaxLines}).");
+            int max = kind == "NOTE" ? NoteMaxLines : WarningMaxLines;
 
+            Assert.True(
+                lineCount <= max,
+                $"{page}: [!{kind}] at line {start + 1} is {lineCount} lines (max {max}).");
+
+            if (kind == "NOTE")
+            {
                 Assert.False(
                     lines[start..i].Any(l => s_tableRowPattern.IsMatch(l)),
                     $"{page}: [!NOTE] at line {start + 1} contains a table — tables are WARNING-only.");

@@ -120,3 +120,12 @@ how alarming the hazard feels:
 A callout is for the hazard only. Move anything a reader needs only *after*
 already tripping the trap (pragma names, config keys, workaround mechanics)
 into ordinary prose immediately following it.
+
+Those three are the **whole** taxonomy: a hazard picks one of them, never
+`[!IMPORTANT]`/`[!TIP]`/`[!CAUTION]`. Reaching for a fourth kind is how a
+hazard escapes the severity question and the length cap at once — the drift
+this section exists to stop. The corpus's one `[!IMPORTANT]`
+(`docs/query-statements.md`, SQL Server `MERGE`) is a statement-level usage
+advisory, not a per-construct hazard, and stays outside the taxonomy; the
+10-line cap still binds it, and `DocsCalloutTests` enforces that cap on every
+callout kind regardless of tier.
