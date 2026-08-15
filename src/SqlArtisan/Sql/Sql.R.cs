@@ -319,8 +319,9 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to round.</param>
     /// <returns>A <c>ROUND</c> function expression.</returns>
-    /// <remarks>SQL Server's <c>ROUND</c> requires the decimal count — pass
-    /// <c>0</c> to <see cref="Round(object, object)"/> there.</remarks>
+    /// <remarks>Not supported by SQL Server — its <c>ROUND</c> requires the
+    /// decimal count; pass <c>0</c> to <see cref="Round(object, object)"/>
+    /// there.</remarks>
     public static RoundFunction Round(object expr) =>
         new(Resolve(expr));
 

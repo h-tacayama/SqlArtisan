@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
+- Eight `<remarks>` that never stated their member's full supported-dialect set
+  now do: `Ceil`, `Ceiling`, `Concat(a, b, c, params object[])`, `Excluded`,
+  `MergeInto`, `Round(object)`, and `Separator` each named only a spelling
+  caveat or an *unsupported* dialect, and `CosineDistance` was missing its
+  Oracle 23ai+ floor entirely (docs/expressions.md already had it). Retiring
+  each from `XmlDocDialectParityTests`' `ExcludedMembers` catalog needed the
+  parity test itself to stop reading a version-gated dialect as unsupported —
+  `SupportedDialects` now agrees with any dialect carrying a
+  `DialectMatrix` version-bound row, mirroring the analyzer's own
+  `DialectSupportResolver.Evaluate` (a bound overrides the baseline bool in
+  both directions), so a remark naming a floored dialect like `Oracle (23ai+)`
+  parses to agreement instead of tripping the gate. `ExcludedMembers` shrinks
+  from 18 entries to 10, all four of the remaining non-version ones a matrix
+  key that unions two distinct APIs and so can never be retired by rewording;
+  the swept member count grows from 124 to 132. (#474)
 - `XmlDocDialectParityTests`' positive-list branch — "A, B, and C syntax." =
   exactly the named set — now scopes to its own clause the same way #469
   scoped the exclusion branch, and also recognizes "Not available on X"

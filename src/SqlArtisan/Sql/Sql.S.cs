@@ -124,7 +124,7 @@ public static partial class Sql
     /// <param name="separator">The separator string placed between concatenated values.</param>
     /// <returns>A <c>SEPARATOR</c> clause for <c>GROUP_CONCAT</c>.</returns>
     /// <remarks>
-    /// Distinct from SQLite's positional separator argument.
+    /// MySQL syntax. Distinct from SQLite's positional separator argument.
     /// </remarks>
     public static SeparatorClause Separator(string separator) =>
         new(separator);

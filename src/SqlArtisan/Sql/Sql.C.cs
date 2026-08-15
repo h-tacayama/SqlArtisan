@@ -455,9 +455,10 @@ public static partial class Sql
     /// <paramref name="expr"/>).
     /// </summary>
     /// <remarks>
-    /// Emitted verbatim as <c>CEIL</c> on every DBMS. SQL Server spells this
-    /// function <c>CEILING</c>; use <see cref="Ceiling(object)"/> for that
-    /// target. MySQL, PostgreSQL, and SQLite accept both spellings.
+    /// MySQL, Oracle, PostgreSQL, and SQLite (3.35+) syntax — emitted verbatim
+    /// as <c>CEIL</c>. SQL Server spells this function <c>CEILING</c>; use
+    /// <see cref="Ceiling(object)"/> for that target. MySQL, PostgreSQL, and
+    /// SQLite accept both spellings.
     /// </remarks>
     public static CeilFunction Ceil(object expr) =>
         new(Resolve(expr));
@@ -467,9 +468,10 @@ public static partial class Sql
     /// <paramref name="expr"/>).
     /// </summary>
     /// <remarks>
-    /// Emitted verbatim as <c>CEILING</c> on every DBMS. Oracle spells this
-    /// function <c>CEIL</c>; use <see cref="Ceil(object)"/> for that target.
-    /// MySQL, PostgreSQL, and SQLite accept both spellings.
+    /// MySQL, PostgreSQL, SQLite (3.35+), and SQL Server syntax — emitted
+    /// verbatim as <c>CEILING</c>. Oracle spells this function <c>CEIL</c>; use
+    /// <see cref="Ceil(object)"/> for that target. MySQL, PostgreSQL, and
+    /// SQLite accept both spellings.
     /// </remarks>
     public static CeilingFunction Ceiling(object expr) =>
         new(Resolve(expr));
@@ -523,8 +525,9 @@ public static partial class Sql
     /// <param name="third">The third string expression.</param>
     /// <param name="others">Any further string expressions, appended in order.</param>
     /// <returns>A <see cref="ConcatFunction"/> emitting <c>CONCAT(a, b, c, ...)</c>.</returns>
-    /// <remarks>Requires SQLite 3.44+. Oracle's <c>CONCAT</c> takes exactly two arguments
-    /// and rejects this three-or-more form — nest two-argument calls there instead, or use
+    /// <remarks>MySQL, PostgreSQL, SQLite (3.44+), and SQL Server syntax. Oracle's
+    /// <c>CONCAT</c> takes exactly two arguments and rejects this three-or-more
+    /// form — nest two-argument calls there instead, or use
     /// <see cref="DoublePipe(object, object, object[])"/> to chain any number without
     /// nesting (also valid on PostgreSQL and SQLite).</remarks>
     public static ConcatFunction Concat(
@@ -623,8 +626,9 @@ public static partial class Sql
     /// <param name="rightVector">The second vector.</param>
     /// <returns>A <c>&lt;=&gt;</c> operator expression.</returns>
     /// <remarks>
-    /// On MySQL, <c>&lt;=&gt;</c> is the NULL-safe equality operator — valid SQL
-    /// with silently different semantics, an equality test rather than a distance.
+    /// Oracle (23ai+) and PostgreSQL syntax. On MySQL, <c>&lt;=&gt;</c> is the
+    /// NULL-safe equality operator — valid SQL with silently different
+    /// semantics, an equality test rather than a distance.
     /// </remarks>
     public static CosineDistanceOperator CosineDistance(object leftVector, object rightVector) =>
         new(Resolve(leftVector), Resolve(rightVector));
