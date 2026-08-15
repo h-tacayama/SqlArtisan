@@ -68,13 +68,21 @@ with availability left to the database"). ADR cross-references belong in
   the emitted SQL → (only when it differs by dialect) a dialect note that lists
   DBMS in enum order.
 - **Dialect caveat note** (a construct that is invalid or a trap on some
-  DBMS): one sentence naming the affected DBMS (enum order) and the working
-  alternative in the same breath — "On Oracle and SQL Server, recurse
-  with plain `With(...)` — `WithRecursive()` is rejected there." Never a bare
-  "not supported on X" with no way out.
-- **Version boundary note**: parenthesized after the DBMS name — "(SQL Server
-  2022+)", "(MySQL 8.0.20+)", "(SQLite 3.44+)" — inside the dialect note, not
-  in the entry's one-line description.
+  DBMS): one sentence naming the affected DBMS (enum order) and, where one
+  exists, the **sibling SqlArtisan API that emits that dialect's own
+  construct** — "On Oracle and SQL Server, recurse with plain `With(...)` —
+  `WithRecursive()` is rejected there." Where no sibling API exists, "not
+  available there" is the complete answer: never a hand-written SQL rewrite,
+  and never a claim that two constructs are interchangeable (ADR 0020 — that
+  is a portability claim, which ADR 0001 refuses in code).
+- **Result semantics are the engine's** — duplicate handling, `NULL` matching,
+  multiplicity, collation, precision. Link the engine's manual; do not restate
+  it. A hazard in *SqlArtisan's own emitted SQL* is a different thing and stays
+  (the callouts below).
+- **No version floor in a reference page.** A floor lives only where a test
+  keeps it tied to `DialectMatrix`: `docs/analyzer.md`'s version-bound register
+  and XML `<remarks>` (ADR 0020). Reference pages state which dialects support
+  a construct and link to the register for the version.
 - README→docs and docs↔docs links are absolute GitHub `blob/main` URLs;
   in-page anchors stay relative. In `llms.txt`, a page's URL form decides
   whether it joins the `llms-full.txt` deep bundle: pages meant for ingestion

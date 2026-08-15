@@ -669,8 +669,9 @@ SqlStatement sql =
 
 On SQL Server, which has no `NATURAL JOIN`, write the match explicitly with
 `On(...)`; on MySQL, which has no `FULL JOIN` at all, `NaturalFullJoin()` is
-unsupported too — emulate it with `LeftJoin(...).On(...)` unioned with
-`RightJoin(...).On(...)` there.
+unsupported too. SQLite gained `RIGHT JOIN` / `FULL JOIN` and their `NATURAL`
+forms in a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 #### JOIN ... USING
 
@@ -696,7 +697,7 @@ SqlStatement sql =
 ```
 
 MySQL, Oracle, PostgreSQL, and SQLite support this (standard SQL); on SQL Server,
-which has no `JOIN ... USING`, write the equivalent `On(...)` predicate.
+which has no `JOIN ... USING`, write the match explicitly with `On(...)`.
 
 #### Correlated joins: APPLY / LATERAL
 
@@ -941,6 +942,13 @@ SqlStatement sql =
 - `MinusAll` for `MINUS ALL`
 - `Intersect` for `INTERSECT`
 - `IntersectAll` for `INTERSECT ALL`
+
+`Minus` / `MinusAll` are Oracle's own spelling of `EXCEPT` / `EXCEPT ALL` and
+run only there. `ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL
+only — SQLite and SQL Server take `ALL` on `UNION` alone. Several of these
+arrived in a specific engine release; the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
+lists each one, and the analyzer reports it against a declared target version.
 
 ---
 
