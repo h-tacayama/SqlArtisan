@@ -6,19 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
-- Retired the 44 version floors ADR 0020 left in `docs/functions.md`,
+- Retired every version floor ADR 0020 left in `docs/functions.md`,
   `docs/query-statements.md`, `docs/expressions.md`, and `docs/cookbook.md`.
-  Each floor either drops the version and keeps the dialect fact, or — where
-  the surrounding sentence already named the supported dialects — drops the
-  parenthetical entirely; the handful backed by `docs/analyzer.md`'s
-  version-bound register (MySQL's `WithRecursive`/`JsonValue`, Oracle's vector
-  operators, PostgreSQL's `MERGE`/`Log10`/`Regexp*`, SQLite's math functions
-  and `RETURNING`/`STRING_AGG`/`Substring`, SQL Server's `Trim`/`Greatest`/
-  `Least`/`Datetrunc`) now link it instead of restating a number nothing keeps
-  current. A few floors named no matrix row at all — Oracle's `LATERAL`/
+  Where the parenthetical was a support list carrying a floor, it keeps the
+  dialects and drops the version; where it annotated one dialect's floor on a
+  construct every dialect accepts (`Exp`, `Floor`, `Power`, `Sqrt`, `Sign`,
+  1-argument `Trim`), the note goes entirely — on these pages an unqualified
+  dialect list means "only there", so keeping one would have stated a support
+  set the matrix contradicts. Floors backed by `docs/analyzer.md`'s
+  version-bound register (MySQL's `WithRecursive`/`JsonValue`/row-alias
+  UPSERT, Oracle's vector operators, PostgreSQL's `MERGE`, SQLite's
+  `RETURNING`/`STRING_AGG`) now link it instead of restating a number nothing
+  keeps current. Floors with no matrix row at all — Oracle's `LATERAL`/
   `OFFSET`/`FETCH`, SQLite's `UPDATE … FROM`, SQL Server's multi-row `VALUES`,
-  and the window-function frame requirement — those simply drop the version,
-  the last dropping its now-vacuous "every dialect" bullet entirely. (#480)
+  and the window-function frame requirement — simply drop the version, the
+  last dropping its now-vacuous "every dialect" bullet entirely. (#480)
 - **ADR 0020 draws a precision boundary for the documentation**: a page states
   what SqlArtisan emits and which dialects support a construct — both tied to
   tests — and delegates the rest to the engine. Result semantics (duplicate

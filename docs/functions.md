@@ -6,9 +6,10 @@
 > **How to read this reference.** Each entry maps a C# API to the SQL token it emits.
 > Pick the API for your target DBMS; a single call is not rewritten per dialect.
 > Dialect notes list databases in the order **MySQL, Oracle, PostgreSQL, SQLite, SQL Server**.
-> Where a dialect note names a construct without saying since when, the
-> [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
-> has the minimum engine version, kept in sync by a test.
+> Notes say which dialects accept a construct, never from which version; where
+> a minimum engine version is recorded, it lives in the
+> [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs),
+> kept in sync by a test.
 
 ## Contents
 
@@ -24,16 +25,16 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 - `Abs()` for `ABS`
 - `Ceil()` for `CEIL` (Oracle; MySQL/PostgreSQL/SQLite accept both spellings)
 - `Ceiling()` for `CEILING` (SQL Server; MySQL/PostgreSQL/SQLite accept both spellings)
-- `Exp()` for `EXP` (SQLite)
-- `Floor()` for `FLOOR` (SQLite)
-- `Ln()` for `LN` (SQLite; not supported by SQL Server — its `LOG(x)` is the natural logarithm)
+- `Exp()` for `EXP`
+- `Floor()` for `FLOOR`
+- `Ln()` for `LN` (not supported by SQL Server — its `LOG(x)` is the natural logarithm)
 - `Log(x)` for `LOG(x)`; `Log(base, x)` for `LOG(base, x)` — **the base differs per dialect, see below**
-- `Log10()` for `LOG10` (PostgreSQL, SQLite; not supported by Oracle — spell it `Log(10, x)` there)
-- `Mod()` for `MOD` (SQLite; not supported by SQL Server — use the `%` operator there)
-- `Power()` for `POWER` (SQLite)
+- `Log10()` for `LOG10` (not supported by Oracle — spell it `Log(10, x)` there)
+- `Mod()` for `MOD` (not supported by SQL Server — use the `%` operator there)
+- `Power()` for `POWER`
 - `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there)
-- `Sign()` for `SIGN` (SQLite)
-- `Sqrt()` for `SQRT` (SQLite)
+- `Sign()` for `SIGN`
+- `Sqrt()` for `SQRT`
 - `Trunc()` for `TRUNC` (Numeric Overload; Oracle, PostgreSQL, SQLite — the two-argument scale form is Oracle/PostgreSQL only)
 
 > [!WARNING]
@@ -44,7 +45,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > | `Log(x)` → `LOG(x)` | base e | *(rejected)* | base 10 | base 10 | base e |
 > | `Log(b, x)` → `LOG(b, x)` | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>x</sub>b |
 >
-> SQL Server's row inverts (value first, base second). For a base that does not vary: `Ln(x)` (MySQL, Oracle, PostgreSQL, SQLite), `Log10(x)` (MySQL, PostgreSQL, SQLite, SQL Server), or `Log(base, x)` on the four base-first engines (SQLite).
+> SQL Server's row inverts (value first, base second). For a base that does not vary: `Ln(x)` (MySQL, Oracle, PostgreSQL, SQLite), `Log10(x)` (MySQL, PostgreSQL, SQLite, SQL Server), or `Log(base, x)` on the four base-first engines.
 
 `SQLA0100` also flags every two-argument `Log` call on SQL Server — blind to
 argument order — including the correct T-SQL spelling: call `Log(base, x)`
@@ -59,7 +60,7 @@ not at the SqlArtisan layer.
 
 ## Character Functions
 
-- `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)` (SQLite; Oracle takes only the two-argument form — see below)
+- `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)` (Oracle takes only the two-argument form — see below)
 - `ConcatWs(sep, a, b, ...)` for `CONCAT_WS(sep, a, b, ...)` (MySQL, PostgreSQL, SQLite, SQL Server)
 - `CharLength()` for `CHAR_LENGTH` (MySQL, PostgreSQL)
 - `Instr()` for `INSTR` (MySQL, Oracle, SQLite; the 3- and 4-argument forms are Oracle-only)
@@ -82,7 +83,7 @@ not at the SqlArtisan layer.
 - `Substr()` for `SUBSTR` (not supported by SQL Server — use `Substring()` there)
 - `Substrb()` for `SUBSTRB` (Oracle)
 - `Substring()` for `SUBSTRING` (MySQL, PostgreSQL, SQLite, SQL Server; on Oracle use `Substr()`)
-- `Trim()` for `TRIM` (SQL Server; the two-argument trim-set form is not supported by SQLite — nest `Ltrim()`/`Rtrim()` there)
+- `Trim()` for `TRIM` (the two-argument trim-set form is not supported by SQLite — nest `Ltrim()`/`Rtrim()` there)
 - `Upper()` for `UPPER`
 
 On Oracle, chain two-argument `Concat(a, b)` calls (`Concat(Concat(a, b), c)`)

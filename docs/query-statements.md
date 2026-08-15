@@ -316,7 +316,7 @@ The DBMS column lists where each form is idiomatic, not the limit of what is
 emitted: availability is the target database's concern (and the opt-in
 analyzer's). SQLite supports neither family, and `LATERAL` has no SQL Server
 form. Oracle accepts both families except `LeftJoinLateral` — its
-injected `ON TRUE` relies on a boolean literal Oracle lacks before 23c; use
+injected `ON TRUE` relies on a boolean literal Oracle lacks; use
 `OuterApply` there. SqlArtisan emits the construct faithfully rather than
 gating it at build time.
 
@@ -607,7 +607,7 @@ SqlStatement sql =
 
 - Use `OffsetRows(m)` alone for `OFFSET m ROWS`.
 - Use `FetchFirst(n)` for `FETCH FIRST n ROWS ONLY` (no offset). This standalone form is valid on **Oracle** (and PostgreSQL); **SQL Server requires an `OFFSET`**, so on SQL Server use `OffsetRows(0).FetchNext(n)` instead.
-- This clause requires `ORDER BY` on SQL Server, and is available on Oracle / SQL Server.
+- This clause requires `ORDER BY` on SQL Server.
 
 The row counts are parameterized like other literals, so the bind-parameter prefix follows the target dialect (`:` / `@` / `?`).
 
@@ -1011,8 +1011,9 @@ SqlStatement sql =
 ```
 
 MySQL keys off any unique index implicitly (no conflict target). SqlArtisan
-emits the 8.0.19+ row-alias form (`AS new` … `new.column`) to avoid the
-deprecated `VALUES()` function.
+emits the row-alias form (`AS new` … `new.column`) to avoid the deprecated
+`VALUES()` function; MySQL added the row alias in a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 **Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`
 is MySQL-only. Oracle and SQL Server use [`MERGE`](#merge-statement) instead.
