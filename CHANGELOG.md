@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
+- A version floor stated in a `<remarks>` is now gated against
+  `DialectMatrix`'s `VersionBounds` in both directions — a stated floor must be
+  the matrix's, and a bound the matrix records must be stated — resolving the
+  same key the support check resolves, so `Trim`'s arity-2 SQL Server 2022 floor
+  is checked against the arity-2 bound rather than the member key's 2017. A
+  dialect the matrix supports at no version is skipped: a version named against
+  one bounds a same-named foreign function, as `Format`'s remark does for
+  SQLite's `printf()` alias. Floors now have one spelling — parenthesized beside
+  the dialect (`SQLite (3.35+)`, or `(SQLite 3.44+)` as a standalone aside) —
+  and a second gate fails any bare or clause-embedded floor, which reads the
+  same to a human but parses to nothing. Twelve remarks are normalized to it,
+  `Datetrunc`'s nested parenthetical and `Trim(object, object)`'s relative
+  clause are rewritten, and five floors the matrix recorded but no remark stated
+  are now written down: `Iif` (SQLite 3.32+, SQL Server 2012+), `Mod` (SQLite
+  3.35+), `RegexpReplace(source, pattern, replacement)` and
+  `Values(alias, columnNames, rows)` (PostgreSQL 15+). (#471)
 - Eight `<remarks>` that never stated their member's full supported-dialect set
   now do: `Ceil`, `Ceiling`, `Concat(a, b, c, params object[])`,
   `CosineDistance`, `Excluded`, `MergeInto`, `Round(object)`, and `Separator`.

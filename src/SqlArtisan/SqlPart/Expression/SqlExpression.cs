@@ -44,7 +44,7 @@ public abstract class SqlExpression : SqlPart
     /// Gets the <c>ORDER BY</c> suffix that sorts this expression's <see
     /// langword="null"/> values first (<c>expr NULLS FIRST</c>).
     /// </summary>
-    /// <remarks>Not available on MySQL or SQL Server; SQLite 3.30+.</remarks>
+    /// <remarks>Not available on MySQL or SQL Server; SQLite (3.30+).</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsFirst => new(this, NullOrdering.NullsFirst);
 
@@ -52,7 +52,7 @@ public abstract class SqlExpression : SqlPart
     /// Gets the <c>ORDER BY</c> suffix that sorts this expression's <see
     /// langword="null"/> values last (<c>expr NULLS LAST</c>).
     /// </summary>
-    /// <remarks>Not available on MySQL or SQL Server; SQLite 3.30+.</remarks>
+    /// <remarks>Not available on MySQL or SQL Server; SQLite (3.30+).</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsLast => new(this, NullOrdering.NullsLast);
 

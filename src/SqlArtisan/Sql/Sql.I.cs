@@ -16,7 +16,7 @@ public static partial class Sql
     /// <returns>An <c>IF</c> function expression.</returns>
     /// <exception cref="ArgumentException"><paramref name="condition"/> is empty
     /// (every operand excluded).</exception>
-    /// <remarks>MySQL syntax; SQLite 3.48+ accepts it as a second name for
+    /// <remarks>MySQL syntax; SQLite (3.48+) accepts it as a second name for
     /// <c>IIF</c>. Not <see cref="ConditionIf(bool, SqlCondition)"/>, the C#-side
     /// helper that drops a <c>WHERE</c> condition and emits no SQL.</remarks>
     public static IfFunction If(SqlCondition condition, object then, object @else) =>
@@ -46,7 +46,7 @@ public static partial class Sql
     /// <returns>An <c>IIF</c> function expression.</returns>
     /// <exception cref="ArgumentException"><paramref name="condition"/> is empty
     /// (every operand excluded).</exception>
-    /// <remarks>SQLite/SQL Server syntax; on MySQL use
+    /// <remarks>SQLite (3.32+) and SQL Server (2012+) syntax; on MySQL use
     /// <see cref="If(SqlCondition, object, object)"/>.</remarks>
     public static IifFunction Iif(SqlCondition condition, object then, object @else) =>
         new(condition, Resolve(then), Resolve(@else));

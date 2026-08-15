@@ -154,7 +154,7 @@ public static partial class Sql
     /// The <c>SKIP LOCKED</c> behavior for a <c>FOR UPDATE</c> clause: skip rows that
     /// are already locked instead of blocking on them.
     /// </summary>
-    /// <remarks>MySQL 8.0+, Oracle, and PostgreSQL syntax.</remarks>
+    /// <remarks>MySQL (8.0+), Oracle, and PostgreSQL syntax.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static SkipLockedBehavior SkipLocked => new();
 
