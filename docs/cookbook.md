@@ -244,7 +244,7 @@ SqlStatement sql =
 ```
 
 This shape runs on all five dialects (only markers and quoting differ). On
-MySQL, Oracle (12c+), PostgreSQL, and SQL Server, a
+MySQL, Oracle, PostgreSQL, and SQL Server, a
 [row-limited `LATERAL` / `APPLY` subquery](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#row-limited-queries-as-subqueries)
 is the per-group top-N alternative.
 
@@ -420,7 +420,7 @@ InsertInto(u, u.ProductId, u.Price)
 // RETURNING product_id, price
 // (SQLite emits lowercase "excluded.price" — Build(Dbms.Sqlite) handles it)
 
-// MySQL — ON DUPLICATE KEY UPDATE (8.0.19+ row-alias form):
+// MySQL — ON DUPLICATE KEY UPDATE (row-alias form):
 InsertInto(u, u.ProductId, u.Price)
     .Values(1, 990)
     .OnDuplicateKeyUpdate(u.Price == Excluded(u.Price))

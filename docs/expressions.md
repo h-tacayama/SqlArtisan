@@ -538,9 +538,9 @@ SqlStatement sql =
 // LIMIT :1
 ```
 
-`L2Distance` (`<->`), `CosineDistance` (`<=>`), and `NegativeInnerProduct` (`<#>`) work on Oracle (23ai+) and PostgreSQL; `L1Distance` (`<+>`), `HammingDistance` (`<~>`), and `JaccardDistance` (`<%>`) are PostgreSQL only (pgvector 0.7.0+). On PostgreSQL all six need the [pgvector](https://github.com/pgvector/pgvector) extension installed in the database (`CREATE EXTENSION vector`); on Oracle 23ai the three shared operators are built in.
+`L2Distance` (`<->`), `CosineDistance` (`<=>`), and `NegativeInnerProduct` (`<#>`) work on Oracle and PostgreSQL (Oracle gained the three shared operators in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)); `L1Distance` (`<+>`), `HammingDistance` (`<~>`), and `JaccardDistance` (`<%>`) are PostgreSQL only, via the pgvector extension. On PostgreSQL all six need the [pgvector](https://github.com/pgvector/pgvector) extension installed in the database (`CREATE EXTENSION vector`); on Oracle the three shared operators are built in.
 
-A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle 23ai rejects `CAST(... AS vector)` outright (ORA-22849); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar. On MySQL, `<=>` is the NULL-safe equality operator — the same glyph as `CosineDistance` with entirely different meaning — so keep cosine-distance queries off MySQL connections.
+A bound vector literal reaches PostgreSQL as `text` — wrap it in `Cast(text, "vector")` (or `Cast(bits, "bit(n)")` for the bit operators) as above. On Oracle, drop the `Cast` — Oracle rejects `CAST(... AS vector)` outright (ORA-22849); pass the vector string bare (`L2Distance(u.Embedding, "[0.1,0.2,0.3]")`) and Oracle converts the bound string implicitly. `NegativeInnerProduct` returns the **negative** inner product, so the smallest value is still the most similar. On MySQL, `<=>` is the NULL-safe equality operator — the same glyph as `CosineDistance` with entirely different meaning — so keep cosine-distance queries off MySQL connections.
 
 To bind a `Pgvector.Vector` instance instead of a cast string literal, construct the bind directly — `new BindValue(vector)` — and register pgvector's Dapper type handler (`VectorTypeHandler`, from the `Pgvector.Dapper` package) plus `UseVector()` on the Npgsql data source (from the `Pgvector` package); the held value then flows to the driver untouched.
 
@@ -938,7 +938,6 @@ SqlStatement sql =
 - A single bound uses `Rows(bound)` / `Range(bound)` (e.g. `Rows(UnboundedPreceding)`); `RowsBetween(start, end)` / `RangeBetween(start, end)` produce `ROWS/RANGE BETWEEN ... AND ...`.
 - A mis-ordered frame throws `ArgumentException` — no engine accepts a single bound past `CurrentRow` (use the `BETWEEN` form for `Following(n)` / `UnboundedFollowing`) or a `BETWEEN` start ranking later than its end.
 - A frame requires `ORDER BY`, so `Rows(...)` / `Range(...)` are available only after `OrderBy(...)` (optionally with `PartitionBy(...)`).
-- Requires MySQL 8.0+, Oracle, PostgreSQL, SQLite 3.25+, or SQL Server 2012+.
 
 ### Example using PERCENTILE_CONT / PERCENTILE_DISC
 
@@ -993,12 +992,12 @@ Chain `.Over(...)` afterwards for a filtered window function — `SUM(amount) FI
 
 ## String Aggregation
 
-String aggregation flattens the values of a group into one delimited string. This is the most syntactically divergent feature in scope, so SqlArtisan exposes it per dialect (no unified rewrite): you call the function your target DBMS supports, and the SQL you write is the SQL that runs.
+String aggregation flattens the values of a group into one delimited string. This is the most syntactically divergent feature in scope, so SqlArtisan exposes it per dialect (no unified rewrite): you call the function your target DBMS supports, and the SQL you write is the SQL that runs. SQLite gained `STRING_AGG` in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
-### STRING_AGG (PostgreSQL / SQLite 3.44+ / SQL Server)
+### STRING_AGG (PostgreSQL / SQLite / SQL Server)
 
 ```csharp
-// PostgreSQL / SQLite (3.44+): ordering is inline inside the call, so pass OrderBy(...) as an argument
+// PostgreSQL / SQLite: ordering is inline inside the call, so pass OrderBy(...) as an argument
 Select(StringAgg(u.Name, ", ", OrderBy(u.Name)))
     .From(u)
     .Build(Dbms.PostgreSql);

@@ -6,6 +6,9 @@
 > **How to read this reference.** Each entry maps a C# API to the SQL token it emits.
 > Pick the API for your target DBMS; a single call is not rewritten per dialect.
 > Dialect notes list databases in the order **MySQL, Oracle, PostgreSQL, SQLite, SQL Server**.
+> Where a dialect note names a construct without saying since when, the
+> [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
+> has the minimum engine version, kept in sync by a test.
 
 ## Contents
 
@@ -19,19 +22,19 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 ## Numeric Functions
 
 - `Abs()` for `ABS`
-- `Ceil()` for `CEIL` (Oracle; MySQL/PostgreSQL/SQLite 3.35+ accept both spellings)
-- `Ceiling()` for `CEILING` (SQL Server; MySQL/PostgreSQL/SQLite 3.35+ accept both spellings)
-- `Exp()` for `EXP` (SQLite 3.35+)
-- `Floor()` for `FLOOR` (SQLite 3.35+)
-- `Ln()` for `LN` (SQLite 3.35+; not supported by SQL Server — its `LOG(x)` is the natural logarithm)
+- `Ceil()` for `CEIL` (Oracle; MySQL/PostgreSQL/SQLite accept both spellings)
+- `Ceiling()` for `CEILING` (SQL Server; MySQL/PostgreSQL/SQLite accept both spellings)
+- `Exp()` for `EXP` (SQLite)
+- `Floor()` for `FLOOR` (SQLite)
+- `Ln()` for `LN` (SQLite; not supported by SQL Server — its `LOG(x)` is the natural logarithm)
 - `Log(x)` for `LOG(x)`; `Log(base, x)` for `LOG(base, x)` — **the base differs per dialect, see below**
-- `Log10()` for `LOG10` (PostgreSQL 12+, SQLite 3.35+; not supported by Oracle — spell it `Log(10, x)` there)
-- `Mod()` for `MOD` (SQLite 3.35+; not supported by SQL Server — use the `%` operator there)
-- `Power()` for `POWER` (SQLite 3.35+)
+- `Log10()` for `LOG10` (PostgreSQL, SQLite; not supported by Oracle — spell it `Log(10, x)` there)
+- `Mod()` for `MOD` (SQLite; not supported by SQL Server — use the `%` operator there)
+- `Power()` for `POWER` (SQLite)
 - `Round()` for `ROUND` (single-argument `Round(expr)` is not supported by SQL Server — pass the scale explicitly there)
-- `Sign()` for `SIGN` (SQLite 3.35+)
-- `Sqrt()` for `SQRT` (SQLite 3.35+)
-- `Trunc()` for `TRUNC` (Numeric Overload; Oracle, PostgreSQL, SQLite 3.35+ — the two-argument scale form is Oracle/PostgreSQL only)
+- `Sign()` for `SIGN` (SQLite)
+- `Sqrt()` for `SQRT` (SQLite)
+- `Trunc()` for `TRUNC` (Numeric Overload; Oracle, PostgreSQL, SQLite — the two-argument scale form is Oracle/PostgreSQL only)
 
 > [!WARNING]
 > **`LOG` silently changes meaning with the target, in both forms.** `SQLA0100` catches Oracle's rejection of `Log(x)` and every 2-arg `Log` on SQL Server; every other cell below runs, right or silently wrong.
@@ -41,7 +44,7 @@ SqlArtisan provides C# APIs that map to various SQL functions, enabling you to u
 > | `Log(x)` → `LOG(x)` | base e | *(rejected)* | base 10 | base 10 | base e |
 > | `Log(b, x)` → `LOG(b, x)` | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>b</sub>x | log<sub>x</sub>b |
 >
-> SQL Server's row inverts (value first, base second). For a base that does not vary: `Ln(x)` (MySQL, Oracle, PostgreSQL, SQLite 3.35+), `Log10(x)` (MySQL, PostgreSQL 12+, SQLite 3.35+, SQL Server), or `Log(base, x)` on the four base-first engines (SQLite 3.35+).
+> SQL Server's row inverts (value first, base second). For a base that does not vary: `Ln(x)` (MySQL, Oracle, PostgreSQL, SQLite), `Log10(x)` (MySQL, PostgreSQL, SQLite, SQL Server), or `Log(base, x)` on the four base-first engines (SQLite).
 
 `SQLA0100` also flags every two-argument `Log` call on SQL Server — blind to
 argument order — including the correct T-SQL spelling: call `Log(base, x)`
@@ -56,30 +59,30 @@ not at the SqlArtisan layer.
 
 ## Character Functions
 
-- `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)` (SQLite 3.44+; Oracle takes only the two-argument form — see below)
-- `ConcatWs(sep, a, b, ...)` for `CONCAT_WS(sep, a, b, ...)` (MySQL, PostgreSQL, SQLite 3.44+, SQL Server 2017+)
+- `Concat(a, b)` for `CONCAT(a, b)`; `Concat(a, b, c, ...)` for `CONCAT(a, b, c, ...)` (SQLite; Oracle takes only the two-argument form — see below)
+- `ConcatWs(sep, a, b, ...)` for `CONCAT_WS(sep, a, b, ...)` (MySQL, PostgreSQL, SQLite, SQL Server)
 - `CharLength()` for `CHAR_LENGTH` (MySQL, PostgreSQL)
 - `Instr()` for `INSTR` (MySQL, Oracle, SQLite; the 3- and 4-argument forms are Oracle-only)
 - `Left()` for `LEFT` (MySQL, PostgreSQL, SQL Server)
 - `Lpad()` for `LPAD` (MySQL, Oracle, PostgreSQL; the 2-argument form is Oracle/PostgreSQL only)
-- `Ltrim()` for `LTRIM` (two-argument trim-set form: Oracle, PostgreSQL, SQLite, SQL Server 2022+)
+- `Ltrim()` for `LTRIM` (two-argument trim-set form: Oracle, PostgreSQL, SQLite, SQL Server)
 - `Length()` for `LENGTH` (MySQL, Oracle, PostgreSQL, SQLite)
 - `Lengthb()` for `LENGTHB` (Oracle)
 - `Lower()` for `LOWER`
 - `Position()` for `POSITION(substr IN str)`
 - `Right()` for `RIGHT` (MySQL, PostgreSQL, SQL Server)
 - `Rpad()` for `RPAD` (MySQL, Oracle, PostgreSQL; the 2-argument form is Oracle/PostgreSQL only)
-- `Rtrim()` for `RTRIM` (two-argument trim-set form: Oracle, PostgreSQL, SQLite, SQL Server 2022+)
-- `RegexpCount()` for `REGEXP_COUNT` (Oracle, PostgreSQL 15+)
-- `RegexpInstr()` for `REGEXP_INSTR` (MySQL, Oracle, PostgreSQL 15+; the 7-argument `subPatternPos` form is Oracle/PostgreSQL only)
-- `RegexpReplace()` for `REGEXP_REPLACE` (MySQL, Oracle, PostgreSQL 15+)
-- `RegexpSubstr()` for `REGEXP_SUBSTR` (MySQL, Oracle, PostgreSQL 15+; the 6-argument `subPatternPos` form is Oracle/PostgreSQL only)
+- `Rtrim()` for `RTRIM` (two-argument trim-set form: Oracle, PostgreSQL, SQLite, SQL Server)
+- `RegexpCount()` for `REGEXP_COUNT` (Oracle, PostgreSQL)
+- `RegexpInstr()` for `REGEXP_INSTR` (MySQL, Oracle, PostgreSQL; the 7-argument `subPatternPos` form is Oracle/PostgreSQL only)
+- `RegexpReplace()` for `REGEXP_REPLACE` (MySQL, Oracle, PostgreSQL)
+- `RegexpSubstr()` for `REGEXP_SUBSTR` (MySQL, Oracle, PostgreSQL; the 6-argument `subPatternPos` form is Oracle/PostgreSQL only)
 - `Replace()` for `REPLACE`
 - `Strpos()` for `STRPOS`
 - `Substr()` for `SUBSTR` (not supported by SQL Server — use `Substring()` there)
 - `Substrb()` for `SUBSTRB` (Oracle)
-- `Substring()` for `SUBSTRING` (MySQL, PostgreSQL, SQLite 3.34+, SQL Server; on Oracle use `Substr()`)
-- `Trim()` for `TRIM` (SQL Server 2017+; the two-argument trim-set form is SQL Server 2022+ and not supported by SQLite — nest `Ltrim()`/`Rtrim()` there)
+- `Substring()` for `SUBSTRING` (MySQL, PostgreSQL, SQLite, SQL Server; on Oracle use `Substr()`)
+- `Trim()` for `TRIM` (SQL Server; the two-argument trim-set form is not supported by SQLite — nest `Ltrim()`/`Rtrim()` there)
 - `Upper()` for `UPPER`
 
 On Oracle, chain two-argument `Concat(a, b)` calls (`Concat(Concat(a, b), c)`)
@@ -111,7 +114,7 @@ for the full per-dialect guide, including a MySQL semantics trap `||` has that
 - `DateSub()` for `DATE_SUB` (MySQL)
 - `DateTrunc()` for `DATE_TRUNC` (PostgreSQL)
 - `Datetime(timevalue[, modifier, ...])` for `DATETIME` (SQLite)
-- `Datetrunc()` for `DATETRUNC` (SQL Server 2022+; use `Format()` on earlier versions)
+- `Datetrunc()` for `DATETRUNC` (SQL Server)
 - `Extract()` for `EXTRACT` (Date/Time Overload; MySQL, Oracle, PostgreSQL)
 - `Julianday(timevalue[, modifier, ...])` for `JULIANDAY` (SQLite)
 - `LastDay()` for `LAST_DAY` (MySQL, Oracle)
@@ -141,9 +144,9 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 - `Coalesce()` for `COALESCE`
 - `Decode()` for `DECODE` (Oracle)
 - `Format(value, format[, culture])` for `FORMAT(value, format[, culture])` (SQL Server)
-- `If(condition, then, else)` for `IF(condition, then, else)` (MySQL; SQLite 3.48+ accepts it as a second name for `IIF`)
+- `If(condition, then, else)` for `IF(condition, then, else)` (MySQL; SQLite accepts it as a second name for `IIF`)
 - `Ifnull(expr, alt)` for `IFNULL(expr, alt)` (MySQL, SQLite)
-- `Iif(condition, then, else)` for `IIF(condition, then, else)` (SQLite 3.32+, SQL Server 2012+)
+- `Iif(condition, then, else)` for `IIF(condition, then, else)` (SQLite, SQL Server)
 - `Isnull(expr, alt)` for `ISNULL(expr, alt)` (SQL Server)
 - `Nullif()` for `NULLIF`
 - `Numtodsinterval()` for `NUMTODSINTERVAL` (Oracle)
@@ -156,7 +159,7 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 
 > [!NOTE]
 > MySQL and SQLite each have their own same-named but incompatible `FORMAT()`
-> (MySQL: fixed decimal count; SQLite 3.38+: a `printf()` alias). Neither
+> (MySQL: fixed decimal count; SQLite: a `printf()` alias). Neither
 > matches SQL Server's .NET-style format strings — a call executes on both
 > without erroring, but there is no MySQL/SQLite equivalent of this factory.
 
@@ -170,8 +173,8 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 
 ## Comparison Functions
 
-- `Greatest()` for `GREATEST` (MySQL, Oracle, PostgreSQL, SQL Server 2022+)
-- `Least()` for `LEAST` (MySQL, Oracle, PostgreSQL, SQL Server 2022+)
+- `Greatest()` for `GREATEST` (MySQL, Oracle, PostgreSQL, SQL Server)
+- `Least()` for `LEAST` (MySQL, Oracle, PostgreSQL, SQL Server)
 
 ---
 
@@ -180,7 +183,7 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 JSON paths are emitted as inline string literals (SQL Server and Oracle require the path to be a literal, not a bind parameter).
 
 - `JsonExtract(jsonDoc, path)` for `JSON_EXTRACT(jsonDoc, 'path')` (MySQL, SQLite)
-- `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL 8.0.21+, Oracle, SQL Server)
+- `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL, Oracle, SQL Server)
 - `JsonQuery(jsonDoc, path)` for `JSON_QUERY(jsonDoc, 'path')` (Oracle, SQL Server)
 
 JSON **operators** (`->`, `->>`, `#>`, `#>>`, and the JSONB predicates
@@ -254,7 +257,7 @@ Chain `.Over(...)` to turn any of them into a window function (see
 
 Exposed per dialect (no unified rewrite); each emits its dialect-native syntax verbatim.
 
-- `StringAgg(expr, sep)` for `STRING_AGG(expr, sep)` (PostgreSQL/SQLite 3.44+/SQL Server). Order with an `OrderBy(...)` argument — `StringAgg(expr, sep, OrderBy(...))` (PostgreSQL/SQLite 3.44+, inline) — or chain `.WithinGroup(OrderBy(...))` (SQL Server)
+- `StringAgg(expr, sep)` for `STRING_AGG(expr, sep)` (PostgreSQL/SQLite/SQL Server). Order with an `OrderBy(...)` argument — `StringAgg(expr, sep, OrderBy(...))` (PostgreSQL/SQLite, inline) — or chain `.WithinGroup(OrderBy(...))` (SQL Server)
 - `Listagg(expr, sep).WithinGroup(OrderBy(...))` for `LISTAGG(expr, sep) WITHIN GROUP (ORDER BY ...)` (Oracle)
 - `GroupConcat(expr)` for `GROUP_CONCAT(expr)` (MySQL/SQLite)
 - `GroupConcat(expr, sep)` for `GROUP_CONCAT(expr, sep)` (SQLite, positional separator)
