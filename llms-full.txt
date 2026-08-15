@@ -962,9 +962,13 @@ eliminates duplicate rows, the `ALL` form keeps them.
 and `INTERSECT` run on any Oracle version, so an Oracle below 21 takes the
 difference with `Minus`. Where no set operator reaches (MySQL below 8.0.31, and
 the `ALL` forms on Oracle below 21), write the test as an `Exists` /
-`NotExists` predicate instead — but unlike `EXCEPT` / `INTERSECT`, its `=`
-join condition keeps duplicate rows (wrap it in `Select(Distinct, ...)` where
-that matters) and never matches two `NULL`s.
+`NotExists` predicate instead. It stands in for the plain forms with two
+differences — its `=` join condition keeps duplicate rows (wrap it in
+`Select(Distinct, ...)` where that matters) and never matches two `NULL`s —
+but not for the `ALL` forms, which count copies: for a row present `m` times
+on the left and `n` times on the right, `EXCEPT ALL` returns it `max(m - n, 0)`
+times and `INTERSECT ALL` `min(m, n)` times, where the predicate can only keep
+or drop all `m`.
 
 ---
 

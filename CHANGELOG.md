@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   note names what to reach for instead, and says where the substitute is not
   equivalent — swapping an `ALL` form for its plain one eliminates duplicate
   rows, an `Exists`/`NotExists` rewrite keeps duplicates `EXCEPT`/`INTERSECT`
-  would drop and never matches two `NULL`s, and the SQLite/MySQL `FULL JOIN`
+  would drop, never matches two `NULL`s, and cannot reproduce the `ALL` forms'
+  copy counts at all, and the SQLite/MySQL `FULL JOIN`
   emulations are a `UNION` that eliminates duplicate rows a real `FULL JOIN`
   keeps. The set-operator note also states the support facts around them —
   that `Minus`/`MinusAll` are Oracle's spelling of `EXCEPT`/`EXCEPT ALL` and
