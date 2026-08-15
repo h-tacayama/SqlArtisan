@@ -10,8 +10,9 @@ namespace SqlArtisan.Analyzers.Tests;
 /// <summary>
 /// Guards #292's doc/behaviour drifts from recurring.
 /// <see cref="RemarksDialectNote_MatchesMatrix"/> sweeps every public member
-/// with a <c>&lt;remarks&gt;</c> dialect note against a documented exclusion
-/// catalog (#470), rather than a curated inclusion list.
+/// carrying both a <c>&lt;remarks&gt;</c> dialect note and a
+/// <see cref="DialectMatrix"/> entry against a documented exclusion catalog
+/// (#470), rather than a curated inclusion list.
 /// </summary>
 public class XmlDocDialectParityTests
 {
@@ -31,10 +32,9 @@ public class XmlDocDialectParityTests
         Assert.True(HasSelect(typeof(IInsertIgnoreBuilderColumns)));
     }
 
-    // Members whose <remarks> dialect note this parser cannot resolve to a single
-    // clause — catalogued instead of gated, so RemarkCases enumerates the rest of
-    // the public surface automatically (#470) rather than relying on a hand-picked
-    // list. Each entry is why the parser gives up, not a claim that the remark is wrong.
+    // Members the sweep cannot check: the first-clause display-name parse does
+    // not yield the matrix set. Not a claim that any remark is wrong — reword one
+    // into the house form and ExcludedMembers_AreAllLoadBearing retires its entry.
     private static readonly IReadOnlySet<(string Name, int? Arity)> ExcludedMembers = new HashSet<(string, int?)>
     {
         // DialectMatrix keys these by (name, arity) only, as the *union* of two
@@ -45,35 +45,31 @@ public class XmlDocDialectParityTests
         ("Currval", 1),
         ("GroupConcat", 2),
 
-        // The first clause states the set as a prose quantifier ("every
-        // dialect"/"every DBMS"), which a display-name match cannot read.
+        // The remark names its dialects in a shape the first-clause parse does
+        // not read — a prose quantifier, a set spread across clauses, or an
+        // opening cross-reference or caveat.
         ("Ceil", 1),
         ("Ceiling", 1),
         ("Concat", 2),
-        ("Exp", 1),
-
-        // The supported set spans more than the remark's first clause.
         ("Concat", 4),
+        ("CosineDistance", 2),
         ("Date", 1),
+        ("Datediff", 3),
         ("Excluded", 1),
+        ("Exp", 1),
         ("If", 3),
         ("IntervalLiteral", 2),
-
-        // The remark opens with a cross-reference or caveat, not a dialect list.
-        ("CosineDistance", 2),
-        ("Datediff", 3),
-        ("Dual", null),
         ("MergeInto", 1),
         ("Round", 1),
         ("Separator", 1),
     };
 
     // Every member whose <remarks> names a dialect — i.e. contains one of
-    // DisplayNames' keys — and has a DialectMatrix entry, minus the documented
-    // exclusions above. A remark that never names a dialect (implementation
-    // notes, usage guidance) makes no matrix-parity claim to check, even when
-    // the member's matrix entry happens to be <see cref="DbmsSupport.All"/>.
-    public static IEnumerable<object[]> RemarkCases() =>
+    // DisplayNames' keys — and has a DialectMatrix entry. A remark that never
+    // names a dialect (implementation notes, usage guidance) makes no
+    // matrix-parity claim to check, even when the member's matrix entry happens
+    // to be <see cref="DbmsSupport.All"/>.
+    private static IEnumerable<(string Id, string Name, int? Arity)> Candidates() =>
         from member in LoadXmlDoc().Descendants("member")
         let remark = member.Element("remarks")
         where remark is not null
@@ -84,9 +80,35 @@ public class XmlDocDialectParityTests
         where DisplayNames.Keys.Any(text.Contains)
         let id = (string)member.Attribute("name")!
         let parsed = ParseMemberId(id)
-        where !ExcludedMembers.Contains((parsed.Name, parsed.Arity))
         where DialectMatrix.TryGetEntry(parsed.Name, parsed.Arity, out _, out _)
-        select new object[] { id, parsed.Name, parsed.Arity! };
+        select (id, parsed.Name, parsed.Arity);
+
+    public static IEnumerable<object[]> RemarkCases() =>
+        from candidate in Candidates()
+        where !ExcludedMembers.Contains((candidate.Name, candidate.Arity))
+        select new object[] { candidate.Id, candidate.Name, candidate.Arity! };
+
+    // An exclusion that suppresses nothing is worse than none: it reads as
+    // load-bearing and keeps its member out of the sweep for good. The repo's
+    // other documented-exclusion catalogs carry the same staleness gate —
+    // DialectMatrixCoverageTests' Exclusions_ResolveToRealMembersWithoutMatrixEntries
+    // and MatrixSweepTests' Catalog_HasNoKeysOutsideTheMatrix.
+    [Fact]
+    public void ExcludedMembers_AreAllLoadBearing()
+    {
+        HashSet<(string, int?)> candidates = [.. Candidates().Select(c => (c.Name, c.Arity))];
+
+        List<string> inert = [.. ExcludedMembers
+            .Where(entry => !candidates.Contains(entry))
+            .Select(entry => $"{entry.Name}/{entry.Arity?.ToString() ?? "member"}")
+            .OrderBy(name => name, StringComparer.Ordinal)];
+
+        Assert.True(
+            inert.Count == 0,
+            $"{inert.Count} exclusions suppress nothing (remark reworded or no longer naming a "
+                + $"dialect, member gone, or matrix entry removed) — retire them:\n  "
+                + string.Join("\n  ", inert));
+    }
 
     [Theory]
     [MemberData(nameof(RemarkCases))]

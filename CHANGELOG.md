@@ -12,19 +12,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   alongside "Not supported by X". `RemarkCases` no longer hand-curates its
   member list: it now sweeps every public member whose `<remarks>` names a
   dialect and has a `DialectMatrix` entry (17 members before this change,
-  124 after), catalogued against a documented exclusion list for the shapes
-  no single-clause parser can resolve — a matrix key that unions two
-  distinct APIs (`Match`, `Nextval`, `Currval`, `GroupConcat`), a first
-  clause stating the set as a prose quantifier such as "every dialect"
-  (`Ceil`, `Ceiling`, `Concat`, `Exp`), a supported set spanning more than
-  one clause (`Concat`, `Date`, `Excluded`, `If`, `IntervalLiteral`), or a
-  remark opening with a cross-reference or caveat rather than a dialect list
-  (`CosineDistance`, `Datediff`, `Dual`, `MergeInto`, `Round`,
-  `Separator`). A parse that names no dialect
+  124 after), catalogued against a documented exclusion list of the members
+  whose first-clause parse does not yield the matrix set — a matrix key that
+  unions two distinct APIs, so no single remark can match it, or a remark
+  naming its dialects as a prose quantifier, across several clauses, or
+  behind an opening cross-reference or caveat. A parse that names no dialect
   at all now fails the gate outright rather than silently mismatching, to
-  catch the next parser gap instead of an exclusion-list omission. Six
-  remarks (`All`/`Any`/`Some`/`Cube`/`Greatest`/`Least`) were reworded to the
-  house `Not supported by X` form so the parser resolves them without an
+  catch the next parser gap instead of an exclusion-list omission, and
+  `ExcludedMembers_AreAllLoadBearing` retires an exclusion once its member
+  rejoins the sweep — so the catalog cannot quietly keep a member out after
+  its remark is reworded. Six remarks
+  (`All`/`Any`/`Some`/`Cube`/`Greatest`/`Least`) were reworded to the house
+  `Not supported by X` form so the parser resolves them without an
   exclusion-list entry. (#470)
 - `Sql.Trim(source, trimChar)`'s XML remark now states the SQL Server 2022+ floor (compatibility level 160) alongside its SQLite exclusion, matching what `docs/functions.md` already said and what the arity-2 matrix key already records. The floor was omitted because `XmlDocDialectParityTests` read *any* dialect named anywhere in a remark containing "Not supported by" as excluded, so naming SQL Server for its version floor also marked it unsupported and failed the parity gate. The parser now scopes the exclusion to its own clause — up to the first sentence/sub-clause boundary (a period that isn't part of a version number, or a semicolon) or em dash, the last kept defensively even though every "— use `<sibling>` there" aside in the corpus today names a function, not a dialect — and collapses wrapped whitespace first, since a doc comment can split a display name such as "SQL Server" across lines. (#469; the positive-list form's own scoping followed in #470.)
 - Docs-audit corrections. The README's install commands now carry the `--prerelease` flag their own lead-in says is required (every published version is a prerelease, so the flagless commands resolved nothing). The README/comparison guard-rail item no longer claims the integration matrix "proves the SQL runs" — a few full-text-search entries' supported side cannot execute on the pinned container images, so it now says "verified against live engines," matching the AI-assistants guide. Every dialect-restricted entry in `docs/functions.md` that read as universally supported now carries a dialect note in the page's own style, each checked at the arity-specific matrix key and against the separate version-bound table — the Oracle-family conversion/date functions (`Nvl`, `Decode`, `ToChar`/`ToDate`/`ToNumber`/`ToTimestamp`, `AddMonths`, `MonthsBetween`, `Sysdate`/`Systimestamp`, date `Trunc`), the restricted character functions (`ConcatWs`, `CharLength`, `Instr`, `Left`/`Right`, `Lpad`/`Rpad`, `Ltrim`/`Rtrim` trim-set forms, `Length`, `Lengthb`/`Substrb`, the `REGEXP_*` family, `Substr`/`Substring`, `Trim`), `Extract`, `LastDay`, `Greatest`/`Least`, `CurrentDate`/`CurrentTime`, `PercentileCont`/`PercentileDisc`, and the SQLite 3.35+ math-function bounds (`Ceil`/`Ceiling`/`Exp`/`Floor`/`Ln`/`Log10`/`Mod`/`Power`/`Sign`/`Sqrt`, plus `Round`'s single-argument SQL Server gap and numeric `Trunc`'s single-argument SQLite support). Two needed more than the member-level row: `Trim`'s two-argument trim-set form carries its own SQL Server 2022 floor at the arity key rather than the member-level 2017 one, and numeric `Trunc` — which the analyzer's matrix deliberately leaves unentered, so nothing warns either way — runs on SQLite 3.35+ in its single-argument form, confirmed against the bundled engine and already asserted by the integration smoke catalog. `docs/analyzer.md` and `Sql.Trunc`'s XML remark, which both still described numeric `TRUNC` as Oracle/PostgreSQL, were corrected to match. The large-`IN`-list advice in `docs/expressions.md` now points at the shipped `Any(BindArray(...))` bound-array form instead of calling `= ANY` a raw idiom. (#468)
