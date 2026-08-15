@@ -45,20 +45,12 @@ public class XmlDocDialectParityTests
         ("Currval", 1),
         ("GroupConcat", 2),
 
-        ("Ceil", 1),
-        ("Ceiling", 1),
         ("Concat", 2),
-        ("Concat", 4),
-        ("CosineDistance", 2),
         ("Date", 1),
         ("Datediff", 3),
-        ("Excluded", 1),
         ("Exp", 1),
         ("If", 3),
         ("IntervalLiteral", 2),
-        ("MergeInto", 1),
-        ("Round", 1),
-        ("Separator", 1),
     };
 
     // Every member whose <remarks> names a dialect — i.e. contains one of
@@ -115,10 +107,9 @@ public class XmlDocDialectParityTests
     private static bool ParsesToMatrixSet((string Id, string Name, int? Arity) candidate)
     {
         ISet<TargetDbms> claimed = ParseDialects(ReadRemark(candidate.Id));
-        DialectMatrix.TryGetEntry(candidate.Name, candidate.Arity, out DbmsSupport support, out _);
+        ISet<TargetDbms> matrixSet = SupportedDialects(candidate.Name, candidate.Arity);
 
-        return claimed.Count > 0
-            && AllDbms.All(dbms => claimed.Contains(dbms) == support.IsSupported(dbms));
+        return claimed.Count > 0 && claimed.SetEquals(matrixSet);
     }
 
     [Theory]
@@ -133,17 +124,31 @@ public class XmlDocDialectParityTests
                 + "genuine claim of universal (non-)support. Add it to ExcludedMembers if the "
                 + "remark's shape is legitimately unparseable.");
 
-        bool found = DialectMatrix.TryGetEntry(name, arity, out DbmsSupport support, out _);
-        Assert.True(found, $"No DialectMatrix entry for {name}/{arity?.ToString() ?? "member"}.");
+        ISet<TargetDbms> support = SupportedDialects(name, arity);
 
         foreach (TargetDbms dbms in AllDbms)
         {
             Assert.True(
-                claimed.Contains(dbms) == support.IsSupported(dbms),
+                claimed.Contains(dbms) == support.Contains(dbms),
                 $"{memberId} remark \"{remark}\" disagrees with the matrix on {dbms} "
                     + $"(remark says {(claimed.Contains(dbms) ? "supported" : "unsupported")}, "
-                    + $"matrix says {(support.IsSupported(dbms) ? "supported" : "unsupported")}).");
+                    + $"matrix says {(support.Contains(dbms) ? "supported" : "unsupported")}).");
         }
+    }
+
+    // A dialect carrying a version bound is supported by some version of it, so a
+    // remark naming it — floor or not — agrees with the matrix. The analyzer only
+    // reaches that verdict once a target declares a version
+    // (DialectSupportResolver.Evaluate); under `any` it falls back to the plain
+    // bool. TryGetMinVersion is an exact key lookup, so the matched key must match.
+    private static ISet<TargetDbms> SupportedDialects(string name, int? arity)
+    {
+        bool found = DialectMatrix.TryGetEntry(name, arity, out DbmsSupport support, out bool wasArityMatch);
+        Assert.True(found, $"No DialectMatrix entry for {name}/{arity?.ToString() ?? "member"}.");
+
+        MatrixKey matchedKey = new(name, wasArityMatch ? arity : null);
+        return new HashSet<TargetDbms>(AllDbms.Where(
+            dbms => support.IsSupported(dbms) || DialectMatrix.TryGetMinVersion(matchedKey, dbms, out _)));
     }
 
     private static readonly TargetDbms[] AllDbms =
