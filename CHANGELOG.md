@@ -12,16 +12,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   MySQL 8.0.31+; `EXCEPT`, `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` need
   Oracle 21+ (plain `MINUS`/`INTERSECT` run on any Oracle version); and
   `RIGHT JOIN`/`FULL JOIN` with their `NATURAL` forms need SQLite 3.39+. Each
-  note names what to reach for instead, and says where the substitute is not
-  equivalent — swapping an `ALL` form for its plain one eliminates duplicate
-  rows, an `Exists`/`NotExists` rewrite keeps duplicates `EXCEPT`/`INTERSECT`
-  would drop, never matches two `NULL`s, and cannot reproduce the `ALL` forms'
-  copy counts at all, and the SQLite/MySQL `FULL JOIN`
-  emulations are a `UNION` that eliminates duplicate rows a real `FULL JOIN`
-  keeps. The set-operator note also states the support facts around them —
-  that `Minus`/`MinusAll` are Oracle's spelling of `EXCEPT`/`EXCEPT ALL` and
-  run only there, and that SQLite and SQL Server take `ALL` on `UNION` alone —
-  which the section carried nowhere before. (#478)
+  note names the constructs that run at any version alongside the bounded ones
+  (`LeftJoin`/`NaturalLeftJoin`; plain `MINUS`/`INTERSECT` on Oracle), and
+  neither offers a rewrite for a construct the engine cannot run: an `ALL`
+  form is not interchangeable with its plain one, and how many copies it
+  returns is the engine's own rule to look up. The set-operator note also
+  states the support facts around them — that `Minus`/`MinusAll` are Oracle's
+  spelling of `EXCEPT`/`EXCEPT ALL` and run only there, and that SQLite and
+  SQL Server take `ALL` on `UNION` alone — which the section carried nowhere
+  before. (#478)
 - A version floor stated in a `<remarks>` is now gated against
   `DialectMatrix`'s `VersionBounds` in both directions — a stated floor must be
   the matrix's, and a bound the matrix records must be stated — resolving the

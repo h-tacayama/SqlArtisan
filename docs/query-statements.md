@@ -236,14 +236,8 @@ On SQL Server, which has no `NATURAL JOIN`, write the match explicitly with
 unsupported too — emulate it with `LeftJoin(...).On(...)` unioned with
 `RightJoin(...).On(...)` there.
 
-`RIGHT JOIN` and `FULL JOIN`, and their `NATURAL` forms, need SQLite 3.39+. On
-an older build, swap the two tables and use `LeftJoin(...)` — or
-`NaturalLeftJoin(...)` for the natural form — and union two such swapped
-queries for the full form, since `RightJoin()` is missing there too.
-
-Both `FULL JOIN` emulations above are a `UNION` of two one-sided joins, which
-eliminates duplicate rows a real `FULL JOIN` keeps — they stand in only if
-duplicate rows don't matter.
+`RIGHT JOIN` and `FULL JOIN`, and their `NATURAL` forms, need SQLite 3.39+.
+`LeftJoin()` and `NaturalLeftJoin()` run on any version.
 
 #### JOIN ... USING
 
@@ -517,22 +511,14 @@ SqlStatement sql =
 
 `Minus` / `MinusAll` are Oracle's own spelling of `EXCEPT` / `EXCEPT ALL` and
 run only there. `ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL
-only — SQLite and SQL Server take `ALL` on `UNION` alone, where `Except` /
-`Intersect` stands in only if duplicates don't matter: the plain form
-eliminates duplicate rows, the `ALL` form keeps them.
+only — SQLite and SQL Server take `ALL` on `UNION` alone.
 
 `EXCEPT`, `INTERSECT`, and both `ALL` forms need MySQL 8.0.31+, and `EXCEPT`,
 `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` need Oracle 21+ — plain `MINUS`
-and `INTERSECT` run on any Oracle version, so an Oracle below 21 takes the
-difference with `Minus`. Where no set operator reaches (MySQL below 8.0.31, and
-the `ALL` forms on Oracle below 21), write the test as an `Exists` /
-`NotExists` predicate instead. It stands in for the plain forms with two
-differences — its `=` join condition keeps duplicate rows (wrap it in
-`Select(Distinct, ...)` where that matters) and never matches two `NULL`s —
-but not for the `ALL` forms, which count copies: for a row present `m` times
-on the left and `n` times on the right, `EXCEPT ALL` returns it `max(m - n, 0)`
-times and `INTERSECT ALL` `min(m, n)` times, where the predicate can only keep
-or drop all `m`.
+and `INTERSECT` run on any Oracle version. An `ALL` form is not interchangeable
+with its plain one: the plain form eliminates duplicate rows, and how many
+copies the `ALL` form returns is the target engine's own rule — read its manual
+rather than swapping one for the other.
 
 ---
 
