@@ -136,12 +136,11 @@ public class XmlDocDialectParityTests
         }
     }
 
-    // A dialect carrying a version bound is supported by some version of it — the
-    // analyzer's own DialectSupportResolver.Evaluate treats a bound as overriding
-    // DbmsSupport's plain bool in both directions, so a remark naming that dialect
-    // (with or without its floor, e.g. "Oracle (23ai+)") agrees with the matrix.
-    // TryGetMinVersion looks up the matched key exactly — an arity-specific bound
-    // never falls back to the member-wide row, so the matched key must match too.
+    // A dialect carrying a version bound is supported by some version of it, so a
+    // remark naming it — floor or not — agrees with the matrix. The analyzer only
+    // reaches that verdict once a target declares a version
+    // (DialectSupportResolver.Evaluate); under `any` it falls back to the plain
+    // bool. TryGetMinVersion is an exact key lookup, so the matched key must match.
     private static ISet<TargetDbms> SupportedDialects(string name, int? arity)
     {
         bool found = DialectMatrix.TryGetEntry(name, arity, out DbmsSupport support, out bool wasArityMatch);
