@@ -45,14 +45,17 @@ public class XmlDocDialectParityTests
         ("Currval", 1),
         ("GroupConcat", 2),
 
-        // The supported set spans more than the remark's first clause.
+        // The first clause states the set as a prose quantifier ("every
+        // dialect"/"every DBMS"), which a display-name match cannot read.
         ("Ceil", 1),
         ("Ceiling", 1),
         ("Concat", 2),
+        ("Exp", 1),
+
+        // The supported set spans more than the remark's first clause.
         ("Concat", 4),
         ("Date", 1),
         ("Excluded", 1),
-        ("Exp", 1),
         ("If", 3),
         ("IntervalLiteral", 2),
 
@@ -73,7 +76,12 @@ public class XmlDocDialectParityTests
     public static IEnumerable<object[]> RemarkCases() =>
         from member in LoadXmlDoc().Descendants("member")
         let remark = member.Element("remarks")
-        where remark is not null && DisplayNames.Keys.Any(remark.Value.Contains)
+        where remark is not null
+        // Collapsed before the name match for the same reason ParseDialects
+        // collapses: a doc comment wraps, so "SQL Server" can straddle a line
+        // break and would otherwise read as naming no dialect at all (#469).
+        let text = WhitespaceRun.Replace(remark.Value, " ")
+        where DisplayNames.Keys.Any(text.Contains)
         let id = (string)member.Attribute("name")!
         let parsed = ParseMemberId(id)
         where !ExcludedMembers.Contains((parsed.Name, parsed.Arity))

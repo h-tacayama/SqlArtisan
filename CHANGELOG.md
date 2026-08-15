@@ -12,13 +12,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   alongside "Not supported by X". `RemarkCases` no longer hand-curates its
   member list: it now sweeps every public member whose `<remarks>` names a
   dialect and has a `DialectMatrix` entry (17 members before this change,
-  126 after), catalogued against a documented exclusion list for the shapes
+  124 after), catalogued against a documented exclusion list for the shapes
   no single-clause parser can resolve — a matrix key that unions two
-  distinct APIs (`Match`, `Nextval`, `Currval`, `GroupConcat`), a supported
-  set spanning more than one clause (`Ceil`, `Ceiling`, `Concat`, `Date`,
-  `Excluded`, `Exp`, `If`, `IntervalLiteral`), or a remark opening with a
-  cross-reference rather than a dialect list (`CosineDistance`, `Datediff`,
-  `Dual`, `MergeInto`, `Round`, `Separator`). A parse that names no dialect
+  distinct APIs (`Match`, `Nextval`, `Currval`, `GroupConcat`), a first
+  clause stating the set as a prose quantifier such as "every dialect"
+  (`Ceil`, `Ceiling`, `Concat`, `Exp`), a supported set spanning more than
+  one clause (`Concat`, `Date`, `Excluded`, `If`, `IntervalLiteral`), or a
+  remark opening with a cross-reference or caveat rather than a dialect list
+  (`CosineDistance`, `Datediff`, `Dual`, `MergeInto`, `Round`,
+  `Separator`). A parse that names no dialect
   at all now fails the gate outright rather than silently mismatching, to
   catch the next parser gap instead of an exclusion-list omission. Six
   remarks (`All`/`Any`/`Some`/`Cube`/`Greatest`/`Least`) were reworded to the
