@@ -14,8 +14,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `RIGHT JOIN`/`FULL JOIN` with their `NATURAL` forms need SQLite 3.39+. Each
   note names what to reach for instead, and says where the substitute is not
   equivalent — swapping an `ALL` form for its plain one eliminates duplicate
-  rows, and an `Exists`/`NotExists` rewrite does not reproduce `ALL` semantics
-  at all. The set-operator note also states the support facts around them —
+  rows, an `Exists`/`NotExists` rewrite keeps duplicates `EXCEPT`/`INTERSECT`
+  would drop and never matches two `NULL`s, and the SQLite/MySQL `FULL JOIN`
+  emulations are a `UNION` that eliminates duplicate rows a real `FULL JOIN`
+  keeps. The set-operator note also states the support facts around them —
   that `Minus`/`MinusAll` are Oracle's spelling of `EXCEPT`/`EXCEPT ALL` and
   run only there, and that SQLite and SQL Server take `ALL` on `UNION` alone —
   which the section carried nowhere before. (#478)
