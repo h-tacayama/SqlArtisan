@@ -6,21 +6,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
-- `docs/query-statements.md`'s set-operator and JOIN sections now state the
-  version floors that previously appeared only in `docs/analyzer.md`'s
-  version-bound register: `EXCEPT`, `INTERSECT`, and both `ALL` forms need
-  MySQL 8.0.31+; `EXCEPT`, `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` need
-  Oracle 21+ (plain `MINUS`/`INTERSECT` run on any Oracle version); and
-  `RIGHT JOIN`/`FULL JOIN` with their `NATURAL` forms need SQLite 3.39+. Each
-  note names the constructs that run at any version alongside the bounded ones
-  (`LeftJoin`/`NaturalLeftJoin`; plain `MINUS`/`INTERSECT` on Oracle), and
-  neither offers a rewrite for a construct the engine cannot run: an `ALL`
-  form is not interchangeable with its plain one, and how many copies it
-  returns is the engine's own rule to look up. The set-operator note also
-  states the support facts around them — that `Minus`/`MinusAll` are Oracle's
-  spelling of `EXCEPT`/`EXCEPT ALL` and run only there, and that SQLite and
-  SQL Server take `ALL` on `UNION` alone — which the section carried nowhere
-  before. (#478)
+- **ADR 0020 draws a precision boundary for the documentation**: a page states
+  what SqlArtisan emits and which dialects support a construct — both tied to
+  tests — and delegates the rest to the engine. Result semantics (duplicate
+  handling, `NULL` matching, multiplicity), equivalence between two constructs,
+  and hand-written SQL rewrites are no longer asserted: offering one construct
+  as a stand-in for another is a portability claim, which this project refuses
+  in code and now refuses in prose. A minimum engine version stays only where a
+  test keeps it tied to `DialectMatrix` — `docs/analyzer.md`'s version-bound
+  register, XML `<remarks>`, and the analyzer's own `SQLA0101` — so reference
+  pages link to the register instead of restating floors that nothing keeps
+  current. `.claude/rules/docs-style.md` and the two review skills move with it.
+- `docs/query-statements.md`'s set-operator section now states the dialect
+  support its API list never carried — `Minus`/`MinusAll` are Oracle's spelling
+  of `EXCEPT`/`EXCEPT ALL` and run only there, `ExceptAll`/`IntersectAll` are
+  MySQL, Oracle, and PostgreSQL only, and SQLite and SQL Server take `ALL` on
+  `UNION` alone — and both it and the JOIN section link the register for the
+  versions. Two pre-existing claims retire under ADR 0020: the MySQL `FULL JOIN`
+  emulation recipe (a `UNION` of two one-sided joins, which drops duplicate rows
+  the join keeps) and SQL Server's `JOIN ... USING` substitute, described as an
+  "equivalent" `On(...)` predicate though `USING` collapses the join column.
+  (#478)
 - A version floor stated in a `<remarks>` is now gated against
   `DialectMatrix`'s `VersionBounds` in both directions — a stated floor must be
   the matrix's, and a bound the matrix records must be stated — resolving the

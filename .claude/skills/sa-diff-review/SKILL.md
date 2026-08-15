@@ -266,6 +266,12 @@ contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
 - **Misleading ambiguity** — wording a reader could plausibly misread into an
   incorrect belief about behavior, not merely wording you'd have chosen
   differently.
+- **Out of boundary** (ADR 0020) — a claim the repo cannot verify: result
+  semantics (duplicate handling, `NULL` matching, multiplicity, collation), an
+  equivalence between two constructs, a hand-written SQL rewrite, or a version
+  floor in a reference page. Report it whether or not it is currently true —
+  the defect is that nothing keeps it true. A hazard in SqlArtisan's *own*
+  emitted SQL is in boundary and stays.
 
 **Not a defect — do not report:**
 - A rewording that changes nothing a reader could conclude — pure phrasing

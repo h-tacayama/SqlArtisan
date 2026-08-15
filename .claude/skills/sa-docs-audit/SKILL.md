@@ -105,6 +105,14 @@ Score the docs against these. The scripts cover 2–5 and parts of 6/10.
     `<sub>` may be stripped). No trailing whitespace, double blank lines, or
     mojibake. (`check_terms.py` covers whitespace/blank lines.)
 
+11. **Precision boundary (ADR 0020).** Every claim has a source of truth in the
+    repo. Flag result semantics (duplicate handling, `NULL` matching,
+    multiplicity, collation), an equivalence between two constructs, a
+    hand-written SQL rewrite, and a version floor outside `docs/analyzer.md`'s
+    register — whether or not it currently reads as true, since nothing keeps it
+    true. A substitution names a sibling SqlArtisan API or nothing at all; a
+    hazard in SqlArtisan's own emitted SQL is in boundary and stays.
+
 ## Process safeguards (hard-won)
 
 - **Verify, don't recall.** Emitted SQL, dialect behaviour, and allocations come

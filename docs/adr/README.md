@@ -43,6 +43,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0017](0017-join-predicate-completeness.md) | Join predicate completeness: rejecting an omitted `ON`/`USING` that some dialects silently reinterpret as `CROSS JOIN` | Boundary | Accepted |
 | [0018](0018-analyzer-diagnostic-id-bands.md) | Analyzer diagnostic ID bands: one numbered range per category | Analyzer | Accepted |
 | [0019](0019-analyzer-multi-dialect-syntax-set.md) | Analyzer multi-dialect syntax set: `sqlartisan_syntax_*`, one key per DBMS | Analyzer | Accepted |
+| [0020](0020-documentation-precision-boundary.md) | Documentation precision boundary: what the docs assert, and what they delegate to the engine | | Accepted |
 
 ### Clusters
 

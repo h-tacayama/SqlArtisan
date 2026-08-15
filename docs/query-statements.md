@@ -233,11 +233,9 @@ SqlStatement sql =
 
 On SQL Server, which has no `NATURAL JOIN`, write the match explicitly with
 `On(...)`; on MySQL, which has no `FULL JOIN` at all, `NaturalFullJoin()` is
-unsupported too — emulate it with `LeftJoin(...).On(...)` unioned with
-`RightJoin(...).On(...)` there.
-
-`RIGHT JOIN` and `FULL JOIN`, and their `NATURAL` forms, need SQLite 3.39+.
-`LeftJoin()` and `NaturalLeftJoin()` run on any version.
+unsupported too. SQLite gained `RIGHT JOIN` / `FULL JOIN` and their `NATURAL`
+forms in a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 #### JOIN ... USING
 
@@ -263,7 +261,7 @@ SqlStatement sql =
 ```
 
 MySQL, Oracle, PostgreSQL, and SQLite support this (standard SQL); on SQL Server,
-which has no `JOIN ... USING`, write the equivalent `On(...)` predicate.
+which has no `JOIN ... USING`, write the match explicitly with `On(...)`.
 
 #### Correlated joins: APPLY / LATERAL
 
@@ -511,14 +509,10 @@ SqlStatement sql =
 
 `Minus` / `MinusAll` are Oracle's own spelling of `EXCEPT` / `EXCEPT ALL` and
 run only there. `ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL
-only — SQLite and SQL Server take `ALL` on `UNION` alone.
-
-`EXCEPT`, `INTERSECT`, and both `ALL` forms need MySQL 8.0.31+, and `EXCEPT`,
-`EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` need Oracle 21+ — plain `MINUS`
-and `INTERSECT` run on any Oracle version. An `ALL` form is not interchangeable
-with its plain one: the plain form eliminates duplicate rows, and how many
-copies the `ALL` form returns is the target engine's own rule — read its manual
-rather than swapping one for the other.
+only — SQLite and SQL Server take `ALL` on `UNION` alone. Several of these
+arrived in a specific engine release; the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)
+lists each one, and the analyzer reports it against a declared target version.
 
 ---
 
