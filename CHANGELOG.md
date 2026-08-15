@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
+- `docs/query-statements.md`'s set-operator and JOIN sections now state the
+  version floors that previously appeared only in `docs/analyzer.md`'s
+  version-bound register: `EXCEPT`/`INTERSECT` and their `ALL` forms need
+  MySQL 8.0.31+ and Oracle 21+ (plain `MINUS`/`INTERSECT` run on any Oracle
+  version), and `RIGHT JOIN`/`FULL JOIN` with their `NATURAL` forms need
+  SQLite 3.39+. Both notes name the working alternative on an engine below the
+  floor. The set-operator note also states the support facts around them — that
+  `Minus`/`MinusAll` are Oracle-only and that SQLite and SQL Server accept `ALL`
+  on `UNION` alone — which the section carried nowhere before. (#478)
 - A version floor stated in a `<remarks>` is now gated against
   `DialectMatrix`'s `VersionBounds` in both directions — a stated floor must be
   the matrix's, and a bound the matrix records must be stated — resolving the

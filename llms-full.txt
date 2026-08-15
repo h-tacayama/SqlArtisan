@@ -672,6 +672,10 @@ On SQL Server, which has no `NATURAL JOIN`, write the match explicitly with
 unsupported too — emulate it with `LeftJoin(...).On(...)` unioned with
 `RightJoin(...).On(...)` there.
 
+`RIGHT JOIN` and `FULL JOIN`, and their `NATURAL` forms, are newer than SQLite
+itself (SQLite 3.39+); on an older build, swap the two tables and use
+`LeftJoin(...)`, or union the two one-sided joins for the full form.
+
 #### JOIN ... USING
 
 `.Using(column, ...)` follows `InnerJoin()` / `LeftJoin()` / `RightJoin()` /
@@ -941,6 +945,13 @@ SqlStatement sql =
 - `MinusAll` for `MINUS ALL`
 - `Intersect` for `INTERSECT`
 - `IntersectAll` for `INTERSECT ALL`
+
+`Minus` / `MinusAll` are Oracle's spelling and exist only there, and
+`ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL only — SQLite
+and SQL Server accept `ALL` on `UNION` alone, so take the difference with
+`Except` / `Intersect` there. `EXCEPT`, `INTERSECT`, and their `ALL` forms are
+also newer than the engines themselves on two dialects (MySQL 8.0.31+, Oracle
+21+) — plain `MINUS` and `INTERSECT` run on any Oracle version.
 
 ---
 
