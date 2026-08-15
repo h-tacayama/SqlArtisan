@@ -45,7 +45,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="subquery">A <c>SELECT</c> builder returning a single column.</param>
     /// <returns>A quantified-subquery expression emitting <c>ALL (SELECT ...)</c>.</returns>
-    /// <remarks>SQLite's grammar has no quantified comparisons; the other dialects accept it.</remarks>
+    /// <remarks>Not supported by SQLite — its grammar has no quantified comparisons.</remarks>
     public static QuantifiedSubquery All(ISubquery subquery) =>
         new(Keywords.All, subquery);
 
@@ -67,7 +67,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="subquery">A <c>SELECT</c> builder returning a single column.</param>
     /// <returns>A quantified-subquery expression emitting <c>ANY (SELECT ...)</c>.</returns>
-    /// <remarks>SQLite's grammar has no quantified comparisons; the other dialects accept it.</remarks>
+    /// <remarks>Not supported by SQLite — its grammar has no quantified comparisons.</remarks>
     public static QuantifiedSubquery Any(ISubquery subquery) =>
         new(Keywords.Any, subquery);
 
