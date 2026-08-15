@@ -13,15 +13,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   member list: it now sweeps every public member whose `<remarks>` names a
   dialect and has a `DialectMatrix` entry (17 members before this change,
   124 after), catalogued against a documented exclusion list of the members
-  whose first-clause parse does not yield the matrix set — a matrix key that
-  unions two distinct APIs, so no single remark can match it, or a remark
-  naming its dialects as a prose quantifier, across several clauses, or
-  behind an opening cross-reference or caveat. A parse that names no dialect
-  at all now fails the gate outright rather than silently mismatching, to
-  catch the next parser gap instead of an exclusion-list omission, and
-  `ExcludedMembers_AreAllLoadBearing` retires an exclusion once its member
-  rejoins the sweep — so the catalog cannot quietly keep a member out after
-  its remark is reworded. Six remarks
+  whose first-clause parse disagrees with the matrix — a key that unions two
+  distinct APIs, so no single remark can match it, or a remark whose phrasing
+  defeats the parser: a prose quantifier, a set spread across clauses, or a
+  passing mention of a dialect the matrix excludes. A parse that names no
+  dialect at all now fails the gate outright rather than silently mismatching,
+  to catch the next parser gap instead of an exclusion-list omission, and
+  `ExcludedMembers_AreAllLoadBearing` fails on any exclusion whose remark has
+  come to parse to its matrix set — so rewording one into the house form
+  retires its entry instead of leaving the member out of the sweep for good.
+  Six remarks
   (`All`/`Any`/`Some`/`Cube`/`Greatest`/`Least`) were reworded to the house
   `Not supported by X` form so the parser resolves them without an
   exclusion-list entry. (#470)

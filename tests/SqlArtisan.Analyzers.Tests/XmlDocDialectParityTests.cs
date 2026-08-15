@@ -32,22 +32,19 @@ public class XmlDocDialectParityTests
         Assert.True(HasSelect(typeof(IInsertIgnoreBuilderColumns)));
     }
 
-    // Members the sweep cannot check: the first-clause display-name parse does
-    // not yield the matrix set. Not a claim that any remark is wrong — reword one
-    // into the house form and ExcludedMembers_AreAllLoadBearing retires its entry.
+    // Members whose first-clause parse disagrees with the matrix — the remark's
+    // phrasing defeats the parser, not its content, so it is catalogued rather
+    // than gated. ExcludedMembers_AreAllLoadBearing enforces exactly that much.
     private static readonly IReadOnlySet<(string Name, int? Arity)> ExcludedMembers = new HashSet<(string, int?)>
     {
-        // DialectMatrix keys these by (name, arity) only, as the *union* of two
-        // distinct APIs that collide on that key (see the matrix's own doc
-        // comment) — no single remark can represent a union.
+        // These four can never be retired by rewording: DialectMatrix keys them
+        // as the *union* of two distinct APIs colliding on one (name, arity)
+        // (see its own doc comment), which no single remark can represent.
         ("Match", 2),
         ("Nextval", 1),
         ("Currval", 1),
         ("GroupConcat", 2),
 
-        // The remark names its dialects in a shape the first-clause parse does
-        // not read — a prose quantifier, a set spread across clauses, or an
-        // opening cross-reference or caveat.
         ("Ceil", 1),
         ("Ceiling", 1),
         ("Concat", 2),
@@ -96,18 +93,32 @@ public class XmlDocDialectParityTests
     [Fact]
     public void ExcludedMembers_AreAllLoadBearing()
     {
-        HashSet<(string, int?)> candidates = [.. Candidates().Select(c => (c.Name, c.Arity))];
+        ILookup<(string, int?), (string Id, string Name, int? Arity)> byKey =
+            Candidates().ToLookup(candidate => (candidate.Name, candidate.Arity));
 
+        // An empty key — member gone, remark gone, or it no longer names a
+        // dialect — vacuously satisfies All and so reads as inert too.
         List<string> inert = [.. ExcludedMembers
-            .Where(entry => !candidates.Contains(entry))
+            .Where(entry => byKey[entry].All(ParsesToMatrixSet))
             .Select(entry => $"{entry.Name}/{entry.Arity?.ToString() ?? "member"}")
             .OrderBy(name => name, StringComparer.Ordinal)];
 
         Assert.True(
             inert.Count == 0,
-            $"{inert.Count} exclusions suppress nothing (remark reworded or no longer naming a "
-                + $"dialect, member gone, or matrix entry removed) — retire them:\n  "
+            $"{inert.Count} exclusions suppress nothing — the remark now parses to the matrix set, "
+                + $"or the member no longer reaches the sweep at all — so retire them:\n  "
                 + string.Join("\n  ", inert));
+    }
+
+    // An empty parse is a parser gap, not agreement: the sweep rejects it
+    // outright, so the exclusion is still carrying that member.
+    private static bool ParsesToMatrixSet((string Id, string Name, int? Arity) candidate)
+    {
+        ISet<TargetDbms> claimed = ParseDialects(ReadRemark(candidate.Id));
+        DialectMatrix.TryGetEntry(candidate.Name, candidate.Arity, out DbmsSupport support, out _);
+
+        return claimed.Count > 0
+            && AllDbms.All(dbms => claimed.Contains(dbms) == support.IsSupported(dbms));
     }
 
     [Theory]
