@@ -136,6 +136,119 @@ public class XmlDocDialectParityTests
         }
     }
 
+    // The version check is orthogonal to the dialect-set parse, so it sweeps every
+    // candidate — ExcludedMembers' remarks defeat that parse, not this one.
+    public static IEnumerable<object[]> VersionCases() =>
+        from candidate in Candidates()
+        select new object[] { candidate.Id, candidate.Name, candidate.Arity! };
+
+    // #471: a floor stated in prose was checked by nothing, free to drift from
+    // VersionBounds the way the dialect note could once drift from DbmsSupport.
+    // Both directions are gated — a stated floor must be the matrix's, and a bound
+    // the matrix records must be stated.
+    [Theory]
+    [MemberData(nameof(VersionCases))]
+    public void RemarksVersionFloor_MatchesMatrix(string memberId, string name, int? arity)
+    {
+        string remark = ReadRemark(memberId);
+        IReadOnlyDictionary<TargetDbms, EngineVersion> claimed = ParseFloors(remark);
+        MatrixKey matchedKey = MatchedKey(name, arity);
+
+        // A dialect the matrix supports at no version has no floor to state: a
+        // version named against it bounds a same-named foreign function (Format's
+        // SQLite printf() alias), not this construct.
+        foreach (TargetDbms dbms in SupportedDialects(name, arity))
+        {
+            bool bounded = DialectMatrix.TryGetMinVersion(matchedKey, dbms, out EngineVersion min);
+            bool stated = claimed.TryGetValue(dbms, out EngineVersion floor);
+
+            Assert.True(
+                bounded == stated && (!bounded || min.Equals(floor)),
+                $"{memberId} remark \"{remark}\" disagrees with the matrix on {dbms}'s version "
+                    + $"floor (remark says {(stated ? floor.ToString() : "none")}, matrix says "
+                    + $"{(bounded ? min.ToString() : "none")}).");
+        }
+    }
+
+    // The convention ParseFloors reads: a floor is parenthesized next to the
+    // dialect it bounds — "SQLite (3.35+)" inside a dialect list, "(SQLite 3.44+)"
+    // as a standalone aside. A bare "SQL Server 2022+" reads the same to a human
+    // but parses to nothing, so it fails here rather than satisfying the parity
+    // theory vacuously. Swept over every remark, not just the candidates: the
+    // spelling is a house convention, not a matrix claim.
+    [Fact]
+    public void RemarksVersionFloor_IsParenthesizedBesideItsDialect()
+    {
+        List<string> offenders = [];
+        foreach (XElement member in LoadXmlDoc().Descendants("member"))
+        {
+            if (member.Element("remarks") is not { } remark)
+            {
+                continue;
+            }
+
+            string text = WhitespaceRun.Replace(remark.Value, " ").Trim();
+            offenders.AddRange(FreeFormFloors(text)
+                .Select(floor => $"{(string)member.Attribute("name")!}: \"{floor}\" in \"{text}\""));
+        }
+
+        Assert.True(
+            offenders.Count == 0,
+            $"{offenders.Count} version floors are not parenthesized beside their dialect — "
+                + $"write \"SQLite (3.35+)\" or \"(SQLite 3.35+)\":\n  "
+                + string.Join("\n  ", offenders));
+    }
+
+    private static IEnumerable<string> FreeFormFloors(string text)
+    {
+        IEnumerable<Range> asides = [.. ParenthesizedAside.Matches(text)
+            .Select(aside => new Range(aside.Index, aside.Index + aside.Length))];
+        TargetDbms? named = null;
+
+        foreach (Match token in DialectOrFloor.Matches(text))
+        {
+            if (token.Groups[1].Success)
+            {
+                named = DisplayNames[token.Groups[1].Value];
+            }
+            else if (named is null
+                || !asides.Any(aside => token.Index >= aside.Start.Value && token.Index < aside.End.Value))
+            {
+                yield return token.Value;
+            }
+        }
+    }
+
+    // First floor wins per dialect: a remark restating one (Ltrim's compatibility
+    // level, Log's per-base split) repeats the same number, never a second one.
+    private static IReadOnlyDictionary<TargetDbms, EngineVersion> ParseFloors(string remark)
+    {
+        Dictionary<TargetDbms, EngineVersion> floors = [];
+        TargetDbms? named = null;
+
+        foreach (Match token in DialectOrFloor.Matches(WhitespaceRun.Replace(remark, " ")))
+        {
+            if (token.Groups[1].Success)
+            {
+                named = DisplayNames[token.Groups[1].Value];
+            }
+            else if (named is { } dbms)
+            {
+                floors.TryAdd(dbms, EngineVersion.Parse(token.Groups[2].Value));
+            }
+        }
+
+        return floors;
+    }
+
+    // A floor binds to the nearest dialect named before it, which is what makes
+    // both spellings of the convention parse. EngineVersion drops the release-name
+    // suffix itself, so "23ai+" reads as Oracle 23.
+    private static readonly Regex DialectOrFloor =
+        new(@"(MySQL|Oracle|PostgreSQL|SQLite|SQL Server)|(\d+(?:\.\d+)*[A-Za-z]*)\+");
+
+    private static readonly Regex ParenthesizedAside = new(@"\([^()]*\)");
+
     // A dialect carrying a version bound is supported by some version of it, so a
     // remark naming it — floor or not — agrees with the matrix. The analyzer only
     // reaches that verdict once a target declares a version
@@ -143,12 +256,23 @@ public class XmlDocDialectParityTests
     // bool. TryGetMinVersion is an exact key lookup, so the matched key must match.
     private static ISet<TargetDbms> SupportedDialects(string name, int? arity)
     {
-        bool found = DialectMatrix.TryGetEntry(name, arity, out DbmsSupport support, out bool wasArityMatch);
+        bool found = DialectMatrix.TryGetEntry(name, arity, out DbmsSupport support, out _);
         Assert.True(found, $"No DialectMatrix entry for {name}/{arity?.ToString() ?? "member"}.");
 
-        MatrixKey matchedKey = new(name, wasArityMatch ? arity : null);
+        MatrixKey matchedKey = MatchedKey(name, arity);
         return new HashSet<TargetDbms>(AllDbms.Where(
             dbms => support.IsSupported(dbms) || DialectMatrix.TryGetMinVersion(matchedKey, dbms, out _)));
+    }
+
+    // A bound attaches to the exact key the entry lookup matched, never falling
+    // back from the arity key to the member key (Trim carries 2022 at the arity-2
+    // key and 2017 at the member key).
+    private static MatrixKey MatchedKey(string name, int? arity)
+    {
+        bool found = DialectMatrix.TryGetEntry(name, arity, out _, out bool wasArityMatch);
+        Assert.True(found, $"No DialectMatrix entry for {name}/{arity?.ToString() ?? "member"}.");
+
+        return new MatrixKey(name, wasArityMatch ? arity : null);
     }
 
     private static readonly TargetDbms[] AllDbms =

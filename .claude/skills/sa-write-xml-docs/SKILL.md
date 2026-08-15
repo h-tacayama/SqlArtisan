@@ -87,6 +87,14 @@ separate, deliberate decision.
 - **Line breaks:** `<summary>` always three `///` lines;
   `<param>`/`<returns>`/`<typeparam>`/`<exception>` inline (wrap content only when
   long). This is the Visual Studio / Roslyn layout.
+- **Version floor**: parenthesized next to the dialect it bounds — `SQLite
+  (3.35+)` inside a dialect list, `(SQLite 3.44+)` as a standalone aside. Never
+  bare (`SQL Server 2022+`) and never in a relative clause: those read the same
+  to a human but parse to nothing, and
+  `XmlDocDialectParityTests.RemarksVersionFloor_MatchesMatrix` gates every floor
+  against `DialectMatrix`'s `VersionBounds` (#471). `docs/` puts the name inside
+  the parentheses instead — there the note stands alone, here it usually sits in
+  a list of dialect names.
 - **Document on the interface, not the implementation** — put `<inheritdoc/>` on
   the implementing method so shipped XML / DocFX inherit it. Never write it twice.
 - Runnable examples live in the **README**, not `<example>` blocks.

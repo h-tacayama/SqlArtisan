@@ -41,7 +41,7 @@ public sealed class SortOrder : SqlPart
     /// Gets this sort key with its <see langword="null"/> values sorted first
     /// (<c>... NULLS FIRST</c>).
     /// </summary>
-    /// <remarks>Not available on MySQL or SQL Server; SQLite 3.30+.</remarks>
+    /// <remarks>Not available on MySQL or SQL Server; SQLite (3.30+).</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsFirst => new(_exprOrAlias, _direction, NullOrdering.NullsFirst);
 
@@ -49,7 +49,7 @@ public sealed class SortOrder : SqlPart
     /// Gets this sort key with its <see langword="null"/> values sorted last
     /// (<c>... NULLS LAST</c>).
     /// </summary>
-    /// <remarks>Not available on MySQL or SQL Server; SQLite 3.30+.</remarks>
+    /// <remarks>Not available on MySQL or SQL Server; SQLite (3.30+).</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsLast => new(_exprOrAlias, _direction, NullOrdering.NullsLast);
 

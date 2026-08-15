@@ -46,7 +46,7 @@ public sealed class ExpressionAlias : SqlPart, ISortable
     /// Gets the <c>ORDER BY</c> sort key that puts <see langword="null"/>
     /// values first (<c>"alias" NULLS FIRST</c>).
     /// </summary>
-    /// <remarks>Not available on MySQL or SQL Server; SQLite 3.30+.</remarks>
+    /// <remarks>Not available on MySQL or SQL Server; SQLite (3.30+).</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsFirst => new(this, NullOrdering.NullsFirst);
 
@@ -54,7 +54,7 @@ public sealed class ExpressionAlias : SqlPart, ISortable
     /// Gets the <c>ORDER BY</c> sort key that puts <see langword="null"/>
     /// values last (<c>"alias" NULLS LAST</c>).
     /// </summary>
-    /// <remarks>Not available on MySQL or SQL Server; SQLite 3.30+.</remarks>
+    /// <remarks>Not available on MySQL or SQL Server; SQLite (3.30+).</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsLast => new(this, NullOrdering.NullsLast);
 

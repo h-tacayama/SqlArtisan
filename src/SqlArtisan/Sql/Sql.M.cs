@@ -83,7 +83,8 @@ public static partial class Sql
     /// <param name="dividend">The number being divided.</param>
     /// <param name="divisor">The number to divide by.</param>
     /// <returns>The MOD construct.</returns>
-    /// <remarks>Not supported by SQL Server — use the <c>%</c> operator there.</remarks>
+    /// <remarks>Not supported by SQL Server — use the <c>%</c> operator there;
+    /// SQLite (3.35+).</remarks>
     public static ModFunction Mod(object dividend, object divisor) =>
         new(Resolve(dividend), Resolve(divisor));
 

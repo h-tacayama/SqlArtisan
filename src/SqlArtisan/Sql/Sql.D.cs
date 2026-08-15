@@ -197,8 +197,8 @@ public static partial class Sql
     /// <param name="date">The date/time value to truncate.</param>
     /// <returns>The <c>DATETRUNC</c> function expression.</returns>
     /// <remarks>
-    /// SQL Server syntax (SQL Server 2022+; use <see cref="Format(object, object)"/>
-    /// on earlier versions).
+    /// SQL Server (2022+) syntax; use <see cref="Format(object, object)"/> on
+    /// earlier versions.
     /// </remarks>
     public static DatetruncFunction Datetrunc(DateTimePart datepart, object date) =>
         new(datepart, Resolve(date));

@@ -202,7 +202,7 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
+    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
