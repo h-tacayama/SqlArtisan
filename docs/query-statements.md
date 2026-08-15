@@ -236,9 +236,10 @@ On SQL Server, which has no `NATURAL JOIN`, write the match explicitly with
 unsupported too — emulate it with `LeftJoin(...).On(...)` unioned with
 `RightJoin(...).On(...)` there.
 
-`RIGHT JOIN` and `FULL JOIN`, and their `NATURAL` forms, are newer than SQLite
-itself (SQLite 3.39+); on an older build, swap the two tables and use
-`LeftJoin(...)`, or union the two one-sided joins for the full form.
+`RIGHT JOIN` and `FULL JOIN`, and their `NATURAL` forms, need SQLite 3.39+. On
+an older build, swap the two tables and use `LeftJoin(...)` — or
+`NaturalLeftJoin(...)` for the natural form — and union two such swapped
+queries for the full form, since `RightJoin()` is missing there too.
 
 #### JOIN ... USING
 
@@ -510,12 +511,19 @@ SqlStatement sql =
 - `Intersect` for `INTERSECT`
 - `IntersectAll` for `INTERSECT ALL`
 
-`Minus` / `MinusAll` are Oracle's spelling and exist only there, and
-`ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL only — SQLite
-and SQL Server accept `ALL` on `UNION` alone, so take the difference with
-`Except` / `Intersect` there. `EXCEPT`, `INTERSECT`, and their `ALL` forms are
-also newer than the engines themselves on two dialects (MySQL 8.0.31+, Oracle
-21+) — plain `MINUS` and `INTERSECT` run on any Oracle version.
+`Minus` / `MinusAll` are Oracle's own spelling of `EXCEPT` / `EXCEPT ALL` and
+run only there. `ExceptAll` / `IntersectAll` are MySQL, Oracle, and PostgreSQL
+only — SQLite and SQL Server take `ALL` on `UNION` alone, where `Except` /
+`Intersect` stands in only if duplicates don't matter: the plain form
+eliminates duplicate rows, the `ALL` form keeps them.
+
+`EXCEPT`, `INTERSECT`, and both `ALL` forms need MySQL 8.0.31+, and `EXCEPT`,
+`EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` need Oracle 21+ — plain `MINUS`
+and `INTERSECT` run on any Oracle version, so an Oracle below 21 takes the
+difference with `Minus`. Where no set operator reaches (MySQL below 8.0.31, and
+the `ALL` forms on Oracle below 21), write the test as an `Exists` /
+`NotExists` predicate instead, which matches `EXCEPT` / `INTERSECT` but not the
+duplicate-preserving `ALL` forms.
 
 ---
 
