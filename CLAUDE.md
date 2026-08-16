@@ -24,7 +24,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/Sql/Sql.{A..Y}.cs` | Public API. `static partial class Sql`, one file per **leading letter** of the function name (gaps at K, Q, X, Z). |
 | `src/SqlArtisan/Internal/SqlPart/Expression/Function/**` | Internal function node classes (`*Function : SqlExpression`), organized into categories (see below). |
 | `src/SqlArtisan/Internal/SqlBuilder/**` | Statement builders (Select/Insert/Update/Delete/Merge/With), `SqlBuildingBuffer`, validation guards. |
-| `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`). |
+| `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`, `BackslashEscapesStringLiterals`, `DmlTableAliasSeparator`, `ExcludedName`, `MergeTerminator`). |
 | `src/SqlArtisan/Internal/SqlPart/Keywords.cs` | All SQL keyword string constants. |
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
@@ -199,7 +199,7 @@ which chunks it across single reviewers instead of tripling it.
   `DbColumn`/`BindValue` under `src/SqlArtisan/SqlPart/Expression/`, the
   function-argument enums under `src/SqlArtisan/SqlPart/FunctionArgument/`, and
   the schema-metadata attributes under `src/SqlArtisan/Metadata/`. Types users must
-  **name** in a declaration position (`SqlExpression`, `SqlCondition`,
+  **name** in a declaration position (`SqlExpression`, `SqlCondition`, `TableReference`,
   `ISubquery`, `SortOrder`, `ExpressionAlias`, `CommonTableExpression`,
   `DbSequence`) live in the root namespace. Everything under `Internal/` is
   implementation detail.
@@ -213,6 +213,9 @@ which chunks it across single reviewers instead of tripling it.
   `docs/`, not in the README.
 - Comment the **why** / **why-not**, never the **what**; keep comments short. See
   `.claude/rules/code-comments.md`.
+- A review finding closes only by landing somewhere durable — a gate (test),
+  a rule/ADR clause, or a recorded decision not to mechanize it — never by the
+  one-off fix alone; the finding's *class* is what the landing must cover.
 - Report only what you are asking someone to change. Anything you would not
   change — fine as is, already covered elsewhere, worth knowing but needing no
   action — stays out entirely, under any label; **finding nothing is a good

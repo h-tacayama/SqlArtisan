@@ -41,3 +41,9 @@ jobs:
 
       - name: Test TableClassGen
         run: dotnet test tests/SqlArtisan.TableClassGen.Tests --no-build -c Release --verbosity normal
+
+      # The sweep-catalog completeness gate needs no database, but the
+      # integration lanes filter by Engine trait and never select it — run it
+      # here so a matrix entry without a sweep case fails the PR.
+      - name: Test sweep-catalog completeness
+        run: dotnet test tests/SqlArtisan.IntegrationTests --no-build -c Release --filter "FullyQualifiedName~MatrixSweepCatalogTests" --verbosity normal

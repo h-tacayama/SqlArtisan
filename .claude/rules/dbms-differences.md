@@ -2,6 +2,8 @@
 description: Classifying a DBMS syntax difference — dialect-layer token vs separate per-dialect construct
 paths:
   - "src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**/*.cs"
+  - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
+  - "src/SqlArtisan.Analyzers/ContextRules.cs"
 ---
 
 # Handling a DBMS syntax difference

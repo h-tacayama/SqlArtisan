@@ -352,6 +352,19 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_NullColumnElement_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(t, t.Code, null!));
+
+        Assert.Equal(
+            "An INSERT column list must not contain a null column. (Parameter 'columns')",
+            ex.Message);
+    }
+
+    [Fact]
     public void InsertIgnoreInto_SetNoAssignments_ThrowsArgumentException()
     {
         TestTable t = new();

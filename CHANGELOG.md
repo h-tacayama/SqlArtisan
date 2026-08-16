@@ -164,6 +164,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate. Omitting it is a syntax error on PostgreSQL and MySQL (except `InnerJoin`/`JoinLateral`, which MySQL silently reads as an unlabeled `CROSS JOIN`) and on SQLite for every one of the five — all read as the same unlabeled `CROSS JOIN`, a spelling the library already exposes under its own name (`CrossJoin`). `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error on every dialect; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
 
 ### Fixed
+- A meta-layer audit of the verification infrastructure itself closed four
+  gate gaps: the sweep-catalog completeness tests (`MatrixSweepCatalogTests`,
+  the check that every `DialectMatrix` entry has a live-engine sweep case)
+  carried no `Engine` trait and were therefore selected by no CI trigger at
+  all — they now run on every PR and on the release verify job, which also
+  gains the analyzer and TableClassGen suites it had skipped; the
+  version-bound docs-provenance check anchored a bound's version token to the
+  whole of `docs/analyzer.md` instead of the construct's own register line,
+  letting 25 of 69 bound cells survive a silent re-bound; the factory guard
+  sweep's unembedded return types are now a ledgered list a test keeps
+  honest; and every `DateTimePart`-taking factory must now be in SQLA0104's
+  consumer map or the recorded eager-guard route.
+- `.Over(partitionBy)` / `.Over(orderBy)` with a null clause object silently
+  emitted `OVER ()` — the window the caller wrote vanished; the `OVER`
+  content is now null-guarded at its single construction point. An `INSERT`
+  column list containing a null `DbColumn` element crashed with a raw
+  `NullReferenceException`; it now throws a named `ArgumentNullException`
+  (array elements are invisible to nullable annotations, so the element guard
+  applies regardless of the loud-failure exemption).
 - A new mechanical gate (`FactoryGuardSweepTests`) now feeds every public
   `Sql` factory each degenerate argument — null, empty string, empty array,
   null element — and fails unless the call throws or its exact SQL is

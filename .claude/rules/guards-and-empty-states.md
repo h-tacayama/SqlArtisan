@@ -132,16 +132,25 @@ class as a defect and another declined the identical class as
 annotation-enforced — this clause exists so the next review doesn't relitigate
 it. (`DbColumn`'s constructor owner guard predates the clause and stays.)
 
-`FactoryGuardSweepTests` enforces the silent-acceptance side mechanically: it
-feeds every public `Sql` factory each degenerate argument and fails unless the
-call throws or its exact SQL sits in the test's acceptance catalog, for every
-factory whose return type the test's `TryBuild` can embed into a statement — a
-factory returning a pending type awaiting a completing call (`Match(...)`
-before `.Against(...)`, `When(...)` before `.Then(...)`) sits outside that
-reach and outside this gate, the same "incomplete construct" category the
-enforcement-boundary table above always rejects regardless. A new factory
-whose return type *is* embeddable and that silently accepts a degenerate input
-fails the gate until it is guarded or deliberately cataloged.
+`FactoryGuardSweepTests` enforces the silent-acceptance side mechanically for
+every public `Sql` factory whose return type its `TryBuild` embeds into a
+statement: a degenerate argument must throw or its exact SQL must sit in the
+acceptance catalog. What `TryBuild` cannot embed — pending types awaiting a
+completing call, and a handful of complete clause objects not yet wired in —
+is a *recorded* blind spot: `ReturnTypes_AreEmbeddableOrRecorded` fails on any
+return type that is neither embedded nor in the `UnembeddedReturnTypes`
+ledger, so the gap cannot grow silently and shrinks whenever `TryBuild`'s
+switch is extended. Instance members that take clause objects (`.Over(...)`,
+`.WithinGroup(...)`) are outside the sweep entirely — that surface stays on
+manual review, and its one audited silent acceptance (`Over(null)` emitting
+`OVER ()`) is guarded at `OverClause.Of`.
+
+The loud-failure exemption above covers only positions the compiler can warn
+about: a **single** non-nullable reference parameter (CS8604 at the call
+site). An element inside an array or `params` tail is annotation-invisible —
+no compiler warning exists for `[null]` — so the silent-acceptance bullet
+governs it regardless of how loudly it later fails, which is why #403 and the
+`INSERT` column-list element guard convert those NREs to named exceptions.
 
 ## When to throw: eagerly vs at Build()
 

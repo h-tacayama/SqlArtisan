@@ -1,6 +1,8 @@
 # ADR 0009 — Analyzer distribution: bundled in the core package, coupled only by contract
 
-**Status:** Accepted
+**Status:** Accepted — configuration surface refined by ADR 0019 (the
+`sqlartisan_syntax_<dbms>` key family and its five `SqlArtisanSyntax<Dbms>`
+MSBuild properties join the coupling contract's seam list)
 
 ## Context
 

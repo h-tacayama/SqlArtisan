@@ -12,11 +12,11 @@ namespace SqlArtisan.Tests;
 // loud — or build SQL recorded verbatim in AcceptedSilentBuilds. A silent
 // build outside that catalog is the class both 1.0 audit rounds kept finding
 // one instance at a time (empty DbColumn name, WITH "c" AS (), INTO :); this
-// sweep finds the next instance mechanically. Instance members (e.g.
-// SqlExpression.In), public constructors, and a factory whose return type
-// TryBuild cannot embed (a pending type awaiting a completing call) are
-// outside this sweep's scope — the latter is a real coverage gap, not a
-// deliberate exclusion; extend TryBuild's switch when one matters.
+// sweep finds the next instance mechanically. Outside its reach: instance
+// members (e.g. SqlExpression.In, .Over), public constructors, and the
+// factories whose return type TryBuild does not embed — that last set is a
+// recorded ledger (UnembeddedReturnTypes), so it cannot grow silently;
+// extend TryBuild's switch to shrink it.
 public class FactoryGuardSweepTests
 {
     // Key: "Signature :: injection". Value: the exact SQL the degenerate call
@@ -112,6 +112,56 @@ public class FactoryGuardSweepTests
         Assert.True(
             violations.Count == 0,
             $"{violations.Count} factory guard sweep violation(s):\n\n{string.Join("\n\n", violations)}");
+    }
+
+    // Mirrors TryBuild's switch: a return type assignable to one of these is
+    // reached by the sweep. Everything else must sit in UnembeddedReturnTypes,
+    // so the blind spot is a recorded list, not a silent fall-through.
+    private static readonly Type[] EmbeddableReturnTypes =
+    [
+        typeof(SqlStatement), typeof(ISqlBuilder), typeof(ExpressionAlias), typeof(SqlExpression),
+        typeof(SqlCondition), typeof(TableReference), typeof(CommonTableExpression),
+        typeof(SortOrder), typeof(SqlHints), typeof(GroupingSet), typeof(GroupingElement),
+        typeof(SeparatorClause), typeof(IWithBuilderWith), typeof(OfClause),
+    ];
+
+    private static readonly string[] UnembeddedReturnTypes =
+    [
+        // Pending types awaiting a completing call (.Over/.WithinGroup/.Against/
+        // .Then/.Values/.Set/.Using) — the incomplete-construct category.
+        "AnalyticCumeDistFunction", "AnalyticDenseRankFunction", "AnalyticFirstValueFunction",
+        "AnalyticLagFunction", "AnalyticLastValueFunction", "AnalyticLeadFunction",
+        "AnalyticNthValueFunction", "AnalyticNtileFunction", "AnalyticPercentRankFunction",
+        "AnalyticRankFunction", "AnalyticRowNumberFunction", "ListaggFunction", "MatchFunction",
+        "PercentileContFunction", "PercentileDiscFunction", "SearchedCaseWhenCondition",
+        "SimpleCaseWhenExpression", "IInsertBuilderColumnsOutput", "IInsertBuilderTable",
+        "IInsertIgnoreBuilderColumns", "IInsertIgnoreBuilderTable", "IMergeBuilderTarget",
+        "IUpdateBuilderUpdate",
+        // Complete argument/clause objects TryBuild does not yet embed — a real
+        // coverage gap, not a rejected category; extend TryBuild to shrink it.
+        "DbSequence", "DistinctOnKeyword", "FrameBound", "IntervalField", "OrderByClause",
+        "PartitionByClause", "TopClause", "WaitBehavior",
+    ];
+
+    [Fact]
+    public void ReturnTypes_AreEmbeddableOrRecorded()
+    {
+        HashSet<string> unembedded = [];
+        foreach (MethodInfo method in SweepableMethods())
+        {
+            if (!EmbeddableReturnTypes.Any(t => t.IsAssignableFrom(method.ReturnType)))
+            {
+                unembedded.Add(method.ReturnType.Name);
+            }
+        }
+
+        string[] unrecorded = [.. unembedded.Except(UnembeddedReturnTypes).OrderBy(n => n)];
+        string[] stale = [.. UnembeddedReturnTypes.Except(unembedded).OrderBy(n => n)];
+
+        Assert.True(
+            unrecorded.Length == 0 && stale.Length == 0,
+            $"Return types outside TryBuild's reach and not recorded (extend TryBuild or record "
+                + $"them): [{string.Join(", ", unrecorded)}]; stale records: [{string.Join(", ", stale)}]");
     }
 
     private static IEnumerable<MethodInfo> SweepableMethods()
@@ -507,10 +557,7 @@ public class FactoryGuardSweepTests
                         .From(new DbTable("e", "x"))
                         .ForUpdate(ofClause)
                         .Build(Dbms.Oracle).Text,
-                // MatchFunction / SearchedCaseWhenCondition / SimpleCaseWhenExpression
-                // are pending-completion types (await .Against() / .Then()) — the
-                // same "incomplete construct" category the guards rule always
-                // rejects, out of this sweep's scope like instance members.
+                // Fall-throughs are ledgered in UnembeddedReturnTypes.
                 _ => null,
             };
         }

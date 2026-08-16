@@ -3,8 +3,11 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// Pins the emitted SQL of every recipe in docs/cookbook.md (#227), so the doc
-// examples never rot — the DocsIndexTests approach applied to page content.
+// Hand-maintained mirror of docs/cookbook.md's recipes (#227): each test pins
+// one recipe's emitted SQL. Unlike DocsIndexTests/LlmsFullTests this file does
+// NOT read the page, so a doc-side edit needs its twin edited here by hand —
+// the docs-audit example sweep cannot parse this page's multi-statement
+// recipe shape (recorded deferral in the 1.0 release review ledger).
 // Table classes live in TestFixtures/CookbookTables.cs (Cookbook* prefix).
 public class CookbookTests
 {

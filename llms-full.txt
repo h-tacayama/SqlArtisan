@@ -4324,8 +4324,8 @@ for, not a bug in the matrix.
 Realistic end-to-end queries: the reference pages answer "what does X emit",
 this page answers "how do I write the whole thing". Every recipe shows the C#
 you write and the SQL it emits, and every emitted-SQL comment on this page is
-pinned by an exact-SQL unit test (`tests/SqlArtisan.Tests/CookbookTests.cs`),
-so the examples cannot drift from the code.
+pinned by an exact-SQL unit test (`tests/SqlArtisan.Tests/CookbookTests.cs`)
+maintained alongside this page — edit the two together.
 
 > **How to read this page.** The SQL in comments is line-wrapped for
 > readability; `sql.Text` is a single line carrying the same tokens in the same

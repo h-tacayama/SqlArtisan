@@ -263,10 +263,29 @@ grand-total 行)は正確な SQL 付きでカタログ化し、挙動が回帰�
 5. ゲートテスト品質(守っている性質が退行したら本当に落ちるか —
    スクラッチパッドでのコピー変異プローブ許可)
 
-- [~] パネル 3 座席(Sonnet / Opus / Fable)を同一ブリーフィングで起動済み
-- [ ] 裁定・修正
-- [ ] ラチェット規約の追記(「レビュー指摘は必ずゲート/規約/明示的見送りに
-      着地させて閉じる」— 座席が規約を読了後に追記)
+- [x] パネル 3 座席(Sonnet / Opus / Fable)完了(初回はセッション利用上限で
+      3 座席全滅 → リセット後に同一ブリーフィングで再実施、3-of-3 成立)
+- [x] 裁定・修正(下表)
+- [x] ラチェット規約の追記(CLAUDE.md の規約リストに「レビュー指摘はゲート/
+      規約/明示的見送りのいずれかに着地して初めて閉じる」を追加)
+
+### 第3ラウンドの検出と裁定
+
+| ID | 検出(座席) | 裁定 |
+|---|---|---|
+| M3-1 **High** | `MatrixSweepCatalogTests`(マトリクス↔スイープ完全性ゲート)が Engine trait を持たず**どの CI トリガーでも実行されない**。4表面がゲートとして引用(Opus+Fable 収束) | **修正** — DB 不要(56ms)なので ci.yml と release.yml の verify に追加 |
+| M3-2 | release.yml の verify が3ユニットスイートのうち1つしか実行しないのに CLAUDE.md は「Full verify」(Opus+Fable 収束) | **修正** — release.yml に Analyzers / TableClassGen / カタログゲートを追加(記述側でなく実体側を主張に合わせた) |
+| M3-3 | `EveryBound_HasDocsProvenance` がファイル全体の部分文字列検索で、69 セル中 25 が1段の再バウンドを素通し(Opus、変異リプレイで実証) | **修正** — 構文名を含む行にバージョントークンを要求する行アンカー方式へ |
+| M3-4 | 掃引ゲートの規約記述が死角を「pending 型のみ」と過小表現(実際は完全な句オブジェクト8型を含む42型)+死角に陳腐化検出なし(Opus+Fable 収束) | **修正** — `UnembeddedReturnTypes` 台帳+`ReturnTypes_AreEmbeddableOrRecorded` ゲート追加、規約文を実測に一致させた |
+| M3-5 | **実欠陥**: `.Over(null句)` が `OVER ()` を静かに生成 — 掃引対象外のインスタンスメンバー面に残存していた消失句クラス(Fable) | **修正** — `OverClause.Of` 1箇所のガードで全 `.Over` を被覆+テスト |
+| M3-6 | null ガード規約の免除節が配列要素を未決定のまま残し、出荷コードに相反する前例(`Values [null]` はガード済み vs `InsertInto [null]` は素の NRE)(Opus) | **修正** — 「免除は CS8604 が効く単独パラメータのみ、要素はアノテーション不可視なのでガード必須」と明文化+`InsertInto` 要素ガード追加 |
+| M3-7 | `CookbookTests` が「ドリフト不可能」を主張するが実体は手書きミラー(パーサなし)、docs 監査スクリプトも cookbook を除外(Sonnet+Fable 収束) | **修正(文言)+明示的見送り** — 両表面を実機構の記述に修正。スクリプト拡張は抽出器がローカル関数形式を解釈できないため理由付きで見送り(バックログ) |
+| M3-8 | `DateTimePart` を取るファクトリ11個に対し SQLA0104 の消費者リスト9個が無ゲート(Opus) | **修正** — 「消費者リスト ∪ eager ガード経路」への全数写像ゲートを追加 |
+| M3-9 | CLAUDE.md の `IDbmsDialect` メンバー列挙が 6 中 2、root 名前空間の must-name リストに `TableReference` 欠落(Fable) | **修正** |
+| M3-10 | ADR 0009 の設定サーフェス列挙が ADR 0019 以前のまま/ADR README の統合トリガー算術が判定不能/`dbms-differences` の frontmatter パス不足/`MatrixSweepCatalog` の stale cref(Opus/Fable) | **修正**(ADR 0019 refinement note、算術の明文化、パス追加、cref 修正) |
+
+ユニット 1066 件・アナライザー 1083 件(いずれもゲート追加分増)・全ゲート緑。
+行アンカー化した provenance ゲートは現行レジスタに対して偽陽性ゼロで通過。
 
 ## 検出事項ログ
 

@@ -12,16 +12,16 @@ public sealed class OverClause : SqlPart
     internal static OverClause Of() => new();
 
     internal static OverClause Of(PartitionByClause content) =>
-        new(content);
+        new(NullGuard.ThrowIfNull(content, nameof(content)));
 
     internal static OverClause Of(OrderByClause content) =>
-        new(content);
+        new(NullGuard.ThrowIfNull(content, nameof(content)));
 
     internal static OverClause Of(PartitionByAndOrderBy content) =>
-        new(content);
+        new(NullGuard.ThrowIfNull(content, nameof(content)));
 
     internal static OverClause Of(WindowFrameClause content) =>
-        new(content);
+        new(NullGuard.ThrowIfNull(content, nameof(content)));
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
