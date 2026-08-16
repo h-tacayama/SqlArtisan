@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `OFFSET`/`FETCH`, SQLite's `UPDATE … FROM`, SQL Server's multi-row `VALUES`,
   and the window-function frame requirement — simply drop the version, the
   last dropping its now-vacuous "every dialect" bullet entirely. (#480)
-- **ADR 0020 draws a precision boundary for the documentation**: a page states
+- **A precision boundary for the documentation**: a page states
   what SqlArtisan emits and which dialects support a construct — both tied to
   tests — and delegates the rest to the engine. Result semantics (duplicate
   handling, `NULL` matching, multiplicity), equivalence between two constructs,
@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   of `EXCEPT`/`EXCEPT ALL` and run only there, `ExceptAll`/`IntersectAll` are
   MySQL, Oracle, and PostgreSQL only, and SQLite and SQL Server take `ALL` on
   `UNION` alone — and both it and the JOIN section link the register for the
-  versions. Two pre-existing claims retire under ADR 0020: the MySQL `FULL JOIN`
+  versions. Two pre-existing claims retire under that boundary: the MySQL `FULL JOIN`
   emulation recipe (a `UNION` of two one-sided joins, which drops duplicate rows
   the join keeps) and SQL Server's `JOIN ... USING` substitute, described as an
   "equivalent" `On(...)` predicate though `USING` collapses the join column.
