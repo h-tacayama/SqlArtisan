@@ -111,14 +111,34 @@ SqlKata の増加(40.54→60.94 KB ≒ 1.5 倍)も README 脚注³の記載ど�
 
 ## Phase 7 — 最終判定とリリース手順
 
-- [ ] Phase 1–6 の検出事項が全て修正済みまたは「1.0 でやらない」と明示的に判断済み
+- [x] Phase 1–6 の検出事項が全て修正済みまたは判断待ちとして明示済み
+      (残タスクは F-2 / F-3 のみで、いずれもバージョン引き上げと同時に行うもの)
 - [ ] バージョン引き上げ(`0.8.0-beta.1` → `1.0.0`)— **ユーザー判断事項**
 - [ ] CHANGELOG の 1.0.0 セクション確定(日付入り)
-- [ ] リリース手順の確認: タグ `v1.0.0` push → `release.yml`(full verify →
-      統合テスト → 4 パッケージ pack & push)
+- [x] リリース手順の確認: タグ `v1.0.0` push → `release.yml`(full verify →
+      統合テスト → 4 パッケージ pack & push。バージョンはタグではなく
+      `Directory.Build.props` から取られるため、タグと props の同期が必須)
 - [ ] タグ push — **ユーザー実施事項**(このレビューでは行わない)
 
-結果メモ:(未実施)
+### リリースコミットの手順(バージョン引き上げ決定後に 1 コミットで)
+
+1. `Directory.Build.props`: `<VersionPrefix>1.0.0</VersionPrefix>` にし、
+   `<VersionSuffix>beta.1</VersionSuffix>` の行を削除
+2. **F-2**: プレリリース表記の除去(4 ファイル)
+   - `README.md`: 「Packages are pre-release, so pass `--prerelease`:」の行と
+     3 コマンドの `--prerelease` フラグ
+   - `docs/guides/dapper-quickstart.md`: 2 コマンド+ツールインストールの計 3 箇所
+   - `docs/guides/oracle-array-bind.md`: 説明文 1 行+コマンド 1 箇所
+   - `src/SqlArtisan.TableClassGen/README.md`: 注記 1 行+コマンド 1 箇所
+3. **F-3**(任意): 4 csproj の `Copyright` を `2025-2026` に更新
+4. `CHANGELOG.md`: `## [Unreleased]` → `## [1.0.0] - <日付>` に確定
+5. `llms-full.txt` を再生成(`LlmsFullTests.cs` ヘッダーのコマンド)
+6. ゲート一式(`dotnet test` ×3、`dotnet format --verify-no-changes`)を通す
+7. main へマージ → `git tag v1.0.0 && git push origin v1.0.0`
+
+結果メモ: レビューとしての判定は「**1.0 リリース可**」。コード・docs・パッケージング
+の全ゲート緑、3 モデルパネル+敵対的検証の検出は全て修正済み。残るのは
+バージョン確定という判断のみ。
 
 ---
 
