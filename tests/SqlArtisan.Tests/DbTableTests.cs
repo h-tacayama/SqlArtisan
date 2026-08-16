@@ -219,4 +219,33 @@ public class DbTableTests
 
         Assert.Equal("SELECT id FROM users", sql.Text);
     }
+
+    [Fact]
+    public void DbColumn_EmptyName_ThrowsArgumentException()
+    {
+        DbTable u = new("users", "u");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            u.Column(""));
+
+        Assert.Equal("A column requires a name.", ex.Message);
+    }
+
+    [Fact]
+    public void DbColumn_NullName_ThrowsArgumentException()
+    {
+        DbTable u = new("users");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new DbColumn(u, null!));
+
+        Assert.Equal("A column requires a name.", ex.Message);
+    }
+
+    [Fact]
+    public void DbColumn_NullOwner_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new DbColumn(null!, "id"));
+    }
 }

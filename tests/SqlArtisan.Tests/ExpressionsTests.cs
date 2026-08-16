@@ -82,6 +82,15 @@ public class ExpressionsTests
     }
 
     [Fact]
+    public void As_EmptyAlias_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Null.As(""));
+
+        Assert.Equal("An expression alias requires a name.", ex.Message);
+    }
+
+    [Fact]
     public void Select_SequenceValues_CorrectSql()
     {
         SqlStatement sql =

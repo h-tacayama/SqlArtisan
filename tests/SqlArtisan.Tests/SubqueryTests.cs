@@ -163,6 +163,15 @@ public class SubqueryTests
     }
 
     [Fact]
+    public void ScalarSubquery_EmptyAlias_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Max(_s.Code)).From(_s).As(""));
+
+        Assert.Equal("An expression alias requires a name.", ex.Message);
+    }
+
+    [Fact]
     public void ScalarSubquery_WithAlias_CorrectSql()
     {
         SqlStatement sql =

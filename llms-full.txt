@@ -495,7 +495,7 @@ SqlStatement sql =
 ```
 Both markers are valid only in a `SELECT` or `RETURNING` list, with one exception: `Count(Asterisk)` emits `COUNT(*)` — the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile.
 
-Do **not** write `Select("*")` — a string in a value position is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the equivalent `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
+Do **not** write `Select("*")` — a string in a value position is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
 
 #### Column Aliases
 ```csharp
@@ -1065,7 +1065,7 @@ SqlStatement sql =
 
 `Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot appear with `OFFSET/FETCH` in the same query — SqlArtisan throws on `Build(Dbms.SqlServer)` if either rule is broken.
 
-**Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those have no `WITH TIES` equivalent.
+**Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those families expose no `WITH TIES` option in SqlArtisan.
 
 #### Row-limited queries as subqueries
 
@@ -2342,7 +2342,7 @@ To bind a `Pgvector.Vector` instance instead of a cast string literal, construct
 
 ## Full-Text Search
 
-Full-text search has no common syntax across the five engines, so SqlArtisan exposes it per dialect (no unified rewrite): you call the API your target DBMS supports, and the SQL you write is the SQL that runs. Every engine requires a full-text index on the searched columns before these run — a `FULLTEXT` index (MySQL), an Oracle Text `CONTEXT` index, a `GIN` index over the tsvector (PostgreSQL), an FTS5 virtual table (SQLite), or a full-text index and catalog (SQL Server).
+Full-text search has no common syntax across the five engines, so SqlArtisan exposes it per dialect (no unified rewrite): you call the API your target DBMS supports, and the SQL you write is the SQL that runs. MySQL, Oracle, SQLite, and SQL Server require a full-text index on the searched columns before these run — a `FULLTEXT` index (MySQL), an Oracle Text `CONTEXT` index, an FTS5 virtual table (SQLite), or a full-text index and catalog (SQL Server). PostgreSQL alone runs its `tsvector`/`tsquery` functions without one; indexing them is a performance concern — see the [PostgreSQL manual](https://www.postgresql.org/docs/current/textsearch-indexes.html).
 
 The examples below assume a `posts` table class with `Title` / `Body` columns.
 
@@ -3096,7 +3096,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `Contains(column, searchCondition)` for `CONTAINS(column, searchCondition)` (SQL Server, predicate)
 - `Freetext(column, freetext)` for `FREETEXT(column, freetext)` (SQL Server, predicate)
 
-Usage examples and each engine's full-text index prerequisite live in
+Usage examples and each engine's index requirements live in
 [Expressions: Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search).
 
 ---
@@ -4591,8 +4591,8 @@ SqlStatement sql =
 // FROM orders "o" GROUP BY "o".customer_id
 ```
 
-On PostgreSQL and SQLite, the `FILTER` clause says the same thing more
-directly:
+On PostgreSQL and SQLite, the `FILTER` clause attaches the predicate to the
+aggregate directly:
 
 ```csharp
 Select(

@@ -21,6 +21,8 @@ public sealed class ExpressionAlias : SqlPart, ISortable
 
     internal ExpressionAlias(SqlExpression expr, string name, bool quoteAlias = true)
     {
+        StringGuard.ThrowIfNullOrEmpty(name, "An expression alias requires a name.");
+
         _expr = expr;
         Name = name;
         _quoteAlias = quoteAlias;

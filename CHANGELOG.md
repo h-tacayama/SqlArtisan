@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
+- Corrected the full-text search prerequisite: PostgreSQL runs its
+  `tsvector`/`tsquery` functions without a full-text index — the nightly
+  dialect sweep executes them against an index-less schema — so the
+  index-required statement in `docs/expressions.md` now names MySQL, Oracle,
+  SQLite, and SQL Server only, linking PostgreSQL's own manual for indexing.
+- Retired two construct-equivalence claims under the documentation precision
+  boundary: `docs/query-statements.md` no longer calls `Exists(Select(1)...)`
+  "equivalent" to `EXISTS (SELECT * ...)`, and `docs/cookbook.md` no longer
+  says the `FILTER` clause "says the same thing" as a `SUM(CASE ...)` pivot.
+  The `WITH TIES` dialect note is scoped to SqlArtisan's own API surface
+  instead of reading as an engine-grammar claim. XML docs: `As(alias)` no
+  longer shows an `AS` keyword the emitted SQL does not carry, and `OrderBy`'s
+  summary spells `.Asc`/`.Desc` as the properties they are.
 - Retired every version floor the documentation precision boundary left in
   `docs/functions.md`, `docs/query-statements.md`, `docs/expressions.md`, and
   `docs/cookbook.md`.
@@ -141,6 +154,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate. Omitting it is a syntax error on PostgreSQL and MySQL (except `InnerJoin`/`JoinLateral`, which MySQL silently reads as an unlabeled `CROSS JOIN`) and on SQLite for every one of the five — all read as the same unlabeled `CROSS JOIN`, a spelling the library already exposes under its own name (`CrossJoin`). `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error on every dialect; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
 
 ### Fixed
+- Several identifier and element positions accepted a null or empty value and
+  built silently invalid SQL, or crashed with a raw `NullReferenceException`
+  instead of the library's usual guarded exception: a `DbColumn` constructed
+  with a null/empty column name — directly or through any `Column(name)`
+  accessor — rendered a dangling alias qualifier (`SELECT "u". FROM ...`) or an
+  empty select item; `.As(alias)` on an expression or subquery accepted a
+  null/empty alias and emitted a zero-length quoted identifier (`SELECT name ""`)
+  while the adjacent `.AsTable(alias)` already threw; `Sql.Values(...)` accepted
+  a null/empty column-name element (emitting `(, c2)`) and crashed with a raw
+  `NullReferenceException` on a null row; and `Unnest(...).AsTable(...)`
+  accepted a null/empty column-name element. Each now throws an
+  `ArgumentException` (or `ArgumentNullException` for the null row) eagerly,
+  naming the construct.
+- `InsertInto(table, columns)` and `InsertIgnoreInto(table, columns)` called
+  with an empty column array silently dropped the column list — turning the
+  named-column `INSERT` the caller wrote into a positional one against the
+  table's declared column order — and disabled the `VALUES`-row width check
+  with it. An empty column list now throws an `ArgumentException` eagerly;
+  the columnless overloads remain the spelling for a deliberate positional
+  `INSERT`.
 - `SQLA0100` now flags `Sql.RegexpSubstr`'s 6-argument `subPatternPos` overload on MySQL. That overload's XML docs inherited the 2-argument member's "MySQL, Oracle, and PostgreSQL (15+)" claim, and the `DialectMatrix` carried only a member-wide entry, so the analyzer stayed silent on a statement MySQL's `REGEXP_SUBSTR` — which has no `subexpr` argument — cannot parse. If your code already calls this overload targeting MySQL, it will start reporting `SQLA0100`; the call was never valid there. (#463)
 - `SQLA0101` did not flag `Ceil`, `Ceiling`, `Floor`, `Mod`, `Power`, `Sign`, or `Sqrt` below SQLite 3.35, though the dialect matrix's own comment already named that floor — all seven are `SQLITE_ENABLE_MATH_FUNCTIONS` extension functions, absent before 3.35, so a project declaring `sqlartisan_syntax_sqlite` below 3.35 got analyzer silence and a runtime `no such function` error instead of a warning. All seven now carry the bound, as do the five functions added above. (#440)
 - A declared engine version with non-letter junk after the digits — `sqlartisan_syntax_postgresql = 14!!`, `sqlartisan_target_version = 16 or so` — was silently read as its leading digits instead of being rejected, so the value check stayed quiet and the junk spelling even surfaced verbatim in the `SQLA0101` message. The documented format ignores only a trailing *letter* run (`23ai`, `21c`); anything else after the digits is now an unrecognized value, reported as `SQLA0001`. (#432)

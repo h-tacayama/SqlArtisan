@@ -47,14 +47,17 @@ v1.0.0 公開前の最終レビューの手順書。進捗はこのファイル�
 `sa-docs-audit` スキルで README / docs/ / llms.txt / CHANGELOG を網羅監査する。
 リンク・API カバレッジ・用語・出力 SQL の実証検証と、敵対的検証パスを含む。
 
-- [~] `sa-docs-audit` 実行 — 同梱4スクリプトは全て緑:リンク解決(14ファイル)、
+- [x] `sa-docs-audit` 実行 — 同梱4スクリプトは全て緑:リンク解決(14ファイル)、
       API 網羅は欠落・幽霊なし(公開ファクトリ210)、用語・空白違反なし、
       ドキュメント記載の SQL 例 104/104 が実出力と一致。README のランディング主張
       (ベンチマークのスコープ付き表現・計測環境の明記)も確認済み。
-      敵対的検証パス(独立 sa-reviewer)を実行中
-- [ ] 検出事項のトリアージと修正
+      敵対的検証パス(独立 sa-reviewer)完了
+- [x] 検出事項のトリアージと修正 — 検出3系統、全て修正済み(検出事項ログ D-1〜D-3)。
+      修正後にスクリプト4本を再実行し全て緑、`llms-full.txt` 再生成済み
 
-結果メモ: スクリプト検証は全て通過。敵対的検証の結果待ち。
+結果メモ: 敵対的検証は Medium 1件(全文検索の前提条件の過剰主張)+ Low 2件
+(ADR 0020 境界違反)を検出。ベンチマークの最上級表現・検証済みエンジン主張・
+バージョン境界レジスタ等への反証は全て不成立(主張は維持)。
 
 ## Phase 4 — 公開 API サーフェスのパネル監査
 
@@ -64,19 +67,16 @@ v1.0.0 公開前の最終レビューの手順書。進捗はこのファイル�
 - `src/SqlArtisan/Sql/Sql.*.cs`(公開ファクトリ)
 - `src/SqlArtisan/SqlBuilder/`・`src/SqlArtisan/SqlPart/`・`src/SqlArtisan/Metadata/`(公開型)
 
-- [~] `sa-panel-audit` 実行中 — スコープを 55 ファイル(約 6,200 行)に解決し、
-      Release ビルドゲート通過を確認のうえ、同一ブリーフィングで 3 座席
-      (Sonnet / Opus / Fable)を独立起動済み
-- [ ] 検出事項の裁定(主要ソースに対する再導出)と修正
+- [x] `sa-panel-audit` 実行 — スコープ 55 ファイル(約 6,200 行)、3 座席
+      (Sonnet / Opus / Fable)全て報告完了(3-of-3 パネル成立)
+- [x] 検出事項の裁定(主要ソースに対する再導出)と修正 — 6 系統全て CONFIRMED、
+      全て修正済み(検出事項ログ P-1〜P-6)
+- [ ] 修正後状態への最終レビューパス(sa-reviewer 1体)
 
-結果メモ: Sonnet 座席は報告済み(Medium 2 件)。両検出とも裁定側ハーネスで再現を
-確認済み(CONFIRMED)— 修正は全座席の報告が揃ってから適用する:
-- P-1: `Sql.Values` の rows に null 行 → 素の `NullReferenceException`(#403 の
-  規約では `ArgumentNullException` を投げるべき)。`Sql.V.cs:26-28`
-- P-2: `DbColumn` が空・null の列名を素通しし、`SELECT "a". FROM t "a"` /
-  `SELECT  FROM t` という無効 SQL を静かに生成(#405 のテーブル名ガードの列版が
-  欠落)。`DbColumn.cs:12` と各 `Column(string)` ファクトリ経由で到達可能
-Opus / Fable 座席の報告待ち。
+結果メモ: 座席間の収束は P-1(Sonnet+Fable)、P-2(3座席全員)。P-3(High)は
+Opus のみが検出 — 単独検出でも裁定側ハーネスで再現確認のうえ採用(多数決はしない)。
+P-4 は Fable が SQLite 実機で「全方言で無効」ではないことまで検証済みのため、
+文法違反ではなく規約の非対称(AsTable は投げるのに As は素通し)として修正。
 
 ## Phase 5 — 統合テスト(実エンジン検証)
 
@@ -130,3 +130,36 @@ README の比較数値が現状のコードと乖離していないかの確認�
 - **F-3(要判断・軽微)**: 4 csproj の `Copyright (c) h.tacayama 2025` — 2026 年の
   リリースなので `2025-2026` 等への更新を推奨。あわせて `PackageReleaseNotes` が
   主パッケージにしかない点は任意(そのままでも害はない)。
+
+### パネル監査(Phase 4)— 全て修正済み
+
+- **P-1(修正済み・Sonnet/Fable)**: `Sql.Values` が要素レベル未ガード — null 行で
+  素の NRE、null/空の列名要素が `(, c2)` という無効識別子を静かに生成。要素ごとの
+  eager ガードを追加(`ArgumentNullException` / `ArgumentException`)。
+- **P-2(修正済み・3座席全員)**: `DbColumn` が null owner(素の NRE)と null/空の
+  列名(`SELECT "u". FROM ...` / 空の選択項目)を素通し。コンストラクタに
+  `A column requires a name.` ガードを追加。全 `Column(string)` アクセサを一括で保護。
+- **P-3(修正済み・High・Opus)**: `InsertInto(table, columns)` /
+  `InsertIgnoreInto(table, columns)` に空配列を渡すと、名前付き INSERT が黙って
+  位置ベース INSERT になり #397 の幅ガードも無効化。空リストは eager に
+  `ArgumentException`。列なしオーバーロードが位置ベースの正規の綴りとして残る。
+- **P-4(修正済み・Opus/Fable)**: `As(alias)` が null/空エイリアスで `""` を生成
+  (隣の `AsTable` は投げる非対称)。`ExpressionAlias` コンストラクタでガード。
+- **P-5(修正済み・Opus)**: `SqlExpression.As(string)` の XML ドキュメントが実出力に
+  ない `AS` キーワードを記載 → 除去。
+- **P-6(修正済み・Opus)**: `Sql.OrderBy` の XML ドキュメントが `.Asc()` / `.Desc()`
+  とメソッド呼び出しで記載(実際はプロパティ)→ `.Asc` / `.Desc` に修正。
+
+新ガードには全てメッセージ逐語一致のユニットテストを追加(+10 件、計 1055 件緑)。
+
+### docs 敵対的検証(Phase 3)— 全て修正済み
+
+- **D-1(修正済み・Medium DEFECT)**: `docs/expressions.md` の「全エンジンが全文検索
+  インデックス必須」— PostgreSQL は index なしで実行可能(自前の統合スイープが
+  index なしスキーマで実行して証明)。MySQL / Oracle / SQLite / SQL Server に
+  スコープし、PostgreSQL は手引きへのリンクに変更。`docs/functions.md` の相互参照も修正。
+- **D-2(修正済み・Low)**: ADR 0020 境界違反 2 件 — `Exists(Select(1)...)` の
+  「equivalent」表現と、`FILTER` 句の「says the same thing」を等価主張なしの表現に修正。
+- **D-3(修正済み・Low)**: `WITH TIES` の注記をエンジン文法主張と読める形から
+  SqlArtisan の API サーフェスの記述にスコープ変更。
+- 上記に伴い `llms-full.txt` を再生成(`LlmsFullTests` バイト一致ゲート緑)。

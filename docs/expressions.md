@@ -548,7 +548,7 @@ To bind a `Pgvector.Vector` instance instead of a cast string literal, construct
 
 ## Full-Text Search
 
-Full-text search has no common syntax across the five engines, so SqlArtisan exposes it per dialect (no unified rewrite): you call the API your target DBMS supports, and the SQL you write is the SQL that runs. Every engine requires a full-text index on the searched columns before these run — a `FULLTEXT` index (MySQL), an Oracle Text `CONTEXT` index, a `GIN` index over the tsvector (PostgreSQL), an FTS5 virtual table (SQLite), or a full-text index and catalog (SQL Server).
+Full-text search has no common syntax across the five engines, so SqlArtisan exposes it per dialect (no unified rewrite): you call the API your target DBMS supports, and the SQL you write is the SQL that runs. MySQL, Oracle, SQLite, and SQL Server require a full-text index on the searched columns before these run — a `FULLTEXT` index (MySQL), an Oracle Text `CONTEXT` index, an FTS5 virtual table (SQLite), or a full-text index and catalog (SQL Server). PostgreSQL alone runs its `tsvector`/`tsquery` functions without one; indexing them is a performance concern — see the [PostgreSQL manual](https://www.postgresql.org/docs/current/textsearch-indexes.html).
 
 The examples below assume a `posts` table class with `Title` / `Body` columns.
 

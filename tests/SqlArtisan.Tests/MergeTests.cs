@@ -523,4 +523,24 @@ public class MergeTests
                 + "the column list has 2, but a row has 1.",
             ex.Message);
     }
+
+    [Fact]
+    public void Values_EmptyColumnName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Values("s", ["code", ""], [[1, 2]]));
+
+        Assert.Equal("A VALUES source requires a name for every column.", ex.Message);
+    }
+
+    [Fact]
+    public void Values_NullRow_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Values("s", ["code"], [null!]));
+
+        Assert.Equal(
+            "A VALUES source must not contain a null row. (Parameter 'rows')",
+            ex.Message);
+    }
 }

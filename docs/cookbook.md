@@ -273,8 +273,8 @@ SqlStatement sql =
 // FROM orders "o" GROUP BY "o".customer_id
 ```
 
-On PostgreSQL and SQLite, the `FILTER` clause says the same thing more
-directly:
+On PostgreSQL and SQLite, the `FILTER` clause attaches the predicate to the
+aggregate directly:
 
 ```csharp
 Select(

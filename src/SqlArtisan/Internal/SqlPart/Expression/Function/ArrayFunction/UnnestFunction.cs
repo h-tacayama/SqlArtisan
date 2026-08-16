@@ -38,6 +38,12 @@ public sealed class UnnestFunction : SqlExpression
         CollectionGuard.ThrowIfEmpty(
             columns, "An UNNEST column alias list requires at least one column.");
 
+        foreach (string column in columns)
+        {
+            StringGuard.ThrowIfNullOrEmpty(
+                column, "An UNNEST column alias list requires a name for every column.");
+        }
+
         if (columns.Length > _arrays.Length)
         {
             throw new ArgumentException(

@@ -70,8 +70,11 @@ public static partial class Sql
     /// <param name="columns">The columns to insert into, emitted as a
     /// parenthesized list after the table.</param>
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
-    public static IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(table, columns.Length, new InsertIntoClause(table, columns));
+    public static IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns)
+    {
+        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+        return new InsertBuilder(table, columns.Length, new InsertIntoClause(table, columns));
+    }
 
     /// <summary>
     /// Starts an <c>INSERT IGNORE INTO table</c> statement (MySQL): rows whose
@@ -98,8 +101,11 @@ public static partial class Sql
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
     /// <remarks>MySQL syntax. On PostgreSQL/SQLite express the do-nothing UPSERT
     /// with <c>InsertInto(...).Values(...).OnConflict().DoNothing()</c> instead.</remarks>
-    public static IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(table, columns.Length, new InsertIgnoreIntoClause(table, columns));
+    public static IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns)
+    {
+        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+        return new InsertBuilder(table, columns.Length, new InsertIgnoreIntoClause(table, columns));
+    }
 
     /// <summary>
     /// References <paramref name="column"/> of the <c>INSERTED</c> pseudo-table in

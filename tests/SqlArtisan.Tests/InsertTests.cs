@@ -330,6 +330,28 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_EmptyColumnList_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, []));
+
+        Assert.Equal("An INSERT column list requires at least one column.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_EmptyColumnList_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertIgnoreInto(t, []));
+
+        Assert.Equal("An INSERT column list requires at least one column.", ex.Message);
+    }
+
+    [Fact]
     public void InsertIgnoreInto_SetNoAssignments_ThrowsArgumentException()
     {
         TestTable t = new();

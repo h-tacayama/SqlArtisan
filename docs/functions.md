@@ -209,7 +209,7 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `Contains(column, searchCondition)` for `CONTAINS(column, searchCondition)` (SQL Server, predicate)
 - `Freetext(column, freetext)` for `FREETEXT(column, freetext)` (SQL Server, predicate)
 
-Usage examples and each engine's full-text index prerequisite live in
+Usage examples and each engine's index requirements live in
 [Expressions: Full-Text Search](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#full-text-search).
 
 ---
