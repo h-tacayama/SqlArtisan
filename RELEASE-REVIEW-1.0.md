@@ -82,15 +82,15 @@ P-4 は Fable が SQLite 実機で「全方言で無効」ではないことま�
 
 出力 SQL が実際のエンジンで通ることの最終確認。`sa-run-integration-tests` スキルに従う。
 
-- [~] 統合テスト実行(MySQL / Oracle / PostgreSQL / SQL Server / SQLite)
-  - SQLite レーンはローカル実行で 71/71 成功(この環境に Docker がないため、
-    コンテナ5レーンは CI で検証)
-  - `integration.yml` をこのブランチに対して workflow_dispatch 済み(SSH.NET
-    2026.0.0 更新の実挙動確認を兼ねる)。結果待ち
-- [ ] MatrixSweepTests(アナライザー方言マトリクスの実機検証)が緑であること
-      (上記 CI 実行に含まれる)
+- [x] 統合テスト実行(MySQL / Oracle / PostgreSQL / SQL Server / SQLite)
+  - SQLite レーンはローカル実行で 71/71 成功
+  - `integration.yml` の workflow_dispatch(run #235)で 6 レーン全て success:
+    MySql / Oracle / Oracle23ai / PostgreSql / Sqlite / SqlServer。
+    SSH.NET 2026.0.0 更新込みのコミットで実行(F-1 修正の実挙動確認を兼ねる)
+- [x] MatrixSweepTests(アナライザー方言マトリクスの実機検証)— 上記実行に含まれ緑
 
-結果メモ: CI マトリクス実行中。
+結果メモ: 全レーン緑。ガード修正コミット(75385d6)は emitted SQL を変えない
+追加ガードのみだが、Phase 7 前に最新 head でマトリクスを再実行して締める。
 
 ## Phase 6 — ベンチマーク確認(任意)
 
