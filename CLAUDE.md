@@ -73,7 +73,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`). |
+| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`), and the DB-less `MatrixSweepCatalogTests` completeness slice. |
 | `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests across 6 lanes in parallel (Oracle runs at both 21c and 23ai). |
 | `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 4 NuGet packages. |
 
