@@ -11,29 +11,36 @@ v1.0.0 公開前の最終レビューの手順書。進捗はこのファイル�
 
 コードを読む前に、リポジトリが「常に守るべきゲート」を全て通ることを確認する。
 
-- [ ] `dotnet build SqlArtisan.sln`(警告ゼロ確認)
-- [ ] `dotnet test tests/SqlArtisan.Tests`(ユニットテスト)
-- [ ] `dotnet test tests/SqlArtisan.Analyzers.Tests`(アナライザーテスト)
-- [ ] `dotnet test tests/SqlArtisan.TableClassGen.Tests`(TableClassGen テスト)
-- [ ] `dotnet format SqlArtisan.sln --verify-no-changes`(スタイルゲート)
+- [x] `dotnet build SqlArtisan.sln`(エラーゼロ。警告は NU1903 のみ → 検出事項 F-1)
+- [x] `dotnet test tests/SqlArtisan.Tests` — 1045 件全て成功
+- [x] `dotnet test tests/SqlArtisan.Analyzers.Tests` — 1082 件全て成功
+- [x] `dotnet test tests/SqlArtisan.TableClassGen.Tests` — 158 件全て成功
+- [x] `dotnet format SqlArtisan.sln --verify-no-changes` — 違反なし(exit 0)
 
-結果メモ:(未実施)
+結果メモ: 全ゲート通過。唯一の警告は IntegrationTests の推移的依存
+`SSH.NET 2023.0.0` の既知脆弱性(NU1903、GHSA-q939-rpr3-3284)→ F-1。
 
 ## Phase 2 — リリース成果物の点検
 
 パッケージとして出荷されるメタデータ・ドキュメントの整合を確認する。
 
-- [ ] `Directory.Build.props` のバージョン確認(現在 `0.8.0-beta.1`。1.0.0 への
+- [x] `Directory.Build.props` のバージョン確認(現在 `0.8.0-beta.1`。1.0.0 への
       引き上げは Phase 7 の判断事項)
-- [ ] 4 パッケージ(`SqlArtisan` / `ArrayBind` / `Dapper` / `TableClassGen`)の
-      csproj メタデータ(説明・タグ・README 同梱・ライセンス)の点検
-- [ ] `CHANGELOG.md` — Unreleased セクションの内容が 1.0.0 として釈明不要な形に
-      整理されているか
-- [ ] `docs/versioning.md` とバージョンポリシーの整合(beta → 1.0 で表明が変わる箇所)
-- [ ] `dotnet pack` のドライランで 4 パッケージが警告なく生成されるか
-- [ ] README — 1.0 の顔として成立しているか(インストール手順・バッジ・サンプル)
+- [x] 4 パッケージ(`SqlArtisan` / `ArrayBind` / `Dapper` / `TableClassGen`)の
+      csproj メタデータ(説明・タグ・README 同梱・ライセンス)の点検 — 内容は揃って
+      いる。軽微な観察は F-3(著作権年)のみ
+- [x] `CHANGELOG.md` — Unreleased は Docs / Added / Changed / Fixed に整理済みで、
+      Breaking も明示されている。1.0.0 セクション化はバージョン引き上げ時(Phase 7)
+- [x] `docs/versioning.md` — 「From 1.0, SemVer に従う」という表明は 1.0 公開後も
+      そのまま正しい書き方になっており修正不要
+- [x] `dotnet pack` ドライラン — 4 パッケージ + snupkg 生成成功。主パッケージに
+      アナライザー DLL・buildTransitive props・README 同梱を確認。release.yml は
+      4 プロジェクトを個別 pack しており Benchmark の混入はない
+- [x] README — 構成・バッジ・サンプルは 1.0 の顔として成立。ただしインストール節の
+      `--prerelease` 表記は公開時に除去必須 → F-2
 
-結果メモ:(未実施)
+結果メモ: F-1 は SSH.NET 2026.0.0 の直接参照で解消(修正済み)。F-2 はバージョン
+引き上げと同時に対応(Phase 7)。
 
 ## Phase 3 — ドキュメント監査(コーパス全体)
 
@@ -92,4 +99,16 @@ README の比較数値が現状のコードと乖離していないかの確認�
 
 修正した事項・見送った事項をここに記録する。
 
-(まだなし)
+- **F-1(修正済み)**: `tests/SqlArtisan.IntegrationTests` の推移的依存
+  `SSH.NET 2023.0.0` に高深刻度の既知脆弱性(NU1903 / GHSA-q939-rpr3-3284、
+  修正版は 2026.0.0)。テスト専用依存で出荷物には含まれないが、ビルドログを恒常的に
+  汚していた。TableClassGen csproj の SQLitePCLRaw と同じ手法(直接参照で持ち上げ)で
+  `SSH.NET 2026.0.0` を明示参照し、警告ゼロを確認。実挙動は Phase 5 の統合テストで検証。
+- **F-2(Phase 7 で対応)**: プレリリース表記(`--prerelease` フラグと「pre-release
+  なので〜」の注記)が README.md・`docs/guides/dapper-quickstart.md`・
+  `docs/guides/oracle-array-bind.md`・`src/SqlArtisan.TableClassGen/README.md` にあり、
+  1.0.0 公開と同時に嘘になる。バージョン引き上げと同一コミットで除去し、
+  `llms-full.txt` を再生成する(`LlmsFullTests.cs` ヘッダーの手順)。
+- **F-3(要判断・軽微)**: 4 csproj の `Copyright (c) h.tacayama 2025` — 2026 年の
+  リリースなので `2025-2026` 等への更新を推奨。あわせて `PackageReleaseNotes` が
+  主パッケージにしかない点は任意(そのままでも害はない)。
