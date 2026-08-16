@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
-- Retired every version floor ADR 0020 left in `docs/functions.md`,
-  `docs/query-statements.md`, `docs/expressions.md`, and `docs/cookbook.md`.
+- Retired every version floor the documentation precision boundary left in
+  `docs/functions.md`, `docs/query-statements.md`, `docs/expressions.md`, and
+  `docs/cookbook.md`.
   Where the parenthetical was a support list carrying a floor, it keeps the
   dialects and drops the version; where it annotated one dialect's floor on a
   construct every dialect accepts (`Exp`, `Floor`, `Power`, `Sqrt`, `Sign`,

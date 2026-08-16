@@ -751,9 +751,8 @@ quoted reference.
 The DBMS column lists where each form is idiomatic, not the limit of what is
 emitted: availability is the target database's concern (and the opt-in
 analyzer's). SQLite supports neither family, and `LATERAL` has no SQL Server
-form. Oracle accepts both families except `LeftJoinLateral` — its
-injected `ON TRUE` relies on a boolean literal Oracle lacks; use
-`OuterApply` there. SqlArtisan emits the construct faithfully rather than
+form. Oracle accepts both families except `LeftJoinLateral` — Oracle rejects
+its injected `ON TRUE`; use `OuterApply` there. SqlArtisan emits the construct faithfully rather than
 gating it at build time.
 
 ---
