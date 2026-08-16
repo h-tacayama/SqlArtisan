@@ -4,6 +4,8 @@ paths:
   - "src/SqlArtisan/Internal/SqlBuilder/**/*.cs"
   - "src/SqlArtisan/Internal/SqlPart/Condition/**/*.cs"
   - "src/SqlArtisan/Sql/*.cs"
+  - "src/SqlArtisan/SqlBuilder/*.cs"
+  - "src/SqlArtisan/SqlPart/**/*.cs"
 ---
 
 # Guards and empty states
@@ -117,11 +119,13 @@ the caller did not mean. Judge a null argument by which failure it produces:
   `new BindValue(null)` (a never-true `= NULL` predicate the factory already
   rejected), and `default(OutputParameter)` — a struct default no annotation
   can flag, revalidated at format time.
-- **Loud failure at the call site** (a `NullReferenceException` from
-  dereferencing a single non-nullable reference parameter — `Column(DbColumn)`,
+- **Loud failure** (a `NullReferenceException` from dereferencing a single
+  non-nullable reference parameter — `Column(DbColumn)`,
   `Exists(subquery)`, the condition operators): the nullable annotation *is*
-  the contract — the compiler warns (CS8604) and the failure is eager and
-  attributable. No runtime guard is owed; do not file these in review.
+  the contract — the compiler warns (CS8604), and the throw lands either at
+  the factory call (`Column`) or at `Build()` (a stored subquery or
+  condition). Either way the statement never builds, so nothing is silently
+  wrong. No runtime guard is owed; do not file these in review.
 
 Settled during the 1.0 release review, where one panel seat filed the loud-NRE
 class as a defect and another declined the identical class as
