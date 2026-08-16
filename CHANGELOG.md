@@ -164,6 +164,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate. Omitting it is a syntax error on PostgreSQL and MySQL (except `InnerJoin`/`JoinLateral`, which MySQL silently reads as an unlabeled `CROSS JOIN`) and on SQLite for every one of the five — all read as the same unlabeled `CROSS JOIN`, a spelling the library already exposes under its own name (`CrossJoin`). `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error on every dialect; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
 
 ### Fixed
+- A new mechanical gate (`FactoryGuardSweepTests`) now feeds every public
+  `Sql` factory each degenerate argument — null, empty string, empty array,
+  null element — and fails unless the call throws or its exact SQL is
+  deliberately cataloged. Its first run found 25 silently-dropped-clause
+  cases, all one shape: a null clause object flowed into the internal
+  constructor slot the smaller overloads use, so the clause the caller wrote
+  vanished from the SQL. Now guarded with an eager `ArgumentNullException` /
+  `ArgumentException`: `DISTINCT` in `Avg`/`Count`/`Sum`/`GroupConcat`, the
+  `ELSE` arm across every `Case(...)` overload taking one, `GroupConcat`'s
+  `ORDER BY`/`SEPARATOR` clauses, `StringAgg`'s `ORDER BY`, the field of the
+  field-form and field-range `IntervalLiteral`, and a null/empty text-search
+  configuration in `ToTsvector`/`ToTsquery`/`PlaintoTsquery` (which had
+  silently emitted the config-less form or an empty `''` config literal).
 - Three more silent-acceptance gaps found by a second audit round: a CTE bound
   to a null subquery built `WITH "c" AS ()` — an empty body every engine
   rejects — because a defensive null-conditional swallowed the failure;

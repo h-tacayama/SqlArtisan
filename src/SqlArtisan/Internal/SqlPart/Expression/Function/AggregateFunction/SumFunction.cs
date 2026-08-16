@@ -13,6 +13,8 @@ public sealed class SumFunction : UnfilteredAggregateFunction
 
     internal SumFunction(DistinctKeyword distinct, SqlExpression expr)
     {
+        ArgumentNullException.ThrowIfNull(distinct);
+
         _distinct = distinct;
         _expr = expr;
     }

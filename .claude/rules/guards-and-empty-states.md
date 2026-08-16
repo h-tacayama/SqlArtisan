@@ -132,6 +132,12 @@ class as a defect and another declined the identical class as
 annotation-enforced — this clause exists so the next review doesn't relitigate
 it. (`DbColumn`'s constructor owner guard predates the clause and stays.)
 
+`FactoryGuardSweepTests` enforces the silent-acceptance side mechanically: it
+feeds every public `Sql` factory each degenerate argument and fails unless the
+call throws or its exact SQL sits in the test's acceptance catalog. A new
+factory that silently accepts a degenerate input fails the gate until it is
+guarded or deliberately cataloged.
+
 ## When to throw: eagerly vs at Build()
 
 - **Eagerly (in the factory / clause method)** only when the fact is fixed at

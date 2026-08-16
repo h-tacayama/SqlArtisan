@@ -149,8 +149,11 @@ public static partial class Sql
     /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
     /// emitted as an inline string literal.</param>
     /// <param name="text">The tsquery-syntax text to parse.</param>
-    public static ToTsqueryFunction ToTsquery(string config, object text) =>
-        new(config, Resolve(text));
+    public static ToTsqueryFunction ToTsquery(string config, object text)
+    {
+        StringGuard.ThrowIfNullOrEmpty(config, "TO_TSQUERY requires a configuration name.");
+        return new(config, Resolve(text));
+    }
 
     /// <summary>
     /// The PostgreSQL <c>TO_TSVECTOR(document)</c> function: reduces
@@ -168,8 +171,11 @@ public static partial class Sql
     /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
     /// emitted as an inline string literal.</param>
     /// <param name="document">The document expression to reduce.</param>
-    public static ToTsvectorFunction ToTsvector(string config, object document) =>
-        new(config, Resolve(document));
+    public static ToTsvectorFunction ToTsvector(string config, object document)
+    {
+        StringGuard.ThrowIfNullOrEmpty(config, "TO_TSVECTOR requires a configuration name.");
+        return new(config, Resolve(document));
+    }
 
     /// <summary>
     /// SQL Server's <c>TOP (n)</c> select prefix — limits the result to the first

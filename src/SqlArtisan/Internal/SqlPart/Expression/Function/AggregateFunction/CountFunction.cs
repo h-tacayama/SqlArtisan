@@ -19,6 +19,8 @@ public sealed class CountFunction : UnfilteredAggregateFunction
 
     internal CountFunction(DistinctKeyword distinct, SqlExpression expr)
     {
+        ArgumentNullException.ThrowIfNull(distinct);
+
         _distinct = distinct;
         _expr = expr;
     }

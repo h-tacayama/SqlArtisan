@@ -65,7 +65,7 @@ public static partial class Sql
     /// <remarks>A MySQL aggregate; on other dialects use
     /// <see cref="Listagg(object, object)"/> (Oracle).</remarks>
     public static GroupConcatFunction GroupConcat(object expr, OrderByClause orderByClause) =>
-        new(Resolve(expr), orderByClause: orderByClause);
+        new(Resolve(expr), orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr SEPARATOR separator)</c> string aggregate,
@@ -79,7 +79,7 @@ public static partial class Sql
     /// <c>GROUP_CONCAT(expr SEPARATOR separator)</c>.</returns>
     /// <inheritdoc cref="GroupConcat(object, OrderByClause)" path="/remarks"/>
     public static GroupConcatFunction GroupConcat(object expr, SeparatorClause separatorClause) =>
-        new(Resolve(expr), separatorClause: separatorClause);
+        new(Resolve(expr), separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr ORDER BY ... SEPARATOR separator)</c> string
@@ -98,14 +98,17 @@ public static partial class Sql
         object expr,
         OrderByClause orderByClause,
         SeparatorClause separatorClause) =>
-        new(Resolve(expr), orderByClause: orderByClause, separatorClause: separatorClause);
+        new(
+            Resolve(expr),
+            orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)),
+            separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
 
     /// <inheritdoc cref="GroupConcat(object)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
     /// aggregating only distinct values.</param>
     /// <param name="expr">The value aggregated into the concatenated string.</param>
     public static GroupConcatFunction GroupConcat(DistinctKeyword distinct, object expr) =>
-        new(Resolve(expr), distinct: distinct);
+        new(Resolve(expr), distinct: NullGuard.ThrowIfNull(distinct, nameof(distinct)));
 
     /// <inheritdoc cref="GroupConcat(object, OrderByClause)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
@@ -117,7 +120,10 @@ public static partial class Sql
         DistinctKeyword distinct,
         object expr,
         OrderByClause orderByClause) =>
-        new(Resolve(expr), distinct: distinct, orderByClause: orderByClause);
+        new(
+            Resolve(expr),
+            distinct: NullGuard.ThrowIfNull(distinct, nameof(distinct)),
+            orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
     /// <inheritdoc cref="GroupConcat(object, SeparatorClause)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
@@ -129,7 +135,10 @@ public static partial class Sql
         DistinctKeyword distinct,
         object expr,
         SeparatorClause separatorClause) =>
-        new(Resolve(expr), distinct: distinct, separatorClause: separatorClause);
+        new(
+            Resolve(expr),
+            distinct: NullGuard.ThrowIfNull(distinct, nameof(distinct)),
+            separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
 
     /// <inheritdoc cref="GroupConcat(object, OrderByClause, SeparatorClause)"/>
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
@@ -144,7 +153,11 @@ public static partial class Sql
         object expr,
         OrderByClause orderByClause,
         SeparatorClause separatorClause) =>
-        new(Resolve(expr), distinct: distinct, orderByClause: orderByClause, separatorClause: separatorClause);
+        new(
+            Resolve(expr),
+            distinct: NullGuard.ThrowIfNull(distinct, nameof(distinct)),
+            orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)),
+            separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
 
     /// <summary>
     /// The <c>GROUPING(<paramref name="expr"/>)</c> function: <c>1</c> when

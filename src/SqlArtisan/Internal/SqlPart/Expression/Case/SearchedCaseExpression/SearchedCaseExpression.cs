@@ -15,6 +15,8 @@ public sealed class SearchedCaseExpression : SqlExpression
         SearchedCaseWhenClause[] whenClauses,
         CaseElseExpression elseClause)
     {
+        ArgumentNullException.ThrowIfNull(elseClause);
+
         _whenClauses = whenClauses;
         _elseClause = elseClause;
     }

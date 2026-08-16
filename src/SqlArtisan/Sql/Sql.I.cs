@@ -202,7 +202,7 @@ public static partial class Sql
     /// counterparts to this literal form.
     /// </remarks>
     public static IntervalLiteralExpression IntervalLiteral(string value, IntervalField field) =>
-        new(value, field);
+        new(value, NullGuard.ThrowIfNull(field, nameof(field)));
 
     /// <summary>
     /// The <c>INTERVAL '<paramref name="value"/>' leadingField TO trailingField</c>
@@ -230,7 +230,10 @@ public static partial class Sql
     public static IntervalLiteralExpression IntervalLiteral(
         string value,
         IntervalField leadingField,
-        IntervalField trailingField) => new(value, leadingField, trailingField);
+        IntervalField trailingField) => new(
+            value,
+            NullGuard.ThrowIfNull(leadingField, nameof(leadingField)),
+            NullGuard.ThrowIfNull(trailingField, nameof(trailingField)));
 
     /// <summary>
     /// The <c>ISNULL(<paramref name="expr"/>, <paramref name="alt"/>)</c> function:
