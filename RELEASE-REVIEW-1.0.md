@@ -47,10 +47,14 @@ v1.0.0 公開前の最終レビューの手順書。進捗はこのファイル�
 `sa-docs-audit` スキルで README / docs/ / llms.txt / CHANGELOG を網羅監査する。
 リンク・API カバレッジ・用語・出力 SQL の実証検証と、敵対的検証パスを含む。
 
-- [ ] `sa-docs-audit` 実行
+- [~] `sa-docs-audit` 実行 — 同梱4スクリプトは全て緑:リンク解決(14ファイル)、
+      API 網羅は欠落・幽霊なし(公開ファクトリ210)、用語・空白違反なし、
+      ドキュメント記載の SQL 例 104/104 が実出力と一致。README のランディング主張
+      (ベンチマークのスコープ付き表現・計測環境の明記)も確認済み。
+      敵対的検証パス(独立 sa-reviewer)を実行中
 - [ ] 検出事項のトリアージと修正
 
-結果メモ:(未実施)
+結果メモ: スクリプト検証は全て通過。敵対的検証の結果待ち。
 
 ## Phase 4 — 公開 API サーフェスのパネル監査
 
@@ -60,19 +64,26 @@ v1.0.0 公開前の最終レビューの手順書。進捗はこのファイル�
 - `src/SqlArtisan/Sql/Sql.*.cs`(公開ファクトリ)
 - `src/SqlArtisan/SqlBuilder/`・`src/SqlArtisan/SqlPart/`・`src/SqlArtisan/Metadata/`(公開型)
 
-- [ ] `sa-panel-audit` 実行(スコープ: 公開 API サーフェス)
-- [ ] 検出事項のトリアージと修正
+- [~] `sa-panel-audit` 実行中 — スコープを 55 ファイル(約 6,200 行)に解決し、
+      Release ビルドゲート通過を確認のうえ、同一ブリーフィングで 3 座席
+      (Sonnet / Opus / Fable)を独立起動済み
+- [ ] 検出事項の裁定(主要ソースに対する再導出)と修正
 
-結果メモ:(未実施)
+結果メモ: 3 座席の報告待ち。
 
 ## Phase 5 — 統合テスト(実エンジン検証)
 
 出力 SQL が実際のエンジンで通ることの最終確認。`sa-run-integration-tests` スキルに従う。
 
-- [ ] 統合テスト実行(MySQL / Oracle / PostgreSQL / SQL Server / SQLite)
+- [~] 統合テスト実行(MySQL / Oracle / PostgreSQL / SQL Server / SQLite)
+  - SQLite レーンはローカル実行で 71/71 成功(この環境に Docker がないため、
+    コンテナ5レーンは CI で検証)
+  - `integration.yml` をこのブランチに対して workflow_dispatch 済み(SSH.NET
+    2026.0.0 更新の実挙動確認を兼ねる)。結果待ち
 - [ ] MatrixSweepTests(アナライザー方言マトリクスの実機検証)が緑であること
+      (上記 CI 実行に含まれる)
 
-結果メモ:(未実施)
+結果メモ: CI マトリクス実行中。
 
 ## Phase 6 — ベンチマーク確認(任意)
 
