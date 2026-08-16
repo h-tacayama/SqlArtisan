@@ -6,7 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
-- **ADR 0020 draws a precision boundary for the documentation**: a page states
+- Retired every version floor the documentation precision boundary left in
+  `docs/functions.md`, `docs/query-statements.md`, `docs/expressions.md`, and
+  `docs/cookbook.md`.
+  Where the parenthetical was a support list carrying a floor, it keeps the
+  dialects and drops the version; where it annotated one dialect's floor on a
+  construct every dialect accepts (`Exp`, `Floor`, `Power`, `Sqrt`, `Sign`,
+  1-argument `Trim`), the note goes entirely — on these pages an unqualified
+  dialect list means "only there", so keeping one would have stated a support
+  set the matrix contradicts. Floors backed by `docs/analyzer.md`'s
+  version-bound register (MySQL's `WithRecursive`/`JsonValue`/row-alias
+  UPSERT, Oracle's vector operators, PostgreSQL's `MERGE`, SQLite's
+  `RETURNING`/`STRING_AGG`) now link it instead of restating a number nothing
+  keeps current. Floors with no matrix row at all — Oracle's `LATERAL`/
+  `OFFSET`/`FETCH`, SQLite's `UPDATE … FROM`, SQL Server's multi-row `VALUES`,
+  and the window-function frame requirement — simply drop the version, the
+  last dropping its now-vacuous "every dialect" bullet entirely. (#480)
+- **A precision boundary for the documentation**: a page states
   what SqlArtisan emits and which dialects support a construct — both tied to
   tests — and delegates the rest to the engine. Result semantics (duplicate
   handling, `NULL` matching, multiplicity), equivalence between two constructs,
@@ -22,7 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   of `EXCEPT`/`EXCEPT ALL` and run only there, `ExceptAll`/`IntersectAll` are
   MySQL, Oracle, and PostgreSQL only, and SQLite and SQL Server take `ALL` on
   `UNION` alone — and both it and the JOIN section link the register for the
-  versions. Two pre-existing claims retire under ADR 0020: the MySQL `FULL JOIN`
+  versions. Two pre-existing claims retire under that boundary: the MySQL `FULL JOIN`
   emulation recipe (a `UNION` of two one-sided joins, which drops duplicate rows
   the join keeps) and SQL Server's `JOIN ... USING` substitute, described as an
   "equivalent" `On(...)` predicate though `USING` collapses the join column.

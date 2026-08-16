@@ -302,9 +302,9 @@ pattern as a CTE's `CteBase`); pass that instance as the handle.
 |---|---|---|
 | `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
 | `OuterApply(subquery, handle)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
-| `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | MySQL, Oracle 12c+, PostgreSQL |
+| `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | MySQL, Oracle, PostgreSQL |
 | `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON TRUE` | MySQL, PostgreSQL |
-| `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | MySQL, Oracle 12c+, PostgreSQL |
+| `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | MySQL, Oracle, PostgreSQL |
 
 The derived-table alias is alias-quoted at its definition (`... ) "x"`), matching
 both how a CTE name is written and the alias-quoted column references through the
@@ -315,9 +315,8 @@ quoted reference.
 The DBMS column lists where each form is idiomatic, not the limit of what is
 emitted: availability is the target database's concern (and the opt-in
 analyzer's). SQLite supports neither family, and `LATERAL` has no SQL Server
-form. Oracle (12c+) accepts both families except `LeftJoinLateral` — its
-injected `ON TRUE` relies on a boolean literal Oracle lacks before 23c; use
-`OuterApply` there. SqlArtisan emits the construct faithfully rather than
+form. Oracle accepts both families except `LeftJoinLateral`; use `OuterApply`
+there. SqlArtisan emits the construct faithfully rather than
 gating it at build time.
 
 ---
@@ -587,7 +586,7 @@ SqlStatement sql =
 
 `Limit()` and `Offset()` can be combined as `LIMIT n OFFSET m`. Note that a standalone `Offset()` (without `Limit()`) is only valid on PostgreSQL; MySQL and SQLite require `OFFSET` to be paired with `LIMIT`.
 
-#### OFFSET/FETCH family (Oracle 12c+ / PostgreSQL / SQL Server 2012+)
+#### OFFSET/FETCH family (Oracle / PostgreSQL / SQL Server)
 
 ```csharp
 TestTable t = new();
@@ -607,7 +606,7 @@ SqlStatement sql =
 
 - Use `OffsetRows(m)` alone for `OFFSET m ROWS`.
 - Use `FetchFirst(n)` for `FETCH FIRST n ROWS ONLY` (no offset). This standalone form is valid on **Oracle** (and PostgreSQL); **SQL Server requires an `OFFSET`**, so on SQL Server use `OffsetRows(0).FetchNext(n)` instead.
-- This clause requires `ORDER BY` on SQL Server, and is available on Oracle 12c+ / SQL Server 2012+.
+- This clause requires `ORDER BY` on SQL Server.
 
 The row counts are parameterized like other literals, so the bind-parameter prefix follows the target dialect (`:` / `@` / `?`).
 
@@ -783,7 +782,7 @@ SqlStatement sql =
 Update or delete rows using columns from other tables. Each dialect has its own
 grammar for this — the SQL you write is the SQL that runs.
 
-**`UPDATE … FROM` (PostgreSQL, SQLite 3.33+):** the target stays in the
+**`UPDATE … FROM` (PostgreSQL, SQLite):** the target stays in the
 `UPDATE`, the other tables go in `FROM`, and the join predicate lives in
 `WHERE`:
 
@@ -884,7 +883,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server (2008+). Oracle does not support multi-row `VALUES`; it uses `INSERT ALL` instead.
+**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server. Oracle does not support multi-row `VALUES`; it uses `INSERT ALL` instead.
 
 When the rows come from data rather than fixed literals, pass the whole collection to `Values(...)` in one call — a `List<object[]>`, an `object[][]` (e.g. from `.Select(...).ToArray()`), or any `IEnumerable<object[]>` — instead of a `Values(...)` call per row:
 
@@ -1011,8 +1010,9 @@ SqlStatement sql =
 ```
 
 MySQL keys off any unique index implicitly (no conflict target). SqlArtisan
-emits the 8.0.19+ row-alias form (`AS new` … `new.column`) to avoid the
-deprecated `VALUES()` function.
+emits the row-alias form (`AS new` … `new.column`) to avoid the deprecated
+`VALUES()` function; MySQL added the row alias in a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 **Note:** `ON CONFLICT` is PostgreSQL/SQLite-only and `ON DUPLICATE KEY UPDATE`
 is MySQL-only. Oracle and SQL Server use [`MERGE`](#merge-statement) instead.
@@ -1047,7 +1047,9 @@ exposed separately.
 ### MERGE Statement
 
 `MERGE` is the native UPSERT path for **Oracle** and **SQL Server** (and
-**PostgreSQL 15+**), which have no `ON CONFLICT` / `ON DUPLICATE KEY UPDATE`.
+**PostgreSQL**), which have no `ON CONFLICT` / `ON DUPLICATE KEY UPDATE`.
+PostgreSQL gained `MERGE` in a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 Start with `MergeInto(target)`, name the data source with `Using(...)`, match
 rows with `On(...)`, then add one or more `WhenMatched` / `WhenNotMatched`
 branches. As elsewhere, the SQL you write is the SQL that runs — the branches
@@ -1132,7 +1134,7 @@ subquery source (`… .AsTable("s")`) instead.
 // Oracle in-clause DELETE: WHEN MATCHED THEN UPDATE SET ... DELETE WHERE ...
 .WhenMatched().ThenUpdateSet(t.Name == s.Name).DeleteWhere(t.Name.IsNull)
 
-// PostgreSQL 15+ / SQL Server: WHEN MATCHED THEN DELETE
+// PostgreSQL / SQL Server: WHEN MATCHED THEN DELETE
 .WhenMatched().ThenDelete()
 
 // SQL Server only: WHEN NOT MATCHED BY SOURCE THEN UPDATE/DELETE
@@ -1232,7 +1234,7 @@ SqlStatement sql =
 
 SqlArtisan also supports more advanced WITH clause scenarios:
 
-- **Recursive CTEs** — `WithRecursive()` emits `WITH RECURSIVE`, required by MySQL (8.0+) and PostgreSQL and accepted by SQLite. Oracle — every version, 23ai included (live-verified) — and SQL Server reject the `RECURSIVE` keyword; there, recurse with plain `With(...)`. On Oracle a recursive body additionally requires the CTE column list — chain `.WithColumnList()` onto the CTE binding (`With(cte.As(...).WithColumnList())`) to emit it (`WITH "cte"(code) AS (...)`); SQL Server recurses with plain `With(...)` alone, and also accepts the list. The analyzer warns when `WithRecursive()` targets a dialect (or a declared version) that does not support it. `WithRecursive()` always includes the CTE column list, derived from the first query block — Oracle-style recursive `WITH` requires the list, and every engine accepts it; `.WithColumnList()` derives the same list under plain `With()`. Every select item of the CTE's first query block must therefore have a name: a plain column, or an expression aliased with `.As(...)` — an unnamed expression throws at the `WithRecursive()` or `.WithColumnList()` call. Plain `With()` emits a column list only for CTEs that opt in with `.WithColumnList()`.
+- **Recursive CTEs** — `WithRecursive()` emits `WITH RECURSIVE`, required by MySQL and PostgreSQL and accepted by SQLite (MySQL gained CTE support in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). Oracle — every version, 23ai included (live-verified) — and SQL Server reject the `RECURSIVE` keyword; there, recurse with plain `With(...)`. On Oracle a recursive body additionally requires the CTE column list — chain `.WithColumnList()` onto the CTE binding (`With(cte.As(...).WithColumnList())`) to emit it (`WITH "cte"(code) AS (...)`); SQL Server recurses with plain `With(...)` alone, and also accepts the list. The analyzer warns when `WithRecursive()` targets a dialect (or a declared version) that does not support it. `WithRecursive()` always includes the CTE column list, derived from the first query block — Oracle-style recursive `WITH` requires the list, and every engine accepts it; `.WithColumnList()` derives the same list under plain `With()`. Every select item of the CTE's first query block must therefore have a name: a plain column, or an expression aliased with `.As(...)` — an unnamed expression throws at the `WithRecursive()` or `.WithColumnList()` call. Plain `With()` emits a column list only for CTEs that opt in with `.WithColumnList()`.
 - **CTEs with DML main statements** — `With(...)` before an `INSERT`, `UPDATE`, or `DELETE` main statement is supported. DML *inside* a CTE body (PostgreSQL data-modifying CTEs) is not supported.
 
 ---
@@ -1305,7 +1307,7 @@ int deletedId = outputs.Get<int>("outId");
 string deletedName = outputs.Get<string>("outName");
 ```
 
-**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (3.35+). It is not supported by SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)) or MySQL. The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
+**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (SQLite gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). It is not supported by SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)) or MySQL. The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
 
 ## OUTPUT Clause (SQL Server)
 
