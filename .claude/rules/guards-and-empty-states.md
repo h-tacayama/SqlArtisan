@@ -145,12 +145,14 @@ switch is extended. Instance members that take clause objects (`.Over(...)`,
 manual review, and its one audited silent acceptance (`Over(null)` emitting
 `OVER ()`) is guarded at `OverClause.Of`.
 
-The loud-failure exemption above covers only positions the compiler can warn
-about: a **single** non-nullable reference parameter (CS8604 at the call
-site). An element inside an array or `params` tail is annotation-invisible —
-no compiler warning exists for `[null]` — so the silent-acceptance bullet
-governs it regardless of how loudly it later fails, which is why #403 and the
-`INSERT` column-list element guard convert those NREs to named exceptions.
+The loud-failure exemption above covers only positions whose null the
+compiler tracks: a **single** non-nullable reference parameter (CS8604 at the
+call site). An element inside an array or `params` tail is flagged only as a
+literal (`[null]` draws CS8625); a *computed* element — a default-initialized
+slot, a value from untracked flow — reaches the call with no warning at all,
+so the silent-acceptance bullet governs elements regardless of how loudly
+they later fail, which is why #403 and the `INSERT` column-list element guard
+convert those NREs to named exceptions.
 
 ## When to throw: eagerly vs at Build()
 

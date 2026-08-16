@@ -181,8 +181,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   content is now null-guarded at its single construction point. An `INSERT`
   column list containing a null `DbColumn` element crashed with a raw
   `NullReferenceException`; it now throws a named `ArgumentNullException`
-  (array elements are invisible to nullable annotations, so the element guard
-  applies regardless of the loud-failure exemption).
+  (a computed array element reaches the call without any nullable-annotation
+  warning, so the element guard applies regardless of the loud-failure
+  exemption).
 - A new mechanical gate (`FactoryGuardSweepTests`) now feeds every public
   `Sql` factory each degenerate argument — null, empty string, empty array,
   null element — and fails unless the call throws or its exact SQL is

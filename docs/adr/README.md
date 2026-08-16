@@ -79,12 +79,12 @@ The mitigation layers are, in order:
 3. **Supersession** — a new ADR that consolidates the cluster into one
    document, marking the originals as Superseded.
 
-**Trigger for supersession:** when a cluster's **rejection categories or
-enumerated exceptions reach five or more** — counted as one combined tally of
-the boundary table's category rows plus the ADR-recorded exception decisions
-(one per ADR, e.g. ADR 0011, ADR 0017); per-guard *instances* inside a
-category never count — the cluster has outgrown layers 1 and 2. At that
-point, write a single consolidated ADR that supersedes the cluster members
-(note "Superseded by ADR NNNN" in each original's Status line). This
-threshold and its arithmetic are decided now so neither re-litigates per
-case.
+**Trigger for supersession:** when either tally reaches **five on its own** —
+the boundary table's *rejection*-category rows (today three: incomplete,
+value-domain, bounded exception; the permissive dialect-availability default
+is not a rejection), or the ADR-recorded exception decisions, one per ADR
+(today two: ADR 0011, ADR 0017); per-guard *instances* inside a category
+never count — the cluster has outgrown layers 1 and 2. At that point, write
+a single consolidated ADR that supersedes the cluster members (note
+"Superseded by ADR NNNN" in each original's Status line). This threshold and
+its arithmetic are decided now so neither re-litigates per case.

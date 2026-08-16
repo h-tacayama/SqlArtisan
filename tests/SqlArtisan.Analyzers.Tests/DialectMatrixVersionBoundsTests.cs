@@ -77,10 +77,11 @@ public class DialectMatrixVersionBoundsTests
     }
 
     // Drift guard (DialectMatrixDocsTests's pattern): every seeded bound's
-    // version token must appear on a docs/analyzer.md line that also names the
-    // construct — a whole-file substring check let 25 of 69 bound cells survive
-    // a one-step re-bound, because common tokens ("15", "22") occur in other
-    // rows; anchoring to the construct's own line closes that.
+    // version token must appear, digit-bounded, on a docs/analyzer.md line that
+    // also names the construct. Both halves matter: a whole-file substring
+    // check let 25 of 69 bound cells survive a one-step re-bound (common
+    // tokens occur in other rows), and an unbounded Contains let a prefix
+    // mutation ("8.0.31" -> "8.0") survive on the construct's own line.
     [Fact]
     public void EveryBound_HasDocsProvenance()
     {
@@ -104,7 +105,9 @@ public class DialectMatrixVersionBoundsTests
                     continue;
                 }
 
-                if (!nameLines.Any(line => line.Contains(min.ToString())))
+                System.Text.RegularExpressions.Regex token = new(
+                    $@"(?<![\d.]){System.Text.RegularExpressions.Regex.Escape(min.ToString())}(?![\d.])");
+                if (!nameLines.Any(line => token.IsMatch(line)))
                 {
                     missing.Add(
                         $"{Label(key)}/{target}: version token \"{min}\" not found on any "
