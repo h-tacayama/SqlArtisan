@@ -69,7 +69,14 @@ v1.0.0 公開前の最終レビューの手順書。進捗はこのファイル�
       (Sonnet / Opus / Fable)を独立起動済み
 - [ ] 検出事項の裁定(主要ソースに対する再導出)と修正
 
-結果メモ: 3 座席の報告待ち。
+結果メモ: Sonnet 座席は報告済み(Medium 2 件)。両検出とも裁定側ハーネスで再現を
+確認済み(CONFIRMED)— 修正は全座席の報告が揃ってから適用する:
+- P-1: `Sql.Values` の rows に null 行 → 素の `NullReferenceException`(#403 の
+  規約では `ArgumentNullException` を投げるべき)。`Sql.V.cs:26-28`
+- P-2: `DbColumn` が空・null の列名を素通しし、`SELECT "a". FROM t "a"` /
+  `SELECT  FROM t` という無効 SQL を静かに生成(#405 のテーブル名ガードの列版が
+  欠落)。`DbColumn.cs:12` と各 `Column(string)` ファクトリ経由で到達可能
+Opus / Fable 座席の報告待ち。
 
 ## Phase 5 — 統合テスト(実エンジン検証)
 
