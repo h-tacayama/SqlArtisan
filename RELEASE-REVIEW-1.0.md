@@ -313,8 +313,32 @@ docs 監査スクリプト4本)と `.claude/workflows/sa-audit-sweep.js`(計16�
 4. skill 間の相互参照整合
 5. 本ブランチの変更(新ゲート・規約改定)に対する陳腐化
 
-- [~] パネル 3 座席(Sonnet / Opus / Fable)起動済み
-- [ ] 裁定・修正
+- [x] パネル 3 座席(Sonnet / Opus / Fable)完了(初回はセッション利用上限で全滅、
+      リセット後に再実施。3-of-3 成立)
+- [x] 裁定・修正(12 系統、全て対応)
+
+### 第4ラウンドの検出と裁定
+
+| ID | 検出(座席) | 裁定 |
+|---|---|---|
+| S4-1 **High** | `sa-panel-audit` が存在しない `sa-panel-review` を3回参照(実名は `sa-panel-diff-review`)。skill の本文が「そのファイルを読め」で委譲する先が不在(3座席全員。第1ラウンドで私自身も踏んで推測で回避していた) | **修正** — 3参照+§6→§5 の帰属誤りも修正 |
+| S4-4 **High** | ハーネステンプレート csproj が `RollForward` 欠落で、この環境の pinned toolchain 上で**そのままでは実行不能**。全レビュー skill の実証検証がここに依存(3座席全員。私も遭遇済み) | **修正** — `<RollForward>Major</RollForward>` 追加(`verify_sql_examples.py` と同じ既知の解) |
+| S4-2 | `sa-run-integration-tests`「ci.yml はこれらを決して実行しない」が第3ラウンドの修正で偽に(Sonnet+Fable) | **修正**(+「1レーン=1クラス」の陳腐化も) |
+| S4-3 | `sa-add-sql-function` が Concat 分割を「未着地」と記述 — 着地済みで `public-api-design.md` と矛盾(3座席全員) | **修正** |
+| S4-5 | ハザード形状テンプレート: (a) が無ガードでクラッシュし (b)-(d) が実行されない+(c) の観測対象「漏れた WHERE」が freeze ガード(#245)以後は発生不能(Sonnet+Fable) | **修正** — try/catch ラッパー+(c) の期待を freeze スローに更新 |
+| S4-6 | `bulk-pass.md` が `GenerateDocumentationFile` オフ前提で、「手順を戻せ」指示が今や出荷 XML と CS1591 ゲートを落とす有害操作(Fable+Opus) | **修正** — 恒久オンを前提に書き換え、revert 指示を削除 |
+| S4-7 | docs 監査スクリプト3本が `docs/guides/oracle-array-bind.md` を無記録で除外(+coverage は `versioning.md` も)。「全ページを掃く」という主張と乖離 — 壊した入力の注入で盲点を実証(3座席全員) | **修正** — 4リストに追加、再実行緑(リンク15ファイルに) |
+| S4-8 | `sa-docs-audit` skill「every doc example を実行」— 実際は参照3ページのみ(Fable+Opus) | **修正** — 実スコープ+cookbook/guides の扱いを明記 |
+| S4-9 | 「SqlCondition は Internal にある」という偽のコメント(Fable+Opus) | **修正** |
+| S4-10 | Listagg 例と引用ガードメッセージの不対応。Fable の「文字列がソースに無い」は補間生成(`Invalid type for {position}`)のため**部分反証** — 「例が別分岐に当たる」に狭めて採用(Fable+Opus、裁定側で再導出) | **修正** — 実メッセージ+兄弟分岐の説明に |
+| S4-11 | `check_api_coverage.py` の正規表現がジェネリックファクトリ(`BindArray<T>`)を除外し `Sql` クラス宣言を誤カウント(Opus、合成ツリーで実証) | **修正** — `<T>` 対応+`Sql` 除外(カウント 210 は −1+1 で不変、内訳が正しく) |
+| S4-12 | workflow コメントが実在しないファイル名 `sa-diff-review-orchestrator.md` を参照(Fable) | **修正** — 実ファイル名に |
+
+**このラウンドの意義**: High 2件はどちらも「手順書が現実と乖離し、従う
+エージェントを最初の一歩で躓かせる」クラスで、うち2件(S4-1, S4-4)は本レビュー
+中に私自身が実際に踏んで無自覚に回避していたもの — 未掃引メタ表面の監査価値の
+直接実証。S4-2 は第3ラウンドの修正が生んだ陳腐化で、「変更はその記述を持つ全
+表面を掃く」原則の反例がまた1つ機械外で発生したことを示す。
 
 ## 検出事項ログ
 

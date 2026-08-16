@@ -14,7 +14,7 @@ per-dialect pagination, Oracle identifier folding), which the exact-SQL unit
 tests cannot. The five container lanes run via Testcontainers; SQLite is
 in-process.
 
-Each lane is one xUnit class tagged with an `Engine=` trait
+Each lane selects the xUnit classes tagged with its `Engine=` trait
 (`Sqlite` / `PostgreSql` / `MySql` / `SqlServer` / `Oracle` / `Oracle23ai`), so you
 select one with `--filter`. `Oracle23ai` is a second, narrower Oracle lane (#263):
 it proves the analyzer's version-bound entries at 23ai rather than repeating the
@@ -59,8 +59,10 @@ Worse in a cloud session with only the .NET 8 SDK: `global.json` pins .NET 10,
 so `dotnet build`/`test` fails outright and you can't even **compile** the
 integration project locally. The per-PR `ci.yml` does *build* it — its build step
 is `dotnet build SqlArtisan.sln`, and the solution includes this project — so a
-compile error does fail the PR. What `ci.yml` never does is **run** these tests;
-the dispatched integration run (below) is the only thing that executes them.
+compile error does fail the PR. `ci.yml` also *runs* one DB-less slice on every
+PR: the `MatrixSweepCatalogTests` completeness pair, via an FQN filter. The
+engine lanes themselves execute only through the dispatched integration run
+(below), the nightly schedule, or the release gate.
 
 ## Run it in CI
 

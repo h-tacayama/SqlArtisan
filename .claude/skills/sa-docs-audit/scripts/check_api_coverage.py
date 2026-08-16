@@ -21,7 +21,8 @@ DOC_FILES = [
     "README.md", "docs/README.md", "docs/query-statements.md",
     "docs/expressions.md", "docs/functions.md", "docs/analyzer.md",
     "docs/comparison.md", "docs/cookbook.md", "docs/guides/dapper-quickstart.md",
-    "docs/guides/ai-assistants.md",
+    "docs/guides/oracle-array-bind.md", "docs/guides/ai-assistants.md",
+    "docs/versioning.md",
 ]
 # Known instance/extension members that legitimately appear as "`X()` for `Y`"
 # without being a static Sql.* factory.
@@ -30,10 +31,13 @@ INSTANCE_OK = {"WithinGroup", "Over", "Currval", "Nextval", "PartitionBy", "Orde
 
 def public_factories() -> set:
     names = set()
-    pat = re.compile(r"public static [\w<>,.\[\] ]+?\b([A-Z][A-Za-z0-9]*)\s*(\(|=>|\{)")
+    # Optional <T> admits generic factories (BindArray<T>); "Sql" is the
+    # partial-class declaration itself, not a factory.
+    pat = re.compile(r"public static [\w<>,.\[\] ]+?\b([A-Z][A-Za-z0-9]*)\s*(?:<[^>]+>)?\s*(\(|=>|\{)")
     for cs in SQL_DIR.glob("*.cs"):
         for m in pat.finditer(cs.read_text(encoding="utf-8")):
-            names.add(m.group(1))
+            if m.group(1) != "Sql":
+                names.add(m.group(1))
     return names
 
 

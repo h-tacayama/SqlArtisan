@@ -200,7 +200,7 @@ phase('Orchestrate')
 
 // Shared by the schema (so a typo'd dimension fails validation) and the
 // orchestrate prompt below — prevents drift within this file only.
-// sa-diff-review-orchestrator.md keeps its own hand-copied list; keep it in sync
+// sa-review-orchestrator.md keeps its own hand-copied list; keep it in sync
 // manually when this array changes.
 const REVIEW_DIMENSIONS = [
   'adr-conformance',
