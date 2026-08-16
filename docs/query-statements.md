@@ -907,7 +907,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-The result is identical to the chained form — one `VALUES` row per element, one bind per value. Every row must be the same width (a mismatch throws, naming the offending row), and an empty collection throws at the call site (`VALUES requires at least one row; the row collection is empty.`) rather than emit an invalid empty `VALUES`. Each value is a bind parameter, so a large batch runs into the same per-engine parameter ceilings as any wide statement (SQL Server 2100; older SQLite 999) — split oversized batches across statements.
+The result is identical to the chained form — one `VALUES` row per element, one bind per value. Every row must be the same width (a mismatch throws, naming the offending row), and an empty collection throws at the call site (`VALUES requires at least one row; the row collection is empty.`) rather than emit an invalid empty `VALUES`. Each value is a bind parameter, so a large batch runs into the same per-engine parameter ceilings as any wide statement — split oversized batches across statements.
 
 ---
 

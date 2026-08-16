@@ -294,4 +294,13 @@ public partial class FunctionTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Sequence_EmptyName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Sequence(""));
+
+        Assert.Equal("A sequence requires a name.", ex.Message);
+    }
 }

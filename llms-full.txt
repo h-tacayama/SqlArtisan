@@ -242,7 +242,7 @@ SqlArtisan's principle is simple: **the SQL you write is the SQL that runs.** Yo
 
 Full ORMs hide SQL behind object graphs; portability-focused builders rewrite your query per database. SqlArtisan does neither. It's for developers who *want* to write SQL — type-safely and composably in C#, not as fragile strings.
 
-It normalizes only the mechanical — bind-parameter markers (`:0` vs `@0`) and the identifier quote character (`"` vs MySQL's backtick) — and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
+It normalizes only mechanical dialect details — bind-parameter markers (`:0` vs `@0`), identifier quoting (`"` vs MySQL's backtick), and same-meaning token spellings such as the UPSERT excluded-row name — and never rewrites SQL grammar. Where dialects diverge, it exposes distinct, dialect-faithful APIs:
 
 ```csharp
 Sequence("users_id_seq").Nextval   // Oracle:      users_id_seq.NEXTVAL
@@ -1343,7 +1343,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-The result is identical to the chained form — one `VALUES` row per element, one bind per value. Every row must be the same width (a mismatch throws, naming the offending row), and an empty collection throws at the call site (`VALUES requires at least one row; the row collection is empty.`) rather than emit an invalid empty `VALUES`. Each value is a bind parameter, so a large batch runs into the same per-engine parameter ceilings as any wide statement (SQL Server 2100; older SQLite 999) — split oversized batches across statements.
+The result is identical to the chained form — one `VALUES` row per element, one bind per value. Every row must be the same width (a mismatch throws, naming the offending row), and an empty collection throws at the call site (`VALUES requires at least one row; the row collection is empty.`) rather than emit an invalid empty `VALUES`. Each value is a bind parameter, so a large batch runs into the same per-engine parameter ceilings as any wide statement — split oversized batches across statements.
 
 ---
 
@@ -2117,7 +2117,7 @@ SqlStatement sql =
 
 The overload takes `IReadOnlyCollection<T>` rather than `IEnumerable<T>` deliberately: a `string` is an `IEnumerable<char>` but *not* an `IReadOnlyCollection<char>`, so `col.In("abc")` stays a single-value predicate (`IN (:0)`) instead of silently expanding into one bind per character. An empty collection throws at the call site — an empty `IN ()` is invalid SQL — so build the chain with or without the predicate keyed on whether the list has any elements.
 
-Each element is a **separate** bind parameter, so the parameter count grows with the list, and a very large `IN` list runs into per-engine bind ceilings (SQL Server 2100 parameters; older SQLite 999). On PostgreSQL, an equality-against-array — `col = ANY(:param)`, a single array-valued bind whose plan is stable across list sizes — sidesteps both the parameter count and the ceiling; SqlArtisan's `In(...)` emits the per-element list form on every dialect, so reach for the bound-array form (`Any(BindArray(...))` — see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql)) or a CTE of the values when the list is both large and size-varying on PostgreSQL.
+Each element is a **separate** bind parameter, so the parameter count grows with the list, and a very large `IN` list runs into per-engine bind-parameter ceilings — see your engine's manual for its limit. On PostgreSQL, an equality-against-array — `col = ANY(:param)`, a single array-valued bind whose plan is stable across list sizes — sidesteps both the parameter count and the ceiling; SqlArtisan's `In(...)` emits the per-element list form on every dialect, so reach for the bound-array form (`Any(BindArray(...))` — see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql)) or a CTE of the values when the list is both large and size-varying on PostgreSQL.
 
 ### IN Condition with Subquery
 ```csharp
@@ -2592,7 +2592,7 @@ SqlStatement sql =
 
 Every `WHEN`, `THEN`, and `ELSE` literal becomes a bind parameter — the 3-arm simple CASE above produces 7 binds (3 match values + 3 result values + 1 ELSE). A 3-column pivot built from single-arm CASEs produces 9. This is the same literals-are-binds design used everywhere else: these values never reach the SQL text, which keeps them injection-safe and lets the engine reuse the execution plan when only the label values change.
 
-Most engines handle this comfortably — older SQLite versions cap at 999 parameters per statement (modern SQLite allows 32,766) and SQL Server caps at 2,100. A CASE in a `SELECT` list that also appears in `GROUP BY` doubles the bind count because the expression is repeated; wrapping the CASE in a CTE or subquery and grouping on its alias avoids the duplication.
+Engines cap how many parameters one statement may carry — see your engine's manual for its limit. A CASE in a `SELECT` list that also appears in `GROUP BY` doubles the bind count because the expression is repeated; wrapping the CASE in a CTE or subquery and grouping on its alias avoids the duplication.
 
 ---
 
@@ -4869,8 +4869,9 @@ resembling SQL; the library decides the exact grammar that reaches the
 database.
 
 **Faithful query builders** (SqlArtisan) emit the SQL you write. The C#
-maps directly to SQL tokens — bind-parameter markers and identifier quoting
-are normalized, but SQL grammar is never rewritten. You target one engine
+maps directly to SQL tokens — bind-parameter markers, identifier quoting,
+and same-meaning token spellings are normalized, but SQL grammar is never
+rewritten. You target one engine
 and get its full SQL surface, never flattened to a lowest common
 denominator. Raw Dapper / ADO.NET shares this "you own the SQL" property,
 but as plain strings — no compile-checked column names, no structured

@@ -108,6 +108,17 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void BindValue_NullValue_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex =
+            Assert.Throws<ArgumentNullException>(() => new BindValue(null!));
+
+        Assert.Equal(
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'value')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Bind_NonBindableValue_ThrowsArgumentException()
     {
         ArgumentException ex =

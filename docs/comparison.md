@@ -41,8 +41,9 @@ resembling SQL; the library decides the exact grammar that reaches the
 database.
 
 **Faithful query builders** (SqlArtisan) emit the SQL you write. The C#
-maps directly to SQL tokens — bind-parameter markers and identifier quoting
-are normalized, but SQL grammar is never rewritten. You target one engine
+maps directly to SQL tokens — bind-parameter markers, identifier quoting,
+and same-meaning token spellings are normalized, but SQL grammar is never
+rewritten. You target one engine
 and get its full SQL surface, never flattened to a lowest common
 denominator. Raw Dapper / ADO.NET shares this "you own the SQL" property,
 but as plain strings — no compile-checked column names, no structured

@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
+- The README/comparison normalization claim no longer enumerates two items
+  behind an "only": alongside bind-parameter markers and identifier quoting,
+  the builder also normalizes same-meaning token spellings (the UPSERT
+  excluded-row name, the DML alias separator, the SQL Server `MERGE`
+  terminator), so the sentence now says "mechanical dialect details" with
+  examples instead of a closed two-item list. Grammar is still never
+  rewritten. Also retired the engine bind-parameter ceilings ("SQL Server
+  2100; older SQLite 999") restated on three reference pages — version-keyed
+  engine limits with no in-repo gate, the class the precision boundary
+  delegates to the engine's manual.
 - Corrected the full-text search prerequisite: PostgreSQL runs its
   `tsvector`/`tsquery` functions without a full-text index — the nightly
   dialect sweep executes them against an index-less schema — so the
@@ -154,6 +164,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate. Omitting it is a syntax error on PostgreSQL and MySQL (except `InnerJoin`/`JoinLateral`, which MySQL silently reads as an unlabeled `CROSS JOIN`) and on SQLite for every one of the five — all read as the same unlabeled `CROSS JOIN`, a spelling the library already exposes under its own name (`CrossJoin`). `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error on every dialect; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
 
 ### Fixed
+- Three more silent-acceptance gaps found by a second audit round: a CTE bound
+  to a null subquery built `WITH "c" AS ()` — an empty body every engine
+  rejects — because a defensive null-conditional swallowed the failure;
+  `default(OutputParameter)` (for example an unfilled slot in a
+  runtime-assembled array) bypassed the constructor's name guard and emitted a
+  bare `INTO :` marker with an unnamed output parameter, now revalidated where
+  the marker renders; and `new BindValue(null)` built the never-true
+  `col = :0` (NULL) predicate that `Sql.Bind(null)` already rejected — the
+  constructor now throws the same `ArgumentNullException` pointing at
+  `Sql.Null` / `BindNull()`. Also aligned `Sequence(...)`'s empty-name message
+  with the message grammar (`A sequence requires a name.`).
 - Several identifier and element positions accepted a null or empty value and
   built silently invalid SQL, or crashed with a raw `NullReferenceException`
   instead of the library's usual guarded exception: a `DbColumn` constructed

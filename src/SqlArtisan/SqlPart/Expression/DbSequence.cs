@@ -15,9 +15,7 @@ public sealed class DbSequence
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException(
-                "DbSequence name cannot be null or empty.",
-                nameof(name));
+            throw new ArgumentException("A sequence requires a name.");
         }
 
         Name = name;

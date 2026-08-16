@@ -449,6 +449,13 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        // default(OutputParameter) bypasses the constructor guard (a struct
+        // cannot suppress its default instance), so the name is revalidated here.
+        if (string.IsNullOrEmpty(output.Variable))
+        {
+            throw new ArgumentException("An output variable name is required.");
+        }
+
         _parameters ??= new();
         string name = $"{_dialect.ParameterMarker}{output.Variable}";
 

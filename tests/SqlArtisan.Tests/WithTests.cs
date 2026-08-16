@@ -508,6 +508,13 @@ public class WithTests
     }
 
     [Fact]
+    public void Cte_NullSubquery_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new Cte("c").As(null!));
+    }
+
+    [Fact]
     public void With_NoCtes_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() => With());

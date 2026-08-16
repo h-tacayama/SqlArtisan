@@ -104,6 +104,30 @@ emitted `()` for nested all-empty groups even in mixed states; use the recursive
 operand *beside* an active one still drops out inside a non-empty AND/OR (that is
 `ConditionIf`'s contract); only an entirely empty clause throws.
 
+## Null arguments: where the runtime-guard obligation stops
+
+The guard mission targets **silent** wrongness — a build that succeeds with SQL
+the caller did not mean. Judge a null argument by which failure it produces:
+
+- **Silent acceptance** (the statement still builds): guard it, whatever the
+  parameter's type. Shipped instances: `object`-typed value positions
+  (`ExpressionResolver`'s "Use `Sql.Null`…" message), string identifiers
+  (`StringGuard`), null elements inside arrays/`params` (#403), a null
+  subquery in `CteBase.As` (previously emitted `WITH "c" AS ()`),
+  `new BindValue(null)` (a never-true `= NULL` predicate the factory already
+  rejected), and `default(OutputParameter)` — a struct default no annotation
+  can flag, revalidated at format time.
+- **Loud failure at the call site** (a `NullReferenceException` from
+  dereferencing a single non-nullable reference parameter — `Column(DbColumn)`,
+  `Exists(subquery)`, the condition operators): the nullable annotation *is*
+  the contract — the compiler warns (CS8604) and the failure is eager and
+  attributable. No runtime guard is owed; do not file these in review.
+
+Settled during the 1.0 release review, where one panel seat filed the loud-NRE
+class as a defect and another declined the identical class as
+annotation-enforced — this clause exists so the next review doesn't relitigate
+it. (`DbColumn`'s constructor owner guard predates the clause and stays.)
+
 ## When to throw: eagerly vs at Build()
 
 - **Eagerly (in the factory / clause method)** only when the fact is fixed at
