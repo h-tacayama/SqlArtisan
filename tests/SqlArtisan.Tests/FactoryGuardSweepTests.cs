@@ -13,7 +13,10 @@ namespace SqlArtisan.Tests;
 // build outside that catalog is the class both 1.0 audit rounds kept finding
 // one instance at a time (empty DbColumn name, WITH "c" AS (), INTO :); this
 // sweep finds the next instance mechanically. Instance members (e.g.
-// SqlExpression.In) and public constructors are outside this sweep's scope.
+// SqlExpression.In), public constructors, and a factory whose return type
+// TryBuild cannot embed (a pending type awaiting a completing call) are
+// outside this sweep's scope — the latter is a real coverage gap, not a
+// deliberate exclusion; extend TryBuild's switch when one matters.
 public class FactoryGuardSweepTests
 {
     // Key: "Signature :: injection". Value: the exact SQL the degenerate call
@@ -33,11 +36,28 @@ public class FactoryGuardSweepTests
         ["GroupingId(Object, Object[]) :: others=[]"] = "SELECT GROUPING_ID(:0)",
         ["Julianday(Object, Object[]) :: modifiers=[]"] = "SELECT JULIANDAY(:0)",
         ["Strftime(Object, Object, Object[]) :: modifiers=[]"] = "SELECT STRFTIME(:0, :1)",
-        // An empty STRING_AGG separator is meaningful (concatenate adjacently),
-        // unlike the empty identifiers this sweep exists to reject.
+        // An empty STRING_AGG/GROUP_CONCAT separator is meaningful (concatenate
+        // adjacently), unlike the empty identifiers this sweep exists to reject.
         ["StringAgg(Object, String) :: separator=\"\""] = "SELECT STRING_AGG(:0, '')",
         ["StringAgg(Object, String, OrderByClause) :: separator=\"\""] =
             "SELECT STRING_AGG(:0, '' ORDER BY \"a\".c)",
+        ["Separator(String) :: separator=\"\""] = "SELECT GROUP_CONCAT(`x`.c SEPARATOR '') FROM e `x`",
+        // Leading-parameter + empty params tail is the documented smaller call
+        // (Coalesce/Concat/Grouping already catalog this shape) — not a dropped
+        // clause, since the tail was never the sole carrier of meaning.
+        ["Cube(Object, Object[]) :: elements=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY CUBE(:0)",
+        ["Rollup(Object, Object[]) :: elements=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY ROLLUP(:0)",
+        ["GroupingSets(GroupingSet, GroupingSet[]) :: sets=[]"] =
+            "SELECT \"x\".c FROM e \"x\" GROUP BY GROUPING SETS(\"a\".c)",
+        // Group() with zero columns is the documented grand-total row, not a
+        // dropped column list.
+        ["Group(Object[]) :: columns=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY GROUPING SETS(())",
+        // SqlHints.Format deliberately coalesces null to "" and elides an empty
+        // hint (SqlHints.cs) — hints are a non-semantic query-plan decoration
+        // with an existing no-hints spelling (bare Select(...)), unlike the
+        // clauses above whose absence changes the result.
+        ["Hints(String) :: hints=null"] = "SELECT c FROM e",
+        ["Hints(String) :: hints=\"\""] = "SELECT c FROM e",
     };
 
     [Fact]
@@ -460,6 +480,37 @@ public class FactoryGuardSweepTests
                         .From(new DbTable("e", "x"))
                         .OrderBy(order)
                         .Build(Dbms.PostgreSql).Text,
+                SqlHints hints =>
+                    Select(hints, new DbTable("e").Column("c"))
+                        .From(new DbTable("e"))
+                        .Build(Dbms.Oracle).Text,
+                GroupingSet set =>
+                    Select(new DbTable("e", "x").Column("c"))
+                        .From(new DbTable("e", "x"))
+                        .GroupBy(GroupingSets(set))
+                        .Build(Dbms.PostgreSql).Text,
+                GroupingElement element =>
+                    Select(new DbTable("e", "x").Column("c"))
+                        .From(new DbTable("e", "x"))
+                        .GroupBy(element)
+                        .Build(Dbms.PostgreSql).Text,
+                SeparatorClause separator =>
+                    Select(GroupConcat(new DbTable("e", "x").Column("c"), separator))
+                        .From(new DbTable("e", "x"))
+                        .Build(Dbms.MySql).Text,
+                IWithBuilderWith withBuilder =>
+                    withBuilder.Select(new DbTable("e").Column("c"))
+                        .From(new DbTable("e"))
+                        .Build(Dbms.PostgreSql).Text,
+                OfClause ofClause =>
+                    Select(new DbTable("e", "x").Column("c"))
+                        .From(new DbTable("e", "x"))
+                        .ForUpdate(ofClause)
+                        .Build(Dbms.Oracle).Text,
+                // MatchFunction / SearchedCaseWhenCondition / SimpleCaseWhenExpression
+                // are pending-completion types (await .Against() / .Then()) — the
+                // same "incomplete construct" category the guards rule always
+                // rejects, out of this sweep's scope like instance members.
                 _ => null,
             };
         }

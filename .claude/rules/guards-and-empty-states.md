@@ -134,9 +134,14 @@ it. (`DbColumn`'s constructor owner guard predates the clause and stays.)
 
 `FactoryGuardSweepTests` enforces the silent-acceptance side mechanically: it
 feeds every public `Sql` factory each degenerate argument and fails unless the
-call throws or its exact SQL sits in the test's acceptance catalog. A new
-factory that silently accepts a degenerate input fails the gate until it is
-guarded or deliberately cataloged.
+call throws or its exact SQL sits in the test's acceptance catalog, for every
+factory whose return type the test's `TryBuild` can embed into a statement — a
+factory returning a pending type awaiting a completing call (`Match(...)`
+before `.Against(...)`, `When(...)` before `.Then(...)`) sits outside that
+reach and outside this gate, the same "incomplete construct" category the
+enforcement-boundary table above always rejects regardless. A new factory
+whose return type *is* embeddable and that silently accepts a degenerate input
+fails the gate until it is guarded or deliberately cataloged.
 
 ## When to throw: eagerly vs at Build()
 

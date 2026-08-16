@@ -167,16 +167,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - A new mechanical gate (`FactoryGuardSweepTests`) now feeds every public
   `Sql` factory each degenerate argument — null, empty string, empty array,
   null element — and fails unless the call throws or its exact SQL is
-  deliberately cataloged. Its first run found 25 silently-dropped-clause
-  cases, all one shape: a null clause object flowed into the internal
-  constructor slot the smaller overloads use, so the clause the caller wrote
-  vanished from the SQL. Now guarded with an eager `ArgumentNullException` /
-  `ArgumentException`: `DISTINCT` in `Avg`/`Count`/`Sum`/`GroupConcat`, the
-  `ELSE` arm across every `Case(...)` overload taking one, `GroupConcat`'s
-  `ORDER BY`/`SEPARATOR` clauses, `StringAgg`'s `ORDER BY`, the field of the
-  field-form and field-range `IntervalLiteral`, and a null/empty text-search
-  configuration in `ToTsvector`/`ToTsquery`/`PlaintoTsquery` (which had
-  silently emitted the config-less form or an empty `''` config literal).
+  deliberately cataloged. Its first run found 47 silently-dropped-clause
+  cases across 24 guard call sites, all one shape: a null clause object
+  flowed into the internal constructor slot the smaller overloads use, so
+  the clause the caller wrote vanished from the SQL. Now guarded with an
+  eager `ArgumentNullException` / `ArgumentException`: `DISTINCT` in
+  `Avg`/`Count`/`Sum` (the same node constructors also close `GroupConcat`'s
+  `distinct` gap), the `ELSE` arm across all 22 `Case(...)` overloads taking
+  one (two node-constructor guards cover the whole family), `GroupConcat`'s
+  `ORDER BY`/`SEPARATOR` clauses (12 overload keys), `StringAgg`'s `ORDER BY`,
+  the field of the field-form and field-range `IntervalLiteral`, and a
+  null/empty text-search configuration in
+  `ToTsvector`/`ToTsquery`/`PlaintoTsquery` (which had silently emitted the
+  config-less form or an empty `''` config literal). A follow-up pass then
+  widened the gate's own reach — it could not yet embed every factory's
+  return type, and one blind spot hid a real instance (`Sql.Hints`, below) —
+  and cataloged five more legitimate degenerate builds it surfaced once
+  extended: `Cube`/`Rollup`/`GroupingSets`'s empty tail (the documented
+  smaller call) and `Group()`'s empty column list (the documented
+  grand-total row).
+- `Sql.Hints(hints)` silently built with no hint text for a null or empty
+  `hints` argument. Left as designed rather than guarded: hints are a
+  non-semantic query-plan decoration with an existing no-hints spelling
+  (`Select(...)` without `Hints(...)`), unlike the clauses above whose
+  absence changes the query's result — now recorded as a deliberate
+  exception in the gate's catalog instead of an unexamined gap.
 - Three more silent-acceptance gaps found by a second audit round: a CTE bound
   to a null subquery built `WITH "c" AS ()` — an empty body every engine
   rejects — because a defensive null-conditional swallowed the failure;
