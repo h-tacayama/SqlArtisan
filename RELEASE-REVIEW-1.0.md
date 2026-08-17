@@ -359,8 +359,21 @@ skill 側だけを直し、CLAUDE.md の CI テーブル行が3スイート列�
 ③設定解決の正しさ ④凍結ハザード ⑤エンジン内の無記録な静かな範囲縮小
 ⑥agents 定義の手順↔実態パリティ
 
-- [~] パネル 3 座席(Sonnet / Opus / Fable)起動済み
+- [~] パネル 3 座席 — Sonnet / Fable 報告済み、Opus は利用上限で1回脱落し再投入中
 - [ ] 裁定・修正
+
+暫定裁定メモ(Opus 待ち、修正は座席読了後):
+- **A5-1(Sonnet, Medium)**: `FluentChain` の文頭クライムが三項演算子を透過しない
+  ため、`(flag ? Select(...) : Select(...)).Where(...)` 形で SQLA0200/0203/0300 が
+  沈黙。docs の閉じた沈黙リストの外側 — スクラッチ検証器で期待1/実測0を実証済み。
+  SQLA0100 は三項越しでも発火(対照実験)し、欠陥はクライム固有
+- **A5-2(Fable, Medium)**: SQLA0103 のコンストラクタ判定が型名リテラル一致
+  (`ConstructorIdentifierParams`)のため、生成テーブルクラス経由のエイリアス
+  (`new UsersTable("70字")`)を検査しない — ライブラリの主経路で、docs 自身の
+  用例形状。裁定側で `IdentifierLengthRule.cs:29-38` の辞書と
+  `CorrelatedDmlRule.DerivesFromDbTableBase`(:357、流用可能な既存機構)を確認済み
+- **A5-3/A5-4(Fable, Low)**: agents ファイル名↔frontmatter 名の不一致/
+  `sa-reviewer.md` のルール列挙が7本中6本(`code-comments` 欠落)
 
 ## 検出事項ログ
 
