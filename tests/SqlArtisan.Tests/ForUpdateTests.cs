@@ -88,6 +88,34 @@ public class ForUpdateTests
     }
 
     [Fact]
+    public void ForUpdate_WaitZeroSeconds_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            Select(t.Name)
+            .From(t)
+            .ForUpdate(Wait(0))
+            .Build(Dbms.Oracle);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT ");
+        expected.Append("name ");
+        expected.Append("FROM ");
+        expected.Append("test_table ");
+        expected.Append("FOR UPDATE WAIT 0");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Wait_NegativeSeconds_ThrowsArgumentException()
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(() => Wait(-1));
+
+        Assert.Equal("WAIT requires a non-negative number of seconds.", exception.Message);
+    }
+
+    [Fact]
     public void ForUpdate_Of_CorrectSql()
     {
         TestTable t = new();

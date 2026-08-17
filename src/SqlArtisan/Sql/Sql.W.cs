@@ -9,7 +9,7 @@ public static partial class Sql
     /// The <c>WAIT n</c> behavior for a <c>FOR UPDATE</c> clause: block up to
     /// <paramref name="seconds"/> seconds for a locked row before failing.
     /// </summary>
-    /// <param name="seconds">The number of seconds to wait.</param>
+    /// <param name="seconds">The number of seconds to wait; non-negative.</param>
     /// <returns>A <c>WAIT</c> lock behavior.</returns>
     /// <remarks>Oracle syntax; MySQL and PostgreSQL accept only
     /// <see cref="Nowait"/> or <see cref="SkipLocked"/>.</remarks>

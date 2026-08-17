@@ -84,7 +84,10 @@ permissive default stands. `Numtoyminterval`'s and `Numtodsinterval`'s
 `interval_unit` argument — restricted to `YEAR`/`MONTH` and
 `DAY`/`HOUR`/`MINUTE`/`SECOND` respectively, the exact sets Oracle's own
 function definitions accept; no other engine has either function, so any
-other value is invalid everywhere (#448).
+other value is invalid everywhere (#448). `Wait(seconds)`'s second count —
+non-negative: Oracle is the only engine whose `FOR UPDATE` takes a `WAIT`
+clause, and it rejects every negative count with ORA-30005 at parse time,
+before lock contention can matter (#483).
 
 ## Consequences
 
