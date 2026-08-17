@@ -4,6 +4,8 @@ paths:
   - "src/SqlArtisan/Internal/SqlBuilder/**/*.cs"
   - "src/SqlArtisan/Internal/SqlPart/Condition/**/*.cs"
   - "src/SqlArtisan/Sql/*.cs"
+  - "src/SqlArtisan/SqlBuilder/*.cs"
+  - "src/SqlArtisan/SqlPart/**/*.cs"
 ---
 
 # Guards and empty states
@@ -81,13 +83,15 @@ The empty `IN`/`NOT IN` collection and empty `VALUES` row guards (ERG-05/ERG-07,
 (`UpdateBuilder`/`InsertBuilder`), empty `DO UPDATE SET` / `ON DUPLICATE KEY
 UPDATE` / MERGE `.ThenUpdateSet()`, an empty `SELECT` `.From()`, and an empty
 `Sql.Decode(...)` pairs array; #397 added the INSERT column-list/VALUES-row
-width cross-check alongside them. New guards must land on this policy; never
-cite a row as already-enforced without checking the code.
+width cross-check alongside them; the 1.0 release review added the empty
+explicit `INSERT` column-list guard — an empty `columns` array silently became
+a positional `INSERT` and bypassed the #397 width check. New guards must land
+on this policy; never cite a row as already-enforced without checking the code.
 
 | Position | All-empty behavior |
 |---|---|
 | Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` | **throw at Build()** |
-| Empty SELECT list (#236); empty `SELECT`/`UPDATE` `.From()`; empty `IN`/`NOT IN`, empty `VALUES` row (#243); empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); INSERT column-list vs. `VALUES` row width mismatch (#397) | throw **eagerly** |
+| Empty SELECT list (#236); empty `SELECT`/`UPDATE` `.From()`; empty `IN`/`NOT IN`, empty `VALUES` row (#243); empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); INSERT column-list vs. `VALUES` row width mismatch (#397); empty explicit `INSERT` column list (1.0 release review) | throw **eagerly** |
 
 There is **no elision** — omitting a clause is the only "no restriction". The
 throw lives in the clause node's own `Format` (Build()-time), so it fires
@@ -101,6 +105,54 @@ emitted `()` for nested all-empty groups even in mixed states; use the recursive
 (`NOT ()` is the probe-confirmed hazard a plain AND/OR walk misses). An excluded
 operand *beside* an active one still drops out inside a non-empty AND/OR (that is
 `ConditionIf`'s contract); only an entirely empty clause throws.
+
+## Null arguments: where the runtime-guard obligation stops
+
+The guard mission targets **silent** wrongness — a build that succeeds with SQL
+the caller did not mean. Judge a null argument by which failure it produces:
+
+- **Silent acceptance** (the statement still builds): guard it, whatever the
+  parameter's type. Shipped instances: `object`-typed value positions
+  (`ExpressionResolver`'s "Use `Sql.Null`…" message), string identifiers
+  (`StringGuard`), null elements inside arrays/`params` (#403), a null
+  subquery in `CteBase.As` (previously emitted `WITH "c" AS ()`),
+  `new BindValue(null)` (a never-true `= NULL` predicate the factory already
+  rejected), and `default(OutputParameter)` — a struct default no annotation
+  can flag, revalidated at format time.
+- **Loud failure** (a `NullReferenceException` from dereferencing a single
+  non-nullable reference parameter — `Column(DbColumn)`,
+  `Exists(subquery)`, the condition operators): the nullable annotation *is*
+  the contract — the compiler warns (CS8604), and the throw lands either at
+  the factory call (`Column`) or at `Build()` (a stored subquery or
+  condition). Either way the statement never builds, so nothing is silently
+  wrong. No runtime guard is owed; do not file these in review.
+
+Settled during the 1.0 release review, where one panel seat filed the loud-NRE
+class as a defect and another declined the identical class as
+annotation-enforced — this clause exists so the next review doesn't relitigate
+it. (`DbColumn`'s constructor owner guard predates the clause and stays.)
+
+`FactoryGuardSweepTests` enforces the silent-acceptance side mechanically for
+every public `Sql` factory whose return type its `TryBuild` embeds into a
+statement: a degenerate argument must throw or its exact SQL must sit in the
+acceptance catalog. What `TryBuild` cannot embed — pending types awaiting a
+completing call, and a handful of complete clause objects not yet wired in —
+is a *recorded* blind spot: `ReturnTypes_AreEmbeddableOrRecorded` fails on any
+return type that is neither embedded nor in the `UnembeddedReturnTypes`
+ledger, so the gap cannot grow silently and shrinks whenever `TryBuild`'s
+switch is extended. Instance members that take clause objects (`.Over(...)`,
+`.WithinGroup(...)`) are outside the sweep entirely — that surface stays on
+manual review, and its one audited silent acceptance (`Over(null)` emitting
+`OVER ()`) is guarded at `OverClause.Of`.
+
+The loud-failure exemption above covers only positions whose null the
+compiler tracks: a **single** non-nullable reference parameter (CS8604 at the
+call site). An element inside an array or `params` tail is flagged only as a
+literal (`[null]` draws CS8625); a *computed* element — a default-initialized
+slot, a value from untracked flow — reaches the call with no warning at all,
+so the silent-acceptance bullet governs elements regardless of how loudly
+they later fail, which is why #403 and the `INSERT` column-list element guard
+convert those NREs to named exceptions.
 
 ## When to throw: eagerly vs at Build()
 

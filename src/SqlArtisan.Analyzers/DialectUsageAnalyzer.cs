@@ -441,7 +441,17 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             _ => (null, default),
         };
 
-        if (member is null || !IsFromSqlArtisan(member.ContainingAssembly))
+        if (member is null)
+        {
+            return;
+        }
+
+        // A generated/hand-written table class lives in the user's assembly but
+        // forwards its constructor argument to a SqlArtisan naming base — the
+        // primary aliasing path, admitted here so the rule can trace it.
+        if (!IsFromSqlArtisan(member.ContainingAssembly)
+            && !(member.MethodKind == MethodKind.Constructor
+                && IdentifierLengthRule.DerivesFromIdentifierBase(member.ContainingType)))
         {
             return;
         }

@@ -91,6 +91,16 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Unnest_AsTable_EmptyColumnName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Unnest(BindArray([1]), BindArray(["a"])).AsTable("t", "n", ""));
+
+        Assert.Equal(
+            "An UNNEST column alias list requires a name for every column.", ex.Message);
+    }
+
+    [Fact]
     public void Unnest_AsTable_MultipleArraysNoColumnList_CorrectSql()
     {
         UnnestDerivedTable t = Unnest(BindArray([1]), BindArray(["a"])).AsTable("t");

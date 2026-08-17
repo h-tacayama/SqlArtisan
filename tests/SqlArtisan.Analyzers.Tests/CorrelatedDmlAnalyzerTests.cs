@@ -423,4 +423,63 @@ public class CorrelatedDmlAnalyzerTests
             var cte = new Cte("c");
             var q = DeleteFrom(t).Where(t.Id.In(With(cte.As(Select(r.Id).From(r))).Select(cte.Column("id")).From(cte).Where(cte.Column("id") == t.Dep)));
             """);
+
+    // In top-level statements each statement is its own MemberDeclarationSyntax
+    // (GlobalStatementSyntax), so a member-bounded write scan would miss the
+    // sibling reassignment and false-positive on a statement Build() accepts.
+    private static string TopLevelUsage(string statements) => $$"""
+        using SqlArtisan;
+        using SqlArtisan.Internal;
+        using static SqlArtisan.Sql;
+
+        T r = new T("r");
+        {{statements}}
+
+        class T : DbTableBase
+        {
+            public DbColumn Id;
+            public DbColumn Dep;
+            public T(string alias = "") : base("t", alias) { Id = new DbColumn(this, "id"); Dep = new DbColumn(this, "dep"); }
+        }
+        """;
+
+    private static async Task RunTopLevelAsync(string statements, bool expectWarning)
+    {
+        string source = expectWarning
+            ? TopLevelUsage(statements)
+            : AnalyzerVerifier.Unmarked(TopLevelUsage(statements));
+        var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
+        test.TestState.OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication;
+        if (expectWarning)
+        {
+            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0300").WithLocation(0));
+        }
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public Task DeleteFrom_TopLevelStatementsLocalReassigned_StaysSilent() =>
+        RunTopLevelAsync("""
+            T u = new T();
+            u = new T("x");
+            var q = DeleteFrom(u).Where(Exists(Select(r.Id).From(r).Where(r.Id == u.Id)));
+            """, expectWarning: false);
+
+    [Fact]
+    public Task DeleteFrom_TopLevelStatementsLocalUnaliasedTarget_ReportsSqla0300() =>
+        RunTopLevelAsync("""
+            T u = new T();
+            var q = DeleteFrom(u).Where(Exists(Select(r.Id).From(r).Where(r.Id == {|#0:u.Id|})));
+            """, expectWarning: true);
+
+    // A chain head selected by a conditional expression is a documented
+    // silence (round-5 audit, deferred): the parent climb stops at the ternary.
+    [Fact]
+    public Task DeleteFrom_ConditionalSelectedHead_StaysSilent() =>
+        RunSilent("""
+            bool flag = System.DateTime.Now.Ticks > 0;
+            var q = (flag ? DeleteFrom(t) : DeleteFrom(t))
+                .Where(Exists(Select(r.Id).From(r).Where(r.Id == t.Id)));
+            """);
 }

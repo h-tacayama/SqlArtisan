@@ -340,4 +340,126 @@ public class IdentifierLengthAnalyzerTests
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
+
+    // A generated/hand-written table class forwards its constructor argument to
+    // DbTableBase's alias — the primary aliasing path; the rule traces the
+    // ": base(...)" chain to check it (round-5 audit).
+    private static string TableClassUsage(string alias) => $$"""
+        using SqlArtisan;
+
+        class UsersTable : DbTableBase
+        {
+            public UsersTable(string alias = "") : base("users", alias) { }
+        }
+
+        class C
+        {
+            void M()
+            {
+                var t = new UsersTable({|#0:"{{alias}}"|});
+            }
+        }
+        """;
+
+    [Fact]
+    public async Task TableClassCtorAliasOverPostgreSqlByteLimit_ReportsSqla0103()
+    {
+        var test = AnalyzerVerifier.Create(TableClassUsage(Repeat('a', 64)), AnalyzerVerifier.EditorConfig("postgresql"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task TableClassCtorAliasAtPostgreSqlByteLimit_StaysSilent()
+    {
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(TableClassUsage(Repeat('a', 63))), AnalyzerVerifier.EditorConfig("postgresql"));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task UserClassNamedDbTable_ArgumentNotForwarded_StaysSilent()
+    {
+        // The class's simple name collides with a ConstructorIdentifierParams key,
+        // but the coincidentally-named parameter never reaches the base alias —
+        // only the SqlArtisan assembly's own members may match by name.
+        string source = $$"""
+            using SqlArtisan;
+
+            namespace My
+            {
+                class DbTable : DbTableBase
+                {
+                    public string Comment;
+
+                    public DbTable(string tableAlias) : base("db_table", "d")
+                    {
+                        Comment = tableAlias;
+                    }
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    var t = new My.DbTable("{{Repeat('a', 64)}}");
+                }
+            }
+            """;
+        var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task UserClassNamedCte_ForwardedAlias_ReportsSqla0103()
+    {
+        // Same name collision, forwarding direction: the key's parameter name ("name")
+        // doesn't match this ctor's, so a name-table hit would go silent — the
+        // base-chain trace must still see the forwarded alias.
+        string source = $$"""
+            using SqlArtisan;
+
+            namespace My
+            {
+                class Cte : DbTableBase
+                {
+                    public Cte(string alias = "") : base("cte", alias) { }
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    var c = new My.Cte({|#0:"{{Repeat('a', 64)}}"|});
+                }
+            }
+            """;
+        var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task TableClassCtorDefaultedAlias_StaysSilent()
+    {
+        var test = AnalyzerVerifier.Create("""
+            using SqlArtisan;
+
+            class UsersTable : DbTableBase
+            {
+                public UsersTable(string alias = "") : base("users", alias) { }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    var t = new UsersTable();
+                }
+            }
+            """, AnalyzerVerifier.EditorConfig("postgresql"));
+        await test.RunAsync();
+    }
 }

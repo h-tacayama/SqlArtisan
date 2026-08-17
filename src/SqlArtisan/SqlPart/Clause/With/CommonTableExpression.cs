@@ -16,6 +16,8 @@ public sealed class CommonTableExpression
 
     internal CommonTableExpression(string name, ISubquery subquery)
     {
+        ArgumentNullException.ThrowIfNull(subquery);
+
         _name = name;
         _subquery = subquery;
     }
@@ -101,7 +103,7 @@ public sealed class CommonTableExpression
     {
         buffer.EncloseInSpaces(Keywords.As);
         buffer.OpenParenthesis();
-        _subquery?.Format(buffer);
+        _subquery.Format(buffer);
         buffer.CloseParenthesis();
     }
 

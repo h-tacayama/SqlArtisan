@@ -23,8 +23,20 @@ public static partial class Sql
         CollectionGuard.ThrowIfEmpty(columnNames, "A VALUES source requires at least one column.");
         CollectionGuard.ThrowIfEmpty(rows, "A VALUES source requires at least one row.");
 
+        foreach (string columnName in columnNames)
+        {
+            StringGuard.ThrowIfNullOrEmpty(
+                columnName, "A VALUES source requires a name for every column.");
+        }
+
         foreach (object[] row in rows)
         {
+            if (row is null)
+            {
+                throw new ArgumentNullException(
+                    nameof(rows), "A VALUES source must not contain a null row.");
+            }
+
             if (row.Length != columnNames.Length)
             {
                 throw new ArgumentException(

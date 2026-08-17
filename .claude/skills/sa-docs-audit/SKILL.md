@@ -24,7 +24,7 @@ S=.claude/skills/sa-docs-audit/scripts
 python3 $S/check_links.py          # anchor/link integrity across README + docs + llms.txt
 python3 $S/check_api_coverage.py   # deficiency (undocumented API) + surplus (phantom API)
 python3 $S/check_terms.py          # terminology + em-dash + whitespace lint vs docs-style.md
-python3 $S/verify_sql_examples.py  # build + run every doc example; compare emitted SQL
+python3 $S/verify_sql_examples.py  # build + run the reference pages' examples; compare emitted SQL
 ```
 
 Each exits non-zero on findings. They are heuristics — read each hit and judge;
@@ -48,8 +48,10 @@ Score the docs against these. The scripts cover 2–5 and parts of 6/10.
 
 3. **Completeness — no surplus (doc → code).** No documented API is missing from
    source — no phantom names. Prose mentions and every code block must resolve
-   to real APIs. (`check_api_coverage.py` + `verify_sql_examples.py` compiles
-   every example.)
+   to real APIs. (`check_api_coverage.py` + `verify_sql_examples.py`, which
+   compiles the three reference pages' examples — `docs/cookbook.md` is pinned
+   separately by the hand-maintained `CookbookTests`, and the guides' snippets
+   are unswept; compile those by hand when they change.)
 
 4. **Accuracy — output matches the code.** Documented emitted SQL equals the
    real `sql.Text`. Run it. (`verify_sql_examples.py`.) Remember `sql.Text` is a

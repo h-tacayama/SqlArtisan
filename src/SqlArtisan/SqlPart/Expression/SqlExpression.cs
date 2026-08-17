@@ -186,7 +186,7 @@ public abstract class SqlExpression : SqlPart
         object rightSide) => new(@this, Resolve(rightSide));
 
     /// <summary>
-    /// Aliases this expression in a <c>SELECT</c> list: <c>expr AS "<paramref name="alias"/>"</c>.
+    /// Aliases this expression in a <c>SELECT</c> list: <c>expr "<paramref name="alias"/>"</c>.
     /// </summary>
     /// <param name="alias">The column alias.</param>
     /// <returns>The aliased expression.</returns>

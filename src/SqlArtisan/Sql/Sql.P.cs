@@ -67,8 +67,11 @@ public static partial class Sql
     /// <param name="config">The text-search configuration (e.g. <c>"english"</c>),
     /// emitted as an inline string literal.</param>
     /// <param name="text">The plain text to parse.</param>
-    public static PlaintoTsqueryFunction PlaintoTsquery(string config, object text) =>
-        new(config, Resolve(text));
+    public static PlaintoTsqueryFunction PlaintoTsquery(string config, object text)
+    {
+        StringGuard.ThrowIfNullOrEmpty(config, "PLAINTO_TSQUERY requires a configuration name.");
+        return new(config, Resolve(text));
+    }
 
     /// <summary>
     /// The <c>POSITION(<paramref name="substring"/> IN <paramref name="source"/>)</c>

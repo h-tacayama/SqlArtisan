@@ -13,6 +13,8 @@ public sealed class AvgFunction : UnfilteredAggregateFunction
 
     internal AvgFunction(DistinctKeyword distinct, SqlExpression expr)
     {
+        ArgumentNullException.ThrowIfNull(distinct);
+
         _distinct = distinct;
         _expr = expr;
     }

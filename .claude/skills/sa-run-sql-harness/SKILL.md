@@ -19,6 +19,9 @@ cat > Demo.csproj <<'XML'
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <!-- The repo pins SDK 10 and ships no net8 runtime; without this the run
+         dies with "You must install or update .NET". -->
+    <RollForward>Major</RollForward>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -80,8 +83,10 @@ foreach (Dbms d in new[]{ Dbms.PostgreSql, Dbms.MySql, Dbms.Oracle, Dbms.Sqlite,
 
 **2. Negative / enforcement.** A misuse should fail loudly, not emit invalid SQL.
 A mandatory-clause "pending" type (e.g. `Listagg` before `.WithinGroup(...)`) is
-not a `SqlExpression`, so `Select(...)` throws `ArgumentException` ("Invalid type
-for SelectItem"). Prove the guard fires:
+not a `SqlExpression`, so `Select(...)` throws `ArgumentException` naming the
+completing call ("… is not a complete SQL expression. Complete it with
+.WithinGroup(OrderBy(...)) …"); a genuinely foreign type takes the sibling
+"Invalid type for SelectItem" branch. Prove the guard fires:
 
 ```csharp
 try { var s = Select(Listagg(u.Name, ", ")).From(u).Build(Dbms.Oracle);
@@ -114,21 +119,29 @@ binding grows the parameter list.
 **4. Hazard shapes.** The four shapes behind the #225 audit's silent-failure
 findings — probe whichever the change could plausibly affect:
 
+Wrap each probe so an expected throw is observed instead of aborting the
+later probes:
+
 ```csharp
-using SqlArtisan.Internal;                              // SqlCondition lives here
+void Probe(string label, Func<SqlStatement> build)
+{
+    try { Console.WriteLine($"{label}: {build().Text}"); }
+    catch (Exception ex) { Console.WriteLine($"{label} GUARD: {ex.GetType().Name}: {ex.Message}"); }
+}
 
 SqlCondition e() => ConditionIf(false, u.Id == 1);      // an excluded condition
 
-// (a) all conditions off — must throw at Build() (every statement), never emit bare "WHERE "
-Show("all-off", Select(u.Id).From(u).Where(e() & e()).Build());
+// (a) all conditions off — expect the ArgumentException, never a bare "WHERE "
+Probe("all-off", () => Select(u.Id).From(u).Where(e() & e()).Build());
 // (b) nested all-empty group beside an active condition — historically emitted "() AND (...)"
-Show("nested", Select(u.Id).From(u).Where((e() | e()) & (u.Id > 1)).Build());
-// (c) held prefix built along two branches — the second build must not inherit the first's state
+Probe("nested", () => Select(u.Id).From(u).Where((e() | e()) & (u.Id > 1)).Build());
+// (c) held prefix built along two branches — the freeze-after-Build guard (#245)
+//     must throw on the second build; SQL emitted there (leaked WHERE or not) is the defect
 var q = Select(u.Id).From(u);
-Show("branch-1", q.Where(u.Id == 1).Build());
-Show("branch-2", q.Build());                            // watch for a leaked WHERE
-// (d) correlated DML with an unaliased target — watch for a bare outer column (tautology)
-Show("corr", Update(new T()).Set(/* col == correlated subquery */).Build());
+Probe("branch-1", () => q.Where(u.Id == 1).Build());
+Probe("branch-2", () => q.Build());
+// (d) correlated DML with an unaliased target — expect the must-be-aliased throw
+Probe("corr", () => Update(new T()).Set(/* col == correlated subquery */).Build());
 ```
 
 ## Notes

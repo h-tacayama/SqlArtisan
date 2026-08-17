@@ -24,7 +24,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/Sql/Sql.{A..Y}.cs` | Public API. `static partial class Sql`, one file per **leading letter** of the function name (gaps at K, Q, X, Z). |
 | `src/SqlArtisan/Internal/SqlPart/Expression/Function/**` | Internal function node classes (`*Function : SqlExpression`), organized into categories (see below). |
 | `src/SqlArtisan/Internal/SqlBuilder/**` | Statement builders (Select/Insert/Update/Delete/Merge/With), `SqlBuildingBuffer`, validation guards. |
-| `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`). |
+| `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`, `BackslashEscapesStringLiterals`, `DmlTableAliasSeparator`, `ExcludedName`, `MergeTerminator`). |
 | `src/SqlArtisan/Internal/SqlPart/Keywords.cs` | All SQL keyword string constants. |
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
@@ -73,7 +73,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`). |
+| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`), and the DB-less `MatrixSweepCatalogTests` completeness slice. |
 | `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests across 6 lanes in parallel (Oracle runs at both 21c and 23ai). |
 | `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 4 NuGet packages. |
 
@@ -199,7 +199,7 @@ which chunks it across single reviewers instead of tripling it.
   `DbColumn`/`BindValue` under `src/SqlArtisan/SqlPart/Expression/`, the
   function-argument enums under `src/SqlArtisan/SqlPart/FunctionArgument/`, and
   the schema-metadata attributes under `src/SqlArtisan/Metadata/`. Types users must
-  **name** in a declaration position (`SqlExpression`, `SqlCondition`,
+  **name** in a declaration position (`SqlExpression`, `SqlCondition`, `TableReference`,
   `ISubquery`, `SortOrder`, `ExpressionAlias`, `CommonTableExpression`,
   `DbSequence`) live in the root namespace. Everything under `Internal/` is
   implementation detail.
@@ -213,11 +213,32 @@ which chunks it across single reviewers instead of tripling it.
   `docs/`, not in the README.
 - Comment the **why** / **why-not**, never the **what**; keep comments short. See
   `.claude/rules/code-comments.md`.
+- A review finding closes only by landing somewhere durable — a gate (test),
+  a rule/ADR clause, or a recorded decision not to mechanize it — never by the
+  one-off fix alone; the finding's *class* is what the landing must cover.
 - Report only what you are asking someone to change. Anything you would not
   change — fine as is, already covered elsewhere, worth knowing but needing no
   action — stays out entirely, under any label; **finding nothing is a good
   result**, not a shallow one. Being asked to look does not oblige you to
   return something.
+
+## Release procedure
+
+Bumping the shipped version (e.g. `0.8.0-beta.1` → `1.0.0`) is a user decision,
+never made unprompted. Once approved, do it in one commit:
+
+1. `Directory.Build.props`: set `<VersionPrefix>`; delete `<VersionSuffix>` for
+   a non-prerelease version.
+2. If leaving prerelease: remove the `--prerelease` install instructions and
+   any "pre-release" notes from `README.md`, `docs/guides/dapper-quickstart.md`,
+   `docs/guides/oracle-array-bind.md`, and `src/SqlArtisan.TableClassGen/README.md`.
+3. `CHANGELOG.md`: finalize the `## [Unreleased]` section under the new version
+   and date.
+4. Regenerate `llms-full.txt` (command in `LlmsFullTests.cs`'s header comment).
+5. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`).
+6. Merge to `main`, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
+   — `release.yml` reads the version from `Directory.Build.props`, not the tag,
+   so they must already agree before pushing it. Tag push is user-performed.
 
 ## Git
 

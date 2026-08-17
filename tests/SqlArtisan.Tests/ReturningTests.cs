@@ -251,6 +251,21 @@ public class ReturningTests
     }
 
     [Fact]
+    public void ReturningInto_DefaultOutputParameter_ThrowsArgumentException()
+    {
+        // default(OutputParameter) bypasses the constructor guard, so the
+        // format-time backstop must reject it instead of emitting a bare marker.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t)
+            .Set(_t.Code == 1)
+            .Returning(_t.Code)
+            .Into(default(OutputParameter))
+            .Build(Dbms.Oracle));
+
+        Assert.Equal("An output variable name is required.", ex.Message);
+    }
+
+    [Fact]
     public void ReturningInto_NoArguments_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>

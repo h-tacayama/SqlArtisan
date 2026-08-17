@@ -18,6 +18,8 @@ public sealed class SimpleCaseExpression : SqlExpression
         SimpleCaseWhenClause[] whenClauses,
         CaseElseExpression elseClause)
     {
+        ArgumentNullException.ThrowIfNull(elseClause);
+
         _expr = expr;
         _whenClauses = whenClauses;
         _elseClause = elseClause;

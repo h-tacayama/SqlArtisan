@@ -70,8 +70,21 @@ public static partial class Sql
     /// <param name="columns">The columns to insert into, emitted as a
     /// parenthesized list after the table.</param>
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
-    public static IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(table, columns.Length, new InsertIntoClause(table, columns));
+    public static IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns)
+    {
+        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+
+        foreach (DbColumn column in columns)
+        {
+            if (column is null)
+            {
+                throw new ArgumentNullException(
+                    nameof(columns), "An INSERT column list must not contain a null column.");
+            }
+        }
+
+        return new InsertBuilder(table, columns.Length, new InsertIntoClause(table, columns));
+    }
 
     /// <summary>
     /// Starts an <c>INSERT IGNORE INTO table</c> statement (MySQL): rows whose
@@ -98,8 +111,21 @@ public static partial class Sql
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
     /// <remarks>MySQL syntax. On PostgreSQL/SQLite express the do-nothing UPSERT
     /// with <c>InsertInto(...).Values(...).OnConflict().DoNothing()</c> instead.</remarks>
-    public static IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns) =>
-        new InsertBuilder(table, columns.Length, new InsertIgnoreIntoClause(table, columns));
+    public static IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns)
+    {
+        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+
+        foreach (DbColumn column in columns)
+        {
+            if (column is null)
+            {
+                throw new ArgumentNullException(
+                    nameof(columns), "An INSERT column list must not contain a null column.");
+            }
+        }
+
+        return new InsertBuilder(table, columns.Length, new InsertIgnoreIntoClause(table, columns));
+    }
 
     /// <summary>
     /// References <paramref name="column"/> of the <c>INSERTED</c> pseudo-table in
@@ -196,7 +222,7 @@ public static partial class Sql
     /// counterparts to this literal form.
     /// </remarks>
     public static IntervalLiteralExpression IntervalLiteral(string value, IntervalField field) =>
-        new(value, field);
+        new(value, NullGuard.ThrowIfNull(field, nameof(field)));
 
     /// <summary>
     /// The <c>INTERVAL '<paramref name="value"/>' leadingField TO trailingField</c>
@@ -224,7 +250,10 @@ public static partial class Sql
     public static IntervalLiteralExpression IntervalLiteral(
         string value,
         IntervalField leadingField,
-        IntervalField trailingField) => new(value, leadingField, trailingField);
+        IntervalField trailingField) => new(
+            value,
+            NullGuard.ThrowIfNull(leadingField, nameof(leadingField)),
+            NullGuard.ThrowIfNull(trailingField, nameof(trailingField)));
 
     /// <summary>
     /// The <c>ISNULL(<paramref name="expr"/>, <paramref name="alt"/>)</c> function:

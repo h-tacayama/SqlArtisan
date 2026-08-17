@@ -78,4 +78,41 @@ public class DatepartValidityParityTests
                 + $"DatepartValidity.DatepartParameterName, so SQLA0104 can never read their "
                 + $"argument:\n  {string.Join("\n  ", missing)}");
     }
+
+    // NUMTOYMINTERVAL/NUMTODSINTERVAL take their unit through an eager
+    // value-domain guard instead of SQLA0104 (ADR 0012, #448) — no other engine
+    // has either function, so the guard can reject outright.
+    private static readonly string[] EagerGuardRoutedConsumers =
+        ["Numtodsinterval", "Numtoyminterval"];
+
+    [Fact]
+    public void EveryDateTimePartFactory_IsListedOrEagerGuardRouted()
+    {
+        string[] realConsumers =
+        [
+            .. typeof(Sql)
+                .GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                .Where(m => m.GetParameters().Any(p => p.ParameterType == typeof(DateTimePart)))
+                .Select(m => m.Name)
+                .Distinct()
+                .OrderBy(n => n, StringComparer.Ordinal),
+        ];
+
+        string[] unrouted =
+        [
+            .. realConsumers
+                .Where(name => !DatepartValidity.DatepartParameterName.ContainsKey(name))
+                .Except(EagerGuardRoutedConsumers, StringComparer.Ordinal),
+        ];
+        string[] staleRouted =
+        [
+            .. EagerGuardRoutedConsumers.Except(realConsumers, StringComparer.Ordinal),
+        ];
+
+        Assert.True(
+            unrouted.Length == 0 && staleRouted.Length == 0,
+            $"DateTimePart-taking factories outside both SQLA0104's consumer map and the "
+                + $"eager-guard route: [{string.Join(", ", unrouted)}]; "
+                + $"stale eager-guard entries: [{string.Join(", ", staleRouted)}]");
+    }
 }

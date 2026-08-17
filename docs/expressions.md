@@ -323,7 +323,7 @@ SqlStatement sql =
 
 The overload takes `IReadOnlyCollection<T>` rather than `IEnumerable<T>` deliberately: a `string` is an `IEnumerable<char>` but *not* an `IReadOnlyCollection<char>`, so `col.In("abc")` stays a single-value predicate (`IN (:0)`) instead of silently expanding into one bind per character. An empty collection throws at the call site — an empty `IN ()` is invalid SQL — so build the chain with or without the predicate keyed on whether the list has any elements.
 
-Each element is a **separate** bind parameter, so the parameter count grows with the list, and a very large `IN` list runs into per-engine bind ceilings (SQL Server 2100 parameters; older SQLite 999). On PostgreSQL, an equality-against-array — `col = ANY(:param)`, a single array-valued bind whose plan is stable across list sizes — sidesteps both the parameter count and the ceiling; SqlArtisan's `In(...)` emits the per-element list form on every dialect, so reach for the bound-array form (`Any(BindArray(...))` — see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql)) or a CTE of the values when the list is both large and size-varying on PostgreSQL.
+Each element is a **separate** bind parameter, so the parameter count grows with the list, and a very large `IN` list runs into per-engine bind-parameter ceilings — see your engine's manual for its limit. On PostgreSQL, an equality-against-array — `col = ANY(:param)`, a single array-valued bind whose plan is stable across list sizes — sidesteps both the parameter count and the ceiling; SqlArtisan's `In(...)` emits the per-element list form on every dialect, so reach for the bound-array form (`Any(BindArray(...))` — see [ANY / ALL with a Bound Array](#any--all-with-a-bound-array-postgresql)) or a CTE of the values when the list is both large and size-varying on PostgreSQL.
 
 ### IN Condition with Subquery
 ```csharp
@@ -548,7 +548,7 @@ To bind a `Pgvector.Vector` instance instead of a cast string literal, construct
 
 ## Full-Text Search
 
-Full-text search has no common syntax across the five engines, so SqlArtisan exposes it per dialect (no unified rewrite): you call the API your target DBMS supports, and the SQL you write is the SQL that runs. Every engine requires a full-text index on the searched columns before these run — a `FULLTEXT` index (MySQL), an Oracle Text `CONTEXT` index, a `GIN` index over the tsvector (PostgreSQL), an FTS5 virtual table (SQLite), or a full-text index and catalog (SQL Server).
+Full-text search has no common syntax across the five engines, so SqlArtisan exposes it per dialect (no unified rewrite): you call the API your target DBMS supports, and the SQL you write is the SQL that runs. MySQL, Oracle, SQLite, and SQL Server require a full-text index on the searched columns before these run — a `FULLTEXT` index (MySQL), an Oracle Text `CONTEXT` index, an FTS5 virtual table (SQLite), or a full-text index and catalog (SQL Server). PostgreSQL alone runs its `tsvector`/`tsquery` functions without one; indexing them is a performance concern — see the [PostgreSQL manual](https://www.postgresql.org/docs/current/textsearch-indexes.html).
 
 The examples below assume a `posts` table class with `Title` / `Body` columns.
 
@@ -798,7 +798,7 @@ SqlStatement sql =
 
 Every `WHEN`, `THEN`, and `ELSE` literal becomes a bind parameter — the 3-arm simple CASE above produces 7 binds (3 match values + 3 result values + 1 ELSE). A 3-column pivot built from single-arm CASEs produces 9. This is the same literals-are-binds design used everywhere else: these values never reach the SQL text, which keeps them injection-safe and lets the engine reuse the execution plan when only the label values change.
 
-Most engines handle this comfortably — older SQLite versions cap at 999 parameters per statement (modern SQLite allows 32,766) and SQL Server caps at 2,100. A CASE in a `SELECT` list that also appears in `GROUP BY` doubles the bind count because the expression is repeated; wrapping the CASE in a CTE or subquery and grouping on its alias avoids the duplication.
+Engines cap how many parameters one statement may carry — see your engine's manual for its limit. A CASE in a `SELECT` list that also appears in `GROUP BY` doubles the bind count because the expression is repeated; wrapping the CASE in a CTE or subquery and grouping on its alias avoids the duplication.
 
 ---
 

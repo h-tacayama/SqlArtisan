@@ -59,7 +59,7 @@ SqlStatement sql =
 ```
 Both markers are valid only in a `SELECT` or `RETURNING` list, with one exception: `Count(Asterisk)` emits `COUNT(*)` — the only aggregate where `*` is legal. Any other expression position (`Upper(...)`, `ORDER BY`, …) throws or does not compile.
 
-Do **not** write `Select("*")` — a string in a value position is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the equivalent `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
+Do **not** write `Select("*")` — a string in a value position is always a bind value, never SQL, so it emits `SELECT :0` returning the literal `'*'` per row. The same rule protects every string you bind from injection; `Asterisk` is the SQL spelling. For `EXISTS (SELECT * ...)`, prefer the `Exists(Select(1)...)` idiom — see [Conditions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#conditions).
 
 #### Column Aliases
 ```csharp
@@ -629,7 +629,7 @@ SqlStatement sql =
 
 `Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot appear with `OFFSET/FETCH` in the same query — SqlArtisan throws on `Build(Dbms.SqlServer)` if either rule is broken.
 
-**Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those have no `WITH TIES` equivalent.
+**Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those families expose no `WITH TIES` option in SqlArtisan.
 
 #### Row-limited queries as subqueries
 
@@ -907,7 +907,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-The result is identical to the chained form — one `VALUES` row per element, one bind per value. Every row must be the same width (a mismatch throws, naming the offending row), and an empty collection throws at the call site (`VALUES requires at least one row; the row collection is empty.`) rather than emit an invalid empty `VALUES`. Each value is a bind parameter, so a large batch runs into the same per-engine parameter ceilings as any wide statement (SQL Server 2100; older SQLite 999) — split oversized batches across statements.
+The result is identical to the chained form — one `VALUES` row per element, one bind per value. Every row must be the same width (a mismatch throws, naming the offending row), and an empty collection throws at the call site (`VALUES requires at least one row; the row collection is empty.`) rather than emit an invalid empty `VALUES`. Each value is a bind parameter, so a large batch runs into the same per-engine parameter ceilings as any wide statement — split oversized batches across statements.
 
 ---
 

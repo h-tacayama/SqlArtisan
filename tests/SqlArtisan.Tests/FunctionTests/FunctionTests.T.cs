@@ -316,4 +316,22 @@ public partial class FunctionTests
 
         Assert.Equal("SECOND precision must be between 0 and 9.", ex.Message);
     }
+
+    [Fact]
+    public void ToTsvector_EmptyConfig_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ToTsvector("", "text"));
+
+        Assert.Equal("TO_TSVECTOR requires a configuration name.", ex.Message);
+    }
+
+    [Fact]
+    public void ToTsquery_EmptyConfig_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ToTsquery("", "text"));
+
+        Assert.Equal("TO_TSQUERY requires a configuration name.", ex.Message);
+    }
 }

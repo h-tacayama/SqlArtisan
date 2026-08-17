@@ -330,6 +330,54 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_EmptyColumnList_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, []));
+
+        Assert.Equal("An INSERT column list requires at least one column.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_EmptyColumnList_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertIgnoreInto(t, []));
+
+        Assert.Equal("An INSERT column list requires at least one column.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_NullColumnElement_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(t, t.Code, null!));
+
+        Assert.Equal(
+            "An INSERT column list must not contain a null column. (Parameter 'columns')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_NullColumnElement_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            InsertIgnoreInto(t, t.Code, null!));
+
+        Assert.Equal(
+            "An INSERT column list must not contain a null column. (Parameter 'columns')",
+            ex.Message);
+    }
+
+    [Fact]
     public void InsertIgnoreInto_SetNoAssignments_ThrowsArgumentException()
     {
         TestTable t = new();

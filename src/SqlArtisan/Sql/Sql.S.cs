@@ -288,7 +288,8 @@ public static partial class Sql
     public static StringAggFunction StringAgg(
         object expr,
         string separator,
-        OrderByClause orderByClause) => new(Resolve(expr), separator, orderByClause);
+        OrderByClause orderByClause) =>
+        new(Resolve(expr), separator, NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
     /// <summary>
     /// The <c>STRPOS(<paramref name="source"/>, <paramref name="substring"/>)</c>

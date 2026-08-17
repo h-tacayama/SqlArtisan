@@ -7,16 +7,28 @@ namespace SqlArtisan;
 /// when the owning table has no correlation name). Expose one per column from a
 /// <see cref="DbTableBase"/> subclass.
 /// </summary>
-/// <param name="owner">The table, CTE, or derived table that owns this column.</param>
-/// <param name="name">The column name as it appears in SQL.</param>
-public sealed class DbColumn(TableReference owner, string name) : SqlExpression
+public sealed class DbColumn : SqlExpression
 {
-    internal TableReference Owner => owner;
-    internal string Name => name;
+    /// <summary>
+    /// Creates a reference to the named column of <paramref name="owner"/>.
+    /// </summary>
+    /// <param name="owner">The table, CTE, or derived table that owns this column.</param>
+    /// <param name="name">The column name as it appears in SQL.</param>
+    public DbColumn(TableReference owner, string name)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        StringGuard.ThrowIfNullOrEmpty(name, "A column requires a name.");
+
+        Owner = owner;
+        Name = name;
+    }
+
+    internal TableReference Owner { get; }
+    internal string Name { get; }
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        string correlationName = owner.CorrelationName;
+        string correlationName = Owner.CorrelationName;
 
         if (!string.IsNullOrEmpty(correlationName))
         {
@@ -27,7 +39,7 @@ public sealed class DbColumn(TableReference owner, string name) : SqlExpression
         {
             // A bare DML-target column inside a subquery resolves to the inner
             // scope — a silent tautology — so the guard fails loudly (#253).
-            buffer.ThrowIfCorrelatedDmlColumn(owner);
+            buffer.ThrowIfCorrelatedDmlColumn(Owner);
         }
 
         buffer.Append(Name);

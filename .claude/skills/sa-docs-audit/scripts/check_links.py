@@ -27,6 +27,7 @@ FILES = [
     "docs/comparison.md",
     "docs/cookbook.md",
     "docs/guides/dapper-quickstart.md",
+    "docs/guides/oracle-array-bind.md",
     "docs/guides/ai-assistants.md",
     "docs/versioning.md",
     "SECURITY.md",

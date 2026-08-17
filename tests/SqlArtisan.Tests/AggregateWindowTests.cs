@@ -7,6 +7,15 @@ public class AggregateWindowTests
     private readonly TestTable _t = new();
 
     [Fact]
+    public void Over_NullPartitionBy_ThrowsArgumentNullException()
+    {
+        TestTable t = new();
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Sum(t.Code).Over((SqlArtisan.Internal.PartitionByClause)null!));
+    }
+
+    [Fact]
     public void Sum_OverEmpty_CorrectSql()
     {
         // Arrange

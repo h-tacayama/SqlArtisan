@@ -28,7 +28,7 @@ internal sealed record SweepCase(
 /// <summary>
 /// The statement-per-matrix-entry catalog behind the dialect sweep (#93 step 2).
 /// Every <see cref="DialectMatrix"/> key must appear here or in
-/// <see cref="Excluded"/> — enforced by a completeness test, so a new matrix
+/// <see cref="ExcludedEntries"/> — enforced by a completeness test, so a new matrix
 /// entry without a sweep statement fails the suite.
 /// </summary>
 internal static class MatrixSweepCatalog

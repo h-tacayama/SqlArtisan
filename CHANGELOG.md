@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Docs
+- The README/comparison normalization claim no longer enumerates two items
+  behind an "only": alongside bind-parameter markers and identifier quoting,
+  the builder also normalizes same-meaning token spellings (the UPSERT
+  excluded-row name, the DML alias separator, the SQL Server `MERGE`
+  terminator), so the sentence now says "mechanical dialect details" with
+  examples instead of a closed two-item list. Grammar is still never
+  rewritten. Also retired the engine bind-parameter ceilings ("SQL Server
+  2100; older SQLite 999") restated on three reference pages — version-keyed
+  engine limits with no in-repo gate, the class the precision boundary
+  delegates to the engine's manual.
+- Corrected the full-text search prerequisite: PostgreSQL runs its
+  `tsvector`/`tsquery` functions without a full-text index — the nightly
+  dialect sweep executes them against an index-less schema — so the
+  index-required statement in `docs/expressions.md` now names MySQL, Oracle,
+  SQLite, and SQL Server only, linking PostgreSQL's own manual for indexing.
+- Retired two construct-equivalence claims under the documentation precision
+  boundary: `docs/query-statements.md` no longer calls `Exists(Select(1)...)`
+  "equivalent" to `EXISTS (SELECT * ...)`, and `docs/cookbook.md` no longer
+  says the `FILTER` clause "says the same thing" as a `SUM(CASE ...)` pivot.
+  The `WITH TIES` dialect note is scoped to SqlArtisan's own API surface
+  instead of reading as an engine-grammar claim. XML docs: `As(alias)` no
+  longer shows an `AS` keyword the emitted SQL does not carry, and `OrderBy`'s
+  summary spells `.Asc`/`.Desc` as the properties they are.
 - Retired every version floor the documentation precision boundary left in
   `docs/functions.md`, `docs/query-statements.md`, `docs/expressions.md`, and
   `docs/cookbook.md`.
@@ -141,6 +164,104 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate. Omitting it is a syntax error on PostgreSQL and MySQL (except `InnerJoin`/`JoinLateral`, which MySQL silently reads as an unlabeled `CROSS JOIN`) and on SQLite for every one of the five — all read as the same unlabeled `CROSS JOIN`, a spelling the library already exposes under its own name (`CrossJoin`). `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error on every dialect; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
 
 ### Fixed
+- `SQLA0300` falsely warned in top-level-statements files: each top-level
+  statement is its own member declaration, so the never-reassigned scan was
+  scoped to the single statement and missed the reassignment that aliased the
+  target — a correct, `Build()`-accepted statement drew the warning (and
+  failed the build under a promoted severity). The scan now covers the whole
+  compilation unit for top-level code; a wider scope only adds visible
+  writes, so it fails toward silence like every other proof in the rule.
+- `SQLA0103` never checked the alias passed through a generated or
+  hand-written table class's constructor (`new UsersTable("<long alias>")`) —
+  the library's primary aliasing path — because constructors were matched by
+  the base types' literal names only. The rule now follows the
+  `: base(...)` chain to the SqlArtisan naming base and checks the
+  creation-site argument that reaches its alias/name parameter; any shape the
+  walk cannot read stays silent.
+- Documented (and pinned with tests) one deliberate silence the audit
+  surfaced: a fluent chain whose head is selected by a conditional expression
+  (`(flag ? Select(...) : Select(...)).Where(...)`) is invisible to
+  `SQLA0200`/`SQLA0203`/`SQLA0300`'s statement-head resolution and stays
+  silent; the reference now says so instead of implying coverage.
+- A meta-layer audit of the verification infrastructure itself closed four
+  gate gaps: the sweep-catalog completeness tests (`MatrixSweepCatalogTests`,
+  the check that every `DialectMatrix` entry has a live-engine sweep case)
+  carried no `Engine` trait and were therefore selected by no CI trigger at
+  all — they now run on every PR and on the release verify job, which also
+  gains the analyzer and TableClassGen suites it had skipped; the
+  version-bound docs-provenance check anchored a bound's version token to the
+  whole of `docs/analyzer.md` instead of the construct's own register line,
+  letting 25 of 69 bound cells survive a silent re-bound; the factory guard
+  sweep's unembedded return types are now a ledgered list a test keeps
+  honest; and every `DateTimePart`-taking factory must now be in SQLA0104's
+  consumer map or the recorded eager-guard route.
+- `.Over(partitionBy)` / `.Over(orderBy)` with a null clause object silently
+  emitted `OVER ()` — the window the caller wrote vanished; the `OVER`
+  content is now null-guarded at its single construction point. An `INSERT`
+  column list containing a null `DbColumn` element crashed with a raw
+  `NullReferenceException`; it now throws a named `ArgumentNullException`
+  (a computed array element reaches the call without any nullable-annotation
+  warning, so the element guard applies regardless of the loud-failure
+  exemption).
+- A new mechanical gate (`FactoryGuardSweepTests`) now feeds every public
+  `Sql` factory each degenerate argument — null, empty string, empty array,
+  null element — and fails unless the call throws or its exact SQL is
+  deliberately cataloged. Its first run found 47 silently-dropped-clause
+  cases across 24 guard call sites, all one shape: a null clause object
+  flowed into the internal constructor slot the smaller overloads use, so
+  the clause the caller wrote vanished from the SQL. Now guarded with an
+  eager `ArgumentNullException` / `ArgumentException`: `DISTINCT` in
+  `Avg`/`Count`/`Sum` (the same node constructors also close `GroupConcat`'s
+  `distinct` gap), the `ELSE` arm across all 22 `Case(...)` overloads taking
+  one (two node-constructor guards cover the whole family), `GroupConcat`'s
+  `ORDER BY`/`SEPARATOR` clauses (12 overload keys), `StringAgg`'s `ORDER BY`,
+  the field of the field-form and field-range `IntervalLiteral`, and a
+  null/empty text-search configuration in
+  `ToTsvector`/`ToTsquery`/`PlaintoTsquery` (which had silently emitted the
+  config-less form or an empty `''` config literal). A follow-up pass then
+  widened the gate's own reach — it could not yet embed every factory's
+  return type, and one blind spot hid a real instance (`Sql.Hints`, below) —
+  and cataloged five more legitimate degenerate builds it surfaced once
+  extended: `Cube`/`Rollup`/`GroupingSets`'s empty tail (the documented
+  smaller call) and `Group()`'s empty column list (the documented
+  grand-total row).
+- `Sql.Hints(hints)` silently built with no hint text for a null or empty
+  `hints` argument. Left as designed rather than guarded: hints are a
+  non-semantic query-plan decoration with an existing no-hints spelling
+  (`Select(...)` without `Hints(...)`), unlike the clauses above whose
+  absence changes the query's result — now recorded as a deliberate
+  exception in the gate's catalog instead of an unexamined gap.
+- Three more silent-acceptance gaps found by a second audit round: a CTE bound
+  to a null subquery built `WITH "c" AS ()` — an empty body every engine
+  rejects — because a defensive null-conditional swallowed the failure;
+  `default(OutputParameter)` (for example an unfilled slot in a
+  runtime-assembled array) bypassed the constructor's name guard and emitted a
+  bare `INTO :` marker with an unnamed output parameter, now revalidated where
+  the marker renders; and `new BindValue(null)` built the never-true
+  `col = :0` (NULL) predicate that `Sql.Bind(null)` already rejected — the
+  constructor now throws the same `ArgumentNullException` pointing at
+  `Sql.Null` / `BindNull()`. Also aligned `Sequence(...)`'s empty-name message
+  with the message grammar (`A sequence requires a name.`).
+- Several identifier and element positions accepted a null or empty value and
+  built silently invalid SQL, or crashed with a raw `NullReferenceException`
+  instead of the library's usual guarded exception: a `DbColumn` constructed
+  with a null/empty column name — directly or through any `Column(name)`
+  accessor — rendered a dangling alias qualifier (`SELECT "u". FROM ...`) or an
+  empty select item; `.As(alias)` on an expression or subquery accepted a
+  null/empty alias and emitted a zero-length quoted identifier (`SELECT name ""`)
+  while the adjacent `.AsTable(alias)` already threw; `Sql.Values(...)` accepted
+  a null/empty column-name element (emitting `(, c2)`) and crashed with a raw
+  `NullReferenceException` on a null row; and `Unnest(...).AsTable(...)`
+  accepted a null/empty column-name element. Each now throws an
+  `ArgumentException` (or `ArgumentNullException` for the null row) eagerly,
+  naming the construct.
+- `InsertInto(table, columns)` and `InsertIgnoreInto(table, columns)` called
+  with an empty column array silently dropped the column list — turning the
+  named-column `INSERT` the caller wrote into a positional one against the
+  table's declared column order — and disabled the `VALUES`-row width check
+  with it. An empty column list now throws an `ArgumentException` eagerly;
+  the columnless overloads remain the spelling for a deliberate positional
+  `INSERT`.
 - `SQLA0100` now flags `Sql.RegexpSubstr`'s 6-argument `subPatternPos` overload on MySQL. That overload's XML docs inherited the 2-argument member's "MySQL, Oracle, and PostgreSQL (15+)" claim, and the `DialectMatrix` carried only a member-wide entry, so the analyzer stayed silent on a statement MySQL's `REGEXP_SUBSTR` — which has no `subexpr` argument — cannot parse. If your code already calls this overload targeting MySQL, it will start reporting `SQLA0100`; the call was never valid there. (#463)
 - `SQLA0101` did not flag `Ceil`, `Ceiling`, `Floor`, `Mod`, `Power`, `Sign`, or `Sqrt` below SQLite 3.35, though the dialect matrix's own comment already named that floor — all seven are `SQLITE_ENABLE_MATH_FUNCTIONS` extension functions, absent before 3.35, so a project declaring `sqlartisan_syntax_sqlite` below 3.35 got analyzer silence and a runtime `no such function` error instead of a warning. All seven now carry the bound, as do the five functions added above. (#440)
 - A declared engine version with non-letter junk after the digits — `sqlartisan_syntax_postgresql = 14!!`, `sqlartisan_target_version = 16 or so` — was silently read as its leading digits instead of being rejected, so the value check stayed quiet and the junk spelling even surfaced verbatim in the `SQLA0101` message. The documented format ignores only a trailing *letter* run (`23ai`, `21c`); anything else after the digits is now an unrecognized value, reported as `SQLA0001`. (#432)
