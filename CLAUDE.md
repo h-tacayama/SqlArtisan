@@ -222,6 +222,24 @@ which chunks it across single reviewers instead of tripling it.
   result**, not a shallow one. Being asked to look does not oblige you to
   return something.
 
+## Release procedure
+
+Bumping the shipped version (e.g. `0.8.0-beta.1` → `1.0.0`) is a user decision,
+never made unprompted. Once approved, do it in one commit:
+
+1. `Directory.Build.props`: set `<VersionPrefix>`; delete `<VersionSuffix>` for
+   a non-prerelease version.
+2. If leaving prerelease: remove the `--prerelease` install instructions and
+   any "pre-release" notes from `README.md`, `docs/guides/dapper-quickstart.md`,
+   `docs/guides/oracle-array-bind.md`, and `src/SqlArtisan.TableClassGen/README.md`.
+3. `CHANGELOG.md`: finalize the `## [Unreleased]` section under the new version
+   and date.
+4. Regenerate `llms-full.txt` (command in `LlmsFullTests.cs`'s header comment).
+5. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`).
+6. Merge to `main`, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
+   — `release.yml` reads the version from `Directory.Build.props`, not the tag,
+   so they must already agree before pushing it. Tag push is user-performed.
+
 ## Git
 
 Develop on the assigned feature branch. Do not open a PR unless explicitly asked.
