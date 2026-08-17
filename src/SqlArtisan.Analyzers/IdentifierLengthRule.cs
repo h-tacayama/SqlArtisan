@@ -44,23 +44,27 @@ internal static class IdentifierLengthRule
         ImmutableArray<IArgumentOperation> arguments,
         DialectTargetSet targets)
     {
-        if (ResolveIdentifierParams(member) is not { } identifierParams)
+        // The name-keyed tables match simple names, valid only for SqlArtisan's own
+        // members — a user class sharing a key's name (TableClassGen names classes
+        // after tables) must take the base-chain trace instead.
+        if (DialectUsageAnalyzer.IsFromSqlArtisan(member.ContainingAssembly)
+            && ResolveIdentifierParams(member) is { } identifierParams)
         {
-            if (member.MethodKind == MethodKind.Constructor
-                && FindInheritedIdentifierArgument(context.Compilation, member, arguments) is { } inherited)
+            foreach (IdentifierParam identifier in identifierParams)
             {
-                CheckArgument(context, inherited, isList: false, targets);
+                if (FindArgument(arguments, identifier.Name) is { } argument)
+                {
+                    CheckArgument(context, argument.Value, identifier.IsList, targets);
+                }
             }
 
             return;
         }
 
-        foreach (IdentifierParam identifier in identifierParams)
+        if (member.MethodKind == MethodKind.Constructor
+            && FindInheritedIdentifierArgument(context.Compilation, member, arguments) is { } inherited)
         {
-            if (FindArgument(arguments, identifier.Name) is { } argument)
-            {
-                CheckArgument(context, argument.Value, identifier.IsList, targets);
-            }
+            CheckArgument(context, inherited, isList: false, targets);
         }
     }
 
