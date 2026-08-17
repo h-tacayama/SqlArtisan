@@ -240,8 +240,17 @@ internal static class CorrelatedDmlRule
         };
     }
 
-    private static SyntaxNode EnclosingMemberScope(SyntaxNode node) =>
-        node.FirstAncestorOrSelf<MemberDeclarationSyntax>() ?? node.SyntaxTree.GetRoot();
+    private static SyntaxNode EnclosingMemberScope(SyntaxNode node)
+    {
+        MemberDeclarationSyntax? member = node.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+
+        // A top-level statement is itself a MemberDeclarationSyntax, so stopping
+        // there hides sibling statements' writes and false-positives on a
+        // reassigned target; the whole unit only adds visible writes — silence-safe.
+        return member is null || member is GlobalStatementSyntax
+            ? node.SyntaxTree.GetRoot()
+            : member;
+    }
 
     // readonly bounds all writes to the initializer and constructors, so a
     // constructor scan is complete.

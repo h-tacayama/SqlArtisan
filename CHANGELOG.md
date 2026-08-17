@@ -164,6 +164,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate. Omitting it is a syntax error on PostgreSQL and MySQL (except `InnerJoin`/`JoinLateral`, which MySQL silently reads as an unlabeled `CROSS JOIN`) and on SQLite for every one of the five — all read as the same unlabeled `CROSS JOIN`, a spelling the library already exposes under its own name (`CrossJoin`). `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error on every dialect; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
 
 ### Fixed
+- `SQLA0300` falsely warned in top-level-statements files: each top-level
+  statement is its own member declaration, so the never-reassigned scan was
+  scoped to the single statement and missed the reassignment that aliased the
+  target — a correct, `Build()`-accepted statement drew the warning (and
+  failed the build under a promoted severity). The scan now covers the whole
+  compilation unit for top-level code; a wider scope only adds visible
+  writes, so it fails toward silence like every other proof in the rule.
+- `SQLA0103` never checked the alias passed through a generated or
+  hand-written table class's constructor (`new UsersTable("<long alias>")`) —
+  the library's primary aliasing path — because constructors were matched by
+  the base types' literal names only. The rule now follows the
+  `: base(...)` chain to the SqlArtisan naming base and checks the
+  creation-site argument that reaches its alias/name parameter; any shape the
+  walk cannot read stays silent.
+- Documented (and pinned with tests) one deliberate silence the audit
+  surfaced: a fluent chain whose head is selected by a conditional expression
+  (`(flag ? Select(...) : Select(...)).Where(...)`) is invisible to
+  `SQLA0200`/`SQLA0203`/`SQLA0300`'s statement-head resolution and stays
+  silent; the reference now says so instead of implying coverage.
 - A meta-layer audit of the verification infrastructure itself closed four
   gate gaps: the sweep-catalog completeness tests (`MatrixSweepCatalogTests`,
   the check that every `DialectMatrix` entry has a live-engine sweep case)

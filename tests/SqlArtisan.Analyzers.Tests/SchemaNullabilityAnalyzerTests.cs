@@ -222,4 +222,14 @@ public class SchemaNullabilityAnalyzerTests
     [Fact]
     public Task IsNull_NonColumnExpression_Silent() =>
         RunSilent("var s = Select(t.Code).From(t).Where(Upper(t.Code).IsNull).Build();");
+
+    // A chain head selected by a conditional expression is a documented
+    // silence (round-5 audit, deferred): the climb to the statement head
+    // stops at the ternary, failing toward silence.
+    [Fact]
+    public Task IsNull_ConditionalSelectedHead_StaysSilent() =>
+        RunSilent("""
+            bool flag = System.DateTime.Now.Ticks > 0;
+            var q = (flag ? Select(t.Code).From(t) : Select(t.Code).From(t)).Where(t.Code.IsNull);
+            """);
 }

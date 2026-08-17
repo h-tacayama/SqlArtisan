@@ -742,8 +742,8 @@ constructs the table class with an empty alias and which is never
 reassigned, and the correlated column reference must sit in a subquery
 written inline in the same fluent chain. Anything less certain — the table
 built by a helper, the alias passed as a variable, the builder split across
-statements, a table class compiled into a referenced assembly — stays
-silent. A missing warning therefore never means the statement is safe;
+statements, a chain head selected by a conditional expression, a table class
+compiled into a referenced assembly — stays silent. A missing warning therefore never means the statement is safe;
 `Build()` remains the enforcement.
 
 Suppression is per rule ID, the standard Roslyn way
@@ -789,9 +789,10 @@ such join. That takes two conditions, both required:
   `NaturalJoin` null-supply nothing and are not on the list.)
 - The statement **builds its own query** — the chain starts at `Select` /
   `Update` / `DeleteFrom` / `MergeInto` / `With` / `WithRecursive` right there.
-  A chain held in a variable, returned by a helper method, or kept in a field
-  is left alone: the join that would decide the answer is somewhere this rule
-  cannot read.
+  A chain held in a variable, returned by a helper method, kept in a field,
+  or whose head is selected by a conditional expression
+  (`(flag ? Select(...) : Select(...)).Where(...)`) is left alone: the join
+  that would decide the answer is somewhere this rule cannot read.
 
 The trade is deliberate — the rule misses real constant predicates in order not
 to call a working anti-join a mistake.

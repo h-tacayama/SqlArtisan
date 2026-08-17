@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -45,6 +46,12 @@ internal static class IdentifierLengthRule
     {
         if (ResolveIdentifierParams(member) is not { } identifierParams)
         {
+            if (member.MethodKind == MethodKind.Constructor
+                && FindInheritedIdentifierArgument(context.Compilation, member, arguments) is { } inherited)
+            {
+                CheckArgument(context, inherited, isList: false, targets);
+            }
+
             return;
         }
 
@@ -55,6 +62,109 @@ internal static class IdentifierLengthRule
                 CheckArgument(context, argument.Value, identifier.IsList, targets);
             }
         }
+    }
+
+    // Which base-constructor parameter carries the identifier a table class
+    // forwards; keys are matched by simple name plus the SqlArtisan assembly.
+    private static readonly Dictionary<string, string> InheritedIdentifierParams = new(StringComparer.Ordinal)
+    {
+        ["DbTableBase"] = "tableAlias",
+        ["CteBase"] = "name",
+        ["DerivedTableBase"] = "name",
+    };
+
+    // Matches CorrelatedDmlRule's chain bound; a deeper hierarchy fails toward silence.
+    private const int CtorChainDepthLimit = 8;
+
+    internal static bool DerivesFromIdentifierBase(ITypeSymbol? type)
+    {
+        for (ITypeSymbol? current = type?.BaseType; current is not null; current = current.BaseType)
+        {
+            if (IsIdentifierBase(current))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsIdentifierBase(ITypeSymbol type) =>
+        InheritedIdentifierParams.ContainsKey(type.Name)
+        && DialectUsageAnalyzer.IsFromSqlArtisan(type.ContainingAssembly);
+
+    // A table class declares no identifier parameter of its own — it forwards a
+    // constructor argument to DbTableBase's alias (or CteBase/DerivedTableBase's
+    // name). Follow the ": base(...)" chain, propagating which creation-site
+    // argument each parameter carries, until the naming base is reached; any
+    // shape the walk cannot read fails toward silence.
+    private static IOperation? FindInheritedIdentifierArgument(
+        Compilation compilation,
+        IMethodSymbol constructor,
+        ImmutableArray<IArgumentOperation> arguments)
+    {
+        Dictionary<IParameterSymbol, IOperation> sources = new(SymbolEqualityComparer.Default);
+        foreach (IArgumentOperation argument in arguments)
+        {
+            if (argument.Parameter is { } parameter && argument.ArgumentKind == ArgumentKind.Explicit)
+            {
+                sources[parameter] = argument.Value;
+            }
+        }
+
+        for (int depth = 0; depth < CtorChainDepthLimit; depth++)
+        {
+            if (IsIdentifierBase(constructor.ContainingType))
+            {
+                string identifierName = InheritedIdentifierParams[constructor.ContainingType.Name];
+                foreach (IParameterSymbol parameter in constructor.Parameters)
+                {
+                    if (parameter.Name == identifierName)
+                    {
+                        return sources.TryGetValue(parameter, out IOperation? source) ? source : null;
+                    }
+                }
+
+                return null;
+            }
+
+            if (constructor.DeclaringSyntaxReferences.Length != 1
+                || constructor.DeclaringSyntaxReferences[0].GetSyntax() is not ConstructorDeclarationSyntax declaration
+                || declaration.Initializer is not { } initializer)
+            {
+                return null;
+            }
+
+            SemanticModel model = compilation.GetSemanticModel(initializer.SyntaxTree);
+            if (model.GetOperation(initializer) is not IInvocationOperation call
+                || call.TargetMethod.MethodKind != MethodKind.Constructor)
+            {
+                return null;
+            }
+
+            Dictionary<IParameterSymbol, IOperation> next = new(SymbolEqualityComparer.Default);
+            foreach (IArgumentOperation argument in call.Arguments)
+            {
+                if (argument.Parameter is not { } parameter)
+                {
+                    continue;
+                }
+
+                IOperation value = argument.Value is IConversionOperation conversion
+                    ? conversion.Operand
+                    : argument.Value;
+                if (value is IParameterReferenceOperation reference
+                    && sources.TryGetValue(reference.Parameter, out IOperation? origin))
+                {
+                    next[parameter] = origin;
+                }
+            }
+
+            sources = next;
+            constructor = call.TargetMethod;
+        }
+
+        return null;
     }
 
     private static IdentifierParam[]? ResolveIdentifierParams(IMethodSymbol member) =>

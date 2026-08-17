@@ -340,4 +340,62 @@ public class IdentifierLengthAnalyzerTests
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
         await test.RunAsync();
     }
+
+    // A generated/hand-written table class forwards its constructor argument to
+    // DbTableBase's alias — the primary aliasing path; the rule traces the
+    // ": base(...)" chain to check it (round-5 audit).
+    private static string TableClassUsage(string alias) => $$"""
+        using SqlArtisan;
+
+        class UsersTable : DbTableBase
+        {
+            public UsersTable(string alias = "") : base("users", alias) { }
+        }
+
+        class C
+        {
+            void M()
+            {
+                var t = new UsersTable({|#0:"{{alias}}"|});
+            }
+        }
+        """;
+
+    [Fact]
+    public async Task TableClassCtorAliasOverPostgreSqlByteLimit_ReportsSqla0103()
+    {
+        var test = AnalyzerVerifier.Create(TableClassUsage(Repeat('a', 64)), AnalyzerVerifier.EditorConfig("postgresql"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task TableClassCtorAliasAtPostgreSqlByteLimit_StaysSilent()
+    {
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(TableClassUsage(Repeat('a', 63))), AnalyzerVerifier.EditorConfig("postgresql"));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task TableClassCtorDefaultedAlias_StaysSilent()
+    {
+        var test = AnalyzerVerifier.Create("""
+            using SqlArtisan;
+
+            class UsersTable : DbTableBase
+            {
+                public UsersTable(string alias = "") : base("users", alias) { }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    var t = new UsersTable();
+                }
+            }
+            """, AnalyzerVerifier.EditorConfig("postgresql"));
+        await test.RunAsync();
+    }
 }
