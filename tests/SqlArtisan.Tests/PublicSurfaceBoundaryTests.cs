@@ -22,7 +22,7 @@ public class PublicSurfaceBoundaryTests
     /// in a tree this deep. Holding the set closed is what makes them total.
     /// </summary>
     [Fact]
-    public void ExportedTypes_SpanOnlyTheTwoDocumentedNamespaces()
+    public void ExportedTypes_SpanOnlyTheRootAndInternalNamespaces()
     {
         List<string> unexpected = [.. typeof(Sql).Assembly.GetExportedTypes()
             .Select(t => t.Namespace ?? "<global namespace>")
@@ -33,7 +33,9 @@ public class PublicSurfaceBoundaryTests
         Assert.True(
             unexpected.Count == 0,
             $"{unexpected.Count} exported namespaces beyond {RootNamespace} and "
-                + $"{InternalNamespace}, which docs/versioning.md enumerates as the two:\n  "
+                + $"{InternalNamespace} — declare the type internal, or move it under one of "
+                + "the two. A third namespace is a surface decision, so wanting one means "
+                + "naming it here and in docs/versioning.md:\n  "
                 + string.Join("\n  ", unexpected));
     }
 
