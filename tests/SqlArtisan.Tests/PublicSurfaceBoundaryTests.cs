@@ -15,6 +15,28 @@ public class PublicSurfaceBoundaryTests
     private const string RootNamespace = "SqlArtisan";
     private const string InternalNamespace = "SqlArtisan.Internal";
 
+    /// <summary>
+    /// The other two gates key on <see cref="InternalNamespace"/> exactly, so a
+    /// type one namespace deeper would escape both while still being exported —
+    /// and a folder-derived namespace is exactly what an IDE's "add class" emits
+    /// in a tree this deep. Holding the set closed is what makes them total.
+    /// </summary>
+    [Fact]
+    public void ExportedTypes_SpanOnlyTheTwoDocumentedNamespaces()
+    {
+        List<string> unexpected = [.. typeof(Sql).Assembly.GetExportedTypes()
+            .Select(t => t.Namespace ?? "<global namespace>")
+            .Distinct()
+            .Where(ns => ns != RootNamespace && ns != InternalNamespace)
+            .OrderBy(ns => ns, StringComparer.Ordinal)];
+
+        Assert.True(
+            unexpected.Count == 0,
+            $"{unexpected.Count} exported namespaces beyond {RootNamespace} and "
+                + $"{InternalNamespace}, which docs/versioning.md enumerates as the two:\n  "
+                + string.Join("\n  ", unexpected));
+    }
+
     [Fact]
     public void ExportedType_InInternalNamespace_IsReachableFromRootNamespaceSignature()
     {

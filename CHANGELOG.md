@@ -34,11 +34,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   deriving from one, and undocumented members are not. (#487)
 
 ### Tests
-- Two gates now hold the `SqlArtisan.Internal` boundary the entries above
-  restored: a public type there that no public signature hands back fails the
-  test suite, as does one that offers a public constructor. Both criteria had
-  been applied by hand, one type at a time, since 0.9.0-beta.1 — the second
-  silently lost 29 times to primary-constructor syntax. (#487)
+- Three gates now hold the `SqlArtisan.Internal` boundary the entries above
+  restored. A public type there fails the test suite if no public signature
+  hands it back, or if it offers a public constructor; and the assembly must
+  export no namespace beyond `SqlArtisan` and `SqlArtisan.Internal`, without
+  which the first two — keyed on that exact namespace — would wave through a
+  type one namespace deeper. The first two criteria had been applied by hand,
+  one type at a time, since 0.9.0-beta.1; the constructor one had silently lost
+  30 times, 28 to primary-constructor syntax and 2 to a class declaring
+  none. (#487)
 
 ## [0.9.0-beta.1] - 2026-08-17
 ### Docs

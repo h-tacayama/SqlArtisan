@@ -179,15 +179,15 @@ Everything else — concrete nodes, clause types, builder internals — belongs 
 `Internal/` and is held only through the root types.
 
 A **public** type in `Internal/` is public only because a signature hands it
-back, so it exposes **no public constructor**, and it stays out of the namespace
-entirely when no signature names it. Both are gated
-(`PublicSurfaceBoundaryTests`). Two spellings publish a constructor without
-anyone writing `public`, which is how 29 nodes became `new`-able (#487): a
-**primary constructor** on a concrete class — its accessibility follows the
-class, and on an abstract class it is `protected`, which is why the bases here
-keep theirs — and a class declaring **no constructor at all**. So write the
-constructor out as `internal` on a public concrete node; an internal node can
-keep its primary constructor.
+back, so it exposes **no public constructor**, and it is declared `internal`
+when no signature names it. Both are gated (`PublicSurfaceBoundaryTests`), along
+with the namespace set the two of them key on. Two spellings publish a
+constructor without anyone writing `public`, which is how 30 nodes became
+`new`-able (#487) — 28 by a **primary constructor** on a concrete class, whose
+accessibility follows the class, and 2 by declaring **no constructor at all**.
+On an abstract class a primary constructor is `protected` instead, which is why
+the bases here keep theirs. So write the constructor out as `internal` on a
+public concrete node; an internal node can keep its primary constructor.
 
 > Worked example (#282): fixing `Sql.Bind` to return `BindValue` (above) put
 > that type through criterion 2 — its entire feature is a caller holding the
