@@ -40,7 +40,7 @@ The packages expose these namespaces, and they carry different promises.
   ships as a command-line tool and exposes no public API at all.
 
 The split is gated, not merely stated. A public type in `SqlArtisan.Internal`
-that no public signature hands back fails the test suite, as does one that
+that no public signature names fails the test suite, as does one that
 offers a public constructor — so the namespace cannot quietly accumulate
 surface the commitment above was never meant to cover.
 
