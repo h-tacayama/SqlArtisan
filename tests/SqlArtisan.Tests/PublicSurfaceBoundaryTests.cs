@@ -57,6 +57,29 @@ public class PublicSurfaceBoundaryTests
                 + $"signature — make them internal:\n  " + string.Join("\n  ", unreachable));
     }
 
+    /// <summary>
+    /// Every one of these types is reached through a <c>Sql.*</c> call, so none
+    /// of them needs a reachable constructor — and a primary constructor publishes
+    /// one without saying so, since its accessibility follows the (public) class
+    /// rather than being written down. That is how 29 of them came to offer a
+    /// construction path nobody chose to offer.
+    /// </summary>
+    [Fact]
+    public void ExportedType_InInternalNamespace_HasNoPublicConstructor()
+    {
+        List<string> constructible = [.. typeof(Sql).Assembly.GetExportedTypes()
+            .Where(t => t.Namespace == InternalNamespace)
+            .Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Length > 0)
+            .Select(t => t.Name)
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.True(
+            constructible.Count == 0,
+            $"{constructible.Count} public types in {InternalNamespace} can be constructed "
+                + "directly — give each an internal constructor:\n  "
+                + string.Join("\n  ", constructible));
+    }
+
     private static IEnumerable<Type> SignatureTypes(Type type)
     {
         const BindingFlags Declared = BindingFlags.Public

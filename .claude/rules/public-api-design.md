@@ -178,6 +178,13 @@ A type belongs in the root `SqlArtisan` namespace only when **all three** hold:
 Everything else — concrete nodes, clause types, builder internals — belongs in
 `Internal/` and is held only through the root types.
 
+A type in `Internal/` is `public` only because a signature hands it back, so
+its **constructor is `internal`** and it stays out of the namespace entirely
+when no signature names it. Both are gated (`PublicSurfaceBoundaryTests`) —
+worth knowing anyway, because a **primary constructor takes its accessibility
+from its class**, which is how 29 nodes came to be `new`-able without anyone
+writing `public` (#487). Write the constructor out for a node in `Internal/`.
+
 > Worked example (#282): fixing `Sql.Bind` to return `BindValue` (above) put
 > that type through criterion 2 — its entire feature is a caller holding the
 > result across clauses (`BindValue p10 = Bind(10);`) — so `BindValue` moved

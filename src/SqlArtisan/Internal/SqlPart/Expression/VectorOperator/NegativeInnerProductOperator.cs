@@ -1,4 +1,7 @@
 namespace SqlArtisan.Internal;
 
-public sealed class NegativeInnerProductOperator(SqlExpression leftSide, SqlExpression rightSide) :
-    BinaryOperator(leftSide, Operators.NegativeInnerProduct, rightSide);
+public sealed class NegativeInnerProductOperator : BinaryOperator
+{
+    internal NegativeInnerProductOperator(SqlExpression leftSide, SqlExpression rightSide)
+        : base(leftSide, Operators.NegativeInnerProduct, rightSide) { }
+}

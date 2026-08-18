@@ -1,4 +1,7 @@
 namespace SqlArtisan.Internal;
 
-public sealed class AdditionOperator(SqlExpression leftSide, SqlExpression rightSide) :
-    BinaryOperator(leftSide, Operators.Plus, rightSide);
+public sealed class AdditionOperator : BinaryOperator
+{
+    internal AdditionOperator(SqlExpression leftSide, SqlExpression rightSide)
+        : base(leftSide, Operators.Plus, rightSide) { }
+}

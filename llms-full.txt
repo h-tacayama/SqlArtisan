@@ -5526,14 +5526,15 @@ The packages expose two namespaces, and they carry different promises.
   code that receives one of these values keeps compiling, and an assembly
   compiled against one release keeps binding.
 
-  **Not covered**: constructing one with `new`, deriving from one, and any
-  member the reference does not document. Every one of these types is reached
-  through a `Sql.*` call; there is no supported path that starts with `new`.
+  **Not covered**: deriving from one, and any member the reference does not
+  document. Constructing one is not a question of coverage — these types have
+  no accessible constructor, so every one of them is reached through a `Sql.*`
+  call.
 
-The split is gated, not merely stated: a public type in `SqlArtisan.Internal`
-that no public signature hands back fails the test suite, so the namespace
-cannot quietly accumulate surface the commitment above was never meant to
-cover.
+The split is gated, not merely stated. A public type in `SqlArtisan.Internal`
+that no public signature hands back fails the test suite, as does one that
+offers a public constructor — so the namespace cannot quietly accumulate
+surface the commitment above was never meant to cover.
 
 ## What counts as breaking
 

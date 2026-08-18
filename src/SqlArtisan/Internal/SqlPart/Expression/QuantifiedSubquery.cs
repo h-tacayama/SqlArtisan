@@ -1,11 +1,18 @@
 namespace SqlArtisan.Internal;
 
-public sealed class QuantifiedSubquery(string keyword, ISubquery subquery) : SqlExpression
+public sealed class QuantifiedSubquery : SqlExpression
 {
-    private readonly ISubquery _subquery = subquery;
+    private readonly string _keyword;
+    private readonly ISubquery _subquery;
+
+    internal QuantifiedSubquery(string keyword, ISubquery subquery)
+    {
+        _keyword = keyword;
+        _subquery = subquery;
+    }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(keyword)
+        .Append(_keyword)
         .AppendSpace()
         .EncloseInParentheses(_subquery);
 }

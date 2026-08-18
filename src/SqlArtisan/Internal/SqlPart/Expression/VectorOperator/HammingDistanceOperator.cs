@@ -1,4 +1,7 @@
 namespace SqlArtisan.Internal;
 
-public sealed class HammingDistanceOperator(SqlExpression leftSide, SqlExpression rightSide) :
-    BinaryOperator(leftSide, Operators.HammingDistance, rightSide);
+public sealed class HammingDistanceOperator : BinaryOperator
+{
+    internal HammingDistanceOperator(SqlExpression leftSide, SqlExpression rightSide)
+        : base(leftSide, Operators.HammingDistance, rightSide) { }
+}

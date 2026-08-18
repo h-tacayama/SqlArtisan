@@ -1,4 +1,7 @@
 namespace SqlArtisan.Internal;
 
-public sealed class SubtractionOperator(SqlExpression leftSide, SqlExpression rightSide) :
-    BinaryOperator(leftSide, Operators.Minus, rightSide);
+public sealed class SubtractionOperator : BinaryOperator
+{
+    internal SubtractionOperator(SqlExpression leftSide, SqlExpression rightSide)
+        : base(leftSide, Operators.Minus, rightSide) { }
+}

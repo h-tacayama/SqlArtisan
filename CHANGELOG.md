@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   none of them declared a public member, so only `new ScalarSubquery(subquery)`
   was reachable at all — write `subquery.As("alias")` instead, which is what
   produced one anyway. (#487)
+- **Breaking:** the 29 remaining types in `SqlArtisan.Internal` that could be
+  constructed directly — the arithmetic, JSON, and vector operators, the array
+  and JSONB conditions, `ArrayConstructorExpression`, `OfClause`,
+  `QuantifiedExpression`, `QuantifiedSubquery`, and the three `FOR UPDATE` lock
+  behaviors — now have `internal` constructors, matching every other node class.
+  Each was public only because a primary constructor takes its accessibility
+  from its class, so `new ModulusOperator(a, b)` and `new WaitBehavior(5)` no
+  longer compile; use the operator or `Sql.*` call that produced them — `a % b`,
+  `ForUpdate(Of(u.Id), Wait(5))` — which is the only path the reference ever
+  documented. (#487)
 
 ### Docs
 - `docs/versioning.md` now says which namespace carries which promise. A
@@ -23,11 +33,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   deriving from one, and undocumented members are not. (#487)
 
 ### Tests
-- A public type in `SqlArtisan.Internal` that no public signature hands back
-  now fails the test suite. That is the criterion the two 0.9.0-beta.1
-  internalizations and the five above were each judged by one at a time; it is
-  a gate now, so the namespace cannot accumulate surface the SemVer commitment
-  was never meant to cover. (#487)
+- Two gates now hold the `SqlArtisan.Internal` boundary the entries above
+  restored: a public type there that no public signature hands back fails the
+  test suite, as does one that offers a public constructor. Both criteria had
+  been applied by hand, one type at a time, since 0.9.0-beta.1 — the second
+  silently lost 29 times to primary-constructor syntax. (#487)
 
 ## [0.9.0-beta.1] - 2026-08-17
 ### Docs
