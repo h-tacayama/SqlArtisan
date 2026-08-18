@@ -1,4 +1,7 @@
 namespace SqlArtisan.Internal;
 
-public sealed class MultiplicationOperator(SqlExpression leftSide, SqlExpression rightSide) :
-    BinaryOperator(leftSide, Operators.Asterisk, rightSide);
+public sealed class MultiplicationOperator : BinaryOperator
+{
+    internal MultiplicationOperator(SqlExpression leftSide, SqlExpression rightSide)
+        : base(leftSide, Operators.Asterisk, rightSide) { }
+}

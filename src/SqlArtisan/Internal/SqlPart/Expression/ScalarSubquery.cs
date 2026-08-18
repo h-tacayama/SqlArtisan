@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class ScalarSubquery(ISubquery subquery) : SqlExpression
+internal sealed class ScalarSubquery(ISubquery subquery) : SqlExpression
 {
     private readonly ISubquery _subquery = subquery;
 

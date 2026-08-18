@@ -1,11 +1,18 @@
 namespace SqlArtisan.Internal;
 
-public sealed class QuantifiedExpression(string keyword, SqlExpression operand) : SqlExpression
+public sealed class QuantifiedExpression : SqlExpression
 {
-    private readonly SqlExpression _operand = operand;
+    private readonly string _keyword;
+    private readonly SqlExpression _operand;
+
+    internal QuantifiedExpression(string keyword, SqlExpression operand)
+    {
+        _keyword = keyword;
+        _operand = operand;
+    }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append(keyword)
+        .Append(_keyword)
         .AppendSpace()
         .EncloseInParentheses(_operand);
 }

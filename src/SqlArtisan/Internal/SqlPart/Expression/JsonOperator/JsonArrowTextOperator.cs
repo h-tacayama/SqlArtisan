@@ -1,4 +1,7 @@
 namespace SqlArtisan.Internal;
 
-public sealed class JsonArrowTextOperator(SqlExpression leftSide, SqlExpression rightSide) :
-    BinaryOperator(leftSide, Operators.JsonArrowText, rightSide);
+public sealed class JsonArrowTextOperator : BinaryOperator
+{
+    internal JsonArrowTextOperator(SqlExpression leftSide, SqlExpression rightSide)
+        : base(leftSide, Operators.JsonArrowText, rightSide) { }
+}

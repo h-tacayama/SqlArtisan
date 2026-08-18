@@ -1,4 +1,7 @@
 namespace SqlArtisan.Internal;
 
-public sealed class ModulusOperator(SqlExpression leftSide, SqlExpression rightSide) :
-    BinaryOperator(leftSide, Operators.Percent, rightSide);
+public sealed class ModulusOperator : BinaryOperator
+{
+    internal ModulusOperator(SqlExpression leftSide, SqlExpression rightSide)
+        : base(leftSide, Operators.Percent, rightSide) { }
+}

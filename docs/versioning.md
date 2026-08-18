@@ -17,6 +17,34 @@ A breaking change that slips into a minor or patch release by mistake is
 treated as a bug — please open an
 [issue](https://github.com/h-tacayama/SqlArtisan/issues).
 
+## What the public API is
+
+The packages expose these namespaces, and they carry different promises.
+
+- **`SqlArtisan`** — the API. Every type here is yours to name in a
+  declaration, and everything on this page applies to it in full.
+- **`SqlArtisan.Internal`** — the values the API hands back. A `Sql.*` call
+  returns a type from here because the chain is typed: `Sql.Sum(...)` has to
+  return something that offers `.Over(...)` where `Sql.Abs(...)` does not.
+  You receive these values and call the members the reference documents.
+
+  **Covered**: each type's name, and the members the reference documents — so
+  code that receives one of these values keeps compiling, and an assembly
+  compiled against one release keeps binding.
+
+  **Not covered**: deriving from one, and any member the reference does not
+  document. No type here has a public constructor — you reach each one through
+  the `Sql.*` call, operator, or chain step that produces it.
+- **`SqlArtisan.Dapper`** and **`SqlArtisan.ArrayBind`** — the integration
+  packages' own API, covered exactly like `SqlArtisan`.
+- **`SqlArtisan.TableClassGen`** ships as a command-line tool and exposes no
+  public API at all; what it commits to is its command-line surface.
+
+The split is gated, not merely stated. A public type in `SqlArtisan.Internal`
+that no public signature hands back fails the test suite, as does one that
+offers a public constructor — so the namespace cannot quietly accumulate
+surface the commitment above was never meant to cover.
+
 ## What counts as breaking
 
 Three cases are specific to this library, beyond the usual API-level changes:

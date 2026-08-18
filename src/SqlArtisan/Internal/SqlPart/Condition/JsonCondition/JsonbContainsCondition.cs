@@ -1,4 +1,7 @@
 namespace SqlArtisan.Internal;
 
-public sealed class JsonbContainsCondition(SqlExpression leftSide, SqlExpression rightSide) :
-    JsonbCondition(leftSide, Operators.JsonbContains, rightSide);
+public sealed class JsonbContainsCondition : JsonbCondition
+{
+    internal JsonbContainsCondition(SqlExpression leftSide, SqlExpression rightSide)
+        : base(leftSide, Operators.JsonbContains, rightSide) { }
+}

@@ -5,6 +5,39 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- **Breaking:** `SqlArtisan.Internal.CaseThenExpression`, `EmptyCondition`,
+  `OverClause`, `ScalarSubquery`, and `WithinGroupClause` are now `internal`,
+  continuing the same cleanup `DeleteClause` and `EqualityCondition` got in
+  0.9.0-beta.1. No public signature returned or accepted any of the five, and
+  none of them declared a public member, so only `new ScalarSubquery(subquery)`
+  was reachable at all — pass the subquery itself where the expression was
+  wanted (`Select(subquery)`), which emits the same SQL. (#487)
+- **Breaking:** the 29 remaining types in `SqlArtisan.Internal` that could be
+  constructed directly — the arithmetic, JSON, and vector operators, the array
+  and JSONB conditions, `ArrayConstructorExpression`, `OfClause`,
+  `QuantifiedExpression`, `QuantifiedSubquery`, and the three `FOR UPDATE` lock
+  behaviors — now have `internal` constructors, matching every other node class.
+  `new ModulusOperator(a, b)` and `new WaitBehavior(5)` no longer compile; use
+  the operator or `Sql.*` call that produced them — `a % b`,
+  `ForUpdate(Of(u.Id), Wait(5))` — which is the only path the reference ever
+  documented. (#487)
+
+### Docs
+- `docs/versioning.md` now says which namespace carries which promise. A
+  `Sql.*` call returns a type from `SqlArtisan.Internal` because the fluent
+  chain is typed, so those types were already public and already reachable —
+  but the SemVer commitment never said whether they were covered. It now does:
+  each type's name and its documented members are covered; constructing one,
+  deriving from one, and undocumented members are not. (#487)
+
+### Tests
+- Three gates now hold the `SqlArtisan.Internal` boundary the entries above
+  restored: a public type there must be handed back by some public signature,
+  must offer no public constructor, and the assembly must export no namespace
+  beyond `SqlArtisan` and `SqlArtisan.Internal`. Together they mean that
+  namespace cannot quietly widen — what surfaces from there got in by decision,
+  not by a slipped keyword. (#487)
 
 ## [0.9.0-beta.1] - 2026-08-17
 ### Docs

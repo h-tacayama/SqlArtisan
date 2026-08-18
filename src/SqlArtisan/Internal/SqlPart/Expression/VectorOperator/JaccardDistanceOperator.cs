@@ -1,4 +1,7 @@
 namespace SqlArtisan.Internal;
 
-public sealed class JaccardDistanceOperator(SqlExpression leftSide, SqlExpression rightSide) :
-    BinaryOperator(leftSide, Operators.JaccardDistance, rightSide);
+public sealed class JaccardDistanceOperator : BinaryOperator
+{
+    internal JaccardDistanceOperator(SqlExpression leftSide, SqlExpression rightSide)
+        : base(leftSide, Operators.JaccardDistance, rightSide) { }
+}

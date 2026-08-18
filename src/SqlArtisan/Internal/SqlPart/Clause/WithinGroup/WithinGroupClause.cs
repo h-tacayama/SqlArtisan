@@ -3,7 +3,7 @@ namespace SqlArtisan.Internal;
 /// <summary>
 /// The <c>WITHIN GROUP (ORDER BY ...)</c> clause of an ordered-set aggregate.
 /// </summary>
-public sealed class WithinGroupClause : SqlPart
+internal sealed class WithinGroupClause : SqlPart
 {
     private readonly OrderByClause _orderByClause;
 
