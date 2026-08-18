@@ -56,7 +56,9 @@ the full rationale.
   there, so the text is valid and condition 1 fails) (#436); `Numtoyminterval`/
   `Numtodsinterval`'s `interval_unit` — restricted to the exact set each
   Oracle function accepts (`YEAR`/`MONTH`, `DAY`/`HOUR`/`MINUTE`/`SECOND`),
-  since no other engine has either function (#448).
+  since no other engine has either function (#448); `Wait(seconds)`'s second
+  count — non-negative, the only `FOR UPDATE WAIT` domain Oracle (the sole
+  engine with the clause) parses, live-verified at 21c and 23ai (#483).
 - *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
   (ADR 0011).
 

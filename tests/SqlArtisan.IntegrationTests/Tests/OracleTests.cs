@@ -381,6 +381,24 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "SELECT EXTRACT(EPOCH FROM created_at) FROM users"));
     }
 
+    [Fact] // ADR 0012 (#483): anchors the "no engine accepts it" premise for the
+           // FOR UPDATE WAIT guard — raw SQL by necessity, since LockWaitGuard now
+           // rejects a negative second count client-side.
+    public void Wait_NegativeSeconds_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Both non-negative forms are valid (so the table is right, and 0 is the
+        // floor the guard admits rather than an accident of the wait behavior).
+        connection.ExecuteScalar("SELECT age FROM users WHERE id = 1 FOR UPDATE WAIT 3");
+        connection.ExecuteScalar("SELECT age FROM users WHERE id = 1 FOR UPDATE WAIT 0");
+
+        // The only difference — a negative second count — is what Oracle rejects
+        // (ORA-30005), before any lock contention can matter.
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT age FROM users WHERE id = 1 FOR UPDATE WAIT -1"));
+    }
+
     [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420) — Oracle's ANSI
            // join grammar requires ON/USING for every listed join type except
            // CROSS JOIN, so the omission SqlArtisan now rejects at compile time was
