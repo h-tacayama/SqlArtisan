@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class CaseThenExpression : SqlExpression
+internal sealed class CaseThenExpression : SqlExpression
 {
     private readonly SqlExpression _thenExpr;
 

@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class EmptyCondition : SqlCondition
+internal sealed class EmptyCondition : SqlCondition
 {
     internal EmptyCondition() { }
 

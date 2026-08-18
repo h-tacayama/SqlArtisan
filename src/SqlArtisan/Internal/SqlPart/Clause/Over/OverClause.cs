@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-public sealed class OverClause : SqlPart
+internal sealed class OverClause : SqlPart
 {
     private readonly SqlPart? _content;
 

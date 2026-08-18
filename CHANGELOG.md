@@ -5,6 +5,29 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- **Breaking:** `SqlArtisan.Internal.CaseThenExpression`, `EmptyCondition`,
+  `OverClause`, `ScalarSubquery`, and `WithinGroupClause` are now `internal`,
+  continuing the same cleanup `DeleteClause` and `EqualityCondition` got in
+  0.9.0-beta.1. No public signature returned or accepted any of the five, and
+  none of them declared a public member, so only `new ScalarSubquery(subquery)`
+  was reachable at all — write `subquery.As("alias")` instead, which is what
+  produced one anyway. (#487)
+
+### Docs
+- `docs/versioning.md` now says which namespace carries which promise. A
+  `Sql.*` call returns a type from `SqlArtisan.Internal` because the fluent
+  chain is typed, so those types were already public and already reachable —
+  but the SemVer commitment never said whether they were covered. It now does:
+  each type's name and its documented members are covered; constructing one,
+  deriving from one, and undocumented members are not. (#487)
+
+### Tests
+- A public type in `SqlArtisan.Internal` that no public signature hands back
+  now fails the test suite. That is the criterion the two 0.9.0-beta.1
+  internalizations and the five above were each judged by one at a time; it is
+  a gate now, so the namespace cannot accumulate surface the SemVer commitment
+  was never meant to cover. (#487)
 
 ## [0.9.0-beta.1] - 2026-08-17
 ### Docs
