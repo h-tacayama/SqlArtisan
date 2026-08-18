@@ -3,12 +3,10 @@ using System.Reflection;
 namespace SqlArtisan.Tests;
 
 /// <summary>
-/// The inverse of the #244 boundary rule that <see cref="PublicSurfaceNamingTests"/>
-/// exercises: that rule says every type a user must NAME lives in the root
-/// namespace; this one says nothing else may become public surface by accident.
-/// A type is only legitimately public because some root-namespace signature hands
-/// it to the user — a <c>public</c> that no signature reaches is a slip of the
-/// keyword, and from 1.0 it is a SemVer promise nobody meant to make.
+/// The inverse of the #244 boundary rule <see cref="PublicSurfaceNamingTests"/>
+/// exercises: that one says every type a user must NAME lives in the root
+/// namespace; these three say nothing else becomes public surface by accident —
+/// from 1.0 a slipped <c>public</c> is a SemVer promise nobody meant to make.
 /// </summary>
 public class PublicSurfaceBoundaryTests
 {
@@ -39,8 +37,14 @@ public class PublicSurfaceBoundaryTests
                 + string.Join("\n  ", unexpected));
     }
 
+    /// <summary>
+    /// A type here is legitimately public only because some root-namespace
+    /// signature hands it back. With every constructor internal, one that no
+    /// signature returns can be named but never held — surface a caller cannot
+    /// reach at all.
+    /// </summary>
     [Fact]
-    public void ExportedType_InInternalNamespace_IsReachableFromRootNamespaceSignature()
+    public void ExportedType_InInternalNamespace_IsHandedBackByARootNamespaceSignature()
     {
         Type[] exported = typeof(Sql).Assembly.GetExportedTypes();
         HashSet<Type> candidates = [.. exported.Where(t => t.Namespace == InternalNamespace)];
@@ -48,7 +52,7 @@ public class PublicSurfaceBoundaryTests
         HashSet<Type> reachable = [];
         Queue<Type> pending = new(exported
             .Where(t => t.Namespace == RootNamespace)
-            .SelectMany(SignatureTypes)
+            .SelectMany(HandedBackTypes)
             .Where(candidates.Contains));
 
         while (pending.Count > 0)
@@ -61,10 +65,10 @@ public class PublicSurfaceBoundaryTests
 
             // Base types and interfaces travel with the type the user already
             // holds: casting to them is part of what the signature handed over.
-            foreach (Type next in SignatureTypes(type)
+            foreach (Type next in HandedBackTypes(type)
                 .Concat(type.GetInterfaces())
-                .Append(type.BaseType)
-                .Where(t => t is not null && candidates.Contains(t))!)
+                .Concat(type.BaseType is { } baseType ? [baseType] : [])
+                .Where(candidates.Contains))
             {
                 pending.Enqueue(next);
             }
@@ -77,8 +81,8 @@ public class PublicSurfaceBoundaryTests
 
         Assert.True(
             unreachable.Count == 0,
-            $"{unreachable.Count} public types in {InternalNamespace} are named by no public "
-                + $"signature — make them internal:\n  " + string.Join("\n  ", unreachable));
+            $"{unreachable.Count} public types in {InternalNamespace} are handed back by no "
+                + $"public signature — make them internal:\n  " + string.Join("\n  ", unreachable));
     }
 
     /// <summary>
@@ -103,24 +107,23 @@ public class PublicSurfaceBoundaryTests
                 + string.Join("\n  ", constructible));
     }
 
-    private static IEnumerable<Type> SignatureTypes(Type type)
+    /// <summary>
+    /// Output positions only — what a caller can end up holding. A parameter type
+    /// does not count: with every constructor internal, a type that is only ever
+    /// accepted is one no caller can obtain to pass.
+    /// </summary>
+    private static IEnumerable<Type> HandedBackTypes(Type type)
     {
         const BindingFlags Declared = BindingFlags.Public
             | BindingFlags.Static
             | BindingFlags.Instance
             | BindingFlags.DeclaredOnly;
 
-        IEnumerable<Type> methods = type
-            .GetMethods(Declared)
-            .SelectMany(m => m.GetParameters().Select(p => p.ParameterType).Append(m.ReturnType));
-        IEnumerable<Type> constructors = type
-            .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
-            .SelectMany(c => c.GetParameters().Select(p => p.ParameterType));
+        IEnumerable<Type> returns = type.GetMethods(Declared).Select(m => m.ReturnType);
         IEnumerable<Type> properties = type.GetProperties(Declared).Select(p => p.PropertyType);
         IEnumerable<Type> fields = type.GetFields(Declared).Select(f => f.FieldType);
 
-        return methods
-            .Concat(constructors)
+        return returns
             .Concat(properties)
             .Concat(fields)
             .SelectMany(Unwrap);

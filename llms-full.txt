@@ -5530,11 +5530,12 @@ The packages expose these namespaces, and they carry different promises.
   document. No type here has a public constructor — you reach each one through
   the `Sql.*` call, operator, or chain step that produces it.
 - **`SqlArtisan.Dapper`** and **`SqlArtisan.ArrayBind`** — the integration
-  packages' own API, covered exactly like `SqlArtisan`. `SqlArtisan.TableClassGen`
-  ships as a command-line tool and exposes no public API at all.
+  packages' own API, covered exactly like `SqlArtisan`.
+- **`SqlArtisan.TableClassGen`** ships as a command-line tool and exposes no
+  public API at all; what it commits to is its command-line surface.
 
 The split is gated, not merely stated. A public type in `SqlArtisan.Internal`
-that no public signature names fails the test suite, as does one that
+that no public signature hands back fails the test suite, as does one that
 offers a public constructor — so the namespace cannot quietly accumulate
 surface the commitment above was never meant to cover.
 
