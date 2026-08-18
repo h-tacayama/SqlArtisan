@@ -11,15 +11,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   continuing the same cleanup `DeleteClause` and `EqualityCondition` got in
   0.9.0-beta.1. No public signature returned or accepted any of the five, and
   none of them declared a public member, so only `new ScalarSubquery(subquery)`
-  was reachable at all — write `subquery.As("alias")` instead, which is what
-  produced one anyway. (#487)
+  was reachable at all — pass the subquery itself where the expression was
+  wanted (`Select(subquery)`), which emits the same SQL. (#487)
 - **Breaking:** the 29 remaining types in `SqlArtisan.Internal` that could be
   constructed directly — the arithmetic, JSON, and vector operators, the array
   and JSONB conditions, `ArrayConstructorExpression`, `OfClause`,
   `QuantifiedExpression`, `QuantifiedSubquery`, and the three `FOR UPDATE` lock
   behaviors — now have `internal` constructors, matching every other node class.
-  Each was public only because a primary constructor takes its accessibility
-  from its class, so `new ModulusOperator(a, b)` and `new WaitBehavior(5)` no
+  Twenty-seven were public because a primary constructor takes its accessibility
+  from its class; the other two declared no constructor at all, so C# supplied a
+  public one. `new ModulusOperator(a, b)` and `new WaitBehavior(5)` no
   longer compile; use the operator or `Sql.*` call that produced them — `a % b`,
   `ForUpdate(Of(u.Id), Wait(5))` — which is the only path the reference ever
   documented. (#487)

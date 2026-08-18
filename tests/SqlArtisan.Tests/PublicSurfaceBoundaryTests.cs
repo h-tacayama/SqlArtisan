@@ -58,11 +58,10 @@ public class PublicSurfaceBoundaryTests
     }
 
     /// <summary>
-    /// Every one of these types is reached through a <c>Sql.*</c> call, so none
-    /// of them needs a reachable constructor — and a primary constructor publishes
-    /// one without saying so, since its accessibility follows the (public) class
-    /// rather than being written down. That is how 29 of them came to offer a
-    /// construction path nobody chose to offer.
+    /// These types are reached through the <c>Sql.*</c> call, operator, or chain
+    /// step that produces them, so none needs a public constructor. Two spellings
+    /// publish one silently — a primary constructor, whose accessibility follows
+    /// its class, and a class declaring no constructor at all.
     /// </summary>
     [Fact]
     public void ExportedType_InInternalNamespace_HasNoPublicConstructor()

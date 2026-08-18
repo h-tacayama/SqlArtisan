@@ -5513,7 +5513,7 @@ treated as a bug — please open an
 
 ## What the public API is
 
-The packages expose two namespaces, and they carry different promises.
+The packages expose these namespaces, and they carry different promises.
 
 - **`SqlArtisan`** — the API. Every type here is yours to name in a
   declaration, and everything on this page applies to it in full.
@@ -5527,9 +5527,11 @@ The packages expose two namespaces, and they carry different promises.
   compiled against one release keeps binding.
 
   **Not covered**: deriving from one, and any member the reference does not
-  document. Constructing one is not a question of coverage — these types have
-  no accessible constructor, so every one of them is reached through a `Sql.*`
-  call.
+  document. No type here has a public constructor — you reach each one through
+  the `Sql.*` call, operator, or chain step that produces it.
+- **`SqlArtisan.Dapper`** and **`SqlArtisan.ArrayBind`** — the integration
+  packages' own API, covered exactly like `SqlArtisan`. `SqlArtisan.TableClassGen`
+  ships as a command-line tool and exposes no public API at all.
 
 The split is gated, not merely stated. A public type in `SqlArtisan.Internal`
 that no public signature hands back fails the test suite, as does one that
