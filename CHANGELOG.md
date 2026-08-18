@@ -18,10 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and JSONB conditions, `ArrayConstructorExpression`, `OfClause`,
   `QuantifiedExpression`, `QuantifiedSubquery`, and the three `FOR UPDATE` lock
   behaviors — now have `internal` constructors, matching every other node class.
-  Twenty-seven were public because a primary constructor takes its accessibility
-  from its class; the other two declared no constructor at all, so C# supplied a
-  public one. `new ModulusOperator(a, b)` and `new WaitBehavior(5)` no
-  longer compile; use the operator or `Sql.*` call that produced them — `a % b`,
+  `new ModulusOperator(a, b)` and `new WaitBehavior(5)` no longer compile; use
+  the operator or `Sql.*` call that produced them — `a % b`,
   `ForUpdate(Of(u.Id), Wait(5))` — which is the only path the reference ever
   documented. (#487)
 
@@ -35,14 +33,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Tests
 - Three gates now hold the `SqlArtisan.Internal` boundary the entries above
-  restored. A public type there fails the test suite if no public signature
-  hands it back, or if it offers a public constructor; and the assembly must
-  export no namespace beyond `SqlArtisan` and `SqlArtisan.Internal`, without
-  which the first two — keyed on that exact namespace — would wave through a
-  type one namespace deeper. The first two criteria had been applied by hand,
-  one type at a time, since 0.9.0-beta.1; the constructor one had silently lost
-  30 times, 28 to primary-constructor syntax and 2 to a class declaring
-  none. (#487)
+  restored: a public type there must be handed back by some public signature,
+  must offer no public constructor, and the assembly must export no namespace
+  beyond `SqlArtisan` and `SqlArtisan.Internal`. Together they mean the SemVer
+  commitment cannot quietly widen — surface that reaches you from 1.0 got there
+  by decision, not by a slipped keyword. (#487)
 
 ## [0.9.0-beta.1] - 2026-08-17
 ### Docs
