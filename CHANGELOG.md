@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.9.0-beta.1] - 2026-08-17
 ### Docs
 - The README/comparison normalization claim no longer enumerates two items
   behind an "only": alongside bind-parameter markers and identifier quoting,
