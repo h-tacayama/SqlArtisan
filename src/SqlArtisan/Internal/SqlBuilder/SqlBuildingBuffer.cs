@@ -125,7 +125,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // Renders a comma-separated list of assignments (`a = 1, b = 2`) with each
     // target column unqualified. Used by SET / DO UPDATE SET / ON DUPLICATE KEY
     // UPDATE, where the left side must not carry a table-alias qualifier.
-    internal SqlBuildingBuffer AppendAssignmentsCsv(EqualityCondition[] assignments)
+    internal SqlBuildingBuffer AppendAssignmentsCsv(EqualCondition[] assignments)
     {
         if (assignments.Length == 0)
         {

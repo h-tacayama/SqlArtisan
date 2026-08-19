@@ -6,17 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
-- **Breaking:** `EqualityBasedCondition` — the return type of `==`/`!=` on
-  `SqlExpression` and the element type of the `Set`/`DoUpdateSet`/
-  `ThenUpdateSet`/`OnDuplicateKeyUpdate` assignment arrays — moves from
-  `SqlArtisan.Internal` to the root `SqlArtisan` namespace. Existing code that
-  does not name the type is unaffected; code that fully qualifies it
-  (`SqlArtisan.Internal.EqualityBasedCondition`) needs the new qualifier
-  (`SqlArtisan.EqualityBasedCondition`) or an unqualified name. (#488)
+- **Breaking:** `SqlArtisan.Internal.EqualityBasedCondition` — the return type
+  of `==`/`!=` on `SqlExpression` and the element type of the `Set`/
+  `DoUpdateSet`/`ThenUpdateSet`/`OnDuplicateKeyUpdate` assignment arrays — is
+  now `SqlArtisan.EqualityCondition`. It moves to the root namespace, so a
+  caller naming it in a declaration position no longer reaches through
+  `Internal`, and it drops the `Based` that named nothing but its own
+  inheritance. Code that does not name the type is unaffected; code that does
+  needs the new name. The guard that rejects a `!=` in a `SET` list now reports
+  `Invalid type for Assignment` rather than naming an internal type. (#488,
+  #497)
 - **Breaking:** `SqlArtisan.Internal.CaseThenExpression`, `EmptyCondition`,
   `OverClause`, `ScalarSubquery`, and `WithinGroupClause` are now `internal`,
-  continuing the same cleanup `DeleteClause` and `EqualityCondition` got in
-  0.9.0-beta.1. No public signature returned or accepted any of the five, and
+  continuing the same cleanup `DeleteClause` and the node then named
+  `SqlArtisan.Internal.EqualityCondition` got in 0.9.0-beta.1. No public signature returned or accepted any of the five, and
   none of them declared a public member, so only `new ScalarSubquery(subquery)`
   was reachable at all — pass the subquery itself where the expression was
   wanted (`Select(subquery)`), which emits the same SQL. (#487)

@@ -183,3 +183,13 @@ so the wording is part of the contract.
 - ✓ `PARTITION BY requires at least one expression.`
 - ✓ `The target of a correlated UPDATE or DELETE must be aliased.`
 - ✗ `Invalid input.` — names nothing, states nothing.
+
+The `Invalid type for <X>: <type>` family names **the position the value
+reached**, never the type that position requires: `SelectItem`, `OrderByItem`,
+`GroupByItem`, `InsertValue`, `Assignment`, or the factory's own name via
+`nameof` (`Bind`). Each literal is its resolver's class name with `Resolver`
+stripped, and `ExpressionResolver.UnresolvableValue` builds every one of them.
+A type name in that slot reads as a tautology against the offending type — it
+never says what the caller did wrong — and leaks an internal name into the
+public failure surface; that is how three `SET`-list guards said `Invalid type
+for EqualityCondition` until #497.

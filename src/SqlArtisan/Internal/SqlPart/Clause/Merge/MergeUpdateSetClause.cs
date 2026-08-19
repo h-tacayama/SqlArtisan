@@ -4,14 +4,14 @@ namespace SqlArtisan.Internal;
 // standalone UPDATE statement's SET clause, MERGE leads with the UPDATE keyword.
 internal sealed class MergeUpdateSetClause : SqlPart
 {
-    private readonly EqualityCondition[] _assignments;
+    private readonly EqualCondition[] _assignments;
 
-    private MergeUpdateSetClause(EqualityCondition[] assignments)
+    private MergeUpdateSetClause(EqualCondition[] assignments)
     {
         _assignments = assignments;
     }
 
-    internal static MergeUpdateSetClause Parse(EqualityBasedCondition[] items) =>
+    internal static MergeUpdateSetClause Parse(EqualityCondition[] items) =>
         new(UpsertAssignmentResolver.Resolve(
             items,
             "UPDATE SET requires at least one assignment."));

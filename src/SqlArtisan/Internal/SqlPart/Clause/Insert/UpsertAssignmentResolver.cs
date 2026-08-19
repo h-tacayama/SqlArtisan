@@ -2,11 +2,11 @@ namespace SqlArtisan.Internal;
 
 internal static class UpsertAssignmentResolver
 {
-    internal static EqualityCondition[] Resolve(EqualityBasedCondition[] items, string emptyMessage)
+    internal static EqualCondition[] Resolve(EqualityCondition[] items, string emptyMessage)
     {
         CollectionGuard.ThrowIfEmpty(items, emptyMessage);
 
-        var assignments = new EqualityCondition[items.Length];
+        var assignments = new EqualCondition[items.Length];
 
         for (int i = 0; i < items.Length; i++)
         {
@@ -15,13 +15,13 @@ internal static class UpsertAssignmentResolver
                 throw new ArgumentNullException(
                     nameof(items), ExpressionResolver.NullValueMessage);
             }
-            else if (items[i] is not EqualityCondition)
+            else if (items[i] is not EqualCondition)
             {
                 throw new ArgumentException(
-                    $"Invalid type for EqualityCondition: {items[i].GetType()}");
+                    $"Invalid type for Assignment: {items[i].GetType()}");
             }
 
-            assignments[i] = (EqualityCondition)items[i];
+            assignments[i] = (EqualCondition)items[i];
         }
 
         return assignments;

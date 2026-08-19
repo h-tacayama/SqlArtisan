@@ -11,7 +11,7 @@ internal sealed class InsertSetClause : SqlPart
         _values = values;
     }
 
-    internal static InsertSetClause Parse(EqualityBasedCondition[] items)
+    internal static InsertSetClause Parse(EqualityCondition[] items)
     {
         CollectionGuard.ThrowIfEmpty(items, "SET requires at least one assignment.");
 
@@ -25,10 +25,10 @@ internal sealed class InsertSetClause : SqlPart
                 throw new ArgumentNullException(
                     nameof(items), ExpressionResolver.NullValueMessage);
             }
-            else if (items[i] is not EqualityCondition)
+            else if (items[i] is not EqualCondition)
             {
                 throw new ArgumentException(
-                    $"Invalid type for EqualityCondition: {items[i].GetType()}");
+                    $"Invalid type for Assignment: {items[i].GetType()}");
             }
 
             columns[i] = items[i].LeftSide;

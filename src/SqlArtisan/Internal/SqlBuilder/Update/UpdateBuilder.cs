@@ -112,13 +112,13 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         return this;
     }
 
-    public IUpdateBuilderSetOutput Set(params EqualityBasedCondition[] assignments)
+    public IUpdateBuilderSetOutput Set(params EqualityCondition[] assignments)
     {
         AddPart(UpdateSetClause.Parse(assignments, state));
         return this;
     }
 
-    IUpdateBuilderJoinedSet IUpdateBuilderJoined.Set(params EqualityBasedCondition[] assignments)
+    IUpdateBuilderJoinedSet IUpdateBuilderJoined.Set(params EqualityCondition[] assignments)
     {
         AddPart(UpdateSetClause.Parse(assignments, state));
         return this;

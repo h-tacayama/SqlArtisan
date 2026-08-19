@@ -143,7 +143,7 @@ public class UpdateTests
     }
 
     [Fact]
-    public void Update_SetWithInequality_ThrowsArgumentException()
+    public void Update_SetWithNotEqual_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
         {

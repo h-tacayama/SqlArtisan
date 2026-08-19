@@ -2,14 +2,14 @@ namespace SqlArtisan.Internal;
 
 internal sealed class OnDuplicateKeyUpdateClause : SqlPart
 {
-    private readonly EqualityCondition[] _assignments;
+    private readonly EqualCondition[] _assignments;
 
-    private OnDuplicateKeyUpdateClause(EqualityCondition[] assignments)
+    private OnDuplicateKeyUpdateClause(EqualCondition[] assignments)
     {
         _assignments = assignments;
     }
 
-    internal static OnDuplicateKeyUpdateClause Parse(EqualityBasedCondition[] items) =>
+    internal static OnDuplicateKeyUpdateClause Parse(EqualityCondition[] items) =>
         new(UpsertAssignmentResolver.Resolve(
             items,
             "ON DUPLICATE KEY UPDATE requires at least one assignment."));

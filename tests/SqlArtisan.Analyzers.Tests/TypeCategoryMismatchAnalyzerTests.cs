@@ -214,7 +214,7 @@ public class TypeCategoryMismatchAnalyzerTests
     [Fact]
     public Task Set_AssignmentHeldInAVariable_Silent() =>
         RunSilent(
-            "EqualityBasedCondition a = t.Code == 1;"
+            "EqualityCondition a = t.Code == 1;"
                 + " var s = Update(t).Set(a).Build();");
 
     [Fact]

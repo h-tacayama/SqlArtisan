@@ -10,7 +10,7 @@ public interface IInsertIgnoreBuilderTable
     /// </summary>
     /// <param name="assignments">The per-column assignments; each left side names a column and each right side its value (literals are auto-parameterized).</param>
     /// <returns>The builder positioned for <c>RETURNING</c> or build.</returns>
-    IInsertIgnoreBuilderSet Set(params EqualityBasedCondition[] assignments);
+    IInsertIgnoreBuilderSet Set(params EqualityCondition[] assignments);
 
     /// <inheritdoc cref="IInsertBuilderTable.Values(object[])"/>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c>, or build.</returns>

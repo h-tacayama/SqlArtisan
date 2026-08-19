@@ -10,7 +10,7 @@ public interface IInsertBuilderTable
     /// </summary>
     /// <param name="assignments">The per-column assignments; each left side names a column and each right side its value (literals are auto-parameterized).</param>
     /// <returns>The builder positioned for <c>RETURNING</c>, an upsert clause, or build.</returns>
-    IInsertBuilderSet Set(params EqualityBasedCondition[] assignments);
+    IInsertBuilderSet Set(params EqualityCondition[] assignments);
 
     /// <summary>
     /// Appends a positional <c>VALUES (...)</c> row for the table's columns in declaration order.

@@ -21,5 +21,5 @@ public interface IUpsert
     /// </summary>
     /// <param name="assignments">The column assignments to apply when a duplicate-key conflict occurs.</param>
     /// <returns>The builder positioned to add <c>RETURNING</c> or build.</returns>
-    IReturning OnDuplicateKeyUpdate(params EqualityBasedCondition[] assignments);
+    IReturning OnDuplicateKeyUpdate(params EqualityCondition[] assignments);
 }

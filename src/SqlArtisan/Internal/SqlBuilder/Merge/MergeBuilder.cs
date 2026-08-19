@@ -47,14 +47,14 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     // ThenUpdateSet differs only by return type between the two branch interfaces,
     // so each is implemented explicitly.
     IMergeBuilderThenUpdateSet IMergeBuilderWhenMatched.ThenUpdateSet(
-        params EqualityBasedCondition[] assignments)
+        params EqualityCondition[] assignments)
     {
         AddPart(MergeUpdateSetClause.Parse(assignments));
         return this;
     }
 
     IMergeBuilderWhen IMergeBuilderWhenNotMatchedBySource.ThenUpdateSet(
-        params EqualityBasedCondition[] assignments)
+        params EqualityCondition[] assignments)
     {
         AddPart(MergeUpdateSetClause.Parse(assignments));
         return this;

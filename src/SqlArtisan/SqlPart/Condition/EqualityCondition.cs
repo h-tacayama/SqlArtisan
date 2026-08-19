@@ -6,7 +6,7 @@ namespace SqlArtisan;
 /// arrays accepted by <c>Set</c>, <c>DoUpdateSet</c>,
 /// <c>ThenUpdateSet</c>, and <c>OnDuplicateKeyUpdate</c>.
 /// </summary>
-public abstract class EqualityBasedCondition : SqlCondition
+public abstract class EqualityCondition : SqlCondition
 {
     internal abstract SqlExpression LeftSide { get; }
 

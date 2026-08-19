@@ -10,11 +10,10 @@ internal static class Operators
     internal const string Asterisk = "*";
     internal const string CosineDistance = "<=>";
     internal const string DoublePipe = "||";
-    internal const string Equality = "=";
+    internal const string Equal = "=";
     internal const string GreaterThan = ">";
     internal const string GreaterThanOrEqual = ">=";
     internal const string HammingDistance = "<~>";
-    internal const string Inequality = "<>";
     internal const string JaccardDistance = "<%>";
     internal const string JsonArrow = "->";
     internal const string JsonArrowText = "->>";
@@ -30,6 +29,7 @@ internal static class Operators
     internal const string LessThanOrEqual = "<=";
     internal const string Minus = "-";
     internal const string NegativeInnerProduct = "<#>";
+    internal const string NotEqual = "<>";
     internal const string Percent = "%";
     internal const string Plus = "+";
     internal const string Slash = "/";

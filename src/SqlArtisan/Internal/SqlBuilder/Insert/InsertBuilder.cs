@@ -28,7 +28,7 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
         return this;
     }
 
-    public IInsertBuilderDoUpdateSet DoUpdateSet(params EqualityBasedCondition[] assignments)
+    public IInsertBuilderDoUpdateSet DoUpdateSet(params EqualityCondition[] assignments)
     {
         AddPart(DoUpdateSetClause.Parse(assignments));
         return this;
@@ -46,7 +46,7 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
         return this;
     }
 
-    public IReturning OnDuplicateKeyUpdate(params EqualityBasedCondition[] assignments)
+    public IReturning OnDuplicateKeyUpdate(params EqualityCondition[] assignments)
     {
         AddPart(new RowAliasClause());
         AddPart(OnDuplicateKeyUpdateClause.Parse(assignments));
@@ -63,7 +63,7 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
     public IReturningBuilder Returning(params object[] expressions) =>
         ReturningBuilder.Create(this, expressions);
 
-    public IInsertBuilderSet Set(params EqualityBasedCondition[] assignments)
+    public IInsertBuilderSet Set(params EqualityCondition[] assignments)
     {
         AddPart(InsertSetClause.Parse(assignments));
         return this;
@@ -72,7 +72,7 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
     // The narrowed INSERT IGNORE chain reuses the same builder; only the static
     // return type drops IUpsert, so ON CONFLICT / ON DUPLICATE KEY UPDATE can't
     // be chained after INSERT IGNORE (ODKU would override IGNORE — nonsense SQL).
-    IInsertIgnoreBuilderSet IInsertIgnoreBuilderTable.Set(params EqualityBasedCondition[] assignments) =>
+    IInsertIgnoreBuilderSet IInsertIgnoreBuilderTable.Set(params EqualityCondition[] assignments) =>
         (IInsertIgnoreBuilderSet)Set(assignments);
 
     public IInsertBuilderValues Values(params object[] values)

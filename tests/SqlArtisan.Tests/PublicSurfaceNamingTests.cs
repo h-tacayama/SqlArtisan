@@ -102,9 +102,9 @@ public class PublicSurfaceNamingTests
     }
 
     [Fact]
-    public void EqualityBasedCondition_AssignmentListHelper_CorrectSql()
+    public void EqualityCondition_AssignmentListHelper_CorrectSql()
     {
-        static EqualityBasedCondition Assigned(TestTable t) => t.Code == 99;
+        static EqualityCondition Assigned(TestTable t) => t.Code == 99;
 
         SqlStatement sql =
             Update(_t)
