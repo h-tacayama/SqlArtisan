@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Build
+- The four shipped packages are now validated against the last published
+  release. `dotnet pack` compares each assembly to `0.9.0-beta.1` on nuget.org
+  and fails on a removed or reshaped member — the gap the name-keyed gates
+  cannot see, since adding an optional parameter leaves the member name intact
+  while breaking every caller compiled against the old signature. CI packs so a
+  pull request sees it; validation runs on pack only, so build and test are
+  untouched. `src/SqlArtisan/CompatibilitySuppressions.xml` records the 34
+  breaks this release takes against that baseline, and is discarded when the
+  baseline moves. (#490)
+
 ### Changed
 - **Breaking:** `SqlArtisan.Internal.CaseThenExpression`, `EmptyCondition`,
   `OverClause`, `ScalarSubquery`, and `WithinGroupClause` are now `internal`,

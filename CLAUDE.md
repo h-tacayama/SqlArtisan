@@ -235,8 +235,15 @@ never made unprompted. Once approved, do it in one commit:
 3. `CHANGELOG.md`: finalize the `## [Unreleased]` section under the new version
    and date.
 4. Regenerate `llms-full.txt` (command in `LlmsFullTests.cs`'s header comment).
-5. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`).
-6. Merge to `main`, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
+5. `Directory.Build.props`: set `<PackageValidationBaselineVersion>` to the
+   version being *replaced*, and delete `src/SqlArtisan/CompatibilitySuppressions.xml`
+   — its entries record breaks taken against the old baseline and mean nothing
+   against the new one. Regenerate it only if the new baseline still reports
+   breaks: `dotnet pack src/SqlArtisan/SqlArtisan.csproj -c Release
+   -p:ApiCompatGenerateSuppressionFile=true`. From 1.0 a surviving entry is a
+   SemVer violation, not a record — resolve it rather than suppressing it.
+6. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`).
+7. Merge to `main`, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
    — `release.yml` reads the version from `Directory.Build.props`, not the tag,
    so they must already agree before pushing it. Tag push is user-performed.
 
