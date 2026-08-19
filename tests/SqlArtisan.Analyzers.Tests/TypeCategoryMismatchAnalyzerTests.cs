@@ -214,7 +214,7 @@ public class TypeCategoryMismatchAnalyzerTests
     [Fact]
     public Task Set_AssignmentHeldInAVariable_Silent() =>
         RunSilent(
-            "SqlArtisan.Internal.EqualityBasedCondition a = t.Code == 1;"
+            "EqualityBasedCondition a = t.Code == 1;"
                 + " var s = Update(t).Set(a).Build();");
 
     [Fact]
