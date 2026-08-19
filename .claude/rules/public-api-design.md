@@ -207,6 +207,14 @@ dialect genuinely rejects the construct.
 
 ## Recorded trade-offs from the #149 freeze audit
 
+Resolved:
+
+- **`EqualityBasedCondition`** — promoted from `Internal/` to the root
+  namespace (#488): all three ADR 0005 criteria hold, and CS0216 makes the
+  type permanent (the `==`/`!=` pair must share a return type). The name stays
+  — `!=` also returns it, so it is an equality-based *condition* the `SET`
+  position narrows, not an assignment.
+
 Reviewed and kept as-is — not defects, not scheduled for change:
 
 - **`SqlArtisan.Dapper.SqlMapper` mirrors `Dapper.SqlMapper`'s simple name.**
@@ -214,13 +222,6 @@ Reviewed and kept as-is — not defects, not scheduled for change:
   point (same shape, `ISqlBuilder` in place of `(sql, param)`); the ambiguity
   only bites an explicit `SqlMapper.Member` reference with both namespaces
   imported (`CS0104`), which extension-method call syntax never triggers.
-- **`SqlArtisan.Internal.EqualityBasedCondition`** is the element type of the
-  `Set`/`DoUpdateSet`/`ThenUpdateSet`/`OnDuplicateKeyUpdate` assignment
-  arrays; a dynamic patch-`UPDATE` (building the assignment list at runtime,
-  the `SET`-side twin of the `ConditionIf` `WHERE` pattern) needs to name this
-  type and currently can only do so via the `Internal` namespace. If this is
-  promoted to the root namespace later (ADR 0005 criterion 2), name it for its
-  *role* (e.g. `Assignment`), not its current mechanism-describing name.
 - **`SqlParameters.Get<T>`** returns the type's default when no parameter has
   the given name, rather than throwing — the one intentionally quiet lookup
   in a library whose mission is loud failure, kept for the common

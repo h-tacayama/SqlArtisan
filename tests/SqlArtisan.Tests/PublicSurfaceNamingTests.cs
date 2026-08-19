@@ -102,6 +102,23 @@ public class PublicSurfaceNamingTests
     }
 
     [Fact]
+    public void EqualityBasedCondition_AssignmentListHelper_CorrectSql()
+    {
+        static EqualityBasedCondition Assigned(TestTable t) => t.Code == 99;
+
+        SqlStatement sql =
+            Update(_t)
+            .Set(Assigned(_t))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE test_table AS \"t\" ");
+        expected.Append("SET code = :0");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void CommonTableExpression_DynamicWithList_CorrectSql()
     {
         Cte c1 = new("c1");

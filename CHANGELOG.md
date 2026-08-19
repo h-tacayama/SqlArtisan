@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
+- **Breaking:** `EqualityBasedCondition` — the return type of `==`/`!=` on
+  `SqlExpression` and the element type of the `Set`/`DoUpdateSet`/
+  `ThenUpdateSet`/`OnDuplicateKeyUpdate` assignment arrays — moves from
+  `SqlArtisan.Internal` to the root `SqlArtisan` namespace. Existing code that
+  does not name the type is unaffected; code that fully qualifies it
+  (`SqlArtisan.Internal.EqualityBasedCondition`) needs the new qualifier
+  (`SqlArtisan.EqualityBasedCondition`) or an unqualified name. (#488)
 - **Breaking:** `SqlArtisan.Internal.CaseThenExpression`, `EmptyCondition`,
   `OverClause`, `ScalarSubquery`, and `WithinGroupClause` are now `internal`,
   continuing the same cleanup `DeleteClause` and `EqualityCondition` got in
