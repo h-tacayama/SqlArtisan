@@ -207,6 +207,14 @@ dialect genuinely rejects the construct.
 
 ## Recorded trade-offs from the #149 freeze audit
 
+Resolved:
+
+- **`EqualityBasedCondition`** — promoted from `Internal/` to the root
+  namespace (#488): all three ADR 0005 criteria hold, and CS0216 makes the
+  type permanent (the `==`/`!=` pair must share a return type). The name stays
+  — `!=` also returns it, so it is an equality-based *condition* the `SET`
+  position narrows, not an assignment.
+
 Reviewed and kept as-is — not defects, not scheduled for change:
 
 - **`SqlArtisan.Dapper.SqlMapper` mirrors `Dapper.SqlMapper`'s simple name.**
@@ -214,11 +222,6 @@ Reviewed and kept as-is — not defects, not scheduled for change:
   point (same shape, `ISqlBuilder` in place of `(sql, param)`); the ambiguity
   only bites an explicit `SqlMapper.Member` reference with both namespaces
   imported (`CS0104`), which extension-method call syntax never triggers.
-- **`EqualityBasedCondition`** — promoted from `Internal/` to the root
-  namespace (#488): all three ADR 0005 criteria hold, and CS0216 makes the
-  type permanent (the `==`/`!=` pair must share a return type). The name stays
-  — `!=` also returns it, so it is an equality-based *condition* the `SET`
-  position narrows, not an assignment.
 - **`SqlParameters.Get<T>`** returns the type's default when no parameter has
   the given name, rather than throwing — the one intentionally quiet lookup
   in a library whose mission is loud failure, kept for the common
