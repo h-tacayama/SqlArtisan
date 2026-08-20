@@ -6,8 +6,10 @@ decides which level the shipped matrix's own entries use.
 
 ## Context
 
-`DialectMatrix` keys 38 of its ~370 entries by `(member name, arity)` and the
-rest by member name alone. #487 asked whether that split is an accident of
+`DialectMatrix` keys 26 of its 309 `Entries` rows by `(member name, arity)`
+and the rest by member name alone. (Its separate `Bounds` version-floor table,
+keyed the same way, holds 63 more, 12 of them arity-keyed; #487's "38 of ~378"
+counted the two tables as one.) #487 asked whether that split is an accident of
 incremental filling — whether every entry should carry arity for
 uniformity — and noted that the `MatrixKey` collision caveat makes it a
 design question rather than a mechanical fill-in. #491 settled it; this ADR
@@ -25,9 +27,11 @@ narrowing layer over a member-level one, entered only where a member's own
 overloads genuinely differ in dialect support.** Arity is not made universal.
 
 - **The matrix's key set is a user-facing surface, not an internal index.**
-  `ToOverrideKey` feeds both directions of the `sqlartisan_construct_*`
-  contract: the key each `SQLA0100`/`SQLA0101` message names as the way to
-  correct it, and `AllOverrideKeys`, the recognized-key list `SQLA0001`
+  An entry's key shape decides both directions of the
+  `sqlartisan_construct_*` contract: `DialectSupportResolver.MatchMatrixEntry`
+  names the key each `SQLA0100`/`SQLA0101` message offers as the way to correct
+  it, choosing by whether the match was arity-level, and `ToOverrideKey` renders
+  the same shape into `AllOverrideKeys` — the recognized-key list `SQLA0001`
   validates override *values* against. Keying every entry by arity would make
   every message advertise `_arity<N>` and would drop every member-level key
   from the validated set — leaving the tier `docs/analyzer.md` documents as
@@ -41,9 +45,11 @@ overloads genuinely differ in dialect support.** Arity is not made universal.
   `DialectMatrix.TryGetEntryFrom` looks up `(name, arity)` first and falls back
   to `(name)`, and most arity rows sit *beside* a member-level row to narrow
   it: `Round` is broadly supported with an arity-1 exception for T-SQL, `Instr`
-  is Oracle-only with an arity-2 exception for MySQL/SQLite, `ToNumber`
-  likewise. Universal arity deletes that fallback, so **a future overload of an
-  already-entered member would default to no coverage at all** — and
+  is Oracle-only with an arity-2 exception for MySQL/SQLite; `ToNumber` runs
+  the other way, Oracle + PostgreSQL at member level with an arity-1 row
+  narrowing it to Oracle. Universal arity deletes that fallback, so **a future
+  overload of an already-entered member would default to no coverage at all**
+  — and
   `DialectMatrixCoverageTests` keys on member name, so the gate would pass in
   silence. That is a coverage regression wearing the costume of an improvement,
   and it runs against ADR 0003's degradable design, which spends silence only
@@ -58,15 +64,22 @@ overloads genuinely differ in dialect support.** Arity is not made universal.
 
 ## Consequences
 
-- Adding an arity entry for a member the matrix already covers is safe and
-  needs no further thought: the member-level row stays as the fallback.
+- Adding an arity entry for a member `Entries` already covers keeps it
+  covered: the member-level row stays as the fallback. The `Bounds`
+  version-floor table does **not** work this way — `TryGetMinVersion` looks the
+  matched key up exactly — so a member carrying its bound on the member-level
+  key needs an arity `Bounds` row alongside the new entry, or that overload
+  silently loses `SQLA0101`. `RegexpSubstr`'s arity-6 row documents the trap in
+  place; no gate catches it, since `EveryBound_KeysARealMatrixEntry` checks
+  `Bounds` → `Entries` only.
 - Adding the *first* entry for a member as an arity entry partitions that
   member — every overload not listed falls out of coverage. Six names are in
   that state today (`Concat`, `Date`, `Grouping`, `GroupingId`,
   `IntervalLiteral`, `Log`), each exhaustive against its current overloads.
   `DialectMatrixIntegrityTests.PartitionedMember_CoversEveryPublicOverloadArity`
-  gates that exhaustiveness, so a new overload of one of them — or a seventh
-  partitioned name — fails the build rather than going quietly uncovered. The
+  gates that exhaustiveness, so an overload with no entry of its own — a new
+  one on those six, or one on a seventh partitioned name — fails the build
+  rather than going quietly uncovered. The
   user-visible half of the same fact is a `docs/analyzer.md` known limitation.
 - The `sqlartisan_construct_<name>` / `sqlartisan_construct_<name>_arity<N>`
   split stays a genuine two-tier contract on both sides: the user writes at
