@@ -5535,9 +5535,11 @@ The packages expose these namespaces, and they carry different promises.
   compiled against one release keeps binding.
 
   **Not covered**: deriving from one, and any member the reference does not
-  document. Deriving is not merely uncovered but impossible: no type here has a
-  constructor your assembly can reach — you get each one from the `Sql.*` call,
-  operator, or chain step that produces it.
+  document. For the classes here, deriving is not merely uncovered but
+  impossible: none has a constructor your assembly can reach — you get each one
+  from the `Sql.*` call, operator, or chain step that produces it. The
+  interfaces here are the case the compiler cannot close, which is what
+  "builder-stage interfaces are not for user implementation" below is about.
 - **`SqlArtisan.Dapper`** and **`SqlArtisan.ArrayBind`** — the integration
   packages' own API, covered exactly like `SqlArtisan`.
 - **`SqlArtisan.TableClassGen`** ships as a command-line tool and exposes no
