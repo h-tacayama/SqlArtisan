@@ -3,7 +3,10 @@
 **Status:** Accepted — the precedence section refined by
 [ADR 0019](0019-analyzer-multi-dialect-syntax-set.md), which adds the
 `sqlartisan_syntax_*` family and resolves a `sqlartisan_construct_*` override
-once per usage rather than once per target. Everything else here stands.
+once per usage rather than once per target, and by
+[ADR 0021](0021-analyzer-matrix-key-granularity.md), which fixes which of the
+two key levels below the shipped matrix's own entries assert at. Everything
+else here stands.
 
 ## Context
 

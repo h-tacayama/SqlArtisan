@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -12,6 +13,14 @@ namespace SqlArtisan.Analyzers.Tests;
 /// coverage/integrity gate pair — it catches a renamed or removed overload;
 /// the inverse direction (every public member HAS an entry or a documented
 /// exclusion) is <see cref="DialectMatrixCoverageTests"/>.
+///
+/// <para>
+/// Also gates the one shape that gate pair cannot see (#491): a member entered
+/// *only* at arity level has no member-level row to fall back to, so its
+/// entries partition it rather than narrow it (ADR 0021) and an overload whose
+/// arity is missing falls out of coverage — silently, since the coverage gate
+/// keys on member name alone.
+/// </para>
 /// </summary>
 public class DialectMatrixIntegrityTests
 {
@@ -62,6 +71,63 @@ public class DialectMatrixIntegrityTests
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Matrix names carrying arity-level entries with no member-level entry
+    /// beneath them — the entries partition the member instead of narrowing a
+    /// fallback, so the set of listed arities must be exhaustive.
+    /// </summary>
+    public static TheoryData<string> PartitionedMembers()
+    {
+        HashSet<string> memberLevel = [.. DialectMatrix.AllKeys.Where(k => k.Arity is null).Select(k => k.MemberName)];
+
+        var data = new TheoryData<string>();
+        foreach (string name in DialectMatrix.AllKeys
+            .Where(k => k.Arity is not null && !memberLevel.Contains(k.MemberName))
+            .Select(k => k.MemberName)
+            .Distinct()
+            .OrderBy(name => name, StringComparer.Ordinal))
+        {
+            data.Add(name);
+        }
+
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(PartitionedMembers))]
+    public void PartitionedMember_CoversEveryPublicOverloadArity(string memberName)
+    {
+        HashSet<int> entered = [.. DialectMatrix.AllKeys
+            .Where(k => k.MemberName == memberName && k.Arity is { } arity)
+            .Select(k => k.Arity!.Value)];
+
+        List<int> uncovered = [.. PublicOverloadArities(memberName)
+            .Where(arity => !entered.Contains(arity))
+            .Distinct()
+            .OrderBy(arity => arity)];
+
+        Assert.True(
+            uncovered.Count == 0,
+            $"'{memberName}' is entered only at arity level, so its entries partition the member "
+            + $"rather than narrow a member-level fallback (ADR 0021). These public overloads have "
+            + $"no entry and would never warn: arity {string.Join(", ", uncovered)}. Add the missing "
+            + "arity entries, or add a member-level entry to serve as the fallback.");
+    }
+
+    private static IEnumerable<int> PublicOverloadArities(string memberName)
+    {
+        Assembly assembly = typeof(Sql).Assembly;
+        foreach (Type type in assembly.GetExportedTypes())
+        {
+            foreach (MethodInfo method in type
+                .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Where(m => (!m.IsSpecialName || IsOperator(m)) && m.Name == memberName))
+            {
+                yield return method.GetParameters().Length;
+            }
+        }
     }
 
     private static bool IsOperator(MethodInfo method) =>

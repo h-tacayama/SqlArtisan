@@ -44,6 +44,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0018](0018-analyzer-diagnostic-id-bands.md) | Analyzer diagnostic ID bands: one numbered range per category | Analyzer | Accepted |
 | [0019](0019-analyzer-multi-dialect-syntax-set.md) | Analyzer multi-dialect syntax set: `sqlartisan_syntax_*`, one key per DBMS | Analyzer | Accepted |
 | [0020](0020-documentation-precision-boundary.md) | Documentation precision boundary: what the docs assert, and what they delegate to the engine | | Accepted |
+| [0021](0021-analyzer-matrix-key-granularity.md) | Dialect-matrix key granularity: member-level by default, arity as a narrowing layer | Analyzer | Accepted |
 
 ### Clusters
 
@@ -54,7 +55,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   value also rejects); 0017 adds a second enumerated exception (an omitted
   join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
   are required to answer "will the library throw for this?"
-- **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019) — *How
+- **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019 + 0021) — *How
   does the dialect analyzer work?* 0003 chooses the permissive-API +
   opt-in-analyzer approach; 0008 designs the override configuration; 0009
   decides bundled distribution; 0013 adds position-dependent context rules
@@ -63,7 +64,9 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   against a declared engine version (SQLA0101); 0018 bands the diagnostic IDs
   by category, superseding 0014's shared-category decision; 0019 lets a
   project check a *set* of dialects instead of one (`sqlartisan_syntax_*`),
-  refining 0008's precedence section and adding SQLA0002.
+  refining 0008's precedence section and adding SQLA0002; 0021 fixes which of
+  0008's two key levels the shipped matrix itself asserts at (member-level by
+  default, arity only to narrow it).
 
 ## Consolidation trigger
 

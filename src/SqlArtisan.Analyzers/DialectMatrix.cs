@@ -30,6 +30,18 @@ namespace SqlArtisan.Analyzers;
 /// positive). Check for this before adding a new entry with the same name as
 /// an existing one.
 /// </para>
+///
+/// <para>
+/// <b>Arity is a narrowing layer, not the default key (ADR 0021).</b> Most
+/// entries are keyed by member name alone and an arity-qualified entry sits
+/// beside one to narrow it, because <see cref="TryGetEntryFrom"/> falls back
+/// from <c>(name, arity)</c> to <c>(name)</c>. Entering a member's *first*
+/// row at arity level therefore partitions it — every overload whose arity is
+/// not listed loses coverage, silently as far as
+/// <c>DialectMatrixCoverageTests</c> (which keys on member name) is concerned.
+/// <c>DialectMatrixIntegrityTests</c> gates the six names in that state; keep
+/// a member-level row as the fallback unless the partition is deliberate.
+/// </para>
 /// </summary>
 internal static class DialectMatrix
 {
