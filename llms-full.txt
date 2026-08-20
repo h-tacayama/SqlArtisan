@@ -4272,6 +4272,14 @@ for, not a bug in the matrix.
   `sqlartisan_construct_*` key scheme — the shipped matrix enters the
   *union* of their support rather than guess, which can under-warn but
   never false-positive.
+- **Six constructs are entered per-overload only, with no member-wide
+  verdict.** `Concat`, `Date`, `Grouping`, `GroupingId`, `IntervalLiteral` and
+  `Log` have matrix entries for specific argument counts and no entry covering
+  the member as a whole, so a call whose argument count isn't among them would
+  never warn. Every overload these six ship today *is* entered (a test gates
+  that), so the gap is not reachable from the current API — it is listed
+  because the `sqlartisan_construct_<name>` member-level override still applies
+  to all of them, while the shipped matrix's verdicts there are per-overload.
 - **A construct whose dialect support depends on the runtime value of an
   argument, not its declared type or arity, is not modeled at all.**
   `Trunc(expr[, format])` is the example: a numeric argument is Oracle,
