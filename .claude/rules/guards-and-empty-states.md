@@ -2,7 +2,7 @@
 description: Guard conventions — the enforcement boundary, empty-state policy, eager vs Build()-time timing, exception message grammar
 paths:
   - "src/SqlArtisan/Internal/SqlBuilder/**/*.cs"
-  - "src/SqlArtisan/Internal/SqlPart/Condition/**/*.cs"
+  - "src/SqlArtisan/Internal/SqlPart/**/*.cs"
   - "src/SqlArtisan/Sql/*.cs"
   - "src/SqlArtisan/SqlBuilder/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
