@@ -39,9 +39,9 @@ public class PublicSurfaceBoundaryTests
 
     /// <summary>
     /// A type here is legitimately public only because some root-namespace
-    /// signature hands it back. With every constructor internal, one that no
-    /// signature returns can be named but never held — surface a caller cannot
-    /// reach at all.
+    /// signature hands it back. With no constructor reachable from outside the
+    /// assembly, one that no signature returns can be named but never held —
+    /// surface a caller cannot reach at all.
     /// </summary>
     [Fact]
     public void ExportedType_InInternalNamespace_IsHandedBackByARootNamespaceSignature()
@@ -115,8 +115,8 @@ public class PublicSurfaceBoundaryTests
 
     /// <summary>
     /// Output positions only — what a caller can end up holding. A parameter type
-    /// does not count: with every constructor internal, a type that is only ever
-    /// accepted is one no caller can obtain to pass.
+    /// does not count: with no constructor reachable from outside the assembly, a
+    /// type that is only ever accepted is one no caller can obtain to pass.
     /// </summary>
     private static IEnumerable<Type> HandedBackTypes(Type type)
     {
