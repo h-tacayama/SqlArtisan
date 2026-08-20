@@ -56,10 +56,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Tests
 - Three gates now hold the `SqlArtisan.Internal` boundary the entries above
   restored: a public type there must be handed back by some public signature,
-  must offer no public constructor, and the assembly must export no namespace
-  beyond `SqlArtisan` and `SqlArtisan.Internal`. Together they mean that
-  namespace cannot quietly widen — what surfaces from there got in by decision,
-  not by a slipped keyword. (#487)
+  must offer no constructor another assembly can reach, and the assembly must
+  export no namespace beyond `SqlArtisan` and `SqlArtisan.Internal`. Together
+  they mean that namespace cannot quietly widen — what surfaces from there got
+  in by decision, not by a slipped keyword. (#487, #492)
 
 ## [0.9.0-beta.1] - 2026-08-17
 ### Docs

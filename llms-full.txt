@@ -5538,8 +5538,10 @@ The packages expose these namespaces, and they carry different promises.
   document. For the classes here, deriving is not merely uncovered but
   impossible: none has a constructor your assembly can reach — you get each one
   from the `Sql.*` call, operator, or chain step that produces it. The
-  interfaces here are the case the compiler cannot close, which is what
-  "builder-stage interfaces are not for user implementation" below is about.
+  interfaces are the half no constructor can close. A stage composing
+  `ISubquery` is closed anyway, since that interface declares an internal
+  member; the rest are implementable, which is what "builder-stage interfaces
+  are not for user implementation" below is about.
 - **`SqlArtisan.Dapper`** and **`SqlArtisan.ArrayBind`** — the integration
   packages' own API, covered exactly like `SqlArtisan`.
 - **`SqlArtisan.TableClassGen`** ships as a command-line tool and exposes no
@@ -5547,7 +5549,8 @@ The packages expose these namespaces, and they carry different promises.
 
 The split is gated, not merely stated. A public type in `SqlArtisan.Internal`
 that no public signature hands back fails the test suite, as does one that
-offers a public constructor — so the namespace cannot quietly accumulate
+offers a constructor another assembly can reach — so the namespace cannot
+quietly accumulate
 surface the commitment above was never meant to cover.
 
 ## What counts as breaking
