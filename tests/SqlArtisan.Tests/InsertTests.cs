@@ -280,6 +280,19 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_SetWithNotEqual_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Set(t.Code != 1));
+
+        Assert.Equal(
+            "Invalid type for Assignment: SqlArtisan.Internal.NotEqualCondition",
+            ex.Message);
+    }
+
+    [Fact]
     public void InsertInto_SetNullAssignment_ThrowsArgumentNullException()
     {
         TestTable t = new();

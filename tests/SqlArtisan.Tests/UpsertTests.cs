@@ -229,6 +229,20 @@ public class UpsertTests
     }
 
     [Fact]
+    public void DoUpdateSet_NotEqualAssignment_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnConflict(_t.Code)
+            .DoUpdateSet(_t.Name != "a"));
+
+        Assert.Equal(
+            "Invalid type for Assignment: SqlArtisan.Internal.NotEqualCondition",
+            ex.Message);
+    }
+
+    [Fact]
     public void DoUpdateSet_NullAssignment_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>

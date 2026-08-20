@@ -26,8 +26,7 @@ internal sealed class UpdateSetClause : SqlPart
             }
             else if (items[i] is not EqualCondition)
             {
-                throw new ArgumentException(
-                    $"Invalid type for Assignment: {items[i].GetType()}");
+                throw ExpressionResolver.UnresolvableValue("Assignment", items[i]);
             }
 
             assignments[i] = (EqualCondition)items[i];

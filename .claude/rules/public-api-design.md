@@ -216,10 +216,8 @@ Resolved:
   one thing a caller cannot see; the `=` node whose name it was avoiding became
   `EqualCondition`, which is the `Equal` its `GreaterThanOrEqual` siblings
   already spell and which keeps condition-class-to-`Operators`-member names
-  1:1. It is still a *condition*, not an assignment — `!=` returns it too,
-  which is exactly why a `SET` list rejects one at build time; **`Assignment`
-  names that position** in the guard message, per the message-grammar clause in
-  `guards-and-empty-states.md`.
+  1:1. It is still a *condition*, not an assignment — `!=` returns it too, and
+  a `SET` list is what narrows it back down.
 
 Reviewed and kept as-is — not defects, not scheduled for change:
 

@@ -19,7 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `SqlArtisan.Internal.CaseThenExpression`, `EmptyCondition`,
   `OverClause`, `ScalarSubquery`, and `WithinGroupClause` are now `internal`,
   continuing the same cleanup `DeleteClause` and the node then named
-  `SqlArtisan.Internal.EqualityCondition` got in 0.9.0-beta.1. No public signature returned or accepted any of the five, and
+  `SqlArtisan.Internal.EqualityCondition` got in 0.9.0-beta.1. No public
+  signature returned or accepted any of the five, and
   none of them declared a public member, so only `new ScalarSubquery(subquery)`
   was reachable at all — pass the subquery itself where the expression was
   wanted (`Select(subquery)`), which emits the same SQL. (#487)

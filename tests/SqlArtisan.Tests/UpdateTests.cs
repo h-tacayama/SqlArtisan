@@ -145,13 +145,12 @@ public class UpdateTests
     [Fact]
     public void Update_SetWithNotEqual_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-        {
-            Update(_t)
-            .Set(
-                _t.Code != 1)
-            .Build();
-        });
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set(_t.Code != 1));
+
+        Assert.Equal(
+            "Invalid type for Assignment: SqlArtisan.Internal.NotEqualCondition",
+            ex.Message);
     }
 
     [Fact]
