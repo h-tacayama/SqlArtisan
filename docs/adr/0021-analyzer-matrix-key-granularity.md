@@ -70,8 +70,9 @@ overloads genuinely differ in dialect support.** Arity is not made universal.
   matched key up exactly — so a member carrying its bound on the member-level
   key needs an arity `Bounds` row alongside the new entry, or that overload
   silently loses `SQLA0101`. `RegexpSubstr`'s arity-6 row documents the trap in
-  place; no gate catches it, since `EveryBound_KeysARealMatrixEntry` checks
-  `Bounds` → `Entries` only.
+  place, and `EveryArityEntry_ReKeysItsMemberLevelBound` gates it (#500) —
+  reading `Entries` → `Bounds`, the direction
+  `EveryBound_KeysARealMatrixEntry`'s orphan check does not cover.
 - Adding the *first* entry for a member as an arity entry partitions that
   member — every overload not listed falls out of coverage. Six names are in
   that state today (`Concat`, `Date`, `Grouping`, `GroupingId`,
