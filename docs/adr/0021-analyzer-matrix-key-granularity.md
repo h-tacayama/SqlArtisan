@@ -68,10 +68,18 @@ overloads genuinely differ in dialect support.** Arity is not made universal.
   covered: the member-level row stays as the fallback. The `Bounds`
   version-floor table does **not** work this way — `TryGetMinVersion` looks the
   matched key up exactly — so a member carrying its bound on the member-level
-  key needs an arity `Bounds` row alongside the new entry, or that overload
-  silently loses `SQLA0101`. `RegexpSubstr`'s arity-6 row documents the trap in
-  place; no gate catches it, since `EveryBound_KeysARealMatrixEntry` checks
-  `Bounds` → `Entries` only.
+  key needs a floor on the new arity key too, wherever the two rows' cells
+  agree, or that overload silently loses the floor's verdict: a missing
+  `SQLA0101` below the dialect's baseline, a false-positive `SQLA0100` above
+  it. Record the overload's own version rather than copying the member's —
+  `Trim`'s 2-arg form is SQL Server 2022 where the member is 2017, and the
+  gate checks that a row is there, not what it says. Where the cells disagree
+  the arity row carries a floor of its own or none — the member's value would
+  contradict the bool at the baseline, which is the one story the two tables
+  are required to tell. `RegexpSubstr`'s arity-6 row documents
+  the trap in place, and `EveryArityEntry_ReKeysItsMemberLevelBound` gates it
+  (#500) — reading `Entries` → `Bounds`, the direction
+  `EveryBound_KeysARealMatrixEntry`'s orphan check does not cover.
 - Adding the *first* entry for a member as an arity entry partitions that
   member — every overload not listed falls out of coverage. Six names are in
   that state today (`Concat`, `Date`, `Grouping`, `GroupingId`,

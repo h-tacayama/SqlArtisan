@@ -163,6 +163,14 @@ by the C# member name (add an `_arity<N>`-suffixed key alongside the
 member-wide one only if support genuinely differs by overload, e.g.
 `StringAgg`'s 3-arg inline-`ORDER BY` form vs. its 2-arg form — see the
 file's own doc comment for the full key scheme and its collision caveat).
+An arity key added beside a member that already carries a `Bounds` row needs
+a floor on the arity key too, wherever the two rows' cells agree — a
+member-level bound is not inherited (ADR 0021), and
+`EveryArityEntry_ReKeysItsMemberLevelBound` fails the suite when it is
+missing, whether or not your own source names a version. Record the
+overload's own version, not a copy of the member's: `Trim`'s 2-arg form is
+SQL Server 2022 where the member is 2017, and the gate checks presence, not
+the value.
 
 **When support differs by argument count on a `params` method, split the
 overloads first.** The analyzer computes arity from the *declared* parameter

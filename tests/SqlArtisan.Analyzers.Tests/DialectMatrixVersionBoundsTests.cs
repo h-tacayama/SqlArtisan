@@ -12,6 +12,15 @@ namespace SqlArtisan.Analyzers.Tests;
 /// required to tell one consistent story about the same engine version.
 /// Failures aggregate (rather than one Theory case per row) so the suite
 /// stays green with zero rows before the register is seeded.
+///
+/// <para>
+/// Both directions are gated (#500): the orphan check reads
+/// <c>Bounds</c> -&gt; <c>Entries</c>, and the re-key check reads
+/// <c>Entries</c> -&gt; <c>Bounds</c>, since an arity entry added beside a
+/// member-level bound moves <c>Evaluate</c>'s lookup onto a key
+/// <see cref="DialectMatrix.TryGetMinVersion"/> resolves exactly (ADR 0015)
+/// and would otherwise drop that overload's version verdict in silence.
+/// </para>
 /// </summary>
 public class DialectMatrixVersionBoundsTests
 {
@@ -74,6 +83,50 @@ public class DialectMatrixVersionBoundsTests
         }
 
         Assert.True(mismatches.Count == 0, $"Bound/bool disagreement(s) at baseline: {string.Join("; ", mismatches)}");
+    }
+
+    // A member-level bound is not inherited: TryGetMinVersion resolves the key
+    // Evaluate matched, which is the arity key once an arity entry exists. The
+    // floor is required exactly where the arity cell agrees with the member
+    // floor's own baseline verdict — the sibling gate's invariant, so a cell
+    // that disagrees could not carry the floor anyway. Reading the cell alone
+    // would invert above the baseline, where the bound sits on a false cell and
+    // it is the *false* arity cell that still needs it (the pgvector rows).
+    [Fact]
+    public void EveryArityEntry_ReKeysItsMemberLevelBound()
+    {
+        List<string> dropped = [];
+        foreach (MatrixKey key in DialectMatrix.AllKeys)
+        {
+            if (key.Arity is not { } arity
+                || !DialectMatrix.AllBounds.TryGetValue(new MatrixKey(key.MemberName), out VersionBounds memberBound)
+                || !DialectMatrix.TryGetEntry(key.MemberName, arity, out DbmsSupport support, out _))
+            {
+                continue;
+            }
+
+            DialectMatrix.AllBounds.TryGetValue(key, out VersionBounds arityBound);
+
+            foreach (TargetDbms target in AllTargets)
+            {
+                if (memberBound.MinFor(target) is not { } memberMin
+                    || support.IsSupported(target) != DialectMatrix.BaselineVersion[target] >= memberMin
+                    || arityBound.MinFor(target) is not null)
+                {
+                    continue;
+                }
+
+                dropped.Add($"{Label(key)}/{target}: {Label(new MatrixKey(key.MemberName))} bounds it at {memberMin}");
+            }
+        }
+
+        Assert.True(
+            dropped.Count == 0,
+            "Arity entry/entries shadowing a member-level bound with no bound of their own — the "
+                + "member-level floor is not inherited, so the overload loses that floor's verdict: a "
+                + "missing SQLA0101 below the dialect's baseline, a false-positive SQLA0100 above it. "
+                + "Re-key the floor onto the arity key (its own value, where the overload's floor "
+                + $"differs — Trim's 2-arg form is SQL Server 2022 where the member is 2017): {string.Join("; ", dropped)}");
     }
 
     // Drift guard (DialectMatrixDocsTests's pattern): every seeded bound's
