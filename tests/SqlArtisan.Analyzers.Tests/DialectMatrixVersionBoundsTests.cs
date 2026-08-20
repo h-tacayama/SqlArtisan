@@ -19,7 +19,7 @@ namespace SqlArtisan.Analyzers.Tests;
 /// <c>Entries</c> -&gt; <c>Bounds</c>, since an arity entry added beside a
 /// member-level bound moves <c>Evaluate</c>'s lookup onto a key
 /// <see cref="DialectMatrix.TryGetMinVersion"/> resolves exactly (ADR 0015)
-/// and would otherwise drop that overload's <c>SQLA0101</c> in silence.
+/// and would otherwise drop that overload's version verdict in silence.
 /// </para>
 /// </summary>
 public class DialectMatrixVersionBoundsTests
@@ -86,10 +86,12 @@ public class DialectMatrixVersionBoundsTests
     }
 
     // A member-level bound is not inherited: TryGetMinVersion resolves the key
-    // Evaluate matched, which is the arity key once an arity entry exists. Only
-    // dialects the arity entry still calls supported are required — demanding a
-    // floor under a false cell would force a row EveryBound_AgreesWithEntryBool
-    // rejects.
+    // Evaluate matched, which is the arity key once an arity entry exists. The
+    // floor is required exactly where the arity cell agrees with the member
+    // floor's own baseline verdict — the sibling gate's invariant, so a cell
+    // that disagrees could not carry the floor anyway. Reading the cell alone
+    // would invert above the baseline, where the bound sits on a false cell and
+    // it is the *false* arity cell that still needs it (the pgvector rows).
     [Fact]
     public void EveryArityEntry_ReKeysItsMemberLevelBound()
     {
@@ -108,7 +110,7 @@ public class DialectMatrixVersionBoundsTests
             foreach (TargetDbms target in AllTargets)
             {
                 if (memberBound.MinFor(target) is not { } memberMin
-                    || !support.IsSupported(target)
+                    || support.IsSupported(target) != DialectMatrix.BaselineVersion[target] >= memberMin
                     || arityBound.MinFor(target) is not null)
                 {
                     continue;
@@ -121,7 +123,8 @@ public class DialectMatrixVersionBoundsTests
         Assert.True(
             dropped.Count == 0,
             "Arity entry/entries shadowing a member-level bound with no bound of their own — the "
-                + "member-level floor is not inherited, so SQLA0101 is silently lost for that overload. "
+                + "member-level floor is not inherited, so the overload loses that floor's verdict: a "
+                + "missing SQLA0101 below the dialect's baseline, a false-positive SQLA0100 above it. "
                 + "Re-key the floor onto the arity key (its own value, where the overload's floor "
                 + $"differs — Trim's 2-arg form is SQL Server 2022 where the member is 2017): {string.Join("; ", dropped)}");
     }

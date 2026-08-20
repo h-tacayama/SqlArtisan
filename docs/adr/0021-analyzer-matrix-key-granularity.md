@@ -69,7 +69,8 @@ overloads genuinely differ in dialect support.** Arity is not made universal.
   version-floor table does **not** work this way — `TryGetMinVersion` looks the
   matched key up exactly — so a member carrying its bound on the member-level
   key needs an arity `Bounds` row alongside the new entry, or that overload
-  silently loses `SQLA0101`. `RegexpSubstr`'s arity-6 row documents the trap in
+  silently loses the floor's verdict — a missing `SQLA0101` below the
+  dialect's baseline, a false-positive `SQLA0100` above it. `RegexpSubstr`'s arity-6 row documents the trap in
   place, and `EveryArityEntry_ReKeysItsMemberLevelBound` gates it (#500) —
   reading `Entries` → `Bounds`, the direction
   `EveryBound_KeysARealMatrixEntry`'s orphan check does not cover.

@@ -183,9 +183,10 @@ PostgreSQL 15+, `DATETRUNC` needs SQL Server 2022+), add a matching row to
 `DialectMatrix`'s `Bounds` dictionary next to the entry, keyed the same way —
 `DialectMatrixVersionBoundsTests` requires it to agree with the entry's bool
 at the dialect's verification baseline, and — when the new row is arity-keyed
-and the member already carries a bound — requires the floor to be re-keyed
-onto that arity too (`EveryArityEntry_ReKeysItsMemberLevelBound`: a
-member-level bound is not inherited, per ADR 0021). Only flip a currently-`false` cell to
+beside a member that already carries a bound — requires that floor to be
+re-keyed onto the arity wherever the two rows' cells agree
+(`EveryArityEntry_ReKeysItsMemberLevelBound`: a member-level bound is not
+inherited, per ADR 0021). Only flip a currently-`false` cell to
 supported above its bound with a live-proof lane behind it (see the pinned
 `Oracle23aiBoundSweepTests` for the shape) — a below-baseline `true` cell
 gaining a bound needs no new proof, since the baseline itself already
