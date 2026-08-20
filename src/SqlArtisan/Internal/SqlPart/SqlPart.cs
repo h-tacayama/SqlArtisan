@@ -2,6 +2,10 @@ namespace SqlArtisan.Internal;
 
 public abstract class SqlPart
 {
+    private protected SqlPart()
+    {
+    }
+
     internal abstract void Format(SqlBuildingBuffer buffer);
 
     // True when a condition renders nothing — recursive over AND/OR/NOT. Lets a

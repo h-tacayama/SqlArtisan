@@ -185,9 +185,11 @@ with the namespace set the two of them key on. Two spellings publish a
 constructor without anyone writing `public`, which is how 30 nodes became
 `new`-able (#487) — 28 by a **primary constructor** on a concrete class, whose
 accessibility follows the class, and 2 by declaring **no constructor at all**.
-On an abstract class a primary constructor is `protected` instead, which is why
-the bases here keep theirs. So write the constructor out as `internal` on a
-public concrete node; an internal node can keep its primary constructor.
+On an abstract class either spelling is `protected` instead — reachable by
+deriving from another assembly, which is how three bases could be subclassed to
+emit an arbitrary operator token (#492). So write the constructor out: `internal`
+on a public concrete node, `private protected` on a public abstract base. An
+internal node can keep its primary constructor.
 
 > Worked example (#282): fixing `Sql.Bind` to return `BindValue` (above) put
 > that type through criterion 2 — its entire feature is a caller holding the

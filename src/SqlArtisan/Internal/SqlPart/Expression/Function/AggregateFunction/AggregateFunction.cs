@@ -8,6 +8,10 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public abstract class AggregateFunction : SqlExpression
 {
+    private protected AggregateFunction()
+    {
+    }
+
     /// <summary>
     /// Turns it into a window function over the whole result set: <c>OVER ()</c>.
     /// </summary>

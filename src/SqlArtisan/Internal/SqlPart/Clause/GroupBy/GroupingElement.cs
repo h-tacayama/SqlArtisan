@@ -8,4 +8,7 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public abstract class GroupingElement : SqlPart
 {
+    private protected GroupingElement()
+    {
+    }
 }

@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
+- **Breaking:** the ten public abstract types in `SqlArtisan.Internal` —
+  `AggregateFunction`, `AnalyticFunction`, `ArrayCondition`, `BinaryOperator`,
+  `GroupingElement`, `JsonbCondition`, `LockBehaviorBase`, `SqlPart`,
+  `UnfilteredAggregateFunction`, `ValueAnalyticFunction` — now have
+  `private protected` constructors, so an external assembly can no longer derive
+  from one. Three of them could be: their constructors were `protected` (an
+  abstract class's primary constructor is), and they already implement the
+  internal `Format`, so a subclass compiled against `SqlArtisan.dll` alone could
+  emit any token it liked into a statement. `docs/versioning.md` already listed
+  deriving as outside the SemVer surface, and every `Sql.*` call, operator and
+  chain step is unaffected — this closes what the compiler could close. (#492)
 - **Breaking:** `SqlArtisan.Internal.EqualityBasedCondition` — the return type
   of `==`/`!=` on `SqlExpression` and the element type of the `Set`/
   `DoUpdateSet`/`ThenUpdateSet`/`OnDuplicateKeyUpdate` assignment arrays — is

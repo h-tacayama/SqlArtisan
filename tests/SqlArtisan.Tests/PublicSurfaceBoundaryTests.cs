@@ -87,23 +87,29 @@ public class PublicSurfaceBoundaryTests
 
     /// <summary>
     /// These types are reached through the <c>Sql.*</c> call, operator, or chain
-    /// step that produces them, so none needs a public constructor. Two spellings
-    /// publish one silently — a primary constructor, whose accessibility follows
-    /// its class, and a class declaring no constructor at all.
+    /// step that produces them, so none needs a constructor another assembly can
+    /// reach. Three spellings publish one silently — a primary constructor, whose
+    /// accessibility follows its class, a class declaring no constructor at all,
+    /// and either of those on an <c>abstract</c> class, where the constructor is
+    /// <c>protected</c> rather than public and so reachable by deriving (#492).
+    /// The root namespace is deliberately outside this check: a generated table
+    /// class derives from <c>DbTableBase</c> in the caller's own assembly.
     /// </summary>
     [Fact]
-    public void ExportedType_InInternalNamespace_HasNoPublicConstructor()
+    public void ExportedType_InInternalNamespace_HasNoConstructorReachableFromOutside()
     {
         List<string> constructible = [.. typeof(Sql).Assembly.GetExportedTypes()
             .Where(t => t.Namespace == InternalNamespace)
-            .Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Length > 0)
+            .Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Any(c => c.IsPublic || c.IsFamily || c.IsFamilyOrAssembly))
             .Select(t => t.Name)
             .OrderBy(n => n, StringComparer.Ordinal)];
 
         Assert.True(
             constructible.Count == 0,
-            $"{constructible.Count} public types in {InternalNamespace} can be constructed "
-                + "directly — give each an internal constructor:\n  "
+            $"{constructible.Count} public types in {InternalNamespace} can be constructed or "
+                + "derived from outside the assembly — make each constructor internal, or "
+                + "private protected on an abstract base:\n  "
                 + string.Join("\n  ", constructible));
     }
 

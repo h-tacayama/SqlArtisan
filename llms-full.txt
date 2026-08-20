@@ -5535,8 +5535,9 @@ The packages expose these namespaces, and they carry different promises.
   compiled against one release keeps binding.
 
   **Not covered**: deriving from one, and any member the reference does not
-  document. No type here has a public constructor — you reach each one through
-  the `Sql.*` call, operator, or chain step that produces it.
+  document. Deriving is not merely uncovered but impossible: no type here has a
+  constructor your assembly can reach — you get each one from the `Sql.*` call,
+  operator, or chain step that produces it.
 - **`SqlArtisan.Dapper`** and **`SqlArtisan.ArrayBind`** — the integration
   packages' own API, covered exactly like `SqlArtisan`.
 - **`SqlArtisan.TableClassGen`** ships as a command-line tool and exposes no
