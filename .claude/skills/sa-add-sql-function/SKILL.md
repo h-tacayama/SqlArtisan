@@ -163,6 +163,11 @@ by the C# member name (add an `_arity<N>`-suffixed key alongside the
 member-wide one only if support genuinely differs by overload, e.g.
 `StringAgg`'s 3-arg inline-`ORDER BY` form vs. its 2-arg form — see the
 file's own doc comment for the full key scheme and its collision caveat).
+An arity key added beside a member that already carries a `Bounds` row needs
+that floor re-keyed onto the arity key too, wherever the two rows' cells agree
+— a member-level bound is not inherited (ADR 0021), and
+`EveryArityEntry_ReKeysItsMemberLevelBound` fails the suite when it is
+dropped, whether or not your own source names a version.
 
 **When support differs by argument count on a `params` method, split the
 overloads first.** The analyzer computes arity from the *declared* parameter
@@ -182,11 +187,7 @@ If the cited source also names a **minimum engine version** (`MERGE` needs
 PostgreSQL 15+, `DATETRUNC` needs SQL Server 2022+), add a matching row to
 `DialectMatrix`'s `Bounds` dictionary next to the entry, keyed the same way —
 `DialectMatrixVersionBoundsTests` requires it to agree with the entry's bool
-at the dialect's verification baseline, and — when the new row is arity-keyed
-beside a member that already carries a bound — requires that floor to be
-re-keyed onto the arity wherever the two rows' cells agree
-(`EveryArityEntry_ReKeysItsMemberLevelBound`: a member-level bound is not
-inherited, per ADR 0021). Only flip a currently-`false` cell to
+at the dialect's verification baseline. Only flip a currently-`false` cell to
 supported above its bound with a live-proof lane behind it (see the pinned
 `Oracle23aiBoundSweepTests` for the shape) — a below-baseline `true` cell
 gaining a bound needs no new proof, since the baseline itself already
