@@ -133,7 +133,7 @@ public class SchemaRuleParityTests
         },
         {
             "var s = Update(t).Set(Assigned(t)).Build();",
-            "static EqualityBasedCondition Assigned(T t) => t.Code == 1;"
+            "static EqualityCondition Assigned(T t) => t.Code == 1;"
         },
         // A static factory wrapping the predicate must not re-open a chain or a
         // condition the statement still cannot see.

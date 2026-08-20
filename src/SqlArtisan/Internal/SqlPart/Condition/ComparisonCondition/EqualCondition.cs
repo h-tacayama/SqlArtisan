@@ -1,8 +1,8 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class EqualityCondition(
+internal sealed class EqualCondition(
     SqlExpression leftSide,
-    SqlExpression rightSide) : EqualityBasedCondition
+    SqlExpression rightSide) : EqualityCondition
 {
     internal override SqlExpression LeftSide => leftSide;
 
@@ -10,7 +10,7 @@ internal sealed class EqualityCondition(
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(LeftSide)
-        .EncloseInSpaces(Operators.Equality)
+        .EncloseInSpaces(Operators.Equal)
         .Append(RightSide);
 
     // Renders `column = value` for a DML assignment, forcing the target column
@@ -28,6 +28,6 @@ internal sealed class EqualityCondition(
             LeftSide.Format(buffer);
         }
 
-        buffer.EncloseInSpaces(Operators.Equality).Append(RightSide);
+        buffer.EncloseInSpaces(Operators.Equal).Append(RightSide);
     }
 }

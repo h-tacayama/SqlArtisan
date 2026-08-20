@@ -33,5 +33,5 @@ public interface IUpdateBuilderUpdate
     /// </summary>
     /// <param name="assignments">The per-column updates; each left side names a column and each right side its new value (literals are auto-parameterized).</param>
     /// <returns>The builder positioned for <c>OUTPUT</c>, <c>WHERE</c>, <c>RETURNING</c>, or build.</returns>
-    IUpdateBuilderSetOutput Set(params EqualityBasedCondition[] assignments);
+    IUpdateBuilderSetOutput Set(params EqualityCondition[] assignments);
 }

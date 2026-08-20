@@ -76,10 +76,10 @@ public abstract class SqlExpression : SqlPart
     /// <param name="this">The left operand.</param>
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The equality condition.</returns>
-    public static EqualityBasedCondition operator ==(
+    public static EqualityCondition operator ==(
         SqlExpression @this,
         object rightSide) =>
-        new EqualityCondition(Resolve(@this), Resolve(rightSide));
+        new EqualCondition(Resolve(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL inequality comparison: <c><paramref name="this"/> &lt;&gt; <paramref name="rightSide"/></c>.
@@ -87,10 +87,10 @@ public abstract class SqlExpression : SqlPart
     /// <param name="this">The left operand.</param>
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The inequality condition.</returns>
-    public static EqualityBasedCondition operator !=(
+    public static EqualityCondition operator !=(
         SqlExpression @this,
         object rightSide) =>
-        new InequalityCondition(Resolve(@this), Resolve(rightSide));
+        new NotEqualCondition(Resolve(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL less-than comparison: <c><paramref name="this"/> &lt; <paramref name="rightSide"/></c>.

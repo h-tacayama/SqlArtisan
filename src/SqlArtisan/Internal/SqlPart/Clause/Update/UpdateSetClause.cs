@@ -2,20 +2,20 @@ namespace SqlArtisan.Internal;
 
 internal sealed class UpdateSetClause : SqlPart
 {
-    private readonly EqualityCondition[] _assignments;
+    private readonly EqualCondition[] _assignments;
     private readonly DmlJoinState _state;
 
-    private UpdateSetClause(EqualityCondition[] assignments, DmlJoinState state)
+    private UpdateSetClause(EqualCondition[] assignments, DmlJoinState state)
     {
         _assignments = assignments;
         _state = state;
     }
 
-    internal static UpdateSetClause Parse(EqualityBasedCondition[] items, DmlJoinState state)
+    internal static UpdateSetClause Parse(EqualityCondition[] items, DmlJoinState state)
     {
         CollectionGuard.ThrowIfEmpty(items, "SET requires at least one assignment.");
 
-        var assignments = new EqualityCondition[items.Length];
+        var assignments = new EqualCondition[items.Length];
 
         for (int i = 0; i < items.Length; i++)
         {
@@ -24,13 +24,12 @@ internal sealed class UpdateSetClause : SqlPart
                 throw new ArgumentNullException(
                     nameof(items), ExpressionResolver.NullValueMessage);
             }
-            else if (items[i] is not EqualityCondition)
+            else if (items[i] is not EqualCondition)
             {
-                throw new ArgumentException(
-                    $"Invalid type for EqualityCondition: {items[i].GetType()}");
+                throw ExpressionResolver.UnresolvableValue("Assignment", items[i]);
             }
 
-            assignments[i] = (EqualityCondition)items[i];
+            assignments[i] = (EqualCondition)items[i];
         }
 
         return new(assignments, state);

@@ -17,5 +17,5 @@ public interface IMergeBuilderWhenMatched
     /// </summary>
     /// <param name="assignments">The <c>column == value</c> updates; values are typically source columns and literals are auto-parameterized.</param>
     /// <returns>The builder positioned to chain another branch, append Oracle's <c>DELETE WHERE</c>, or build.</returns>
-    IMergeBuilderThenUpdateSet ThenUpdateSet(params EqualityBasedCondition[] assignments);
+    IMergeBuilderThenUpdateSet ThenUpdateSet(params EqualityCondition[] assignments);
 }

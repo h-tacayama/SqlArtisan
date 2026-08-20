@@ -1,8 +1,8 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class InequalityCondition(
+internal sealed class NotEqualCondition(
     SqlExpression leftSide,
-    SqlExpression rightSide) : EqualityBasedCondition
+    SqlExpression rightSide) : EqualityCondition
 {
     internal override SqlExpression LeftSide => leftSide;
 
@@ -10,6 +10,6 @@ internal sealed class InequalityCondition(
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(LeftSide)
-        .EncloseInSpaces(Operators.Inequality)
+        .EncloseInSpaces(Operators.NotEqual)
         .Append(RightSide);
 }

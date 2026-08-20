@@ -2,14 +2,14 @@ namespace SqlArtisan.Internal;
 
 internal sealed class DoUpdateSetClause : SqlPart
 {
-    private readonly EqualityCondition[] _assignments;
+    private readonly EqualCondition[] _assignments;
 
-    private DoUpdateSetClause(EqualityCondition[] assignments)
+    private DoUpdateSetClause(EqualCondition[] assignments)
     {
         _assignments = assignments;
     }
 
-    internal static DoUpdateSetClause Parse(EqualityBasedCondition[] items) =>
+    internal static DoUpdateSetClause Parse(EqualityCondition[] items) =>
         new(UpsertAssignmentResolver.Resolve(
             items,
             "DO UPDATE SET requires at least one assignment."));

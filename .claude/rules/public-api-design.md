@@ -209,11 +209,15 @@ dialect genuinely rejects the construct.
 
 Resolved:
 
-- **`EqualityBasedCondition`** — promoted from `Internal/` to the root
-  namespace (#488): all three ADR 0005 criteria hold, and CS0216 makes the
-  type permanent (the `==`/`!=` pair must share a return type). The name stays
-  — `!=` also returns it, so it is an equality-based *condition* the `SET`
-  position narrows, not an assignment.
+- **`EqualityCondition`** (was `EqualityBasedCondition`) — promoted from
+  `Internal/` to the root namespace (#488) and renamed there (#497): all three
+  ADR 0005 criteria hold, and CS0216 makes the type permanent (the `==`/`!=`
+  pair must share a return type). `Based` named the inheritance mechanism, the
+  one thing a caller cannot see; the `=` node whose name it was avoiding became
+  `EqualCondition`, which is the `Equal` its `GreaterThanOrEqual` siblings
+  already spell and which keeps condition-class-to-`Operators`-member names
+  1:1. It is still a *condition*, not an assignment — `!=` returns it too, and
+  a `SET` list is what narrows it back down.
 
 Reviewed and kept as-is — not defects, not scheduled for change:
 

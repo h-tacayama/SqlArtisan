@@ -18,5 +18,5 @@ public interface IMergeBuilderWhenNotMatchedBySource
     /// </summary>
     /// <param name="assignments">The <c>column == value</c> updates; literals are auto-parameterized.</param>
     /// <returns>The builder positioned to chain another <c>WHEN</c> branch or build.</returns>
-    IMergeBuilderWhen ThenUpdateSet(params EqualityBasedCondition[] assignments);
+    IMergeBuilderWhen ThenUpdateSet(params EqualityCondition[] assignments);
 }

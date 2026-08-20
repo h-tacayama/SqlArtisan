@@ -32,5 +32,5 @@ public interface IUpdateBuilderJoined
     /// </summary>
     /// <param name="assignments">The per-column updates; each left side names a target column and each right side its new value (literals are auto-parameterized).</param>
     /// <returns>The builder positioned for <c>WHERE</c>, <c>RETURNING</c>, or build.</returns>
-    IUpdateBuilderJoinedSet Set(params EqualityBasedCondition[] assignments);
+    IUpdateBuilderJoinedSet Set(params EqualityCondition[] assignments);
 }
