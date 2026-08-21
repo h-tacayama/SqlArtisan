@@ -56,8 +56,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.ExecuteAsync(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.Buffered, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.Buffered,
+            cancellationToken));
 
     /// <summary>
     /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
@@ -106,8 +111,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.ExecuteScalarAsync(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.Buffered, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.Buffered,
+            cancellationToken));
 
     /// <summary>
     /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
@@ -130,8 +140,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.ExecuteScalarAsync<T>(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.Buffered, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.Buffered,
+            cancellationToken));
 
     /// <inheritdoc cref="QuerySingleAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
@@ -151,8 +166,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QuerySingleAsync(type, ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <inheritdoc cref="QuerySingleAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <returns>A task producing the single row as a <see langword="dynamic"/> object.</returns>
@@ -164,8 +184,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QuerySingleAsync(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <summary>
     /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
@@ -189,8 +214,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QuerySingleAsync<T>(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <inheritdoc cref="QuerySingleOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
@@ -210,8 +240,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QuerySingleOrDefaultAsync(type, ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <inheritdoc cref="QuerySingleOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <returns>A task producing the single row as a <see langword="dynamic"/> object, or <see langword="null"/> if none.</returns>
@@ -223,8 +258,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QuerySingleOrDefaultAsync(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <summary>
     /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
@@ -248,8 +288,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QuerySingleOrDefaultAsync<T>(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <inheritdoc cref="QueryFirstAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
@@ -269,8 +314,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryFirstAsync(type, ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <inheritdoc cref="QueryFirstAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <returns>A task producing the first row as a <see langword="dynamic"/> object.</returns>
@@ -282,8 +332,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryFirstAsync(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <summary>
     /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
@@ -307,8 +362,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryFirstAsync<T>(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <inheritdoc cref="QueryFirstOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
@@ -328,8 +388,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryFirstOrDefaultAsync(type, ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <inheritdoc cref="QueryFirstOrDefaultAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <returns>A task producing the first row as a <see langword="dynamic"/> object, or <see langword="null"/> if none.</returns>
@@ -341,8 +406,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryFirstOrDefaultAsync(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <summary>
     /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
@@ -365,8 +435,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryFirstOrDefaultAsync<T>(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.None, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.None,
+            cancellationToken));
 
     /// <inheritdoc cref="QueryAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
@@ -386,8 +461,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryAsync(type, ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.Buffered, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.Buffered,
+            cancellationToken));
 
     /// <inheritdoc cref="QueryAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
     /// <returns>A task producing a sequence of <see langword="dynamic"/> rows.</returns>
@@ -399,8 +479,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryAsync(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.Buffered, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.Buffered,
+            cancellationToken));
 
     /// <summary>
     /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
@@ -423,8 +508,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryAsync<T>(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.Buffered, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.Buffered,
+            cancellationToken));
 
     /// <summary>
     /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
@@ -446,8 +536,13 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.QueryMultipleAsync(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.Buffered, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.Buffered,
+            cancellationToken));
 
     /// <summary>
     /// Builds <paramref name="sqlBuilder"/> for the connection's dialect
@@ -469,6 +564,11 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
         => cnn.ExecuteReaderAsync(ToCommand(
-            cnn, sqlBuilder, transaction, commandTimeout, commandType,
-            CommandFlags.Buffered, cancellationToken));
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.Buffered,
+            cancellationToken));
 }
