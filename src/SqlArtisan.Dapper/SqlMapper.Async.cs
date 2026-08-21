@@ -12,10 +12,10 @@ public static partial class SqlMapper
     /// <see cref="CancellationToken"/>. <paramref name="flags"/> is whatever Dapper's
     /// string overload for the same verb passes, which is not uniform: every
     /// <c>QueryFirst</c>/<c>QuerySingle</c> shape passes <see cref="CommandFlags.None"/>
-    /// and the rest <see cref="CommandFlags.Buffered"/>. On <c>Query</c> the value decides
-    /// whether Dapper reads the rows into a list or hands back a deferred sequence over an
-    /// open reader — and that deferred path cannot honor cancellation at all — so each
-    /// caller repeats Dapper's value instead of taking the constructor default.
+    /// and the rest <see cref="CommandFlags.Buffered"/>. Naming it per verb rather than
+    /// leaning on the constructor default keeps the two in step where the value bites: on
+    /// <c>Query</c> it decides whether Dapper returns a materialized list or a deferred
+    /// sequence over an open reader.
     /// </summary>
     private static CommandDefinition ToCommand(
         IDbConnection cnn,

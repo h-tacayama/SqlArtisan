@@ -12,8 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `HttpContext.RequestAborted` no longer means dropping out of the mirrored API to
   hand-assemble a command, and the package stops disagreeing with
   `SqlArtisan.ArrayBind`, whose `ExecuteArrayBindAsync` always took one. Adding an
-  optional parameter is source-compatible but binary-breaking: an assembly compiled
-  against an earlier build needs a recompile. It lands before 1.0 because the shape
+  optional parameter leaves ordinary call sites compiling but is binary-breaking, so
+  an assembly compiled against an earlier build needs a recompile — and a
+  method-group conversion to the old five-parameter signature needs editing, since
+  those match on arity and do not see defaults. It lands before 1.0 because the shape
   is what expires there — C# forbids a required parameter after an optional one, so
   a later addition could only arrive as extra overloads, roughly tripling the async
   surface and leaving `ExecuteAsync(b, null, 30, null, ct)` as the only way to
