@@ -12,7 +12,10 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 {
     private readonly SqlServerFixture _fixture;
 
-    public SqlServerTests(SqlServerFixture fixture) : base(fixture) => _fixture = fixture;
+    public SqlServerTests(SqlServerFixture fixture) : base(fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void Pagination_OffsetFetch_Executes()

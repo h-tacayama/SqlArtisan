@@ -157,13 +157,17 @@ dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 dotnet_style_prefer_conditional_expression_over_return = true:silent
 csharp_prefer_simple_default_expression = true:suggestion
 
-# Expression-bodied members
+# Expression-bodied members — each key counted against the code, not assumed
+# (#494). Constructors and accessors carry a severity, so dotnet format holds
+# them; the rest only describe the majority. methods stays silent because there
+# is no repo-wide majority to hold: src runs 61% expression-bodied (one-line
+# Format overrides), tests 80% block-bodied (arrange/act/assert).
 csharp_style_expression_bodied_methods = true:silent
-csharp_style_expression_bodied_constructors = true:silent
+csharp_style_expression_bodied_constructors = false:warning
 csharp_style_expression_bodied_operators = true:silent
 csharp_style_expression_bodied_properties = true:silent
 csharp_style_expression_bodied_indexers = true:silent
-csharp_style_expression_bodied_accessors = true:silent
+csharp_style_expression_bodied_accessors = false:warning
 csharp_style_expression_bodied_lambdas = true:silent
 csharp_style_expression_bodied_local_functions = true:silent
 

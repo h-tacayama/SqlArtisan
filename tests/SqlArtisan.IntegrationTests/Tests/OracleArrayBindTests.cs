@@ -15,7 +15,10 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
 {
     private readonly OracleFixture _fixture;
 
-    public OracleArrayBindTests(OracleFixture fixture) => _fixture = fixture;
+    public OracleArrayBindTests(OracleFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void ExecuteArrayBind_MixedTypesWithNulls_InsertsAllRows()

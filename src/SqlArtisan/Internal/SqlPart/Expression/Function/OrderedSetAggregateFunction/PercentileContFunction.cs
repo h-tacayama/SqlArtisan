@@ -8,8 +8,10 @@ public sealed class PercentileContFunction : IIncompleteExpression
 {
     private readonly double _fraction;
 
-    internal PercentileContFunction(double fraction) =>
+    internal PercentileContFunction(double fraction)
+    {
         _fraction = PercentileFractionGuard.Validate(fraction);
+    }
 
     string IIncompleteExpression.CompletionHint =>
         "Complete it with .WithinGroup(OrderBy(...)) — PERCENTILE_CONT requires a WITHIN GROUP clause.";

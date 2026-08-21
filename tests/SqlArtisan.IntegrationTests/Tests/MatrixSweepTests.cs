@@ -21,7 +21,10 @@ public abstract class MatrixSweepTestBase
 {
     private readonly IDatabaseFixture _fixture;
 
-    protected MatrixSweepTestBase(IDatabaseFixture fixture) => _fixture = fixture;
+    protected MatrixSweepTestBase(IDatabaseFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     /// <summary>Idempotent per-engine prerequisites (full-text artifacts) the sweep statements need.</summary>
     protected virtual void PrepareEngine(IDbConnection connection)

@@ -21,7 +21,10 @@ public sealed class Oracle23aiBoundSweepTests : IClassFixture<Oracle23aiFixture>
 {
     private readonly Oracle23aiFixture _fixture;
 
-    public Oracle23aiBoundSweepTests(Oracle23aiFixture fixture) => _fixture = fixture;
+    public Oracle23aiBoundSweepTests(Oracle23aiFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void OracleVersionBounds_AreAcceptedAt23()

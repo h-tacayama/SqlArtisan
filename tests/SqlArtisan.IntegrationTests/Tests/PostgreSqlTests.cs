@@ -13,7 +13,10 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 {
     private readonly PostgreSqlFixture _fixture;
 
-    public PostgreSqlTests(PostgreSqlFixture fixture) : base(fixture) => _fixture = fixture;
+    public PostgreSqlTests(PostgreSqlFixture fixture) : base(fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact] // #401: PostgreSQL resolves a MERGE action clause's column names against
            // the target table alone, so any qualifier there is read as a column name

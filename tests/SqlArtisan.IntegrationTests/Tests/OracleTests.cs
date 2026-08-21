@@ -14,7 +14,10 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 {
     private readonly OracleFixture _fixture;
 
-    public OracleTests(OracleFixture fixture) : base(fixture) => _fixture = fixture;
+    public OracleTests(OracleFixture fixture) : base(fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void Pagination_OffsetFetch_Executes()

@@ -2,7 +2,10 @@ namespace SqlArtisan.TableClassGen.Tests;
 
 internal sealed class TempFile : IDisposable
 {
-    private TempFile(string path) => Path = path;
+    private TempFile(string path)
+    {
+        Path = path;
+    }
 
     public string Path { get; }
 
