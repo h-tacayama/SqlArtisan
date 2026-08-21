@@ -86,9 +86,11 @@ public class SqlMapperCancellationTests
 
     /// <summary>
     /// A canceled token is the one input whose effect is visible without a slow query:
-    /// ADO.NET rejects the command before it runs. Dapper's <c>Execute</c>/
-    /// <c>ExecuteScalar</c> paths surface it as <see cref="TaskCanceledException"/> and
-    /// the reader paths as <see cref="OperationCanceledException"/>, hence ThrowsAny.
+    /// ADO.NET rejects the command before it runs. Which exception says so depends on
+    /// the verb — the <c>Execute*</c> verbs surface
+    /// <see cref="System.Threading.Tasks.TaskCanceledException"/> and the <c>Query*</c>
+    /// verbs plain <see cref="OperationCanceledException"/> — so the assertion is on the
+    /// base type rather than an exact one.
     /// </summary>
     [Fact]
     public async Task AsyncVerbs_CanceledToken_ThrowOperationCanceledException()
