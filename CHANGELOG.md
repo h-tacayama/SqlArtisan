@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
+- **Breaking:** the 21 `...Async` methods on `SqlArtisan.Dapper`'s `SqlMapper` now
+  end in `CancellationToken cancellationToken = default`, threaded to Dapper
+  through `CommandDefinition` — Dapper's own cancellation path. Passing
+  `HttpContext.RequestAborted` no longer means dropping out of the mirrored API to
+  hand-assemble a command, and the package stops disagreeing with
+  `SqlArtisan.ArrayBind`, whose `ExecuteArrayBindAsync` always took one. Adding an
+  optional parameter is source-compatible but binary-breaking: an assembly compiled
+  against an earlier build needs a recompile. It lands before 1.0 because the shape
+  is what expires there — C# forbids a required parameter after an optional one, so
+  a later addition could only arrive as extra overloads, roughly tripling the async
+  surface and leaving `ExecuteAsync(b, null, 30, null, ct)` as the only way to
+  combine a timeout with a token. Every verb keeps the `CommandFlags` Dapper's own
+  string overload passes, so buffering and plan caching are unchanged. The sync
+  methods are untouched: they hand the command to a blocking ADO.NET call with
+  nowhere to put a token. (#486)
 - **Breaking:** the ten public abstract types in `SqlArtisan.Internal` —
   `AggregateFunction`, `AnalyticFunction`, `ArrayCondition`, `BinaryOperator`,
   `GroupingElement`, `JsonbCondition`, `LockBehaviorBase`, `SqlPart`,

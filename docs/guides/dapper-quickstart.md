@@ -100,10 +100,21 @@ The core Dapper verb set is mirrored (`Query`, `QueryFirst`,
 `QueryFirstOrDefault`, `QuerySingle`, `QuerySingleOrDefault`, `Execute`,
 `ExecuteScalar`, `QueryMultiple`, `ExecuteReader`, and their
 `...Async` twins), each taking the usual `transaction` / `commandTimeout`
-arguments — the multi-map `Query` overloads and `CommandDefinition`-based
-calls aren't, so build the statement and call `sql.Parameters.ToDynamicParameters()`
-directly for those. For Oracle `RETURNING ... INTO`, `ExecuteReturningInto`
-returns the parameter bag so the output values can be read back with `Get<T>`.
+arguments, and every `...Async` twin ending in a `cancellationToken`:
+
+```csharp
+IEnumerable<UserDto> recent = await connection.QueryAsync<UserDto>(
+    Select(u.Id, u.Name).From(u).OrderBy(u.Id),
+    commandTimeout: 30,
+    cancellationToken: HttpContext.RequestAborted);
+```
+
+The multi-map `Query` overloads and the `CommandDefinition` overloads aren't
+mirrored, so build the statement and hand `sql.Text` /
+`sql.Parameters.ToDynamicParameters()` to Dapper yourself for those —
+cancellation is not among the reasons to, being a plain argument above. For
+Oracle `RETURNING ... INTO`, `ExecuteReturningInto` returns the parameter bag so
+the output values can be read back with `Get<T>`.
 
 Two execution rules to know from day one:
 
