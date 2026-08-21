@@ -10,8 +10,12 @@ namespace SqlArtisan.Internal;
 /// <see cref="AggregateFunction"/>. Deliberately not a <see cref="SqlExpression"/>
 /// itself: only a completed <c>Over(...)</c> call yields one.
 /// </remarks>
-public abstract class AnalyticFunction() : SqlPart, IIncompleteExpression
+public abstract class AnalyticFunction : SqlPart, IIncompleteExpression
 {
+    private protected AnalyticFunction()
+    {
+    }
+
     string IIncompleteExpression.CompletionHint =>
         "Complete it with .Over(...) — a window function requires an OVER clause.";
 

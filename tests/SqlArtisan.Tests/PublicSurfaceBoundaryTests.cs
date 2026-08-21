@@ -39,9 +39,9 @@ public class PublicSurfaceBoundaryTests
 
     /// <summary>
     /// A type here is legitimately public only because some root-namespace
-    /// signature hands it back. With every constructor internal, one that no
-    /// signature returns can be named but never held — surface a caller cannot
-    /// reach at all.
+    /// signature hands it back. With no constructor reachable from outside the
+    /// assembly, one that no signature returns can be named but never held —
+    /// surface a caller cannot reach at all.
     /// </summary>
     [Fact]
     public void ExportedType_InInternalNamespace_IsHandedBackByARootNamespaceSignature()
@@ -87,30 +87,36 @@ public class PublicSurfaceBoundaryTests
 
     /// <summary>
     /// These types are reached through the <c>Sql.*</c> call, operator, or chain
-    /// step that produces them, so none needs a public constructor. Two spellings
-    /// publish one silently — a primary constructor, whose accessibility follows
-    /// its class, and a class declaring no constructor at all.
+    /// step that produces them, so none needs a constructor another assembly can
+    /// reach. Three spellings publish one silently — a primary constructor, whose
+    /// accessibility follows its class, a class declaring no constructor at all,
+    /// and either of those on an <c>abstract</c> class, where the constructor is
+    /// <c>protected</c> rather than public and so reachable by deriving (#492).
+    /// The root namespace is deliberately outside this check: a generated table
+    /// class derives from <c>DbTableBase</c> in the caller's own assembly.
     /// </summary>
     [Fact]
-    public void ExportedType_InInternalNamespace_HasNoPublicConstructor()
+    public void ExportedType_InInternalNamespace_HasNoConstructorReachableFromOutside()
     {
         List<string> constructible = [.. typeof(Sql).Assembly.GetExportedTypes()
             .Where(t => t.Namespace == InternalNamespace)
-            .Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Length > 0)
+            .Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Any(c => c.IsPublic || c.IsFamily || c.IsFamilyOrAssembly))
             .Select(t => t.Name)
             .OrderBy(n => n, StringComparer.Ordinal)];
 
         Assert.True(
             constructible.Count == 0,
-            $"{constructible.Count} public types in {InternalNamespace} can be constructed "
-                + "directly — give each an internal constructor:\n  "
+            $"{constructible.Count} public types in {InternalNamespace} can be constructed or "
+                + "derived from outside the assembly — make each constructor internal, or "
+                + "private protected on an abstract base:\n  "
                 + string.Join("\n  ", constructible));
     }
 
     /// <summary>
     /// Output positions only — what a caller can end up holding. A parameter type
-    /// does not count: with every constructor internal, a type that is only ever
-    /// accepted is one no caller can obtain to pass.
+    /// does not count: with no constructor reachable from outside the assembly, a
+    /// type that is only ever accepted is one no caller can obtain to pass.
     /// </summary>
     private static IEnumerable<Type> HandedBackTypes(Type type)
     {

@@ -12,6 +12,10 @@ namespace SqlArtisan.Internal;
 /// </remarks>
 public abstract class UnfilteredAggregateFunction : AggregateFunction
 {
+    private protected UnfilteredAggregateFunction()
+    {
+    }
+
     /// <summary>
     /// Restricts the aggregate to rows matching <paramref name="condition"/>:
     /// <c>SUM(x) FILTER (WHERE ...)</c>. Chain <c>.Over(...)</c> afterwards for a

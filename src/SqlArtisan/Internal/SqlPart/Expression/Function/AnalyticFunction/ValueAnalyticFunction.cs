@@ -7,6 +7,10 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public abstract class ValueAnalyticFunction : AnalyticFunction
 {
+    private protected ValueAnalyticFunction()
+    {
+    }
+
     /// <summary>
     /// Turns the analytic function into a window function with an explicit frame:
     /// <c>OVER (... ROWS/RANGE ...)</c>.
