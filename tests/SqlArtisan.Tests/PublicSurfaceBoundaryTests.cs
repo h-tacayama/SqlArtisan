@@ -116,8 +116,8 @@ public class PublicSurfaceBoundaryTests
     }
 
     /// <summary>
-    /// The other four public abstract types here are closed to a foreign
-    /// subclass only by accident of separate mechanisms — a <c>private
+    /// Every public abstract type here that is not on the allowlist is closed to
+    /// a foreign subclass only by accident of separate mechanisms — a <c>private
     /// protected</c> constructor, or an <c>internal abstract</c> member such a
     /// subclass cannot implement (CS0534) — and nothing asserted that. An ADR
     /// 0005 promotion moves a base out of <see cref="InternalNamespace"/>, as
