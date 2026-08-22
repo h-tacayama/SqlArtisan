@@ -34,7 +34,7 @@ return cnn.Execute(
 A list that fits on one line stays on one line — only the shape of the wrap
 is fixed, not whether to wrap.
 
-Packing is deliberate — and stays — in exactly two shapes:
+Packing is deliberate — and stays — in exactly three shapes:
 
 - **Semantic grouping** — lines that group related arguments on purpose,
   e.g. `CatalogColumnIndexReader.Read` splitting inputs from outputs:
@@ -50,9 +50,22 @@ Packing is deliberate — and stays — in exactly two shapes:
   `Assert.Equal("…long guard message…", ex.Message)`,
   `new(@"…regex…", RegexOptions.Compiled)`. Common in `tests/`.
 
-A sync/async twin (`SqlMapper.cs` / `SqlMapper.Async.cs`) must wrap
-identically — #503's divergence between the two is what this rule exists to
-prevent.
+- **A trailing wrapped call** — when the last argument is itself a call
+  that wraps, it opens on the outer call's line and carries the wrap, as
+  `SqlMapper.Async.cs` does on every verb:
+
+  ```csharp
+  => cnn.QuerySingleAsync(type, ToCommand(
+      cnn,
+      sqlBuilder,
+      ...
+  ```
+
+A sync/async twin (`SqlMapper.cs` / `SqlMapper.Async.cs`) keeps its wrapped
+argument lists in the same shape — the packed-vs-one-per-line divergence
+#503 left between the two is what this rule exists to prevent. Body
+structure may differ (the async file routes through a helper the sync file
+has no use for).
 
 ## Wrapped fluent chains
 
@@ -66,6 +79,11 @@ SqlStatement sql =
     .Where(_t.Code == 1)
     .Build();
 ```
+
+For `Format` chains over `SqlBuildingBuffer` (under
+`src/SqlArtisan/Internal/**`), `sql-building-style.md` rule 4 is the
+authority — it additionally lets a short statement chain in a block body
+stay on one line.
 
 ## Wrapped operators
 

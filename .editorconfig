@@ -6,7 +6,8 @@ root = true
 # Default settings:
 # A newline ending every file
 # Use 4 spaces as indentation
-# LF everywhere — the repo has no CRLF file and no .gitattributes to hold that
+# LF everywhere — .gitattributes pins the same at the Git layer, so an
+# autocrlf checkout cannot materialize CRLF for the formatter to reject
 [*]
 insert_final_newline = true
 indent_style = space
