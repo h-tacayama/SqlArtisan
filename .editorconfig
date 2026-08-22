@@ -6,14 +6,16 @@ root = true
 # Default settings:
 # A newline ending every file
 # Use 4 spaces as indentation
+# LF everywhere — the repo has no CRLF file and no .gitattributes to hold that
 [*]
 insert_final_newline = true
 indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
+end_of_line = lf
 
 # Generated code
-[*{_AssemblyInfo.cs,.notsupported.cs,AsmOffsets.cs}]
+[*_AssemblyInfo.cs]
 generated_code = true
 
 # C# files
@@ -129,6 +131,14 @@ dotnet_naming_rule.local_variables_should_be_camel_case.symbols  = local_variabl
 dotnet_naming_rule.local_variables_should_be_camel_case.style    = camel_case_style
 dotnet_naming_symbols.local_variables.applicable_kinds = local
 
+# Layout the formatter can gate (#504) — the wrapping shapes it cannot are
+# prose in .claude/rules/csharp-formatting.md.
+dotnet_style_allow_multiple_blank_lines_experimental = false:warning
+# Interface members omit the modifier at ~10:1 in this repo, so hold that side.
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+# Editors only; dotnet format has no wrapping enforcement.
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+
 # Code style defaults
 csharp_style_namespace_declarations = file_scoped:warning
 csharp_using_directive_placement = outside_namespace:suggestion
@@ -183,7 +193,7 @@ csharp_style_conditional_delegate_call = true:suggestion
 # Other features
 csharp_style_prefer_index_operator = false:none
 csharp_style_prefer_range_operator = false:none
-csharp_style_pattern_local_over_anonymous_function = false:none
+csharp_style_prefer_local_over_anonymous_function = false:none
 
 # Space preferences
 csharp_space_after_cast = false
@@ -218,41 +228,24 @@ dotnet_diagnostic.IDE0130.severity = none
 # (e.g. In, As). Allow them.
 dotnet_diagnostic.CA1716.severity = none
 
-# C++ Files
-[*.{cpp,h,in}]
-curly_bracket_next_line = true
-indent_brace_style = Allman
-
 # Xml project files
-[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
+[*.csproj]
 indent_size = 2
-
-[*.{csproj,vbproj,proj,nativeproj,locproj}]
 # UTF-8 without BOM, matching what `dotnet new` generates. Editors honor
 # charset; dotnet format does not check it for project files (only .cs, #134).
 charset = utf-8
 
 # Xml build files
-[*.builds]
-indent_size = 2
-
-# Xml files
-[*.{xml,stylecop,resx,ruleset}]
-indent_size = 2
-
-# Xml config files
-[*.{props,targets,config,nuspec}]
+[*.props]
 indent_size = 2
 
 # YAML config files
 [*.{yml,yaml}]
 indent_size = 2
 
-# Shell scripts
-[*.sh]
-end_of_line = lf
-[*.{cmd,bat}]
-end_of_line = crlf
+# JSON config files
+[*.json]
+indent_size = 2
 
 # BenchmarkDotNet requires [Benchmark] methods (and their [GlobalSetup] /
 # [GlobalCleanup] hooks) to be instance methods, so CA1822 ("mark members as

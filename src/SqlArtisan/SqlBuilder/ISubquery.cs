@@ -15,7 +15,7 @@ public interface ISubquery
     /// </summary>
     /// <param name="alias">The column alias.</param>
     /// <returns>An aliased scalar-subquery expression.</returns>
-    public ExpressionAlias As(string alias) =>
+    ExpressionAlias As(string alias) =>
         new(new ScalarSubquery(this), alias);
 
     /// <summary>
@@ -25,6 +25,6 @@ public interface ISubquery
     /// </summary>
     /// <param name="alias">The derived-table alias.</param>
     /// <returns>A <see cref="SubqueryDerivedTable"/> naming this subquery.</returns>
-    public SubqueryDerivedTable AsTable(string alias) =>
+    SubqueryDerivedTable AsTable(string alias) =>
         new(this, alias);
 }
