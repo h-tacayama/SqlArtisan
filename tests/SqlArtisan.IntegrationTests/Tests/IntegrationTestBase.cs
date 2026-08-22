@@ -607,15 +607,10 @@ public abstract class IntegrationTestBase
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        // A live token that never fires, rather than the default one the other async
-        // test leaves in place: its CanBeCanceled is true where the default's is false,
-        // which is the property a provider branches on to decide whether to register a
-        // cancellation callback. Passing no token would never send that shape to an
-        // engine (#486).
+        // A live token, not the default: its CanBeCanceled is true, the property a
+        // provider branches on to register a cancellation callback (#486).
         using CancellationTokenSource cts = new();
 
-        // Exercises the async Dapper path end to end: ExecuteAsync (insert),
-        // ExecuteScalarAsync (count), and QueryAsync (read back).
         await connection.ExecuteAsync(
             InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(160, "Async", 20, 99),
             transaction,

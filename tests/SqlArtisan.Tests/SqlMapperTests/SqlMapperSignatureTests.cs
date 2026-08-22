@@ -4,15 +4,9 @@ using DapperMapper = SqlArtisan.Dapper.SqlMapper;
 namespace SqlArtisan.Tests;
 
 /// <summary>
-/// SqlArtisan.Dapper has no public-surface gate of its own — every reflection-based
-/// gate in the repo targets <c>typeof(Sql).Assembly</c> — so the shape #486 settled
-/// on is pinned here. From 1.0 the optional tail is unrecoverable: C# forbids a
-/// required parameter after an optional one, so a verb that ships without the token
-/// can only ever regain it as a second overload family, and
-/// <c>ExecuteAsync(b, commandTimeout: 30, cancellationToken: ct)</c> stops compiling.
-/// The reflection is over the whole package assembly rather than
-/// <see cref="DapperMapper"/> alone: a second public static class (GridReader or
-/// transaction helpers) is exactly where an async verb would land unnoticed.
+/// The #486 shape, pinned here because SqlArtisan.Dapper has no public-surface gate of
+/// its own. From 1.0 the optional tail is unrecoverable: C# forbids a required parameter
+/// after an optional one, so a verb shipping without the token never regains it.
 /// </summary>
 public class SqlMapperSignatureTests
 {
@@ -87,13 +81,9 @@ public class SqlMapperSignatureTests
     }
 
     /// <summary>
-    /// The two families mirror Dapper's verb set together; letting them drift is how
-    /// one gains an argument the other never gets. Both directions are checked — an
-    /// async-only verb drifts the families just as a sync-only one does, and only the
-    /// reverse pass sees it. Two differences are Dapper's own and so are allowed: the
-    /// token, which only the async side can honor, and <c>buffered</c>, which Dapper
-    /// exposes on <c>Query</c> but not on <c>QueryAsync</c> — the async side settles
-    /// it as a <c>CommandFlags</c> instead.
+    /// The two families mirror Dapper's verb set together, so drift either way is how one
+    /// gains an argument the other never gets. Two differences are Dapper's own: the token,
+    /// which only async can honor, and <c>buffered</c>, which async carries in its flags.
     /// </summary>
     [Fact]
     public void SyncAndAsyncMethods_MirrorEachOther()
@@ -207,9 +197,10 @@ public class SqlMapperSignatureTests
         Methods().Where(m => !m.Name.EndsWith(AsyncSuffix, StringComparison.Ordinal));
 
     /// <summary>
-    /// <c>IsSpecialName</c> keeps out property accessors and operators, which are not
-    /// verbs and have no async twin. Reflection orders neither the types nor their
-    /// methods, so the sort is what keeps a failure message the same from run to run.
+    /// The scope is the whole assembly, not <see cref="DapperMapper"/>: a second public
+    /// static class is where an async verb would land unnoticed. <c>IsSpecialName</c>
+    /// drops accessors and operators, which are not verbs and have no async twin;
+    /// reflection orders nothing, so the sort keeps a failure message stable run to run.
     /// </summary>
     private static IEnumerable<MethodInfo> Methods() =>
         typeof(DapperMapper).Assembly.GetExportedTypes()
