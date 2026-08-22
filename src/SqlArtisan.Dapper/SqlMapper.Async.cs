@@ -7,17 +7,9 @@ namespace SqlArtisan.Dapper;
 public static partial class SqlMapper
 {
     /// <summary>
-    /// Builds <paramref name="sqlBuilder"/> into the command shape Dapper's string
-    /// overloads assemble internally — the only shape of theirs that carries a
-    /// <see cref="CancellationToken"/>. <paramref name="flags"/> is whatever Dapper's
-    /// string overload for the same verb passes, which is not uniform: every
-    /// <c>QueryFirst</c>/<c>QuerySingle</c> shape passes <see cref="CommandFlags.None"/>
-    /// and the rest <see cref="CommandFlags.Buffered"/>. Repeating each verb's value pins
-    /// that parity instead of inheriting it from the constructor default, which today
-    /// would land the same behavior either way. The flag is observable only where the
-    /// verb returns a sequence, and <c>SqlMapperBufferingTests</c> gates it there;
-    /// every other verb — row, scalar, reader — runs a Dapper path that never reads
-    /// the flag, so its value is a declaration this doc alone carries.
+    /// The command shape Dapper's string overloads assemble internally — the only one
+    /// of theirs carrying a <see cref="CancellationToken"/>. Each verb repeats its own
+    /// overload's <paramref name="flags"/> rather than inherit the constructor default.
     /// </summary>
     private static CommandDefinition ToCommand(
         IDbConnection cnn,
