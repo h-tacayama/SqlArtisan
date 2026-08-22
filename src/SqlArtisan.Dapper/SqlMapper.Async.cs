@@ -14,7 +14,9 @@ public static partial class SqlMapper
     /// <c>QueryFirst</c>/<c>QuerySingle</c> shape passes <see cref="CommandFlags.None"/>
     /// and the rest <see cref="CommandFlags.Buffered"/>. Repeating each verb's value pins
     /// that parity instead of inheriting it from the constructor default, which today
-    /// would land the same behavior either way.
+    /// would land the same behavior either way. Only the <c>Buffered</c> half is
+    /// observable — <c>SqlMapperBufferingTests</c> gates it; Dapper's row path never
+    /// reads the flag, so the <c>None</c> half is a declaration this doc alone carries.
     /// </summary>
     private static CommandDefinition ToCommand(
         IDbConnection cnn,
@@ -87,18 +89,18 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
     {
-        SqlStatement sql = sqlBuilder.Build(cnn);
-        DynamicParameters parameters = sql.Parameters.ToDynamicParameters();
-        CommandDefinition command = new(
-            sql.Text,
-            parameters,
+        // Built through ToCommand like every other verb so the flags parity lives in
+        // one place; the bag this verb owes its caller comes back off the command.
+        CommandDefinition command = ToCommand(
+            cnn,
+            sqlBuilder,
             transaction,
             commandTimeout,
             commandType,
             CommandFlags.Buffered,
             cancellationToken);
         await cnn.ExecuteAsync(command).ConfigureAwait(false);
-        return parameters;
+        return (DynamicParameters)command.Parameters!;
     }
 
     /// <inheritdoc cref="ExecuteScalarAsync{T}(System.Data.IDbConnection, SqlArtisan.ISqlBuilder, System.Data.IDbTransaction, int?, System.Data.CommandType?, System.Threading.CancellationToken)"/>
