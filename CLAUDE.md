@@ -164,8 +164,9 @@ conventions live in `.claude/rules/` (auto-loaded by path when the matching
 files are edited); procedures live in `.claude/skills/`. Add new conventions
 there, not here — a pointer line in this list is enough.
 
-**Rules** (`.claude/rules/`): code-comments, dbms-differences, docs-style,
-guards-and-empty-states, public-api-design, sql-building-style, unit-tests.
+**Rules** (`.claude/rules/`): code-comments, csharp-formatting,
+dbms-differences, docs-style, guards-and-empty-states, public-api-design,
+sql-building-style, unit-tests.
 
 **Skills** (`.claude/skills/`): sa-add-sql-function, sa-diff-review,
 sa-diff-review-refinement, sa-docs-audit, sa-panel-audit,
@@ -191,7 +192,9 @@ bounded scope — the whole ~700-file codebase belongs to `sa-audit-sweep`,
 which chunks it across single reviewers instead of tripling it.
 
 - Style is enforced by `.editorconfig`. Match it. Key rules: 4-space indent,
-  100-column line limit, explicit types (no `var`), Allman braces.
+  100-column line limit, explicit types (no `var`), Allman braces. Layout the
+  formatter cannot express (wrapped argument lists, fluent-chain breaks) is
+  convention in `.claude/rules/csharp-formatting.md`.
 - Keep DBMS-specific syntax inside `DbmsDialect`; never branch on `Dbms` inside
   function nodes.
 - Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
