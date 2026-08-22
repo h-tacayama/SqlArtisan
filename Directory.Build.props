@@ -52,6 +52,24 @@
   </PropertyGroup>
 
   <!--
+    Binary-compatibility validation against the last published package (#490).
+    ApiCompat compares the packed assembly to the baseline and fails on a removed
+    or reshaped member — the gap the name-keyed gates cannot see, since an added
+    optional parameter leaves the name intact while breaking every caller compiled
+    against the old signature. It runs on pack only, so build/test are untouched;
+    ci.yml packs so a PR sees it, and release.yml packs again before publishing.
+    Bump the baseline at each release (see CLAUDE.md); CompatibilitySuppressions.xml
+    records the 0.x breaks taken since the current one and is discarded with it.
+  -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SqlArtisan'
+                         Or '$(MSBuildProjectName)' == 'SqlArtisan.ArrayBind'
+                         Or '$(MSBuildProjectName)' == 'SqlArtisan.Dapper'
+                         Or '$(MSBuildProjectName)' == 'SqlArtisan.TableClassGen'">
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>0.9.0-beta.1</PackageValidationBaselineVersion>
+  </PropertyGroup>
+
+  <!--
     AOT / trimming compatibility for the core (#158). The builder uses no
     reflection or dynamic codegen (enum handling is `value is Enum`), so it is
     trim/AOT-safe. IsAotCompatible turns on the trim, single-file, and AOT
