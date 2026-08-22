@@ -102,9 +102,9 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         using IDbTransaction transaction = connection.BeginTransaction();
 
         // A live token, as in Async_QueryAndExecute_RoundTrip. This verb is the one that
-        // does not go through ToCommand — it hand-builds its CommandDefinition to keep
-        // the bag it returns — and this is where that hand-built command meets a real
-        // engine; SqlMapperCancellationTests covers the verb in-process (#486).
+        // hands back the parameter bag off the command it ran, and only a real engine
+        // populates the output values in it; SqlMapperCancellationTests covers the
+        // verb's token wiring in-process (#486).
         using CancellationTokenSource cts = new();
 
         DynamicParameters outputs = await connection.ExecuteReturningIntoAsync(

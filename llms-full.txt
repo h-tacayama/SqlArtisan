@@ -5561,8 +5561,7 @@ The packages expose these namespaces, and they carry different promises.
 The split is gated, not merely stated. A public type in `SqlArtisan.Internal`
 that no public signature hands back fails the test suite, as does one that
 offers a constructor another assembly can reach — so the namespace cannot
-quietly accumulate
-surface the commitment above was never meant to cover.
+quietly accumulate surface the commitment above was never meant to cover.
 
 ## What counts as breaking
 
