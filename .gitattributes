@@ -1,0 +1,3 @@
+# Pin LF at the Git layer so autocrlf checkouts cannot fight the
+# .editorconfig end_of_line gate (dotnet format flags CRLF per line).
+* text=auto eol=lf

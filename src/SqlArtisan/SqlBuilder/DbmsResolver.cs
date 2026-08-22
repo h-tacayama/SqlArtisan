@@ -64,6 +64,4 @@ public static class DbmsResolver
 
         return identified;
     }
-
-
 }

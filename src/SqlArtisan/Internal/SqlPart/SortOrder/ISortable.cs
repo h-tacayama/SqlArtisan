@@ -5,14 +5,14 @@ namespace SqlArtisan.Internal;
 internal interface ISortable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder Asc { get; }
+    SortOrder Asc { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder Desc { get; }
+    SortOrder Desc { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NullsFirst { get; }
+    SortOrder NullsFirst { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NullsLast { get; }
+    SortOrder NullsLast { get; }
 }

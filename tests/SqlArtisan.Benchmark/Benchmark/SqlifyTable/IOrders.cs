@@ -8,11 +8,11 @@ namespace SqlArtisan.Benchmark.SqlifyTable;
 public interface IOrders : ITable
 {
     [Column("id")]
-    public Column<int> Id { get; }
+    Column<int> Id { get; }
 
     [Column("user_id")]
-    public Column<int> UserId { get; }
+    Column<int> UserId { get; }
 
     [Column("order_date")]
-    public Column<DateTime> OrderDate { get; }
+    Column<DateTime> OrderDate { get; }
 }
