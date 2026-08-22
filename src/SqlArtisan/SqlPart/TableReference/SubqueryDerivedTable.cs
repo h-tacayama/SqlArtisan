@@ -12,8 +12,10 @@ public sealed class SubqueryDerivedTable : DerivedTableBase, IColumnAccessor
 {
     private readonly ISubquery _subquery;
 
-    internal SubqueryDerivedTable(ISubquery subquery, string name) : base(name) =>
+    internal SubqueryDerivedTable(ISubquery subquery, string name) : base(name)
+    {
         _subquery = subquery;
+    }
 
     /// <inheritdoc/>
     public DbColumn Column(string name) => new(this, name);

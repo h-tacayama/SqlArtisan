@@ -23,7 +23,10 @@ public abstract class IntegrationTestBase
 {
     private readonly IDatabaseFixture _fixture;
 
-    protected IntegrationTestBase(IDatabaseFixture fixture) => _fixture = fixture;
+    protected IntegrationTestBase(IDatabaseFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void SelectWhere_FiltersAndBindsParameter()

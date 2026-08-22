@@ -8,7 +8,10 @@ internal sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
 {
     private readonly Dictionary<string, string> _values;
 
-    public TestAnalyzerConfigOptions(Dictionary<string, string> values) => _values = values;
+    public TestAnalyzerConfigOptions(Dictionary<string, string> values)
+    {
+        _values = values;
+    }
 
     public override bool TryGetValue(string key, out string value) => _values.TryGetValue(key, out value!);
 
@@ -26,7 +29,10 @@ internal sealed class KeysThrowingAnalyzerConfigOptions : AnalyzerConfigOptions
 {
     private readonly Dictionary<string, string> _values;
 
-    public KeysThrowingAnalyzerConfigOptions(Dictionary<string, string> values) => _values = values;
+    public KeysThrowingAnalyzerConfigOptions(Dictionary<string, string> values)
+    {
+        _values = values;
+    }
 
     public override bool TryGetValue(string key, out string value) => _values.TryGetValue(key, out value!);
 }

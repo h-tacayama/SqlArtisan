@@ -19,7 +19,10 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
 {
     private readonly MySqlFixture _fixture;
 
-    public MySqlTableClassGenTests(MySqlFixture fixture) => _fixture = fixture;
+    public MySqlTableClassGenTests(MySqlFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void GenerateTables_MySql_ExtractsSeededSchema()
@@ -121,7 +124,10 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
 {
     private readonly SqlServerFixture _fixture;
 
-    public SqlServerTableClassGenTests(SqlServerFixture fixture) => _fixture = fixture;
+    public SqlServerTableClassGenTests(SqlServerFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void GenerateTables_SqlServer_ExtractsSeededSchema()
@@ -244,7 +250,10 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
 {
     private readonly PostgreSqlFixture _fixture;
 
-    public PostgreSqlTableClassGenTests(PostgreSqlFixture fixture) => _fixture = fixture;
+    public PostgreSqlTableClassGenTests(PostgreSqlFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void GenerateTables_PostgreSql_ExtractsSeededSchema()
@@ -360,7 +369,10 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
 {
     private readonly OracleFixture _fixture;
 
-    public OracleTableClassGenTests(OracleFixture fixture) => _fixture = fixture;
+    public OracleTableClassGenTests(OracleFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     // Oracle reads ALL_TAB_COLUMNS rather than information_schema, so its column
     // order and its NULLABLE mapping are only proven here.

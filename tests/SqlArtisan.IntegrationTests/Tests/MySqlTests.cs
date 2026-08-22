@@ -14,7 +14,10 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 {
     private readonly MySqlFixture _fixture;
 
-    public MySqlTests(MySqlFixture fixture) : base(fixture) => _fixture = fixture;
+    public MySqlTests(MySqlFixture fixture) : base(fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void Pagination_LimitOffset_Executes()

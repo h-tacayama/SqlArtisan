@@ -7,8 +7,10 @@ public sealed class SqlParameters
 {
     private readonly List<KeyValuePair<string, BindValue>> _parameters;
 
-    internal SqlParameters(List<KeyValuePair<string, BindValue>> parameters) =>
+    internal SqlParameters(List<KeyValuePair<string, BindValue>> parameters)
+    {
         _parameters = parameters;
+    }
 
     /// <summary>
     /// Gets the number of bound parameters.

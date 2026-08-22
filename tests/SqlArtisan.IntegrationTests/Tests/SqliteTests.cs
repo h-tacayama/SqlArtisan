@@ -12,7 +12,10 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 {
     private readonly SqliteFixture _fixture;
 
-    public SqliteTests(SqliteFixture fixture) : base(fixture) => _fixture = fixture;
+    public SqliteTests(SqliteFixture fixture) : base(fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public void Pagination_LimitOffset_Executes()
