@@ -5,7 +5,7 @@ namespace SqlArtisan.Tests;
 /// <summary>
 /// The inverse of the #244 boundary rule <see cref="PublicSurfaceNamingTests"/>
 /// exercises: that one says every type a user must NAME lives in the root
-/// namespace; these three say nothing else becomes public surface by accident —
+/// namespace; these four say nothing else becomes public surface by accident —
 /// from 1.0 a slipped <c>public</c> is a SemVer promise nobody meant to make.
 /// </summary>
 public class PublicSurfaceBoundaryTests
@@ -92,16 +92,18 @@ public class PublicSurfaceBoundaryTests
     /// accessibility follows its class, a class declaring no constructor at all,
     /// and either of those on an <c>abstract</c> class, where the constructor is
     /// <c>protected</c> rather than public and so reachable by deriving (#492).
-    /// The root namespace is deliberately outside this check: a generated table
-    /// class derives from <c>DbTableBase</c> in the caller's own assembly.
+    /// The root namespace cannot take the same blanket — deriving is the
+    /// documented use of three bases there (<see cref="DbTableBase"/>,
+    /// <see cref="CteBase"/>, <see cref="DerivedTableBase"/>) — so
+    /// <see cref="ExportedAbstractType_InRootNamespace_IsDerivableOnlyWhenAllowlisted"/>
+    /// scans it against that allowlist rather than leaving it unchecked.
     /// </summary>
     [Fact]
     public void ExportedType_InInternalNamespace_HasNoConstructorReachableFromOutside()
     {
         List<string> constructible = [.. typeof(Sql).Assembly.GetExportedTypes()
             .Where(t => t.Namespace == InternalNamespace)
-            .Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .Any(c => c.IsPublic || c.IsFamily || c.IsFamilyOrAssembly))
+            .Where(HasConstructorReachableFromOutside)
             .Select(t => t.Name)
             .OrderBy(n => n, StringComparer.Ordinal)];
 
@@ -112,6 +114,63 @@ public class PublicSurfaceBoundaryTests
                 + "private protected on an abstract base:\n  "
                 + string.Join("\n  ", constructible));
     }
+
+    /// <summary>
+    /// Every public abstract type here that is not on the allowlist is closed to
+    /// a foreign subclass only by accident of separate mechanisms — a <c>private
+    /// protected</c> constructor, or an <c>internal abstract</c> member such a
+    /// subclass cannot implement (CS0534) — and nothing asserted that. An ADR
+    /// 0005 promotion moves a base out of <see cref="InternalNamespace"/>, as
+    /// #488 did, and the #492 gate stops scanning it with no test failing; a
+    /// promoted base that implements every abstract member and keeps a protected
+    /// constructor taking a raw token reopens the hole #492 closed, silently.
+    /// Deriving here is a surface decision, so it is made once in the allowlist.
+    /// </summary>
+    [Fact]
+    public void ExportedAbstractType_InRootNamespace_IsDerivableOnlyWhenAllowlisted()
+    {
+        // By type rather than by name: renaming or unexporting one of the three
+        // fails to compile here instead of silently shrinking what is permitted.
+        HashSet<Type> derivableByDesign =
+            [typeof(DbTableBase), typeof(CteBase), typeof(DerivedTableBase)];
+
+        List<string> derivable = [.. typeof(Sql).Assembly.GetExportedTypes()
+            // A static class is abstract and sealed; only an open base is derivable.
+            .Where(t => t.Namespace == RootNamespace && t.IsClass && t.IsAbstract && !t.IsSealed)
+            .Where(t => !derivableByDesign.Contains(t))
+            .Where(IsExternallyDerivable)
+            .Select(t => t.Name)
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.True(
+            derivable.Count == 0,
+            $"{derivable.Count} public abstract types in {RootNamespace} can be derived from "
+                + "outside the assembly — make the constructor private protected, or, where "
+                + "deriving is the documented use, say so by naming the type in this test's "
+                + "allowlist and in its XML docs:\n  "
+                + string.Join("\n  ", derivable));
+    }
+
+    /// <summary>
+    /// Both derivation gates turn on one question — can another assembly reach a
+    /// constructor? — so they read the answer from here rather than each
+    /// spelling out the three accessibilities that give it.
+    /// </summary>
+    private static bool HasConstructorReachableFromOutside(Type type) =>
+        type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+            .Any(c => c.IsPublic || c.IsFamily || c.IsFamilyOrAssembly);
+
+    /// <summary>
+    /// A reachable constructor alone does not make a base derivable: an abstract
+    /// member this assembly keeps to itself leaves a foreign subclass unable to
+    /// compile (CS0534), closing the type whatever its constructor says.
+    /// Reflection resolves each virtual slot to its most derived declaration, so
+    /// a member still abstract here is one no base along the chain implemented.
+    /// </summary>
+    private static bool IsExternallyDerivable(Type type) =>
+        HasConstructorReachableFromOutside(type)
+        && !type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+            .Any(m => m.IsAbstract && (m.IsAssembly || m.IsFamilyAndAssembly));
 
     /// <summary>
     /// Output positions only — what a caller can end up holding. A parameter type
