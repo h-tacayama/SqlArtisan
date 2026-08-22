@@ -93,18 +93,15 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
-    [Fact] // The async counterpart of ReturningInto: ExecuteReturningIntoAsync
-           // runs the statement and returns the populated bag.
+    [Fact]
     public async Task ReturningIntoAsync_OnDelete_BindsOutputParameter()
     {
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        // A live token, as in Async_QueryAndExecute_RoundTrip. This verb is the one that
-        // hands back the parameter bag off the command it ran, and only a real engine
-        // populates the output values in it; SqlMapperCancellationTests covers the
-        // verb's token wiring in-process (#486).
+        // A live token, as in Async_QueryAndExecute_RoundTrip: only a real engine
+        // populates the output bag this verb hands back (#486).
         using CancellationTokenSource cts = new();
 
         DynamicParameters outputs = await connection.ExecuteReturningIntoAsync(

@@ -6,16 +6,10 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Tests;
 
 /// <summary>
-/// The flags half of the command shape <c>ToCommand</c> assembles: each verb passes
-/// the <see cref="CommandFlags"/> Dapper's own string overload for that verb passes,
-/// which nothing but that method's doc says. <see cref="CommandFlags.Buffered"/> is
-/// what makes a <c>QueryAsync</c> result a materialized sequence instead of a
-/// deferred one holding the reader; a copy of the <c>QueryFirst</c> template would
-/// pass <see cref="CommandFlags.None"/> there and leave user code that closes the
-/// connection before enumerating to break at run time, every other gate green. The
-/// converse mix-up is not gatable and not worth gating: Dapper's row path never
-/// consults the flag, so <c>Buffered</c> on <c>QueryFirst</c>/<c>QuerySingle</c> is
-/// indistinguishable from <c>None</c> and stays pinned by <c>ToCommand</c>'s doc.
+/// <see cref="CommandFlags.Buffered"/> is what materializes a <c>QueryAsync</c> result
+/// instead of leaving it deferred on the reader, so a <c>QueryFirst</c>-template copy
+/// passing <see cref="CommandFlags.None"/> breaks user code with every other gate green.
+/// The converse is not gatable: Dapper's row path never consults the flag.
 /// </summary>
 public class SqlMapperBufferingTests
 {
@@ -24,11 +18,9 @@ public class SqlMapperBufferingTests
         ISqlBuilder sqlBuilder);
 
     /// <summary>
-    /// Every async verb returning a sequence, keyed the way
-    /// <see cref="SqlMapperSignatureTests"/> keys the reflected ones so
-    /// <see cref="SequenceVerbs_CoverEverySequenceReturningAsyncMethod"/> can hold
-    /// the two sets equal. <c>Cast</c> only re-types the sequence the verb returned;
-    /// a deferred one stays deferred through it.
+    /// Every async verb returning a sequence, keyed as <see cref="SqlMapperSignatureTests"/>
+    /// keys the reflected ones, so the coverage test below can hold the two sets equal.
+    /// <c>Cast</c> only re-types: a deferred sequence stays deferred.
     /// </summary>
     private static readonly (string Key, SequenceVerb Invoke)[] SequenceVerbs =
     [
