@@ -10,11 +10,24 @@ namespace SqlArtisan.Tests;
 /// required parameter after an optional one, so a verb that ships without the token
 /// can only ever regain it as a second overload family, and
 /// <c>ExecuteAsync(b, commandTimeout: 30, cancellationToken: ct)</c> stops compiling.
+/// The reflection is over the whole package assembly rather than
+/// <see cref="DapperMapper"/> alone: a second public static class (GridReader or
+/// transaction helpers) is exactly where an async verb would land unnoticed.
 /// </summary>
 public class SqlMapperSignatureTests
 {
     private const string AsyncSuffix = "Async";
     private const string BufferedParameter = "buffered";
+
+    /// <summary>
+    /// Methods deliberately outside the sync/async mirror, keyed as
+    /// <see cref="Key"/> keys them. An entry is the decision not to write the other
+    /// half, so it carries the reason: a pure conversion has nothing to await.
+    /// </summary>
+    private static readonly string[] UnpairedMethods =
+    [
+        "SqlParametersExtensions.ToDynamicParameters",
+    ];
 
     /// <summary>
     /// The key <see cref="SqlMapperCancellationTests"/> matches its own coverage list
@@ -23,6 +36,17 @@ public class SqlMapperSignatureTests
     /// </summary>
     internal static string[] AsyncMethodKeys() =>
         [.. AsyncMethods().Select(Key).OrderBy(k => k, StringComparer.Ordinal)];
+
+    /// <summary>
+    /// The async verbs whose result is a sequence, and so the ones whose
+    /// <c>CommandFlags</c> choice is observable at all.
+    /// <see cref="SqlMapperBufferingTests"/> holds its own table equal to this.
+    /// </summary>
+    internal static string[] SequenceReturningAsyncMethodKeys() =>
+        [.. AsyncMethods()
+            .Where(ReturnsSequence)
+            .Select(Key)
+            .OrderBy(k => k, StringComparer.Ordinal)];
 
     /// <summary>
     /// The whole point of #486: a verb whose token is merely optional is still
@@ -64,25 +88,28 @@ public class SqlMapperSignatureTests
 
     /// <summary>
     /// The two families mirror Dapper's verb set together; letting them drift is how
-    /// one gains an argument the other never gets. Two differences are Dapper's own and
-    /// so are allowed: the token, which only the async side can honor, and
-    /// <c>buffered</c>, which Dapper exposes on <c>Query</c> but not on
-    /// <c>QueryAsync</c> — the async side settles it as a <c>CommandFlags</c> instead.
+    /// one gains an argument the other never gets. Both directions are checked — an
+    /// async-only verb drifts the families just as a sync-only one does, and only the
+    /// reverse pass sees it. Two differences are Dapper's own and so are allowed: the
+    /// token, which only the async side can honor, and <c>buffered</c>, which Dapper
+    /// exposes on <c>Query</c> but not on <c>QueryAsync</c> — the async side settles
+    /// it as a <c>CommandFlags</c> instead.
     /// </summary>
     [Fact]
-    public void AsyncMethods_MirrorTheSyncSignaturesPlusTheToken()
+    public void SyncAndAsyncMethods_MirrorEachOther()
     {
+        MethodInfo[] syncMethods = [.. SyncMethods().Where(IsPaired)];
+        MethodInfo[] asyncMethods = [.. AsyncMethods().Where(IsPaired)];
         List<string> mismatches = [];
 
-        foreach (MethodInfo sync in SyncMethods())
+        foreach (MethodInfo sync in syncMethods)
         {
-            string key = Key(sync);
-            string twinKey = sync.Name + AsyncSuffix + ArityTag(sync);
-            MethodInfo? async = AsyncMethods().FirstOrDefault(m => Key(m) == twinKey);
+            string twinKey = Qualify(sync, sync.Name + AsyncSuffix);
+            MethodInfo? async = Array.Find(asyncMethods, m => Key(m) == twinKey);
 
             if (async is null)
             {
-                mismatches.Add($"{key} has no {twinKey} twin");
+                mismatches.Add($"{Key(sync)} has no {twinKey} twin");
                 continue;
             }
 
@@ -94,8 +121,18 @@ public class SqlMapperSignatureTests
             if (!asyncParams.SequenceEqual([.. syncParams, typeof(CancellationToken)]))
             {
                 mismatches.Add(
-                    $"{twinKey} is not {key}'s parameters (less any `{BufferedParameter}`) "
-                        + "plus a CancellationToken");
+                    $"{twinKey} is not {Key(sync)}'s parameters (less any "
+                        + $"`{BufferedParameter}`) plus a CancellationToken");
+            }
+        }
+
+        foreach (MethodInfo async in asyncMethods)
+        {
+            string twinKey = Qualify(async, async.Name[..^AsyncSuffix.Length]);
+
+            if (!Array.Exists(syncMethods, m => Key(m) == twinKey))
+            {
+                mismatches.Add($"{Key(async)} has no {twinKey} twin");
             }
         }
 
@@ -105,9 +142,34 @@ public class SqlMapperSignatureTests
                 + string.Join("\n  ", mismatches));
     }
 
+    /// <summary>
+    /// An entry that matches nothing exempts nothing, and reads as a standing
+    /// decision about a method that has since been renamed or removed.
+    /// </summary>
+    [Fact]
+    public void UnpairedMethods_NameMethodsThatExist()
+    {
+        List<string> stale = [.. UnpairedMethods
+            .Where(key => !Methods().Any(m => Key(m) == key))
+            .OrderBy(k => k, StringComparer.Ordinal)];
+
+        Assert.True(
+            stale.Count == 0,
+            $"{stale.Count} allowlist entries name no public static method:\n  "
+                + string.Join("\n  ", stale));
+    }
+
     private static bool EndsWithOptionalToken(MethodInfo method)
     {
         ParameterInfo[] parameters = method.GetParameters();
+
+        // An argument-less async method is an offender like any other, and naming it
+        // is the gate's job — indexing the empty tail would kill the run instead.
+        if (parameters.Length == 0)
+        {
+            return false;
+        }
+
         ParameterInfo last = parameters[^1];
 
         return last.ParameterType == typeof(CancellationToken)
@@ -115,12 +177,23 @@ public class SqlMapperSignatureTests
             && last.HasDefaultValue;
     }
 
+    private static bool ReturnsSequence(MethodInfo method) =>
+        method.ReturnType.IsGenericType
+            && method.ReturnType.GetGenericArguments()[0] is { IsGenericType: true } result
+            && result.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+
+    private static bool IsPaired(MethodInfo method) =>
+        !UnpairedMethods.Contains(Key(method));
+
     /// <summary>
     /// A generic verb and its <see cref="Type"/>-taking and <see langword="dynamic"/>
     /// siblings share a name; the arity tag is what tells them apart. Nothing else in
-    /// the class collides, so name plus tag is unique.
+    /// a class collides, so type plus name plus tag is unique across the assembly.
     /// </summary>
-    private static string Key(MethodInfo method) => method.Name + ArityTag(method);
+    private static string Key(MethodInfo method) => Qualify(method, method.Name);
+
+    private static string Qualify(MethodInfo method, string name) =>
+        $"{method.DeclaringType!.Name}.{name}{ArityTag(method)}";
 
     private static string ArityTag(MethodInfo method) =>
         method.IsGenericMethodDefinition ? "<T>"
@@ -133,6 +206,14 @@ public class SqlMapperSignatureTests
     private static IEnumerable<MethodInfo> SyncMethods() =>
         Methods().Where(m => !m.Name.EndsWith(AsyncSuffix, StringComparison.Ordinal));
 
+    /// <summary>
+    /// <c>IsSpecialName</c> keeps out property accessors and operators, which are not
+    /// verbs and have no async twin. Reflection orders neither the types nor their
+    /// methods, so the sort is what keeps a failure message the same from run to run.
+    /// </summary>
     private static IEnumerable<MethodInfo> Methods() =>
-        typeof(DapperMapper).GetMethods(BindingFlags.Public | BindingFlags.Static);
+        typeof(DapperMapper).Assembly.GetExportedTypes()
+            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            .Where(m => !m.IsSpecialName)
+            .OrderBy(Key, StringComparer.Ordinal);
 }
