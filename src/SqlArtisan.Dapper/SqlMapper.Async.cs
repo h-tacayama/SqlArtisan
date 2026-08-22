@@ -14,9 +14,10 @@ public static partial class SqlMapper
     /// <c>QueryFirst</c>/<c>QuerySingle</c> shape passes <see cref="CommandFlags.None"/>
     /// and the rest <see cref="CommandFlags.Buffered"/>. Repeating each verb's value pins
     /// that parity instead of inheriting it from the constructor default, which today
-    /// would land the same behavior either way. Only the <c>Buffered</c> half is
-    /// observable — <c>SqlMapperBufferingTests</c> gates it; Dapper's row path never
-    /// reads the flag, so the <c>None</c> half is a declaration this doc alone carries.
+    /// would land the same behavior either way. The flag is observable only where the
+    /// verb returns a sequence, and <c>SqlMapperBufferingTests</c> gates it there;
+    /// every other verb — row, scalar, reader — runs a Dapper path that never reads
+    /// the flag, so its value is a declaration this doc alone carries.
     /// </summary>
     private static CommandDefinition ToCommand(
         IDbConnection cnn,

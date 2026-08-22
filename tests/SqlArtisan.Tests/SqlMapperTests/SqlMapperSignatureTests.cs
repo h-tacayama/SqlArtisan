@@ -162,6 +162,14 @@ public class SqlMapperSignatureTests
     private static bool EndsWithOptionalToken(MethodInfo method)
     {
         ParameterInfo[] parameters = method.GetParameters();
+
+        // An argument-less async method is an offender like any other, and naming it
+        // is the gate's job — indexing the empty tail would kill the run instead.
+        if (parameters.Length == 0)
+        {
+            return false;
+        }
+
         ParameterInfo last = parameters[^1];
 
         return last.ParameterType == typeof(CancellationToken)
@@ -199,16 +207,13 @@ public class SqlMapperSignatureTests
         Methods().Where(m => !m.Name.EndsWith(AsyncSuffix, StringComparison.Ordinal));
 
     /// <summary>
-    /// <c>DeclaredOnly</c> keeps <see cref="object"/>'s statics out should a public
-    /// non-static class ever land here; <c>IsSpecialName</c> keeps out property
-    /// accessors and operators, which are not verbs and have no async twin. Reflection
-    /// orders neither the types nor their methods, so the sort is what keeps a failure
-    /// message the same from run to run.
+    /// <c>IsSpecialName</c> keeps out property accessors and operators, which are not
+    /// verbs and have no async twin. Reflection orders neither the types nor their
+    /// methods, so the sort is what keeps a failure message the same from run to run.
     /// </summary>
     private static IEnumerable<MethodInfo> Methods() =>
         typeof(DapperMapper).Assembly.GetExportedTypes()
-            .SelectMany(t => t.GetMethods(
-                BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly))
+            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static))
             .Where(m => !m.IsSpecialName)
             .OrderBy(Key, StringComparer.Ordinal);
 }
