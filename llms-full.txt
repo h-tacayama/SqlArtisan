@@ -1048,7 +1048,7 @@ The row counts are parameterized like other literals, so the bind-parameter pref
 
 #### TOP (SQL Server)
 
-SQL Server also spells row limiting as a `TOP (n)` select prefix. Plain `TOP (n)` overlaps `OFFSET/FETCH`, but **`TOP (n) WITH TIES` has no `OFFSET/FETCH` equivalent** — it also returns the rows tied with the last one under the `ORDER BY`:
+SQL Server also spells row limiting as a `TOP (n)` select prefix. **`TOP (n) WITH TIES` also returns the rows tied with the last one under the `ORDER BY`**:
 
 ```csharp
 UsersTable u = new();
@@ -1319,7 +1319,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server. Oracle does not support multi-row `VALUES`; it uses `INSERT ALL` instead.
+**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server; Oracle added it in 23ai. For Oracle batch loads on any version, [`SqlArtisan.ArrayBind`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) runs N single-row statements in one round trip.
 
 When the rows come from data rather than fixed literals, pass the whole collection to `Values(...)` in one call — a `List<object[]>`, an `object[][]` (e.g. from `.Select(...).ToArray()`), or any `IEnumerable<object[]>` — instead of a `Values(...)` call per row:
 
@@ -2529,7 +2529,7 @@ SqlStatement sql =
 // WHERE "u".id = ANY (:0)
 ```
 
-PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length (one plan-cache entry, no parameter-count ceiling), and an empty collection is legal: it binds normally and matches no rows, where `In(...)` rejects an empty list at the call site. Element types follow the [bind-parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
+PostgreSQL only. Unlike `In(values)` — one bind per element — the SQL text is identical for every list length, and an empty collection is legal: it binds normally and matches no rows, where `In(...)` rejects an empty list at the call site. Element types follow the [bind-parameter types](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#bind-parameter-types); the quantifier also accepts any other array expression — an `ARRAY[...]` constructor or an array-typed column.
 
 Executing through SqlArtisan.Dapper preserves the array as a single ADO.NET parameter (it is exempt from Dapper's list expansion); Npgsql maps the .NET array to the PostgreSQL array type natively.
 
@@ -5214,8 +5214,9 @@ pins all of its own recipes this way.
 [← Back to README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md) ·
 [Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
-Oracle has no multi-row `VALUES`, so batch loads through the core builder run
-row by row — fine for a handful of rows, a ceiling for thousands.
+Oracle gained multi-row `VALUES` only in 23ai, so on earlier versions batch
+loads through the core builder run row by row — fine for a handful of rows, a
+ceiling for thousands.
 `SqlArtisan.ArrayBind` is the execution-layer companion for that case: build N
 statements of identical shape (typically one `INSERT`/`UPDATE`/`DELETE` per
 row) the normal way, through the query builder, and it runs them together in

@@ -340,7 +340,9 @@ const reviewResults = await pipeline(
   (unit) =>
     agent(
       `Deep-review this SqlArtisan file group as part of a larger multi-group
-pass. Gates already ran and passed/failed as follows — do not re-run them:
+pass. This audits the tree as it stands: phrase findings and the chunk verdict
+in audit terms (defects standing in shipped code), never as a merge/diff
+verdict. Gates already ran and passed/failed as follows — do not re-run them:
 ${gates.summary}
 
 GROUP: ${unit.category}${unit.chunkLabel !== unit.category ? ` — ${unit.chunkLabel}` : ''}
@@ -354,7 +356,8 @@ ${unit.reviewDimensions.map((d) => `- ${d}`).join('\n')}
 Follow the sa-diff-review skill's checklist for whichever of these
 dimensions apply, and use the sa-run-sql-harness skill for any empirical
 verification (DBMS grammar, guard enforcement, allocation) — do not assume
-emitted SQL or allocation behavior from memory. Skip the skill's own gate
+emitted SQL or allocation behavior from memory. Build any harness under
+/tmp (that skill's convention), never inside the repository working tree. Skip the skill's own gate
 step (already covered above) and skip re-scoping the diff (file list is
 fixed above); otherwise follow it end to end. Skip the skill's adversarial
 verification pass too — this workflow runs it as its own Verify stage on

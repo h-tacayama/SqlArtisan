@@ -32,15 +32,18 @@ internal sealed class DbConnectionInfo(
 
     public IDbConnection OpenConnection()
     {
-        IDbConnection connection = CreateConnection();
+        // CreateConnection sits inside the guard too: a malformed connection string
+        // throws at construction on most drivers, before Open is ever reached.
+        IDbConnection? connection = null;
 
         try
         {
+            connection = CreateConnection();
             connection.Open();
         }
         catch (Exception ex)
         {
-            connection.Dispose();
+            connection?.Dispose();
 
             throw new CommandLineException(
                 $"{CannotConnectMessage} The driver reported: {ex.Message}");

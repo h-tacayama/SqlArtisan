@@ -612,7 +612,7 @@ The row counts are parameterized like other literals, so the bind-parameter pref
 
 #### TOP (SQL Server)
 
-SQL Server also spells row limiting as a `TOP (n)` select prefix. Plain `TOP (n)` overlaps `OFFSET/FETCH`, but **`TOP (n) WITH TIES` has no `OFFSET/FETCH` equivalent** — it also returns the rows tied with the last one under the `ORDER BY`:
+SQL Server also spells row limiting as a `TOP (n)` select prefix. **`TOP (n) WITH TIES` also returns the rows tied with the last one under the `ORDER BY`**:
 
 ```csharp
 UsersTable u = new();
@@ -883,7 +883,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server. Oracle does not support multi-row `VALUES`; it uses `INSERT ALL` instead.
+**Note:** Multi-row `VALUES` is supported by MySQL, PostgreSQL, SQLite, and SQL Server; Oracle added it in 23ai. For Oracle batch loads on any version, [`SqlArtisan.ArrayBind`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md) runs N single-row statements in one round trip.
 
 When the rows come from data rather than fixed literals, pass the whole collection to `Values(...)` in one call — a `List<object[]>`, an `object[][]` (e.g. from `.Select(...).ToArray()`), or any `IEnumerable<object[]>` — instead of a `Values(...)` call per row:
 

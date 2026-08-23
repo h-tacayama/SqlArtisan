@@ -17,8 +17,11 @@ internal sealed class ConsoleUI
             return ReadSqliteConnectionInfo();
         }
 
-        Console.Write("Host: ");
-        string host = Console.ReadLine() ?? "localhost";
+        // ReadLine returns "" on a blank Enter (null only at EOF), so every default
+        // here goes through IsNullOrWhiteSpace — the idiom ReadPort set (#430).
+        Console.Write("Host (default localhost): ");
+        string hostInput = Console.ReadLine() ?? string.Empty;
+        string host = string.IsNullOrWhiteSpace(hostInput) ? "localhost" : hostInput;
 
         int port = ReadPort(dbms);
 
@@ -28,8 +31,9 @@ internal sealed class ConsoleUI
         string? schema = null;
         if (dbms == Dbms.PostgreSql)
         {
-            Console.Write("Schema: ");
-            schema = Console.ReadLine() ?? string.Empty;
+            Console.Write("Schema (default public): ");
+            string schemaInput = Console.ReadLine() ?? string.Empty;
+            schema = string.IsNullOrWhiteSpace(schemaInput) ? "public" : schemaInput;
         }
         else if (dbms == Dbms.SqlServer)
         {
@@ -101,16 +105,20 @@ internal sealed class ConsoleUI
         Console.WriteLine();
         Console.WriteLine("Please enter code generation settings.");
 
-        Console.Write("Namespace: ");
-        string @namespace = Console.ReadLine() ?? "SqlArtisan.TableDefinitions";
+        Console.Write("Namespace (default SqlArtisan.TableDefinitions): ");
+        string namespaceInput = Console.ReadLine() ?? string.Empty;
+        string @namespace = string.IsNullOrWhiteSpace(namespaceInput)
+            ? "SqlArtisan.TableDefinitions"
+            : namespaceInput;
 
         Console.Write("Convert object names to lowercase (y/n): ");
         string lowercaseNamesStr = Console.ReadLine() ?? "n";
         bool lowercaseNames =
             lowercaseNamesStr.Trim().StartsWith("y", StringComparison.OrdinalIgnoreCase);
 
-        Console.Write("Output directory: ");
-        string outputDirectory = Console.ReadLine() ?? ".";
+        Console.Write("Output directory (default .): ");
+        string outputInput = Console.ReadLine() ?? string.Empty;
+        string outputDirectory = string.IsNullOrWhiteSpace(outputInput) ? "." : outputInput;
 
         Console.Write("Create subfolders by table name initial (y/n): ");
         string createSubFoldersStr = Console.ReadLine() ?? "n";

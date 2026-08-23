@@ -3,8 +3,9 @@
 [← Back to README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md) ·
 [Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
-Oracle has no multi-row `VALUES`, so batch loads through the core builder run
-row by row — fine for a handful of rows, a ceiling for thousands.
+Oracle gained multi-row `VALUES` only in 23ai, so on earlier versions batch
+loads through the core builder run row by row — fine for a handful of rows, a
+ceiling for thousands.
 `SqlArtisan.ArrayBind` is the execution-layer companion for that case: build N
 statements of identical shape (typically one `INSERT`/`UPDATE`/`DELETE` per
 row) the normal way, through the query builder, and it runs them together in

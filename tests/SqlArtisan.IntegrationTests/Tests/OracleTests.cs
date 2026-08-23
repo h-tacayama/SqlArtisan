@@ -64,9 +64,22 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
     }
 
-    [Fact(Skip = "Oracle has no multi-row VALUES; it uses INSERT ALL instead.")]
+    [Fact(Skip = "Oracle 21c rejects multi-row VALUES; MultiRowValues_IsRejected asserts "
+        + "the rejection here, the 23ai lane (Oracle23aiTests) the acceptance.")]
     public override void MultiRowValues_Executes()
     {
+    }
+
+    // The rejecting half of the doc note's Oracle claim ("added in 23ai"): the
+    // 21c engine must refuse the table value constructor, or the note is stale.
+    [Fact]
+    public void MultiRowValues_IsRejected()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            InsertInto(u, u.Id, u.Name).Values(201, "A").Values(202, "B")));
     }
 
     [Fact]

@@ -16,7 +16,8 @@ code.
 
 ADRs are ordered as a narrative: the philosophy first, then handling DBMS
 divergence, then the output, API, performance, and enforcement-boundary
-decisions — closed by the mission that ties them together.
+decisions, then the mission that ties them together (0010); the refinements
+that keep arriving follow in number order.
 
 Some ADRs form **clusters** — a base decision refined by later ADRs that must
 be read together for the full picture. The cluster column marks these; reading

@@ -120,13 +120,34 @@ internal sealed class Reporter(RunOptions options)
 
         if (options.Mode == RunMode.Fix)
         {
-            return removed.Count == 0
-                ? options.DryRun
-                    ? "Re-run without --dry-run to regenerate them."
-                    : "All drifted tables were regenerated."
-                : "Their tables are gone from the database; delete these files by hand:"
+            StringBuilder step = new();
+
+            // The dry-run instruction is the one line a --fix --dry-run run exists to
+            // lead into, so orphans append to it rather than replace it.
+            if (drifted.Count > removed.Count && options.DryRun)
+            {
+                step.Append("Re-run without --dry-run to regenerate them.");
+            }
+            else if (removed.Count == 0)
+            {
+                step.Append("All drifted tables were regenerated.");
+            }
+
+            if (removed.Count > 0)
+            {
+                if (step.Length > 0)
+                {
+                    step.AppendLine();
+                    step.AppendLine();
+                }
+
+                step.Append(
+                    "Their tables are gone from the database; delete these files by hand:"
                     + Environment.NewLine
-                    + Paths(removed);
+                    + Paths(removed));
+            }
+
+            return step.ToString();
         }
 
         StringBuilder next = new();

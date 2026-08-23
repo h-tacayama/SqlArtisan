@@ -353,8 +353,9 @@ internal static class DialectMatrix
         [new MatrixKey("On")] = DbmsSupport.All,
         // Set: UPDATE SET (universal); the SET-like INSERT emits standard INSERT (docs note), not MySQL's INSERT ... SET.
         [new MatrixKey("Set")] = DbmsSupport.All,
-        // Values: single-row INSERT is universal; Oracle rejects multi-row VALUES (#87) but the
-        // row count is a call-site value the matrix key cannot see — union, under-restricts Oracle.
+        // Values: single-row INSERT is universal; Oracle before 23ai rejects multi-row VALUES
+        // (#87; 23ai added the table value constructor) but the row count is a call-site value
+        // the matrix key cannot see — union, under-restricts pre-23ai Oracle.
         [new MatrixKey("Values")] = DbmsSupport.All,
         [new MatrixKey("InnerJoin")] = DbmsSupport.All,
         [new MatrixKey("LeftJoin")] = DbmsSupport.All,
