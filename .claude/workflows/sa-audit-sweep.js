@@ -363,7 +363,16 @@ your report.
 Separate MUST FIX (bugs, ADR violations, invalid/wrong SQL, missing guards)
 from SHOULD DISCUSS (convention trade-offs, coverage gaps, doc drift) and
 NITS. Cite file:line and, for any DBMS-grammar or allocation claim, the
-verbatim probe output that backs it.`,
+verbatim probe output that backs it.
+
+Before filing any candidate — at every tier, SHOULD DISCUSS and NITS
+included — check it against the decided records: the ADRs, the
+.claude/rules/ clauses, and the decline ledger
+(.claude/rules/review-declines.md). One matching a precisely worded
+clause (or a ledger entry marked [precise]) is not a finding: cite the
+record and drop it. One that only resembles a terse ledger entry is NOT
+yours to suppress — report it normally, tagged "possibly decided by
+RD-NNN", and triage adjudicates the match (protocol in the ledger file).`,
       {
         agentType: 'sa-reviewer',
         model: 'sonnet',
@@ -460,8 +469,14 @@ Tasks:
    MUST FIX or SHOULD DISCUSS. A chunk marked "(adversarial verification
    unavailable...)" was never verified — say so in Coverage and treat its
    findings as unverified.
-3. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
-4. Decide a verdict: Clean / Clean after must-fix / Not clean. A failing gate
+3. Route findings tagged "possibly decided by RD-NNN" into the "Possibly
+   decided" section below, tag intact — never into MUST FIX / SHOULD
+   DISCUSS / NITS. Task 2 applies first: a REFUTED tagged finding drops
+   like any other refuted finding. What a tagged finding is never dropped
+   for is the decline match itself — triage adjudicates that
+   (.claude/rules/review-declines.md), the synthesis must not.
+4. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
+5. Decide a verdict: Clean / Clean after must-fix / Not clean. A failing gate
    above is itself a MUST FIX and blocks "Clean" — and so is a coverage gap
    (a missing or duplicated file above) and a chunk failure (a chunk above
    that never returned a result): both mean files in scope were silently
@@ -482,6 +497,7 @@ Output as a headed report:
 ### MUST FIX
 ### SHOULD DISCUSS
 ### NITS
+### Possibly decided (awaiting triage adjudication)
 
 ## Coverage
 - Scope: ${scopeLabel}
