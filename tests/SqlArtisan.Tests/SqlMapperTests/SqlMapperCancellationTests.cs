@@ -7,11 +7,9 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Tests;
 
 /// <summary>
-/// The wiring half of the #486 gate: that the token each async verb now takes
-/// actually reaches the ADO.NET command. Nothing else here can see it — the SQL
-/// text is unchanged, and <see cref="SqlMapperSignatureTests"/> only proves the
-/// parameter exists, not that it is passed on. SQLite in-process keeps this in the
-/// unit suite instead of the nightly integration matrix.
+/// The wiring half of the #486 gate: the token each async verb takes actually reaches
+/// the ADO.NET command — <see cref="SqlMapperSignatureTests"/> proves only that the
+/// parameter exists. SQLite in-process keeps this out of the nightly matrix.
 /// </summary>
 public class SqlMapperCancellationTests
 {
@@ -21,10 +19,9 @@ public class SqlMapperCancellationTests
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Every async verb, keyed the way <see cref="SqlMapperSignatureTests"/> keys
-    /// the reflected ones so <see cref="AsyncVerbs_CoverEveryPublicAsyncMethod"/>
-    /// can hold the two sets equal. Each entry passes the token by name, which is
-    /// the spelling the optional-parameter shape exists to preserve.
+    /// Every async verb, keyed the way <see cref="SqlMapperSignatureTests"/> keys the
+    /// reflected ones so <see cref="AsyncVerbs_CoverEveryPublicAsyncMethod"/> can hold the
+    /// two sets equal. Each entry names the token, the spelling the optional tail preserves.
     /// </summary>
     private static readonly (string Key, AsyncVerb Invoke)[] AsyncVerbs =
     [
@@ -85,15 +82,12 @@ public class SqlMapperCancellationTests
     }
 
     /// <summary>
-    /// A canceled token is the one input whose effect is visible without a slow query:
-    /// ADO.NET rejects the command before it runs. Which exception says so depends on
-    /// the verb — the <c>Execute*</c> verbs surface
-    /// <see cref="System.Threading.Tasks.TaskCanceledException"/> and the <c>Query*</c>
-    /// verbs plain <see cref="OperationCanceledException"/> — so the assertion is on the
-    /// base type rather than an exact one.
+    /// A canceled token is the one input visible without a slow query: ADO.NET rejects the
+    /// command before it runs. Which exception surfaces depends on the verb, so the assertion
+    /// is on <see cref="OperationCanceledException"/> rather than an exact type.
     /// </summary>
     [Fact]
-    public async Task AsyncVerbs_CanceledToken_ThrowOperationCanceledException()
+    public async Task AsyncVerbs_CanceledToken_ThrowsOperationCanceledException()
     {
         using SqliteConnection cnn = OpenSeededConnection();
         using CancellationTokenSource cts = new();
