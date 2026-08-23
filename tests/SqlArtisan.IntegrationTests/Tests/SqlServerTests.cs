@@ -73,9 +73,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        // MERGE users with orders on id = user_id: target users referenced by no
-        // order (only Dave, id 4) are NOT MATCHED BY SOURCE and get deleted,
-        // leaving {1, 2, 3, 5}.
+        // NOT MATCHED BY SOURCE deletes the users no order references — only Dave.
         connection.Execute(
             MergeInto(t)
                 .Using(o)
@@ -216,10 +214,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "DELETE FROM users WHERE DELETED.id = -1"));
     }
 
-    [Fact] // #241 (GAP-19): SQL Server matches GROUP BY expressions syntactically,
-           // so a parameterized SELECT expression repeated with fresh markers fails
-           // with Msg 8120 (live-verified). Raw SQL by necessity — SqlArtisan now
-           // reuses a shared instance's markers and cannot emit this form.
+    [Fact] // #241 (GAP-19): SQL Server matches GROUP BY syntactically, so a
+           // parameterized expression repeated with fresh markers fails with Msg 8120.
     public void GroupByBindMarkerMismatch_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();

@@ -18,9 +18,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         _fixture = fixture;
     }
 
-    [Fact] // #401: PostgreSQL resolves a MERGE action clause's column names against
-           // the target table alone, so any qualifier there is read as a column name
-           // and fails — the raw controls below pin both halves of that.
+    [Fact] // #401: PostgreSQL resolves a MERGE action clause's column names against the
+           // target alone, so any qualifier there is read as a column name and fails.
     public void MergeAliasedTargetColumns_Executes()
     {
         UsersTable t = new("t");
@@ -169,9 +168,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        // Departments 10 -> {1,2}, 20 -> {3,4}, 30 -> {5}. DISTINCT ON
-        // (department_id) ordered by (department_id, id) keeps the lowest id per
-        // department: {1, 3, 5}.
+        // DISTINCT ON (department_id) ordered by (department_id, id) keeps the
+        // lowest id per department.
         IEnumerable<int> ids = connection
             .Query<int>(
                 Select(DistinctOn(u.DepartmentId), u.Id)
@@ -262,10 +260,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal("Alice", name);
     }
 
-    [Fact] // #241 (GAP-19): PostgreSQL matches GROUP BY expressions syntactically,
-           // so a parameterized SELECT expression repeated with fresh markers fails
-           // with 42803 (live-verified). Raw SQL by necessity — SqlArtisan now
-           // reuses a shared instance's markers and cannot emit this form.
+    [Fact] // #241 (GAP-19): PostgreSQL matches GROUP BY syntactically, so a
+           // parameterized expression repeated with fresh markers fails with 42803.
     public void GroupByBindMarkerMismatch_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -438,9 +434,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     [Fact]
     public async Task L2Distance_BoundVector_OrderByRoundTrips()
     {
-        // Sql.Bind's allowlist excludes Pgvector.Vector by design; the sanctioned
-        // route for a held provider-specific value is the public BindValue
-        // constructor, whose raw value reaches Dapper's type handlers.
+        // Sql.Bind's allowlist excludes Pgvector.Vector by design; the sanctioned route
+        // is the public BindValue constructor, whose raw value reaches type handlers.
         global::Dapper.SqlMapper.AddTypeHandler(new Pgvector.Dapper.VectorTypeHandler());
 
         // A plain NpgsqlConnection cannot serialize Pgvector.Vector — the data
