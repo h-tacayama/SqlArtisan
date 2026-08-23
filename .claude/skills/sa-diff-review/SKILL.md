@@ -281,6 +281,14 @@ contributor) — plus `CLAUDE.md`, `docs/adr/**`, `.claude/skills/**`,
   only whether the words stayed *true and complete*, not how many there are.
 - Any "better way to write this" suggestion with no rule/ADR/precedent to
   cite, for code or docs — run `sa-diff-review-refinement` for that pass instead.
+- A shape a **precisely worded decline record** already covers — a
+  `.claude/rules/` clause, an ADR clause, or a `[precise]` entry in the
+  decline ledger (`.claude/rules/review-declines.md`): cite the record and
+  drop the candidate. A candidate that only *resembles* a terse ledger
+  entry is different — a wrong match would silently discard a real defect,
+  so do not suppress it yourself: report it under its normal
+  classification, tagged `possibly decided by RD-NNN`, and triage
+  adjudicates the match (protocol in the ledger file).
 - **Anything you would not change.** If your own conclusion is "this is fine as
   is", "already covered elsewhere", or "worth knowing but needs no action", the
   classification is done and the answer is silence. Do not relabel it as a

@@ -45,6 +45,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0019](0019-analyzer-multi-dialect-syntax-set.md) | Analyzer multi-dialect syntax set: `sqlartisan_syntax_*`, one key per DBMS | Analyzer | Accepted |
 | [0020](0020-documentation-precision-boundary.md) | Documentation precision boundary: what the docs assert, and what they delegate to the engine | | Accepted |
 | [0021](0021-analyzer-matrix-key-granularity.md) | Dialect-matrix key granularity: member-level by default, arity as a narrowing layer | Analyzer | Accepted |
+| [0022](0022-review-convergence-criterion.md) | Review convergence: the termination criterion for release audits | | Accepted |
 
 ### Clusters
 

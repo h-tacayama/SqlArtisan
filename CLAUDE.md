@@ -166,12 +166,12 @@ there, not here — a pointer line in this list is enough.
 
 **Rules** (`.claude/rules/`): code-comments, csharp-formatting,
 dbms-differences, docs-style, guards-and-empty-states, public-api-design,
-sql-building-style, unit-tests.
+review-declines, sql-building-style, unit-tests.
 
 **Skills** (`.claude/skills/`): sa-add-sql-function, sa-diff-review,
 sa-diff-review-refinement, sa-docs-audit, sa-panel-audit,
-sa-panel-diff-review, sa-run-benchmark, sa-run-integration-tests,
-sa-run-sql-harness, sa-write-xml-docs.
+sa-panel-diff-review, sa-release-audit, sa-run-benchmark,
+sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
 
 **Workflows** (`.claude/workflows/`): sa-audit-sweep. The `-sweep` suffix is
 reserved for workflows — a skill never carries it.
@@ -219,6 +219,9 @@ which chunks it across single reviewers instead of tripling it.
 - A review finding closes only by landing somewhere durable — a gate (test),
   a rule/ADR clause, or a recorded decision not to mechanize it — never by the
   one-off fix alone; the finding's *class* is what the landing must cover.
+  Declines below the rule/ADR bar land in `.claude/rules/review-declines.md`;
+  when repeated release-audit passes may *stop* is defined by ADR 0022 (the
+  procedure is the `sa-release-audit` skill).
 - Report only what you are asking someone to change. Anything you would not
   change — fine as is, already covered elsewhere, worth knowing but needing no
   action — stays out entirely, under any label; **finding nothing is a good
