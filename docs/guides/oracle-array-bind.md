@@ -3,9 +3,10 @@
 [← Back to README](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md) ·
 [Reference Home](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/README.md)
 
-Oracle gained multi-row `VALUES` only in 23ai, so on earlier versions batch
-loads through the core builder run row by row — fine for a handful of rows, a
-ceiling for thousands.
+Multi-row `VALUES` is version-dependent on Oracle — the integration suite
+live-verifies 21c rejecting it and 23ai accepting it — so batch loads through
+the core builder can end up row by row: fine for a handful of rows, a ceiling
+for thousands.
 `SqlArtisan.ArrayBind` is the execution-layer companion for that case: build N
 statements of identical shape (typically one `INSERT`/`UPDATE`/`DELETE` per
 row) the normal way, through the query builder, and it runs them together in
@@ -119,6 +120,10 @@ Misuse fails loudly at the call, before anything reaches the database:
   `ExecuteArrayBind cannot bind parameter :... as OracleDbType.... from
   Sql.BindNull(DbType....); another row binds a ... value there, which maps
   to OracleDbType.... instead.`
+- A statement carries a `RETURNING ... INTO` output parameter —
+  `ExecuteArrayBind does not support RETURNING ... INTO output parameters;
+  parameter :... binds with Direction=.... Execute the statements one at a
+  time (e.g. SqlArtisan.Dapper's ExecuteReturningInto) instead.`
 
 `SqlArtisan.ArrayBind` is an optional companion package — the core stays a
 pure query builder. The package is a host for provider-specific array-bind

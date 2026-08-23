@@ -253,6 +253,36 @@ public class TableClassGeneratorTests : IDisposable
             ex.Message);
     }
 
+    // The orphan scan's catch used to cover IOException only, so an access-denied
+    // file aborted the whole --check run. Unix file modes don't bind root (this
+    // repo's cloud container), so the denied path is exercised on CI's
+    // unprivileged runner; under root the file reads as not-ours either way.
+    [Fact]
+    public void Run_Check_UnreadableFileInOutputDirectory_IsSkippedNotFatal()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+
+        string locked = Path.Combine(_outputDirectory, "Locked.cs");
+        File.WriteAllText(locked, "not a generated file");
+        File.SetUnixFileMode(locked, UnixFileMode.None);
+
+        try
+        {
+            Assert.DoesNotContain(
+                Run(db, RunMode.Check), r => r.Status == TableStatus.Removed);
+        }
+        finally
+        {
+            File.SetUnixFileMode(locked, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        }
+    }
+
     // The property-name guard used to run per table inside the write loop, so a
     // collision in a later table left the earlier tables' files already written.
     [Fact]
