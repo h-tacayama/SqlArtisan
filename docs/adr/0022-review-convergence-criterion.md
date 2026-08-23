@@ -24,19 +24,23 @@ consolidation-trigger arithmetic — so no round re-litigates it.
 ## Decision
 
 **Converged = K = 2 consecutive independent fresh passes yield zero new
-findings that both (a) meet `sa-diff-review` §9's defect classifications
-(a)–(d) and (b) survive adversarial verification (§10).**
+findings that both (a) meet `sa-diff-review` §9's defect bar — the code
+classifications (a)–(d) or its Docs & comments defect shapes — and (b)
+survive adversarial verification (§10).**
 
 Four terms carry the weight:
 
-- **Defect-bar findings only.** Preference-tier output (`sa-audit-sweep`'s
-  SHOULD DISCUSS / NITS) never advances or resets the counter.
+- **Defect-bar findings only, judged per finding — never per report
+  tier.** A §9 defect counts even when a sweep report filed it under
+  SHOULD DISCUSS (where the sweep puts doc drift); anything below the bar
+  never advances or resets the counter, whatever tier it was filed under.
   Adversarial verification refutes factual claims only, so a
   factually-accurate taste-level nit would always arrive as "new" and the
   criterion would re-import the unreachability it exists to fix.
 - **One pass = the full battery the `sa-release-audit` skill defines** —
-  the layer-scoped sweep runs that jointly cover CLAUDE.md's Layout
-  table, plus the named panel and docs scopes — never any single review.
+  the layer-scoped sweep runs that jointly cover the source and test
+  layers of CLAUDE.md's Layout table, plus the named panel and docs
+  scopes — never any single review.
   Two `paths:`-scoped runs of one layer must not "converge" a codebase
   90% unexamined.
 - **The K passes postdate the last triage-driven repository change**

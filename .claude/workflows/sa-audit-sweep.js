@@ -471,7 +471,9 @@ Tasks:
    findings as unverified.
 3. Route findings tagged "possibly decided by RD-NNN" into the "Possibly
    decided" section below, tag intact — never into MUST FIX / SHOULD
-   DISCUSS / NITS, and never dropped: triage adjudicates the match
+   DISCUSS / NITS. Task 2 applies first: a REFUTED tagged finding drops
+   like any other refuted finding. What a tagged finding is never dropped
+   for is the decline match itself — triage adjudicates that
    (.claude/rules/review-declines.md), the synthesis must not.
 4. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
 5. Decide a verdict: Clean / Clean after must-fix / Not clean. A failing gate

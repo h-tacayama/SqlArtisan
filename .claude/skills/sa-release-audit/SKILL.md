@@ -1,6 +1,6 @@
 ---
 name: sa-release-audit
-description: The release-audit procedure — drive the whole codebase to review convergence before a release. Freeze feature work, run the full audit battery (layer-scoped sa-audit-sweep runs jointly covering CLAUDE.md's Layout table, sa-panel-audit on the high-stakes bounded scopes, sa-docs-audit on the docs corpus), triage every verified finding into a durable closure, and repeat fresh passes until ADR 0022's termination criterion is met. Not a replacement for sa-audit-sweep — it orchestrates it: a one-off audit of a single scope uses sa-audit-sweep (or sa-panel-audit) directly; use this skill only for a release-gating, run-until-converged audit of everything.
+description: The release-audit procedure — drive the whole codebase to review convergence before a release. Freeze feature work, run the full audit battery (layer-scoped sa-audit-sweep runs jointly covering the source and test layers of CLAUDE.md's Layout table, sa-panel-audit on the high-stakes bounded scopes, sa-docs-audit on the docs corpus), triage every verified finding into a durable closure, and repeat fresh passes until ADR 0022's termination criterion is met. Not a replacement for sa-audit-sweep — it orchestrates it: a one-off audit of a single scope uses sa-audit-sweep (or sa-panel-audit) directly; use this skill only for a release-gating, run-until-converged audit of everything.
 ---
 
 # Release audit: run the battery until it converges
@@ -67,8 +67,10 @@ never closes a finding):
   `possibly decided by RD-NNN` tags per that file's protocol, and promote
   each confirmed match to a precisely worded record.
 
-Preference-tier output (SHOULD DISCUSS / NITS) may be acted on or
-declined, but per ADR 0022 it never affects the convergence counter.
+Output below §9's defect bar may be acted on or declined, but per
+ADR 0022 it never affects the convergence counter — and the bar is judged
+per finding, not per report tier: a §9 defect filed under SHOULD DISCUSS
+still counts.
 
 ## 4. The loop
 
