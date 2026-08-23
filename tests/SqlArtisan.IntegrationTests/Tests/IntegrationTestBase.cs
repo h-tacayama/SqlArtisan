@@ -60,9 +60,7 @@ public abstract class IntegrationTestBase
         OrdersTable o = new("o");
         using IDbConnection connection = _fixture.OpenConnection();
 
-        // Users {1..5} LEFT JOIN orders (user_ids 1, 1, 2, 3, 5): the four
-        // matched users contribute five rows and unmatched Dave (4) contributes
-        // one NULL-padded row — six in total. INNER JOIN would yield only five.
+        // LEFT JOIN, not INNER: unmatched Dave contributes a NULL-padded sixth row.
         long count = Convert.ToInt64(connection.ExecuteScalar(
             Select(Count(u.Id)).From(u).LeftJoin(o).On(o.UserId == u.Id)));
 
@@ -104,9 +102,8 @@ public abstract class IntegrationTestBase
         Cte seniors = new("seniors");
         using IDbConnection connection = _fixture.OpenConnection();
 
-        // The CTE projects `id` without re-aliasing, so the column name folds
-        // identically at definition and reference on every engine. Re-aliasing
-        // (`.As(seniors.Column("id"))`) is broken on Oracle — see #165.
+        // The CTE projects `id` without re-aliasing so the name folds identically on
+        // every engine; re-aliasing is broken on Oracle (#165).
         long count = Convert.ToInt64(connection.ExecuteScalar(
             With(seniors.As(Select(u.Id).From(u).Where(u.Age >= 40)))
                 .Select(Count(seniors.Column("id")))
@@ -725,11 +722,8 @@ public abstract class IntegrationTestBase
             total++;
             try
             {
-                // ExecuteScalar runs the query server-side and reads one raw cell
-                // — enough to prove the SQL executes, while avoiding Dapper's typed
-                // result materialization (which can choke boxing provider-native
-                // numerics, e.g. Oracle NUMBER from a window frame). We assert the
-                // SQL runs, not that .NET can map the result.
+                // One raw cell, not a typed result: Dapper's materialization can choke
+                // boxing provider-native numerics, and only the SQL running is asserted.
                 connection.ExecuteScalar(smokeCase.Build());
             }
             catch (Exception ex)
@@ -910,11 +904,8 @@ public abstract class IntegrationTestBase
         transaction.Rollback();
     }
 
-    [Fact] // #241 (GAP-19): the same expression instance held in SELECT and GROUP BY
-           // reuses its bind markers, so engines that match GROUP BY syntactically
-           // (Oracle/PG/SS rejected the split-marker form) accept the shape —
-           // clears the grammar-unverified register entry. Aliased + aggregated on
-           // the SELECT side, mirroring the docs example (the clauses may differ).
+    [Fact] // #241 (GAP-19): one expression instance in both SELECT and GROUP BY reuses
+           // its markers, so engines matching GROUP BY syntactically accept the shape.
     public void GroupBy_SharedBindExpression_Executes()
     {
         UsersTable u = new();

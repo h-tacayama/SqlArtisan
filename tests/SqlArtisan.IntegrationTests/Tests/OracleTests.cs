@@ -47,10 +47,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(2, count);
     }
 
-    // Oracle XE 21c (the Testcontainers image) has no native boolean type
-    // (is_active is NUMBER(1)), and binding a C# bool there is a driver concern
-    // rather than a SqlArtisan one. The four engines with a native boolean type
-    // cover the round-trip.
+    // Binding a C# bool to NUMBER(1) is a driver concern, not a SqlArtisan one;
+    // the four engines with a native boolean type cover the round-trip.
     [Fact(Skip = "Oracle XE 21c has no native boolean type; is_active is NUMBER(1).")]
     public override void EdgeCase_Boolean_RoundTrip()
     {
@@ -71,9 +69,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
     }
 
-    [Fact] // RETURNING ... INTO binds the affected columns into typed output
-           // parameters; ExecuteReturningInto returns the populated bag so the
-           // values can be read back after execution (the Oracle-specific form).
+    [Fact]
     public void ReturningInto_OnDelete_BindsOutputParameter()
     {
         UsersTable u = new();
@@ -234,12 +230,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Contains("10001", address);
     }
 
-    [Fact] // #255 / #239 (GAP-10, C5/C6): Oracle accepts the bare-separator DML
-           // target alias `UPDATE users "cu"`, so a correlated subquery can
-           // reference the outer row through the alias — the safe spelling that
-           // avoids the unaliased tautology where the outer column silently
-           // resolves to the inner table. Clears the grammar-unverified register
-           // entry for the Oracle aliased correlated UPDATE.
+    [Fact] // #255 / #239 (GAP-10, C5/C6): Oracle accepts the bare-separator DML target
+           // alias `UPDATE users "cu"`; without it the outer column resolves to orders.
     public void CorrelatedUpdate_AliasedTarget_Executes()
     {
         UsersTable cu = new("cu");
@@ -248,9 +240,6 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        // department_id = 999 for exactly the users referenced by an order
-        // ({1, 2, 3, 5}); the subquery correlates orders back to the outer
-        // "cu".id, so without the alias the bare column would resolve to orders.
         connection.Execute(
             Update(cu)
                 .Set(cu.DepartmentId == 999)
@@ -265,10 +254,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     }
 
     [Fact] // #255 / #239 (GAP-10, C5/C6): the DELETE counterpart — Oracle accepts
-           // the bare-separator DELETE target alias `DELETE FROM users "cu"`, so
-           // the correlated subquery references the outer row safely. Clears the
-           // grammar-unverified register entry for the Oracle aliased correlated
-           // DELETE.
+           // `DELETE FROM users "cu"`; without it the outer column resolves to orders.
     public void CorrelatedDelete_AliasedTarget_Executes()
     {
         UsersTable cu = new("cu");
@@ -277,9 +263,6 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        // Delete the users referenced by an order ({1, 2, 3, 5}); Dave (4) has no
-        // order and remains. The subquery correlates orders back to the outer
-        // "cu".id.
         connection.Execute(
             DeleteFrom(cu)
                 .Where(cu.Id.In(Select(o.UserId).From(o).Where(o.UserId == cu.Id))),
@@ -292,9 +275,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
-    [Fact] // #241 (GAP-19): the issue's original DECODE repro, kept Oracle-side as
-           // the live check that a marker-reusing statement binds correctly through
-           // Dapper + ODP.NET (the provider binds by position unless BindByName).
+    [Fact] // #241 (GAP-19): the issue's original DECODE repro — ODP.NET binds by
+           // position unless BindByName, so marker reuse needs a live check.
     public void GroupBy_SharedDecodeExpression_Executes()
     {
         UsersTable u = new();
@@ -308,10 +290,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(3, groups);
     }
 
-    [Fact] // #241 (GAP-19): Oracle matches GROUP BY expressions syntactically, so a
-           // parameterized SELECT expression repeated with fresh markers fails with
-           // ORA-00979 (live-verified). Raw SQL by necessity — SqlArtisan now
-           // reuses a shared instance's markers and cannot emit this form.
+    [Fact] // #241 (GAP-19): Oracle matches GROUP BY syntactically, so a parameterized
+           // expression repeated with fresh markers fails with ORA-00979.
     public void GroupByBindMarkerMismatch_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -328,8 +308,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
 
-    [Fact] // ADR 0012 (#295): anchors the "no engine accepts it" premise — raw
-           // SQL by necessity, since PercentileFractionGuard now rejects this client-side.
+    [Fact] // ADR 0012 (#295): anchors PercentileFractionGuard.
     public void PercentileCont_FractionOutOfRange_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -343,9 +322,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) FROM users"));
     }
 
-    [Fact] // ADR 0012 (#402): anchors the "no engine accepts it" premise for the
-           // NTILE/NTH_VALUE/window-frame guards — raw SQL by necessity, since
-           // WindowFrameGuard now rejects these client-side.
+    [Fact] // ADR 0012 (#402): anchors WindowFrameGuard.
     public void WindowFrame_ValueDomainViolations_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -388,9 +365,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "SELECT EXTRACT(EPOCH FROM created_at) FROM users"));
     }
 
-    [Fact] // ADR 0012 (#483): anchors the "no engine accepts it" premise for the
-           // FOR UPDATE WAIT guard — raw SQL by necessity, since LockWaitGuard now
-           // rejects a negative second count client-side.
+    [Fact] // ADR 0012 (#483): anchors LockWaitGuard.
     public void Wait_NegativeSeconds_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -406,10 +381,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "SELECT age FROM users WHERE id = 1 FOR UPDATE WAIT -1"));
     }
 
-    [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420) — Oracle's ANSI
-           // join grammar requires ON/USING for every listed join type except
-           // CROSS JOIN, so the omission SqlArtisan now rejects at compile time was
-           // always a syntax error here, never a silent wrong-result risk.
+    [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420).
     public void OmittedJoinPredicate_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();

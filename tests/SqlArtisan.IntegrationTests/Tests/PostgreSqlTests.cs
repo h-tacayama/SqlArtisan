@@ -18,9 +18,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         _fixture = fixture;
     }
 
-    [Fact] // #401: PostgreSQL resolves a MERGE action clause's column names against
-           // the target table alone, so any qualifier there is read as a column name
-           // and fails — the raw controls below pin both halves of that.
+    [Fact] // #401: PostgreSQL resolves a MERGE action clause's column names against the
+           // target alone, so any qualifier there is read as a column name and fails.
     public void MergeAliasedTargetColumns_Executes()
     {
         UsersTable t = new("t");
@@ -169,9 +168,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        // Departments 10 -> {1,2}, 20 -> {3,4}, 30 -> {5}. DISTINCT ON
-        // (department_id) ordered by (department_id, id) keeps the lowest id per
-        // department: {1, 3, 5}.
+        // DISTINCT ON (department_id) ordered by (department_id, id) keeps the
+        // lowest id per department.
         IEnumerable<int> ids = connection
             .Query<int>(
                 Select(DistinctOn(u.DepartmentId), u.Id)
@@ -262,10 +260,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal("Alice", name);
     }
 
-    [Fact] // #241 (GAP-19): PostgreSQL matches GROUP BY expressions syntactically,
-           // so a parameterized SELECT expression repeated with fresh markers fails
-           // with 42803 (live-verified). Raw SQL by necessity — SqlArtisan now
-           // reuses a shared instance's markers and cannot emit this form.
+    [Fact] // #241 (GAP-19): PostgreSQL matches GROUP BY syntactically, so a
+           // parameterized expression repeated with fresh markers fails with 42803.
     public void GroupByBindMarkerMismatch_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -282,8 +278,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
 
-    [Fact] // ADR 0012 (#295): anchors the "no engine accepts it" premise — raw
-           // SQL by necessity, since PercentileFractionGuard now rejects this client-side.
+    [Fact] // ADR 0012 (#295): anchors PercentileFractionGuard.
     public void PercentileCont_FractionOutOfRange_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -297,9 +292,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) FROM users"));
     }
 
-    [Fact] // ADR 0012 (#402): anchors the "no engine accepts it" premise for the
-           // window-frame value-domain guards — raw SQL by necessity, since
-           // WindowFrameGuard now rejects each of these client-side.
+    [Fact] // ADR 0012 (#402): anchors WindowFrameGuard.
     public void WindowFrame_ValueDomainViolations_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -327,9 +320,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
 
-    [Fact] // SQLA0104 (#449): anchors the PostgreSqlExtractFields list in
-           // DatepartValidity.cs — WEEKDAY is a SQL Server/MySQL spelling, not a
-           // PostgreSQL EXTRACT field (PostgreSQL's day-of-week fields are DOW/ISODOW).
+    [Fact] // SQLA0104 (#449): anchors PostgreSqlExtractFields in DatepartValidity.cs
+           // — WEEKDAY is a SQL Server/MySQL spelling; PostgreSQL uses DOW/ISODOW.
     public void Extract_WeekdayField_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -343,9 +335,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT EXTRACT(WEEKDAY FROM created_at) FROM users"));
     }
 
-    [Fact] // SQLA0104 (#449): anchors the PostgreSqlDateTruncFields list in
-           // DatepartValidity.cs — EPOCH is EXTRACT-only; date_trunc has no epoch
-           // field to truncate to.
+    [Fact] // SQLA0104 (#449): anchors PostgreSqlDateTruncFields in DatepartValidity.cs
+           // — EPOCH is EXTRACT-only; date_trunc has no epoch field to truncate to.
     public void DateTrunc_EpochField_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -443,9 +434,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     [Fact]
     public async Task L2Distance_BoundVector_OrderByRoundTrips()
     {
-        // Sql.Bind's allowlist excludes Pgvector.Vector by design; the sanctioned
-        // route for a held provider-specific value is the public BindValue
-        // constructor, whose raw value reaches Dapper's type handlers.
+        // Sql.Bind's allowlist excludes Pgvector.Vector by design; the sanctioned route
+        // is the public BindValue constructor, whose raw value reaches type handlers.
         global::Dapper.SqlMapper.AddTypeHandler(new Pgvector.Dapper.VectorTypeHandler());
 
         // A plain NpgsqlConnection cannot serialize Pgvector.Vector — the data

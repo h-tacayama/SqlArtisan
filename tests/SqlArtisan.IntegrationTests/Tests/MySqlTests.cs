@@ -85,9 +85,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        // JSON_EXTRACT(data, '$.name') — the path is inlined as a literal. MySQL
-        // returns the scalar as a quoted JSON string (e.g. "Alice"), so the value
-        // is asserted with Contains rather than an exact match.
+        // MySQL returns a JSON scalar as a quoted string, so the value is asserted
+        // with Contains rather than an exact match.
         string name = connection
             .Query<string>(Select(JsonExtract(u.Data, "$.name")).From(u).Where(u.Id == 1))
             .Single();
@@ -124,11 +123,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Contains("10001", address);
     }
 
-    [Fact] // #255 / #239 (ERG-09): MySQL accepts a single-table DELETE with an
-           // aliased target (`DELETE FROM users AS `cu``) as of 8.0.16; the pinned
-           // mysql:8.0 image is well past that boundary. This is the safe spelling
-           // for a correlated DELETE on MySQL, so proving it runs clears the
-           // grammar-unverified register entry.
+    [Fact] // #255 / #239 (ERG-09): MySQL accepts an aliased single-table DELETE
+           // target as of 8.0.16 — the safe spelling for a correlated DELETE here.
     public void DeleteAliasedTarget_Executes()
     {
         UsersTable cu = new("cu");
@@ -227,9 +223,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             Select(Grouping(u.DepartmentId)).From(u).GroupBy(u.DepartmentId)));
     }
 
-    [Fact] // #436: SQLA0102's live proof for the Interval context rule. Positioned
-           // correctly (as a +/- operand) it is proven by the dialect sweep's MySQL
-           // branch; the missing arithmetic wrapper is the only difference.
+    [Fact] // #436: SQLA0102's live proof for the Interval context rule — the dialect
+           // sweep proves the positioned form; only the arithmetic wrapper differs.
     public void ContextRule_IntervalOutsideArithmetic_Rejected()
     {
         UsersTable u = new();
@@ -239,9 +234,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             Select(Interval(30, DateTimePart.Day)).From(u)));
     }
 
-    // #362: SQLA0205's live proof, and the reason it is a Warning rather than a
-    // performance note. MySQL compares a string to a number as floating point, so
-    // the mismatch changes which rows come back — not merely how fast.
+    // #362: SQLA0205's live proof — MySQL compares a string to a number as floating
+    // point, so the mismatch changes which rows come back, not merely how fast.
     [Fact]
     public void TextColumnComparedToNumber_MatchesRowsThatAreNotEqualAsText()
     {
@@ -268,9 +262,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         }
     }
 
-    [Fact] // ADR 0012 (#402): anchors the "no engine accepts it" premise for the
-           // NTILE/NTH_VALUE/window-frame guards — raw SQL by necessity, since
-           // WindowFrameGuard now rejects these client-side.
+    [Fact] // ADR 0012 (#402): anchors WindowFrameGuard.
     public void WindowFrame_ValueDomainViolations_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -298,9 +290,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
 
-    [Fact] // SQLA0104 (#449): anchors the MySqlTemporalUnits list in
-           // DatepartValidity.cs (shared by Extract and Interval) — EPOCH is a
-           // PostgreSQL-only field, not a MySQL EXTRACT()/DATE_ADD() unit.
+    [Fact] // SQLA0104 (#449): anchors MySqlTemporalUnits in DatepartValidity.cs —
+           // EPOCH is a PostgreSQL field, not a MySQL EXTRACT()/DATE_ADD() unit.
     public void Extract_EpochUnit_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
