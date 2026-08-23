@@ -110,7 +110,9 @@ internal sealed class SqliteCatalogReader(
                 dbms: Dbms.Sqlite));
         }
 
-        table = new CatalogTable(tableName, columns);
+        // Normalized here, at the construction site, like the sibling readers — the
+        // public TryGetTable path receives the user's spelling, not a normalized one.
+        table = new CatalogTable(NormalizeName(tableName), columns);
         return true;
     }
 

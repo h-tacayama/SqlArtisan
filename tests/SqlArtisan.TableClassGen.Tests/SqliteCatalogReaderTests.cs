@@ -57,6 +57,22 @@ public class SqliteCatalogReaderTests
         Assert.Equal(["configkey", "configvalue"], table.Columns.Select(c => c.Name));
     }
 
+    // The twin of the test above: the --tables path enters through TryGetTable,
+    // which used to skip the table-name normalization GetAllTables applied.
+    [Fact]
+    public void TryGetTable_LowercaseNames_LowercasesCatalogNames()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE AppConfig (ConfigKey TEXT, ConfigValue TEXT);");
+
+        bool found = new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: true)
+            .TryGetTable("AppConfig", out CatalogTable? table);
+
+        Assert.True(found);
+        Assert.Equal("appconfig", table!.TableName);
+        Assert.Equal(["configkey", "configvalue"], table.Columns.Select(c => c.Name));
+    }
+
     // Under tr-TR, culture-sensitive ToLower() turns "BILLING" into "bıllıng"
     // (dotless ı) rather than "billing" — a table name pragma_table_info's
     // case-insensitive ASCII lookup no longer matches, so the table went missing

@@ -5,8 +5,7 @@ namespace SqlArtisan.TableClassGen;
 internal static class CaseConverter
 {
     // Splits on every non-alphanumeric character — underscores plus DB-allowed
-    // punctuation such as Oracle's '$' and '#' — so no punctuation can leak into
-    // the emitted identifier.
+    // punctuation like Oracle's '$'/'#' — so none can leak into the identifier.
     public static string SnakeToPascalCase(string snakeCase)
     {
         if (string.IsNullOrEmpty(snakeCase))

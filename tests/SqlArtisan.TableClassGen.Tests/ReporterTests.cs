@@ -75,6 +75,36 @@ public class ReporterTests
         Assert.Contains("Drift detected against . (2 tables):", report, StringComparison.Ordinal);
     }
 
+    // The regression this guards: with orphans beside regenerated tables, NextStep
+    // dropped the one instruction a --fix --dry-run run exists to lead into.
+    [Fact]
+    public void Report_FixDryRun_ModifiedAndRemovedDrift_NextStepKeepsTheReRunInstruction()
+    {
+        TableResult modified = new("item", "ItemTable.cs", TableStatus.Modified, ["+ note"]);
+        TableResult removed = new("gone", "GoneTable.cs", TableStatus.Removed, []);
+
+        string report = Capture(
+            () => new Reporter(Options(RunMode.Fix, dryRun: true)).Report([modified, removed]));
+
+        Assert.Contains(
+            "Re-run without --dry-run to regenerate them.", report, StringComparison.Ordinal);
+        Assert.Contains("delete these files by hand:", report, StringComparison.Ordinal);
+    }
+
+    // The legal twin: with only orphans, no regeneration happened, so neither the
+    // dry-run instruction nor the "regenerated" claim may appear.
+    [Fact]
+    public void Report_Fix_RemovedOnlyDrift_NextStepOmitsTheRegeneratedClaim()
+    {
+        TableResult removed = new("gone", "GoneTable.cs", TableStatus.Removed, []);
+
+        string report = Capture(() => new Reporter(FixOptions()).Report([removed]));
+
+        Assert.DoesNotContain(
+            "All drifted tables were regenerated.", report, StringComparison.Ordinal);
+        Assert.Contains("delete these files by hand:", report, StringComparison.Ordinal);
+    }
+
     private static RunOptions FixOptions() => Options(RunMode.Fix);
 
     private static RunOptions Options(RunMode mode, bool dryRun = false) =>

@@ -323,4 +323,28 @@ public class OracleArrayBindTests
 
         Assert.Equal("ExecuteArrayBind requires at least one statement.", ex.Message);
     }
+
+    [Fact]
+    public void ExecuteArrayBind_ReturningInto_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(t, t.Id).Values(1L).Returning(t.Id)
+                .Into(new OutputParameter("out_id", System.Data.DbType.Int64)),
+            InsertInto(t, t.Id).Values(2L).Returning(t.Id)
+                .Into(new OutputParameter("out_id", System.Data.DbType.Int64)),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind does not support RETURNING ... INTO output parameters; "
+                + "parameter :out_id binds with Direction=Output. "
+                + "Execute the statements one at a time (e.g. SqlArtisan.Dapper's "
+                + "ExecuteReturningInto) instead.",
+            ex.Message);
+    }
 }

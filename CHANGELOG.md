@@ -5,6 +5,26 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- `SqlArtisan.ArrayBind`: a statement carrying a `RETURNING ... INTO` output
+  parameter now throws an `ArgumentException` up front instead of silently
+  binding the output parameter as an input the command never reads back —
+  execute those one at a time (e.g. `SqlArtisan.Dapper`'s
+  `ExecuteReturningInto`).
+- TableClassGen: a connection-string error now gets the guided cannot-connect
+  message on every DBMS, not only SQLite and MySQL; `--lowercase` also applies
+  on the `--tables` path against SQLite; a property-name collision aborts
+  before any file is written instead of after some; the `--fix --dry-run`
+  next-step instruction is no longer dropped when orphaned files are also
+  reported; interactive prompts apply their displayed defaults on a blank
+  Enter, and the PostgreSQL schema prompt gained a `public` default; a
+  duplicate `--tables` entry reads once instead of failing as a bogus
+  class-name collision; a permission-denied file no longer aborts the
+  `--check`/`--fix` orphan scan.
+- Docs: the multi-row `VALUES` notes now reflect Oracle 23ai, which added the
+  construct — reference note, Oracle array-bind guide, and the `Values(...)`
+  XML docs.
+
 ### Changed
 - **Breaking:** the 21 `...Async` methods on `SqlArtisan.Dapper`'s `SqlMapper` now
   end in `CancellationToken cancellationToken = default`, threaded to Dapper

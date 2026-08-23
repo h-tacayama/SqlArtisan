@@ -69,5 +69,8 @@ IDs are assigned sequentially and never reused; a superseded line is
 rewritten in place (same ID), not re-added. Keep entries grep-able: name
 the class by the terms a reviewer would search for.
 
-*(No entries yet — the first below-bar decline from a release-audit triage
-lands here.)*
+- RD-001 [precise] TableClassGen requiring `--schema` on the SQL Server CLI
+  while the interactive prompt defaults it to `dbo` — declined to default the
+  CLI: a scripted run states its schema explicitly, and the interactive path
+  is where defaults belong (both schema prompts now carry one). The asymmetry
+  is not a finding at any tier. (source: #506 smoke-test sweep triage)

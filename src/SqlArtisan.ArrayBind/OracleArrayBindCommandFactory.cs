@@ -52,8 +52,19 @@ internal static class OracleArrayBindCommandFactory
         for (int r = 0; r < built.Length; r++)
         {
             int p = 0;
-            built[r].Parameters.ForEach((_, bindValue) =>
+            built[r].Parameters.ForEach((name, bindValue) =>
             {
+                // Array bind executes in one round trip with no way to read output values
+                // back per row, so an output parameter would silently bind as input.
+                if (bindValue.Direction is not null && bindValue.Direction != ParameterDirection.Input)
+                {
+                    throw new ArgumentException(
+                        "ExecuteArrayBind does not support RETURNING ... INTO output parameters; "
+                            + $"parameter {name} binds with Direction={bindValue.Direction}. "
+                            + "Execute the statements one at a time (e.g. SqlArtisan.Dapper's "
+                            + "ExecuteReturningInto) instead.");
+                }
+
                 values[p][r] = bindValue.Value;
 
                 if (bindValue.DbType.HasValue)

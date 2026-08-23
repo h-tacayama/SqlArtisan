@@ -253,6 +253,65 @@ public class TableClassGeneratorTests : IDisposable
             ex.Message);
     }
 
+    // The orphan scan's catch used to cover IOException only, so an access-denied
+    // file aborted the whole --check run. Unix file modes don't bind root (this
+    // repo's cloud container), so the denied path is exercised on CI's
+    // unprivileged runner; under root the file reads as not-ours either way.
+    [Fact]
+    public void Run_Check_UnreadableFileInOutputDirectory_IsSkippedNotFatal()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+
+        string locked = Path.Combine(_outputDirectory, "Locked.cs");
+        File.WriteAllText(locked, "not a generated file");
+        File.SetUnixFileMode(locked, UnixFileMode.None);
+
+        try
+        {
+            Assert.DoesNotContain(
+                Run(db, RunMode.Check), r => r.Status == TableStatus.Removed);
+        }
+        finally
+        {
+            File.SetUnixFileMode(locked, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        }
+    }
+
+    // The property-name guard used to run per table inside the write loop, so a
+    // collision in a later table left the earlier tables' files already written.
+    [Fact]
+    public void Run_LaterTableWithPropertyCollision_WritesNothing()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE aaa_first (id INTEGER);
+            CREATE TABLE bbb_second (x_y INTEGER, x__y INTEGER);
+            """);
+
+        Assert.Throws<CommandLineException>(() => Run(db, RunMode.Generate));
+
+        Assert.False(File.Exists(Path.Combine(_outputDirectory, "AaaFirstTable.cs")));
+    }
+
+    // `--tables item,item` used to reach the class-name guard as two tables and be
+    // misdiagnosed as a collision of a table with itself.
+    [Fact]
+    public void Run_Tables_DuplicateName_ReadsOnce()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+
+        TableResult only = Assert.Single(
+            Run(db, RunMode.Generate, tableNames: ["item", "item"]));
+
+        Assert.Equal("item", only.TableName);
+    }
+
     // The escape hatch the message names has to work.
     [Fact]
     public void Run_TwoTablesWithOneClassName_NarrowedByTables_Generates()
