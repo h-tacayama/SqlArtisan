@@ -146,14 +146,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Contains("10001", address);
     }
 
-    [Fact] // #254: T-SQL cannot alias the target of an INSERT/UPDATE/DELETE directly
-           // (the alias must come from a FROM clause — the joined-DML form), so the
-           // text SqlArtisan would emit for an aliased target, `UPDATE users AS "cu"
-           // ...`, is a syntax error here. This anchors the Build(SqlServer) guard in
-           // InsertBuilder/UpdateBuilder/DeleteBuilder: with no valid spelling to
-           // emit, it throws rather than produce SQL the engine rejects. Raw SQL by
-           // necessity — the guard would otherwise throw before the statement ever
-           // reached the DB.
+    [Fact] // #254: T-SQL takes a DML target alias only from a FROM clause, so
+           // `UPDATE users AS "cu"` is a syntax error and Build(SqlServer) throws.
     public void AliasedDmlTarget_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -177,10 +171,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "DELETE FROM users AS \"cu\" WHERE \"cu\".id = 1"));
     }
 
-    [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420) — SQL Server's
-           // ANSI join grammar requires ON/USING for every listed join type except
-           // CROSS JOIN, so the omission SqlArtisan now rejects at compile time was
-           // always a syntax error here, never a silent wrong-result risk.
+    [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420).
     public void OmittedJoinPredicate_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -195,8 +186,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     }
 
     [Fact] // #400: anchors the SQLA0102 percentile rule — SQL Server exposes the
-           // percentiles only as window functions, so the bare WITHIN GROUP form
-           // Oracle and PostgreSQL accept is a syntax error here.
+           // percentiles only as window functions, so a bare WITHIN GROUP fails.
     public void BarePercentileWithinGroup_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -209,9 +199,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY age) FROM users"));
     }
 
-    [Fact] // #400: anchors the SQLA0102 INSERTED/DELETED rule — the pseudo-tables
-           // are bound by the OUTPUT clause itself, so a reference outside one has
-           // no table to resolve against. The control deletes no row.
+    [Fact] // #400: anchors the SQLA0102 INSERTED/DELETED rule — the OUTPUT clause
+           // binds the pseudo-tables, so a reference outside one resolves to nothing.
     public void OutputPseudoTableOutsideOutput_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -247,8 +236,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
 
-    [Fact] // ADR 0012 (#295): anchors the "no engine accepts it" premise — raw
-           // SQL by necessity, since PercentileFractionGuard now rejects this client-side.
+    [Fact] // ADR 0012 (#295): anchors PercentileFractionGuard.
     public void PercentileCont_FractionOutOfRange_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -263,9 +251,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) OVER () FROM users"));
     }
 
-    [Fact] // ADR 0012 (#402): anchors the "no engine accepts it" premise for the
-           // NTILE/window-frame guards — raw SQL by necessity, since WindowFrameGuard
-           // now rejects these client-side. NTH_VALUE is omitted: not supported by SS.
+    [Fact] // ADR 0012 (#402): anchors WindowFrameGuard. NTH_VALUE is omitted —
+           // SQL Server does not support it.
     public void WindowFrame_ValueDomainViolations_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -290,9 +277,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
 
-    [Fact] // SQLA0104 (#449): anchors the SqlServerDatepartFields list in
-           // DatepartValidity.cs (shared by DATEPART/DATEADD/DATEDIFF) — EPOCH is
-           // a PostgreSQL spelling, not a T-SQL datepart.
+    [Fact] // SQLA0104 (#449): anchors SqlServerDatepartFields in DatepartValidity.cs —
+           // EPOCH is a PostgreSQL spelling, not a T-SQL datepart.
     public void Datepart_EpochDatepart_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -306,9 +292,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT DATEPART(epoch, created_at) FROM users"));
     }
 
-    [Fact] // SQLA0104 (#449): anchors the SqlServerDateTruncFields list in
-           // DatepartValidity.cs — learn.microsoft.com states weekday is not
-           // supported by DATETRUNC though DATEPART accepts it.
+    [Fact] // SQLA0104 (#449): anchors SqlServerDateTruncFields in DatepartValidity.cs —
+           // per learn.microsoft.com DATETRUNC rejects weekday though DATEPART takes it.
     public void Datetrunc_WeekdayDatepart_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();

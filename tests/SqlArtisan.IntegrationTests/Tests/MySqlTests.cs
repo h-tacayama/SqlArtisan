@@ -124,11 +124,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Contains("10001", address);
     }
 
-    [Fact] // #255 / #239 (ERG-09): MySQL accepts a single-table DELETE with an
-           // aliased target (`DELETE FROM users AS `cu``) as of 8.0.16; the pinned
-           // mysql:8.0 image is well past that boundary. This is the safe spelling
-           // for a correlated DELETE on MySQL, so proving it runs clears the
-           // grammar-unverified register entry.
+    [Fact] // #255 / #239 (ERG-09): MySQL accepts an aliased single-table DELETE
+           // target as of 8.0.16 — the safe spelling for a correlated DELETE here.
     public void DeleteAliasedTarget_Executes()
     {
         UsersTable cu = new("cu");
@@ -268,9 +265,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         }
     }
 
-    [Fact] // ADR 0012 (#402): anchors the "no engine accepts it" premise for the
-           // NTILE/NTH_VALUE/window-frame guards — raw SQL by necessity, since
-           // WindowFrameGuard now rejects these client-side.
+    [Fact] // ADR 0012 (#402): anchors WindowFrameGuard.
     public void WindowFrame_ValueDomainViolations_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -298,9 +293,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
 
-    [Fact] // SQLA0104 (#449): anchors the MySqlTemporalUnits list in
-           // DatepartValidity.cs (shared by Extract and Interval) — EPOCH is a
-           // PostgreSQL-only field, not a MySQL EXTRACT()/DATE_ADD() unit.
+    [Fact] // SQLA0104 (#449): anchors MySqlTemporalUnits in DatepartValidity.cs —
+           // EPOCH is a PostgreSQL field, not a MySQL EXTRACT()/DATE_ADD() unit.
     public void Extract_EpochUnit_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();

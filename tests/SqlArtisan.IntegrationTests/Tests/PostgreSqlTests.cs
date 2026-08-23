@@ -282,8 +282,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
 
-    [Fact] // ADR 0012 (#295): anchors the "no engine accepts it" premise — raw
-           // SQL by necessity, since PercentileFractionGuard now rejects this client-side.
+    [Fact] // ADR 0012 (#295): anchors PercentileFractionGuard.
     public void PercentileCont_FractionOutOfRange_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -297,9 +296,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT PERCENTILE_CONT(1.5) WITHIN GROUP (ORDER BY age) FROM users"));
     }
 
-    [Fact] // ADR 0012 (#402): anchors the "no engine accepts it" premise for the
-           // window-frame value-domain guards — raw SQL by necessity, since
-           // WindowFrameGuard now rejects each of these client-side.
+    [Fact] // ADR 0012 (#402): anchors WindowFrameGuard.
     public void WindowFrame_ValueDomainViolations_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -327,9 +324,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
     }
 
-    [Fact] // SQLA0104 (#449): anchors the PostgreSqlExtractFields list in
-           // DatepartValidity.cs — WEEKDAY is a SQL Server/MySQL spelling, not a
-           // PostgreSQL EXTRACT field (PostgreSQL's day-of-week fields are DOW/ISODOW).
+    [Fact] // SQLA0104 (#449): anchors PostgreSqlExtractFields in DatepartValidity.cs
+           // — WEEKDAY is a SQL Server/MySQL spelling; PostgreSQL uses DOW/ISODOW.
     public void Extract_WeekdayField_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();
@@ -343,9 +339,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             "SELECT EXTRACT(WEEKDAY FROM created_at) FROM users"));
     }
 
-    [Fact] // SQLA0104 (#449): anchors the PostgreSqlDateTruncFields list in
-           // DatepartValidity.cs — EPOCH is EXTRACT-only; date_trunc has no epoch
-           // field to truncate to.
+    [Fact] // SQLA0104 (#449): anchors PostgreSqlDateTruncFields in DatepartValidity.cs
+           // — EPOCH is EXTRACT-only; date_trunc has no epoch field to truncate to.
     public void DateTrunc_EpochField_Rejected()
     {
         using IDbConnection connection = _fixture.OpenConnection();

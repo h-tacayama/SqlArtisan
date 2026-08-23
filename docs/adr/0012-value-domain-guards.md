@@ -126,10 +126,12 @@ before lock contention can matter (#483).
 - **The premise is empirically anchored, not asserted:** the guard now
   intercepts every out-of-range fraction before a build, so no builder path can
   reach the database with one — condition 1 (universally invalid) is instead
-  confirmed by raw-SQL integration tests
-  (`PercentileCont_FractionOutOfRange_Rejected` in `OracleTests` /
-  `PostgreSqlTests` / `SqlServerTests`) that bypass the guard and execute the
-  out-of-range form directly against each live engine.
+  confirmed by raw-SQL integration tests that bypass the guard and execute the
+  out-of-domain form directly against each live engine:
+  `PercentileCont_FractionOutOfRange_Rejected` (#295) in `OracleTests` /
+  `PostgreSqlTests` / `SqlServerTests`;
+  `WindowFrame_ValueDomainViolations_Rejected` (#402) in those three and
+  `MySqlTests`; `Wait_NegativeSeconds_Rejected` (#483) in `OracleTests`.
 - New instances append to the enumerated list here; when in doubt about engine
   divergence, stay permissive. Complements ADR 0007 and ADR 0011; supersedes
   neither. See #295.
