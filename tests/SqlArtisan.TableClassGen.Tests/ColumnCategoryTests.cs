@@ -59,6 +59,16 @@ public class ColumnCategoryTests
     public void Of_TypeNameCarryingPrecision_IgnoresIt(string dataType, DbTypeCategory expected) =>
         Assert.Equal(expected, ColumnCategory.Of(Dbms.Oracle, dataType));
 
+    // The precision sits mid-name in Oracle's interval range types, so stripping
+    // it must not also strip the trailing field that names the type.
+    [Theory]
+    [InlineData("INTERVAL YEAR(2) TO MONTH")]
+    [InlineData("INTERVAL DAY(2) TO SECOND(6)")]
+    [InlineData("INTERVAL YEAR TO MONTH")]
+    [InlineData("INTERVAL DAY TO SECOND")]
+    public void Of_OracleIntervalRangeType_ReturnsTemporal(string dataType) =>
+        Assert.Equal(DbTypeCategory.Temporal, ColumnCategory.Of(Dbms.Oracle, dataType));
+
     [Theory]
     [InlineData("INTEGER", DbTypeCategory.Numeric)]
     [InlineData("BIGINT", DbTypeCategory.Numeric)]

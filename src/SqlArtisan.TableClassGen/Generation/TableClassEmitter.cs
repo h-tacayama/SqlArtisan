@@ -120,7 +120,12 @@ internal sealed class TableClassEmitter(CodeGenerationSettings settings)
                     quoted.Append(@"\\");
                     break;
                 default:
-                    quoted.Append(char.IsControl(c) ? $"\\u{(int)c:X4}" : c.ToString());
+                    // U+2028/U+2029 end a C# source line without being control
+                    // characters, so they need the escape too.
+                    quoted.Append(
+                        char.IsControl(c) || c is '\u2028' or '\u2029'
+                            ? $"\\u{(int)c:X4}"
+                            : c.ToString());
                     break;
             }
         }

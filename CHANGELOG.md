@@ -79,6 +79,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Docs: the multi-row `VALUES` notes now reflect Oracle 23ai, which added the
   construct — reference note, Oracle array-bind guide, and the `Values(...)`
   XML docs.
+- TableClassGen: a column leading its own plain index is reported indexed even
+  when a separate expression index also mentions it; Oracle's
+  `INTERVAL YEAR TO MONTH` / `INTERVAL DAY TO SECOND` columns now resolve the
+  Temporal category (precision stripping no longer truncates the trailing
+  field); an identifier containing U+2028/U+2029 is escaped so the generated
+  file compiles; `--port` is validated against 1–65535 and a blank value for
+  a required option is rejected like a missing one; a `--config` array element
+  containing a comma is rejected instead of silently splitting into two names.
 - Analyzer: `RegexpReplace`'s PostgreSQL 15 bound now covers only the
   position/occurrence/options overloads (4+ arguments) — the 3-argument base
   form predates 15 and is no longer reported below it.

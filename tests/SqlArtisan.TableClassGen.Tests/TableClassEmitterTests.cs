@@ -141,6 +141,21 @@ public class TableClassEmitterTests
             """new DbColumn(this, "a\u000Ab")""",
             Emit(new CatalogTable("t", [new CatalogColumn("a\nb", "TEXT")])));
 
+    // U+2028/U+2029 end a C# source line without being control characters, so
+    // unescaped they break the emitted literal exactly like a newline.
+    [Fact]
+    public void Emit_NameWithUnicodeLineSeparator_EscapesTheLiteral()
+    {
+        CatalogTable table = new(
+            "t",
+            [new CatalogColumn("a\u2028b", "TEXT"), new CatalogColumn("c\u2029d", "TEXT")]);
+
+        string code = Emit(table);
+
+        Assert.Contains("""new DbColumn(this, "a\u2028b")""", code);
+        Assert.Contains("""new DbColumn(this, "c\u2029d")""", code);
+    }
+
     [Fact]
     public void Emit_NameHidingABaseMember_EmitsNew() =>
         Assert.Contains(

@@ -172,9 +172,7 @@ internal static class CommandLine
                     JsonValueKind.String => property.Value.GetString() ?? string.Empty,
                     JsonValueKind.True => "true",
                     JsonValueKind.False => "false",
-                    JsonValueKind.Array => string.Join(
-                        ",",
-                        property.Value.EnumerateArray().Select(e => e.ToString())),
+                    JsonValueKind.Array => JoinArray(property.Name, property.Value),
                     _ => property.Value.ToString(),
                 };
             }
@@ -247,9 +245,9 @@ internal static class CommandLine
             return DbmsOption.DefaultPort(dbms);
         }
 
-        return int.TryParse(port, out int parsed)
+        return int.TryParse(port, out int parsed) && parsed is > 0 and <= 65535
             ? parsed
-            : throw new CommandLineException($"--port must be a number (got '{port}')");
+            : throw new CommandLineException($"--port must be a number between 1 and 65535 (got '{port}')");
     }
 
     // MySQL has no schema layer above the database, and Oracle's schema is the user
@@ -283,6 +281,19 @@ internal static class CommandLine
             Flag(values, "qualify-schema"));
     }
 
+    // The option surface is comma-separated strings, so an array element carrying
+    // a comma cannot round-trip through it — reject rather than silently split
+    // one name into two (release audit pass 1).
+    private static string JoinArray(string name, JsonElement array)
+    {
+        List<string> items = [.. array.EnumerateArray().Select(e => e.ToString())];
+
+        return items.Any(item => item.Contains(','))
+            ? throw new CommandLineException(
+                $"\"{name}\" array elements must not contain commas")
+            : string.Join(",", items);
+    }
+
     private static IReadOnlyList<string> SplitTables(string? tables) =>
         string.IsNullOrWhiteSpace(tables)
             ? []
@@ -291,9 +302,12 @@ internal static class CommandLine
     private static string? Value(Dictionary<string, string> values, string key) =>
         values.TryGetValue(Normalize(key), out string? value) ? value : null;
 
+    // Blank counts as missing: a value like --namespace "" would otherwise flow
+    // into generated code or a connection string and fail far from the flag.
     private static string Required(Dictionary<string, string> values, string key) =>
-        Value(values, key)
-            ?? throw new CommandLineException(
+        Value(values, key) is { } value && !string.IsNullOrWhiteSpace(value)
+            ? value
+            : throw new CommandLineException(
                 $"--{key} is required (or set \"{key}\" in the --config file)");
 
     private static bool Flag(Dictionary<string, string> values, string key) =>

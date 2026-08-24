@@ -63,7 +63,36 @@ public class CommandLineTests
                 ["--dbms", "postgresql", "--host", "h", "--database", "d", "--schema", "s",
                  "--user", "u", "--namespace", "N", "--port", "54x2"]));
 
-        Assert.Equal("--port must be a number (got '54x2')", ex.Message);
+        Assert.Equal("--port must be a number between 1 and 65535 (got '54x2')", ex.Message);
+    }
+
+    // The parse path validates the same domain the interactive prompt does —
+    // silently connecting to a nonsense port is the misconfiguration nobody sees.
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-5")]
+    [InlineData("65536")]
+    public void Parse_PortOutsideRange_ThrowsCommandLineException(string port)
+    {
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(
+                ["--dbms", "postgresql", "--host", "h", "--database", "d", "--schema", "s",
+                 "--user", "u", "--namespace", "N", "--port", port]));
+
+        Assert.Equal($"--port must be a number between 1 and 65535 (got '{port}')", ex.Message);
+    }
+
+    // Blank counts as missing: --namespace "" previously emitted `namespace ;`.
+    [Fact]
+    public void Parse_BlankRequiredOption_ThrowsCommandLineException()
+    {
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(
+                ["--dbms", "sqlite", "--file", "app.db", "--namespace", " "]));
+
+        Assert.Equal(
+            "--namespace is required (or set \"namespace\" in the --config file)",
+            ex.Message);
     }
 
     [Fact]
@@ -189,6 +218,20 @@ public class CommandLineTests
             """{"$schema": "https://example/schema.json", "dbms": "sqlite", "file": "a.db", "namespace": "N"}""");
 
         Assert.Equal("N", CommandLine.Parse(["--config", config.Path]).Settings.OutputNamespace);
+    }
+
+    // The option surface is comma-separated strings, so a comma-bearing array
+    // element would silently split into two names.
+    [Fact]
+    public void Parse_ConfigTablesElementWithComma_ThrowsCommandLineException()
+    {
+        using TempFile config = TempFile.Create(
+            """{"dbms": "sqlite", "file": "a.db", "namespace": "N", "tables": ["weird,name"]}""");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal("\"tables\" array elements must not contain commas", ex.Message);
     }
 
     [Fact]

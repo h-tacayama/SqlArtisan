@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace SqlArtisan.TableClassGen;
 
@@ -60,6 +61,8 @@ internal static class ColumnCategory
             ["datetime2"] = DbTypeCategory.Temporal,
             ["datetimeoffset"] = DbTypeCategory.Temporal,
             ["interval"] = DbTypeCategory.Temporal,
+            ["interval day to second"] = DbTypeCategory.Temporal,
+            ["interval year to month"] = DbTypeCategory.Temporal,
             ["smalldatetime"] = DbTypeCategory.Temporal,
             ["time"] = DbTypeCategory.Temporal,
             ["time with time zone"] = DbTypeCategory.Temporal,
@@ -120,25 +123,44 @@ internal static class ColumnCategory
         _ => null,
     };
 
-    // Length, precision and scale are deliberately dropped: the category is the
-    // whole fact, so varchar(50) and varchar(4000) are one thing.
+    // Length, precision and scale are deliberately dropped — each parenthesized
+    // group, not everything past the first: the category is the whole fact, so
+    // varchar(50) and varchar(4000) are one thing, while Oracle's
+    // INTERVAL DAY(2) TO SECOND(6) keeps the trailing field that names it.
     private static string Bare(string dataType)
     {
         string name = dataType.Trim();
-        int paren = name.IndexOf('(');
 
-        if (paren >= 0)
+        if (name.IndexOf('(') < 0)
         {
-            name = name.Substring(0, paren).TrimEnd();
+            return name.ToLowerInvariant();
         }
 
-        return name.ToLowerInvariant();
+        StringBuilder bare = new(name.Length);
+        int depth = 0;
+
+        foreach (char c in name)
+        {
+            if (c == '(')
+            {
+                depth++;
+            }
+            else if (c == ')')
+            {
+                depth = Math.Max(0, depth - 1);
+            }
+            else if (depth == 0)
+            {
+                bare.Append(c);
+            }
+        }
+
+        return bare.ToString().TrimEnd().ToLowerInvariant();
     }
 
-    // SQLite resolves a declared type to an affinity by substring, in this order.
-    // The final "everything else is NUMERIC" rule is deliberately not applied: it
-    // would call a DATETIME column numeric, and dates are conventionally stored as
-    // text there, so the fact stays unknown instead.
+    // SQLite's affinity-by-substring rules, in their order — minus the final
+    // "everything else is NUMERIC" rule, which would call a conventionally
+    // text-stored DATETIME column numeric; that fact stays unknown instead.
     private static DbTypeCategory? Affinity(string dataType)
     {
         string name = dataType.ToUpperInvariant();

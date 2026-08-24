@@ -13,11 +13,13 @@ internal sealed class ColumnIndexInfo(
     // text — Oracle's COLUMN_EXPRESSION is a LONG — so no column can be claimed.
     public static ColumnIndexInfo Unknown { get; } = new([], [], [], allUnknown: true);
 
-    // A full-index lead beats a partial one — it serves a bare predicate
-    // regardless of what the partial index's own predicate covers.
+    // A full-index lead beats a partial lead and a mention in a separate
+    // expression index alike — it serves a bare predicate regardless of what
+    // either of those covers.
     public bool? IsIndexed(string columnName) =>
-        allUnknown || MentionedByExpression(columnName) ? null
+        allUnknown ? null
         : leadingColumns.Contains(columnName, StringComparer.Ordinal) ? true
+        : MentionedByExpression(columnName) ? null
         : partialLeadingColumns.Contains(columnName, StringComparer.Ordinal) ? null
         : false;
 
