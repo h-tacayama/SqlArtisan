@@ -586,6 +586,15 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Set_NonColumnLeftSide_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set(Abs(_t.Code) == 5));
+
+        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+    }
+
+    [Fact]
     public void Update_SqlServer_JoinedTargetNotRepeatedInFrom_ThrowsArgumentException()
     {
         TestTable t = new("t");

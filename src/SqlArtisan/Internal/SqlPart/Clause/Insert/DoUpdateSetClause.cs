@@ -10,7 +10,7 @@ internal sealed class DoUpdateSetClause : SqlPart
     }
 
     internal static DoUpdateSetClause Parse(EqualityCondition[] items) =>
-        new(UpsertAssignmentResolver.Resolve(
+        new(AssignmentResolver.Resolve(
             items,
             "DO UPDATE SET requires at least one assignment."));
 

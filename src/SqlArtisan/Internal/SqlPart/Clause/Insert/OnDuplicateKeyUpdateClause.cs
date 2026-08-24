@@ -10,7 +10,7 @@ internal sealed class OnDuplicateKeyUpdateClause : SqlPart
     }
 
     internal static OnDuplicateKeyUpdateClause Parse(EqualityCondition[] items) =>
-        new(UpsertAssignmentResolver.Resolve(
+        new(AssignmentResolver.Resolve(
             items,
             "ON DUPLICATE KEY UPDATE requires at least one assignment."));
 

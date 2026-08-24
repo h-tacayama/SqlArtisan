@@ -545,6 +545,19 @@ public class MergeTests
     }
 
     [Fact]
+    public void ThenUpdateSet_NonColumnLeftSide_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched()
+                .ThenUpdateSet(Abs(_cols.Code) == 5));
+
+        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+    }
+
+    [Fact]
     public void ThenInsert_NoColumnList_CorrectSql()
     {
         StringBuilder expected = new();

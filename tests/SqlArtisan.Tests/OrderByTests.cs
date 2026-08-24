@@ -169,4 +169,34 @@ public class OrderByTests
             "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'orderByItem')",
             ex.Message);
     }
+
+    [Fact]
+    public void OrderBy_ZeroOrdinal_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(0));
+
+        Assert.Equal("An ORDER BY column ordinal must be positive.", ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_NegativeOrdinal_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(-1));
+
+        Assert.Equal("An ORDER BY column ordinal must be positive.", ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_WholeDoubleLiteral_RendersDecimalPoint()
+    {
+        // A whole-valued double is a literal sort key, not a column ordinal, so
+        // it keeps its decimal point ("2.0", never a bare "2").
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.0).Build();
+
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\" ORDER BY 2.0",
+            sql.Text);
+    }
 }

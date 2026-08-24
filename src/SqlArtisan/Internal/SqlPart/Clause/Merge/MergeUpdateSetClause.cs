@@ -12,7 +12,7 @@ internal sealed class MergeUpdateSetClause : SqlPart
     }
 
     internal static MergeUpdateSetClause Parse(EqualityCondition[] items) =>
-        new(UpsertAssignmentResolver.Resolve(
+        new(AssignmentResolver.Resolve(
             items,
             "UPDATE SET requires at least one assignment."));
 

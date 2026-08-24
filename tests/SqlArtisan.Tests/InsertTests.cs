@@ -615,6 +615,47 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertIntoSet_NonColumnLeftSide_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Set(Abs(t.Code) == 5));
+
+        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertIntoSelect_WidthMismatch_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name).Select(s.Code).From(s).Build());
+
+        Assert.Equal(
+            "The INSERT column list declares 2 column(s), but the SELECT list has 1 item(s).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIntoSelect_QualifiedStar_CorrectSql()
+    {
+        // A star's width is the schema's, not countable, so the width check
+        // stays out of the way.
+        TestTable t = new();
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name).Select(s.Asterisk).From(s).Build();
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) SELECT \"s\".* FROM test_table \"s\"",
+            sql.Text);
+    }
+
+    [Fact]
     public void InsertInto_MySql_AliasedTarget_ThrowsArgumentException()
     {
         TestTable t = new("t");

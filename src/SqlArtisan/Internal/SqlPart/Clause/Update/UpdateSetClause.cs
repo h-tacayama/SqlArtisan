@@ -11,29 +11,8 @@ internal sealed class UpdateSetClause : SqlPart
         _state = state;
     }
 
-    internal static UpdateSetClause Parse(EqualityCondition[] items, DmlJoinState state)
-    {
-        CollectionGuard.ThrowIfEmpty(items, "SET requires at least one assignment.");
-
-        var assignments = new EqualCondition[items.Length];
-
-        for (int i = 0; i < items.Length; i++)
-        {
-            if (items[i] is null)
-            {
-                throw new ArgumentNullException(
-                    nameof(items), ExpressionResolver.NullValueMessage);
-            }
-            else if (items[i] is not EqualCondition)
-            {
-                throw ExpressionResolver.UnresolvableValue("Assignment", items[i]);
-            }
-
-            assignments[i] = (EqualCondition)items[i];
-        }
-
-        return new(assignments, state);
-    }
+    internal static UpdateSetClause Parse(EqualityCondition[] items, DmlJoinState state) =>
+        new(AssignmentResolver.Resolve(items, "SET requires at least one assignment."), state);
 
     internal override void Format(SqlBuildingBuffer buffer)
     {

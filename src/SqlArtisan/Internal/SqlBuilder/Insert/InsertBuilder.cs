@@ -171,6 +171,29 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(table, dbms);
 
+        // #397's width class, extended to INSERT ... SELECT where the select
+        // list's width is knowable (a star item's width is the schema's).
+        SqlPart[]? selectItems = FirstSelectItems();
+        if (columnCount > 0 && selectItems is not null)
+        {
+            bool countable = true;
+            foreach (SqlPart item in selectItems)
+            {
+                if (item is AsteriskMarker or QualifiedAsteriskMarker)
+                {
+                    countable = false;
+                    break;
+                }
+            }
+
+            if (countable && selectItems.Length != columnCount)
+            {
+                throw new ArgumentException(
+                    $"The INSERT column list declares {columnCount} column(s), " +
+                    $"but the SELECT list has {selectItems.Length} item(s).");
+            }
+        }
+
         OnConflictClause? onConflict = FindPart<OnConflictClause>();
         if (onConflict is { HasTarget: false } && FindPart<DoUpdateSetClause>() is not null)
         {

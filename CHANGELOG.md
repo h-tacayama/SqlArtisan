@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- A SET-shaped assignment whose left side is not a column —
+  `Set(Abs(t.Code) == 5)`, which compiles because `==` is overloaded on every
+  expression — now throws at the call on all five SET surfaces (`UPDATE` and
+  SET-like `INSERT`, `DO UPDATE SET`, `ON DUPLICATE KEY UPDATE`, MERGE's
+  `UPDATE SET`); previously it emitted `INSERT INTO t (ABS(code)) ...`, invalid
+  on every dialect. The five parsers now share one `AssignmentResolver`.
+- `INSERT ... SELECT` cross-checks the declared column-list width against the
+  SELECT list where its width is knowable (a star item skips the check) — the
+  same #397 class the `VALUES` form already enforced.
+- `OrderBy(0)` / `OrderBy(-1)` — column ordinals are 1-based on every engine —
+  now throw at the call, and a whole-valued fractional sort key renders with
+  its decimal point (`OrderBy(2.0)` emits `ORDER BY 2.0`, which previously
+  rendered `ORDER BY 2` and silently became a column ordinal). A `Complex`
+  value in an ORDER BY position is rejected instead of emitting `<2; 3>`.
 - An aliased `INSERT` target now throws at `Build(Dbms.MySql)`: MySQL's INSERT
   grammar has no target-alias slot (its `AS row_alias` is the separate UPSERT
   construct), so the emitted statement could never run there — the same

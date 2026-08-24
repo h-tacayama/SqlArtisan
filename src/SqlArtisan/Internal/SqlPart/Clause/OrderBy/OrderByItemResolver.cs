@@ -44,11 +44,7 @@ internal static class OrderByItemResolver
         }
         else if (IsNumeric(orderByItem))
         {
-            // Plain ToString() is culture-dependent (comma-decimal cultures split
-            // a single sort key into two tokens, e.g. "2.5" -> "2,5"); IsNumeric
-            // guarantees IFormattable here.
-            string text = ((IFormattable)orderByItem).ToString(null, CultureInfo.InvariantCulture);
-            return new LiteralValue(text);
+            return ResolveNumericSortKey(orderByItem);
         }
         else if (IsBindable(orderByItem))
         {
@@ -57,6 +53,50 @@ internal static class OrderByItemResolver
         else
         {
             throw UnresolvableValue("OrderByItem", orderByItem);
+        }
+    }
+
+    private static readonly char[] FractionMarks = ['.', 'E', 'e'];
+
+    private static LiteralValue ResolveNumericSortKey(object value)
+    {
+        // Plain ToString() is culture-dependent (comma-decimal cultures split
+        // a single sort key into two tokens, e.g. "2.5" -> "2,5"); IsNumeric
+        // guarantees IFormattable here.
+        string text = ((IFormattable)value).ToString(null, CultureInfo.InvariantCulture);
+
+        switch (value)
+        {
+            case sbyte or byte or short or ushort or int or uint or nint or nuint
+                or long or ulong:
+                // A column ordinal, 1-based on every engine — ADR 0012's eager
+                // value-domain class.
+                if (text.StartsWith('-') || text == "0")
+                {
+                    throw new ArgumentException("An ORDER BY column ordinal must be positive.");
+                }
+
+                return new LiteralValue(text);
+
+            case float or double or decimal:
+                if ((value is double d && !double.IsFinite(d))
+                    || (value is float f && !float.IsFinite(f)))
+                {
+                    throw UnresolvableValue("OrderByItem", value);
+                }
+
+                // A literal sort key, rendered with a decimal point so a whole
+                // value ("2.0" -> "2") cannot silently re-read as an ordinal.
+                if (text.IndexOfAny(FractionMarks) < 0)
+                {
+                    text += ".0";
+                }
+
+                return new LiteralValue(text);
+
+            default:
+                // Complex — a numeric with no sort-key rendering.
+                throw UnresolvableValue("OrderByItem", value);
         }
     }
 }

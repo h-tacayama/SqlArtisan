@@ -316,6 +316,18 @@ public class UpsertTests
     }
 
     [Fact]
+    public void DoUpdateSet_NonColumnLeftSide_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code)
+                .Values(1)
+                .OnConflict(_t.Code)
+                .DoUpdateSet(Abs(_t.Code) == 5));
+
+        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+    }
+
+    [Fact]
     public void OnConflict_EmptyTargetWithDoUpdateSet_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
