@@ -32,14 +32,28 @@ internal sealed class ReturningBuilder : IReturningBuilder
         return new ReturningBuilder(inner, resolved);
     }
 
-    public SqlStatement Build() =>
-        _inner.BuildWithPart(new ReturningClause(_expressions));
+    // Single-use guard, mirroring SqlBuilderBase: Into() hands the chain back to
+    // the inner builder, so a later call on this held stage would append a
+    // second RETURNING clause (#245's silent-contamination class).
+    private bool _completed;
 
-    public SqlStatement Build(Dbms dbms) =>
-        _inner.BuildWithPart(new ReturningClause(_expressions), dbms);
+    public SqlStatement Build()
+    {
+        ThrowIfCompleted();
+        _completed = true;
+        return _inner.BuildWithPart(new ReturningClause(_expressions));
+    }
+
+    public SqlStatement Build(Dbms dbms)
+    {
+        ThrowIfCompleted();
+        _completed = true;
+        return _inner.BuildWithPart(new ReturningClause(_expressions), dbms);
+    }
 
     public ISqlBuilder Into(params OutputParameter[] outputs)
     {
+        ThrowIfCompleted();
         CollectionGuard.ThrowIfEmpty(
             outputs,
             "INTO requires at least one output parameter.");
@@ -52,6 +66,16 @@ internal sealed class ReturningBuilder : IReturningBuilder
         }
 
         _inner.AddPart(new ReturningIntoClause(_expressions, outputs));
+        _completed = true;
         return (ISqlBuilder)_inner;
+    }
+
+    private void ThrowIfCompleted()
+    {
+        if (_completed)
+        {
+            throw new ArgumentException(
+                "This RETURNING clause was already built; start a new chain.");
+        }
     }
 }

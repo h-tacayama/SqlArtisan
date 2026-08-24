@@ -92,3 +92,25 @@ override — so every build path (including `Returning()`, which funnels through
   target (a silent tautology) via the owning-table model (shipped as #253); this
   guards the *aliased* target on the one dialect where aliasing it is invalid.
   Together they make the correlated-DML surface fail loudly on every dialect.
+
+## Later instances admitted under the same bar (release audit, pass 1)
+
+Two further guards cleared this ADR's two-condition test — the analyzer
+structurally cannot see the fact, and the resolved target has no valid
+spelling — and joined the `Validate(Dbms)` hook:
+
+- **Aliased `INSERT` target on MySQL.** MySQL's `INSERT` grammar has no
+  target-alias slot at all — the 8.0.19+ `AS row_alias` is a separate,
+  post-`VALUES` construct — so `InsertInto(new UsersTable("u"))` has no valid
+  MySQL spelling (the alias is the same analyzer-invisible constructor
+  argument as the SQL Server case). Scoped to `INSERT` alone: MySQL's aliased
+  `UPDATE`/`DELETE` targets are valid (live-verified, #255). Anchored by
+  `MySqlTests.AliasedInsertTarget_Rejected` executing the raw aliased form
+  against a live engine, per the empirical-anchor precedent above.
+- **Joined `UPDATE`/`DELETE` on SQL Server without the target re-listed in
+  `FROM`.** T-SQL's joined form takes the target's alias from `FROM`, so a
+  joined shape that never re-lists the target (a `USING`-only `DELETE`, a
+  PostgreSQL-style `UPDATE ... FROM aux`, a direct-join `UPDATE`) has no valid
+  T-SQL spelling; the shape lives in value-level builder state the analyzer
+  cannot read. PostgreSQL's forms legally omit the re-list, so the guard is
+  `Dbms.SqlServer`-scoped.

@@ -1063,7 +1063,7 @@ SqlStatement sql =
 // ORDER BY age
 ```
 
-`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot appear with `OFFSET/FETCH` in the same query — SqlArtisan throws on `Build(Dbms.SqlServer)` if either rule is broken.
+`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot appear with `OFFSET/FETCH` in the same query — SqlArtisan throws on `Build(Dbms.SqlServer)` if either rule is broken in the statement's own clauses (a nested subquery's `TOP` is left to the database).
 
 **Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those families expose no `WITH TIES` option in SqlArtisan.
 
@@ -1272,10 +1272,12 @@ DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
 // DELETE "t" FROM acct "t" INNER JOIN ledger "u" ON "t".id = "u".id
 ```
 
-The joined target must be aliased. A spelling the target dialect doesn't support
-— Oracle, or `UPDATE … FROM` on MySQL — is emitted as written and rejected by the
-database, not caught at build time. On Oracle, express the shape as a correlated
-subquery or a [`MERGE`](#merge-statement).
+The joined target must be aliased, and on SQL Server a joined `UPDATE`/`DELETE`
+must re-list the target in `FROM` — T-SQL's joined form takes the target's alias
+from there — or `Build(Dbms.SqlServer)` throws. A spelling the target dialect
+doesn't support — Oracle, or `UPDATE … FROM` on MySQL — is emitted as written
+and rejected by the database, not caught at build time. On Oracle, express the
+shape as a correlated subquery or a [`MERGE`](#merge-statement).
 
 ---
 
@@ -1296,7 +1298,7 @@ SqlStatement sql =
 // (:0, :1, CURRENT_TIMESTAMP)
 ```
 
-**Dialect note:** On SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`), since T-SQL introduces a table alias through a `FROM` clause instead; building an aliased target for SQL Server throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and MySQL, Oracle, and SQLite emit the alias faithfully as well.
+**Dialect note:** On SQL Server and MySQL the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`). T-SQL introduces a table alias through a `FROM` clause instead, and MySQL's `INSERT` grammar has no target-alias slot at all (its `AS new` row alias is the separate UPSERT construct) — building an aliased target for either throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and Oracle and SQLite accept the alias as well.
 
 ---
 

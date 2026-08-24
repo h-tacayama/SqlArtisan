@@ -584,4 +584,22 @@ public class UpdateTests
         Assert.Equal(
             "OUTPUT cannot be combined with RETURNING; use one or the other.", ex.Message);
     }
+
+    [Fact]
+    public void Update_SqlServer_JoinedTargetNotRepeatedInFrom_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+                .Set(t.Name == s.Name)
+                .From(s)
+                .Where(t.Code == s.Code)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "A joined UPDATE on SQL Server must re-list the target table in the FROM clause.",
+            ex.Message);
+    }
 }

@@ -33,6 +33,14 @@ public sealed class StringAggFunction : SqlExpression
     /// </summary>
     public StringAggFunction WithinGroup(OrderByClause orderByClause)
     {
+        // The combined shape has no valid spelling on any dialect; the ordering
+        // is fixed at the call, so it throws eagerly.
+        if (_orderByClause is not null)
+        {
+            throw new ArgumentException(
+                "STRING_AGG cannot combine an inline ORDER BY argument with WITHIN GROUP (ORDER BY ...); use one or the other.");
+        }
+
         _withinGroupClause = new WithinGroupClause(orderByClause);
         return this;
     }

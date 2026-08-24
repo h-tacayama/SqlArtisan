@@ -127,6 +127,13 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfDeleteCombinedWithUsing(output, FindPart<DeleteUsingClause>());
+
+        // Last so the dialect-independent pairing guards above report first —
+        // an OUTPUT + USING statement is broken on every dialect, not just T-SQL.
+        if (state.IsJoined)
+        {
+            DmlTargetGuard.ThrowIfSqlServerJoinedTargetNotRepeated(state, dbms, Keywords.Delete);
+        }
     }
 
     private void AddJoin(SqlPart joinClause)

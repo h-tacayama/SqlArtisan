@@ -13,6 +13,10 @@ internal sealed class OnConflictClause : SqlPart
         _conflictTarget = conflictTarget;
     }
 
+    // Read by InsertBuilder.Validate: DO UPDATE requires a conflict target on
+    // both dialects that have ON CONFLICT (PostgreSQL and SQLite).
+    internal bool HasTarget => _conflictTarget.Length > 0;
+
     internal override void Format(SqlBuildingBuffer buffer)
     {
         buffer.Append($"{Keywords.On} {Keywords.Conflict}");

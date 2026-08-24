@@ -164,13 +164,25 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
 
     protected override void Validate(Dbms dbms)
     {
+        // The base TOP guards still apply to the INSERT ... SELECT chain, which
+        // inherits the whole SELECT surface.
+        base.Validate(dbms);
+
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
+        DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(table, dbms);
+
+        OnConflictClause? onConflict = FindPart<OnConflictClause>();
+        if (onConflict is { HasTarget: false } && FindPart<DoUpdateSetClause>() is not null)
+        {
+            throw new ArgumentException(
+                "ON CONFLICT DO UPDATE requires a conflict target; name the column(s) in OnConflict(...).");
+        }
 
         OutputClause? output = FindPart<OutputClause>();
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(
-            output, FindPart<OnConflictClause>(), FindPart<OnDuplicateKeyUpdateClause>());
+            output, onConflict, FindPart<OnDuplicateKeyUpdateClause>());
     }
 
     // The single-row append shared by every Values overload. A repeat call grows

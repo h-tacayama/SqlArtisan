@@ -314,4 +314,19 @@ public class UpsertTests
         // Assert
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void OnConflict_EmptyTargetWithDoUpdateSet_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code, _t.Name)
+                .Values(1, "x")
+                .OnConflict()
+                .DoUpdateSet(_t.Name == Excluded(_t.Name))
+                .Build());
+
+        Assert.Equal(
+            "ON CONFLICT DO UPDATE requires a conflict target; name the column(s) in OnConflict(...).",
+            ex.Message);
+    }
 }

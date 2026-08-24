@@ -613,4 +613,52 @@ public class InsertTests
                 + "use one or the other.",
             ex.Message);
     }
+
+    [Fact]
+    public void InsertInto_MySql_AliasedTarget_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code).Values(1).Build(Dbms.MySql));
+
+        Assert.Equal(
+            "MySQL does not support aliasing the target of an INSERT statement; "
+                + "use an unaliased target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIntoSelect_SqlServer_TopWithOffset_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Select(Top(5), s.Code)
+                .From(s)
+                .OrderBy(s.Code)
+                .OffsetRows(3)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "TOP cannot be combined with OFFSET / FETCH on SQL Server; use one or the other.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIntoSelect_SqlServer_TopWithTiesWithoutOrderBy_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Select(Top(5).WithTies(), s.Code)
+                .From(s)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal("TOP ... WITH TIES requires an ORDER BY clause.", ex.Message);
+    }
 }

@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- An aliased `INSERT` target now throws at `Build(Dbms.MySql)`: MySQL's INSERT
+  grammar has no target-alias slot (its `AS row_alias` is the separate UPSERT
+  construct), so the emitted statement could never run there — the same
+  ADR 0011 guard shape as the SQL Server case, live-anchored by a new
+  integration test.
+- A joined `UPDATE`/`DELETE` that never re-lists its target in `FROM` now
+  throws at `Build(Dbms.SqlServer)` — T-SQL's joined form takes the target's
+  alias from `FROM`, so the `USING`-only and direct-join shapes emitted
+  invalid T-SQL silently. PostgreSQL's `FROM`/`USING` forms are unaffected.
+- `INSERT ... SELECT` now runs the SELECT surface's own `Build(Dbms)` checks
+  (the SQL Server `TOP` + `OFFSET/FETCH` and `TOP ... WITH TIES` rules were
+  silently skipped because `InsertBuilder.Validate` never called its base).
+- A stage method repeated on a held, not-yet-built builder — two `.Where(...)`
+  calls on the same `SELECT` stage, say — now throws at `Build()` instead of
+  silently emitting a duplicated clause (`WHERE ... WHERE ...`); a set
+  operator still starts a fresh query block with its own clauses. The
+  `Returning(...)` stage is likewise single-use: `Into(...)` then `Build()`
+  on the held stage emitted a second `RETURNING` clause (the reuse-guard
+  messages for the already-covered orderings now name the RETURNING clause).
+- `OnConflict()` with no conflict target followed by `.DoUpdateSet(...)` now
+  throws at `Build()` — PostgreSQL and SQLite both require a conflict target
+  for `DO UPDATE`.
+- `StringAgg(expr, sep, OrderBy(...))` combined with `.WithinGroup(...)` now
+  throws at the call — the inline argument (PostgreSQL/SQLite) and
+  `WITHIN GROUP` (SQL Server) are the same ordering spelled per dialect, and
+  the stacked form is valid nowhere.
 - MERGE's `INSERT` action now carries the guards plain `INSERT` already had: an
   explicit `ThenInsert(...)` column list must be non-empty (a computed empty
   array previously degraded silently to the positional form; the positional

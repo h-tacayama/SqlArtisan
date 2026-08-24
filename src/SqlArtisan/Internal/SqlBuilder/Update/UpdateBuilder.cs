@@ -167,6 +167,12 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
 
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             FindPart<OutputClause>(), FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
+
+        // Last so the dialect-independent pairing guard above reports first.
+        if (state.IsJoined)
+        {
+            DmlTargetGuard.ThrowIfSqlServerJoinedTargetNotRepeated(state, dbms, Keywords.Update);
+        }
     }
 
     private void AddJoin(SqlPart joinClause)

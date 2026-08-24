@@ -69,6 +69,14 @@ IDs are assigned sequentially and never reused; a superseded line is
 rewritten in place (same ID), not re-added. Keep entries grep-able: name
 the class by the terms a reviewer would search for.
 
+- RD-002 [precise] `Validate(Dbms)` running only on the outermost statement
+  builder — a subquery, CTE body, or derived table renders through `Format`,
+  so its dialect guards (e.g. the SQL Server TOP pairing rules) do not re-run
+  one level down — declined to extend into the render path: ADR 0007's
+  permissive default governs nested constructs (the engine rejects them
+  loudly), and `docs/query-statements.md` scopes the throw claim to the
+  statement's own clauses. Not a finding for any nested shape.
+  (source: release audit pass 1)
 - RD-001 [precise] TableClassGen requiring `--schema` on the SQL Server CLI
   while the interactive prompt defaults it to `dbo` — declined to default the
   CLI: a scripted run states its schema explicitly, and the interactive path

@@ -303,4 +303,18 @@ public partial class FunctionTests
 
         Assert.Equal("A sequence requires a name.", ex.Message);
     }
+
+    [Fact]
+    public void StringAgg_InlineOrderByWithWithinGroup_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            StringAgg(t.Name, ", ", OrderBy(t.Name)).WithinGroup(OrderBy(t.Name)));
+
+        Assert.Equal(
+            "STRING_AGG cannot combine an inline ORDER BY argument with "
+                + "WITHIN GROUP (ORDER BY ...); use one or the other.",
+            ex.Message);
+    }
 }

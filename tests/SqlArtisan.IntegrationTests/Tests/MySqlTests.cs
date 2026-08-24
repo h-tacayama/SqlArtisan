@@ -144,6 +144,26 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
+    [Fact] // ADR 0011: MySQL's INSERT grammar has no target-alias slot (the
+           // 8.0.19+ AS row_alias is a post-VALUES construct), so Build(MySql)
+           // throws for an aliased INSERT target; this anchors that guard on
+           // the live engine, alongside the unaliased form succeeding.
+    public void AliasedInsertTarget_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        using (IDbTransaction tx = connection.BeginTransaction())
+        {
+            connection.Execute(
+                "INSERT INTO users (id, name, age, department_id) VALUES (901, 'x', 20, 99)",
+                transaction: tx);
+            tx.Rollback();
+        }
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "INSERT INTO users AS `cu` (id, name, age, department_id) VALUES (901, 'x', 20, 99)"));
+    }
+
     [Fact]
     public void JoinedUpdateJoin_Executes()
     {

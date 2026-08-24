@@ -459,4 +459,21 @@ public class DeleteTests
         Assert.Equal(
             "OUTPUT cannot be combined with USING; use one or the other.", ex.Message);
     }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_UsingTargetNotRepeatedInFrom_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+                .Using(s)
+                .Where(t.Code == s.Code)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "A joined DELETE on SQL Server must re-list the target table in the FROM clause.",
+            ex.Message);
+    }
 }

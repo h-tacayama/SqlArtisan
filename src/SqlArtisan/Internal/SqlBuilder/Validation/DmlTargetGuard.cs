@@ -23,9 +23,11 @@ internal static class DmlTargetGuard
         }
     }
 
-    // A joined UPDATE/DELETE qualifies its columns through the target's alias
-    // (and SQL Server / MySQL lead with the alias alone), so an unaliased target
-    // has no correct spelling in the joined forms.
+    // A joined UPDATE/DELETE must alias its target on every dialect — a decided
+    // uniform requirement (#258; guards-and-empty-states.md, joined-target
+    // clause), not a grammar fact: PostgreSQL accepts the unaliased FROM/USING
+    // forms, but SQL Server / MySQL lead with the alias alone, and one rule
+    // keeps every joined reference qualified.
     internal static void ThrowIfJoinedTargetUnaliased(DbTableBase target)
     {
         if (!target.HasAlias)
@@ -46,6 +48,34 @@ internal static class DmlTargetGuard
         {
             throw new ArgumentException(
                 "A joined DELETE ... FROM must re-list the target table in the FROM clause.");
+        }
+    }
+
+    // MySQL's INSERT grammar has no target-alias slot at all (the 8.0.19+
+    // `AS row_alias` is a different, post-VALUES construct), so an aliased
+    // INSERT target has no valid MySQL spelling — the same ADR 0011 shape as
+    // the SQL Server guard above, scoped to INSERT alone because MySQL's
+    // aliased UPDATE/DELETE targets are valid (live-verified, #255).
+    internal static void ThrowIfInsertTargetAliasedOnMySql(DbTableBase table, Dbms dbms)
+    {
+        if (dbms == Dbms.MySql && table.HasAlias)
+        {
+            throw new ArgumentException(
+                "MySQL does not support aliasing the target of an INSERT statement; use an unaliased target table.");
+        }
+    }
+
+    // SQL Server's joined UPDATE/DELETE spelling requires the target re-listed
+    // in FROM (the lead is then the alias alone); PostgreSQL's FROM/USING forms
+    // legally leave it out, so the requirement is T-SQL's alone and is checked
+    // at Build(Dbms) — the same ADR 0011 shape as the aliased-target guard.
+    internal static void ThrowIfSqlServerJoinedTargetNotRepeated(
+        DmlJoinState state, Dbms dbms, string statementName)
+    {
+        if (dbms == Dbms.SqlServer && !state.TargetRepeatedInFrom)
+        {
+            throw new ArgumentException(
+                $"A joined {statementName} on SQL Server must re-list the target table in the FROM clause.");
         }
     }
 

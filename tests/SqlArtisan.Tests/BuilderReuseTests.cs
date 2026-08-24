@@ -99,7 +99,7 @@ public class BuilderReuseTests
             ret.Build(Dbms.Oracle));
 
         Assert.Equal(
-            "This UPDATE statement was already built; start a new chain.",
+            "This RETURNING clause was already built; start a new chain.",
             ex.Message);
     }
 
@@ -113,8 +113,77 @@ public class BuilderReuseTests
             ret.Into(new OutputParameter("out", DbType.Int32)));
 
         Assert.Equal(
-            "This UPDATE statement was already built; start a new chain.",
+            "This RETURNING clause was already built; start a new chain.",
             ex.Message);
+    }
+
+    [Fact]
+    public void Returning_BuildAfterInto_ThrowsArgumentException()
+    {
+        // The one ordering #245's freeze missed: Into() hands the chain to the
+        // inner builder, and a later Build() on the held RETURNING stage would
+        // have appended a second RETURNING clause.
+        IReturningBuilder ret = Update(_t).Set(_t.Code == 1).Returning(_t.Code);
+        ret.Into(new OutputParameter("out", DbType.Int32));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ret.Build(Dbms.Oracle));
+
+        Assert.Equal(
+            "This RETURNING clause was already built; start a new chain.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ReturningInto_CalledTwice_ThrowsArgumentException()
+    {
+        IReturningBuilder ret = Update(_t).Set(_t.Code == 1).Returning(_t.Code);
+        ret.Into(new OutputParameter("out", DbType.Int32));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ret.Into(new OutputParameter("out2", DbType.Int32)));
+
+        Assert.Equal(
+            "This RETURNING clause was already built; start a new chain.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Where_CalledTwiceOnHeldStage_ThrowsArgumentException()
+    {
+        var held = Select(_t.Code).From(_t);
+        held.Where(_t.Code == 1);
+        held.Where(_t.Name == "x");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
+
+        Assert.Equal(
+            "A statement takes at most one WHERE clause per query block; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Where_OncePerCompoundQueryBlock_CorrectSql()
+    {
+        // The legal twin: a set operator starts a new query block, so each
+        // branch carries its own WHERE.
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .Union
+            .Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == 2)
+            .Build();
+
+        Assert.Equal(
+            "SELECT code FROM test_table WHERE code = :0 "
+                + "UNION SELECT code FROM test_table WHERE code = :1",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(2, sql.Parameters.Get<int>(":1"));
     }
 
     [Fact]

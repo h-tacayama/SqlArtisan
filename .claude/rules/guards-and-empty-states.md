@@ -37,7 +37,12 @@ the full rationale.
   unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
   (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
   `Using(...)` on `DELETE`, or with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
-  on `INSERT` — no dialect accepts both halves of any pairing (#400).
+  on `INSERT` — no dialect accepts both halves of any pairing (#400); an
+  `OnConflict()` with no conflict target paired with `.DoUpdateSet(...)` —
+  PostgreSQL and SQLite both require a target for `DO UPDATE` (release audit);
+  `StringAgg`'s inline `ORDER BY` argument combined with `.WithinGroup(...)` —
+  the two orderings are one construct spelled per dialect, never stacked
+  (release audit).
 - *Value-domain*: percentile fraction — finite (pre-existing) and 0..1 (#295);
   `Ntile(buckets)` and `NthValue(expr, n)` — both positive; a `PRECEDING`/
   `FOLLOWING` frame-bound offset — non-negative; a window frame's bound kind
@@ -59,8 +64,23 @@ the full rationale.
   since no other engine has either function (#448); `Wait(seconds)`'s second
   count — non-negative, the only `FOR UPDATE WAIT` domain Oracle (the sole
   engine with the clause) parses, live-verified at 21c and 23ai (#483).
-- *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server
-  (ADR 0011).
+- *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server;
+  aliased `INSERT` target on MySQL (its INSERT grammar has no target-alias
+  slot); a joined `UPDATE`/`DELETE` on SQL Server whose target is not re-listed
+  in `FROM` (T-SQL's joined spelling takes the alias from `FROM`) (ADR 0011,
+  "Later instances" section).
+
+**Joined-target alias requirement (decided — do not re-file):**
+`ThrowIfJoinedTargetUnaliased` fires for every joined `UPDATE`/`DELETE` shape
+on **every** dialect, including PostgreSQL's and SQLite's unaliased
+`UPDATE ... FROM` / `DELETE ... USING`, which those engines themselves accept.
+This is a deliberate uniform requirement (#258, reaffirmed in the release
+audit after independent reviews split on it): SQL Server and MySQL genuinely
+require the alias, an unaliased target renders bare columns beside joined
+tables, and one dialect-independent rule keeps every joined reference
+qualified. The guard is loud and the aliased spelling is valid on every
+dialect that has the joined form, so the PostgreSQL-accepts-unaliased shape
+is not an over-guard finding at any tier.
 
 "Structurally invisible to the analyzer" is a per-guard fact, not a law: the
 correlated-DML guard's provable subset now has an advisory analyzer duplicate
@@ -80,6 +100,11 @@ is expressed by **omitting the clause** entirely.
 the shared `ConditionGuard.ThrowIfEmpty` used by every condition clause's
 `Format`, the eager empty-`Select()` guard
 (`SelectItemResolver.ResolveOrThrow`), and the freeze-after-Build guard (#245).
+The release audit extended #245's family with the once-per-query-block
+duplicate-clause guard (`SqlBuilderBase.ThrowIfDuplicateClauseInBlock` — a
+stage repeated on a held, not-yet-built builder would append `WHERE ... WHERE`;
+a set operator resets the block) and the `ReturningBuilder` single-use freeze
+(`Into(...)` then `Build()` on the held stage appended a second `RETURNING`).
 The empty `IN`/`NOT IN` collection and empty `VALUES` row guards (ERG-05/ERG-07,
 #243) shipped in #396, alongside the same sweep's guards for empty `SET`
 (`UpdateBuilder`/`InsertBuilder`), empty `DO UPDATE SET` / `ON DUPLICATE KEY
