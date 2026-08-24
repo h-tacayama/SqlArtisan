@@ -1,7 +1,7 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>OFFSET m ROWS</c>: optionally add a <c>FETCH NEXT n ROWS ONLY</c> (Oracle 12c+/SQL Server 2012+), build, or embed as a subquery.
+/// The state after <c>OFFSET m ROWS</c>: optionally add a <c>FETCH NEXT n ROWS ONLY</c> (Oracle 12c+ / PostgreSQL / SQL Server 2012+), build, or embed as a subquery.
 /// </summary>
 public interface IOffsetFetchBuilder : ISqlBuilder, ISubquery
 {

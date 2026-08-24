@@ -150,6 +150,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="source">The string whose length is measured.</param>
     /// <returns>The LENGTH construct.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite syntax. SQL Server has no
+    /// <c>LENGTH</c> — its length function is <c>LEN</c>.</remarks>
     public static LengthFunction Length(object source) =>
         new(Resolve(source));
 

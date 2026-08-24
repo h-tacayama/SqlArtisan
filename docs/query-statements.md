@@ -1048,9 +1048,9 @@ exposed separately.
 
 ### MERGE Statement
 
-`MERGE` is the native UPSERT path for **Oracle** and **SQL Server** (and
-**PostgreSQL**), which have no `ON CONFLICT` / `ON DUPLICATE KEY UPDATE`.
-PostgreSQL gained `MERGE` in a specific release — see the
+`MERGE` is the native UPSERT path for **Oracle** and **SQL Server**, which have
+no `ON CONFLICT` / `ON DUPLICATE KEY UPDATE`. **PostgreSQL** also supports
+`MERGE` — alongside its own `ON CONFLICT` — from a specific release; see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 Start with `MergeInto(target)`, name the data source with `Using(...)`, match
 rows with `On(...)`, then add one or more `WhenMatched` / `WhenNotMatched`

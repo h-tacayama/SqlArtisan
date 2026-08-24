@@ -1043,6 +1043,9 @@ Select(GroupConcat(Distinct, u.Name, OrderBy(u.Name.Desc), Separator(", ")))
 
 MySQL's grammar requires the `SEPARATOR` value to be a string literal (a bind parameter is a syntax error there), so `Sql.Separator(...)` emits it inline as a single-quote-escaped literal. SQLite's positional separator (`GroupConcat(expr, sep)`) remains a bind parameter.
 
+> [!WARNING]
+> **`GroupConcat(expr, sep)` silently changes meaning on MySQL.** MySQL reads the second positional argument as another concatenated value per row, not a separator, so the call runs and returns each element with `sep` appended, joined by the default comma. On MySQL, spell the separator with `GroupConcat(expr, Separator(sep))`; the positional form is SQLite's.
+
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable (e.g. `SET SESSION group_concat_max_len = 1000000;`) when a group can exceed it.
 

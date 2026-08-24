@@ -136,6 +136,76 @@ public class XmlDocDialectParityTests
         }
     }
 
+    // The inverse direction of the sweep above: a Sql.* member whose matrix
+    // entry is restricted (a dialect missing, or a version floor) with no
+    // dialect-naming doc text at all is invisible at the point of use — the
+    // gap the release audit found on Length/Sign/Sqrt/Trim. Scoped to the Sql
+    // factory surface; builder-step notes live on the docs pages. The raw XML
+    // keeps <inheritdoc> unexpanded, so the check follows its cref.
+    [Fact]
+    public void RestrictedMatrixSqlMembers_CarryADialectNote()
+    {
+        XDocument doc = LoadXmlDoc();
+        List<string> missing = [];
+        foreach (XElement member in doc.Descendants("member"))
+        {
+            string id = (string)member.Attribute("name")!;
+            if (!id.StartsWith("M:SqlArtisan.Sql.", StringComparison.Ordinal)
+                && !id.StartsWith("P:SqlArtisan.Sql.", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            (string name, int? arity) = ParseMemberId(id);
+            if (!DialectMatrix.TryGetEntry(name, arity, out _, out _))
+            {
+                continue;
+            }
+
+            MatrixKey matchedKey = MatchedKey(name, arity);
+            bool restricted = SupportedDialects(name, arity).Count < AllDbms.Length
+                || AllDbms.Any(dbms => DialectMatrix.TryGetMinVersion(matchedKey, dbms, out _));
+            if (restricted && !NamesADialect(member, doc, depth: 0))
+            {
+                missing.Add(id);
+            }
+        }
+
+        Assert.True(
+            missing.Count == 0,
+            $"{missing.Count} restricted-matrix member(s) name no dialect in <summary>/<remarks>:\n  "
+                + string.Join("\n  ", missing));
+    }
+
+    private static bool NamesADialect(XElement member, XDocument doc, int depth)
+    {
+        if (depth > 3)
+        {
+            return false;
+        }
+
+        foreach (string? text in new[] { member.Element("summary")?.Value, member.Element("remarks")?.Value })
+        {
+            if (text is not null && DisplayNames.Keys.Any(WhitespaceRun.Replace(text, " ").Contains))
+            {
+                return true;
+            }
+        }
+
+        foreach (XElement inherit in member.Descendants("inheritdoc"))
+        {
+            XElement? target = (string?)inherit.Attribute("cref") is { } cref
+                ? doc.Descendants("member").FirstOrDefault(m => (string?)m.Attribute("name") == cref)
+                : null;
+            if (target is not null && NamesADialect(target, doc, depth + 1))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // The version check is orthogonal to the dialect-set parse, so it sweeps every
     // candidate — ExcludedMembers' remarks defeat that parse, not this one.
     public static IEnumerable<object[]> VersionCases() =>

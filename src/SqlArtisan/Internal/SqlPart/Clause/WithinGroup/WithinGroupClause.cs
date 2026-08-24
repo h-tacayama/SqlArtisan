@@ -1,7 +1,8 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The <c>WITHIN GROUP (ORDER BY ...)</c> clause of an ordered-set aggregate.
+/// The <c>WITHIN GROUP (ORDER BY ...)</c> clause of an ordered-set or string
+/// aggregate (<c>LISTAGG</c>, SQL Server's <c>STRING_AGG</c>).
 /// </summary>
 internal sealed class WithinGroupClause : SqlPart
 {

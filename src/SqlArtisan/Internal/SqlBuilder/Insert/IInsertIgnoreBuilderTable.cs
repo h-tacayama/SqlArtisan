@@ -6,7 +6,7 @@ namespace SqlArtisan.Internal;
 public interface IInsertIgnoreBuilderTable
 {
     /// <summary>
-    /// Builds the row from <c>column == value</c> assignments, emitting the column list and one <c>VALUES</c> row from them (<c>INSERT IGNORE INTO t (code, name) VALUES (:0, :1)</c>).
+    /// Builds the row from <c>column == value</c> assignments, emitting the column list and one <c>VALUES</c> row from them (<c>INSERT IGNORE INTO t (code, name) VALUES (?0, ?1)</c>).
     /// </summary>
     /// <param name="assignments">The per-column assignments; each left side names a column and each right side its value (literals are auto-parameterized).</param>
     /// <returns>The builder positioned for <c>RETURNING</c> or build.</returns>

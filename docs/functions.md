@@ -159,10 +159,10 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 - `ToTimestamp()` for `TO_TIMESTAMP` (Oracle, PostgreSQL)
 
 > [!NOTE]
-> MySQL and SQLite each have their own same-named but incompatible `FORMAT()`
-> (MySQL: fixed decimal count; SQLite: a `printf()` alias). Neither
-> matches SQL Server's .NET-style format strings — a call executes on both
-> without erroring, but there is no MySQL/SQLite equivalent of this factory.
+> MySQL, PostgreSQL, and SQLite each have their own same-named but incompatible
+> `FORMAT()` (MySQL: fixed decimal count; PostgreSQL and SQLite: `printf()`-style
+> substitution). None matches SQL Server's .NET-style format strings — a call
+> executes on all three without erroring, but with different semantics.
 
 > [!NOTE]
 > Both names have a near-twin elsewhere in the API: `Isnull(expr, alt)` is this
@@ -264,6 +264,9 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `GroupConcat(expr, sep)` for `GROUP_CONCAT(expr, sep)` (SQLite, positional separator)
 - `GroupConcat(expr, Separator(sep))` for `GROUP_CONCAT(expr SEPARATOR 'sep')` (MySQL); `sep` is emitted as an inline escaped string literal (MySQL requires a literal here). Pass an `OrderBy(...)` argument to order the values — `GroupConcat(expr, OrderBy(...), Separator(sep))` (MySQL)
 - `GroupConcat(Distinct, expr)` / `GroupConcat(Distinct, expr, Separator(sep))` for `GROUP_CONCAT(DISTINCT ...)`; `DISTINCT` works on both (SQLite only in the single-argument form)
+
+> [!WARNING]
+> **`GroupConcat(expr, sep)` silently changes meaning on MySQL.** MySQL reads the second positional argument as another concatenated value per row, not a separator, so the call runs and returns each element with `sep` appended, joined by the default comma. On MySQL, spell the separator with `GroupConcat(expr, Separator(sep))`; the positional form is SQLite's.
 
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable for large groups.

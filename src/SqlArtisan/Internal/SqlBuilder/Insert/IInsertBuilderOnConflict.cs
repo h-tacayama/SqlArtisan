@@ -13,7 +13,7 @@ public interface IInsertBuilderOnConflict
     IReturning DoNothing();
 
     /// <summary>
-    /// Appends <c>DO UPDATE SET ...</c>, updating the conflicting row; reference the proposed row with <see cref="ExcludedColumn"/> (PostgreSQL/SQLite <c>excluded.col</c>).
+    /// Appends <c>DO UPDATE SET ...</c>, updating the conflicting row; reference the proposed row with <see cref="ExcludedColumn"/> (<c>EXCLUDED.col</c> on PostgreSQL, <c>excluded.col</c> on SQLite).
     /// </summary>
     /// <param name="assignments">The <c>column == value</c> updates to apply to the existing row.</param>
     /// <returns>The builder positioned to add a <c>WHERE</c> filter, <c>RETURNING</c>, or build.</returns>

@@ -108,6 +108,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   property, not `.editorconfig`, set the dropped DBMS).
 - Analyzer: SQLA0104 no longer fires alongside SQLA0100 when a construct is
   forced `unsupported` through a `sqlartisan_construct_*` override.
+- Docs: `GroupConcat(expr, sep)` now carries a warning that MySQL reads the
+  second positional argument as another concatenated value, not a separator
+  (reference pages and the XML remark); the `GROUP_CONCAT` inline-`ORDER BY`
+  form is attributed to MySQL and SQLite, not MySQL alone; the `FORMAT()`
+  same-name collision note now includes PostgreSQL's `format(text, ...)`;
+  the MERGE intro no longer reads as PostgreSQL having no `ON CONFLICT`; the
+  `Dbms`/`ISqlBuilder` docs no longer claim the dialect shapes pagination;
+  `Length`, `Sign`, `Sqrt`, 1-argument `Trim`, `Extract`, `Floor`, `Power`,
+  `CurrentDate`, `CurrentTime`, and `WithRecursive` gained the dialect/version
+  remarks their matrix entries imply — now gated: a restricted-matrix `Sql.*`
+  member must name its dialects in its docs; assorted builder-interface doc
+  drifts corrected (DELETE stage continuations, `OFFSET`/`FETCH` dialect list,
+  `EXCLUDED` casing per dialect, `INSERT IGNORE` example marker, MERGE
+  `VALUES` value kinds, join-state summary).
 
 ### Changed
 - **Breaking:** the 21 `...Async` methods on `SqlArtisan.Dapper`'s `SqlMapper` now

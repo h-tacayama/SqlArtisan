@@ -13,7 +13,7 @@ public interface IDeleteBuilderDelete : ISqlBuilder, IReturning
     /// join the other tables.
     /// </summary>
     /// <param name="tables">The tables the delete joins, including the re-listed target.</param>
-    /// <returns>The builder positioned to join further tables, filter with <c>WHERE</c>, or build.</returns>
+    /// <returns>The builder positioned to join further tables, filter with <c>WHERE</c>, add <c>RETURNING</c>, or build.</returns>
     IDeleteBuilderFrom From(params TableReference[] tables);
 
     /// <summary>

@@ -21,6 +21,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression to round down.</param>
     /// <returns>A <see cref="FloorFunction"/> emitting <c>FLOOR(expr)</c>.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static FloorFunction Floor(object expr) =>
         new(Resolve(expr));
 
@@ -41,11 +42,12 @@ public static partial class Sql
     /// <param name="format">The .NET-style format string (e.g. <c>"yyyy-MM-dd"</c>).</param>
     /// <returns>The <c>FORMAT</c> function expression.</returns>
     /// <remarks>
-    /// SQL Server syntax. Two other dialects have a same-named but incompatible
+    /// SQL Server syntax. Three other dialects have a same-named but incompatible
     /// <c>FORMAT()</c>, so the call executes there without erroring but not with
     /// these semantics: MySQL's formats a number to a fixed decimal count
-    /// (<c>FORMAT(number, decimals[, locale])</c>), and SQLite's (3.38+) is a
-    /// <c>printf()</c> alias using <c>%s</c>/<c>%d</c>-style substitution.
+    /// (<c>FORMAT(number, decimals[, locale])</c>), and PostgreSQL's
+    /// <c>format(text, ...)</c> and SQLite's (3.38+) are <c>printf()</c>-style
+    /// substitution.
     /// </remarks>
     public static FormatFunction Format(object value, object format) =>
         new(Resolve(value), Resolve(format));

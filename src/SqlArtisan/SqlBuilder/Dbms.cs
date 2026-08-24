@@ -2,7 +2,8 @@ namespace SqlArtisan;
 
 /// <summary>
 /// A target database engine. The chosen value selects the dialect — parameter
-/// markers, identifier quoting, and pagination — applied when a statement is built.
+/// markers, identifier quoting, and other token-level spellings — applied when
+/// a statement is built.
 /// </summary>
 public enum Dbms
 {

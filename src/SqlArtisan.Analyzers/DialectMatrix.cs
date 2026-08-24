@@ -131,8 +131,9 @@ internal static class DialectMatrix
         [new MatrixKey("StringAgg", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("Listagg")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         // GroupConcat: see the key-collision caveat above — the three arity-2 overloads
-        // (SQLite's positional separator, MySQL's OrderBy and Separator forms) collapse to
-        // this MySQL/SQLite union, so a MySQL-only form used on SQLite stays silent.
+        // (the positional separator: SQLite-only; the inline OrderBy: MySQL and SQLite
+        // 3.44+; the SEPARATOR keyword: MySQL-only) collapse to this MySQL/SQLite
+        // union, so a single-dialect form used on the other dialect stays silent.
         [new MatrixKey("GroupConcat")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
 
         // --- PostgreSQL / Oracle single-dialect helpers ---
@@ -263,10 +264,11 @@ internal static class DialectMatrix
         [new MatrixKey("ToTimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         // Format: SQL Server's FORMAT (Sql.F.cs XML docs, #231); both the 2-arg and
         // 3-arg (culture) overloads share this support, so one member-wide entry covers both.
-        // MySQL and SQLite each have their own same-named but incompatible FORMAT() (a
-        // number-decimals formatter and a printf() alias respectively) that accepts the
-        // call syntax without erroring — live-verified false positive on the MySQL 8.0
-        // integration sweep — so both stay false here despite the call "working".
+        // MySQL, PostgreSQL, and SQLite each have their own same-named but incompatible
+        // FORMAT() (a number-decimals formatter and two printf()-style substitutions)
+        // that can accept the call syntax without erroring — live-verified false positive
+        // on the MySQL 8.0 integration sweep — so all three stay false here despite the
+        // call "working".
         [new MatrixKey("Format")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         // --- REGEXP_* family: Oracle syntax; MySQL 8.0 has REGEXP_LIKE/REGEXP_REPLACE/
         // REGEXP_SUBSTR/REGEXP_INSTR (live-verified by the integration smoke catalog;

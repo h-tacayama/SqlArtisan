@@ -93,6 +93,7 @@ public static partial class Sql
     /// <param name="base">The base value.</param>
     /// <param name="exponent">The exponent to raise <paramref name="base"/> to.</param>
     /// <returns>A <c>POWER</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static PowerFunction Power(object @base, object exponent) =>
         new(Resolve(@base), Resolve(exponent));
 

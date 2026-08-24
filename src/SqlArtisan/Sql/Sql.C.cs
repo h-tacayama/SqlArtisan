@@ -703,6 +703,7 @@ public static partial class Sql
     /// <summary>
     /// The <c>CURRENT_DATE</c> function (the current date).
     /// </summary>
+    /// <remarks>Not supported by SQL Server.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentDateFunction CurrentDate => new();
 
@@ -715,6 +716,7 @@ public static partial class Sql
     /// <summary>
     /// The <c>CURRENT_TIME</c> function (the current time of day).
     /// </summary>
+    /// <remarks>Not supported by Oracle or SQL Server.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentTimeFunction CurrentTime => new();
 

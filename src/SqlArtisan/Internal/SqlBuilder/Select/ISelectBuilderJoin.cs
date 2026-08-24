@@ -1,7 +1,7 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after an <c>INNER</c>/<c>LEFT</c>/<c>RIGHT</c>/<c>FULL JOIN</c>: supply its <c>ON</c> predicate.
+/// The state after a join step (<c>INNER</c>/<c>LEFT</c>/<c>RIGHT</c>/<c>FULL</c>/<c>LATERAL</c>): supply its predicate with <c>On(...)</c> or <c>Using(...)</c>.
 /// </summary>
 public interface ISelectBuilderJoin
 {

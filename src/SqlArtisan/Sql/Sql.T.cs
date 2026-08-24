@@ -197,6 +197,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="source">The string to trim.</param>
     /// <returns>A <c>TRIM</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite, and SQL Server (2017+) syntax.</remarks>
     public static TrimFunction Trim(object source) =>
         new(Resolve(source));
 

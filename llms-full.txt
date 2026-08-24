@@ -1484,9 +1484,9 @@ exposed separately.
 
 ### MERGE Statement
 
-`MERGE` is the native UPSERT path for **Oracle** and **SQL Server** (and
-**PostgreSQL**), which have no `ON CONFLICT` / `ON DUPLICATE KEY UPDATE`.
-PostgreSQL gained `MERGE` in a specific release — see the
+`MERGE` is the native UPSERT path for **Oracle** and **SQL Server**, which have
+no `ON CONFLICT` / `ON DUPLICATE KEY UPDATE`. **PostgreSQL** also supports
+`MERGE` — alongside its own `ON CONFLICT` — from a specific release; see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 Start with `MergeInto(target)`, name the data source with `Using(...)`, match
 rows with `On(...)`, then add one or more `WhenMatched` / `WhenNotMatched`
@@ -2839,6 +2839,9 @@ Select(GroupConcat(Distinct, u.Name, OrderBy(u.Name.Desc), Separator(", ")))
 
 MySQL's grammar requires the `SEPARATOR` value to be a string literal (a bind parameter is a syntax error there), so `Sql.Separator(...)` emits it inline as a single-quote-escaped literal. SQLite's positional separator (`GroupConcat(expr, sep)`) remains a bind parameter.
 
+> [!WARNING]
+> **`GroupConcat(expr, sep)` silently changes meaning on MySQL.** MySQL reads the second positional argument as another concatenated value per row, not a separator, so the call runs and returns each element with `sep` appended, joined by the default comma. On MySQL, spell the separator with `GroupConcat(expr, Separator(sep))`; the positional form is SQLite's.
+
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable (e.g. `SET SESSION group_concat_max_len = 1000000;`) when a group can exceed it.
 
@@ -3048,10 +3051,10 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 - `ToTimestamp()` for `TO_TIMESTAMP` (Oracle, PostgreSQL)
 
 > [!NOTE]
-> MySQL and SQLite each have their own same-named but incompatible `FORMAT()`
-> (MySQL: fixed decimal count; SQLite: a `printf()` alias). Neither
-> matches SQL Server's .NET-style format strings — a call executes on both
-> without erroring, but there is no MySQL/SQLite equivalent of this factory.
+> MySQL, PostgreSQL, and SQLite each have their own same-named but incompatible
+> `FORMAT()` (MySQL: fixed decimal count; PostgreSQL and SQLite: `printf()`-style
+> substitution). None matches SQL Server's .NET-style format strings — a call
+> executes on all three without erroring, but with different semantics.
 
 > [!NOTE]
 > Both names have a near-twin elsewhere in the API: `Isnull(expr, alt)` is this
@@ -3153,6 +3156,9 @@ Exposed per dialect (no unified rewrite); each emits its dialect-native syntax v
 - `GroupConcat(expr, sep)` for `GROUP_CONCAT(expr, sep)` (SQLite, positional separator)
 - `GroupConcat(expr, Separator(sep))` for `GROUP_CONCAT(expr SEPARATOR 'sep')` (MySQL); `sep` is emitted as an inline escaped string literal (MySQL requires a literal here). Pass an `OrderBy(...)` argument to order the values — `GroupConcat(expr, OrderBy(...), Separator(sep))` (MySQL)
 - `GroupConcat(Distinct, expr)` / `GroupConcat(Distinct, expr, Separator(sep))` for `GROUP_CONCAT(DISTINCT ...)`; `DISTINCT` works on both (SQLite only in the single-argument form)
+
+> [!WARNING]
+> **`GroupConcat(expr, sep)` silently changes meaning on MySQL.** MySQL reads the second positional argument as another concatenated value per row, not a separator, so the call runs and returns each element with `sep` appended, joined by the default comma. On MySQL, spell the separator with `GroupConcat(expr, Separator(sep))`; the positional form is SQLite's.
 
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable for large groups.

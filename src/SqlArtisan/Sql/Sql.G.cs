@@ -48,8 +48,10 @@ public static partial class Sql
     /// <param name="separator">The positional separator placed between values.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr, separator)</c>.</returns>
-    /// <remarks>SQLite's positional separator form. For MySQL's <c>SEPARATOR</c>
-    /// keyword form, pass <c>Sql.Separator(...)</c> instead.</remarks>
+    /// <remarks>SQLite's positional separator form. On MySQL the same call runs
+    /// but the second argument concatenates as another value per row and the
+    /// separator stays the default comma — spell MySQL's separator with
+    /// <c>Sql.Separator(...)</c> instead.</remarks>
     public static GroupConcatFunction GroupConcat(object expr, object separator) =>
         new(Resolve(expr), positionalSeparator: Resolve(separator));
 
@@ -62,8 +64,8 @@ public static partial class Sql
     /// <c>Sql.OrderBy(...)</c>.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr ORDER BY ...)</c>.</returns>
-    /// <remarks>A MySQL aggregate; on other dialects use
-    /// <see cref="Listagg(object, object)"/> (Oracle).</remarks>
+    /// <remarks>MySQL and SQLite syntax; on Oracle use
+    /// <see cref="Listagg(object, object)"/>.</remarks>
     public static GroupConcatFunction GroupConcat(object expr, OrderByClause orderByClause) =>
         new(Resolve(expr), orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
@@ -77,7 +79,8 @@ public static partial class Sql
     /// <c>Sql.Separator(...)</c>.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr SEPARATOR separator)</c>.</returns>
-    /// <inheritdoc cref="GroupConcat(object, OrderByClause)" path="/remarks"/>
+    /// <remarks>MySQL syntax; on Oracle use
+    /// <see cref="Listagg(object, object)"/>.</remarks>
     public static GroupConcatFunction GroupConcat(object expr, SeparatorClause separatorClause) =>
         new(Resolve(expr), separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
 
@@ -93,7 +96,7 @@ public static partial class Sql
     /// <c>Sql.Separator(...)</c>.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr ORDER BY ... SEPARATOR separator)</c>.</returns>
-    /// <inheritdoc cref="GroupConcat(object, OrderByClause)" path="/remarks"/>
+    /// <inheritdoc cref="GroupConcat(object, SeparatorClause)" path="/remarks"/>
     public static GroupConcatFunction GroupConcat(
         object expr,
         OrderByClause orderByClause,

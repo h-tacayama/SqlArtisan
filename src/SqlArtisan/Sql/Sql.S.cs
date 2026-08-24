@@ -147,6 +147,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression whose sign is taken.</param>
     /// <returns>A <c>SIGN</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static SignFunction Sign(object expr) =>
         new(Resolve(expr));
 
@@ -186,6 +187,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression whose square root is taken.</param>
     /// <returns>A <c>SQRT</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static SqrtFunction Sqrt(object expr) =>
         new(Resolve(expr));
 
