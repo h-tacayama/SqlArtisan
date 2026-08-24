@@ -12,7 +12,7 @@ public class InsertTests
         SqlStatement sql =
             InsertInto(t)
             .Values(1, "a", Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
@@ -47,7 +47,7 @@ public class InsertTests
         SqlStatement sql =
             InsertInto(t, t.Code, t.Name, t.CreatedAt)
             .Values(1, "a", Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
@@ -104,7 +104,7 @@ public class InsertTests
                 t.Code == 1,
                 t.Name == "a",
                 t.CreatedAt == Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");

@@ -4,9 +4,11 @@ public sealed class DoublePipeOperator : SqlExpression
 {
     private readonly OperatorJoinedFunctionCore _core;
 
-    internal DoublePipeOperator(SqlExpression primary, SqlExpression secondary, SqlExpression[] others)
+    // Takes the pre-merged operand array (ResolveVariadic) rather than merging a
+    // params tail itself — the spread would allocate a second array (ADR 0006).
+    internal DoublePipeOperator(SqlExpression[] operands)
     {
-        _core = new(Operators.DoublePipe, [primary, secondary, .. others]);
+        _core = new(Operators.DoublePipe, operands);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) =>

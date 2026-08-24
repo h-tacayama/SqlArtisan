@@ -498,7 +498,7 @@ public static partial class Sql
     /// emitted by the existing <c>+</c> operator on <see cref="SqlExpression"/>.
     /// </remarks>
     public static DoublePipeOperator DoublePipe(object primary, object secondary, params object[] others) =>
-        new(Resolve(primary), Resolve(secondary), Resolve(others));
+        new(ResolveVariadic(primary, secondary, others));
 
     /// <summary>
     /// The <c>DUAL</c> dummy table (MySQL and Oracle), for selecting expressions

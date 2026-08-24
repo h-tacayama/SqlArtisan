@@ -99,7 +99,6 @@ public class WithTests
     {
         TestTable a = new("a");
         TestCte cte = new("cte");
-        ;
 
         TestTable b = new("b");
         SqlStatement sql =
@@ -275,7 +274,7 @@ public class WithTests
         expected.Append("FROM test_table \"c\" LEFT JOIN \"cte1\" ");
         expected.Append("ON \"c\".code = \"cte1\".cte_code ");
         expected.Append("LEFT JOIN \"cte2\" ON \"c\".code = \"cte2\".cte_code ");
-        expected.Append("WHERE \"c\".code > :2"); ;
+        expected.Append("WHERE \"c\".code > :2");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -375,7 +374,7 @@ public class WithTests
                 b.Code == 1,
                 b.Name == "Test",
                 b.CreatedAt == Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("WITH \"cte\" AS ");
@@ -488,7 +487,7 @@ public class WithTests
                 b.Name == "Test",
                 b.CreatedAt == Sysdate)
             .Where(b.Code.In(Select(cte.CteCode).From(cte)))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("WITH \"cte\" AS ");
@@ -497,7 +496,7 @@ public class WithTests
         expected.Append("\"a\".created_at cte_created_at ");
         expected.Append("FROM test_table \"a\" ");
         expected.Append("WHERE \"a\".code = :0) ");
-        expected.Append("UPDATE test_table AS \"b\" ");
+        expected.Append("UPDATE test_table \"b\" ");
         expected.Append("SET code = :1, ");
         expected.Append("name = :2, ");
         expected.Append("created_at = SYSDATE ");

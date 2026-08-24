@@ -3,7 +3,9 @@ namespace SqlArtisan.Internal;
 public sealed class AnalyticLeadFunction : AnalyticFunction
 {
     private readonly SqlExpression _expr;
-    private readonly int? _offset;
+
+    // Stringified once at construction, not per Format (ADR 0006).
+    private readonly string? _offset;
     private readonly SqlExpression? _default;
 
     internal AnalyticLeadFunction(SqlExpression expr)
@@ -16,14 +18,14 @@ public sealed class AnalyticLeadFunction : AnalyticFunction
     internal AnalyticLeadFunction(SqlExpression expr, int offset)
     {
         _expr = expr;
-        _offset = offset;
+        _offset = offset.ToInvariantString();
         _default = null;
     }
 
     internal AnalyticLeadFunction(SqlExpression expr, int offset, SqlExpression @default)
     {
         _expr = expr;
-        _offset = offset;
+        _offset = offset.ToInvariantString();
         _default = @default;
     }
 
@@ -31,7 +33,7 @@ public sealed class AnalyticLeadFunction : AnalyticFunction
         .Append(Keywords.Lead)
         .OpenParenthesis()
         .Append(_expr)
-        .PrependCommaIfNotNull(_offset?.ToInvariantString())
+        .PrependCommaIfNotNull(_offset)
         .PrependCommaIfNotNull(_default)
         .CloseParenthesis();
 }

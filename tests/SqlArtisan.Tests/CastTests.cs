@@ -36,6 +36,7 @@ public class CastTests
 
         // Assert
         Assert.Equal(expected, sql.Text);
+        Assert.Equal("123", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]
@@ -69,6 +70,7 @@ public class CastTests
 
         // Assert
         Assert.Equal(expected, sql.Text);
+        Assert.Equal("5", sql.Parameters.Get<string>(":0"));
     }
 
     // The target type is an identifier position — a type name cannot be quoted

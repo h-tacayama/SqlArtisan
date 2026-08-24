@@ -9,7 +9,9 @@ namespace SqlArtisan.Internal;
 public sealed class PercentileFunction : SqlExpression
 {
     private readonly string _function;
-    private readonly double _fraction;
+
+    // Stringified once at construction, not per Format (ADR 0006).
+    private readonly string _fraction;
     private readonly WithinGroupClause _withinGroupClause;
 
     internal PercentileFunction(
@@ -18,7 +20,7 @@ public sealed class PercentileFunction : SqlExpression
         WithinGroupClause withinGroupClause)
     {
         _function = function;
-        _fraction = fraction;
+        _fraction = fraction.ToInvariantString();
         _withinGroupClause = withinGroupClause;
     }
 
@@ -38,7 +40,7 @@ public sealed class PercentileFunction : SqlExpression
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_function)
         .OpenParenthesis()
-        .Append(_fraction.ToInvariantString())
+        .Append(_fraction)
         .CloseParenthesis()
         .PrependSpace(_withinGroupClause);
 }

@@ -67,8 +67,7 @@ public partial class FunctionTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // Past the two declared parameters the arguments arrive as a params tail
-    // merged after them, so this pins the merged order.
+    // Pins the params-tail merged order, as Concat_MoreValuesThanDeclaredParameters does.
     [Fact]
     public void Grouping_MoreColumnsThanDeclaredParameters_CorrectSql()
     {

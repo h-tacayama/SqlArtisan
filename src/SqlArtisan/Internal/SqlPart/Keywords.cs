@@ -44,8 +44,8 @@ internal static class Keywords
     internal const string DateFormat = "DATE_FORMAT";
     internal const string Datepart = "DATEPART";
     internal const string DateSub = "DATE_SUB";
-    internal const string DateTrunc = "DATE_TRUNC";
     internal const string Datetime = "DATETIME";
+    internal const string DateTrunc = "DATE_TRUNC";
     internal const string Datetrunc = "DATETRUNC";
     internal const string Decode = "DECODE";
     internal const string Delete = "DELETE";
@@ -215,10 +215,10 @@ internal static class Keywords
     internal const string ToChar = "TO_CHAR";
     internal const string ToDate = "TO_DATE";
     internal const string ToNumber = "TO_NUMBER";
+    internal const string Top = "TOP";
     internal const string ToTimestamp = "TO_TIMESTAMP";
     internal const string ToTsquery = "TO_TSQUERY";
     internal const string ToTsvector = "TO_TSVECTOR";
-    internal const string Top = "TOP";
     internal const string Trim = "TRIM";
     internal const string True = "TRUE";
     internal const string Trunc = "TRUNC";
@@ -231,10 +231,10 @@ internal static class Keywords
     internal const string Value = "VALUE";
     internal const string Values = "VALUES";
     internal const string Var = "VAR";
-    internal const string VarPop = "VAR_POP";
-    internal const string VarSamp = "VAR_SAMP";
     internal const string Variance = "VARIANCE";
     internal const string Varp = "VARP";
+    internal const string VarPop = "VAR_POP";
+    internal const string VarSamp = "VAR_SAMP";
     internal const string Wait = "WAIT";
     internal const string When = "WHEN";
     internal const string Where = "WHERE";

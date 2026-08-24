@@ -104,18 +104,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
             .AppendCsv(items)
             .CloseParenthesis();
 
-    // Renders a GROUP BY CUBE grouping `CUBE(a, b)`. Emitted faithfully on every
-    // dialect; where CUBE is unavailable (MySQL, SQLite) that is the analyzer's
-    // concern (ADR 0003), not Build's.
     internal SqlBuildingBuffer AppendCube(SqlPart[] items) =>
         Append(Keywords.Cube)
             .OpenParenthesis()
             .AppendCsv(items)
             .CloseParenthesis();
 
-    // Renders a GROUP BY GROUPING SETS grouping `GROUPING SETS((a, b), c, ())`.
-    // Emitted faithfully on every dialect; where GROUPING SETS is unavailable
-    // (MySQL, SQLite) that is the analyzer's concern (ADR 0003), not Build's.
     internal SqlBuildingBuffer AppendGroupingSets(SqlPart[] sets) =>
         Append($"{Keywords.Grouping} {Keywords.Sets}")
             .OpenParenthesis()

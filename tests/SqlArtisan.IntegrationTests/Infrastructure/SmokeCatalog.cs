@@ -67,7 +67,7 @@ internal static class SmokeCatalog
         // the bundled Microsoft.Data.Sqlite native library).
         Add("Power", () => Scalar(Power(2, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
         Add("Sqrt", () => Scalar(Sqrt(16)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
-        Add("Mod", () => Scalar(Mod(10, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("Mod", () => Scalar(Mod(10, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
 
         // --- String scalars ---
         Add("Upper", () => Scalar(Upper("abc")), All);
@@ -156,11 +156,11 @@ internal static class SmokeCatalog
 
         // --- Regexp ---
         Add("RegexpLike", () => Select(Count(u.Id)).From(u).Where(RegexpLike(u.Name, "A.*")),
-            Only(Dbms.MySql, Dbms.Oracle));
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
         Add("RegexpReplace", () => Scalar(RegexpReplace(u.Name, "a", "b")),
             Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
-        Add("RegexpSubstr", () => Scalar(RegexpSubstr(u.Name, "A")), Only(Dbms.MySql, Dbms.Oracle));
-        Add("RegexpCount", () => Scalar(RegexpCount(u.Name, "a")), Only(Dbms.Oracle));
+        Add("RegexpSubstr", () => Scalar(RegexpSubstr(u.Name, "A")), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("RegexpCount", () => Scalar(RegexpCount(u.Name, "a")), Only(Dbms.Oracle, Dbms.PostgreSql));
 
         // --- Distinct-arity overloads not exercised by the cases above ---
         // Window LAG/LEAD with an explicit offset and offset+default.
@@ -178,27 +178,27 @@ internal static class SmokeCatalog
         // (MySQL's LPAD/RPAD require the pad argument).
         Add("LpadNoPad", () => Scalar(Lpad("x", 3)), Only(Dbms.Oracle, Dbms.PostgreSql));
         Add("RpadNoPad", () => Scalar(Rpad("x", 3)), Only(Dbms.Oracle, Dbms.PostgreSql));
-        // LTRIM/RTRIM(source, trimChars) — Oracle / PostgreSQL / SQLite
-        // (MySQL's LTRIM/RTRIM take no trim-character argument).
+        // LTRIM/RTRIM(source, trimChars) — Oracle / PostgreSQL / SQLite /
+        // SQL Server 2022+ (MySQL's LTRIM/RTRIM take no trim-character argument).
         Add("LtrimChars", () => Scalar(Ltrim("xxabc", "x")),
-            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
         Add("RtrimChars", () => Scalar(Rtrim("abcxx", "x")),
-            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
         // SUBSTRB(source, position, length) — Oracle byte-semantics, 3-arg form.
         Add("SubstrbLength", () => Scalar(Substrb("abcdef", 2, 3)), Only(Dbms.Oracle));
         // REGEXP_SUBSTR / REGEXP_COUNT with a start position (and a match option).
         Add("RegexpSubstrPosition", () => Scalar(RegexpSubstr(u.Name, "A", 1)),
-            Only(Dbms.MySql, Dbms.Oracle));
-        Add("RegexpCountPosition", () => Scalar(RegexpCount(u.Name, "a", 1)), Only(Dbms.Oracle));
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("RegexpCountPosition", () => Scalar(RegexpCount(u.Name, "a", 1)), Only(Dbms.Oracle, Dbms.PostgreSql));
         Add("RegexpCountOptions", () => Scalar(RegexpCount(u.Name, "a", 1, RegexpOptions.CaseInsensitive)),
-            Only(Dbms.Oracle));
+            Only(Dbms.Oracle, Dbms.PostgreSql));
         // DISTINCT inside SUM / AVG.
         Add("SumDistinct", () => Select(Sum(Distinct, o.Amount)).From(o), All);
         Add("AvgDistinct", () => Select(Avg(Distinct, o.Amount)).From(o), All);
         // Ordered string aggregation: PostgreSQL inline ORDER BY, SQL Server
         // WITHIN GROUP, MySQL GROUP_CONCAT ... ORDER BY, SQLite positional separator.
         Add("StringAggOrderBy", () => Select(StringAgg(u.Name, ", ", OrderBy(u.Name))).From(u),
-            Only(Dbms.PostgreSql));
+            Only(Dbms.PostgreSql, Dbms.Sqlite));
         Add("StringAggWithinGroup",
             () => Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name))).From(u),
             Only(Dbms.SqlServer));

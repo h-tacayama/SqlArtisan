@@ -66,10 +66,10 @@ internal static class StatementCatalog
             () => Select(u.DepartmentId).From(u).GroupBy(GroupingSets(Group(u.DepartmentId), Group())),
             Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.SqlServer));
 
-        // MySQL's GROUP BY ... WITH ROLLUP suffix.
+        // The GROUP BY ... WITH ROLLUP suffix — MySQL, and T-SQL's ISO syntax.
         Add("WithRollup",
             () => Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId).WithRollup(),
-            Only(Dbms.MySql));
+            Only(Dbms.MySql, Dbms.SqlServer));
 
         // NULLS FIRST/LAST ordering — PostgreSQL / Oracle / SQLite.
         Add("NullsLast",
@@ -106,11 +106,11 @@ internal static class StatementCatalog
         Add("FetchFirst", () => Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(2),
             Only(Dbms.Oracle, Dbms.PostgreSql));
 
-        // Set operators with ALL — EXCEPT ALL (PostgreSQL / MySQL 8.0.31+) and
-        // Oracle's MINUS ALL.
+        // Set operators with ALL — EXCEPT ALL (MySQL 8.0.31+ / Oracle 21c+ /
+        // PostgreSQL) and Oracle's MINUS ALL.
         Add("ExceptAll",
             () => Select(u.DepartmentId).From(u).ExceptAll.Select(u.DepartmentId).From(u),
-            Only(Dbms.MySql, Dbms.PostgreSql));
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
         Add("MinusAll",
             () => Select(u.DepartmentId).From(u).MinusAll.Select(u.DepartmentId).From(u),
             Only(Dbms.Oracle));
@@ -183,12 +183,13 @@ internal static class StatementCatalog
         }, Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
 
         // Set operators not covered by the dedicated UNION/EXCEPT tests:
-        // INTERSECT (all five; MySQL 8.0.31+) and INTERSECT ALL (PostgreSQL / MySQL).
+        // INTERSECT (all five; MySQL 8.0.31+) and INTERSECT ALL (MySQL 8.0.31+ /
+        // Oracle 21c+ / PostgreSQL).
         Add("Intersect",
             () => Select(u.DepartmentId).From(u).Intersect.Select(u.DepartmentId).From(u), All);
         Add("IntersectAll",
             () => Select(u.DepartmentId).From(u).IntersectAll.Select(u.DepartmentId).From(u),
-            Only(Dbms.MySql, Dbms.PostgreSql));
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
 
         // CROSS APPLY — SQL Server / Oracle.
         Add("CrossApply", () =>
@@ -202,7 +203,7 @@ internal static class StatementCatalog
                     x);
         }, Only(Dbms.Oracle, Dbms.SqlServer));
 
-        // JOIN LATERAL — PostgreSQL / MySQL.
+        // JOIN LATERAL — MySQL / Oracle / PostgreSQL.
         Add("JoinLateral", () =>
         {
             UsersTable lu = new("u");
@@ -213,7 +214,7 @@ internal static class StatementCatalog
                     Select(lo.Amount.As(x.Column("amount"))).From(lo).Where(lo.UserId == lu.Id),
                     x)
                 .On(lu.Id == lu.Id);
-        }, Only(Dbms.PostgreSql, Dbms.MySql));
+        }, Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
 
         // OUTER APPLY — the sibling of CROSS APPLY (SQL Server / Oracle).
         Add("OuterApply", () =>

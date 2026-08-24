@@ -2,7 +2,8 @@ namespace SqlArtisan.Internal;
 
 public sealed class IntervalField : SqlPart
 {
-    private readonly int? _precision;
+    // Stringified once at construction, not per Format (ADR 0006).
+    private readonly string? _precision;
 
     internal IntervalField(DateTimePart field, int? precision)
     {
@@ -12,7 +13,7 @@ public sealed class IntervalField : SqlPart
         }
 
         Field = field;
-        _precision = precision;
+        _precision = precision?.ToInvariantString();
     }
 
     internal DateTimePart Field { get; }
@@ -23,9 +24,9 @@ public sealed class IntervalField : SqlPart
     {
         buffer.Append(DatepartKeywords.Of(Field));
 
-        if (_precision is int precision)
+        if (_precision is { } precision)
         {
-            buffer.Append('(').Append(precision.ToInvariantString()).Append(')');
+            buffer.Append('(').Append(precision).Append(')');
         }
     }
 }

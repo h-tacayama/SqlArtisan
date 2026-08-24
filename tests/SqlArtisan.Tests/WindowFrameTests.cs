@@ -105,7 +105,7 @@ public class WindowFrameTests
     [Fact]
     public void Preceding_ZeroOffset_CorrectSql()
     {
-        // Arrange \u2014 0 PRECEDING is CURRENT ROW's own spelling; the guard only
+        // Arrange — 0 PRECEDING is CURRENT ROW's own spelling; the guard only
         // rejects a negative offset, so zero must still build.
         string expected = "SELECT SUM(code) OVER (ORDER BY code ROWS 0 PRECEDING)";
 
@@ -194,7 +194,7 @@ public class WindowFrameTests
     [Fact]
     public void RowsBetween_SameKindDescendingPreceding_CorrectSql()
     {
-        // Arrange \u2014 3 PRECEDING then 5 PRECEDING is a legal (if empty) frame; the
+        // Arrange — 3 PRECEDING then 5 PRECEDING is a legal (if empty) frame; the
         // guard compares bound kind, never the offset, so this must still build.
         string expected =
             "SELECT SUM(code) OVER (ORDER BY code ROWS BETWEEN 3 PRECEDING AND 5 PRECEDING)";

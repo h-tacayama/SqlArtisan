@@ -1,7 +1,7 @@
 namespace SqlArtisan.Internal;
 
-// Emits `WHEN MATCHED [AND <condition>] THEN`. The action (UPDATE SET / DELETE)
-// follows as a separate, space-separated part.
+// The WHEN branch keyword only — its action follows as a separate,
+// space-separated part, the shape all three WHEN clauses share.
 internal sealed class WhenMatchedClause(SqlCondition? extraCondition) : SqlPart
 {
     private readonly SqlCondition? _extraCondition = extraCondition;

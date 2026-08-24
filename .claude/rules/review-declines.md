@@ -69,6 +69,57 @@ IDs are assigned sequentially and never reused; a superseded line is
 rewritten in place (same ID), not re-added. Keep entries grep-able: name
 the class by the terms a reviewer would search for.
 
+- RD-003 [precise] Missing `sql.Parameters` assertions or type-only/`Contains`
+  exception assertions in tests written before the guard-assertion convention
+  (the `unit-tests.md` forward clause) — declined to retro-fix wholesale
+  (~90 pre-convention tests): the rule binds new and edited tests, and a file
+  upgrades when it is next touched (CastTests was, in the same pass). Not a
+  finding for any pre-convention test at any tier.
+  (source: release audit pass 1, F44)
+- RD-004 [precise] `DbSequence`'s constructor rejecting whitespace-only names
+  while alias guards (`StringGuard.ThrowIfNullOrEmpty`) accept whitespace —
+  declined to unify: a sequence name is emitted as a bare identifier, invalid
+  as whitespace on every dialect, while an alias is quoted, where whitespace
+  is legal. The stricter check is correct where it is; the asymmetry is not a
+  finding. (source: release audit pass 1, F17)
+- RD-005 [precise] Pre-existing `src/` comment blocks exceeding the
+  `code-comments.md` length caps (~82 blocks predating the rule) — declined
+  to mass-trim: the caps bind new and edited comments at review time; an
+  existing block trims when its file is next edited for substance. A bulk
+  reflow would churn blame for no behavioral gain. Not a finding for any
+  pre-rule comment at any tier. (source: release audit pass 1)
+- RD-006 [terse] `RegexpOptions` flag alphabet not validated per dialect (the
+  flag literal is emitted verbatim on MySQL/Oracle/PostgreSQL, whose engines
+  accept different letters) — deferred: an ADR 0012 value-domain guard needs
+  each engine's accepted alphabet verified against vendor grammar and live
+  probes, which the audit freeze does not admit; revisit with integration
+  coverage. (source: release audit pass 1, F18)
+- RD-007 [precise] Pagination (`Limit`/`Offset`/`FetchFirst`) and
+  `ForUpdate(...)` unreachable in combination (CS1061 in either call order)
+  though MySQL/Oracle/PostgreSQL accept the combined SQL — recorded as a
+  deliberate deferral, not wired during the release audit: widening the
+  fluent-state interfaces is feature work, frozen until after the audit
+  converges. Re-raise as a feature issue, not a review finding.
+  (source: release audit pass 1, F32)
+- RD-008 [terse] Coverage-asymmetry additions from the pass-1 test sweep
+  (ContainsScore/Score with no unit coverage, CrossJoinLateral Oracle unit
+  case, JsonArrowText sibling shapes, `Range(bound)` frame overload,
+  TableClassGen ReportJson/ResolveSchema/--fix return-code batch, ArrayBind
+  rollback sibling, DocsIndexTests slug derivation vs check_links.py) —
+  deferred as a tracked batch: coverage widening, not defects; scheduled
+  after the audit converges. (source: release audit pass 1)
+- RD-010 [terse] Refinement-scope idiom findings from the pass-1 sweeps (the
+  OverClause parenthesis idiom, `AppendSpaceIfNotNull` on a never-null part,
+  `IsNull` property style divergence, test-file style outliers — CaseTests'
+  StringBuilder shape, hanging first arguments, naming and filler-comment
+  nits) — deferred: non-defect refinements outside the defect-bar review
+  scope, batched for an `sa-diff-review-refinement` pass after the audit
+  converges. (source: release audit pass 1)
+- RD-009 [terse] A joined `DELETE` (`InnerJoin` after `DeleteFrom`) on SQLite
+  is rejected live but `InnerJoin`'s matrix entry is All, so SQLA0100 stays
+  silent for the DELETE context — a context-bounded validity gap (SQLA0102
+  class) needing a ContextRules addition with a live rejection proof;
+  deferred under the audit freeze. (source: release audit pass 1, F26)
 - RD-002 [precise] `Validate(Dbms)` running only on the outermost statement
   builder — a subquery, CTE body, or derived table renders through `Format`,
   so its dialect guards (e.g. the SQL Server TOP pairing rules) do not re-run

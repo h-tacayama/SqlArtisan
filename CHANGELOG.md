@@ -124,6 +124,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `VALUES` value kinds, join-state summary).
 
 ### Changed
+- Build-path allocations: `REGEXP_*` match options, window-function integer
+  arguments (`LAG`/`LEAD` offsets, `NTILE` buckets, `NTH_VALUE` position,
+  percentile fractions, interval-field precision) are stringified once at
+  construction instead of on every `Build`, and `DoublePipe(...)` no longer
+  allocates a second operand array.
 - **Breaking:** the 21 `...Async` methods on `SqlArtisan.Dapper`'s `SqlMapper` now
   end in `CancellationToken cancellationToken = default`, threaded to Dapper
   through `CommandDefinition` — Dapper's own cancellation path. Passing

@@ -16,7 +16,7 @@ public class UpdateTests
                 _t.Code == 1,
                 _t.Name == "a",
                 _t.CreatedAt == Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("UPDATE ");

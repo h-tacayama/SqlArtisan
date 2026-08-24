@@ -312,9 +312,9 @@ public class DialectUsageAnalyzerTests
     [Fact]
     public async Task StringAggThreeArgForm_OnSqlServer_ReportsSqla0100ButTwoArgFormDoesNot()
     {
-        // Real matrix arity split (not synthetic): StringAgg's 2-arg form is PostgreSQL + SQL
-        // Server, but the 3-arg inline-ORDER-BY form is PostgreSQL-only — SQL Server orders via
-        // the separate .WithinGroup(...) chain instead.
+        // Real matrix arity split (not synthetic): StringAgg's 2-arg form runs on
+        // PostgreSQL, SQLite, and SQL Server, but the 3-arg inline-ORDER-BY form drops
+        // SQL Server — it orders via the separate .WithinGroup(...) chain instead.
         const string source = """
             using SqlArtisan;
             using static SqlArtisan.Sql;
@@ -520,9 +520,9 @@ public class DialectUsageAnalyzerTests
     [Fact]
     public async Task RegexpLike_OnPostgreSql_StaysSilent()
     {
-        // Regression for a fixed false positive: the XML docs say "Oracle syntax" only, but
-        // PostgreSQL 15 added regexp_like with the same signature — the PostgreSQL 16 baseline
-        // supports it, so the original Oracle-only entry warned on valid PostgreSQL usage.
+        // Regression for a fixed false positive: PostgreSQL 15 added regexp_like with the
+        // same signature, so the original Oracle-only entry warned on valid PostgreSQL usage
+        // (the XML docs carried the same Oracle-only claim at the time).
         const string source = """
             using SqlArtisan;
             using static SqlArtisan.Sql;
