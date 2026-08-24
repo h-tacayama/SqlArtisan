@@ -178,6 +178,12 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
     // once-per-part guard.
     private void AddValuesRow(object[] values)
     {
+        if (values is null)
+        {
+            throw new ArgumentNullException(
+                nameof(values), "A VALUES source must not contain a null row.");
+        }
+
         if (_valuesClause is null)
         {
             if (columnCount > 0 && values.Length > 0 && values.Length != columnCount)

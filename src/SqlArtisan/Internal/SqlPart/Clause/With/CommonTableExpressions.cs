@@ -9,6 +9,8 @@ internal sealed class CommonTableExpressions
         CollectionGuard.ThrowIfEmpty(
             ctes,
             "WITH requires at least one common table expression.");
+        CollectionGuard.ThrowIfNullElement(
+            ctes, nameof(ctes), "A WITH clause must not contain a null CTE definition.");
 
         _ctes = ctes;
     }

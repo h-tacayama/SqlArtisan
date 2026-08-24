@@ -93,7 +93,7 @@ on this policy; never cite a row as already-enforced without checking the code.
 | Position | All-empty behavior |
 |---|---|
 | Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` | **throw at Build()** |
-| Empty SELECT list (#236); empty `SELECT`/`UPDATE` `.From()`; empty `IN`/`NOT IN`, empty `VALUES` row (#243); empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); INSERT column-list vs. `VALUES` row width mismatch (#397); empty explicit `INSERT` column list (1.0 release review) | throw **eagerly** |
+| Empty SELECT list (#236); empty `SELECT`/`UPDATE` `.From()`; empty `IN`/`NOT IN`, empty `VALUES` row (#243); empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); INSERT column-list vs. `VALUES` row width mismatch (#397); empty explicit `INSERT` column list (1.0 release review); empty explicit MERGE `.ThenInsert(cols)` column list and its column-list vs. `VALUES` width mismatch — `ThenInsert()` with no arguments stays the positional form, exactly as columnless `InsertInto(table)` does (release audit pass 1) | throw **eagerly** |
 
 There is **no elision** — omitting a clause is the only "no restriction". The
 throw lives in the clause node's own `Format` (Build()-time), so it fires
@@ -154,7 +154,15 @@ literal (`[null]` draws CS8625); a *computed* element — a default-initialized
 slot, a value from untracked flow — reaches the call with no warning at all,
 so the silent-acceptance bullet governs elements regardless of how loudly
 they later fail, which is why #403 and the `INSERT` column-list element guard
-convert those NREs to named exceptions.
+convert those NREs to named exceptions. The release audit closed the remaining
+typed-element positions the same way: `CollectionGuard.ThrowIfNullElement`
+(caller's parameter name, construct-named message) guards the clause
+constructors — `FROM`, JOIN/DELETE `USING`, `ON CONFLICT`, `OUTPUT INTO`,
+`WITH`, `GROUPING SETS`, MERGE `ThenInsert` — and the multi-row `VALUES` rows;
+`FactoryGuardSweepTests` now fails on a bare `NullReferenceException` reached
+from an element injection (whole-argument nulls keep the loud-NRE exemption);
+and `BuilderElementGuardTests` pins the builder-side sites the factory sweep
+cannot reach. A new typed element position lands on this shape, not a bare NRE.
 
 ## When to throw: eagerly vs at Build()
 

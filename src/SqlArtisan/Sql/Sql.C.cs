@@ -17,8 +17,15 @@ public static partial class Sql
     /// <c>CASE WHEN ... THEN ... END</c>.</returns>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause,
-        params SearchedCaseWhenClause[] whenClauses) =>
-        new([whenClause, .. whenClauses]);
+        params SearchedCaseWhenClause[] whenClauses)
+    {
+        CollectionGuard.ThrowIfNullElement(
+            whenClauses,
+            nameof(whenClauses),
+            "A CASE expression must not contain a null WHEN clause.");
+
+        return new([whenClause, .. whenClauses]);
+    }
 
     /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
@@ -205,6 +212,10 @@ public static partial class Sql
         CollectionGuard.ThrowIfEmpty(
             whenClauses,
             "CASE requires at least one WHEN clause.");
+        CollectionGuard.ThrowIfNullElement(
+            whenClauses,
+            nameof(whenClauses),
+            "A CASE expression must not contain a null WHEN clause.");
 
         return new(whenClauses, elseExpr);
     }
@@ -226,6 +237,10 @@ public static partial class Sql
         CollectionGuard.ThrowIfEmpty(
             whenClauses,
             "CASE requires at least one WHEN clause.");
+        CollectionGuard.ThrowIfNullElement(
+            whenClauses,
+            nameof(whenClauses),
+            "A CASE expression must not contain a null WHEN clause.");
 
         return new(Resolve(expr), whenClauses);
     }
@@ -437,6 +452,10 @@ public static partial class Sql
         CollectionGuard.ThrowIfEmpty(
             whenClauses,
             "CASE requires at least one WHEN clause.");
+        CollectionGuard.ThrowIfNullElement(
+            whenClauses,
+            nameof(whenClauses),
+            "A CASE expression must not contain a null WHEN clause.");
 
         return new(Resolve(expr), whenClauses, elseExpr);
     }

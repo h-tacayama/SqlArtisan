@@ -30,6 +30,9 @@ public sealed class GroupingSetsGrouping : GroupingElement
                 nameof(sets), ExpressionResolver.NullValueMessage);
         }
 
+        CollectionGuard.ThrowIfNullElement(
+            sets, nameof(sets), "GROUPING SETS must not contain a null grouping set.");
+
         _sets = new GroupingSet[sets.Length + 1];
         _sets[0] = set;
         Array.Copy(sets, 0, _sets, 1, sets.Length);

@@ -1,8 +1,17 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class OnConflictClause(DbColumn[] conflictTarget) : SqlPart
+internal sealed class OnConflictClause : SqlPart
 {
-    private readonly DbColumn[] _conflictTarget = conflictTarget;
+    private readonly DbColumn[] _conflictTarget;
+
+    internal OnConflictClause(DbColumn[] conflictTarget)
+    {
+        CollectionGuard.ThrowIfNullElement(
+            conflictTarget,
+            nameof(conflictTarget),
+            "An ON CONFLICT target must not contain a null column.");
+        _conflictTarget = conflictTarget;
+    }
 
     internal override void Format(SqlBuildingBuffer buffer)
     {

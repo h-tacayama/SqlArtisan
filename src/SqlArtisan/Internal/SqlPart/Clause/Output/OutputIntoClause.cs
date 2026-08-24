@@ -11,6 +11,8 @@ internal sealed class OutputIntoClause : SqlPart
     internal OutputIntoClause(DbTableBase table, DbColumn[] columns)
     {
         DmlTargetGuard.ThrowIfOutputIntoTargetAliased(table);
+        CollectionGuard.ThrowIfNullElement(
+            columns, nameof(columns), "An OUTPUT INTO column list must not contain a null column.");
         _table = table;
         _columns = columns;
     }

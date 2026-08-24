@@ -12,6 +12,11 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     IMergeBuilderWhenNotMatched,
     IMergeBuilderWhenNotMatchedBySource
 {
+    // The column count of the most recent ThenInsert, cross-checked by the next
+    // Values call — the same #397 width guard plain INSERT threads through its
+    // constructor; MERGE's fluent pairing makes a field the equivalent carrier.
+    private int _pendingInsertColumnCount;
+
     protected override string StatementName => Keywords.Merge;
 
     public SqlStatement Build() => BuildCore(SqlArtisanConfig.DefaultDbms);
@@ -38,8 +43,20 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    public IMergeBuilderThenInsert ThenInsert()
+    {
+        _pendingInsertColumnCount = 0;
+        AddPart(new MergeInsertClause([]));
+        return this;
+    }
+
     public IMergeBuilderThenInsert ThenInsert(params DbColumn[] columns)
     {
+        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+        CollectionGuard.ThrowIfNullElement(
+            columns, nameof(columns), "An INSERT column list must not contain a null column.");
+
+        _pendingInsertColumnCount = columns.Length;
         AddPart(new MergeInsertClause(columns));
         return this;
     }
@@ -68,6 +85,15 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
 
     public IMergeBuilderWhen Values(params object[] values)
     {
+        if (_pendingInsertColumnCount > 0
+            && values.Length > 0
+            && values.Length != _pendingInsertColumnCount)
+        {
+            throw new ArgumentException(
+                $"The INSERT column list declares {_pendingInsertColumnCount} column(s), " +
+                $"but this VALUES row has {values.Length} value(s).");
+        }
+
         AddPart(InsertValuesClause.Parse(values));
         return this;
     }

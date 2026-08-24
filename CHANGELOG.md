@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- MERGE's `INSERT` action now carries the guards plain `INSERT` already had: an
+  explicit `ThenInsert(...)` column list must be non-empty (a computed empty
+  array previously degraded silently to the positional form; the positional
+  form is now the explicit `ThenInsert()`), the following `Values(...)` must
+  match its width (previously a mismatched `MERGE ... THEN INSERT (a, b)
+  VALUES (x)` built cleanly and failed only at the database), and a null
+  column element throws a named `ArgumentNullException`.
+- A computed `null` element in a typed builder argument — a `FROM` / `USING`
+  table list, a JOIN `USING`, `ON CONFLICT`, or `OUTPUT INTO` column list, a
+  `WITH` CTE list, a `GROUPING SETS` set, a multi-row `VALUES` row, and the
+  `With(...).InsertInto(...)` column list (which also gained the factory's
+  empty-list guard) — now throws a named `ArgumentNullException` at the call
+  instead of a bare `NullReferenceException` at `Build()`. The factory guard
+  sweep now fails on any bare NRE reached from a null-element injection, so
+  the class stays closed.
 - `SqlArtisan.ArrayBind`: a statement carrying a `RETURNING ... INTO` output
   parameter now throws an `ArgumentException` up front instead of silently
   binding the output parameter as an input the command never reads back —

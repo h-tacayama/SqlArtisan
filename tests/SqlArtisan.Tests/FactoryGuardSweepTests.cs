@@ -78,12 +78,33 @@ public class FactoryGuardSweepTests
                 {
                     result = Invoke(method, args);
                 }
-                catch (TargetInvocationException)
+                catch (TargetInvocationException ex)
                 {
+                    if (ex.InnerException is NullReferenceException && IsElementInjection(label))
+                    {
+                        violations.Add(
+                            $"BARE NRE {key} — a null element owes a named ArgumentNullException.");
+                    }
+
                     continue; // eager throw — loud, OK
                 }
 
-                string? sql = TryBuild(result);
+                string? sql;
+                try
+                {
+                    sql = TryBuild(result);
+                }
+                catch (NullReferenceException) when (IsElementInjection(label))
+                {
+                    violations.Add(
+                        $"BARE NRE {key} — a null element owes a named ArgumentNullException.");
+                    continue;
+                }
+                catch (NullReferenceException)
+                {
+                    continue; // single-reference-parameter NRE — the loud-failure exemption
+                }
+
                 if (sql is null)
                 {
                     continue; // threw at Build() (loud, OK) or not embeddable
@@ -192,6 +213,13 @@ public class FactoryGuardSweepTests
             yield return closed;
         }
     }
+
+    // Element injections are the shapes the guards rule's element clause covers;
+    // a whole-argument null on a single reference parameter keeps the loud-NRE
+    // exemption, so only these labels turn an NRE into a sweep violation.
+    private static bool IsElementInjection(string label) =>
+        label.EndsWith("=[null]", StringComparison.Ordinal)
+        || label.EndsWith("=[(null, 1)]", StringComparison.Ordinal);
 
     private static IEnumerable<(int Index, string Label, object? Injected)> Injections(MethodInfo method)
     {
@@ -560,6 +588,12 @@ public class FactoryGuardSweepTests
                 // Fall-throughs are ledgered in UnembeddedReturnTypes.
                 _ => null,
             };
+        }
+        catch (NullReferenceException)
+        {
+            // Rethrown so the sweep can flag a null element that reached Build()
+            // as a bare NRE instead of counting it as a compliant loud guard.
+            throw;
         }
         catch
         {

@@ -543,4 +543,52 @@ public class MergeTests
             "A VALUES source must not contain a null row. (Parameter 'rows')",
             ex.Message);
     }
+
+    [Fact]
+    public void ThenInsert_NoColumnList_CorrectSql()
+    {
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING test_table \"s\" ");
+        expected.Append("ON (\"t\".code = \"s\".code) ");
+        expected.Append("WHEN NOT MATCHED THEN INSERT ");
+        expected.Append("VALUES (\"s\".code, \"s\".name, \"s\".created_at)");
+
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenNotMatched().ThenInsert().Values(_s.Code, _s.Name, _s.CreatedAt)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ThenInsertValues_FewerValuesThanColumns_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenNotMatched().ThenInsert(_cols.Code, _cols.Name).Values(_s.Code));
+
+        Assert.Equal(
+            "The INSERT column list declares 2 column(s), but this VALUES row has 1 value(s).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ThenInsertValues_MoreValuesThanColumns_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenNotMatched().ThenInsert(_cols.Code).Values(_s.Code, _s.Name));
+
+        Assert.Equal(
+            "The INSERT column list declares 1 column(s), but this VALUES row has 2 value(s).",
+            ex.Message);
+    }
 }
