@@ -300,6 +300,48 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
+    public async Task SubqueryAsTableAliasOverLimit_ReportsSqla0103()
+    {
+        string source = $$"""
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var t = new DbTable("orders", "o");
+                    var d = Select(Bind(1)).From(t).AsTable({|#0:"{{Repeat('a', 64)}}"|});
+                }
+            }
+            """;
+        var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task UnnestAsTableColumnNameOverLimit_ReportsSqla0103PerElement()
+    {
+        // Only the over-limit column of the list warns, at its own location.
+        string source = $$"""
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var u = Unnest(Array(1, 2)).AsTable("u", "ok", {|#0:"{{Repeat('a', 64)}}"|});
+                }
+            }
+            """;
+        var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task InsertValuesInstanceMethod_LongLiteral_StaysSilent()
     {
         // IInsertBuilderTable.Values(params object[]) shares the "Values" dictionary

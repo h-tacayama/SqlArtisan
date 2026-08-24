@@ -90,10 +90,15 @@ internal static class FluentChain
     /// </remarks>
     public static bool HasOuterJoin(IOperation node)
     {
+        // The outer statement's own spine: every invocation ancestor of the
+        // reported node plus each ancestor's receiver chain down to the head.
+        HashSet<IOperation> spine = [];
         IOperation top = node;
+        CollectSpine(node, spine);
         while (top.Parent is { } parent and not IBlockOperation)
         {
             top = parent;
+            CollectSpine(top, spine);
         }
 
         Stack<IOperation> pending = new();
@@ -104,10 +109,21 @@ internal static class FluentChain
             IOperation current = pending.Pop();
 
             if (current is IInvocationOperation invocation
-                && OuterJoinSteps.Contains(invocation.TargetMethod.Name)
                 && DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
             {
-                return true;
+                // A chain that is not the outer statement's own spine roots at
+                // its own statement head — a nested subquery, whose joins say
+                // nothing about the outer statement's shape (the rule contract:
+                // "the statement contains no outer join"). Skip it whole.
+                if (!spine.Contains(invocation) && IsStatementHead(invocation))
+                {
+                    continue;
+                }
+
+                if (OuterJoinSteps.Contains(invocation.TargetMethod.Name))
+                {
+                    return true;
+                }
             }
 
             foreach (IOperation child in current.ChildOperations)
@@ -119,6 +135,16 @@ internal static class FluentChain
         return false;
     }
 
+    private static void CollectSpine(IOperation operation, HashSet<IOperation> spine)
+    {
+        IOperation? link = operation;
+        while (link is IInvocationOperation invocation)
+        {
+            spine.Add(invocation);
+            link = invocation.Instance is null ? null : Unwrap(invocation.Instance);
+        }
+    }
+
     /// <summary>
     /// Whether <paramref name="type"/> is a SqlArtisan condition — the type a
     /// predicate has wherever it is written, held, or returned from.
@@ -128,6 +154,26 @@ internal static class FluentChain
         for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
         {
             if (current.Name == "SqlCondition"
+                && DialectUsageAnalyzer.IsFromSqlArtisan(current.ContainingAssembly))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="type"/> derives from <c>SqlExpression</c> — the
+    /// receiver type of the predicate-building steps (<c>.Like</c>,
+    /// <c>.Between</c>, <c>.In</c>) that sit inside a predicate rather than
+    /// consuming one.
+    /// </summary>
+    public static bool IsExpression(ITypeSymbol? type)
+    {
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        {
+            if (current.Name == "SqlExpression"
                 && DialectUsageAnalyzer.IsFromSqlArtisan(current.ContainingAssembly))
             {
                 return true;

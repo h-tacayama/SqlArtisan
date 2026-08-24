@@ -117,9 +117,9 @@ internal static class DatepartValidity
     public static HashSet<string>? For(string memberName, TargetDbms dbms) =>
         Table.TryGetValue((memberName, dbms), out HashSet<string>? set) ? set : null;
 
-    /// <summary>Every member name appearing in at least one list — the parity
-    /// gate's coverage check.</summary>
-    internal static IEnumerable<string> AllKnownMemberNames
+    /// <summary>Every <c>DateTimePart</c> name appearing in at least one list —
+    /// the parity gate's coverage check.</summary>
+    internal static IEnumerable<string> AllKnownDatepartNames
     {
         get
         {

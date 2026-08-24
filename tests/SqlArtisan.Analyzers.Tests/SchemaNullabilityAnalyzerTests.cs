@@ -94,6 +94,29 @@ public class SchemaNullabilityAnalyzerTests
             "var s = Select(t.Code).From(t).Where(Not({|#0:t.Code.IsNull|})).Build();",
             Expected("Code", "IsNull", "false"));
 
+    // An outer join belonging to a nested subquery is not the outer statement's
+    // shape: only its own spine can null-supply the reported column.
+    [Fact]
+    public Task IsNull_OuterJoinOnlyInsideSubquery_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            T x = new T("x");
+            var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}
+                & Exists(Select(r.Code).From(r).LeftJoin(x).On(r.Code == x.Code))).Build();
+            """,
+            Expected("Code", "IsNull", "false"));
+
+    [Fact]
+    public Task IsNull_JoinlessSubquery_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}
+                & Exists(Select(r.Code).From(r).Where(r.Code == t.Code))).Build();
+            """,
+            Expected("Code", "IsNull", "false"));
+
     // The LEFT JOIN anti-join: past an outer join the NOT NULL column is
     // null-supplied, so the predicate is exactly not constant there.
     [Fact]

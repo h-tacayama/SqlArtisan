@@ -252,6 +252,9 @@ internal static class DialectMatrix
 
         // --- Conversion functions ---
         [new MatrixKey("ToChar")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // PostgreSQL's to_char requires the format argument (like to_number below);
+        // the 1-arg form is Oracle-only.
+        [new MatrixKey("ToChar", 1)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("ToDate")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToNumber")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         // PostgreSQL's to_number requires the format argument (smoke-catalog note); the
@@ -276,6 +279,12 @@ internal static class DialectMatrix
         [new MatrixKey("RegexpLike")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpCount")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpReplace")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // RegexpReplace's support is identical at every arity; these rows exist only
+        // to carry PostgreSQL's 15 bound (below) on the position/occurrence/options
+        // arities without it spilling onto the pre-15 3-arg base form.
+        [new MatrixKey("RegexpReplace", 4)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("RegexpReplace", 5)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("RegexpReplace", 6)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpSubstr")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         // RegexpSubstr's 6-argument form adds subexpr, the capture-group position —
         // MySQL's REGEXP_SUBSTR tops out at 5 arguments (match_type, no subexpr;
@@ -773,7 +782,12 @@ internal static class DialectMatrix
         [new MatrixKey("Values", 3)] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpLike")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("RegexpReplace")] = new VersionBounds(postgreSql: V("15")),
+        // RegexpReplace's 3-arg base form predates 15 (which added the position/
+        // occurrence signature), so the bound sits on the extended arities only and
+        // the member key stays unbounded.
+        [new MatrixKey("RegexpReplace", 4)] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpReplace", 5)] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpReplace", 6)] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15")),
         // TryGetMinVersion looks up the matched key exactly, with no member-wide
         // fallback (unlike Entries' TryGetEntryFrom) — the 6-arg key needs its own

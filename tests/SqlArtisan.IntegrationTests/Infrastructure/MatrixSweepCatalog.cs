@@ -401,6 +401,7 @@ internal static class MatrixSweepCatalog
 
         // --- Conversion ---
         Add("ToChar", _ => Scalar(ToChar(u.Age, "999")));
+        AddArity("ToChar", 1, _ => Scalar(ToChar(u.Age)));
         Add("ToDate", _ => Scalar(ToDate("2020-01-01", "YYYY-MM-DD")));
         Add("ToNumber", _ => Scalar(ToNumber("123", "999")));
         AddArity("ToNumber", 1, _ => Scalar(ToNumber("123")));
@@ -422,6 +423,9 @@ internal static class MatrixSweepCatalog
         Add("RegexpLike", _ => WherePredicate(RegexpLike(u.Name, "A.*")));
         Add("RegexpCount", _ => Scalar(RegexpCount(u.Name, "a")));
         Add("RegexpReplace", _ => Scalar(RegexpReplace(u.Name, "a", "b")));
+        AddArity("RegexpReplace", 4, _ => Scalar(RegexpReplace(u.Name, "a", "b", 1)));
+        AddArity("RegexpReplace", 5, _ => Scalar(RegexpReplace(u.Name, "a", "b", 1, 1)));
+        AddArity("RegexpReplace", 6, _ => Scalar(RegexpReplace(u.Name, "a", "b", 1, 1, RegexpOptions.None)));
         Add("RegexpSubstr", _ => Scalar(RegexpSubstr(u.Name, "A")));
         AddArity("RegexpSubstr", 6, _ => Scalar(RegexpSubstr(u.Name, "A", 1, 1, RegexpOptions.None, 1)));
         Add("RegexpInstr", _ => Scalar(RegexpInstr(u.Name, "A")));

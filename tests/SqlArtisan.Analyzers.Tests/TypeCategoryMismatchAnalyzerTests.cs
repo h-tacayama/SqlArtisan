@@ -203,6 +203,25 @@ public class TypeCategoryMismatchAnalyzerTests
             "boolean",
             "text");
 
+    // Any consuming step that is not an assignment is a comparison position, so
+    // HAVING and a join's ON report the same as WHERE.
+    [Fact]
+    public Task Having_TextColumnComparedToNumericLiteral_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code).From(t).GroupBy(t.Code).Having({|#0:t.Code == 1500001|}).Build();",
+            "Code",
+            "text",
+            "numeric");
+
+    [Fact]
+    public Task On_TwoColumnsOfDifferentCategories_Warns() =>
+        RunReporting(
+            "T r = new T(\"r\");"
+                + " var s = Select(t.Code).From(t).InnerJoin(r).On({|#0:t.Code == r.Amount|}).Build();",
+            "Code",
+            "text",
+            "numeric");
+
     // Neither clause is visible from a condition built apart from it, so the rule
     // declines to guess which one it will become.
     [Fact]

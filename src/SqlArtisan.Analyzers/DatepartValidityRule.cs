@@ -37,6 +37,17 @@ internal static class DatepartValidityRule
         }
 
         int? arity = invocation.TargetMethod.Parameters.Length;
+
+        // An `unsupported` construct override makes SQLA0100 fire for every
+        // target, so the never-both-fire contract below covers the override
+        // path too, not just the matrix's own verdict.
+        AnalyzerConfigOptions options =
+            context.Options.AnalyzerConfigOptionsProvider.GetOptions(invocation.Syntax.SyntaxTree);
+        if (DialectSupportResolver.ResolveOverride(options, memberName, arity) is { IsSupported: false })
+        {
+            return;
+        }
+
         List<string>? invalidOn = null;
 
         foreach (TargetDbms dbms in targets.Members)

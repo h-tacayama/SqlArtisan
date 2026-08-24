@@ -88,9 +88,14 @@ internal static class UnusableIndexPredicateRule
 
         while (current.Parent is { } parent and not IBlockOperation)
         {
+            // A predicate-building step on the expression or condition itself
+            // (.Like, .Between, .In, .Escape) is part of the predicate, not
+            // its clause — keep climbing to the builder step that consumes it.
             if (parent is IInvocationOperation step
                 && DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly)
-                && step.Instance is not null)
+                && step.Instance is not null
+                && !FluentChain.IsExpression(step.Instance.Type)
+                && !FluentChain.IsCondition(step.Instance.Type))
             {
                 return FilteringSteps.Contains(step.TargetMethod.Name);
             }

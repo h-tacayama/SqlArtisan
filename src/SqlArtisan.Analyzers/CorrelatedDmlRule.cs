@@ -12,14 +12,13 @@ namespace SqlArtisan.Analyzers;
 /// <summary>
 /// Reports SQLA0300 when a correlated UPDATE/DELETE has a provably unaliased
 /// target — the violation the core's Build()-time guard rejects, surfaced at
-/// compile time (#256). Advisory: suppressing it does not disable the throw.
+/// compile time (#256, advisory per ADR 0014).
 /// </summary>
 /// <remarks>
 /// Every proof fails toward silence (ADR 0003): a target that is not a local or
 /// this-bound readonly field with a visible, provably-unaliased initializer —
 /// or any unrecognized shape in the walks — yields a false negative, never a
-/// false positive, short of code that defeats readonly-ref semantics
-/// (Unsafe.AsRef on an in argument — the accepted exception in ADR 0014).
+/// false positive.
 /// </remarks>
 internal static class CorrelatedDmlRule
 {

@@ -523,7 +523,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            foreach (string overrideKey in overrideKeys)
+            // ResolveOverride honors any construct-prefixed (member, arity) key,
+            // so validation must sweep what the options actually carry, not just
+            // the matrix-derived key list — that list stays only as the fallback
+            // for hosts whose options cannot enumerate keys.
+            IEnumerable<string> candidateOverrideKeys =
+                AnalyzerConfigResolver.TryEnumerateConstructKeys(options, out List<string> constructKeys)
+                    ? constructKeys
+                    : overrideKeys;
+            foreach (string overrideKey in candidateOverrideKeys)
             {
                 if (options.TryGetValue(overrideKey, out string? overrideValue)
                     && !AnalyzerConfigResolver.IsRecognizedOverrideValue(overrideValue)
@@ -613,11 +621,12 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 && !AnalyzerConfigResolver.IsFamilyKeySet(options, droppedDbms)
                 && reportedDroppedDbms.Add(droppedDbms))
             {
+                (string legacyKey, string legacyValue) = LegacyDbmsSource(options, droppedDbms);
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.LegacyConfigurationIgnored,
                     Location.None,
-                    AnalyzerConfigResolver.TargetDbmsKey,
-                    LegacyDbmsRawValue(options, droppedDbms),
+                    legacyKey,
+                    legacyValue,
                     TargetDbmsNames.Display(droppedDbms),
                     FamilyKeySuggestion(options, droppedDbms)));
             }
@@ -635,21 +644,24 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static string LegacyDbmsRawValue(AnalyzerConfigOptions options, TargetDbms resolved)
+    // The key half matters as much as the value: a project setting only the
+    // MSBuild property must not be told an .editorconfig line it never wrote is
+    // being ignored.
+    private static (string Key, string Value) LegacyDbmsSource(AnalyzerConfigOptions options, TargetDbms resolved)
     {
         if (options.TryGetValue(AnalyzerConfigResolver.TargetDbmsKey, out string? editorConfigValue)
             && AnalyzerConfigResolver.IsRecognizedTargetValue(editorConfigValue))
         {
-            return editorConfigValue;
+            return (AnalyzerConfigResolver.TargetDbmsKey, editorConfigValue);
         }
 
         if (options.TryGetValue(AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey, out string? msBuildValue)
             && AnalyzerConfigResolver.IsRecognizedTargetValue(msBuildValue))
         {
-            return msBuildValue;
+            return (AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey, msBuildValue);
         }
 
-        return resolved.ToString();
+        return (AnalyzerConfigResolver.TargetDbmsKey, resolved.ToString());
     }
 
     private static string LegacyReplacementSuggestion(AnalyzerConfigOptions options) =>

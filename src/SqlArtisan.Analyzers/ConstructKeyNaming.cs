@@ -12,7 +12,7 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 internal static class ConstructKeyNaming
 {
-    private const string Prefix = "sqlartisan_construct_";
+    public const string Prefix = "sqlartisan_construct_";
     private const string AritySeparator = "_arity";
 
     // Key strings are built once per distinct member name (and (name, arity)

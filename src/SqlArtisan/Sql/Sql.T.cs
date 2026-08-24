@@ -51,13 +51,15 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The value to convert to text.</param>
     /// <returns>A <c>TO_CHAR</c> function expression.</returns>
-    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
+    /// <remarks>Oracle syntax.</remarks>
     public static ToCharFunction ToChar(object expr) =>
         new(Resolve(expr));
 
     /// <inheritdoc cref="ToChar(object)"/>
     /// <param name="expr">The value to convert to text.</param>
     /// <param name="format">The format model (Oracle-style) controlling the output.</param>
+    /// <remarks>Oracle and PostgreSQL syntax. PostgreSQL's <c>to_char</c> requires
+    /// the format argument, so only this two-argument form runs there.</remarks>
     public static ToCharFunction ToChar(object expr, object format) =>
         new(Resolve(expr), Resolve(format));
 

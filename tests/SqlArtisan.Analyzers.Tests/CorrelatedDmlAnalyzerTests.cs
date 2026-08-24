@@ -89,6 +89,32 @@ public class CorrelatedDmlAnalyzerTests
             """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: true);
 
     [Fact]
+    public Task Update_StaticReadonlyFieldUnaliasedTarget_ReportsSqla0300() =>
+        RunAsync("""
+            using SqlArtisan;
+            using SqlArtisan.Internal;
+            using static SqlArtisan.Sql;
+
+            class T : DbTableBase
+            {
+                public DbColumn Id;
+                public DbColumn Dep;
+                public T(string alias = "") : base("t", alias) { Id = new DbColumn(this, "id"); Dep = new DbColumn(this, "dep"); }
+            }
+
+            class C
+            {
+                private static readonly T Table = new T();
+
+                void M()
+                {
+                    T r = new T("r");
+                    var q = Update(Table).Set(Table.Id == Select(Max(r.Id)).From(r).Where(r.Dep == {|#0:Table.Dep|}));
+                }
+            }
+            """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: true);
+
+    [Fact]
     public Task DeleteFrom_SameInstanceInInnerSelect_ReportsSqla0300() =>
         RunReporting("""
             var q = DeleteFrom(t).Where(t.Id.In(Select({|#0:t.Id|}).From(t)));

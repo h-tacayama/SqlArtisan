@@ -22,11 +22,9 @@ internal static class DiagnosticDescriptors
 
     private const string HelpLinkUri = "https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md";
 
-    // {2} carries its own "one of: "/"a numeric ..." lead-in per call site (the
-    // target-dbms/override-value/target-version keys don't all read naturally
-    // under one fixed lead-in phrase). Retitled under #432: this id now also
-    // reports a valid-but-lossy configuration (an empty resolved set, a
-    // coexisting legacy pair), not only an unrecognized value.
+    // {2} carries its own lead-in phrase per call site — the config surfaces
+    // don't all read naturally under one fixed phrase. The id also covers
+    // valid-but-lossy configuration, not only unrecognized values (#432).
     public static readonly DiagnosticDescriptor InvalidConfiguration = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",

@@ -5,8 +5,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reads <c>sqlartisan_syntax_*</c> (and the legacy <c>sqlartisan_target_dbms</c>
-/// / <c>sqlartisan_construct_*</c>) from <see cref="AnalyzerConfigOptions"/> (the
+/// Reads <c>sqlartisan_syntax_*</c>, the <c>sqlartisan_construct_*</c> overrides,
+/// and the legacy <c>sqlartisan_target_dbms</c> pair from
+/// <see cref="AnalyzerConfigOptions"/> (the
 /// <c>.editorconfig</c> / MSBuild property surface Roslyn exposes to analyzers).
 /// Values are looked up per-syntax-tree, so a <c>.editorconfig</c> section
 /// scoped to a directory naturally gives that directory its own target set —
@@ -203,14 +204,27 @@ internal static class AnalyzerConfigResolver
     /// doesn't override it, so a failure here degrades to "skip key-name validation"
     /// rather than take the whole analyzer down.
     /// </summary>
-    public static bool TryEnumerateSyntaxKeys(AnalyzerConfigOptions options, out List<string> keys)
+    public static bool TryEnumerateSyntaxKeys(AnalyzerConfigOptions options, out List<string> keys) =>
+        TryEnumeratePrefixedKeys(options, SyntaxKeyPrefix, out keys);
+
+    /// <summary>
+    /// Every <c>sqlartisan_construct_*</c>-prefixed key <paramref name="options"/>
+    /// carries, for override-value validation across the whole honored surface —
+    /// <see cref="ResolveOverride"/> reads any (member, arity) key, not just the
+    /// matrix-derived ones, so validating only the latter left honored keys'
+    /// typos silent. Degrades like <see cref="TryEnumerateSyntaxKeys"/>.
+    /// </summary>
+    public static bool TryEnumerateConstructKeys(AnalyzerConfigOptions options, out List<string> keys) =>
+        TryEnumeratePrefixedKeys(options, ConstructKeyNaming.Prefix, out keys);
+
+    private static bool TryEnumeratePrefixedKeys(AnalyzerConfigOptions options, string prefix, out List<string> keys)
     {
         keys = [];
         try
         {
             foreach (string key in options.Keys)
             {
-                if (key.StartsWith(SyntaxKeyPrefix, StringComparison.OrdinalIgnoreCase))
+                if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
                     keys.Add(key);
                 }

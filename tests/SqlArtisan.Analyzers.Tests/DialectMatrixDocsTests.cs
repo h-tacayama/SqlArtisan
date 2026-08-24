@@ -14,14 +14,20 @@ namespace SqlArtisan.Analyzers.Tests;
 /// </summary>
 public class DialectMatrixDocsTests
 {
+    // Scoped like DialectMatrixVersionBoundsTests' provenance gate: a token must
+    // sit, digit-bounded, on a line that also names the dialect — a whole-file
+    // substring check let common tokens survive a re-versioned row.
     [Fact]
     public void VerifiedAgainstVersions_AppearInAnalyzerDoc()
     {
-        string doc = File.ReadAllText(Path.Combine(FindRepoRoot(), "docs", "analyzer.md"));
+        string[] docLines = File.ReadAllLines(Path.Combine(FindRepoRoot(), "docs", "analyzer.md"));
 
         List<string> missing = [];
         foreach (KeyValuePair<TargetDbms, string> pair in DialectMatrix.VerifiedAgainstVersion)
         {
+            string display = TargetDbmsNames.Display(pair.Key);
+            string[] nameLines = [.. docLines.Where(line => line.Contains(display))];
+
             // The display part before the parenthetical (container image details
             // may legitimately be elided or reworded in the doc's table).
             string displayPart = pair.Value.Split(" (")[0];
@@ -29,7 +35,7 @@ public class DialectMatrixDocsTests
 
             if (versionTokens.Count == 0)
             {
-                if (!doc.Contains(displayPart))
+                if (!nameLines.Any(line => line.Contains(displayPart)))
                 {
                     missing.Add($"{pair.Key}: \"{displayPart}\"");
                 }
@@ -39,7 +45,8 @@ public class DialectMatrixDocsTests
 
             foreach (Match token in versionTokens)
             {
-                if (!doc.Contains(token.Value))
+                Regex bounded = new($@"(?<![\d.]){Regex.Escape(token.Value)}(?![\d.])");
+                if (!nameLines.Any(line => bounded.IsMatch(line)))
                 {
                     missing.Add($"{pair.Key}: \"{token.Value}\" (from \"{pair.Value}\")");
                 }

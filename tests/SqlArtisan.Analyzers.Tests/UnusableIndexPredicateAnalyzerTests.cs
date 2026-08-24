@@ -94,6 +94,45 @@ public class UnusableIndexPredicateAnalyzerTests
             "Name",
             "matched with a leading-wildcard pattern");
 
+    // The wrap reaches WHERE through a predicate-building step on the wrapped
+    // expression itself — the step is part of the predicate, not its clause.
+    [Fact]
+    public Task Where_WrappedIndexedColumnUnderLike_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Upper(t.Name)|}.Like("X%")).Build();""",
+            "Name",
+            "wrapped in Upper");
+
+    [Fact]
+    public Task Where_WrappedIndexedColumnUnderNotLike_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Upper(t.Name)|}.NotLike("X%")).Build();""",
+            "Name",
+            "wrapped in Upper");
+
+    [Fact]
+    public Task Where_WrappedIndexedColumnUnderBetween_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Upper(t.Name)|}.Between("A", "B")).Build();""",
+            "Name",
+            "wrapped in Upper");
+
+    [Fact]
+    public Task Where_WrappedIndexedColumnUnderIn_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Upper(t.Name)|}.In("A", "B")).Build();""",
+            "Name",
+            "wrapped in Upper");
+
+    [Fact]
+    public Task On_WrappedIndexedColumnUnderLike_Warns() =>
+        RunReporting(
+            """
+            var s = Select(t.Id).From(t).InnerJoin(r).On({|#0:Upper(t.Name)|}.Like("X%")).Build();
+            """,
+            "Name",
+            "wrapped in Upper");
+
     // A trailing wildcard leaves a prefix an index can range over; whether the
     // planner takes it is its own business.
     [Fact]

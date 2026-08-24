@@ -288,6 +288,28 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task InvalidOverrideValue_OnNonMatrixDerivedKey_ReportsSqla0001()
+    {
+        // ResolveOverride honors any construct-prefixed key, but Concat's member
+        // key derives from no matrix entry (its rows are arity-keyed), so a value
+        // typo there was silent before the options-key sweep (release audit pass 1).
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_mysql = any
+            sqlartisan_construct_concat = suported
+            """;
+
+        var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_construct_concat", "suported", "supported/unsupported"));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task StringAggThreeArgForm_OnSqlServer_ReportsSqla0100ButTwoArgFormDoesNot()
     {
         // Real matrix arity split (not synthetic): StringAgg's 2-arg form is PostgreSQL + SQL
@@ -348,6 +370,52 @@ public class DialectUsageAnalyzerTests
         var test = AnalyzerVerifier.Create(source, editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task RegexpReplaceExtendedArity_PostgreSqlBelowBound_ReportsSqla0101ButBaseFormDoesNot()
+    {
+        // Real matrix arity split: the 3-arg base form predates PostgreSQL 15; 15
+        // added the position/occurrence signature, so only the extended arities
+        // carry the bound (release audit pass 1).
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = RegexpReplace("name", "a", "b");
+                    var bad = {|#0:RegexpReplace("name", "a", "b", 1)|};
+                }
+            }
+            """;
+
+        var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql", "14"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task RegexpReplaceExtendedArity_PostgreSqlAtBound_StaysSilent()
+    {
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = RegexpReplace("name", "a", "b", 1);
+                }
+            }
+            """;
+
+        var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql", "15"));
         await test.RunAsync();
     }
 

@@ -141,15 +141,10 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// MySQL's <c>INTERVAL</c> keyword has no standalone value — it parses only
-    /// as an immediate operand of <c>+</c>/<c>-</c> date arithmetic or as the
-    /// <c>interval</c> argument of <c>DateAdd</c>/<c>DateSub</c> (never their
-    /// <c>date</c> argument), the same restriction whether the spelling came
-    /// from <c>Interval</c> or the MySQL-accepted <c>IntervalLiteral</c>
-    /// arity-2 form. Only the bare-argument shape is provable here — the climb
-    /// stops silently at a qualifying operator/call (correct) or at anything
-    /// else, including a variable a later one might still use (ADR 0003:
-    /// false negative, never a false positive).
+    /// MySQL parses <c>INTERVAL</c> only as an immediate <c>+</c>/<c>-</c> operand
+    /// or as <c>DateAdd</c>/<c>DateSub</c>'s <c>interval</c> argument. Only the
+    /// bare-argument shape is provable — the climb stops silently at anything
+    /// else, a variable a later operator might still use included (ADR 0003).
     /// </summary>
     public static void CheckIntervalRequiresArithmeticOperand(
         OperationAnalysisContext context, IInvocationOperation interval, string dialectName)
@@ -190,8 +185,8 @@ internal static class ContextRules
         }
     }
 
-    // Climbs to the SELECT-list/HAVING/ORDER BY invocation hosting Grouping(); any
-    // other argument host stops the climb rather than risk crossing into another query.
+    // Any other argument host stops the climb rather than risk crossing into
+    // another query.
     private static IInvocationOperation? FindClauseAnchor(IInvocationOperation grouping) =>
         FindArgumentHost(grouping) is { } host
             && host.TargetMethod.Name is "Select" or "Having" or "OrderBy"

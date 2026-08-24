@@ -79,6 +79,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Docs: the multi-row `VALUES` notes now reflect Oracle 23ai, which added the
   construct — reference note, Oracle array-bind guide, and the `Values(...)`
   XML docs.
+- Analyzer: `RegexpReplace`'s PostgreSQL 15 bound now covers only the
+  position/occurrence/options overloads (4+ arguments) — the 3-argument base
+  form predates 15 and is no longer reported below it.
+- Analyzer: `ToChar(expr)` is Oracle-only in the dialect matrix — PostgreSQL's
+  `to_char` requires the format argument, mirroring `ToNumber` — so the
+  1-argument form now warns on PostgreSQL.
+- Analyzer: an indexed column wrapped in a function that feeds a
+  predicate-building step (`Upper(col).Like(...)`, `.Between(...)`,
+  `.In(...)`) inside `Where`/`On` now reports SQLA0204; the walk previously
+  stopped at the predicate step and stayed silent.
+- Analyzer: an outer join belonging to a nested subquery no longer silences
+  SQLA0200/SQLA0203 on the outer statement — only the outer statement's own
+  join spine counts.
+- Analyzer: SQLA0001 value validation now sweeps every `sqlartisan_construct_*`
+  key the configuration carries — member-level spellings of arity-partitioned
+  members and other honored non-matrix keys included — instead of only
+  matrix-derived keys; and the legacy-coexistence report names the surface
+  actually read (`build_property.SqlArtisanTargetDbms` when the MSBuild
+  property, not `.editorconfig`, set the dropped DBMS).
+- Analyzer: SQLA0104 no longer fires alongside SQLA0100 when a construct is
+  forced `unsupported` through a `sqlartisan_construct_*` override.
 
 ### Changed
 - **Breaking:** the 21 `...Async` methods on `SqlArtisan.Dapper`'s `SqlMapper` now

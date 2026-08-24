@@ -462,6 +462,35 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
+    // The report names the surface actually read: a project setting only the
+    // MSBuild property never wrote the .editorconfig line the message would
+    // otherwise claim is ignored.
+    [Fact]
+    public async Task LegacyDbmsViaMSBuildPropertyAndFamilyCoexist_ReportNamesTheMSBuildKey()
+    {
+        const string globalConfig = """
+            is_global = true
+            build_property.SqlArtisanTargetDbms = postgresql
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_oracle = any
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "build_property.SqlArtisanTargetDbms",
+                "postgresql",
+                "PostgreSQL",
+                "sqlartisan_syntax_postgresql = any"));
+
+        await test.RunAsync();
+    }
+
     // The suggestion carries the legacy version over: a bare key would remediate
     // nothing (blank reads as unset), and `= any` would silently shed the
     // dialect's SQLA0101 coverage.

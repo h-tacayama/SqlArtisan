@@ -20,7 +20,7 @@ public class DatepartValidityParityTests
     {
         string[] unmatchable =
         [
-            .. DatepartValidity.AllKnownMemberNames
+            .. DatepartValidity.AllKnownDatepartNames
                 .Except(RealMemberNames, StringComparer.Ordinal)
                 .OrderBy(name => name, StringComparer.Ordinal),
         ];
@@ -45,7 +45,7 @@ public class DatepartValidityParityTests
         string[] uncovered =
         [
             .. RealMemberNames
-                .Except(DatepartValidity.AllKnownMemberNames, StringComparer.Ordinal)
+                .Except(DatepartValidity.AllKnownDatepartNames, StringComparer.Ordinal)
                 .OrderBy(name => name, StringComparer.Ordinal),
         ];
 

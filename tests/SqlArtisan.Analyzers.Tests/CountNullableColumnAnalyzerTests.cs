@@ -101,6 +101,19 @@ public class CountNullableColumnAnalyzerTests
         Assert.Equal(DiagnosticSeverity.Info, descriptor.DefaultSeverity);
     }
 
+    // An outer join belonging to a nested subquery is not the outer statement's
+    // shape: only its own spine can null-supply the counted column.
+    [Fact]
+    public Task Count_OuterJoinOnlyInsideSubquery_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            T x = new T("x");
+            var sql = Select({|#0:Count(t.Note)|}).From(t)
+                .Where(Exists(Select(r.Id).From(r).LeftJoin(x).On(r.Id == x.Id))).Build();
+            """,
+            "Note");
+
     // Past an outer join, counting the column is how you count matched rows —
     // COUNT(*) would count the unmatched ones too, so the advice would be wrong.
     [Fact]

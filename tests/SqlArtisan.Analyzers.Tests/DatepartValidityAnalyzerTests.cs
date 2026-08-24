@@ -304,6 +304,28 @@ public class DatepartValidityAnalyzerTests
     }
 
     [Fact]
+    public async Task UnsupportedOverride_SkipsToAvoidDoubleReportingWithSqla0100()
+    {
+        // Forcing the construct `unsupported` makes SQLA0100 the construct-level
+        // verdict on every target — the never-both-fire contract covers the
+        // override path, not just the matrix's own verdict (release audit pass 1).
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_oracle = any
+            sqlartisan_construct_extract = unsupported
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            Usage("var s = Select({|#0:Extract(DateTimePart.Epoch, t.CreatedAt)|}).From(t).Build();"),
+            editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task ExactMessage_NamesTheMemberDatepartAndDialect()
     {
         var test = AnalyzerVerifier.Create(

@@ -153,7 +153,7 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 - `Numtodsinterval()` for `NUMTODSINTERVAL` (Oracle)
 - `Numtoyminterval()` for `NUMTOYMINTERVAL` (Oracle)
 - `Nvl()` for `NVL` (Oracle)
-- `ToChar()` for `TO_CHAR` (Oracle, PostgreSQL)
+- `ToChar()` for `TO_CHAR` (Oracle, PostgreSQL; the 1-argument form is Oracle-only)
 - `ToDate()` for `TO_DATE` (Oracle, PostgreSQL)
 - `ToNumber()` for `TO_NUMBER` (Oracle, PostgreSQL; the 1-argument form is Oracle-only)
 - `ToTimestamp()` for `TO_TIMESTAMP` (Oracle, PostgreSQL)
