@@ -1,4 +1,5 @@
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -603,5 +604,134 @@ public class MergeTests
         Assert.Equal(
             "The INSERT column list declares 1 column(s), but this VALUES row has 2 value(s).",
             ex.Message);
+    }
+
+    [Fact]
+    public void Values_NullArray_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenNotMatched().ThenInsert(_cols.Code).Values(null!));
+
+        Assert.Equal("values", ex.ParamName);
+    }
+
+    [Fact]
+    public void On_CalledTwiceOnHeldStage_ThrowsArgumentException()
+    {
+        IMergeBuilderUsing held = MergeInto(_t).Using(_s);
+        held.On(_t.Code == _s.Code);
+        IMergeBuilderWhen stage = held.On(_t.Name == _s.Name).WhenMatched().ThenDelete();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => stage.Build());
+
+        Assert.Equal(
+            "A statement takes at most one ON clause per query block; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Using_CalledTwiceOnHeldStage_ThrowsArgumentException()
+    {
+        IMergeBuilderTarget held = MergeInto(_t);
+        held.Using(_s);
+        IMergeBuilderWhen stage =
+            held.Using(new TestTable("s2")).On(_t.Code == _s.Code).WhenMatched().ThenDelete();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => stage.Build());
+
+        Assert.Equal(
+            "A statement takes at most one USING clause per query block; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ThenUpdateSet_CalledTwiceOnHeldBranch_ThrowsArgumentException()
+    {
+        IMergeBuilderWhenMatched held =
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code).WhenMatched();
+        held.ThenUpdateSet(_cols.Name == _s.Name);
+        IMergeBuilderThenUpdateSet stage = held.ThenUpdateSet(_cols.Code == _s.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => stage.Build());
+
+        Assert.Equal(
+            "A MERGE WHEN branch takes at most one UPDATE SET clause; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Values_CalledTwiceOnHeldBranch_ThrowsArgumentException()
+    {
+        IMergeBuilderThenInsert held =
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code).WhenNotMatched().ThenInsert(_cols.Code);
+        held.Values(_s.Code);
+        IMergeBuilderWhen stage = held.Values(_s.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => stage.Build());
+
+        Assert.Equal(
+            "A MERGE WHEN branch takes at most one VALUES clause; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void WhenMatched_BranchWithoutAction_ThrowsArgumentException()
+    {
+        IMergeBuilderWhen held =
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code).WhenMatched().ThenDelete();
+        held.WhenMatched(_t.Code == 1);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
+
+        Assert.Equal(
+            "A MERGE WHEN branch requires an action (UPDATE SET, DELETE, or INSERT).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ThenInsert_WithoutValues_ThrowsArgumentException()
+    {
+        IMergeBuilderWhen held =
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code).WhenMatched().ThenDelete();
+        held.WhenNotMatched().ThenInsert(_cols.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
+
+        Assert.Equal(
+            "A MERGE INSERT action requires a VALUES row.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void WhenNotMatched_TwoInsertBranches_CorrectSql()
+    {
+        // The legal twin of the branch-scoped guards: each WHEN clause opens a
+        // fresh branch, so a second INSERT ... VALUES pair legally repeats.
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING test_table \"s\" ");
+        expected.Append("ON (\"t\".code = \"s\".code) ");
+        expected.Append("WHEN NOT MATCHED AND \"s\".code > :0 THEN INSERT (code) ");
+        expected.Append("VALUES (\"s\".code) ");
+        expected.Append("WHEN NOT MATCHED THEN INSERT (name) ");
+        expected.Append("VALUES (\"s\".name)");
+
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenNotMatched(_s.Code > 1).ThenInsert(_cols.Code).Values(_s.Code)
+            .WhenNotMatched().ThenInsert(_cols.Name).Values(_s.Name)
+            .Build();
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 }

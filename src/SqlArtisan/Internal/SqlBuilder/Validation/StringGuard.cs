@@ -12,4 +12,15 @@ internal static class StringGuard
             throw new ArgumentException(message);
         }
     }
+
+    // For positions emitted as a bare token (a CAST type, a NEXT VALUE FOR
+    // sequence name): whitespace there is invalid on every dialect, unlike a
+    // quoted or literal position where it is the engine's to judge (RD-004).
+    internal static void ThrowIfNullOrWhiteSpace(string value, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException(message);
+        }
+    }
 }

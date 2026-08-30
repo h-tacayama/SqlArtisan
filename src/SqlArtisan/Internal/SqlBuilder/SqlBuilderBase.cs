@@ -120,7 +120,8 @@ internal abstract class SqlBuilderBase
         ("FOR UPDATE", [typeof(ForUpdateClause)]),
         ("WITH ROLLUP", [typeof(WithRollupClause)]),
         ("SET", [typeof(UpdateSetClause), typeof(InsertSetClause)]),
-        ("USING", [typeof(DeleteUsingClause)]),
+        ("USING", [typeof(DeleteUsingClause), typeof(MergeUsingClause)]),
+        ("ON", [typeof(MergeOnClause)]),
         ("ON CONFLICT", [typeof(OnConflictClause)]),
         ("ON DUPLICATE KEY UPDATE", [typeof(OnDuplicateKeyUpdateClause)]),
         ("DO UPDATE SET", [typeof(DoUpdateSetClause)]),
@@ -131,20 +132,64 @@ internal abstract class SqlBuilderBase
         ("WITH", [typeof(WithClause), typeof(WithRecursiveClause)]),
     ];
 
+    // MERGE's per-branch action kinds: at most one per WHEN branch, where a new
+    // WHEN clause opens a fresh branch (so a legal multi-branch MERGE re-carries
+    // them). InsertValuesClause is safe here for plain INSERT too — its Values
+    // overloads grow one held clause, never a second part.
+    private static readonly (string Name, Type[] Types)[] OncePerBranchClauses =
+    [
+        ("UPDATE SET", [typeof(MergeUpdateSetClause)]),
+        ("DELETE", [typeof(MergeDeleteClause)]),
+        ("DELETE WHERE", [typeof(MergeDeleteWhereClause)]),
+        ("INSERT", [typeof(MergeInsertClause)]),
+        ("VALUES", [typeof(InsertValuesClause)]),
+    ];
+
     // A stage method repeated on a held, not-yet-built builder appends a
     // duplicate clause (`WHERE ... WHERE ...`) — valid on no dialect, so it is
     // rejected here rather than emitted (#225's silent-wrong-SQL class). A set
     // operator starts a new query block, so a compound query's second SELECT
-    // legally re-carries every kind.
+    // legally re-carries every kind; a MERGE WHEN clause does the same for the
+    // branch-scoped kinds only, and each join clause re-admits one ON/USING.
     private void ThrowIfDuplicateClauseInBlock()
     {
         ulong seen = 0;
+        ulong seenInBranch = 0;
+        bool joinConditionSeen = false;
         foreach (SqlPart part in CollectionsMarshal.AsSpan(_parts))
         {
             if (part is UnionOperator or ExceptOperator or IntersectOperator or MinusOperator)
             {
                 seen = 0;
                 continue;
+            }
+
+            if (part is WhenMatchedClause or WhenNotMatchedClause or WhenNotMatchedBySourceClause)
+            {
+                seenInBranch = 0;
+                continue;
+            }
+
+            // ON/USING legally repeat once per join, so they pair by adjacency
+            // rather than by a once-per-block entry.
+            if (part is InnerJoinClause or LeftJoinClause or RightJoinClause or FullJoinClause
+                or JoinLateralClause or LeftJoinLateralClause or CrossJoinLateralClause
+                or CrossJoinClause or NaturalJoinClause or NaturalLeftJoinClause
+                or NaturalRightJoinClause or NaturalFullJoinClause
+                or CrossApplyClause or OuterApplyClause)
+            {
+                joinConditionSeen = false;
+            }
+            else if (part is OnClause or JoinUsingClause)
+            {
+                if (joinConditionSeen)
+                {
+                    throw new ArgumentException(
+                        "A join takes at most one ON or USING clause; " +
+                        "a stage on a held builder was called twice.");
+                }
+
+                joinConditionSeen = true;
             }
 
             Type partType = part.GetType();
@@ -166,8 +211,31 @@ internal abstract class SqlBuilderBase
                 seen |= bit;
                 break;
             }
+
+            for (int i = 0; i < OncePerBranchClauses.Length; i++)
+            {
+                if (System.Array.IndexOf(OncePerBranchClauses[i].Types, partType) < 0)
+                {
+                    continue;
+                }
+
+                ulong bit = 1UL << i;
+                if ((seenInBranch & bit) != 0)
+                {
+                    throw new ArgumentException(
+                        $"A MERGE WHEN branch takes at most one {OncePerBranchClauses[i].Name} " +
+                        "clause; a stage on a held builder was called twice.");
+                }
+
+                seenInBranch |= bit;
+                break;
+            }
         }
     }
+
+    // For a Validate(Dbms) override that must walk clause order (e.g. MERGE's
+    // branch pairing), where FindPart's first-of-type is not enough.
+    private protected ReadOnlySpan<SqlPart> PartsSpan => CollectionsMarshal.AsSpan(_parts);
 
     // The first appended part of type T, or null — for a Validate(Dbms) override
     // to inspect which clauses a chain carries (e.g. a TOP prefix beside OFFSET).

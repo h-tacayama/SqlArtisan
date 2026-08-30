@@ -12,7 +12,7 @@ public sealed class CommonTableExpression
 {
     private readonly string _name;
     private readonly ISubquery _subquery;
-    private string[]? _columnNames;
+    private readonly string[]? _columnNames;
 
     internal CommonTableExpression(string name, ISubquery subquery)
     {
@@ -22,17 +22,31 @@ public sealed class CommonTableExpression
         _subquery = subquery;
     }
 
+    private CommonTableExpression(string name, ISubquery subquery, string[] columnNames)
+    {
+        _name = name;
+        _subquery = subquery;
+        _columnNames = columnNames;
+    }
+
     /// <summary>
-    /// Emits this CTE with its column list — <c>"name"(col, ...) AS (subquery)</c>,
-    /// derived from the first query block: the form Oracle requires for a
-    /// recursive plain-<c>WITH</c> body.
+    /// Returns a copy of this CTE that emits its column list —
+    /// <c>"name"(col, ...) AS (subquery)</c>, derived from the first query block:
+    /// the form Oracle requires for a recursive plain-<c>WITH</c> body.
     /// </summary>
-    /// <returns>This CTE definition, now emitting its column list.</returns>
-    /// <exception cref="ArgumentException">A select item of the first query block has no name.</exception>
+    /// <returns>A new CTE definition emitting its column list; this instance is unchanged.</returns>
+    /// <exception cref="ArgumentException">A select item of the first query block has no name, or two share one.</exception>
     public CommonTableExpression WithColumnList()
     {
-        _columnNames = TryDeriveColumnNames() ?? throw NoColumnName();
-        return this;
+        string[] columnNames = TryDeriveColumnNames() ?? throw NoColumnName();
+        if (HasDuplicateName(columnNames))
+        {
+            throw new ArgumentException(
+                "A CTE column list requires a distinct name for every column; "
+                    + "alias the duplicate with .As(...).");
+        }
+
+        return new CommonTableExpression(_name, _subquery, columnNames);
     }
 
     internal void Format(SqlBuildingBuffer buffer)
@@ -99,6 +113,30 @@ public sealed class CommonTableExpression
         return names;
     }
 
+    // A quadratic scan: CTE column lists are short, and the check runs once at
+    // the construct call. Ordinal-exact only — a case-folding collision is the
+    // engine's to judge.
+    internal static bool HasDuplicateName(string[] names)
+    {
+        for (int i = 1; i < names.Length; i++)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                if (names[i] == names[j])
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Deliberately NOT the EncloseInParentheses(ISubquery) overload: a CTE body
+    // cannot correlate with the outer DML target (its references resolve in its
+    // own FROM), so the correlated-DML guard stays out of it — the target
+    // instance legitimately appears as the CTE's own relation (#253, pinned by
+    // DeleteFrom_CteBodyReferencingTarget_CorrectSql).
     private void AppendAsSubquery(SqlBuildingBuffer buffer)
     {
         buffer.EncloseInSpaces(Keywords.As);

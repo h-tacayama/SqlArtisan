@@ -79,6 +79,20 @@ internal static class DmlTargetGuard
         }
     }
 
+    // The mirror of the guard above, UPDATE only: re-listing the target in FROM
+    // makes the lead render as the bare alias, which is T-SQL's spelling alone —
+    // no other dialect resolves it (live-verified rejection on SQLite). The
+    // re-listing is instance identity, invisible to the analyzer (ADR 0011).
+    // A joined DELETE stays permissive: its repeated-FROM form is also MySQL's.
+    internal static void ThrowIfUpdateTargetRepeatedOffSqlServer(DmlJoinState state, Dbms dbms)
+    {
+        if (dbms != Dbms.SqlServer && state.TargetRepeatedInFrom)
+        {
+            throw new ArgumentException(
+                "Only SQL Server supports a joined UPDATE that re-lists the target table in the FROM clause.");
+        }
+    }
+
     // OUTPUT ... INTO is SQL Server-only, and its destination is a plain
     // INSERT target (FormatAsDmlTarget) — an alias there renders as
     // `INTO archive AS "a" (...)`, which T-SQL rejects the same way it rejects

@@ -25,6 +25,12 @@ internal sealed class WithRecursiveClause : SqlPart
         for (int i = 0; i < ctes.Length; i++)
         {
             columnNames[i] = ctes[i].TryDeriveColumnNames() ?? throw NoColumnName();
+            if (CommonTableExpression.HasDuplicateName(columnNames[i]))
+            {
+                throw new ArgumentException(
+                    "WITH RECURSIVE requires a distinct name for every column of the CTE's "
+                        + "first query block; alias the duplicate with .As(...).");
+            }
         }
 
         return columnNames;

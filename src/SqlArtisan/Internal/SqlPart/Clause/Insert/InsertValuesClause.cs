@@ -12,6 +12,12 @@ internal sealed class InsertValuesClause : SqlPart
     internal static InsertValuesClause Parse(object[] values) =>
         new(InsertValueResolver.Resolve(values));
 
+    internal static InsertValuesClause FromResolved(SqlExpression[] firstRow) => new(firstRow);
+
+    internal int RowWidth => _rows[0].Length;
+
+    internal void AddResolvedRow(SqlExpression[] row) => _rows.Add(row);
+
     internal void AddRow(object[] values)
     {
         SqlExpression[] row = InsertValueResolver.Resolve(values);

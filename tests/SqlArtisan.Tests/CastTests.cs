@@ -106,4 +106,14 @@ public class CastTests
 
         Assert.Equal("CAST requires a target type.", ex.Message);
     }
+
+    [Fact]
+    public void Cast_WhiteSpaceType_ThrowsArgumentException()
+    {
+        // The type is emitted as a bare token, so whitespace would render
+        // `CAST(x AS  )` — invalid on every dialect.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Cast(_t.Code, "  "));
+
+        Assert.Equal("CAST requires a target type.", ex.Message);
+    }
 }

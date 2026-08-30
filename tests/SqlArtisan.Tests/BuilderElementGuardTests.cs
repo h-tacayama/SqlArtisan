@@ -134,7 +134,7 @@ public class BuilderElementGuardTests
             InsertInto(t, t.Code, t.Name).Values([null!, [2, "b"]]));
 
         Assert.Equal(
-            "A VALUES source must not contain a null row. (Parameter 'values')",
+            "A VALUES source must not contain a null row. (Parameter 'rows')",
             ex.Message);
     }
 
@@ -147,7 +147,7 @@ public class BuilderElementGuardTests
             InsertInto(t, t.Code, t.Name).Values([[1, "a"], null!]));
 
         Assert.Equal(
-            "A VALUES source must not contain a null row. (Parameter 'values')",
+            "A VALUES source must not contain a null row. (Parameter 'rows')",
             ex.Message);
     }
 

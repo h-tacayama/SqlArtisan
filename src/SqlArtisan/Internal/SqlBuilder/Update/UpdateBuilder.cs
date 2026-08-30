@@ -172,6 +172,7 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         if (state.IsJoined)
         {
             DmlTargetGuard.ThrowIfSqlServerJoinedTargetNotRepeated(state, dbms, Keywords.Update);
+            DmlTargetGuard.ThrowIfUpdateTargetRepeatedOffSqlServer(state, dbms);
         }
     }
 

@@ -85,6 +85,10 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
 
     public IMergeBuilderWhen Values(params object[] values)
     {
+        // Checked here, not left to the resolver: the width guard below would
+        // otherwise dereference a null array before any named guard runs.
+        ArgumentNullException.ThrowIfNull(values);
+
         if (_pendingInsertColumnCount > 0
             && values.Length > 0
             && values.Length != _pendingInsertColumnCount)
@@ -138,4 +142,52 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     // (empty for every other DBMS, leaving their output unchanged).
     protected override void AppendTrailing(SqlBuildingBuffer buffer) =>
         buffer.AppendMergeTerminator();
+
+    // Branch pairing a per-kind duplicate table cannot express: a held stage can
+    // leave a WHEN with no action (`... THEN` trailing) or an INSERT with no
+    // VALUES — both invalid on every dialect that has MERGE.
+    protected override void Validate(Dbms dbms)
+    {
+        bool branchOpen = false;
+        bool insertOpen = false;
+
+        foreach (SqlPart part in PartsSpan)
+        {
+            if (part is WhenMatchedClause or WhenNotMatchedClause or WhenNotMatchedBySourceClause)
+            {
+                ThrowIfBranchUnfinished(branchOpen, insertOpen);
+                branchOpen = true;
+            }
+            else if (part is MergeUpdateSetClause or MergeDeleteClause)
+            {
+                branchOpen = false;
+            }
+            else if (part is MergeInsertClause)
+            {
+                branchOpen = false;
+                insertOpen = true;
+            }
+            else if (part is InsertValuesClause)
+            {
+                insertOpen = false;
+            }
+        }
+
+        ThrowIfBranchUnfinished(branchOpen, insertOpen);
+    }
+
+    private static void ThrowIfBranchUnfinished(bool branchOpen, bool insertOpen)
+    {
+        if (branchOpen)
+        {
+            throw new ArgumentException(
+                "A MERGE WHEN branch requires an action (UPDATE SET, DELETE, or INSERT).");
+        }
+
+        if (insertOpen)
+        {
+            throw new ArgumentException(
+                "A MERGE INSERT action requires a VALUES row.");
+        }
+    }
 }

@@ -731,4 +731,63 @@ public class WithTests
                 + "alias the expression with .As(...).",
             ex.Message);
     }
+
+    [Fact]
+    public void WithColumnList_DuplicateColumnNames_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestTable b = new("b");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            cte.As(Select(a.Code, b.Code).From(a).InnerJoin(b).On(a.Code == b.Code))
+                .WithColumnList());
+
+        Assert.Equal(
+            "A CTE column list requires a distinct name for every column; "
+                + "alias the duplicate with .As(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void WithRecursive_DuplicateColumnNames_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestTable b = new("b");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            WithRecursive(
+                cte.As(Select(a.Code, b.Code).From(a).InnerJoin(b).On(a.Code == b.Code))));
+
+        Assert.Equal(
+            "WITH RECURSIVE requires a distinct name for every column of the CTE's "
+                + "first query block; alias the duplicate with .As(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void WithColumnList_HeldOriginalCte_EmitsNoColumnList()
+    {
+        // WithColumnList returns a copy: a statement holding the original CTE
+        // entry keeps the plain form (the copy-on-write convention for held
+        // value-like nodes).
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+
+        CommonTableExpression plain = cte.As(Select(a.Code.As(cte.CteCode)).From(a));
+        CommonTableExpression listed = plain.WithColumnList();
+
+        SqlStatement plainSql = With(plain).Select(cte.CteCode).From(cte).Build();
+        SqlStatement listedSql = With(listed).Select(cte.CteCode).From(cte).Build();
+
+        Assert.Equal(
+            "WITH \"cte\" AS (SELECT \"a\".code cte_code FROM test_table \"a\") "
+                + "SELECT \"cte\".cte_code FROM \"cte\"",
+            plainSql.Text);
+        Assert.Equal(
+            "WITH \"cte\"(cte_code) AS (SELECT \"a\".code cte_code FROM test_table \"a\") "
+                + "SELECT \"cte\".cte_code FROM \"cte\"",
+            listedSql.Text);
+    }
 }

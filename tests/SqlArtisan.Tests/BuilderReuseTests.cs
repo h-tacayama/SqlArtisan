@@ -230,4 +230,90 @@ public class BuilderReuseTests
             "This INSERT statement was already built; start a new chain.",
             ex.Message);
     }
+
+    [Fact]
+    public void Returning_BuildThrewOnDialectGuard_LeavesStageUsable()
+    {
+        // The RETURNING stage mirrors BuildCore's ordering: a failed delegated
+        // build must not freeze the stage, or the retry reports a false
+        // "already built" instead of the real cause.
+        TestTable aliased = new("t");
+        IReturningBuilder stage = Update(aliased).Set(aliased.Code == 1).Returning(aliased.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            stage.Build(Dbms.SqlServer));
+        Assert.Equal(
+            "SQL Server does not support aliasing the target of an INSERT, UPDATE, "
+                + "or DELETE statement; use an unaliased target table.",
+            ex.Message);
+
+        SqlStatement sql = stage.Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "UPDATE test_table AS \"t\" SET code = :0 RETURNING \"t\".code",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void InsertValues_BatchThrewOnWidthGuard_LeavesBuilderUsable()
+    {
+        // The batch overloads validate every row before appending any: a failed
+        // batch must leave no partial rows behind, or the corrected retry would
+        // silently insert the survivors twice.
+        IInsertBuilderColumns stmt = InsertInto(_t, _t.Code, _t.Name);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            stmt.Values([[1, "a"], [2]]));
+        Assert.Equal(
+            "All rows in a multi-row INSERT must have the same number of values. "
+                + "The first row has 2, but this row has 1.",
+            ex.Message);
+
+        SqlStatement sql = stmt.Values([[1, "a"], [2, "b"]]).Build();
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (:0, :1), (:2, :3)",
+            sql.Text);
+        Assert.Equal(4, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void On_CalledTwiceOnHeldJoinStage_ThrowsArgumentException()
+    {
+        TestTable s = new("s");
+        ISelectBuilderJoin held = Select(_t.Code).From(_t).InnerJoin(s);
+        held.On(_t.Code == s.Code);
+        ISelectBuilderFrom second = held.On(_t.Name == s.Name);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => second.Build());
+
+        Assert.Equal(
+            "A join takes at most one ON or USING clause; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void On_OncePerJoin_CorrectSql()
+    {
+        // The legal twin: each join clause re-admits one ON.
+        TestTable s = new("s");
+        TestTable u = new("u");
+
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .InnerJoin(s)
+            .On(_t.Code == s.Code)
+            .InnerJoin(u)
+            .On(_t.Code == u.Code)
+            .Build();
+
+        Assert.Equal(
+            "SELECT code FROM test_table "
+                + "INNER JOIN test_table \"s\" ON code = \"s\".code "
+                + "INNER JOIN test_table \"u\" ON code = \"u\".code",
+            sql.Text);
+    }
 }

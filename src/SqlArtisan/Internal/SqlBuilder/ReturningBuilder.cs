@@ -40,15 +40,19 @@ internal sealed class ReturningBuilder : IReturningBuilder
     public SqlStatement Build()
     {
         ThrowIfCompleted();
+        // Freeze only after the delegated build survives its guards, mirroring
+        // BuildCore: a failed Build leaves the stage usable for a fix-up retry.
+        SqlStatement statement = _inner.BuildWithPart(new ReturningClause(_expressions));
         _completed = true;
-        return _inner.BuildWithPart(new ReturningClause(_expressions));
+        return statement;
     }
 
     public SqlStatement Build(Dbms dbms)
     {
         ThrowIfCompleted();
+        SqlStatement statement = _inner.BuildWithPart(new ReturningClause(_expressions), dbms);
         _completed = true;
-        return _inner.BuildWithPart(new ReturningClause(_expressions), dbms);
+        return statement;
     }
 
     public ISqlBuilder Into(params OutputParameter[] outputs)

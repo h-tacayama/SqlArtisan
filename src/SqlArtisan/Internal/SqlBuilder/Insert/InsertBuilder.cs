@@ -86,19 +86,7 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
     {
         ThrowIfBuilt();
         ArgumentNullException.ThrowIfNull(rows);
-
-        bool any = false;
-        foreach (object[] row in rows)
-        {
-            AddValuesRow(row);
-            any = true;
-        }
-
-        if (!any)
-        {
-            throw new ArgumentException(NoRowsMessage);
-        }
-
+        AddValuesRows(rows);
         return this;
     }
 
@@ -106,17 +94,7 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
     {
         ThrowIfBuilt();
         ArgumentNullException.ThrowIfNull(rows);
-
-        if (rows.Length == 0)
-        {
-            throw new ArgumentException(NoRowsMessage);
-        }
-
-        foreach (object[] row in rows)
-        {
-            AddValuesRow(row);
-        }
-
+        AddValuesRows(rows);
         return this;
     }
 
@@ -206,6 +184,63 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(
             output, onConflict, FindPart<OnDuplicateKeyUpdateClause>());
+    }
+
+    // Resolve and width-check the whole batch before touching builder state: a
+    // throw on a later row would otherwise leave the earlier rows appended, and
+    // the supported fix-up retry on the same instance would insert them twice.
+    private void AddValuesRows(IEnumerable<object[]> rows)
+    {
+        List<SqlExpression[]> resolved = [];
+        int expectedWidth = _valuesClause?.RowWidth ?? 0;
+
+        foreach (object[] row in rows)
+        {
+            if (row is null)
+            {
+                throw new ArgumentNullException(
+                    nameof(rows), "A VALUES source must not contain a null row.");
+            }
+
+            SqlExpression[] resolvedRow = InsertValueResolver.Resolve(row);
+            if (expectedWidth == 0)
+            {
+                if (columnCount > 0 && resolvedRow.Length != columnCount)
+                {
+                    throw new ArgumentException(
+                        $"The INSERT column list declares {columnCount} column(s), " +
+                        $"but this VALUES row has {resolvedRow.Length} value(s).");
+                }
+
+                expectedWidth = resolvedRow.Length;
+            }
+            else if (resolvedRow.Length != expectedWidth)
+            {
+                throw new ArgumentException(
+                    "All rows in a multi-row INSERT must have the same number of values. " +
+                    $"The first row has {expectedWidth}, but this row has {resolvedRow.Length}.");
+            }
+
+            resolved.Add(resolvedRow);
+        }
+
+        if (resolved.Count == 0)
+        {
+            throw new ArgumentException(NoRowsMessage);
+        }
+
+        foreach (SqlExpression[] row in resolved)
+        {
+            if (_valuesClause is null)
+            {
+                _valuesClause = InsertValuesClause.FromResolved(row);
+                AddPart(_valuesClause);
+            }
+            else
+            {
+                _valuesClause.AddResolvedRow(row);
+            }
+        }
     }
 
     // The single-row append shared by every Values overload. A repeat call grows

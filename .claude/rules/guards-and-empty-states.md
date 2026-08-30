@@ -87,6 +87,17 @@ correlated-DML guard's provable subset now has an advisory analyzer duplicate
 (SQLA0300, ADR 0014) — the `Build()` guard remains the enforcement boundary,
 and suppressing the diagnostic never disables the throw.
 
+**CTE bodies are outside the correlated-DML guard (decided — do not re-file):**
+a CTE body cannot correlate with the outer UPDATE/DELETE target — its
+references resolve in the CTE's own scope — and the target instance
+legitimately appears there as the CTE's own relation, so
+`CommonTableExpression` renders its body outside the guard's subquery depth
+(#253, pinned by `DeleteFrom_CteBodyReferencingTarget_CorrectSql`; reaffirmed
+in the release audit). A target reference written inside a CTE body
+*intending* correlation binds to the CTE's own scope — that is SQL's scoping,
+which the guard's instance-identity check cannot separate from the legitimate
+read-the-target shape without breaking it.
+
 ## The empty-state policy (#236)
 
 Never elide a clause the caller wrote. A written condition clause with no

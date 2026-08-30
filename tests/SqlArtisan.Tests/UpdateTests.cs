@@ -611,4 +611,25 @@ public class UpdateTests
             "A joined UPDATE on SQL Server must re-list the target table in the FROM clause.",
             ex.Message);
     }
+
+    [Fact]
+    public void Update_PostgreSql_FromRepeatedTarget_ThrowsArgumentException()
+    {
+        // The re-listed target makes the lead render as the bare alias — the
+        // T-SQL spelling alone; every other dialect gets a loud throw instead
+        // of silently invalid SQL.
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+                .Set(t.Name == s.Name)
+                .From(t)
+                .InnerJoin(s).On(t.Code == s.Code)
+                .Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "Only SQL Server supports a joined UPDATE that re-lists the target table in the FROM clause.",
+            ex.Message);
+    }
 }

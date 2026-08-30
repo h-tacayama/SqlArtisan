@@ -6,6 +6,38 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- MERGE misuse on a held builder now throws at `Build()` instead of silently
+  emitting invalid SQL: a repeated `USING`/`ON` stage, a repeated action
+  inside one `WHEN` branch (`UPDATE SET`, `DELETE`, `DELETE WHERE`, `INSERT`,
+  `VALUES`), a `WHEN` branch left without an action (a trailing bare `THEN`),
+  and a `THEN INSERT` with no `VALUES` row. A legal multi-branch MERGE still
+  repeats actions across branches.
+- A repeated `.On(...)` (or join `.Using(...)`) on a held join stage now throws
+  at `Build()` — it emitted `ON ... ON ...` silently; each join clause still
+  takes its own `ON`/`USING`.
+- A joined `UPDATE` that re-lists its target in `FROM` now throws on every
+  dialect except SQL Server — the re-listed form makes the lead render as the
+  bare alias, which is T-SQL's spelling alone and was emitted silently.
+- A failed `Build()` on a `Returning(...)` stage no longer freezes it: the
+  stage now freezes only after a successful build, so a fix-up retry on the
+  same instance works (previously the retry reported a false "already built").
+- A multi-row `Values(...)` batch is now atomic: a batch failing validation
+  mid-way (a null or wrong-width row) leaves no partial rows behind, where a
+  corrected retry previously duplicated the surviving rows. The null-row
+  error now also names the `rows` parameter the caller used.
+- `MergeBuilder`'s `Values(null)` after `ThenInsert(columns)` threw a bare
+  `NullReferenceException` from the width guard; it now throws a named
+  `ArgumentNullException` like its siblings.
+- A CTE column list with a duplicate name — `WithColumnList()` or
+  `WithRecursive(...)` deriving `(code, code)` from two same-named select
+  items — now throws at the call instead of emitting the duplicate list.
+- `WithColumnList()` now returns a copy instead of mutating the CTE entry in
+  place, so a statement already holding the original keeps the plain form.
+  Code that called `WithColumnList()` without using its return value must now
+  use the returned instance.
+- A whitespace-only `CAST` target type or `NEXT VALUE FOR` sequence name —
+  both emitted as bare tokens, invalid on every dialect — now throws at the
+  call; quoted and literal positions still accept whitespace.
 - A SET-shaped assignment whose left side is not a column —
   `Set(Abs(t.Code) == 5)`, which compiles because `==` is overloaded on every
   expression — now throws at the call on all five SET surfaces (`UPDATE` and
