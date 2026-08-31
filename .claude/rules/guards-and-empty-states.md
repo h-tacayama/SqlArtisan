@@ -63,12 +63,18 @@ the full rationale.
   Oracle function accepts (`YEAR`/`MONTH`, `DAY`/`HOUR`/`MINUTE`/`SECOND`),
   since no other engine has either function (#448); `Wait(seconds)`'s second
   count — non-negative, the only `FOR UPDATE WAIT` domain Oracle (the sole
-  engine with the clause) parses, live-verified at 21c and 23ai (#483).
+  engine with the clause) parses, live-verified at 21c and 23ai (#483); a
+  whitespace-only string in a bare-token position — the `CAST` target type,
+  the `NEXT VALUE FOR` sequence name — invalid on every dialect, while a
+  quoted or literal position keeps accepting whitespace (RD-004's boundary,
+  gated by the factory sweep's whitespace injection; release audit pass 2).
 - *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server;
   aliased `INSERT` target on MySQL (its INSERT grammar has no target-alias
   slot); a joined `UPDATE`/`DELETE` on SQL Server whose target is not re-listed
-  in `FROM` (T-SQL's joined spelling takes the alias from `FROM`) (ADR 0011,
-  "Later instances" section).
+  in `FROM` (T-SQL's joined spelling takes the alias from `FROM`); a joined
+  `UPDATE` off SQL Server whose target IS re-listed in `FROM` — the mirror:
+  that form's bare-alias lead is T-SQL's alone (ADR 0011, "Later instances"
+  section).
 
 **Joined-target alias requirement (decided — do not re-file):**
 `ThrowIfJoinedTargetUnaliased` fires for every joined `UPDATE`/`DELETE` shape
@@ -116,6 +122,16 @@ duplicate-clause guard (`SqlBuilderBase.ThrowIfDuplicateClauseInBlock` — a
 stage repeated on a held, not-yet-built builder would append `WHERE ... WHERE`;
 a set operator resets the block) and the `ReturningBuilder` single-use freeze
 (`Into(...)` then `Build()` on the held stage appended a second `RETURNING`).
+Its second pass widened the same guard to MERGE (`USING`/`ON`
+once-per-statement; the branch actions once per `WHEN` branch, where a new
+`WHEN` clause resets the branch scope), paired join `ON`/`USING` by adjacency
+(at most one since the last join clause), and added `MergeBuilder.Validate`'s
+structural pairing (a `WHEN` branch must carry an action; `THEN INSERT` must
+carry a `VALUES` row). The same pass fixed the freeze ordering the family
+depends on: `ReturningBuilder.Build` freezes only after the delegated build
+succeeds, and the multi-row `Values` batch overloads validate every row
+before mutating the held clause — a failed stage call must leave the builder
+exactly as it was (`BuilderReuseTests` pins both).
 The empty `IN`/`NOT IN` collection and empty `VALUES` row guards (ERG-05/ERG-07,
 #243) shipped in #396, alongside the same sweep's guards for empty `SET`
 (`UpdateBuilder`/`InsertBuilder`), empty `DO UPDATE SET` / `ON DUPLICATE KEY

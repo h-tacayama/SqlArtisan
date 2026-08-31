@@ -114,3 +114,10 @@ spelling — and joined the `Validate(Dbms)` hook:
   T-SQL spelling; the shape lives in value-level builder state the analyzer
   cannot read. PostgreSQL's forms legally omit the re-list, so the guard is
   `Dbms.SqlServer`-scoped.
+- **Joined `UPDATE` with the target re-listed in `FROM`, off SQL Server**
+  (release audit, pass 2) — the mirror of the guard above. The re-listed form
+  makes the lead render as the bare alias, which only T-SQL resolves
+  (live-verified rejection on SQLite); the re-listing is instance identity —
+  `ReferenceEquals` between the target and a `FROM` element — which the
+  analyzer cannot see. A joined `DELETE` stays permissive: its repeated-`FROM`
+  form is also MySQL's.
