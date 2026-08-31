@@ -13,7 +13,7 @@ public interface IForUpdate
     ISqlBuilder ForUpdate(LockBehaviorBase? lockBehavior = null);
 
     /// <inheritdoc cref="ForUpdate(LockBehaviorBase?)"/>
-    /// <param name="ofClause">The columns to lock on, emitted as <c>OF col, ...</c> (<c>FOR UPDATE OF code</c>).</param>
+    /// <param name="ofClause">The column to lock on, emitted as <c>OF col</c> (<c>FOR UPDATE OF code</c>).</param>
     /// <param name="lockBehavior">The lock-wait behavior to append — <see cref="Sql.Nowait"/>, <see cref="Sql.SkipLocked"/>, or <c>Sql.Wait(n)</c>; omit for a plain blocking lock.</param>
     ISqlBuilder ForUpdate(
         OfClause ofClause,

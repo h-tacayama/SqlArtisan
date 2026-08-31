@@ -13,8 +13,8 @@ internal sealed class DeleteClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        // SQL Server / MySQL joined DELETE leads with the FROM-defined alias
-        // (`DELETE "t"`) and introduces the target through the following FROM;
+        // A joined DELETE with a re-listed target leads with the FROM-defined
+        // alias alone and introduces the target through the following FROM;
         // every other form keeps the `DELETE FROM target` lead.
         if (_state.TargetRepeatedInFrom)
         {

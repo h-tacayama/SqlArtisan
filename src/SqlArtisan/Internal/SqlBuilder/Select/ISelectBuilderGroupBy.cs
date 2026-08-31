@@ -21,9 +21,9 @@ public interface ISelectBuilderGroupBy : ISqlBuilder, ISetOperator, ISubquery, I
     /// (<c>GROUP BY a, b WITH ROLLUP</c>).
     /// </summary>
     /// <remarks>
-    /// MySQL's grouping syntax, which SQL Server accepts as a legacy form. On
-    /// Oracle and PostgreSQL use the standard <c>Sql.Rollup(...)</c> function
-    /// form; SQLite has neither.
+    /// MySQL's grouping syntax, which SQL Server accepts as a legacy form. The
+    /// standard <c>Sql.Rollup(...)</c> function form covers Oracle, PostgreSQL,
+    /// and SQL Server; SQLite has neither.
     /// </remarks>
     ISelectBuilderWithRollup WithRollup();
 }

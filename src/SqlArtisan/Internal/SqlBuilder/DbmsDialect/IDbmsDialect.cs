@@ -30,7 +30,7 @@ internal interface IDbmsDialect
 
     /// <summary>
     /// The token appended after a <c>MERGE</c> statement, required only by SQL
-    /// Server's. It is specific to <c>MERGE</c> — SqlArtisan does not otherwise
+    /// Server. It is specific to <c>MERGE</c> — SqlArtisan does not otherwise
     /// terminate statements, deferring that to the caller or driver.
     /// </summary>
     string MergeTerminator { get; }

@@ -356,6 +356,8 @@ SqlStatement sql =
 // id DESC NULLS LAST
 ```
 
+**Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause.
+
 ---
 
 ### GROUP BY and HAVING Clause
@@ -544,7 +546,7 @@ SqlStatement sql =
     .On(u.Id == o.UserId)
     .Where(u.Id == 1)
     .ForUpdate(Of(u.Id), Wait(5))
-    .Build();
+    .Build(Dbms.Oracle);
 
 // SELECT "u".id, "o".id
 // FROM users "u"
@@ -559,6 +561,8 @@ SqlStatement sql =
 - `Nowait` for `NOWAIT`
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
+
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Of(...)` and `Wait(...)` are Oracle-only — `Of` names columns, the form MySQL and PostgreSQL reject.
 
 ---
 
@@ -1038,9 +1042,7 @@ SqlStatement sql =
 
 `IGNORE` downgrades the statement's errors to warnings — not only duplicate keys
 but foreign-key violations and out-of-range values, whose rows are skipped or
-coerced. Prefer it to the `ON DUPLICATE KEY UPDATE id = id` trick, which burns an
-`AUTO_INCREMENT` value per skipped row; for a portable skip-existing insert, use
-`INSERT … SELECT … WHERE NOT EXISTS`. On PostgreSQL and SQLite the do-nothing
+coerced. On PostgreSQL and SQLite the do-nothing
 insert is `ON CONFLICT DO NOTHING` (above), so SQLite's `INSERT OR IGNORE` is not
 exposed separately.
 

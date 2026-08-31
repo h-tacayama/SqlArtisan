@@ -2,12 +2,12 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The state after <c>WHEN MATCHED [AND ...] THEN</c>: update the matched rows
-/// (<c>UPDATE SET ...</c>) or remove them (<c>DELETE</c>, PostgreSQL 15+ / SQL Server).
+/// (<c>UPDATE SET ...</c>) or remove them (<c>DELETE</c>, PostgreSQL / SQL Server).
 /// </summary>
 public interface IMergeBuilderWhenMatched
 {
     /// <summary>
-    /// Appends <c>THEN DELETE</c>, removing the matched rows (PostgreSQL 15+ / SQL Server).
+    /// Appends <c>THEN DELETE</c>, removing the matched rows (PostgreSQL / SQL Server).
     /// </summary>
     /// <returns>The builder positioned to chain another <c>WHEN</c> branch or build.</returns>
     IMergeBuilderWhen ThenDelete();

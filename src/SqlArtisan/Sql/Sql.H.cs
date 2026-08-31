@@ -18,9 +18,10 @@ public static partial class Sql
     /// <summary>
     /// An optimizer-hint clause carrying <paramref name="hints"/> verbatim, to
     /// pass as the first argument of <c>Sql.Select(hints, ...)</c>. The string is
-    /// emitted exactly as written, so spell it in the target dialect's syntax
-    /// (e.g. Oracle <c>/*+ ... */</c>, SQL Server <c>OPTION (...)</c> or table
-    /// hints).
+    /// emitted exactly as written, immediately after <c>SELECT</c> — the slot
+    /// Oracle's and MySQL's <c>/*+ ... */</c> hints occupy. A hint whose grammar
+    /// sits elsewhere (SQL Server's trailing <c>OPTION (...)</c>, its table
+    /// hints) does not belong here.
     /// </summary>
     /// <param name="hints">The hint text, emitted verbatim into the statement.</param>
     /// <returns>A hint clause for <c>Sql.Select(hints, ...)</c>.</returns>

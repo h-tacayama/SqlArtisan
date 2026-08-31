@@ -1,13 +1,13 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The row-limiting clauses that can follow a query. The forms are per-dialect: <c>LIMIT</c>/<c>OFFSET</c> (MySQL/PostgreSQL/SQLite) versus <c>OFFSET ... ROWS</c> / <c>FETCH ... ROWS ONLY</c> (Oracle 12c+/PostgreSQL/SQL Server 2012+).
+/// The row-limiting clauses that can follow a query. The forms are per-dialect: <c>LIMIT</c>/<c>OFFSET</c> (MySQL/PostgreSQL/SQLite) versus <c>OFFSET ... ROWS</c> / <c>FETCH ... ROWS ONLY</c> (Oracle/PostgreSQL/SQL Server).
 /// </summary>
 public interface IPagination
 {
     /// <summary>
     /// Appends <c>FETCH FIRST n ROWS ONLY</c> with no offset. Valid standalone on
-    /// Oracle 12c+ (and PostgreSQL). SQL Server requires an <c>OFFSET</c>, so there
+    /// Oracle (and PostgreSQL). SQL Server requires an <c>OFFSET</c>, so there
     /// use <see cref="OffsetRows(int)"/> followed by
     /// <see cref="IOffsetFetchBuilder.FetchNext(int)"/>. For MySQL / PostgreSQL /
     /// SQLite, <see cref="Limit(int)"/> is the more common form.
@@ -18,7 +18,7 @@ public interface IPagination
 
     /// <summary>
     /// Appends <c>LIMIT n</c>. Dialect-specific (MySQL / PostgreSQL / SQLite).
-    /// On Oracle 12c+ use <see cref="FetchFirst(int)"/>; on SQL Server 2012+ use
+    /// On Oracle use <see cref="FetchFirst(int)"/>; on SQL Server use
     /// <see cref="OffsetRows(int)"/> followed by
     /// <see cref="IOffsetFetchBuilder.FetchNext(int)"/>.
     /// </summary>
@@ -29,7 +29,7 @@ public interface IPagination
     /// <summary>
     /// Appends <c>OFFSET m</c>. As a standalone clause this is valid on PostgreSQL;
     /// MySQL and SQLite require <c>OFFSET</c> to be combined with <see cref="Limit(int)"/>
-    /// (<c>LIMIT n OFFSET m</c>). For Oracle 12c+ / SQL Server 2012+ use
+    /// (<c>LIMIT n OFFSET m</c>). For Oracle / SQL Server use
     /// <see cref="OffsetRows(int)"/>.
     /// </summary>
     /// <param name="start">The number of leading rows to skip.</param>
@@ -37,8 +37,8 @@ public interface IPagination
     ISelectBuilderPaginated Offset(int start);
 
     /// <summary>
-    /// Appends <c>OFFSET m ROWS</c>. Dialect-specific (Oracle 12c+ / PostgreSQL /
-    /// SQL Server 2012+). For MySQL / SQLite use <see cref="Offset(int)"/>.
+    /// Appends <c>OFFSET m ROWS</c>. Dialect-specific (Oracle / PostgreSQL /
+    /// SQL Server). For MySQL / SQLite use <see cref="Offset(int)"/>.
     /// </summary>
     /// <param name="start">The number of leading rows to skip.</param>
     /// <returns>The builder positioned to optionally add a <c>FETCH NEXT n ROWS ONLY</c>, or build.</returns>

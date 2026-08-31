@@ -240,9 +240,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    // Appends a DML table alias to a target already written, e.g. ` AS "x"`
-    // (PostgreSQL/SQLite/MySQL/SQL Server) or ` "x"` (Oracle, which rejects AS on
-    // table aliases). The presence of AS is a dialect token (ADR 0002).
+    // Appends a DML table alias to a target already written: the dialect's
+    // separator, then the quoted alias. Whether AS appears (Oracle rejects it
+    // on table aliases) is a dialect token (ADR 0002).
     internal SqlBuildingBuffer AppendDmlTableAlias(string alias)
     {
         Append(_dialect.DmlTableAliasSeparator);
