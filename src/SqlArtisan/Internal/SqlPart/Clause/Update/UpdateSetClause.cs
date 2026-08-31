@@ -11,8 +11,8 @@ internal sealed class UpdateSetClause : SqlPart
         _state = state;
     }
 
-    internal static UpdateSetClause Parse(EqualityCondition[] items, DmlJoinState state) =>
-        new(AssignmentResolver.Resolve(items, "SET requires at least one assignment."), state);
+    internal static UpdateSetClause Parse(EqualityCondition[] assignments, DmlJoinState state) =>
+        new(AssignmentResolver.Resolve(assignments, "SET requires at least one assignment."), state);
 
     internal override void Format(SqlBuildingBuffer buffer)
     {

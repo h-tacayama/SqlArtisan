@@ -294,11 +294,15 @@ public class ReturningTests
     [Fact]
     public void ReturningInto_DuplicateVariableName_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
             .Into(new("b", DbType.Int32), new("b", DbType.Int32))
             .Build());
+
+        Assert.Equal(
+            "A RETURNING INTO clause requires a distinct name for every variable; 'b' is duplicated.",
+            ex.Message);
     }
 
     [Fact]

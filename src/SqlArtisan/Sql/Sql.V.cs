@@ -20,8 +20,10 @@ public static partial class Sql
         string alias, string[] columnNames, object[][] rows)
     {
         StringGuard.ThrowIfNullOrEmpty(alias, "A derived table requires an alias.");
-        CollectionGuard.ThrowIfEmpty(columnNames, "A VALUES source requires at least one column.");
-        CollectionGuard.ThrowIfEmpty(rows, "A VALUES source requires at least one row.");
+        CollectionGuard.ThrowIfEmpty(
+            columnNames, nameof(columnNames), "A VALUES source requires at least one column.");
+        CollectionGuard.ThrowIfEmpty(
+            rows, nameof(rows), "A VALUES source requires at least one row.");
 
         foreach (string columnName in columnNames)
         {

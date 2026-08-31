@@ -19,9 +19,14 @@ namespace SqlArtisan.Tests;
 // extend TryBuild's switch to shrink it.
 public class FactoryGuardSweepTests
 {
+    private const string ResolverNullValueMessage =
+        "Value cannot be null. Use Sql.Null to represent SQL NULL.";
+
     // Key: "Signature :: injection". Value: the exact SQL the degenerate call
     // builds. An entry asserts the acceptance is deliberate — most are an
-    // empty params tail that is simply the factory's smaller legal call.
+    // empty params tail that is simply the factory's smaller legal call, and
+    // the whitespace entries are quoted/literal positions where whitespace is
+    // the engine's to judge (RD-004).
     private static readonly Dictionary<string, string> AcceptedSilentBuilds = new()
     {
         ["Case(SearchedCaseWhenClause, SearchedCaseWhenClause[]) :: whenClauses=[]"] =
@@ -58,6 +63,28 @@ public class FactoryGuardSweepTests
         // clauses above whose absence changes the result.
         ["Hints(String) :: hints=null"] = "SELECT c FROM e",
         ["Hints(String) :: hints=\"\""] = "SELECT c FROM e",
+        // Whitespace in a quoted alias or a string-literal position (sequence
+        // names via CURRVAL('...'), JSON paths, ts configs, separators, the
+        // INTERVAL literal, raw hint text) is the engine's to judge (RD-004);
+        // the bare-token positions (CAST type, NEXT VALUE FOR name) throw.
+        ["Currval(String) :: sequenceName=\" \""] = "SELECT CURRVAL(' ')",
+        ["Nextval(String) :: sequenceName=\" \""] = "SELECT NEXTVAL(' ')",
+        ["Hints(String) :: hints=\" \""] = "SELECT   c FROM e",
+        ["IntervalLiteral(String) :: text=\" \""] = "SELECT INTERVAL ' '",
+        ["IntervalLiteral(String, IntervalField) :: value=\" \""] = "SELECT INTERVAL ' ' YEAR",
+        ["JsonExtract(Object, String) :: path=\" \""] = "SELECT JSON_EXTRACT(:0, ' ')",
+        ["JsonQuery(Object, String) :: path=\" \""] = "SELECT JSON_QUERY(:0, ' ')",
+        ["JsonValue(Object, String) :: path=\" \""] = "SELECT JSON_VALUE(:0, ' ')",
+        ["PlaintoTsquery(String, Object) :: config=\" \""] = "SELECT PLAINTO_TSQUERY(' ', :0)",
+        ["ToTsquery(String, Object) :: config=\" \""] = "SELECT TO_TSQUERY(' ', :0)",
+        ["ToTsvector(String, Object) :: config=\" \""] = "SELECT TO_TSVECTOR(' ', :0)",
+        ["Separator(String) :: separator=\" \""] =
+            "SELECT GROUP_CONCAT(`x`.c SEPARATOR ' ') FROM e `x`",
+        ["StringAgg(Object, String) :: separator=\" \""] = "SELECT STRING_AGG(:0, ' ')",
+        ["StringAgg(Object, String, OrderByClause) :: separator=\" \""] =
+            "SELECT STRING_AGG(:0, ' ' ORDER BY \"a\".c)",
+        ["Values(String, String[], Object[][]) :: alias=\" \""] =
+            "SELECT c FROM (VALUES (:0)) \" \" (c1)",
     };
 
     [Fact]
@@ -84,6 +111,22 @@ public class FactoryGuardSweepTests
                     {
                         violations.Add(
                             $"BARE NRE {key} — a null element owes a named ArgumentNullException.");
+                    }
+
+                    // An eager guard's ParamName is part of the public failure
+                    // surface: a name absent from the invoked signature leaks an
+                    // internal one (the #497 class). The expression-resolver
+                    // family is exempt — it deliberately reports position-style
+                    // names with its uniform "Use Sql.Null" message
+                    // (ExpressionResolver.cs records the uniformity).
+                    if (ex.InnerException is ArgumentException { ParamName: { } paramName } argEx
+                        && !argEx.Message.StartsWith(ResolverNullValueMessage, StringComparison.Ordinal)
+                        && System.Array.TrueForAll(
+                            method.GetParameters(), p => p.Name != paramName))
+                    {
+                        violations.Add(
+                            $"FOREIGN PARAMNAME {key} — '{paramName}' is not a parameter "
+                                + "of the invoked signature.");
                     }
 
                     continue; // eager throw — loud, OK
@@ -233,6 +276,10 @@ public class FactoryGuardSweepTests
             {
                 yield return (i, $"{name}=null", null);
                 yield return (i, $"{name}=\"\"", "");
+                // Whitespace separates the bare-token positions (must throw)
+                // from quoted/literal ones, where it is the engine's to judge
+                // (RD-004) and the build lands in the catalog.
+                yield return (i, $"{name}=\" \"", " ");
             }
             else if (t == typeof(object))
             {

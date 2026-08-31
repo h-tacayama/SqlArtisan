@@ -30,7 +30,8 @@ internal sealed class WithBuilder : IWithBuilderWith
 
     public IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns)
     {
-        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+        CollectionGuard.ThrowIfEmpty(
+            columns, nameof(columns), "An INSERT column list requires at least one column.");
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
 
@@ -46,7 +47,8 @@ internal sealed class WithBuilder : IWithBuilderWith
 
     public IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns)
     {
-        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+        CollectionGuard.ThrowIfEmpty(
+            columns, nameof(columns), "An INSERT column list requires at least one column.");
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
 

@@ -155,7 +155,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public ISelectBuilderFrom From(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(tables, "FROM requires at least one table.");
+        CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "FROM requires at least one table.");
         AddPart(new FromClause(tables));
         return this;
     }
@@ -360,7 +360,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
             nameof(additionalColumns),
             "A USING column list must not contain a null column.");
 
-        AddPart(new JoinUsingClause([column, .. additionalColumns]));
+        AddPart(new JoinUsingClause([column, .. additionalColumns], nameof(column)));
         return this;
     }
 

@@ -7,7 +7,7 @@ public sealed class LeastFunction : SqlExpression
     internal LeastFunction(SqlExpression[] expressions)
     {
         CollectionGuard.ThrowIfEmpty(
-            expressions,
+            expressions, nameof(expressions),
             "LEAST requires at least one expression.");
 
         _core = new(Keywords.Least, expressions);

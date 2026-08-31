@@ -11,8 +11,12 @@ public class AggregateWindowTests
     {
         TestTable t = new();
 
-        Assert.Throws<ArgumentNullException>(() =>
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Sum(t.Code).Over((SqlArtisan.Internal.PartitionByClause)null!));
+
+        // ParamName is the public Over(...) parameter, not an internal name.
+        Assert.Equal("partitionByClause", ex.ParamName);
+        Assert.Equal("Value cannot be null. (Parameter 'partitionByClause')", ex.Message);
     }
 
     [Fact]

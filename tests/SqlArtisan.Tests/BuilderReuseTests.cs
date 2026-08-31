@@ -266,8 +266,8 @@ public class BuilderReuseTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             stmt.Values([[1, "a"], [2]]));
         Assert.Equal(
-            "All rows in a multi-row INSERT must have the same number of values. "
-                + "The first row has 2, but this row has 1.",
+            "All rows in a multi-row INSERT must have the same number of values; "
+                + "the first row has 2, but this row has 1.",
             ex.Message);
 
         SqlStatement sql = stmt.Values([[1, "a"], [2, "b"]]).Build();

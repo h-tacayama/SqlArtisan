@@ -36,7 +36,7 @@ public sealed class UnnestFunction : SqlExpression
     {
         StringGuard.ThrowIfNullOrEmpty(alias, "A derived table requires an alias.");
         CollectionGuard.ThrowIfEmpty(
-            columns, "An UNNEST column alias list requires at least one column.");
+            columns, nameof(columns), "An UNNEST column alias list requires at least one column.");
 
         foreach (string column in columns)
         {

@@ -78,7 +78,7 @@ public static partial class Sql
     /// <returns>A <see cref="JsonbExistsAllCondition"/> emitting <c>jsonExpr ?&amp; ARRAY[keys]</c>.</returns>
     public static JsonbExistsAllCondition JsonbExistsAll(object jsonExpr, params object[] keys)
     {
-        CollectionGuard.ThrowIfEmpty(keys, "?& requires at least one key.");
+        CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?& requires at least one key.");
         return new(Resolve(jsonExpr), Resolve(keys));
     }
 
@@ -92,7 +92,7 @@ public static partial class Sql
     /// <returns>A <see cref="JsonbExistsAnyCondition"/> emitting <c>jsonExpr ?| ARRAY[keys]</c>.</returns>
     public static JsonbExistsAnyCondition JsonbExistsAny(object jsonExpr, params object[] keys)
     {
-        CollectionGuard.ThrowIfEmpty(keys, "?| requires at least one key.");
+        CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?| requires at least one key.");
         return new(Resolve(jsonExpr), Resolve(keys));
     }
 

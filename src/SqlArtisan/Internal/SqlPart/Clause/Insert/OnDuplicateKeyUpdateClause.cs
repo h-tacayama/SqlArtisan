@@ -9,9 +9,9 @@ internal sealed class OnDuplicateKeyUpdateClause : SqlPart
         _assignments = assignments;
     }
 
-    internal static OnDuplicateKeyUpdateClause Parse(EqualityCondition[] items) =>
+    internal static OnDuplicateKeyUpdateClause Parse(EqualityCondition[] assignments) =>
         new(AssignmentResolver.Resolve(
-            items,
+            assignments,
             "ON DUPLICATE KEY UPDATE requires at least one assignment."));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer

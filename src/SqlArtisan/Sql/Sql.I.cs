@@ -72,7 +72,8 @@ public static partial class Sql
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
     public static IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns)
     {
-        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+        CollectionGuard.ThrowIfEmpty(
+            columns, nameof(columns), "An INSERT column list requires at least one column.");
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
 
@@ -106,7 +107,8 @@ public static partial class Sql
     /// with <c>InsertInto(...).Values(...).OnConflict().DoNothing()</c> instead.</remarks>
     public static IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns)
     {
-        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+        CollectionGuard.ThrowIfEmpty(
+            columns, nameof(columns), "An INSERT column list requires at least one column.");
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
 

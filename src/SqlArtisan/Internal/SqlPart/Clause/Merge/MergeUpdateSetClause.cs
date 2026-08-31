@@ -11,9 +11,9 @@ internal sealed class MergeUpdateSetClause : SqlPart
         _assignments = assignments;
     }
 
-    internal static MergeUpdateSetClause Parse(EqualityCondition[] items) =>
+    internal static MergeUpdateSetClause Parse(EqualityCondition[] assignments) =>
         new(AssignmentResolver.Resolve(
-            items,
+            assignments,
             "UPDATE SET requires at least one assignment."));
 
     // MERGE's SET target is a target-table column by grammar, so PostgreSQL

@@ -458,7 +458,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         if (ContainsParameterName(name))
         {
             throw new ArgumentException(
-                $"Duplicate variable name '{output.Variable}' in RETURNING INTO clause. Each variable name must be unique.");
+                $"A RETURNING INTO clause requires a distinct name for every variable; '{output.Variable}' is duplicated.");
         }
 
         Append(name);

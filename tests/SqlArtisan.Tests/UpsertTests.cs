@@ -252,7 +252,7 @@ public class UpsertTests
             .DoUpdateSet(_t.Name == Excluded(_t.Name), null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
             ex.Message);
     }
 
@@ -265,7 +265,7 @@ public class UpsertTests
             .OnDuplicateKeyUpdate(_t.Name == Excluded(_t.Name), null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
             ex.Message);
     }
 

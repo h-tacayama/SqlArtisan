@@ -233,7 +233,7 @@ public static partial class Sql
         object @default)
     {
         CollectionGuard.ThrowIfEmpty(
-            searchResultPairs,
+            searchResultPairs, nameof(searchResultPairs),
             "DECODE requires at least one (search, result) pair.");
         return new(
             Resolve(expr),

@@ -9,7 +9,8 @@ internal static class SelectItemResolver
     // Build(). RETURNING guards its own emptiness in ReturningBuilder.Create.
     internal static SqlPart[] ResolveOrThrow(object[] selectItems)
     {
-        CollectionGuard.ThrowIfEmpty(selectItems, "SELECT requires at least one item.");
+        CollectionGuard.ThrowIfEmpty(
+            selectItems, nameof(selectItems), "SELECT requires at least one item.");
         return Resolve(selectItems);
     }
 

@@ -469,7 +469,7 @@ public class UpdateTests
             Update(_t).Set(_t.Code == 1, null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
             ex.Message);
     }
 

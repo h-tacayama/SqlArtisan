@@ -38,6 +38,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - A whitespace-only `CAST` target type or `NEXT VALUE FOR` sequence name —
   both emitted as bare tokens, invalid on every dialect — now throws at the
   call; quoted and literal positions still accept whitespace.
+- Guard exceptions no longer surface internal parameter names: a null
+  `In`/`NOT IN` collection reports `values`, a null `SET` assignment element
+  reports `assignments` with a construct-named message (previously the
+  compile-invalid "Use `Sql.Null`" advice), a null first `USING` column
+  reports `column`, a null `Over(...)` clause reports the public overload's
+  parameter, and a null `CASE` `elseExpr` reports `elseExpr`. The two
+  remaining two-sentence guard messages (multi-row width, duplicate
+  `RETURNING INTO` name) were reworded to one sentence.
 - A SET-shaped assignment whose left side is not a column —
   `Set(Abs(t.Code) == 5)`, which compiles because `==` is overloaded on every
   expression — now throws at the call on all five SET surfaces (`UPDATE` and

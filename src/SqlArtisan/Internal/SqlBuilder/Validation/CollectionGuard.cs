@@ -5,9 +5,11 @@ namespace SqlArtisan.Internal;
 // construct-specific message supplied at the call site.
 internal static class CollectionGuard
 {
-    internal static void ThrowIfEmpty<T>(T[] items, string message)
+    // paramName is the caller's parameter, so the null path never surfaces an
+    // internal name (the same contract as ThrowIfNullElement below).
+    internal static void ThrowIfEmpty<T>(T[] items, string paramName, string message)
     {
-        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(items, paramName);
 
         if (items.Length == 0)
         {
@@ -15,9 +17,9 @@ internal static class CollectionGuard
         }
     }
 
-    internal static void ThrowIfEmpty<T>(IReadOnlyCollection<T> items, string message)
+    internal static void ThrowIfEmpty<T>(IReadOnlyCollection<T> items, string paramName, string message)
     {
-        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(items, paramName);
 
         if (items.Count == 0)
         {

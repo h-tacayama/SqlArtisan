@@ -90,7 +90,8 @@ public static partial class Sql
     /// <returns>An <see cref="ArrayConstructorExpression"/> emitting <c>ARRAY[elements]</c>.</returns>
     public static ArrayConstructorExpression Array(params object[] elements)
     {
-        CollectionGuard.ThrowIfEmpty(elements, "ARRAY[...] requires at least one element.");
+        CollectionGuard.ThrowIfEmpty(
+            elements, nameof(elements), "ARRAY[...] requires at least one element.");
         return new(Resolve(elements));
     }
 

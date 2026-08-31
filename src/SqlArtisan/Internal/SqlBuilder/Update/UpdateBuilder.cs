@@ -26,7 +26,7 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
 
     public IUpdateBuilderFrom From(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(tables, "FROM requires at least one table.");
+        CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "FROM requires at least one table.");
         AddPart(new FromClause(tables));
         state.HasFrom = true;
 
@@ -92,7 +92,8 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
 
     public IUpdateBuilderOutputInto Output(params object[] items)
     {
-        CollectionGuard.ThrowIfEmpty(items, "OUTPUT requires at least one expression.");
+        CollectionGuard.ThrowIfEmpty(
+            items, nameof(items), "OUTPUT requires at least one expression.");
         AddPart(new OutputClause(SelectItemResolver.Resolve(items)));
         return this;
     }
@@ -132,7 +133,7 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
             nameof(additionalColumns),
             "A USING column list must not contain a null column.");
 
-        AddPart(new JoinUsingClause([column, .. additionalColumns]));
+        AddPart(new JoinUsingClause([column, .. additionalColumns], nameof(column)));
         return this;
     }
 
@@ -144,7 +145,7 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
             nameof(additionalColumns),
             "A USING column list must not contain a null column.");
 
-        AddPart(new JoinUsingClause([column, .. additionalColumns]));
+        AddPart(new JoinUsingClause([column, .. additionalColumns], nameof(column)));
         return this;
     }
 

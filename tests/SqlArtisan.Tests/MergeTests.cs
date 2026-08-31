@@ -336,7 +336,7 @@ public class MergeTests
             .Build(Dbms.Oracle));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
             ex.Message);
     }
 

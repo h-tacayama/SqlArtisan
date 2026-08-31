@@ -52,7 +52,8 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
 
     public IMergeBuilderThenInsert ThenInsert(params DbColumn[] columns)
     {
-        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
+        CollectionGuard.ThrowIfEmpty(
+            columns, nameof(columns), "An INSERT column list requires at least one column.");
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
 

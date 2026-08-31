@@ -55,7 +55,8 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
 
     public IInsertBuilderColumnsOutputInto Output(params object[] items)
     {
-        CollectionGuard.ThrowIfEmpty(items, "OUTPUT requires at least one expression.");
+        CollectionGuard.ThrowIfEmpty(
+            items, nameof(items), "OUTPUT requires at least one expression.");
         AddPart(new OutputClause(SelectItemResolver.Resolve(items)));
         return this;
     }
@@ -217,8 +218,8 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
             else if (resolvedRow.Length != expectedWidth)
             {
                 throw new ArgumentException(
-                    "All rows in a multi-row INSERT must have the same number of values. " +
-                    $"The first row has {expectedWidth}, but this row has {resolvedRow.Length}.");
+                    "All rows in a multi-row INSERT must have the same number of values; " +
+                    $"the first row has {expectedWidth}, but this row has {resolvedRow.Length}.");
             }
 
             resolved.Add(resolvedRow);

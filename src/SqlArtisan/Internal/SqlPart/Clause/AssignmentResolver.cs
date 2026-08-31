@@ -5,22 +5,22 @@ namespace SqlArtisan.Internal;
 // UPDATE SET — so the null/shape/left-side checks live once.
 internal static class AssignmentResolver
 {
-    internal static EqualCondition[] Resolve(EqualityCondition[] items, string emptyMessage)
+    internal static EqualCondition[] Resolve(EqualityCondition[] assignments, string emptyMessage)
     {
-        CollectionGuard.ThrowIfEmpty(items, emptyMessage);
+        CollectionGuard.ThrowIfEmpty(assignments, nameof(assignments), emptyMessage);
 
-        var assignments = new EqualCondition[items.Length];
+        var resolved = new EqualCondition[assignments.Length];
 
-        for (int i = 0; i < items.Length; i++)
+        for (int i = 0; i < assignments.Length; i++)
         {
-            if (items[i] is null)
+            if (assignments[i] is null)
             {
                 throw new ArgumentNullException(
-                    nameof(items), ExpressionResolver.NullValueMessage);
+                    nameof(assignments), "A SET assignment list must not contain a null assignment.");
             }
-            else if (items[i] is not EqualCondition assignment)
+            else if (assignments[i] is not EqualCondition assignment)
             {
-                throw ExpressionResolver.UnresolvableValue("Assignment", items[i]);
+                throw ExpressionResolver.UnresolvableValue("Assignment", assignments[i]);
             }
             else
             {
@@ -33,10 +33,10 @@ internal static class AssignmentResolver
                         "The left side of a SET assignment must be a column.");
                 }
 
-                assignments[i] = assignment;
+                resolved[i] = assignment;
             }
         }
 
-        return assignments;
+        return resolved;
     }
 }

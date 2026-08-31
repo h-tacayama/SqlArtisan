@@ -11,18 +11,18 @@ internal sealed class InsertSetClause : SqlPart
         _values = values;
     }
 
-    internal static InsertSetClause Parse(EqualityCondition[] items)
+    internal static InsertSetClause Parse(EqualityCondition[] assignments)
     {
-        EqualCondition[] assignments = AssignmentResolver.Resolve(
-            items, "SET requires at least one assignment.");
+        EqualCondition[] resolved = AssignmentResolver.Resolve(
+            assignments, "SET requires at least one assignment.");
 
-        var columns = new SqlExpression[assignments.Length];
-        var values = new SqlExpression[assignments.Length];
+        var columns = new SqlExpression[resolved.Length];
+        var values = new SqlExpression[resolved.Length];
 
-        for (int i = 0; i < assignments.Length; i++)
+        for (int i = 0; i < resolved.Length; i++)
         {
-            columns[i] = assignments[i].LeftSide;
-            values[i] = assignments[i].RightSide;
+            columns[i] = resolved[i].LeftSide;
+            values[i] = resolved[i].RightSide;
         }
 
         return new(columns, values);

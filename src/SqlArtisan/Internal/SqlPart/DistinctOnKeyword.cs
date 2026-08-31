@@ -17,7 +17,7 @@ public sealed class DistinctOnKeyword : SqlPart
     internal DistinctOnKeyword(SqlExpression[] expressions)
     {
         CollectionGuard.ThrowIfEmpty(
-            expressions,
+            expressions, nameof(expressions),
             "DISTINCT ON requires at least one expression.");
 
         _expressions = expressions;

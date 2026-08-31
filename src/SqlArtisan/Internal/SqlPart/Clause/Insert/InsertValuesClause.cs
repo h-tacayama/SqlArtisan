@@ -25,8 +25,8 @@ internal sealed class InsertValuesClause : SqlPart
         if (row.Length != _rows[0].Length)
         {
             throw new ArgumentException(
-                "All rows in a multi-row INSERT must have the same number of values. " +
-                $"The first row has {_rows[0].Length}, but this row has {row.Length}.");
+                "All rows in a multi-row INSERT must have the same number of values; " +
+                $"the first row has {_rows[0].Length}, but this row has {row.Length}.");
         }
 
         _rows.Add(row);

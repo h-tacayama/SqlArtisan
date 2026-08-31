@@ -14,7 +14,7 @@ internal sealed class ReturningBuilder : IReturningBuilder
     internal static ReturningBuilder Create(SqlBuilderBase inner, object[] expressions)
     {
         CollectionGuard.ThrowIfEmpty(
-            expressions,
+            expressions, nameof(expressions),
             "RETURNING requires at least one expression.");
 
         SqlPart[] resolved = SelectItemResolver.Resolve(expressions);
@@ -59,7 +59,7 @@ internal sealed class ReturningBuilder : IReturningBuilder
     {
         ThrowIfCompleted();
         CollectionGuard.ThrowIfEmpty(
-            outputs,
+            outputs, nameof(outputs),
             "INTO requires at least one output parameter.");
 
         if (outputs.Length != _expressions.Length)

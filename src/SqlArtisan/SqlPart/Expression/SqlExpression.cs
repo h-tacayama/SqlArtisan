@@ -228,7 +228,8 @@ public abstract class SqlExpression : SqlPart
     /// empty <c>IN</c> list is invalid SQL).</exception>
     public InCondition In(params object[] expressions)
     {
-        CollectionGuard.ThrowIfEmpty(expressions, "IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(
+            expressions, nameof(expressions), "IN requires at least one value.");
         return new(this, Resolve(expressions));
     }
 
@@ -251,7 +252,7 @@ public abstract class SqlExpression : SqlPart
     /// </remarks>
     public InCondition In<T>(IReadOnlyCollection<T> values)
     {
-        CollectionGuard.ThrowIfEmpty(values, "IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
         return new(this, Resolve(values));
     }
 
@@ -269,7 +270,7 @@ public abstract class SqlExpression : SqlPart
     /// </remarks>
     public InCondition In<T>(T[] values)
     {
-        CollectionGuard.ThrowIfEmpty(values, "IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
         return new(this, Resolve(values));
     }
 
@@ -290,7 +291,8 @@ public abstract class SqlExpression : SqlPart
     /// empty <c>NOT IN</c> list is invalid SQL).</exception>
     public NotInCondition NotIn(params object[] expressions)
     {
-        CollectionGuard.ThrowIfEmpty(expressions, "NOT IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(
+            expressions, nameof(expressions), "NOT IN requires at least one value.");
         return new(this, Resolve(expressions));
     }
 
@@ -307,7 +309,7 @@ public abstract class SqlExpression : SqlPart
     /// empty <c>NOT IN</c> list is invalid SQL).</exception>
     public NotInCondition NotIn<T>(IReadOnlyCollection<T> values)
     {
-        CollectionGuard.ThrowIfEmpty(values, "NOT IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");
         return new(this, Resolve(values));
     }
 
@@ -321,7 +323,7 @@ public abstract class SqlExpression : SqlPart
     /// <exception cref="ArgumentException"><paramref name="values"/> is empty.</exception>
     public NotInCondition NotIn<T>(T[] values)
     {
-        CollectionGuard.ThrowIfEmpty(values, "NOT IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");
         return new(this, Resolve(values));
     }
 

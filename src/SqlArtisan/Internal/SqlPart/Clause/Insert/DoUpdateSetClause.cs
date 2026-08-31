@@ -9,9 +9,9 @@ internal sealed class DoUpdateSetClause : SqlPart
         _assignments = assignments;
     }
 
-    internal static DoUpdateSetClause Parse(EqualityCondition[] items) =>
+    internal static DoUpdateSetClause Parse(EqualityCondition[] assignments) =>
         new(AssignmentResolver.Resolve(
-            items,
+            assignments,
             "DO UPDATE SET requires at least one assignment."));
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
