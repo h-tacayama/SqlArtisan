@@ -375,7 +375,15 @@ included — check it against the decided records: the ADRs, the
 clause (or a ledger entry marked [precise]) is not a finding: cite the
 record and drop it. One that only resembles a terse ledger entry is NOT
 yours to suppress — report it normally, tagged "possibly decided by
-RD-NNN", and triage adjudicates the match (protocol in the ledger file).`,
+RD-NNN", and triage adjudicates the match (protocol in the ledger file).
+
+The FILES list above is your whole mandate: a finding about a file outside
+it belongs to another chunk — do not file it, and do not treat the list's
+edges as a coverage gap. Quote evidence verbatim (probe output, the cited
+line's text): paraphrased citations are where past sweeps' factual errors
+came from. Before claiming a test or comment predates a convention, prove
+the vintage with git log --follow on that file (run git fetch --unshallow
+first if the clone is shallow) — never from the file's current shape.`,
       {
         agentType: 'sa-reviewer',
         model: 'sonnet',
@@ -402,7 +410,9 @@ ${review}
 
 For each finding: attempt to refute it against primary sources — the code
 itself, test catalogs, ADRs, or a live /tmp harness probe — never the
-review's own text. Re-output the full review with every finding annotated:
+review's own text. Verify the review's citations verbatim (a misquoted
+line or count is itself a refutation), and check any vintage claim
+("predates the convention") with git log --follow on an unshallowed clone. Re-output the full review with every finding annotated:
 - CONFIRMED — with the evidence that survived refutation (verbatim probe
   output or the primary source's file:line)
 - REFUTED — with the disproving evidence

@@ -23,11 +23,8 @@ internal static class DmlTargetGuard
         }
     }
 
-    // A joined UPDATE/DELETE must alias its target on every dialect — a decided
-    // uniform requirement (#258; guards-and-empty-states.md, joined-target
-    // clause), not a grammar fact: PostgreSQL accepts the unaliased FROM/USING
-    // forms, but SQL Server / MySQL lead with the alias alone, and one rule
-    // keeps every joined reference qualified.
+    // A decided uniform requirement, not a grammar fact on every dialect
+    // (#258; guards-and-empty-states.md, joined-target clause).
     internal static void ThrowIfJoinedTargetUnaliased(DbTableBase target)
     {
         if (!target.HasAlias)

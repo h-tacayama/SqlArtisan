@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using SqlArtisan.Internal;
 using static SqlArtisan.Internal.ExpressionResolver;
 
@@ -79,6 +80,7 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>DAY TO HOUR</c>).
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static IntervalField ToHour => new(DateTimePart.Hour, null);
 
     /// <summary>
@@ -86,6 +88,7 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>DAY TO MINUTE</c>, <c>HOUR TO MINUTE</c>).
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static IntervalField ToMinute => new(DateTimePart.Minute, null);
 
     /// <summary>
@@ -93,6 +96,7 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (<c>YEAR TO MONTH</c>).
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static IntervalField ToMonth => new(DateTimePart.Month, null);
 
     /// <summary>

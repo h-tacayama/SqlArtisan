@@ -20,6 +20,8 @@ dialect quirk).
 
 - Inline `//`: **one line preferred, two max**.
 - Doc/block prose (`///` remarks, header comments): **three lines max**.
+  A `//` block immediately preceding a type or member declaration is a
+  header and gets the three-line allowance; a `//` inside a body is inline.
 - **At most one** example per comment; none if a nearby test shows it.
 - **Never** enumerate three or more items (positions, callers, dialects, cases)
   the code or call sites already name.

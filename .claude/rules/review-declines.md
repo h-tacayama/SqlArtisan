@@ -88,12 +88,14 @@ the class by the terms a reviewer would search for.
   existing block trims when its file is next edited for substance. A bulk
   reflow would churn blame for no behavioral gain. Not a finding for any
   pre-rule comment at any tier. (source: release audit pass 1)
-- RD-006 [terse] `RegexpOptions` flag alphabet not validated per dialect (the
-  flag literal is emitted verbatim on MySQL/Oracle/PostgreSQL, whose engines
-  accept different letters) — deferred: an ADR 0012 value-domain guard needs
-  each engine's accepted alphabet verified against vendor grammar and live
-  probes, which the audit freeze does not admit; revisit with integration
-  coverage. (source: release audit pass 1, F18)
+- RD-006 [precise] `RegexpOptions` flag-value validation of any kind — the
+  per-dialect flag alphabet, and a contradictory combination (e.g. case-
+  sensitive + case-insensitive together) rendering as written — deferred: an
+  ADR 0012 value-domain guard needs each engine's accepted alphabet and
+  combination semantics verified against vendor grammar and live probes,
+  which the audit freeze does not admit; revisit with integration coverage.
+  Not a finding for any RegexpOptions value shape until then.
+  (source: release audit pass 1 F18; pass 2 ADJ1 match confirmed)
 - RD-007 [precise] Pagination (`Limit`/`Offset`/`FetchFirst`) and
   `ForUpdate(...)` unreachable in combination (CS1061 in either call order)
   though MySQL/Oracle/PostgreSQL accept the combined SQL — recorded as a
@@ -101,25 +103,53 @@ the class by the terms a reviewer would search for.
   fluent-state interfaces is feature work, frozen until after the audit
   converges. Re-raise as a feature issue, not a review finding.
   (source: release audit pass 1, F32)
-- RD-008 [terse] Coverage-asymmetry additions from the pass-1 test sweep
-  (ContainsScore/Score with no unit coverage, CrossJoinLateral Oracle unit
-  case, JsonArrowText sibling shapes, `Range(bound)` frame overload,
+- RD-008 [terse] Coverage-asymmetry additions from the audit test sweeps
+  (pass 1: ContainsScore/Score with no unit coverage, CrossJoinLateral Oracle
+  unit case, JsonArrowText sibling shapes, `Range(bound)` frame overload,
   TableClassGen ReportJson/ResolveSchema/--fix return-code batch, ArrayBind
-  rollback sibling, DocsIndexTests slug derivation vs check_links.py) —
-  deferred as a tracked batch: coverage widening, not defects; scheduled
-  after the audit converges. (source: release audit pass 1)
-- RD-010 [terse] Refinement-scope idiom findings from the pass-1 sweeps (the
-  OverClause parenthesis idiom, `AppendSpaceIfNotNull` on a never-null part,
-  `IsNull` property style divergence, test-file style outliers — CaseTests'
-  StringBuilder shape, hanging first arguments, naming and filler-comment
-  nits) — deferred: non-defect refinements outside the defect-bar review
-  scope, batched for an `sa-diff-review-refinement` pass after the audit
-  converges. (source: release audit pass 1)
-- RD-009 [terse] A joined `DELETE` (`InnerJoin` after `DeleteFrom`) on SQLite
-  is rejected live but `InnerJoin`'s matrix entry is All, so SQLA0100 stays
-  silent for the DELETE context — a context-bounded validity gap (SQLA0102
-  class) needing a ContextRules addition with a live rejection proof;
-  deferred under the audit freeze. (source: release audit pass 1, F26)
+  rollback sibling, DocsIndexTests slug derivation vs check_links.py;
+  pass 2: WithRollup SqlServer unit, JsonbExistsAll SingleKey, FullJoin
+  OnClause guard test, DbmsResolver Unknown fallback, SQLA0205 Binary
+  end-to-end, SQLA0104 mixed-dialect and SQLA0202 multi-missing-column
+  analyzer cases, TypeCategoryMismatch duplicate EditorConfig, integration
+  window tests asserting only Count(), MatrixSweep/Oracle23aiBound label
+  duplication and missing skip-check, TCG Indexed end-to-end emission,
+  ConsoleUI ReadDatabaseConnectionInfo, MySQL legacy index-catalog fallback
+  catch) — deferred as a tracked batch: coverage widening, not defects;
+  scheduled after the audit converges. (source: release audit passes 1–2)
+- RD-010 [terse] Refinement-scope idiom findings from the audit sweeps
+  (pass 1: the OverClause parenthesis idiom, `AppendSpaceIfNotNull` on a
+  never-null part, `IsNull` property style divergence, test-file style
+  outliers — CaseTests' StringBuilder shape, hanging first arguments, naming
+  and filler-comment nits; pass 2: the CASE `WHEN (cond)` wrapping doubling
+  parens around an already-grouped condition, `<Expectation>`-less MergeTests
+  names, duplicated join-guard test comments, builder-interface doc-phrasing
+  asymmetries, WithBuilder's exploded-constructor wrap shape, residual
+  test-comment length and 100-column outliers) — deferred: non-defect
+  refinements outside the defect-bar review scope, batched for an
+  `sa-diff-review-refinement` pass after the audit converges.
+  (source: release audit passes 1–2)
+- RD-009 [terse] DML-context dialect gaps the matrix's context-free keys
+  cannot express — a joined `DELETE` on SQLite (`InnerJoin`'s entry is All),
+  Oracle `DELETE ... USING` (the `Using` key unions the MERGE context's
+  support), and the wrong-dialect joined-`UPDATE` spellings that emit
+  faithfully (the MySQL JOIN form on Oracle/PostgreSQL/SQLite; the
+  un-re-listed FROM form on MySQL/Oracle) — all SQLA0102-class context rules
+  needing live rejection proofs; deferred under the audit freeze. The
+  repeated-target `UPDATE ... FROM` form is instance-identity-visible and is
+  guarded at Build() instead (release audit pass 2).
+  (source: release audit pass 1 F26; pass 2 F7/F28/ADJ3)
+- RD-011 [precise] `InsertInto(t).Set(...)` exposing no `.Output(...)` while
+  `Update(t).Set(...)` does — declined as correct typestate: the SET-form
+  INSERT is MySQL's construct and `OUTPUT` is SQL Server's, so no dialect
+  accepts the pairing; the narrowed interface is the compile-time guard
+  working as designed. Not a finding at any tier.
+  (source: release audit pass 2, SD9)
+- RD-012 [precise] The expressibility gaps recorded in issue #521 — value
+  analytics' `Over(PartitionByClause)`, `GroupBy` ordinal literals, and
+  `With(...)` into `MergeInto(...)` — deferred as feature work under the
+  audit freeze; re-raise on the issue, not as a review finding.
+  (source: release audit pass 2, ADJ2/SD7/SD13)
 - RD-002 [precise] `Validate(Dbms)` running only on the outermost statement
   builder — a subquery, CTE body, or derived table renders through `Format`,
   so its dialect guards (e.g. the SQL Server TOP pairing rules) do not re-run
