@@ -643,7 +643,7 @@ internal static class MatrixSweepCatalog
             {
                 [Dbms.MySql] = "The array-typed parameter is not rejected client-side "
                     + "(MySqlConnector infers a fallback type without an open connection); "
-                    + "any rejection happens at execute time, proven by the nightly matrix.",
+                    + "any rejection happens at execute time, outside this client-side sweep.",
                 [Dbms.Oracle] = "The array-typed parameter is not rejected client-side "
                     + "(Oracle.ManagedDataAccess infers a fallback type without an open "
                     + "connection); any rejection happens at execute time, proven by the "

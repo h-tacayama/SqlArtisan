@@ -35,11 +35,11 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void ToChar_DateTimeValue_CorrectSql()
+    public void ToChar_Oracle_DateTimeValue_CorrectSql()
     {
         SqlStatement sql =
             Select(ToChar(_t.CreatedAt))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
@@ -63,11 +63,11 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void ToChar_NumericValue_CorrectSql()
+    public void ToChar_Oracle_NumericValue_CorrectSql()
     {
         SqlStatement sql =
             Select(ToChar(_t.Code))
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("SELECT ");

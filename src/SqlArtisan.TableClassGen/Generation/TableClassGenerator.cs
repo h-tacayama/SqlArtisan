@@ -206,9 +206,8 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
             char next = literal[++i];
 
-            // A malformed \u (short or non-hex) can only reach here from a hand-edited
-            // or corrupted committed file — Quote never emits one — so it is read back
-            // literally rather than aborting the whole --check/--fix run over one file.
+            // A malformed \u — hand-edited or corrupted; Quote never emits one —
+            // reads back literally rather than aborting the whole --check/--fix run.
             if (next == 'u'
                 && i + 4 < literal.Length
                 && int.TryParse(

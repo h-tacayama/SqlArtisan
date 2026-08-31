@@ -30,8 +30,6 @@ public class LogicalConditionTests
         expected.Append("\"t\".code = :2");
         expected.Append(")");
 
-        // When more than two conditions are connected with '&', 
-        // the logic internally creates nested AndCondition objects.
         _assert.Equal(
             _t.Code == 1 & _t.Code == 2 & _t.Code == 3,
             expected.ToString(),
@@ -54,8 +52,6 @@ public class LogicalConditionTests
         expected.Append("\"t\".code = :2");
         expected.Append(")");
 
-        // When more than two conditions are connected with '|', 
-        // the logic internally creates nested OrCondition objects.
         _assert.Equal(
             _t.Code == 1 | _t.Code == 2 | _t.Code == 3,
             expected.ToString(),

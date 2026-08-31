@@ -14,7 +14,7 @@ public class ConfigTests : IDisposable
     }
 
     [Fact]
-    public void SetDefaultDbms_SelectForMySql_CorrectSql()
+    public void SetDefaultDbms_MySql_Select_CorrectSql()
     {
         SqlArtisanConfig.SetDefaultDbms(Dbms.MySql);
 
@@ -35,7 +35,7 @@ public class ConfigTests : IDisposable
     }
 
     [Fact]
-    public void SetDefaultDbms_UpdateForOracle_CorrectSql()
+    public void SetDefaultDbms_Oracle_Update_CorrectSql()
     {
         SqlArtisanConfig.SetDefaultDbms(Dbms.Oracle);
 
@@ -56,7 +56,7 @@ public class ConfigTests : IDisposable
     }
 
     [Fact]
-    public void SetDefaultDbms_DeleteForSqlServer_CorrectSql()
+    public void SetDefaultDbms_SqlServer_Delete_CorrectSql()
     {
         SqlArtisanConfig.SetDefaultDbms(Dbms.SqlServer);
 

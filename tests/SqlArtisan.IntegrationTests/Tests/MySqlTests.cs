@@ -160,8 +160,15 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             tx.Rollback();
         }
 
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
-            "INSERT INTO users AS `cu` (id, name, age, department_id) VALUES (901, 'x', 20, 99)"));
+        // Inside a rolled-back transaction: if the grammar assumption ever
+        // failed, the row must not leak into the shared fixture.
+        using (IDbTransaction probeTx = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<Exception>(() => connection.Execute(
+                "INSERT INTO users AS `cu` (id, name, age, department_id) VALUES (901, 'x', 20, 99)",
+                transaction: probeTx));
+            probeTx.Rollback();
+        }
     }
 
     [Fact]

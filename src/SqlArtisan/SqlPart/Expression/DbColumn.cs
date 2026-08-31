@@ -45,10 +45,8 @@ public sealed class DbColumn : SqlExpression
         buffer.Append(Name);
     }
 
-    // Renders the bare column name with no table-alias qualifier. DML contexts
-    // that name a target column — the INSERT column list, the ON CONFLICT
-    // target, and SET / DO UPDATE SET left sides — must stay unqualified;
-    // PostgreSQL rejects an alias-qualified column in those positions.
+    // Renders the bare column name: a DML context that names a target column
+    // must stay unqualified — PostgreSQL rejects an alias qualifier there.
     internal void FormatUnqualified(SqlBuildingBuffer buffer) =>
         buffer.Append(Name);
 }

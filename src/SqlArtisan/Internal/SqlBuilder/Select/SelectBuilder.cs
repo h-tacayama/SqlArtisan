@@ -354,7 +354,6 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public ISelectBuilderFrom Using(DbColumn column, params DbColumn[] additionalColumns)
     {
-        // Using(col, null) binds the array itself null; convert the spread's NRE.
         CollectionGuard.ThrowIfNullElement(
             additionalColumns,
             nameof(additionalColumns),

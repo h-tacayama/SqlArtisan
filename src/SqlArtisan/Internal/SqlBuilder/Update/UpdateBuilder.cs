@@ -127,7 +127,6 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
 
     IUpdateBuilderFrom IUpdateBuilderFromJoinOn.Using(DbColumn column, params DbColumn[] additionalColumns)
     {
-        // Using(col, null) binds the array itself null; convert the spread's NRE.
         CollectionGuard.ThrowIfNullElement(
             additionalColumns,
             nameof(additionalColumns),
@@ -139,7 +138,6 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
 
     IUpdateBuilderJoined IUpdateBuilderJoinOn.Using(DbColumn column, params DbColumn[] additionalColumns)
     {
-        // Using(col, null) binds the array itself null; convert the spread's NRE.
         CollectionGuard.ThrowIfNullElement(
             additionalColumns,
             nameof(additionalColumns),

@@ -96,7 +96,6 @@ internal sealed class DeleteBuilder(DbTableBase table, DmlJoinState state, param
 
     public IDeleteBuilderFrom Using(DbColumn column, params DbColumn[] additionalColumns)
     {
-        // Using(col, null) binds the array itself null; convert the spread's NRE.
         CollectionGuard.ThrowIfNullElement(
             additionalColumns,
             nameof(additionalColumns),

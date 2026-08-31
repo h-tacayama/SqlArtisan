@@ -23,6 +23,8 @@ public static class SqlifyBenchmark
             Select(
                 u.Id.As("user_id"),
                 u.Name.As("user_name"),
+                // Count() is Sqlify's only COUNT(*) spelling — the other
+                // entrants' shared Count(o.Id) shape has no equivalent here.
                 Count().As("order_count"))
             .From(u)
             .Join(o, u.Id == o.UserId)

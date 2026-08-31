@@ -132,4 +132,36 @@ public class DbConnectionInfoTests
         Assert.Contains("--schema", info.EmptyCatalogMessage, StringComparison.Ordinal);
         Assert.Contains("'typo'", info.EmptyCatalogMessage, StringComparison.Ordinal);
     }
+
+    // The injection shape the release audit reproduced on three live drivers:
+    // a password of `x;Database=evil` must stay one quoted value, never its
+    // own key/value pair redirecting the connection.
+    [Theory]
+    [InlineData(Dbms.MySql)]
+    [InlineData(Dbms.PostgreSql)]
+    [InlineData(Dbms.SqlServer)]
+    [InlineData(Dbms.Oracle)]
+    public void GetConnectionString_PasswordWithSeparator_DoesNotInjectKeys(Dbms dbms)
+    {
+        DbConnectionInfo info = new(
+            dbms,
+            host: "localhost",
+            port: 1,
+            serviceName: "db",
+            schema: "s",
+            username: "u",
+            password: "x;Database=evil");
+
+        string connectionString = info.GetConnectionString();
+
+        System.Data.Common.DbConnectionStringBuilder parsed = new()
+        {
+            ConnectionString = connectionString,
+        };
+
+        Assert.False(
+            parsed.TryGetValue("Database", out object? database)
+                && (string?)database == "evil",
+            $"The password injected its own Database key: {connectionString}");
+    }
 }

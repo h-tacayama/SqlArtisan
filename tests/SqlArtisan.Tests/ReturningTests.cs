@@ -341,7 +341,9 @@ public class ReturningTests
             .Into(new("b", DbType.Int32), new("c", DbType.String, 100))
             .Build(Dbms.SqlServer);
 
-        Assert.Contains("INTO @b, @c", sql.Text);
+        Assert.Equal(
+            "DELETE FROM test_table RETURNING code, name INTO @b, @c",
+            sql.Text);
         Assert.Contains("@b", sql.Parameters.ParameterNames);
         Assert.Contains("@c", sql.Parameters.ParameterNames);
     }

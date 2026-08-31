@@ -228,7 +228,7 @@ internal static class StatementCatalog
                     x);
         }, Only(Dbms.Oracle, Dbms.SqlServer));
 
-        // CROSS / LEFT JOIN LATERAL — the siblings of JOIN LATERAL (PostgreSQL / MySQL).
+        // CROSS / LEFT JOIN LATERAL — the siblings of JOIN LATERAL.
         Add("CrossJoinLateral", () =>
         {
             UsersTable lu = new("u");

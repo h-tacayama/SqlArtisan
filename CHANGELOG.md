@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   longer silences `SQLA0104` — the override quiets `SQLA0100`/`SQLA0101`, and
   the datepart check now re-arms on the asserted dialect instead of leaving
   the invalid argument wholly undiagnosed.
+- TableClassGen builds its connection strings with each driver's own
+  connection-string builder instead of raw interpolation, so a credential or
+  option value carrying `;` can no longer inject its own key/value pairs and
+  silently redirect the connection.
+- TableClassGen's interactive database-type prompt reports a wrong answer in
+  its own words instead of surfacing the `--dbms` CLI-flag error text.
+- An incomplete `CASE` `WHEN` branch (missing `.Then(...)`) reaching a value
+  position now gets the actionable completion hint instead of the generic
+  invalid-type message, and `MATCH`'s unknown search modifier throws with a
+  named message.
 - Analyzer: `SQLA0100`/`SQLA0101` display an overload-specific construct as
   "`Name` (overload declared with N parameters)" instead of "N-argument
   form" — at a `params` call site the declared count exceeds the written

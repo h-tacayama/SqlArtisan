@@ -1,8 +1,7 @@
 namespace SqlArtisan.Internal;
 
-// Implemented by the ad-hoc relation handles (DerivedTable, Cte) to force them to
-// expose the same Column(...) surface: adding an overload here breaks compilation
-// of every implementer until it is added.
+// Forces every implementing relation type to expose the same Column(...)
+// surface: adding an overload here breaks compilation until each adds it.
 internal interface IColumnAccessor
 {
     /// <summary>

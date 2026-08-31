@@ -18,10 +18,15 @@ internal static class DbmsOption
         };
 
     public static Dbms Parse(string value) =>
-        Names.TryGetValue(value.Trim(), out Dbms dbms)
+        TryParse(value, out Dbms dbms)
             ? dbms
             : throw new CommandLineException(
                 $"--dbms must be one of mysql, oracle, postgresql, sqlite, sqlserver (got '{value}')");
+
+    // The interactive prompt shares the name table but owns its own wording —
+    // its user never typed a --dbms flag.
+    public static bool TryParse(string value, out Dbms dbms) =>
+        Names.TryGetValue(value.Trim(), out dbms);
 
     // SQLite is file-based and reaches here with no port to default.
     public static int DefaultPort(Dbms dbms) =>

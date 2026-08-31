@@ -10,6 +10,7 @@ internal static class SearchModifierExtensions
             $"{Keywords.In} {Keywords.Boolean} {Keywords.Mode}",
         SearchModifier.WithQueryExpansion =>
             $"{Keywords.With} {Keywords.Query} {Keywords.Expansion}",
-        _ => throw new ArgumentOutOfRangeException(nameof(modifier)),
+        _ => throw new ArgumentOutOfRangeException(
+            nameof(modifier), modifier, "Unknown MATCH search modifier."),
     };
 }

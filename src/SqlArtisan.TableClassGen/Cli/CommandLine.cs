@@ -281,9 +281,8 @@ internal static class CommandLine
             Flag(values, "qualify-schema"));
     }
 
-    // The option surface is comma-separated strings, so an array element carrying
-    // a comma cannot round-trip through it — reject rather than silently split
-    // one name into two (release audit pass 1).
+    // The option surface is comma-separated, so an element carrying a comma
+    // cannot round-trip — reject rather than silently split (release audit).
     private static string JoinArray(string name, JsonElement array)
     {
         List<string> items = [.. array.EnumerateArray().Select(e => e.ToString())];

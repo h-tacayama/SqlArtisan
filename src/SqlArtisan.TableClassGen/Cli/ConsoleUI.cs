@@ -154,9 +154,16 @@ internal sealed class ConsoleUI
     {
         string value = answer.Trim();
 
-        return int.TryParse(value, out int choice) && choice >= 1 && choice <= Choices.Length
-            ? Choices[choice - 1].Dbms
-            : DbmsOption.Parse(value);
+        if (int.TryParse(value, out int choice) && choice >= 1 && choice <= Choices.Length)
+        {
+            return Choices[choice - 1].Dbms;
+        }
+
+        return DbmsOption.TryParse(value, out Dbms dbms)
+            ? dbms
+            : throw new CommandLineException(
+                "Enter a number from the list, or one of mysql, oracle, postgresql, "
+                    + $"sqlite, sqlserver (got '{value}').");
     }
 
     private static string GetPasswordFromConsole()

@@ -161,12 +161,18 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         }
 
         // The only difference — aliasing the target — is what SQL Server rejects.
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
-            "INSERT INTO users AS \"cu\" (id, name) VALUES (999, 'x')"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
-            "UPDATE users AS \"cu\" SET name = 'x' WHERE \"cu\".id = 1"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
-            "DELETE FROM users AS \"cu\" WHERE \"cu\".id = 1"));
+        // Inside a rolled-back transaction: if the grammar assumption ever
+        // failed, the mutation must not leak into the shared fixture.
+        using (IDbTransaction probeTx = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<Exception>(() => connection.Execute(
+                "INSERT INTO users AS \"cu\" (id, name) VALUES (999, 'x')", transaction: probeTx));
+            Assert.ThrowsAny<Exception>(() => connection.Execute(
+                "UPDATE users AS \"cu\" SET name = 'x' WHERE \"cu\".id = 1", transaction: probeTx));
+            Assert.ThrowsAny<Exception>(() => connection.Execute(
+                "DELETE FROM users AS \"cu\" WHERE \"cu\".id = 1", transaction: probeTx));
+            probeTx.Rollback();
+        }
     }
 
     [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420).

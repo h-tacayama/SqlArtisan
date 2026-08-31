@@ -57,14 +57,14 @@ public class UpsertTests
         // Arrange
         StringBuilder expected = new();
         expected.Append("INSERT INTO test_table (code, name, created_at) ");
-        expected.Append("VALUES (:0, :1, SYSDATE) ");
+        expected.Append("VALUES (:0, :1, CURRENT_TIMESTAMP) ");
         expected.Append("ON CONFLICT (code, name) ");
         expected.Append("DO UPDATE SET created_at = EXCLUDED.created_at");
 
         // Act
         SqlStatement sql =
             InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
-            .Values(1, "a", Sysdate)
+            .Values(1, "a", CurrentTimestamp)
             .OnConflict(_t.Code, _t.Name)
             .DoUpdateSet(_t.CreatedAt == Excluded(_t.CreatedAt))
             .Build(Dbms.PostgreSql);
@@ -199,14 +199,14 @@ public class UpsertTests
         // Arrange
         StringBuilder expected = new();
         expected.Append("INSERT INTO test_table (code, name, created_at) ");
-        expected.Append("VALUES (?0, ?1, SYSDATE) ");
+        expected.Append("VALUES (?0, ?1, CURRENT_TIMESTAMP) ");
         expected.Append("AS new ");
         expected.Append("ON DUPLICATE KEY UPDATE name = new.name, created_at = new.created_at");
 
         // Act
         SqlStatement sql =
             InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
-            .Values(1, "a", Sysdate)
+            .Values(1, "a", CurrentTimestamp)
             .OnDuplicateKeyUpdate(
                 _t.Name == Excluded(_t.Name),
                 _t.CreatedAt == Excluded(_t.CreatedAt))
@@ -304,7 +304,7 @@ public class UpsertTests
     }
 
     [Fact]
-    public void OnConflict_BuiltForOracle_EmitsFaithfullyWithoutThrowing()
+    public void OnConflict_Oracle_EmitsFaithfullyWithoutThrowing()
     {
         // Arrange
         // Oracle has no ON CONFLICT construct, so this is wrong-DBMS usage. Faithful

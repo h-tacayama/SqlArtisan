@@ -53,6 +53,7 @@ public partial class FunctionTests
         expected.Append("LEFT(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(3, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]

@@ -1,8 +1,7 @@
 namespace SqlArtisan.Internal;
 
-// The shared assignment-list resolver behind every SET-shaped clause — UPDATE
-// and SET-like INSERT, DO UPDATE SET, ON DUPLICATE KEY UPDATE, and MERGE's
-// UPDATE SET — so the null/shape/left-side checks live once.
+// The shared assignment-list resolver behind every SET-shaped clause, so the
+// null/shape/left-side checks live once.
 internal static class AssignmentResolver
 {
     internal static EqualCondition[] Resolve(EqualityCondition[] assignments, string emptyMessage)

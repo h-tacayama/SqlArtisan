@@ -11,11 +11,8 @@ public sealed class GroupingSetsGrouping : GroupingElement
 {
     private readonly GroupingSet[] _sets;
 
-    // The leading set is taken separately so the factory can pass its `params`
-    // array straight through: a null array (the C# binding for e.g.
-    // GroupingSets(set, null)) throws a clear ArgumentNullException instead of
-    // failing with an NRE when spread into a collection expression. The required
-    // leading set also guarantees at least one grouping set.
+    // Leading set split from the tail for the spread-NRE conversion (see
+    // GroupByItemResolver.ResolveElements); it also guarantees at least one set.
     internal GroupingSetsGrouping(GroupingSet set, params GroupingSet[] sets)
     {
         if (set is null)

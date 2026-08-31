@@ -31,9 +31,7 @@ public sealed class ValuesDerivedTable : DerivedTableBase, IColumnAccessor
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.OpenParenthesis();
-        _rows.Format(buffer);
-        buffer.CloseParenthesis()
+        buffer.EncloseInParentheses(_rows)
             .AppendSpace()
             .EncloseInAliasQuotes(_name)
             .Append(" (")

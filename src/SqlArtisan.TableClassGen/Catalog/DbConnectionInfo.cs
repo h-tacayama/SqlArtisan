@@ -93,21 +93,48 @@ internal sealed class DbConnectionInfo(
             _ => throw new ArgumentOutOfRangeException(nameof(Dbms))
         };
 
-    private string GetConnectionString() =>
+    // Each driver's own builder, never string interpolation: a raw value
+    // carrying `;` (a password of `x;Database=evil`, say) would otherwise
+    // inject its own key/value pairs and silently redirect the connection.
+    internal string GetConnectionString() =>
         Dbms switch
         {
-            Dbms.Oracle =>
-                $"User Id={Username};Password={Password};Data Source={Host}:{Port}/{ServiceName}",
-            Dbms.PostgreSql =>
-                $"Host={Host};Port={Port};Database={ServiceName};Username={Username};Password={Password}",
-            Dbms.MySql =>
-                $"Server={Host};Port={Port};Database={ServiceName};User ID={Username};Password={Password}",
+            Dbms.Oracle => new OracleConnectionStringBuilder
+            {
+                UserID = Username,
+                Password = Password,
+                DataSource = $"{Host}:{Port}/{ServiceName}",
+            }.ConnectionString,
+            Dbms.PostgreSql => new NpgsqlConnectionStringBuilder
+            {
+                Host = Host,
+                Port = Port,
+                Database = ServiceName,
+                Username = Username,
+                Password = Password,
+            }.ConnectionString,
+            Dbms.MySql => new MySqlConnectionStringBuilder
+            {
+                Server = Host,
+                Port = (uint)Port,
+                Database = ServiceName,
+                UserID = Username,
+                Password = Password,
+            }.ConnectionString,
             // SQLite is file-based: ServiceName carries the database path.
-            Dbms.Sqlite =>
-                $"Data Source={ServiceName}",
+            Dbms.Sqlite => new SqliteConnectionStringBuilder
+            {
+                DataSource = ServiceName,
+            }.ConnectionString,
             // SQL Server takes host,port (comma); TrustServerCertificate eases dev/container TLS.
-            Dbms.SqlServer =>
-                $"Server={Host},{Port};Database={ServiceName};User ID={Username};Password={Password};TrustServerCertificate=True",
+            Dbms.SqlServer => new SqlConnectionStringBuilder
+            {
+                DataSource = $"{Host},{Port}",
+                InitialCatalog = ServiceName,
+                UserID = Username,
+                Password = Password,
+                TrustServerCertificate = true,
+            }.ConnectionString,
             _ => throw new ArgumentOutOfRangeException(nameof(Dbms))
         };
 }

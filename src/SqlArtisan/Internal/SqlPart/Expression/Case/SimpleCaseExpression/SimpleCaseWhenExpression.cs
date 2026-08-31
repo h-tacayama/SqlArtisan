@@ -2,8 +2,10 @@ using static SqlArtisan.Internal.ExpressionResolver;
 
 namespace SqlArtisan.Internal;
 
-public sealed class SimpleCaseWhenExpression : SqlPart
+public sealed class SimpleCaseWhenExpression : SqlPart, IIncompleteExpression
 {
+    string IIncompleteExpression.CompletionHint => "Complete the WHEN branch with .Then(...).";
+
     private readonly SqlExpression _whenExpr;
 
     internal SimpleCaseWhenExpression(SqlExpression whenExpr)
