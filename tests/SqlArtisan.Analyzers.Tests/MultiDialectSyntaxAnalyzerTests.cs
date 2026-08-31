@@ -26,6 +26,19 @@ public class MultiDialectSyntaxAnalyzerTests
         }
         """;
 
+    private const string ConcatArityUsageTemplate = """
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
+
+        class C
+        {
+            void M()
+            {
+                var x = {|#0:Concat("a", "b", "c")|};
+            }
+        }
+        """;
+
     private const string ExceptUsageTemplate = """
         using SqlArtisan;
         using static SqlArtisan.Sql;
@@ -631,6 +644,25 @@ public class MultiDialectSyntaxAnalyzerTests
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
         test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task ArityLevelEntry_DisplayNameSaysDeclaredParameters()
+    {
+        // The declared-parameter phrasing is deliberate: at a params call site
+        // the declared count exceeds the written argument count, so an
+        // "N-argument form" display would read as a misfire.
+        var test = AnalyzerVerifier.Create(
+            ConcatArityUsageTemplate, AnalyzerVerifier.EditorConfig("oracle"));
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0100")
+                .WithLocation(0)
+                .WithMessage(
+                    "'Concat (overload declared with 4 parameters)' is not supported on Oracle. "
+                        + "Set 'sqlartisan_construct_concat_arity4 = supported' in .editorconfig "
+                        + "if your engine version supports it."));
 
         await test.RunAsync();
     }

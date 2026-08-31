@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- Analyzer: a `sqlartisan_construct_* = supported` override on a dialect the
+  matrix flags unsupported (or version-bound above the declared version) no
+  longer silences `SQLA0104` — the override quiets `SQLA0100`/`SQLA0101`, and
+  the datepart check now re-arms on the asserted dialect instead of leaving
+  the invalid argument wholly undiagnosed.
+- Analyzer: `SQLA0100`/`SQLA0101` display an overload-specific construct as
+  "`Name` (overload declared with N parameters)" instead of "N-argument
+  form" — at a `params` call site the declared count exceeds the written
+  argument count, so the old phrasing read as a misfire.
 - MERGE misuse on a held builder now throws at `Build()` instead of silently
   emitting invalid SQL: a repeated `USING`/`ON` stage, a repeated action
   inside one `WHEN` branch (`UPDATE SET`, `DELETE`, `DELETE WHERE`, `INSERT`,

@@ -449,8 +449,9 @@ internal static class DialectMatrix
 
         // --- Functions with no dialect variance across the baselines ---
         [new MatrixKey("Abs")] = DbmsSupport.All,
-        // Exp/Floor/Power/Sqrt/Sign on SQLite are math functions (3.35+, SQLITE_ENABLE_MATH_FUNCTIONS;
-        // enabled in the bundled e_sqlite3 build) — sweep-confirm along with Mod.
+        // Exp/Floor/Power/Sqrt on SQLite are math functions (3.35+, SQLITE_ENABLE_MATH_FUNCTIONS;
+        // enabled in the bundled e_sqlite3 build); Sign is core but landed in the same
+        // release (sqlite func.c, outside the extension guard) — sweep-confirm with Mod.
         [new MatrixKey("Floor")] = DbmsSupport.All,
         [new MatrixKey("Exp")] = DbmsSupport.All,
         [new MatrixKey("Power")] = DbmsSupport.All,
@@ -814,7 +815,8 @@ internal static class DialectMatrix
         [new MatrixKey("Substring")] = new VersionBounds(sqlite: V("3.34")),
         // The math-functions extension (SQLITE_ENABLE_MATH_FUNCTIONS) landed in 3.35 — the
         // same release as RETURNING above, but a separate feature; the Entries comments above
-        // name it per row (Ceil/Ceiling, Floor/Exp/Power/Sqrt/Sign, Mod, Log/Ln/Log10).
+        // name it per row (Ceil/Ceiling, Floor/Exp/Power/Sqrt, Mod, Log/Ln/Log10). Sign shares
+        // the 3.35 bound as a core function added that release, outside the extension.
         [new MatrixKey("Ceil")] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("Ceiling")] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("Floor")] = new VersionBounds(sqlite: V("3.35")),

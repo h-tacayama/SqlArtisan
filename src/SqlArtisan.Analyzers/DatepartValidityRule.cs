@@ -43,7 +43,9 @@ internal static class DatepartValidityRule
         // path too, not just the matrix's own verdict.
         AnalyzerConfigOptions options =
             context.Options.AnalyzerConfigOptionsProvider.GetOptions(invocation.Syntax.SyntaxTree);
-        if (DialectSupportResolver.ResolveOverride(options, memberName, arity) is { IsSupported: false })
+        DialectSupportResolver.OverrideResult? overrideResult =
+            DialectSupportResolver.ResolveOverride(options, memberName, arity);
+        if (overrideResult is { IsSupported: false })
         {
             return;
         }
@@ -57,10 +59,12 @@ internal static class DatepartValidityRule
                 continue;
             }
 
-            // SQLA0100 already owns "this construct doesn't run on this dialect at
-            // all" — skip a dialect the matrix has already flagged unsupported so
-            // the two rules never both fire for the same usage.
-            if (DialectSupportResolver.MatchMatrixEntry(memberName, arity) is { } match
+            // SQLA0100/0101 already own "this construct doesn't run on this
+            // dialect at all" — skip a dialect the matrix flags unsupported,
+            // unless a `supported` override silenced them: the user asserts the
+            // construct runs there, so the argument-level check applies again.
+            if (overrideResult is not { IsSupported: true }
+                && DialectSupportResolver.MatchMatrixEntry(memberName, arity) is { } match
                 && !DialectSupportResolver.Evaluate(match, dbms, targets.VersionFor(dbms)).IsSupported)
             {
                 continue;

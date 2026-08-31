@@ -20,7 +20,17 @@ public class DialectMatrixDocsTests
     [Fact]
     public void VerifiedAgainstVersions_AppearInAnalyzerDoc()
     {
-        string[] docLines = File.ReadAllLines(Path.Combine(FindRepoRoot(), "docs", "analyzer.md"));
+        string[] allLines = File.ReadAllLines(Path.Combine(FindRepoRoot(), "docs", "analyzer.md"));
+
+        // Scope to the verified-against section's own lines: the version tokens
+        // co-occur elsewhere in the page (the enabling examples, register rows),
+        // so a whole-page match passes vacuously when the table itself drifts.
+        int start = System.Array.FindIndex(
+            allLines, line => line.StartsWith("## Verified-against versions", StringComparison.Ordinal));
+        Assert.True(start >= 0, "docs/analyzer.md no longer has a '## Verified-against versions' section.");
+        int end = System.Array.FindIndex(
+            allLines, start + 1, line => line.StartsWith("## ", StringComparison.Ordinal));
+        string[] docLines = allLines[start..(end < 0 ? allLines.Length : end)];
 
         List<string> missing = [];
         foreach (KeyValuePair<TargetDbms, string> pair in DialectMatrix.VerifiedAgainstVersion)

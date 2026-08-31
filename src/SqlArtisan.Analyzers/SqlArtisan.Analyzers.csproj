@@ -14,10 +14,8 @@
     <!--
       PrivateAssets=all keeps these off this project's own dependency surface,
       so consumers of the bundling SqlArtisan package never inherit compiler
-      packages. The SqlArtisan.csproj packing target (_PackSqlArtisanAnalyzer)
-      separately filters by %(Analyzer.Filename) to pack only our own compiled
-      output: an analyzer must never ship its own copies of the host
-      compiler's assemblies (the analyzer host supplies them at load time).
+      packages. Pack-time filtering has its own guard — see the
+      _PackSqlArtisanAnalyzer comment in SqlArtisan.csproj.
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />

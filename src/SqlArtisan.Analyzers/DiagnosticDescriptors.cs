@@ -137,8 +137,9 @@ internal static class DiagnosticDescriptors
         helpLinkUri: HelpLinkUri);
 
     // No override-key hint, like SQLA0102: a construct-level sqlartisan_construct_*
-    // override says the construct itself works on the caller's engine, not that
-    // every DateTimePart value does — suppression is per-ID only.
+    // override speaks to the construct, not to a DateTimePart value — an
+    // `unsupported` override hands the usage to SQLA0100, and a `supported`
+    // one re-arms this argument-level check on the asserted dialect.
     public static readonly DiagnosticDescriptor InvalidDatepartArgument = new(
         id: "SQLA0104",
         title: "Datepart argument not supported on the target dialect",

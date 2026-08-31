@@ -3708,7 +3708,7 @@ the version is what lifts it.
 | `Log10` | PostgreSQL | 12 | `log10()` landed in PostgreSQL 12; before it, base-10 was spelled `log(x)`. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
-| `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`); none of these functions exist below it. |
+| `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`), and `sign()` arrived in the same release as a core function; none of these functions exist below it. |
 | `Substring` | SQLite | 3.34 | SQLite registered `SUBSTRING` as a second name for `substr()` in 3.34. |
 | `StringAgg` (both overloads), `Concat` (both overloads), `ConcatWs` | SQLite | 3.44 | `string_agg`/`concat`/`concat_ws` landed in SQLite 3.44. |
 | `NullsFirst`, `NullsLast` | SQLite | 3.30 | `NULLS FIRST`/`NULLS LAST` landed in SQLite 3.30. |
@@ -3914,10 +3914,12 @@ a live engine. Three cases stay silent, never a false positive:
   would otherwise double-report the same usage.
 
 Suppression is per rule ID (`#pragma warning disable SQLA0104`, a
-`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`); the
-`sqlartisan_construct_*` override keys do not apply — overriding "this
-function runs on my engine" is not a claim that every `DateTimePart` value
-does.
+`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`); a
+`sqlartisan_construct_*` override never silences a datepart verdict on a
+dialect where the construct runs. An `unsupported` override hands the whole
+usage to `SQLA0100`, and a `supported` override on a dialect the matrix flags
+unsupported re-arms this check there — asserting "this function runs on my
+engine" is not a claim that every `DateTimePart` value does.
 
 ---
 
@@ -4307,13 +4309,18 @@ for, not a bug in the matrix.
   valid there unconditionally. Both are staying-permissive gaps, not
   false-positive risks: an argument this rule accepts can still fail at
   execution for a source-type reason it doesn't check.
+- **`SQLA0103` traces table-class aliases through classic constructors only.**
+  A table class whose alias flows through a C# *primary constructor*
+  (`class T(string alias) : DbTableBase("t", alias)`) is not traced, so an
+  over-long alias passed to it is missed. TableClassGen always emits the
+  classic constructor form, so generated table classes are unaffected.
 - **`sqlartisan_construct_*` key names fail silently on a typo** (see above)
   — there is no diagnostic for an unrecognized `sqlartisan_construct_*` *key
-  name*, only for a recognized key with an unrecognized *value*. Value
-  validation covers the keys derived from the matrix; an override key naming
-  a member the matrix has no entry for is honored when its value is valid,
-  but a typo in its *value* is silently ignored too. `sqlartisan_syntax_*`
-  key names do not share this gap — a typo there is `SQLA0001`.
+  name*. The key's *value* is always validated — every key carrying the
+  prefix is swept, including one naming a member the matrix has no entry
+  for — so `suported` draws `SQLA0001` even on a made-up key; only the key
+  name itself can silently miss. `sqlartisan_syntax_*` key names do not
+  share this gap — a typo there is `SQLA0001`.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a

@@ -326,6 +326,31 @@ public class DatepartValidityAnalyzerTests
     }
 
     [Fact]
+    public async Task SupportedOverride_BelowVersionBound_StillReportsInvalidDatepart()
+    {
+        // A `supported` override silences SQLA0100/0101 on the asserted dialect;
+        // the datepart check must then re-arm there, or the invalid argument
+        // goes wholly undiagnosed (release audit pass 2).
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_sqlserver = 2016
+            sqlartisan_construct_datetrunc = supported
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            Usage("var s = Select(Datetrunc({|#0:DateTimePart.Weekday|}, t.CreatedAt)).From(t).Build();"),
+            editorConfig);
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0104")
+                .WithLocation(0)
+                .WithMessage("'Weekday' is not a valid datepart for 'Datetrunc' on SQL Server"));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task ExactMessage_NamesTheMemberDatepartAndDialect()
     {
         var test = AnalyzerVerifier.Create(

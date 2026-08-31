@@ -111,10 +111,8 @@ internal static class FluentChain
             if (current is IInvocationOperation invocation
                 && DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
             {
-                // A chain that is not the outer statement's own spine roots at
-                // its own statement head — a nested subquery, whose joins say
-                // nothing about the outer statement's shape (the rule contract:
-                // "the statement contains no outer join"). Skip it whole.
+                // A chain rooted at its own statement head is a nested subquery
+                // — its joins say nothing about the outer statement's shape.
                 if (!spine.Contains(invocation) && IsStatementHead(invocation))
                 {
                     continue;
@@ -165,9 +163,8 @@ internal static class FluentChain
 
     /// <summary>
     /// Whether <paramref name="type"/> derives from <c>SqlExpression</c> — the
-    /// receiver type of the predicate-building steps (<c>.Like</c>,
-    /// <c>.Between</c>, <c>.In</c>) that sit inside a predicate rather than
-    /// consuming one.
+    /// receiver type of the predicate-building steps that sit inside a
+    /// predicate rather than consuming one.
     /// </summary>
     public static bool IsExpression(ITypeSymbol? type)
     {

@@ -679,7 +679,12 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     private static string DisplayName(string memberName, int? arity, bool isArityLevel) =>
         OperatorDisplayName(memberName)
-        ?? (isArityLevel && arity.HasValue ? $"{memberName} ({arity.Value}-argument form)" : memberName);
+        // "declared with N parameters", not "N-argument form": a params overload's
+        // declared count exceeds what the call site wrote, so an argument count
+        // would read as a misfire there.
+        ?? (isArityLevel && arity.HasValue
+            ? $"{memberName} (overload declared with {arity.Value} parameters)"
+            : memberName);
 
     // Users write the C# glyph, not the CLR method name — show "operator %", not "op_Modulus".
     // The override key in the message still derives from the CLR name (sqlartisan_construct_op_modulus).

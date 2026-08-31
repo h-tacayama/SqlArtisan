@@ -15,10 +15,9 @@ namespace SqlArtisan.Analyzers;
 /// compile time (#256, advisory per ADR 0014).
 /// </summary>
 /// <remarks>
-/// Every proof fails toward silence (ADR 0003): a target that is not a local or
-/// this-bound readonly field with a visible, provably-unaliased initializer —
-/// or any unrecognized shape in the walks — yields a false negative, never a
-/// false positive.
+/// Every proof fails toward silence (ADR 0003): any target or walk shape the
+/// rule cannot prove unaliased yields a false negative, never a false
+/// positive.
 /// </remarks>
 internal static class CorrelatedDmlRule
 {
