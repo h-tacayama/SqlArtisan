@@ -666,4 +666,75 @@ public class MultiDialectSyntaxAnalyzerTests
 
         await test.RunAsync();
     }
+
+    private const string SecondaryUsageSource = """
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
+
+        class D
+        {
+            void M()
+            {
+                var x = Rollup("a");
+            }
+        }
+        """;
+
+    // Directory-scoped .editorconfig files are an advertised shape, so the
+    // dedup must key on the message content, not one compilation-wide flag —
+    // a coarser key mutes the second directory's differing suggestion.
+    [Fact]
+    public async Task TwoDirectoriesWithDifferentLegacyConfigs_ReportSqla0002ForEach()
+    {
+        const string rootConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            """;
+        const string subConfig = """
+            [*.cs]
+            sqlartisan_target_dbms = oracle
+            sqlartisan_target_version = 21
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), rootConfig);
+        test.TestState.Sources.Add(("/sub/Second.cs", SecondaryUsageSource));
+        test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_postgresql = any"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_oracle = 21"));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task TwoDirectoriesWithDifferentDroppedVersions_ReportSqla0001ForEach()
+    {
+        const string rootConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_oracle = any
+            sqlartisan_target_dbms = postgresql
+            sqlartisan_target_version = 15
+            """;
+        const string subConfig = """
+            [*.cs]
+            sqlartisan_target_version = 16
+            """;
+
+        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), rootConfig);
+        test.TestState.Sources.Add(("/sub/Second.cs", SecondaryUsageSource));
+        test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_target_dbms", "postgresql", "PostgreSQL", "sqlartisan_syntax_postgresql = 15"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_target_dbms", "postgresql", "PostgreSQL", "sqlartisan_syntax_postgresql = 16"));
+
+        await test.RunAsync();
+    }
 }

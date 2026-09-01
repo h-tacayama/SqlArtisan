@@ -285,8 +285,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    // Name-filter first, like AnalyzeContextRules — only the nine DateTimePart
-    // consumers pay for target-set resolution.
+    // Name-filter first, like AnalyzeContextRules — only the DateTimePart
+    // consumers below pay for target-set resolution.
     private static void AnalyzeDatepartValidity(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
     {
         var invocation = (IInvocationOperation)context.Operation;
@@ -552,15 +552,18 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     // Four more SQLA0001 reasons plus the separate SQLA0002 nag (#432), each
     // deduplicated across trees at the granularity its message varies by: a
-    // key name, a (key, value) pair, the dropped DBMS, or — for the two
-    // compilation-wide facts (empty set, legacy-alone) — a single flag.
+    // key name, a (key, value) pair, the full dropped-config message, the
+    // suggestion text — a directory-scoped .editorconfig can give trees
+    // different legacy configs, so a coarser key mutes a differing message —
+    // or, for the one compilation-wide fact (empty set), a single flag.
     private static void ValidateSyntaxFamily(CompilationAnalysisContext context)
     {
         var reportedUnrecognizedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var reportedSyntaxValues = new HashSet<(string Key, string Value)>();
-        var reportedDroppedDbms = new HashSet<TargetDbms>();
+        var reportedDroppedConfigs =
+            new HashSet<(string Key, string Value, TargetDbms Dbms, string Suggestion)>();
+        var reportedDeprecations = new HashSet<string>(StringComparer.Ordinal);
         bool reportedEmptySet = false;
-        bool reportedDeprecation = false;
         string validDbmsNames = string.Join("/", AnalyzerConfigResolver.ValidTargetNames);
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
@@ -618,24 +621,27 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             // that DBMS is the user's own statement about it (ADR 0019).
             if (familyPresent
                 && AnalyzerConfigResolver.ResolveTarget(options) is { } droppedDbms
-                && !AnalyzerConfigResolver.IsFamilyKeySet(options, droppedDbms)
-                && reportedDroppedDbms.Add(droppedDbms))
+                && !AnalyzerConfigResolver.IsFamilyKeySet(options, droppedDbms))
             {
                 (string legacyKey, string legacyValue) = LegacyDbmsSource(options, droppedDbms);
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticDescriptors.LegacyConfigurationIgnored,
-                    Location.None,
-                    legacyKey,
-                    legacyValue,
-                    TargetDbmsNames.Display(droppedDbms),
-                    FamilyKeySuggestion(options, droppedDbms)));
+                string suggestion = FamilyKeySuggestion(options, droppedDbms);
+                if (reportedDroppedConfigs.Add((legacyKey, legacyValue, droppedDbms, suggestion)))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        DiagnosticDescriptors.LegacyConfigurationIgnored,
+                        Location.None,
+                        legacyKey,
+                        legacyValue,
+                        TargetDbmsNames.Display(droppedDbms),
+                        suggestion));
+                }
             }
 
-            if (!familyPresent && !reportedDeprecation
+            if (!familyPresent
                 && (AnalyzerConfigResolver.ResolveTarget(options) is not null
-                    || AnalyzerConfigResolver.ResolveTargetVersion(options) is not null))
+                    || AnalyzerConfigResolver.ResolveTargetVersion(options) is not null)
+                && reportedDeprecations.Add(LegacyReplacementSuggestion(options)))
             {
-                reportedDeprecation = true;
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.LegacyConfigDeprecated,
                     Location.None,
@@ -677,14 +683,24 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) => assembly?.Name == SqlArtisanAssemblyName;
 
-    private static string DisplayName(string memberName, int? arity, bool isArityLevel) =>
-        OperatorDisplayName(memberName)
+    private static string DisplayName(string memberName, int? arity, bool isArityLevel)
+    {
+        if (OperatorDisplayName(memberName) is { } operatorName)
+        {
+            return operatorName;
+        }
+
+        if (!isArityLevel || !arity.HasValue)
+        {
+            return memberName;
+        }
+
         // "declared with N parameters", not "N-argument form": a params overload's
         // declared count exceeds what the call site wrote, so an argument count
         // would read as a misfire there.
-        ?? (isArityLevel && arity.HasValue
-            ? $"{memberName} (overload declared with {arity.Value} parameters)"
-            : memberName);
+        string plural = arity.Value == 1 ? "" : "s";
+        return $"{memberName} (overload declared with {arity.Value} parameter{plural})";
+    }
 
     // Users write the C# glyph, not the CLR method name — show "operator %", not "op_Modulus".
     // The override key in the message still derives from the CLR name (sqlartisan_construct_op_modulus).

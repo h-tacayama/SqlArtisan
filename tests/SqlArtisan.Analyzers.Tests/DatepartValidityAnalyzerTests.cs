@@ -103,7 +103,23 @@ public class DatepartValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("sqlserver"),
             expectWarning: true);
 
-    // --- Dateadd x SQL Server (SqlServerDatepartFields) ---
+    // --- Dateadd x SQL Server (SqlServerDateaddFields) ---
+
+    // DATEADD/DATEDIFF stop at Nanosecond: DATEPART's Tzoffset and IsoWeek
+    // are invalid there, so the shared-list shortcut would be a false negative.
+    [Fact]
+    public Task Dateadd_SqlServer_TzoffsetDatepart_ReportsSqla0104() =>
+        RunAsync(
+            "var s = Select(Dateadd({|#0:DateTimePart.Tzoffset|}, 1, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("sqlserver"),
+            expectWarning: true);
+
+    [Fact]
+    public Task Datepart_SqlServer_TzoffsetDatepart_StaysSilent() =>
+        RunAsync(
+            "var s = Select(Datepart(DateTimePart.Tzoffset, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("sqlserver"),
+            expectWarning: false);
 
     [Fact]
     public Task Dateadd_SqlServer_ValidDatepart_StaysSilent() =>
@@ -119,7 +135,14 @@ public class DatepartValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("sqlserver"),
             expectWarning: true);
 
-    // --- Datediff x SQL Server (SqlServerDatepartFields) ---
+    // --- Datediff x SQL Server (SqlServerDateaddFields) ---
+
+    [Fact]
+    public Task Datediff_SqlServer_IsoWeekDatepart_ReportsSqla0104() =>
+        RunAsync(
+            "var s = Select(Datediff({|#0:DateTimePart.IsoWeek|}, t.CreatedAt, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("sqlserver"),
+            expectWarning: true);
 
     [Fact]
     public Task Datediff_SqlServer_ValidDatepart_StaysSilent() =>

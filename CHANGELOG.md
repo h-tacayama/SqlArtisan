@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- Analyzer: `SQLA0104` no longer accepts `Tzoffset` or `IsoWeek` for
+  `Dateadd`/`Datediff` on SQL Server — `DATEADD`/`DATEDIFF` stop at
+  `NANOSECOND`, so sharing `DATEPART`'s 15-entry list was a silent false
+  negative for the two extra dateparts.
+- Analyzer: in a solution whose directory-scoped `.editorconfig` files give
+  different projects different legacy `sqlartisan_target_*` configs, the
+  `SQLA0002` deprecation notice and the `SQLA0001` dropped-legacy-config
+  report now fire once per distinct configuration instead of only naming the
+  first one found, whose suggested replacement could be wrong for the rest.
 - A conditioned join (`InnerJoin`/`LeftJoin`/`RightJoin`/`FullJoin`/
   `JoinLateral`, and the joined `UPDATE`/`DELETE` forms) left without its
   `ON`/`USING` by building from a held pre-join stage now throws at `Build()`

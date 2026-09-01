@@ -5,12 +5,12 @@ namespace SqlArtisan.Analyzers;
 
 /// <summary>
 /// The per-(member, dialect) set of <c>DateTimePart</c> member names each
-/// vendor grammar accepts for SQLA0104. Seven primary-source-verified lists
+/// vendor grammar accepts for SQLA0104. Eight primary-source-verified lists
 /// (WebSearch, since docs.oracle.com / postgresql.org / dev.mysql.com /
 /// learn.microsoft.com direct fetch is blocked in this environment) cover the
 /// eleven (member, dialect) pairs, since MySQL's <c>EXTRACT</c>/<c>INTERVAL</c>
-/// share one unit list, SQL Server's <c>DATEPART</c>/<c>DATEADD</c>/
-/// <c>DATEDIFF</c> share one datepart list, and MySQL's
+/// share one unit list, SQL Server's <c>DATEADD</c>/<c>DATEDIFF</c> share one
+/// datepart list (narrower than <c>DATEPART</c>'s own), and MySQL's
 /// <c>TIMESTAMPADD</c>/<c>TIMESTAMPDIFF</c> share their own (simple-units-only)
 /// list.
 /// </summary>
@@ -59,14 +59,21 @@ internal static class DatepartValidity
         "Quarter", "Year", "Decade", "Century", "Millennium",
     };
 
-    // learn.microsoft.com DATEPART/DATEADD/DATEDIFF, which share one datepart
-    // table (each also accepts an abbreviation of these names, e.g. "yy" for
-    // Year — the analyzer only ever sees a DateTimePart member, never a raw
-    // string, so abbreviations are out of scope).
+    // learn.microsoft.com DATEPART (each entry also accepts an abbreviation,
+    // e.g. "yy" for Year — the analyzer only ever sees a DateTimePart member,
+    // never a raw string, so abbreviations are out of scope).
     private static readonly HashSet<string> SqlServerDatepartFields = new(StringComparer.Ordinal)
     {
         "Year", "Quarter", "Month", "Dayofyear", "Day", "Week", "Weekday", "Hour", "Minute",
         "Second", "Millisecond", "Microsecond", "Nanosecond", "Tzoffset", "IsoWeek",
+    };
+
+    // learn.microsoft.com DATEADD and DATEDIFF, whose shared datepart table
+    // stops at Nanosecond — neither accepts DATEPART's Tzoffset or IsoWeek.
+    private static readonly HashSet<string> SqlServerDateaddFields = new(StringComparer.Ordinal)
+    {
+        "Year", "Quarter", "Month", "Dayofyear", "Day", "Week", "Weekday", "Hour", "Minute",
+        "Second", "Millisecond", "Microsecond", "Nanosecond",
     };
 
     // learn.microsoft.com DATETRUNC: every SqlServerDatepartFields member except
@@ -85,8 +92,8 @@ internal static class DatepartValidity
         [("Extract", TargetDbms.Oracle)] = OracleExtractFields,
         [("Extract", TargetDbms.PostgreSql)] = PostgreSqlExtractFields,
         [("Datepart", TargetDbms.SqlServer)] = SqlServerDatepartFields,
-        [("Dateadd", TargetDbms.SqlServer)] = SqlServerDatepartFields,
-        [("Datediff", TargetDbms.SqlServer)] = SqlServerDatepartFields,
+        [("Dateadd", TargetDbms.SqlServer)] = SqlServerDateaddFields,
+        [("Datediff", TargetDbms.SqlServer)] = SqlServerDateaddFields,
         [("DateTrunc", TargetDbms.PostgreSql)] = PostgreSqlDateTruncFields,
         [("Datetrunc", TargetDbms.SqlServer)] = SqlServerDateTruncFields,
         [("Interval", TargetDbms.MySql)] = MySqlTemporalUnits,

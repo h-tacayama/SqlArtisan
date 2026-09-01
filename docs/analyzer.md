@@ -668,7 +668,8 @@ eleven (function, dialect) pairings below:
 | Function | Checked dialect(s) |
 |---|---|
 | `Extract` | MySQL, Oracle, PostgreSQL — each against its own field list |
-| `Datepart`, `Dateadd`, `Datediff` | SQL Server — all three share one datepart list |
+| `Datepart` | SQL Server — its own 15-entry datepart list |
+| `Dateadd`, `Datediff` | SQL Server — a shared 13-entry list, narrower than `Datepart`'s (no `TZOFFSET` or `ISO_WEEK`) |
 | `DateTrunc` | PostgreSQL |
 | `Datetrunc` | SQL Server |
 | `Interval` | MySQL — the same unit list as MySQL's `Extract` |
