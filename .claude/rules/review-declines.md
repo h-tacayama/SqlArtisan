@@ -82,12 +82,14 @@ the class by the terms a reviewer would search for.
   as whitespace on every dialect, while an alias is quoted, where whitespace
   is legal. The stricter check is correct where it is; the asymmetry is not a
   finding. (source: release audit pass 1, F17)
-- RD-005 [precise] Pre-existing `src/` comment blocks exceeding the
-  `code-comments.md` length caps (~82 blocks predating the rule) — declined
+- RD-005 [precise] Pre-existing comment blocks — in `src/` and `tests/`
+  alike (the rule's own `paths` cover both) — exceeding the
+  `code-comments.md` length caps and predating the rule — declined
   to mass-trim: the caps bind new and edited comments at review time; an
   existing block trims when its file is next edited for substance. A bulk
   reflow would churn blame for no behavioral gain. Not a finding for any
-  pre-rule comment at any tier. (source: release audit pass 1)
+  pre-rule comment at any tier, in either tree.
+  (source: release audit pass 1; tests/ scope settled pass 3, SD20)
 - RD-006 [precise] `RegexpOptions` flag-value validation of any kind — the
   per-dialect flag alphabet, and a contradictory combination (e.g. case-
   sensitive + case-insensitive together) rendering as written — deferred: an
@@ -115,8 +117,15 @@ the class by the terms a reviewer would search for.
   window tests asserting only Count(), MatrixSweep/Oracle23aiBound label
   duplication and missing skip-check, TCG Indexed end-to-end emission,
   ConsoleUI ReadDatabaseConnectionInfo, MySQL legacy index-catalog fallback
-  catch) — deferred as a tracked batch: coverage widening, not defects;
-  scheduled after the audit converges. (source: release audit passes 1–2)
+  catch; pass 3: ConditionIf two-way-AND excluded operands,
+  `With(...).InsertIgnoreInto(table)` columnless overload, JoinLateral
+  excluded-On, JsonValue MySQL and If/Ifnull/Instr dialect unit variants,
+  CrossJoinLateral StatementCatalog integration case, Oracle23aiBound
+  skip-check, MERGE ThenInsert value assertions, ordered-set-aggregate
+  PostgreSQL `.Over()` converse context rule with the PercentileCont
+  PostgreSQL-claim verification) — deferred as a tracked batch: coverage
+  widening, not defects; scheduled after the audit converges.
+  (source: release audit passes 1–3)
 - RD-010 [terse] Refinement-scope idiom findings from the audit sweeps
   (pass 1: the OverClause parenthesis idiom, `AppendSpaceIfNotNull` on a
   never-null part, `IsNull` property style divergence, test-file style
@@ -125,20 +134,26 @@ the class by the terms a reviewer would search for.
   parens around an already-grouped condition, `<Expectation>`-less MergeTests
   names, duplicated join-guard test comments, builder-interface doc-phrasing
   asymmetries, WithBuilder's exploded-constructor wrap shape, residual
-  test-comment length and 100-column outliers) — deferred: non-defect
+  test-comment length and 100-column outliers; pass 3: ConditionIfTests
+  argument packing, PublicSurfaceBoundaryTests over-length doc blocks,
+  AnalyzerConfigResolverTests/ClaudeMdTests/ConstructKeyNaming comment
+  lengths, MSBuildPropertyParityTests comment shape) — deferred: non-defect
   refinements outside the defect-bar review scope, batched for an
   `sa-diff-review-refinement` pass after the audit converges.
-  (source: release audit passes 1–2)
+  (source: release audit passes 1–3)
 - RD-009 [terse] DML-context dialect gaps the matrix's context-free keys
   cannot express — a joined `DELETE` on SQLite (`InnerJoin`'s entry is All),
   Oracle `DELETE ... USING` (the `Using` key unions the MERGE context's
   support), and the wrong-dialect joined-`UPDATE` spellings that emit
   faithfully (the MySQL JOIN form on Oracle/PostgreSQL/SQLite; the
-  un-re-listed FROM form on MySQL/Oracle) — all SQLA0102-class context rules
-  needing live rejection proofs; deferred under the audit freeze. The
-  repeated-target `UPDATE ... FROM` form is instance-identity-visible and is
-  guarded at Build() instead (release audit pass 2).
-  (source: release audit pass 1 F26; pass 2 F7/F28/ADJ3)
+  un-re-listed FROM form on MySQL/Oracle), and the joined-`DELETE`
+  repeated-FROM form on Oracle and PostgreSQL (MySQL's and SQL Server's
+  spelling, emitted faithfully where those two reject it) — all
+  SQLA0102-class context rules needing live rejection proofs; deferred under
+  the audit freeze. The repeated-target `UPDATE ... FROM` form is
+  instance-identity-visible and is guarded at Build() instead (release
+  audit pass 2). (source: release audit pass 1 F26; pass 2 F7/F28/ADJ3;
+  pass 3 panel 1)
 - RD-011 [precise] `InsertInto(t).Set(...)` exposing no `.Output(...)` while
   `Update(t).Set(...)` does — declined as correct typestate: the SET-form
   INSERT is MySQL's construct and `OUTPUT` is SQL Server's, so no dialect
@@ -146,10 +161,12 @@ the class by the terms a reviewer would search for.
   working as designed. Not a finding at any tier.
   (source: release audit pass 2, SD9)
 - RD-012 [precise] The expressibility gaps recorded in issue #521 — value
-  analytics' `Over(PartitionByClause)`, `GroupBy` ordinal literals, and
-  `With(...)` into `MergeInto(...)` — deferred as feature work under the
-  audit freeze; re-raise on the issue, not as a review finding.
-  (source: release audit pass 2, ADJ2/SD7/SD13)
+  analytics' `Over(PartitionByClause)`, `GroupBy` ordinal literals,
+  `With(...)` into `MergeInto(...)`, and `.Output(...)` from the columnless
+  `InsertInto(t).Values(...)` chain (T-SQL accepts the column-list-free
+  OUTPUT insert) — deferred as feature work under the audit freeze;
+  re-raise on the issue, not as a review finding.
+  (source: release audit pass 2, ADJ2/SD7/SD13; pass 3, SD9)
 - RD-002 [precise] `Validate(Dbms)` running only on the outermost statement
   builder — a subquery, CTE body, or derived table renders through `Format`,
   so its dialect guards (e.g. the SQL Server TOP pairing rules) do not re-run
@@ -163,3 +180,32 @@ the class by the terms a reviewer would search for.
   CLI: a scripted run states its schema explicitly, and the interactive path
   is where defaults belong (both schema prompts now carry one). The asymmetry
   is not a finding at any tier. (source: #506 smoke-test sweep triage)
+- RD-013 [precise] The mid-chain `INSERT INTO t (cols) WITH ... SELECT`
+  position (`IWithBuilder` on the column-list stage, `InsertIgnoreInto`
+  included) flagged as an invalid WITH placement — refuted: the position is
+  the deliberate feeding-SELECT feature the member's own doc describes,
+  MySQL documents `INSERT ... WITH ... SELECT` explicitly, and SQLite
+  accepts it live. Not a finding; only the leading `With(...).InsertInto`
+  form is separately documented. (source: release audit pass 3, F15)
+- RD-014 [precise] `BindValue`'s `direction`/`size` accepting any value —
+  declined to validate: `Size = -1` is SqlClient's own varchar(max)/
+  nvarchar(max) spelling (a meaningful value, so ADR 0012's
+  universally-invalid test fails), and an undefined `ParameterDirection`
+  is rejected loudly by every ADO.NET provider at bind time. Not a finding
+  for either parameter. (source: release audit pass 3, F3)
+- RD-015 [precise] A pseudo-column reference building outside its context —
+  `Sql.Excluded(...)` outside an upsert's DO UPDATE SET, `Inserted`/
+  `Deleted` under the wrong OUTPUT verb — declined as ADR 0007's permissive
+  default: every engine rejects the misplaced reference loudly by name, and
+  a Build()-time context guard would need cross-clause analysis for a
+  failure that is never silent. An SQLA0102-class context rule for these
+  belongs with RD-009's family when the freeze lifts. Not a finding for any
+  pseudo-column placement. (source: release audit pass 3, F8/PD3)
+- RD-016 [terse] Negative or zero pagination and TOP counts rendering as
+  written (`LIMIT -1`, `OFFSET -1`, `TOP (-1)`, `FETCH FIRST 0 ROWS`) —
+  deferred like RD-006: zero is legal everywhere, SQLite's `LIMIT -1` is a
+  meaningful "no limit" (so the LIMIT/OFFSET families fail ADR 0012's
+  universally-invalid test outright), and the TOP/FETCH negative cases need
+  per-engine live rejection proofs the audit freeze does not admit;
+  revisit with integration coverage.
+  (source: release audit pass 3, SD3)

@@ -1,4 +1,5 @@
 using System.Data;
+using Dapper;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -39,5 +40,19 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
 
         Assert.Equal(2, inserted);
         transaction.Rollback();
+    }
+
+    // The 23ai half of LockWaitGuard's live-verified claim (ADR 0012); the 21c
+    // half is OracleTests.Wait_NegativeSeconds_Rejected.
+    [Fact]
+    public void Wait_NegativeSeconds_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT age FROM users WHERE id = 1 FOR UPDATE WAIT 3");
+        connection.ExecuteScalar("SELECT age FROM users WHERE id = 1 FOR UPDATE WAIT 0");
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT age FROM users WHERE id = 1 FOR UPDATE WAIT -1"));
     }
 }
