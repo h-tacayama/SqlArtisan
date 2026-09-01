@@ -6,7 +6,10 @@ public abstract class JsonbCondition : SqlCondition
     private readonly string _operator;
     private readonly SqlExpression _rightSide;
 
-    private protected JsonbCondition(SqlExpression leftSide, string @operator, SqlExpression rightSide)
+    private protected JsonbCondition(
+        SqlExpression leftSide,
+        string @operator,
+        SqlExpression rightSide)
     {
         _leftSide = leftSide;
         _operator = @operator;

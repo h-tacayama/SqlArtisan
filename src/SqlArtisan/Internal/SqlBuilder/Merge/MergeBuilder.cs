@@ -111,7 +111,10 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
 
     public IMergeBuilderWhenMatched WhenMatched(SqlCondition extraCondition)
     {
-        AddPart(new WhenMatchedClause(extraCondition));
+        // A null here would silently render the unconditioned branch the
+        // zero-argument overload spells on purpose.
+        AddPart(new WhenMatchedClause(
+            NullGuard.ThrowIfNull(extraCondition, nameof(extraCondition))));
         return this;
     }
 
@@ -123,7 +126,8 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
 
     public IMergeBuilderWhenNotMatched WhenNotMatched(SqlCondition extraCondition)
     {
-        AddPart(new WhenNotMatchedClause(extraCondition));
+        AddPart(new WhenNotMatchedClause(
+            NullGuard.ThrowIfNull(extraCondition, nameof(extraCondition))));
         return this;
     }
 
@@ -135,7 +139,8 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
 
     public IMergeBuilderWhenNotMatchedBySource WhenNotMatchedBySource(SqlCondition extraCondition)
     {
-        AddPart(new WhenNotMatchedBySourceClause(extraCondition));
+        AddPart(new WhenNotMatchedBySourceClause(
+            NullGuard.ThrowIfNull(extraCondition, nameof(extraCondition))));
         return this;
     }
 

@@ -180,6 +180,25 @@ public class OrderByTests
     }
 
     [Fact]
+    public void OrderBy_NanSortKey_ThrowsArgumentException()
+    {
+        // A value-domain failure gets a value message, not the type message.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(double.NaN));
+
+        Assert.Equal("An ORDER BY numeric sort key must be finite.", ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_InfiniteSortKey_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(float.PositiveInfinity));
+
+        Assert.Equal("An ORDER BY numeric sort key must be finite.", ex.Message);
+    }
+
+    [Fact]
     public void OrderBy_NegativeOrdinal_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>

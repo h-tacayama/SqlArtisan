@@ -48,8 +48,12 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
 
     public IReturning OnDuplicateKeyUpdate(params EqualityCondition[] assignments)
     {
+        // Parse before appending anything: a throw after AddPart(RowAliasClause)
+        // would leave the alias behind, and the supported fix-up retry on the
+        // same instance would then emit it twice (`AS new AS new`).
+        OnDuplicateKeyUpdateClause parsed = OnDuplicateKeyUpdateClause.Parse(assignments);
         AddPart(new RowAliasClause());
-        AddPart(OnDuplicateKeyUpdateClause.Parse(assignments));
+        AddPart(parsed);
         return this;
     }
 

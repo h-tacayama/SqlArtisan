@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace SqlArtisan.Internal;
@@ -151,13 +152,23 @@ internal abstract class SqlBuilderBase
     // operator starts a new query block, so a compound query's second SELECT
     // legally re-carries every kind; a MERGE WHEN clause does the same for the
     // branch-scoped kinds only, and each join clause re-admits one ON/USING.
+    // The conditioned joins must also *receive* one before anything else
+    // follows: a held pre-join stage can otherwise build the chain with the
+    // join left dangling — the silent cartesian product ADR 0017's
+    // compile-time mechanism exists to reject, so this is its Build() backstop.
     private void ThrowIfDuplicateClauseInBlock()
     {
         ulong seen = 0;
         ulong seenInBranch = 0;
         bool joinConditionSeen = false;
+        bool joinConditionPending = false;
         foreach (SqlPart part in CollectionsMarshal.AsSpan(_parts))
         {
+            if (joinConditionPending && part is not (OnClause or JoinUsingClause))
+            {
+                ThrowJoinConditionMissing();
+            }
+
             if (part is UnionOperator or ExceptOperator or IntersectOperator or MinusOperator)
             {
                 seen = 0;
@@ -173,7 +184,12 @@ internal abstract class SqlBuilderBase
             // ON/USING legally repeat once per join, so they pair by adjacency
             // rather than by a once-per-block entry.
             if (part is InnerJoinClause or LeftJoinClause or RightJoinClause or FullJoinClause
-                or JoinLateralClause or LeftJoinLateralClause or CrossJoinLateralClause
+                or JoinLateralClause)
+            {
+                joinConditionSeen = false;
+                joinConditionPending = true;
+            }
+            else if (part is LeftJoinLateralClause or CrossJoinLateralClause
                 or CrossJoinClause or NaturalJoinClause or NaturalLeftJoinClause
                 or NaturalRightJoinClause or NaturalFullJoinClause
                 or CrossApplyClause or OuterApplyClause)
@@ -190,6 +206,7 @@ internal abstract class SqlBuilderBase
                 }
 
                 joinConditionSeen = true;
+                joinConditionPending = false;
             }
 
             Type partType = part.GetType();
@@ -231,7 +248,18 @@ internal abstract class SqlBuilderBase
                 break;
             }
         }
+
+        if (joinConditionPending)
+        {
+            ThrowJoinConditionMissing();
+        }
     }
+
+    [DoesNotReturn]
+    private static void ThrowJoinConditionMissing() =>
+        throw new ArgumentException(
+            "A join is missing its ON or USING clause; the statement was built " +
+            "from a held builder before the join was completed.");
 
     // For a Validate(Dbms) override that must walk clause order (e.g. MERGE's
     // branch pairing), where FindPart's first-of-type is not enough.

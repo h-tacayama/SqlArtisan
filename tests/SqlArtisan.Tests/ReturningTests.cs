@@ -266,6 +266,17 @@ public class ReturningTests
     }
 
     [Fact]
+    public void OutputParameter_WhiteSpaceVariable_ThrowsArgumentException()
+    {
+        // The variable renders as a bare bind-marker token, so whitespace
+        // there is invalid on every dialect.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new OutputParameter(" ", DbType.Int32));
+
+        Assert.Equal("An output variable name is required. (Parameter 'variable')", ex.Message);
+    }
+
+    [Fact]
     public void ReturningInto_NoArguments_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>

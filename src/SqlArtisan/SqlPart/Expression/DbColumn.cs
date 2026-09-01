@@ -9,6 +9,8 @@ namespace SqlArtisan;
 /// </summary>
 public sealed class DbColumn : SqlExpression
 {
+    private readonly bool _quoteName;
+
     /// <summary>
     /// Creates a reference to the named column of <paramref name="owner"/>.
     /// </summary>
@@ -21,6 +23,15 @@ public sealed class DbColumn : SqlExpression
 
         Owner = owner;
         Name = name;
+    }
+
+    // For a column materialized from a quoted SELECT-list alias: the reference
+    // must render quoted exactly as the definition did, or a case-folding
+    // engine resolves the two to different identifiers.
+    internal DbColumn(TableReference owner, string name, bool quoteName)
+        : this(owner, name)
+    {
+        _quoteName = quoteName;
     }
 
     internal TableReference Owner { get; }
@@ -42,11 +53,23 @@ public sealed class DbColumn : SqlExpression
             buffer.ThrowIfCorrelatedDmlColumn(Owner);
         }
 
-        buffer.Append(Name);
+        AppendName(buffer);
     }
 
     // Renders the bare column name: a DML context that names a target column
     // must stay unqualified — PostgreSQL rejects an alias qualifier there.
     internal void FormatUnqualified(SqlBuildingBuffer buffer) =>
-        buffer.Append(Name);
+        AppendName(buffer);
+
+    private void AppendName(SqlBuildingBuffer buffer)
+    {
+        if (_quoteName)
+        {
+            buffer.EncloseInAliasQuotes(Name);
+        }
+        else
+        {
+            buffer.Append(Name);
+        }
+    }
 }

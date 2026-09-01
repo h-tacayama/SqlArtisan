@@ -27,7 +27,7 @@ public static partial class Sql
 
         foreach (string columnName in columnNames)
         {
-            StringGuard.ThrowIfNullOrEmpty(
+            StringGuard.ThrowIfNullOrWhiteSpace(
                 columnName, "A VALUES source requires a name for every column.");
         }
 

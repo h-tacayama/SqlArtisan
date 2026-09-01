@@ -535,6 +535,17 @@ public class MergeTests
     }
 
     [Fact]
+    public void Values_WhiteSpaceColumnName_ThrowsArgumentException()
+    {
+        // The column list renders as bare tokens, so whitespace there is
+        // invalid on every dialect (unlike the alias, which renders quoted).
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Values("s", ["code", " "], [[1, 2]]));
+
+        Assert.Equal("A VALUES source requires a name for every column.", ex.Message);
+    }
+
+    [Fact]
     public void Values_NullRow_ThrowsArgumentNullException()
     {
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
@@ -733,5 +744,34 @@ public class MergeTests
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    // A null extra condition would silently render the unconditioned branch
+    // the zero-argument overloads spell on purpose.
+    [Fact]
+    public void WhenMatched_NullCondition_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code).WhenMatched(null!));
+
+        Assert.Equal("extraCondition", ex.ParamName);
+    }
+
+    [Fact]
+    public void WhenNotMatched_NullCondition_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code).WhenNotMatched(null!));
+
+        Assert.Equal("extraCondition", ex.ParamName);
+    }
+
+    [Fact]
+    public void WhenNotMatchedBySource_NullCondition_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code).WhenNotMatchedBySource(null!));
+
+        Assert.Equal("extraCondition", ex.ParamName);
     }
 }

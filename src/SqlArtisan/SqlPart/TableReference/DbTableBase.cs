@@ -18,6 +18,10 @@ public abstract class DbTableBase : TableReference
     public DbTableBase(string tableName, string tableAlias)
         : base(tableName, "A table requires a name.")
     {
+        // The name renders as a bare token (unlike a CTE or derived-table name,
+        // which renders alias-quoted), so whitespace there is invalid on every
+        // dialect (RD-004's bare-token side).
+        StringGuard.ThrowIfNullOrWhiteSpace(tableName, "A table requires a name.");
         _tableAlias = tableAlias;
     }
 

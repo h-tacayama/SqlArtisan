@@ -40,7 +40,7 @@ public sealed class UnnestFunction : SqlExpression
 
         foreach (string column in columns)
         {
-            StringGuard.ThrowIfNullOrEmpty(
+            StringGuard.ThrowIfNullOrWhiteSpace(
                 column, "An UNNEST column alias list requires a name for every column.");
         }
 

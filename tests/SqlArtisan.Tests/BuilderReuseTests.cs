@@ -316,4 +316,65 @@ public class BuilderReuseTests
                 + "INNER JOIN test_table \"u\" ON code = \"u\".code",
             sql.Text);
     }
+
+    private const string DanglingJoinMessage =
+        "A join is missing its ON or USING clause; the statement was built "
+            + "from a held builder before the join was completed.";
+
+    [Fact]
+    public void Join_NoOnOnHeldStage_BuildThrowsArgumentException()
+    {
+        // The compile-time pending type can be bypassed by building from a
+        // held pre-join stage — the silent cartesian product ADR 0017 rejects.
+        TestTable s = new("s");
+        ISelectBuilderFrom held = Select(_t.Code).From(_t);
+        held.InnerJoin(s);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
+
+        Assert.Equal(DanglingJoinMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Join_NoOnThenLaterStageOnHeldBuilder_ThrowsArgumentException()
+    {
+        TestTable s = new("s");
+        ISelectBuilderFrom held = Select(_t.Code).From(_t);
+        held.InnerJoin(s);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Where(_t.Code == 1).Build());
+
+        Assert.Equal(DanglingJoinMessage, ex.Message);
+    }
+
+    [Fact]
+    public void UpdateJoin_NoOnOnHeldStage_BuildThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        IUpdateBuilderUpdate held = Update(t);
+        held.InnerJoin(s);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Set(t.Code == 1).Build(Dbms.MySql));
+
+        Assert.Equal(DanglingJoinMessage, ex.Message);
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_ThrewOnEmptyAssignments_RetryEmitsSingleRowAlias()
+    {
+        // The failed call must leave nothing behind: appending the row alias
+        // before parsing let a fix-up retry emit `AS new AS new`.
+        IInsertBuilderValues stage = InsertInto(_t, _t.Code).Values(1);
+        Assert.Throws<ArgumentException>(() => stage.OnDuplicateKeyUpdate());
+
+        SqlStatement sql = stage.OnDuplicateKeyUpdate(_t.Code == 5).Build(Dbms.MySql);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code) VALUES (?0) AS new "
+                + "ON DUPLICATE KEY UPDATE code = ?1",
+            sql.Text);
+    }
 }

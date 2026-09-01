@@ -30,6 +30,11 @@ public sealed class ExpressionAlias : SqlPart, ISortable
 
     internal string Name { get; }
 
+    // Whether the definition renders the alias quoted — a handle-column
+    // reference must match, or the reference folds while the definition
+    // does not (#165's hazard, in the other direction).
+    internal bool QuoteAlias => _quoteAlias;
+
     /// <summary>
     /// Gets the ascending <c>ORDER BY</c> sort key for this alias
     /// (<c>"alias" ASC</c>).

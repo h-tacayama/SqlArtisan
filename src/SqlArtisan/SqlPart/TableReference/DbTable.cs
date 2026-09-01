@@ -31,5 +31,5 @@ public sealed class DbTable(string tableName, string tableAlias = "")
     /// </summary>
     /// <param name="alias">The SELECT-list <c>.As(...)</c> alias to qualify with this table's alias.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this table's alias.</returns>
-    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name);
+    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.QuoteAlias);
 }

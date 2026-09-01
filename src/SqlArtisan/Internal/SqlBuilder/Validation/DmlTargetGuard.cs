@@ -2,11 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace SqlArtisan.Internal;
 
-// The guards for a DML target that has no correct spelling on the resolved
-// dialect — an aliased target on SQL Server (the ADR 0011 bounded exception to
-// ADR 0007's permissive default, since the alias is a value the analyzer cannot
-// see) and an unaliased correlated target, whose columns resolve to the inner
-// scope on every dialect (#253).
+// DML-target shape guards: most reject a target with no valid spelling on the
+// resolved dialect (ADR 0011 — the deciding facts are builder state the
+// analyzer cannot see); the joined-target alias rule is decided policy (#258).
 internal static class DmlTargetGuard
 {
     [DoesNotReturn]

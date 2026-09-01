@@ -149,7 +149,11 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public ISqlBuilder ForUpdate(OfClause ofClause, LockBehaviorBase? lockBehavior = null)
     {
-        AddPart(new ForUpdateClause(ofClause, lockBehavior));
+        // A null here would silently drop the OF list and widen the lock to
+        // every table in the query — the lockBehavior-only overload spells
+        // that on purpose.
+        AddPart(new ForUpdateClause(
+            NullGuard.ThrowIfNull(ofClause, nameof(ofClause)), lockBehavior));
         return this;
     }
 

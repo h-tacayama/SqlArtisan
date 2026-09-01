@@ -99,6 +99,16 @@ justification, no per-member split.
   One type change (dropping the two base interfaces) covers every member
   uniformly, with no `Validate(Dbms)` branch — the classification argument
   lives entirely in this ADR, not in the mechanism.
+- **A `Build()`-time backstop joined the compile-time mechanism** (release
+  audit, pass 3): a caller holding a *pre-join* stage reference can call a
+  join member and then build from the held reference, bypassing the pending
+  type entirely — the chain compiles and the dangling join renders as the
+  silent cartesian product this ADR rejects. The duplicate-clause walk in
+  `SqlBuilderBase` therefore also throws when a conditioned join
+  (`InnerJoin`/`LeftJoin`/`RightJoin`/`FullJoin`/`JoinLateral`, and the DML
+  builders' joined forms) is not followed by its `ON`/`USING`. The
+  compile-time pending type stays primary; the backstop is dialect-blind,
+  matching the uniform scope above.
 - **Narrow, by construction.** This is not a license to block any construct
   that has a "better" alternative spelling — see `public-api-design.md`'s
   `COUNT(*)` lesson: knowledge encoded as an API hole is invisible and

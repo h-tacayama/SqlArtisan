@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- A conditioned join (`InnerJoin`/`LeftJoin`/`RightJoin`/`FullJoin`/
+  `JoinLateral`, and the joined `UPDATE`/`DELETE` forms) left without its
+  `ON`/`USING` by building from a held pre-join stage now throws at `Build()`
+  instead of silently emitting the join as a cartesian product on the
+  dialects that accept the omission.
+- A column materialized from a quoted `SELECT`-list alias
+  (`Column(ExpressionAlias)` on a CTE, derived table, or `DbTable`) now
+  renders quoted exactly as its definition — `"cte"."Total"` — where the
+  bare reference previously no longer resolved on a case-folding engine.
+  Handle columns bound with `As(DbColumn)` still render bare on both sides.
+- `WhenMatched(null)`, `WhenNotMatched(null)`, and
+  `WhenNotMatchedBySource(null)` now throw instead of silently rendering the
+  unconditioned branch the zero-argument overloads spell on purpose;
+  `ForUpdate((OfClause)null, ...)` likewise throws instead of silently
+  dropping the `OF` list and widening the lock scope.
+- A failed `OnDuplicateKeyUpdate(...)` call no longer leaves its MySQL row
+  alias behind, where a corrected retry on the same builder emitted
+  `AS new AS new`.
+- The whitespace bare-token guard now also covers a table name, a `VALUES`
+  source's column names, an `UNNEST` column alias list, and an
+  `OutputParameter` variable name — all emitted as bare tokens, invalid on
+  every dialect with whitespace; quoted positions still accept it.
+- `OrderBy(double.NaN)` (or an infinite sort key) now reports the value
+  problem — "must be finite" — instead of an invalid-type message, and an
+  empty join `ON` condition's error names the SQL construct (`CROSS JOIN`)
+  instead of a stage absent from the DML and lateral paths.
 - Analyzer: a `sqlartisan_construct_* = supported` override on a dialect the
   matrix flags unsupported (or version-bound above the declared version) no
   longer silences `SQLA0104` — the override quiets `SQLA0100`/`SQLA0101`, and

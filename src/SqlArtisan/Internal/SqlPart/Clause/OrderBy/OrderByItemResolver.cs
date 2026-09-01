@@ -79,10 +79,13 @@ internal static class OrderByItemResolver
                 return new LiteralValue(text);
 
             case float or double or decimal:
+                // NaN/Infinity is a value-domain failure, not a type one:
+                // no engine parses either as a sort-key literal.
                 if ((value is double d && !double.IsFinite(d))
                     || (value is float f && !float.IsFinite(f)))
                 {
-                    throw UnresolvableValue("OrderByItem", value);
+                    throw new ArgumentException(
+                        "An ORDER BY numeric sort key must be finite.");
                 }
 
                 // A literal sort key, rendered with a decimal point so a whole

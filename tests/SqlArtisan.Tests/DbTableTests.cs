@@ -192,7 +192,7 @@ public class DbTableTests
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("\"u\".uid ");
+        expected.Append("\"u\".\"uid\" ");
         expected.Append("FROM ");
         expected.Append("users \"u\"");
 
@@ -204,6 +204,17 @@ public class DbTableTests
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             new DbTable(""));
+
+        Assert.Equal("A table requires a name.", ex.Message);
+    }
+
+    [Fact]
+    public void DbTable_WhiteSpaceTableName_ThrowsArgumentException()
+    {
+        // The table name renders as a bare token, so whitespace there is
+        // invalid on every dialect.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new DbTable(" "));
 
         Assert.Equal("A table requires a name.", ex.Message);
     }

@@ -504,7 +504,12 @@ public class GroupByTests
     public void GroupingSets_WithNullSets_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => GroupingSets(Group(_t.Code), null!));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            GroupingSets(Group(_t.Code), null!));
+
+        Assert.Equal(
+            "GROUPING SETS must not contain a null grouping set. (Parameter 'sets')",
+            ex.Message);
     }
 
     [Fact]

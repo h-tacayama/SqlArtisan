@@ -19,10 +19,10 @@ public readonly struct OutputParameter
     /// <param name="variable">The output variable name, emitted as a bind marker (<c>:name</c>).</param>
     /// <param name="dbType">The data type the output parameter is bound as.</param>
     /// <param name="size">The buffer size for variable-length types (for example strings); omit for fixed-width types.</param>
-    /// <exception cref="ArgumentException"><paramref name="variable"/> is <see langword="null"/> or empty.</exception>
+    /// <exception cref="ArgumentException"><paramref name="variable"/> is <see langword="null"/>, empty, or white space.</exception>
     public OutputParameter(string variable, DbType dbType, int? size = null)
     {
-        if (string.IsNullOrEmpty(variable))
+        if (string.IsNullOrWhiteSpace(variable))
         {
             throw new ArgumentException("An output variable name is required.", nameof(variable));
         }

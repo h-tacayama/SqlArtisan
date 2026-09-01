@@ -1,4 +1,5 @@
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -193,5 +194,17 @@ public class ForUpdateTests
         expected.Append("FOR UPDATE OF code WAIT 5");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ForUpdate_NullOfClause_ThrowsArgumentNullException()
+    {
+        // A null OF list would silently widen the lock to every table.
+        TestTable t = new();
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Select(t.Name).From(t).ForUpdate((OfClause)null!));
+
+        Assert.Equal("ofClause", ex.ParamName);
     }
 }

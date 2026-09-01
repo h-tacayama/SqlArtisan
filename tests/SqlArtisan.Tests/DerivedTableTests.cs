@@ -136,7 +136,7 @@ public class DerivedTableTests
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("\"t\".name, \"x\".total ");
+        expected.Append("\"t\".name, \"x\".\"total\" ");
         expected.Append("FROM ");
         expected.Append("test_table \"t\" ");
         expected.Append("CROSS APPLY ");
@@ -226,7 +226,7 @@ public class DerivedTableTests
         StringBuilder expected = new();
         expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"c\" FROM test_table \"a\") ");
-        expected.Append("SELECT \"cte\".c ");
+        expected.Append("SELECT \"cte\".\"c\" ");
         expected.Append("FROM \"cte\"");
 
         Assert.Equal(expected.ToString(), sql.Text);

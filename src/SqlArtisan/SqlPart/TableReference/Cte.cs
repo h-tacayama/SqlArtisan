@@ -29,5 +29,5 @@ public sealed class Cte(string name) : CteBase(name), IColumnAccessor
     /// </summary>
     /// <param name="alias">The SELECT-list <c>.As(...)</c> alias to qualify with this CTE's name.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this CTE's name.</returns>
-    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name);
+    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.QuoteAlias);
 }

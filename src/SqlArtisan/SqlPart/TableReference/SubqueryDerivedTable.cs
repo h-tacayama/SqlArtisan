@@ -24,7 +24,7 @@ public sealed class SubqueryDerivedTable : DerivedTableBase, IColumnAccessor
     public DbColumn Column(DbColumn source) => new(this, source.Name);
 
     /// <inheritdoc/>
-    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name);
+    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.QuoteAlias);
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .EncloseInParentheses(_subquery)
