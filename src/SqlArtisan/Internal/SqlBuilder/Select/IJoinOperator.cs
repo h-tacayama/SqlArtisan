@@ -33,14 +33,14 @@ public interface IJoinOperator
     ISelectBuilderFrom CrossJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
-    /// Appends <c>FULL JOIN table</c>, keeping unmatched rows from both sides. The join predicate is supplied by the following <c>On(...)</c>.
+    /// Appends <c>FULL JOIN table</c>. The join predicate is supplied by the following <c>On(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to full-join.</param>
     /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
     ISelectBuilderJoin FullJoin(TableReference table);
 
     /// <summary>
-    /// Appends <c>INNER JOIN table</c>, keeping only matched rows. The join predicate is supplied by the following <c>On(...)</c>.
+    /// Appends <c>INNER JOIN table</c>. The join predicate is supplied by the following <c>On(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to inner-join.</param>
     /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
@@ -57,7 +57,7 @@ public interface IJoinOperator
     ISelectBuilderJoin JoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
-    /// Appends <c>LEFT JOIN table</c>, keeping all left-side rows. The join predicate is supplied by the following <c>On(...)</c>.
+    /// Appends <c>LEFT JOIN table</c>. The join predicate is supplied by the following <c>On(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to left-join.</param>
     /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
@@ -74,32 +74,32 @@ public interface IJoinOperator
     ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
-    /// Appends <c>NATURAL FULL JOIN table</c>, matching on every same-named column shared by both sides
-    /// and keeping unmatched rows from both.
+    /// Appends <c>NATURAL FULL JOIN table</c>, matching on every same-named column shared by both
+    /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-full-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
     ISelectBuilderFrom NaturalFullJoin(TableReference table);
 
     /// <summary>
-    /// Appends <c>NATURAL JOIN table</c>, matching on every same-named column shared by both sides
-    /// (an inner join, keeping only matched rows) instead of an explicit <c>ON</c> predicate.
+    /// Appends <c>NATURAL JOIN table</c>, matching on every same-named column shared by both
+    /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
     ISelectBuilderFrom NaturalJoin(TableReference table);
 
     /// <summary>
-    /// Appends <c>NATURAL LEFT JOIN table</c>, matching on every same-named column shared by both sides
-    /// and keeping all left-side rows.
+    /// Appends <c>NATURAL LEFT JOIN table</c>, matching on every same-named column shared by both
+    /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-left-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
     ISelectBuilderFrom NaturalLeftJoin(TableReference table);
 
     /// <summary>
-    /// Appends <c>NATURAL RIGHT JOIN table</c>, matching on every same-named column shared by both sides
-    /// and keeping all right-side rows.
+    /// Appends <c>NATURAL RIGHT JOIN table</c>, matching on every same-named column shared by both
+    /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-right-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
@@ -116,7 +116,7 @@ public interface IJoinOperator
     ISelectBuilderFrom OuterApply(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
-    /// Appends <c>RIGHT JOIN table</c>, keeping all right-side rows. The join predicate is supplied by the following <c>On(...)</c>.
+    /// Appends <c>RIGHT JOIN table</c>. The join predicate is supplied by the following <c>On(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to right-join.</param>
     /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>

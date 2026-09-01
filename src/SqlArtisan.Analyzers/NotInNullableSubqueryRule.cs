@@ -11,9 +11,8 @@ namespace SqlArtisan.Analyzers;
 /// so the statement silently returns nothing (#266).
 /// </summary>
 /// <remarks>
-/// Every walk fails toward silence (ADR 0003): a subquery held in a variable, a
-/// select list this rule cannot read, or a select item that is not a column all
-/// yield a false negative, never a false positive.
+/// Every walk fails toward silence (ADR 0003): any shape this rule cannot read
+/// yields a false negative, never a false positive.
 /// </remarks>
 internal static class NotInNullableSubqueryRule
 {
@@ -33,12 +32,9 @@ internal static class NotInNullableSubqueryRule
             item.Property.Name));
     }
 
-    // The documented remediation is `.Where(col.IsNotNull)`, so the rule must go
-    // quiet when it sees it — or its `Not(col.IsNull)` twin, since IS NULL is the
-    // one predicate three-valued logic never leaves UNKNOWN. Presence anywhere in
-    // the subquery is enough: a filter that does not actually exclude the NULLs
-    // (under an OR, in a different clause) yields a false negative, never a false
-    // positive.
+    // The documented remediation is `.Where(col.IsNotNull)` — or its `Not(col.IsNull)`
+    // twin, the one predicate three-valued logic never leaves UNKNOWN — so its presence
+    // anywhere in the subquery goes quiet, even where it would not exclude the NULLs.
     private static bool FiltersOutNulls(IOperation subquery, IPropertySymbol column)
     {
         Stack<IOperation> pending = new();
@@ -102,14 +98,9 @@ internal static class NotInNullableSubqueryRule
         return false;
     }
 
-    // A condition the walk can descend into: one the core itself builds here.
-    // IsNotNull/IsNull is readable only past a receiver declared on a table
-    // reference — an arbitrary DbColumn-typed property is structurally a
-    // property reference too, but its value is opaque the same way a local or a
-    // field's is, so it must not pass this check either. A function-wrapped
-    // receiver (Upper(col), Coalesce(col, x)) is opaque the same way: whether
-    // the wrapper still propagates NULL is not asked, so this yields a false
-    // negative there too, never a false positive.
+    // A condition the walk can descend into. IsNotNull/IsNull must sit on a receiver
+    // declared on a table reference: any other DbColumn-typed property, and any
+    // function-wrapped receiver (Upper(col)), is as opaque as a local or a field.
     private static bool IsReadable(IOperation condition) => condition switch
     {
         IPropertyReferenceOperation { Property.Name: "IsNotNull" or "IsNull" } nullCheck =>

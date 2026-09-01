@@ -38,10 +38,8 @@ internal static class CorrelatedDmlRule
             return;
         }
 
-        // A joined UPDATE/DELETE with an unaliased target throws its own guard
-        // (a different message) before the correlated guard arms, so reporting
-        // "correlated" there would misdescribe it — scan the whole chain for a
-        // joined step before deciding to report.
+        // A joined UPDATE/DELETE with an unaliased target throws a different guard
+        // before the correlated one arms — scan the whole chain before reporting.
         IOperation current = dml;
         IOperation? correlated = null;
         while (FluentChain.Parent(current) is { } next)
@@ -111,10 +109,9 @@ internal static class CorrelatedDmlRule
             : ConstructorsDoNotWrite((IFieldSymbol)target);
     }
 
-    // A zero-argument shortcut would false-positive on a constructor hardcoding
-    // an alias (': base("t", "x")'), so the value reaching DbTableBase's
-    // tableAlias slot is traced through the ctor-initializer chain and must
-    // resolve to a null/empty constant.
+    // A zero-argument shortcut would false-positive on a ctor hardcoding an alias
+    // (': base("t", "x")'), so the value reaching DbTableBase's tableAlias slot is
+    // traced through the ctor-initializer chain to a null/empty constant.
     private static bool CreationProvablyUnaliased(Compilation compilation, IObjectCreationOperation creation)
     {
         if (creation.Constructor is not { } constructor || !DerivesFromDbTableBase(creation.Type))
@@ -242,9 +239,8 @@ internal static class CorrelatedDmlRule
     {
         MemberDeclarationSyntax? member = node.FirstAncestorOrSelf<MemberDeclarationSyntax>();
 
-        // A top-level statement is itself a MemberDeclarationSyntax, so stopping
-        // there hides sibling statements' writes and false-positives on a
-        // reassigned target; the whole unit only adds visible writes — silence-safe.
+        // A top-level statement is itself a MemberDeclarationSyntax; stopping there
+        // hides sibling writes and false-positives — the whole unit is silence-safe.
         return member is null || member is GlobalStatementSyntax
             ? node.SyntaxTree.GetRoot()
             : member;

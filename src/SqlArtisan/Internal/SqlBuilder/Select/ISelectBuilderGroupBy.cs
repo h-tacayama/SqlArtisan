@@ -20,6 +20,7 @@ public interface ISelectBuilderGroupBy : ISqlBuilder, ISetOperator, ISubquery, I
     /// Appends the <c>WITH ROLLUP</c> suffix to the <c>GROUP BY</c> clause
     /// (<c>GROUP BY a, b WITH ROLLUP</c>).
     /// </summary>
+    /// <returns>The builder positioned for <c>HAVING</c>, ordering, pagination, or build.</returns>
     /// <remarks>
     /// MySQL's grouping syntax, which SQL Server accepts as a legacy form. The
     /// standard <c>Sql.Rollup(...)</c> function form covers Oracle, PostgreSQL,

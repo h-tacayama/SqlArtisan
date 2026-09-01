@@ -3,11 +3,9 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// Hand-maintained mirror of docs/cookbook.md's recipes (#227): each test pins
-// one recipe's emitted SQL. Unlike DocsIndexTests/LlmsFullTests this file does
-// NOT read the page, so a doc-side edit needs its twin edited here by hand —
-// the docs-audit example sweep cannot parse this page's multi-statement
-// recipe shape (recorded deferral in the 1.0 release review ledger).
+// Hand-maintained mirror of docs/cookbook.md's recipes (#227): the docs-audit
+// example sweep cannot parse this page's multi-statement recipe shape, so this
+// file does not read the page — a doc-side edit needs its twin edited by hand.
 // Table classes live in TestFixtures/CookbookTables.cs (Cookbook* prefix).
 public class CookbookTests
 {

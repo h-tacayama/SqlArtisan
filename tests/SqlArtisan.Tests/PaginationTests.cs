@@ -106,7 +106,7 @@ public class PaginationTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // ── OFFSET/FETCH family (Oracle 12c+ / SQL Server 2012+) ──────────
+    // ── OFFSET/FETCH family (Oracle / PostgreSql / SqlServer) ──────────
 
     [Fact]
     public void FetchFirst_WithOrderBy_CorrectSql()

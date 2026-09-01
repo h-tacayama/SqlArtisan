@@ -66,7 +66,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Instr_BasicPattern_CorrectSql()
+    public void Instr_Oracle_BasicPattern_CorrectSql()
     {
         SqlStatement sql =
             Select(Instr(_t.Name, "abc"))
@@ -80,7 +80,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Instr_WithPosition_CorrectSql()
+    public void Instr_Oracle_WithPosition_CorrectSql()
     {
         SqlStatement sql =
             Select(Instr(_t.Name, "abc", 1))
@@ -94,7 +94,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Instr_WithOccurrence_CorrectSql()
+    public void Instr_Oracle_WithOccurrence_CorrectSql()
     {
         SqlStatement sql =
             Select(Instr(_t.Name, "abc", 1, 2))

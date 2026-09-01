@@ -187,7 +187,8 @@ public class UnusableIndexPredicateAnalyzerTests
             var s = Select(t.Id).From(t).Where(held).Build();
             """);
 
-    // The shape that shipped as a live false positive: see ReturnsCondition.
+    // The shape that shipped as a live false positive: a predicate-returning
+    // function is exempt (FluentChain.IsCondition), not a wrapped column.
     [Fact]
     public Task Where_FullTextContains_Silent() =>
         RunSilent(

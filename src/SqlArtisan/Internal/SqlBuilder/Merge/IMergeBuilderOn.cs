@@ -3,8 +3,7 @@ namespace SqlArtisan.Internal;
 /// <summary>
 /// The state after <c>ON (...)</c>: add the first <c>WHEN</c> branch. Not
 /// buildable until at least one branch completes (see
-/// <see cref="IMergeBuilderWhen"/>). The branches are per-dialect:
-/// <c>WHEN NOT MATCHED BY SOURCE</c> is SQL Server only.
+/// <see cref="IMergeBuilderWhen"/>).
 /// </summary>
 public interface IMergeBuilderOn
 {

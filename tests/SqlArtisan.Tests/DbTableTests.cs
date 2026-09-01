@@ -256,7 +256,9 @@ public class DbTableTests
     [Fact]
     public void DbColumn_NullOwner_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() =>
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             new DbColumn(null!, "id"));
+
+        Assert.Equal("owner", ex.ParamName);
     }
 }

@@ -19,6 +19,10 @@ public class ConsoleUITests
 
         Assert.Equal("SqlArtisan.TableDefinitions", settings.OutputNamespace);
         Assert.Equal(".", settings.OutputDirectory);
+        Assert.False(settings.LowercaseNames);
+        Assert.Empty(settings.TableNames);
+        // No initial-letter subfolder — the create-subfolders default is "n".
+        Assert.Equal(Path.Combine(".", "Users.cs"), settings.CreateOutputFilePath("Users"));
     }
 
     private static T WithInput<T>(string input, Func<T> read)

@@ -339,8 +339,11 @@ public class TableClassGeneratorTests : IDisposable
         CommandLineException error = Assert.Throws<CommandLineException>(
             () => Run(db, RunMode.Generate));
 
-        Assert.Contains("No tables found", error.Message, StringComparison.Ordinal);
-        Assert.Contains("--file", error.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            $"No tables found in the SQLite database file '{db.ConnectionInfo.ServiceName}'; "
+                + "check --file, since a path that does not exist is created empty "
+                + "rather than rejected",
+            error.Message);
     }
 
     // The guard must not swallow this: an emptied schema whose classes are still

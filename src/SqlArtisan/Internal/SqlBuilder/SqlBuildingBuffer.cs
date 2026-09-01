@@ -308,11 +308,10 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    // ISubquery is not a SqlPart (it marks a builder state), so it gets its own
-    // overload rather than a per-construction adapter allocation. Every subquery
-    // embedding funnels through here — the correlated-DML guard's scope boundary
-    // — except a CTE body, which cannot correlate and is deliberately outside
-    // the guard (#253; see CommonTableExpression.AppendAsSubquery).
+    // ISubquery marks a builder state, not a SqlPart, so it gets its own
+    // overload rather than an adapter allocation. Every subquery embedding
+    // funnels through here — the correlated-DML guard's boundary — except a CTE
+    // body, which cannot correlate (#253; CommonTableExpression.AppendAsSubquery).
     internal SqlBuildingBuffer EncloseInParentheses(ISubquery subquery)
     {
         Append('(');

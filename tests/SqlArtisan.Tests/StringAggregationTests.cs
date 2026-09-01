@@ -70,7 +70,10 @@ public class StringAggregationTests
     public void StringAgg_NullSeparator_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => StringAgg(_t.Name, null!));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            StringAgg(_t.Name, null!));
+
+        Assert.Equal("separator", ex.ParamName);
     }
 
     // --- LISTAGG (Oracle) -----------------------------------------------------

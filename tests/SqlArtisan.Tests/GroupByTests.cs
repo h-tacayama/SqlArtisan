@@ -474,14 +474,12 @@ public class GroupByTests
     [Fact]
     public void GroupBy_WithNoItems_ThrowsArgumentException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentException>(() => Select(_t.Code).From(_t).GroupBy());
     }
 
     [Fact]
     public void GroupBy_WithNullItems_ThrowsArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             Select(_t.Code).From(_t).GroupBy(null!));
     }
@@ -489,21 +487,18 @@ public class GroupByTests
     [Fact]
     public void Rollup_WithNullElements_ThrowsArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() => Rollup(_t.Code, null!));
     }
 
     [Fact]
     public void Cube_WithNullElements_ThrowsArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() => Cube(_t.Code, null!));
     }
 
     [Fact]
     public void GroupingSets_WithNullSets_ThrowsArgumentNullException()
     {
-        // Act & Assert
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             GroupingSets(Group(_t.Code), null!));
 
@@ -515,7 +510,6 @@ public class GroupByTests
     [Fact]
     public void GroupingSets_WithNullSet_ThrowsArgumentNullException()
     {
-        // Act & Assert
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             GroupingSets(null!, Group(_t.Code)));
 

@@ -148,7 +148,8 @@ reading "Source control information is not available" is a known artifact
 of a sandboxed git remote that isn't a real github.com host, not a
 code-quality issue. Disregard only that exact warning; anything else still
 counts against the bar. Summarize any failure in one or two lines (if
-multiple test suites ran, name which one failed).`,
+multiple test suites ran, name which one failed). Report each suite's own
+pass count verbatim; never sum suites into a total.`,
   { model: 'haiku', effort: 'low', label: 'gates', phase: 'Gates', schema: GATES_SCHEMA }
 )
 

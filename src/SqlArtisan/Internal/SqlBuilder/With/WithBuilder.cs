@@ -28,14 +28,16 @@ internal sealed class WithBuilder : IWithBuilderWith
             _withPart,
             new InsertIgnoreIntoClause(table));
 
-    public IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns)
+    public IInsertIgnoreBuilderColumns InsertIgnoreInto(
+        DbTableBase table, params DbColumn[] columns)
     {
         CollectionGuard.ThrowIfEmpty(
             columns, nameof(columns), "An INSERT column list requires at least one column.");
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
 
-        return new InsertBuilder(table, columns.Length, _withPart, new InsertIgnoreIntoClause(table, columns));
+        return new InsertBuilder(
+            table, columns.Length, _withPart, new InsertIgnoreIntoClause(table, columns));
     }
 
     public IInsertBuilderTable InsertInto(DbTableBase table) =>
@@ -52,7 +54,8 @@ internal sealed class WithBuilder : IWithBuilderWith
         CollectionGuard.ThrowIfNullElement(
             columns, nameof(columns), "An INSERT column list must not contain a null column.");
 
-        return new InsertBuilder(table, columns.Length, _withPart, new InsertIntoClause(table, columns));
+        return new InsertBuilder(
+            table, columns.Length, _withPart, new InsertIntoClause(table, columns));
     }
 
     public ISelectBuilderSelect Select(params object[] selectItems) =>

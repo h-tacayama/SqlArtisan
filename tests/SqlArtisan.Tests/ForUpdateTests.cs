@@ -6,8 +6,6 @@ namespace SqlArtisan.Tests;
 
 public class ForUpdateTests
 {
-    private readonly TestTable _t = new("t");
-
     [Fact]
     public void ForUpdate_NoOptions_CorrectSql()
     {

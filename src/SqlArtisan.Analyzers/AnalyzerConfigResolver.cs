@@ -5,13 +5,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reads <c>sqlartisan_syntax_*</c>, the <c>sqlartisan_construct_*</c> overrides,
-/// and the legacy <c>sqlartisan_target_dbms</c> pair from
-/// <see cref="AnalyzerConfigOptions"/> (the
-/// <c>.editorconfig</c> / MSBuild property surface Roslyn exposes to analyzers).
-/// Values are looked up per-syntax-tree, so a <c>.editorconfig</c> section
-/// scoped to a directory naturally gives that directory its own target set —
-/// no extra plumbing needed.
+/// Reads the analyzer's <c>.editorconfig</c> / MSBuild-property surface via
+/// <see cref="AnalyzerConfigOptions"/>. Lookups are per-syntax-tree, so a
+/// directory-scoped <c>.editorconfig</c> section gets its own target set free.
 /// </summary>
 internal static class AnalyzerConfigResolver
 {
@@ -62,14 +58,9 @@ internal static class AnalyzerConfigResolver
     }
 
     /// <summary>
-    /// Whether any <c>sqlartisan_syntax_*</c> key carries a value anywhere in
-    /// this file's effective options — <c>.editorconfig</c> or the
-    /// MSBuild-property fallback, a *recognized* value or not. Any value makes
-    /// the family govern the whole resolution (#432's family-wins-outright
-    /// precedence); an invalid one still counts, so a mistyped family *value*
-    /// never silently lets the legacy pair take over. (A mistyped key *name*
-    /// does — no exact key matches — which is what the separate
-    /// <see cref="TryEnumerateSyntaxKeys"/> validation exists to flag.)
+    /// Whether any <c>sqlartisan_syntax_*</c> key carries a value, on either
+    /// surface. Any value — recognized or not — makes the family govern (#432),
+    /// so a mistyped family *value* never silently revives the legacy pair.
     /// </summary>
     public static bool IsFamilyPresent(AnalyzerConfigOptions options)
     {

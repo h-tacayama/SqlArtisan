@@ -181,7 +181,8 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
         if (onConflict is { HasTarget: false } && FindPart<DoUpdateSetClause>() is not null)
         {
             throw new ArgumentException(
-                "ON CONFLICT DO UPDATE requires a conflict target; name the column(s) in OnConflict(...).");
+                "ON CONFLICT DO UPDATE requires a conflict target; "
+                    + "name the column(s) in OnConflict(...).");
         }
 
         OutputClause? output = FindPart<OutputClause>();

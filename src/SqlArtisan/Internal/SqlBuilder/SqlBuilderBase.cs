@@ -84,14 +84,10 @@ internal abstract class SqlBuilderBase
     {
     }
 
-    // Pre-build check: a statement builder overrides this to reject an
-    // otherwise-grammatical construct for a specific target dialect before any
-    // SQL is emitted — the bounded exceptions to ADR 0007 recorded in ADR 0011.
-    // The default does nothing, so every other statement builds unchanged. Runs
-    // on every build path, since they all funnel through BuildCore (Returning
-    // included, via BuildWithPart) — and only for the outermost statement: a
-    // nested subquery renders through Format, per ADR 0007's permissive
-    // default (RD-002).
+    // Pre-build hook for ADR 0011's bounded dialect rejections; the default
+    // does nothing. Every build path funnels through BuildCore, and only the
+    // outermost statement runs it — a nested subquery renders through Format,
+    // per ADR 0007's permissive default (RD-002).
     protected virtual void Validate(Dbms dbms)
     {
     }
@@ -99,10 +95,8 @@ internal abstract class SqlBuilderBase
     internal void FormatCore(SqlBuildingBuffer buffer) =>
         buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
 
-    // One entry per clause kind a query block takes at most once; grouped types
-    // (the SELECT prefixes, the two OFFSET spellings, WITH vs WITH RECURSIVE,
-    // RETURNING vs RETURNING INTO) count as one kind. Clauses that legally
-    // repeat — joins, MERGE's WHEN branches, multi-row VALUES — stay out.
+    // One entry per clause kind a query block takes at most once; grouped
+    // types count as one kind, and clauses that legally repeat stay out.
     private static readonly (string Name, Type[] Types)[] OncePerBlockClauses =
     [
         ("SELECT", [
@@ -146,16 +140,11 @@ internal abstract class SqlBuilderBase
         ("VALUES", [typeof(InsertValuesClause)]),
     ];
 
-    // A stage method repeated on a held, not-yet-built builder appends a
-    // duplicate clause (`WHERE ... WHERE ...`) — valid on no dialect, so it is
-    // rejected here rather than emitted (#225's silent-wrong-SQL class). A set
-    // operator starts a new query block, so a compound query's second SELECT
-    // legally re-carries every kind; a MERGE WHEN clause does the same for the
-    // branch-scoped kinds only, and each join clause re-admits one ON/USING.
-    // The conditioned joins must also *receive* one before anything else
-    // follows: a held pre-join stage can otherwise build the chain with the
-    // join left dangling — the silent cartesian product ADR 0017's
-    // compile-time mechanism exists to reject, so this is its Build() backstop.
+    // A stage repeated on a held, not-yet-built builder appends a duplicate
+    // clause — valid on no dialect (#225's silent-wrong-SQL class). A set
+    // operator opens a new block, a MERGE WHEN a new branch, and each join
+    // re-admits one ON/USING — which a conditioned join must also *receive*
+    // before anything else follows (ADR 0017's Build()-time backstop).
     private void ThrowIfDuplicateClauseInBlock()
     {
         ulong seen = 0;

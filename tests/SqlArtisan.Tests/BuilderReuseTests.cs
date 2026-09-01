@@ -322,7 +322,7 @@ public class BuilderReuseTests
             + "from a held builder before the join was completed.";
 
     [Fact]
-    public void Join_NoOnOnHeldStage_BuildThrowsArgumentException()
+    public void Join_NoOnOnHeldStage_ThrowsArgumentException()
     {
         // The compile-time pending type can be bypassed by building from a
         // held pre-join stage — the silent cartesian product ADR 0017 rejects.
@@ -349,7 +349,7 @@ public class BuilderReuseTests
     }
 
     [Fact]
-    public void UpdateJoin_NoOnOnHeldStage_BuildThrowsArgumentException()
+    public void UpdateJoin_NoOnOnHeldStage_ThrowsArgumentException()
     {
         TestTable t = new("t");
         TestTable s = new("s");

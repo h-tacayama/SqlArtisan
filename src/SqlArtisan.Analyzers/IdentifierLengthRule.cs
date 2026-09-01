@@ -9,14 +9,13 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0103 for a compile-time identifier literal — a SELECT/table alias,
-/// a CTE or derived-table name, a <c>VALUES</c> column name, or the Oracle
-/// <c>RETURNING</c> output variable — that exceeds the target dialect's limit.
+/// Reports SQLA0103 for a compile-time identifier literal (an alias or other
+/// name the query itself mints) that exceeds the target dialect's limit.
 /// </summary>
 /// <remarks>
-/// Only identifiers the user mints in the query are covered; existing-schema names
-/// already exist within the engine's limit. Arguments match by parameter name, so
-/// overloads (e.g. <c>As(DbColumn)</c>) disambiguate without a core-type reference.
+/// Only user-minted identifiers are covered — existing-schema names already fit
+/// their engine. Arguments match by parameter name, so overloads disambiguate
+/// without a core-type reference.
 /// </remarks>
 internal static class IdentifierLengthRule
 {
@@ -44,9 +43,8 @@ internal static class IdentifierLengthRule
         ImmutableArray<IArgumentOperation> arguments,
         DialectTargetSet targets)
     {
-        // The name-keyed tables match simple names, valid only for SqlArtisan's own
-        // members — a user class sharing a key's name (TableClassGen names classes
-        // after tables) must take the base-chain trace instead.
+        // Name-keyed lookup is valid only for SqlArtisan's own members — a user table
+        // class can share a key's name and must take the base-chain trace instead.
         if (DialectUsageAnalyzer.IsFromSqlArtisan(member.ContainingAssembly)
             && ResolveIdentifierParams(member) is { } identifierParams)
         {
@@ -97,11 +95,9 @@ internal static class IdentifierLengthRule
         InheritedIdentifierParams.ContainsKey(type.Name)
         && DialectUsageAnalyzer.IsFromSqlArtisan(type.ContainingAssembly);
 
-    // A table class declares no identifier parameter of its own — it forwards a
-    // constructor argument to DbTableBase's alias (or CteBase/DerivedTableBase's
-    // name). Follow the ": base(...)" chain, propagating which creation-site
-    // argument each parameter carries, until the naming base is reached; any
-    // shape the walk cannot read fails toward silence.
+    // A table class forwards its identifier to a naming base's parameter rather than
+    // declare one — follow the ": base(...)" chain, propagating which creation-site
+    // argument each parameter carries; any shape the walk cannot read fails toward silence.
     private static IOperation? FindInheritedIdentifierArgument(
         Compilation compilation,
         IMethodSymbol constructor,
@@ -204,10 +200,8 @@ internal static class IdentifierLengthRule
             return;
         }
 
-        // A string[] identifier list (VALUES column names), written as new[]{...} or [...]:
-        // report per element so each over-long name gets its own location. Elements are
-        // read via child operations rather than a collection-expression type, which the
-        // pinned Roslyn version does not expose.
+        // Report per element so each over-long name gets its own location. `[...]` is read
+        // via child operations — the pinned Roslyn exposes no collection-expression type.
         foreach (IOperation element in Elements(unwrapped))
         {
             Report(context, element, targets);

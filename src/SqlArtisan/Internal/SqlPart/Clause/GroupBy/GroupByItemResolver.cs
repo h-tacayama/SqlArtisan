@@ -42,10 +42,9 @@ internal static class GroupByItemResolver
         }
     }
 
-    // The leading element is taken separately from the `params` tail so the factory
-    // can pass its array straight through: a null array — the C# binding for e.g.
-    // Rollup(a, null) — then throws ArgumentNullException here instead of failing
-    // with an NRE when spread into a collection expression.
+    // The leading element is split from the `params` tail so a null tail array —
+    // the C# binding for e.g. Rollup(a, null) — throws a named exception here
+    // instead of an NRE when spread into a collection expression.
     internal static SqlPart[] ResolveElements(object element, params object[] elements)
     {
         if (elements is null)

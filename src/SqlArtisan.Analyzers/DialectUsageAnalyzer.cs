@@ -10,12 +10,9 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Warns when a SqlArtisan construct is used against a configured target
-/// dialect set it is not supported on (#93 / ADR 0003, set-valued per #432).
-/// Silent until <c>sqlartisan_syntax_*</c> (or the legacy
-/// <c>sqlartisan_target_dbms</c>) is set; only ever warns about constructs the
-/// matrix has a verified entry for (never a false positive from an incomplete
-/// matrix).
+/// Warns when a SqlArtisan construct is used against a configured target dialect
+/// set it is not supported on (#93 / ADR 0003, set-valued per #432). Silent until
+/// a target is configured, and only for constructs the matrix verifiably covers.
 /// </summary>
 /// <remarks>
 /// Coupling to the core library is limited to a three-point contract
@@ -57,18 +54,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(OnCompilationStart);
     }
 
-    // One target-set cache per compilation: resolving sqlartisan_syntax_* used
-    // to cost up to 10 AnalyzerConfigOptions lookups plus an EngineVersion
-    // parse per DBMS on every single usage. Caching by SyntaxTree collapses
-    // that to one dictionary lookup per usage (concurrent — EnableConcurrentExecution
-    // above lets operation actions for different trees run in parallel).
+    // One target-set cache per compilation: resolving sqlartisan_syntax_* cost up to
+    // 10 config lookups plus a version parse per usage; caching by SyntaxTree collapses
+    // that to one lookup (concurrent — operation actions run in parallel across trees).
     private static void OnCompilationStart(CompilationStartAnalysisContext context)
     {
         var targetCache = new ConcurrentDictionary<SyntaxTree, DialectTargetSet>();
 
-        // The generic walkers first — they serve SQLA0100/0101 together and key on
-        // the operation kind, not a rule — then one dispatcher per rule in ID order,
-        // then the compilation-end action, which is not an operation action at all.
+        // Generic walkers first (they serve SQLA0100/0101 and key on operation kind),
+        // then one dispatcher per rule in ID order, then the compilation-end action.
         context.RegisterOperationAction(c => AnalyzeInvocation(c, targetCache), OperationKind.Invocation);
         context.RegisterOperationAction(c => AnalyzePropertyReference(c, targetCache), OperationKind.PropertyReference);
         context.RegisterOperationAction(c => AnalyzeFieldReference(c, targetCache), OperationKind.FieldReference);
@@ -274,9 +268,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
                 break;
             case "Interval" when targets.Contains(TargetDbms.MySql):
-            // IntervalLiteral's other arities are already mySql:false in the matrix
-            // (SQLA0100 covers them); only arity-2 is the coincidental accept this
-            // rule exists for.
+            // IntervalLiteral's other arities are already mySql:false in the matrix;
+            // only arity-2 is the coincidental accept this rule exists for.
             case "IntervalLiteral" when targets.Contains(TargetDbms.MySql)
                 && invocation.TargetMethod.Parameters.Length == 2:
                 ContextRules.CheckIntervalRequiresArithmeticOperand(
@@ -446,9 +439,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // A generated/hand-written table class lives in the user's assembly but
-        // forwards its constructor argument to a SqlArtisan naming base — the
-        // primary aliasing path, admitted here so the rule can trace it.
+        // A table class lives in the user's assembly but forwards its constructor
+        // argument to a SqlArtisan naming base — admitted so the rule can trace it.
         if (!IsFromSqlArtisan(member.ContainingAssembly)
             && !(member.MethodKind == MethodKind.Constructor
                 && IdentifierLengthRule.DerivesFromIdentifierBase(member.ContainingType)))
@@ -487,10 +479,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         {
             AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
 
-            // Both surfaces, like the family keys' SetSyntaxValues: a typo in the
-            // MSBuild property is exactly as silent as one in the .editorconfig key.
-            // Blank property values are skipped — the SDK emits every declared
-            // CompilerVisibleProperty as a key, empty when the consumer set nothing.
+            // Both surfaces — a typo in the MSBuild property is exactly as silent as
+            // one in the .editorconfig key; blank SDK-emitted property values are unset.
             foreach (string targetKey in LegacyDbmsKeys)
             {
                 if (options.TryGetValue(targetKey, out string? targetValue)
@@ -523,10 +513,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            // ResolveOverride honors any construct-prefixed (member, arity) key,
-            // so validation must sweep what the options actually carry, not just
-            // the matrix-derived key list — that list stays only as the fallback
-            // for hosts whose options cannot enumerate keys.
+            // ResolveOverride honors any construct-prefixed key, so validation sweeps
+            // what the options carry; the matrix list is only the no-enumeration fallback.
             IEnumerable<string> candidateOverrideKeys =
                 AnalyzerConfigResolver.TryEnumerateConstructKeys(options, out List<string> constructKeys)
                     ? constructKeys
@@ -550,12 +538,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         ValidateSyntaxFamily(context);
     }
 
-    // Four more SQLA0001 reasons plus the separate SQLA0002 nag (#432), each
-    // deduplicated across trees at the granularity its message varies by: a
-    // key name, a (key, value) pair, the full dropped-config message, the
-    // suggestion text — a directory-scoped .editorconfig can give trees
-    // different legacy configs, so a coarser key mutes a differing message —
-    // or, for the one compilation-wide fact (empty set), a single flag.
+    // Four more SQLA0001 reasons plus the SQLA0002 nag (#432), each deduplicated at
+    // the granularity its message varies by: directory-scoped .editorconfig can give
+    // trees different configs, so a coarser dedup key would mute a differing message.
     private static void ValidateSyntaxFamily(CompilationAnalysisContext context)
     {
         var reportedUnrecognizedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -606,9 +591,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            // An unrecognized value already explains why this tree's set came up
-            // empty (SQLA0001 reason 2 above) — reporting the empty-set reason too
-            // would duplicate the same root cause under two descriptors.
+            // An unrecognized value already explains this tree's empty set — reporting
+            // it again would duplicate one root cause under two descriptors.
             if (familyPresent && !hasUnrecognizedSyntaxValue && !reportedEmptySet
                 && AnalyzerConfigResolver.ResolveTargets(options).IsEmpty)
             {
@@ -616,9 +600,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConfigurationDisablesAllDialects, Location.None));
             }
 
-            // Only when the family does not itself name the legacy DBMS — the
-            // report exists for the silent replacement, and a family key set for
-            // that DBMS is the user's own statement about it (ADR 0019).
+            // Only when the family does not itself name the legacy DBMS: a family key
+            // set for that DBMS is the user's own statement about it (ADR 0019).
             if (familyPresent
                 && AnalyzerConfigResolver.ResolveTarget(options) is { } droppedDbms
                 && !AnalyzerConfigResolver.IsFamilyKeySet(options, droppedDbms))
@@ -696,8 +679,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         // "declared with N parameters", not "N-argument form": a params overload's
-        // declared count exceeds what the call site wrote, so an argument count
-        // would read as a misfire there.
+        // declared count exceeds what the call site wrote and would read as a misfire.
         string plural = arity.Value == 1 ? "" : "s";
         return $"{memberName} (overload declared with {arity.Value} parameter{plural})";
     }

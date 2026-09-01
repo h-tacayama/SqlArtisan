@@ -50,8 +50,16 @@ public class DbmsOptionTests
     // One exception type across both paths: the interactive one threw
     // ArgumentException, so the two reported the same mistake differently.
     [Fact]
-    public void ParseDatabaseType_UnknownSpelling_ThrowsCommandLineException() =>
-        Assert.Throws<CommandLineException>(() => ConsoleUI.ParseDatabaseType("db2"));
+    public void ParseDatabaseType_UnknownSpelling_ThrowsCommandLineException()
+    {
+        CommandLineException ex = Assert.Throws<CommandLineException>(() =>
+            ConsoleUI.ParseDatabaseType("db2"));
+
+        Assert.Equal(
+            "Enter a number from the list, or one of mysql, oracle, postgresql, "
+                + "sqlite, sqlserver (got 'db2').",
+            ex.Message);
+    }
 
     // The bug this closes: the prompt printed "PostgreSQL" and its own parser
     // rejected that spelling. Reading the labels back out of the rendered prompt

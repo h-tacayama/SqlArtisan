@@ -29,8 +29,7 @@ internal static class CollectionGuard
 
     // The element-level companion: a computed null element reaches the call with
     // no compiler warning, so it gets a named exception rather than a later NRE
-    // (guards-and-empty-states rule, element clause). paramName is the caller's
-    // parameter so the failure surface never names an internal one.
+    // (guards-and-empty-states rule, element clause).
     internal static void ThrowIfNullElement<T>(T[] items, string paramName, string message)
         where T : class
     {

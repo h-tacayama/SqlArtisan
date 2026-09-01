@@ -41,6 +41,7 @@ public class AggregateFilterTests
         SqlStatement sql = Select(Sum(Distinct, _t.Code).Filter(_t.Code > 0)).Build();
 
         Assert.Equal("SELECT SUM(DISTINCT code) FILTER (WHERE code > :0)", sql.Text);
+        Assert.Equal(0, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]
@@ -52,6 +53,23 @@ public class AggregateFilterTests
         Assert.Equal(
             "SELECT SUM(code) FILTER (WHERE code > :0) OVER (PARTITION BY name)",
             sql.Text);
+        Assert.Equal(0, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void Filter_PartlyExcludedConditions_CorrectSql()
+    {
+        // The legal twin of the all-excluded guard: one surviving operand keeps
+        // the FILTER, with the excluded operand dropped.
+        SqlStatement sql =
+            Select(Sum(_t.Code).Filter(ConditionIf(false, _t.Code > 0) & (_t.Code < 9)))
+            .From(_t)
+            .Build();
+
+        Assert.Equal(
+            "SELECT SUM(code) FILTER (WHERE (code < :0)) FROM test_table",
+            sql.Text);
+        Assert.Equal(9, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]

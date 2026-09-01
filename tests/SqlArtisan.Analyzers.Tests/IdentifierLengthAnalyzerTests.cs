@@ -367,6 +367,23 @@ public class IdentifierLengthAnalyzerTests
     }
 
     [Fact]
+    public async Task TypedDerivedTableBaseNameOverLimit_ReportsSqla0103()
+    {
+        // The DbTableBase/CteBase base-chain trace covers this base too.
+        string source = $$"""
+            using SqlArtisan;
+
+            class LongDerived : DerivedTableBase
+            {
+                public LongDerived() : base({|#0:"{{Repeat('a', 64)}}"|}) { }
+            }
+            """;
+        var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("postgresql"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0103").WithLocation(0));
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task TypedCteBaseNameOverLimit_ReportsSqla0103()
     {
         // The name reaches the base constructor through a subclass initializer.

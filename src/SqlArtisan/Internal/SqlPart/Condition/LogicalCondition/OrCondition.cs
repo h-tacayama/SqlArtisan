@@ -9,8 +9,6 @@ public sealed class OrCondition : SqlCondition
         _core = new(leftSide, rightSide);
     }
 
-    // Copy-on-write extension of an existing OrCondition by one more operand
-    // (operator |, #399).
     internal OrCondition(OrCondition existing, SqlCondition additionalOperand)
     {
         _core = existing._core.Extend(additionalOperand);

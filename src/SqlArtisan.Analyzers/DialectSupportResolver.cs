@@ -3,14 +3,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Support resolution for a single (member, arity) usage, split into two
-/// independent halves (#432): a <c>sqlartisan_construct_*</c> override is the
-/// user's own claim about their configuration, so it is dialect-independent
-/// and resolved once per usage; the dialect matrix is resolved once per DBMS
-/// in the configured target set. Specific wins within the override half: a
-/// user's arity-level override beats their member-level override. A member
-/// absent from the matrix entirely is silent for the matrix half (ADR 0003's
-/// degradable design — an incomplete matrix never false-positives).
+/// Support resolution for a (member, arity) usage, split in two (#432): a
+/// <c>sqlartisan_construct_*</c> override is the user's own claim, so it is
+/// dialect-independent and resolved once; the matrix is resolved per target DBMS.
 /// </summary>
 internal static class DialectSupportResolver
 {
@@ -116,10 +111,8 @@ internal static class DialectSupportResolver
 
     /// <summary>
     /// Matches a (member, arity) usage against the dialect matrix, or
-    /// <see langword="null"/> if the member is not in the matrix at all
-    /// (nothing to check — stay silent). <paramref name="arity"/> is the
-    /// declared parameter count for a method, or <see langword="null"/> for a
-    /// property/field (which cannot have arity-specific variants).
+    /// <see langword="null"/> for a member absent from it — ADR 0003's degradable
+    /// design: an incomplete matrix stays silent, never false-positives.
     /// </summary>
     public static MatrixMatch? MatchMatrixEntry(string memberName, int? arity)
     {
@@ -136,12 +129,10 @@ internal static class DialectSupportResolver
     }
 
     /// <summary>
-    /// Evaluates a matched entry against one DBMS. <paramref name="targetVersion"/>
-    /// is the declared version for that DBMS (<see langword="null"/> for <c>any</c>);
-    /// when set and the matched entry carries a version bound for
-    /// <paramref name="target"/>, the bound decides instead of the entry's plain
-    /// bool in both directions — a currently-unsupported construct above the
-    /// bound becomes supported, and a currently-supported one below it does not.
+    /// Evaluates a matched entry against one DBMS. A declared
+    /// <paramref name="targetVersion"/> plus a version bound for
+    /// <paramref name="target"/> decides in both directions — it can flip the
+    /// entry's plain bool either way.
     /// </summary>
     public static MatrixVerdict Evaluate(MatrixMatch match, TargetDbms target, EngineVersion? targetVersion)
     {

@@ -254,10 +254,15 @@ public static partial class Sql
     public static LpadFunction Lpad(object source, object length) =>
         new(Resolve(source), Resolve(length));
 
-    /// <inheritdoc cref="Lpad(object, object)"/>
+    /// <summary>
+    /// The <c>LPAD(<paramref name="source"/>, <paramref name="length"/>, <paramref name="padding"/>)</c>
+    /// function: left-pads <paramref name="source"/> with <paramref name="padding"/> to
+    /// <paramref name="length"/> characters (truncating if longer).
+    /// </summary>
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target total length.</param>
     /// <param name="padding">The string to pad with instead of spaces.</param>
+    /// <returns>The LPAD construct.</returns>
     /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static LpadFunction Lpad(object source, object length, object padding) =>
         new(Resolve(source), Resolve(length), Resolve(padding));
@@ -271,9 +276,14 @@ public static partial class Sql
     public static LtrimFunction Ltrim(object source) =>
         new(Resolve(source));
 
-    /// <inheritdoc cref="Ltrim(object)"/>
+    /// <summary>
+    /// The <c>LTRIM(<paramref name="source"/>, <paramref name="trimChars"/>)</c>
+    /// function: removes any of <paramref name="trimChars"/> from the left of
+    /// <paramref name="source"/>.
+    /// </summary>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip from the left.</param>
+    /// <returns>The LTRIM construct.</returns>
     /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax; SQL
     /// Server also requires database compatibility level 160, the default for
     /// new databases.</remarks>

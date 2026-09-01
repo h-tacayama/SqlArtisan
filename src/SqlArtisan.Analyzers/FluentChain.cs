@@ -5,9 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Fluent-chain steps shared by the rules that walk a SqlArtisan builder chain
-/// (the #264 context rules, the #256 correlated-DML rule, the #266 schema
-/// rules).
+/// Fluent-chain steps shared by the rules that walk a SqlArtisan builder chain.
 /// </summary>
 internal static class FluentChain
 {
@@ -63,9 +61,8 @@ internal static class FluentChain
                     return true;
                 }
 
-                // A static factory (Not, ConditionIf, Coalesce) only wraps the
-                // node in argument position; the chain it feeds is further out. A
-                // step with a receiver is the chain, and its head did not resolve.
+                // A static factory (e.g. Not) only wraps the node — the chain it feeds
+                // is further out; a step with a receiver is the chain, head unresolved.
                 if (step.Instance is not null)
                 {
                     return false;
@@ -83,9 +80,8 @@ internal static class FluentChain
     /// row — the case that makes a NOT NULL column legitimately NULL.
     /// </summary>
     /// <remarks>
-    /// Which side a join null-supplies is a per-side question this does not
-    /// answer: any outer join counts. Sound only where
-    /// <see cref="HasVisibleStatementHead"/> holds, since a chain that reaches
+    /// Any outer join counts — which side it null-supplies is not asked. Sound
+    /// only where <see cref="HasVisibleStatementHead"/> holds: a chain reaching
     /// beyond the statement can join outside what this walks.
     /// </remarks>
     public static bool HasOuterJoin(IOperation node)
@@ -181,9 +177,8 @@ internal static class FluentChain
     }
 
     /// <summary>
-    /// Whether <paramref name="type"/> derives from <c>TableReference</c> — the
-    /// shared base every typed table, CTE, and derived-table subclass sits on —
-    /// so a property declared on it is a genuine column, not an arbitrary
+    /// Whether <paramref name="type"/> derives from <c>TableReference</c>, so a
+    /// property declared on it is a genuine column rather than an arbitrary
     /// DbColumn-typed value.
     /// </summary>
     public static bool IsTableReference(ITypeSymbol? type)

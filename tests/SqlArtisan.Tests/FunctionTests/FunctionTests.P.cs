@@ -45,6 +45,15 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void PlaintoTsquery_NullConfig_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            PlaintoTsquery(null!, "web search"));
+
+        Assert.Equal("PLAINTO_TSQUERY requires a configuration name.", ex.Message);
+    }
+
+    [Fact]
     public void Position_SubstringAndSource_CorrectSql()
     {
         SqlStatement sql =
