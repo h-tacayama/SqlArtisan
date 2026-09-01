@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- TableClassGen no longer reports a column as indexed when its only index
+  cannot serve queries — a PostgreSQL invalid index (a failed `CONCURRENTLY`
+  build), a disabled SQL Server index, or an Oracle `UNUSABLE` index — which
+  fed the analyzer's index-suppression rule wrong facts. The MySQL
+  functional-index fallback now retries only on the unknown-column error
+  instead of downgrading every database error to the legacy read.
+- TableClassGen treats a blank `--schema` (a config file's `"schema": ""`
+  included) as missing, so the MySQL `--database` / Oracle `--user` fallback
+  engages instead of silently reading zero tables.
+- `ExecuteArrayBind`'s null-statement-element guard throws
+  `ArgumentNullException` naming the `statements` parameter, matching every
+  other collection guard (previously a bare `ArgumentException`).
 - Analyzer: `SQLA0104` no longer accepts `Tzoffset` or `IsoWeek` for
   `Dateadd`/`Datediff` on SQL Server — `DATEADD`/`DATEDIFF` stop at
   `NANOSECOND`, so sharing `DATEPART`'s 15-entry list was a silent false

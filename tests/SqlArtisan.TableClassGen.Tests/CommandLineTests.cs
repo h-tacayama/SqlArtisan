@@ -20,6 +20,33 @@ public class CommandLineTests
         Assert.False(options.Json);
     }
 
+    // A blank --schema (a config file's "schema": "" included) must engage
+    // the --database/--user fallback like a missing one — treating it as
+    // present read zero tables silently.
+    [Fact]
+    public void Parse_BlankSchema_FallsBackToDatabaseOnMySql()
+    {
+        RunOptions options = CommandLine.Parse(
+        [
+            "--dbms", "mysql", "--host", "h", "--database", "appdb",
+            "--user", "u", "--namespace", "N", "--schema", "",
+        ]);
+
+        Assert.Equal("appdb", options.Connection.Schema);
+    }
+
+    [Fact]
+    public void Parse_BlankSchema_FallsBackToUserOnOracle()
+    {
+        RunOptions options = CommandLine.Parse(
+        [
+            "--dbms", "oracle", "--host", "h", "--database", "XEPDB1",
+            "--user", "scott", "--namespace", "N", "--schema", " ",
+        ]);
+
+        Assert.Equal("scott", options.Connection.Schema);
+    }
+
     [Fact]
     public void Parse_Check_SelectsCheckMode()
     {

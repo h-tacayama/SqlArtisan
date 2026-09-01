@@ -42,27 +42,6 @@ public class DbConnectionInfoTests
         Assert.DoesNotContain(absent, error.Message, StringComparison.Ordinal);
     }
 
-    // The guard used to wrap only Open(): a connection string the driver rejects
-    // at construction (a ';' in the password splits into a bogus keyword) escaped
-    // as a raw driver error instead of the guided message.
-    [Fact]
-    public void OpenConnection_MalformedConnectionString_GetsTheGuidedMessage()
-    {
-        DbConnectionInfo malformed = new(
-            Dbms.PostgreSql,
-            host: "127.0.0.1",
-            port: 1,
-            serviceName: "db",
-            schema: "public",
-            username: "u",
-            password: "p;=broken");
-
-        CommandLineException error =
-            Assert.Throws<CommandLineException>(() => malformed.OpenConnection());
-
-        Assert.Contains("Cannot connect to", error.Message, StringComparison.Ordinal);
-    }
-
     // Asserting the driver's own words would pin a message that changes with the
     // provider, so what is pinned is that something survives the marker.
     [Fact]

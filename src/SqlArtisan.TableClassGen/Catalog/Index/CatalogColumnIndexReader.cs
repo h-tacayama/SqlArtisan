@@ -1,12 +1,11 @@
 using System.Data;
-using System.Data.Common;
+using MySqlConnector;
 
 namespace SqlArtisan.TableClassGen;
 
-// No engine records index key order in information_schema in a portable way — MySQL
-// alone exposes it there — so each dialect gets its own catalog query. The shape is
-// shared: leading column name, plus the expression text when the key is an
-// expression rather than a column.
+// No engine records index key order in information_schema portably (MySQL alone
+// exposes it there), so each dialect gets its own catalog query sharing one
+// shape: leading column name, plus the expression text for an expression key.
 internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
     : IColumnIndexReader
 {
@@ -22,10 +21,12 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
                 conn, tableName, LeadingKeyQuery(),
                 leadingColumns, expressionTexts, partialLeadingColumns);
         }
-        catch (DbException) when (dbms == Dbms.MySql)
+        catch (MySqlException ex) when (ex.ErrorCode == MySqlErrorCode.BadFieldError)
         {
             // STATISTICS.EXPRESSION arrived with functional indexes in 8.0.13, so a
-            // server that rejects the column has no expression index to miss.
+            // server that rejects the column has no expression index to miss. Only
+            // the unknown-column error retries — a broader catch would silently
+            // downgrade a real failure (privileges, connectivity) to the legacy read.
             ReadLeadingKeys(
                 conn, tableName, MySqlLegacyQuery,
                 leadingColumns, expressionTexts, partialLeadingColumns);
@@ -86,7 +87,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
             + "JOIN pg_class c ON c.oid = i.indrelid "
             + "JOIN pg_namespace n ON n.oid = c.relnamespace "
             + "LEFT JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = i.indkey[0] "
-            + "WHERE c.relname = @table_name AND n.nspname = @schema_name",
+            + "WHERE c.relname = @table_name AND n.nspname = @schema_name AND i.indisvalid",
 
         // T-SQL indexes no expression directly; the equivalent is an index whose
         // leading key is a computed column, whose definition names the real columns.
@@ -100,13 +101,18 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
             + "AND cc.column_id = c.column_id "
             + "JOIN sys.tables t ON t.object_id = i.object_id "
             + "JOIN sys.schemas s ON s.schema_id = t.schema_id "
-            + "WHERE t.name = @table_name AND s.name = @schema_name",
+            + "WHERE t.name = @table_name AND s.name = @schema_name AND i.is_disabled = 0",
 
         // COLUMN_EXPRESSION is a LONG, so nothing is read from it here; a
         // function-based index instead disqualifies the whole table below.
+        // ALL_IND_COLUMNS records no index status, so ALL_INDEXES supplies it;
+        // a partitioned index reports 'N/A' there and stays in — only an
+        // UNUSABLE index (which serves no query) drops out.
         Dbms.Oracle =>
-            "SELECT COLUMN_NAME, NULL, 0 FROM ALL_IND_COLUMNS "
-            + "WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name AND COLUMN_POSITION = 1",
+            "SELECT ic.COLUMN_NAME, NULL, 0 FROM ALL_IND_COLUMNS ic "
+            + "JOIN ALL_INDEXES i ON i.OWNER = ic.INDEX_OWNER AND i.INDEX_NAME = ic.INDEX_NAME "
+            + "WHERE ic.TABLE_OWNER = :schema_name AND ic.TABLE_NAME = :table_name "
+            + "AND ic.COLUMN_POSITION = 1 AND i.STATUS != 'UNUSABLE'",
 
         _ => throw new ArgumentOutOfRangeException(nameof(dbms)),
     };
@@ -117,7 +123,7 @@ internal sealed class CatalogColumnIndexReader(Dbms dbms, string schema)
         command.CommandText =
             "SELECT COUNT(*) FROM ALL_INDEXES "
             + "WHERE TABLE_OWNER = :schema_name AND TABLE_NAME = :table_name "
-            + "AND INDEX_TYPE LIKE 'FUNCTION-BASED%'";
+            + "AND INDEX_TYPE LIKE 'FUNCTION-BASED%' AND STATUS != 'UNUSABLE'";
         AddParameter(command, ParameterName(SchemaParameter), CatalogName(schema));
         AddParameter(command, ParameterName(TableParameter), CatalogName(tableName));
 

@@ -2,10 +2,9 @@ using System.Data;
 
 namespace SqlArtisan.TableClassGen;
 
-// SQLite exposes its catalog through sqlite_master and the pragma_table_info
-// table-valued function, neither of which the SqlArtisan builder can express, so
-// this reader uses raw ADO.NET. SQLite has no schema concept, so
-// _connInfo.Schema is unused.
+// sqlite_master and pragma_table_info are catalog surfaces the SqlArtisan
+// builder cannot express, so this reader uses raw ADO.NET. SQLite has no
+// schema concept, so _connInfo.Schema is unused.
 internal sealed class SqliteCatalogReader(
     DbConnectionInfo connInfo,
     bool lowercaseNames) : ICatalogReader
@@ -88,19 +87,16 @@ internal sealed class SqliteCatalogReader(
         List<CatalogColumn> columns = [];
         foreach ((string Name, string CatalogName, string Type, bool NotNull, bool HasDefault, int Pk) row in rows)
         {
-            // A lone INTEGER PRIMARY KEY usually aliases the rowid — never NULL,
-            // auto-assigned — and table_info reports the spellings that are real keys
-            // identically. The discriminator is the pk-origin index a genuine alias
-            // never has, not the DESC or WITHOUT ROWID wording: PRIMARY KEY(id DESC)
-            // written as a table constraint is still an alias.
+            // table_info reports rowid aliases and real keys identically; the
+            // discriminator is the pk-origin index a genuine alias never has,
+            // not the DESC or WITHOUT ROWID wording.
             bool isRowIdAlias = keyColumnCount == 1
                 && row.Pk == 1
                 && string.Equals(row.Type, "INTEGER", StringComparison.OrdinalIgnoreCase)
                 && !hasPkIndex;
 
-            // The alias carries no index row of its own, yet a predicate on it is a
-            // rowid lookup — verified by EXPLAIN QUERY PLAN — and wrapping it loses
-            // that exactly as wrapping an indexed column does.
+            // The alias has no index row of its own, yet a predicate on it is a rowid
+            // lookup (EXPLAIN QUERY PLAN), which wrapping loses like any indexed column.
             columns.Add(new CatalogColumn(
                 row.Name,
                 row.Type,

@@ -124,9 +124,8 @@ internal static class ColumnCategory
     };
 
     // Length, precision and scale are deliberately dropped — each parenthesized
-    // group, not everything past the first: the category is the whole fact, so
-    // varchar(50) and varchar(4000) are one thing, while Oracle's
-    // INTERVAL DAY(2) TO SECOND(6) keeps the trailing field that names it.
+    // group, not everything past the first: varchar(50) and varchar(4000) are one
+    // category, while Oracle's INTERVAL DAY(2) TO SECOND(6) keeps its trailing field.
     private static string Bare(string dataType)
     {
         string name = dataType.Trim();

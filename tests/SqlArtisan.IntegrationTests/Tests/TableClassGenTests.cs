@@ -182,6 +182,26 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         }
     }
 
+    // A disabled index serves no query, so it must not claim its column.
+    [Fact]
+    public void GenerateTables_SqlServer_DisabledIndex_ClaimsNothing()
+    {
+        Execute("CREATE INDEX ix_disabled ON users (age)");
+        Execute("ALTER INDEX ix_disabled ON users DISABLE");
+        try
+        {
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
+
+            CatalogTable users = reader.GetAllTables().Single(
+                t => string.Equals(t.TableName, "users", StringComparison.OrdinalIgnoreCase));
+            Assert.Null(users.Columns.Single(c => c.Name == "age").IsIndexed);
+        }
+        finally
+        {
+            Execute("DROP INDEX ix_disabled ON users");
+        }
+    }
+
     // #386: a login mapped to a user with no grants still connects — CONNECT
     // comes via the public role. The read never throws, which is the property
     // in question, but it is not empty: master carries legacy compatibility
@@ -315,6 +335,29 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
         }
     }
 
+    // An invalid index (a failed CONCURRENTLY build's end state) serves no
+    // query, so it must not claim its column. The flag is flipped directly —
+    // a real failed concurrent build is nondeterministic to stage.
+    [Fact]
+    public void GenerateTables_PostgreSql_InvalidIndex_ClaimsNothing()
+    {
+        Execute("CREATE INDEX ix_invalid ON users (age)");
+        Execute(
+            "UPDATE pg_index SET indisvalid = false "
+                + "WHERE indexrelid = 'ix_invalid'::regclass");
+        try
+        {
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
+
+            CatalogTable users = reader.GetAllTables().Single(t => t.TableName == "users");
+            Assert.Null(users.Columns.Single(c => c.Name == "age").IsIndexed);
+        }
+        finally
+        {
+            Execute("DROP INDEX IF EXISTS ix_invalid");
+        }
+    }
+
     // #386: a fresh role connects fine — CONNECT is PUBLIC-granted by default —
     // but sees none of the seeded tables, the same empty catalog an unknown
     // --schema produces.
@@ -427,6 +470,26 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
             // before the second CREATE would otherwise mask itself with ORA-01418.
             TryExecute("DROP INDEX ix_upper_name");
             TryExecute("DROP INDEX ix_age_dept");
+        }
+    }
+
+    // An UNUSABLE index serves no query, so it must not claim its column
+    // (ALL_IND_COLUMNS records no status; the ALL_INDEXES join supplies it).
+    [Fact]
+    public void GenerateTables_Oracle_UnusableIndex_ClaimsNothing()
+    {
+        Execute("CREATE INDEX ix_unusable ON users (age)");
+        Execute("ALTER INDEX ix_unusable UNUSABLE");
+        try
+        {
+            OracleCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
+
+            CatalogTable users = reader.GetAllTables().Single(t => t.TableName == "users");
+            Assert.Null(users.Columns.Single(c => c.Name == "age").IsIndexed);
+        }
+        finally
+        {
+            TryExecute("DROP INDEX ix_unusable");
         }
     }
 

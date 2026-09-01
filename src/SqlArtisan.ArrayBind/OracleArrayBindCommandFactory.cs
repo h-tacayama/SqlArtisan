@@ -23,7 +23,8 @@ internal static class OracleArrayBindCommandFactory
         {
             if (s is null)
             {
-                throw new ArgumentException(
+                throw new ArgumentNullException(
+                    nameof(statements),
                     $"ExecuteArrayBind requires every statement to be non-null; "
                         + $"statement at index {i} is null.");
             }
@@ -113,11 +114,9 @@ internal static class OracleArrayBindCommandFactory
         return command;
     }
 
-    // Every non-null value at a position must map to one OracleDbType — the array binds as a
-    // single typed parameter, so a mix (an int beside a decimal, an out-of-range short) would
-    // bind values the type can't round-trip. An all-null position has no CLR type to infer
-    // from, so an explicit Sql.BindNull(dbType) hint is required there; when both are present
-    // the hint must agree with the values.
+    // The array binds as a single typed parameter, so every non-null value at a
+    // position must map to one OracleDbType; an all-null position has no CLR type
+    // to infer, so it needs a Sql.BindNull(dbType) hint, which values must match.
     private static OracleDbType ResolveOracleDbType(int position, DbType? dbTypeHint, object[] values)
     {
         OracleDbType? fromValues = null;

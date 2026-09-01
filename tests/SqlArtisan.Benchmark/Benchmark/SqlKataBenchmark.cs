@@ -4,6 +4,10 @@ namespace SqlArtisan.Benchmark;
 
 public static class SqlKataBenchmark
 {
+    // Hoisted like the other builders' fixed setup: the compiler is reusable
+    // state, and constructing it per iteration would overstate SqlKata's cost.
+    private static readonly SqlKata.Compilers.PostgresCompiler Compiler = new();
+
     public static (string Sql, int ParameterCount) Run()
     {
         // Every clause builder quotes what it is given as one identifier, so the aggregate
@@ -18,9 +22,7 @@ public static class SqlKataBenchmark
             .GroupBy("users.id", "users.name")
             .OrderByDesc("order_count");
 
-        var compiler = new SqlKata.Compilers.PostgresCompiler();
-
-        SqlResult sql = compiler.Compile(query);
+        SqlResult sql = Compiler.Compile(query);
         List<object> parameters = sql.Bindings;
 
         return (sql.Sql, parameters.Count);

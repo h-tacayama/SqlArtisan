@@ -256,8 +256,8 @@ internal static class CommandLine
         Dictionary<string, string> values, Dbms dbms, string database, string user) =>
         dbms switch
         {
-            Dbms.MySql => Value(values, "schema") ?? database,
-            Dbms.Oracle => Value(values, "schema") ?? user,
+            Dbms.MySql => NonBlankValue(values, "schema") ?? database,
+            Dbms.Oracle => NonBlankValue(values, "schema") ?? user,
             _ => Required(values, "schema"),
         };
 
@@ -300,6 +300,11 @@ internal static class CommandLine
 
     private static string? Value(Dictionary<string, string> values, string key) =>
         values.TryGetValue(Normalize(key), out string? value) ? value : null;
+
+    // Blank counts as missing here too (the Required contract): a blank
+    // --schema must engage its fallback, not read zero tables silently.
+    private static string? NonBlankValue(Dictionary<string, string> values, string key) =>
+        Value(values, key) is { } value && !string.IsNullOrWhiteSpace(value) ? value : null;
 
     // Blank counts as missing: a value like --namespace "" would otherwise flow
     // into generated code or a connection string and fail far from the flag.
