@@ -1,4 +1,5 @@
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SqlArtisan.Tests;
 
@@ -89,6 +90,7 @@ public class DbmsResolverTests
     // Only the runtime type matters to Resolve; every member is inert.
     private abstract class FakeConnectionBase : IDbConnection
     {
+        [AllowNull]
         public string ConnectionString { get; set; } = string.Empty;
 
         public int ConnectionTimeout => 0;
