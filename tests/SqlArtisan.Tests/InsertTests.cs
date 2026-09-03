@@ -1,4 +1,5 @@
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -424,7 +425,8 @@ public class InsertTests
         expected.Append(')');
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(2, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
     }
 
     [Fact]
@@ -437,6 +439,8 @@ public class InsertTests
             .Build(Dbms.MySql);
 
         Assert.Equal("INSERT IGNORE INTO test_table VALUES (?0, ?1)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
     }
 
     [Fact]
@@ -452,6 +456,10 @@ public class InsertTests
         Assert.Equal(
             "INSERT IGNORE INTO test_table (code, name) VALUES (?0, ?1), (?2, ?3)",
             sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
+        Assert.Equal(2, sql.Parameters.Get<int>("?2"));
+        Assert.Equal("b", sql.Parameters.Get<string>("?3"));
     }
 
     [Fact]
@@ -466,6 +474,8 @@ public class InsertTests
         Assert.Equal(
             "INSERT IGNORE INTO test_table (code, name) VALUES (?0, ?1)",
             sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
     }
 
     [Fact]
@@ -526,6 +536,8 @@ public class InsertTests
         expected.Append("VALUES (@0, @1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("@1"));
     }
 
     [Fact]
@@ -575,6 +587,41 @@ public class InsertTests
 
         Assert.Equal(
             "OUTPUT cannot be combined with RETURNING; use one or the other.", ex.Message);
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_ReturningOnHeldStage_ThrowsArgumentException()
+    {
+        // The typestate no longer offers RETURNING after ON DUPLICATE KEY
+        // UPDATE; a held pre-upsert stage still reaches it, so Build() backstops.
+        TestTable t = new();
+        IInsertBuilderValues held = InsertInto(t, t.Code).Values(1);
+        held.OnDuplicateKeyUpdate(t.Code == 2);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Returning(t.Code).Build(Dbms.MySql));
+
+        Assert.Equal(
+            "RETURNING cannot be combined with INSERT IGNORE or ON DUPLICATE KEY UPDATE; "
+                + "use one or the other.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_ReturningThroughCast_ThrowsArgumentException()
+    {
+        // No INSERT IGNORE stage offers RETURNING; the cast is the only route
+        // to the pairing, and Build() still refuses it.
+        TestTable t = new();
+        IReturning reached = (IReturning)InsertIgnoreInto(t).Values(1);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            reached.Returning(t.Code).Build(Dbms.MySql));
+
+        Assert.Equal(
+            "RETURNING cannot be combined with INSERT IGNORE or ON DUPLICATE KEY UPDATE; "
+                + "use one or the other.",
+            ex.Message);
     }
 
     [Fact]

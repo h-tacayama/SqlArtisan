@@ -562,9 +562,12 @@ public class WithTests
     [Fact]
     public void WithRecursive_MultiCtes_EachCteGetsItsOwnColumnList()
     {
+        // The derived list renders each name as its select item does: bare for
+        // a column, quoted for a quoted alias — matching the handle reference.
         TestTable a = new("a");
         Cte c1 = new("c1");
         Cte c2 = new("c2");
+        ExpressionAlias n = a.Name.As("n");
 
         SqlStatement sql =
             WithRecursive(
@@ -573,8 +576,8 @@ public class WithTests
                     .UnionAll
                     .Select(a.Code).From(a).InnerJoin(c1).On(c1.Column("code") == a.Code)),
                 c2.As(
-                    Select(a.Name.As("n")).From(a)))
-            .Select(c1.Column("code"), c2.Column("n"))
+                    Select(n).From(a)))
+            .Select(c1.Column("code"), c2.Column(n))
             .From(c1, c2)
             .Build();
 
@@ -583,9 +586,9 @@ public class WithTests
         expected.Append("(SELECT \"a\".code FROM test_table \"a\" WHERE \"a\".code = :0 ");
         expected.Append("UNION ALL SELECT \"a\".code FROM test_table \"a\" ");
         expected.Append("INNER JOIN \"c1\" ON \"c1\".code = \"a\".code), ");
-        expected.Append("\"c2\"(n) AS ");
+        expected.Append("\"c2\"(\"n\") AS ");
         expected.Append("(SELECT \"a\".name \"n\" FROM test_table \"a\") ");
-        expected.Append("SELECT \"c1\".code, \"c2\".n FROM \"c1\", \"c2\"");
+        expected.Append("SELECT \"c1\".code, \"c2\".\"n\" FROM \"c1\", \"c2\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -764,6 +767,27 @@ public class WithTests
             "WITH RECURSIVE requires a distinct name for every column of the CTE's "
                 + "first query block; alias the duplicate with .As(...).",
             ex.Message);
+    }
+
+    [Fact]
+    public void WithColumnList_QuotedAliasItem_QuotesListEntry()
+    {
+        // The list entry renders as the alias does, so the quoted definition
+        // and the quoted handle reference stay one identifier (#165).
+        TestTable a = new("a");
+        Cte cte = new("cte");
+        ExpressionAlias code = a.Code.As("Code");
+
+        SqlStatement sql =
+            With(cte.As(Select(code, a.Name).From(a)).WithColumnList())
+            .Select(cte.Column(code), cte.Column("name"))
+            .From(cte)
+            .Build();
+
+        Assert.Equal(
+            "WITH \"cte\"(\"Code\", name) AS (SELECT \"a\".code \"Code\", \"a\".name FROM test_table \"a\") "
+                + "SELECT \"cte\".\"Code\", \"cte\".name FROM \"cte\"",
+            sql.Text);
     }
 
     [Fact]

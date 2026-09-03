@@ -169,6 +169,24 @@ public class SchemaRuleParityTests
             "var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Note).From(r).Where(Col.IsNotNull))).Build();",
             "static DbColumn Col => new T(\"r\").Note;"
         },
+        // A helper outside SqlArtisan may place its argument anywhere, so the
+        // chain visible above the call is not the one the argument ends in.
+        {
+            "var s = Select(t.Code).From(t).Where(Wrap(t.Code.IsNull)).Build();",
+            "static SqlCondition Wrap(SqlCondition c) => c;"
+        },
+        {
+            "var s = Select(Wrap(Count(t.Note))).From(t).Build();",
+            "static SqlExpression Wrap(SqlExpression e) => e;"
+        },
+        {
+            "var s = Select(t.Code).From(t).Where(Wrap(t.Code == 1)).Build();",
+            "static SqlCondition Wrap(SqlCondition c) => c;"
+        },
+        {
+            "var s = Select(t.Code).From(t).Where(Wrap(Upper(t.Key) == \"X\")).Build();",
+            "static SqlCondition Wrap(SqlCondition c) => c;"
+        },
     };
 
     /// <summary>

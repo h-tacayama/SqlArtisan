@@ -9,9 +9,8 @@ namespace SqlArtisan;
 /// </summary>
 /// <remarks>
 /// The type cannot be inferred from the returned column (a column reference
-/// carries a name, not a CLR type), so it is supplied here. Variable-length
-/// types (for example strings) require a <see cref="Size"/>; fixed-width types
-/// (numbers, dates) do not.
+/// carries a name, not a CLR type), so it is supplied here; a variable-length
+/// type such as a string also needs a <see cref="Size"/>.
 /// </remarks>
 public readonly struct OutputParameter
 {

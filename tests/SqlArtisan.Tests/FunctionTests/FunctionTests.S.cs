@@ -167,6 +167,7 @@ public partial class FunctionTests
         expected.Append("STRPOS(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]

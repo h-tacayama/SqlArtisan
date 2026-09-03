@@ -304,7 +304,9 @@ favor of the family:
 ```
 
 Using either legacy key with no `sqlartisan_syntax_*` key present reports
-`SQLA0002` once per compilation, including when the pair resolves perfectly
+`SQLA0002` once per distinct legacy configuration in the compilation (a
+solution whose directory-scoped `.editorconfig` files give projects different
+legacy pairs gets one report each), including when the pair resolves perfectly
 correctly — the warning is what makes the pair's eventual removal in a
 future major version expected rather than sudden. (Once a family key is
 present, the family governs and `SQLA0002` yields to the rules below.) If your project has `TreatWarningsAsErrors` and cannot migrate
@@ -655,10 +657,12 @@ this construct," which is not what a context rule reports.
 
 ## Datepart validity (SQLA0104)
 
-`DateTimePart` is a 42-member superset shared across `Extract`, `Datepart`,
-`Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`, `Interval`, `Timestampadd`,
-and `Timestampdiff` — its own XML doc says explicitly that not every field is
-valid for every function or dialect. `SQLA0100` cannot express that: the
+`DateTimePart` is a 42-member superset shared across eleven functions — its
+own XML doc says explicitly that not every field is valid for every function
+or dialect. `SQLA0104` covers nine of them (`Extract`, `Datepart`, `Dateadd`,
+`Datediff`, `DateTrunc`, `Datetrunc`, `Interval`, `Timestampadd`,
+`Timestampdiff`); `Numtodsinterval` and `Numtoyminterval` reject any unit
+outside their fixed set eagerly at the call instead (see Known limitations). `SQLA0100` cannot express that: the
 construct itself *is* supported, so a call like
 `Extract(DateTimePart.Epoch, x)` targeting Oracle passes the construct-level
 check and fails only when the database runs it (`EPOCH` is a PostgreSQL-only
@@ -725,7 +729,7 @@ UsersTable u = new();
 OrdersTable o = new("o");
 var q = DeleteFrom(u)
     .Where(Exists(Select(o.Id).From(o).Where(o.UserId == u.Id)));
-// warning SQLA0300: The target of a correlated UPDATE or DELETE must be aliased
+// warning SQLA0300: The target of a correlated UPDATE, DELETE, or MERGE must be aliased
 ```
 
 The fix is the one the run-time guard demands: alias the target
@@ -1096,6 +1100,15 @@ for, not a bug in the matrix.
   valid there unconditionally. Both are staying-permissive gaps, not
   false-positive risks: an argument this rule accepts can still fail at
   execution for a source-type reason it doesn't check.
+- **`SQLA0104` does not cover `Numtodsinterval` / `Numtoyminterval`.** Both
+  take a `DateTimePart` unit, but each accepts one fixed set no dialect varies
+  (`DAY`/`HOUR`/`MINUTE`/`SECOND`; `YEAR`/`MONTH`) and Oracle is the only
+  engine with either function, so the builder rejects any other unit eagerly
+  at the call and the analyzer has nothing dialect-keyed to add.
+- **`SQLA0103` models Oracle's 128-byte limit only.** Oracle 12.2 raised the
+  identifier limit from 30 bytes to 128; the rule applies the 128-byte
+  baseline whatever `sqlartisan_syntax_oracle` declares, so a 31–128-byte
+  identifier on a pre-12.2 target is not reported.
 - **`SQLA0103` traces table-class aliases through classic constructors only.**
   A table class whose alias flows through a C# *primary constructor*
   (`class T(string alias) : DbTableBase("t", alias)`) is not traced, so an

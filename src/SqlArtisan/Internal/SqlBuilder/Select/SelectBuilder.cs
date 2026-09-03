@@ -384,6 +384,18 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     // the bounded-exception boundary (ADR 0011).
     protected override void Validate(Dbms dbms)
     {
+        // A fractional constant sort key is a no-op ordering MySQL and SQLite
+        // accept, but PostgreSQL rejects it outright (live-verified on 16) — a
+        // value the analyzer cannot see, so the ADR 0011 shape (release audit,
+        // pass 4).
+        if (dbms == Dbms.PostgreSql
+            && FindPart<OrderByClause>() is { HasFractionalSortKey: true })
+        {
+            throw new ArgumentException(
+                "PostgreSQL does not accept a non-integer constant as an ORDER BY sort key; "
+                    + "order by a column or an expression instead.");
+        }
+
         if (dbms != Dbms.SqlServer)
         {
             return;

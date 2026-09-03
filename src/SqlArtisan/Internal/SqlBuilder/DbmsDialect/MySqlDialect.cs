@@ -10,9 +10,7 @@ internal sealed class MySqlDialect : IDbmsDialect
 
     public string DmlTableAliasSeparator => " AS ";
 
-    // MySQL 8.0.19+ references the proposed row through a row alias rather than
-    // the deprecated VALUES() function. The builder emits `... AS new` so the
-    // update clause can read it as `new.column`.
+    // The 8.0.19+ row alias RowAliasClause emits, read as `new.column`.
     public string ExcludedName => "new";
 
     public string MergeTerminator => "";

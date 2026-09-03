@@ -79,6 +79,11 @@ internal static class TypeCategoryMismatchRule
 
         while (current.Parent is { } parent and not IBlockOperation)
         {
+            if (FluentChain.IsForeignInvocation(parent))
+            {
+                return false;
+            }
+
             if (parent is IInvocationOperation step
                 && DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly)
                 && step.Instance is not null)

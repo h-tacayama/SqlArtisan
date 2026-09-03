@@ -629,9 +629,8 @@ public class MultiDialectSyntaxAnalyzerTests
 
     // Like SQLA0001, SQLA0002 carries no file location, so only a global
     // analyzer config reaches it (docs/analyzer.md's Migrating section names
-    // this as the TreatWarningsAsErrors escape hatch) — a file-scoped
-    // .editorconfig severity line does not (proven separately: it leaves the
-    // legacy pair's own SQLA0100 warning as the only diagnostic here too).
+    // this as the TreatWarningsAsErrors escape hatch); the file-scoped twin below
+    // shows an .editorconfig severity line leaving it standing.
     [Fact]
     public async Task GlobalConfigSuppressesSqla0002_ButLeavesSqla0100Active()
     {
@@ -643,6 +642,20 @@ public class MultiDialectSyntaxAnalyzerTests
 
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
         test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task FileScopedSeverityDoesNotReachSqla0002()
+    {
+        string editorConfig = AnalyzerVerifier.LegacyEditorConfig("mysql")
+            + "\ndotnet_diagnostic.SQLA0002.severity = none\n";
+
+        var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_mysql = any"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();

@@ -194,12 +194,13 @@ public abstract class SqlExpression : SqlPart
 
     /// <summary>
     /// Aliases this expression to a CTE / derived-table handle column: <c>expr
-    /// <paramref name="column"/></c>, emitted bare to match how
-    /// <paramref name="column"/> is referenced through its handle.
+    /// <paramref name="column"/></c>, emitted exactly as <paramref name="column"/>
+    /// is referenced through its handle — bare, or quoted when the handle was
+    /// materialized from a quoted alias.
     /// </summary>
     /// <param name="column">The target CTE / derived-table column.</param>
     /// <returns>The aliased expression.</returns>
-    public ExpressionAlias As(DbColumn column) => new(this, column.Name, quoteAlias: false);
+    public ExpressionAlias As(DbColumn column) => new(this, column.Name, column.QuoteName);
 
     /// <summary>
     /// The <c>expr BETWEEN <paramref name="rightSide1"/> AND <paramref name="rightSide2"/></c> condition.

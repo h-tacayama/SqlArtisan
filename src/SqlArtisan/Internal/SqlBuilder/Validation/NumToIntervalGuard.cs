@@ -16,7 +16,8 @@ internal static class NumToIntervalGuard
 
     internal static void ValidateDaySecondUnit(DateTimePart unit)
     {
-        if (unit is not (DateTimePart.Day or DateTimePart.Hour or DateTimePart.Minute or DateTimePart.Second))
+        if (unit is not (DateTimePart.Day or DateTimePart.Hour
+            or DateTimePart.Minute or DateTimePart.Second))
         {
             throw new ArgumentException(
                 $"{Keywords.Numtodsinterval} requires an interval unit of DAY, HOUR, MINUTE, or SECOND.");

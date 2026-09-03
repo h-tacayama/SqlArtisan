@@ -7,8 +7,8 @@ public static partial class Sql
 {
     /// <summary>
     /// A literal-row source for a MERGE <c>USING</c> —
-    /// <c>(VALUES (…),(…)) "alias" (col1, col2)</c>. Each value binds as a
-    /// parameter; reference the named columns with <c>.Column(name)</c>.
+    /// <c>(VALUES (…),(…)) "alias" (col1, col2)</c>. Literal values bind as
+    /// parameters; reference the named columns with <c>.Column(name)</c>.
     /// </summary>
     /// <param name="alias">The source alias.</param>
     /// <param name="columnNames">The source column names, in row-value order.</param>

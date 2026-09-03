@@ -6,9 +6,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- A held or nested `SELECT` — an `IN` subquery, a CTE body, a scalar select
+  item — now runs the same once-per-block and join-completion walk as the
+  outer statement, so a duplicate `WHERE` or a dangling join one level down
+  throws instead of rendering.
+- A leading `With(...).InsertInto(...)` followed by the feeding `SELECT`'s own
+  `With(...)` no longer trips the once-per-block `WITH` guard; the `INSERT`
+  opens a new block for it.
+- `MergeInto(...)` with an unaliased target and a subquery referencing that
+  target now throws the correlated-DML guard, as `UPDATE`/`DELETE` already
+  did; `SQLA0300`'s message names `MERGE` alongside them.
+- `OrderBy(2.5)` — a non-integer constant sort key — now throws at
+  `Build(Dbms.PostgreSql)`, which rejects the form; MySQL and SQLite still
+  render it.
+- `new DbColumn(owner, " ")` and `Column(" ")` reject a whitespace-only name
+  like every other bare-token position, and an `UNNEST` column alias list
+  naming one column twice throws.
+- `As(DbColumn)` and the derived `WithColumnList()` / `WITH RECURSIVE` column
+  lists render a handle column materialized from a quoted alias quoted,
+  matching its reference — one identifier on a case-folding engine instead
+  of two.
+- `Bind(null)` and `new BindValue(null)` now name `Sql.BindNull` as the
+  remedy, matching their XML docs, instead of `Sql.Null`.
+- Analyzer: `SQLA0200`/`SQLA0203`/`SQLA0204`/`SQLA0205` stay silent when the
+  column, count, or predicate reaches the chain through a method outside
+  SqlArtisan (`Where(Helper(t.Col.IsNull))`) — a helper may place its
+  argument anywhere, so the visible chain is not evidence.
+- TableClassGen: the `--schema` help text names MySQL among the DBMS that
+  read it.
 - TableClassGen no longer reports a column as indexed when its only index
-  cannot serve queries — a PostgreSQL invalid index (a failed `CONCURRENTLY`
-  build), a disabled SQL Server index, or an Oracle `UNUSABLE` index — which
+  cannot serve queries — an Oracle `UNUSABLE` index, a PostgreSQL invalid index
+  (a failed `CONCURRENTLY` build), or a disabled SQL Server index — which
   fed the analyzer's index-suppression rule wrong facts. The MySQL
   functional-index fallback now retries only on the unknown-column error
   instead of downgrading every database error to the legacy read.
@@ -36,7 +64,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (`Column(ExpressionAlias)` on a CTE, derived table, or `DbTable`) now
   renders quoted exactly as its definition — `"cte"."Total"` — where the
   bare reference previously no longer resolved on a case-folding engine.
-  Handle columns bound with `As(DbColumn)` still render bare on both sides.
 - `WhenMatched(null)`, `WhenNotMatched(null)`, and
   `WhenNotMatchedBySource(null)` now throw instead of silently rendering the
   unconditioned branch the zero-argument overloads spell on purpose;
@@ -173,7 +200,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   execute those one at a time (e.g. `SqlArtisan.Dapper`'s
   `ExecuteReturningInto`).
 - TableClassGen: a connection-string error now gets the guided cannot-connect
-  message on every DBMS, not only SQLite and MySQL; `--lowercase` also applies
+  message on every DBMS, not only MySQL and SQLite; `--lowercase` also applies
   on the `--tables` path against SQLite; a property-name collision aborts
   before any file is written instead of after some; the `--fix --dry-run`
   next-step instruction is no longer dropped when orphaned files are also
@@ -230,6 +257,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `VALUES` value kinds, join-state summary).
 
 ### Changed
+- **Breaking:** the `INSERT IGNORE` stages and `OnDuplicateKeyUpdate(...)` no
+  longer expose `Returning(...)` — MySQL, the only dialect with either
+  construct, has no `RETURNING`, so the pairing had no valid spelling; a held
+  pre-upsert stage that still reaches it throws at `Build()`.
 - Build-path allocations: `REGEXP_*` match options, window-function integer
   arguments (`LAG`/`LEAD` offsets, `NTILE` buckets, `NTH_VALUE` position,
   percentile fractions, interval-field precision) are stringified once at
@@ -464,7 +495,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **Breaking:** `sqlartisan_target_dbms` / `sqlartisan_target_version` are deprecated in favor of `sqlartisan_syntax_<dbms>` and now report `SQLA0002`, a new `SqlArtisan.Configuration` warning, once per compilation whenever either legacy key resolves with no `sqlartisan_syntax_*` key present — even when the pair is used alone and resolves perfectly correctly. A project with `TreatWarningsAsErrors` fails to build on upgrade with no config change of its own; migrate with `sqlartisan_target_dbms = postgresql` + `sqlartisan_target_version = 16` → `sqlartisan_syntax_postgresql = 16`. If you cannot migrate immediately, suppress `SQLA0002` specifically — **not** `SQLA0001` and **not** the `SqlArtisan.Configuration` category setting, either of which would also silence real configuration-error detection — via a global analyzer config (`.globalconfig` with `is_global = true`) or `<NoWarn>SQLA0002</NoWarn>`; a file-scoped `.editorconfig` `dotnet_diagnostic.SQLA0002.severity` line does not reach it, since it carries no file location. The legacy pair still resolves exactly as before wherever it governs — that is, wherever no `sqlartisan_syntax_*` key is present. `SQLA0001` also widens from reporting only an unrecognized value to reporting any SqlArtisan analyzer configuration problem: an unrecognized `sqlartisan_syntax_*` key name, a `sqlartisan_syntax_*` family that resolves to no dialect at all, and the legacy pair coexisting with a family that doesn't itself name the legacy pair's DBMS (which drops it rather than merging it in; a family that does name that DBMS — mid-migration, with the old line not yet deleted — drops nothing, so no coexistence report fires). See [Migrating from the legacy target key](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#migrating-from-the-legacy-target-key). (#432)
 - `Sql.Coalesce(...)`, `Sql.Concat(...)`, `Sql.Grouping(...)`, and `Sql.GroupingId(...)` allocate one array per construction instead of two — they previously resolved their `params` tail into its own array and then merged it with the leading arguments. Construction allocates one array fewer, so the saving starts at 24 B for the shortest call and grows with the `params` tail — a five-argument `Concat` drops 216 B, a nineteen-argument one over 400 B. The emitted SQL and every null-argument message are unchanged. (#413)
 - **Breaking:** `SqlArtisan.Internal.DeleteClause` and `SqlArtisan.Internal.EqualityCondition` are now `internal`, matching the twins they sat beside — `UpdateClause` and `InequalityCondition`. No public signature ever returned or accepted either, so neither could reach your code on its own: `DeleteClause`'s constructor was already `internal`, and `EqualityCondition` is only ever produced by `==`, which returns the public `EqualityBasedCondition` a `SET` list is written in terms of. `EqualityCondition`'s primary constructor was reachable, though, so a direct `new EqualityCondition(a, b)` no longer compiles — write `a == b` instead, which is what every assignment position already takes. (#410)
-- **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate. Omitting it is a syntax error on PostgreSQL and MySQL (except `InnerJoin`/`JoinLateral`, which MySQL silently reads as an unlabeled `CROSS JOIN`) and on SQLite for every one of the five — all read as the same unlabeled `CROSS JOIN`, a spelling the library already exposes under its own name (`CrossJoin`). `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error on every dialect; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
+- **Breaking:** `InnerJoin(...)` / `LeftJoin(...)` / `RightJoin(...)` / `FullJoin(...)` / `JoinLateral(...)` no longer expose `Build(...)` or `ForUpdate(...)` before `.On(...)` / `.Using(...)` supplies the join predicate. Omitting it is a syntax error on MySQL and PostgreSQL (except `InnerJoin`/`JoinLateral`, which MySQL silently reads as an unlabeled `CROSS JOIN`) and on SQLite for every one of the five — all read as the same unlabeled `CROSS JOIN`, a spelling the library already exposes under its own name (`CrossJoin`). `ISelectBuilderJoin` no longer extends `ISqlBuilder`/`IForUpdate`, so the omission is now a compile error on every dialect; a chain that already supplies `.On(...)`/`.Using(...)` is unaffected. Binary-breaking — rebuild against this version. (#400)
 
 ### Fixed
 - `SQLA0300` falsely warned in top-level-statements files: each top-level
@@ -691,7 +722,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Full-text search, exposed per dialect (each engine's own grammar — no cross-DB rewrite). MySQL: `Match(columns...)` pending its mandatory `AGAINST` — complete with `.Against(text[, SearchModifier])` (a `WHERE` predicate) or `.AgainstScore(text[, SearchModifier])` (the numeric relevance score); modifiers `IN NATURAL LANGUAGE MODE` / `IN BOOLEAN MODE` / `WITH QUERY EXPANSION`. Oracle: `ContainsScore(column, query[, label])` for the score-returning `CONTAINS` (compare it, e.g. `> 0`) and `Score(label)` for `SCORE(label)`. PostgreSQL: `TsMatch(vector, query)` for the `@@` predicate with `ToTsvector` / `ToTsquery` / `PlaintoTsquery` (optional configuration emitted as an inline string literal). SQLite: `Match(table, pattern)` for the FTS5 `table MATCH pattern` predicate. SQL Server: `Contains(column, searchCondition)` and `Freetext(column, freetext)` predicates. Search text is parameterized on every dialect; each engine requires its full-text index prerequisite (documented in the expression reference). (#153)
 - Scalar subqueries in expression position: a `SELECT` builder can now be used directly as a value — in a `SELECT` list, a `WHERE` comparison, or arithmetic — without an explicit wrapper. Chain `.As("alias")` for an aliased scalar subquery. Correlated subqueries (referencing outer-table columns) work naturally. (#156)
 - `ALL` / `ANY` / `SOME` quantified comparison operators with subqueries: `col > All(subquery)`, `col > Any(subquery)`, `col = Some(subquery)`. Standard SQL, supported on all five dialects. (#196)
-- JSON operations: `JsonExtract` (`JSON_EXTRACT` — MySQL, SQLite), `JsonValue` (`JSON_VALUE` — Oracle, SQL Server), `JsonQuery` (`JSON_QUERY` — Oracle, SQL Server) for function-call JSON access, and `JsonArrow` (`->`), `JsonArrowText` (`->>`), `JsonHashArrow` (`#>`), `JsonHashArrowText` (`#>>`) for infix JSON operators (MySQL, PostgreSQL, SQLite). JSON function paths are emitted as inline string literals (SQL Server and Oracle require a literal path); JSON operator keys are parameterized normally. (#152)
+- JSON operations: `JsonExtract` (`JSON_EXTRACT` — MySQL, SQLite), `JsonValue` (`JSON_VALUE` — Oracle, SQL Server), `JsonQuery` (`JSON_QUERY` — Oracle, SQL Server) for function-call JSON access, and `JsonArrow` (`->`), `JsonArrowText` (`->>`), `JsonHashArrow` (`#>`), `JsonHashArrowText` (`#>>`) for infix JSON operators (`->` / `->>` on MySQL, PostgreSQL, and SQLite; `#>` / `#>>` on PostgreSQL only). JSON function paths are emitted as inline string literals (Oracle and SQL Server require a literal path); JSON operator keys are parameterized normally. (#152)
 
 ## [0.5.0-beta.1] - 2026-06-30
 ### Added
@@ -707,7 +738,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Passing an incomplete "pending" expression to a value position now throws with an actionable hint instead of a generic type name. A window function used without `.Over(...)` (`Rank`, `RowNumber`, …) or an ordered-set aggregate used without `.WithinGroup(...)` (`Listagg`, `PercentileCont`, `PercentileDisc`) previously failed with `Invalid type for SelectItem: …AnalyticRankFunction`; it now reads `AnalyticRankFunction is not a complete SQL expression. Complete it with .Over(...) — a window function requires an OVER clause.`. The guidance is consistent across every value position (`SELECT` / `ORDER BY` / `GROUP BY` / `WHERE` / `INSERT` values); a genuinely unsupported type still gets the generic message. The line between what the library rejects (incomplete constructs) and what it emits faithfully (dialect-specific availability) is deliberate. (#190)
 ### Fixed
 - `InsertInto(...).Values(...)` with a `null` value now emits a SQL `NULL` literal (`VALUES (:0, NULL)`) instead of throwing a `NullReferenceException`, so a nullable column can be inserted as `NULL`. (#169)
-- `STRING_AGG`'s separator is now emitted as an inline string literal (`STRING_AGG(name, ', ')`) instead of a bind parameter. SQL Server requires the separator to be a literal and rejected the parameter form (`Argument data type nvarchar is invalid for argument 2`); the literal form is valid on both SQL Server and PostgreSQL. This matches how `GROUP_CONCAT`'s `SEPARATOR` and `LIKE ... ESCAPE` are already inlined. `Sql.StringAgg`'s `separator` parameter is now typed `string`. Caught by the integration matrix. (#168)
+- `STRING_AGG`'s separator is now emitted as an inline string literal (`STRING_AGG(name, ', ')`) instead of a bind parameter. SQL Server requires the separator to be a literal and rejected the parameter form (`Argument data type nvarchar is invalid for argument 2`); the literal form is valid on both PostgreSQL and SQL Server. This matches how `GROUP_CONCAT`'s `SEPARATOR` and `LIKE ... ESCAPE` are already inlined. `Sql.StringAgg`'s `separator` parameter is now typed `string`. Caught by the integration matrix. (#168)
 - A column aliased to a CTE / derived-table handle column via `.As(handle.Column)` now emits the alias **unquoted** (`... code cte_code`), matching how that column is later referenced (`"cte".cte_code`). Previously the definition was alias-quoted (`... code "cte_code"`) while the reference was bare, so on Oracle the bare reference case-folded to uppercase and could not resolve the lowercase quoted column — `ORA-00904`. Emitted SQL for such CTE/derived-table column aliases changes accordingly (the alias is no longer quoted); a string alias (`.As("name")`) is unaffected. Caught by the integration matrix. (#165)
 ### Build
 - The published packages now enable Source Link (`Microsoft.SourceLink.GitHub`), a deterministic build on CI (`ContinuousIntegrationBuild`), and ship debugging symbols as a separate `.snupkg` (`DebugType=portable`) — so consumers can step straight into SqlArtisan source while debugging, and the assemblies are reproducible from this exact commit. Applies to `SqlArtisan`, `SqlArtisan.Dapper`, and `SqlArtisan.TableClassGen`. (#157)
@@ -717,7 +748,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.4.0-beta.1] - 2026-06-27
 ### Added
-- Added support for joining a correlated derived table via `APPLY` / `LATERAL`, each grammar exposed as its own method: `CrossApply` / `OuterApply` (`CROSS APPLY` / `OUTER APPLY`, SQL Server / Oracle) and `CrossJoinLateral` / `LeftJoinLateral` / `JoinLateral(...).On(...)` (`CROSS JOIN LATERAL` / `LEFT JOIN LATERAL ... ON TRUE` / `JOIN LATERAL ... ON ...`, PostgreSQL / MySQL). The derived table is named by a `DerivedTableBase` handle — subclass it for typed `DbColumn` members, or use the inline `DerivedTable` and read columns with `Column(...)`. `Build(Dbms)` emits faithfully and never rewrites one form into the other; availability is left to the database and the analyzer. (#122)
+- Added support for joining a correlated derived table via `APPLY` / `LATERAL`, each grammar exposed as its own method: `CrossApply` / `OuterApply` (`CROSS APPLY` / `OUTER APPLY`, Oracle / SQL Server) and `CrossJoinLateral` / `LeftJoinLateral` / `JoinLateral(...).On(...)` (`CROSS JOIN LATERAL` / `LEFT JOIN LATERAL ... ON TRUE` / `JOIN LATERAL ... ON ...`, MySQL / PostgreSQL). The derived table is named by a `DerivedTableBase` handle — subclass it for typed `DbColumn` members, or use the inline `DerivedTable` and read columns with `Column(...)`. `Build(Dbms)` emits faithfully and never rewrites one form into the other; availability is left to the database and the analyzer. (#122)
 - Added support for the GROUP BY grouping extensions `Rollup(...)`, `Cube(...)`, and `GroupingSets(...)`. `Group(...)` forms a composite grouping element — a multi-column set inside `GroupingSets(...)`, or a parenthesized composite column inside `Rollup(...)` / `Cube(...)` (e.g. `Rollup(Group(a, b), c)` → `ROLLUP((a, b), c)`) — with `Group()` being the grand total; a single-column `Group(x)` renders bare as `x`. All three always emit their standard function forms (`ROLLUP(...)` / `CUBE(...)` / `GROUPING SETS(...)`) on every dialect. `Build(Dbms)` emits faithfully and does not gate on DBMS availability — an unsupported combination (e.g. `Cube` or the function-form `Rollup(...)` on MySQL, any extension on SQLite) is emitted as written for the database/analyzer to flag, not thrown. (#121)
 - Added MySQL's `WITH ROLLUP` GROUP BY suffix as a dedicated builder step: chain `.WithRollup()` onto `GroupBy(...)` (e.g. `GroupBy(a, b).WithRollup()` → `GROUP BY a, b WITH ROLLUP`). This is MySQL's grouping syntax; other dialects use the standard `Sql.Rollup(...)` function form. (#121)
 - Added support for the `ESCAPE` clause on `LIKE` / `NOT LIKE`: chain `.Escape(escapeChar)` onto a `Like(...)` / `NotLike(...)` condition (e.g. `Like("100%_off").Escape('!')`) to match wildcards (`%`, `_`) literally. The escape character is emitted as an inline string literal (single-quote- and, on MySQL, backslash-escaped) rather than a bind parameter, since MySQL rejects a parameter marker after `ESCAPE`; the clause is valid identically across all dialects. (#123)
@@ -736,7 +767,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.3.0-beta.1] - 2026-06-21
 ### Added
-- Added support for the `MERGE` statement (Oracle / SQL Server, and PostgreSQL 15+): `MergeInto(...).Using(...).On(...)` with per-dialect `WhenMatched` / `WhenNotMatched` / `WhenNotMatchedBySource` branches; SQL Server output is automatically terminated with the required semicolon. (#89)
+- Added support for the `MERGE` statement (Oracle, PostgreSQL 15+, and SQL Server): `MergeInto(...).Using(...).On(...)` with per-dialect `WhenMatched` / `WhenNotMatched` / `WhenNotMatchedBySource` branches; SQL Server output is automatically terminated with the required semicolon. (#89)
 - Added support for per-dialect string aggregation: `StringAgg()` (PostgreSQL/SQL Server), `Listagg()` (Oracle), and `GroupConcat()` (MySQL/SQLite). (#88)
 - Added support for the date/time arithmetic functions `DATEADD` / `DATEDIFF` (SQL Server) and `DATE_TRUNC` (PostgreSQL), as distinct per-dialect methods (`Dateadd()` / `Datediff()` / `DateTrunc()`). (#86)
 - Added support for UPSERT on `INSERT`: `OnConflict(...).DoUpdateSet(...)` / `.DoNothing()` (PostgreSQL/SQLite) and `OnDuplicateKeyUpdate(...)` (MySQL), referencing the proposed row with `Sql.Excluded(column)`. (#85)
@@ -746,12 +777,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **[BREAKING CHANGE]** Renamed the `Datepart` enum to `DateTimePart` to avoid a `CS0119` collision with the `Sql.Datepart()` factory; emitted SQL is unchanged, callers update only the type name (e.g. `Datepart.Year` → `DateTimePart.Year`). (#99)
 
 ### Fixed
-- Aliased DML now renders dialect-correctly. A table alias in `InsertInto` / `Update` / `DeleteFrom` is introduced with `AS` (PostgreSQL/SQLite/MySQL/SQL Server) or a bare space (Oracle), and target columns — the INSERT column list, the `ON CONFLICT` target, and `SET` / `DO UPDATE SET` left sides — are emitted unqualified. This makes the PostgreSQL `INSERT INTO t AS x ... ON CONFLICT ... DO UPDATE ... WHERE x.col` UPSERT idiom and aliased `UPDATE` / `DELETE` executable; previously they reused the SELECT-context aliasing (`t "x"` + `"x".col`) and produced invalid SQL. Aliasing the DML target itself remains engine-dependent and is not validated: SQL Server's structural single-table aliased `DELETE` / `UPDATE` (`DELETE x FROM t AS x` / `UPDATE x SET ... FROM t AS x`) is intentionally not emitted, and some engines reject an aliased INSERT target (e.g. MySQL has no alias slot in `INSERT INTO`). Since a single-table DML never requires an alias, omit it on those engines — `DeleteFrom(t).Where(...)` already renders valid unaliased SQL. (#96)
+- Aliased DML now renders dialect-correctly. A table alias in `InsertInto` / `Update` / `DeleteFrom` is introduced with `AS` (MySQL/PostgreSQL/SQLite/SQL Server) or a bare space (Oracle), and target columns — the INSERT column list, the `ON CONFLICT` target, and `SET` / `DO UPDATE SET` left sides — are emitted unqualified. This makes the PostgreSQL `INSERT INTO t AS x ... ON CONFLICT ... DO UPDATE ... WHERE x.col` UPSERT idiom and aliased `UPDATE` / `DELETE` executable; previously they reused the SELECT-context aliasing (`t "x"` + `"x".col`) and produced invalid SQL. Aliasing the DML target itself remains engine-dependent and is not validated: SQL Server's structural single-table aliased `DELETE` / `UPDATE` (`DELETE x FROM t AS x` / `UPDATE x SET ... FROM t AS x`) is intentionally not emitted, and some engines reject an aliased INSERT target (e.g. MySQL has no alias slot in `INSERT INTO`). Since a single-table DML never requires an alias, omit it on those engines — `DeleteFrom(t).Where(...)` already renders valid unaliased SQL. (#96)
 - `ORDER BY` can now follow `HAVING`: `GroupBy(...).Having(...).OrderBy(...)` previously did not compile, making `GROUP BY ... HAVING ... ORDER BY ...` inexpressible. (#111)
 
 ## [0.2.0-beta.4] - 2026-06-12
 ### Added
-- Added support for pagination: `Limit`/`Offset` (PostgreSQL/MySQL/SQLite) and `OffsetRows`/`FetchFirst`/`FetchNext` (Oracle 12c+/SQL Server 2012+). (#49)
+- Added support for pagination: `Limit`/`Offset` (MySQL/PostgreSQL/SQLite) and `OffsetRows`/`FetchFirst`/`FetchNext` (Oracle 12c+/SQL Server 2012+). (#49)
 - Added support for the ANSI `CAST(expr AS type)` expression. (#52)
 - Added support for multi-row `INSERT ... VALUES` by chaining `Values()`. (#54)
 - Added support for aggregate window functions (`Sum`/`Count`/`Avg`/`Max`/`Min` with `Over(...)`). (#56)

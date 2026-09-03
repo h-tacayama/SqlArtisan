@@ -84,16 +84,21 @@ internal abstract class SqlBuilderBase
     {
     }
 
-    // Pre-build hook for ADR 0011's bounded dialect rejections; the default
-    // does nothing. Every build path funnels through BuildCore, and only the
-    // outermost statement runs it — a nested subquery renders through Format,
-    // per ADR 0007's permissive default (RD-002).
+    // Pre-build hook for ADR 0011's bounded dialect rejections. Every build path
+    // funnels through BuildCore, and only the outermost statement runs it — a
+    // nested subquery renders through Format, ADR 0007's default (RD-002).
     protected virtual void Validate(Dbms dbms)
     {
     }
 
-    internal void FormatCore(SqlBuildingBuffer buffer) =>
+    // A nested render (subquery, CTE body, scalar item) never passes through
+    // BuildCore, so the dialect-blind walk runs here too: a dangling join or a
+    // duplicate clause is no less wrong one level down (release audit, pass 4).
+    internal void FormatCore(SqlBuildingBuffer buffer)
+    {
+        ThrowIfDuplicateClauseInBlock();
         buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
+    }
 
     // One entry per clause kind a query block takes at most once; grouped
     // types count as one kind, and clauses that legally repeat stay out.
@@ -126,6 +131,11 @@ internal abstract class SqlBuilderBase
         ("OUTPUT INTO", [typeof(OutputIntoClause)]),
         ("WITH", [typeof(WithClause), typeof(WithRecursiveClause)]),
     ];
+
+    // INSERT ... WITH ... SELECT: the feeding SELECT is its own query block for
+    // WITH, so a leading With(...) and the mid-chain With(...) legally coexist.
+    private static readonly int WithClauseIndex =
+        System.Array.FindIndex(OncePerBlockClauses, entry => entry.Name == "WITH");
 
     // MERGE's per-branch action kinds: at most one per WHEN branch, where a new
     // WHEN clause opens a fresh branch (so a legal multi-branch MERGE re-carries
@@ -170,6 +180,11 @@ internal abstract class SqlBuilderBase
                 continue;
             }
 
+            if (part is InsertIntoClause or InsertIgnoreIntoClause)
+            {
+                seen &= ~(1UL << WithClauseIndex);
+            }
+
             // ON/USING legally repeat once per join, so they pair by adjacency
             // rather than by a once-per-block entry.
             if (part is InnerJoinClause or LeftJoinClause or RightJoinClause or FullJoinClause
@@ -190,8 +205,8 @@ internal abstract class SqlBuilderBase
                 if (joinConditionSeen)
                 {
                     throw new ArgumentException(
-                        "A join takes at most one ON or USING clause; " +
-                        "a stage on a held builder was called twice.");
+                        "A join takes at most one ON or USING clause; "
+                        + "a stage on a held builder was called twice.");
                 }
 
                 joinConditionSeen = true;
@@ -210,8 +225,8 @@ internal abstract class SqlBuilderBase
                 if ((seen & bit) != 0)
                 {
                     throw new ArgumentException(
-                        $"A statement takes at most one {OncePerBlockClauses[i].Name} clause " +
-                        "per query block; a stage on a held builder was called twice.");
+                        $"A statement takes at most one {OncePerBlockClauses[i].Name} clause "
+                        + "per query block; a stage on a held builder was called twice.");
                 }
 
                 seen |= bit;
@@ -229,8 +244,8 @@ internal abstract class SqlBuilderBase
                 if ((seenInBranch & bit) != 0)
                 {
                     throw new ArgumentException(
-                        $"A MERGE WHEN branch takes at most one {OncePerBranchClauses[i].Name} " +
-                        "clause; a stage on a held builder was called twice.");
+                        $"A MERGE WHEN branch takes at most one {OncePerBranchClauses[i].Name} "
+                        + "clause; a stage on a held builder was called twice.");
                 }
 
                 seenInBranch |= bit;
@@ -247,8 +262,8 @@ internal abstract class SqlBuilderBase
     [DoesNotReturn]
     private static void ThrowJoinConditionMissing() =>
         throw new ArgumentException(
-            "A join is missing its ON or USING clause; the statement was built " +
-            "from a held builder before the join was completed.");
+            "A join is missing its ON or USING clause; the statement was built "
+            + "from a held builder before the join was completed.");
 
     // For a Validate(Dbms) override that must walk clause order (e.g. MERGE's
     // branch pairing), where FindPart's first-of-type is not enough.

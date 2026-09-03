@@ -20,7 +20,7 @@ public static partial class Sql
     {
         if (value is null)
         {
-            throw new ArgumentNullException(nameof(value), NullValueMessage);
+            throw new ArgumentNullException(nameof(value), BindValue.NullValueMessage);
         }
 
         if (!IsBindable(value))

@@ -6,8 +6,8 @@ using Oracle.ManagedDataAccess.Client;
 namespace SqlArtisan.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// A second, newer Oracle fixture used only by <c>Oracle23aiBoundSweepTests</c>
-/// to live-prove the analyzer's Oracle version bounds (#263) — the ordinary
+/// A second, newer Oracle fixture for the 23ai lane (<c>Oracle23aiBoundSweepTests</c>,
+/// <c>Oracle23aiTests</c>), live-proving the analyzer's Oracle version bounds (#263) — the ordinary
 /// <see cref="OracleFixture"/> lane stays on the pinned 21c baseline
 /// (<see cref="DialectMatrix.VerifiedAgainstVersion"/>) so its matrix-bool
 /// expectations (e.g. WITH RECURSIVE rejected) are unaffected.

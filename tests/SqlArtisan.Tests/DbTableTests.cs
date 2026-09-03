@@ -243,6 +243,19 @@ public class DbTableTests
     }
 
     [Fact]
+    public void DbColumn_WhiteSpaceName_ThrowsArgumentException()
+    {
+        // A column name renders as a bare token, so whitespace there is invalid
+        // on every dialect (RD-004's bare-token side).
+        DbTable u = new("users");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new DbColumn(u, " "));
+
+        Assert.Equal("A column requires a name.", ex.Message);
+    }
+
+    [Fact]
     public void DbColumn_NullName_ThrowsArgumentException()
     {
         DbTable u = new("users");

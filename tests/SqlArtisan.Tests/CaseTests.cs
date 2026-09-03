@@ -839,4 +839,16 @@ public class CaseTests
                 + "Complete the WHEN branch with .Then(...).",
             ex.Message);
     }
+
+    [Fact]
+    public void SimpleWhen_WithoutThen_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Select(When("a")));
+
+        Assert.Equal(
+            "SimpleCaseWhenExpression is not a complete SQL expression. "
+                + "Complete the WHEN branch with .Then(...).",
+            ex.Message);
+    }
 }

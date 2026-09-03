@@ -1,10 +1,9 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The Oracle Text <c>CONTAINS(column, query)</c> operator: the relevance score
-/// (0–100) of the column for the query, 0 when there is no match. Compare it in
-/// <c>WHERE</c> (e.g. <c>&gt; 0</c>); with a label, read the score via
-/// <c>SCORE(label)</c>.
+/// The Oracle Text <c>CONTAINS(column, query)</c> operator: the column's
+/// relevance score (0–100) for the query, 0 when there is no match; with a
+/// label, <c>SCORE(label)</c> reads it back.
 /// </summary>
 public sealed class ContainsScoreFunction : SqlExpression
 {

@@ -101,6 +101,17 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void Unnest_AsTable_DuplicateColumnName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Unnest(BindArray([1]), BindArray(["a"])).AsTable("t", "x", "x"));
+
+        Assert.Equal(
+            "An UNNEST column alias list requires a distinct name for every column.",
+            ex.Message);
+    }
+
+    [Fact]
     public void Unnest_AsTable_WhiteSpaceColumnName_ThrowsArgumentException()
     {
         // The column list renders as bare tokens, so whitespace there is

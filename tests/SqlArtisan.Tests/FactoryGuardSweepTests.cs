@@ -22,11 +22,9 @@ public class FactoryGuardSweepTests
     private const string ResolverNullValueMessage =
         "Value cannot be null. Use Sql.Null to represent SQL NULL.";
 
-    // Key: "Signature :: injection". Value: the exact SQL the degenerate call
-    // builds. An entry asserts the acceptance is deliberate — most are an
-    // empty params tail that is simply the factory's smaller legal call, and
-    // the whitespace entries are quoted/literal positions where whitespace is
-    // the engine's to judge (RD-004).
+    // Key: "Signature :: injection"; value: the exact SQL the degenerate call
+    // builds — an entry asserts the acceptance is deliberate (a smaller legal
+    // call, or a quoted/literal position where whitespace is RD-004's).
     private static readonly Dictionary<string, string> AcceptedSilentBuilds = new()
     {
         ["Case(SearchedCaseWhenClause, SearchedCaseWhenClause[]) :: whenClauses=[]"] =
@@ -113,12 +111,8 @@ public class FactoryGuardSweepTests
                             $"BARE NRE {key} — a null element owes a named ArgumentNullException.");
                     }
 
-                    // An eager guard's ParamName is part of the public failure
-                    // surface: a name absent from the invoked signature leaks an
-                    // internal one (the #497 class). The expression-resolver
-                    // family is exempt — it deliberately reports position-style
-                    // names with its uniform "Use Sql.Null" message
-                    // (ExpressionResolver.cs records the uniformity).
+                    // A ParamName absent from the invoked signature leaks an internal
+                    // name (#497); the expression-resolver family's position names are exempt.
                     if (ex.InnerException is ArgumentException { ParamName: { } paramName } argEx
                         && !argEx.Message.StartsWith(ResolverNullValueMessage, StringComparison.Ordinal)
                         && System.Array.TrueForAll(

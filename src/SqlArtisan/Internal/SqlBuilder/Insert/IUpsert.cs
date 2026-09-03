@@ -20,6 +20,6 @@ public interface IUpsert
     /// 8.0.19+ row alias (<c>AS new</c>); reference it with <see cref="ExcludedColumn"/>.
     /// </summary>
     /// <param name="assignments">The column assignments to apply when a duplicate-key conflict occurs.</param>
-    /// <returns>The builder positioned to add <c>RETURNING</c> or build.</returns>
-    IReturning OnDuplicateKeyUpdate(params EqualityCondition[] assignments);
+    /// <returns>The builder positioned to build; MySQL has no <c>RETURNING</c>.</returns>
+    ISqlBuilder OnDuplicateKeyUpdate(params EqualityCondition[] assignments);
 }

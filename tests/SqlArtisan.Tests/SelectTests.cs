@@ -187,8 +187,7 @@ public class SelectTests
 
     // The compiler blocks the marker in SqlExpression-typed positions; the
     // object-typed value positions reject it at runtime (ADR 0007 backstop).
-    // COUNT is the one aggregate where * is legal — Count(Asterisk) has its
-    // own overload (see FunctionTests.C).
+    // COUNT's legal * is Count(Asterisk)'s own overload (FunctionTests.C).
     [Fact]
     public void Asterisk_InExpressionPosition_ThrowsArgumentException()
     {
@@ -319,7 +318,10 @@ public class SelectTests
     [Fact]
     public void DistinctOn_NoExpressions_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(DistinctOn(), _t.Code).Build());
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Select(DistinctOn(), _t.Code).Build());
+
+        Assert.Equal("DISTINCT ON requires at least one expression.", ex.Message);
     }
 
     [Fact]
@@ -546,6 +548,7 @@ public class SelectTests
         expected.Append("test_table \"t\" ");
         expected.Append("ORDER BY \"t\".code");
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(5, sql.Parameters.Get<int>("@0"));
     }
 
     [Fact]
@@ -560,6 +563,7 @@ public class SelectTests
         expected.Append("FROM ");
         expected.Append("test_table \"t\"");
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(5, sql.Parameters.Get<int>("@0"));
     }
 
     [Fact]
@@ -574,6 +578,7 @@ public class SelectTests
         expected.Append("FROM ");
         expected.Append("test_table \"t\"");
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(10, sql.Parameters.Get<int>("@0"));
     }
 
     [Fact]

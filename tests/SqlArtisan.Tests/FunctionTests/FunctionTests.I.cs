@@ -17,6 +17,9 @@ public partial class FunctionTests
         expected.Append("IF(`t`.code > ?0, ?1, ?2)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("adult", sql.Parameters.Get<string>("?1"));
+        Assert.Equal("minor", sql.Parameters.Get<string>("?2"));
     }
 
     [Fact]
@@ -40,6 +43,7 @@ public partial class FunctionTests
         expected.Append("IFNULL(`t`.name, ?0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("Unknown", sql.Parameters.Get<string>("?0"));
     }
 
     [Fact]
@@ -54,6 +58,9 @@ public partial class FunctionTests
         expected.Append("IIF(\"t\".code > @0, @1, @2)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("adult", sql.Parameters.Get<string>("@1"));
+        Assert.Equal("minor", sql.Parameters.Get<string>("@2"));
     }
 
     [Fact]
@@ -134,6 +141,7 @@ public partial class FunctionTests
         expected.Append("(`t`.created_at - INTERVAL ?0 DAY)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(30, sql.Parameters.Get<int>("?0"));
     }
 
     [Fact]
@@ -451,5 +459,6 @@ public partial class FunctionTests
         expected.Append("ISNULL(\"t\".name, @0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("Unknown", sql.Parameters.Get<string>("@0"));
     }
 }

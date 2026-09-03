@@ -10,6 +10,10 @@ namespace SqlArtisan;
 /// </summary>
 public class BindValue : SqlExpression
 {
+    // Sql.Bind shares it: the remedy for a null bind is BindNull, not Sql.Null.
+    internal const string NullValueMessage =
+        "Value cannot be null. Use Sql.BindNull to bind SQL NULL.";
+
     /// <summary>Creates an explicit bind-parameter handle for <paramref name="value"/>.</summary>
     /// <param name="value">The bound value.</param>
     /// <param name="dbType">The data type the parameter is bound as, or <see langword="null"/> to let the driver infer it.</param>
@@ -28,8 +32,7 @@ public class BindValue : SqlExpression
     {
         if (value is null)
         {
-            throw new ArgumentNullException(
-                nameof(value), ExpressionResolver.NullValueMessage);
+            throw new ArgumentNullException(nameof(value), NullValueMessage);
         }
 
         Value = value;

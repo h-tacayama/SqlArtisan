@@ -12,7 +12,7 @@ public sealed class CommonTableExpression
 {
     private readonly string _name;
     private readonly ISubquery _subquery;
-    private readonly string[]? _columnNames;
+    private readonly CteColumnName[]? _columnNames;
 
     internal CommonTableExpression(string name, ISubquery subquery)
     {
@@ -22,7 +22,7 @@ public sealed class CommonTableExpression
         _subquery = subquery;
     }
 
-    private CommonTableExpression(string name, ISubquery subquery, string[] columnNames)
+    private CommonTableExpression(string name, ISubquery subquery, CteColumnName[] columnNames)
     {
         _name = name;
         _subquery = subquery;
@@ -38,7 +38,7 @@ public sealed class CommonTableExpression
     /// <exception cref="ArgumentException">A select item of the first query block has no name, or two share one.</exception>
     public CommonTableExpression WithColumnList()
     {
-        string[] columnNames = TryDeriveColumnNames() ?? throw NoColumnName();
+        CteColumnName[] columnNames = TryDeriveColumnNames() ?? throw NoColumnName();
         if (HasDuplicateName(columnNames))
         {
             throw new ArgumentException(
@@ -61,10 +61,11 @@ public sealed class CommonTableExpression
         AppendAsSubquery(buffer);
     }
 
-    // The list names are emitted bare, matching how a CTE column reference
-    // renders (DbColumn is unquoted) — quoting only the definition would break
-    // resolution on case-folding engines like Oracle (#165).
-    internal void Format(SqlBuildingBuffer buffer, string[] columnNames)
+    // Each list name renders exactly as its select item and handle reference
+    // do — bare for a column, quoted for a quoted alias — since a definition
+    // quoted differently from its reference no longer resolves on a
+    // case-folding engine like Oracle (#165).
+    internal void Format(SqlBuildingBuffer buffer, CteColumnName[] columnNames)
     {
         buffer.EncloseInAliasQuotes(_name);
         buffer.Append('(');
@@ -76,7 +77,14 @@ public sealed class CommonTableExpression
                 buffer.Append(", ");
             }
 
-            buffer.Append(columnNames[i]);
+            if (columnNames[i].Quote)
+            {
+                buffer.EncloseInAliasQuotes(columnNames[i].Name);
+            }
+            else
+            {
+                buffer.Append(columnNames[i].Name);
+            }
         }
 
         buffer.Append(')');
@@ -84,7 +92,7 @@ public sealed class CommonTableExpression
     }
 
     // Null instead of a throw so each construct site owns its guard message.
-    internal string[]? TryDeriveColumnNames()
+    internal CteColumnName[]? TryDeriveColumnNames()
     {
         SqlPart[]? selectItems = (_subquery as SelectBuilder)?.FirstSelectItems();
         if (selectItems is null)
@@ -92,13 +100,13 @@ public sealed class CommonTableExpression
             return null;
         }
 
-        string[] names = new string[selectItems.Length];
+        CteColumnName[] names = new CteColumnName[selectItems.Length];
         for (int i = 0; i < selectItems.Length; i++)
         {
-            string? name = selectItems[i] switch
+            CteColumnName? name = selectItems[i] switch
             {
-                DbColumn column => column.Name,
-                ExpressionAlias alias => alias.Name,
+                DbColumn column => new CteColumnName(column.Name, column.QuoteName),
+                ExpressionAlias alias => new CteColumnName(alias.Name, alias.QuoteAlias),
                 _ => null,
             };
 
@@ -107,15 +115,30 @@ public sealed class CommonTableExpression
                 return null;
             }
 
-            names[i] = name;
+            names[i] = name.Value;
         }
 
         return names;
     }
 
-    // A quadratic scan: CTE column lists are short, and the check runs once at
-    // the construct call. Ordinal-exact only — a case-folding collision is the
-    // engine's to judge.
+    // Quadratic on a short list checked once; ordinal-exact — a case-folding
+    // collision is the engine's to judge.
+    internal static bool HasDuplicateName(CteColumnName[] names)
+    {
+        for (int i = 1; i < names.Length; i++)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                if (names[i].Name == names[j].Name)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     internal static bool HasDuplicateName(string[] names)
     {
         for (int i = 1; i < names.Length; i++)
@@ -149,3 +172,7 @@ public sealed class CommonTableExpression
         "A CTE column list requires a name for every column of the CTE's first query block; "
             + "alias the expression with .As(...).");
 }
+
+// A CTE column-list entry: the select item's name and whether that item
+// renders it quoted, so the list can match it exactly.
+internal readonly record struct CteColumnName(string Name, bool Quote);

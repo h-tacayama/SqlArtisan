@@ -196,16 +196,11 @@ public sealed class SqliteMatrixSweepTests : MatrixSweepTestBase, IClassFixture<
 
     protected override void PrepareEngine(IDbConnection connection)
     {
-        // The FTS5 virtual table behind the SQLite Match(...) shape.
-        try
-        {
-            connection.Execute("CREATE VIRTUAL TABLE sweep_fts USING fts5(name)");
-            connection.Execute("INSERT INTO sweep_fts(name) VALUES ('alice database')");
-        }
-        catch
-        {
-            // Already created by an earlier run against the same database.
-        }
+        // The FTS5 virtual table behind the SQLite Match(...) shape; a real
+        // failure (no FTS5) surfaces here instead of as a later sweep mismatch.
+        connection.Execute("CREATE VIRTUAL TABLE IF NOT EXISTS sweep_fts USING fts5(name)");
+        connection.Execute("DELETE FROM sweep_fts");
+        connection.Execute("INSERT INTO sweep_fts(name) VALUES ('alice database')");
     }
 }
 
@@ -235,13 +230,13 @@ public sealed class MySqlMatrixSweepTests : MatrixSweepTestBase, IClassFixture<M
     protected override void PrepareEngine(IDbConnection connection)
     {
         // MATCH ... AGAINST needs a FULLTEXT index matching the searched columns.
-        try
+        long existing = connection.ExecuteScalar<long>(
+            "SELECT COUNT(*) FROM information_schema.STATISTICS "
+            + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' "
+            + "AND INDEX_NAME = 'sweep_ft_name'");
+        if (existing == 0)
         {
             connection.Execute("CREATE FULLTEXT INDEX sweep_ft_name ON users(name)");
-        }
-        catch
-        {
-            // Already created by an earlier run against the same database.
         }
     }
 }

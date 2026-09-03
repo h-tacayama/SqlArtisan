@@ -2,10 +2,9 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// The element-guard class: a computed null element in a typed params array owes
-// a named ArgumentNullException (guards-and-empty-states rule, element clause).
-// FactoryGuardSweepTests mechanizes the Sql.* factory side; these pin the
-// builder instance-method and clause-constructor sites it cannot reach.
+// The element-guard class (guards-and-empty-states, element clause): the
+// builder instance-method and clause-constructor sites FactoryGuardSweepTests
+// cannot reach.
 public class BuilderElementGuardTests
 {
     private readonly TestTable _t = new("t");

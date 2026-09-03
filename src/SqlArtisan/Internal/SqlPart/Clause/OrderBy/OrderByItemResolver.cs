@@ -58,7 +58,7 @@ internal static class OrderByItemResolver
 
     private static readonly char[] FractionMarks = ['.', 'E', 'e'];
 
-    private static LiteralValue ResolveNumericSortKey(object value)
+    private static NumericSortKey ResolveNumericSortKey(object value)
     {
         // Plain ToString() is culture-dependent (comma-decimal cultures split
         // a single sort key into two tokens, e.g. "2.5" -> "2,5"); IsNumeric
@@ -76,7 +76,7 @@ internal static class OrderByItemResolver
                     throw new ArgumentException("An ORDER BY column ordinal must be positive.");
                 }
 
-                return new LiteralValue(text);
+                return new NumericSortKey(text, fractional: false);
 
             case float or double or decimal:
                 // NaN/Infinity is a value-domain failure, not a type one:
@@ -95,7 +95,7 @@ internal static class OrderByItemResolver
                     text += ".0";
                 }
 
-                return new LiteralValue(text);
+                return new NumericSortKey(text, fractional: true);
 
             default:
                 // Complex — a numeric with no sort-key rendering.

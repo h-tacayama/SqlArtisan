@@ -21,7 +21,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
     private List<KeyValuePair<string, BindValue>>? _parameters;
     private bool _disposed;
     // Correlated-DML guard state (#253): a bare target column rendered inside a
-    // subquery resolves to the inner scope — a silent tautology — so DbColumn's Format fails loudly instead.
+    // subquery resolves to the inner scope — a silent tautology — so
+    // DbColumn's Format fails loudly instead.
     private TableReference? _correlatedDmlTarget;
     private int _subqueryDepth;
 
@@ -457,7 +458,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
         if (ContainsParameterName(name))
         {
             throw new ArgumentException(
-                $"A RETURNING INTO clause requires a distinct name for every variable; '{output.Variable}' is duplicated.");
+                "A RETURNING INTO clause requires a distinct name for every variable; "
+                    + $"'{output.Variable}' is duplicated.");
         }
 
         Append(name);
@@ -473,7 +475,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // Transfer ownership of the parameter dictionary to the SqlStatement.
+        // Transfer ownership of the parameter list to the SqlStatement.
         // The buffer relinquishes its reference so the caller's instance is
         // never mutated after this point (Dispose only returns the char buffer).
         string sql = new(_buffer, 0, _position);

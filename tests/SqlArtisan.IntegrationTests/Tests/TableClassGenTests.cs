@@ -194,7 +194,7 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
 
             CatalogTable users = reader.GetAllTables().Single(
                 t => string.Equals(t.TableName, "users", StringComparison.OrdinalIgnoreCase));
-            Assert.Null(users.Columns.Single(c => c.Name == "age").IsIndexed);
+            Assert.False(users.Columns.Single(c => c.Name == "age").IsIndexed);
         }
         finally
         {
@@ -350,7 +350,7 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
             InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
 
             CatalogTable users = reader.GetAllTables().Single(t => t.TableName == "users");
-            Assert.Null(users.Columns.Single(c => c.Name == "age").IsIndexed);
+            Assert.False(users.Columns.Single(c => c.Name == "age").IsIndexed);
         }
         finally
         {
@@ -485,7 +485,7 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
             OracleCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
 
             CatalogTable users = reader.GetAllTables().Single(t => t.TableName == "users");
-            Assert.Null(users.Columns.Single(c => c.Name == "age").IsIndexed);
+            Assert.False(users.Columns.Single(c => c.Name == "age").IsIndexed);
         }
         finally
         {

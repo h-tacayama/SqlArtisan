@@ -105,7 +105,7 @@ public class DeleteTests
             .Build());
 
         Assert.Equal(
-            "The target of a correlated UPDATE or DELETE must be aliased.",
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
             ex.Message);
     }
 
@@ -144,7 +144,7 @@ public class DeleteTests
             .Build());
 
         Assert.Equal(
-            "The target of a correlated UPDATE or DELETE must be aliased.",
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
             ex.Message);
     }
 

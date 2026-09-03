@@ -45,7 +45,7 @@ public interface ISelectBuilder
 
     /// <inheritdoc cref="Select(object[])"/>
     /// <param name="hints">Optimizer hints emitted right after <c>SELECT</c> (e.g. Oracle <c>/*+ ... */</c>).</param>
-    /// <param name="distinctOn">PostgreSQL's <c>DISTINCT ON (...)</c> prefix, emitting <c>SELECT ... DISTINCT ON (...) ...</c>.</param>
+    /// <param name="distinctOn">PostgreSQL's <c>DISTINCT ON (...)</c> prefix, emitting <c>SELECT /*+ ... */ DISTINCT ON (...) ...</c>.</param>
     /// <param name="selectItems">The select-list items — columns, expressions, or <c>expr.As("alias")</c> aliases.</param>
     ISelectBuilderSelect Select(
         SqlHints hints,

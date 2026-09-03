@@ -17,25 +17,32 @@ public sealed class DbColumn : SqlExpression
     /// <param name="owner">The table, CTE, or derived table that owns this column.</param>
     /// <param name="name">The column name as it appears in SQL.</param>
     public DbColumn(TableReference owner, string name)
+        : this(owner, name, quoteName: false)
     {
-        ArgumentNullException.ThrowIfNull(owner);
-        StringGuard.ThrowIfNullOrEmpty(name, "A column requires a name.");
-
-        Owner = owner;
-        Name = name;
+        // The name renders as a bare token, so whitespace there is invalid on
+        // every dialect (RD-004's bare-token side); the quoted path below is
+        // a quoted position, where whitespace stays the engine's to judge.
+        StringGuard.ThrowIfNullOrWhiteSpace(name, "A column requires a name.");
     }
 
     // For a column materialized from a quoted SELECT-list alias: the reference
     // must render quoted exactly as the definition did, or a case-folding
     // engine resolves the two to different identifiers.
     internal DbColumn(TableReference owner, string name, bool quoteName)
-        : this(owner, name)
     {
+        ArgumentNullException.ThrowIfNull(owner);
+        StringGuard.ThrowIfNullOrEmpty(name, "A column requires a name.");
+
+        Owner = owner;
+        Name = name;
         _quoteName = quoteName;
     }
 
     internal TableReference Owner { get; }
     internal string Name { get; }
+
+    // Read by As(DbColumn) so the alias definition renders as this reference does.
+    internal bool QuoteName => _quoteName;
 
     internal override void Format(SqlBuildingBuffer buffer)
     {

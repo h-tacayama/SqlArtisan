@@ -49,9 +49,8 @@ internal static class DialectSupportResolver
         public bool IsArityLevel { get; }
 
         /// <summary>
-        /// The <c>.editorconfig</c> key that would silence/force this result if
-        /// it turns out to be wrong for the caller's actual engine version —
-        /// surfaced in the SQLA0100/SQLA0101 message.
+        /// The <c>.editorconfig</c> key that silences or forces this result when it
+        /// is wrong for the caller's engine version; named in the SQLA0100/SQLA0101 message.
         /// </summary>
         public string OverrideKeyHint { get; }
 

@@ -54,7 +54,7 @@ public static partial class Sql
     /// is per-dialect: SQL Server appends the required terminating semicolon and
     /// supports <c>WHEN NOT MATCHED BY SOURCE</c>.</remarks>
     public static IMergeBuilderTarget MergeInto(DbTableBase target) =>
-        new MergeBuilder(new MergeIntoClause(target));
+        new MergeBuilder(target, new MergeIntoClause(target));
 
     /// <summary>
     /// The <c>MIN(<paramref name="expr"/>)</c> aggregate: the smallest value of

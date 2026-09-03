@@ -145,7 +145,7 @@ internal static class DialectMatrix
         // --- UPSERT / MERGE (CHANGELOG 0.3.0-beta.1, #85, #89) ---
         [new MatrixKey("OnConflict")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("OnDuplicateKeyUpdate")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
-        // MERGE is PostgreSQL 15+ (version caveat — use the override if targeting an older PostgreSQL).
+        // MERGE is PostgreSQL 15+; the Bounds row below makes that SQLA0101's verdict.
         [new MatrixKey("MergeInto")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("Excluded")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
 

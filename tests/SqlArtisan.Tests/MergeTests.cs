@@ -287,6 +287,49 @@ public class MergeTests
     }
 
     [Fact]
+    public void Merge_CorrelatedSubqueryUnaliasedTarget_ThrowsArgumentException()
+    {
+        // A bare target column inside a subquery resolves to the inner table —
+        // the same silent tautology the UPDATE/DELETE guard rejects (#253).
+        TestTable r = new("r");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_cols)
+            .Using(_s)
+            .On(_cols.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet(
+                _cols.Name == Select(r.Name).From(r).Where(r.Code == _cols.Code))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Merge_CorrelatedSubqueryAliasedTarget_CorrectSql()
+    {
+        TestTable r = new("r");
+
+        SqlStatement sql =
+            MergeInto(_t)
+            .Using(_s)
+            .On(_t.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet(
+                _t.Name == Select(r.Name).From(r).Where(r.Code == _t.Code))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("MERGE INTO test_table \"t\" ");
+        expected.Append("USING test_table \"s\" ");
+        expected.Append("ON (\"t\".code = \"s\".code) ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = ");
+        expected.Append("(SELECT \"r\".name FROM test_table \"r\" WHERE \"r\".code = \"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
     public void Merge_OnAllConditionsExcluded_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>

@@ -134,7 +134,7 @@ public class OrderByTests
                 "SELECT \"t\".code FROM test_table \"t\" ORDER BY 2.5";
 
             // Act
-            SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.5).Build();
+            SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.5).Build(Dbms.Sqlite);
 
             // Assert
             Assert.Equal(expected, sql.Text);
@@ -212,10 +212,32 @@ public class OrderByTests
     {
         // A whole-valued double is a literal sort key, not a column ordinal, so
         // it keeps its decimal point ("2.0", never a bare "2").
-        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.0).Build();
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.0).Build(Dbms.Sqlite);
 
         Assert.Equal(
             "SELECT \"t\".code FROM test_table \"t\" ORDER BY 2.0",
             sql.Text);
+    }
+
+    [Fact]
+    public void OrderBy_FractionalLiteral_PostgreSql_ThrowsArgumentException()
+    {
+        // MySQL and SQLite accept the no-op constant ordering; PostgreSQL
+        // rejects it, and the analyzer cannot see a value (ADR 0011).
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(2.5).Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "PostgreSQL does not accept a non-integer constant as an ORDER BY sort key; "
+                + "order by a column or an expression instead.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_IntegerOrdinal_PostgreSql_CorrectSql()
+    {
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(1).Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY 1", sql.Text);
     }
 }

@@ -46,7 +46,7 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
         return this;
     }
 
-    public IReturning OnDuplicateKeyUpdate(params EqualityCondition[] assignments)
+    public ISqlBuilder OnDuplicateKeyUpdate(params EqualityCondition[] assignments)
     {
         // Parse before appending anything: a throw after AddPart(RowAliasClause)
         // would leave the alias behind, and the supported fix-up retry on the
@@ -188,8 +188,13 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
         OutputClause? output = FindPart<OutputClause>();
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
-        OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(
-            output, onConflict, FindPart<OnDuplicateKeyUpdateClause>());
+        OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate = FindPart<OnDuplicateKeyUpdateClause>();
+        OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(output, onConflict, onDuplicateKeyUpdate);
+        ReturningGuard.ThrowIfCombinedWithMySqlInsertForm(
+            FindPart<InsertIgnoreIntoClause>(),
+            onDuplicateKeyUpdate,
+            FindPart<ReturningClause>(),
+            FindPart<ReturningIntoClause>());
     }
 
     // Resolve and width-check the whole batch before touching builder state: a

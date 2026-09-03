@@ -300,8 +300,8 @@ pattern as a CTE's `CteBase`); pass that instance as the handle.
 
 | Method | Emits | Typical DBMS |
 |---|---|---|
-| `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
-| `OuterApply(subquery, handle)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
+| `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | Oracle, SQL Server |
+| `OuterApply(subquery, handle)` | `OUTER APPLY (...) alias` | Oracle, SQL Server |
 | `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | MySQL, Oracle, PostgreSQL |
 | `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON TRUE` | MySQL, PostgreSQL |
 | `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | MySQL, Oracle, PostgreSQL |
@@ -570,7 +570,7 @@ SqlStatement sql =
 
 Row limiting is dialect-divergent, so SqlArtisan exposes two faithful families and you choose the one for your target database (see [Design Philosophy](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md#design-philosophy)).
 
-#### LIMIT family (PostgreSQL / MySQL / SQLite)
+#### LIMIT family (MySQL / PostgreSQL / SQLite)
 
 ```csharp
 TestTable t = new();
@@ -735,7 +735,10 @@ target has no alias, and every engine resolves it to the subquery's own
 table — a tautology that silently updates or deletes **every row**. SqlArtisan
 refuses to build that form; `Build()` throws:
 
-> The target of a correlated UPDATE or DELETE must be aliased.
+> The target of a correlated UPDATE, DELETE, or MERGE must be aliased.
+
+The same guard arms `MergeInto(...)`: a target column referenced inside a
+subquery in any `MERGE` clause needs the aliased target too.
 
 Alias the target — the outer reference then renders qualified and the
 statement means what it says:
@@ -866,7 +869,7 @@ SqlStatement sql =
 // (:0, :1, CURRENT_TIMESTAMP)
 ```
 
-**Dialect note:** On SQL Server and MySQL the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`). T-SQL introduces a table alias through a `FROM` clause instead, and MySQL's `INSERT` grammar has no target-alias slot at all (its `AS new` row alias is the separate UPSERT construct) — building an aliased target for either throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and Oracle and SQLite accept the alias as well.
+**Dialect note:** On MySQL and SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`). T-SQL introduces a table alias through a `FROM` clause instead, and MySQL's `INSERT` grammar has no target-alias slot at all (its `AS new` row alias is the separate UPSERT construct) — building an aliased target for either throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and Oracle and SQLite accept the alias as well.
 
 ---
 
@@ -1311,7 +1314,7 @@ int deletedId = outputs.Get<int>("outId");
 string deletedName = outputs.Get<string>("outName");
 ```
 
-**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (SQLite gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). It is not supported by SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)) or MySQL. The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
+**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (SQLite gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). It is not supported by MySQL or SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)). The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
 
 ## OUTPUT Clause (SQL Server)
 

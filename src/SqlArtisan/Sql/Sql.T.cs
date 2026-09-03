@@ -223,8 +223,8 @@ public static partial class Sql
         new(Resolve(source), Resolve(trimChar));
 
     /// <summary>
-    /// The <c>TRUNC(expr)</c> function: truncates <paramref name="expr"/> toward zero
-    /// to an integer.
+    /// The <c>TRUNC(expr)</c> function: truncates <paramref name="expr"/> — a number
+    /// toward zero to an integer, or a date to the start of its day.
     /// </summary>
     /// <param name="expr">The numeric or date value to truncate.</param>
     /// <returns>A <c>TRUNC</c> function expression.</returns>

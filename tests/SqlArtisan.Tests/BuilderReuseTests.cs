@@ -120,9 +120,8 @@ public class BuilderReuseTests
     [Fact]
     public void Returning_BuildAfterInto_ThrowsArgumentException()
     {
-        // The one ordering #245's freeze missed: Into() hands the chain to the
-        // inner builder, and a later Build() on the held RETURNING stage would
-        // have appended a second RETURNING clause.
+        // The ordering #245's freeze missed: Into() hands the chain to the inner
+        // builder, so a later Build() on the held stage appended a second RETURNING.
         IReturningBuilder ret = Update(_t).Set(_t.Code == 1).Returning(_t.Code);
         ret.Into(new OutputParameter("out", DbType.Int32));
 
@@ -159,6 +158,121 @@ public class BuilderReuseTests
 
         Assert.Equal(
             "A statement takes at most one WHERE clause per query block; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Where_CalledTwiceOnHeldSubquery_ThrowsArgumentException()
+    {
+        // A nested render never passes through BuildCore, so the walk must run
+        // from Format too — the duplicate is no less wrong one level down.
+        TestTable r = new("r");
+        var held = Select(r.Code).From(r);
+        held.Where(r.Code == 1);
+        held.Where(r.Name == "x");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).Where(_t.Code.In(held)).Build());
+
+        Assert.Equal(
+            "A statement takes at most one WHERE clause per query block; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Join_NoOnOnHeldSubquery_ThrowsArgumentException()
+    {
+        TestTable r = new("r");
+        TestTable s = new("s");
+        var held = Select(r.Code).From(r);
+        held.InnerJoin(s);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).Where(_t.Code.In(held)).Build());
+
+        Assert.Equal(
+            "A join is missing its ON or USING clause; the statement was built "
+                + "from a held builder before the join was completed.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Join_NoOnOnHeldCteBody_ThrowsArgumentException()
+    {
+        TestTable r = new("r");
+        TestTable s = new("s");
+        Cte cte = new("cte");
+        var held = Select(r.Code).From(r);
+        held.InnerJoin(s);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(held)).Select(cte.Column("code")).From(cte).Build());
+
+        Assert.Equal(
+            "A join is missing its ON or USING clause; the statement was built "
+                + "from a held builder before the join was completed.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Where_CalledTwiceOnHeldScalarSubquery_ThrowsArgumentException()
+    {
+        TestTable r = new("r");
+        var held = Select(Count(Asterisk)).From(r);
+        held.Where(r.Code == 1);
+        held.Where(r.Name == "x");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code, held).From(_t).Build());
+
+        Assert.Equal(
+            "A statement takes at most one WHERE clause per query block; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void With_LeadingAndFeedingSelect_CorrectSql()
+    {
+        // INSERT ... WITH ... SELECT: the feeding SELECT is its own query block
+        // for WITH, so the leading and the mid-chain With(...) legally coexist.
+        TestTable a = new("a");
+        Cte c1 = new("c1");
+        Cte c2 = new("c2");
+
+        SqlStatement sql =
+            With(c1.As(Select(a.Code).From(a)))
+            .InsertInto(_t, _t.Code)
+            .With(c2.As(Select(c1.Column("code")).From(c1)))
+            .Select(c2.Column("code"))
+            .From(c2)
+            .Build();
+
+        Assert.Equal(
+            "WITH \"c1\" AS (SELECT \"a\".code FROM test_table \"a\") "
+                + "INSERT INTO test_table (code) "
+                + "WITH \"c2\" AS (SELECT \"c1\".code FROM \"c1\") "
+                + "SELECT \"c2\".code FROM \"c2\"",
+            sql.Text);
+    }
+
+    [Fact]
+    public void With_CalledTwiceOnHeldInsertStage_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        Cte c1 = new("c1");
+        Cte c2 = new("c2");
+        IInsertBuilderColumns held = InsertInto(_t, _t.Code);
+        held.With(c1.As(Select(a.Code).From(a)));
+        held.With(c2.As(Select(a.Code).From(a)));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Select(c2.Column("code")).From(c2).Build());
+
+        Assert.Equal(
+            "A statement takes at most one WITH clause per query block; "
                 + "a stage on a held builder was called twice.",
             ex.Message);
     }
@@ -234,9 +348,8 @@ public class BuilderReuseTests
     [Fact]
     public void Returning_BuildThrewOnDialectGuard_LeavesStageUsable()
     {
-        // The RETURNING stage mirrors BuildCore's ordering: a failed delegated
-        // build must not freeze the stage, or the retry reports a false
-        // "already built" instead of the real cause.
+        // A failed delegated build must not freeze the stage, or the retry
+        // reports a false "already built" instead of the real cause.
         TestTable aliased = new("t");
         IReturningBuilder stage = Update(aliased).Set(aliased.Code == 1).Returning(aliased.Code);
 
@@ -258,9 +371,8 @@ public class BuilderReuseTests
     [Fact]
     public void InsertValues_BatchThrewOnWidthGuard_LeavesBuilderUsable()
     {
-        // The batch overloads validate every row before appending any: a failed
-        // batch must leave no partial rows behind, or the corrected retry would
-        // silently insert the survivors twice.
+        // A failed batch must leave no partial rows behind, or the corrected
+        // retry silently inserts the survivors twice.
         IInsertBuilderColumns stmt = InsertInto(_t, _t.Code, _t.Name);
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>

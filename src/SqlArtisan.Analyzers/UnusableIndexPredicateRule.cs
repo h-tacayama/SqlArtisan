@@ -88,6 +88,11 @@ internal static class UnusableIndexPredicateRule
 
         while (current.Parent is { } parent and not IBlockOperation)
         {
+            if (FluentChain.IsForeignInvocation(parent))
+            {
+                return false;
+            }
+
             // A predicate-building step (FluentChain.IsExpression's receivers)
             // is part of the predicate — climb to the step that consumes it.
             if (parent is IInvocationOperation step

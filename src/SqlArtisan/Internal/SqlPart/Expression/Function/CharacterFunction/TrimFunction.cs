@@ -13,8 +13,7 @@ public sealed class TrimFunction : SqlExpression
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        buffer.Append(Keywords.Trim)
-            .OpenParenthesis();
+        buffer.Append(Keywords.Trim).OpenParenthesis();
 
         if (_trimChar is not null)
         {
@@ -23,7 +22,6 @@ public sealed class TrimFunction : SqlExpression
                 .EncloseInSpaces(Keywords.From);
         }
 
-        buffer.Append(_source)
-            .CloseParenthesis();
+        buffer.Append(_source).CloseParenthesis();
     }
 }

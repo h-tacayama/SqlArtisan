@@ -193,7 +193,7 @@ public class UpdateTests
             .Build());
 
         Assert.Equal(
-            "The target of a correlated UPDATE or DELETE must be aliased.",
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
             ex.Message);
     }
 
@@ -615,9 +615,8 @@ public class UpdateTests
     [Fact]
     public void Update_PostgreSql_FromRepeatedTarget_ThrowsArgumentException()
     {
-        // The re-listed target makes the lead render as the bare alias — the
-        // T-SQL spelling alone; every other dialect gets a loud throw instead
-        // of silently invalid SQL.
+        // The re-listed target renders the lead as the bare alias — T-SQL's
+        // spelling alone — so every other dialect throws instead of emitting it.
         TestTable t = new("t");
         TestTable s = new("s");
 

@@ -42,6 +42,23 @@ public sealed class OrderByClause : SqlPart
     internal static OrderByClause Parse(object[] orderByItems) =>
         new(OrderByItemResolver.Resolve(orderByItems));
 
+    // Read by the PostgreSQL bounded-exception guard (ADR 0011).
+    internal bool HasFractionalSortKey
+    {
+        get
+        {
+            foreach (SqlPart item in _orderByItems)
+            {
+                if (item is NumericSortKey { IsFractional: true })
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Order} {Keywords.By} ")
         .AppendCsv(_orderByItems);

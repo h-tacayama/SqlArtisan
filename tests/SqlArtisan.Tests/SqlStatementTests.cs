@@ -17,6 +17,7 @@ public class SqlStatementTests
 
         Assert.Equal(sql.Text, sql.ToString());
         Assert.Equal("SELECT \"t\".name FROM test_table \"t\" WHERE \"t\".code = :0", sql.ToString());
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]

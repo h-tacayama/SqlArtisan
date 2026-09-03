@@ -231,4 +231,28 @@ public class DerivedTableTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Cte_AsHandleColumnFromQuotedAlias_CorrectSql()
+    {
+        // The handle column was materialized from a quoted alias, so As(handle)
+        // must define it quoted too — a bare definition beside a quoted
+        // reference resolves to two identifiers on a case-folding engine.
+        Cte cte = new("cte");
+        DbColumn code = cte.Column(_a.Code.As("Code"));
+
+        SqlStatement sql =
+            With(cte.As(Select(_a.Code.As(code)).From(_a)))
+            .Select(code)
+                .From(cte)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS ");
+        expected.Append("(SELECT \"a\".code \"Code\" FROM test_table \"a\") ");
+        expected.Append("SELECT \"cte\".\"Code\" ");
+        expected.Append("FROM \"cte\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

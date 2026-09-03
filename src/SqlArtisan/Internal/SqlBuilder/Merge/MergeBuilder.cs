@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class MergeBuilder(params SqlPart[] rootParts) :
+internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
     IMergeBuilderOn,
     IMergeBuilderTarget,
@@ -16,6 +16,9 @@ internal sealed class MergeBuilder(params SqlPart[] rootParts) :
     // Values call — the same #397 width guard plain INSERT threads through its
     // constructor; MERGE's fluent pairing makes a field the equivalent carrier.
     private int _pendingInsertColumnCount;
+
+    private protected override DbTableBase? CorrelatedDmlGuardTarget =>
+        target.HasAlias ? null : target;
 
     protected override string StatementName => Keywords.Merge;
 

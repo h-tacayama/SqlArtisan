@@ -5,9 +5,9 @@ namespace SqlArtisan.Internal;
 /// dialects diverge on the separator: SQLite takes a positional second argument
 /// (<c>GROUP_CONCAT(expr, sep)</c>), while MySQL uses a <c>SEPARATOR</c> keyword
 /// supplied via <c>Sql.Separator(...)</c>. <c>DISTINCT</c> is supported by both
-/// (SQLite only in the single-argument form, without a separator). MySQL also
-/// accepts an inline <c>ORDER BY</c>, passed as an <c>Sql.OrderBy(...)</c>
-/// argument because it sits inside the call.
+/// (SQLite only in the single-argument form, without a separator). MySQL and
+/// SQLite (3.44+) also accept an inline <c>ORDER BY</c>, passed as an
+/// <c>Sql.OrderBy(...)</c> argument because it sits inside the call.
 /// </summary>
 /// <remarks>
 /// MySQL silently truncates the result at <c>group_concat_max_len</c> (1024

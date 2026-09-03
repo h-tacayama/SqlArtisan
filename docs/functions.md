@@ -181,7 +181,7 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 
 ## JSON Functions
 
-JSON paths are emitted as inline string literals (SQL Server and Oracle require the path to be a literal, not a bind parameter).
+JSON paths are emitted as inline string literals (Oracle and SQL Server require the path to be a literal, not a bind parameter).
 
 - `JsonExtract(jsonDoc, path)` for `JSON_EXTRACT(jsonDoc, 'path')` (MySQL, SQLite)
 - `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL, Oracle, SQL Server)

@@ -6,14 +6,14 @@ namespace SqlArtisan.Internal;
 public interface IInsertIgnoreBuilderColumns : ISelectBuilder, IWithBuilder
 {
     /// <inheritdoc cref="IInsertBuilderColumns.Values(object[])"/>
-    /// <returns>The builder positioned to append more rows, add <c>RETURNING</c>, or build.</returns>
+    /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(params object[] values);
 
     /// <inheritdoc cref="IInsertBuilderColumns.Values(IEnumerable{object[]})"/>
-    /// <returns>The builder positioned to append more rows, add <c>RETURNING</c>, or build.</returns>
+    /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(IEnumerable<object[]> rows);
 
     /// <inheritdoc cref="IInsertBuilderColumns.Values(object[][])"/>
-    /// <returns>The builder positioned to append more rows, add <c>RETURNING</c>, or build.</returns>
+    /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(object[][] rows);
 }

@@ -2,11 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace SqlArtisan.Tests;
 
-// The benchmark project's README states facts that live in its source: the pinned
-// versions, the entrant categories, the tuple every entrant returns, the parameter
-// count validate asserts. Prose drifts silently and a docs review only catches it
-// by luck (#381 shipped three such errors in one page), so the checkable half is
-// gated here rather than re-read each time.
+// The benchmark README's checkable facts (pinned versions, entrant categories,
+// the returned tuple, the validate asserts) live in its source; prose drifts
+// silently (#381 shipped three errors in one page), so they are gated here.
 public class BenchmarkDocsTests
 {
     private const string BenchmarkDir = "tests/SqlArtisan.Benchmark";

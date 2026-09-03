@@ -2,14 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace SqlArtisan.Tests;
 
-// docs-style.md's Hazard callouts rule bounds `[!WARNING]` to 10 `> ` lines
-// and `[!NOTE]` to 5, with no table inside a NOTE — the length bound issue
-// #458 found nothing enforcing. This gate reads every page under docs/ and
-// checks both mechanically, the same read-the-real-files philosophy as
-// DocsIndexTests. The 10-line cap applies to every callout kind, not just
-// the two the taxonomy names: leaving `[!IMPORTANT]`/`[!TIP]`/`[!CAUTION]`
-// unbounded would let a hazard dodge both the severity question and the cap
-// by picking a fourth kind — the drift #458 filed against.
+// docs-style.md bounds `[!WARNING]` to 10 `> ` lines and `[!NOTE]` to 5 with
+// no table inside a NOTE (#458 found nothing enforcing it); the 10-line cap
+// binds every callout kind so a hazard cannot dodge it by picking another.
 public class DocsCalloutTests
 {
     private const int WarningMaxLines = 10;

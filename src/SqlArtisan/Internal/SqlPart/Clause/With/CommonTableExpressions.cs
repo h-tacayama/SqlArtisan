@@ -30,7 +30,7 @@ internal sealed class CommonTableExpressions
         }
     }
 
-    internal void Format(SqlBuildingBuffer buffer, string withKeyword, string[][] columnNames)
+    internal void Format(SqlBuildingBuffer buffer, string withKeyword, CteColumnName[][] columnNames)
     {
         buffer.Append(withKeyword).AppendSpace();
 

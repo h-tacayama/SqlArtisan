@@ -10,7 +10,7 @@ internal static class DmlTargetGuard
     [DoesNotReturn]
     internal static void ThrowCorrelatedUnaliasedTarget() =>
         throw new ArgumentException(
-            "The target of a correlated UPDATE or DELETE must be aliased.");
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.");
 
     internal static void ThrowIfAliasedOnSqlServer(DbTableBase table, Dbms dbms)
     {

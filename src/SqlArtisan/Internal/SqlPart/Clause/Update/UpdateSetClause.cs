@@ -18,8 +18,6 @@ internal sealed class UpdateSetClause : SqlPart
     {
         buffer.Append($"{Keywords.Set} ");
 
-        // A joined UPDATE on SQL Server / MySQL qualifies the SET target
-        // (`SET t.col = ...`); PostgreSQL's UPDATE ... FROM keeps it unqualified.
         if (_state.QualifiesSetTarget)
         {
             buffer.AppendCsv(_assignments);

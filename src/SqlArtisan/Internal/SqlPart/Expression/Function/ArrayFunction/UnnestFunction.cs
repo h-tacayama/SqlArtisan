@@ -44,6 +44,12 @@ public sealed class UnnestFunction : SqlExpression
                 column, "An UNNEST column alias list requires a name for every column.");
         }
 
+        if (CommonTableExpression.HasDuplicateName(columns))
+        {
+            throw new ArgumentException(
+                "An UNNEST column alias list requires a distinct name for every column.");
+        }
+
         if (columns.Length > _arrays.Length)
         {
             throw new ArgumentException(

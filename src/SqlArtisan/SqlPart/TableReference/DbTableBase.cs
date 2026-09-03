@@ -43,8 +43,8 @@ public abstract class DbTableBase : TableReference
     }
 
     // DML-target rendering separates the alias with the dialect's separator
-    // rather than FROM's bare space: several engines require AS there while
-    // their FROM clause forbids it.
+    // rather than FROM's bare space: SQLite requires AS on a DML target where
+    // Oracle rejects it, while FROM stays AS-less everywhere (IDbmsDialect).
     internal void FormatAsDmlTarget(SqlBuildingBuffer buffer)
     {
         base.Format(buffer);

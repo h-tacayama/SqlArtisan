@@ -7,7 +7,7 @@ internal sealed class WithRecursiveClause : SqlPart
     // needs no per-dialect branch. Deriving it is eager — the anchor's resolved
     // select items are fixed at the WithRecursive(...) call.
     private readonly CommonTableExpressions _ctes;
-    private readonly string[][] _columnNames;
+    private readonly CteColumnName[][] _columnNames;
 
     internal WithRecursiveClause(CommonTableExpression[] ctes)
     {
@@ -18,9 +18,9 @@ internal sealed class WithRecursiveClause : SqlPart
     internal override void Format(SqlBuildingBuffer buffer) =>
         _ctes.Format(buffer, $"{Keywords.With} {Keywords.Recursive}", _columnNames);
 
-    private static string[][] DeriveColumnNames(CommonTableExpression[] ctes)
+    private static CteColumnName[][] DeriveColumnNames(CommonTableExpression[] ctes)
     {
-        string[][] columnNames = new string[ctes.Length][];
+        CteColumnName[][] columnNames = new CteColumnName[ctes.Length][];
 
         for (int i = 0; i < ctes.Length; i++)
         {

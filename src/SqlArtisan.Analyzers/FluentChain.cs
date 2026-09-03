@@ -38,6 +38,15 @@ internal static class FluentChain
         operation.Parent is IConversionOperation conversion ? conversion : operation;
 
     /// <summary>
+    /// Whether <paramref name="operation"/> is a call into code that is not
+    /// SqlArtisan — a helper that may place its argument anywhere, so the chain
+    /// above it is not the one the argument ends in.
+    /// </summary>
+    public static bool IsForeignInvocation(IOperation operation) =>
+        operation is IInvocationOperation invocation
+        && !DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly);
+
+    /// <summary>
     /// Whether <paramref name="node"/> belongs to a chain whose statement head is
     /// visible in the same statement — the precondition for reading the query's
     /// shape off that statement.
@@ -53,6 +62,11 @@ internal static class FluentChain
 
         while (current.Parent is { } parent and not IBlockOperation)
         {
+            if (IsForeignInvocation(parent))
+            {
+                return false;
+            }
+
             if (parent is IInvocationOperation step
                 && DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly))
             {

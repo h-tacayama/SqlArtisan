@@ -117,11 +117,9 @@ public class DocsIndexTests
         }
     }
 
-    // query-statements.md carries its own in-page `## Contents` list (grouping
-    // `### ` subsections under each `## ` statement) instead of relying on
-    // docs/README.md, so it needs its own drift check: every `## `/`### `
-    // heading (excluding `#### ` sub-subsections, which the list omits by
-    // design) must appear in that Contents block.
+    // query-statements.md carries its own `## Contents` list instead of relying
+    // on docs/README.md, so every `## `/`### ` heading (not `#### `, which the
+    // list omits by design) must appear in it.
     [Fact]
     public void QueryStatementsContents_EveryHeading_IsListed()
     {

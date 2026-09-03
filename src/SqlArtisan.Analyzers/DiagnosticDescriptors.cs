@@ -51,7 +51,7 @@ internal static class DiagnosticDescriptors
 
     // A third SQLA0001 report reason (#432): every rule's "set non-empty" gate
     // reads an all-`none` family exactly like "unconfigured" — the same silent
-    // failure mode the legacy pair's Backward Compatibility section calls out,
+    // failure mode docs/analyzer.md's legacy-key migration section calls out,
     // reachable here by one typo-adjacent `none`. Scoped to "at least one file"
     // rather than the whole build: a deliberate path-scoped `none` carve-out
     // (docs/analyzer.md's own example) makes this true for that path alone
@@ -226,7 +226,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor CorrelatedDmlTargetNotAliased = new(
         id: "SQLA0300",
         title: "Correlated UPDATE or DELETE target is not aliased",
-        messageFormat: "The target of a correlated UPDATE or DELETE must be aliased",
+        messageFormat: "The target of a correlated UPDATE, DELETE, or MERGE must be aliased",
         category: ValidityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

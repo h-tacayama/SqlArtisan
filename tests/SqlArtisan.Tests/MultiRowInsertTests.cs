@@ -188,8 +188,13 @@ public class MultiRowInsertTests
         ];
 
         // Per-row width validation reuses the existing multi-row guard.
-        Assert.Throws<ArgumentException>(() =>
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             InsertInto(_t, _t.Code, _t.Name).Values(rows));
+
+        Assert.Equal(
+            "All rows in a multi-row INSERT must have the same number of values; "
+                + "the first row has 2, but this row has 1.",
+            ex.Message);
     }
 
     [Fact]
