@@ -367,7 +367,13 @@ your report.
 Separate MUST FIX (bugs, ADR violations, invalid/wrong SQL, missing guards)
 from SHOULD DISCUSS (convention trade-offs, coverage gaps, doc drift) and
 NITS. Cite file:line and, for any DBMS-grammar or allocation claim, the
-verbatim probe output that backs it.
+verbatim probe output that backs it — output captured in this run, never a
+remembered or reconstructed probe. A candidate asking the library to throw
+must name the decided mechanism it invokes — ADR 0011's Build(Dbms) bounded
+exception (analyzer-invisible value, no valid spelling on the target), ADR
+0012's eager value-domain guard, or an SQLA0102 analyzer context rule
+(RD-009's family) — and say why ADR 0007's faithful emission does not already
+answer it.
 
 Before filing any candidate — at every tier, SHOULD DISCUSS and NITS
 included — check it against the decided records: the ADRs, the

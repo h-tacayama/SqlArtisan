@@ -88,8 +88,11 @@ the class by the terms a reviewer would search for.
   to mass-trim: the caps bind new and edited comments at review time; an
   existing block trims when its file is next edited for substance. A bulk
   reflow would churn blame for no behavioral gain. Not a finding for any
-  pre-rule comment at any tier, in either tree.
-  (source: release audit pass 1; tests/ scope settled pass 3, SD20)
+  pre-rule comment at any tier, in either tree. A comment written *after*
+  the rule (an audit-pass addition) gets no such grace: it is trimmed on
+  sight, never declined.
+  (source: release audit pass 1; tests/ scope settled pass 3, SD20; post-rule
+  clause pass 4, SD15)
 - RD-006 [precise] `RegexpOptions` flag-value validation of any kind — the
   per-dialect flag alphabet, and a contradictory combination (e.g. case-
   sensitive + case-insensitive together) rendering as written — deferred: an
@@ -123,11 +126,24 @@ the class by the terms a reviewer would search for.
   CrossJoinLateral StatementCatalog integration case, Oracle23aiBound
   skip-check, MERGE ThenInsert value assertions, ordered-set-aggregate
   PostgreSQL `.Over()` converse context rule with the PercentileCont
-  PostgreSQL-claim verification) — deferred as a tracked batch: coverage
-  widening, not defects; scheduled after the audit converges.
-  (source: release audit passes 1–3)
-- RD-010 [terse] Refinement-scope idiom findings from the audit sweeps
-  (pass 1: the OverClause parenthesis idiom, `AppendSpaceIfNotNull` on a
+  PostgreSQL-claim verification; pass 4: CaseTests WHEN legal twin,
+  ConditionIf AND mirror, DeleteTests two-way AND, If/Iif condition twins,
+  CrossJoinLateral Oracle, FullJoin/JoinLateral guard twins, JsonArrowText
+  MySQL/SQLite and JsonHashArrow sibling shapes, MERGE partly-excluded
+  branches, DbmsResolver legacy providers, vector/RangeBetween asymmetry,
+  StatementCatalog CrossJoinLateral Only(), Oracle23aiBound label
+  duplication, CommandLineTests required-schema arm, ConsoleUI header and
+  ReadDatabaseConnectionInfo, TableClassEmitter Indexed emission,
+  ToTsquery/ToTsvector null twins, RegexpOptions combinations, `NotIn<T>`
+  collection overload, PercentileDisc silent-case siblings, join/MERGE guard
+  coverage twins) — deferred as a tracked batch: coverage widening, not
+  defects; scheduled after the audit converges.
+  (source: release audit passes 1–4)
+- RD-010 [precise] Refinement-scope idiom findings — style, wrapping, naming,
+  doc phrasing, measurement idioms, and comment length in files predating the
+  caps — in any tree, none of which changes emitted SQL, a guard, or a
+  documented fact; the audit sweeps' instances (pass 1: the OverClause
+  parenthesis idiom (pass 4 match confirmed), `AppendSpaceIfNotNull` on a
   never-null part, `IsNull` property style divergence, test-file style
   outliers — CaseTests' StringBuilder shape, hanging first arguments, naming
   and filler-comment nits; pass 2: the CASE `WHEN (cond)` wrapping doubling
@@ -137,18 +153,27 @@ the class by the terms a reviewer would search for.
   test-comment length and 100-column outliers; pass 3: ConditionIfTests
   argument packing, PublicSurfaceBoundaryTests over-length doc blocks,
   AnalyzerConfigResolverTests/ClaudeMdTests/ConstructKeyNaming comment
-  lengths, MSBuildPropertyParityTests comment shape) — deferred: non-defect
-  refinements outside the defect-bar review scope, batched for an
-  `sa-diff-review-refinement` pass after the audit converges.
-  (source: release audit passes 1–3)
+  lengths, MSBuildPropertyParityTests comment shape; pass 4: Sql.V.cs and
+  OracleCatalogReader wrap shapes, the three Dapper benchmark entrants'
+  `ParameterNames.Count()` LINQ allocation (equal across entrants, so the
+  comparison holds), `DateTimePart`'s XML parentheticals, DbTable/Cte
+  `Column` doc-vs-inheritdoc shapes, the `StringAggFunction` mutable-field
+  outlier, `ISortable`'s vestigial marker, `AssignmentResolver`'s DRY caveat,
+  the single-column `FOR UPDATE OF` doc shape, `SchemaRuleParityTests`
+  `ExcludedMembers` phrasing, test naming/type-only-assert/comment residue,
+  `TestSettings.createSubFolders`) — deferred: non-defect refinements outside
+  the defect-bar review scope, batched for an `sa-diff-review-refinement`
+  pass after the audit converges. Not a finding at any tier.
+  (source: release audit passes 1–4)
 - RD-009 [terse] DML-context dialect gaps the matrix's context-free keys
   cannot express — a joined `DELETE` on SQLite (`InnerJoin`'s entry is All),
   Oracle `DELETE ... USING` (the `Using` key unions the MERGE context's
   support), and the wrong-dialect joined-`UPDATE` spellings that emit
   faithfully (the MySQL JOIN form on Oracle/PostgreSQL/SQLite; the
-  un-re-listed FROM form on MySQL/Oracle), and the joined-`DELETE`
+  un-re-listed FROM form on MySQL/Oracle), the joined-`DELETE`
   repeated-FROM form on Oracle and PostgreSQL (MySQL's and SQL Server's
-  spelling, emitted faithfully where those two reject it) — all
+  spelling, emitted faithfully where those two reject it), and PostgreSQL's
+  rejection of `FOR UPDATE` after `GROUP BY` (release audit pass 4, SD12) — all
   SQLA0102-class context rules needing live rejection proofs; deferred under
   the audit freeze. The repeated-target `UPDATE ... FROM` form is
   instance-identity-visible and is guarded at Build() instead (release
@@ -169,17 +194,21 @@ the class by the terms a reviewer would search for.
   (source: release audit pass 2, ADJ2/SD7/SD13; pass 3, SD9)
 - RD-002 [precise] `Validate(Dbms)` running only on the outermost statement
   builder — a subquery, CTE body, or derived table renders through `Format`,
-  so its dialect guards (e.g. the SQL Server TOP pairing rules) do not re-run
-  one level down — declined to extend into the render path: ADR 0007's
-  permissive default governs nested constructs (the engine rejects them
-  loudly), and `docs/query-statements.md` scopes the throw claim to the
-  statement's own clauses. Not a finding for any nested shape.
-  (source: release audit pass 1)
+  so its *dialect* guards (e.g. the SQL Server TOP pairing rules) do not
+  re-run one level down — declined to extend into the render path: ADR 0007's
+  permissive default governs nested dialect availability (the engine rejects
+  them loudly), and `docs/query-statements.md` scopes the throw claim to the
+  statement's own clauses. The dialect-blind structural walk (duplicate
+  clause, dangling join) is outside this decline and does run nested since
+  pass 4. Not a finding for any nested dialect-guard shape.
+  (source: release audit pass 1; scope narrowed pass 4, F24)
 - RD-001 [precise] TableClassGen requiring `--schema` on the SQL Server CLI
   while the interactive prompt defaults it to `dbo` — declined to default the
   CLI: a scripted run states its schema explicitly, and the interactive path
-  is where defaults belong (both schema prompts now carry one). The asymmetry
-  is not a finding at any tier. (source: #506 smoke-test sweep triage)
+  is where defaults belong (both schema prompts now carry one). The same
+  asymmetry between any other required CLI option and its interactive
+  prompt's default is this class. Not a finding at any tier.
+  (source: #506 smoke-test sweep triage; pass 4 SD16)
 - RD-013 [precise] The mid-chain `INSERT INTO t (cols) WITH ... SELECT`
   position (`IWithBuilder` on the column-list stage, `InsertIgnoreInto`
   included) flagged as an invalid WITH placement — refuted: the position is
@@ -201,11 +230,19 @@ the class by the terms a reviewer would search for.
   failure that is never silent. An SQLA0102-class context rule for these
   belongs with RD-009's family when the freeze lifts. Not a finding for any
   pseudo-column placement. (source: release audit pass 3, F8/PD3)
-- RD-016 [terse] Negative or zero pagination and TOP counts rendering as
+- RD-016 [precise] Negative or zero pagination and TOP counts rendering as
   written (`LIMIT -1`, `OFFSET -1`, `TOP (-1)`, `FETCH FIRST 0 ROWS`) —
   deferred like RD-006: zero is legal everywhere, SQLite's `LIMIT -1` is a
   meaningful "no limit" (so the LIMIT/OFFSET families fail ADR 0012's
   universally-invalid test outright), and the TOP/FETCH negative cases need
   per-engine live rejection proofs the audit freeze does not admit;
-  revisit with integration coverage.
-  (source: release audit pass 3, SD3)
+  revisit with integration coverage. Not a finding for any pagination or
+  TOP count value until then.
+  (source: release audit pass 3, SD3; pass 4 `Top(-1)` match confirmed)
+- RD-017 [precise] `SqlBuildingBuffer.AddParameter`'s reference-identity
+  linear scan making a build with n distinct bind instances O(n²) — declined
+  as ADR 0006's best-effort speed: measured in Release at 37 ms for 2,100
+  binds (SQL Server's parameter cap), 101 ms at 5,000, and ~150 ms at 20,000,
+  with driver caps bounding the shape; the remedy if it ever matters is a
+  lazy reference-equality dictionary past a threshold. Not a finding for any
+  bind-count scaling shape. (source: release audit pass 4, panel 1)

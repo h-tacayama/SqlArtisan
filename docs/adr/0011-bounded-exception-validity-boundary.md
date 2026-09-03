@@ -82,7 +82,10 @@ override — so every build path (including `Returning()`, which funnels through
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should
-  narrow or point at the joined form instead.
+  narrow or point at the joined form instead. *Closed (release audit pass 4):*
+  joined DML landed (#237/#258) with its own alias requirement, so the joined
+  shapes never reach this guard; it stays for the un-joined target, where
+  T-SQL still has no aliased spelling.
 - **The premise is empirically anchored,** not asserted: an integration test
   (`SqlServerTests.AliasedDmlTarget_Rejected`) executes the raw emitted
   form against a live SQL Server and confirms the rejection, alongside the
@@ -121,3 +124,8 @@ spelling — and joined the `Validate(Dbms)` hook:
   `ReferenceEquals` between the target and a `FROM` element — which the
   analyzer cannot see. A joined `DELETE` stays permissive: its repeated-`FROM`
   form is also MySQL's.
+- **A non-integer constant `ORDER BY` sort key on PostgreSQL** (release
+  audit, pass 4). `OrderBy(2.5)` renders `ORDER BY 2.5`, a no-op ordering
+  MySQL and SQLite accept while PostgreSQL rejects it outright (live-verified
+  on 16); the value is a literal the construct-level matrix cannot see, so
+  `SelectBuilder.Validate` throws for `Dbms.PostgreSql` alone.

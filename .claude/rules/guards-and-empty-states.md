@@ -42,7 +42,10 @@ the full rationale.
   PostgreSQL and SQLite both require a target for `DO UPDATE` (release audit);
   `StringAgg`'s inline `ORDER BY` argument combined with `.WithinGroup(...)` —
   the two orderings are one construct spelled per dialect, never stacked
-  (release audit).
+  (release audit); `Returning(...)` beside `INSERT IGNORE` or
+  `OnDuplicateKeyUpdate(...)` — MySQL, the only engine with either, has no
+  `RETURNING`, so the typestate withholds it and `Build()` backstops a held
+  stage (release audit pass 4).
 - *Value-domain*: percentile fraction — finite (pre-existing) and 0..1 (#295);
   `Ntile(buckets)` and `NthValue(expr, n)` — both positive; a `PRECEDING`/
   `FOLLOWING` frame-bound offset — non-negative; a window frame's bound kind
@@ -65,16 +68,21 @@ the full rationale.
   count — non-negative, the only `FOR UPDATE WAIT` domain Oracle (the sole
   engine with the clause) parses, live-verified at 21c and 23ai (#483); a
   whitespace-only string in a bare-token position — the `CAST` target type,
-  the `NEXT VALUE FOR` sequence name — invalid on every dialect, while a
-  quoted or literal position keeps accepting whitespace (RD-004's boundary,
-  gated by the factory sweep's whitespace injection; release audit pass 2).
-- *Bounded exception*: aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server;
+  the `NEXT VALUE FOR` sequence name, a `DbColumn` name — invalid on every
+  dialect, while a quoted or literal position keeps accepting whitespace
+  (RD-004's boundary, gated by the factory sweep's whitespace injection;
+  release audit pass 2); an `UNNEST` column alias list naming one column
+  twice (release audit pass 4).
+- *Bounded exception*: aliased un-joined `INSERT`/`UPDATE`/`DELETE` target on
+  SQL Server (the joined forms require the alias instead — next paragraph);
   aliased `INSERT` target on MySQL (its INSERT grammar has no target-alias
   slot); a joined `UPDATE`/`DELETE` on SQL Server whose target is not re-listed
   in `FROM` (T-SQL's joined spelling takes the alias from `FROM`); a joined
   `UPDATE` off SQL Server whose target IS re-listed in `FROM` — the mirror:
-  that form's bare-alias lead is T-SQL's alone (ADR 0011, "Later instances"
-  section).
+  that form's bare-alias lead is T-SQL's alone; a non-integer constant
+  `ORDER BY` sort key on PostgreSQL (`OrderBy(2.5)`) — MySQL and SQLite accept
+  the no-op ordering, PostgreSQL rejects it, and the value is invisible to
+  the analyzer (ADR 0011, "Later instances" section).
 
 **Joined-target alias requirement (decided — do not re-file):**
 `ThrowIfJoinedTargetUnaliased` fires for every joined `UPDATE`/`DELETE` shape
@@ -131,7 +139,13 @@ carry a `VALUES` row). The same pass fixed the freeze ordering the family
 depends on: `ReturningBuilder.Build` freezes only after the delegated build
 succeeds, and the multi-row `Values` batch overloads validate every row
 before mutating the held clause — a failed stage call must leave the builder
-exactly as it was (`BuilderReuseTests` pins both).
+exactly as it was (`BuilderReuseTests` pins both). Its fourth pass ran the
+same walk from every nested render — an `IN` subquery, a CTE body, a scalar
+select item never pass through `BuildCore`, and a duplicate clause or
+dangling join is no less wrong one level down — and made the `INSERT` root
+open a new `WITH` block, so a leading `With(...).InsertInto(...)` and the
+feeding `SELECT`'s own `With(...)` coexist. The correlated-DML guard (#253)
+arms for `MergeInto(...)` too.
 The empty `IN`/`NOT IN` collection and empty `VALUES` row guards (ERG-05/ERG-07,
 #243) shipped in #396, alongside the same sweep's guards for empty `SET`
 (`UpdateBuilder`/`InsertBuilder`), empty `DO UPDATE SET` / `ON DUPLICATE KEY
@@ -241,7 +255,7 @@ requirement. Unit tests assert the message verbatim (see the unit-tests rule),
 so the wording is part of the contract.
 
 - ✓ `PARTITION BY requires at least one expression.`
-- ✓ `The target of a correlated UPDATE or DELETE must be aliased.`
+- ✓ `The target of a correlated UPDATE, DELETE, or MERGE must be aliased.`
 - ✗ `Invalid input.` — names nothing, states nothing.
 
 The `Invalid type for <X>: <type>` family is built by one helper,

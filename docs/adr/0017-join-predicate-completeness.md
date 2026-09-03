@@ -108,7 +108,10 @@ justification, no per-member split.
   (`InnerJoin`/`LeftJoin`/`RightJoin`/`FullJoin`/`JoinLateral`, and the DML
   builders' joined forms) is not followed by its `ON`/`USING`. The
   compile-time pending type stays primary; the backstop is dialect-blind,
-  matching the uniform scope above.
+  matching the uniform scope above, and runs from every nested render as
+  well (release audit, pass 4): a subquery, CTE body, or scalar item never
+  passes through `BuildCore`, and a dangling join is no less a cartesian
+  product one level down.
 - **Narrow, by construction.** This is not a license to block any construct
   that has a "better" alternative spelling — see `public-api-design.md`'s
   `COUNT(*)` lesson: knowledge encoded as an API hole is invisible and

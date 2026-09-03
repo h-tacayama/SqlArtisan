@@ -7,6 +7,8 @@ Flags:
   - "type-safety" (hyphen noun)     -> "type safety" (noun is open)
   - lowercase "upsert"              -> "UPSERT" (feature/concept name)
   - DBMS code identifiers in prose  -> use display spelling outside code
+  - a plain DBMS list out of order   -> Dbms enum order: MySQL, Oracle,
+                                       PostgreSQL, SQLite, SQL Server
   - unspaced em-dash  word—word     -> spaced  "word — word"
   - "bind parameter <noun>" (space) -> "bind-parameter <noun>" (modifier)
   - trailing whitespace / double blank lines / trailing blank line at EOF
@@ -30,6 +32,12 @@ FILES = [
     "src/SqlArtisan.TableClassGen/README.md",
 ]
 CODE_IDENTS = ("PostgreSql", "SqlServer", "MySql", "Sqlite")  # display: PostgreSQL/SQL Server/MySQL/SQLite
+DISPLAY_ORDER = {n: i for i, n in enumerate(("MySQL", "Oracle", "PostgreSQL", "SQLite", "SQL Server"))}
+DBMS_NAME = r"(?:MySQL|Oracle|PostgreSQL|SQLite|SQL Server)"
+# Two or more names joined only by list separators; a contrastive sentence
+# (parenthetical, "rather than", "vs.") breaks the run and is not a list.
+DBMS_LIST = re.compile(
+    rf"\b{DBMS_NAME}(?:(?:,\s*(?:and\s+|or\s+)?|\s+(?:and|or)\s+|\s*/\s*){DBMS_NAME})+\b")
 
 
 def prose_lines(path):
@@ -82,6 +90,11 @@ def main() -> int:
             for ident in CODE_IDENTS:
                 if re.search(rf"\b{ident}\b", bare):
                     findings.append((f, ln, f"dbms:code-ident-in-prose ({ident})", text.strip()[:70]))
+            for m in DBMS_LIST.finditer(clean):
+                names = re.findall(DBMS_NAME, m.group(0))
+                ranks = [DISPLAY_ORDER[n] for n in names]
+                if ranks != sorted(ranks):
+                    findings.append((f, ln, "dbms:list-not-in-enum-order", m.group(0)[:70]))
 
     if findings:
         print(f"{len(findings)} potential issue(s):\n")
