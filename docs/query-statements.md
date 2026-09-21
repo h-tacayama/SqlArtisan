@@ -300,8 +300,8 @@ pattern as a CTE's `CteBase`); pass that instance as the handle.
 
 | Method | Emits | Typical DBMS |
 |---|---|---|
-| `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | SQL Server, Oracle |
-| `OuterApply(subquery, handle)` | `OUTER APPLY (...) alias` | SQL Server, Oracle |
+| `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | Oracle, SQL Server |
+| `OuterApply(subquery, handle)` | `OUTER APPLY (...) alias` | Oracle, SQL Server |
 | `CrossJoinLateral(subquery, handle)` | `CROSS JOIN LATERAL (...) alias` | MySQL, Oracle, PostgreSQL |
 | `LeftJoinLateral(subquery, handle)` | `LEFT JOIN LATERAL (...) alias ON TRUE` | MySQL, PostgreSQL |
 | `JoinLateral(subquery, handle).On(cond)` | `JOIN LATERAL (...) alias ON cond` | MySQL, Oracle, PostgreSQL |
@@ -355,6 +355,8 @@ SqlStatement sql =
 // id DESC NULLS FIRST,
 // id DESC NULLS LAST
 ```
+
+**Dialect note:** `NullsFirst` / `NullsLast` emit `NULLS FIRST` / `NULLS LAST`, which MySQL and SQL Server reject — neither engine has the clause.
 
 ---
 
@@ -544,7 +546,7 @@ SqlStatement sql =
     .On(u.Id == o.UserId)
     .Where(u.Id == 1)
     .ForUpdate(Of(u.Id), Wait(5))
-    .Build();
+    .Build(Dbms.Oracle);
 
 // SELECT "u".id, "o".id
 // FROM users "u"
@@ -560,13 +562,15 @@ SqlStatement sql =
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
 
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Of(...)` and `Wait(...)` are Oracle-only — `Of` names columns, the form MySQL and PostgreSQL reject.
+
 ---
 
 ### Pagination
 
 Row limiting is dialect-divergent, so SqlArtisan exposes two faithful families and you choose the one for your target database (see [Design Philosophy](https://github.com/h-tacayama/SqlArtisan/blob/main/README.md#design-philosophy)).
 
-#### LIMIT family (PostgreSQL / MySQL / SQLite)
+#### LIMIT family (MySQL / PostgreSQL / SQLite)
 
 ```csharp
 TestTable t = new();
@@ -584,7 +588,7 @@ SqlStatement sql =
 // LIMIT :0 OFFSET :1
 ```
 
-`Limit()` and `Offset()` can be combined as `LIMIT n OFFSET m`. Note that a standalone `Offset()` (without `Limit()`) is only valid on PostgreSQL; MySQL and SQLite require `OFFSET` to be paired with `LIMIT`.
+`Limit()` and `Offset()` can be combined as `LIMIT n OFFSET m`. A standalone `Offset()` (without `Limit()`) is only valid on PostgreSQL; MySQL and SQLite require `OFFSET` to be paired with `LIMIT`, so `Build(Dbms.MySql)` and `Build(Dbms.Sqlite)` throw on the standalone form.
 
 #### OFFSET/FETCH family (Oracle / PostgreSQL / SQL Server)
 
@@ -627,7 +631,7 @@ SqlStatement sql =
 // ORDER BY age
 ```
 
-`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot appear with `OFFSET/FETCH` in the same query — SqlArtisan throws on `Build(Dbms.SqlServer)` if either rule is broken.
+`Top(n)` also chains `.Percent()` (`TOP (n) PERCENT`) and combines with `DISTINCT` (`Select(Distinct, Top(n), ...)` → `SELECT DISTINCT TOP (n)`). `WITH TIES` requires an `ORDER BY`, and `TOP` cannot appear with `LIMIT`, `OFFSET`, or `FETCH` in the same query — SqlArtisan throws at `Build()` on every dialect if either rule is broken, in a nested subquery's own clauses as much as in the statement's.
 
 **Dialect note:** `TOP` is SQL Server only — on MySQL, Oracle, PostgreSQL, and SQLite use the `LIMIT` or `OFFSET/FETCH` families above; those families expose no `WITH TIES` option in SqlArtisan.
 
@@ -731,7 +735,10 @@ target has no alias, and every engine resolves it to the subquery's own
 table — a tautology that silently updates or deletes **every row**. SqlArtisan
 refuses to build that form; `Build()` throws:
 
-> The target of a correlated UPDATE or DELETE must be aliased.
+> The target of a correlated UPDATE, DELETE, or MERGE must be aliased.
+
+The same guard arms `MergeInto(...)`: a target column referenced inside a
+subquery in any `MERGE` clause needs the aliased target too.
 
 Alias the target — the outer reference then renders qualified and the
 statement means what it says:
@@ -754,7 +761,8 @@ SqlStatement sql =
 
 To deliberately re-select from the target table in an uncorrelated subquery,
 give the inner scope its own instance — one C# instance cannot stand for two
-SQL scopes, so reusing the target instance inside the subquery also throws:
+SQL scopes, so reusing an unaliased target instance inside the subquery also
+throws (an aliased target renders, with the inner alias shadowing the outer):
 
 ```csharp
 UsersTable u = new();
@@ -836,10 +844,12 @@ DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
 // DELETE "t" FROM acct "t" INNER JOIN ledger "u" ON "t".id = "u".id
 ```
 
-The joined target must be aliased. A spelling the target dialect doesn't support
-— Oracle, or `UPDATE … FROM` on MySQL — is emitted as written and rejected by the
-database, not caught at build time. On Oracle, express the shape as a correlated
-subquery or a [`MERGE`](#merge-statement).
+The joined target must be aliased, and on SQL Server a joined `UPDATE`/`DELETE`
+must re-list the target in `FROM` — T-SQL's joined form takes the target's alias
+from there — or `Build(Dbms.SqlServer)` throws. A re-listed target off SQL Server throws at
+`Build()`; the shapes that do not re-list it — Oracle, or `UPDATE … FROM` on
+MySQL — are emitted as written and rejected by the database instead. On Oracle, express the
+shape as a correlated subquery or a [`MERGE`](#merge-statement).
 
 ---
 
@@ -860,7 +870,7 @@ SqlStatement sql =
 // (:0, :1, CURRENT_TIMESTAMP)
 ```
 
-**Dialect note:** On SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`), since T-SQL introduces a table alias through a `FROM` clause instead; building an aliased target for SQL Server throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and MySQL, Oracle, and SQLite emit the alias faithfully as well.
+**Dialect note:** On MySQL and SQL Server the `INSERT` target cannot be aliased — pass an unaliased table (`InsertInto(new UsersTable())`). T-SQL introduces a table alias through a `FROM` clause instead, and MySQL's `INSERT` grammar has no target-alias slot at all (its `AS new` row alias is the separate UPSERT construct) — building an aliased target for either throws. PostgreSQL, by contrast, uses an aliased `INSERT` target to name the row for [`ON CONFLICT`](#upsert-insert-update-or-skip), and Oracle and SQLite accept the alias as well.
 
 ---
 
@@ -907,7 +917,7 @@ SqlStatement sql =
 // (:0, :1), (:2, :3), (:4, :5)
 ```
 
-The result is identical to the chained form — one `VALUES` row per element, one bind per value. Every row must be the same width (a mismatch throws, naming the offending row), and an empty collection throws at the call site (`VALUES requires at least one row; the row collection is empty.`) rather than emit an invalid empty `VALUES`. Each value is a bind parameter, so a large batch runs into the same per-engine parameter ceilings as any wide statement — split oversized batches across statements.
+The result is identical to the chained form — one `VALUES` row per element, one bind per value. Every row must be the same width (a mismatch throws, naming the two widths), and an empty collection throws at the call site (`VALUES requires at least one row; the row collection is empty.`) rather than emit an invalid empty `VALUES`. Each value is a bind parameter, so a large batch runs into the same per-engine parameter ceilings as any wide statement — split oversized batches across statements.
 
 ---
 
@@ -991,6 +1001,10 @@ and `DoNothing()` skips conflicting rows:
 
 // ON CONFLICT DO NOTHING   (no explicit conflict target)
 .OnConflict().DoNothing()
+
+// ON CONFLICT DO UPDATE SET ...   (no target: SQLite only; PostgreSQL requires one,
+//                                  so Build(Dbms.PostgreSql) throws)
+.OnConflict().DoUpdateSet(u.Name == Excluded(u.Name))
 ```
 
 **MySQL — `ON DUPLICATE KEY UPDATE`**
@@ -1036,9 +1050,7 @@ SqlStatement sql =
 
 `IGNORE` downgrades the statement's errors to warnings — not only duplicate keys
 but foreign-key violations and out-of-range values, whose rows are skipped or
-coerced. Prefer it to the `ON DUPLICATE KEY UPDATE id = id` trick, which burns an
-`AUTO_INCREMENT` value per skipped row; for a portable skip-existing insert, use
-`INSERT … SELECT … WHERE NOT EXISTS`. On PostgreSQL and SQLite the do-nothing
+coerced. On PostgreSQL and SQLite the do-nothing
 insert is `ON CONFLICT DO NOTHING` (above), so SQLite's `INSERT OR IGNORE` is not
 exposed separately.
 
@@ -1046,9 +1058,9 @@ exposed separately.
 
 ### MERGE Statement
 
-`MERGE` is the native UPSERT path for **Oracle** and **SQL Server** (and
-**PostgreSQL**), which have no `ON CONFLICT` / `ON DUPLICATE KEY UPDATE`.
-PostgreSQL gained `MERGE` in a specific release — see the
+`MERGE` is the native UPSERT path for **Oracle** and **SQL Server**, which have
+no `ON CONFLICT` / `ON DUPLICATE KEY UPDATE`. **PostgreSQL** also supports
+`MERGE` — alongside its own `ON CONFLICT` — from a specific release; see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 Start with `MergeInto(target)`, name the data source with `Using(...)`, match
 rows with `On(...)`, then add one or more `WhenMatched` / `WhenNotMatched`
@@ -1128,7 +1140,7 @@ subquery source (`… .AsTable("s")`) instead.
 **Per-dialect branches and pitfalls:**
 
 ```csharp
-// WHEN MATCHED AND <cond> THEN ...   (filtered branch)
+// WHEN MATCHED AND <cond> THEN ...   (filtered branch: PostgreSQL 15+ / SQL Server; Oracle has no AND on WHEN)
 .WhenMatched(s.Status == "active").ThenUpdateSet(t.Name == s.Name)
 
 // Oracle in-clause DELETE: WHEN MATCHED THEN UPDATE SET ... DELETE WHERE ...
@@ -1235,13 +1247,13 @@ SqlStatement sql =
 SqlArtisan also supports more advanced WITH clause scenarios:
 
 - **Recursive CTEs** — `WithRecursive()` emits `WITH RECURSIVE`, required by MySQL and PostgreSQL and accepted by SQLite (MySQL gained CTE support in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). Oracle — every version, 23ai included (live-verified) — and SQL Server reject the `RECURSIVE` keyword; there, recurse with plain `With(...)`. On Oracle a recursive body additionally requires the CTE column list — chain `.WithColumnList()` onto the CTE binding (`With(cte.As(...).WithColumnList())`) to emit it (`WITH "cte"(code) AS (...)`); SQL Server recurses with plain `With(...)` alone, and also accepts the list. The analyzer warns when `WithRecursive()` targets a dialect (or a declared version) that does not support it. `WithRecursive()` always includes the CTE column list, derived from the first query block — Oracle-style recursive `WITH` requires the list, and every engine accepts it; `.WithColumnList()` derives the same list under plain `With()`. Every select item of the CTE's first query block must therefore have a name: a plain column, or an expression aliased with `.As(...)` — an unnamed expression throws at the `WithRecursive()` or `.WithColumnList()` call. Plain `With()` emits a column list only for CTEs that opt in with `.WithColumnList()`.
-- **CTEs with DML main statements** — `With(...)` before an `INSERT`, `UPDATE`, or `DELETE` main statement is supported. DML *inside* a CTE body (PostgreSQL data-modifying CTEs) is not supported.
+- **CTEs with DML main statements** — `With(...)` before an `UPDATE` or `DELETE` main statement is supported on MySQL, PostgreSQL, SQLite, and SQL Server, and before an `INSERT` on PostgreSQL, SQLite, and SQL Server. Oracle's DML grammar has no leading `WITH`, and MySQL's `INSERT` grammar has none either (live-verified on 8.0), so there an `INSERT` carries its CTE inside the feeding `SELECT` (`InsertInto(...).With(...).Select(...)`); `Build(Dbms.Oracle)` and `Build(Dbms.MySql)` throw on the leading form. DML *inside* a CTE body (PostgreSQL data-modifying CTEs) is not supported.
 
 ---
 
 ## RETURNING Clause
 
-The `Returning()` method appends a `RETURNING` clause to `INSERT`, `UPDATE`, and `DELETE` statements, letting you read back the affected rows. It accepts the same items as a `SELECT` list, including `Asterisk` for `RETURNING *`.
+The `Returning()` method adds a `RETURNING` clause to `INSERT`, `UPDATE`, and `DELETE` statements, letting you read back the affected rows. It accepts the same items as a `SELECT` list, including `Asterisk` for `RETURNING *`. Build from the stage `Returning()` returns: building the stage before it throws rather than dropping the clause.
 
 ```csharp
 UsersTable u = new();
@@ -1307,7 +1319,7 @@ int deletedId = outputs.Get<int>("outId");
 string deletedName = outputs.Get<string>("outName");
 ```
 
-**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (SQLite gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). It is not supported by SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)) or MySQL. The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
+**Note:** `RETURNING` is supported by Oracle, PostgreSQL, and SQLite (SQLite gained it in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). It is not supported by MySQL or SQL Server (which uses [`OUTPUT`](#output-clause-sql-server)). The `RETURNING ... INTO` form is Oracle-specific. SqlArtisan does not validate database feature support, so ensure the clause is valid for your target DBMS.
 
 ## OUTPUT Clause (SQL Server)
 

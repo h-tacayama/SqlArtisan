@@ -3,10 +3,9 @@ using System;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// A dotted numeric engine version in the #262 reserved format (<c>8.0.16</c>,
-/// <c>23</c>, <c>3.44</c>, <c>2022</c>). Compares by numeric segment, missing
-/// trailing segments read as 0, and a trailing letter run within a segment is
-/// ignored (<c>23ai</c> reads as <c>23</c>).
+/// A dotted numeric engine version in the #262 reserved format. Compares by
+/// numeric segment; missing trailing segments read as 0, and a trailing letter
+/// run within a segment is ignored (<c>23ai</c> reads as <c>23</c>).
 /// </summary>
 /// <remarks>
 /// Not <see cref="Version"/>: that type rejects a single-segment string like
@@ -60,9 +59,8 @@ internal readonly struct EngineVersion : IComparable<EngineVersion>, IEquatable<
             digitCount++;
         }
 
-        // A trailing letter run is a release-name suffix (23ai, 21c) rather than
-        // a version fact, so it is dropped rather than rejected; anything else
-        // after the digits is a typo the SQLA0001 value check must catch.
+        // A trailing letter run is a release-name suffix (23ai, 21c), dropped
+        // rather than rejected; anything else after the digits is a typo.
         for (int i = digitCount; i < segment.Length; i++)
         {
             if (segment[i] is not ((>= 'a' and <= 'z') or (>= 'A' and <= 'Z')))
@@ -114,13 +112,17 @@ internal readonly struct EngineVersion : IComparable<EngineVersion>, IEquatable<
         return hash;
     }
 
-    public static bool operator <(EngineVersion left, EngineVersion right) => left.CompareTo(right) < 0;
+    public static bool operator <(EngineVersion left, EngineVersion right) =>
+        left.CompareTo(right) < 0;
 
-    public static bool operator >(EngineVersion left, EngineVersion right) => left.CompareTo(right) > 0;
+    public static bool operator >(EngineVersion left, EngineVersion right) =>
+        left.CompareTo(right) > 0;
 
-    public static bool operator <=(EngineVersion left, EngineVersion right) => left.CompareTo(right) <= 0;
+    public static bool operator <=(EngineVersion left, EngineVersion right) =>
+        left.CompareTo(right) <= 0;
 
-    public static bool operator >=(EngineVersion left, EngineVersion right) => left.CompareTo(right) >= 0;
+    public static bool operator >=(EngineVersion left, EngineVersion right) =>
+        left.CompareTo(right) >= 0;
 
     /// <summary>The original engine-native spelling, for diagnostic messages.</summary>
     public override string ToString() => _text ?? "0";

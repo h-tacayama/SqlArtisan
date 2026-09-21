@@ -1,10 +1,9 @@
 namespace SqlArtisan.IntegrationTests.Schema;
 
 /// <summary>
-/// The <c>users</c> table used across the integration matrix. The schema is
-/// deliberately minimal and type-portable (integers and a short string) so the
-/// per-engine DDL stays trivial; the point is to execute SqlArtisan-built
-/// statements against a real engine, not to exercise exotic column types.
+/// The <c>users</c> table used across the integration matrix: a few portable
+/// columns plus one JSON document column — native on MySQL and PostgreSQL, text
+/// elsewhere — so the per-engine DDL stays small and every construct can run.
 /// </summary>
 internal sealed class UsersTable : DbTableBase
 {

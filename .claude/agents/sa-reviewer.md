@@ -31,7 +31,9 @@ not from how the change describes itself.
    hazard-shape probes where the diff could plausibly affect them. Never
    assert emitted SQL or DBMS grammar from memory: paste probe output
    verbatim into your report, and tag any unprobed grammar claim
-   `grammar-unverified`.
+   `grammar-unverified`. The same for counts, `git log`, and `grep`
+   citations — paste the command's output; a remembered count is a
+   refutable claim.
 
 ## Constraints
 

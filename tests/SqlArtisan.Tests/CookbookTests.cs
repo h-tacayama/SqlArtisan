@@ -3,12 +3,9 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// Hand-maintained mirror of docs/cookbook.md's recipes (#227): each test pins
-// one recipe's emitted SQL. Unlike DocsIndexTests/LlmsFullTests this file does
-// NOT read the page, so a doc-side edit needs its twin edited here by hand —
-// the docs-audit example sweep cannot parse this page's multi-statement
-// recipe shape (recorded deferral in the 1.0 release review ledger).
-// Table classes live in TestFixtures/CookbookTables.cs (Cookbook* prefix).
+// Hand-maintained mirror of docs/cookbook.md (#227): the docs-audit sweep
+// cannot parse the multi-statement recipe shape, so a doc-side edit needs its
+// twin edited by hand. Table classes: TestFixtures/CookbookTables.cs.
 public class CookbookTests
 {
     [Fact]
@@ -24,7 +21,8 @@ public class CookbookTests
         expected.Append("INNER JOIN product \"p\" ON \"c\".category_id = \"p\".category_id ");
         expected.Append("INNER JOIN order_item \"oi\" ON \"p\".product_id = \"oi\".product_id ");
         expected.Append("GROUP BY \"c\".name, \"p\".name) ");
-        expected.Append("SELECT \"ranked\".category_name, \"ranked\".product_name, \"ranked\".sales ");
+        expected.Append(
+            "SELECT \"ranked\".category_name, \"ranked\".product_name, \"ranked\".sales ");
         expected.Append("FROM \"ranked\" WHERE \"ranked\".rn <= :0 ");
         expected.Append("ORDER BY \"ranked\".category_name, \"ranked\".sales DESC");
 
@@ -64,7 +62,8 @@ public class CookbookTests
         StringBuilder expected = new();
         expected.Append("SELECT \"o\".customer_id, ");
         expected.Append("SUM(CASE WHEN (\"o\".status = :0) THEN :1 ELSE :2 END) \"shipped_cnt\", ");
-        expected.Append("SUM(CASE WHEN (\"o\".status = :3) THEN :4 ELSE :5 END) \"cancelled_cnt\", ");
+        expected.Append(
+            "SUM(CASE WHEN (\"o\".status = :3) THEN :4 ELSE :5 END) \"cancelled_cnt\", ");
         expected.Append("COUNT(*) \"total\" ");
         expected.Append("FROM orders \"o\" GROUP BY \"o\".customer_id");
 
@@ -167,7 +166,9 @@ public class CookbookTests
         var where =
             ConditionIf(useName, c.LastName.Like("%son%"))
             & ConditionIf(useRegion, c.Region == "west")
-            & ConditionIf(useDateRange, c.CreatedAt.Between(new DateTime(2025, 1, 1), new DateTime(2025, 12, 31)));
+            & ConditionIf(
+                useDateRange,
+                c.CreatedAt.Between(new DateTime(2025, 1, 1), new DateTime(2025, 12, 31)));
 
         DbColumn sortCol = sortKey switch
         {
@@ -186,7 +187,8 @@ public class CookbookTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("SELECT \"c\".customer_id, \"c\".first_name, \"c\".last_name, \"c\".email ");
+        expected.Append(
+            "SELECT \"c\".customer_id, \"c\".first_name, \"c\".last_name, \"c\".email ");
         expected.Append("FROM customer \"c\" ");
         expected.Append("WHERE (\"c\".last_name LIKE :0) AND (\"c\".region = :1) ");
         expected.Append("AND (\"c\".created_at BETWEEN :2 AND :3) ");
@@ -320,7 +322,8 @@ public class CookbookTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("SELECT \"o\".order_id, \"o\".customer_id, \"o\".status, \"o\".total_amount ");
+        expected.Append(
+            "SELECT \"o\".order_id, \"o\".customer_id, \"o\".status, \"o\".total_amount ");
         expected.Append("FROM orders \"o\" ");
         expected.Append("ORDER BY CASE WHEN (\"o\".status = :0) THEN :1 ");
         expected.Append("WHEN (\"o\".status = :2) THEN :3 ");

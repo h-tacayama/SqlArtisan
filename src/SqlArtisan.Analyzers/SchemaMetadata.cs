@@ -4,10 +4,9 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reads the schema facts a generated table class carries on its
-/// <c>DbColumn</c> properties (#266). Every fact is tri-state: a named argument
-/// the generator never wrote is <see langword="null"/> — unknown — and unknown
-/// must read as silence, never as false.
+/// Reads the schema facts a generated table class carries on its <c>DbColumn</c>
+/// properties (#266). Every fact is tri-state: an argument the generator never
+/// wrote is <see langword="null"/> — unknown — and reads as silence, never as false.
 /// </summary>
 /// <remarks>
 /// Matched by fully qualified name, never by a type reference: the analyzer

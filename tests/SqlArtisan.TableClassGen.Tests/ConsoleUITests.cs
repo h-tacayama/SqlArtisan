@@ -3,10 +3,8 @@ using SqlArtisan.TableClassGen;
 namespace SqlArtisan.TableClassGen.Tests;
 
 // Console.ReadLine returns "" on a blank Enter (null only at EOF), so the old
-// `?? "default"` fallbacks never fired; the prompts now go through the
-// IsNullOrWhiteSpace-then-default idiom ReadPort set (#430). Gated here for
-// the prompts reachable under redirected input — the connection prompts end in
-// a Console.ReadKey password read, which redirection cannot drive.
+// `?? "default"` fallbacks never fired (#430). Only the prompts reachable under
+// redirected input are gated; the password ReadKey cannot be driven.
 [Collection(ConsoleRedirectionCollection.Name)]
 public class ConsoleUITests
 {
@@ -19,6 +17,10 @@ public class ConsoleUITests
 
         Assert.Equal("SqlArtisan.TableDefinitions", settings.OutputNamespace);
         Assert.Equal(".", settings.OutputDirectory);
+        Assert.False(settings.LowercaseNames);
+        Assert.Empty(settings.TableNames);
+        // No initial-letter subfolder — the create-subfolders default is "n".
+        Assert.Equal(Path.Combine(".", "Users.cs"), settings.CreateOutputFilePath("Users"));
     }
 
     private static T WithInput<T>(string input, Func<T> read)

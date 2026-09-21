@@ -14,6 +14,7 @@ public static partial class Sql
     /// <param name="leftVector">The first vector.</param>
     /// <param name="rightVector">The second vector.</param>
     /// <returns>A <c>&lt;#&gt;</c> operator expression.</returns>
+    /// <remarks>Oracle (23ai+) and PostgreSQL syntax.</remarks>
     public static NegativeInnerProductOperator NegativeInnerProduct(
         object leftVector,
         object rightVector) =>

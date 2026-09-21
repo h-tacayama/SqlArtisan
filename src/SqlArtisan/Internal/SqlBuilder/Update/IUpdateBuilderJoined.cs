@@ -25,10 +25,12 @@ public interface IUpdateBuilderJoined
     /// </summary>
     /// <param name="table">The table reference to right-join.</param>
     /// <returns>The builder positioned to supply the join predicate.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.39+), and SQL Server syntax.</remarks>
     IUpdateBuilderJoinOn RightJoin(TableReference table);
 
     /// <summary>
-    /// Appends <c>SET col = value, ...</c>; the target columns are alias-qualified for the joined form.
+    /// Appends <c>SET col = value, ...</c>; the target columns are alias-qualified for the joined
+    /// form.
     /// </summary>
     /// <param name="assignments">The per-column updates; each left side names a target column and each right side its new value (literals are auto-parameterized).</param>
     /// <returns>The builder positioned for <c>WHERE</c>, <c>RETURNING</c>, or build.</returns>

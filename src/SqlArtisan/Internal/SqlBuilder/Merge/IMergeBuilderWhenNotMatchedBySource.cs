@@ -11,6 +11,8 @@ public interface IMergeBuilderWhenNotMatchedBySource
     /// Appends <c>THEN DELETE</c>, removing the unmatched target rows.
     /// </summary>
     /// <returns>The builder positioned to chain another <c>WHEN</c> branch or build.</returns>
+    /// <remarks>PostgreSQL (15+) and SQL Server syntax for the action; the branch itself
+    /// is SQL Server's alone.</remarks>
     IMergeBuilderWhen ThenDelete();
 
     /// <summary>
@@ -18,5 +20,7 @@ public interface IMergeBuilderWhenNotMatchedBySource
     /// </summary>
     /// <param name="assignments">The <c>column == value</c> updates; literals are auto-parameterized.</param>
     /// <returns>The builder positioned to chain another <c>WHEN</c> branch or build.</returns>
+    /// <remarks>Oracle, PostgreSQL (15+), and SQL Server syntax for the action; the branch
+    /// itself is SQL Server's alone.</remarks>
     IMergeBuilderWhen ThenUpdateSet(params EqualityCondition[] assignments);
 }

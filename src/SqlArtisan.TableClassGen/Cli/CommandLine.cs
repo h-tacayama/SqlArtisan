@@ -14,7 +14,10 @@ internal static class CommandLine
     // spelling them with hyphens here silently broke --dry-run and --qualify-schema.
     private static readonly HashSet<string> Switches =
     [
-        .. new[] { "check", "fix", "dry-run", "verbose", "lowercase", "subfolders", "qualify-schema" }
+        .. new[]
+        {
+            "check", "fix", "dry-run", "verbose", "lowercase", "subfolders", "qualify-schema",
+        }
             .Select(Normalize),
     ];
 
@@ -38,11 +41,11 @@ internal static class CommandLine
           sa-tableclassgen                      interactive prompts (terminal only)
 
         Connection:
-          --dbms <name>          mysql | oracle | postgresql | sqlite | sqlserver
+          --dbms <name>          mysql | oracle | postgresql (postgres) | sqlite | sqlserver (mssql)
           --host <host>          database host
           --port <n>             database port (defaults per DBMS)
           --database <name>      database or Oracle service name
-          --schema <name>        schema to read (PostgreSQL, SQL Server, Oracle)
+          --schema <name>        schema to read (MySQL, Oracle, PostgreSQL, SQL Server)
           --user <name>          user name
           --file <path>          SQLite database file
           The password is read from the {PasswordEnvironmentVariable} environment
@@ -167,21 +170,29 @@ internal static class CommandLine
                         $"Unknown key '{property.Name}' in {path} (see --help)");
                 }
 
+                // null is "not set", like an absent key — never a switch turned on.
+                if (property.Value.ValueKind == JsonValueKind.Null)
+                {
+                    continue;
+                }
+
                 values[Normalize(property.Name)] = property.Value.ValueKind switch
                 {
                     JsonValueKind.String => property.Value.GetString() ?? string.Empty,
                     JsonValueKind.True => "true",
                     JsonValueKind.False => "false",
-                    JsonValueKind.Array => string.Join(
-                        ",",
-                        property.Value.EnumerateArray().Select(e => e.ToString())),
+                    JsonValueKind.Array => JoinArray(property.Name, property.Value),
+                    JsonValueKind.Object => throw new CommandLineException(
+                        $"\"{property.Name}\" in the --config file must be a string, number, "
+                            + "boolean, or array (got an object)"),
                     _ => property.Value.ToString(),
                 };
             }
         }
         catch (JsonException ex)
         {
-            throw new CommandLineException($"--config file is not valid JSON: {path} ({ex.Message})");
+            throw new CommandLineException(
+                $"--config file is not valid JSON: {path} ({ex.Message})");
         }
 
         return values;
@@ -247,9 +258,10 @@ internal static class CommandLine
             return DbmsOption.DefaultPort(dbms);
         }
 
-        return int.TryParse(port, out int parsed)
+        return DbmsOption.TryParsePort(port, out int parsed)
             ? parsed
-            : throw new CommandLineException($"--port must be a number (got '{port}')");
+            : throw new CommandLineException(
+                $"--port must be a number between 1 and 65535 (got '{port}')");
     }
 
     // MySQL has no schema layer above the database, and Oracle's schema is the user
@@ -258,8 +270,8 @@ internal static class CommandLine
         Dictionary<string, string> values, Dbms dbms, string database, string user) =>
         dbms switch
         {
-            Dbms.MySql => Value(values, "schema") ?? database,
-            Dbms.Oracle => Value(values, "schema") ?? user,
+            Dbms.MySql => NonBlankValue(values, "schema") ?? database,
+            Dbms.Oracle => NonBlankValue(values, "schema") ?? user,
             _ => Required(values, "schema"),
         };
 
@@ -283,20 +295,54 @@ internal static class CommandLine
             Flag(values, "qualify-schema"));
     }
 
+    // The option surface is comma-separated, so an element carrying a comma
+    // cannot round-trip — reject rather than silently split (release audit).
+    private static string JoinArray(string name, JsonElement array)
+    {
+        if (array.EnumerateArray().Any(e => e.ValueKind == JsonValueKind.Null))
+        {
+            throw new CommandLineException($"\"{name}\" array elements must not be null");
+        }
+
+        List<string> items = [.. array.EnumerateArray().Select(e => e.ToString())];
+
+        return items.Any(item => item.Contains(','))
+            ? throw new CommandLineException(
+                $"\"{name}\" array elements must not contain commas")
+            : string.Join(",", items);
+    }
+
     private static IReadOnlyList<string> SplitTables(string? tables) =>
         string.IsNullOrWhiteSpace(tables)
             ? []
-            : [.. tables.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+            : [.. tables.Split(',', StringSplitOptions.RemoveEmptyEntries
+                | StringSplitOptions.TrimEntries)];
 
     private static string? Value(Dictionary<string, string> values, string key) =>
         values.TryGetValue(Normalize(key), out string? value) ? value : null;
 
+    // Blank counts as missing here too (the Required contract): a blank
+    // --schema must engage its fallback, not read zero tables silently.
+    private static string? NonBlankValue(Dictionary<string, string> values, string key) =>
+        Value(values, key) is { } value && !string.IsNullOrWhiteSpace(value) ? value : null;
+
+    // Blank counts as missing: a value like --namespace "" would otherwise flow
+    // into generated code or a connection string and fail far from the flag.
     private static string Required(Dictionary<string, string> values, string key) =>
-        Value(values, key)
-            ?? throw new CommandLineException(
+        Value(values, key) is { } value && !string.IsNullOrWhiteSpace(value)
+            ? value
+            : throw new CommandLineException(
                 $"--{key} is required (or set \"{key}\" in the --config file)");
 
+    // A switch is true or false, nothing else: a config-file `"fix": 0` or `"no"`
+    // read as on would run the mode that rewrites files.
     private static bool Flag(Dictionary<string, string> values, string key) =>
-        Value(values, key) is { } value
-        && !string.Equals(value, "false", StringComparison.OrdinalIgnoreCase);
+        Value(values, key) switch
+        {
+            null => false,
+            { } value when value.Equals("true", StringComparison.OrdinalIgnoreCase) => true,
+            { } value when value.Equals("false", StringComparison.OrdinalIgnoreCase) => false,
+            { } value => throw new CommandLineException(
+                $"\"{key}\" in the --config file must be true or false (got '{value}')"),
+        };
 }

@@ -1,9 +1,8 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// References a column of the <c>INSERTED</c> pseudo-table inside a SQL Server
-/// <c>OUTPUT</c> clause — the post-image of an inserted or updated row. Renders as
-/// <c>INSERTED.col</c>.
+/// A column of SQL Server's <c>INSERTED</c> pseudo-table in an <c>OUTPUT</c> clause
+/// (the post-image of an inserted or updated row); renders as <c>INSERTED.col</c>.
 /// </summary>
 public sealed class InsertedColumn : SqlExpression
 {

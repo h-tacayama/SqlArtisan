@@ -6,7 +6,10 @@ public sealed class FormatFunction : SqlExpression
     private readonly SqlExpression _format;
     private readonly SqlExpression? _culture;
 
-    internal FormatFunction(SqlExpression value, SqlExpression format, SqlExpression? culture = null)
+    internal FormatFunction(
+        SqlExpression value,
+        SqlExpression format,
+        SqlExpression? culture = null)
     {
         _value = value;
         _format = format;

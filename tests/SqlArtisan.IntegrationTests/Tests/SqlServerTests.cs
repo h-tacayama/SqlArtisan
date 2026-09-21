@@ -58,7 +58,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
                 .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Id, s.Name),
             transaction);
 
-        long count = Convert.ToInt64(connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
+        long count = Convert.ToInt64(
+            connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
 
         Assert.Equal(5, count);
         transaction.Rollback();
@@ -81,7 +82,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
                 .WhenNotMatchedBySource().ThenDelete(),
             transaction);
 
-        long count = Convert.ToInt64(connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
+        long count = Convert.ToInt64(
+            connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
 
         Assert.Equal(4, count);
         transaction.Rollback();
@@ -160,13 +162,18 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             tx.Rollback();
         }
 
-        // The only difference — aliasing the target — is what SQL Server rejects.
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
-            "INSERT INTO users AS \"cu\" (id, name) VALUES (999, 'x')"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
-            "UPDATE users AS \"cu\" SET name = 'x' WHERE \"cu\".id = 1"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
-            "DELETE FROM users AS \"cu\" WHERE \"cu\".id = 1"));
+        // Aliasing the target is the one difference SQL Server rejects; the rolled-back
+        // transaction keeps a wrong grammar assumption out of the shared fixture.
+        using (IDbTransaction probeTx = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<Exception>(() => connection.Execute(
+                "INSERT INTO users AS \"cu\" (id, name) VALUES (999, 'x')", transaction: probeTx));
+            Assert.ThrowsAny<Exception>(() => connection.Execute(
+                "UPDATE users AS \"cu\" SET name = 'x' WHERE \"cu\".id = 1", transaction: probeTx));
+            Assert.ThrowsAny<Exception>(() => connection.Execute(
+                "DELETE FROM users AS \"cu\" WHERE \"cu\".id = 1", transaction: probeTx));
+            probeTx.Rollback();
+        }
     }
 
     [Fact] // ADR 0017: anchors the ISelectBuilderJoin guard (#420).
@@ -176,11 +183,15 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         connection.Execute("SELECT * FROM users CROSS JOIN orders");
 
-        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users INNER JOIN orders"));
+        Assert.ThrowsAny<Exception>(
+            () => connection.Execute("SELECT * FROM users INNER JOIN orders"));
         Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users JOIN orders"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users LEFT JOIN orders"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users RIGHT JOIN orders"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users FULL JOIN orders"));
+        Assert.ThrowsAny<Exception>(
+            () => connection.Execute("SELECT * FROM users LEFT JOIN orders"));
+        Assert.ThrowsAny<Exception>(
+            () => connection.Execute("SELECT * FROM users RIGHT JOIN orders"));
+        Assert.ThrowsAny<Exception>(
+            () => connection.Execute("SELECT * FROM users FULL JOIN orders"));
     }
 
     [Fact] // #400: anchors the SQLA0102 percentile rule — SQL Server exposes the
@@ -189,7 +200,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Execute("SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY age) OVER () FROM users");
+        connection.Execute(
+            "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY age) OVER () FROM users");
 
         Assert.ThrowsAny<Exception>(() => connection.Execute(
             "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY age) FROM users"));
@@ -256,7 +268,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         // Each in-range/well-ordered form is valid (so the table and column are right).
         connection.ExecuteScalar("SELECT NTILE(4) OVER (ORDER BY age) FROM users");
         connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 PRECEDING) FROM users");
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 "
+                + "PRECEDING) FROM users");
 
         // The only difference each time — the value-domain violation — is what SQL Server rejects.
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
@@ -266,11 +279,14 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT SUM(age) OVER (ORDER BY age ROWS 1 FOLLOWING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 "
+                + "PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING "
+                + "AND UNBOUNDED PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED "
+                + "FOLLOWING) FROM users"));
     }
 
     [Fact] // SQLA0104 (#449): anchors SqlServerDatepartFields in DatepartValidity.cs —

@@ -6,20 +6,14 @@ using Oracle.ManagedDataAccess.Client;
 namespace SqlArtisan.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// A second, newer Oracle fixture used only by <c>Oracle23aiBoundSweepTests</c>
-/// to live-prove the analyzer's Oracle version bounds (#263) — the ordinary
-/// <see cref="OracleFixture"/> lane stays on the pinned 21c baseline
-/// (<see cref="DialectMatrix.VerifiedAgainstVersion"/>) so its matrix-bool
-/// expectations (e.g. WITH RECURSIVE rejected) are unaffected.
+/// The 23ai lane's fixture, live-proving the analyzer's Oracle version bounds (#263);
+/// the ordinary <see cref="OracleFixture"/> lane stays on the pinned 21c baseline
+/// (<see cref="DialectMatrix.VerifiedAgainstVersion"/>) so its matrix bools hold.
 /// </summary>
 /// <remarks>
-/// Built from the generic <see cref="ContainerBuilder"/> rather than
-/// <c>Testcontainers.Oracle.OracleBuilder</c>: that builder's connection
-/// string hardcodes the service name to <c>XEPDB1</c> (the <c>oracle-xe</c>
-/// image's pluggable database) with no public way to override it, and
-/// <c>gvenzl/oracle-free</c>'s default pluggable database is <c>FREEPDB1</c>
-/// instead — using the typed builder against this image connects to a
-/// service name that does not exist (ORA-12514, confirmed live in CI).
+/// Built from the generic <see cref="ContainerBuilder"/>: the typed Oracle builder
+/// hardcodes the <c>XEPDB1</c> service name, and <c>gvenzl/oracle-free</c>'s pluggable
+/// database is <c>FREEPDB1</c> (ORA-12514 live in CI otherwise).
 /// </remarks>
 public sealed class Oracle23aiFixture : IAsyncLifetime, IDatabaseFixture
 {
@@ -42,7 +36,8 @@ public sealed class Oracle23aiFixture : IAsyncLifetime, IDatabaseFixture
     {
         string connectionString =
             $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={_container.Hostname})"
-                + $"(PORT={_container.GetMappedPublicPort(1521)}))(CONNECT_DATA=(SERVICE_NAME={Database})));"
+                + $"(PORT={_container.GetMappedPublicPort(1521)}))"
+                + $"(CONNECT_DATA=(SERVICE_NAME={Database})));"
                 + $"User Id={Username};Password={Password};";
         OracleConnection connection = new(connectionString);
         connection.Open();

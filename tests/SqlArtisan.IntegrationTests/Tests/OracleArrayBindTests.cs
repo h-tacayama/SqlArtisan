@@ -30,11 +30,25 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         List<ISqlBuilder> statements =
         [
             InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.CreatedAt, u.IsActive, u.Data)
-                .Values(9001L, "Bulk One", 21, (short)10, new DateTime(2026, 7, 23, 12, 34, 56), 1, "{\"k\":1}"),
+                .Values(
+                    9001L,
+                    "Bulk One",
+                    21,
+                    (short)10,
+                    new DateTime(2026, 7, 23, 12, 34, 56),
+                    1,
+                    "{\"k\":1}"),
             InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.CreatedAt, u.IsActive, u.Data)
                 .Values(9002L, BindNull(), BindNull(), (short)20, BindNull(), 0, BindNull()),
             InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.CreatedAt, u.IsActive, u.Data)
-                .Values(9003L, "Bulk Three", 33, (short)30, new DateTime(2026, 7, 24, 0, 0, 1), BindNull(), "x"),
+                .Values(
+                    9003L,
+                    "Bulk Three",
+                    33,
+                    (short)30,
+                    new DateTime(2026, 7, 24, 0, 0, 1),
+                    BindNull(),
+                    "x"),
         ];
 
         int inserted = connection.ExecuteArrayBind(statements, transaction);
@@ -47,29 +61,67 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         Assert.Equal(new[] { 9001, 9002, 9003 }, ids);
 
         UserRow first = connection.QuerySingle<UserRow>(
-            Select(u.Id, u.Name, u.Age).From(u).Where(u.Id == 9001),
+            Select(
+                u.Id,
+                u.Name,
+                u.Age,
+                u.DepartmentId.As("DepartmentId"),
+                u.IsActive.As("IsActive"),
+                u.Data)
+            .From(u)
+            .Where(u.Id == 9001),
             transaction);
         Assert.Equal("Bulk One", first.Name);
         Assert.Equal(21, first.Age);
+        Assert.Equal((short)10, first.DepartmentId);
+        Assert.Equal(1, first.IsActive);
+        Assert.Equal("{\"k\":1}", first.Data);
 
-        // Read separately via a scalar query: Dapper's reflection-emitted POCO
-        // deserializer fails to unbox a non-null DateTime into a DateTime?
-        // property (StackExchange/Dapper#295) — unrelated to this package.
+        // A scalar query: Dapper's POCO deserializer cannot unbox a non-null
+        // DateTime into a DateTime? property (StackExchange/Dapper#295).
         DateTime? firstCreatedAt = connection.ExecuteScalar<DateTime?>(
             Select(u.CreatedAt).From(u).Where(u.Id == 9001),
             transaction);
         Assert.Equal(new DateTime(2026, 7, 23, 12, 34, 56), firstCreatedAt);
 
         UserRow second = connection.QuerySingle<UserRow>(
-            Select(u.Id, u.Name, u.Age).From(u).Where(u.Id == 9002),
+            Select(
+                u.Id,
+                u.Name,
+                u.Age,
+                u.DepartmentId.As("DepartmentId"),
+                u.IsActive.As("IsActive"),
+                u.Data)
+            .From(u)
+            .Where(u.Id == 9002),
             transaction);
         Assert.Null(second.Name);
         Assert.Null(second.Age);
+        Assert.Equal((short)20, second.DepartmentId);
+        Assert.Equal(0, second.IsActive);
+        Assert.Null(second.Data);
 
         DateTime? secondCreatedAt = connection.ExecuteScalar<DateTime?>(
             Select(u.CreatedAt).From(u).Where(u.Id == 9002),
             transaction);
         Assert.Null(secondCreatedAt);
+
+        UserRow third = connection.QuerySingle<UserRow>(
+            Select(
+                u.Id,
+                u.Name,
+                u.Age,
+                u.DepartmentId.As("DepartmentId"),
+                u.IsActive.As("IsActive"),
+                u.Data)
+            .From(u)
+            .Where(u.Id == 9003),
+            transaction);
+        Assert.Equal("Bulk Three", third.Name);
+        Assert.Equal(33, third.Age);
+        Assert.Equal((short)30, third.DepartmentId);
+        Assert.Null(third.IsActive);
+        Assert.Equal("x", third.Data);
 
         transaction.Rollback();
 
@@ -144,5 +196,11 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         public string? Name { get; init; }
 
         public int? Age { get; init; }
+
+        public short? DepartmentId { get; init; }
+
+        public int? IsActive { get; init; }
+
+        public string? Data { get; init; }
     }
 }

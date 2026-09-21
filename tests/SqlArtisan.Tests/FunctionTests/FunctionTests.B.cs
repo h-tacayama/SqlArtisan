@@ -33,6 +33,7 @@ public partial class FunctionTests
         expected.Append("?0");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(5, sql.Parameters.Get<int>("?0"));
     }
 
     [Fact]
@@ -47,6 +48,7 @@ public partial class FunctionTests
         expected.Append("@0");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(5, sql.Parameters.Get<int>("@0"));
     }
 
     // Two separate Bind(...) calls, even with an equal value, mint distinct
@@ -103,7 +105,7 @@ public partial class FunctionTests
             Assert.Throws<ArgumentNullException>(() => Bind(null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'value')",
+            "Value cannot be null. Use Sql.BindNull to bind SQL NULL. (Parameter 'value')",
             ex.Message);
     }
 
@@ -114,7 +116,7 @@ public partial class FunctionTests
             Assert.Throws<ArgumentNullException>(() => new BindValue(null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'value')",
+            "Value cannot be null. Use Sql.BindNull to bind SQL NULL. (Parameter 'value')",
             ex.Message);
     }
 

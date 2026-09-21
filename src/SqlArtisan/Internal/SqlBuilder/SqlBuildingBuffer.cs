@@ -21,16 +21,22 @@ internal sealed class SqlBuildingBuffer : IDisposable
     private List<KeyValuePair<string, BindValue>>? _parameters;
     private bool _disposed;
     // Correlated-DML guard state (#253): a bare target column rendered inside a
-    // subquery resolves to the inner scope — a silent tautology — so DbColumn's Format fails loudly instead.
+    // subquery resolves to the inner scope — a silent tautology — so
+    // DbColumn's Format fails loudly instead.
     private TableReference? _correlatedDmlTarget;
     private int _subqueryDepth;
 
-    internal SqlBuildingBuffer(IDbmsDialect dialect)
+    internal SqlBuildingBuffer(Dbms dbms)
     {
-        _dialect = dialect;
+        Dbms = dbms;
+        _dialect = DbmsDialectFactory.Create(dbms);
         _buffer = ArrayPool<char>.Shared.Rent(InitialCapacity);
         _position = 0;
     }
+
+    // For the nested Validate(Dbms) hook alone (SqlBuilderBase.FormatCore) — a
+    // SqlPart reads the dialect's own members, never this value (ADR 0002).
+    internal Dbms Dbms { get; }
 
     public void Dispose()
     {
@@ -104,18 +110,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
             .AppendCsv(items)
             .CloseParenthesis();
 
-    // Renders a GROUP BY CUBE grouping `CUBE(a, b)`. Emitted faithfully on every
-    // dialect; where CUBE is unavailable (MySQL, SQLite) that is the analyzer's
-    // concern (ADR 0003), not Build's.
     internal SqlBuildingBuffer AppendCube(SqlPart[] items) =>
         Append(Keywords.Cube)
             .OpenParenthesis()
             .AppendCsv(items)
             .CloseParenthesis();
 
-    // Renders a GROUP BY GROUPING SETS grouping `GROUPING SETS((a, b), c, ())`.
-    // Emitted faithfully on every dialect; where GROUPING SETS is unavailable
-    // (MySQL, SQLite) that is the analyzer's concern (ADR 0003), not Build's.
     internal SqlBuildingBuffer AppendGroupingSets(SqlPart[] sets) =>
         Append($"{Keywords.Grouping} {Keywords.Sets}")
             .OpenParenthesis()
@@ -123,8 +123,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
             .CloseParenthesis();
 
     // Renders a comma-separated list of assignments (`a = 1, b = 2`) with each
-    // target column unqualified. Used by SET / DO UPDATE SET / ON DUPLICATE KEY
-    // UPDATE, where the left side must not carry a table-alias qualifier.
+    // target column unqualified, for the positions that forbid a qualifier.
     internal SqlBuildingBuffer AppendAssignmentsCsv(EqualCondition[] assignments)
     {
         if (assignments.Length == 0)
@@ -143,9 +142,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    // Renders a comma-separated list of column names with no table-alias
-    // qualifier — the INSERT column list and the ON CONFLICT target. DbColumn[]
-    // binds here via array covariance.
+    // Renders a comma-separated list of bare column names, for the positions
+    // that forbid a table-alias qualifier. DbColumn[] binds here via array
+    // covariance.
     internal SqlBuildingBuffer AppendUnqualifiedColumnsCsv(SqlExpression[] columns)
     {
         if (columns.Length == 0)
@@ -246,9 +245,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    // Appends a DML table alias to a target already written, e.g. ` AS "x"`
-    // (PostgreSQL/SQLite/MySQL/SQL Server) or ` "x"` (Oracle, which rejects AS on
-    // table aliases). The presence of AS is a dialect token (ADR 0002).
+    // Appends a DML table alias to a target already written: the dialect's
+    // separator, then the quoted alias. Whether AS appears (Oracle rejects it
+    // on table aliases) is a dialect token (ADR 0002).
     internal SqlBuildingBuffer AppendDmlTableAlias(string alias)
     {
         Append(_dialect.DmlTableAliasSeparator);
@@ -265,8 +264,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     }
 
     // Emits a single-quote-delimited string literal for a position whose grammar
-    // wants a literal rather than a bind parameter (ADR 0004) — e.g. the LIKE ...
-    // ESCAPE char (MySQL rejects `ESCAPE ?`) or a GROUP_CONCAT ... SEPARATOR.
+    // takes a constant (ADR 0004): the LIKE ... ESCAPE char, GROUP_CONCAT ... SEPARATOR.
     internal SqlBuildingBuffer AppendStringLiteral(char value)
     {
         Append('\'');
@@ -314,11 +312,19 @@ internal sealed class SqlBuildingBuffer : IDisposable
         return this;
     }
 
-    // ISubquery is not a SqlPart (it marks a builder state), so it gets its own
-    // overload rather than a per-construction adapter allocation. Every subquery
-    // embedding funnels through here — the correlated-DML guard's scope boundary.
+    // ISubquery marks a builder state, not a SqlPart, so it gets its own overload
+    // rather than an adapter allocation. Every embedding but a CTE body funnels
+    // through here — the correlated-DML guard's boundary (#253).
     internal SqlBuildingBuffer EncloseInParentheses(ISubquery subquery)
     {
+        // An INSERT ... SELECT chain is an ISubquery through its SELECT stages, but
+        // no dialect takes an INSERT here.
+        if (subquery is InsertBuilder)
+        {
+            throw new ArgumentException(
+                "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.");
+        }
+
         Append('(');
         _subqueryDepth++;
         subquery.Format(this);
@@ -329,6 +335,23 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     internal void SetCorrelatedDmlGuardTarget(DbTableBase? target) =>
         _correlatedDmlTarget = target;
+
+    // A CTE body resolves in its own scope, so the guard is off for the whole
+    // body — subqueries nested inside it included (#253).
+    internal void FormatOutsideCorrelatedDmlGuard(ISubquery body)
+    {
+        TableReference? target = _correlatedDmlTarget;
+        _correlatedDmlTarget = null;
+
+        try
+        {
+            body.Format(this);
+        }
+        finally
+        {
+            _correlatedDmlTarget = target;
+        }
+    }
 
     internal void ThrowIfCorrelatedDmlColumn(TableReference owner)
     {
@@ -422,12 +445,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // The same instance formatted again (one expression held in SELECT and
-        // GROUP BY) reuses its marker — engines that match GROUP BY syntactically
-        // reject distinct markers (#241). Identity only, via the existing list, so
-        // the common no-repeat path stays allocation-free.
+        // The same instance formatted twice (SELECT and GROUP BY) reuses its marker:
+        // engines matching GROUP BY syntactically reject distinct markers (#241).
         if (_parameters is not null)
         {
+            // Linear by design (ADR 0006's best effort): 37 ms at 2,100 binds, and
+            // the driver's own parameter cap bounds the scan.
             foreach (KeyValuePair<string, BindValue> parameter in _parameters)
             {
                 if (ReferenceEquals(parameter.Value, bindValue))
@@ -462,7 +485,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
         if (ContainsParameterName(name))
         {
             throw new ArgumentException(
-                $"Duplicate variable name '{output.Variable}' in RETURNING INTO clause. Each variable name must be unique.");
+                "A RETURNING INTO clause requires a distinct name for every variable; "
+                    + $"'{output.Variable}' is duplicated.");
         }
 
         Append(name);
@@ -478,7 +502,6 @@ internal sealed class SqlBuildingBuffer : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // Transfer ownership of the parameter dictionary to the SqlStatement.
         // The buffer relinquishes its reference so the caller's instance is
         // never mutated after this point (Dispose only returns the char buffer).
         string sql = new(_buffer, 0, _position);

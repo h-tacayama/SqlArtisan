@@ -134,13 +134,30 @@ reports what a run would write without writing it.
 | `--tables a,b,c` | act on these tables only (default: every table) |
 | `--accessibility` | `internal` (default) or `public` |
 | `--qualify-schema` | emit schema-qualified table names |
-| `--lowercase` / `--subfolders` | lowercase the catalog names / write into subfolders by initial |
+| `--lowercase` / `--subfolders` | lowercase the table and column names (a `--qualify-schema` schema segment keeps its catalog case) / write into subfolders by initial |
 | `--config` | JSON file of the options above; flags win |
-| `--check` / `--fix` / `--dry-run` | drift modes |
+| `--check` / `--fix` | drift modes |
+| `--dry-run` | report what would be written, write nothing (also with `--fix`) |
 | `--format text\|json` / `--verbose` | output format and detail |
+
+The SQL Server connection sets `TrustServerCertificate=true` — the tool targets
+the dev or container instance it is pointed at, whose certificate is typically
+self-signed.
+
+`--schema` is required on SQL Server, while the interactive prompt defaults it
+to `dbo`: a scripted run states its schema explicitly, and the interactive path
+is where a default belongs.
 
 One schema per run: two schemas holding the same table name would produce the same
 class name, so give each schema its own namespace and output directory.
+
+A run refuses to overwrite a generated file that already describes another
+table — the shape two `--tables`-scoped runs can slip past the class-name
+check. It reads the table identity the file spells, not the literal, since
+`--lowercase` and `--qualify-schema` vary that literal for one table; the same
+reading makes two tables whose names differ only by case one table, so on an
+engine where `Orders` and `orders` are distinct, generate them into separate
+output directories.
 
 ## Output: Example Table Class
 
@@ -186,7 +203,10 @@ that index; a non-leading column of a composite index records `false`. A column
 named by an index *expression* records nothing — an expression index exists
 precisely so the wrapped predicate can be written — and a column leading only a
 partial (filtered) index records nothing either, since whether its predicate
-covers a query is not decidable from the catalog. On Oracle, one function-based
+covers a query is not decidable from the catalog. A column that leads only an
+index the engine cannot use — an Oracle `UNUSABLE` index, a PostgreSQL invalid
+index, a disabled SQL Server index, a MySQL `INVISIBLE` one — records `false`
+rather than `true`: no query can reach that index. On Oracle, one function-based
 index leaves every column of that table unrecorded.
 
 ## License

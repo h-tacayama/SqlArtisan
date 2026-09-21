@@ -15,7 +15,12 @@ public class DialectMatrixTests
             [new MatrixKey("Synthetic", 2)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
         };
 
-        bool found = DialectMatrix.TryGetEntryFrom(entries, "Synthetic", arity: 2, out DbmsSupport support, out bool wasArityMatch);
+        bool found = DialectMatrix.TryGetEntryFrom(
+            entries,
+            "Synthetic",
+            arity: 2,
+            out DbmsSupport support,
+            out bool wasArityMatch);
 
         Assert.True(found);
         Assert.True(wasArityMatch);
@@ -30,7 +35,12 @@ public class DialectMatrixTests
             [new MatrixKey("Synthetic")] = DbmsSupport.All,
         };
 
-        bool found = DialectMatrix.TryGetEntryFrom(entries, "Synthetic", arity: 3, out DbmsSupport support, out bool wasArityMatch);
+        bool found = DialectMatrix.TryGetEntryFrom(
+            entries,
+            "Synthetic",
+            arity: 3,
+            out DbmsSupport support,
+            out bool wasArityMatch);
 
         Assert.True(found);
         Assert.False(wasArityMatch);
@@ -50,7 +60,8 @@ public class DialectMatrixTests
     [Fact]
     public void Entries_RollupOnMySql_IsUnsupported()
     {
-        Assert.True(DialectMatrix.TryGetEntry("Rollup", arity: null, out DbmsSupport support, out _));
+        Assert.True(
+            DialectMatrix.TryGetEntry("Rollup", arity: null, out DbmsSupport support, out _));
         Assert.False(support.IsSupported(TargetDbms.MySql));
         Assert.True(support.IsSupported(TargetDbms.Oracle));
     }

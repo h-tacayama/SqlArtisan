@@ -13,6 +13,6 @@ public interface IDeleteBuilderOutputInto : IDeleteBuilderDelete
     /// </summary>
     /// <param name="table">The table the output rows are inserted into.</param>
     /// <param name="columns">The columns to populate, in output order; omit to target the table's columns positionally.</param>
-    /// <returns>The builder positioned to continue with <c>WHERE</c> / <c>FROM</c> / <c>USING</c> / build.</returns>
+    /// <returns>The builder positioned to continue with <c>WHERE</c> / <c>FROM</c> / build.</returns>
     IDeleteBuilderDelete Into(DbTableBase table, params DbColumn[] columns);
 }

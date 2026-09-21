@@ -141,7 +141,8 @@ var q = Select(u.Id).From(u);
 Probe("branch-1", () => q.Where(u.Id == 1).Build());
 Probe("branch-2", () => q.Build());
 // (d) correlated DML with an unaliased target — expect the must-be-aliased throw
-Probe("corr", () => Update(new T()).Set(/* col == correlated subquery */).Build());
+T target = new();   // the guard keys on the instance: read `target` inside the subquery
+Probe("corr", () => Update(target).Set(/* target col == subquery reading target */).Build());
 ```
 
 ## Notes

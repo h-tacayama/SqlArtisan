@@ -16,7 +16,8 @@ public class ContextRuleAnalyzerTests
         {
             public DbColumn Id;
             public DbColumn Dep;
-            public T() : base("t", "") { Id = new DbColumn(this, "id"); Dep = new DbColumn(this, "dep"); }
+            public T() : base("t", "") { Id =
+                new DbColumn(this, "id"); Dep = new DbColumn(this, "dep"); }
         }
 
         class C
@@ -44,7 +45,8 @@ public class ContextRuleAnalyzerTests
         var test = AnalyzerVerifier.Create(source, editorConfig);
         if (expectWarning)
         {
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0102").WithLocation(0));
+            test.ExpectedDiagnostics.Add(
+                DiagnosticResult.CompilerWarning("SQLA0102").WithLocation(0));
         }
 
         await test.RunAsync();
@@ -95,7 +97,8 @@ public class ContextRuleAnalyzerTests
     [Fact]
     public Task LimitInInSubquery_NoTargetConfigured_StaysSilent() =>
         RunSilent("""
-            var q = Select(t.Id).From(t).Where(t.Id.In(Select(s.Id).From(s).OrderBy(s.Id).Limit(2)));
+            var q = Select(t.Id).From(t).Where(
+                t.Id.In(Select(s.Id).From(s).OrderBy(s.Id).Limit(2)));
             """, dbms: null);
 
     [Fact]
@@ -226,7 +229,8 @@ public class ContextRuleAnalyzerTests
     [Fact]
     public Task GroupingInInnerSubqueryWithOwnWithRollup_MySql_StaysSilent() =>
         RunSilent("""
-            var q = Select(t.Id).From(t).Where(t.Id.In(Select(Grouping(s.Dep)).From(s).GroupBy(s.Dep).WithRollup()));
+            var q = Select(t.Id).From(t).Where(
+                t.Id.In(Select(Grouping(s.Dep)).From(s).GroupBy(s.Dep).WithRollup()));
             """);
 
     // Grouping() as a Where() argument never reaches a recognized clause anchor

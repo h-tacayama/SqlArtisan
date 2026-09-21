@@ -17,7 +17,8 @@ public class ReporterTests
         string report = Capture(() => new Reporter(FixOptions()).Report([modified, removed]));
 
         Assert.Contains(
-            "Regenerated 1 table in ., leaving 1 file untouched:", report, StringComparison.Ordinal);
+            "Regenerated 1 table in ., leaving 1 "
+                + "file untouched:", report, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -60,6 +61,22 @@ public class ReporterTests
             "Would regenerate 1 table in ., leaving 1 file untouched:",
             report,
             StringComparison.Ordinal);
+    }
+
+    // --verbose lists every table in the drift modes as it does in generate mode;
+    // without it, a table found current and one never checked read the same.
+    [Fact]
+    public void Report_CheckVerbose_ListsUnchangedTablesToo()
+    {
+        TableResult unchanged = new("item", "ItemTable.cs", TableStatus.Unchanged, []);
+        TableResult modified = new("order", "OrderTable.cs", TableStatus.Modified, ["+ note"]);
+
+        string report = Capture(
+            () => new Reporter(Options(RunMode.Check, verbose: true)).Report(
+                [unchanged, modified]));
+
+        Assert.Contains("unchanged item", report, StringComparison.Ordinal);
+        Assert.Contains("modified  order", report, StringComparison.Ordinal);
     }
 
     // Check reports drift rather than writes, so its count stays the plain total.
@@ -107,8 +124,8 @@ public class ReporterTests
 
     private static RunOptions FixOptions() => Options(RunMode.Fix);
 
-    private static RunOptions Options(RunMode mode, bool dryRun = false) =>
-        new(mode, DummyConnection(), TestSettings.Create(), dryRun);
+    private static RunOptions Options(RunMode mode, bool dryRun = false, bool verbose = false) =>
+        new(mode, DummyConnection(), TestSettings.Create(), dryRun, verbose: verbose);
 
     private static DbConnectionInfo DummyConnection() =>
         new(Dbms.Sqlite, string.Empty, 0, string.Empty, string.Empty, string.Empty, string.Empty);

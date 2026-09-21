@@ -18,4 +18,4 @@ SQLA0202 | SqlArtisan.Schema | Warning | An INSERT column list omits a column th
 SQLA0203 | SqlArtisan.Schema | Disabled | COUNT of a column the generated table class declares nullable, which counts values rather than rows.
 SQLA0204 | SqlArtisan.Schema | Warning | A filter wraps an indexed column in a function or matches it with a leading-wildcard pattern, so no index on it can be used.
 SQLA0205 | SqlArtisan.Schema | Warning | A column is compared to a value of another type category, which can change which rows match, not just how fast.
-SQLA0300 | SqlArtisan.Validity | Warning | A correlated UPDATE or DELETE has an unaliased target — the same violation Build() rejects.
+SQLA0300 | SqlArtisan.Validity | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the same violation Build() rejects.

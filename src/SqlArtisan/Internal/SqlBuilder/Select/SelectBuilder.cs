@@ -149,13 +149,16 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public ISqlBuilder ForUpdate(OfClause ofClause, LockBehaviorBase? lockBehavior = null)
     {
-        AddPart(new ForUpdateClause(ofClause, lockBehavior));
+        // A null here would silently drop the OF list and widen the lock to every
+        // table; the lockBehavior-only overload spells that on purpose.
+        AddPart(new ForUpdateClause(
+            NullGuard.ThrowIfNull(ofClause, nameof(ofClause)), lockBehavior));
         return this;
     }
 
     public ISelectBuilderFrom From(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(tables, "FROM requires at least one table.");
+        CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "FROM requires at least one table.");
         AddPart(new FromClause(tables));
         return this;
     }
@@ -307,13 +310,13 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     public ISelectBuilderSelect Select(
         SqlHints hints,
         DistinctKeyword distinct,
-        params object[] selectList)
+        params object[] selectItems)
     {
         AddPart(
             SelectClauseWithOptions.Parse(
                 hints,
                 distinct,
-                selectList));
+                selectItems));
 
         return this;
     }
@@ -354,7 +357,12 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public ISelectBuilderFrom Using(DbColumn column, params DbColumn[] additionalColumns)
     {
-        AddPart(new JoinUsingClause([column, .. additionalColumns]));
+        CollectionGuard.ThrowIfNullElement(
+            additionalColumns,
+            nameof(additionalColumns),
+            "A USING column list must not contain a null column.");
+
+        AddPart(new JoinUsingClause([column, .. additionalColumns], nameof(column)));
         return this;
     }
 
@@ -370,14 +378,50 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    // Both TOP conflicts are analyzer-invisible (a combination / a value-level
-    // flag) with no valid T-SQL spelling, so they throw at Build(SqlServer) per
-    // the bounded-exception boundary (ADR 0011).
+    // The TOP pairings are incomplete constructs on every dialect (ADR 0007); the
+    // dialect-scoped checks are ADR 0011's bounded exceptions.
     protected override void Validate(Dbms dbms)
     {
-        if (dbms != Dbms.SqlServer)
+        // The Offset matrix key is the union of two interfaces, so the analyzer
+        // cannot see a bare OFFSET; MySQL and SQLite reject it (live-verified).
+        if ((dbms == Dbms.MySql || dbms == Dbms.Sqlite)
+            && FindPart<OffsetClause>() is not null
+            && FindPart<LimitClause>() is null)
         {
-            return;
+            throw new ArgumentException(
+                "MySQL and SQLite accept OFFSET only after LIMIT; "
+                    + "add Limit(...) before Offset(...).");
+        }
+
+        // A fractional constant sort key is a no-op ordering MySQL and SQLite
+        // accept, but PostgreSQL rejects it outright (live-verified on 16) — a
+        // value the analyzer cannot see, so the ADR 0011 shape (release audit,
+        // pass 4).
+        if (dbms == Dbms.PostgreSql
+            && FindPart<OrderByClause>() is { HasFractionalSortKey: true })
+        {
+            throw new ArgumentException(
+                "PostgreSQL does not accept a non-integer constant as an ORDER BY sort key; "
+                    + "order by a column or an expression instead.");
+        }
+
+        // No engine resolves column position 0 (ADR 0007's incomplete
+        // construct); FindPart never reaches a window's ordering, which takes it.
+        if (FindPart<OrderByClause>() is { HasZeroOrdinal: true })
+        {
+            throw new ArgumentException(
+                "No engine accepts 0 as an ORDER BY column ordinal; "
+                    + "order by a column, an expression, or a positive ordinal instead.");
+        }
+
+        // PostgreSQL and SQLite read a negative literal as a position and
+        // reject it; MySQL reads it as a constant, so ADR 0011's bounded shape.
+        if ((dbms == Dbms.PostgreSql || dbms == Dbms.Sqlite)
+            && FindPart<OrderByClause>() is { HasNegativeOrdinal: true })
+        {
+            throw new ArgumentException(
+                "PostgreSQL and SQLite do not accept a negative ORDER BY column ordinal; "
+                    + "order by a column, an expression, or a positive ordinal instead.");
         }
 
         ITopSelectClause? top = FindPart<ITopSelectClause>();
@@ -386,12 +430,15 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
             return;
         }
 
-        if (FindPart<OffsetClause>() is not null
+        // TOP is SQL Server's alone and the row-limiting clauses are not, so the
+        // pairing has no valid spelling on any target (#400's class).
+        if (FindPart<LimitClause>() is not null
+            || FindPart<OffsetClause>() is not null
             || FindPart<OffsetRowsClause>() is not null
             || FindPart<FetchClause>() is not null)
         {
             throw new ArgumentException(
-                "TOP cannot be combined with OFFSET / FETCH on SQL Server; use one or the other.");
+                "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.");
         }
 
         if (top.WithTies && FindPart<OrderByClause>() is null)

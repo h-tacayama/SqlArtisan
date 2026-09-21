@@ -13,7 +13,7 @@ public interface IUpdateBuilderSet : ISqlBuilder, IReturning
     /// here for the SQL Server form (its alias then leads the statement).
     /// </summary>
     /// <param name="tables">The tables to join into the update; re-listing the target selects the SQL Server spelling.</param>
-    /// <returns>The builder positioned to join further tables, filter with <c>WHERE</c>, or build.</returns>
+    /// <returns>The builder positioned to join further tables, filter with <c>WHERE</c>, add <c>RETURNING</c>, or build.</returns>
     IUpdateBuilderFrom From(params TableReference[] tables);
 
     /// <summary>

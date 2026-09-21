@@ -18,16 +18,18 @@ public sealed class Cte(string name) : CteBase(name), IColumnAccessor
     public DbColumn Column(string name) => new(this, name);
 
     /// <summary>
-    /// Returns this CTE's column for <paramref name="source"/> — its column name, qualified by this name. Use when the subquery projects the column unaliased.
+    /// Returns this CTE's column for <paramref name="source"/> — its column name, qualified
+    /// by this name. Use when the subquery projects the column unaliased.
     /// </summary>
     /// <param name="source">The source column whose name is re-qualified with this CTE's name.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this CTE's name.</returns>
-    public DbColumn Column(DbColumn source) => new(this, source.Name);
+    public DbColumn Column(DbColumn source) => new(this, source.Name, source.QuoteName);
 
     /// <summary>
-    /// Returns this CTE's column for <paramref name="alias"/> — a SELECT-list <c>.As(...)</c> — qualified by this name.
+    /// Returns this CTE's column for <paramref name="alias"/> — a SELECT-list <c>.As(...)</c> —
+    /// qualified by this name.
     /// </summary>
     /// <param name="alias">The SELECT-list <c>.As(...)</c> alias to qualify with this CTE's name.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this CTE's name.</returns>
-    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name);
+    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.QuoteAlias);
 }

@@ -10,6 +10,8 @@ internal sealed class VariadicFunctionCore(string functionName, params SqlPart?[
         buffer.Append(_functionName)
             .OpenParenthesis();
 
+        // The null break renders the omitted tail of a contiguous-prefix overload
+        // family; a caller-supplied null never reaches here (ResolveVariadic throws).
         if (_args.Length > 0
             && _args[0] is not null)
         {

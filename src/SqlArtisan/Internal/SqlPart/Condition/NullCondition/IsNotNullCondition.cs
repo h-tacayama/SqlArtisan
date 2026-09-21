@@ -11,6 +11,5 @@ public sealed class IsNotNullCondition : SqlCondition
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(_leftSide)
-        .EncloseInSpaces($"{Keywords.Is} {Keywords.Not}")
-        .Append(Keywords.Null);
+        .Append($" {Keywords.Is} {Keywords.Not} {Keywords.Null}");
 }

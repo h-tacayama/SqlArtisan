@@ -15,11 +15,10 @@ public interface IUpsert
     /// <returns>The builder positioned to supply the conflict action (<c>DO NOTHING</c> or <c>DO UPDATE SET</c>).</returns>
     IInsertBuilderOnConflict OnConflict(params DbColumn[] conflictTarget);
 
-    /// <summary>
-    /// MySQL <c>ON DUPLICATE KEY UPDATE</c>. The proposed row is exposed via the
-    /// 8.0.19+ row alias (<c>AS new</c>); reference it with <see cref="ExcludedColumn"/>.
-    /// </summary>
+    /// <summary>Appends <c>ON DUPLICATE KEY UPDATE assignment, ...</c>.</summary>
+    /// <remarks>MySQL (8.0.19+): the proposed row is exposed through the
+    /// <c>AS new</c> row alias; reference it with <see cref="ExcludedColumn"/>.</remarks>
     /// <param name="assignments">The column assignments to apply when a duplicate-key conflict occurs.</param>
-    /// <returns>The builder positioned to add <c>RETURNING</c> or build.</returns>
-    IReturning OnDuplicateKeyUpdate(params EqualityCondition[] assignments);
+    /// <returns>The builder positioned to build; MySQL has no <c>RETURNING</c>.</returns>
+    ISqlBuilder OnDuplicateKeyUpdate(params EqualityCondition[] assignments);
 }

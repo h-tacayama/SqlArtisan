@@ -1,4 +1,5 @@
 using System.Data;
+using SqlArtisan.Internal;
 
 namespace SqlArtisan;
 
@@ -9,9 +10,8 @@ namespace SqlArtisan;
 /// </summary>
 /// <remarks>
 /// The type cannot be inferred from the returned column (a column reference
-/// carries a name, not a CLR type), so it is supplied here. Variable-length
-/// types (for example strings) require a <see cref="Size"/>; fixed-width types
-/// (numbers, dates) do not.
+/// carries a name, not a CLR type), so it is supplied here; a variable-length
+/// type such as a string also needs a <see cref="Size"/>.
 /// </remarks>
 public readonly struct OutputParameter
 {
@@ -19,12 +19,18 @@ public readonly struct OutputParameter
     /// <param name="variable">The output variable name, emitted as a bind marker (<c>:name</c>).</param>
     /// <param name="dbType">The data type the output parameter is bound as.</param>
     /// <param name="size">The buffer size for variable-length types (for example strings); omit for fixed-width types.</param>
-    /// <exception cref="ArgumentException"><paramref name="variable"/> is <see langword="null"/> or empty.</exception>
+    /// <exception cref="ArgumentException"><paramref name="variable"/> is <see langword="null"/>, empty, white space, or digits only.</exception>
     public OutputParameter(string variable, DbType dbType, int? size = null)
     {
-        if (string.IsNullOrEmpty(variable))
+        StringGuard.ThrowIfNullOrWhiteSpace(variable, "An output variable name is required.");
+
+        // Positional binds render as :0, :1, ...; a digit-only name would
+        // collide with them and be reported as a duplicate of the wrong thing.
+        if (IsDigitsOnly(variable))
         {
-            throw new ArgumentException("An output variable name is required.", nameof(variable));
+            throw new ArgumentException(
+                "An output variable name must not be digits only; "
+                + "that namespace belongs to the positional bind markers.");
         }
 
         Variable = variable;
@@ -38,6 +44,20 @@ public readonly struct OutputParameter
     /// <summary>Gets the data type the output parameter is bound as.</summary>
     public DbType DbType { get; }
 
-    /// <summary>Gets the buffer size for variable-length types, or <see langword="null"/> when unset.</summary>
+    /// <summary>Gets the buffer size for variable-length types, or <see langword="null"/> when
+    /// unset.</summary>
     public int? Size { get; }
+
+    private static bool IsDigitsOnly(string value)
+    {
+        foreach (char c in value)
+        {
+            if (!char.IsAsciiDigit(c))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

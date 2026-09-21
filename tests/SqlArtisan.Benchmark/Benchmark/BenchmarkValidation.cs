@@ -30,8 +30,8 @@ public static class BenchmarkValidation
         RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
     // Ordering alone cannot see a keyword fused onto the text before it: "users uINNER
-    // JOIN" still leaves a standalone JOIN for the sequence above to match. The Dapper
-    // template abuts a bare Append on a clause marker, so that is the shape at risk.
+    // JOIN" still leaves a standalone JOIN for the sequence above to match, and a
+    // hand-concatenated template is one missing space away from that shape.
     private static readonly Regex FusedKeyword = new(
         @"\w(?:SELECT|FROM|INNER|LEFT|RIGHT|FULL|CROSS|JOIN|WHERE|GROUP BY|ORDER BY|HAVING)\b",
         RegexOptions.IgnoreCase);
@@ -44,7 +44,8 @@ public static class BenchmarkValidation
         using DataConnection linq2db = Linq2dbBenchmark.CreateConnection();
         using BenchmarkDbContext efCore = EfCoreBenchmark.CreateContext();
 
-        (string Name, Func<(string Sql, int ParameterCount)> Build, bool BuildsSharedQuery)[] entrants =
+        (string Name, Func<(string Sql, int ParameterCount)> Build, bool BuildsSharedQuery)[]
+            entrants =
         [
             ("StringBuilder", StringBuilderBenchmark.Run, true),
             ("DapperSqlBuilder", DapperSqlBuilderBenchmark.Run, true),
@@ -58,7 +59,8 @@ public static class BenchmarkValidation
         ];
 
         bool ok = true;
-        foreach ((string name, Func<(string Sql, int ParameterCount)> build, bool shared) in entrants)
+        foreach (
+            (string name, Func<(string Sql, int ParameterCount)> build, bool shared) in entrants)
         {
             (string sql, int parameterCount) = build();
             string? drift = shared
@@ -66,7 +68,8 @@ public static class BenchmarkValidation
                 : null;
             ok &= drift is null;
 
-            Console.WriteLine($"=== {name} === parameters: {parameterCount}{(drift is null ? "" : $"  <-- {drift}")}");
+            Console.WriteLine($"=== {name} === parameters: "
+                + $"{parameterCount}{(drift is null ? "" : $"  <-- {drift}")}");
             Console.WriteLine(sql);
             Console.WriteLine();
         }
@@ -74,7 +77,8 @@ public static class BenchmarkValidation
         if (ok)
         {
             Console.WriteLine(
-                $"OK: every checked entrant built the shared query with {expectedParameters} bind parameters.");
+                $"OK: every checked entrant built the shared query with {expectedParameters} "
+                    + $"bind parameters.");
             return 0;
         }
 
@@ -82,7 +86,11 @@ public static class BenchmarkValidation
         return 1;
     }
 
-    private static string? Drift(string sql, int parameters, int expectedParameters, int expectedKeys)
+    private static string? Drift(
+        string sql,
+        int parameters,
+        int expectedParameters,
+        int expectedKeys)
     {
         if (parameters != expectedParameters)
         {

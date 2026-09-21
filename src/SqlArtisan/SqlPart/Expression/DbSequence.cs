@@ -13,11 +13,7 @@ public sealed class DbSequence
 {
     internal DbSequence(string name)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException("A sequence requires a name.");
-        }
-
+        StringGuard.ThrowIfNullOrWhiteSpace(name, "A sequence requires a name.");
         Name = name;
     }
 

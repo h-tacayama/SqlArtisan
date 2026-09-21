@@ -58,7 +58,9 @@ internal readonly struct LogicalConditionCore
         }
     }
 
-    internal LogicalConditionCore Extend(SqlCondition additionalOperand) => new(this, additionalOperand);
+    internal LogicalConditionCore Extend(SqlCondition additionalOperand) => new(
+        this,
+        additionalOperand);
 
     // A parameter, not a field, so this struct stays the same size either way.
     internal void Format(SqlBuildingBuffer buffer, string keyword)

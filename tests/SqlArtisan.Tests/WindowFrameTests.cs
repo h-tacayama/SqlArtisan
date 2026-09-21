@@ -43,7 +43,8 @@ public class WindowFrameTests
     {
         // Arrange
         string expected =
-            "SELECT SUM(code) OVER (ORDER BY code ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)";
+            "SELECT SUM(code) OVER (ORDER BY code ROWS BETWEEN UNBOUNDED PRECEDING "
+                + "AND CURRENT ROW)";
 
         // Act
         SqlStatement sql =
@@ -79,7 +80,8 @@ public class WindowFrameTests
     {
         // Arrange
         string expected =
-            "SELECT SUM(code) OVER (PARTITION BY name ORDER BY code ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING)";
+            "SELECT SUM(code) OVER (PARTITION BY name ORDER BY code ROWS BETWEEN CURRENT ROW AND "
+                + "UNBOUNDED FOLLOWING)";
 
         // Act
         SqlStatement sql =
@@ -105,7 +107,7 @@ public class WindowFrameTests
     [Fact]
     public void Preceding_ZeroOffset_CorrectSql()
     {
-        // Arrange \u2014 0 PRECEDING is CURRENT ROW's own spelling; the guard only
+        // Arrange — 0 PRECEDING is CURRENT ROW's own spelling; the guard only
         // rejects a negative offset, so zero must still build.
         string expected = "SELECT SUM(code) OVER (ORDER BY code ROWS 0 PRECEDING)";
 
@@ -165,36 +167,42 @@ public class WindowFrameTests
     public void RowsBetween_CurrentRowThenPreceding_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Select(Sum(_t.Code).Over(OrderBy(_t.Code).RowsBetween(CurrentRow, Preceding(1)))).Build());
+            Select(Sum(_t.Code).Over(OrderBy(_t.Code).RowsBetween(CurrentRow, Preceding(1))))
+                .Build());
 
         Assert.Equal(
-            "A window frame's BETWEEN start bound must not be later than its end bound.", ex.Message);
+            "A window frame's BETWEEN start bound must not be later than "
+                + "its end bound.", ex.Message);
     }
 
     [Fact]
     public void RowsBetween_UnboundedFollowingThenCurrentRow_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Select(Sum(_t.Code).Over(OrderBy(_t.Code).RowsBetween(UnboundedFollowing, CurrentRow))).Build());
+            Select(Sum(_t.Code).Over(OrderBy(_t.Code).RowsBetween(UnboundedFollowing, CurrentRow)))
+                .Build());
 
         Assert.Equal(
-            "A window frame's BETWEEN start bound must not be later than its end bound.", ex.Message);
+            "A window frame's BETWEEN start bound must not be later than "
+                + "its end bound.", ex.Message);
     }
 
     [Fact]
     public void RowsBetween_CurrentRowThenUnboundedPreceding_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Select(Sum(_t.Code).Over(OrderBy(_t.Code).RowsBetween(CurrentRow, UnboundedPreceding))).Build());
+            Select(Sum(_t.Code).Over(OrderBy(_t.Code).RowsBetween(CurrentRow, UnboundedPreceding)))
+                .Build());
 
         Assert.Equal(
-            "A window frame's BETWEEN start bound must not be later than its end bound.", ex.Message);
+            "A window frame's BETWEEN start bound must not be later than "
+                + "its end bound.", ex.Message);
     }
 
     [Fact]
     public void RowsBetween_SameKindDescendingPreceding_CorrectSql()
     {
-        // Arrange \u2014 3 PRECEDING then 5 PRECEDING is a legal (if empty) frame; the
+        // Arrange — 3 PRECEDING then 5 PRECEDING is a legal (if empty) frame; the
         // guard compares bound kind, never the offset, so this must still build.
         string expected =
             "SELECT SUM(code) OVER (ORDER BY code ROWS BETWEEN 3 PRECEDING AND 5 PRECEDING)";

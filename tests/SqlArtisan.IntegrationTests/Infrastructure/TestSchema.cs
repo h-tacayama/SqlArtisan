@@ -15,13 +15,12 @@ namespace SqlArtisan.IntegrationTests.Infrastructure;
 /// </summary>
 internal static class TestSchema
 {
-    // Used by MySQL and SQLite alone; the other three engines each take their own
-    // DDL below. `data` carries a JSON document for the JSON functions — MySQL
-    // needs its native JSON type for `->`/`->>`, while SQLite operates on the text
-    // regardless of declared affinity.
+    // MySQL and SQLite alone; the other engines take their own DDL below. `data`
+    // is MySQL's native JSON type (`->`/`->>` need it); SQLite reads the text.
     public static readonly string[] StandardDdl =
     [
-        "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER, created_at TIMESTAMP, is_active BOOLEAN, data JSON)",
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id "
+            + "INTEGER, created_at TIMESTAMP, is_active BOOLEAN, data JSON)",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
     ];
 
@@ -29,16 +28,19 @@ internal static class TestSchema
     // `data` is JSONB so the `->`/`->>`/`#>`/`#>>` operators apply to the column.
     public static readonly string[] PostgreSqlDdl =
     [
-        "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id INTEGER, created_at TIMESTAMP, is_active BOOLEAN, data JSONB)",
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(100), age INTEGER, department_id "
+            + "INTEGER, created_at TIMESTAMP, is_active BOOLEAN, data JSONB)",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
         "CREATE SEQUENCE test_seq",
     ];
 
-    // SQL Server: NVARCHAR so Unicode text round-trips (its VARCHAR is non-Unicode); DATETIME2 for the timestamp.
+    // SQL Server: NVARCHAR so Unicode text round-trips (its VARCHAR is non-Unicode); DATETIME2 for
+    // the timestamp.
     // JSON_VALUE/JSON_QUERY read JSON out of the NVARCHAR(MAX) `data` column.
     public static readonly string[] SqlServerDdl =
     [
-        "CREATE TABLE users (id INTEGER PRIMARY KEY, name NVARCHAR(100), age INTEGER, department_id INTEGER, created_at DATETIME2, is_active BIT, data NVARCHAR(MAX))",
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name NVARCHAR(100), age INTEGER, "
+            + "department_id INTEGER, created_at DATETIME2, is_active BIT, data NVARCHAR(MAX))",
         "CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount DECIMAL(10,2))",
         "CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1",
         // OUTPUT ... INTO target — SQL Server only (the other engines reject the
@@ -53,7 +55,9 @@ internal static class TestSchema
         // Oracle XE 21c (the Testcontainers image) has no native BOOLEAN column
         // type, so the conventional NUMBER(1) stands in. The boolean round-trip
         // test is skipped on Oracle accordingly.
-        "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), department_id NUMBER(10), created_at DATE, is_active NUMBER(1), data VARCHAR2(4000))",
+        "CREATE TABLE users (id NUMBER(10) PRIMARY KEY, name VARCHAR2(100), age NUMBER(10), "
+            + "department_id NUMBER(10), created_at DATE, is_active NUMBER(1), data VARCHAR2(4000)"
+            + ")",
         "CREATE TABLE orders (id NUMBER(10) PRIMARY KEY, user_id NUMBER(10), amount NUMBER(10,2))",
         "CREATE SEQUENCE test_seq",
     ];
@@ -101,7 +105,13 @@ internal static class TestSchema
         foreach ((int id, string name, int age, int departmentId) in s_users)
         {
             connection.Execute(
-                InsertInto(users, users.Id, users.Name, users.Age, users.DepartmentId, users.CreatedAt)
+                InsertInto(
+                    users,
+                    users.Id,
+                    users.Name,
+                    users.Age,
+                    users.DepartmentId,
+                    users.CreatedAt)
                     .Values(id, name, age, departmentId, createdAt));
         }
 

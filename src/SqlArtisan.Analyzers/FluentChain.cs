@@ -5,9 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Fluent-chain steps shared by the rules that walk a SqlArtisan builder chain
-/// (the #264 context rules, the #256 correlated-DML rule, the #266 schema
-/// rules).
+/// Fluent-chain steps shared by the rules that walk a SqlArtisan builder chain.
 /// </summary>
 internal static class FluentChain
 {
@@ -21,7 +19,16 @@ internal static class FluentChain
 
     private static readonly HashSet<string> StatementHeads =
     [
-        "Select", "Update", "DeleteFrom", "MergeInto", "With", "WithRecursive"
+        "Select", "InsertInto", "InsertIgnoreInto", "Update", "DeleteFrom", "MergeInto", "With",
+        "WithRecursive"
+    ];
+
+    // A set operator opens a new query block, so the branch after it is its own
+    // statement for the rules — a predicate there cannot see the other branch's
+    // joins. Internal for the parity gate, like OuterJoinSteps.
+    internal static readonly HashSet<string> SetOperators =
+    [
+        "Except", "ExceptAll", "Intersect", "IntersectAll", "Minus", "MinusAll", "Union", "UnionAll"
     ];
 
     public static IInvocationOperation? Parent(IOperation current)
@@ -40,6 +47,15 @@ internal static class FluentChain
         operation.Parent is IConversionOperation conversion ? conversion : operation;
 
     /// <summary>
+    /// Whether <paramref name="operation"/> is a call into code that is not
+    /// SqlArtisan — a helper that may place its argument anywhere, so the chain
+    /// above it is not the one the argument ends in.
+    /// </summary>
+    public static bool IsForeignInvocation(IOperation operation) =>
+        operation is IInvocationOperation invocation
+        && !DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly);
+
+    /// <summary>
     /// Whether <paramref name="node"/> belongs to a chain whose statement head is
     /// visible in the same statement — the precondition for reading the query's
     /// shape off that statement.
@@ -55,6 +71,11 @@ internal static class FluentChain
 
         while (current.Parent is { } parent and not IBlockOperation)
         {
+            if (IsForeignInvocation(parent))
+            {
+                return false;
+            }
+
             if (parent is IInvocationOperation step
                 && DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly))
             {
@@ -63,9 +84,8 @@ internal static class FluentChain
                     return true;
                 }
 
-                // A static factory (Not, ConditionIf, Coalesce) only wraps the
-                // node in argument position; the chain it feeds is further out. A
-                // step with a receiver is the chain, and its head did not resolve.
+                // A static factory (e.g. Not) only wraps the node — the chain it feeds
+                // is further out; a step with a receiver is the chain, head unresolved.
                 if (step.Instance is not null)
                 {
                     return false;
@@ -83,17 +103,31 @@ internal static class FluentChain
     /// row — the case that makes a NOT NULL column legitimately NULL.
     /// </summary>
     /// <remarks>
-    /// Which side a join null-supplies is a per-side question this does not
-    /// answer: any outer join counts. Sound only where
-    /// <see cref="HasVisibleStatementHead"/> holds, since a chain that reaches
+    /// Any outer join counts — which side it null-supplies is not asked. Sound
+    /// only where <see cref="HasVisibleStatementHead"/> holds: a chain reaching
     /// beyond the statement can join outside what this walks.
     /// </remarks>
     public static bool HasOuterJoin(IOperation node)
     {
+        // The outer statement's own spine: every invocation ancestor of the
+        // reported node plus each ancestor's receiver chain down to the head.
+        HashSet<IOperation> spine = [];
+        // A set-operator branch is its own block: the compound's remaining chain is
+        // walked through to reach the branch, never for its own (sibling) joins.
+        HashSet<IOperation> passThrough = [];
         IOperation top = node;
+        CollectSpine(node, spine);
         while (top.Parent is { } parent and not IBlockOperation)
         {
+            if (SetOperatorAbove(top) is { } setOperator)
+            {
+                top = CompoundTail(setOperator);
+                CollectLinks(top, setOperator, passThrough);
+                continue;
+            }
+
             top = parent;
+            CollectSpine(top, spine);
         }
 
         Stack<IOperation> pending = new();
@@ -104,10 +138,30 @@ internal static class FluentChain
             IOperation current = pending.Pop();
 
             if (current is IInvocationOperation invocation
-                && OuterJoinSteps.Contains(invocation.TargetMethod.Name)
-                && DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+                && DialectUsageAnalyzer.IsFromSqlArtisan(
+                    invocation.TargetMethod.ContainingAssembly))
             {
-                return true;
+                if (passThrough.Contains(invocation))
+                {
+                    if (invocation.Instance is { } receiver)
+                    {
+                        pending.Push(receiver);
+                    }
+
+                    continue;
+                }
+
+                // A chain rooted at its own statement head is a nested subquery
+                // — its joins say nothing about the outer statement's shape.
+                if (!spine.Contains(invocation) && IsStatementHead(invocation))
+                {
+                    continue;
+                }
+
+                if (OuterJoinSteps.Contains(invocation.TargetMethod.Name))
+                {
+                    return true;
+                }
             }
 
             foreach (IOperation child in current.ChildOperations)
@@ -117,6 +171,29 @@ internal static class FluentChain
         }
 
         return false;
+    }
+
+    // The invocations from a compound's tail down to (not including) the set
+    // operator: the receiver-linked steps of the branches past the reported one.
+    private static void CollectLinks(
+        IOperation tail, IOperation setOperator, HashSet<IOperation> links)
+    {
+        IOperation? link = tail;
+        while (link is IInvocationOperation invocation && !ReferenceEquals(link, setOperator))
+        {
+            links.Add(invocation);
+            link = invocation.Instance is null ? null : Unwrap(invocation.Instance);
+        }
+    }
+
+    private static void CollectSpine(IOperation operation, HashSet<IOperation> spine)
+    {
+        IOperation? link = operation;
+        while (link is IInvocationOperation invocation)
+        {
+            spine.Add(invocation);
+            link = invocation.Instance is null ? null : Unwrap(invocation.Instance);
+        }
     }
 
     /// <summary>
@@ -138,9 +215,27 @@ internal static class FluentChain
     }
 
     /// <summary>
-    /// Whether <paramref name="type"/> derives from <c>TableReference</c> — the
-    /// shared base every typed table, CTE, and derived-table subclass sits on —
-    /// so a property declared on it is a genuine column, not an arbitrary
+    /// Whether <paramref name="type"/> derives from <c>SqlExpression</c> — the
+    /// receiver type of the predicate-building steps that sit inside a
+    /// predicate rather than consuming one.
+    /// </summary>
+    public static bool IsExpression(ITypeSymbol? type)
+    {
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        {
+            if (current.Name == "SqlExpression"
+                && DialectUsageAnalyzer.IsFromSqlArtisan(current.ContainingAssembly))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="type"/> derives from <c>TableReference</c>, so a
+    /// property declared on it is a genuine column rather than an arbitrary
     /// DbColumn-typed value.
     /// </summary>
     public static bool IsTableReference(ITypeSymbol? type)
@@ -166,13 +261,59 @@ internal static class FluentChain
             if (invocation.Instance is null)
             {
                 return StatementHeads.Contains(invocation.TargetMethod.Name)
-                    && DialectUsageAnalyzer.IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly);
+                    && DialectUsageAnalyzer.IsFromSqlArtisan(
+                        invocation.TargetMethod.ContainingAssembly);
             }
 
             current = Unwrap(invocation.Instance);
         }
 
-        return false;
+        return IsSetOperator(current);
+    }
+
+    private static bool IsSetOperator(IOperation operation) =>
+        operation is IPropertyReferenceOperation property
+        && SetOperators.Contains(property.Property.Name)
+        && DialectUsageAnalyzer.IsFromSqlArtisan(property.Property.ContainingAssembly);
+
+    // The set-operator property whose receiver is `operation`, through an
+    // implicit conversion if one sits between them.
+    private static IPropertyReferenceOperation? SetOperatorAbove(IOperation operation)
+    {
+        IOperation? parent = operation.Parent;
+        if (parent is IConversionOperation conversion)
+        {
+            parent = conversion.Parent;
+        }
+
+        return parent is IPropertyReferenceOperation property && IsSetOperator(property)
+            ? property
+            : null;
+    }
+
+    // The outermost invocation of the chain the set operator continues: each
+    // step is an invocation whose receiver is the previous step.
+    private static IOperation CompoundTail(IOperation setOperator)
+    {
+        IOperation current = setOperator;
+        while (true)
+        {
+            IOperation? next = current.Parent;
+            if (next is IConversionOperation conversion)
+            {
+                next = conversion.Parent;
+            }
+
+            if (next is IInvocationOperation invocation
+                && invocation.Instance is { } instance
+                && ReferenceEquals(Unwrap(instance), current))
+            {
+                current = invocation;
+                continue;
+            }
+
+            return current;
+        }
     }
 
     private static IOperation Unwrap(IOperation operation) =>

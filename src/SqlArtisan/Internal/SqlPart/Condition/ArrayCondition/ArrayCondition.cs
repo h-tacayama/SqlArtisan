@@ -6,7 +6,10 @@ public abstract class ArrayCondition : SqlCondition
     private readonly string _operator;
     private readonly SqlExpression _rightSide;
 
-    private protected ArrayCondition(SqlExpression leftSide, string @operator, SqlExpression rightSide)
+    private protected ArrayCondition(
+        SqlExpression leftSide,
+        string @operator,
+        SqlExpression rightSide)
     {
         _leftSide = leftSide;
         _operator = @operator;

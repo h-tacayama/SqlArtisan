@@ -11,7 +11,13 @@ public class OracleArrayBindTests
         InsertInto(t, t.Id, t.Code, t.Qty, t.Price, t.Name, t.CreatedAt)
             .Values(1L, 10, (short)2, 9.99m, "a", new DateTime(2026, 1, 2, 3, 4, 5)),
         InsertInto(t, t.Id, t.Code, t.Qty, t.Price, t.Name, t.CreatedAt)
-            .Values(2L, BindNull(), (short)3, 19.50m, BindNull(), new DateTime(2026, 2, 3, 4, 5, 6)),
+            .Values(
+                2L,
+                BindNull(),
+                (short)3,
+                19.50m,
+                BindNull(),
+                new DateTime(2026, 2, 3, 4, 5, 6)),
     ];
 
     [Fact]
@@ -27,6 +33,26 @@ public class OracleArrayBindTests
             "INSERT INTO bulk_test (id, code, qty, price, name, created_at) "
                 + "VALUES (:0, :1, :2, :3, :4, :5)",
             command.CommandText);
+    }
+
+    // Mirror of docs/guides/oracle-array-bind.md's statement-list snippets: the
+    // declared collection type is what lets rows.Select(...).ToList() assign.
+    [Fact]
+    public void ExecuteArrayBind_GuideStatementListShape_SetsArrayBindCount()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        (long Id, string? Name)[] rows = [(1L, "a"), (2L, null)];
+
+        IReadOnlyCollection<ISqlBuilder> statements = rows.Select(row =>
+            InsertInto(t, t.Id, t.Name)
+                .Values(row.Id, row.Name is null ? BindNull() : row.Name))
+            .ToList();
+
+        using OracleCommand command = OracleArrayBindCommandFactory.Create(
+            connection, statements, transaction: null);
+
+        Assert.Equal(2, command.ArrayBindCount);
     }
 
     [Fact]
@@ -125,7 +151,8 @@ public class OracleArrayBindTests
 
         Assert.Equal(
             "ExecuteArrayBind cannot infer an OracleDbType for parameter :1; every bound value is "
-                + "null. Use Sql.BindNull(dbType) on at least one row to state the type explicitly.",
+                + "null. Use Sql.BindNull(dbType) on at least one row to state the "
+                    + "type explicitly.",
             ex.Message);
     }
 
@@ -144,7 +171,7 @@ public class OracleArrayBindTests
             OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
 
         Assert.Equal(
-            "ExecuteArrayBind requires every row's Sql.BindNull(dbType) hint at parameter :1 to agree; "
+            "ExecuteArrayBind requires every row's DbType hint at parameter :1 to agree; "
                 + "found both DbType.Int32 and DbType.String.",
             ex.Message);
     }
@@ -164,8 +191,10 @@ public class OracleArrayBindTests
             OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
 
         Assert.Equal(
-            "ExecuteArrayBind cannot bind parameter :1 as OracleDbType.Int32 from Sql.BindNull(DbType.Int32); "
-                + "another row binds a DateTime value there, which maps to OracleDbType.TimeStamp instead.",
+            "ExecuteArrayBind cannot bind parameter :1 as OracleDbType.Int32 "
+                + "from its DbType.Int32 hint; "
+                + "another row binds a DateTime value there, which maps to "
+                    + "OracleDbType.TimeStamp instead.",
             ex.Message);
     }
 
@@ -184,8 +213,10 @@ public class OracleArrayBindTests
             OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
 
         Assert.Equal(
-            "ExecuteArrayBind requires every bound value at parameter :1 to map to the same OracleDbType; "
-                + "a Int32 value maps to OracleDbType.Int32, but a Decimal value maps to OracleDbType.Decimal.",
+            "ExecuteArrayBind requires every bound value at parameter :1 to map to the same "
+                + "OracleDbType; "
+                + "a Int32 value maps to OracleDbType.Int32, but a Decimal value maps to "
+                    + "OracleDbType.Decimal.",
             ex.Message);
     }
 
@@ -204,8 +235,9 @@ public class OracleArrayBindTests
             OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
 
         Assert.Equal(
-            "ExecuteArrayBind cannot map bound value of type Double to an OracleDbType; "
-                + "supported types are int, long, short, decimal, string, and DateTime.",
+            "ExecuteArrayBind cannot map bound value of type Double (parameter :1) "
+                + "to an OracleDbType; supported types are int, long, short, decimal, string, "
+                + "and DateTime.",
             ex.Message);
     }
 
@@ -283,7 +315,7 @@ public class OracleArrayBindTests
     }
 
     [Fact]
-    public void ExecuteArrayBind_NullStatementElement_ThrowsArgumentException()
+    public void ExecuteArrayBind_NullStatementElement_ThrowsArgumentNullException()
     {
         using OracleConnection connection = new();
         ArrayBindTestTable t = new();
@@ -293,12 +325,12 @@ public class OracleArrayBindTests
             null!,
         ];
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
 
         Assert.Equal(
             "ExecuteArrayBind requires every statement to be non-null; "
-                + "statement at index 1 is null.",
+                + "statement at index 1 is null. (Parameter 'statements')",
             ex.Message);
     }
 
@@ -346,5 +378,53 @@ public class OracleArrayBindTests
                 + "Execute the statements one at a time (e.g. SqlArtisan.Dapper's "
                 + "ExecuteReturningInto) instead.",
             ex.Message);
+    }
+
+    // A dbType hint travels on any BindValue, not only Sql.BindNull's; the
+    // message names the hint, not one factory (release audit pass 8).
+    [Fact]
+    public void ExecuteArrayBind_DbTypeHintsOnValuesDisagree_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            InsertInto(t, t.Id, t.CreatedAt)
+                .Values(1L, new BindValue(new DateTime(2026, 1, 1), System.Data.DbType.DateTime)),
+            InsertInto(t, t.Id, t.CreatedAt)
+                .Values(2L, new BindValue(new DateTime(2026, 1, 2), System.Data.DbType.String)),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind requires every row's DbType hint at parameter :1 to agree; "
+                + "found both DbType.DateTime and DbType.String.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ExecuteArrayBind_NullConnection_ThrowsArgumentNullException()
+    {
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements = TwoInsertStatements(t);
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            OracleArrayBind.ExecuteArrayBind(null!, statements));
+
+        Assert.Equal("connection", ex.ParamName);
+    }
+
+    [Fact]
+    public async Task ExecuteArrayBindAsync_NullConnection_ThrowsArgumentNullException()
+    {
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements = TwoInsertStatements(t);
+
+        ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            OracleArrayBind.ExecuteArrayBindAsync(null!, statements));
+
+        Assert.Equal("connection", ex.ParamName);
     }
 }

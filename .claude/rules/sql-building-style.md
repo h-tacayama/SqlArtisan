@@ -45,5 +45,8 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    `DeleteBuilder`, `UpdateBuilder`). Properties precede methods and the
    `protected` build hook trails; overloads stay adjacent and explicit
    interface implementations sort by their simple name. Within an interface
-   definition, declare members alphabetically too. This is mechanical and
-   keeps builders consistent as they grow.
+   definition, declare members alphabetically too — its base-interface list
+   included, with `ISqlBuilder` first when present
+   (`BuilderInterfaceOrderingTests` gates the list). Ties and case fall to
+   ordinal order (`Select` before `SelectAll`, `Where` before `WhereIf`). This
+   is mechanical and keeps builders consistent as they grow.

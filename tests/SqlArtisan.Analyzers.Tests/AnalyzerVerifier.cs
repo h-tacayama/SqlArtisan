@@ -17,7 +17,9 @@ internal static class AnalyzerVerifier
         new PackageIdentity("Microsoft.NETCore.App.Ref", "8.0.0"),
         Path.Combine("ref", "net8.0"));
 
-    public static CSharpAnalyzerTest<DialectUsageAnalyzer, DefaultVerifier> Create(string source, string? editorConfig = null)
+    public static CSharpAnalyzerTest<DialectUsageAnalyzer, DefaultVerifier> Create(
+        string source,
+        string? editorConfig = null)
     {
         var test = new CSharpAnalyzerTest<DialectUsageAnalyzer, DefaultVerifier>
         {
@@ -25,7 +27,8 @@ internal static class AnalyzerVerifier
             ReferenceAssemblies = Net80,
         };
 
-        test.TestState.AdditionalReferences.Add(MetadataReference.CreateFromFile(typeof(Sql).Assembly.Location));
+        test.TestState.AdditionalReferences.Add(
+            MetadataReference.CreateFromFile(typeof(Sql).Assembly.Location));
 
         if (editorConfig is not null)
         {

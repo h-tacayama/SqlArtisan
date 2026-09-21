@@ -10,16 +10,14 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0300 when a correlated UPDATE/DELETE has a provably unaliased
+/// Reports SQLA0300 when a correlated UPDATE/DELETE/MERGE has a provably unaliased
 /// target — the violation the core's Build()-time guard rejects, surfaced at
-/// compile time (#256). Advisory: suppressing it does not disable the throw.
+/// compile time (#256, advisory per ADR 0014).
 /// </summary>
 /// <remarks>
-/// Every proof fails toward silence (ADR 0003): a target that is not a local or
-/// this-bound readonly field with a visible, provably-unaliased initializer —
-/// or any unrecognized shape in the walks — yields a false negative, never a
-/// false positive, short of code that defeats readonly-ref semantics
-/// (Unsafe.AsRef on an in argument — the accepted exception in ADR 0014).
+/// Every proof fails toward silence (ADR 0003): any target or walk shape the
+/// rule cannot prove unaliased yields a false negative, never a false
+/// positive.
 /// </remarks>
 internal static class CorrelatedDmlRule
 {
@@ -40,15 +38,15 @@ internal static class CorrelatedDmlRule
             return;
         }
 
-        // A joined UPDATE/DELETE with an unaliased target throws its own guard
-        // (a different message) before the correlated guard arms, so reporting
-        // "correlated" there would misdescribe it — scan the whole chain for a
-        // joined step before deciding to report.
+        // A joined UPDATE/DELETE with an unaliased target throws a different guard
+        // before the correlated one arms — scan the whole chain before reporting.
+        // MERGE has no joined form: its USING/ON are the statement, not a join.
+        bool merge = dml.TargetMethod.Name == "MergeInto";
         IOperation current = dml;
         IOperation? correlated = null;
         while (FluentChain.Parent(current) is { } next)
         {
-            if (IsJoinedStep(next.TargetMethod.Name))
+            if (!merge && IsJoinedStep(next.TargetMethod.Name))
             {
                 return;
             }
@@ -94,7 +92,8 @@ internal static class CorrelatedDmlRule
     private static bool IsProvablyUnaliased(Compilation compilation, ISymbol target)
     {
         if (target.DeclaringSyntaxReferences.Length != 1
-            || target.DeclaringSyntaxReferences[0].GetSyntax() is not VariableDeclaratorSyntax declarator
+            || target.DeclaringSyntaxReferences[0]
+                .GetSyntax() is not VariableDeclaratorSyntax declarator
             || declarator.Initializer is not { } initializer)
         {
             return false;
@@ -113,18 +112,21 @@ internal static class CorrelatedDmlRule
             : ConstructorsDoNotWrite((IFieldSymbol)target);
     }
 
-    // A zero-argument shortcut would false-positive on a constructor hardcoding
-    // an alias (': base("t", "x")'), so the value reaching DbTableBase's
-    // tableAlias slot is traced through the ctor-initializer chain and must
-    // resolve to a null/empty constant.
-    private static bool CreationProvablyUnaliased(Compilation compilation, IObjectCreationOperation creation)
+    // A zero-argument shortcut would false-positive on a ctor hardcoding an alias
+    // (': base("t", "x")'), so the value reaching DbTableBase's tableAlias slot is
+    // traced through the ctor-initializer chain to a null/empty constant.
+    private static bool CreationProvablyUnaliased(
+        Compilation compilation,
+        IObjectCreationOperation creation)
     {
         if (creation.Constructor is not { } constructor || !DerivesFromDbTableBase(creation.Type))
         {
             return false;
         }
 
-        Dictionary<IParameterSymbol, object?> values = EvaluateArguments(creation.Arguments, previous: null);
+        Dictionary<IParameterSymbol, object?> values = EvaluateArguments(
+            creation.Arguments,
+            previous: null);
 
         for (int depth = 0; depth < CtorChainDepthLimit; depth++)
         {
@@ -136,7 +138,8 @@ internal static class CorrelatedDmlRule
             }
 
             if (constructor.DeclaringSyntaxReferences.Length != 1
-                || constructor.DeclaringSyntaxReferences[0].GetSyntax() is not ConstructorDeclarationSyntax declaration
+                || constructor.DeclaringSyntaxReferences[0]
+                    .GetSyntax() is not ConstructorDeclarationSyntax declaration
                 || declaration.Initializer is not { } initializer)
             {
                 return false;
@@ -244,9 +247,8 @@ internal static class CorrelatedDmlRule
     {
         MemberDeclarationSyntax? member = node.FirstAncestorOrSelf<MemberDeclarationSyntax>();
 
-        // A top-level statement is itself a MemberDeclarationSyntax, so stopping
-        // there hides sibling statements' writes and false-positives on a
-        // reassigned target; the whole unit only adds visible writes — silence-safe.
+        // A top-level statement is itself a MemberDeclarationSyntax; stopping there
+        // hides sibling writes and false-positives — the whole unit is silence-safe.
         return member is null || member is GlobalStatementSyntax
             ? node.SyntaxTree.GetRoot()
             : member;
@@ -265,7 +267,8 @@ internal static class CorrelatedDmlRule
 
             foreach (SyntaxNode node in type.DescendantNodes())
             {
-                if (node is ConstructorDeclarationSyntax constructor && !HasNoWrites(constructor, field.Name))
+                if (node is ConstructorDeclarationSyntax constructor
+                    && !HasNoWrites(constructor, field.Name))
                 {
                     return false;
                 }
@@ -275,9 +278,13 @@ internal static class CorrelatedDmlRule
         return true;
     }
 
-    private static IOperation? FindCorrelatedColumn(IOperation node, ISymbol target, IOperation root)
+    private static IOperation? FindCorrelatedColumn(
+        IOperation node,
+        ISymbol target,
+        IOperation root)
     {
-        if (node is IAnonymousFunctionOperation or ILocalFunctionOperation or IDelegateCreationOperation)
+        if (node is IAnonymousFunctionOperation
+            or ILocalFunctionOperation or IDelegateCreationOperation)
         {
             return null;
         }

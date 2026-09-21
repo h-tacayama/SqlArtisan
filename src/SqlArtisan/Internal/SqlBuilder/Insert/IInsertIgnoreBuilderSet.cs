@@ -1,8 +1,9 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>INSERT IGNORE INTO table SET</c>-style assignments: add <c>RETURNING</c> or build. No upsert clause — <c>INSERT IGNORE</c> already resolves duplicate-key conflicts.
+/// The state after <c>INSERT IGNORE INTO table SET</c>-style assignments: build. No upsert clause
+/// and no <c>RETURNING</c>, for the reasons on <see cref="IInsertIgnoreBuilderValues"/>.
 /// </summary>
-public interface IInsertIgnoreBuilderSet : ISqlBuilder, IReturning
+public interface IInsertIgnoreBuilderSet : ISqlBuilder
 {
 }

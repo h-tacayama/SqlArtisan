@@ -1,3 +1,4 @@
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -70,7 +71,10 @@ public class StringAggregationTests
     public void StringAgg_NullSeparator_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => StringAgg(_t.Name, null!));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            StringAgg(_t.Name, null!));
+
+        Assert.Equal("separator", ex.ParamName);
     }
 
     // --- LISTAGG (Oracle) -----------------------------------------------------
@@ -225,5 +229,21 @@ public class StringAggregationTests
 
         // Assert
         Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void StringAgg_WithinGroup_LeavesTheCallUnchanged()
+    {
+        // Completion returns a new node, so a held call handle stays the plain
+        // call and a completed one cannot be re-completed.
+        StringAggFunction call = StringAgg(_t.Name, ", ");
+        StringAggWithinGroupFunction completed = call.WithinGroup(OrderBy(_t.Name.Desc));
+
+        Assert.Equal(
+            "SELECT STRING_AGG(name, ', ')",
+            Select(call).Build(Dbms.SqlServer).Text);
+        Assert.Equal(
+            "SELECT STRING_AGG(name, ', ') WITHIN GROUP (ORDER BY name DESC)",
+            Select(completed).Build(Dbms.SqlServer).Text);
     }
 }

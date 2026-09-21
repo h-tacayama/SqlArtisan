@@ -6,10 +6,9 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Tests;
 
 /// <summary>
-/// <see cref="CommandFlags.Buffered"/> is what materializes a <c>QueryAsync</c> result
-/// instead of leaving it deferred on the reader, so a <c>QueryFirst</c>-template copy
-/// passing <see cref="CommandFlags.None"/> breaks user code with every other gate green.
-/// The converse is not gatable: Dapper's row path never consults the flag.
+/// <see cref="CommandFlags.Buffered"/> is what materializes a <c>QueryAsync</c> result,
+/// so a template copy passing <see cref="CommandFlags.None"/> breaks user code with
+/// every other gate green; the converse is not gatable (Dapper never consults the flag).
 /// </summary>
 public class SqlMapperBufferingTests
 {

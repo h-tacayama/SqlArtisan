@@ -12,6 +12,7 @@ public interface IDeleteBuilderFrom : ISqlBuilder, IReturning
     /// </summary>
     /// <param name="table">The table reference to full-join.</param>
     /// <returns>The builder positioned to supply the join predicate.</returns>
+    /// <remarks>Oracle, PostgreSQL, SQLite (3.39+), and SQL Server syntax.</remarks>
     IDeleteBuilderFromJoinOn FullJoin(TableReference table);
 
     /// <summary>
@@ -33,6 +34,7 @@ public interface IDeleteBuilderFrom : ISqlBuilder, IReturning
     /// </summary>
     /// <param name="table">The table reference to right-join.</param>
     /// <returns>The builder positioned to supply the join predicate.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.39+), and SQL Server syntax.</remarks>
     IDeleteBuilderFromJoinOn RightJoin(TableReference table);
 
     /// <summary>

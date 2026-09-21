@@ -167,6 +167,7 @@ public partial class FunctionTests
         expected.Append("STRPOS(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]
@@ -302,5 +303,19 @@ public partial class FunctionTests
             Sequence(""));
 
         Assert.Equal("A sequence requires a name.", ex.Message);
+    }
+
+    [Fact]
+    public void StringAgg_InlineOrderByWithWithinGroup_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            StringAgg(t.Name, ", ", OrderBy(t.Name)).WithinGroup(OrderBy(t.Name)));
+
+        Assert.Equal(
+            "STRING_AGG cannot combine an inline ORDER BY argument with "
+                + "WITHIN GROUP (ORDER BY ...); use one or the other.",
+            ex.Message);
     }
 }

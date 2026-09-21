@@ -12,7 +12,7 @@ namespace SqlArtisan.Analyzers.Tests;
 public class CorrelatedDmlParityTests
 {
     private const string GuardMessage =
-        "The target of a correlated UPDATE or DELETE must be aliased.";
+        "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.";
 
     private const string JoinedGuardMessage =
         "The target of a joined UPDATE or DELETE must be aliased.";

@@ -75,7 +75,7 @@ public class InnerJoinTests
             .Build());
 
         Assert.Equal(
-            "A JOIN's ON clause requires a condition; use CrossJoin for an unconditional join.",
+            "A JOIN's ON clause requires a condition; an unconditioned join is a CROSS JOIN.",
             ex.Message);
     }
 }

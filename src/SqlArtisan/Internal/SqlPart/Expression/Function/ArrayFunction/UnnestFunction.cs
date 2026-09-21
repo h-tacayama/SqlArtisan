@@ -10,11 +10,9 @@ public sealed class UnnestFunction : SqlExpression
     }
 
     /// <summary>
-    /// Names this <c>UNNEST</c> call as a derived-table source —
-    /// <c>UNNEST(array) "alias"</c> — for a <c>FROM</c>. A single array's
-    /// result column is named <paramref name="alias"/>, read via
-    /// <c>Column(alias)</c>; more than one array leaves the columns unnamed,
-    /// read via <c>Asterisk</c>.
+    /// Names this <c>UNNEST</c> call as a derived-table source for a <c>FROM</c>. A
+    /// single array's result column is named <paramref name="alias"/> (read via
+    /// <c>Column(alias)</c>); more than one leaves the columns unnamed (<c>Asterisk</c>).
     /// </summary>
     /// <param name="alias">The derived-table alias.</param>
     /// <returns>An <see cref="UnnestDerivedTable"/> naming this call.</returns>
@@ -36,12 +34,18 @@ public sealed class UnnestFunction : SqlExpression
     {
         StringGuard.ThrowIfNullOrEmpty(alias, "A derived table requires an alias.");
         CollectionGuard.ThrowIfEmpty(
-            columns, "An UNNEST column alias list requires at least one column.");
+            columns, nameof(columns), "An UNNEST column alias list requires at least one column.");
 
         foreach (string column in columns)
         {
-            StringGuard.ThrowIfNullOrEmpty(
+            StringGuard.ThrowIfNullOrWhiteSpace(
                 column, "An UNNEST column alias list requires a name for every column.");
+        }
+
+        if (CommonTableExpression.HasDuplicateName(columns))
+        {
+            throw new ArgumentException(
+                "An UNNEST column alias list requires a distinct name for every column.");
         }
 
         if (columns.Length > _arrays.Length)

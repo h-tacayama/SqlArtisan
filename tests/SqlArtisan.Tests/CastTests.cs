@@ -36,6 +36,7 @@ public class CastTests
 
         // Assert
         Assert.Equal(expected, sql.Text);
+        Assert.Equal("123", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]
@@ -69,6 +70,7 @@ public class CastTests
 
         // Assert
         Assert.Equal(expected, sql.Text);
+        Assert.Equal("5", sql.Parameters.Get<string>(":0"));
     }
 
     // The target type is an identifier position — a type name cannot be quoted
@@ -101,6 +103,16 @@ public class CastTests
     public void Cast_EmptyType_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() => Cast(_t.Code, ""));
+
+        Assert.Equal("CAST requires a target type.", ex.Message);
+    }
+
+    [Fact]
+    public void Cast_WhiteSpaceType_ThrowsArgumentException()
+    {
+        // The type is emitted as a bare token, so whitespace would render
+        // `CAST(x AS  )` — invalid on every dialect.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Cast(_t.Code, "  "));
 
         Assert.Equal("CAST requires a target type.", ex.Message);
     }

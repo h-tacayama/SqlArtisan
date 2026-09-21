@@ -7,7 +7,7 @@ public sealed class OrderByClause : SqlPart
     private OrderByClause(SqlPart[] orderByItems)
     {
         CollectionGuard.ThrowIfEmpty(
-            orderByItems,
+            orderByItems, nameof(orderByItems),
             "ORDER BY requires at least one item.");
 
         _orderByItems = orderByItems;
@@ -41,6 +41,60 @@ public sealed class OrderByClause : SqlPart
 
     internal static OrderByClause Parse(object[] orderByItems) =>
         new(OrderByItemResolver.Resolve(orderByItems));
+
+    // Read by the PostgreSQL bounded-exception guard (ADR 0011).
+    internal bool HasFractionalSortKey
+    {
+        get
+        {
+            foreach (SqlPart item in _orderByItems)
+            {
+                if (item is NumericSortKey { IsFractional: true })
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    // Read by the dialect-blind zero-ordinal guard (ADR 0007): only the
+    // statement position resolves an ordinal, and FindPart never reaches a
+    // window's ordering.
+    internal bool HasZeroOrdinal
+    {
+        get
+        {
+            foreach (SqlPart item in _orderByItems)
+            {
+                if (item is NumericSortKey { IsZeroOrdinal: true })
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    // Read by the PostgreSQL/SQLite bounded-exception guard (ADR 0011): MySQL
+    // reads a negative literal as a constant and accepts it.
+    internal bool HasNegativeOrdinal
+    {
+        get
+        {
+            foreach (SqlPart item in _orderByItems)
+            {
+                if (item is NumericSortKey { IsNegativeOrdinal: true })
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Order} {Keywords.By} ")

@@ -7,8 +7,16 @@ internal sealed class CommonTableExpressions
     internal CommonTableExpressions(CommonTableExpression[] ctes)
     {
         CollectionGuard.ThrowIfEmpty(
-            ctes,
+            ctes, nameof(ctes),
             "WITH requires at least one common table expression.");
+        CollectionGuard.ThrowIfNullElement(
+            ctes, nameof(ctes), "A WITH clause must not contain a null CTE definition.");
+
+        if (CommonTableExpression.HasDuplicateName(ctes))
+        {
+            throw new ArgumentException(
+                "A WITH clause requires a distinct name for every common table expression.");
+        }
 
         _ctes = ctes;
     }
@@ -28,7 +36,8 @@ internal sealed class CommonTableExpressions
         }
     }
 
-    internal void Format(SqlBuildingBuffer buffer, string withKeyword, string[][] columnNames)
+    internal void Format(
+        SqlBuildingBuffer buffer, string withKeyword, CteColumnName[][] columnNames)
     {
         buffer.Append(withKeyword).AppendSpace();
 

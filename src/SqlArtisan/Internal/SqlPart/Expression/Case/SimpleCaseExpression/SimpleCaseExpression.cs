@@ -16,13 +16,13 @@ public sealed class SimpleCaseExpression : SqlExpression
     internal SimpleCaseExpression(
         SqlExpression expr,
         SimpleCaseWhenClause[] whenClauses,
-        CaseElseExpression elseClause)
+        CaseElseExpression elseExpr)
     {
-        ArgumentNullException.ThrowIfNull(elseClause);
+        ArgumentNullException.ThrowIfNull(elseExpr);
 
         _expr = expr;
         _whenClauses = whenClauses;
-        _elseClause = elseClause;
+        _elseClause = elseExpr;
     }
 
     internal override void Format(SqlBuildingBuffer buffer)

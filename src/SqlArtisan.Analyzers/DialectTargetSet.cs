@@ -3,10 +3,9 @@ using System.Collections.Generic;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// The resolved <c>sqlartisan_syntax_*</c> family (or its legacy-pair
-/// desugaring, #432): which DBMS a file's rules check, and the declared
-/// version bound for each — <see langword="null"/> means <c>any</c>, checked
-/// with no version floor.
+/// The resolved <c>sqlartisan_syntax_*</c> family (or its legacy-pair desugaring,
+/// #432): which DBMS a file's rules check and each one's declared version bound
+/// (<see langword="null"/> means <c>any</c>: no version floor).
 /// </summary>
 internal sealed class DialectTargetSet
 {

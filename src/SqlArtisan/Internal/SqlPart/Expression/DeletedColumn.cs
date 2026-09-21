@@ -1,9 +1,8 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// References a column of the <c>DELETED</c> pseudo-table inside a SQL Server
-/// <c>OUTPUT</c> clause — the pre-image of a deleted or updated row. Renders as
-/// <c>DELETED.col</c>.
+/// A column of SQL Server's <c>DELETED</c> pseudo-table in an <c>OUTPUT</c> clause
+/// (the pre-image of a deleted or updated row); renders as <c>DELETED.col</c>.
 /// </summary>
 public sealed class DeletedColumn : SqlExpression
 {

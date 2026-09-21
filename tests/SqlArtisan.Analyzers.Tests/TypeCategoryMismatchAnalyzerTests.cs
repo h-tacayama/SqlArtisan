@@ -87,7 +87,10 @@ public class TypeCategoryMismatchAnalyzerTests
         return test.RunAsync();
     }
 
-    private static Task RunAsync(string source, DiagnosticResult[] expected, string dbms = "postgresql")
+    private static Task RunAsync(
+        string source,
+        DiagnosticResult[] expected,
+        string dbms = "postgresql")
     {
         var test = AnalyzerVerifier.Create(source, EditorConfig(dbms));
         test.ExpectedDiagnostics.AddRange(expected);
@@ -203,6 +206,27 @@ public class TypeCategoryMismatchAnalyzerTests
             "boolean",
             "text");
 
+    // Any consuming step that is not an assignment is a comparison position, so
+    // HAVING and a join's ON report the same as WHERE.
+    [Fact]
+    public Task Having_TextColumnComparedToNumericLiteral_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code).From(t).GroupBy(t.Code)"
+                + ".Having({|#0:t.Code == 1500001|}).Build();",
+            "Code",
+            "text",
+            "numeric");
+
+    [Fact]
+    public Task On_TwoColumnsOfDifferentCategories_Warns() =>
+        RunReporting(
+            "T r = new T(\"r\");"
+                + " var s = "
+                    + "Select(t.Code).From(t).InnerJoin(r).On({|#0:t.Code == r.Amount|}).Build();",
+            "Code",
+            "text",
+            "numeric");
+
     // Neither clause is visible from a condition built apart from it, so the rule
     // declines to guess which one it will become.
     [Fact]
@@ -259,4 +283,14 @@ public class TypeCategoryMismatchAnalyzerTests
             "Code",
             "text",
             "numeric");
+
+    // A predicate handed through a helper is a foreign invocation the rule
+    // cannot read (release audit pass 8 pinned the IsForeignInvocation guard).
+    [Fact]
+    public Task Where_PredicateFromHelperMethod_Silent() =>
+        RunSilent(
+            """
+            static SqlCondition Wrap(SqlCondition c) => c;
+            var s = Select(t.Code).From(t).Where(Wrap(t.Code == 1)).Build();
+            """);
 }

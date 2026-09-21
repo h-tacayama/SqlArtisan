@@ -1,6 +1,9 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class InsertBuilder(DbTableBase table, int columnCount, params SqlPart[] rootParts) :
+internal sealed class InsertBuilder(
+    DbTableBase table,
+    int columnCount,
+    params SqlPart[] rootParts) :
     SelectBuilder(rootParts),
     IInsertBuilderColumns,
     IInsertBuilderColumnsOutput,
@@ -46,16 +49,21 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
         return this;
     }
 
-    public IReturning OnDuplicateKeyUpdate(params EqualityCondition[] assignments)
+    public ISqlBuilder OnDuplicateKeyUpdate(params EqualityCondition[] assignments)
     {
+        // Parse before appending anything: a throw after AddPart(RowAliasClause)
+        // would leave the alias behind, and the supported fix-up retry on the
+        // same instance would then emit it twice (`AS new AS new`).
+        OnDuplicateKeyUpdateClause parsed = OnDuplicateKeyUpdateClause.Parse(assignments);
         AddPart(new RowAliasClause());
-        AddPart(OnDuplicateKeyUpdateClause.Parse(assignments));
+        AddPart(parsed);
         return this;
     }
 
     public IInsertBuilderColumnsOutputInto Output(params object[] items)
     {
-        CollectionGuard.ThrowIfEmpty(items, "OUTPUT requires at least one expression.");
+        CollectionGuard.ThrowIfEmpty(
+            items, nameof(items), "OUTPUT requires at least one expression.");
         AddPart(new OutputClause(SelectItemResolver.Resolve(items)));
         return this;
     }
@@ -86,19 +94,7 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
     {
         ThrowIfBuilt();
         ArgumentNullException.ThrowIfNull(rows);
-
-        bool any = false;
-        foreach (object[] row in rows)
-        {
-            AddValuesRow(row);
-            any = true;
-        }
-
-        if (!any)
-        {
-            throw new ArgumentException(NoRowsMessage);
-        }
-
+        AddValuesRows(rows);
         return this;
     }
 
@@ -106,17 +102,7 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
     {
         ThrowIfBuilt();
         ArgumentNullException.ThrowIfNull(rows);
-
-        if (rows.Length == 0)
-        {
-            throw new ArgumentException(NoRowsMessage);
-        }
-
-        foreach (object[] row in rows)
-        {
-            AddValuesRow(row);
-        }
-
+        AddValuesRows(rows);
         return this;
     }
 
@@ -164,13 +150,115 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
 
     protected override void Validate(Dbms dbms)
     {
+        // The base TOP guards still apply to the INSERT ... SELECT chain, which
+        // inherits the whole SELECT surface.
+        base.Validate(dbms);
+
+        DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: true);
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
+        DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(table, dbms);
+
+        // #397's width class, extended to INSERT ... SELECT where the select
+        // list's width is knowable (a star item's width is the schema's).
+        SqlPart[]? selectItems = FirstSelectItems();
+        if (columnCount > 0 && selectItems is not null)
+        {
+            bool countable = true;
+            foreach (SqlPart item in selectItems)
+            {
+                if (item is AsteriskMarker or QualifiedAsteriskMarker)
+                {
+                    countable = false;
+                    break;
+                }
+            }
+
+            if (countable && selectItems.Length != columnCount)
+            {
+                throw new ArgumentException(
+                    $"The INSERT column list declares {columnCount} column(s), " +
+                    $"but the SELECT list has {selectItems.Length} item(s).");
+            }
+        }
+
+        OnConflictClause? onConflict = FindPart<OnConflictClause>();
+        if (dbms == Dbms.PostgreSql
+            && onConflict is { HasTarget: false }
+            && FindPart<DoUpdateSetClause>() is not null)
+        {
+            throw new ArgumentException(
+                "PostgreSQL requires a conflict target for ON CONFLICT DO UPDATE; "
+                    + "name the column(s) in OnConflict(...).");
+        }
 
         OutputClause? output = FindPart<OutputClause>();
+        OutputClauseGuard.ThrowIfIntoWidthMismatch(output, FindPart<OutputIntoClause>());
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
-        OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(
-            output, FindPart<OnConflictClause>(), FindPart<OnDuplicateKeyUpdateClause>());
+        OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate = FindPart<OnDuplicateKeyUpdateClause>();
+        OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(output, onConflict, onDuplicateKeyUpdate);
+        ReturningGuard.ThrowIfCombinedWithMySqlInsertForm(
+            FindPart<InsertIgnoreIntoClause>(),
+            onDuplicateKeyUpdate,
+            FindPart<ReturningClause>(),
+            FindPart<ReturningIntoClause>());
+    }
+
+    // Resolve and width-check the whole batch before touching builder state: a
+    // throw on a later row would otherwise leave the earlier rows appended, and
+    // the supported fix-up retry on the same instance would insert them twice.
+    private void AddValuesRows(IEnumerable<object[]> rows)
+    {
+        List<SqlExpression[]> resolved = [];
+        int expectedWidth = _valuesClause?.RowWidth ?? 0;
+
+        foreach (object[] row in rows)
+        {
+            if (row is null)
+            {
+                throw new ArgumentNullException(
+                    nameof(rows), "A VALUES source must not contain a null row.");
+            }
+
+            SqlExpression[] resolvedRow = InsertValueResolver.Resolve(row);
+            if (expectedWidth == 0)
+            {
+                if (columnCount > 0 && resolvedRow.Length != columnCount)
+                {
+                    throw new ArgumentException(
+                        $"The INSERT column list declares {columnCount} column(s), " +
+                        $"but this VALUES row has {resolvedRow.Length} value(s).");
+                }
+
+                expectedWidth = resolvedRow.Length;
+            }
+            else if (resolvedRow.Length != expectedWidth)
+            {
+                throw new ArgumentException(
+                    "All rows in a multi-row INSERT must have the same number of values; " +
+                    $"the first row has {expectedWidth}, but this row has {resolvedRow.Length}.");
+            }
+
+            resolved.Add(resolvedRow);
+        }
+
+        if (resolved.Count == 0)
+        {
+            throw new ArgumentException(NoRowsMessage);
+        }
+
+        foreach (SqlExpression[] row in resolved)
+        {
+            if (_valuesClause is null)
+            {
+                _valuesClause = InsertValuesClause.FromResolved(row);
+                AddPart(_valuesClause);
+            }
+            else
+            {
+                _valuesClause.AddResolvedRow(row);
+            }
+        }
     }
 
     // The single-row append shared by every Values overload. A repeat call grows
@@ -178,6 +266,12 @@ internal sealed class InsertBuilder(DbTableBase table, int columnCount, params S
     // once-per-part guard.
     private void AddValuesRow(object[] values)
     {
+        if (values is null)
+        {
+            throw new ArgumentNullException(
+                nameof(values), "A VALUES source must not contain a null row.");
+        }
+
         if (_valuesClause is null)
         {
             if (columnCount > 0 && values.Length > 0 && values.Length != columnCount)

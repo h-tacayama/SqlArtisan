@@ -14,10 +14,12 @@ public interface IDeleteBuilderFromJoinOn
     IDeleteBuilderFrom On(SqlCondition condition);
 
     /// <summary>
-    /// Appends <c>USING (column, ...)</c> as the join predicate, matching rows where every listed column is equal.
+    /// Appends <c>USING (column, ...)</c> as the join predicate, matching rows where every listed
+    /// column is equal.
     /// </summary>
     /// <param name="column">The first shared column to match on.</param>
     /// <param name="additionalColumns">Further shared columns, all matched with equality.</param>
     /// <returns>The builder back in the <c>FROM</c> state, ready for further joins, <c>WHERE</c>, <c>RETURNING</c>, or build.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite syntax.</remarks>
     IDeleteBuilderFrom Using(DbColumn column, params DbColumn[] additionalColumns);
 }

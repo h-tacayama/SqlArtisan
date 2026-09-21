@@ -32,7 +32,8 @@ public class DerivedTableTests
         expected.Append("test_table \"t\" ");
         expected.Append("CROSS APPLY ");
         expected.Append("(");
-        expected.Append("SELECT SUM(\"s\".code) total FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
+        expected.Append(
+            "SELECT SUM(\"s\".code) total FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
         expected.Append("\"x\"");
 
@@ -61,7 +62,8 @@ public class DerivedTableTests
         expected.Append("test_table \"t\" ");
         expected.Append("CROSS APPLY ");
         expected.Append("(");
-        expected.Append("SELECT SUM(\"s\".code) total FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
+        expected.Append(
+            "SELECT SUM(\"s\".code) total FROM test_table \"s\" WHERE \"s\".code = \"t\".code");
         expected.Append(") ");
         expected.Append("\"x\"");
 
@@ -88,7 +90,8 @@ public class DerivedTableTests
         StringBuilder expected = new();
         expected.Append("WITH \"cte\" AS ");
         expected.Append("(");
-        expected.Append("SELECT \"a\".code c, \"a\".name n FROM test_table \"a\" WHERE \"a\".code = :0");
+        expected.Append(
+            "SELECT \"a\".code c, \"a\".name n FROM test_table \"a\" WHERE \"a\".code = :0");
         expected.Append(") ");
         expected.Append("SELECT \"cte\".c, \"cte\".n ");
         expected.Append("FROM \"cte\"");
@@ -136,11 +139,12 @@ public class DerivedTableTests
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("\"t\".name, \"x\".total ");
+        expected.Append("\"t\".name, \"x\".\"total\" ");
         expected.Append("FROM ");
         expected.Append("test_table \"t\" ");
         expected.Append("CROSS APPLY ");
-        expected.Append("(SELECT SUM(\"s\".code) \"total\" FROM test_table \"s\" WHERE \"s\".code = \"t\".code) ");
+        expected.Append("(SELECT SUM(\"s\".code) \"total\" FROM test_table \"s\" WHERE \"s\".code "
+            + "= \"t\".code) ");
         expected.Append("\"x\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
@@ -226,9 +230,83 @@ public class DerivedTableTests
         StringBuilder expected = new();
         expected.Append("WITH \"cte\" AS ");
         expected.Append("(SELECT \"a\".code \"c\" FROM test_table \"a\") ");
-        expected.Append("SELECT \"cte\".c ");
+        expected.Append("SELECT \"cte\".\"c\" ");
         expected.Append("FROM \"cte\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Cte_AsHandleColumnFromQuotedAlias_CorrectSql()
+    {
+        // The handle column was materialized from a quoted alias, so As(handle)
+        // must define it quoted too — a bare definition beside a quoted
+        // reference resolves to two identifiers on a case-folding engine.
+        Cte cte = new("cte");
+        DbColumn code = cte.Column(_a.Code.As("Code"));
+
+        SqlStatement sql =
+            With(cte.As(Select(_a.Code.As(code)).From(_a)))
+            .Select(code)
+                .From(cte)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS ");
+        expected.Append("(SELECT \"a\".code \"Code\" FROM test_table \"a\") ");
+        expected.Append("SELECT \"cte\".\"Code\" ");
+        expected.Append("FROM \"cte\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DerivedTable_ColumnFromQuotedSourceColumn_KeepsQuoting()
+    {
+        // A second derivation from a quoted handle column must keep the quoting
+        // (#165), or the two references resolve differently on a case-folding engine.
+        Cte cte = new("cte");
+        DerivedTable x = new("x");
+        DbColumn total = cte.Column(_a.Code.As("Total"));
+
+        SqlStatement sql = Select(x.Column(total)).Build();
+
+        Assert.Equal("SELECT \"x\".\"Total\"", sql.Text);
+    }
+
+    // Every handle with an explicit column list defines its names bare, so a
+    // reference derived from a quoted alias must render bare too (#165).
+    [Fact]
+    public void ValuesDerivedTable_ColumnFromQuotedAlias_RendersBare()
+    {
+        ValuesDerivedTable s = Values("s", ["Code"], [[1]]);
+
+        SqlStatement sql = Select(s.Column(_t.Code.As("Code"))).From(s).Build();
+
+        Assert.Equal("SELECT \"s\".Code FROM (VALUES (:0)) \"s\" (Code)", sql.Text);
+    }
+
+    [Fact]
+    public void UnnestDerivedTable_ColumnFromQuotedAlias_RendersBare()
+    {
+        UnnestDerivedTable u = Unnest(BindArray([1, 2])).AsTable("u", "Code");
+
+        SqlStatement sql = Select(u.Column(_t.Code.As("Code"))).From(u).Build();
+
+        Assert.Equal("SELECT \"u\".Code FROM UNNEST(:0) \"u\" (Code)", sql.Text);
+    }
+
+    [Fact]
+    public void ValuesDerivedTable_ScalarSubqueryRow_CorrectSql()
+    {
+        TestTable r = new("r");
+        ValuesDerivedTable s = Values("s", ["Code"], [[Select(Max(r.Code)).From(r)]]);
+
+        SqlStatement sql = Select(s.Column("Code")).From(s).Build();
+
+        Assert.Equal(
+            "SELECT \"s\".Code FROM (VALUES ((SELECT MAX(\"r\".code) FROM test_table \"r\"))) "
+                + "\"s\" (Code)",
+            sql.Text);
     }
 }

@@ -58,7 +58,10 @@ public class ExpressionResolverTests
                 Abs((ulong)8),
                 Abs((float)9.9),
                 Abs((double)10.10),
-                Abs((decimal)11.11))
+                Abs((decimal)11.11),
+                Abs((nint)12),
+                Abs((nuint)13),
+                Abs(new System.Numerics.Complex(14, 0)))
             .Build();
 
         Assert.Equal((sbyte)1, sql.Parameters.Get<sbyte>(":0"));
@@ -72,6 +75,11 @@ public class ExpressionResolverTests
         Assert.Equal((float)9.9, sql.Parameters.Get<float>(":8"));
         Assert.Equal((double)10.1, sql.Parameters.Get<double>(":9"));
         Assert.Equal((decimal)11.11, sql.Parameters.Get<decimal>(":10"));
+        Assert.Equal((nint)12, sql.Parameters.Get<nint>(":11"));
+        Assert.Equal((nuint)13, sql.Parameters.Get<nuint>(":12"));
+        Assert.Equal(
+            new System.Numerics.Complex(14, 0),
+            sql.Parameters.Get<System.Numerics.Complex>(":13"));
     }
 
     [Fact]

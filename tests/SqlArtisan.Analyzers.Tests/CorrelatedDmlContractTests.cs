@@ -13,13 +13,14 @@ public class CorrelatedDmlContractTests
 {
     private static readonly Assembly Core = typeof(Sql).Assembly;
 
-    // The rule reads the target from argument 0 of any public Update/DeleteFrom.
+    // The rule reads the target from argument 0 of any public Update/DeleteFrom/MergeInto.
     [Fact]
     public void DmlHead_EveryOverloadTakesSingleDbTableBase()
     {
         MethodInfo[] heads = [.. Core.GetExportedTypes()
-            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
-            .Where(m => m.Name is "Update" or "DeleteFrom")];
+            .SelectMany(t =>
+                t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
+            .Where(m => m.Name is "Update" or "DeleteFrom" or "MergeInto")];
 
         Assert.NotEmpty(heads);
         Assert.All(heads, head =>

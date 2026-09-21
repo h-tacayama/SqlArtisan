@@ -147,6 +147,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression whose sign is taken.</param>
     /// <returns>A <c>SIGN</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static SignFunction Sign(object expr) =>
         new(Resolve(expr));
 
@@ -186,6 +187,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The numeric expression whose square root is taken.</param>
     /// <returns>A <c>SQRT</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+), and SQL Server syntax.</remarks>
     public static SqrtFunction Sqrt(object expr) =>
         new(Resolve(expr));
 
@@ -195,11 +197,9 @@ public static partial class Sql
     /// <param name="expr">The numeric expression to aggregate.</param>
     /// <returns>A <see cref="StddevFunction"/> emitting <c>STDDEV(expr)</c>.</returns>
     /// <remarks>
-    /// MySQL, Oracle, PostgreSQL — but not the same statistic on all three:
-    /// MySQL's <c>STDDEV</c> is the population standard deviation, Oracle's and
-    /// PostgreSQL's is the sample standard deviation. For a value that keeps its
-    /// meaning across dialects, use <see cref="StddevPop(object)"/> or
-    /// <see cref="StddevSamp(object)"/> instead.
+    /// MySQL, Oracle, and PostgreSQL syntax; MySQL computes the population statistic,
+    /// the other two the sample. <see cref="StddevPop(object)"/> and
+    /// <see cref="StddevSamp(object)"/> name the statistic on every dialect.
     /// </remarks>
     public static StddevFunction Stddev(object expr) =>
         new(Resolve(expr));
@@ -262,7 +262,10 @@ public static partial class Sql
     /// SQLite syntax — see <see cref="Date(object, object, object[])"/> for why
     /// modifiers are plain strings.
     /// </remarks>
-    public static StrftimeFunction Strftime(object format, object timevalue, params object[] modifiers) =>
+    public static StrftimeFunction Strftime(
+        object format,
+        object timevalue,
+        params object[] modifiers) =>
         new(ResolveVariadic(format, timevalue, modifiers));
 
     /// <summary>

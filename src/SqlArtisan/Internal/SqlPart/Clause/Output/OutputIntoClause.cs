@@ -11,9 +11,17 @@ internal sealed class OutputIntoClause : SqlPart
     internal OutputIntoClause(DbTableBase table, DbColumn[] columns)
     {
         DmlTargetGuard.ThrowIfOutputIntoTargetAliased(table);
+        CollectionGuard.ThrowIfNullElement(
+            columns, nameof(columns), "An OUTPUT INTO column list must not contain a null column.");
+        ColumnListGuard.ThrowIfDuplicate(
+            columns, "An OUTPUT INTO column list must not name a column twice.");
         _table = table;
         _columns = columns;
     }
+
+    // Read by OutputClauseGuard: zero means the positional form, which the
+    // engine widths against the table, not the OUTPUT list.
+    internal int ColumnCount => _columns.Length;
 
     internal override void Format(SqlBuildingBuffer buffer)
     {

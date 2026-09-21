@@ -28,7 +28,10 @@ public class CliRunnerTests
         string stderr = CaptureError(() => CliRunner.Run([]));
 
         Assert.Contains(
-            "error: No options given and stdin is not a terminal.", stderr, StringComparison.Ordinal);
+            "error: No options given and stdin is not a terminal. Pass --dbms and the "
+                + "connection options (or --config <path>); run --help for the list",
+            stderr,
+            StringComparison.Ordinal);
     }
 
     // Skipping the write must not make a table invisible: the run has to stay

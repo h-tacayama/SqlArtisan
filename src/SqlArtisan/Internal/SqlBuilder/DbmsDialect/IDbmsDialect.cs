@@ -6,31 +6,28 @@ internal interface IDbmsDialect
 
     /// <summary>
     /// Whether a single-quoted string literal treats the backslash as an escape
-    /// character, so a literal backslash must be doubled — true only under MySQL's
-    /// default <c>sql_mode</c>. Governs a literal-emitting position such as
-    /// <c>LIKE ... ESCAPE '\'</c>.
+    /// character (true only under MySQL's default <c>sql_mode</c>), so a literal
+    /// backslash in a literal-emitting position must be doubled.
     /// </summary>
     bool BackslashEscapesStringLiterals { get; }
 
     /// <summary>
-    /// The separator between a DML target table and its alias: <c> AS </c>, or a
-    /// single space on Oracle, which rejects <c>AS</c> there (ORA-00933). Only DML
-    /// varies — the SELECT/FROM alias stays AS-less on every dialect, since Oracle
-    /// forbids <c>AS</c> there too.
+    /// The separator between an INSERT/UPDATE/DELETE target and its alias:
+    /// <c> AS </c>, or a space on Oracle (ORA-00933). A MERGE target and every
+    /// FROM alias render AS-less on all dialects.
     /// </summary>
     string DmlTableAliasSeparator { get; }
 
     /// <summary>
-    /// The name that refers to the row proposed for insertion inside an UPSERT
-    /// update clause. Oracle and SQL Server have no such construct, so they emit
-    /// the canonical <c>EXCLUDED</c> token faithfully (ADR 0001) and leave the
-    /// wrong-DBMS statement for the database to reject.
+    /// The name of the row proposed for insertion inside an UPSERT update clause.
+    /// Oracle and SQL Server have no such construct and emit the canonical
+    /// <c>EXCLUDED</c> token faithfully (ADR 0001).
     /// </summary>
     string ExcludedName { get; }
 
     /// <summary>
     /// The token appended after a <c>MERGE</c> statement, required only by SQL
-    /// Server's. It is specific to <c>MERGE</c> — SqlArtisan does not otherwise
+    /// Server. It is specific to <c>MERGE</c> — SqlArtisan does not otherwise
     /// terminate statements, deferring that to the caller or driver.
     /// </summary>
     string MergeTerminator { get; }

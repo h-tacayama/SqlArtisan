@@ -270,8 +270,8 @@ SqlStatement sql =
 ```
 
 The escape character is emitted as an inline string literal rather than a bind
-parameter — MySQL rejects a parameter marker after `ESCAPE` — so it is valid
-identically on every dialect.
+parameter: `ESCAPE` takes a constant character fixed at the call site, and the
+literal spelling is valid identically on every dialect.
 
 ### BETWEEN Condition
 ```csharp
@@ -963,7 +963,7 @@ PercentileCont(0.5).WithinGroup(OrderBy(u.Salary)).Over(PartitionBy(u.Department
 // PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary) OVER (PARTITION BY department_id)
 ```
 
-- Dialect support is split: Oracle allows both forms; PostgreSQL only the plain `WITHIN GROUP` form; SQL Server only the windowed `.Over(PartitionBy(...))` form. MySQL and SQLite do not support these functions.
+- Dialect support is split: Oracle allows both forms; PostgreSQL only the plain `WITHIN GROUP` form; SQL Server only the windowed `.Over(...)` form. MySQL and SQLite do not support these functions.
 
 ---
 
@@ -1025,7 +1025,7 @@ Select(Listagg(u.Name, ", ").WithinGroup(OrderBy(u.Name)))
 
 ### GROUP_CONCAT (MySQL / SQLite)
 
-The separator diverges: SQLite takes a positional second argument, while MySQL uses a `SEPARATOR` keyword selected with `Sql.Separator(...)`. `DISTINCT` is supported by both (SQLite only in the single-argument form, without a separator). MySQL also accepts an inline `ORDER BY`, passed as an `OrderBy(...)` argument because it sits inside the call.
+The separator diverges: SQLite takes a positional second argument, while MySQL uses a `SEPARATOR` keyword selected with `Sql.Separator(...)`. `DISTINCT` is supported by both (SQLite only in the single-argument form, without a separator). MySQL and SQLite also accept an inline `ORDER BY`, passed as an `OrderBy(...)` argument because it sits inside the call.
 
 ```csharp
 // SQLite: positional separator
@@ -1042,6 +1042,9 @@ Select(GroupConcat(Distinct, u.Name, OrderBy(u.Name.Desc), Separator(", ")))
 ```
 
 MySQL's grammar requires the `SEPARATOR` value to be a string literal (a bind parameter is a syntax error there), so `Sql.Separator(...)` emits it inline as a single-quote-escaped literal. SQLite's positional separator (`GroupConcat(expr, sep)`) remains a bind parameter.
+
+> [!WARNING]
+> **`GroupConcat(expr, sep)` silently changes meaning on MySQL.** MySQL reads the second positional argument as another concatenated value per row, not a separator, so the call runs and returns each element with `sep` appended, joined by the default comma. On MySQL, spell the separator with `GroupConcat(expr, Separator(sep))`; the positional form is SQLite's.
 
 > [!NOTE]
 > MySQL silently truncates `GROUP_CONCAT` output at `group_concat_max_len` (1024 bytes by default). Raise that session/global variable (e.g. `SET SESSION group_concat_max_len = 1000000;`) when a group can exceed it.

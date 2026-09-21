@@ -43,9 +43,8 @@ internal static class WindowFrameGuard
                 "A window frame's BETWEEN start bound must not be later than its end bound.");
         }
 
-        // The kind-order check above only catches a start/end crossing; it can't see
-        // these two absolute-position violations, since UNBOUNDED PRECEDING and
-        // UNBOUNDED FOLLOWING are the ordering's own min/max and never cross themselves.
+        // The kind-order check cannot see these two: the UNBOUNDED bounds are the
+        // ordering's own min/max, so they never cross themselves.
         if (end.Kind == FrameBoundKind.UnboundedPreceding)
         {
             throw new ArgumentException(

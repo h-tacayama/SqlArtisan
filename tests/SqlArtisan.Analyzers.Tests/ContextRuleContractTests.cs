@@ -88,9 +88,12 @@ public class ContextRuleContractTests
     public void TriggerMember_ExistsInCoreApi(string methodName)
     {
         bool exists = Core.GetExportedTypes()
-            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
+            .SelectMany(t =>
+                t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             .Any(m => m.Name == methodName);
 
-        Assert.True(exists, $"'{methodName}' is a SQLA0102 trigger but no longer exists in the core API.");
+        Assert.True(
+            exists,
+            $"'{methodName}' is a SQLA0102 trigger but no longer exists in the core API.");
     }
 }

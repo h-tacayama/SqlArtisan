@@ -2,10 +2,9 @@ using System.Data;
 
 namespace SqlArtisan.TableClassGen;
 
-// SQLite exposes its catalog through sqlite_master and the pragma_table_info
-// table-valued function, neither of which the SqlArtisan builder can express, so
-// this reader uses raw ADO.NET. SQLite has no schema concept, so
-// _connInfo.Schema is unused.
+// sqlite_master and pragma_table_info are catalog surfaces the SqlArtisan
+// builder cannot express, so this reader uses raw ADO.NET. SQLite has no
+// schema concept, so _connInfo.Schema is unused.
 internal sealed class SqliteCatalogReader(
     DbConnectionInfo connInfo,
     bool lowercaseNames) : ICatalogReader
@@ -56,12 +55,13 @@ internal sealed class SqliteCatalogReader(
     {
         table = null;
 
-        List<(string Name, string CatalogName, string Type, bool NotNull, bool HasDefault, int Pk)> rows = [];
+        List<(string Name, string CatalogName, string Type, bool NotNull, bool HasDefault, int Pk)>
+            rows = [];
         using (IDbCommand command = conn.CreateCommand())
         {
             command.CommandText =
                 "SELECT name, type, \"notnull\", dflt_value, pk FROM pragma_table_info(@table)";
-            AddParameter(command, "@table", tableName);
+            CatalogCommand.AddParameter(command, "@table", tableName);
 
             using IDataReader reader = command.ExecuteReader();
             while (reader.Read())
@@ -86,21 +86,18 @@ internal sealed class SqliteCatalogReader(
         ColumnIndexInfo indexes = new SqliteColumnIndexReader().Read(conn, tableName);
 
         List<CatalogColumn> columns = [];
-        foreach ((string Name, string CatalogName, string Type, bool NotNull, bool HasDefault, int Pk) row in rows)
+        foreach ((string Name, string CatalogName, string Type, bool NotNull, bool HasDefault,
+            int Pk) row in rows)
         {
-            // A lone INTEGER PRIMARY KEY usually aliases the rowid — never NULL,
-            // auto-assigned — and table_info reports the spellings that are real keys
-            // identically. The discriminator is the pk-origin index a genuine alias
-            // never has, not the DESC or WITHOUT ROWID wording: PRIMARY KEY(id DESC)
-            // written as a table constraint is still an alias.
+            // table_info reports rowid aliases and real keys alike; the pk-origin
+            // index a genuine alias never has is the discriminator.
             bool isRowIdAlias = keyColumnCount == 1
                 && row.Pk == 1
                 && string.Equals(row.Type, "INTEGER", StringComparison.OrdinalIgnoreCase)
                 && !hasPkIndex;
 
-            // The alias carries no index row of its own, yet a predicate on it is a
-            // rowid lookup — verified by EXPLAIN QUERY PLAN — and wrapping it loses
-            // that exactly as wrapping an indexed column does.
+            // The alias has no index row of its own, yet a predicate on it is a rowid
+            // lookup (EXPLAIN QUERY PLAN), which wrapping loses like any indexed column.
             columns.Add(new CatalogColumn(
                 row.Name,
                 row.Type,
@@ -121,19 +118,11 @@ internal sealed class SqliteCatalogReader(
         using IDbCommand command = conn.CreateCommand();
         command.CommandText =
             "SELECT COUNT(*) FROM pragma_index_list(@table) WHERE origin = 'pk'";
-        AddParameter(command, "@table", tableName);
+        CatalogCommand.AddParameter(command, "@table", tableName);
 
         return Convert.ToInt64(command.ExecuteScalar()) > 0;
     }
 
     private string NormalizeName(string name) =>
         _lowercaseNames ? name.ToLowerInvariant() : name;
-
-    private static void AddParameter(IDbCommand command, string name, string value)
-    {
-        IDbDataParameter parameter = command.CreateParameter();
-        parameter.ParameterName = name;
-        parameter.Value = value;
-        command.Parameters.Add(parameter);
-    }
 }

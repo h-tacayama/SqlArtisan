@@ -95,10 +95,11 @@ The runtime is part of this list too, and it has moved: the project targets
 reproduces the *allocation* ordering, but **not** the timing ordering — the mid-
 and heavy-weight entrants change places (a full run put Dapper.SqlBuilder ahead
 of InterpolatedSql and SqlKata ahead of linq2db). Most rows land within a few
-percent of the published bytes; SqlKata does not, because its entrant was
-rebuilt after that table was measured (#382) and now allocates about half again
-as much. Compare a fresh run against another fresh run, not against the published
-table.
+percent of the published bytes; SqlKata and Dapper.SqlBuilder do not, because
+their entrants were rebuilt after that table was measured (#382, and the root
+README's footnote ⁴): SqlKata now allocates about a third again as much,
+Dapper.SqlBuilder about 0.8 KB less. Compare a fresh run against another fresh
+run, not against the published table.
 
 ## Reading the results
 

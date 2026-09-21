@@ -23,6 +23,8 @@ public static class SqlifyBenchmark
             Select(
                 u.Id.As("user_id"),
                 u.Name.As("user_name"),
+                // Count() is Sqlify's only COUNT(*) spelling — the other
+                // entrants' shared Count(o.Id) shape has no equivalent here.
                 Count().As("order_count"))
             .From(u)
             .Join(o, u.Id == o.UserId)
@@ -36,7 +38,8 @@ public static class SqlifyBenchmark
         selectQuery.Format(writer);
 
         string sql = writer.GetCommand();
-        IDictionary<string, object> parameters = (IDictionary<string, object>)s_paramsField.GetValue(writer)!;
+        IDictionary<string, object> parameters =
+            (IDictionary<string, object>)s_paramsField.GetValue(writer)!;
 
         return (sql, parameters.Count);
     }

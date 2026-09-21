@@ -65,7 +65,8 @@ public class IncompleteExpressionMessageTests
     public void Rank_WithoutOver_OrderBy_ThrowsWithOverHint()
     {
         ArgumentException ex =
-            Assert.Throws<ArgumentException>(() => Select(_t.Name).From(_t).OrderBy(Rank()).Build());
+            Assert.Throws<ArgumentException>(
+                () => Select(_t.Name).From(_t).OrderBy(Rank()).Build());
 
         Assert.Contains(OverHint, ex.Message);
     }
@@ -74,7 +75,8 @@ public class IncompleteExpressionMessageTests
     public void Listagg_WithoutWithinGroup_GroupBy_ThrowsWithWithinGroupHint()
     {
         ArgumentException ex =
-            Assert.Throws<ArgumentException>(() => Select(_t.Name).From(_t).GroupBy(Listagg(_t.Name, ", ")).Build());
+            Assert.Throws<ArgumentException>(
+                () => Select(_t.Name).From(_t).GroupBy(Listagg(_t.Name, ", ")).Build());
 
         Assert.Contains(WithinGroupHint, ex.Message);
     }
@@ -83,7 +85,8 @@ public class IncompleteExpressionMessageTests
     public void Rank_WithoutOver_Where_ThrowsWithOverHint()
     {
         ArgumentException ex =
-            Assert.Throws<ArgumentException>(() => Select(_t.Name).From(_t).Where(_t.Name == Rank()).Build());
+            Assert.Throws<ArgumentException>(
+                () => Select(_t.Name).From(_t).Where(_t.Name == Rank()).Build());
 
         Assert.Contains(OverHint, ex.Message);
     }
@@ -95,6 +98,29 @@ public class IncompleteExpressionMessageTests
             Assert.Throws<ArgumentException>(() => InsertInto(_t).Values(Rank()).Build());
 
         Assert.Contains(OverHint, ex.Message);
+    }
+
+    [Fact]
+    public void Rank_WithoutOver_Bind_ThrowsWithOverHint()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => Bind(Rank()));
+
+        Assert.Equal(
+            "AnalyticRankFunction is not a complete SQL expression. "
+                + "Complete it with .Over(...) — a window function requires an OVER clause.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Rank_WithoutOver_SetAssignment_ThrowsWithOverHint()
+    {
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Update(_t).Set(_t.Name == Rank()).Build());
+
+        Assert.Equal(
+            "AnalyticRankFunction is not a complete SQL expression. "
+                + "Complete it with .Over(...) — a window function requires an OVER clause.",
+            ex.Message);
     }
 
     [Fact]

@@ -12,7 +12,7 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 internal static class ConstructKeyNaming
 {
-    private const string Prefix = "sqlartisan_construct_";
+    public const string Prefix = "sqlartisan_construct_";
     private const string AritySeparator = "_arity";
 
     // Key strings are built once per distinct member name (and (name, arity)
@@ -20,7 +20,8 @@ internal static class ConstructKeyNaming
     // each SqlArtisan member reference in the IDE's analysis loop, and the set
     // of distinct names is small and fixed by the SqlArtisan API surface.
     private static readonly ConcurrentDictionary<string, string> MemberKeyCache = new();
-    private static readonly ConcurrentDictionary<(string MemberName, int Arity), string> ArityKeyCache = new();
+    private static readonly ConcurrentDictionary<(string MemberName, int Arity), string>
+        ArityKeyCache = new();
 
     public static string ToSnakeCase(string pascalCaseName)
     {
@@ -28,7 +29,8 @@ internal static class ConstructKeyNaming
         for (int i = 0; i < pascalCaseName.Length; i++)
         {
             char c = pascalCaseName[i];
-            if (char.IsUpper(c) && i > 0 && (char.IsLower(pascalCaseName[i - 1]) || char.IsDigit(pascalCaseName[i - 1])))
+            if (char.IsUpper(c) && i > 0
+                && (char.IsLower(pascalCaseName[i - 1]) || char.IsDigit(pascalCaseName[i - 1])))
             {
                 builder.Append('_');
             }
@@ -49,5 +51,7 @@ internal static class ConstructKeyNaming
     /// disambiguating index, so it stays stable as overloads are added.
     /// </summary>
     public static string ArityKey(string memberName, int arity) =>
-        ArityKeyCache.GetOrAdd((memberName, arity), static key => MemberKey(key.MemberName) + AritySeparator + key.Arity);
+        ArityKeyCache.GetOrAdd(
+            (memberName, arity),
+            static key => MemberKey(key.MemberName) + AritySeparator + key.Arity);
 }

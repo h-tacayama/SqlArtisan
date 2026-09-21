@@ -13,13 +13,6 @@ public static partial class Sql
     public static AnalyticRankFunction Rank() => new();
 
     /// <summary>
-    /// The <c>ROW_NUMBER()</c> analytic function: a sequential number per row within
-    /// its window partition. Complete it with <c>.Over(...)</c>.
-    /// </summary>
-    /// <returns>A <c>ROW_NUMBER</c> analytic function expression.</returns>
-    public static AnalyticRowNumberFunction RowNumber() => new();
-
-    /// <summary>
     /// The <c>REGEXP_COUNT(source, pattern)</c> function: the number of times
     /// <paramref name="pattern"/> matches in <paramref name="source"/>.
     /// </summary>
@@ -202,7 +195,7 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
+    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -270,104 +263,6 @@ public static partial class Sql
             Resolve(position),
             Resolve(occurrence),
             options);
-
-    /// <summary>
-    /// The <c>REPLACE(source, search, replacement)</c> function: replaces every
-    /// literal occurrence of <paramref name="search"/> in <paramref name="source"/>
-    /// with <paramref name="replacement"/>.
-    /// </summary>
-    /// <param name="source">The string searched.</param>
-    /// <param name="search">The substring to find.</param>
-    /// <param name="replacement">The replacement substring.</param>
-    /// <returns>A <c>REPLACE</c> function expression.</returns>
-    public static ReplaceFunction Replace(object source, object search, object replacement) =>
-        new(Resolve(source), Resolve(search), Resolve(replacement));
-
-    /// <summary>
-    /// The <c>RIGHT(<paramref name="source"/>, <paramref name="length"/>)</c> function:
-    /// the rightmost <paramref name="length"/> characters of <paramref name="source"/>.
-    /// </summary>
-    /// <param name="source">The string to take characters from.</param>
-    /// <param name="length">The number of characters to take.</param>
-    /// <returns>The RIGHT construct.</returns>
-    /// <remarks>MySQL, PostgreSQL, and SQL Server syntax. Oracle and SQLite have no
-    /// <c>RIGHT</c> — slice with <see cref="Substr(object, object)"/> and a negative
-    /// position there.</remarks>
-    public static RightFunction Right(object source, object length) =>
-        new(Resolve(source), Resolve(length));
-
-    /// <summary>
-    /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Each element is an
-    /// ordinary column or a <c>Sql.Group(...)</c> composite column (so
-    /// <c>Rollup(Group(a, b), c)</c> emits <c>ROLLUP((a, b), c)</c>). Emitted as the
-    /// standard function form <c>ROLLUP(a, b)</c> on every dialect.
-    /// </summary>
-    /// <param name="element">The first grouping element.</param>
-    /// <param name="elements">Further grouping elements.</param>
-    /// <returns>A <c>ROLLUP</c> grouping for a <c>GROUP BY</c> clause.</returns>
-    /// <remarks>
-    /// Oracle, PostgreSQL, and SQL Server. MySQL accepts only its <c>WITH ROLLUP</c>
-    /// suffix — use <c>.GroupBy(...).WithRollup()</c> — and SQLite has no rollup at
-    /// all; on both, the function form is emitted as written for the database to reject.
-    /// </remarks>
-    public static RollupGrouping Rollup(object element, params object[] elements) =>
-        new(GroupByItemResolver.ResolveElements(element, elements));
-
-    /// <summary>
-    /// The <c>ROUND(expr)</c> function: rounds <paramref name="expr"/> to the
-    /// nearest integer.
-    /// </summary>
-    /// <param name="expr">The numeric expression to round.</param>
-    /// <returns>A <c>ROUND</c> function expression.</returns>
-    /// <remarks>Not supported by SQL Server — its <c>ROUND</c> requires the
-    /// decimal count; pass <c>0</c> to <see cref="Round(object, object)"/>
-    /// there.</remarks>
-    public static RoundFunction Round(object expr) =>
-        new(Resolve(expr));
-
-    /// <inheritdoc cref="Round(object)" path="/summary"/>
-    /// <param name="expr">The numeric expression to round.</param>
-    /// <param name="decimals">The number of decimal places to round to.</param>
-    /// <returns>A <c>ROUND(x, n)</c> function expression.</returns>
-    public static RoundFunction Round(object expr, object decimals) =>
-        new(Resolve(expr), Resolve(decimals));
-
-    /// <summary>
-    /// The <c>RPAD(source, length)</c> function: right-pads <paramref name="source"/>
-    /// with spaces to <paramref name="length"/> characters.
-    /// </summary>
-    /// <param name="source">The string to pad.</param>
-    /// <param name="length">The target length.</param>
-    /// <returns>An <c>RPAD</c> function expression.</returns>
-    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
-    public static RpadFunction Rpad(object source, object length) =>
-        new(Resolve(source), Resolve(length));
-
-    /// <inheritdoc cref="Rpad(object, object)"/>
-    /// <param name="source">The string to pad.</param>
-    /// <param name="length">The target length.</param>
-    /// <param name="padding">The padding string used instead of spaces.</param>
-    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
-    public static RpadFunction Rpad(object source, object length, object padding) =>
-        new(Resolve(source), Resolve(length), Resolve(padding));
-
-    /// <summary>
-    /// The <c>RTRIM(source)</c> function: removes trailing spaces from
-    /// <paramref name="source"/>.
-    /// </summary>
-    /// <param name="source">The string to trim.</param>
-    /// <returns>An <c>RTRIM</c> function expression.</returns>
-    public static RtrimFunction Rtrim(object source) =>
-        new(Resolve(source));
-
-    /// <inheritdoc cref="Rtrim(object)"/>
-    /// <param name="source">The string to trim.</param>
-    /// <param name="trimChars">The set of characters to strip instead of spaces.</param>
-    /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax; SQL
-    /// Server also requires database compatibility level 160, the default for
-    /// new databases.</remarks>
-    public static RtrimFunction Rtrim(object source, object trimChars) =>
-        new(Resolve(source), Resolve(trimChars));
 
     /// <summary>
     /// The <c>REGEXP_SUBSTR(source, pattern)</c> function: the first substring of
@@ -447,4 +342,109 @@ public static partial class Sql
             Resolve(occurrence),
             options,
             Resolve(subPatternPos));
+
+    /// <summary>
+    /// The <c>REPLACE(source, search, replacement)</c> function: replaces every
+    /// literal occurrence of <paramref name="search"/> in <paramref name="source"/>
+    /// with <paramref name="replacement"/>.
+    /// </summary>
+    /// <param name="source">The string searched.</param>
+    /// <param name="search">The substring to find.</param>
+    /// <param name="replacement">The replacement substring.</param>
+    /// <returns>A <c>REPLACE</c> function expression.</returns>
+    public static ReplaceFunction Replace(object source, object search, object replacement) =>
+        new(Resolve(source), Resolve(search), Resolve(replacement));
+
+    /// <summary>
+    /// The <c>RIGHT(<paramref name="source"/>, <paramref name="length"/>)</c> function:
+    /// the rightmost <paramref name="length"/> characters of <paramref name="source"/>.
+    /// </summary>
+    /// <param name="source">The string to take characters from.</param>
+    /// <param name="length">The number of characters to take.</param>
+    /// <returns>The RIGHT construct.</returns>
+    /// <remarks>MySQL, PostgreSQL, and SQL Server syntax. Oracle and SQLite have no
+    /// <c>RIGHT</c> — slice with <see cref="Substr(object, object)"/> and a negative
+    /// position there.</remarks>
+    public static RightFunction Right(object source, object length) =>
+        new(Resolve(source), Resolve(length));
+
+    /// <summary>
+    /// The <c>ROLLUP(...)</c> GROUP BY grouping extension. Each element is an
+    /// ordinary column or a <c>Sql.Group(...)</c> composite column (so
+    /// <c>Rollup(Group(a, b), c)</c> emits <c>ROLLUP((a, b), c)</c>). Emitted as the
+    /// standard function form <c>ROLLUP(a, b)</c> on every dialect.
+    /// </summary>
+    /// <param name="element">The first grouping element.</param>
+    /// <param name="elements">Further grouping elements.</param>
+    /// <returns>A <c>ROLLUP</c> grouping for a <c>GROUP BY</c> clause.</returns>
+    /// <remarks>
+    /// Oracle, PostgreSQL, and SQL Server. MySQL accepts only its <c>WITH ROLLUP</c>
+    /// suffix — use <c>.GroupBy(...).WithRollup()</c> — and SQLite has no rollup at
+    /// all; on both, the function form is emitted as written for the database to reject.
+    /// </remarks>
+    public static RollupGrouping Rollup(object element, params object[] elements) =>
+        new(GroupByItemResolver.ResolveElements(element, elements));
+
+    /// <summary>
+    /// The <c>ROUND(expr)</c> function: rounds <paramref name="expr"/> to the
+    /// nearest integer.
+    /// </summary>
+    /// <param name="expr">The numeric expression to round.</param>
+    /// <returns>A <c>ROUND</c> function expression.</returns>
+    /// <remarks>Not supported by SQL Server — its <c>ROUND</c> requires the
+    /// decimal count; pass <c>0</c> to <see cref="Round(object, object)"/>
+    /// there.</remarks>
+    public static RoundFunction Round(object expr) =>
+        new(Resolve(expr));
+
+    /// <inheritdoc cref="Round(object)" path="/summary"/>
+    /// <param name="expr">The numeric expression to round.</param>
+    /// <param name="decimals">The number of decimal places to round to.</param>
+    /// <returns>A <c>ROUND(x, n)</c> function expression.</returns>
+    public static RoundFunction Round(object expr, object decimals) =>
+        new(Resolve(expr), Resolve(decimals));
+
+    /// <summary>
+    /// The <c>ROW_NUMBER()</c> analytic function: a sequential number per row within
+    /// its window partition. Complete it with <c>.Over(...)</c>.
+    /// </summary>
+    /// <returns>A <c>ROW_NUMBER</c> analytic function expression.</returns>
+    public static AnalyticRowNumberFunction RowNumber() => new();
+
+    /// <summary>
+    /// The <c>RPAD(source, length)</c> function: right-pads <paramref name="source"/>
+    /// with spaces to <paramref name="length"/> characters.
+    /// </summary>
+    /// <param name="source">The string to pad.</param>
+    /// <param name="length">The target length.</param>
+    /// <returns>An <c>RPAD</c> function expression.</returns>
+    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
+    public static RpadFunction Rpad(object source, object length) =>
+        new(Resolve(source), Resolve(length));
+
+    /// <inheritdoc cref="Rpad(object, object)"/>
+    /// <param name="source">The string to pad.</param>
+    /// <param name="length">The target length.</param>
+    /// <param name="padding">The padding string used instead of spaces.</param>
+    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
+    public static RpadFunction Rpad(object source, object length, object padding) =>
+        new(Resolve(source), Resolve(length), Resolve(padding));
+
+    /// <summary>
+    /// The <c>RTRIM(source)</c> function: removes trailing spaces from
+    /// <paramref name="source"/>.
+    /// </summary>
+    /// <param name="source">The string to trim.</param>
+    /// <returns>An <c>RTRIM</c> function expression.</returns>
+    public static RtrimFunction Rtrim(object source) =>
+        new(Resolve(source));
+
+    /// <inheritdoc cref="Rtrim(object)"/>
+    /// <param name="source">The string to trim.</param>
+    /// <param name="trimChars">The set of characters to strip instead of spaces.</param>
+    /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax; SQL
+    /// Server also requires database compatibility level 160, the default for
+    /// new databases.</remarks>
+    public static RtrimFunction Rtrim(object source, object trimChars) =>
+        new(Resolve(source), Resolve(trimChars));
 }

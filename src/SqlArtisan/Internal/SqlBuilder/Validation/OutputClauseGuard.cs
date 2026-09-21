@@ -37,4 +37,30 @@ internal static class OutputClauseGuard
                     + "use one or the other.");
         }
     }
+
+    // #397's width class for the OUTPUT ... INTO redirect: an explicit INTO
+    // column list must match the OUTPUT list one-to-one; a star item's width is
+    // the schema's, so it is left to the engine.
+    internal static void ThrowIfIntoWidthMismatch(OutputClause? output, OutputIntoClause? into)
+    {
+        if (output is null || into is null || into.ColumnCount == 0)
+        {
+            return;
+        }
+
+        foreach (SqlPart item in output.Items)
+        {
+            if (item is AsteriskMarker or QualifiedAsteriskMarker)
+            {
+                return;
+            }
+        }
+
+        if (output.Items.Length != into.ColumnCount)
+        {
+            throw new ArgumentException(
+                $"The OUTPUT list has {output.Items.Length} item(s), "
+                    + $"but the INTO column list declares {into.ColumnCount} column(s).");
+        }
+    }
 }

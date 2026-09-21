@@ -11,17 +11,19 @@ internal sealed class OverClause : SqlPart
 
     internal static OverClause Of() => new();
 
-    internal static OverClause Of(PartitionByClause content) =>
-        new(NullGuard.ThrowIfNull(content, nameof(content)));
+    // Each overload's parameter matches the public Over(...) parameter it
+    // guards, so ParamName never surfaces an internal name.
+    internal static OverClause Of(PartitionByClause partitionByClause) =>
+        new(NullGuard.ThrowIfNull(partitionByClause, nameof(partitionByClause)));
 
-    internal static OverClause Of(OrderByClause content) =>
-        new(NullGuard.ThrowIfNull(content, nameof(content)));
+    internal static OverClause Of(OrderByClause orderByClause) =>
+        new(NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
-    internal static OverClause Of(PartitionByAndOrderBy content) =>
-        new(NullGuard.ThrowIfNull(content, nameof(content)));
+    internal static OverClause Of(PartitionByAndOrderBy partitionByAndOrderBy) =>
+        new(NullGuard.ThrowIfNull(partitionByAndOrderBy, nameof(partitionByAndOrderBy)));
 
-    internal static OverClause Of(WindowFrameClause content) =>
-        new(NullGuard.ThrowIfNull(content, nameof(content)));
+    internal static OverClause Of(WindowFrameClause windowFrameClause) =>
+        new(NullGuard.ThrowIfNull(windowFrameClause, nameof(windowFrameClause)));
 
     internal override void Format(SqlBuildingBuffer buffer)
     {

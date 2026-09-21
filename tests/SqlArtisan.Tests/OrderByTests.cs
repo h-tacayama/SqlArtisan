@@ -99,9 +99,8 @@ public class OrderByTests
     [Fact]
     public void NullsFirst_HeldSortOrderDerivedAlongTwoBranches_BranchesStayIsolated()
     {
-        // #399: NullsFirst/NullsLast used to mutate the receiving SortOrder in
-        // place, so two derivations from one held SortOrder aliased to whichever
-        // was applied last.
+        // #399: NullsFirst/NullsLast mutated the receiving SortOrder in place,
+        // so two derivations from one held order aliased to the last applied.
         SortOrder baseOrder = _t.Code.Asc;
         SortOrder branch1 = baseOrder.NullsFirst;
         SortOrder branch2 = baseOrder.NullsLast;
@@ -134,7 +133,7 @@ public class OrderByTests
                 "SELECT \"t\".code FROM test_table \"t\" ORDER BY 2.5";
 
             // Act
-            SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.5).Build();
+            SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.5).Build(Dbms.Sqlite);
 
             // Assert
             Assert.Equal(expected, sql.Text);
@@ -148,15 +147,17 @@ public class OrderByTests
     [Fact]
     public void OrderBy_WithNoItems_ThrowsArgumentException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() => OrderBy());
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => OrderBy());
+
+        Assert.Equal("ORDER BY requires at least one item.", ex.Message);
     }
 
     [Fact]
     public void OrderBy_WithNullItems_ThrowsArgumentNullException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => OrderBy(null!));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => OrderBy(null!));
+
+        Assert.Equal("orderByItems", ex.ParamName);
     }
 
     [Fact]
@@ -168,5 +169,171 @@ public class OrderByTests
         Assert.Equal(
             "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'orderByItem')",
             ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_ZeroOrdinal_ThrowsAtBuild()
+    {
+        // Dialect-blind, but statement-scoped: the throw is at Build(), because
+        // a window's ordering reads the same literal as an expression.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(0).Build(Dbms.MySql));
+
+        Assert.Equal(
+            "No engine accepts 0 as an ORDER BY column ordinal; "
+                + "order by a column, an expression, or a positive ordinal instead.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_ZeroOrdinal_InSubquery_ThrowsAtBuild()
+    {
+        // A nested block resolves its own ordinals, so the guard runs on every
+        // query block, not only the one Build() was called on.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code.In(Select(_t.Code).From(_t).OrderBy(0)))
+            .Build(Dbms.MySql));
+
+        Assert.Equal(
+            "No engine accepts 0 as an ORDER BY column ordinal; "
+                + "order by a column, an expression, or a positive ordinal instead.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_NegativeOrdinal_InCteBody_ThrowsAtBuild()
+    {
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(_t.Code.As(cte.CteCode)).From(_t).OrderBy(-1)))
+            .Select(cte.CteCode)
+            .From(cte)
+            .Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "PostgreSQL and SQLite do not accept a negative ORDER BY column ordinal; "
+                + "order by a column, an expression, or a positive ordinal instead.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_NanSortKey_ThrowsArgumentException()
+    {
+        // A value-domain failure gets a value message, not the type message.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(double.NaN));
+
+        Assert.Equal("An ORDER BY numeric sort key must be finite.", ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_InfiniteSortKey_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(float.PositiveInfinity));
+
+        Assert.Equal("An ORDER BY numeric sort key must be finite.", ex.Message);
+    }
+
+    [Theory]
+    [InlineData(Dbms.PostgreSql)]
+    [InlineData(Dbms.Sqlite)]
+    public void OrderBy_NegativeOrdinal_ThrowsOnTheEnginesThatReadItAsAPosition(Dbms dbms)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(-1).Build(dbms));
+
+        Assert.Equal(
+            "PostgreSQL and SQLite do not accept a negative ORDER BY column ordinal; "
+                + "order by a column, an expression, or a positive ordinal instead.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_MySql_NegativeOrdinal_CorrectSql()
+    {
+        // MySQL reads a negative literal as a constant expression and orders by
+        // nothing, so the ADR 0011 arm leaves it alone (live-verified on 8.0).
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(-1).Build(Dbms.MySql);
+
+        Assert.Equal("SELECT `t`.code FROM test_table `t` ORDER BY -1", sql.Text);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void OrderBy_NonPositiveOrdinal_InWindowPosition_CorrectSql(int ordinal)
+    {
+        // OVER(...) reads the literal as an expression, and every engine here
+        // takes it (live-verified on PostgreSQL 16 and SQLite 3.41/3.46).
+        SqlStatement sql = Select(RowNumber().Over(OrderBy(ordinal)))
+            .From(_t)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            $"SELECT ROW_NUMBER() OVER (ORDER BY {ordinal}) FROM test_table \"t\"",
+            sql.Text);
+    }
+
+    [Fact]
+    public void OrderBy_ZeroOrdinal_InWithinGroupPosition_CorrectSql()
+    {
+        SqlStatement sql = Select(StringAgg(_t.Code, ",").WithinGroup(OrderBy(0)))
+            .From(_t)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "SELECT STRING_AGG(\"t\".code, ',') WITHIN GROUP (ORDER BY 0) "
+                + "FROM test_table \"t\"",
+            sql.Text);
+    }
+
+    [Fact]
+    public void OrderBy_ZeroOrdinal_InGroupConcatPosition_CorrectSql()
+    {
+        SqlStatement sql = Select(GroupConcat(_t.Code, OrderBy(0)))
+            .From(_t)
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "SELECT GROUP_CONCAT(`t`.code ORDER BY 0) FROM test_table `t`",
+            sql.Text);
+    }
+
+    [Fact]
+    public void OrderBy_WholeDoubleLiteral_RendersDecimalPoint()
+    {
+        // A whole-valued double is a literal sort key, not a column ordinal, so
+        // it keeps its decimal point ("2.0", never a bare "2").
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.0).Build(Dbms.Sqlite);
+
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\" ORDER BY 2.0",
+            sql.Text);
+    }
+
+    [Fact]
+    public void OrderBy_PostgreSql_FractionalLiteral_ThrowsArgumentException()
+    {
+        // MySQL and SQLite accept the no-op constant ordering; PostgreSQL
+        // rejects it, and the analyzer cannot see a value (ADR 0011).
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(2.5).Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "PostgreSQL does not accept a non-integer constant as an ORDER BY sort key; "
+                + "order by a column or an expression instead.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_PostgreSql_IntegerOrdinal_CorrectSql()
+    {
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(1).Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY 1", sql.Text);
     }
 }

@@ -28,7 +28,10 @@ public class ColumnCategoryTests
     [InlineData(Dbms.SqlServer, "smallmoney", DbTypeCategory.Numeric)]
     [InlineData(Dbms.SqlServer, "datetime2", DbTypeCategory.Temporal)]
     [InlineData(Dbms.SqlServer, "image", DbTypeCategory.Binary)]
-    public void Of_RecognizedTypeName_ReturnsCategory(Dbms dbms, string dataType, DbTypeCategory expected) =>
+    public void Of_RecognizedTypeName_ReturnsCategory(
+        Dbms dbms,
+        string dataType,
+        DbTypeCategory expected) =>
         Assert.Equal(expected, ColumnCategory.Of(dbms, dataType));
 
     // T-SQL's timestamp is a row version, not a time — the one name whose category
@@ -38,7 +41,9 @@ public class ColumnCategoryTests
     [InlineData(Dbms.Oracle, DbTypeCategory.Temporal)]
     [InlineData(Dbms.PostgreSql, DbTypeCategory.Temporal)]
     [InlineData(Dbms.SqlServer, DbTypeCategory.Binary)]
-    public void Of_Timestamp_ReturnsCategoryOfTheReadingEngine(Dbms dbms, DbTypeCategory expected) =>
+    public void Of_Timestamp_ReturnsCategoryOfTheReadingEngine(
+        Dbms dbms,
+        DbTypeCategory expected) =>
         Assert.Equal(expected, ColumnCategory.Of(dbms, "timestamp"));
 
     [Fact]
@@ -59,6 +64,16 @@ public class ColumnCategoryTests
     public void Of_TypeNameCarryingPrecision_IgnoresIt(string dataType, DbTypeCategory expected) =>
         Assert.Equal(expected, ColumnCategory.Of(Dbms.Oracle, dataType));
 
+    // The precision sits mid-name in Oracle's interval range types, so stripping
+    // it must not also strip the trailing field that names the type.
+    [Theory]
+    [InlineData("INTERVAL YEAR(2) TO MONTH")]
+    [InlineData("INTERVAL DAY(2) TO SECOND(6)")]
+    [InlineData("INTERVAL YEAR TO MONTH")]
+    [InlineData("INTERVAL DAY TO SECOND")]
+    public void Of_OracleIntervalRangeType_ReturnsTemporal(string dataType) =>
+        Assert.Equal(DbTypeCategory.Temporal, ColumnCategory.Of(Dbms.Oracle, dataType));
+
     [Theory]
     [InlineData("INTEGER", DbTypeCategory.Numeric)]
     [InlineData("BIGINT", DbTypeCategory.Numeric)]
@@ -68,7 +83,9 @@ public class ColumnCategoryTests
     [InlineData("", DbTypeCategory.Binary)]
     [InlineData("REAL", DbTypeCategory.Numeric)]
     [InlineData("DOUBLE", DbTypeCategory.Numeric)]
-    public void Of_Sqlite_DeclaredType_ReturnsAffinityCategory(string dataType, DbTypeCategory expected) =>
+    public void Of_Sqlite_DeclaredType_ReturnsAffinityCategory(
+        string dataType,
+        DbTypeCategory expected) =>
         Assert.Equal(expected, ColumnCategory.Of(Dbms.Sqlite, dataType));
 
     // SQLite's last affinity rule sweeps every unmatched name into NUMERIC, which

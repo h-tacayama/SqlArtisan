@@ -62,11 +62,24 @@ yes-somewhere → dialect availability → permissive.
   mandatory-clause constructs follow the same pattern.
 - **Guardrail:** the library must never throw for dialect availability. A future
   change that, say, threw on `CUBE` for MySQL would violate this ADR — that belongs
-  to the analyzer and the database. ADR 0011 carves one narrow, enumerated
+  to the analyzer and the database. The release audit's fifth pass applied it
+  retroactively: `Returning(expr.As("alias"))` had thrown eagerly although
+  PostgreSQL and SQLite accept the alias, so the ban moved to the one pairing
+  that is incomplete everywhere — `RETURNING ... INTO` with an alias. ADR 0011 carves one narrow, enumerated
   exception — an aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server — admitted only
   because the analyzer structurally cannot see the construct *and* the resolved
   target has no valid spelling at all; any further exception must clear the same
   bar.
+- **A pseudo-column reference outside its context stays permissive.**
+  `Sql.Excluded(...)` outside an upsert's `DO UPDATE SET`, or
+  `Inserted`/`Deleted` under the wrong `OUTPUT` verb, builds and emits: each
+  names a relation its owning clause puts in scope, and outside it the engine
+  resolves the name like any other — no binding where nothing carries it, a
+  real relation where something does (`excluded` is an ordinary identifier:
+  `SELECT EXCLUDED.id FROM excluded` returns rows on PostgreSQL 16.13 and
+  SQLite 3.50.4, live-verified). Catching the misplacement at `Build()` would
+  take cross-clause analysis of a name the author wrote, which is the
+  analyzer's `SQLA0102` family, not this boundary's.
 - **Scopes the analyzer (#93):** it need not re-check completeness the type system
   already guarantees; its remit stays dialect availability, arity, and unknown
   target.

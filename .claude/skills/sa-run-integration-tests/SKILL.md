@@ -60,7 +60,8 @@ so `dotnet build`/`test` fails outright and you can't even **compile** the
 integration project locally. The per-PR `ci.yml` does *build* it — its build step
 is `dotnet build SqlArtisan.sln`, and the solution includes this project — so a
 compile error does fail the PR. `ci.yml` also *runs* one DB-less slice on every
-PR: the `MatrixSweepCatalogTests` completeness pair, via an FQN filter. The
+PR: the `MatrixSweepCatalogTests` completeness pair and the ADR 0011
+`DialectGuardTwinTests` twin gate, via an FQN filter. The
 engine lanes themselves execute only through the dispatched integration run
 (below), the nightly schedule, or the release gate.
 

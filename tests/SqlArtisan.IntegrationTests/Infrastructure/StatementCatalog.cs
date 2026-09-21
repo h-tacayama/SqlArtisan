@@ -36,11 +36,16 @@ internal static class StatementCatalog
         // The rest of the frame vocabulary: BETWEEN bounds and RANGE, plus the
         // Preceding(n) / Following(n) / CurrentRow / UnboundedFollowing bounds.
         Add("WindowFrameRowsBetween",
-            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RowsBetween(Preceding(1), Following(1)))).From(o), All);
+            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RowsBetween(Preceding(1), Following(1))))
+                .From(o), All);
         Add("WindowFrameRangeBetween",
-            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RangeBetween(UnboundedPreceding, CurrentRow))).From(o), All);
+            () => Select(Avg(o.Amount)
+                .Over(OrderBy(o.Id).RangeBetween(UnboundedPreceding, CurrentRow))).From(o),
+            All);
         Add("WindowFrameUnboundedFollowing",
-            () => Select(Avg(o.Amount).Over(OrderBy(o.Id).RowsBetween(CurrentRow, UnboundedFollowing))).From(o), All);
+            () => Select(Avg(o.Amount)
+                .Over(OrderBy(o.Id).RowsBetween(CurrentRow, UnboundedFollowing))).From(o),
+            All);
         Add("WindowFrameRange",
             () => Select(Avg(o.Amount).Over(OrderBy(o.Id).Range(UnboundedPreceding))).From(o), All);
 
@@ -63,13 +68,14 @@ internal static class StatementCatalog
             () => Select(u.DepartmentId).From(u).GroupBy(Cube(u.DepartmentId)),
             Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.SqlServer));
         Add("GroupingSets",
-            () => Select(u.DepartmentId).From(u).GroupBy(GroupingSets(Group(u.DepartmentId), Group())),
+            () => Select(u.DepartmentId).From(u).GroupBy(
+                GroupingSets(Group(u.DepartmentId), Group())),
             Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.SqlServer));
 
-        // MySQL's GROUP BY ... WITH ROLLUP suffix.
+        // The GROUP BY ... WITH ROLLUP suffix — MySQL, and T-SQL's legacy form.
         Add("WithRollup",
             () => Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId).WithRollup(),
-            Only(Dbms.MySql));
+            Only(Dbms.MySql, Dbms.SqlServer));
 
         // NULLS FIRST/LAST ordering — PostgreSQL / Oracle / SQLite.
         Add("NullsLast",
@@ -106,11 +112,11 @@ internal static class StatementCatalog
         Add("FetchFirst", () => Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(2),
             Only(Dbms.Oracle, Dbms.PostgreSql));
 
-        // Set operators with ALL — EXCEPT ALL (PostgreSQL / MySQL 8.0.31+) and
-        // Oracle's MINUS ALL.
+        // Set operators with ALL — EXCEPT ALL (MySQL 8.0.31+ / Oracle 21c+ /
+        // PostgreSQL) and Oracle's MINUS ALL.
         Add("ExceptAll",
             () => Select(u.DepartmentId).From(u).ExceptAll.Select(u.DepartmentId).From(u),
-            Only(Dbms.MySql, Dbms.PostgreSql));
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
         Add("MinusAll",
             () => Select(u.DepartmentId).From(u).MinusAll.Select(u.DepartmentId).From(u),
             Only(Dbms.Oracle));
@@ -149,9 +155,8 @@ internal static class StatementCatalog
                 .Select(c.Column("id")).From(c);
         }, Only(Dbms.PostgreSql, Dbms.Sqlite, Dbms.MySql));
 
-        // Recursive CTE via plain WITH — Oracle / SQL Server (they reject the RECURSIVE
-        // keyword); Oracle additionally requires the CTE column list on a recursive
-        // body (#348's acceptance shape).
+        // Recursive CTE via plain WITH — Oracle / SQL Server reject RECURSIVE, and
+        // Oracle also requires the column list on a recursive body (#348).
         Add("RecursiveCtePlainWith", () =>
         {
             UsersTable ru = new("ru");
@@ -182,13 +187,13 @@ internal static class StatementCatalog
             return Select(jo.Amount).From(jo).FullJoin(ju).On(jo.UserId == ju.Id);
         }, Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
 
-        // Set operators not covered by the dedicated UNION/EXCEPT tests:
-        // INTERSECT (all five; MySQL 8.0.31+) and INTERSECT ALL (PostgreSQL / MySQL).
+        // INTERSECT (all five; MySQL 8.0.31+) and INTERSECT ALL (MySQL 8.0.31+,
+        // Oracle 21c+, PostgreSQL); UNION/EXCEPT have dedicated tests.
         Add("Intersect",
             () => Select(u.DepartmentId).From(u).Intersect.Select(u.DepartmentId).From(u), All);
         Add("IntersectAll",
             () => Select(u.DepartmentId).From(u).IntersectAll.Select(u.DepartmentId).From(u),
-            Only(Dbms.MySql, Dbms.PostgreSql));
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
 
         // CROSS APPLY — SQL Server / Oracle.
         Add("CrossApply", () =>
@@ -202,7 +207,7 @@ internal static class StatementCatalog
                     x);
         }, Only(Dbms.Oracle, Dbms.SqlServer));
 
-        // JOIN LATERAL — PostgreSQL / MySQL.
+        // JOIN LATERAL — MySQL / Oracle / PostgreSQL.
         Add("JoinLateral", () =>
         {
             UsersTable lu = new("u");
@@ -213,7 +218,7 @@ internal static class StatementCatalog
                     Select(lo.Amount.As(x.Column("amount"))).From(lo).Where(lo.UserId == lu.Id),
                     x)
                 .On(lu.Id == lu.Id);
-        }, Only(Dbms.PostgreSql, Dbms.MySql));
+        }, Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
 
         // OUTER APPLY — the sibling of CROSS APPLY (SQL Server / Oracle).
         Add("OuterApply", () =>
@@ -227,7 +232,7 @@ internal static class StatementCatalog
                     x);
         }, Only(Dbms.Oracle, Dbms.SqlServer));
 
-        // CROSS / LEFT JOIN LATERAL — the siblings of JOIN LATERAL (PostgreSQL / MySQL).
+        // CROSS / LEFT JOIN LATERAL — the siblings of JOIN LATERAL.
         Add("CrossJoinLateral", () =>
         {
             UsersTable lu = new("u");

@@ -23,7 +23,8 @@ namespace SqlArtisan.Analyzers.Tests;
 public class MSBuildPropertyParityTests
 {
     private static readonly IReadOnlyList<string> DeclaredProperties =
-        [.. XDocument.Load(Path.Combine(FindRepoRoot(), "src", "SqlArtisan.Analyzers", "build", "SqlArtisan.props"))
+        [.. XDocument.Load(Path.Combine(
+                FindRepoRoot(), "src", "SqlArtisan.Analyzers", "build", "SqlArtisan.props"))
             .Descendants("CompilerVisibleProperty")
             .Select(e => e.Attribute("Include")!.Value)];
 
@@ -31,7 +32,8 @@ public class MSBuildPropertyParityTests
         [
             StripPrefix(AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey),
             StripPrefix(AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey),
-            .. AnalyzerConfigResolver.AllDbms.Select(dbms => StripPrefix(AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(dbms))),
+            .. AnalyzerConfigResolver.AllDbms.Select(
+                dbms => StripPrefix(AnalyzerConfigResolver.SyntaxMSBuildPropertyKey(dbms))),
         ];
 
     private static string StripPrefix(string buildPropertyKey) =>
@@ -40,7 +42,8 @@ public class MSBuildPropertyParityTests
     [Fact]
     public void EveryDeclaredProperty_IsReadByTheResolver()
     {
-        string[] unread = [.. DeclaredProperties.Except(ResolverExpectedProperties, StringComparer.Ordinal)];
+        string[] unread =
+            [.. DeclaredProperties.Except(ResolverExpectedProperties, StringComparer.Ordinal)];
 
         Assert.True(
             unread.Length == 0,
@@ -52,7 +55,8 @@ public class MSBuildPropertyParityTests
     [Fact]
     public void EveryResolverProperty_IsDeclaredInTheProps()
     {
-        string[] undeclared = [.. ResolverExpectedProperties.Except(DeclaredProperties, StringComparer.Ordinal)];
+        string[] undeclared =
+            [.. ResolverExpectedProperties.Except(DeclaredProperties, StringComparer.Ordinal)];
 
         Assert.True(
             undeclared.Length == 0,

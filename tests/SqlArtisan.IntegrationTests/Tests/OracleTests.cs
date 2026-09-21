@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using System.Threading.Tasks;
 using Dapper;
 using SqlArtisan;
@@ -45,6 +46,12 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
                 .From(seniors)));
 
         Assert.Equal(2, count);
+    }
+
+    [Fact(Skip = "Oracle's DML grammar has no leading WITH; the form is documented for the other "
+        + "four engines.")]
+    public override void Cte_LeadingWithBeforeDelete_Executes()
+    {
     }
 
     // Binding a C# bool to NUMBER(1) is a driver concern, not a SqlArtisan one;
@@ -156,7 +163,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
                 .WhenNotMatched().ThenInsert(c.Id, c.Name).Values(s.Id, s.Name),
             transaction);
 
-        long count = Convert.ToInt64(connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
+        long count = Convert.ToInt64(
+            connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
 
         Assert.Equal(5, count);
         transaction.Rollback();
@@ -181,7 +189,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
                 .WhenMatched().ThenUpdateSet(t.Name == s.Name).DeleteWhere(t.Age >= 50),
             transaction);
 
-        long count = Convert.ToInt64(connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
+        long count = Convert.ToInt64(
+            connection.ExecuteScalar(Select(Count(c.Id)).From(c), transaction));
 
         Assert.Equal(4, count);
         transaction.Rollback();
@@ -344,7 +353,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         connection.ExecuteScalar("SELECT NTILE(4) OVER (ORDER BY age) FROM users");
         connection.ExecuteScalar("SELECT NTH_VALUE(age, 1) OVER (ORDER BY age) FROM users");
         connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 PRECEDING) FROM users");
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 "
+                + "PRECEDING) FROM users");
 
         // The only difference each time — the value-domain violation — is what Oracle rejects.
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
@@ -356,11 +366,14 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT SUM(age) OVER (ORDER BY age ROWS 1 FOLLOWING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 "
+                + "PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING "
+                + "AND UNBOUNDED PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED "
+                + "FOLLOWING) FROM users"));
     }
 
     [Fact] // SQLA0104 (#449): anchors the OracleExtractFields list in
@@ -401,10 +414,30 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         connection.Execute("SELECT * FROM users CROSS JOIN orders");
 
-        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users INNER JOIN orders"));
+        Assert.ThrowsAny<Exception>(
+            () => connection.Execute("SELECT * FROM users INNER JOIN orders"));
         Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users JOIN orders"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users LEFT JOIN orders"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users RIGHT JOIN orders"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT * FROM users FULL JOIN orders"));
+        Assert.ThrowsAny<Exception>(
+            () => connection.Execute("SELECT * FROM users LEFT JOIN orders"));
+        Assert.ThrowsAny<Exception>(
+            () => connection.Execute("SELECT * FROM users RIGHT JOIN orders"));
+        Assert.ThrowsAny<Exception>(
+            () => connection.Execute("SELECT * FROM users FULL JOIN orders"));
+    }
+
+    // The live twin of the leading-WITH guard for DML on Oracle (ADR 0011): the
+    // subquery_factoring_clause belongs inside the feeding SELECT.
+    [Fact]
+    public void LeadingWithBeforeInsert_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "WITH c AS (SELECT 901 AS id, 'x' AS name FROM dual) "
+                    + "INSERT INTO users (id, name) SELECT id, name FROM c",
+                transaction: transaction));
+        transaction.Rollback();
     }
 }

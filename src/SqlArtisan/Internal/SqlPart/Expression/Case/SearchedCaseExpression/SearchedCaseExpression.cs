@@ -13,12 +13,12 @@ public sealed class SearchedCaseExpression : SqlExpression
 
     internal SearchedCaseExpression(
         SearchedCaseWhenClause[] whenClauses,
-        CaseElseExpression elseClause)
+        CaseElseExpression elseExpr)
     {
-        ArgumentNullException.ThrowIfNull(elseClause);
+        ArgumentNullException.ThrowIfNull(elseExpr);
 
         _whenClauses = whenClauses;
-        _elseClause = elseClause;
+        _elseClause = elseExpr;
     }
 
     internal override void Format(SqlBuildingBuffer buffer)

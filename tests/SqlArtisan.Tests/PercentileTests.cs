@@ -9,131 +9,91 @@ public class PercentileTests
     [Fact]
     public void PercentileCont_WithinGroup_CorrectSql()
     {
-        // Arrange
         string expected =
             "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY code)";
-
-        // Act
         SqlStatement sql =
             Select(PercentileCont(0.5).WithinGroup(OrderBy(_t.Code))).Build();
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 
     [Fact]
     public void PercentileCont_WithinGroupOverEmpty_CorrectSql()
     {
-        // Arrange
         string expected =
             "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY code) OVER ()";
-
-        // Act
         SqlStatement sql =
             Select(PercentileCont(0.5).WithinGroup(OrderBy(_t.Code)).Over())
             .Build(Dbms.SqlServer);
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 
     [Fact]
     public void PercentileCont_WithinGroupOverPartitionBy_CorrectSql()
     {
-        // Arrange
         string expected =
             "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY code) OVER (PARTITION BY name)";
-
-        // Act
         SqlStatement sql =
             Select(
                 PercentileCont(0.5)
                     .WithinGroup(OrderBy(_t.Code))
                     .Over(PartitionBy(_t.Name)))
             .Build(Dbms.SqlServer);
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 
     [Fact]
     public void PercentileCont_WithFractionAndAlias_CorrectSql()
     {
-        // Arrange
         string expected =
             "SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY code DESC) \"p90\"";
-
-        // Act
         SqlStatement sql =
             Select(
                 PercentileCont(0.9).WithinGroup(OrderBy(_t.Code.Desc)).As("p90"))
             .Build();
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 
     [Fact]
     public void PercentileDisc_WithinGroup_CorrectSql()
     {
-        // Arrange
         string expected =
             "SELECT PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY code)";
-
-        // Act
         SqlStatement sql =
             Select(PercentileDisc(0.5).WithinGroup(OrderBy(_t.Code))).Build();
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 
     [Fact]
     public void PercentileDisc_WithinGroupOverPartitionBy_CorrectSql()
     {
-        // Arrange
         string expected =
             "SELECT PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY code) OVER (PARTITION BY name)";
-
-        // Act
         SqlStatement sql =
             Select(
                 PercentileDisc(0.5)
                     .WithinGroup(OrderBy(_t.Code))
                     .Over(PartitionBy(_t.Name)))
             .Build(Dbms.SqlServer);
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 
     [Fact]
     public void PercentileCont_WithFractionZero_CorrectSql()
     {
-        // Arrange
         string expected =
             "SELECT PERCENTILE_CONT(0) WITHIN GROUP (ORDER BY code)";
-
-        // Act
         SqlStatement sql =
             Select(PercentileCont(0).WithinGroup(OrderBy(_t.Code))).Build();
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 
     [Fact]
     public void PercentileDisc_WithFractionOne_CorrectSql()
     {
-        // Arrange
         string expected =
             "SELECT PERCENTILE_DISC(1) WITHIN GROUP (ORDER BY code)";
-
-        // Act
         SqlStatement sql =
             Select(PercentileDisc(1).WithinGroup(OrderBy(_t.Code))).Build();
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 

@@ -14,7 +14,8 @@ public sealed class PartitionByAndOrderBy : SqlPart
     }
 
     /// <summary>
-    /// Adds a <c>RANGE bound</c> window frame to this partition/ordering (for use within <c>OVER</c>).
+    /// Adds a <c>RANGE bound</c> window frame to this partition/ordering (for use within
+    /// <c>OVER</c>).
     /// </summary>
     public WindowFrameClause Range(FrameBound bound) =>
         new(this, new WindowFrame(Keywords.Range, bound));
@@ -27,7 +28,8 @@ public sealed class PartitionByAndOrderBy : SqlPart
         new(this, new WindowFrame(Keywords.Range, new FrameBetween(start, end)));
 
     /// <summary>
-    /// Adds a <c>ROWS bound</c> window frame to this partition/ordering (for use within <c>OVER</c>).
+    /// Adds a <c>ROWS bound</c> window frame to this partition/ordering (for use within
+    /// <c>OVER</c>).
     /// </summary>
     public WindowFrameClause Rows(FrameBound bound) =>
         new(this, new WindowFrame(Keywords.Rows, bound));

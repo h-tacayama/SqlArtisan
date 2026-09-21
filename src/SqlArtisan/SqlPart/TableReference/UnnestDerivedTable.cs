@@ -24,6 +24,7 @@ public sealed class UnnestDerivedTable : DerivedTableBase, IColumnAccessor
     /// <inheritdoc/>
     public DbColumn Column(string name) => new(this, name);
 
+    // Bare like ValuesDerivedTable.Column(DbColumn), for the reason stated there.
     /// <inheritdoc/>
     public DbColumn Column(DbColumn source) => new(this, source.Name);
 

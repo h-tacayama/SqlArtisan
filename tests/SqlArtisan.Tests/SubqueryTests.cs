@@ -357,4 +357,20 @@ public class SubqueryTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void In_InsertSelectChain_ThrowsArgumentException()
+    {
+        // The INSERT ... SELECT chain is an ISubquery through its SELECT stages,
+        // but no dialect takes an INSERT in a value position.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code.In(InsertInto(_s, _s.Code).Select(_r.Code).From(_r)))
+            .Build());
+
+        Assert.Equal(
+            "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.",
+            ex.Message);
+    }
 }

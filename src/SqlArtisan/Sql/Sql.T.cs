@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using SqlArtisan.Internal;
 using static SqlArtisan.Internal.ExpressionResolver;
 
@@ -20,7 +21,10 @@ public static partial class Sql
     /// <see cref="Interval(object, DateTimePart)"/>; the unit is a bare keyword,
     /// not an <c>INTERVAL</c> expression.
     /// </remarks>
-    public static TimestampaddFunction Timestampadd(DateTimePart unit, object number, object dateTime) =>
+    public static TimestampaddFunction Timestampadd(
+        DateTimePart unit,
+        object number,
+        object dateTime) =>
         new(unit, Resolve(number), Resolve(dateTime));
 
     /// <summary>
@@ -51,13 +55,15 @@ public static partial class Sql
     /// </summary>
     /// <param name="expr">The value to convert to text.</param>
     /// <returns>A <c>TO_CHAR</c> function expression.</returns>
-    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
+    /// <remarks>Oracle syntax.</remarks>
     public static ToCharFunction ToChar(object expr) =>
         new(Resolve(expr));
 
     /// <inheritdoc cref="ToChar(object)"/>
     /// <param name="expr">The value to convert to text.</param>
     /// <param name="format">The format model (Oracle-style) controlling the output.</param>
+    /// <remarks>Oracle and PostgreSQL syntax. PostgreSQL's <c>to_char</c> requires
+    /// the format argument, so only this two-argument form runs there.</remarks>
     public static ToCharFunction ToChar(object expr, object format) =>
         new(Resolve(expr), Resolve(format));
 
@@ -77,6 +83,7 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>DAY TO HOUR</c>).
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static IntervalField ToHour => new(DateTimePart.Hour, null);
 
     /// <summary>
@@ -84,6 +91,7 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>DAY TO MINUTE</c>, <c>HOUR TO MINUTE</c>).
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static IntervalField ToMinute => new(DateTimePart.Minute, null);
 
     /// <summary>
@@ -91,6 +99,7 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (<c>YEAR TO MONTH</c>).
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static IntervalField ToMonth => new(DateTimePart.Month, null);
 
     /// <summary>
@@ -112,6 +121,16 @@ public static partial class Sql
         new(Resolve(expr), Resolve(numericFormat));
 
     /// <summary>
+    /// SQL Server's <c>TOP (n)</c> select prefix, <c>Select(Top(n), ...)</c>: the first
+    /// n rows. Chain <c>.WithTies()</c> (ties under the <c>ORDER BY</c> ride along) or
+    /// <c>.Percent()</c>; not combinable with <c>LIMIT</c>, <c>OFFSET</c>, or <c>FETCH</c>.
+    /// </summary>
+    /// <param name="count">The row count (or percent, with <c>.Percent()</c>).</param>
+    /// <returns>A <see cref="TopClause"/> for a <c>SELECT</c> prefix.</returns>
+    /// <remarks>SQL Server syntax.</remarks>
+    public static TopClause Top(int count) => new(count);
+
+    /// <summary>
     /// The <c>SECOND</c> trailing interval field, for the trailing argument of
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>DAY TO SECOND</c>).
@@ -119,7 +138,9 @@ public static partial class Sql
     /// <param name="precision">The fractional-second digit count (0-9); omit for
     /// Oracle's own default of 6. As a sole field rather than a range's trailing
     /// one, Oracle reads the same digits as the leading precision instead.</param>
-    public static IntervalField ToSecond(int? precision = null) => new(DateTimePart.Second, precision);
+    public static IntervalField ToSecond(int? precision = null) => new(
+        DateTimePart.Second,
+        precision);
 
     /// <summary>
     /// The <c>TO_TIMESTAMP(text, format)</c> function: parses <paramref name="text"/>
@@ -178,23 +199,12 @@ public static partial class Sql
     }
 
     /// <summary>
-    /// SQL Server's <c>TOP (n)</c> select prefix — limits the result to the first
-    /// n rows: <c>Select(Top(n), ...)</c>. Chain <c>.WithTies()</c> (also returns
-    /// rows tied with the last under the query's <c>ORDER BY</c>) or
-    /// <c>.Percent()</c> (n percent of rows). Not combinable with <c>OFFSET</c> /
-    /// <c>FETCH</c>.
-    /// </summary>
-    /// <param name="count">The row count (or percent, with <c>.Percent()</c>).</param>
-    /// <returns>A <see cref="TopClause"/> for a <c>SELECT</c> prefix.</returns>
-    /// <remarks>SQL Server syntax.</remarks>
-    public static TopClause Top(int count) => new(count);
-
-    /// <summary>
     /// The <c>TRIM(source)</c> function: removes leading and trailing spaces from
     /// <paramref name="source"/>.
     /// </summary>
     /// <param name="source">The string to trim.</param>
     /// <returns>A <c>TRIM</c> function expression.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite, and SQL Server (2017+) syntax.</remarks>
     public static TrimFunction Trim(object source) =>
         new(Resolve(source));
 
@@ -206,18 +216,15 @@ public static partial class Sql
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChar">The character to strip from both ends instead of spaces.</param>
     /// <returns>A <c>TRIM</c> function expression.</returns>
-    /// <remarks>
-    /// Emits the ANSI <c>TRIM(BOTH trimChar FROM source)</c> form, which SQL Server
-    /// (2022+) accepts only at compatibility level 160. Not supported by SQLite,
-    /// whose grammar has no <c>BOTH ... FROM</c> clause; its positional
-    /// <c>trim(source, trimChar)</c> is a separate function this does not emit.
-    /// </remarks>
+    /// <remarks>The ANSI <c>TRIM(BOTH trimChar FROM source)</c> form; SQL Server (2022+)
+    /// accepts it only at compatibility level 160. Not supported by SQLite, whose positional
+    /// <c>trim(source, trimChar)</c> is a separate function this does not emit.</remarks>
     public static TrimFunction Trim(object source, object trimChar) =>
         new(Resolve(source), Resolve(trimChar));
 
     /// <summary>
-    /// The <c>TRUNC(expr)</c> function: truncates <paramref name="expr"/> toward zero
-    /// to an integer.
+    /// The <c>TRUNC(expr)</c> function: truncates <paramref name="expr"/> — a number
+    /// toward zero to an integer, or a date to the start of its day.
     /// </summary>
     /// <param name="expr">The numeric or date value to truncate.</param>
     /// <returns>A <c>TRUNC</c> function expression.</returns>

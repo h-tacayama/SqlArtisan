@@ -12,6 +12,7 @@ public static partial class Sql
     /// <param name="leftVector">The first vector.</param>
     /// <param name="rightVector">The second vector.</param>
     /// <returns>A <c>&lt;+&gt;</c> operator expression.</returns>
+    /// <remarks>PostgreSQL syntax; Oracle has no L1 shorthand.</remarks>
     public static L1DistanceOperator L1Distance(object leftVector, object rightVector) =>
         new(Resolve(leftVector), Resolve(rightVector));
 
@@ -23,6 +24,7 @@ public static partial class Sql
     /// <param name="leftVector">The first vector.</param>
     /// <param name="rightVector">The second vector.</param>
     /// <returns>A <c>&lt;-&gt;</c> operator expression.</returns>
+    /// <remarks>Oracle (23ai+) and PostgreSQL syntax.</remarks>
     public static L2DistanceOperator L2Distance(object leftVector, object rightVector) =>
         new(Resolve(leftVector), Resolve(rightVector));
 
@@ -150,6 +152,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="source">The string whose length is measured.</param>
     /// <returns>The LENGTH construct.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite syntax. Not available on
+    /// SQL Server.</remarks>
     public static LengthFunction Length(object source) =>
         new(Resolve(source));
 
@@ -209,14 +213,9 @@ public static partial class Sql
     /// <param name="base">The base of the logarithm.</param>
     /// <param name="expr">The value whose logarithm is taken.</param>
     /// <returns>A <c>LOG</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+) syntax — all four read
-    /// the base first. SQL Server takes the two arguments in the opposite order
-    /// (<c>LOG(value, base)</c>): for an arbitrary base there, call this same
-    /// overload with the arguments swapped — <c>Log(value, base)</c>. Its base-e
-    /// and base-10 spellings are <see cref="Log(object)"/> and
-    /// <see cref="Log10(object)"/>; it has no <see cref="Ln(object)"/>. On
-    /// PostgreSQL this form is defined for <c>numeric</c> only, not
-    /// <c>double precision</c>.</remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.35+) syntax — all four read the base
+    /// first; SQL Server reads <c>LOG(value, base)</c>, so swap the arguments there.
+    /// PostgreSQL defines this form for <c>numeric</c> only.</remarks>
     public static LogFunction Log(object @base, object expr) =>
         new(Resolve(@base), Resolve(expr));
 
@@ -252,10 +251,15 @@ public static partial class Sql
     public static LpadFunction Lpad(object source, object length) =>
         new(Resolve(source), Resolve(length));
 
-    /// <inheritdoc cref="Lpad(object, object)"/>
+    /// <summary>
+    /// The <c>LPAD(<paramref name="source"/>, <paramref name="length"/>, <paramref name="padding"/>)</c>
+    /// function: left-pads <paramref name="source"/> with <paramref name="padding"/> to
+    /// <paramref name="length"/> characters (truncating if longer).
+    /// </summary>
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target total length.</param>
     /// <param name="padding">The string to pad with instead of spaces.</param>
+    /// <returns>The LPAD construct.</returns>
     /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
     public static LpadFunction Lpad(object source, object length, object padding) =>
         new(Resolve(source), Resolve(length), Resolve(padding));
@@ -269,9 +273,14 @@ public static partial class Sql
     public static LtrimFunction Ltrim(object source) =>
         new(Resolve(source));
 
-    /// <inheritdoc cref="Ltrim(object)"/>
+    /// <summary>
+    /// The <c>LTRIM(<paramref name="source"/>, <paramref name="trimChars"/>)</c>
+    /// function: removes any of <paramref name="trimChars"/> from the left of
+    /// <paramref name="source"/>.
+    /// </summary>
     /// <param name="source">The string to trim.</param>
     /// <param name="trimChars">The set of characters to strip from the left.</param>
+    /// <returns>The LTRIM construct.</returns>
     /// <remarks>Oracle, PostgreSQL, SQLite, and SQL Server (2022+) syntax; SQL
     /// Server also requires database compatibility level 160, the default for
     /// new databases.</remarks>

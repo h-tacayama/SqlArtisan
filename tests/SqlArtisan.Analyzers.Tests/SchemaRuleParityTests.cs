@@ -9,9 +9,8 @@ namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
 /// The empirical no-false-positive gate for the schema rules (SQLA0200–SQLA0205):
-/// one catalog of hazard shapes, asserted silent against every rule that reads the
-/// surrounding query, so a shape added here becomes a regression test for all of
-/// them at once.
+/// one catalog of hazard shapes asserted silent against every rule that reads the
+/// surrounding query, so a shape added here regresses all of them at once.
 /// </summary>
 /// <remarks>
 /// Six of these shapes shipped as live false positives before the gate existed —
@@ -43,7 +42,8 @@ public class SchemaRuleParityTests
                 Key = new DbColumn(this, "key");
             }
 
-            [DbColumnMetadata(Nullable = false, HasDefault = false, TypeCategory = DbTypeCategory.Text)]
+            [DbColumnMetadata(Nullable =
+                false, HasDefault = false, TypeCategory = DbTypeCategory.Text)]
             public DbColumn Code { get; }
 
             [DbColumnMetadata(Nullable = true, HasDefault = false)]
@@ -126,6 +126,54 @@ public class SchemaRuleParityTests
         },
         {
             """
+            var s = InsertInto(t, t.Code, t.Key).Values("x", "y").OnConflict(t.Key).DoUpdateSet(t.Key == Excluded(t.Key)).Where(Excluded(t.Key) != t.Key).Build();
+            """,
+            ""
+        },
+        {
+            """
+            var s = Select(t.Code).From(t).InnerJoin(r).Using(t.Key).Where(t.Code == "a").Build();
+            """,
+            ""
+        },
+        {
+            """
+            SubqueryDerivedTable x = Select(t.Key).From(t).AsTable("x");
+            var s = Select(x.Column(t.Key)).From(x).Where(x.Column(t.Key) == "k").Build();
+            """,
+            ""
+        },
+        // A compound subquery is inside its enclosing statement: the outer join
+        // that silences the predicate sits above the set operator, not beside it.
+        {
+            """
+            var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(Exists(Select(d.Column("c")).From(d).Where(r.Code.IsNull).Union.Select(d.Column("c")).From(d))).Build();
+            """,
+            ""
+        },
+        // The branch before a set operator keeps its own joins: the compound's
+        // remaining chain is walked through, not skipped as a nested statement.
+        {
+            """
+            var s = Select(t.Code, Count(r.Note)).From(t).LeftJoin(r).On(t.Code == r.Code).Where(r.Code.IsNull).GroupBy(t.Code).Union.Select(t.Code, Count(t.Code)).From(t).GroupBy(t.Code).Build();
+            """,
+            ""
+        },
+        {
+            """
+            var s = Select(t.Code).From(t).Union.Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Where(r.Code.IsNull).Union.Select(t.Code).From(t).Build();
+            """,
+            ""
+        },
+        // A CASE branch marker carries the column without wrapping it.
+        {
+            """
+            var s = Select(t.Code).From(t).Where(Case(When(t.Code == "a").Then("1"), Else(t.Key)) == "z").Build();
+            """,
+            ""
+        },
+        {
+            """
             SqlCondition mismatched = t.Code == 1;
             var s = Select(t.Code).From(t).Where(mismatched).Build();
             """,
@@ -166,8 +214,27 @@ public class SchemaRuleParityTests
             ""
         },
         {
-            "var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Note).From(r).Where(Col.IsNotNull))).Build();",
+            "var s = Select(t.Code).From(t).Where(t.Code.NotIn(Select(r.Note).From(r)"
+                + ".Where(Col.IsNotNull))).Build();",
             "static DbColumn Col => new T(\"r\").Note;"
+        },
+        // A helper outside SqlArtisan may place its argument anywhere, so the
+        // chain visible above the call is not the one the argument ends in.
+        {
+            "var s = Select(t.Code).From(t).Where(Wrap(t.Code.IsNull)).Build();",
+            "static SqlCondition Wrap(SqlCondition c) => c;"
+        },
+        {
+            "var s = Select(Wrap(Count(t.Note))).From(t).Build();",
+            "static SqlExpression Wrap(SqlExpression e) => e;"
+        },
+        {
+            "var s = Select(t.Code).From(t).Where(Wrap(t.Code == 1)).Build();",
+            "static SqlCondition Wrap(SqlCondition c) => c;"
+        },
+        {
+            "var s = Select(t.Code).From(t).Where(Wrap(Upper(t.Key) == \"X\")).Build();",
+            "static SqlCondition Wrap(SqlCondition c) => c;"
         },
     };
 
@@ -182,7 +249,8 @@ public class SchemaRuleParityTests
             .Where(t => t.IsInterface)
             .SelectMany(t => t.GetMethods())
             .Select(m => m.Name)
-            .Where(name => name.EndsWith("Join") || name.EndsWith("Lateral") || name.EndsWith("Apply"))
+            .Where(
+                name => name.EndsWith("Join") || name.EndsWith("Lateral") || name.EndsWith("Apply"))
             .Distinct()
             .OrderBy(name => name, System.StringComparer.Ordinal)];
 
@@ -190,6 +258,139 @@ public class SchemaRuleParityTests
             .OrderBy(name => name, System.StringComparer.Ordinal)];
 
         Assert.Equal(classified, joinSteps);
+    }
+
+    [Fact]
+    public void EveryCoreSetOperator_IsClassified()
+    {
+        string[] setOperators = [.. Core.GetExportedTypes()
+            .Where(t => t.IsInterface)
+            .SelectMany(t => t.GetProperties())
+            .Where(p => p.PropertyType.Name == "ISelectBuilderSetOperator")
+            .Select(p => p.Name)
+            .Distinct()
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        string[] classified = [.. FluentChain.SetOperators
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        Assert.Equal(classified, setOperators);
+    }
+
+    // A factory handing back a pseudo-row column reference (EXCLUDED, INSERTED,
+    // DELETED) wraps nothing; the index rule must not read it as a function.
+    [Fact]
+    public void EveryCorePseudoRowFactory_IsClassified()
+    {
+        string[] factories = [.. typeof(Sql).GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.ReturnType.Name.EndsWith("Column") && m.ReturnType != typeof(DbColumn))
+            .Select(m => m.Name)
+            .Distinct()
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        string[] classified = [.. UnusableIndexPredicateRule.PseudoRowReferences
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        Assert.Equal(classified, factories);
+    }
+
+    // A core member taking a bare DbColumn and yielding an expression is what the
+    // index rule reads as a wrapping (a stage or DbColumn result is a reference); the
+    // set must stay the three pseudo-row factories, or a new member ships a false positive.
+    [Fact]
+    public void EveryCoreBareColumnMemberYieldingAnExpression_IsAPseudoRowFactory()
+    {
+        string[] wrappings = [.. Core.GetExportedTypes()
+            .SelectMany(t => t.GetMethods(
+                BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance))
+            .Where(m => m.GetParameters().Any(p => p.ParameterType == typeof(DbColumn))
+                && typeof(SqlExpression).IsAssignableFrom(m.ReturnType)
+                && m.ReturnType != typeof(DbColumn)
+                && !typeof(SqlCondition).IsAssignableFrom(m.ReturnType))
+            .Select(m => m.Name)
+            .Distinct()
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        Assert.Equal(
+            UnusableIndexPredicateRule.PseudoRowReferences
+                .OrderBy(n => n, System.StringComparer.Ordinal),
+            wrappings);
+    }
+
+    // Every object-argument Sql factory yielding a non-function, non-operator
+    // expression is classified here — carrier, wrapping, or never-a-column. One
+    // taking a typed SqlExpression (All/Any/Some) is outside this population.
+    [Fact]
+    public void EveryCoreObjectArgumentExpressionFactory_IsClassified()
+    {
+        string[] unclassified = [.. typeof(Sql).GetMethods(
+            BindingFlags.Public | BindingFlags.Static)
+            .Where(m => typeof(SqlExpression).IsAssignableFrom(m.ReturnType)
+                && !typeof(SqlCondition).IsAssignableFrom(m.ReturnType)
+                && !m.ReturnType.Name.EndsWith("Function", System.StringComparison.Ordinal)
+                && !m.ReturnType.Name.EndsWith("Operator", System.StringComparison.Ordinal)
+                && m.GetParameters().Any(p => p.ParameterType == typeof(object)))
+            .Select(m => m.Name)
+            .Distinct()
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        // A simple CASE operand and CAST transform the column exactly as a function
+        // does; Bind and Interval take a value, never a column reference.
+        string[] wrappings = ["Case", "Cast"];
+        string[] nonColumn = ["Bind", "Interval"];
+
+        Assert.Equal(
+            UnusableIndexPredicateRule.ExpressionCarriers
+                .Concat(wrappings)
+                .Concat(nonColumn)
+                .OrderBy(n => n, System.StringComparer.Ordinal),
+            unclassified);
+    }
+
+    [Fact]
+    public void EveryCoreAssignmentStep_IsClassified()
+    {
+        string[] steps = [.. Core.GetExportedTypes()
+            .Where(t => t.IsInterface)
+            .SelectMany(t => t.GetMethods())
+            .Where(m => m.GetParameters().Any(p => p.ParameterType == typeof(EqualityCondition[])))
+            .Select(m => m.Name)
+            .Distinct()
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        string[] classified = [.. TypeCategoryMismatchRule.AssignmentSteps
+            .OrderBy(name => name, System.StringComparer.Ordinal)];
+
+        Assert.Equal(classified, steps);
+    }
+
+    // Roslyn orders Arguments as written, so a positional index misreads a
+    // named call: index 0 is safe only on a call checked to carry one
+    // argument, and a higher index never is — the rules look up by name.
+    [Fact]
+    public void NoRule_IndexesASecondInvocationArgumentByPosition()
+    {
+        string root = FindRepoRoot();
+        string analyzers = Path.Combine(root, "src", "SqlArtisan.Analyzers");
+        System.Text.RegularExpressions.Regex positional = new(@"\bArguments\[[1-9]");
+        string[] offenders = [.. Directory.EnumerateFiles(analyzers, "*.cs")
+            .Where(f => positional.IsMatch(File.ReadAllText(f)))
+            .Select(f => Path.GetFileName(f))
+            .OrderBy(n => n, System.StringComparer.Ordinal)];
+
+        Assert.Empty(offenders);
+    }
+
+    private static string FindRepoRoot()
+    {
+        DirectoryInfo? dir = new(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "SqlArtisan.sln")))
+        {
+            dir = dir.Parent;
+        }
+
+        Assert.NotNull(dir);
+        return dir.FullName;
     }
 
     [Theory]
@@ -214,7 +415,8 @@ public class SchemaRuleParityTests
     [Fact]
     public Task ConstantNullPredicate_PastInnerJoin_Reports() =>
         RunReporting(
-            "var s = Select(t.Code).From(t).InnerJoin(r).On(t.Code == r.Code).Where({|#0:r.Code.IsNull|}).Build();",
+            "var s = Select(t.Code).From(t).InnerJoin(r).On(t.Code == "
+                + "r.Code).Where({|#0:r.Code.IsNull|}).Build();",
             new DiagnosticResult("SQLA0200", DiagnosticSeverity.Warning)
                 .WithLocation(0)
                 .WithArguments("Code", "IsNull", "false"));

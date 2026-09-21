@@ -99,13 +99,13 @@ still needs naming by ID.
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
 | `SQLA0104` | Warning | A literal `DateTimePart` argument to `Extract`/`Datepart`/`Dateadd`/`Datediff`/`DateTrunc`/`Datetrunc`/`Interval`/`Timestampadd`/`Timestampdiff` is not a value the configured dialect's grammar accepts for that function — see [Datepart validity](#datepart-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
-| `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
+| `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join on its own spine — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0203` | Info, **off by default** | `Count(column)` on a column the generated table class declares nullable, which counts values rather than rows. Advice on correct code, so it reports nothing until you turn it on — see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0204` | Warning | A `WHERE` or `ON` predicate wraps an indexed column in a function, or matches it with a leading-wildcard pattern, so no index on it can be used. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0205` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two for you, and on MySQL that changes which rows match. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
-| `SQLA0300` | Warning | A correlated UPDATE or DELETE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
+| `SQLA0300` | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
 
 `SQLA0001` and `SQLA0002` are both compilation-end diagnostics with no file
 location: they appear in **build** output (CLI and CI, and an IDE's Error
@@ -304,8 +304,10 @@ favor of the family:
 ```
 
 Using either legacy key with no `sqlartisan_syntax_*` key present reports
-`SQLA0002` once per compilation, including when the pair resolves perfectly
-correctly — the warning is what makes the pair's eventual removal in a
+`SQLA0002` once per distinct legacy configuration in the compilation (a
+solution whose directory-scoped `.editorconfig` files give projects different
+legacy pairs gets one report each), including when the pair resolves perfectly
+correctly (a legacy value that fails to resolve draws `SQLA0001` alone) — the warning is what makes the pair's eventual removal in a
 future major version expected rather than sudden. (Once a family key is
 present, the family governs and `SQLA0002` yields to the rules below.) If your project has `TreatWarningsAsErrors` and cannot migrate
 immediately, suppress `SQLA0002` specifically — not `SQLA0001`, and not the
@@ -375,8 +377,8 @@ name becomes a lowercase, underscore-separated word — `MergeInto` →
 `merge_into`, `DateTrunc` → `date_trunc`. A member with no internal capital
 (`Dateadd`, from the underscore-free SQL token `DATEADD`) stays one word:
 `dateadd`. The arity suffix is spelled out (`_arity2`, never a bare `_2`) so
-it can't collide with a member name that itself ends in a digit (`Atan2` →
-`atan2` is a different key from `Atan`'s 2-argument form, `atan_arity2`).
+it can't collide with a member name that itself ends in a digit (`Log10` →
+`log10` is a different key from `Log`'s 2-argument form, `log_arity2`).
 
 An overloaded C# operator is keyed by its CLR method name: `%` is
 `op_Modulus`, so its key is `sqlartisan_construct_op_modulus`. No need to
@@ -461,8 +463,8 @@ Or, if you prefer an MSBuild property:
   silent whether or not a version is declared.
 - **Same plumbing as every `sqlartisan_syntax_*` key.** Resolved per source
   file and per DBMS, `.editorconfig` wins over the MSBuild property, and an
-  unrecognized value is flagged as `SQLA0001` and otherwise treated as
-  unset for that DBMS.
+  unrecognized `.editorconfig` value is flagged as `SQLA0001` and falls
+  through to the MSBuild property for that DBMS (unset when none is given).
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0101`, a `[SuppressMessage]` attribute, or
@@ -490,11 +492,11 @@ the version is what lifts it.
 | `Except`, `ExceptAll`, `IntersectAll`, `MinusAll` | Oracle | 21 | `EXCEPT`, `EXCEPT ALL`, `INTERSECT ALL`, and `MINUS ALL` landed in Oracle 21c (plain `INTERSECT`/`MINUS` predate it) — live-verified forward-compatible on Oracle 23ai too. |
 | `L2Distance`, `CosineDistance`, `NegativeInnerProduct` | Oracle | 23 | The `<->`, `<=>`, and `<#>` vector distance shorthands landed with Oracle 23ai's AI Vector Search (the other three pgvector operators have no Oracle spelling at any version). |
 | `MergeInto`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete`, the 3-argument `Values` (MERGE `USING` literal rows) | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. `Using` itself carries no bound — the key is shared with `DeleteBuilder`'s plain `DELETE ... USING`, which predates and does not require PostgreSQL 15; the `MergeInto` bound still flags a MERGE statement below 15. |
-| `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` | PostgreSQL | 15 | `regexp_like`, `regexp_count`, `regexp_substr`, and `regexp_instr` landed in PostgreSQL 15. `regexp_replace` predates it — 15 is where it gained the position and occurrence arguments — but the bound covers every `RegexpReplace` overload, so a 3-argument call is reported below 15 too. MySQL's `REGEXP_SUBSTR`/`REGEXP_INSTR` top out at 5/6 arguments respectively (neither has `subexpr`), so `RegexpSubstr`'s 6-argument and `RegexpInstr`'s 7-argument overloads are MySQL-unsupported at any version, independent of this PostgreSQL bound. |
+| `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` | PostgreSQL | 15 | `regexp_like`, `regexp_count`, `regexp_substr`, and `regexp_instr` landed in PostgreSQL 15. `regexp_replace` predates it — 15 is where it gained the position and occurrence arguments — so the bound covers only `RegexpReplace`'s position/occurrence/options overloads (4+ arguments); the 3-argument call is not reported below 15. MySQL's `REGEXP_SUBSTR`/`REGEXP_INSTR` top out at 5/6 arguments respectively (neither has `subexpr`), so `RegexpSubstr`'s 6-argument and `RegexpInstr`'s 7-argument overloads are MySQL-unsupported at any version, independent of this PostgreSQL bound. |
 | `Log10` | PostgreSQL | 12 | `log10()` landed in PostgreSQL 12; before it, base-10 was spelled `log(x)`. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
-| `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`); none of these functions exist below it. |
+| `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`), and `sign()` arrived in the same release as a core function; none of these functions exist below it. |
 | `Substring` | SQLite | 3.34 | SQLite registered `SUBSTRING` as a second name for `substr()` in 3.34. |
 | `StringAgg` (both overloads), `Concat` (both overloads), `ConcatWs` | SQLite | 3.44 | `string_agg`/`concat`/`concat_ws` landed in SQLite 3.44. |
 | `NullsFirst`, `NullsLast` | SQLite | 3.30 | `NULLS FIRST`/`NULLS LAST` landed in SQLite 3.30. |
@@ -655,10 +657,12 @@ this construct," which is not what a context rule reports.
 
 ## Datepart validity (SQLA0104)
 
-`DateTimePart` is a 42-member superset shared across `Extract`, `Datepart`,
-`Dateadd`, `Datediff`, `DateTrunc`, `Datetrunc`, `Interval`, `Timestampadd`,
-and `Timestampdiff` — its own XML doc says explicitly that not every field is
-valid for every function or dialect. `SQLA0100` cannot express that: the
+`DateTimePart` is a 42-member superset shared across eleven functions — its
+own XML doc says explicitly that not every field is valid for every function
+or dialect. `SQLA0104` covers nine of them (`Extract`, `Datepart`, `Dateadd`,
+`Datediff`, `DateTrunc`, `Datetrunc`, `Interval`, `Timestampadd`,
+`Timestampdiff`); `Numtodsinterval` and `Numtoyminterval` reject any unit
+outside their fixed set eagerly at the call instead (see Known limitations). `SQLA0100` cannot express that: the
 construct itself *is* supported, so a call like
 `Extract(DateTimePart.Epoch, x)` targeting Oracle passes the construct-level
 check and fails only when the database runs it (`EPOCH` is a PostgreSQL-only
@@ -668,7 +672,8 @@ eleven (function, dialect) pairings below:
 | Function | Checked dialect(s) |
 |---|---|
 | `Extract` | MySQL, Oracle, PostgreSQL — each against its own field list |
-| `Datepart`, `Dateadd`, `Datediff` | SQL Server — all three share one datepart list |
+| `Datepart` | SQL Server — its own 15-entry datepart list |
+| `Dateadd`, `Datediff` | SQL Server — a shared 13-entry list, narrower than `Datepart`'s (no `TZOFFSET` or `ISO_WEEK`) |
 | `DateTrunc` | PostgreSQL |
 | `Datetrunc` | SQL Server |
 | `Interval` | MySQL — the same unit list as MySQL's `Extract` |
@@ -686,8 +691,9 @@ var q = Select(Datetrunc(DateTimePart.Weekday, u.CreatedAt)).From(u);
 // warning SQLA0104: 'Weekday' is not a valid datepart for 'Datetrunc' on SQL Server
 ```
 
-Each list is built from the vendor's own reference and spot-verified against
-a live engine. Three cases stay silent, never a false positive:
+Each list is built from the vendor's own reference, and six of the eight are
+spot-verified against a live engine (`SqlServerDateaddFields` and
+`MySqlTimestampUnits` have no lane anchor yet). Three cases stay silent, never a false positive:
 
 - **The argument is not a compile-time constant** — a variable holding a
   computed `DateTimePart` cannot be resolved, the same
@@ -700,17 +706,20 @@ a live engine. Three cases stay silent, never a false positive:
   would otherwise double-report the same usage.
 
 Suppression is per rule ID (`#pragma warning disable SQLA0104`, a
-`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`); the
-`sqlartisan_construct_*` override keys do not apply — overriding "this
-function runs on my engine" is not a claim that every `DateTimePart` value
-does.
+`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`); a
+`sqlartisan_construct_*` override never silences a datepart verdict on a
+dialect where the construct runs. An `unsupported` override hands the whole
+usage to `SQLA0100`, and a `supported` override on a dialect the matrix flags
+unsupported re-arms this check there — asserting "this function runs on my
+engine" is not a claim that every `DateTimePart` value does.
 
 ---
 
 ## Correlated DML target (SQLA0300)
 
-An UPDATE or DELETE whose subquery references a column of the **unaliased**
-target table is a silent tautology: the bare outer column resolves to the
+An UPDATE, DELETE, or MERGE whose subquery — or, for MERGE, whose `USING`
+source — references a column of the **unaliased** target table is a silent
+tautology: the bare outer column resolves to the
 inner table, so the condition compares a row to itself and the statement
 updates or deletes every row. `Build()` rejects exactly this statement at
 run time; `SQLA0300` is the same finding surfaced at compile time, where
@@ -722,14 +731,15 @@ UsersTable u = new();
 OrdersTable o = new("o");
 var q = DeleteFrom(u)
     .Where(Exists(Select(o.Id).From(o).Where(o.UserId == u.Id)));
-// warning SQLA0300: The target of a correlated UPDATE or DELETE must be aliased
+// warning SQLA0300: The target of a correlated UPDATE, DELETE, or MERGE must be aliased
 ```
 
 The fix is the one the run-time guard demands: alias the target
 (`new UsersTable("u")`). On MySQL, Oracle, PostgreSQL, and SQLite the
-aliased target is the correlated form; on SQL Server the DML target cannot
-be aliased at all — write the joined UPDATE/DELETE form
-(`.From(...)` / `.Using(...)` with joins) instead.
+aliased target is the correlated form; on SQL Server an `UPDATE`/`DELETE`
+target cannot be aliased at all — write the joined form (`.From(...)` /
+`.Using(...)` with joins) instead. A MERGE target takes its alias on every
+dialect, and MERGE has no joined form.
 
 The diagnostic is **advisory duplication** of the `Build()` guard:
 suppressing it does not stop the exception — the statement still fails to
@@ -782,15 +792,19 @@ null-supplied side, and `.Where(r.Id.IsNull)` after a `LeftJoin` is the
 idiomatic anti-join — so the rule reports only where it can see there is no
 such join. That takes two conditions, both required:
 
-- The statement contains **no outer join** — no `LeftJoin`, `RightJoin`,
-  `FullJoin`, `NaturalLeftJoin`, `NaturalRightJoin`, `NaturalFullJoin`,
-  `LeftJoinLateral`, or `OuterApply`. Which side a join null-supplies is not
-  worked out; any one of them silences the statement. (`InnerJoin` and
-  `NaturalJoin` null-supply nothing and are not on the list.)
+- The statement's **own spine carries no outer join** — no `LeftJoin`,
+  `RightJoin`, `FullJoin`, `NaturalLeftJoin`, `NaturalRightJoin`,
+  `NaturalFullJoin`, `LeftJoinLateral`, or `OuterApply`. Which side a join
+  null-supplies is not worked out; any one of them on the spine silences the
+  statement, while one inside a subquery does not silence the statement around
+  it. (`InnerJoin` and `NaturalJoin` null-supply nothing and are not on the
+  list.)
 - The statement **builds its own query** — the chain starts at `Select` /
-  `Update` / `DeleteFrom` / `MergeInto` / `With` / `WithRecursive` right there.
+  `InsertInto` / `InsertIgnoreInto` (its feeding `SELECT`) / `Update` /
+  `DeleteFrom` / `MergeInto` / `With` / `WithRecursive` right there.
   A chain held in a variable, returned by a helper method, kept in a field,
-  or whose head is selected by a conditional expression
+  passed through a call into non-SqlArtisan code (which may place its argument
+  anywhere), or whose head is selected by a conditional expression
   (`(flag ? Select(...) : Select(...)).Where(...)`) is left alone: the join
   that would decide the answer is somewhere this rule cannot read.
 
@@ -812,9 +826,12 @@ var sql =
 ```
 
 Reach for `NOT EXISTS` instead, or filter the NULLs out of the subquery —
-adding `.Where(s.Ref.IsNotNull)` also silences the warning. `IN` is
-unaffected — there a NULL merely fails to match — so only `NOT IN` is
-reported.
+adding `.Where(s.Ref.IsNotNull)` also silences the warning. Only that
+predicate (or `Not(s.Ref.IsNull)`) on the selected column counts as the
+filter: a comparison or `IN` on the same column also excludes `NULL`, but
+the rule reads the column's own facts, not what another predicate implies.
+`IN` is unaffected — there a NULL merely fails to match — so only `NOT IN`
+is reported.
 
 The third is a row the engine rejects: an `INSERT` whose column list leaves out
 a column that is `NOT NULL` and has no default. What the catalog cannot show is
@@ -829,9 +846,10 @@ var sql = InsertInto(t, t.Note).Values("x").Build();
 
 A column the engine assigns itself — identity, auto-increment, generated, or
 one with a `DEFAULT` — is recorded as defaulted and never reported; omitting it
-is the normal thing to do. Only the explicit-column-list form is checked: the
-positional `InsertInto(t).Values(...)` supplies every column by construction,
-and `InsertIgnoreInto` asked for error-raising rows to be skipped.
+is the normal thing to do. The explicit-column-list form and the `Set` form
+(whose assignments are its column list) are checked; the positional
+`InsertInto(t).Values(...)` supplies every column by construction, and
+`InsertIgnoreInto` asked for error-raising rows to be skipped.
 
 > **MySQL caveat.** Outside strict mode MySQL does not reject this statement —
 > it substitutes an implicit default (`0`, `''`) and warns. `STRICT_TRANS_TABLES`
@@ -863,7 +881,8 @@ a build or in CI.
 
 Only the plain `Count(expr)` form is considered: `Count(Asterisk)` counts rows
 already, and `Count(Distinct, expr)` asks for distinct values, which `COUNT(*)`
-cannot give. Like `SQLA0200` it stays out of any statement with an outer join,
+cannot give. Like `SQLA0200` it stays out of any statement whose own spine has an outer
+join,
 where counting the column is precisely how you count the matched rows and
 `COUNT(*)` would count the unmatched ones too — the same reason a `NOT NULL`
 column is never reported in a plain query, where it and `COUNT(*)` agree.
@@ -885,6 +904,10 @@ to range over. The remediation is the same in every case — leave the column ba
 on the filtered side and move the work to the other side, or index the expression
 itself, which the generator then records as unknown and the rule stops reporting.
 
+A `CASE` *branch* over the column is not reported: `Then(t.Key)` and
+`Else(t.Key)` carry it unwrapped, so both stay silent. A simple-`CASE` operand
+(`Case(t.Key, When(...))`) transforms the column as `Cast` does and is reported.
+
 Only `WHERE` and `ON` are checked. The same call in a select list or an
 `ORDER BY` costs no index, and `HAVING` filters groups after any index has done
 its work. A condition built apart from its clause is left alone: nothing at that
@@ -903,7 +926,10 @@ on `(a, b)` is fully usable from a predicate on `a` alone, so `a` is recorded an
 scan and MySQL's skip-scan optimization both exist) rather than a fact. A
 **partial** (filtered) index claims nothing either way: whether its predicate
 covers your query is an expression the generator refuses to interpret, so a
-column that leads only a partial index stays unknown. On Oracle, one
+column that leads only a partial index stays unknown. An index the engine
+cannot use — Oracle `UNUSABLE`, a PostgreSQL invalid index, a disabled SQL
+Server index, a MySQL `INVISIBLE` one — records `false` for the column that
+leads it, since no query can reach it. On Oracle, one
 function-based index makes **every** column of that table record nothing — its
 expression text is stored in a form the tool does not read, so the whole table
 degrades to unknown rather than guess.
@@ -967,9 +993,11 @@ changes. `SQLA0201` additionally reads only a select list it can see: a
 subquery held in a variable, one whose chain does not begin at `Select(...)`
 (a `WITH`-headed query), or one selecting anything other than a single column,
 is left alone — as is one whose own filter it cannot read, since a condition
-held in a variable may be the `.Where(s.Ref.IsNotNull)` that already fixes it. `SQLA0202` skips a statement whose column list it cannot read in
-full — a column array built elsewhere — since a column it failed to read would
-otherwise look omitted.
+held in a variable may be the `.Where(s.Ref.IsNotNull)` that already fixes it.
+`SQLA0202` reads a column list written inline — as arguments, a `new[]` array,
+or a collection expression in the call — and skips a statement whose list it
+cannot read in full (a column array built elsewhere), since a column it failed
+to read would otherwise look omitted.
 
 Like every rule here, it stays silent until a dialect is configured, even
 though the verdict itself is dialect-independent. Suppression is per rule
@@ -1028,9 +1056,12 @@ public method, property, field, or overloaded operator ships without a matrix
 entry or a documented dialect-neutral exclusion, and an integration-test sweep
 executes the entries against a live engine per dialect (the versions in the
 table below), asserting that accept/reject outcomes match the matrix both ways.
-Two entries are excluded by name, and a dozen more skip individual engines
-where the shared runner or the container image cannot execute the statement —
-SQL Server's image ships without Full-Text Search, for example.
+Two entries are excluded by name, and a dozen more skip individual engines for
+a recorded reason: the shared runner or the container image cannot execute the
+statement — SQL Server's image ships without Full-Text Search, for example —
+the engine executes the text as a *different* construct, so its acceptance
+would prove nothing about the entry, or the driver rejects the statement
+client-side before it reaches the engine.
 
 ---
 
@@ -1093,13 +1124,28 @@ for, not a bug in the matrix.
   valid there unconditionally. Both are staying-permissive gaps, not
   false-positive risks: an argument this rule accepts can still fail at
   execution for a source-type reason it doesn't check.
+- **`SQLA0104` does not cover `Numtodsinterval` / `Numtoyminterval`.** Both
+  take a `DateTimePart` unit, but each accepts one fixed set no dialect varies
+  (`DAY`/`HOUR`/`MINUTE`/`SECOND`; `YEAR`/`MONTH`) and Oracle is the only
+  engine with either function, so the builder rejects any other unit eagerly
+  at the call and the analyzer has nothing dialect-keyed to add.
+- **`SQLA0103` models Oracle's 128-byte limit only.** Oracle raised the
+  identifier limit from 30 bytes to 128 in a past release (see Oracle's SQL
+  Language Reference for which); the rule applies the 128-byte baseline
+  whatever `sqlartisan_syntax_oracle` declares, so a 31–128-byte identifier on
+  an older target is not reported.
+- **`SQLA0103` traces table-class aliases through classic constructors only.**
+  A table class whose alias flows through a C# *primary constructor*
+  (`class T(string alias) : DbTableBase("t", alias)`) is not traced, so an
+  over-long alias passed to it is missed. TableClassGen always emits the
+  classic constructor form, so generated table classes are unaffected.
 - **`sqlartisan_construct_*` key names fail silently on a typo** (see above)
   — there is no diagnostic for an unrecognized `sqlartisan_construct_*` *key
-  name*, only for a recognized key with an unrecognized *value*. Value
-  validation covers the keys derived from the matrix; an override key naming
-  a member the matrix has no entry for is honored when its value is valid,
-  but a typo in its *value* is silently ignored too. `sqlartisan_syntax_*`
-  key names do not share this gap — a typo there is `SQLA0001`.
+  name*. The key's *value* is always validated — every key carrying the
+  prefix is swept, including one naming a member the matrix has no entry
+  for — so `suported` draws `SQLA0001` even on a made-up key; only the key
+  name itself can silently miss. `sqlartisan_syntax_*` key names do not
+  share this gap — a typo there is `SQLA0001`.
 - **Absence of an entry still means silence, not endorsement.** The matrix
   covers every referencable public method, property, field, and overloaded
   operator except a

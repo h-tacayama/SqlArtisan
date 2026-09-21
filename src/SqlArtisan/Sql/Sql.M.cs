@@ -44,9 +44,9 @@ public static partial class Sql
     public static MaxFunction Max(object expr) => new(Resolve(expr));
 
     /// <summary>
-    /// Starts a <c>MERGE INTO target</c> statement (Oracle / SQL Server, and
-    /// PostgreSQL 15+). Continue with <c>Using(...).On(...)</c> and one or more
-    /// <c>WhenMatched</c> / <c>WhenNotMatched</c> branches.
+    /// Starts a <c>MERGE INTO target</c> statement (Oracle, PostgreSQL, SQL Server).
+    /// Continue with <c>Using(...).On(...)</c> and one or more <c>WhenMatched</c> /
+    /// <c>WhenNotMatched</c> branches.
     /// </summary>
     /// <param name="target">The table to merge rows into.</param>
     /// <returns>A merge builder positioned to accept <c>Using(...).On(...)</c>.</returns>
@@ -54,7 +54,7 @@ public static partial class Sql
     /// is per-dialect: SQL Server appends the required terminating semicolon and
     /// supports <c>WHEN NOT MATCHED BY SOURCE</c>.</remarks>
     public static IMergeBuilderTarget MergeInto(DbTableBase target) =>
-        new MergeBuilder(new MergeIntoClause(target));
+        new MergeBuilder(target, new MergeIntoClause(target));
 
     /// <summary>
     /// The <c>MIN(<paramref name="expr"/>)</c> aggregate: the smallest value of
@@ -73,7 +73,9 @@ public static partial class Sql
     /// <param name="precision">The leading field's digit count (0-9); omit for
     /// Oracle's own default of 2.</param>
     /// <returns>An <see cref="IntervalField"/> emitting <c>MINUTE</c> or <c>MINUTE(precision)</c>.</returns>
-    public static IntervalField Minute(int? precision = null) => new(DateTimePart.Minute, precision);
+    public static IntervalField Minute(int? precision = null) => new(
+        DateTimePart.Minute,
+        precision);
 
     /// <summary>
     /// The <c>MOD(<paramref name="dividend"/>, <paramref name="divisor"/>)</c>

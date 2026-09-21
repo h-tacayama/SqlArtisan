@@ -17,7 +17,7 @@ namespace SqlArtisan.IntegrationTests.Infrastructure;
 /// <param name="Build">Produces the statement; receives the engine so union entries (e.g. <c>Match</c>) can pick the dialect-appropriate form.</param>
 /// <param name="Mutating">Whether to run inside a rolled-back transaction (DML).</param>
 /// <param name="PositiveSkips">Engines where the supported side cannot be exercised here, with the reason (e.g. container lacks the full-text feature).</param>
-/// <param name="NegativeSkips">Engines where the unsupported side cannot be asserted because the engine parses the text as something else entirely (never as the construct), with the reason.</param>
+/// <param name="NegativeSkips">Engines where the unsupported side cannot be asserted — the engine parses the text as something else entirely, or the builder rejects the statement client-side before it reaches the engine — with the reason.</param>
 internal sealed record SweepCase(
     MatrixKey Key,
     Func<Dbms, ISqlBuilder> Build,
@@ -34,14 +34,19 @@ internal sealed record SweepCase(
 internal static class MatrixSweepCatalog
 {
     /// <summary>Matrix entries deliberately not swept, with the reason.</summary>
-    public static readonly IReadOnlyDictionary<MatrixKey, string> ExcludedEntries = new Dictionary<MatrixKey, string>
-    {
-        [new MatrixKey("Into")] = "Oracle RETURNING ... INTO needs output-parameter binding, which this "
-            + "generic accept/reject runner cannot do; the positive side is covered by OracleTests, and the "
+    public static readonly IReadOnlyDictionary<MatrixKey, string> ExcludedEntries =
+        new Dictionary<MatrixKey, string>
+        {
+            [new MatrixKey("Into")] =
+            "Oracle RETURNING ... INTO needs output-parameter binding, which this "
+            + "generic accept/reject runner cannot do; the positive side is covered by "
+                + "OracleTests, and the "
             + "negative side would fail for binding (not grammar) reasons on every other engine.",
-        [new MatrixKey("ConditionIf")] = "A C#-side helper: the emitted SQL is identical to the underlying "
-            + "condition (or absent), so there is no distinct construct for an engine to accept or reject.",
-    };
+            [new MatrixKey("ConditionIf")] =
+            "A C#-side helper: the emitted SQL is identical to the underlying "
+            + "condition (or absent), so there is no distinct construct for an engine to "
+                + "accept or reject.",
+        };
 
     public static IReadOnlyList<SweepCase> Cases { get; } = Build();
 
@@ -57,14 +62,18 @@ internal static class MatrixSweepCatalog
             cases.Add(new SweepCase(new MatrixKey(member, arity), build));
         void AddMutating(string member, Func<Dbms, ISqlBuilder> build) =>
             cases.Add(new SweepCase(new MatrixKey(member), build, Mutating: true));
-        void AddSkips(string member, Func<Dbms, ISqlBuilder> build, params (Dbms Engine, string Reason)[] skips) =>
+        void AddSkips(
+            string member,
+            Func<Dbms, ISqlBuilder> build,
+            params (Dbms Engine, string Reason)[] skips) =>
             cases.Add(new SweepCase(new MatrixKey(member), build,
                 PositiveSkips: skips.ToDictionary(s => s.Engine, s => s.Reason)));
 
         // `SELECT <expr> FROM users WHERE id = 1` — one row, always a FROM (no DUAL needed).
         ISqlBuilder Scalar(object expr) => Select(expr).From(u).Where(u.Id == 1);
         ISqlBuilder Window(object expr) => Select(expr).From(u);
-        ISqlBuilder WherePredicate(SqlCondition condition) => Select(Count(u.Id)).From(u).Where(condition);
+        ISqlBuilder WherePredicate(SqlCondition condition) => Select(Count(u.Id)).From(u).Where(
+            condition);
 
         // --- Statement / clause / builder core ---
         Add("Select", _ => Select(u.Id).From(u));
@@ -81,7 +90,8 @@ internal static class MatrixSweepCatalog
             return Select(jo.Amount).From(jo).InnerJoin(ju).On(jo.UserId == ju.Id);
         });
         AddMutating("InsertInto", _ => InsertInto(u, u.Id, u.Name).Values(600, "Sweep"));
-        // Duplicate id=1 (already seeded): MySQL ignores the row (0 affected), every other engine rejects INSERT IGNORE.
+        // Duplicate id=1 (already seeded): MySQL ignores the row (0 affected), every other engine
+        // rejects INSERT IGNORE.
         AddMutating("InsertIgnoreInto", _ => InsertIgnoreInto(u, u.Id, u.Name).Values(1, "Sweep"));
         AddMutating("Values", _ => InsertInto(u, u.Id, u.Name).Values(601, "Sweep"));
         AddMutating("Update", _ => Update(u).Set(u.Name == "Sweep").Where(u.Id == 1));
@@ -167,9 +177,8 @@ internal static class MatrixSweepCatalog
                         .Where(ru.Id <= 3)))
                 .Select(c.Column("id")).From(c);
         });
-        // Non-recursive on purpose: plain-WITH self-reference is rejected by MySQL and
-        // PostgreSQL (RECURSIVE required); the recursive Oracle proof is StatementCatalog's
-        // RecursiveCtePlainWith.
+        // Non-recursive: MySQL and PostgreSQL require RECURSIVE for a self-reference;
+        // StatementCatalog's RecursiveCtePlainWith is the Oracle proof.
         Add("WithColumnList", _ =>
         {
             Cte c = new("c");
@@ -183,9 +192,12 @@ internal static class MatrixSweepCatalog
         // WITH TIES needs an ORDER BY (the Build-time guard); the no-workaround form.
         Add("WithTies", _ => Select(Top(1).WithTies(), u.Id).From(u).OrderBy(u.Id));
         AddSkips("Group",
-            _ => Select(u.DepartmentId).From(u).GroupBy(GroupingSets(Group(u.DepartmentId), Group())),
-            (Dbms.MySql, "Group() is only exercisable inside a grouping extension, none of which MySQL supports."),
-            (Dbms.Sqlite, "Group() is only exercisable inside a grouping extension, none of which SQLite supports."));
+            _ => Select(u.DepartmentId).From(u).GroupBy(
+                GroupingSets(Group(u.DepartmentId), Group())),
+            (Dbms.MySql, "Group() is only exercisable inside a grouping extension, none of which "
+                + "MySQL supports."),
+            (Dbms.Sqlite, "Group() is only exercisable inside a grouping extension, none of which "
+                + "SQLite supports."));
         Add("Null", _ => Select(Null).From(u).Where(u.Id == 1));
         Add("Bind", _ => Scalar(Bind(1)));
         // A dbType hint, matching real usage: an untyped NULL-only parameter
@@ -222,10 +234,8 @@ internal static class MatrixSweepCatalog
         // --- Universal functions ---
         Add("Abs", _ => Scalar(Abs(-5)));
         Add("Floor", _ => Scalar(Floor(1.7)));
-        // Oracle-only rounding: Oracle computes EXP to its NUMBER default of 38 significant
-        // digits, overflowing System.Decimal and throwing a client-side InvalidCastException this
-        // sweep can't tell from a real rejection. PostgreSQL has no round(double precision, int)
-        // overload, so the wrap must not apply there (#440 live-run finding, twice).
+        // Oracle-only rounding: its 38-digit NUMBER overflows System.Decimal client-side,
+        // which the sweep cannot tell from a rejection; PostgreSQL lacks the overload (#440).
         Add("Exp", dbms => Scalar(dbms == Dbms.Oracle ? Round(Exp(1), 4) : Exp(1)));
         Add("Power", _ => Scalar(Power(2, 3)));
         Add("Sqrt", _ => Scalar(Sqrt(16)));
@@ -238,9 +248,8 @@ internal static class MatrixSweepCatalog
         Add("Max", _ => Select(Max(u.Age)).From(u));
         Add("Min", _ => Select(Min(u.Age)).From(u));
         Add("Sum", _ => Select(Sum(o.Amount)).From(o));
-        // Same Oracle-only NUMBER-precision overflow as Exp/Log above (#442 live-run finding):
-        // STDDEV/STDDEV_POP/STDDEV_SAMP take a square root, so Oracle's default 38-digit NUMBER
-        // overflows System.Decimal; VAR_POP/VAR_SAMP/VARIANCE never take that root and don't need it.
+        // The Exp overflow again (#442): the STDDEV family takes a square root, the
+        // VARIANCE family does not and needs no rounding.
         Add("StddevPop", dbms => Select(dbms == Dbms.Oracle ? Round(StddevPop(o.Amount), 4) : StddevPop(o.Amount)).From(o));
         Add("StddevSamp", dbms => Select(dbms == Dbms.Oracle ? Round(StddevSamp(o.Amount), 4) : StddevSamp(o.Amount)).From(o));
         Add("Stddev", dbms => Select(dbms == Dbms.Oracle ? Round(Stddev(o.Amount), 4) : Stddev(o.Amount)).From(o));
@@ -259,8 +268,10 @@ internal static class MatrixSweepCatalog
             NegativeSkips: new Dictionary<Dbms, string>
             {
                 [Dbms.MySql] = "Under MySQL's default sql_mode, || is logical OR (not string "
-                    + "concatenation) — a boolean expression, not a grammar error — so the call text "
-                    + "executes there too; acceptance proves nothing about DoublePipe's own support.",
+                    + "concatenation) — a boolean expression, not a grammar error — so "
+                        + "the call text "
+                    + "executes there too; acceptance proves nothing about "
+                        + "DoublePipe's own support.",
             }));
 
         // --- Window / analytic ---
@@ -292,16 +303,17 @@ internal static class MatrixSweepCatalog
         Add("Ln", _ => Scalar(Ln(1)));
         Add("Log10", _ => Scalar(Log10(1000)));
         AddArity("Log", 1, _ => Scalar(Log(100)));
-        // Oracle-only rounding, same reason as Exp above: Oracle's LOG(base, x) isn't guaranteed
-        // to land exactly on an integer even for log_2(8), and the residual overflows
-        // System.Decimal; PostgreSQL rejects round(double precision, int), so it must stay bare.
+        // Oracle-only rounding, same reason as Exp above; PostgreSQL rejects
+        // round(double precision, int), so it stays bare.
         cases.Add(new SweepCase(new MatrixKey("Log", 2),
             dbms => Scalar(dbms == Dbms.Oracle ? Round(Log(2, 8), 4) : Log(2, 8)),
             NegativeSkips: new Dictionary<Dbms, string>
             {
                 [Dbms.SqlServer] = "T-SQL's LOG takes the value first and the base second "
-                    + "(LOG(float_expression [, base])), so the two-argument call text executes there "
-                    + "too — it just computes a different logarithm. Acceptance proves nothing about "
+                    + "(LOG(float_expression [, base])), so the two-argument call text "
+                        + "executes there "
+                    + "too — it just computes a different logarithm. Acceptance proves "
+                        + "nothing about "
                     + "the base-first form this entry describes.",
             }));
         Add("Length", _ => Scalar(Length("abc")));
@@ -336,9 +348,8 @@ internal static class MatrixSweepCatalog
         Add("Decode", _ => Scalar(Decode(u.Age, (30, "thirty"), "other")));
         Add("Nvl", _ => Scalar(Nvl(u.Name, "x")));
         Add("Ifnull", _ => Scalar(Ifnull(u.Name, "x")));
-        // MySQL does define ISNULL, but as the 1-argument "is this NULL" predicate function
-        // (DbmsSupport false there) — the 2-argument call below rejects on arg count, not on
-        // the name being unrecognized; still a clean rejection for the sweep's purposes.
+        // MySQL's ISNULL is the 1-argument predicate, so the 2-argument call rejects on
+        // arity rather than on the name — still a clean rejection for the sweep.
         Add("Isnull", _ => Scalar(Isnull(u.Name, "x")));
         Add("If", _ => Scalar(If(u.Age > 1, "adult", "minor")));
         Add("Iif", _ => Scalar(Iif(u.Age > 1, "adult", "minor")));
@@ -373,9 +384,8 @@ internal static class MatrixSweepCatalog
         Add("Datetrunc", _ => Scalar(Datetrunc(DateTimePart.Month, u.CreatedAt)));
         Add("DateFormat", _ => Scalar(DateFormat(u.CreatedAt, "%Y-%m")));
         Add("AddMonths", _ => Scalar(AddMonths(u.CreatedAt, 1)));
-        // Swept as a date-arithmetic operand (`created_at + …`), not a bare SELECT item: MySQL's
-        // INTERVAL has no standalone value form, and embedding IntervalLiteral the same way tests
-        // whether MySQL's own grammar would also accept another dialect's spelling there.
+        // Swept as a date-arithmetic operand: MySQL's INTERVAL has no standalone value
+        // form, and IntervalLiteral is embedded the same way for the same reason.
         Add("Interval", _ => Scalar(u.CreatedAt + Interval(30, DateTimePart.Day)));
         AddArity("IntervalLiteral", 1, _ => Scalar(u.CreatedAt + IntervalLiteral("30 days")));
         AddArity("IntervalLiteral", 2, _ => Scalar(u.CreatedAt + IntervalLiteral("30", Day())));
@@ -401,6 +411,7 @@ internal static class MatrixSweepCatalog
 
         // --- Conversion ---
         Add("ToChar", _ => Scalar(ToChar(u.Age, "999")));
+        AddArity("ToChar", 1, _ => Scalar(ToChar(u.Age)));
         Add("ToDate", _ => Scalar(ToDate("2020-01-01", "YYYY-MM-DD")));
         Add("ToNumber", _ => Scalar(ToNumber("123", "999")));
         AddArity("ToNumber", 1, _ => Scalar(ToNumber("123")));
@@ -409,12 +420,18 @@ internal static class MatrixSweepCatalog
             _ => Scalar(Format(u.CreatedAt, "yyyy-MM")),
             NegativeSkips: new Dictionary<Dbms, string>
             {
-                [Dbms.MySql] = "MySQL has its own FORMAT(X, D[, locale]) function (formats a number to "
-                    + "D decimal places), so the call text executes there too via implicit type coercion "
-                    + "of both arguments — acceptance proves nothing about SQL Server's FORMAT support.",
-                [Dbms.Sqlite] = "SQLite 3.38+ has its own printf-style format() function (an alias for "
-                    + "printf()), so the call text executes there too, but with incompatible semantics "
-                    + "(substitution directives, not .NET date/number format strings) — acceptance proves "
+                [Dbms.MySql] =
+                    "MySQL has its own FORMAT(X, D[, locale]) function (formats a number to "
+                    + "D decimal places), so the call text executes there too via implicit "
+                        + "type coercion "
+                    + "of both arguments — acceptance proves nothing about SQL Server's "
+                        + "FORMAT support.",
+                [Dbms.Sqlite] =
+                    "SQLite 3.38+ has its own printf-style format() function (an alias for "
+                    + "printf()), so the call text executes there too, but with "
+                        + "incompatible semantics "
+                    + "(substitution directives, not .NET date/number format strings) — "
+                        + "acceptance proves "
                     + "nothing about SQL Server's FORMAT support.",
             }));
 
@@ -422,6 +439,9 @@ internal static class MatrixSweepCatalog
         Add("RegexpLike", _ => WherePredicate(RegexpLike(u.Name, "A.*")));
         Add("RegexpCount", _ => Scalar(RegexpCount(u.Name, "a")));
         Add("RegexpReplace", _ => Scalar(RegexpReplace(u.Name, "a", "b")));
+        AddArity("RegexpReplace", 4, _ => Scalar(RegexpReplace(u.Name, "a", "b", 1)));
+        AddArity("RegexpReplace", 5, _ => Scalar(RegexpReplace(u.Name, "a", "b", 1, 1)));
+        AddArity("RegexpReplace", 6, _ => Scalar(RegexpReplace(u.Name, "a", "b", 1, 1, RegexpOptions.None)));
         Add("RegexpSubstr", _ => Scalar(RegexpSubstr(u.Name, "A")));
         AddArity("RegexpSubstr", 6, _ => Scalar(RegexpSubstr(u.Name, "A", 1, 1, RegexpOptions.None, 1)));
         Add("RegexpInstr", _ => Scalar(RegexpInstr(u.Name, "A")));
@@ -457,11 +477,14 @@ internal static class MatrixSweepCatalog
         // MySQL has no ROLLUP(...) function form (see the Rollup entry above), so
         // GROUPING(...) is exercised there via its native WITH ROLLUP suffix instead.
         AddArity("Grouping", 1, dbms => dbms == Dbms.MySql
-            ? Select(u.DepartmentId, Grouping(u.DepartmentId)).From(u).GroupBy(u.DepartmentId).WithRollup()
+            ? Select(u.DepartmentId, Grouping(u.DepartmentId)).From(u).GroupBy(u.DepartmentId)
+                .WithRollup()
             : Select(Grouping(u.DepartmentId)).From(u).GroupBy(Rollup(u.DepartmentId)));
         AddArity("Grouping", 3, dbms => dbms == Dbms.MySql
-            ? Select(u.DepartmentId, u.Age, Grouping(u.DepartmentId, u.Age)).From(u).GroupBy(u.DepartmentId, u.Age).WithRollup()
-            : Select(Grouping(u.DepartmentId, u.Age)).From(u).GroupBy(Rollup(u.DepartmentId, u.Age)));
+            ? Select(u.DepartmentId, u.Age, Grouping(u.DepartmentId, u.Age)).From(u)
+                .GroupBy(u.DepartmentId, u.Age).WithRollup()
+            : Select(Grouping(u.DepartmentId, u.Age)).From(u).GroupBy(
+                Rollup(u.DepartmentId, u.Age)));
         AddArity("GroupingId", 2, _ => Select(GroupingId(u.DepartmentId, u.Age)).From(u).GroupBy(Rollup(u.DepartmentId, u.Age)));
 
         // --- Set operators ---
@@ -476,21 +499,22 @@ internal static class MatrixSweepCatalog
             NegativeSkips: new Dictionary<Dbms, string>
             {
                 [Dbms.SqlServer] = "T-SQL parses MINUS as a table alias and the second SELECT as a "
-                    + "separate batch statement, so the text executes without MINUS acting as a set "
+                    + "separate batch statement, so the text executes without MINUS "
+                        + "acting as a set "
                     + "operator — acceptance proves nothing about MINUS support.",
             }));
         Add("MinusAll", _ => Select(u.DepartmentId).From(u).MinusAll.Select(u.DepartmentId).From(u));
 
         // --- Pagination ---
-        // Limit exercises the row-limited-subquery position IN (... LIMIT n) (#240);
-        // top-level LIMIT acceptance is proven by the Offset case. MySQL rejects LIMIT
-        // directly inside an IN/ALL/ANY/SOME subquery — a context-dependent restriction
-        // the construct-level matrix cannot express (analyzer context rule SQLA0102, #264).
+        // Limit exercises IN (... LIMIT n) (#240; the Offset case proves top-level LIMIT):
+        // MySQL rejects it there, a context restriction the matrix cannot express (SQLA0102).
         AddSkips("Limit",
             _ => Select(Count(u.Id)).From(u)
                 .Where(u.Id.In(Select(o.UserId).From(o).OrderBy(o.UserId).Limit(2))),
-            (Dbms.MySql, "MySQL rejects LIMIT inside an IN/ALL/ANY/SOME subquery (ER_NOT_SUPPORTED_YET), "
-                + "though it supports LIMIT itself — proven by the Offset case; covered by context rule SQLA0102 (#264)."));
+            (Dbms.MySql, "MySQL rejects LIMIT inside an IN/ALL/ANY/SOME subquery "
+                + "(ER_NOT_SUPPORTED_YET), "
+                + "though it supports LIMIT itself — proven by the Offset case; covered by context "
+                    + "rule SQLA0102 (#264)."));
         Add("Offset", _ => Select(u.Id).From(u).OrderBy(u.Id).Limit(2).Offset(1));
         Add("OffsetRows", _ => Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2));
         Add("FetchNext", _ => Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(2));
@@ -571,16 +595,22 @@ internal static class MatrixSweepCatalog
         Add("AgainstScore", _ => Select(Match(u.Name).AgainstScore("Alice")).From(u));
         AddSkips("ContainsScore",
             _ => Select(u.Id).From(u).Where(ContainsScore(u.Name, "Alice") > 0),
-            (Dbms.Oracle, "No Oracle Text CONTEXT index in the container schema; the accept side needs one."));
+            (Dbms.Oracle, "No Oracle Text CONTEXT index in the container schema; the accept "
+                + "side needs one."));
         AddSkips("Score",
             _ => Select(Score(1)).From(u).Where(ContainsScore(u.Name, "Alice", 1) > 0),
-            (Dbms.Oracle, "No Oracle Text CONTEXT index in the container schema; the accept side needs one."));
+            (Dbms.Oracle, "No Oracle Text CONTEXT index in the container schema; the accept "
+                + "side needs one."));
         AddSkips("Contains",
             _ => Select(u.Id).From(u).Where(Contains(u.Name, "Alice")),
-            (Dbms.SqlServer, "The mssql container image ships without Full-Text Search installed."));
+            (
+                Dbms.SqlServer,
+                "The mssql container image ships without Full-Text Search installed."));
         AddSkips("Freetext",
             _ => Select(u.Id).From(u).Where(Freetext(u.Name, "Alice")),
-            (Dbms.SqlServer, "The mssql container image ships without Full-Text Search installed."));
+            (
+                Dbms.SqlServer,
+                "The mssql container image ships without Full-Text Search installed."));
         Add("TsMatch", _ => Select(u.Id).From(u)
             .Where(TsMatch(ToTsvector("english", u.Name), ToTsquery("english", "alice"))));
         Add("ToTsvector", _ => Select(u.Id).From(u)
@@ -612,13 +642,8 @@ internal static class MatrixSweepCatalog
         Add("JsonbExists", _ => WherePredicate(JsonbExists(u.Data, "name")));
         Add("JsonbExistsAll", _ => WherePredicate(JsonbExistsAll(u.Data, "name", "address")));
         Add("JsonbExistsAny", _ => WherePredicate(JsonbExistsAny(u.Data, "name", "address")));
-        // pgvector distance operators (#343). Keep the CAST operands: MySQL parses <=>
-        // as its NULL-safe equality operator, so the negative verdict there rides on
-        // CAST(... AS vector) failing to parse, not on the glyph being unknown. The
-        // three Oracle-bounded cases (L2/Cosine/NegativeInnerProduct) also run on the
-        // 23ai lane via Oracle23aiBoundSweepTests — with bare string operands there,
-        // because 23ai rejects CAST(... AS vector) itself (ORA-22849; a raw-SQL probe
-        // proved the operators fine over TO_VECTOR or implicitly converted strings).
+        // pgvector operators (#343): the CAST operands carry MySQL's negative verdict
+        // (<=> is its equality), and the 23ai lane uses bare strings (ORA-22849 on CAST).
         Add("L2Distance", dbms => dbms == Dbms.Oracle
             ? Scalar(L2Distance("[1,2]", "[3,4]"))
             : Scalar(L2Distance(Cast("[1,2]", "vector"), Cast("[3,4]", "vector"))));
@@ -639,7 +664,7 @@ internal static class MatrixSweepCatalog
             {
                 [Dbms.MySql] = "The array-typed parameter is not rejected client-side "
                     + "(MySqlConnector infers a fallback type without an open connection); "
-                    + "any rejection happens at execute time, proven by the nightly matrix.",
+                    + "any rejection happens at execute time, outside this client-side sweep.",
                 [Dbms.Oracle] = "The array-typed parameter is not rejected client-side "
                     + "(Oracle.ManagedDataAccess infers a fallback type without an open "
                     + "connection); any rejection happens at execute time, proven by the "
@@ -679,8 +704,10 @@ internal static class MatrixSweepCatalog
         AddMutating("DoUpdateSet", _ => InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnConflict(u.Id).DoUpdateSet(u.Name == "Sweep"));
         AddMutating("OnDuplicateKeyUpdate", _ => InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnDuplicateKeyUpdate(u.Name == Sql.Excluded(u.Name)));
         AddMutating("Excluded", dbms => dbms == Dbms.MySql
-            ? InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnDuplicateKeyUpdate(u.Name == Sql.Excluded(u.Name))
-            : InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnConflict(u.Id).DoUpdateSet(u.Name == Sql.Excluded(u.Name)));
+            ? InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnDuplicateKeyUpdate(
+                u.Name == Sql.Excluded(u.Name))
+            : InsertInto(u, u.Id, u.Name).Values(1, "Sweep").OnConflict(u.Id).DoUpdateSet(
+                u.Name == Sql.Excluded(u.Name)));
 
         // --- MERGE ---
         AddMutating("MergeInto", _ => MergeShape());
@@ -696,6 +723,22 @@ internal static class MatrixSweepCatalog
                 .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Column("id"), s.Column("name"));
         }, Mutating: true));
         AddMutating("WhenMatched", _ => MergeUpdateShape());
+        // The conditioned branch: Oracle rejects the AND-on-WHEN spelling (its filter is a
+        // trailing WHERE on the action), so the arity entry is the negative the sweep proves.
+        cases.Add(new SweepCase(new MatrixKey("WhenMatched", 1), _ =>
+        {
+            UsersTable t = new("t");
+            UsersTable s = new("s");
+            return MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched(s.Age > 0).ThenUpdateSet(t.Name == s.Name);
+        }, Mutating: true));
+        cases.Add(new SweepCase(new MatrixKey("WhenNotMatched", 1), _ =>
+        {
+            UsersTable t = new("t");
+            UsersTable s = new("s");
+            return MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenNotMatched(s.Age > 0).ThenInsert(t.Id, t.Name).Values(s.Id, s.Name);
+        }, Mutating: true));
         AddMutating("ThenUpdateSet", _ => MergeUpdateShape());
         AddMutating("WhenNotMatched", _ => MergeShape());
         AddMutating("ThenInsert", _ => MergeShape());
@@ -711,7 +754,8 @@ internal static class MatrixSweepCatalog
         {
             UsersTable t = new("t");
             OrdersTable src = new("o");
-            return MergeInto(t).Using(src).On(t.Id == src.UserId).WhenNotMatchedBySource().ThenDelete();
+            return MergeInto(t).Using(src).On(t.Id == src.UserId).WhenNotMatchedBySource()
+                .ThenDelete();
         });
         AddMutating("DeleteWhere", _ =>
         {
@@ -748,7 +792,11 @@ internal static class MatrixSweepCatalog
 
         return cases;
 
-        ISqlBuilder ApplyShape(Func<ISelectBuilderFrom, ISubquery, DerivedTableBase, ISqlBuilder> apply)
+        ISqlBuilder ApplyShape(
+            Func<ISelectBuilderFrom,
+            ISubquery,
+            DerivedTableBase,
+            ISqlBuilder> apply)
         {
             UsersTable au = new("u");
             OrdersTable ao = new("o");
@@ -756,7 +804,8 @@ internal static class MatrixSweepCatalog
             ISelectBuilderFrom from = Select(au.Id, x.Column("amount")).From(au);
             return apply(
                 from,
-                (ISubquery)Select(ao.Amount.As(x.Column("amount"))).From(ao).Where(ao.UserId == au.Id),
+                (ISubquery)Select(ao.Amount.As(x.Column("amount"))).From(ao).Where(
+                    ao.UserId == au.Id),
                 x);
         }
 
@@ -781,7 +830,8 @@ internal static class MatrixSweepCatalog
         {
             UsersTable t = new("t");
             UsersTable s = new("s");
-            return MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenUpdateSet(t.Name == s.Name);
+            return MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched().ThenUpdateSet(
+                t.Name == s.Name);
         }
     }
 }

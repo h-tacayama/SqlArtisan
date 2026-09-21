@@ -18,9 +18,6 @@ public enum SearchModifier
     /// </summary>
     InBooleanMode = 1,
 
-    /// <summary>
-    /// Query expansion search (<c>WITH QUERY EXPANSION</c>): a second pass reuses
-    /// terms from the most relevant rows of the first.
-    /// </summary>
+    /// <summary>Query expansion search (<c>WITH QUERY EXPANSION</c>).</summary>
     WithQueryExpansion = 2,
 }

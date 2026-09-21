@@ -2,9 +2,8 @@ namespace SqlArtisan.Analyzers;
 
 /// <summary>
 /// The minimum engine version a matrix entry needs per dialect, mirroring
-/// <see cref="DbmsSupport"/>'s named-slot shape. A <see langword="null"/> slot
-/// means no recorded boundary for that dialect — the entry's plain
-/// <see cref="DbmsSupport"/> bool decides, exactly as before #263.
+/// <see cref="DbmsSupport"/>'s slot shape; a <see langword="null"/> slot means
+/// the plain <see cref="DbmsSupport"/> bool decides (#263).
 /// </summary>
 internal readonly struct VersionBounds
 {

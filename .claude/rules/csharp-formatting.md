@@ -7,13 +7,31 @@ paths:
 
 # C# formatting beyond .editorconfig
 
-`.editorconfig` + `dotnet format` hold indentation, braces, spacing, and
-blank-line runs (IDE2000) — but Roslyn's formatter preserves the author's
-line breaks inside argument lists and chains and has no wrapping options
-(dotnet/roslyn#33872). The layout below is therefore convention held at
-review time (`sa-diff-review`), not by a gate: a mechanical check for the
-wrapping shapes would flag ~126 existing, mostly deliberate sites, so #504
-recorded the decision to keep them prose.
+`.editorconfig`'s `max_line_length` is editor-only, and `dotnet format` holds
+indentation, braces, spacing, and blank-line runs (IDE2000) — but Roslyn's
+formatter preserves the author's line breaks inside argument lists and chains
+and has no wrapping options
+(dotnet/roslyn#33872). The limit itself is gated (below); the *shape* of each
+wrap is convention held at review time (`sa-diff-review`), since a mechanical
+check for it would flag ~126 existing, mostly deliberate sites, so #504
+recorded the decision to keep those prose.
+
+## The 100-column limit
+
+`LineLengthSweepTests` holds it at zero offenders — there is no baseline to
+grow. Three shapes are exempt, and the gate reads these rules, not a count:
+
+- **A doc tag's own signature.** A `<param>`, `<returns>`, `<exception>`,
+  `<typeparam>` line, or an `<inheritdoc cref="...">` whose cref carries a full
+  parameter list: the signature is one token and breaking it helps no one.
+- **A row of a data table.** A collection-initializer entry (`["key"] = …,`)
+  or a catalog's single registration call (`Add…(…);`) — the row is the unit
+  of reading, and one entry per line is the point of the file.
+- **Text inside a raw string literal** (`"""…"""`). It is a fixture — the SQL
+  or C# under test — and wrapping it would change what is being tested.
+
+Anything else wraps. A line that fits none of these and cannot be wrapped is a
+name that needs shortening, not a new exemption.
 
 ## Wrapped argument and parameter lists
 
@@ -95,5 +113,6 @@ the formatter cannot enforce it.)
 ## Blank lines
 
 Blank-line *runs* are gated (IDE2000). The shapes the formatter cannot see:
-no blank line immediately after `{` or before `}`, and a single blank line
+no blank line immediately after `{` or before `}` (`FormattingSweepTests`
+gates this over `src/` and `tests/`), and a single blank line
 between members.

@@ -16,7 +16,7 @@ public class UpdateTests
                 _t.Code == 1,
                 _t.Name == "a",
                 _t.CreatedAt == Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("UPDATE ");
@@ -92,7 +92,9 @@ public class UpdateTests
             Update(t).Set(t.Name == "a").Where(t.Code == 1).Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE statement; use an unaliased target table.",
+            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
+                + "statement; use an unaliased target table — a correlated UPDATE or DELETE joins "
+                + "through From(...) instead.",
             ex.Message);
     }
 
@@ -170,7 +172,8 @@ public class UpdateTests
     [Fact]
     public void Update_NoWhere_CorrectSql()
     {
-        // The legal twin: omitting WHERE is the intentional full-table UPDATE — it must still build.
+        // The legal twin: omitting WHERE is the intentional full-table UPDATE — it must still
+        // build.
         SqlStatement sql =
             Update(_t)
             .Set(_t.Name == "x")
@@ -193,7 +196,7 @@ public class UpdateTests
             .Build());
 
         Assert.Equal(
-            "The target of a correlated UPDATE or DELETE must be aliased.",
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
             ex.Message);
     }
 
@@ -274,7 +277,8 @@ public class UpdateTests
     [Fact]
     public void Update_EmptyConditionBesideActiveCondition_CorrectSql()
     {
-        // Empty at the call but made non-empty by a later `&` — the guard runs at Build(), not eagerly.
+        // Empty at the call but made non-empty by a later `&` — the guard runs at Build(), not
+        // eagerly.
         SqlStatement sql =
             Update(_t)
             .Set(_t.Name == "x")
@@ -469,7 +473,7 @@ public class UpdateTests
             Update(_t).Set(_t.Code == 1, null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
             ex.Message);
     }
 
@@ -583,5 +587,182 @@ public class UpdateTests
 
         Assert.Equal(
             "OUTPUT cannot be combined with RETURNING; use one or the other.", ex.Message);
+    }
+
+    [Fact]
+    public void Set_NonColumnLeftSide_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set(Abs(_t.Code) == 5));
+
+        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SqlServer_JoinedTargetNotRepeatedInFrom_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+                .Set(t.Name == s.Name)
+                .From(s)
+                .Where(t.Code == s.Code)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "A joined UPDATE on SQL Server must re-list the target table in the FROM clause.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_PostgreSql_FromRepeatedTarget_ThrowsArgumentException()
+    {
+        // The re-listed target renders the lead as the bare alias — T-SQL's
+        // spelling alone — so every other dialect throws instead of emitting it.
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+                .Set(t.Name == s.Name)
+                .From(t)
+                .InnerJoin(s).On(t.Code == s.Code)
+                .Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "Only SQL Server supports a joined UPDATE that re-lists the target table in "
+                + "the FROM clause.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Update_SetSameColumnTwice_ThrowsAtBuild()
+    {
+        // The UPDATE arm reads the rendered token, and whether the alias is
+        // rendered is not decided until .From(t) — so this one throws at Build().
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set(_t.Code == 1, _t.Name == "x", _t.Code == 2).Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "A SET assignment list must not assign the same column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SetSameColumnFromTwoHandles_ThrowsAtBuild()
+    {
+        TestTable other = new("t2");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set(_t.Name == "a", other.Name == "b").Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "A SET assignment list must not assign the same column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SetSameColumnFromTwoTables_ThrowsAtBuild()
+    {
+        ArchiveTable archive = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t).Set(_t.Name == "a", archive.Name == "b").Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "A SET assignment list must not assign the same column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_MySql_JoinedSetDistinctCorrelationNames_CorrectSql()
+    {
+        // The one qualified position: two targets that render distinct tokens
+        // are a legal MySQL multi-table UPDATE, so the guard leaves them alone.
+        TestTable t = new("t1");
+        ArchiveTable a = new("t2");
+
+        SqlStatement sql =
+            Update(t)
+            .InnerJoin(a).On(a.Code == t.Code)
+            .Set(t.Name == "a", a.Name == "b")
+            .Build(Dbms.MySql);
+
+        Assert.Equal(
+            "UPDATE test_table AS `t1` INNER JOIN archive_table `t2` ON `t2`.code = `t1`.code "
+                + "SET `t1`.name = ?0, `t2`.name = ?1",
+            sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>("?0"));
+        Assert.Equal("b", sql.Parameters.Get<string>("?1"));
+    }
+
+    [Fact]
+    public void Update_MySql_JoinedSetSameCorrelationNameTwice_ThrowsAtBuild()
+    {
+        TestTable t = new("t1");
+        ArchiveTable a = new("t2");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+                .InnerJoin(a).On(a.Code == t.Code)
+                .Set(t.Name == "a", t.Name == "b")
+                .Build(Dbms.MySql));
+
+        Assert.Equal(
+            "A SET assignment list must not assign the same column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_OutputNoExpressions_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t).Set(t.Code == 1).Output());
+
+        Assert.Equal("OUTPUT requires at least one expression.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_CteBodyNestedSubqueryReferencingTarget_CorrectSql()
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+
+        SqlStatement sql =
+            With(cte.As(
+                Select(r.Code.As(cte.CteCode)).From(r).Where(r.Code.In(Select(t.Code).From(t)))))
+            .Update(t)
+            .Set(t.Name == "x")
+            .Where(t.Code.In(Select(cte.CteCode).From(cte)))
+            .Build();
+
+        Assert.Equal(
+            "WITH \"cte\" AS (SELECT \"r\".code cte_code FROM test_table \"r\" "
+                + "WHERE \"r\".code IN (SELECT code FROM test_table)) "
+                + "UPDATE test_table SET name = :0 "
+                + "WHERE code IN (SELECT \"cte\".cte_code FROM \"cte\")",
+            sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>(":0"));
+    }
+
+    // The direct-join chain has no FROM to re-list in, so the message names the
+    // chain that does (release audit pass 8).
+    [Fact]
+    public void Update_SqlServer_DirectJoinTarget_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+                .InnerJoin(s).On(t.Code == s.Code)
+                .Set(t.Name == s.Name)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "A joined UPDATE on SQL Server must join through From(target, ...), "
+                + "re-listing the target table.",
+            ex.Message);
     }
 }

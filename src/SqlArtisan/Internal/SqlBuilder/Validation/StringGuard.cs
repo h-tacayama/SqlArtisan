@@ -12,4 +12,14 @@ internal static class StringGuard
             throw new ArgumentException(message);
         }
     }
+
+    // For a bare-token position (a CAST type, a NEXT VALUE FOR sequence name),
+    // where whitespace is invalid on every dialect — unlike a quoted one.
+    internal static void ThrowIfNullOrWhiteSpace(string value, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException(message);
+        }
+    }
 }

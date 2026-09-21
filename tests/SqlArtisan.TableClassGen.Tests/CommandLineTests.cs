@@ -20,6 +20,33 @@ public class CommandLineTests
         Assert.False(options.Json);
     }
 
+    // A blank --schema (a config file's "schema": "" included) must engage
+    // the --database/--user fallback like a missing one — treating it as
+    // present read zero tables silently.
+    [Fact]
+    public void Parse_BlankSchema_FallsBackToDatabaseOnMySql()
+    {
+        RunOptions options = CommandLine.Parse(
+        [
+            "--dbms", "mysql", "--host", "h", "--database", "appdb",
+            "--user", "u", "--namespace", "N", "--schema", "",
+        ]);
+
+        Assert.Equal("appdb", options.Connection.Schema);
+    }
+
+    [Fact]
+    public void Parse_BlankSchema_FallsBackToUserOnOracle()
+    {
+        RunOptions options = CommandLine.Parse(
+        [
+            "--dbms", "oracle", "--host", "h", "--database", "XEPDB1",
+            "--user", "scott", "--namespace", "N", "--schema", " ",
+        ]);
+
+        Assert.Equal("scott", options.Connection.Schema);
+    }
+
     [Fact]
     public void Parse_Check_SelectsCheckMode()
     {
@@ -63,7 +90,36 @@ public class CommandLineTests
                 ["--dbms", "postgresql", "--host", "h", "--database", "d", "--schema", "s",
                  "--user", "u", "--namespace", "N", "--port", "54x2"]));
 
-        Assert.Equal("--port must be a number (got '54x2')", ex.Message);
+        Assert.Equal("--port must be a number between 1 and 65535 (got '54x2')", ex.Message);
+    }
+
+    // The parse path validates the same domain the interactive prompt does —
+    // silently connecting to a nonsense port is the misconfiguration nobody sees.
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-5")]
+    [InlineData("65536")]
+    public void Parse_PortOutsideRange_ThrowsCommandLineException(string port)
+    {
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(
+                ["--dbms", "postgresql", "--host", "h", "--database", "d", "--schema", "s",
+                 "--user", "u", "--namespace", "N", "--port", port]));
+
+        Assert.Equal($"--port must be a number between 1 and 65535 (got '{port}')", ex.Message);
+    }
+
+    // Blank counts as missing: --namespace "" previously emitted `namespace ;`.
+    [Fact]
+    public void Parse_BlankRequiredOption_ThrowsCommandLineException()
+    {
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(
+                ["--dbms", "sqlite", "--file", "app.db", "--namespace", " "]));
+
+        Assert.Equal(
+            "--namespace is required (or set \"namespace\" in the --config file)",
+            ex.Message);
     }
 
     [Fact]
@@ -94,7 +150,8 @@ public class CommandLineTests
             () => CommandLine.Parse(["--dbms", "db2", "--namespace", "N"]));
 
         Assert.Equal(
-            "--dbms must be one of mysql, oracle, postgresql, sqlite, sqlserver (got 'db2')",
+            "--dbms must be one of mysql, oracle, postgresql (or postgres), sqlite, "
+                + "sqlserver (or mssql) (got 'db2')",
             ex.Message);
     }
 
@@ -191,6 +248,20 @@ public class CommandLineTests
         Assert.Equal("N", CommandLine.Parse(["--config", config.Path]).Settings.OutputNamespace);
     }
 
+    // The option surface is comma-separated strings, so a comma-bearing array
+    // element would silently split into two names.
+    [Fact]
+    public void Parse_ConfigTablesElementWithComma_ThrowsCommandLineException()
+    {
+        using TempFile config = TempFile.Create(
+            """{"dbms": "sqlite", "file": "a.db", "namespace": "N", "tables": ["weird,name"]}""");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal("\"tables\" array elements must not contain commas", ex.Message);
+    }
+
     [Fact]
     public void Parse_MalformedConfigJson_ThrowsCommandLineException()
     {
@@ -217,5 +288,127 @@ public class CommandLineTests
         Assert.True(CommandLine.WantsHelp(["--help"]));
         Assert.True(CommandLine.WantsHelp(["--check", "-h"]));
         Assert.False(CommandLine.WantsHelp(["--check"]));
+    }
+
+    // JSON null is "not set", like an absent key; it must not turn a switch on.
+    [Fact]
+    public void Parse_ConfigNullFlag_ReadsAsUnset()
+    {
+        using TempFile config = TempFile.Create(
+            """{"dbms": "sqlite", "file": "a.db", "namespace": "N", "dry-run": null, "verbose": null}""");
+
+        RunOptions options = CommandLine.Parse(["--config", config.Path]);
+
+        Assert.False(options.DryRun);
+        Assert.False(options.Verbose);
+    }
+
+    [Fact]
+    public void Parse_FormatJson_SetsJson()
+    {
+        RunOptions options = CommandLine.Parse(
+            ["--dbms", "sqlite", "--file", "a.db", "--namespace", "N", "--format", "json"]);
+
+        Assert.True(options.Json);
+    }
+
+    // A switch is on or off: a number or a word read as "on" would run --fix.
+    [Theory]
+    [InlineData("0")]
+    [InlineData("1")]
+    [InlineData("\"no\"")]
+    [InlineData("\"yes\"")]
+    public void Parse_ConfigNonBooleanSwitch_ThrowsCommandLineException(string json)
+    {
+        using TempFile config = TempFile.Create(
+            $$"""{"dbms": "sqlite", "file": "a.db", "namespace": "N", "fix": {{json}}}""");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(() =>
+            CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal(
+            $"\"fix\" in the --config file must be true or false (got '{json.Trim('"')}')",
+            ex.Message);
+    }
+
+    [Theory]
+    [InlineData("true", true)]
+    [InlineData("\"true\"", true)]
+    [InlineData("false", false)]
+    [InlineData("\"False\"", false)]
+    public void Parse_ConfigBooleanSwitch_ReadsTheSwitch(string json, bool expected)
+    {
+        using TempFile config = TempFile.Create(
+            $$"""{"dbms": "sqlite", "file": "a.db", "namespace": "N", "dry-run": {{json}}}""");
+
+        RunOptions options = CommandLine.Parse(["--config", config.Path]);
+
+        Assert.Equal(expected, options.DryRun);
+    }
+
+    [Fact]
+    public void Parse_ConfigNullRequiredKey_ThrowsCommandLineException()
+    {
+        using TempFile config = TempFile.Create(
+            """{"dbms": "sqlite", "file": "a.db", "namespace": null}""");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal(
+            "--namespace is required (or set \"namespace\" in the --config file)",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Parse_ConfigTablesNullElement_ThrowsCommandLineException()
+    {
+        using TempFile config = TempFile.Create(
+            """{"dbms": "sqlite", "file": "a.db", "namespace": "N", "tables": ["orders", null]}""");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal("\"tables\" array elements must not be null", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("postgres", Dbms.PostgreSql)]
+    [InlineData("mssql", Dbms.SqlServer)]
+    public void Parse_DbmsAlias_ResolvesTheEngine(string alias, Dbms expected)
+    {
+        RunOptions options = CommandLine.Parse(
+            ["--dbms", alias, "--host", "h", "--database", "d", "--schema", "s", "--user", "u",
+             "--namespace", "N"]);
+
+        Assert.Equal(expected, options.Connection.Dbms);
+    }
+
+    // Every key: JsonElement.ToString() on an object is its raw JSON, which the
+    // blank check downstream accepts (release audit pass 8).
+    [Theory]
+    [InlineData("namespace")]
+    [InlineData("host")]
+    [InlineData("database")]
+    [InlineData("user")]
+    [InlineData("schema")]
+    [InlineData("output")]
+    [InlineData("file")]
+    [InlineData("tables")]
+    [InlineData("port")]
+    [InlineData("fix")]
+    public void Parse_ConfigObjectValue_ThrowsCommandLineException(string key)
+    {
+        using TempFile config = TempFile.Create(
+            "{\"dbms\": \"sqlite\", \"file\": \"a.db\", \"namespace\": \"N\", "
+                + $"\"{key}\": {{\"nested\": \"x\"}}}}");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(() =>
+            CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal(
+            $"\"{key}\" in the --config file must be a string, number, boolean, or array "
+                + "(got an object)",
+            ex.Message);
     }
 }

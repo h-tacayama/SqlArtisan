@@ -106,7 +106,7 @@ public class PaginationTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // ── OFFSET/FETCH family (Oracle 12c+ / SQL Server 2012+) ──────────
+    // ── OFFSET/FETCH family (Oracle / PostgreSql / SqlServer) ──────────
 
     [Fact]
     public void FetchFirst_WithOrderBy_CorrectSql()
@@ -319,5 +319,30 @@ public class PaginationTests
         expected.Append("OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // MySQL and SQLite take OFFSET only after LIMIT (live-verified, release audit
+    // pass 8); the analyzer's Offset key is a union, so Build(Dbms) carries the guard.
+    [Theory]
+    [InlineData(Dbms.MySql)]
+    [InlineData(Dbms.Sqlite)]
+    public void Offset_WithoutLimit_ThrowsArgumentException(Dbms dbms)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).OrderBy(_t.Code).Offset(5).Build(dbms));
+
+        Assert.Equal(
+            "MySQL and SQLite accept OFFSET only after LIMIT; add Limit(...) before Offset(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Offset_WithoutLimit_PostgreSql_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(_t.Code).From(_t).OrderBy(_t.Code).Offset(5).Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT code FROM test_table ORDER BY code OFFSET :0", sql.Text);
+        Assert.Equal(5, sql.Parameters.Get<int>(":0"));
     }
 }

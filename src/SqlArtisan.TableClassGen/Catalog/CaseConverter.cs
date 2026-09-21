@@ -4,8 +4,8 @@ namespace SqlArtisan.TableClassGen;
 
 internal static class CaseConverter
 {
-    // Splits on every non-alphanumeric character — underscores plus DB-allowed
-    // punctuation like Oracle's '$'/'#' — so none can leak into the identifier.
+    // Splits on every non-alphanumeric character (underscores, Oracle's '$'/'#') so
+    // none leaks into the identifier; a mixed-case run keeps its casing past the first letter.
     public static string SnakeToPascalCase(string snakeCase)
     {
         if (string.IsNullOrEmpty(snakeCase))
@@ -14,20 +14,14 @@ internal static class CaseConverter
         }
 
         StringBuilder result = new(snakeCase.Length + 1);
-        bool startOfWord = true;
+        int runStart = 0;
 
-        foreach (char c in snakeCase)
+        for (int i = 0; i <= snakeCase.Length; i++)
         {
-            if (char.IsLetterOrDigit(c))
+            if (i == snakeCase.Length || !char.IsLetterOrDigit(snakeCase[i]))
             {
-                result.Append(startOfWord
-                    ? char.ToUpperInvariant(c)
-                    : char.ToLowerInvariant(c));
-                startOfWord = false;
-            }
-            else
-            {
-                startOfWord = true;
+                AppendRun(result, snakeCase.AsSpan(runStart, i - runStart));
+                runStart = i + 1;
             }
         }
 
@@ -42,5 +36,35 @@ internal static class CaseConverter
         }
 
         return result.ToString();
+    }
+
+    private static void AppendRun(StringBuilder result, ReadOnlySpan<char> run)
+    {
+        if (run.Length == 0)
+        {
+            return;
+        }
+
+        bool upper = false;
+        bool lower = false;
+        foreach (char c in run)
+        {
+            upper |= char.IsUpper(c);
+            lower |= char.IsLower(c);
+        }
+
+        result.Append(char.ToUpperInvariant(run[0]));
+        ReadOnlySpan<char> rest = run[1..];
+        if (upper && lower)
+        {
+            result.Append(rest);
+        }
+        else
+        {
+            foreach (char c in rest)
+            {
+                result.Append(char.ToLowerInvariant(c));
+            }
+        }
     }
 }

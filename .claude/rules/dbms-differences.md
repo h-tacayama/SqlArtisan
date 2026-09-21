@@ -62,6 +62,19 @@ triage):
   (Oracle's `PRIOR` outside `CONNECT BY` — CONNECT BY is wontfix per ADR
   0010) stays a docs/ADR note only.
 
+No `SqlPart` names `Dbms` at all — `DialectBranchSweepTests` sweeps the two
+`SqlPart/` trees for the type name, so a node reads a difference through
+`IDbmsDialect` or not at all. The builders' `Validate(Dbms)` hook is where a
+resolved target is legitimately read, and `SqlBuildingBuffer.Dbms` exists to
+carry it there.
+
 Before adding anything to `IDbmsDialect` or `DialectMatrix`, walk the classes
 above in order: token-level → construct-level → plain unavailability →
 version-bounded → context-bounded.
+
+An engine-rejection claim written in prose — a comment, an XML doc, a docs
+page — names the engine version it was observed on and has a live twin, or is
+not made: the "MySQL rejects `ESCAPE ?`" rationale stood in three places for
+months after 8.0.46 accepted it (release audit pass 8). State the grammar
+reason the code relies on instead (a position that takes a constant), which
+holds whether or not any engine still rejects the alternative.

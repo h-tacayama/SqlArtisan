@@ -3,8 +3,7 @@ namespace SqlArtisan.Internal;
 /// <summary>
 /// The state after <c>ON (...)</c>: add the first <c>WHEN</c> branch. Not
 /// buildable until at least one branch completes (see
-/// <see cref="IMergeBuilderWhen"/>). The branches are per-dialect:
-/// <c>WHEN NOT MATCHED BY SOURCE</c> is SQL Server only.
+/// <see cref="IMergeBuilderWhen"/>).
 /// </summary>
 public interface IMergeBuilderOn
 {
@@ -12,6 +11,7 @@ public interface IMergeBuilderOn
     /// <c>WHEN MATCHED THEN</c>: act on rows that exist in both target and source.
     /// </summary>
     /// <returns>The builder positioned to supply the matched action (<c>UPDATE</c> or <c>DELETE</c>).</returns>
+    /// <remarks>Oracle, PostgreSQL (15+), and SQL Server syntax.</remarks>
     IMergeBuilderWhenMatched WhenMatched();
 
     /// <summary>
@@ -19,6 +19,9 @@ public interface IMergeBuilderOn
     /// only for matched rows that also satisfy <paramref name="extraCondition"/>.
     /// </summary>
     /// <param name="extraCondition">The extra predicate the matched rows must satisfy.</param>
+    /// <remarks>PostgreSQL (15+) and SQL Server syntax. Oracle has no <c>AND</c> on a
+    /// <c>WHEN</c> branch; its filter is a trailing <c>WHERE</c> on the action, which
+    /// the builder does not emit.</remarks>
     /// <returns>The builder positioned to supply the matched action (<c>UPDATE</c> or <c>DELETE</c>).</returns>
     IMergeBuilderWhenMatched WhenMatched(SqlCondition extraCondition);
 
@@ -27,6 +30,7 @@ public interface IMergeBuilderOn
     /// (typically an <c>INSERT</c>).
     /// </summary>
     /// <returns>The builder positioned to supply the not-matched action (typically <c>INSERT</c>).</returns>
+    /// <remarks>Oracle, PostgreSQL (15+), and SQL Server syntax.</remarks>
     IMergeBuilderWhenNotMatched WhenNotMatched();
 
     /// <summary>
@@ -34,6 +38,9 @@ public interface IMergeBuilderOn
     /// but only for source rows that also satisfy <paramref name="extraCondition"/>.
     /// </summary>
     /// <param name="extraCondition">The extra predicate the unmatched source rows must satisfy.</param>
+    /// <remarks>PostgreSQL (15+) and SQL Server syntax. Oracle has no <c>AND</c> on a
+    /// <c>WHEN</c> branch; its filter is a trailing <c>WHERE</c> on the action, which
+    /// the builder does not emit.</remarks>
     /// <returns>The builder positioned to supply the not-matched action (typically <c>INSERT</c>).</returns>
     IMergeBuilderWhenNotMatched WhenNotMatched(SqlCondition extraCondition);
 

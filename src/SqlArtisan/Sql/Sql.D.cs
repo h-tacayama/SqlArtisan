@@ -47,12 +47,9 @@ public static partial class Sql
     /// <see cref="Interval(object, DateTimePart)"/> or
     /// <see cref="IntervalLiteral(string, IntervalField)"/>.</param>
     /// <returns>The <c>DATE_ADD</c> function expression.</returns>
-    /// <remarks>
-    /// MySQL syntax — visually one capital letter away from
-    /// <see cref="Dateadd(DateTimePart, object, object)"/> (SQL Server's
-    /// <c>DATEADD</c>, a different argument shape entirely). For subtraction
-    /// use <see cref="DateSub(object, IntervalExpression)"/>.
-    /// </remarks>
+    /// <remarks>MySQL syntax — one capital letter away from SQL Server's
+    /// <see cref="Dateadd(DateTimePart, object, object)"/>, a different shape.
+    /// Subtraction: <see cref="DateSub(object, IntervalExpression)"/>.</remarks>
     public static DateAddFunction DateAdd(object date, IntervalExpression interval) =>
         new(Resolve(date), interval);
 
@@ -74,15 +71,9 @@ public static partial class Sql
     /// <param name="number">The number of units to add; negative to subtract.</param>
     /// <param name="dateTime">The date/time value to shift.</param>
     /// <returns>The <c>DATEADD</c> function expression.</returns>
-    /// <remarks>
-    /// This is SQL Server's form. For Oracle use
-    /// <see cref="AddMonths(object, object)"/>; for MySQL use
-    /// <see cref="DateAdd(object, IntervalExpression)"/> /
-    /// <see cref="DateSub(object, IntervalExpression)"/> instead — same letters,
-    /// different case, different dialect. For PostgreSQL date-shift arithmetic
-    /// use <see cref="IntervalLiteral(string, IntervalField)"/> with the
-    /// <c>+</c>/<c>-</c> operators instead.
-    /// </remarks>
+    /// <remarks>SQL Server syntax. Oracle: <see cref="AddMonths(object, object)"/>; MySQL:
+    /// <see cref="DateAdd(object, IntervalExpression)"/>; PostgreSQL: <c>+</c>/<c>-</c> with
+    /// <see cref="IntervalLiteral(string, IntervalField)"/>.</remarks>
     public static DateaddFunction Dateadd(DateTimePart datepart, object number, object dateTime) =>
         new(datepart, Resolve(number), Resolve(dateTime));
 
@@ -158,21 +149,6 @@ public static partial class Sql
         new(Resolve(date), interval);
 
     /// <summary>
-    /// The <c>DATE_TRUNC('<paramref name="datepart"/>', <paramref name="source"/>)</c>
-    /// function: <paramref name="source"/> truncated down to
-    /// <paramref name="datepart"/> precision.
-    /// </summary>
-    /// <param name="datepart">The precision to truncate to.</param>
-    /// <param name="source">The date/time value to truncate.</param>
-    /// <returns>The <c>DATE_TRUNC</c> function expression.</returns>
-    /// <remarks>
-    /// This is PostgreSQL's form. For Oracle use the date/time overload of
-    /// <see cref="Trunc(object, object)"/> (<c>TRUNC(date, fmt)</c>).
-    /// </remarks>
-    public static DateTruncFunction DateTrunc(DateTimePart datepart, object source) =>
-        new(datepart, Resolve(source));
-
-    /// <summary>
     /// The <c>DATETIME(<paramref name="timevalue"/>, ...)</c> function: <paramref name="timevalue"/>
     /// shifted/adjusted by each modifier in order, then read as a
     /// <c>YYYY-MM-DD HH:MM:SS</c> datetime.
@@ -187,6 +163,21 @@ public static partial class Sql
     /// </remarks>
     public static DatetimeFunction Datetime(object timevalue, params object[] modifiers) =>
         new(ResolveVariadic(timevalue, modifiers));
+
+    /// <summary>
+    /// The <c>DATE_TRUNC('<paramref name="datepart"/>', <paramref name="source"/>)</c>
+    /// function: <paramref name="source"/> truncated down to
+    /// <paramref name="datepart"/> precision.
+    /// </summary>
+    /// <param name="datepart">The precision to truncate to.</param>
+    /// <param name="source">The date/time value to truncate.</param>
+    /// <returns>The <c>DATE_TRUNC</c> function expression.</returns>
+    /// <remarks>
+    /// This is PostgreSQL's form. For Oracle use the date/time overload of
+    /// <see cref="Trunc(object, object)"/> (<c>TRUNC(date, fmt)</c>).
+    /// </remarks>
+    public static DateTruncFunction DateTrunc(DateTimePart datepart, object source) =>
+        new(datepart, Resolve(source));
 
     /// <summary>
     /// The <c>DATETRUNC(<paramref name="datepart"/>, <paramref name="date"/>)</c>
@@ -233,7 +224,7 @@ public static partial class Sql
         object @default)
     {
         CollectionGuard.ThrowIfEmpty(
-            searchResultPairs,
+            searchResultPairs, nameof(searchResultPairs),
             "DECODE requires at least one (search, result) pair.");
         return new(
             Resolve(expr),
@@ -241,7 +232,7 @@ public static partial class Sql
             Resolve(@default));
     }
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair,
@@ -250,7 +241,7 @@ public static partial class Sql
             Resolve(new (object, object)[] { searchResultPair }),
             Resolve(@default));
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -262,7 +253,7 @@ public static partial class Sql
                 searchResultPair2,}),
             Resolve(@default));
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -276,7 +267,7 @@ public static partial class Sql
                 searchResultPair3,}),
             Resolve(@default));
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -292,7 +283,7 @@ public static partial class Sql
                 searchResultPair4,}),
             Resolve(@default));
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -310,7 +301,7 @@ public static partial class Sql
                 searchResultPair5,}),
             Resolve(@default));
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -330,7 +321,7 @@ public static partial class Sql
                 searchResultPair6,}),
             Resolve(@default));
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -352,7 +343,7 @@ public static partial class Sql
                 searchResultPair7,}),
             Resolve(@default));
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -376,7 +367,7 @@ public static partial class Sql
                 searchResultPair8,}),
             Resolve(@default));
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -402,7 +393,7 @@ public static partial class Sql
                 searchResultPair9,}),
             Resolve(@default));
 
-    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)"/>
+    /// <inheritdoc cref="Decode(object, System.ValueTuple{object, object}[], object)" path="//*[not(self::exception)]"/>
     public static DecodeFunction Decode(
         object expr,
         (object search, object result) searchResultPair1,
@@ -431,6 +422,16 @@ public static partial class Sql
             Resolve(@default));
 
     /// <summary>
+    /// References <paramref name="column"/> of the <c>DELETED</c> pseudo-table in
+    /// a SQL Server <c>OUTPUT</c> clause — the row's pre-image before a
+    /// <c>DELETE</c> or <c>UPDATE</c>. Renders as <c>DELETED.col</c>.
+    /// </summary>
+    /// <param name="column">The target-table column whose deleted value to read.</param>
+    /// <returns>A <c>DELETED.col</c> reference.</returns>
+    /// <remarks>SQL Server syntax, valid only inside <c>Output(...)</c>.</remarks>
+    public static DeletedColumn Deleted(DbColumn column) => new(column);
+
+    /// <summary>
     /// Begins a <c>DELETE FROM <paramref name="table"/></c> statement; continue
     /// with <c>.Where(...)</c> to restrict the rows removed.
     /// </summary>
@@ -442,16 +443,6 @@ public static partial class Sql
         DeleteClause deleteClause = new(table, state);
         return new DeleteBuilder(table, state, deleteClause);
     }
-
-    /// <summary>
-    /// References <paramref name="column"/> of the <c>DELETED</c> pseudo-table in
-    /// a SQL Server <c>OUTPUT</c> clause — the row's pre-image before a
-    /// <c>DELETE</c> or <c>UPDATE</c>. Renders as <c>DELETED.col</c>.
-    /// </summary>
-    /// <param name="column">The target-table column whose deleted value to read.</param>
-    /// <returns>A <c>DELETED.col</c> reference.</returns>
-    /// <remarks>SQL Server syntax, valid only inside <c>Output(...)</c>.</remarks>
-    public static DeletedColumn Deleted(DbColumn column) => new(column);
 
     /// <summary>
     /// The <c>DENSE_RANK()</c> analytic function (rank within the window with no
@@ -497,8 +488,11 @@ public static partial class Sql
     /// rejects <c>||</c> entirely; its concatenation operator is <c>+</c>, already
     /// emitted by the existing <c>+</c> operator on <see cref="SqlExpression"/>.
     /// </remarks>
-    public static DoublePipeOperator DoublePipe(object primary, object secondary, params object[] others) =>
-        new(Resolve(primary), Resolve(secondary), Resolve(others));
+    public static DoublePipeOperator DoublePipe(
+        object primary,
+        object secondary,
+        params object[] others) =>
+        new(ResolveVariadic(primary, secondary, others));
 
     /// <summary>
     /// The <c>DUAL</c> dummy table (MySQL and Oracle), for selecting expressions

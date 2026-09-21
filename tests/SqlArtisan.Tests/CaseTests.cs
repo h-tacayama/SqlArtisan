@@ -826,4 +826,29 @@ public class CaseTests
 
         Assert.Equal("CASE requires at least one WHEN clause.", ex.Message);
     }
+
+    [Fact]
+    public void When_WithoutThen_ThrowsArgumentException()
+    {
+        // The incomplete-construct hint, not the generic invalid-type message.
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Select(When(_t.Name == "a")));
+
+        Assert.Equal(
+            "SearchedCaseWhenCondition is not a complete SQL expression. "
+                + "Complete the WHEN branch with .Then(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void SimpleWhen_WithoutThen_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => Select(When("a")));
+
+        Assert.Equal(
+            "SimpleCaseWhenExpression is not a complete SQL expression. "
+                + "Complete the WHEN branch with .Then(...).",
+            ex.Message);
+    }
 }

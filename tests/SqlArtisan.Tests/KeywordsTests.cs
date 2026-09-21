@@ -22,7 +22,21 @@ public class KeywordsTests
 
             Assert.False(
                 value.Contains(' '),
-                $"Keywords.{constant.Name} = \"{value}\" contains a space. One SQL token per constant — compose the phrase at the use site with const interpolation.");
+                $"Keywords.{constant.Name} = \"{value}\" contains a space. One SQL token per "
+                    + $"constant — compose the phrase at the use site with const interpolation.");
         }
+    }
+
+    // Two constants sharing a value would let a renamed keyword pass every
+    // exact-SQL test while the wrong constant is emitted.
+    [Fact]
+    public void Keywords_NoTwoConstantsShareAValue()
+    {
+        string[] values = [.. typeof(Sql).Assembly.GetType("SqlArtisan.Internal.Keywords")!
+            .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+            .Where(f => f.IsLiteral && f.FieldType == typeof(string))
+            .Select(f => (string)f.GetRawConstantValue()!)];
+
+        Assert.Equal(values.Length, values.Distinct(StringComparer.Ordinal).Count());
     }
 }

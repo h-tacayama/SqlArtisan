@@ -5,10 +5,9 @@ using Microsoft.CodeAnalysis;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// The identifier-length rule spent four releases sitting after the schema
-/// rules because nothing checked (#379). Of the three lists that carry this
-/// order, only this one is reachable by reflection, so it is the one that can
-/// be gated.
+/// The identifier-length rule sat after the schema rules until #379 because
+/// nothing checked. Of the three lists that carry this order, only this one
+/// is reachable by reflection, so it is the one that can be gated.
 /// </summary>
 public class DiagnosticOrderingTests
 {

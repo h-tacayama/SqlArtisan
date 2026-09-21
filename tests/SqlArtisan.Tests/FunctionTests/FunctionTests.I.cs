@@ -17,6 +17,9 @@ public partial class FunctionTests
         expected.Append("IF(`t`.code > ?0, ?1, ?2)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("adult", sql.Parameters.Get<string>("?1"));
+        Assert.Equal("minor", sql.Parameters.Get<string>("?2"));
     }
 
     [Fact]
@@ -40,6 +43,7 @@ public partial class FunctionTests
         expected.Append("IFNULL(`t`.name, ?0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("Unknown", sql.Parameters.Get<string>("?0"));
     }
 
     [Fact]
@@ -54,6 +58,9 @@ public partial class FunctionTests
         expected.Append("IIF(\"t\".code > @0, @1, @2)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("adult", sql.Parameters.Get<string>("@1"));
+        Assert.Equal("minor", sql.Parameters.Get<string>("@2"));
     }
 
     [Fact]
@@ -66,7 +73,7 @@ public partial class FunctionTests
     }
 
     [Fact]
-    public void Instr_BasicPattern_CorrectSql()
+    public void Instr_Oracle_BasicPattern_CorrectSql()
     {
         SqlStatement sql =
             Select(Instr(_t.Name, "abc"))
@@ -77,10 +84,11 @@ public partial class FunctionTests
         expected.Append("INSTR(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("abc", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]
-    public void Instr_WithPosition_CorrectSql()
+    public void Instr_Oracle_WithPosition_CorrectSql()
     {
         SqlStatement sql =
             Select(Instr(_t.Name, "abc", 1))
@@ -91,10 +99,12 @@ public partial class FunctionTests
         expected.Append("INSTR(\"t\".name, :0, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("abc", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
     }
 
     [Fact]
-    public void Instr_WithOccurrence_CorrectSql()
+    public void Instr_Oracle_WithOccurrence_CorrectSql()
     {
         SqlStatement sql =
             Select(Instr(_t.Name, "abc", 1, 2))
@@ -105,6 +115,9 @@ public partial class FunctionTests
         expected.Append("INSTR(\"t\".name, :0, :1, :2)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("abc", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
+        Assert.Equal(2, sql.Parameters.Get<int>(":2"));
     }
 
     [Fact]
@@ -134,6 +147,7 @@ public partial class FunctionTests
         expected.Append("(`t`.created_at - INTERVAL ?0 DAY)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(30, sql.Parameters.Get<int>("?0"));
     }
 
     [Fact]
@@ -364,7 +378,8 @@ public partial class FunctionTests
             () => IntervalLiteral("1 2", Day(), Hour(3)));
 
         Assert.Equal(
-            "A trailing HOUR in an INTERVAL range does not support a precision; only TO SECOND does.",
+            "A trailing HOUR in an INTERVAL range does not support a precision; "
+                + "only TO SECOND does.",
             ex.Message);
     }
 
@@ -375,7 +390,8 @@ public partial class FunctionTests
             () => IntervalLiteral("1-2", Year(), Month(3)));
 
         Assert.Equal(
-            "A trailing MONTH in an INTERVAL range does not support a precision; only TO SECOND does.",
+            "A trailing MONTH in an INTERVAL range does not support a precision; "
+                + "only TO SECOND does.",
             ex.Message);
     }
 
@@ -451,5 +467,6 @@ public partial class FunctionTests
         expected.Append("ISNULL(\"t\".name, @0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("Unknown", sql.Parameters.Get<string>("@0"));
     }
 }

@@ -1,7 +1,6 @@
 namespace SqlArtisan.Internal;
 
-// Emits `WHEN NOT MATCHED BY SOURCE [AND <condition>] THEN`. This is a SQL Server
-// extension; the action (UPDATE SET / DELETE) follows as a separate part.
+// A SQL Server extension to MERGE's WHEN family.
 internal sealed class WhenNotMatchedBySourceClause(SqlCondition? extraCondition) : SqlPart
 {
     private readonly SqlCondition? _extraCondition = extraCondition;

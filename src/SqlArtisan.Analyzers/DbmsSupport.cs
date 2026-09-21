@@ -7,7 +7,12 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 internal readonly struct DbmsSupport
 {
-    public static readonly DbmsSupport All = new(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: true);
+    public static readonly DbmsSupport All = new(
+        mySql: true,
+        oracle: true,
+        postgreSql: true,
+        sqlite: true,
+        sqlServer: true);
 
     public DbmsSupport(bool mySql, bool oracle, bool postgreSql, bool sqlite, bool sqlServer)
     {

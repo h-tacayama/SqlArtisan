@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
@@ -243,7 +244,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         connection.ExecuteScalar("SELECT NTILE(4) OVER (ORDER BY age) FROM users");
         connection.ExecuteScalar("SELECT NTH_VALUE(age, 1) OVER (ORDER BY age) FROM users");
         connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 PRECEDING) FROM users");
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 "
+                + "PRECEDING) FROM users");
 
         // The only difference each time — the value-domain violation — is what SQLite rejects.
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
@@ -255,10 +257,182 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT SUM(age) OVER (ORDER BY age ROWS 1 FOLLOWING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 "
+                + "PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING "
+                + "AND UNBOUNDED PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED "
+                + "FOLLOWING) FROM users"));
+    }
+
+    // The live twin of SelectBuilder's bare-OFFSET guard (ADR 0011).
+    [Fact]
+    public void Pagination_OffsetWithoutLimit_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users ORDER BY id OFFSET 1"));
+    }
+
+    // The permissive half of InsertBuilder's conflict-target guard (ADR 0011):
+    // SQLite takes DO UPDATE without a target, so Build(Sqlite) must not throw.
+    [Fact]
+    public void Upsert_OnConflictDoUpdateWithoutTarget_IsAcceptedByTheEngine()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name)
+                .Values(1, "AliceUpdated")
+                .OnConflict()
+                .DoUpdateSet(u.Name == Excluded(u.Name)),
+            transaction);
+
+        string name = connection
+            .Query<string>(Select(u.Name).From(u).Where(u.Id == 1), transaction)
+            .Single();
+
+        Assert.Equal("AliceUpdated", name);
+        transaction.Rollback();
+    }
+
+    // Live twins of the duplicate-list guards (guards-and-empty-states.md): the
+    // guards reject the shape everywhere, so each lane pins what its engine does.
+    [Fact]
+    public void DuplicateInsertColumn_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "INSERT INTO users (id, id) VALUES (901, 902)",
+            transaction: transaction);
+        int count = connection
+            .Query<int>(
+                "SELECT COUNT(*) FROM users WHERE id IN (901, 902)",
+                transaction: transaction)
+            .Single();
+
+        Assert.Equal(1, count); // one row lands, under whichever value the engine keeps
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void DuplicateSetAssignment_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "UPDATE users SET age = 1, age = 2 WHERE id = 1",
+            transaction: transaction);
+        int age = connection
+            .Query<int>("SELECT age FROM users WHERE id = 1", transaction: transaction)
+            .Single();
+
+        Assert.Equal(2, age); // the last assignment wins, silently
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void DuplicateOnConflictTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "INSERT INTO users (id) VALUES (901) ON CONFLICT (id, id) DO NOTHING",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void DuplicateUsingColumn_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute("SELECT id FROM users JOIN orders USING (id, id)");
+    }
+
+    [Fact]
+    public void DuplicateCteColumnName_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        int count = connection
+            .Query<int>("WITH x(a, a) AS (SELECT 1, 2) SELECT COUNT(*) FROM x")
+            .Single();
+
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void DuplicateCteName_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("WITH x AS (SELECT 1), x AS (SELECT 2) SELECT * FROM x"));
+    }
+
+    // The live twin of the re-listed joined-UPDATE guard off SQL Server (ADR 0011):
+    // the T-SQL lead form names the alias alone, which SQLite reads as a table.
+    [Fact]
+    public void JoinedUpdateRelistedTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "UPDATE \"u\" SET age = 1 FROM users AS \"u\" "
+                    + "INNER JOIN orders AS \"o\" ON \"o\".user_id = \"u\".id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // The live twins of the ORDER BY ordinal guards: SQLite reads both literals
+    // as positions and rejects each, while the window position takes them.
+    [Fact]
+    public void OrderByZeroOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users ORDER BY 0"));
+    }
+
+    [Fact]
+    public void OrderByNegativeOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users ORDER BY -1"));
+    }
+
+    // The nested twin: a subquery resolves its own ordinals, which is why the
+    // guard runs on every query block rather than the outermost one.
+    [Fact]
+    public void OrderByNegativeOrdinalInSubquery_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM (SELECT id FROM users ORDER BY -1)"));
+    }
+
+    [Fact]
+    public void OrderByNegativeOrdinalInWindow_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<long>("SELECT ROW_NUMBER() OVER (ORDER BY -1) FROM users").ToList();
     }
 }

@@ -152,7 +152,7 @@ public class BindArrayTests
             BindArray<int>((int[])null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'values')",
+            "Value cannot be null. Use Sql.BindNull to bind SQL NULL. (Parameter 'values')",
             ex.Message);
     }
 
@@ -163,7 +163,7 @@ public class BindArrayTests
             BindArray((List<int>)null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'values')",
+            "Value cannot be null. Use Sql.BindNull to bind SQL NULL. (Parameter 'values')",
             ex.Message);
     }
 

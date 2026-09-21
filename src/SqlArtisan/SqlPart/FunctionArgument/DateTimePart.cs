@@ -1,19 +1,9 @@
 namespace SqlArtisan;
 
 /// <summary>
-/// A date/time field to extract or operate on. This is a superset shared across
-/// <see cref="Sql.Extract(DateTimePart, object)"/>,
-/// <see cref="Sql.Datepart(DateTimePart, object)"/>,
-/// <see cref="Sql.Dateadd(DateTimePart, object, object)"/>,
-/// <see cref="Sql.Datediff(DateTimePart, object, object)"/>,
-/// <see cref="Sql.DateTrunc(DateTimePart, object)"/>,
-/// <see cref="Sql.Datetrunc(DateTimePart, object)"/>,
-/// <see cref="Sql.Interval(object, DateTimePart)"/>,
-/// <see cref="Sql.Numtodsinterval(object, DateTimePart)"/>,
-/// <see cref="Sql.Numtoyminterval(object, DateTimePart)"/>,
-/// <see cref="Sql.Timestampadd(DateTimePart, object, object)"/>, and
-/// <see cref="Sql.Timestampdiff(DateTimePart, object, object)"/>; not every
-/// field is valid for every function or dialect.
+/// A date/time field to extract or operate on — the argument type of
+/// <see cref="Sql.Extract(DateTimePart, object)"/> and its siblings; not every field is valid
+/// for every function or dialect.
 /// </summary>
 public enum DateTimePart
 {
@@ -43,7 +33,8 @@ public enum DateTimePart
     DayMinute = 4,
 
     /// <summary>
-    /// The <c>DAYOFYEAR</c> field — day of the year (SQL Server / MySQL spelling; PostgreSQL uses <see cref="Doy"/>).
+    /// The <c>DAYOFYEAR</c> field — day of the year (SQL Server / MySQL spelling; PostgreSQL uses
+    /// <see cref="Doy"/>).
     /// </summary>
     Dayofyear = 5,
 
@@ -118,7 +109,8 @@ public enum DateTimePart
     Microsecond = 19,
 
     /// <summary>
-    /// The <c>MICROSECONDS</c> field — the seconds field including fractional microseconds (PostgreSQL).
+    /// The <c>MICROSECONDS</c> field — the seconds field including fractional microseconds
+    /// (PostgreSQL).
     /// </summary>
     Microseconds = 20,
 
@@ -133,7 +125,8 @@ public enum DateTimePart
     Millisecond = 22,
 
     /// <summary>
-    /// The <c>MILLISECONDS</c> field — the seconds field including fractional milliseconds (PostgreSQL).
+    /// The <c>MILLISECONDS</c> field — the seconds field including fractional milliseconds
+    /// (PostgreSQL).
     /// </summary>
     Milliseconds = 23,
 
@@ -183,7 +176,7 @@ public enum DateTimePart
     Timezone = 32,
 
     /// <summary>
-    /// The <c>TIMEZONE_ABBR</c> field — the time-zone abbreviation.
+    /// The <c>TIMEZONE_ABBR</c> field — the time-zone abbreviation (Oracle).
     /// </summary>
     TimezoneAbbr = 33,
 

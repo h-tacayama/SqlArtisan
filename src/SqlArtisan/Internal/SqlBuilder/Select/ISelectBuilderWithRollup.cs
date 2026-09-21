@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The builder state after a <c>GROUP BY ... WITH ROLLUP</c> clause: continue with
 /// <c>HAVING</c>, <c>ORDER BY</c>, pagination, a set operator, or build.
 /// </summary>
-public interface ISelectBuilderWithRollup : ISqlBuilder, ISetOperator, ISubquery, IPagination
+public interface ISelectBuilderWithRollup : ISqlBuilder, IPagination, ISetOperator, ISubquery
 {
     /// <inheritdoc cref="ISelectBuilderGroupBy.Having(SqlCondition)"/>
     ISelectBuilderHaving Having(SqlCondition condition);

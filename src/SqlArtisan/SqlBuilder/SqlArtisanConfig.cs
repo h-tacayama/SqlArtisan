@@ -6,7 +6,9 @@ namespace SqlArtisan;
 public static class SqlArtisanConfig
 {
     /// <summary>
-    /// Gets the dialect used when a statement is built without an explicit one (<see cref="ISqlBuilder.Build()"/>); defaults to <see cref="Dbms.PostgreSql"/>. Change it with <see cref="SetDefaultDbms(Dbms)"/>.
+    /// Gets the dialect used when a statement is built without an explicit one (<see
+    /// cref="ISqlBuilder.Build()"/>); defaults to <see cref="Dbms.PostgreSql"/>. Change it with
+    /// <see cref="SetDefaultDbms(Dbms)"/>.
     /// </summary>
     public static Dbms DefaultDbms { get; private set; } = Dbms.PostgreSql;
 
