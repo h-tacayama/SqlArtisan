@@ -15,8 +15,8 @@ paths:
 Covers wording and formatting for the README (landing + capability-map index),
 `docs/` (reference), `llms.txt` (the AI-tool index), `llms-full.txt` (its
 full-text companion — every page `llms.txt` links via a raw-content URL,
-concatenated verbatim in that order; regenerate per the header comment in
-`tests/SqlArtisan.Tests/LlmsFullTests.cs`, which gates it byte-for-byte against
+concatenated verbatim in that order; regenerate with `tools/regen-llms-full.sh`;
+`tests/SqlArtisan.Tests/LlmsFullTests.cs` gates it byte-for-byte against
 drift), `context7.json` (Context7 indexing config), `CHANGELOG.md`, and the
 package READMEs under `src/*/README.md` (NuGet landing pages). The
 README/`docs/` split also lives in CLAUDE.md; the absolute-URL rule and the
@@ -138,3 +138,15 @@ grandfathered, not a precedent — a new callout that reads as a usage advisory
 still picks `[!WARNING]`/`[!NOTE]`/prose like any other, per the criteria
 above. `DocsCalloutTests` bounds the grandfathered one to 10 lines like every
 other kind, so it cannot grow unchecked while it stands.
+
+## Dialect scope in prose
+
+A behavior holds on the dialects the sentence names, and on no others: name
+every dialect it holds on, or none. A subset reads as a restriction —
+"SQL Server's `STRING_AGG` separator" told a PostgreSQL reader the separator
+was bound there, and "MySQL and SQLite still render it" implied Oracle and SQL
+Server throw (release audit pass 8). A construct list in a doc sentence
+(the statement heads a rule reads, a subclass list, the positions a marker is
+valid in) is complete or absent for the same reason; the code-derived gates
+(`XmlDocDialectParityTests`, `BuilderStepDocsTests`, `AnalyzerReleasesNotesTests`)
+catch the shapes they can, and this clause is the reviewer's for the rest.

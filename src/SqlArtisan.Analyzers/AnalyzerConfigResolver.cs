@@ -5,18 +5,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reads <c>sqlartisan_syntax_*</c> (and the legacy <c>sqlartisan_target_dbms</c>
-/// / <c>sqlartisan_construct_*</c>) from <see cref="AnalyzerConfigOptions"/> (the
-/// <c>.editorconfig</c> / MSBuild property surface Roslyn exposes to analyzers).
-/// Values are looked up per-syntax-tree, so a <c>.editorconfig</c> section
-/// scoped to a directory naturally gives that directory its own target set —
-/// no extra plumbing needed.
+/// Reads the analyzer's <c>.editorconfig</c> / MSBuild-property surface via
+/// <see cref="AnalyzerConfigOptions"/>. Lookups are per-syntax-tree, so a
+/// directory-scoped <c>.editorconfig</c> section gets its own target set free.
 /// </summary>
 internal static class AnalyzerConfigResolver
 {
     public static readonly TargetDbms[] AllDbms =
     [
-        TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite, TargetDbms.SqlServer,
+        TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite, TargetDbms
+            .SqlServer,
     ];
 
     private static readonly Dictionary<TargetDbms, string> SyntaxDbmsNames = new()
@@ -39,7 +37,8 @@ internal static class AnalyzerConfigResolver
     /// the <c>CompilerVisibleProperty</c> entries declared alongside the legacy
     /// pair's (src/SqlArtisan.Analyzers/build/SqlArtisan.props).
     /// </summary>
-    public static string SyntaxMSBuildPropertyKey(TargetDbms dbms) => $"build_property.SqlArtisanSyntax{dbms}";
+    public static string SyntaxMSBuildPropertyKey(TargetDbms dbms) =>
+        $"build_property.SqlArtisanSyntax{dbms}";
 
     public static bool IsRecognizedSyntaxValue(string value) =>
         string.Equals(value, AnyValue, StringComparison.OrdinalIgnoreCase)
@@ -61,14 +60,9 @@ internal static class AnalyzerConfigResolver
     }
 
     /// <summary>
-    /// Whether any <c>sqlartisan_syntax_*</c> key carries a value anywhere in
-    /// this file's effective options — <c>.editorconfig</c> or the
-    /// MSBuild-property fallback, a *recognized* value or not. Any value makes
-    /// the family govern the whole resolution (#432's family-wins-outright
-    /// precedence); an invalid one still counts, so a mistyped family *value*
-    /// never silently lets the legacy pair take over. (A mistyped key *name*
-    /// does — no exact key matches — which is what the separate
-    /// <see cref="TryEnumerateSyntaxKeys"/> validation exists to flag.)
+    /// Whether any <c>sqlartisan_syntax_*</c> key carries a value, on either
+    /// surface. Any value — recognized or not — makes the family govern (#432),
+    /// so a mistyped family *value* never silently revives the legacy pair.
     /// </summary>
     public static bool IsFamilyPresent(AnalyzerConfigOptions options)
     {
@@ -93,7 +87,8 @@ internal static class AnalyzerConfigResolver
     /// MSBuild property is exactly as silent as one in the
     /// <c>.editorconfig</c> key.
     /// </summary>
-    public static IEnumerable<(string Key, string Value)> SetSyntaxValues(AnalyzerConfigOptions options)
+    public static IEnumerable<(string Key, string Value)> SetSyntaxValues(
+        AnalyzerConfigOptions options)
     {
         foreach (TargetDbms dbms in AllDbms)
         {
@@ -109,18 +104,20 @@ internal static class AnalyzerConfigResolver
         }
     }
 
-    private static bool HasValue(AnalyzerConfigOptions options, string key) => TryGetSetValue(options, key, out _);
+    private static bool HasValue(AnalyzerConfigOptions options, string key) => TryGetSetValue(
+        options,
+        key,
+        out _);
 
     /// <summary>
-    /// Reads <paramref name="key"/>, treating a blank value as unset: the
-    /// shipped props declares a <c>CompilerVisibleProperty</c> per DBMS, and
-    /// the SDK emits every declared property as a key — with an empty value
-    /// when the consumer never set it — so testing key presence alone would
-    /// make the family govern in every project referencing the package.
+    /// Reads <paramref name="key"/>, treating a blank value as unset: the SDK emits
+    /// every declared <c>CompilerVisibleProperty</c> as a key, blank when never set,
+    /// so presence alone would make the family govern in every referencing project.
     /// </summary>
     private static bool TryGetSetValue(AnalyzerConfigOptions options, string key, out string value)
     {
-        value = options.TryGetValue(key, out string? raw) && !string.IsNullOrWhiteSpace(raw) ? raw : string.Empty;
+        value = options.TryGetValue(key, out string? raw)
+            && !string.IsNullOrWhiteSpace(raw) ? raw : string.Empty;
         return value.Length > 0;
     }
 
@@ -160,11 +157,12 @@ internal static class AnalyzerConfigResolver
         return set;
     }
 
-    // .editorconfig wins when its value is recognized; an unrecognized
-    // .editorconfig value falls through to the MSBuild property rather than
-    // resolving to unset outright — the same precedent ResolveTargetVersion
-    // already sets for the legacy pair.
-    private static bool TryResolveSyntaxValue(AnalyzerConfigOptions options, TargetDbms dbms, out string? value)
+    // An unrecognized .editorconfig value falls through to the MSBuild
+    // property rather than resolving to unset (ResolveTargetVersion's precedent).
+    private static bool TryResolveSyntaxValue(
+        AnalyzerConfigOptions options,
+        TargetDbms dbms,
+        out string? value)
     {
         if (options.TryGetValue(SyntaxKey(dbms), out string? editorConfigValue)
             && IsRecognizedSyntaxValue(editorConfigValue))
@@ -203,14 +201,34 @@ internal static class AnalyzerConfigResolver
     /// doesn't override it, so a failure here degrades to "skip key-name validation"
     /// rather than take the whole analyzer down.
     /// </summary>
-    public static bool TryEnumerateSyntaxKeys(AnalyzerConfigOptions options, out List<string> keys)
+    public static bool TryEnumerateSyntaxKeys(
+        AnalyzerConfigOptions options,
+        out List<string> keys) =>
+        TryEnumeratePrefixedKeys(options, SyntaxKeyPrefix, out keys);
+
+    /// <summary>
+    /// Every <c>sqlartisan_construct_*</c>-prefixed key <paramref name="options"/>
+    /// carries, for override-value validation across the whole honored surface —
+    /// <see cref="ResolveOverride"/> reads any (member, arity) key, not just the
+    /// matrix-derived ones, so validating only the latter left honored keys'
+    /// typos silent. Degrades like <see cref="TryEnumerateSyntaxKeys"/>.
+    /// </summary>
+    public static bool TryEnumerateConstructKeys(
+        AnalyzerConfigOptions options,
+        out List<string> keys) =>
+        TryEnumeratePrefixedKeys(options, ConstructKeyNaming.Prefix, out keys);
+
+    private static bool TryEnumeratePrefixedKeys(
+        AnalyzerConfigOptions options,
+        string prefix,
+        out List<string> keys)
     {
         keys = [];
         try
         {
             foreach (string key in options.Keys)
             {
-                if (key.StartsWith(SyntaxKeyPrefix, StringComparison.OrdinalIgnoreCase))
+                if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
                     keys.Add(key);
                 }
@@ -236,7 +254,8 @@ internal static class AnalyzerConfigResolver
     /// </summary>
     public const string TargetDbmsMSBuildPropertyKey = "build_property.SqlArtisanTargetDbms";
 
-    private static readonly Dictionary<string, TargetDbms> TargetNames = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, TargetDbms> TargetNames = new(
+        StringComparer.OrdinalIgnoreCase)
     {
         ["mysql"] = TargetDbms.MySql,
         ["oracle"] = TargetDbms.Oracle,
@@ -274,7 +293,8 @@ internal static class AnalyzerConfigResolver
     /// <summary>The #262 reserved key: the engine version bounds are evaluated against.</summary>
     public const string TargetVersionKey = "sqlartisan_target_version";
 
-    /// <summary>The MSBuild-property fallback for <see cref="TargetVersionKey"/>, same shape as <see cref="TargetDbmsMSBuildPropertyKey"/>.</summary>
+    /// <summary>The MSBuild-property fallback for <see cref="TargetVersionKey"/>, same shape as
+    /// <see cref="TargetDbmsMSBuildPropertyKey"/>.</summary>
     public const string TargetVersionMSBuildPropertyKey = "build_property.SqlArtisanTargetVersion";
 
     /// <summary>
@@ -299,7 +319,9 @@ internal static class AnalyzerConfigResolver
         return null;
     }
 
-    public static bool IsRecognizedVersionValue(string value) => EngineVersion.TryParse(value, out _);
+    public static bool IsRecognizedVersionValue(string value) => EngineVersion.TryParse(
+        value,
+        out _);
 
     /// <summary>
     /// A construct override's raw value, parsed to true (<c>supported</c>),

@@ -3,9 +3,10 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.IntegrationTests.Infrastructure;
 
-/// <summary>One catalog entry: a builder that exercises a single API construct, and the engines it is valid on.</summary>
+/// <summary>One catalog entry: a builder that exercises a single API construct, and the engines it
+/// is valid on.</summary>
 /// <param name="Name">Label shown in the smoke report.</param>
-/// <param name="Build">Produces the <see cref="ISqlBuilder"/> to execute (always a single-column SELECT).</param>
+/// <param name="Build">Produces the <see cref="ISqlBuilder"/> to execute — a SELECT whose first column is read as the scalar.</param>
 /// <param name="Engines">The engines the construct's emitted SQL is expected to run on.</param>
 public sealed record SmokeCase(string Name, Func<ISqlBuilder> Build, Dbms[] Engines);
 
@@ -18,10 +19,9 @@ public sealed record SmokeCase(string Name, Func<ISqlBuilder> Build, Dbms[] Engi
 /// construct fails on which engine — surfacing "emits but won't execute" bugs
 /// (cf. #165, #168) across the whole surface at once.
 ///
-/// Scope note: the catalog is not exhaustive. A construct needing DDL or engine
-/// setup this schema does not provide (sequences, full-text) has no entry, nor do
-/// several other families; <see cref="MatrixSweepCatalog"/> is the broader
-/// per-construct catalog. Set/clause builders have their own dedicated tests.
+/// Not exhaustive: a construct needing DDL this schema lacks (sequences, full-text)
+/// has no entry, and <see cref="MatrixSweepCatalog"/> is the broader per-construct
+/// catalog; set/clause builders have their own dedicated tests.
 /// </summary>
 internal static class SmokeCatalog
 {
@@ -67,7 +67,7 @@ internal static class SmokeCatalog
         // the bundled Microsoft.Data.Sqlite native library).
         Add("Power", () => Scalar(Power(2, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
         Add("Sqrt", () => Scalar(Sqrt(16)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
-        Add("Mod", () => Scalar(Mod(10, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("Mod", () => Scalar(Mod(10, 3)), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
 
         // --- String scalars ---
         Add("Upper", () => Scalar(Upper("abc")), All);
@@ -87,7 +87,8 @@ internal static class SmokeCatalog
         // LENGTHB / SUBSTRB are Oracle byte-semantics builtins.
         Add("Lengthb", () => Scalar(Lengthb("abc")), Only(Dbms.Oracle));
         Add("Substrb", () => Scalar(Substrb("abcdef", 2)), Only(Dbms.Oracle));
-        // Numeric TRUNC: Oracle/PostgreSQL/SQLite (MySQL spells it TRUNCATE; SQL Server has no TRUNC).
+        // Numeric TRUNC: Oracle/PostgreSQL/SQLite (MySQL spells it TRUNCATE; SQL Server has no
+        // TRUNC).
         Add("Trunc", () => Scalar(Trunc(123.456)), Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
 
         // --- Conditional / null handling ---
@@ -151,16 +152,17 @@ internal static class SmokeCatalog
         // PostgreSQL's to_number requires a format argument (Oracle allows one arg).
         Add("ToNumber", () => Scalar(ToNumber("123", "999")), Only(Dbms.Oracle, Dbms.PostgreSql));
         Add("ToDate", () => Scalar(ToDate("2020-01-01", "YYYY-MM-DD")), Only(Dbms.Oracle, Dbms.PostgreSql));
-        Add("ToTimestamp", () => Scalar(ToTimestamp("2020-01-01 00:00:00", "YYYY-MM-DD HH24:MI:SS")),
+        Add("ToTimestamp", () =>
+            Scalar(ToTimestamp("2020-01-01 00:00:00", "YYYY-MM-DD HH24:MI:SS")),
             Only(Dbms.Oracle, Dbms.PostgreSql));
 
         // --- Regexp ---
         Add("RegexpLike", () => Select(Count(u.Id)).From(u).Where(RegexpLike(u.Name, "A.*")),
-            Only(Dbms.MySql, Dbms.Oracle));
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
         Add("RegexpReplace", () => Scalar(RegexpReplace(u.Name, "a", "b")),
             Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
-        Add("RegexpSubstr", () => Scalar(RegexpSubstr(u.Name, "A")), Only(Dbms.MySql, Dbms.Oracle));
-        Add("RegexpCount", () => Scalar(RegexpCount(u.Name, "a")), Only(Dbms.Oracle));
+        Add("RegexpSubstr", () => Scalar(RegexpSubstr(u.Name, "A")), Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("RegexpCount", () => Scalar(RegexpCount(u.Name, "a")), Only(Dbms.Oracle, Dbms.PostgreSql));
 
         // --- Distinct-arity overloads not exercised by the cases above ---
         // Window LAG/LEAD with an explicit offset and offset+default.
@@ -178,27 +180,28 @@ internal static class SmokeCatalog
         // (MySQL's LPAD/RPAD require the pad argument).
         Add("LpadNoPad", () => Scalar(Lpad("x", 3)), Only(Dbms.Oracle, Dbms.PostgreSql));
         Add("RpadNoPad", () => Scalar(Rpad("x", 3)), Only(Dbms.Oracle, Dbms.PostgreSql));
-        // LTRIM/RTRIM(source, trimChars) — Oracle / PostgreSQL / SQLite
-        // (MySQL's LTRIM/RTRIM take no trim-character argument).
+        // LTRIM/RTRIM(source, trimChars) — Oracle / PostgreSQL / SQLite /
+        // SQL Server 2022+ (MySQL's LTRIM/RTRIM take no trim-character argument).
         Add("LtrimChars", () => Scalar(Ltrim("xxabc", "x")),
-            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
         Add("RtrimChars", () => Scalar(Rtrim("abcxx", "x")),
-            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
+            Only(Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite, Dbms.SqlServer));
         // SUBSTRB(source, position, length) — Oracle byte-semantics, 3-arg form.
         Add("SubstrbLength", () => Scalar(Substrb("abcdef", 2, 3)), Only(Dbms.Oracle));
         // REGEXP_SUBSTR / REGEXP_COUNT with a start position (and a match option).
         Add("RegexpSubstrPosition", () => Scalar(RegexpSubstr(u.Name, "A", 1)),
-            Only(Dbms.MySql, Dbms.Oracle));
-        Add("RegexpCountPosition", () => Scalar(RegexpCount(u.Name, "a", 1)), Only(Dbms.Oracle));
-        Add("RegexpCountOptions", () => Scalar(RegexpCount(u.Name, "a", 1, RegexpOptions.CaseInsensitive)),
-            Only(Dbms.Oracle));
+            Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql));
+        Add("RegexpCountPosition", () => Scalar(RegexpCount(u.Name, "a", 1)), Only(Dbms.Oracle, Dbms.PostgreSql));
+        Add("RegexpCountOptions", () =>
+            Scalar(RegexpCount(u.Name, "a", 1, RegexpOptions.CaseInsensitive)),
+            Only(Dbms.Oracle, Dbms.PostgreSql));
         // DISTINCT inside SUM / AVG.
         Add("SumDistinct", () => Select(Sum(Distinct, o.Amount)).From(o), All);
         Add("AvgDistinct", () => Select(Avg(Distinct, o.Amount)).From(o), All);
         // Ordered string aggregation: PostgreSQL inline ORDER BY, SQL Server
         // WITHIN GROUP, MySQL GROUP_CONCAT ... ORDER BY, SQLite positional separator.
         Add("StringAggOrderBy", () => Select(StringAgg(u.Name, ", ", OrderBy(u.Name))).From(u),
-            Only(Dbms.PostgreSql));
+            Only(Dbms.PostgreSql, Dbms.Sqlite));
         Add("StringAggWithinGroup",
             () => Select(StringAgg(u.Name, ", ").WithinGroup(OrderBy(u.Name))).From(u),
             Only(Dbms.SqlServer));

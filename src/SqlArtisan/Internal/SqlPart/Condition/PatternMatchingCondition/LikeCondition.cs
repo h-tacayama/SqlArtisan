@@ -11,8 +11,8 @@ public sealed class LikeCondition : SqlCondition
         _rightSide = rightSide;
     }
 
-    // Inlined as a string literal, never bound: MySQL rejects a parameter marker
-    // after ESCAPE (ADR 0004). NotLikeCondition.Escape is the same construct.
+    // Inlined as a string literal: ESCAPE takes a constant char fixed at the call
+    // site (ADR 0004). NotLikeCondition.Escape is the same construct.
     public LikeEscapeCondition Escape(char escapeChar) =>
         new(_leftSide, _rightSide, escapeChar);
 

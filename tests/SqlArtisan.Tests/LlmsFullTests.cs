@@ -2,29 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace SqlArtisan.Tests;
 
-// llms-full.txt is llms.txt's full-text companion: every page llms.txt links
-// via a raw.githubusercontent.com URL, concatenated verbatim in that order.
-// It is hand-maintained (regenerate with the command below), so this gate
-// checks it byte-for-byte against the real source files — the same
-// read-the-real-files-and-assert philosophy as DocsIndexTests (#210), one
-// level stricter since faithful reproduction is this file's entire point.
-//
-// Regenerate from the repo root:
-//   { printf '%s\n' "# SqlArtisan — Full Documentation" "" \
-//       "> The full-text companion to llms.txt: every page it links via a raw-content" \
-//       "> URL, concatenated in that same order, for AI tools that ingest one file" \
-//       "> instead of following links. See llms.txt first for the short index; this" \
-//       "> file is the deep-ingestion counterpart."; \
-//     for f in README.md docs/README.md docs/query-statements.md docs/expressions.md \
-//         docs/functions.md docs/analyzer.md docs/cookbook.md docs/comparison.md \
-//         docs/guides/dapper-quickstart.md docs/guides/oracle-array-bind.md \
-//         docs/guides/ai-assistants.md \
-//         docs/versioning.md; do \
-//       printf '\n<!-- %s -->\n<!-- SOURCE: %s -->\n<!-- %s -->\n\n' \
-//         '============================================================' "$f" \
-//         '============================================================'; \
-//       cat "$f"; \
-//     done; } > llms-full.txt
+// llms-full.txt is llms.txt's full-text companion: every page llms.txt links,
+// concatenated verbatim in that order (regenerate with tools/regen-llms-full.sh);
+// this gate checks it byte-for-byte against the real source files (#210).
 public class LlmsFullTests
 {
     private static readonly Regex RawUrlPattern = new(
@@ -45,7 +25,8 @@ public class LlmsFullTests
         string llmsFullTxt = File.ReadAllText(Path.Combine(root, "llms-full.txt"));
 
         List<string> expected = [.. RawUrlPattern.Matches(llmsTxt).Select(m => m.Groups[1].Value)];
-        List<string> actual = [.. SourceDelimiterPattern.Matches(llmsFullTxt).Select(m => m.Groups[1].Value)];
+        List<string> actual = [.. SourceDelimiterPattern.Matches(llmsFullTxt).Select(m =>
+            m.Groups[1].Value)];
 
         Assert.Equal(expected, actual);
     }
@@ -73,7 +54,8 @@ public class LlmsFullTests
 
             Assert.True(
                 embedded == sourceContent,
-                $"llms-full.txt's copy of \"{path}\" is stale — regenerate llms-full.txt (see this file's header comment).");
+                $"llms-full.txt's copy of \"{path}\" is stale — regenerate llms-full.txt (see this "
+                    + $"file's header comment).");
         }
     }
 

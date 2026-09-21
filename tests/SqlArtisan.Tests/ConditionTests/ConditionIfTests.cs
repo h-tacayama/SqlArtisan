@@ -22,7 +22,8 @@ public class ConditionIfTests
     [Fact]
     public void ConditionIf_WhenConditionIsFalse_ThrowsArgumentException()
     {
-        // An excluded condition as the whole WHERE leaves nothing runnable — rejected at Build() (#236).
+        // An excluded condition as the whole WHERE leaves nothing runnable — rejected at Build()
+        // (#236).
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Name).From(_t).Where(ConditionIf(false, _t.Code == 1)).Build());
 

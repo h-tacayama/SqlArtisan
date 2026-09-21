@@ -27,7 +27,10 @@ public class SchemaMetadataParityTests
             .Where(f => f.IsLiteral
                 && f.FieldType == typeof(string)
                 && f.Name.EndsWith("Argument", StringComparison.Ordinal))
-            .ToDictionary(f => f.Name, f => (string)f.GetRawConstantValue()!, StringComparer.Ordinal);
+            .ToDictionary(
+                f => f.Name,
+                f => (string)f.GetRawConstantValue()!,
+                StringComparer.Ordinal);
 
     private static readonly IReadOnlyList<string> SettableProperties =
         [.. AttributeType

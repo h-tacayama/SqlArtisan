@@ -41,6 +41,9 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
     private static readonly Regex ColumnPattern =
         new("""new DbColumn\(this, "(?<name>(?:[^"\\]|\\.)*)"\)""", RegexOptions.Compiled);
 
+    private static readonly Regex TablePattern =
+        new(""": base\("(?<name>(?:[^"\\]|\\.)*)", tableAlias\)""", RegexOptions.Compiled);
+
     private readonly CodeGenerationSettings _settings = options.Settings;
 
     private readonly TableClassEmitter _emitter = new(options.Settings);
@@ -56,6 +59,8 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
         // property-name collision) must not leave earlier tables already written.
         List<(CatalogTable Table, string Code)> emitted =
             [.. tables.Select(t => (t, _emitter.Emit(t)))];
+
+        GuardTableNames(emitted);
 
         foreach ((CatalogTable table, string code) in emitted)
         {
@@ -91,19 +96,34 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
     // from the output, and --check would then report a drift no --fix could clear.
     private static void GuardClassNames(IReadOnlyList<CatalogTable> tables)
     {
-        Dictionary<string, string> byClassName = new(StringComparer.Ordinal);
+        // Case-insensitive: the file name is what collides, and the common
+        // filesystems fold case.
+        Dictionary<string, CatalogTable> byClassName = new(StringComparer.OrdinalIgnoreCase);
 
         foreach (CatalogTable table in tables)
         {
-            if (byClassName.TryGetValue(table.ClassName, out string? first))
+            if (byClassName.TryGetValue(table.ClassName, out CatalogTable? first))
             {
-                throw new CommandLineException(
-                    $"Tables '{first}' and '{table.TableName}' both generate the class "
-                        + $"{table.ClassName}; rename one of them or narrow the run with --tables.");
+                throw new CommandLineException(CollisionMessage(first, table));
             }
 
-            byClassName[table.ClassName] = table.TableName;
+            byClassName[table.ClassName] = table;
         }
+    }
+
+    // A case-only pair generates two distinct classes, so saying they "both
+    // generate" one of them would send the reader after a name that is not the
+    // constraint: the file names are what collide on a case-folding file system.
+    private static string CollisionMessage(CatalogTable first, CatalogTable second)
+    {
+        string remedy = "rename one of them or narrow the run with --tables.";
+
+        return string.Equals(first.ClassName, second.ClassName, StringComparison.Ordinal)
+            ? $"Tables '{first.TableName}' and '{second.TableName}' both generate the class "
+                + $"{second.ClassName}; {remedy}"
+            : $"Tables '{first.TableName}' and '{second.TableName}' generate the classes "
+                + $"{first.ClassName} and {second.ClassName}, whose file names differ only by "
+                + $"case and collide on a case-folding file system; {remedy}";
     }
 
     private IEnumerable<CatalogTable> ResolveTables()
@@ -171,6 +191,69 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
         return new TableResult(table.TableName, path, TableStatus.Modified, Diff(committed, code));
     }
 
+    // Before any write, for the reason Emit runs first: a multi-table run must
+    // not rewrite earlier files and then abort on a later file's collision.
+    private void GuardTableNames(IReadOnlyList<(CatalogTable Table, string Code)> emitted)
+    {
+        foreach ((CatalogTable table, string code) in emitted)
+        {
+            string path = _settings.CreateOutputFilePath(table.ClassName);
+
+            if (File.Exists(path))
+            {
+                GuardTableName(path, File.ReadAllText(path), code);
+            }
+        }
+    }
+
+    // Two tables can share a class name across --tables runs, where GuardClassNames
+    // sees only one of them; the file on disk then names the other.
+    private static void GuardTableName(string path, string committed, string generated)
+    {
+        string? existing = TableName(committed);
+        string? current = TableName(generated);
+
+        if (existing is null || current is null || NameOneTable(existing, current))
+        {
+            return;
+        }
+
+        throw new CommandLineException(
+            $"{Path.GetFileName(path)} already describes table '{existing}', and this run "
+                + $"generates '{current}' into it. Generate the two into separate "
+                + "--output directories, or rename one of the tables.");
+    }
+
+    // The committed file carries the emitted literal, which --lowercase and
+    // --qualify-schema each vary, so compare the identity it spells rather than
+    // its text: a schema counts only where both sides carry one.
+    private static bool NameOneTable(string existing, string current)
+    {
+        (string existingSchema, string existingName) = SplitQualified(existing);
+        (string currentSchema, string currentName) = SplitQualified(current);
+
+        if (!string.Equals(existingName, currentName, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return existingSchema.Length == 0
+            || currentSchema.Length == 0
+            || string.Equals(existingSchema, currentSchema, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static (string Schema, string Name) SplitQualified(string tableName)
+    {
+        int separator = tableName.LastIndexOf('.');
+
+        return separator < 0
+            ? (string.Empty, tableName)
+            : (tableName[..separator], tableName[(separator + 1)..]);
+    }
+
+    private static string? TableName(string code) =>
+        TablePattern.Match(code) is { Success: true } m ? Unescape(m.Groups["name"].Value) : null;
+
     private static IReadOnlyList<string> Diff(string committed, string generated)
     {
         List<string> before = ColumnNames(committed);
@@ -206,9 +289,8 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
             char next = literal[++i];
 
-            // A malformed \u (short or non-hex) can only reach here from a hand-edited
-            // or corrupted committed file — Quote never emits one — so it is read back
-            // literally rather than aborting the whole --check/--fix run over one file.
+            // A malformed \u — hand-edited or corrupted; Quote never emits one —
+            // reads back literally rather than aborting the whole --check/--fix run.
             if (next == 'u'
                 && i + 4 < literal.Length
                 && int.TryParse(

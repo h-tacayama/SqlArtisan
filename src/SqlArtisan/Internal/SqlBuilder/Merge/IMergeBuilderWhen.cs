@@ -5,6 +5,6 @@ namespace SqlArtisan.Internal;
 /// <see cref="IMergeBuilderOn"/> starters), or
 /// <see cref="ISqlBuilder.Build()">Build</see>.
 /// </summary>
-public interface IMergeBuilderWhen : IMergeBuilderOn, ISqlBuilder
+public interface IMergeBuilderWhen : ISqlBuilder, IMergeBuilderOn
 {
 }

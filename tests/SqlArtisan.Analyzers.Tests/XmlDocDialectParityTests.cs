@@ -8,11 +8,9 @@ using SqlArtisan.Internal;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// Guards #292's doc/behaviour drifts from recurring.
-/// <see cref="RemarksDialectNote_MatchesMatrix"/> sweeps every public member
-/// carrying both a <c>&lt;remarks&gt;</c> dialect note and a
-/// <see cref="DialectMatrix"/> entry against a documented exclusion catalog
-/// (#470), rather than a curated inclusion list.
+/// Guards #292's doc/behaviour drifts from recurring: every public member carrying
+/// both a <c>&lt;remarks&gt;</c> dialect note and a <see cref="DialectMatrix"/> entry
+/// is swept against a documented exclusion catalog (#470), never an inclusion list.
 /// </summary>
 public class XmlDocDialectParityTests
 {
@@ -35,7 +33,8 @@ public class XmlDocDialectParityTests
     // Members whose first-clause parse disagrees with the matrix — the remark's
     // phrasing defeats the parser, not its content, so it is catalogued rather
     // than gated. ExcludedMembers_AreAllLoadBearing enforces exactly that much.
-    private static readonly IReadOnlySet<(string Name, int? Arity)> ExcludedMembers = new HashSet<(string, int?)>
+    private static readonly IReadOnlySet<(string Name, int? Arity)> ExcludedMembers =
+        new HashSet<(string, int?)>
     {
         // These four can never be retired by rewording: DialectMatrix keys them
         // as the *union* of two distinct APIs colliding on one (name, arity)
@@ -53,11 +52,8 @@ public class XmlDocDialectParityTests
         ("IntervalLiteral", 2),
     };
 
-    // Every member whose <remarks> names a dialect — i.e. contains one of
-    // DisplayNames' keys — and has a DialectMatrix entry. A remark that never
-    // names a dialect (implementation notes, usage guidance) makes no
-    // matrix-parity claim to check, even when the member's matrix entry happens
-    // to be <see cref="DbmsSupport.All"/>.
+    // Every member whose <remarks> names a dialect (contains a DisplayNames key)
+    // and has a DialectMatrix entry; a remark naming none makes no parity claim.
     private static IEnumerable<(string Id, string Name, int? Arity)> Candidates() =>
         from member in LoadXmlDoc().Descendants("member")
         let remark = member.Element("remarks")
@@ -136,6 +132,101 @@ public class XmlDocDialectParityTests
         }
     }
 
+    // The inverse of the sweep above: a restricted member with no dialect-naming doc
+    // text is invisible at the point of use (Length/Sign/Sqrt/Trim). Every public
+    // member counts, builder steps included — an overload narrower than its member
+    // (WhenMatched(cond) off Oracle, release audit pass 8) is caught only when its
+    // own doc must name the dialects the matrix keys it to. The raw XML keeps
+    // <inheritdoc> unexpanded, so follow the cref.
+    [Fact]
+    public void RestrictedMatrixMembers_CarryADialectNote()
+    {
+        XDocument doc = LoadXmlDoc();
+        List<string> missing = [];
+        foreach (XElement member in doc.Descendants("member"))
+        {
+            string id = (string)member.Attribute("name")!;
+            if (!id.StartsWith("M:SqlArtisan.", StringComparison.Ordinal)
+                && !id.StartsWith("P:SqlArtisan.", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            (string name, int? arity) = ParseMemberId(id);
+            if (!DialectMatrix.TryGetEntry(name, arity, out _, out _))
+            {
+                continue;
+            }
+
+            MatrixKey matchedKey = MatchedKey(name, arity);
+            ISet<TargetDbms> supported = SupportedDialects(name, arity);
+            bool restricted = supported.Count < AllDbms.Length
+                || AllDbms.Any(dbms => DialectMatrix.TryGetMinVersion(matchedKey, dbms, out _));
+            if (restricted
+                && !NamesADialect(member, doc, depth: 0, Restricting(matchedKey, supported)))
+            {
+                missing.Add(id);
+            }
+        }
+
+        Assert.True(
+            missing.Count == 0,
+            $"{missing.Count} restricted-matrix member(s) name no dialect in "
+                + $"<summary>/<remarks>:\n  "
+                + string.Join("\n  ", missing));
+    }
+
+    // The dialects the restriction is about — unsupported, version-bound, or the
+    // supported set a narrow member names ("SQL Server syntax."). A doc naming
+    // only some other dialect says nothing about the restriction.
+    private static string[] Restricting(MatrixKey key, ISet<TargetDbms> supported)
+    {
+        HashSet<TargetDbms> relevant = [.. supported];
+        foreach (TargetDbms dbms in AllDbms)
+        {
+            if (!supported.Contains(dbms) || DialectMatrix.TryGetMinVersion(key, dbms, out _))
+            {
+                relevant.Add(dbms);
+            }
+        }
+
+        return [.. DisplayNames
+            .Where(pair => relevant.Contains(pair.Value))
+            .Select(pair => pair.Key)];
+    }
+
+    private static bool NamesADialect(
+        XElement member, XDocument doc, int depth, IReadOnlyCollection<string> names)
+    {
+        if (depth > 3)
+        {
+            return false;
+        }
+
+        foreach (string? text
+            in new[] { member.Element("summary")?.Value, member.Element("remarks")?.Value })
+        {
+            if (text is not null && names.Any(WhitespaceRun.Replace(text, " ").Contains))
+            {
+                return true;
+            }
+        }
+
+        foreach (XElement inherit in member.Descendants("inheritdoc"))
+        {
+            XElement? target = (string?)inherit.Attribute("cref") is { } cref
+                ? doc.Descendants("member").FirstOrDefault(
+                    m => (string?)m.Attribute("name") == cref)
+                : null;
+            if (target is not null && NamesADialect(target, doc, depth + 1, names))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // The version check is orthogonal to the dialect-set parse, so it sweeps every
     // candidate — ExcludedMembers' remarks defeat that parse, not this one.
     public static IEnumerable<object[]> VersionCases() =>
@@ -170,12 +261,9 @@ public class XmlDocDialectParityTests
         }
     }
 
-    // The convention ParseFloors reads: a floor is parenthesized next to the
-    // dialect it bounds — "SQLite (3.35+)" inside a dialect list, "(SQLite 3.44+)"
-    // as a standalone aside. A bare "SQL Server 2022+" reads the same to a human
-    // but parses to nothing, so it fails here rather than satisfying the parity
-    // theory vacuously. Swept over every remark, not just the candidates: the
-    // spelling is a house convention, not a matrix claim.
+    // ParseFloors reads a floor only parenthesized beside its dialect ("SQLite (3.35+)",
+    // "(SQLite 3.44+)"); a bare "SQL Server 2022+" parses to nothing and would satisfy
+    // the parity theory vacuously, so every remark is swept for the spelling.
     [Fact]
     public void RemarksVersionFloor_IsParenthesizedBesideItsDialect()
     {
@@ -189,7 +277,8 @@ public class XmlDocDialectParityTests
 
             string text = WhitespaceRun.Replace(remark.Value, " ").Trim();
             offenders.AddRange(FreeFormFloors(text)
-                .Select(floor => $"{(string)member.Attribute("name")!}: \"{floor}\" in \"{text}\""));
+                .Select(
+                    floor => $"{(string)member.Attribute("name")!}: \"{floor}\" in \"{text}\""));
         }
 
         Assert.True(
@@ -212,7 +301,8 @@ public class XmlDocDialectParityTests
                 named = DisplayNames[token.Groups[1].Value];
             }
             else if (named is null
-                || !asides.Any(aside => token.Index >= aside.Start.Value && token.Index < aside.End.Value))
+                || !asides.Any(
+                    aside => token.Index >= aside.Start.Value && token.Index < aside.End.Value))
             {
                 yield return token.Value;
             }
@@ -261,7 +351,10 @@ public class XmlDocDialectParityTests
 
         MatrixKey matchedKey = MatchedKey(name, arity);
         return new HashSet<TargetDbms>(AllDbms.Where(
-            dbms => support.IsSupported(dbms) || DialectMatrix.TryGetMinVersion(matchedKey, dbms, out _)));
+            dbms => support.IsSupported(dbms) || DialectMatrix.TryGetMinVersion(
+                matchedKey,
+                dbms,
+                out _)));
     }
 
     // A bound attaches to the exact key the entry lookup matched, never falling
@@ -276,16 +369,23 @@ public class XmlDocDialectParityTests
     }
 
     private static readonly TargetDbms[] AllDbms =
-        [TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite, TargetDbms.SqlServer];
+    [
+        TargetDbms.MySql,
+        TargetDbms.Oracle,
+        TargetDbms.PostgreSql,
+        TargetDbms.Sqlite,
+        TargetDbms.SqlServer,
+    ];
 
-    private static readonly IReadOnlyDictionary<string, TargetDbms> DisplayNames = new Dictionary<string, TargetDbms>
-    {
-        ["MySQL"] = TargetDbms.MySql,
-        ["Oracle"] = TargetDbms.Oracle,
-        ["PostgreSQL"] = TargetDbms.PostgreSql,
-        ["SQLite"] = TargetDbms.Sqlite,
-        ["SQL Server"] = TargetDbms.SqlServer,
-    };
+    private static readonly IReadOnlyDictionary<string, TargetDbms> DisplayNames =
+        new Dictionary<string, TargetDbms>
+        {
+            ["MySQL"] = TargetDbms.MySql,
+            ["Oracle"] = TargetDbms.Oracle,
+            ["PostgreSQL"] = TargetDbms.PostgreSql,
+            ["SQLite"] = TargetDbms.Sqlite,
+            ["SQL Server"] = TargetDbms.SqlServer,
+        };
 
     // "Not supported by X." / "Not available on X." = all but X; "A, B, and C
     // syntax." = exactly the named set — a remark uses one form or the other,
@@ -315,7 +415,8 @@ public class XmlDocDialectParityTests
     // names a function, not a dialect.
     private const string ClauseBody = @"(?:\.\.\.|\.\d|[^.;—])*";
     private static readonly Regex SupportedClause = new(ClauseBody);
-    private static readonly Regex ExclusionClause = new($@"Not (?:supported by|available on)({ClauseBody})");
+    private static readonly Regex ExclusionClause = new(
+        $@"Not (?:supported by|available on)({ClauseBody})");
 
     // memberId is "M:"/"P:"/"T:" plus a dotted signature, e.g.
     // "M:SqlArtisan.Sql.ToNumber(System.Object,System.Object)" or
@@ -382,4 +483,70 @@ public class XmlDocDialectParityTests
             Path.GetDirectoryName(typeof(Sql).Assembly.Location)!, "SqlArtisan.xml");
         return XDocument.Load(xmlPath);
     }
+
+    // A floor stated only in <summary>, or nowhere, is invisible to the floor sweeps
+    // above (they read <remarks>), so every version-bound Sql factory must carry a
+    // <remarks> naming a dialect; builder steps document on the docs pages (pass 7).
+    [Fact]
+    public void EveryVersionBoundSqlFactory_CarriesARemarksDialectNote()
+    {
+        // Keyed with the arity the bound carries: Trim's two overloads have
+        // different SQL Server floors, so one's note does not discharge the other.
+        XDocument doc = LoadXmlDoc();
+        List<(string Name, int? Arity, XElement Doc)> factories =
+            [.. doc.Descendants("member")
+                .Where(member => ((string)member.Attribute("name")!).Contains(":SqlArtisan.Sql."))
+                .Select(member =>
+                {
+                    (string name, int? arity) = ParseMemberId((string)member.Attribute("name")!);
+                    return (name, arity, member);
+                })];
+
+        ILookup<string, int?> boundArities =
+            DialectMatrix.AllBounds.Keys.ToLookup(key => key.MemberName, key => key.Arity);
+
+        List<string> missing = [];
+        foreach (MatrixKey key in DialectMatrix.AllBounds.Keys)
+        {
+            // A member-level bound governs only the arities no key of its own
+            // names, the way DialectMatrix resolves one.
+            List<XElement> overloads = [.. factories
+                .Where(f => f.Name == key.MemberName
+                    && (key.Arity is null
+                        ? !boundArities[key.MemberName].Contains(f.Arity)
+                        : f.Arity == key.Arity))
+                .Select(f => f.Doc)];
+
+            // <inheritdoc> discharges an overload only while every bound over the
+            // name states the same floors.
+            bool inheritable = DialectMatrix.AllBounds.Keys
+                .Where(other => other.MemberName == key.MemberName)
+                .Select(FloorSignature)
+                .Distinct()
+                .Count() == 1;
+            if (overloads.Count > 0
+                && !overloads.All(member => HasRemarksDialectNote(member)
+                    || (inheritable
+                        && NamesADialect(member, doc, depth: 0, [.. DisplayNames.Keys]))))
+            {
+                missing.Add($"{key.MemberName}/{key.Arity?.ToString() ?? "member"}");
+            }
+        }
+
+        Assert.True(
+            missing.Count == 0,
+            $"{missing.Count} version-bound member(s) carry no <remarks> naming a dialect: "
+                + string.Join(", ", missing.OrderBy(m => m, StringComparer.Ordinal)));
+    }
+
+    private static string FloorSignature(MatrixKey key) => string.Join(
+        ",",
+        AllDbms.Select(dbms =>
+            DialectMatrix.TryGetMinVersion(key, dbms, out EngineVersion min)
+                ? $"{dbms}:{min}"
+                : string.Empty));
+
+    private static bool HasRemarksDialectNote(XElement member) =>
+        member.Element("remarks") is { } remark
+        && DisplayNames.Keys.Any(WhitespaceRun.Replace(remark.Value, " ").Contains);
 }

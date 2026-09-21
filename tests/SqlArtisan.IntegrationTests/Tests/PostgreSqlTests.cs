@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 using Npgsql;
 using SqlArtisan.Dapper;
@@ -113,6 +114,21 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             .Single();
 
         Assert.Equal("Alice", name);
+        transaction.Rollback();
+    }
+
+    // The live twin of InsertBuilder's conflict-target guard (ADR 0011).
+    [Fact]
+    public void Upsert_OnConflictDoUpdateWithoutTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "INSERT INTO users (id, name) VALUES (1, 'x') "
+                    + "ON CONFLICT DO UPDATE SET name = EXCLUDED.name",
+                transaction: transaction));
         transaction.Rollback();
     }
 
@@ -301,7 +317,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         connection.ExecuteScalar("SELECT NTILE(4) OVER (ORDER BY age) FROM users");
         connection.ExecuteScalar("SELECT NTH_VALUE(age, 1) OVER (ORDER BY age) FROM users");
         connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 PRECEDING) FROM users");
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 "
+                + "PRECEDING) FROM users");
 
         // The only difference each time — the value-domain violation — is what PG rejects.
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
@@ -313,11 +330,14 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT SUM(age) OVER (ORDER BY age ROWS 1 FOLLOWING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 "
+                + "PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING "
+                + "AND UNBOUNDED PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED "
+                + "FOLLOWING) FROM users"));
     }
 
     [Fact] // SQLA0104 (#449): anchors PostgreSqlExtractFields in DatepartValidity.cs
@@ -481,5 +501,105 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         public DbColumn Id { get; }
 
         public DbColumn Embedding { get; }
+    }
+
+    // Live twins of the duplicate-list guards (guards-and-empty-states.md): the
+    // guards reject the shape everywhere, so each lane pins what its engine does.
+    [Fact]
+    public void DuplicateInsertColumn_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Rolled back so a row cannot leak into the shared fixture if the claim fails.
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "INSERT INTO users (id, id) VALUES (901, 902)",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void DuplicateSetAssignment_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "UPDATE users SET age = 1, age = 2 WHERE id = 1",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void DuplicateUsingColumn_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users JOIN orders USING (id, id)"));
+    }
+
+    [Fact]
+    public void DuplicateCteColumnName_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        int count = connection
+            .Query<int>("WITH x(a, a) AS (SELECT 1, 2) SELECT COUNT(*) FROM x")
+            .Single();
+
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void DuplicateCteName_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("WITH x AS (SELECT 1), x AS (SELECT 2) SELECT * FROM x"));
+    }
+
+    // The live twin of SelectBuilder's non-integer sort-key guard (ADR 0011).
+    [Fact]
+    public void OrderByNonIntegerConstant_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users ORDER BY 2.5"));
+    }
+
+    // The live twins of the ORDER BY ordinal guards: zero is no column position
+    // on any engine (ADR 0007); PostgreSQL reads a negative literal as one too.
+    [Fact]
+    public void OrderByZeroOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users ORDER BY 0"));
+    }
+
+    [Fact]
+    public void OrderByNegativeOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users ORDER BY -1"));
+    }
+
+    // The nested twin: a CTE body resolves its own ordinals, which is why the
+    // guard runs on every query block rather than the outermost one.
+    [Fact]
+    public void OrderByZeroOrdinalInCteBody_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("WITH c AS (SELECT id FROM users ORDER BY 0) SELECT id FROM c"));
     }
 }

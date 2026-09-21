@@ -51,7 +51,8 @@ internal sealed class Reporter(RunOptions options)
 
         // A dry run prints the same pair, so a preview cannot disagree with the run.
         Console.WriteLine(
-            $"{verb} {written} of {scanned.Count} table {noun} in {options.Settings.OutputDirectory}");
+            $"{verb} {written} of {scanned.Count} table {noun} in "
+                + $"{options.Settings.OutputDirectory}");
 
         // The orphans are found in every full run, and --format json reports them
         // either way, so the text output must not be the one that stays quiet.
@@ -66,10 +67,23 @@ internal sealed class Reporter(RunOptions options)
     {
         List<TableResult> drifted = [.. results.Where(r => r.Status != TableStatus.Unchanged)];
 
+        if (options.Verbose)
+        {
+            // The unchanged tables too, as the generate mode lists them: a table the
+            // drift check found current is otherwise indistinguishable from one it skipped.
+            foreach (TableResult result in results)
+            {
+                Console.WriteLine($"  {Label(result.Status),-9} {result.TableName}");
+            }
+
+            Console.WriteLine();
+        }
+
         if (drifted.Count == 0)
         {
             Console.WriteLine(
-                $"In sync: {results.Count} {(results.Count == 1 ? "table" : "tables")} match {options.Settings.OutputDirectory}");
+                $"In sync: {results.Count} {(results.Count == 1 ? "table" : "tables")} match "
+                    + $"{options.Settings.OutputDirectory}");
             return;
         }
 

@@ -73,10 +73,8 @@ public class SqliteCatalogReaderTests
         Assert.Equal(["configkey", "configvalue"], table.Columns.Select(c => c.Name));
     }
 
-    // Under tr-TR, culture-sensitive ToLower() turns "BILLING" into "bıllıng"
-    // (dotless ı) rather than "billing" — a table name pragma_table_info's
-    // case-insensitive ASCII lookup no longer matches, so the table went missing
-    // from the results entirely rather than merely being cased wrong.
+    // Under tr-TR a culture-sensitive ToLower() turns "BILLING" into "bıllıng"
+    // (dotless ı), so pragma_table_info's ASCII lookup missed the table entirely.
     [Fact]
     public void GetAllTables_LowercaseNamesUnderTurkishCulture_UsesInvariantCasing()
     {
@@ -306,6 +304,26 @@ public class SqliteCatalogReaderTests
                 .GetAllTables());
 
         Assert.Equal([null, false, true], table.Columns.Select(c => c.IsIndexed));
+    }
+
+    // A column leading its own plain index still claims true when a separate
+    // expression index also mentions it — the plain index serves a bare
+    // predicate whatever the expression index covers.
+    [Fact]
+    public void GetAllTables_LeadingColumnAlsoInExpressionIndex_IsIndexed()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE customer (email TEXT, other TEXT);
+            CREATE INDEX ix_email ON customer(email);
+            CREATE INDEX ix_email_upper ON customer(upper(email));
+            """);
+
+        CatalogTable table = Assert.Single(
+            new SqliteCatalogReader(db.ConnectionInfo, lowercaseNames: false)
+                .GetAllTables());
+
+        Assert.Equal([true, false], table.Columns.Select(c => c.IsIndexed));
     }
 
     [Fact]

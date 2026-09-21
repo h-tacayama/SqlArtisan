@@ -17,8 +17,15 @@ public static partial class Sql
     /// <c>CASE WHEN ... THEN ... END</c>.</returns>
     public static SearchedCaseExpression Case(
         SearchedCaseWhenClause whenClause,
-        params SearchedCaseWhenClause[] whenClauses) =>
-        new([whenClause, .. whenClauses]);
+        params SearchedCaseWhenClause[] whenClauses)
+    {
+        CollectionGuard.ThrowIfNullElement(
+            whenClauses,
+            nameof(whenClauses),
+            "A CASE expression must not contain a null WHEN clause.");
+
+        return new([whenClause, .. whenClauses]);
+    }
 
     /// <inheritdoc cref="Case(SearchedCaseWhenClause, SearchedCaseWhenClause[])"/>
     public static SearchedCaseExpression Case(
@@ -203,8 +210,12 @@ public static partial class Sql
         CaseElseExpression elseExpr)
     {
         CollectionGuard.ThrowIfEmpty(
-            whenClauses,
+            whenClauses, nameof(whenClauses),
             "CASE requires at least one WHEN clause.");
+        CollectionGuard.ThrowIfNullElement(
+            whenClauses,
+            nameof(whenClauses),
+            "A CASE expression must not contain a null WHEN clause.");
 
         return new(whenClauses, elseExpr);
     }
@@ -224,8 +235,12 @@ public static partial class Sql
         params SimpleCaseWhenClause[] whenClauses)
     {
         CollectionGuard.ThrowIfEmpty(
-            whenClauses,
+            whenClauses, nameof(whenClauses),
             "CASE requires at least one WHEN clause.");
+        CollectionGuard.ThrowIfNullElement(
+            whenClauses,
+            nameof(whenClauses),
+            "A CASE expression must not contain a null WHEN clause.");
 
         return new(Resolve(expr), whenClauses);
     }
@@ -435,8 +450,12 @@ public static partial class Sql
         CaseElseExpression elseExpr)
     {
         CollectionGuard.ThrowIfEmpty(
-            whenClauses,
+            whenClauses, nameof(whenClauses),
             "CASE requires at least one WHEN clause.");
+        CollectionGuard.ThrowIfNullElement(
+            whenClauses,
+            nameof(whenClauses),
+            "A CASE expression must not contain a null WHEN clause.");
 
         return new(Resolve(expr), whenClauses, elseExpr);
     }
@@ -454,12 +473,9 @@ public static partial class Sql
     /// The <c>CEIL(expr)</c> function (smallest integer not less than
     /// <paramref name="expr"/>).
     /// </summary>
-    /// <remarks>
-    /// MySQL, Oracle, PostgreSQL, and SQLite (3.35+) syntax — emitted verbatim
-    /// as <c>CEIL</c>. SQL Server spells this function <c>CEILING</c>; use
-    /// <see cref="Ceiling(object)"/> for that target. MySQL, PostgreSQL, and
-    /// SQLite accept both spellings.
-    /// </remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite (3.35+) syntax — emitted verbatim as
+    /// <c>CEIL</c>. SQL Server spells it <c>CEILING</c> (<see cref="Ceiling(object)"/>);
+    /// MySQL, PostgreSQL, and SQLite accept both spellings.</remarks>
     public static CeilFunction Ceil(object expr) =>
         new(Resolve(expr));
 
@@ -467,12 +483,9 @@ public static partial class Sql
     /// The <c>CEILING(expr)</c> function (smallest integer not less than
     /// <paramref name="expr"/>).
     /// </summary>
-    /// <remarks>
-    /// MySQL, PostgreSQL, SQLite (3.35+), and SQL Server syntax — emitted
-    /// verbatim as <c>CEILING</c>. Oracle spells this function <c>CEIL</c>; use
-    /// <see cref="Ceil(object)"/> for that target. MySQL, PostgreSQL, and
-    /// SQLite accept both spellings.
-    /// </remarks>
+    /// <remarks>MySQL, PostgreSQL, SQLite (3.35+), and SQL Server syntax — emitted verbatim
+    /// as <c>CEILING</c>. Oracle spells it <c>CEIL</c> (<see cref="Ceil(object)"/>); MySQL,
+    /// PostgreSQL, and SQLite accept both spellings.</remarks>
     public static CeilingFunction Ceiling(object expr) =>
         new(Resolve(expr));
 
@@ -684,6 +697,7 @@ public static partial class Sql
     /// <summary>
     /// The <c>CURRENT_DATE</c> function (the current date).
     /// </summary>
+    /// <remarks>Not supported by SQL Server.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentDateFunction CurrentDate => new();
 
@@ -696,6 +710,7 @@ public static partial class Sql
     /// <summary>
     /// The <c>CURRENT_TIME</c> function (the current time of day).
     /// </summary>
+    /// <remarks>Not supported by Oracle or SQL Server.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static CurrentTimeFunction CurrentTime => new();
 

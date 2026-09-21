@@ -116,6 +116,7 @@ public class PublicSurfaceNamingTests
         expected.Append("SET code = :0");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(99, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]

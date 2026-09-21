@@ -18,6 +18,7 @@ public sealed class TopClause : SqlPart
     /// row count.
     /// </summary>
     /// <returns>This <see cref="TopClause"/>, for chaining.</returns>
+    /// <remarks>SQL Server syntax.</remarks>
     public TopClause Percent()
     {
         _percent = true;
@@ -29,6 +30,7 @@ public sealed class TopClause : SqlPart
     /// under the query's <c>ORDER BY</c> (which the clause then requires).
     /// </summary>
     /// <returns>This <see cref="TopClause"/>, for chaining.</returns>
+    /// <remarks>SQL Server syntax.</remarks>
     public TopClause WithTies()
     {
         _withTies = true;

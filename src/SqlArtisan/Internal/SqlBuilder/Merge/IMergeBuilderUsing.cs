@@ -7,7 +7,8 @@ namespace SqlArtisan.Internal;
 public interface IMergeBuilderUsing
 {
     /// <summary>
-    /// Appends <c>ON (condition)</c>, the predicate that matches target rows to source rows. Always emitted in parentheses.
+    /// Appends <c>ON (condition)</c>, the predicate that matches target rows to source rows. Always
+    /// emitted in parentheses.
     /// </summary>
     /// <param name="condition">The match condition relating target and source columns; literals it contains are auto-parameterized.</param>
     /// <returns>The builder positioned to add <c>WHEN</c> branches.</returns>

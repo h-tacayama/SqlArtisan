@@ -14,7 +14,7 @@ public class ConfigTests : IDisposable
     }
 
     [Fact]
-    public void SetDefaultDbms_SelectForMySql_CorrectSql()
+    public void SetDefaultDbms_MySql_Select_CorrectSql()
     {
         SqlArtisanConfig.SetDefaultDbms(Dbms.MySql);
 
@@ -35,7 +35,7 @@ public class ConfigTests : IDisposable
     }
 
     [Fact]
-    public void SetDefaultDbms_UpdateForOracle_CorrectSql()
+    public void SetDefaultDbms_Oracle_Update_CorrectSql()
     {
         SqlArtisanConfig.SetDefaultDbms(Dbms.Oracle);
 
@@ -56,14 +56,12 @@ public class ConfigTests : IDisposable
     }
 
     [Fact]
-    public void SetDefaultDbms_DeleteForSqlServer_CorrectSql()
+    public void SetDefaultDbms_SqlServer_Delete_CorrectSql()
     {
         SqlArtisanConfig.SetDefaultDbms(Dbms.SqlServer);
 
-        // Unaliased: this test verifies the SQL Server parameter marker (@). The
-        // dialect-correct aliased DELETE form (DELETE x FROM t AS x) is a separate
-        // follow-up (issue #96 SQL Server scope), so an alias is omitted here to
-        // keep the asserted statement executable on SQL Server.
+        // Unaliased so the plain DELETE FROM form carries the marker; the aliased
+        // T-SQL form (DELETE t FROM ... AS t) is pinned by the test below.
         TestTable t = new();
 
         SqlStatement sql =
@@ -76,6 +74,26 @@ public class ConfigTests : IDisposable
         expected.Append("test_table ");
         expected.Append("WHERE ");
         expected.Append("code = @0");
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void SetDefaultDbms_SqlServer_AliasedDelete_CorrectSql()
+    {
+        SqlArtisanConfig.SetDefaultDbms(Dbms.SqlServer);
+
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .From(_t)
+            .Where(_t.Code == 1)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("DELETE \"t\" ");
+        expected.Append("FROM ");
+        expected.Append("test_table \"t\" ");
+        expected.Append("WHERE ");
+        expected.Append("\"t\".code = @0");
         Assert.Equal(expected.ToString(), sql.Text);
     }
 

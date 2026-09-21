@@ -18,7 +18,8 @@ internal enum TargetDbms
     SqlServer,
 }
 
-/// <summary>The display spelling diagnostic messages use, shared by every rule that names a <see cref="TargetDbms"/>.</summary>
+/// <summary>The display spelling diagnostic messages use, shared by every rule that names a <see
+/// cref="TargetDbms"/>.</summary>
 internal static class TargetDbmsNames
 {
     public static string Display(TargetDbms dbms) => dbms switch
@@ -31,8 +32,8 @@ internal static class TargetDbmsNames
         _ => dbms.ToString(),
     };
 
-    // Shared by every rule that joins more than one failing dialect into a single
-    // message (SQLA0100, SQLA0104): "MySQL", "MySQL and Oracle", "MySQL, Oracle and PostgreSQL".
+    // Shared by every rule that joins more than one failing dialect into a
+    // single message, e.g. "MySQL, Oracle and PostgreSQL".
     public static string JoinDisplayNames(IReadOnlyList<string> names) => names.Count switch
     {
         1 => names[0],

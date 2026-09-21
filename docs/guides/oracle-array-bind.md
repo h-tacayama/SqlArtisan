@@ -43,7 +43,7 @@ null row binds the same marker a non-null row does.
 UsersTable users = new();
 UserRow[] rows = LoadRows(); // thousands of rows
 
-List<ISqlBuilder> statements = rows.Select(row =>
+IReadOnlyCollection<ISqlBuilder> statements = rows.Select(row =>
     InsertInto(users, users.Id, users.Name, users.CreatedAt)
         .Values(
             row.Id,
@@ -86,7 +86,7 @@ transaction.Commit();
 `UPDATE` or `DELETE` just as well — one statement per row, same shape:
 
 ```csharp
-List<ISqlBuilder> statements = rows.Select(row =>
+IReadOnlyCollection<ISqlBuilder> statements = rows.Select(row =>
         Update(users).Set(users.Name == row.Name).Where(users.Id == row.Id))
     .ToList();
 

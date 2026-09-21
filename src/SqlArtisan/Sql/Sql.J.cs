@@ -16,17 +16,6 @@ public static partial class Sql
         new(Resolve(leftBits), Resolve(rightBits));
 
     /// <summary>
-    /// The <c>JSON_EXTRACT(jsonDoc, 'path')</c> function: extracts a value from
-    /// a JSON document at the given <paramref name="path"/> (MySQL, SQLite).
-    /// </summary>
-    /// <param name="jsonDoc">The JSON document expression.</param>
-    /// <param name="path">The JSON path (e.g. <c>"$.name"</c>). Emitted as an
-    /// inline string literal.</param>
-    /// <returns>A <c>JSON_EXTRACT</c> function expression.</returns>
-    public static JsonExtractFunction JsonExtract(object jsonDoc, string path) =>
-        new(Resolve(jsonDoc), path);
-
-    /// <summary>
     /// The <c>(jsonExpr -&gt; key)</c> JSON operator: extracts a JSON element by
     /// key or index, returning a JSON value (MySQL, PostgreSQL, SQLite).
     /// </summary>
@@ -78,7 +67,7 @@ public static partial class Sql
     /// <returns>A <see cref="JsonbExistsAllCondition"/> emitting <c>jsonExpr ?&amp; ARRAY[keys]</c>.</returns>
     public static JsonbExistsAllCondition JsonbExistsAll(object jsonExpr, params object[] keys)
     {
-        CollectionGuard.ThrowIfEmpty(keys, "?& requires at least one key.");
+        CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?& requires at least one key.");
         return new(Resolve(jsonExpr), Resolve(keys));
     }
 
@@ -92,9 +81,20 @@ public static partial class Sql
     /// <returns>A <see cref="JsonbExistsAnyCondition"/> emitting <c>jsonExpr ?| ARRAY[keys]</c>.</returns>
     public static JsonbExistsAnyCondition JsonbExistsAny(object jsonExpr, params object[] keys)
     {
-        CollectionGuard.ThrowIfEmpty(keys, "?| requires at least one key.");
+        CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?| requires at least one key.");
         return new(Resolve(jsonExpr), Resolve(keys));
     }
+
+    /// <summary>
+    /// The <c>JSON_EXTRACT(jsonDoc, 'path')</c> function: extracts a value from
+    /// a JSON document at the given <paramref name="path"/> (MySQL, SQLite).
+    /// </summary>
+    /// <param name="jsonDoc">The JSON document expression.</param>
+    /// <param name="path">The JSON path (e.g. <c>"$.name"</c>). Emitted as an
+    /// inline string literal.</param>
+    /// <returns>A <c>JSON_EXTRACT</c> function expression.</returns>
+    public static JsonExtractFunction JsonExtract(object jsonDoc, string path) =>
+        new(Resolve(jsonDoc), path);
 
     /// <summary>
     /// The <c>(jsonExpr #&gt; path)</c> JSON operator: extracts a JSON element at
@@ -131,8 +131,9 @@ public static partial class Sql
     /// <summary>
     /// The <c>JSON_VALUE(jsonDoc, 'path')</c> function: extracts a scalar value
     /// from a JSON document at the given <paramref name="path"/>
-    /// (MySQL 8.0.21+, Oracle, SQL Server).
+    /// (MySQL, Oracle, SQL Server).
     /// </summary>
+    /// <remarks>MySQL (8.0.21+), Oracle, and SQL Server syntax.</remarks>
     /// <param name="jsonDoc">The JSON document expression.</param>
     /// <param name="path">The JSON path (e.g. <c>"$.name"</c>). Emitted as an
     /// inline string literal.</param>

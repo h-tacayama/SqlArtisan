@@ -2,12 +2,10 @@ namespace SqlArtisan.Internal;
 
 internal sealed class WithRecursiveClause : SqlPart
 {
-    // The CTE column list (`cte(a, b) AS ...`) is emitted unconditionally: every
-    // engine that accepts WITH RECURSIVE accepts the list, so one uniform shape
-    // needs no per-dialect branch. Deriving it is eager — the anchor's resolved
-    // select items are fixed at the WithRecursive(...) call.
+    // The column list is always emitted and derived eagerly at the
+    // WithRecursive(...) call (guards-and-empty-states.md, the WITH RECURSIVE row).
     private readonly CommonTableExpressions _ctes;
-    private readonly string[][] _columnNames;
+    private readonly CteColumnName[][] _columnNames;
 
     internal WithRecursiveClause(CommonTableExpression[] ctes)
     {
@@ -18,13 +16,19 @@ internal sealed class WithRecursiveClause : SqlPart
     internal override void Format(SqlBuildingBuffer buffer) =>
         _ctes.Format(buffer, $"{Keywords.With} {Keywords.Recursive}", _columnNames);
 
-    private static string[][] DeriveColumnNames(CommonTableExpression[] ctes)
+    private static CteColumnName[][] DeriveColumnNames(CommonTableExpression[] ctes)
     {
-        string[][] columnNames = new string[ctes.Length][];
+        CteColumnName[][] columnNames = new CteColumnName[ctes.Length][];
 
         for (int i = 0; i < ctes.Length; i++)
         {
             columnNames[i] = ctes[i].TryDeriveColumnNames() ?? throw NoColumnName();
+            if (CommonTableExpression.HasDuplicateName(columnNames[i]))
+            {
+                throw new ArgumentException(
+                    "WITH RECURSIVE requires a distinct name for every column of the CTE's "
+                        + "first query block; alias the duplicate with .As(...).");
+            }
         }
 
         return columnNames;

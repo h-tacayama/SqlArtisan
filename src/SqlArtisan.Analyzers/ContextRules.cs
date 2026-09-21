@@ -124,7 +124,8 @@ internal static class ContextRules
 
         // Every enclosing host counts, not just the innermost: the clause binds the
         // pseudo-table through a wrapping function too (OUTPUT COALESCE(INSERTED.c, 0)).
-        for (IInvocationOperation? cursor = host; cursor is not null; cursor = FindArgumentHost(cursor))
+        for (IInvocationOperation? cursor =
+            host; cursor is not null; cursor = FindArgumentHost(cursor))
         {
             if (cursor.TargetMethod.Name == "Output")
             {
@@ -141,15 +142,9 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// MySQL's <c>INTERVAL</c> keyword has no standalone value — it parses only
-    /// as an immediate operand of <c>+</c>/<c>-</c> date arithmetic or as the
-    /// <c>interval</c> argument of <c>DateAdd</c>/<c>DateSub</c> (never their
-    /// <c>date</c> argument), the same restriction whether the spelling came
-    /// from <c>Interval</c> or the MySQL-accepted <c>IntervalLiteral</c>
-    /// arity-2 form. Only the bare-argument shape is provable here — the climb
-    /// stops silently at a qualifying operator/call (correct) or at anything
-    /// else, including a variable a later one might still use (ADR 0003:
-    /// false negative, never a false positive).
+    /// MySQL parses <c>INTERVAL</c> only as an immediate <c>+</c>/<c>-</c> operand or
+    /// as <c>DateAdd</c>/<c>DateSub</c>'s <c>interval</c> argument; only the bare
+    /// argument is provable, so the climb stops silently elsewhere (ADR 0003).
     /// </summary>
     public static void CheckIntervalRequiresArithmeticOperand(
         OperationAnalysisContext context, IInvocationOperation interval, string dialectName)
@@ -160,7 +155,14 @@ internal static class ContextRules
             IOperation? parent = current.Parent;
             switch (parent)
             {
-                case IBinaryOperation { OperatorMethod: { Name: "op_Addition" or "op_Subtraction" } method }
+                case IBinaryOperation
+                {
+                    OperatorMethod:
+                    {
+                        Name: "op_Addition"
+                    or "op_Subtraction"
+                    } method
+                }
                     when DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly):
                     return;
                 case IConversionOperation:
@@ -173,10 +175,12 @@ internal static class ContextRules
                     Parameter.Name: "interval",
                     Parent: IInvocationOperation { TargetMethod.Name: "DateAdd" or "DateSub" } host,
                 }
-                    when DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly):
+                    when DialectUsageAnalyzer
+                        .IsFromSqlArtisan(host.TargetMethod.ContainingAssembly):
                     return;
                 case IArgumentOperation { Parent: IInvocationOperation host }
-                    when DialectUsageAnalyzer.IsFromSqlArtisan(host.TargetMethod.ContainingAssembly):
+                    when DialectUsageAnalyzer
+                        .IsFromSqlArtisan(host.TargetMethod.ContainingAssembly):
                     context.ReportDiagnostic(Diagnostic.Create(
                         DiagnosticDescriptors.ContextRestrictedConstruct,
                         interval.Syntax.GetLocation(),
@@ -190,8 +194,8 @@ internal static class ContextRules
         }
     }
 
-    // Climbs to the SELECT-list/HAVING/ORDER BY invocation hosting Grouping(); any
-    // other argument host stops the climb rather than risk crossing into another query.
+    // Any other argument host stops the climb rather than risk crossing into
+    // another query.
     private static IInvocationOperation? FindClauseAnchor(IInvocationOperation grouping) =>
         FindArgumentHost(grouping) is { } host
             && host.TargetMethod.Name is "Select" or "Having" or "OrderBy"
@@ -217,7 +221,8 @@ internal static class ContextRules
                     break;
                 case IInvocationOperation chain
                     when chain.Instance == current
-                        && DialectUsageAnalyzer.IsFromSqlArtisan(chain.TargetMethod.ContainingAssembly):
+                        && DialectUsageAnalyzer
+                            .IsFromSqlArtisan(chain.TargetMethod.ContainingAssembly):
                     current = parent;
                     break;
                 case IArgumentOperation { Parent: IInvocationOperation host }

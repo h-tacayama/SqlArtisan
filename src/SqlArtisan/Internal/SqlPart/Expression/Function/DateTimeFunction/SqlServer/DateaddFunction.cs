@@ -1,5 +1,7 @@
 namespace SqlArtisan.Internal;
 
+// Under SqlServer/ for the case-only filename collision DatetruncFunction.cs
+// explains (DateAddFunction.cs is MySQL's DATE_ADD).
 public sealed class DateaddFunction : SqlExpression
 {
     private readonly DateTimePart _datepart;

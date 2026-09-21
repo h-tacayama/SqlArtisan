@@ -199,8 +199,7 @@ public class SqlMapperSignatureTests
     /// <summary>
     /// The scope is the whole assembly, not <see cref="DapperMapper"/>: a second public
     /// static class is where an async verb would land unnoticed. <c>IsSpecialName</c>
-    /// drops accessors and operators, which are not verbs and have no async twin;
-    /// reflection orders nothing, so the sort keeps a failure message stable run to run.
+    /// drops accessors and operators; the sort keeps the failure message stable.
     /// </summary>
     private static IEnumerable<MethodInfo> Methods() =>
         typeof(DapperMapper).Assembly.GetExportedTypes()

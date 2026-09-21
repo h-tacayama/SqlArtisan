@@ -3,14 +3,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Support resolution for a single (member, arity) usage, split into two
-/// independent halves (#432): a <c>sqlartisan_construct_*</c> override is the
-/// user's own claim about their configuration, so it is dialect-independent
-/// and resolved once per usage; the dialect matrix is resolved once per DBMS
-/// in the configured target set. Specific wins within the override half: a
-/// user's arity-level override beats their member-level override. A member
-/// absent from the matrix entirely is silent for the matrix half (ADR 0003's
-/// degradable design — an incomplete matrix never false-positives).
+/// Support resolution for a (member, arity) usage, split in two (#432): a
+/// <c>sqlartisan_construct_*</c> override is the user's own claim, so it is
+/// dialect-independent and resolved once; the matrix is resolved per target DBMS.
 /// </summary>
 internal static class DialectSupportResolver
 {
@@ -29,7 +24,8 @@ internal static class DialectSupportResolver
         /// <summary>The <c>.editorconfig</c> key this override was read from.</summary>
         public string OverrideKeyHint { get; }
 
-        /// <summary>Whether the override is scoped to one overload's arity rather than the whole member.</summary>
+        /// <summary>Whether the override is scoped to one overload's arity rather than the whole
+        /// member.</summary>
         public bool IsArityLevel { get; }
     }
 
@@ -40,7 +36,11 @@ internal static class DialectSupportResolver
     /// </summary>
     public readonly struct MatrixMatch
     {
-        internal MatrixMatch(DbmsSupport support, bool isArityLevel, string overrideKeyHint, MatrixKey key)
+        internal MatrixMatch(
+            DbmsSupport support,
+            bool isArityLevel,
+            string overrideKeyHint,
+            MatrixKey key)
         {
             Support = support;
             IsArityLevel = isArityLevel;
@@ -50,20 +50,21 @@ internal static class DialectSupportResolver
 
         internal DbmsSupport Support { get; }
 
-        /// <summary>Whether the matched entry is scoped to one overload's arity rather than the whole member.</summary>
+        /// <summary>Whether the matched entry is scoped to one overload's arity rather than the
+        /// whole member.</summary>
         public bool IsArityLevel { get; }
 
         /// <summary>
-        /// The <c>.editorconfig</c> key that would silence/force this result if
-        /// it turns out to be wrong for the caller's actual engine version —
-        /// surfaced in the SQLA0100/SQLA0101 message.
+        /// The <c>.editorconfig</c> key that silences or forces this result when it
+        /// is wrong for the caller's engine version; named in the SQLA0100/SQLA0101 message.
         /// </summary>
         public string OverrideKeyHint { get; }
 
         internal MatrixKey Key { get; }
     }
 
-    /// <summary>A single DBMS's verdict from a <see cref="MatrixMatch"/>, produced by <see cref="Evaluate"/>.</summary>
+    /// <summary>A single DBMS's verdict from a <see cref="MatrixMatch"/>, produced by <see
+    /// cref="Evaluate"/>.</summary>
     public readonly struct MatrixVerdict
     {
         public MatrixVerdict(bool isSupported, bool isVersionBound, string? requiredVersion)
@@ -73,7 +74,8 @@ internal static class DialectSupportResolver
             RequiredVersion = requiredVersion;
         }
 
-        /// <summary>Whether the usage is supported on this DBMS (at the declared version, if any).</summary>
+        /// <summary>Whether the usage is supported on this DBMS (at the declared version, if
+        /// any).</summary>
         public bool IsSupported { get; }
 
         /// <summary>
@@ -95,7 +97,10 @@ internal static class DialectSupportResolver
     /// <see langword="null"/> if none is set. Checked before the matrix so a
     /// user can override a construct the matrix has no opinion on at all.
     /// </summary>
-    public static OverrideResult? ResolveOverride(AnalyzerConfigOptions options, string memberName, int? arity)
+    public static OverrideResult? ResolveOverride(
+        AnalyzerConfigOptions options,
+        string memberName,
+        int? arity)
     {
         if (arity.HasValue)
         {
@@ -116,14 +121,13 @@ internal static class DialectSupportResolver
 
     /// <summary>
     /// Matches a (member, arity) usage against the dialect matrix, or
-    /// <see langword="null"/> if the member is not in the matrix at all
-    /// (nothing to check — stay silent). <paramref name="arity"/> is the
-    /// declared parameter count for a method, or <see langword="null"/> for a
-    /// property/field (which cannot have arity-specific variants).
+    /// <see langword="null"/> for a member absent from it — ADR 0003's degradable
+    /// design: an incomplete matrix stays silent, never false-positives.
     /// </summary>
     public static MatrixMatch? MatchMatrixEntry(string memberName, int? arity)
     {
-        if (!DialectMatrix.TryGetEntry(memberName, arity, out DbmsSupport support, out bool wasArityMatch))
+        if (!DialectMatrix.TryGetEntry(
+            memberName, arity, out DbmsSupport support, out bool wasArityMatch))
         {
             return null;
         }
@@ -132,26 +136,38 @@ internal static class DialectSupportResolver
             ? ConstructKeyNaming.ArityKey(memberName, arity!.Value)
             : ConstructKeyNaming.MemberKey(memberName);
 
-        return new MatrixMatch(support, wasArityMatch, hint, new MatrixKey(memberName, wasArityMatch ? arity : null));
+        return new MatrixMatch(
+            support,
+            wasArityMatch,
+            hint,
+            new MatrixKey(memberName, wasArityMatch ? arity : null));
     }
 
     /// <summary>
-    /// Evaluates a matched entry against one DBMS. <paramref name="targetVersion"/>
-    /// is the declared version for that DBMS (<see langword="null"/> for <c>any</c>);
-    /// when set and the matched entry carries a version bound for
-    /// <paramref name="target"/>, the bound decides instead of the entry's plain
-    /// bool in both directions — a currently-unsupported construct above the
-    /// bound becomes supported, and a currently-supported one below it does not.
+    /// Evaluates a matched entry against one DBMS. A declared
+    /// <paramref name="targetVersion"/> plus a version bound for
+    /// <paramref name="target"/> decides in both directions — it can flip the
+    /// entry's plain bool either way.
     /// </summary>
-    public static MatrixVerdict Evaluate(MatrixMatch match, TargetDbms target, EngineVersion? targetVersion)
+    public static MatrixVerdict Evaluate(
+        MatrixMatch match,
+        TargetDbms target,
+        EngineVersion? targetVersion)
     {
-        if (targetVersion is { } declared && DialectMatrix.TryGetMinVersion(match.Key, target, out EngineVersion min))
+        if (targetVersion is { } declared
+            && DialectMatrix.TryGetMinVersion(match.Key, target, out EngineVersion min))
         {
             return declared >= min
                 ? new MatrixVerdict(isSupported: true, isVersionBound: false, requiredVersion: null)
-                : new MatrixVerdict(isSupported: false, isVersionBound: true, requiredVersion: min.ToString());
+                : new MatrixVerdict(
+                    isSupported: false,
+                    isVersionBound: true,
+                    requiredVersion: min.ToString());
         }
 
-        return new MatrixVerdict(match.Support.IsSupported(target), isVersionBound: false, requiredVersion: null);
+        return new MatrixVerdict(
+            match.Support.IsSupported(target),
+            isVersionBound: false,
+            requiredVersion: null);
     }
 }

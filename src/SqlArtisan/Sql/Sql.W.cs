@@ -52,6 +52,8 @@ public static partial class Sql
     /// </summary>
     /// <param name="ctes">One or more CTE definitions, each produced by <c>cte.As(subquery)</c>.</param>
     /// <returns>A <c>WITH RECURSIVE</c> builder positioned for the following statement.</returns>
+    /// <remarks>MySQL (8.0+), PostgreSQL, and SQLite syntax; on Oracle and SQL
+    /// Server recurse with plain <see cref="With(CommonTableExpression[])"/>.</remarks>
     public static IWithBuilderWith WithRecursive(params CommonTableExpression[] ctes) =>
         new WithBuilder(new WithRecursiveClause(ctes));
 }

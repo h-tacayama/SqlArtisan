@@ -13,23 +13,26 @@ public sealed class DbTable(string tableName, string tableAlias = "")
     : DbTableBase(tableName, tableAlias), IColumnAccessor
 {
     /// <summary>
-    /// Returns the named column of this table, qualified by its alias (or unqualified when the table has no alias).
+    /// Returns the named column of this table, qualified by its alias (or unqualified when the
+    /// table has no alias).
     /// </summary>
     /// <param name="name">The column name to qualify with this table's alias.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this table's alias.</returns>
     public DbColumn Column(string name) => new(this, name);
 
     /// <summary>
-    /// Returns this table's column for <paramref name="source"/> — its column name, qualified by this table's alias.
+    /// Returns this table's column for <paramref name="source"/> — its column name, qualified
+    /// by this table's alias.
     /// </summary>
     /// <param name="source">The source column whose name is re-qualified with this table's alias.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this table's alias.</returns>
-    public DbColumn Column(DbColumn source) => new(this, source.Name);
+    public DbColumn Column(DbColumn source) => new(this, source.Name, source.QuoteName);
 
     /// <summary>
-    /// Returns this table's column for <paramref name="alias"/> — a SELECT-list <c>.As(...)</c> — qualified by this table's alias.
+    /// Returns this table's column for <paramref name="alias"/> — a SELECT-list <c>.As(...)</c> —
+    /// qualified by this table's alias.
     /// </summary>
     /// <param name="alias">The SELECT-list <c>.As(...)</c> alias to qualify with this table's alias.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this table's alias.</returns>
-    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name);
+    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.QuoteAlias);
 }

@@ -67,8 +67,7 @@ internal sealed class OracleCatalogReader(
 
         AllTabColumns atc = new();
 
-        // DEFAULT_LENGTH stands in for DATA_DEFAULT, which is a LONG needing
-        // provider-specific retrieval; only its presence matters here.
+        // DEFAULT_LENGTH, not DATA_DEFAULT: see AllTabColumns.DefaultLength.
         ISqlBuilder sql =
             Select(
                 atc.ColumnName,
@@ -121,10 +120,16 @@ internal sealed class OracleCatalogReader(
     // Decidable here, unlike on information_schema: Oracle records an identity
     // column's sequence and a virtual column's expression in DATA_DEFAULT, and flags
     // identity separately — so an absent default really is no default.
-    private static bool ReadHasDefault(IDataReader reader, int lengthOrdinal, int identityOrdinal) =>
+    private static bool ReadHasDefault(
+        IDataReader reader,
+        int lengthOrdinal,
+        int identityOrdinal) =>
         !reader.IsDBNull(lengthOrdinal)
         || (!reader.IsDBNull(identityOrdinal)
-            && string.Equals(reader.GetString(identityOrdinal), "YES", StringComparison.OrdinalIgnoreCase));
+            && string.Equals(
+                reader.GetString(identityOrdinal),
+                "YES",
+                StringComparison.OrdinalIgnoreCase));
 
     private static bool? ReadIsNullable(IDataReader reader, int ordinal) =>
         reader.IsDBNull(ordinal)

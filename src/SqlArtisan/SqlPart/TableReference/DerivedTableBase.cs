@@ -3,7 +3,8 @@ using SqlArtisan.Internal;
 namespace SqlArtisan;
 
 /// <summary>
-/// Base for a derived table joined with <c>CROSS APPLY</c> / <c>LATERAL</c>.
+/// Base for a derived table — a subquery, <c>VALUES</c> list, or <c>UNNEST</c>
+/// call used as a relation in <c>FROM</c> or a lateral / <c>APPLY</c> join.
 /// Subclass it to expose the derived table's columns as typed
 /// <see cref="DbColumn"/> members; for a one-off, use the inline
 /// <see cref="DerivedTable"/> instead.

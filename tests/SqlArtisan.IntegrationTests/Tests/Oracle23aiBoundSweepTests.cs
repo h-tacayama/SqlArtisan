@@ -8,13 +8,9 @@ using SqlArtisan.IntegrationTests.Infrastructure;
 namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
-/// Live proof for the analyzer's Oracle version bounds (#263): every matrix
-/// entry with an Oracle bound (<see cref="DialectMatrix.AllBounds"/>) must be
-/// accepted by a live Oracle 23ai engine — the version-refined verdict a
-/// declared <c>sqlartisan_target_version = 23</c> resolves to, which the
-/// ordinary 21c <see cref="MatrixSweepTestBase"/> lane cannot vouch for.
-/// Expectations derive from <see cref="DialectMatrix.AllBounds"/> directly,
-/// so a future Oracle bound is pulled into this lane automatically.
+/// Live proof for the analyzer's Oracle version bounds (#263): every entry in
+/// <see cref="DialectMatrix.AllBounds"/> with an Oracle bound must be accepted by
+/// a live 23ai engine, which the 21c <see cref="MatrixSweepTestBase"/> lane cannot vouch for.
 /// </summary>
 [Trait("Engine", "Oracle23ai")]
 public sealed class Oracle23aiBoundSweepTests : IClassFixture<Oracle23aiFixture>
@@ -43,7 +39,8 @@ public sealed class Oracle23aiBoundSweepTests : IClassFixture<Oracle23aiFixture>
             SweepCase? sweepCase = MatrixSweepCatalog.Cases.FirstOrDefault(c => c.Key.Equals(key));
             if (sweepCase is null)
             {
-                failures.Add($"{Label(key)}: has an Oracle bound but no sweep case to prove it live");
+                failures.Add(
+                    $"{Label(key)}: has an Oracle bound but no sweep case to prove it live");
                 continue;
             }
 
@@ -51,7 +48,8 @@ public sealed class Oracle23aiBoundSweepTests : IClassFixture<Oracle23aiFixture>
             string? error = TryExecute(connection, sweepCase);
             if (error is not null)
             {
-                failures.Add($"{Label(key)}: bound claims Oracle 23 accepts this, but the engine rejected it: {error}");
+                failures.Add($"{Label(key)}: bound claims Oracle 23 accepts this, but the engine "
+                    + $"rejected it: {error}");
             }
         }
 
@@ -94,5 +92,6 @@ public sealed class Oracle23aiBoundSweepTests : IClassFixture<Oracle23aiFixture>
         }
     }
 
-    private static string Label(MatrixKey key) => key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName;
+    private static string Label(MatrixKey key) =>
+        key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName;
 }

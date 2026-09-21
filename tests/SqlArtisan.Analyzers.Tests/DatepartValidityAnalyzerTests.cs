@@ -33,7 +33,8 @@ public class DatepartValidityAnalyzerTests
 
         if (expectWarning)
         {
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0104").WithLocation(0));
+            test.ExpectedDiagnostics.Add(
+                DiagnosticResult.CompilerWarning("SQLA0104").WithLocation(0));
         }
 
         await test.RunAsync();
@@ -103,7 +104,24 @@ public class DatepartValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("sqlserver"),
             expectWarning: true);
 
-    // --- Dateadd x SQL Server (SqlServerDatepartFields) ---
+    // --- Dateadd x SQL Server (SqlServerDateaddFields) ---
+
+    // DATEADD/DATEDIFF stop at Nanosecond: DATEPART's Tzoffset and IsoWeek
+    // are invalid there, so the shared-list shortcut would be a false negative.
+    [Fact]
+    public Task Dateadd_SqlServer_TzoffsetDatepart_ReportsSqla0104() =>
+        RunAsync(
+            "var s = Select(Dateadd({|#0:DateTimePart.Tzoffset|}, 1, "
+                + "t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("sqlserver"),
+            expectWarning: true);
+
+    [Fact]
+    public Task Datepart_SqlServer_TzoffsetDatepart_StaysSilent() =>
+        RunAsync(
+            "var s = Select(Datepart(DateTimePart.Tzoffset, t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("sqlserver"),
+            expectWarning: false);
 
     [Fact]
     public Task Dateadd_SqlServer_ValidDatepart_StaysSilent() =>
@@ -119,7 +137,15 @@ public class DatepartValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("sqlserver"),
             expectWarning: true);
 
-    // --- Datediff x SQL Server (SqlServerDatepartFields) ---
+    // --- Datediff x SQL Server (SqlServerDateaddFields) ---
+
+    [Fact]
+    public Task Datediff_SqlServer_IsoWeekDatepart_ReportsSqla0104() =>
+        RunAsync(
+            "var s = Select(Datediff({|#0:DateTimePart.IsoWeek|}, t.CreatedAt, "
+                + "t.CreatedAt)).From(t).Build();",
+            AnalyzerVerifier.EditorConfig("sqlserver"),
+            expectWarning: true);
 
     [Fact]
     public Task Datediff_SqlServer_ValidDatepart_StaysSilent() =>
@@ -131,7 +157,8 @@ public class DatepartValidityAnalyzerTests
     [Fact]
     public Task Datediff_SqlServer_InvalidDatepart_ReportsSqla0104() =>
         RunAsync(
-            "var s = Select(Datediff({|#0:DateTimePart.Epoch|}, t.CreatedAt, t.CreatedAt)).From(t).Build();",
+            "var s = Select(Datediff({|#0:DateTimePart.Epoch|}, t.CreatedAt, "
+                + "t.CreatedAt)).From(t).Build();",
             AnalyzerVerifier.EditorConfig("sqlserver"),
             expectWarning: true);
 
@@ -147,7 +174,8 @@ public class DatepartValidityAnalyzerTests
     [Fact]
     public Task Timestampadd_MySql_InvalidUnit_ReportsSqla0104() =>
         RunAsync(
-            "var s = Select(Timestampadd({|#0:DateTimePart.DayHour|}, 1, t.CreatedAt)).From(t).Build();",
+            "var s = Select(Timestampadd({|#0:DateTimePart.DayHour|}, 1, "
+                + "t.CreatedAt)).From(t).Build();",
             AnalyzerVerifier.EditorConfig("mysql"),
             expectWarning: true);
 
@@ -156,14 +184,16 @@ public class DatepartValidityAnalyzerTests
     [Fact]
     public Task Timestampdiff_MySql_ValidUnit_StaysSilent() =>
         RunAsync(
-            "var s = Select(Timestampdiff(DateTimePart.Day, t.CreatedAt, t.CreatedAt)).From(t).Build();",
+            "var s = Select(Timestampdiff(DateTimePart.Day, t.CreatedAt, "
+                + "t.CreatedAt)).From(t).Build();",
             AnalyzerVerifier.EditorConfig("mysql"),
             expectWarning: false);
 
     [Fact]
     public Task Timestampdiff_MySql_InvalidUnit_ReportsSqla0104() =>
         RunAsync(
-            "var s = Select(Timestampdiff({|#0:DateTimePart.DayHour|}, t.CreatedAt, t.CreatedAt)).From(t).Build();",
+            "var s = Select(Timestampdiff({|#0:DateTimePart.DayHour|}, t.CreatedAt, "
+                + "t.CreatedAt)).From(t).Build();",
             AnalyzerVerifier.EditorConfig("mysql"),
             expectWarning: true);
 
@@ -279,7 +309,8 @@ public class DatepartValidityAnalyzerTests
             """;
 
         var test = AnalyzerVerifier.Create(
-            Usage("var s = Select(Extract({|#0:DateTimePart.Epoch|}, t.CreatedAt)).From(t).Build();"),
+            Usage(
+                "var s = Select(Extract({|#0:DateTimePart.Epoch|}, t.CreatedAt)).From(t).Build();"),
             editorConfig);
         test.ExpectedDiagnostics.Add(
             DiagnosticResult.CompilerWarning("SQLA0104")
@@ -292,13 +323,60 @@ public class DatepartValidityAnalyzerTests
     [Fact]
     public async Task VersionBoundDialect_SkipsToAvoidDoubleReportingWithSqla0101()
     {
-        // Datetrunc's matrix entry requires SQL Server 2022+; declaring 2016 makes
-        // SQLA0101 (version-bound) the construct-level verdict for this usage, so
-        // SQLA0104 must not also fire even though Weekday is not a Datetrunc value.
+        // Declaring 2016 makes SQLA0101 the construct-level verdict for Datetrunc
+        // (2022+), so SQLA0104 must not also fire on the invalid Weekday.
         var test = AnalyzerVerifier.Create(
-            Usage("var s = Select({|#0:Datetrunc(DateTimePart.Weekday, t.CreatedAt)|}).From(t).Build();"),
+            Usage("var s = "
+                + "Select({|#0:Datetrunc(DateTimePart.Weekday, t.CreatedAt)|}).From(t).Build();"),
             AnalyzerVerifier.EditorConfig("sqlserver", "2016"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task UnsupportedOverride_SkipsToAvoidDoubleReportingWithSqla0100()
+    {
+        // An `unsupported` override makes SQLA0100 the construct-level verdict on
+        // every target; the never-both-fire contract covers that path too (pass 1).
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_oracle = any
+            sqlartisan_construct_extract = unsupported
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            Usage(
+                "var s = Select({|#0:Extract(DateTimePart.Epoch, t.CreatedAt)|}).From(t).Build();"),
+            editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task SupportedOverride_BelowVersionBound_StillReportsInvalidDatepart()
+    {
+        // A `supported` override silences SQLA0100/0101 on that dialect; the datepart
+        // check must re-arm there, or the invalid argument goes undiagnosed (pass 2).
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_sqlserver = 2016
+            sqlartisan_construct_datetrunc = supported
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            Usage("var s = Select(Datetrunc({|#0:DateTimePart.Weekday|}, "
+                + "t.CreatedAt)).From(t).Build();"),
+            editorConfig);
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0104")
+                .WithLocation(0)
+                .WithMessage("'Weekday' is not a valid datepart for 'Datetrunc' on SQL Server"));
 
         await test.RunAsync();
     }
@@ -307,7 +385,8 @@ public class DatepartValidityAnalyzerTests
     public async Task ExactMessage_NamesTheMemberDatepartAndDialect()
     {
         var test = AnalyzerVerifier.Create(
-            Usage("var s = Select(Extract({|#0:DateTimePart.Epoch|}, t.CreatedAt)).From(t).Build();"),
+            Usage(
+                "var s = Select(Extract({|#0:DateTimePart.Epoch|}, t.CreatedAt)).From(t).Build();"),
             AnalyzerVerifier.EditorConfig("oracle"));
         test.ExpectedDiagnostics.Add(
             DiagnosticResult.CompilerWarning("SQLA0104")

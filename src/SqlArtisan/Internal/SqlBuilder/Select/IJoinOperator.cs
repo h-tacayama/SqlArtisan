@@ -1,7 +1,8 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The set of join clauses that can follow a table reference: plain joins, lateral joins, and the SQL Server / Oracle <c>APPLY</c> forms.
+/// The set of join clauses that can follow a table reference: plain joins, lateral joins, and the
+/// SQL Server / Oracle <c>APPLY</c> forms.
 /// </summary>
 public interface IJoinOperator
 {
@@ -24,7 +25,7 @@ public interface IJoinOperator
 
     /// <summary>
     /// Joins a correlated derived table with <c>CROSS JOIN LATERAL (subquery) alias</c>
-    /// (MySQL / Oracle 12c+ / PostgreSQL; SQL Server spells it
+    /// (MySQL / Oracle / PostgreSQL; SQL Server spells it
     /// <see cref="CrossApply(ISubquery, DerivedTableBase)"/>).
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
@@ -33,14 +34,17 @@ public interface IJoinOperator
     ISelectBuilderFrom CrossJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
-    /// Appends <c>FULL JOIN table</c>, keeping unmatched rows from both sides. The join predicate is supplied by the following <c>On(...)</c>.
+    /// Appends <c>FULL JOIN table</c>. The join predicate is supplied by the following
+    /// <c>On(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to full-join.</param>
     /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
+    /// <remarks>Oracle, PostgreSQL, SQLite (3.39+), and SQL Server syntax.</remarks>
     ISelectBuilderJoin FullJoin(TableReference table);
 
     /// <summary>
-    /// Appends <c>INNER JOIN table</c>, keeping only matched rows. The join predicate is supplied by the following <c>On(...)</c>.
+    /// Appends <c>INNER JOIN table</c>. The join predicate is supplied by the following
+    /// <c>On(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to inner-join.</param>
     /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
@@ -49,7 +53,7 @@ public interface IJoinOperator
     /// <summary>
     /// Joins a correlated derived table with <c>JOIN LATERAL (subquery) alias ON ...</c>,
     /// the join predicate supplied by the following <c>On(...)</c>
-    /// (MySQL / Oracle 12c+ / PostgreSQL).
+    /// (MySQL / Oracle / PostgreSQL).
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
@@ -57,7 +61,8 @@ public interface IJoinOperator
     ISelectBuilderJoin JoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
-    /// Appends <c>LEFT JOIN table</c>, keeping all left-side rows. The join predicate is supplied by the following <c>On(...)</c>.
+    /// Appends <c>LEFT JOIN table</c>. The join predicate is supplied by the following
+    /// <c>On(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to left-join.</param>
     /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
@@ -74,35 +79,39 @@ public interface IJoinOperator
     ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
-    /// Appends <c>NATURAL FULL JOIN table</c>, matching on every same-named column shared by both sides
-    /// and keeping unmatched rows from both.
+    /// Appends <c>NATURAL FULL JOIN table</c>, matching on every same-named column shared by both
+    /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-full-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <remarks>Oracle, PostgreSQL, and SQLite (3.39+) syntax.</remarks>
     ISelectBuilderFrom NaturalFullJoin(TableReference table);
 
     /// <summary>
-    /// Appends <c>NATURAL JOIN table</c>, matching on every same-named column shared by both sides
-    /// (an inner join, keeping only matched rows) instead of an explicit <c>ON</c> predicate.
+    /// Appends <c>NATURAL JOIN table</c>, matching on every same-named column shared by both
+    /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite syntax.</remarks>
     ISelectBuilderFrom NaturalJoin(TableReference table);
 
     /// <summary>
-    /// Appends <c>NATURAL LEFT JOIN table</c>, matching on every same-named column shared by both sides
-    /// and keeping all left-side rows.
+    /// Appends <c>NATURAL LEFT JOIN table</c>, matching on every same-named column shared by both
+    /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-left-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite syntax.</remarks>
     ISelectBuilderFrom NaturalLeftJoin(TableReference table);
 
     /// <summary>
-    /// Appends <c>NATURAL RIGHT JOIN table</c>, matching on every same-named column shared by both sides
-    /// and keeping all right-side rows.
+    /// Appends <c>NATURAL RIGHT JOIN table</c>, matching on every same-named column shared by both
+    /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-right-join.</param>
     /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite (3.39+) syntax.</remarks>
     ISelectBuilderFrom NaturalRightJoin(TableReference table);
 
     /// <summary>
@@ -116,9 +125,11 @@ public interface IJoinOperator
     ISelectBuilderFrom OuterApply(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
-    /// Appends <c>RIGHT JOIN table</c>, keeping all right-side rows. The join predicate is supplied by the following <c>On(...)</c>.
+    /// Appends <c>RIGHT JOIN table</c>. The join predicate is supplied by the following
+    /// <c>On(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to right-join.</param>
     /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.39+), and SQL Server syntax.</remarks>
     ISelectBuilderJoin RightJoin(TableReference table);
 }

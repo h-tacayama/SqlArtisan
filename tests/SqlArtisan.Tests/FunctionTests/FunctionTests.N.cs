@@ -110,6 +110,14 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void NextValueFor_WhiteSpaceSequenceName_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => NextValueFor(" "));
+
+        Assert.Equal("NEXT VALUE FOR requires a sequence name.", ex.Message);
+    }
+
+    [Fact]
     public void Nullif_ColumnAndValue_CorrectSql()
     {
         SqlStatement sql =
@@ -162,7 +170,9 @@ public partial class FunctionTests
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() => Numtodsinterval(1, unit));
 
-        Assert.Equal("NUMTODSINTERVAL requires an interval unit of DAY, HOUR, MINUTE, or SECOND.", ex.Message);
+        Assert.Equal(
+            "NUMTODSINTERVAL requires an interval unit of DAY, HOUR, MINUTE, or SECOND.",
+            ex.Message);
     }
 
     [Fact]

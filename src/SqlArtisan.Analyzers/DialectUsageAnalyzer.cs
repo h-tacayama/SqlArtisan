@@ -10,12 +10,9 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Warns when a SqlArtisan construct is used against a configured target
-/// dialect set it is not supported on (#93 / ADR 0003, set-valued per #432).
-/// Silent until <c>sqlartisan_syntax_*</c> (or the legacy
-/// <c>sqlartisan_target_dbms</c>) is set; only ever warns about constructs the
-/// matrix has a verified entry for (never a false positive from an incomplete
-/// matrix).
+/// Warns when a SqlArtisan construct is used against a configured target dialect
+/// set it is not supported on (#93 / ADR 0003, set-valued per #432). Silent until
+/// a target is configured, and only for constructs the matrix verifiably covers.
 /// </summary>
 /// <remarks>
 /// Coupling to the core library is limited to a three-point contract
@@ -31,7 +28,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 {
     private const string SqlArtisanAssemblyName = "SqlArtisan";
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
+        ImmutableArray.Create(
         DiagnosticDescriptors.InvalidConfiguration,
         DiagnosticDescriptors.UnrecognizedConfigurationKey,
         DiagnosticDescriptors.ConfigurationDisablesAllDialects,
@@ -57,42 +55,77 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(OnCompilationStart);
     }
 
-    // One target-set cache per compilation: resolving sqlartisan_syntax_* used
-    // to cost up to 10 AnalyzerConfigOptions lookups plus an EngineVersion
-    // parse per DBMS on every single usage. Caching by SyntaxTree collapses
-    // that to one dictionary lookup per usage (concurrent — EnableConcurrentExecution
-    // above lets operation actions for different trees run in parallel).
+    // One target-set cache per compilation: resolving sqlartisan_syntax_* cost up to
+    // 10 config lookups plus a version parse per usage; caching by SyntaxTree collapses
+    // that to one lookup (concurrent — operation actions run in parallel across trees).
     private static void OnCompilationStart(CompilationStartAnalysisContext context)
     {
         var targetCache = new ConcurrentDictionary<SyntaxTree, DialectTargetSet>();
 
-        // The generic walkers first — they serve SQLA0100/0101 together and key on
-        // the operation kind, not a rule — then one dispatcher per rule in ID order,
-        // then the compilation-end action, which is not an operation action at all.
-        context.RegisterOperationAction(c => AnalyzeInvocation(c, targetCache), OperationKind.Invocation);
-        context.RegisterOperationAction(c => AnalyzePropertyReference(c, targetCache), OperationKind.PropertyReference);
-        context.RegisterOperationAction(c => AnalyzeFieldReference(c, targetCache), OperationKind.FieldReference);
-        context.RegisterOperationAction(c => AnalyzeBinaryOperator(c, targetCache), OperationKind.Binary);
-        context.RegisterOperationAction(c => AnalyzeCompoundAssignment(c, targetCache), OperationKind.CompoundAssignment);
-        context.RegisterOperationAction(c => AnalyzeContextRules(c, targetCache), OperationKind.Invocation);
-        context.RegisterOperationAction(c => AnalyzeIdentifierLength(c, targetCache), OperationKind.Invocation);
-        context.RegisterOperationAction(c => AnalyzeIdentifierLength(c, targetCache), OperationKind.ObjectCreation);
-        context.RegisterOperationAction(c => AnalyzeDatepartValidity(c, targetCache), OperationKind.Invocation);
-        context.RegisterOperationAction(c => AnalyzeSchemaNullability(c, targetCache), OperationKind.PropertyReference);
-        context.RegisterOperationAction(c => AnalyzeNotInSubquery(c, targetCache), OperationKind.Invocation);
-        context.RegisterOperationAction(c => AnalyzeInsertColumns(c, targetCache), OperationKind.Invocation);
-        context.RegisterOperationAction(c => AnalyzeCountArgument(c, targetCache), OperationKind.Invocation);
-        context.RegisterOperationAction(c => AnalyzeIndexedColumnFilter(c, targetCache), OperationKind.Invocation);
-        context.RegisterOperationAction(c => AnalyzeTypeCategoryMismatch(c, targetCache), OperationKind.Binary);
-        context.RegisterOperationAction(c => AnalyzeCorrelatedDml(c, targetCache), OperationKind.Invocation);
+        // Generic walkers first (they serve SQLA0100/0101 and key on operation kind),
+        // then one dispatcher per rule in ID order, then the compilation-end action.
+        context.RegisterOperationAction(
+            c => AnalyzeInvocation(c, targetCache),
+            OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzePropertyReference(c, targetCache),
+            OperationKind.PropertyReference);
+        context.RegisterOperationAction(
+            c => AnalyzeFieldReference(c, targetCache),
+            OperationKind.FieldReference);
+        context.RegisterOperationAction(
+            c => AnalyzeBinaryOperator(c, targetCache),
+            OperationKind.Binary);
+        context.RegisterOperationAction(
+            c => AnalyzeCompoundAssignment(c, targetCache),
+            OperationKind.CompoundAssignment);
+        context.RegisterOperationAction(
+            c => AnalyzeContextRules(c, targetCache),
+            OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzeIdentifierLength(c, targetCache),
+            OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzeIdentifierLength(c, targetCache),
+            OperationKind.ObjectCreation);
+        context.RegisterOperationAction(
+            c => AnalyzeDatepartValidity(c, targetCache),
+            OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzeSchemaNullability(c, targetCache),
+            OperationKind.PropertyReference);
+        context.RegisterOperationAction(
+            c => AnalyzeNotInSubquery(c, targetCache),
+            OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzeInsertColumns(c, targetCache),
+            OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzeCountArgument(c, targetCache),
+            OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzeIndexedColumnFilter(c, targetCache),
+            OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzeTypeCategoryMismatch(c, targetCache),
+            OperationKind.Binary);
+        context.RegisterOperationAction(
+            c => AnalyzeCorrelatedDml(c, targetCache),
+            OperationKind.Invocation);
         context.RegisterCompilationEndAction(ValidateConfiguration);
     }
 
-    private static DialectTargetSet GetTargets(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache) =>
+    private static DialectTargetSet GetTargets(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache) =>
         cache.GetOrAdd(context.Operation.Syntax.SyntaxTree, tree =>
-            AnalyzerConfigResolver.ResolveTargets(context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree)));
+            AnalyzerConfigResolver.ResolveTargets(
+                context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree)));
 
-    private static void AnalyzeInvocation(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeInvocation(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         IMethodSymbol method = ((IInvocationOperation)context.Operation).TargetMethod;
         if (!IsFromSqlArtisan(method.ContainingAssembly))
@@ -103,7 +136,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         AnalyzeUsage(context, cache, method.Name, method.Parameters.Length);
     }
 
-    private static void AnalyzePropertyReference(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzePropertyReference(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         IPropertySymbol property = ((IPropertyReferenceOperation)context.Operation).Property;
         if (!IsFromSqlArtisan(property.ContainingAssembly))
@@ -114,7 +150,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         AnalyzeUsage(context, cache, property.Name, arity: null);
     }
 
-    private static void AnalyzeFieldReference(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeFieldReference(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         IFieldSymbol field = ((IFieldReferenceOperation)context.Operation).Field;
         if (!IsFromSqlArtisan(field.ContainingAssembly))
@@ -127,7 +166,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     // Overloaded C# operators (#219) reach Roslyn as Binary / CompoundAssignment operations,
     // never as invocations; OperatorMethod is null for built-in operators.
-    private static void AnalyzeBinaryOperator(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeBinaryOperator(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         if (((IBinaryOperation)context.Operation).OperatorMethod is not { } method
             || !IsFromSqlArtisan(method.ContainingAssembly))
@@ -138,7 +180,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         AnalyzeUsage(context, cache, method.Name, method.Parameters.Length);
     }
 
-    private static void AnalyzeTypeCategoryMismatch(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeTypeCategoryMismatch(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         if (GetTargets(context, cache).IsEmpty)
         {
@@ -148,7 +193,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         TypeCategoryMismatchRule.Check(context, (IBinaryOperation)context.Operation);
     }
 
-    private static void AnalyzeCompoundAssignment(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeCompoundAssignment(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         if (((ICompoundAssignmentOperation)context.Operation).OperatorMethod is not { } method
             || !IsFromSqlArtisan(method.ContainingAssembly))
@@ -160,7 +208,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     }
 
     private static void AnalyzeUsage(
-        OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache, string memberName, int? arity)
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache,
+        string memberName,
+        int? arity)
     {
         DialectTargetSet targets = GetTargets(context, cache);
         if (targets.IsEmpty)
@@ -168,11 +219,13 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
+        AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(
+            context.Operation.Syntax.SyntaxTree);
 
         // The override is the user's own claim about their configuration, dialect-independent,
         // so it is resolved once per usage — never re-evaluated per DBMS (#432).
-        if (DialectSupportResolver.ResolveOverride(options, memberName, arity) is { } overrideResult)
+        if (DialectSupportResolver.ResolveOverride(options, memberName, arity)
+            is { } overrideResult)
         {
             if (overrideResult.IsSupported)
             {
@@ -183,7 +236,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 DiagnosticDescriptors.UnsupportedDialectConstruct,
                 context.Operation.Syntax.GetLocation(),
                 DisplayName(memberName, arity, overrideResult.IsArityLevel),
-                TargetDbmsNames.JoinDisplayNames([.. targets.Members.Select(TargetDbmsNames.Display)]),
+                TargetDbmsNames.JoinDisplayNames(
+                    [.. targets.Members.Select(TargetDbmsNames.Display)]),
                 overrideResult.OverrideKeyHint));
             return;
         }
@@ -194,11 +248,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         List<string>? unsupportedOn = null;
-        List<(TargetDbms Dbms, string RequiredVersion, EngineVersion? DeclaredVersion)>? versionBound = null;
+        List<(TargetDbms Dbms, string RequiredVersion, EngineVersion? DeclaredVersion)>?
+            versionBound = null;
 
         foreach (TargetDbms dbms in targets.Members)
         {
-            DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(match, dbms, targets.VersionFor(dbms));
+            DialectSupportResolver.MatrixVerdict verdict = DialectSupportResolver.Evaluate(
+                match,
+                dbms,
+                targets.VersionFor(dbms));
             if (verdict.IsSupported)
             {
                 continue;
@@ -206,7 +264,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
             if (verdict.IsVersionBound)
             {
-                (versionBound ??= []).Add((dbms, verdict.RequiredVersion!, targets.VersionFor(dbms)));
+                (versionBound ??= []).Add(
+                    (dbms, verdict.RequiredVersion!, targets.VersionFor(dbms)));
             }
             else
             {
@@ -226,7 +285,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
         if (versionBound is not null)
         {
-            foreach ((TargetDbms dbms, string requiredVersion, EngineVersion? declaredVersion) in versionBound)
+            foreach ((TargetDbms dbms, string requiredVersion, EngineVersion? declaredVersion)
+                in versionBound)
             {
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.VersionBoundConstruct,
@@ -243,7 +303,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     // Name-filter first so config resolution is paid only on trigger names. Each
     // rule pairs its trigger with the one dialect whose grammar restricts it;
     // elsewhere the matrix entry already answers (#264).
-    private static void AnalyzeContextRules(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeContextRules(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         var invocation = (IInvocationOperation)context.Operation;
         string name = invocation.TargetMethod.Name;
@@ -274,9 +337,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
                 break;
             case "Interval" when targets.Contains(TargetDbms.MySql):
-            // IntervalLiteral's other arities are already mySql:false in the matrix
-            // (SQLA0100 covers them); only arity-2 is the coincidental accept this
-            // rule exists for.
+            // IntervalLiteral's other arities are already mySql:false in the matrix;
+            // only arity-2 is the coincidental accept this rule exists for.
             case "IntervalLiteral" when targets.Contains(TargetDbms.MySql)
                 && invocation.TargetMethod.Parameters.Length == 2:
                 ContextRules.CheckIntervalRequiresArithmeticOperand(
@@ -285,9 +347,12 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    // Name-filter first, like AnalyzeContextRules — only the nine DateTimePart
-    // consumers pay for target-set resolution.
-    private static void AnalyzeDatepartValidity(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    // Name-filter first, like AnalyzeContextRules — only the DateTimePart
+    // consumers below pay for target-set resolution.
+    private static void AnalyzeDatepartValidity(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         var invocation = (IInvocationOperation)context.Operation;
         if (invocation.TargetMethod.Name is not ("Extract" or "Datepart" or "Dateadd" or "Datediff"
@@ -309,7 +374,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     // IsNull / IsNotNull are SqlExpression properties, so the column under test is
     // the receiver. Gated on a configured target set like every other rule, though
     // the verdict itself is dialect-independent.
-    private static void AnalyzeSchemaNullability(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeSchemaNullability(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         var reference = (IPropertyReferenceOperation)context.Operation;
         if (reference.Property.Name is not ("IsNull" or "IsNotNull")
@@ -328,12 +396,16 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     // The value overloads take the same name and arity, so the parameter type is
     // what selects the subquery form.
-    private static void AnalyzeNotInSubquery(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeNotInSubquery(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         var invocation = (IInvocationOperation)context.Operation;
         if (invocation.TargetMethod.Name != "NotIn"
             || invocation.Arguments.Length != 1
-            || invocation.TargetMethod.Parameters[0].Type.ToDisplayString() != "SqlArtisan.ISubquery"
+            || invocation.TargetMethod.Parameters[0].Type
+                .ToDisplayString() != "SqlArtisan.ISubquery"
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
@@ -347,15 +419,26 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         NotInNullableSubqueryRule.Check(context, invocation);
     }
 
-    // Only the explicit-column-list overload: the positional form supplies every
-    // column by construction, and InsertIgnoreInto asked for failures to be
-    // skipped, which is what omitting a required column would produce.
-    private static void AnalyzeInsertColumns(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    // The explicit-column-list overload and the Set form, whose assignments are
+    // its column list; the positional form supplies every column by construction,
+    // and InsertIgnoreInto asked for failures to be skipped.
+    private static void AnalyzeInsertColumns(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         var invocation = (IInvocationOperation)context.Operation;
-        if (invocation.TargetMethod.Name != "InsertInto"
-            || invocation.Arguments.Length != 2
-            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        if (!IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        bool columnList = invocation.TargetMethod.Name == "InsertInto"
+            && invocation.Arguments.Length == 2;
+        IInvocationOperation? setHead = invocation.TargetMethod.Name == "Set"
+            ? InsertMissingRequiredColumnRule.BareInsertHead(invocation)
+            : null;
+        if (!columnList && setHead is null)
         {
             return;
         }
@@ -365,12 +448,22 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        InsertMissingRequiredColumnRule.Check(context, invocation);
+        if (columnList)
+        {
+            InsertMissingRequiredColumnRule.Check(context, invocation);
+        }
+        else
+        {
+            InsertMissingRequiredColumnRule.CheckSet(context, invocation, setHead!);
+        }
     }
 
     // Count(Asterisk) shares the arity, and COUNT(DISTINCT col) is asking for
     // values by construction, so only the plain object overload is a candidate.
-    private static void AnalyzeCountArgument(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeCountArgument(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         var invocation = (IInvocationOperation)context.Operation;
         if (invocation.TargetMethod.Name != "Count"
@@ -389,9 +482,12 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         CountNullableColumnRule.Check(context, invocation);
     }
 
-    // Like carries the column as its receiver; every other shape wraps it as an
+    // Like carries the column as its receiver; a wrapping call carries it as an
     // argument, so the two enter the rule by different doors.
-    private static void AnalyzeIndexedColumnFilter(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeIndexedColumnFilter(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         var invocation = (IInvocationOperation)context.Operation;
         if (!IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
@@ -415,10 +511,13 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     // Both DML heads (#256) — the static Sql members and the WithBuilder instance
     // methods — share the name and the DbTableBase-first-parameter shape.
-    private static void AnalyzeCorrelatedDml(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeCorrelatedDml(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
         var invocation = (IInvocationOperation)context.Operation;
-        if (invocation.TargetMethod.Name is not ("Update" or "DeleteFrom")
+        if (invocation.TargetMethod.Name is not ("Update" or "DeleteFrom" or "MergeInto")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
@@ -432,23 +531,28 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         CorrelatedDmlRule.Check(context, invocation);
     }
 
-    private static void AnalyzeIdentifierLength(OperationAnalysisContext context, ConcurrentDictionary<SyntaxTree, DialectTargetSet> cache)
+    private static void AnalyzeIdentifierLength(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
     {
-        (IMethodSymbol? member, ImmutableArray<IArgumentOperation> arguments) = context.Operation switch
-        {
-            IInvocationOperation invocation => (invocation.TargetMethod, invocation.Arguments),
-            IObjectCreationOperation { Constructor: { } constructor } creation => (constructor, creation.Arguments),
-            _ => (null, default),
-        };
+        (IMethodSymbol? member, ImmutableArray<IArgumentOperation> arguments) =
+            context.Operation switch
+            {
+                IInvocationOperation invocation => (invocation.TargetMethod, invocation.Arguments),
+                IObjectCreationOperation { Constructor: { } constructor } creation => (
+                    constructor,
+                    creation.Arguments),
+                _ => (null, default),
+            };
 
         if (member is null)
         {
             return;
         }
 
-        // A generated/hand-written table class lives in the user's assembly but
-        // forwards its constructor argument to a SqlArtisan naming base — the
-        // primary aliasing path, admitted here so the rule can trace it.
+        // A table class lives in the user's assembly but forwards its constructor
+        // argument to a SqlArtisan naming base — admitted so the rule can trace it.
         if (!IsFromSqlArtisan(member.ContainingAssembly)
             && !(member.MethodKind == MethodKind.Constructor
                 && IdentifierLengthRule.DerivesFromIdentifierBase(member.ContainingType)))
@@ -472,31 +576,33 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     private static readonly string[] LegacyVersionKeys =
     [
-        AnalyzerConfigResolver.TargetVersionKey, AnalyzerConfigResolver.TargetVersionMSBuildPropertyKey,
+        AnalyzerConfigResolver.TargetVersionKey, AnalyzerConfigResolver
+            .TargetVersionMSBuildPropertyKey,
     ];
 
     private static void ValidateConfiguration(CompilationAnalysisContext context)
     {
-        var reportedTargetValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var reportedVersionValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // Keyed like the family loops below: the message names the key, so the
+        // same bad value on both surfaces is two reports, not one.
+        var reportedTargetValues = new HashSet<(string Key, string Value)>();
+        var reportedVersionValues = new HashSet<(string Key, string Value)>();
         var reportedOverrideValues = new HashSet<(string Key, string Value)>();
         string[] overrideKeys = [.. DialectMatrix.AllOverrideKeys.Distinct()];
         string validTargetNames = string.Join("/", AnalyzerConfigResolver.ValidTargetNames);
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
         {
-            AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
+            AnalyzerConfigOptions options =
+                context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
 
-            // Both surfaces, like the family keys' SetSyntaxValues: a typo in the
-            // MSBuild property is exactly as silent as one in the .editorconfig key.
-            // Blank property values are skipped — the SDK emits every declared
-            // CompilerVisibleProperty as a key, empty when the consumer set nothing.
+            // Both surfaces — a typo in the MSBuild property is exactly as silent as
+            // one in the .editorconfig key; blank SDK-emitted property values are unset.
             foreach (string targetKey in LegacyDbmsKeys)
             {
                 if (options.TryGetValue(targetKey, out string? targetValue)
                     && !string.IsNullOrWhiteSpace(targetValue)
                     && !AnalyzerConfigResolver.IsRecognizedTargetValue(targetValue)
-                    && reportedTargetValues.Add(targetValue))
+                    && reportedTargetValues.Add((targetKey, targetValue)))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
                         DiagnosticDescriptors.InvalidConfiguration,
@@ -512,7 +618,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 if (options.TryGetValue(versionKey, out string? versionValue)
                     && !string.IsNullOrWhiteSpace(versionValue)
                     && !AnalyzerConfigResolver.IsRecognizedVersionValue(versionValue)
-                    && reportedVersionValues.Add(versionValue))
+                    && reportedVersionValues.Add((versionKey, versionValue)))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
                         DiagnosticDescriptors.InvalidConfiguration,
@@ -523,7 +629,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            foreach (string overrideKey in overrideKeys)
+            // ResolveOverride honors any construct-prefixed key, so validation sweeps
+            // what the options carry; the matrix list is only the no-enumeration fallback.
+            IEnumerable<string> candidateOverrideKeys =
+                AnalyzerConfigResolver.TryEnumerateConstructKeys(
+                    options,
+                    out List<string> constructKeys)
+                    ? constructKeys
+                    : overrideKeys;
+            foreach (string overrideKey in candidateOverrideKeys)
             {
                 if (options.TryGetValue(overrideKey, out string? overrideValue)
                     && !AnalyzerConfigResolver.IsRecognizedOverrideValue(overrideValue)
@@ -542,29 +656,31 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         ValidateSyntaxFamily(context);
     }
 
-    // Four more SQLA0001 reasons plus the separate SQLA0002 nag (#432), each
-    // deduplicated across trees at the granularity its message varies by: a
-    // key name, a (key, value) pair, the dropped DBMS, or — for the two
-    // compilation-wide facts (empty set, legacy-alone) — a single flag.
+    // Four more SQLA0001 reasons plus the SQLA0002 nag (#432), each deduplicated at
+    // the granularity its message varies by: directory-scoped .editorconfig can give
+    // trees different configs, so a coarser dedup key would mute a differing message.
     private static void ValidateSyntaxFamily(CompilationAnalysisContext context)
     {
         var reportedUnrecognizedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var reportedSyntaxValues = new HashSet<(string Key, string Value)>();
-        var reportedDroppedDbms = new HashSet<TargetDbms>();
+        var reportedDroppedConfigs =
+            new HashSet<(string Key, string Value, TargetDbms Dbms, string Suggestion)>();
+        var reportedDeprecations = new HashSet<string>(StringComparer.Ordinal);
         bool reportedEmptySet = false;
-        bool reportedDeprecation = false;
         string validDbmsNames = string.Join("/", AnalyzerConfigResolver.ValidTargetNames);
 
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
         {
-            AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
+            AnalyzerConfigOptions options =
+                context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
             bool familyPresent = AnalyzerConfigResolver.IsFamilyPresent(options);
 
             if (AnalyzerConfigResolver.TryEnumerateSyntaxKeys(options, out List<string> syntaxKeys))
             {
                 foreach (string key in syntaxKeys)
                 {
-                    if (!AnalyzerConfigResolver.IsRecognizedSyntaxKey(key) && reportedUnrecognizedKeys.Add(key))
+                    if (!AnalyzerConfigResolver.IsRecognizedSyntaxKey(key)
+                        && reportedUnrecognizedKeys.Add(key))
                     {
                         context.ReportDiagnostic(Diagnostic.Create(
                             DiagnosticDescriptors.UnrecognizedConfigurationKey,
@@ -591,42 +707,46 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                         Location.None,
                         key,
                         value,
-                        "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+                        "any, none, or a numeric engine version such as 8.0.16, 23, "
+                            + "3.44, or 2022"));
                 }
             }
 
-            // An unrecognized value already explains why this tree's set came up
-            // empty (SQLA0001 reason 2 above) — reporting the empty-set reason too
-            // would duplicate the same root cause under two descriptors.
+            // An unrecognized value already explains this tree's empty set — reporting
+            // it again would duplicate one root cause under two descriptors.
             if (familyPresent && !hasUnrecognizedSyntaxValue && !reportedEmptySet
                 && AnalyzerConfigResolver.ResolveTargets(options).IsEmpty)
             {
                 reportedEmptySet = true;
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConfigurationDisablesAllDialects, Location.None));
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.ConfigurationDisablesAllDialects, Location.None));
             }
 
-            // Only when the family does not itself name the legacy DBMS — the
-            // report exists for the silent replacement, and a family key set for
-            // that DBMS is the user's own statement about it (ADR 0019).
+            // Only when the family does not itself name the legacy DBMS: a family key
+            // set for that DBMS is the user's own statement about it (ADR 0019).
             if (familyPresent
                 && AnalyzerConfigResolver.ResolveTarget(options) is { } droppedDbms
-                && !AnalyzerConfigResolver.IsFamilyKeySet(options, droppedDbms)
-                && reportedDroppedDbms.Add(droppedDbms))
+                && !AnalyzerConfigResolver.IsFamilyKeySet(options, droppedDbms))
             {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticDescriptors.LegacyConfigurationIgnored,
-                    Location.None,
-                    AnalyzerConfigResolver.TargetDbmsKey,
-                    LegacyDbmsRawValue(options, droppedDbms),
-                    TargetDbmsNames.Display(droppedDbms),
-                    FamilyKeySuggestion(options, droppedDbms)));
+                (string legacyKey, string legacyValue) = LegacyDbmsSource(options, droppedDbms);
+                string suggestion = FamilyKeySuggestion(options, droppedDbms);
+                if (reportedDroppedConfigs.Add((legacyKey, legacyValue, droppedDbms, suggestion)))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        DiagnosticDescriptors.LegacyConfigurationIgnored,
+                        Location.None,
+                        legacyKey,
+                        legacyValue,
+                        TargetDbmsNames.Display(droppedDbms),
+                        suggestion));
+                }
             }
 
-            if (!familyPresent && !reportedDeprecation
+            if (!familyPresent
                 && (AnalyzerConfigResolver.ResolveTarget(options) is not null
-                    || AnalyzerConfigResolver.ResolveTargetVersion(options) is not null))
+                    || AnalyzerConfigResolver.ResolveTargetVersion(options) is not null)
+                && reportedDeprecations.Add(LegacyReplacementSuggestion(options)))
             {
-                reportedDeprecation = true;
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.LegacyConfigDeprecated,
                     Location.None,
@@ -635,21 +755,27 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static string LegacyDbmsRawValue(AnalyzerConfigOptions options, TargetDbms resolved)
+    // The key half matters as much as the value: a project setting only the
+    // MSBuild property must not be told an .editorconfig line it never wrote is
+    // being ignored.
+    private static (string Key, string Value) LegacyDbmsSource(
+        AnalyzerConfigOptions options,
+        TargetDbms resolved)
     {
         if (options.TryGetValue(AnalyzerConfigResolver.TargetDbmsKey, out string? editorConfigValue)
             && AnalyzerConfigResolver.IsRecognizedTargetValue(editorConfigValue))
         {
-            return editorConfigValue;
+            return (AnalyzerConfigResolver.TargetDbmsKey, editorConfigValue);
         }
 
-        if (options.TryGetValue(AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey, out string? msBuildValue)
+        if (options.TryGetValue(
+                AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey, out string? msBuildValue)
             && AnalyzerConfigResolver.IsRecognizedTargetValue(msBuildValue))
         {
-            return msBuildValue;
+            return (AnalyzerConfigResolver.TargetDbmsMSBuildPropertyKey, msBuildValue);
         }
 
-        return resolved.ToString();
+        return (AnalyzerConfigResolver.TargetDbmsKey, resolved.ToString());
     }
 
     private static string LegacyReplacementSuggestion(AnalyzerConfigOptions options) =>
@@ -661,16 +787,34 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     // value reads as unset), and dropping the legacy version would silently shed the
     // dialect's SQLA0101 coverage along with it.
     private static string FamilyKeySuggestion(AnalyzerConfigOptions options, TargetDbms dbms) =>
-        $"{AnalyzerConfigResolver.SyntaxKey(dbms)} = {AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString() ?? AnalyzerConfigResolver.AnyValue}";
+        $"{AnalyzerConfigResolver.SyntaxKey(dbms)} = "
+            + (AnalyzerConfigResolver.ResolveTargetVersion(options)?.ToString()
+                ?? AnalyzerConfigResolver.AnyValue);
 
-    internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) => assembly?.Name == SqlArtisanAssemblyName;
+    internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) =>
+        assembly?.Name == SqlArtisanAssemblyName;
 
-    private static string DisplayName(string memberName, int? arity, bool isArityLevel) =>
-        OperatorDisplayName(memberName)
-        ?? (isArityLevel && arity.HasValue ? $"{memberName} ({arity.Value}-argument form)" : memberName);
+    private static string DisplayName(string memberName, int? arity, bool isArityLevel)
+    {
+        if (OperatorDisplayName(memberName) is { } operatorName)
+        {
+            return operatorName;
+        }
+
+        if (!isArityLevel || !arity.HasValue)
+        {
+            return memberName;
+        }
+
+        // "declared with N parameters", not "N-argument form": a params overload's
+        // declared count exceeds what the call site wrote and would read as a misfire.
+        string plural = arity.Value == 1 ? "" : "s";
+        return $"{memberName} (overload declared with {arity.Value} parameter{plural})";
+    }
 
     // Users write the C# glyph, not the CLR method name — show "operator %", not "op_Modulus".
-    // The override key in the message still derives from the CLR name (sqlartisan_construct_op_modulus).
+    // The override key in the message still derives from the CLR name
+    // (sqlartisan_construct_op_modulus).
     private static string? OperatorDisplayName(string memberName) => memberName switch
     {
         "op_Addition" => "operator +",

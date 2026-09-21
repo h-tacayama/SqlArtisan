@@ -8,8 +8,8 @@ namespace SqlArtisan;
 /// built for the dialect of an open connection.
 /// </summary>
 /// <remarks>
-/// The common providers (SQL Server, PostgreSQL, MySQL, SQLite, Oracle) are registered
-/// at startup; register additional ones with <see cref="RegisterProvider(string, Dbms)"/>.
+/// The built-in ADO.NET providers for every supported DBMS are registered at
+/// startup; register additional ones with <see cref="RegisterProvider(string, Dbms)"/>.
 /// </remarks>
 public static class DbmsResolver
 {

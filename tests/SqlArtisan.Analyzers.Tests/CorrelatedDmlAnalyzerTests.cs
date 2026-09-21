@@ -31,7 +31,10 @@ public class CorrelatedDmlAnalyzerTests
         """;
 
     private static Task RunReporting(string statements) =>
-        RunAsync(Usage(statements), AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: true);
+        RunAsync(
+            Usage(statements),
+            AnalyzerVerifier.EditorConfig("postgresql"),
+            expectWarning: true);
 
     private static Task RunSilent(string statements, string? dbms = "postgresql") =>
         RunAsync(
@@ -44,7 +47,8 @@ public class CorrelatedDmlAnalyzerTests
         var test = AnalyzerVerifier.Create(source, editorConfig);
         if (expectWarning)
         {
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0300").WithLocation(0));
+            test.ExpectedDiagnostics.Add(
+                DiagnosticResult.CompilerWarning("SQLA0300").WithLocation(0));
         }
 
         await test.RunAsync();
@@ -84,6 +88,33 @@ public class CorrelatedDmlAnalyzerTests
                 {
                     T r = new T("r");
                     var q = Update(_t).Set(_t.Id == Select(Max(r.Id)).From(r).Where(r.Dep == {|#0:_t.Dep|}));
+                }
+            }
+            """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: true);
+
+    [Fact]
+    public Task Update_StaticReadonlyFieldUnaliasedTarget_ReportsSqla0300() =>
+        RunAsync("""
+            using SqlArtisan;
+            using SqlArtisan.Internal;
+            using static SqlArtisan.Sql;
+
+            class T : DbTableBase
+            {
+                public DbColumn Id;
+                public DbColumn Dep;
+                public T(string alias = "") : base("t", alias) { Id = new DbColumn(this, "id"); Dep = new DbColumn(this, "dep"); }
+            }
+
+            class C
+            {
+                private static readonly T Table = new T();
+
+                void M()
+                {
+                    T r = new T("r");
+                    var q = Update(Table).Set(
+                        Table.Id == Select(Max(r.Id)).From(r).Where(r.Dep == {|#0:Table.Dep|}));
                 }
             }
             """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: true);
@@ -156,7 +187,8 @@ public class CorrelatedDmlAnalyzerTests
     public Task DeleteFrom_CteBodyReferencingTarget_StaysSilent() =>
         RunSilent("""
             var cte = new Cte("c");
-            var q = With(cte.As(Select(t.Id).From(t))).DeleteFrom(t).Where(t.Id.In(Select(cte.Column("id")).From(cte)));
+            var q = With(cte.As(Select(t.Id).From(t))).DeleteFrom(t).Where(
+                t.Id.In(Select(cte.Column("id")).From(cte)));
             """);
 
     [Fact]
@@ -225,7 +257,8 @@ public class CorrelatedDmlAnalyzerTests
     [Fact]
     public Task Update_JoinedFromUnaliasedTarget_StaysSilent() =>
         RunSilent("""
-            var q = Update(t).Set(t.Id == 1).From(r).Where(t.Id.In(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
+            var q = Update(t).Set(t.Id == 1).From(r).Where(
+                t.Id.In(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
             """);
 
     [Fact]
@@ -237,7 +270,8 @@ public class CorrelatedDmlAnalyzerTests
     [Fact]
     public Task Update_JoinedInnerJoinUnaliasedTarget_StaysSilent() =>
         RunSilent("""
-            var q = Update(t).InnerJoin(r).On(t.Id == r.Id).Set(t.Id == 1).Where(t.Id.In(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
+            var q = Update(t).InnerJoin(r).On(t.Id == r.Id).Set(t.Id == 1).Where(
+                t.Id.In(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
             """);
 
     [Fact]
@@ -292,7 +326,8 @@ public class CorrelatedDmlAnalyzerTests
                 void M()
                 {
                     T r = new T("r");
-                    var q = Update(_t).Set(_t.Id == Select(Max(r.Id)).From(r).Where(r.Dep == _t.Dep));
+                    var q = Update(_t).Set(
+                        _t.Id == Select(Max(r.Id)).From(r).Where(r.Dep == _t.Dep));
                 }
             }
             """, AnalyzerVerifier.EditorConfig("postgresql"), expectWarning: false);
@@ -452,7 +487,8 @@ public class CorrelatedDmlAnalyzerTests
         test.TestState.OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication;
         if (expectWarning)
         {
-            test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0300").WithLocation(0));
+            test.ExpectedDiagnostics.Add(
+                DiagnosticResult.CompilerWarning("SQLA0300").WithLocation(0));
         }
 
         await test.RunAsync();
@@ -481,5 +517,21 @@ public class CorrelatedDmlAnalyzerTests
             bool flag = System.DateTime.Now.Ticks > 0;
             var q = (flag ? DeleteFrom(t) : DeleteFrom(t))
                 .Where(Exists(Select(r.Id).From(r).Where(r.Id == t.Id)));
+            """);
+
+    // MERGE arms the runtime guard too (#253), so the rule dispatches on it;
+    // its USING/ON are the statement, not the joined form that stays silent.
+    [Fact]
+    public Task MergeInto_CorrelatedUnaliasedTarget_Warns() =>
+        RunReporting("""
+            var q = MergeInto(t).Using(r).On(t.Id == r.Id).WhenMatched().ThenUpdateSet(t.Dep == Select(Max(r.Dep)).From(r).Where(r.Id == {|#0:t.Id|}));
+            """);
+
+    [Fact]
+    public Task MergeInto_AliasedTarget_Silent() =>
+        RunSilent("""
+            T m = new T("m");
+            var q = MergeInto(m).Using(r).On(m.Id == r.Id).WhenMatched().ThenUpdateSet(
+                m.Dep == Select(Max(r.Dep)).From(r).Where(r.Id == m.Id));
             """);
 }

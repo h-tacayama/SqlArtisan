@@ -79,7 +79,7 @@ public abstract class SqlExpression : SqlPart
     public static EqualityCondition operator ==(
         SqlExpression @this,
         object rightSide) =>
-        new EqualCondition(Resolve(@this), Resolve(rightSide));
+        new EqualCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL inequality comparison: <c><paramref name="this"/> &lt;&gt; <paramref name="rightSide"/></c>.
@@ -90,7 +90,7 @@ public abstract class SqlExpression : SqlPart
     public static EqualityCondition operator !=(
         SqlExpression @this,
         object rightSide) =>
-        new NotEqualCondition(Resolve(@this), Resolve(rightSide));
+        new NotEqualCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL less-than comparison: <c><paramref name="this"/> &lt; <paramref name="rightSide"/></c>.
@@ -101,7 +101,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlCondition operator <(
         SqlExpression @this,
         object rightSide) =>
-        new LessThanCondition(@this, Resolve(rightSide));
+        new LessThanCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL greater-than comparison: <c><paramref name="this"/> &gt; <paramref name="rightSide"/></c>.
@@ -110,7 +110,7 @@ public abstract class SqlExpression : SqlPart
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The comparison condition.</returns>
     public static SqlCondition operator >(SqlExpression @this, object rightSide) =>
-        new GreaterThanCondition(@this, Resolve(rightSide));
+        new GreaterThanCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL less-than-or-equal comparison: <c><paramref name="this"/> &lt;= <paramref name="rightSide"/></c>.
@@ -121,7 +121,7 @@ public abstract class SqlExpression : SqlPart
     public static SqlCondition operator <=(
         SqlExpression @this,
         object rightSide) =>
-        new LessThanOrEqualCondition(@this, Resolve(rightSide));
+        new LessThanOrEqualCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL greater-than-or-equal comparison: <c><paramref name="this"/> &gt;= <paramref name="rightSide"/></c>.
@@ -132,58 +132,58 @@ public abstract class SqlExpression : SqlPart
     public static SqlCondition operator >=(
         SqlExpression @this,
         object rightSide) =>
-        new GreaterThanOrEqualCondition(@this, Resolve(rightSide));
+        new GreaterThanOrEqualCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL addition operator: <c><paramref name="this"/> + <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
-    /// <param name="rightSide">The right operand — a literal or another expression.</param>
+    /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The addition expression.</returns>
     public static AdditionOperator operator +(
         SqlExpression @this,
-        object rightSide) => new(@this, Resolve(rightSide));
+        object rightSide) => new(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL subtraction operator: <c><paramref name="this"/> - <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
-    /// <param name="rightSide">The right operand — a literal or another expression.</param>
+    /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The subtraction expression.</returns>
     public static SubtractionOperator operator -(
         SqlExpression @this,
-        object rightSide) => new(@this, Resolve(rightSide));
+        object rightSide) => new(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL multiplication operator: <c><paramref name="this"/> * <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
-    /// <param name="rightSide">The right operand — a literal or another expression.</param>
+    /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The multiplication expression.</returns>
     public static MultiplicationOperator operator *(
         SqlExpression @this,
-        object rightSide) => new(@this, Resolve(rightSide));
+        object rightSide) => new(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL division operator: <c><paramref name="this"/> / <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
-    /// <param name="rightSide">The right operand — a literal or another expression.</param>
+    /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The division expression.</returns>
     public static DivisionOperator operator /(
         SqlExpression @this,
-        object rightSide) => new(@this, Resolve(rightSide));
+        object rightSide) => new(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// The SQL modulus operator: <c><paramref name="this"/> % <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
-    /// <param name="rightSide">The right operand — a literal or another expression.</param>
+    /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
     /// <returns>The modulus expression.</returns>
     /// <remarks>Not supported by Oracle — use <c>Sql.Mod</c> there.</remarks>
     public static ModulusOperator operator %(
         SqlExpression @this,
-        object rightSide) => new(@this, Resolve(rightSide));
+        object rightSide) => new(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
     /// Aliases this expression in a <c>SELECT</c> list: <c>expr "<paramref name="alias"/>"</c>.
@@ -194,12 +194,13 @@ public abstract class SqlExpression : SqlPart
 
     /// <summary>
     /// Aliases this expression to a CTE / derived-table handle column: <c>expr
-    /// <paramref name="column"/></c>, emitted bare to match how
-    /// <paramref name="column"/> is referenced through its handle.
+    /// <paramref name="column"/></c>, emitted exactly as <paramref name="column"/>
+    /// is referenced through its handle — bare, or quoted when the handle was
+    /// materialized from a quoted alias.
     /// </summary>
     /// <param name="column">The target CTE / derived-table column.</param>
     /// <returns>The aliased expression.</returns>
-    public ExpressionAlias As(DbColumn column) => new(this, column.Name, quoteAlias: false);
+    public ExpressionAlias As(DbColumn column) => new(this, column.Name, column.QuoteName);
 
     /// <summary>
     /// The <c>expr BETWEEN <paramref name="rightSide1"/> AND <paramref name="rightSide2"/></c> condition.
@@ -228,7 +229,8 @@ public abstract class SqlExpression : SqlPart
     /// empty <c>IN</c> list is invalid SQL).</exception>
     public InCondition In(params object[] expressions)
     {
-        CollectionGuard.ThrowIfEmpty(expressions, "IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(
+            expressions, nameof(expressions), "IN requires at least one value.");
         return new(this, Resolve(expressions));
     }
 
@@ -243,15 +245,13 @@ public abstract class SqlExpression : SqlPart
     /// <exception cref="ArgumentException"><paramref name="values"/> is empty (an
     /// empty <c>IN</c> list is invalid SQL).</exception>
     /// <remarks>
-    /// The parameter is <see cref="IReadOnlyCollection{T}"/>, not
-    /// <see cref="IEnumerable{T}"/>, on purpose: a <see cref="string"/> is an
-    /// <c>IEnumerable&lt;char&gt;</c> but not an <c>IReadOnlyCollection&lt;char&gt;</c>,
-    /// so <c>In("abc")</c> stays a single-value predicate (via the <c>params</c>
-    /// overload) instead of silently expanding into one bind per character.
+    /// Takes <see cref="IReadOnlyCollection{T}"/>, not <see cref="IEnumerable{T}"/>: a
+    /// <see cref="string"/> is an <c>IEnumerable&lt;char&gt;</c> but not a collection, so
+    /// <c>In("abc")</c> stays a single-value predicate instead of one bind per character.
     /// </remarks>
     public InCondition In<T>(IReadOnlyCollection<T> values)
     {
-        CollectionGuard.ThrowIfEmpty(values, "IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
         return new(this, Resolve(values));
     }
 
@@ -269,7 +269,7 @@ public abstract class SqlExpression : SqlPart
     /// </remarks>
     public InCondition In<T>(T[] values)
     {
-        CollectionGuard.ThrowIfEmpty(values, "IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
         return new(this, Resolve(values));
     }
 
@@ -290,7 +290,8 @@ public abstract class SqlExpression : SqlPart
     /// empty <c>NOT IN</c> list is invalid SQL).</exception>
     public NotInCondition NotIn(params object[] expressions)
     {
-        CollectionGuard.ThrowIfEmpty(expressions, "NOT IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(
+            expressions, nameof(expressions), "NOT IN requires at least one value.");
         return new(this, Resolve(expressions));
     }
 
@@ -307,7 +308,7 @@ public abstract class SqlExpression : SqlPart
     /// empty <c>NOT IN</c> list is invalid SQL).</exception>
     public NotInCondition NotIn<T>(IReadOnlyCollection<T> values)
     {
-        CollectionGuard.ThrowIfEmpty(values, "NOT IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");
         return new(this, Resolve(values));
     }
 
@@ -321,7 +322,7 @@ public abstract class SqlExpression : SqlPart
     /// <exception cref="ArgumentException"><paramref name="values"/> is empty.</exception>
     public NotInCondition NotIn<T>(T[] values)
     {
-        CollectionGuard.ThrowIfEmpty(values, "NOT IN requires at least one value.");
+        CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");
         return new(this, Resolve(values));
     }
 

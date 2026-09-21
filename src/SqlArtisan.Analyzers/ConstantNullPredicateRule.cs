@@ -16,7 +16,9 @@ namespace SqlArtisan.Analyzers;
 /// </remarks>
 internal static class ConstantNullPredicateRule
 {
-    public static void Check(OperationAnalysisContext context, IPropertyReferenceOperation predicate)
+    public static void Check(
+        OperationAnalysisContext context,
+        IPropertyReferenceOperation predicate)
     {
         // Nullable is the only fact that decides this, and only when it is known
         // to be false: a nullable column makes both predicates meaningful.

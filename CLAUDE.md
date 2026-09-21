@@ -73,7 +73,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`), and the DB-less `MatrixSweepCatalogTests` completeness slice. |
+| `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`), and the DB-less `MatrixSweepCatalogTests` and `DialectGuardTwinTests` slices. |
 | `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests across 6 lanes in parallel (Oracle runs at both 21c and 23ai). |
 | `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 4 NuGet packages. |
 
@@ -123,7 +123,7 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fourteen diagnostics:
   `DbTypeCategory`.
 - **SQLA0200** — Constant NULL predicate: `IS [NOT] NULL` on a column the
   generated table class declares NOT NULL. Reported only in a statement that
-  visibly builds its own query and has no outer join.
+  visibly builds its own query and has no outer join on its own spine.
 - **SQLA0201** — `NOT IN` over a subquery selecting a nullable column — one
   NULL and the query matches nothing.
 - **SQLA0202** — `INSERT` column list omitting a NOT NULL column with no
@@ -137,7 +137,7 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fourteen diagnostics:
   match. The category is the public `DbTypeCategory` enum, which TableClassGen
   emits symbolically and the analyzer resolves by member name (never by the
   underlying integer), gated by `SchemaMetadataParityTests`.
-- **SQLA0300** — Correlated `UPDATE`/`DELETE` with an unaliased target — the
+- **SQLA0300** — Correlated `UPDATE`/`DELETE`/`MERGE` with an unaliased target — the
   same violation `Build()` rejects, surfaced early.
 
 Each ID sits in a numbered band that **is** its category, so a family gains a
@@ -166,12 +166,12 @@ there, not here — a pointer line in this list is enough.
 
 **Rules** (`.claude/rules/`): code-comments, csharp-formatting,
 dbms-differences, docs-style, guards-and-empty-states, public-api-design,
-review-declines, sql-building-style, unit-tests.
+sql-building-style, unit-tests.
 
 **Skills** (`.claude/skills/`): sa-add-sql-function, sa-diff-review,
 sa-diff-review-refinement, sa-docs-audit, sa-panel-audit,
-sa-panel-diff-review, sa-release-audit, sa-run-benchmark,
-sa-run-integration-tests, sa-run-sql-harness, sa-write-xml-docs.
+sa-panel-diff-review, sa-run-benchmark, sa-run-integration-tests,
+sa-run-sql-harness, sa-write-xml-docs.
 
 **Workflows** (`.claude/workflows/`): sa-audit-sweep. The `-sweep` suffix is
 reserved for workflows — a skill never carries it.
@@ -216,12 +216,12 @@ which chunks it across single reviewers instead of tripling it.
   `docs/`, not in the README.
 - Comment the **why** / **why-not**, never the **what**; keep comments short. See
   `.claude/rules/code-comments.md`.
-- A review finding closes only by landing somewhere durable — a gate (test),
-  a rule/ADR clause, or a recorded decision not to mechanize it — never by the
-  one-off fix alone; the finding's *class* is what the landing must cover.
-  Declines below the rule/ADR bar land in `.claude/rules/review-declines.md`;
-  when repeated release-audit passes may *stop* is defined by ADR 0022 (the
-  procedure is the `sa-release-audit` skill).
+- A review finding closes only by landing somewhere durable — a gate (test)
+  or a clause in the record that owns the subject (a `.claude/rules/` file, an
+  ADR, a doc page, or a comment at the site) — never by the one-off fix alone;
+  the finding's *class* is what the landing must cover. A decision *not* to
+  change something lands the same way, stated as what the behaviour is and
+  why, never as a ledger of what was declined.
 - Report only what you are asking someone to change. Anything you would not
   change — fine as is, already covered elsewhere, worth knowing but needing no
   action — stays out entirely, under any label; **finding nothing is a good
@@ -240,7 +240,7 @@ never made unprompted. Once approved, do it in one commit:
    `docs/guides/oracle-array-bind.md`, and `src/SqlArtisan.TableClassGen/README.md`.
 3. `CHANGELOG.md`: finalize the `## [Unreleased]` section under the new version
    and date.
-4. Regenerate `llms-full.txt` (command in `LlmsFullTests.cs`'s header comment).
+4. Regenerate `llms-full.txt` (`bash tools/regen-llms-full.sh`).
 5. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`).
 6. Merge to `main`, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
    — `release.yml` reads the version from `Directory.Build.props`, not the tag,

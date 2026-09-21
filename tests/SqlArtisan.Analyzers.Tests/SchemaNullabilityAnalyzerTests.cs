@@ -85,13 +85,37 @@ public class SchemaNullabilityAnalyzerTests
     [Fact]
     public Task IsNull_WrappedInConditionIf_Warns() =>
         RunReporting(
-            "var s = Select(t.Code).From(t).Where(ConditionIf(true, {|#0:t.Code.IsNull|})).Build();",
+            "var s = Select(t.Code).From(t).Where(ConditionIf(true, "
+                + "{|#0:t.Code.IsNull|})).Build();",
             Expected("Code", "IsNull", "false"));
 
     [Fact]
     public Task IsNull_WrappedInNot_Warns() =>
         RunReporting(
             "var s = Select(t.Code).From(t).Where(Not({|#0:t.Code.IsNull|})).Build();",
+            Expected("Code", "IsNull", "false"));
+
+    // An outer join belonging to a nested subquery is not the outer statement's
+    // shape: only its own spine can null-supply the reported column.
+    [Fact]
+    public Task IsNull_OuterJoinOnlyInsideSubquery_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            T x = new T("x");
+            var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}
+                & Exists(Select(r.Code).From(r).LeftJoin(x).On(r.Code == x.Code))).Build();
+            """,
+            Expected("Code", "IsNull", "false"));
+
+    [Fact]
+    public Task IsNull_JoinlessSubquery_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}
+                & Exists(Select(r.Code).From(r).Where(r.Code == t.Code))).Build();
+            """,
             Expected("Code", "IsNull", "false"));
 
     // The LEFT JOIN anti-join: past an outer join the NOT NULL column is
@@ -232,4 +256,98 @@ public class SchemaNullabilityAnalyzerTests
             bool flag = System.DateTime.Now.Ticks > 0;
             var q = (flag ? Select(t.Code).From(t) : Select(t.Code).From(t)).Where(t.Code.IsNull);
             """);
+
+    // A set operator opens a new query block: the branch after it builds its own
+    // statement, and the other branch's joins say nothing about it.
+    [Fact]
+    public Task IsNull_InSecondUnionBranch_Warns() =>
+        RunReporting(
+            "var s = Select(t.Code).From(t).Union.Select(t.Code).From(t)"
+                + ".Where({|#0:t.Code.IsNull|}).Build();",
+            Expected("Code", "IsNull", "false"));
+
+    [Fact]
+    public Task IsNull_InFirstBranch_LeftJoinOnlyInSecond_Warns() =>
+        RunReporting(
+            "T r = new T(\"r\"); var s = Select(t.Code).From(t).Where({|#0:t.Code.IsNull|})"
+                + ".Union.Select(t.Code).From(t).LeftJoin(r).On(t.Code == r.Code).Build();",
+            Expected("Code", "IsNull", "false"));
+
+    [Fact]
+    public Task IsNull_InSecondBranch_LeftJoinOnlyInFirst_Warns() =>
+        RunReporting(
+            "T r = new T(\"r\"); var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == "
+                + "r.Code).Union.Select(t.Code).From(t).Where({|#0:t.Code.IsNull|}).Build();",
+            Expected("Code", "IsNull", "false"));
+
+    [Fact]
+    public Task IsNull_LeftJoinInSameUnionBranch_Silent() =>
+        RunSilent(
+            "T r = new T(\"r\"); var s = Select(t.Code).From(t).Union.Select(t.Code).From(t)"
+                + ".LeftJoin(r).On(t.Code == r.Code).Where(t.Code.IsNull).Build();");
+
+    // The branch before a set operator is walked for its own joins: the compound's
+    // remaining chain is passed through, never skipped as a nested statement.
+    [Theory]
+    [InlineData("Union")]
+    [InlineData("UnionAll")]
+    [InlineData("Intersect")]
+    [InlineData("Except")]
+    public Task IsNull_LeftJoinInSameFirstBranch_Silent(string setOperator) =>
+        RunSilent(
+            $"T r = new T(\"r\"); var s = Select(t.Code).From(t).LeftJoin(r).On(t.Code == "
+                + $"r.Code).Where(r.Code.IsNull).{setOperator}.Select(t.Code).From(t).Build();");
+
+    [Fact]
+    public Task IsNull_LeftJoinInSameMiddleBranch_Silent() =>
+        RunSilent(
+            "T r = new T(\"r\"); var s = Select(t.Code).From(t).Union.Select(t.Code).From(t)"
+                + ".LeftJoin(r).On(t.Code == r.Code).Where(r.Code.IsNull).Union.Select(t.Code)"
+                + ".From(t).Build();");
+
+    [Fact]
+    public Task IsNull_LeftJoinInSameFirstBranch_AsDerivedTable_Silent() =>
+        RunSilent(
+            "T r = new T(\"r\"); SubqueryDerivedTable d = Select(t.Code).From(t).LeftJoin(r)"
+                + ".On(t.Code == r.Code).Where(r.Code.IsNull).Union.Select(t.Code).From(t)"
+                + ".AsTable(\"d\"); var s = Select(d.Column(t.Code)).From(d).Build();");
+
+    [Fact]
+    public Task IsNull_LeftJoinInSameFirstBranch_UnderExists_Silent() =>
+        RunSilent(
+            "T r = new T(\"r\"); T x = new T(\"x\"); var s = Select(t.Code).From(t)"
+                + ".Where(Exists(Select(x.Code).From(x).LeftJoin(r).On(x.Code == r.Code)"
+                + ".Where(r.Code.IsNull).Union.Select(x.Code).From(x))).Build();");
+
+    // A compound subquery is still inside the enclosing statement: the climb
+    // scopes out the other branch, not the statement whose join silences it.
+    [Fact]
+    public Task IsNull_InFirstBranchOfCorrelatedUnion_UnderOuterJoin_Silent() =>
+        RunSilent(
+            "T r = new T(\"r\"); T x = new T(\"x\"); var s = Select(t.Code).From(t).LeftJoin(r)"
+                + ".On(t.Code == r.Code).Where(Exists(Select(x.Code).From(x).Where(r.Code.IsNull)"
+                + ".Union.Select(x.Code).From(x))).Build();");
+
+    [Fact]
+    public Task IsNull_InSecondBranchOfCorrelatedUnion_UnderOuterJoin_Silent() =>
+        RunSilent(
+            "T r = new T(\"r\"); T x = new T(\"x\"); var s = Select(t.Code).From(t).LeftJoin(r)"
+                + ".On(t.Code == r.Code).Where(Exists(Select(x.Code).From(x).Union.Select(x.Code)"
+                + ".From(x).Where(r.Code.IsNull))).Build();");
+
+    [Fact]
+    public Task IsNull_InFirstBranchOfCorrelatedUnion_NoOuterJoin_Warns() =>
+        RunReporting(
+            "T x = new T(\"x\"); var s = Select(t.Code).From(t).Where(Exists(Select(x.Code).From(x)"
+                + ".Where({|#0:t.Code.IsNull|}).Union.Select(x.Code).From(x))).Build();",
+            Expected("Code", "IsNull", "false"));
+
+    // An INSERT ... SELECT's feeding query visibly builds its own query, so it is
+    // a statement head like the others (release audit pass 8).
+    [Fact]
+    public Task IsNull_InInsertSelectFeed_Warns() =>
+        RunReporting(
+            "var s = InsertInto(t, t.Code).Select(t.Code).From(t)"
+                + ".Where({|#0:t.Code.IsNull|}).Build();",
+            Expected("Code", "IsNull", "false"));
 }

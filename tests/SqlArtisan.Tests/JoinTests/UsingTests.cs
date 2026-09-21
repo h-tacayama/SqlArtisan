@@ -53,4 +53,13 @@ public class UsingTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    [Fact]
+    public void Using_DuplicateColumn_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Name).From(_t).InnerJoin(_s).Using(_t.Code, _t.Code));
+
+        Assert.Equal("A USING column list must not name a column twice.", ex.Message);
+    }
 }

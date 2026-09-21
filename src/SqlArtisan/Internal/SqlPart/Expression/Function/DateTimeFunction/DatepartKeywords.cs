@@ -9,7 +9,13 @@ internal static class DatepartKeywords
 {
     private static readonly string[] s_keywords = Build();
 
-    internal static string Of(DateTimePart datepart) => s_keywords[(int)datepart];
+    // A cast-in undefined value would otherwise index past the table (or hit
+    // a null slot) and surface as a bare IndexOutOfRangeException at Build().
+    internal static string Of(DateTimePart datepart) =>
+        (uint)datepart < (uint)s_keywords.Length
+            ? s_keywords[(int)datepart]
+            : throw new ArgumentOutOfRangeException(
+                nameof(datepart), datepart, "The value is not a defined DateTimePart.");
 
     private static string[] Build()
     {

@@ -105,6 +105,7 @@ public partial class FunctionTests
         expected.Append("CONCAT(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]
@@ -136,9 +137,8 @@ public partial class FunctionTests
 
         Assert.Equal(expected.ToString(), sql.Text);
 
-        // "c" and the trailing column are the params tail; "a" and "b" are declared
-        // parameters. The literals render as interchangeable markers, so only the
-        // bind values pin the order the two groups were merged in.
+        // The literals render as interchangeable markers, so only the bind values pin
+        // the order the params tail and the declared parameters were merged in.
         Assert.Equal(3, sql.Parameters.Count);
         Assert.Equal("a", sql.Parameters.Get<string>(":0"));
         Assert.Equal("b", sql.Parameters.Get<string>(":1"));
@@ -157,6 +157,8 @@ public partial class FunctionTests
         expected.Append("CONCAT_WS(:0, \"t\".name, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("-", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("a", sql.Parameters.Get<string>(":1"));
     }
 
     [Fact]
@@ -171,6 +173,9 @@ public partial class FunctionTests
         expected.Append("CONCAT_WS(:0, \"t\".name, :1, :2)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("-", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("a", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("b", sql.Parameters.Get<string>(":2"));
     }
 
     // Pins the same declared-vs-params-tail merge order Concat's test above does;

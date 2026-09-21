@@ -144,6 +144,33 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
+    [Fact] // ADR 0011: MySQL's INSERT grammar has no target-alias slot (the 8.0.19+
+           // AS row_alias is post-VALUES), so Build(MySql) throws for an aliased
+           // target; anchored live here beside the unaliased form succeeding.
+    public void AliasedInsertTarget_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        using (IDbTransaction tx = connection.BeginTransaction())
+        {
+            connection.Execute(
+                "INSERT INTO users (id, name, age, department_id) VALUES (901, 'x', 20, 99)",
+                transaction: tx);
+            tx.Rollback();
+        }
+
+        // Inside a rolled-back transaction: if the grammar assumption ever
+        // failed, the row must not leak into the shared fixture.
+        using (IDbTransaction probeTx = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<Exception>(() => connection.Execute(
+                "INSERT INTO users AS `cu` (id, name, age, department_id) VALUES "
+                    + "(901, 'x', 20, 99)",
+                transaction: probeTx));
+            probeTx.Rollback();
+        }
+    }
+
     [Fact]
     public void JoinedUpdateJoin_Executes()
     {
@@ -271,7 +298,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         connection.ExecuteScalar("SELECT NTILE(4) OVER (ORDER BY age) FROM users");
         connection.ExecuteScalar("SELECT NTH_VALUE(age, 1) OVER (ORDER BY age) FROM users");
         connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 PRECEDING) FROM users");
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN 3 PRECEDING AND 5 "
+                + "PRECEDING) FROM users");
 
         // The only difference each time — the value-domain violation — is what MySQL rejects.
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
@@ -283,11 +311,14 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT SUM(age) OVER (ORDER BY age ROWS 1 FOLLOWING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN CURRENT ROW AND 1 "
+                + "PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED "
+                + "PRECEDING) FROM users"));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM users"));
+            "SELECT SUM(age) OVER (ORDER BY age ROWS BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED "
+                + "FOLLOWING) FROM users"));
     }
 
     [Fact] // SQLA0104 (#449): anchors MySqlTemporalUnits in DatepartValidity.cs —
@@ -303,5 +334,109 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         // what MySQL rejects.
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT EXTRACT(EPOCH FROM created_at) FROM users"));
+    }
+
+    // The live twin of SelectBuilder's bare-OFFSET guard (ADR 0011).
+    [Fact]
+    public void Pagination_OffsetWithoutLimit_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users ORDER BY id OFFSET 1"));
+    }
+
+    // Live twins of the duplicate-list guards (guards-and-empty-states.md): the
+    // guards reject the shape everywhere, so each lane pins what its engine does.
+    [Fact]
+    public void DuplicateInsertColumn_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Rolled back so a row cannot leak into the shared fixture if the claim fails.
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "INSERT INTO users (id, id) VALUES (901, 902)",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void DuplicateSetAssignment_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "UPDATE users SET age = 1, age = 2 WHERE id = 1",
+            transaction: transaction);
+        int age = connection
+            .Query<int>("SELECT age FROM users WHERE id = 1", transaction: transaction)
+            .Single();
+
+        Assert.Equal(2, age); // the last assignment wins, silently
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void DuplicateUsingColumn_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute("SELECT id FROM users JOIN orders USING (id, id)");
+    }
+
+    [Fact]
+    public void DuplicateCteColumnName_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("WITH x(a, a) AS (SELECT 1, 2) SELECT * FROM x"));
+    }
+
+    [Fact]
+    public void DuplicateCteName_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("WITH x AS (SELECT 1), x AS (SELECT 2) SELECT * FROM x"));
+    }
+
+    // The live twin of the leading-WITH guard for INSERT on MySQL (ADR 0011).
+    [Fact]
+    public void LeadingWithBeforeInsert_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "WITH c AS (SELECT 901 AS id, 'x' AS name) "
+                    + "INSERT INTO users (id, name) SELECT id, name FROM c",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // The live twins of the ORDER BY ordinal guards: MySQL rejects position 0
+    // but reads a negative literal as a constant and accepts it — the asymmetry
+    // that scopes the ADR 0011 arm to PostgreSQL and SQLite.
+    [Fact]
+    public void OrderByZeroOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users ORDER BY 0"));
+    }
+
+    [Fact]
+    public void OrderByNegativeOrdinal_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>("SELECT id FROM users ORDER BY -1").ToList();
     }
 }

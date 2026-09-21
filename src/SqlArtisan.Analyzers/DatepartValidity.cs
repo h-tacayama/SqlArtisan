@@ -5,14 +5,8 @@ namespace SqlArtisan.Analyzers;
 
 /// <summary>
 /// The per-(member, dialect) set of <c>DateTimePart</c> member names each
-/// vendor grammar accepts for SQLA0104. Seven primary-source-verified lists
-/// (WebSearch, since docs.oracle.com / postgresql.org / dev.mysql.com /
-/// learn.microsoft.com direct fetch is blocked in this environment) cover the
-/// eleven (member, dialect) pairs, since MySQL's <c>EXTRACT</c>/<c>INTERVAL</c>
-/// share one unit list, SQL Server's <c>DATEPART</c>/<c>DATEADD</c>/
-/// <c>DATEDIFF</c> share one datepart list, and MySQL's
-/// <c>TIMESTAMPADD</c>/<c>TIMESTAMPDIFF</c> share their own (simple-units-only)
-/// list.
+/// vendor grammar accepts for SQLA0104; the lists are vendor-documentation
+/// facts, shared where the vendor shares them.
 /// </summary>
 internal static class DatepartValidity
 {
@@ -33,10 +27,8 @@ internal static class DatepartValidity
         "Microsecond", "Second", "Minute", "Hour", "Day", "Week", "Month", "Quarter", "Year",
     };
 
-    // docs.oracle.com EXTRACT (datetime): YEAR/MONTH/DAY require a DATE-family
-    // source; HOUR/MINUTE/SECOND require TIMESTAMP; the four TIMEZONE_* fields
-    // require TIMESTAMP WITH TIME ZONE — a source-type constraint this table
-    // does not model (see docs/analyzer.md's known-limitations note).
+    // Oracle EXTRACT's per-field source-type constraint is not modeled
+    // (docs/analyzer.md, known limitations).
     private static readonly HashSet<string> OracleExtractFields = new(StringComparer.Ordinal)
     {
         "Year", "Month", "Day", "Hour", "Minute", "Second",
@@ -51,52 +43,58 @@ internal static class DatepartValidity
         "Timezone", "TimezoneHour", "TimezoneMinute", "Week", "Year",
     };
 
-    // postgresql.org Date/Time Functions and Operators, date_trunc — Epoch, Dow,
-    // Doy, Isodow, Isoyear, Julian, and the three Timezone* fields are EXTRACT-only.
+    // date_trunc takes the EXTRACT fields that name a truncation boundary.
     private static readonly HashSet<string> PostgreSqlDateTruncFields = new(StringComparer.Ordinal)
     {
         "Microseconds", "Milliseconds", "Second", "Minute", "Hour", "Day", "Week", "Month",
         "Quarter", "Year", "Decade", "Century", "Millennium",
     };
 
-    // learn.microsoft.com DATEPART/DATEADD/DATEDIFF, which share one datepart
-    // table (each also accepts an abbreviation of these names, e.g. "yy" for
-    // Year — the analyzer only ever sees a DateTimePart member, never a raw
-    // string, so abbreviations are out of scope).
+    // learn.microsoft.com DATEPART (each entry also accepts an abbreviation,
+    // e.g. "yy" for Year — the analyzer only ever sees a DateTimePart member,
+    // never a raw string, so abbreviations are out of scope).
     private static readonly HashSet<string> SqlServerDatepartFields = new(StringComparer.Ordinal)
     {
         "Year", "Quarter", "Month", "Dayofyear", "Day", "Week", "Weekday", "Hour", "Minute",
         "Second", "Millisecond", "Microsecond", "Nanosecond", "Tzoffset", "IsoWeek",
     };
 
-    // learn.microsoft.com DATETRUNC: every SqlServerDatepartFields member except
-    // Weekday/Tzoffset/Nanosecond, which that page states are not supported.
-    // Microsecond support is further data-type-dependent (datetime2 rejects it);
-    // that constraint is not modeled (see docs/analyzer.md's known limitations).
+    // learn.microsoft.com DATEADD and DATEDIFF, whose shared datepart table
+    // stops at Nanosecond — neither accepts DATEPART's Tzoffset or IsoWeek.
+    private static readonly HashSet<string> SqlServerDateaddFields = new(StringComparer.Ordinal)
+    {
+        "Year", "Quarter", "Month", "Dayofyear", "Day", "Week", "Weekday", "Hour", "Minute",
+        "Second", "Millisecond", "Microsecond", "Nanosecond",
+    };
+
+    // DATETRUNC's data-type-dependent Microsecond support is not modeled
+    // (docs/analyzer.md, known limitations).
     private static readonly HashSet<string> SqlServerDateTruncFields = new(StringComparer.Ordinal)
     {
         "Year", "Quarter", "Month", "Dayofyear", "Day", "Week", "IsoWeek", "Hour", "Minute",
         "Second", "Millisecond", "Microsecond",
     };
 
-    private static readonly Dictionary<(string Member, TargetDbms Dbms), HashSet<string>> Table = new()
-    {
-        [("Extract", TargetDbms.MySql)] = MySqlTemporalUnits,
-        [("Extract", TargetDbms.Oracle)] = OracleExtractFields,
-        [("Extract", TargetDbms.PostgreSql)] = PostgreSqlExtractFields,
-        [("Datepart", TargetDbms.SqlServer)] = SqlServerDatepartFields,
-        [("Dateadd", TargetDbms.SqlServer)] = SqlServerDatepartFields,
-        [("Datediff", TargetDbms.SqlServer)] = SqlServerDatepartFields,
-        [("DateTrunc", TargetDbms.PostgreSql)] = PostgreSqlDateTruncFields,
-        [("Datetrunc", TargetDbms.SqlServer)] = SqlServerDateTruncFields,
-        [("Interval", TargetDbms.MySql)] = MySqlTemporalUnits,
-        [("Timestampadd", TargetDbms.MySql)] = MySqlTimestampUnits,
-        [("Timestampdiff", TargetDbms.MySql)] = MySqlTimestampUnits,
-    };
+    private static readonly Dictionary<(string Member, TargetDbms Dbms), HashSet<string>> Table =
+        new()
+        {
+            [("Extract", TargetDbms.MySql)] = MySqlTemporalUnits,
+            [("Extract", TargetDbms.Oracle)] = OracleExtractFields,
+            [("Extract", TargetDbms.PostgreSql)] = PostgreSqlExtractFields,
+            [("Datepart", TargetDbms.SqlServer)] = SqlServerDatepartFields,
+            [("Dateadd", TargetDbms.SqlServer)] = SqlServerDateaddFields,
+            [("Datediff", TargetDbms.SqlServer)] = SqlServerDateaddFields,
+            [("DateTrunc", TargetDbms.PostgreSql)] = PostgreSqlDateTruncFields,
+            [("Datetrunc", TargetDbms.SqlServer)] = SqlServerDateTruncFields,
+            [("Interval", TargetDbms.MySql)] = MySqlTemporalUnits,
+            [("Timestampadd", TargetDbms.MySql)] = MySqlTimestampUnits,
+            [("Timestampdiff", TargetDbms.MySql)] = MySqlTimestampUnits,
+        };
 
     // The parameter SQLA0104 reads the literal DateTimePart out of — each entry
     // matches that factory's own parameter name in Sql.*.cs.
-    internal static readonly Dictionary<string, string> DatepartParameterName = new(StringComparer.Ordinal)
+    internal static readonly Dictionary<string, string> DatepartParameterName = new(
+        StringComparer.Ordinal)
     {
         ["Extract"] = "datepart",
         ["Datepart"] = "datepart",
@@ -117,9 +115,9 @@ internal static class DatepartValidity
     public static HashSet<string>? For(string memberName, TargetDbms dbms) =>
         Table.TryGetValue((memberName, dbms), out HashSet<string>? set) ? set : null;
 
-    /// <summary>Every member name appearing in at least one list — the parity
-    /// gate's coverage check.</summary>
-    internal static IEnumerable<string> AllKnownMemberNames
+    /// <summary>Every <c>DateTimePart</c> name appearing in at least one list —
+    /// the parity gate's coverage check.</summary>
+    internal static IEnumerable<string> AllKnownDatepartNames
     {
         get
         {

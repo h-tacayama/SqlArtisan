@@ -12,5 +12,6 @@ public interface IMergeBuilderTarget
     /// </summary>
     /// <param name="source">The source table reference (a table, aliased table, derived table, or subquery).</param>
     /// <returns>The builder positioned to supply the match condition with <c>On(...)</c>.</returns>
+    /// <remarks>Oracle, PostgreSQL, and SQL Server syntax.</remarks>
     IMergeBuilderUsing Using(TableReference source);
 }

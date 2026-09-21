@@ -8,18 +8,14 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0104 for a literal <c>DateTimePart</c> argument this rule's
-/// per-(member, dialect) table (<see cref="DatepartValidity"/>) says the target
-/// dialect does not accept for that function — a finer grain than SQLA0100's
-/// whole-construct verdict (#449).
+/// Reports SQLA0104 for a literal <c>DateTimePart</c> argument
+/// <see cref="DatepartValidity"/> says the target dialect rejects for that
+/// function — a finer grain than SQLA0100's whole-construct verdict (#449).
 /// </summary>
 /// <remarks>
-/// Silent, never a false positive, in three cases: the argument is not a
-/// compile-time constant (a variable holding a computed <c>DateTimePart</c>);
-/// its member name is not in <see cref="DatepartValidity"/>'s table for this
-/// (member, dialect) pair (nothing to check); or the matrix already flags the
-/// construct itself unsupported on that dialect (SQLA0100 owns that verdict —
-/// reporting both would be redundant).
+/// Silent whenever a fact is missing (a non-constant argument, a pair absent
+/// from the table) and on a dialect the matrix already flags unsupported —
+/// SQLA0100 owns that verdict; reporting both would be redundant.
 /// </remarks>
 internal static class DatepartValidityRule
 {
@@ -29,7 +25,8 @@ internal static class DatepartValidityRule
         DialectTargetSet targets)
     {
         string memberName = invocation.TargetMethod.Name;
-        if (!DatepartValidity.DatepartParameterName.TryGetValue(memberName, out string? parameterName)
+        if (!DatepartValidity.DatepartParameterName.TryGetValue(
+                memberName, out string? parameterName)
             || FindArgument(invocation.Arguments, parameterName) is not { } argument
             || ResolveEnumMemberName(argument.Value) is not { } datepart)
         {
@@ -37,6 +34,18 @@ internal static class DatepartValidityRule
         }
 
         int? arity = invocation.TargetMethod.Parameters.Length;
+
+        // An `unsupported` override makes SQLA0100 fire for every target, so the
+        // never-both-fire contract below must cover the override path too.
+        AnalyzerConfigOptions options =
+            context.Options.AnalyzerConfigOptionsProvider.GetOptions(invocation.Syntax.SyntaxTree);
+        DialectSupportResolver.OverrideResult? overrideResult =
+            DialectSupportResolver.ResolveOverride(options, memberName, arity);
+        if (overrideResult is { IsSupported: false })
+        {
+            return;
+        }
+
         List<string>? invalidOn = null;
 
         foreach (TargetDbms dbms in targets.Members)
@@ -46,11 +55,12 @@ internal static class DatepartValidityRule
                 continue;
             }
 
-            // SQLA0100 already owns "this construct doesn't run on this dialect at
-            // all" — skip a dialect the matrix has already flagged unsupported so
-            // the two rules never both fire for the same usage.
-            if (DialectSupportResolver.MatchMatrixEntry(memberName, arity) is { } match
-                && !DialectSupportResolver.Evaluate(match, dbms, targets.VersionFor(dbms)).IsSupported)
+            // Skip dialects SQLA0100/0101 already flag — unless a `supported` override
+            // silenced them: the user asserts it runs there, so this check re-arms.
+            if (overrideResult is not { IsSupported: true }
+                && DialectSupportResolver.MatchMatrixEntry(memberName, arity) is { } match
+                && !DialectSupportResolver.Evaluate(match, dbms, targets.VersionFor(dbms))
+                    .IsSupported)
             {
                 continue;
             }
@@ -86,17 +96,9 @@ internal static class DatepartValidityRule
         return null;
     }
 
-    // Matches a literal DateTimePart argument (e.g. `DateTimePart.Epoch`) to its
-    // member name via the constant's value and the argument's own enum type — the
-    // same technique SchemaMetadata.Category uses to resolve a TypeCategory
-    // attribute argument, so no build reference to the core's DateTimePart is
-    // needed (ADR 0009).
-    //
-    // Deliberately does not unwrap a conversion: a cast or implicit constant
-    // (`(DateTimePart)10`, `0`) is an IConversionOperation already typed
-    // DateTimePart and already carrying the constant, so unwrapping to the
-    // underlying int would lose the enum type and silently skip a value the
-    // rule can resolve.
+    // Resolved against the argument's own enum type (ADR 0009's no-core-reference
+    // technique, as SchemaMetadata.Category). No conversion unwrap: a cast like
+    // `(DateTimePart)10` already carries the typed constant — unwrapping loses it.
     private static string? ResolveEnumMemberName(IOperation value)
     {
         if (value.ConstantValue is not { HasValue: true } constant

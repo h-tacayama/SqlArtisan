@@ -18,6 +18,9 @@ public abstract class DbTableBase : TableReference
     public DbTableBase(string tableName, string tableAlias)
         : base(tableName, "A table requires a name.")
     {
+        // The name renders as a bare token (a CTE or derived-table name is
+        // alias-quoted), so whitespace is invalid on every dialect.
+        StringGuard.ThrowIfNullOrWhiteSpace(tableName, "A table requires a name.");
         _tableAlias = tableAlias;
     }
 
@@ -38,10 +41,9 @@ public abstract class DbTableBase : TableReference
         }
     }
 
-    // Renders the table as a DML target (INSERT / UPDATE / DELETE). The base
-    // SELECT/FROM rendering separates the alias with a bare space; DML instead
-    // uses the dialect's alias separator (` AS ` for most engines, ` ` for
-    // Oracle), since several engines require AS where the FROM clause forbids it.
+    // DML-target rendering separates the alias with the dialect's separator
+    // rather than FROM's bare space: SQLite requires AS on a DML target where
+    // Oracle rejects it, while FROM stays AS-less everywhere (IDbmsDialect).
     internal void FormatAsDmlTarget(SqlBuildingBuffer buffer)
     {
         base.Format(buffer);

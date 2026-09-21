@@ -1,19 +1,15 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The <c>STRING_AGG(expr, separator)</c> string aggregate (PostgreSQL,
-/// SQLite 3.44+, and SQL Server). Ordering is dialect-specific: PostgreSQL and
-/// SQLite take an inline <c>ORDER BY</c> passed as an argument to
-/// <c>Sql.StringAgg(...)</c> (it sits inside the call), while SQL Server uses a
-/// trailing <c>WITHIN GROUP (ORDER BY ...)</c> via
-/// <see cref="WithinGroup(OrderByClause)"/>.
+/// The <c>STRING_AGG(expr, separator)</c> string aggregate (PostgreSQL, SQLite 3.44+,
+/// SQL Server). PostgreSQL and SQLite take an inline <c>ORDER BY</c> argument; SQL Server
+/// orders through a trailing <see cref="WithinGroup(OrderByClause)"/>.
 /// </summary>
 public sealed class StringAggFunction : SqlExpression
 {
     private readonly SqlExpression _expr;
     private readonly string _separator;
     private readonly OrderByClause? _orderByClause;
-    private WithinGroupClause? _withinGroupClause;
 
     internal StringAggFunction(
         SqlExpression expr,
@@ -28,13 +24,25 @@ public sealed class StringAggFunction : SqlExpression
     }
 
     /// <summary>
-    /// Adds a trailing <c>WITHIN GROUP (ORDER BY ...)</c> clause after the call:
+    /// Returns the call with a trailing <c>WITHIN GROUP (ORDER BY ...)</c> clause:
     /// <c>STRING_AGG(expr, sep) WITHIN GROUP (ORDER BY ...)</c> (SQL Server).
+    /// This instance is unchanged.
     /// </summary>
-    public StringAggFunction WithinGroup(OrderByClause orderByClause)
+    /// <param name="orderByClause">The ordering, built with <c>Sql.OrderBy(...)</c>.</param>
+    /// <returns>A new expression emitting the call followed by the clause.</returns>
+    /// <exception cref="ArgumentException">The call already carries an inline <c>ORDER BY</c> argument.</exception>
+    public StringAggWithinGroupFunction WithinGroup(OrderByClause orderByClause)
     {
-        _withinGroupClause = new WithinGroupClause(orderByClause);
-        return this;
+        // The combined shape has no valid spelling on any dialect; the ordering
+        // is fixed at the call, so it throws eagerly.
+        if (_orderByClause is not null)
+        {
+            throw new ArgumentException(
+                "STRING_AGG cannot combine an inline ORDER BY argument with WITHIN GROUP (ORDER BY "
+                    + "...); use one or the other.");
+        }
+
+        return new StringAggWithinGroupFunction(this, new WithinGroupClause(orderByClause));
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
@@ -46,6 +54,5 @@ public sealed class StringAggFunction : SqlExpression
         .Append(", ")
         .AppendStringLiteral(_separator)
         .PrependSpaceIfNotNull(_orderByClause)
-        .CloseParenthesis()
-        .PrependSpaceIfNotNull(_withinGroupClause);
+        .CloseParenthesis();
 }

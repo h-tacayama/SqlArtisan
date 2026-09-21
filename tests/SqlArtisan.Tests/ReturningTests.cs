@@ -236,17 +236,32 @@ public class ReturningTests
             ex.Message);
     }
 
+    [Theory]
+    [InlineData(Dbms.PostgreSql)]
+    [InlineData(Dbms.Sqlite)]
+    public void Returning_WithExpressionAlias_CorrectSql(Dbms dbms)
+    {
+        // An alias is valid in a RETURNING list (live-verified on SQLite), so
+        // it is emitted faithfully; only the INTO form rejects it.
+        SqlStatement sql =
+            DeleteFrom(_t)
+            .Returning(_t.Code.As("b"))
+            .Build(dbms);
+
+        Assert.Equal("DELETE FROM test_table RETURNING code \"b\"", sql.Text);
+    }
+
     [Fact]
-    public void Returning_WithExpressionAlias_ThrowsArgumentException()
+    public void ReturningInto_WithExpressionAlias_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning(_t.Code.As("b"))
-            .Build());
+            .Into(new OutputParameter("b", DbType.Int32)));
 
         Assert.Equal(
-            "RETURNING requires plain column expressions; "
-            + "name INTO variables with Into(new OutputParameter(...)).",
+            "RETURNING ... INTO requires plain column expressions; the output "
+            + "parameter names the value, so drop the .As(...) alias.",
             ex.Message);
     }
 
@@ -263,6 +278,31 @@ public class ReturningTests
             .Build(Dbms.Oracle));
 
         Assert.Equal("An output variable name is required.", ex.Message);
+    }
+
+    [Fact]
+    public void OutputParameter_WhiteSpaceVariable_ThrowsArgumentException()
+    {
+        // The variable renders as a bare bind-marker token, so whitespace
+        // there is invalid on every dialect.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new OutputParameter(" ", DbType.Int32));
+
+        Assert.Equal("An output variable name is required.", ex.Message);
+    }
+
+    [Fact]
+    public void OutputParameter_DigitsOnlyVariable_ThrowsArgumentException()
+    {
+        // Positional binds render as :0, :1, ...; a digit-only name would be
+        // reported as a duplicate of one of them.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new OutputParameter("0", DbType.Int32));
+
+        Assert.Equal(
+            "An output variable name must not be digits only; "
+            + "that namespace belongs to the positional bind markers.",
+            ex.Message);
     }
 
     [Fact]
@@ -294,17 +334,25 @@ public class ReturningTests
     [Fact]
     public void ReturningInto_DuplicateVariableName_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
             .Into(new("b", DbType.Int32), new("b", DbType.Int32))
             .Build());
+
+        Assert.Equal(
+            "A RETURNING INTO clause requires a distinct name for every variable; 'b' "
+                + "is duplicated.",
+            ex.Message);
     }
 
     [Fact]
     public void OutputParameter_EmptyVariable_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => new OutputParameter("", DbType.Int32));
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            new OutputParameter("", DbType.Int32));
+
+        Assert.Equal("An output variable name is required.", ex.Message);
     }
 
     // ── output parameters ─────────────────────────────────────────────
@@ -337,7 +385,9 @@ public class ReturningTests
             .Into(new("b", DbType.Int32), new("c", DbType.String, 100))
             .Build(Dbms.SqlServer);
 
-        Assert.Contains("INTO @b, @c", sql.Text);
+        Assert.Equal(
+            "DELETE FROM test_table RETURNING code, name INTO @b, @c",
+            sql.Text);
         Assert.Contains("@b", sql.Parameters.ParameterNames);
         Assert.Contains("@c", sql.Parameters.ParameterNames);
     }

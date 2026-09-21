@@ -253,10 +253,9 @@ public class TableClassGeneratorTests : IDisposable
             ex.Message);
     }
 
-    // The orphan scan's catch used to cover IOException only, so an access-denied
-    // file aborted the whole --check run. Unix file modes don't bind root (this
-    // repo's cloud container), so the denied path is exercised on CI's
-    // unprivileged runner; under root the file reads as not-ours either way.
+    // The orphan scan's catch used to cover IOException only, so an access-denied file
+    // aborted the whole --check run. File modes don't bind root, so the denied path is
+    // exercised on CI's unprivileged runner; under root the file reads as not-ours.
     [Fact]
     public void Run_Check_UnreadableFileInOutputDirectory_IsSkippedNotFatal()
     {
@@ -339,8 +338,11 @@ public class TableClassGeneratorTests : IDisposable
         CommandLineException error = Assert.Throws<CommandLineException>(
             () => Run(db, RunMode.Generate));
 
-        Assert.Contains("No tables found", error.Message, StringComparison.Ordinal);
-        Assert.Contains("--file", error.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            $"No tables found in the SQLite database file '{db.ConnectionInfo.ServiceName}'; "
+                + "check --file, since a path that does not exist is created empty "
+                + "rather than rejected",
+            error.Message);
     }
 
     // The guard must not swallow this: an emptied schema whose classes are still
@@ -363,7 +365,8 @@ public class TableClassGeneratorTests : IDisposable
         TempSqliteDatabase db,
         RunMode mode,
         bool dryRun = false,
-        IReadOnlyList<string>? tableNames = null)
+        IReadOnlyList<string>? tableNames = null,
+        bool lowercaseNames = false)
     {
         RunOptions options = new(
             mode,
@@ -372,10 +375,111 @@ public class TableClassGeneratorTests : IDisposable
             dryRun);
 
         return new TableClassGenerator(
-            CatalogReaderFactory.Create(db.ConnectionInfo, lowercaseNames: false),
+            CatalogReaderFactory.Create(db.ConnectionInfo, lowercaseNames),
             options).Run();
     }
 
     private static TableResult Single(IReadOnlyList<TableResult> results, string tableName) =>
         Assert.Single(results.Where(r => r.TableName == tableName));
+
+    // The file name is what collides, and the common filesystems fold case.
+    [Fact]
+    public void Run_TwoTablesWithCaseOnlyClassNames_ThrowsCommandLineException()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE web_api (id INTEGER);
+            CREATE TABLE webapi (id INTEGER);
+            """);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate));
+
+        Assert.Equal(
+            "Tables 'web_api' and 'webapi' generate the classes WebApiTable and WebapiTable, "
+                + "whose file names differ only by case and collide on a case-folding file "
+                + "system; rename one of them or narrow the run with --tables.",
+            ex.Message);
+    }
+
+    // Two --tables runs can each pass GuardClassNames and still target one file; the
+    // file on disk names the other table (release audit pass 8).
+    [Fact]
+    public void Run_TablesScopedRunOverAnotherTablesFile_ThrowsCommandLineException()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE order_item (id INTEGER PRIMARY KEY);
+            CREATE TABLE orderItem (code TEXT PRIMARY KEY);
+            """);
+        Run(db, RunMode.Generate, tableNames: ["order_item"]);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate, tableNames: ["orderItem"]));
+
+        Assert.Equal(
+            "OrderItemTable.cs already describes table 'order_item', and this run generates "
+                + "'orderItem' into it. Generate the two into separate --output directories, "
+                + "or rename one of the tables.",
+            ex.Message);
+        Assert.Contains(
+            "base(\"order_item\"",
+            File.ReadAllText(Path.Combine(_outputDirectory, "OrderItemTable.cs")));
+    }
+
+    // The committed file carries the emitted literal, which --lowercase varies,
+    // so the same table must not read as a different one across the toggle.
+    [Fact]
+    public void Run_LowercaseToggledBetweenRuns_RegeneratesTheSameTable()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE ITEM (id INTEGER PRIMARY KEY);");
+        Run(db, RunMode.Generate, lowercaseNames: true);
+
+        Run(db, RunMode.Generate, lowercaseNames: false);
+
+        Assert.Contains(
+            "base(\"ITEM\"",
+            File.ReadAllText(Path.Combine(_outputDirectory, "ItemTable.cs")));
+    }
+
+    // The same for --qualify-schema, whose literal gains a `{schema}.` prefix.
+    [Fact]
+    public void Run_OverASchemaQualifiedCommittedFile_RegeneratesTheSameTable()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            "CREATE TABLE item (id INTEGER PRIMARY KEY);");
+        Run(db, RunMode.Generate);
+        string path = Path.Combine(_outputDirectory, "ItemTable.cs");
+        File.WriteAllText(
+            path,
+            File.ReadAllText(path)
+                .Replace("base(\"item\"", "base(\"main.item\"", StringComparison.Ordinal));
+
+        Run(db, RunMode.Generate);
+
+        Assert.Contains("base(\"item\"", File.ReadAllText(path));
+    }
+
+    // The guard runs before any write, like the emitter's: a later table's
+    // collision must not leave earlier tables already rewritten.
+    [Fact]
+    public void Run_LaterTableCollidesWithItsCommittedFile_WritesNothing()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE item (id INTEGER PRIMARY KEY);
+            CREATE TABLE order_item (id INTEGER PRIMARY KEY);
+            CREATE TABLE orderItem (code TEXT PRIMARY KEY);
+            """);
+        Run(db, RunMode.Generate, tableNames: ["order_item"]);
+
+        Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate, tableNames: ["item", "orderItem"]));
+
+        Assert.False(File.Exists(Path.Combine(_outputDirectory, "ItemTable.cs")));
+        Assert.Contains(
+            "base(\"order_item\"",
+            File.ReadAllText(Path.Combine(_outputDirectory, "OrderItemTable.cs")));
+    }
 }

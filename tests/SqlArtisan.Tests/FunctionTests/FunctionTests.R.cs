@@ -59,6 +59,7 @@ public partial class FunctionTests
         expected.Append("REGEXP_INSTR(\"t\".name, :0)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("[abc]", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]
@@ -73,6 +74,8 @@ public partial class FunctionTests
         expected.Append("REGEXP_INSTR(\"t\".name, :0, :1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("[abc]", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(2, sql.Parameters.Get<int>(":1"));
     }
 
     [Fact]
@@ -87,6 +90,9 @@ public partial class FunctionTests
         expected.Append("REGEXP_INSTR(\"t\".name, :0, :1, :2)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("[abc]", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(2, sql.Parameters.Get<int>(":1"));
+        Assert.Equal(3, sql.Parameters.Get<int>(":2"));
     }
 
     [Fact]
@@ -101,6 +107,10 @@ public partial class FunctionTests
         expected.Append("REGEXP_INSTR(\"t\".name, :0, :1, :2, :3)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("[abc]", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(2, sql.Parameters.Get<int>(":1"));
+        Assert.Equal(3, sql.Parameters.Get<int>(":2"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":3"));
     }
 
     [Fact]
@@ -115,6 +125,10 @@ public partial class FunctionTests
         expected.Append("REGEXP_INSTR(\"t\".name, :0, :1, :2, :3, 'i')");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("[abc]", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(2, sql.Parameters.Get<int>(":1"));
+        Assert.Equal(3, sql.Parameters.Get<int>(":2"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":3"));
     }
 
     [Fact]
@@ -129,6 +143,11 @@ public partial class FunctionTests
         expected.Append("REGEXP_INSTR(\"t\".name, :0, :1, :2, :3, '', :4)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("[abc]", sql.Parameters.Get<string>(":0"));
+        Assert.Equal(2, sql.Parameters.Get<int>(":1"));
+        Assert.Equal(3, sql.Parameters.Get<int>(":2"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":3"));
+        Assert.Equal(4, sql.Parameters.Get<int>(":4"));
     }
 
     [Fact]

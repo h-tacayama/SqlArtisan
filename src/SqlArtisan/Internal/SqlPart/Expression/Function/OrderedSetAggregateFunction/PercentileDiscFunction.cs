@@ -14,12 +14,14 @@ public sealed class PercentileDiscFunction : IIncompleteExpression
     }
 
     string IIncompleteExpression.CompletionHint =>
-        "Complete it with .WithinGroup(OrderBy(...)) — PERCENTILE_DISC requires a WITHIN GROUP clause.";
+        "Complete it with .WithinGroup(OrderBy(...)) — PERCENTILE_DISC requires a WITHIN "
+            + "GROUP clause.";
 
     /// <summary>
     /// Supplies the mandatory <c>WITHIN GROUP (ORDER BY ...)</c> clause that the
     /// percentile is computed over.
     /// </summary>
+    /// <remarks>Oracle, PostgreSQL, and SQL Server syntax.</remarks>
     public PercentileFunction WithinGroup(OrderByClause orderByClause) =>
         new(Keywords.PercentileDisc, _fraction, new WithinGroupClause(orderByClause));
 }

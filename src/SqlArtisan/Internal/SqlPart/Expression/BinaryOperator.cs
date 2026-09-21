@@ -6,7 +6,10 @@ public abstract class BinaryOperator : SqlExpression
     private readonly string _operator;
     private readonly SqlExpression _rightSide;
 
-    private protected BinaryOperator(SqlExpression leftSide, string @operator, SqlExpression rightSide)
+    private protected BinaryOperator(
+        SqlExpression leftSide,
+        string @operator,
+        SqlExpression rightSide)
     {
         _leftSide = leftSide;
         _operator = @operator;

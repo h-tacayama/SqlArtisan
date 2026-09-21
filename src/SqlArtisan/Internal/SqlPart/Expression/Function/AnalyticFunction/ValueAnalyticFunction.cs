@@ -1,9 +1,8 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// Base class for the value analytic functions (<c>FIRST_VALUE</c>,
-/// <c>LAST_VALUE</c>, <c>NTH_VALUE</c>), which extend the ordered window with an
-/// optional explicit frame.
+/// Base class for a value analytic function, which extends the ordered window
+/// with an optional explicit frame.
 /// </summary>
 public abstract class ValueAnalyticFunction : AnalyticFunction
 {

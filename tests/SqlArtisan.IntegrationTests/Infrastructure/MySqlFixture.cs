@@ -4,7 +4,8 @@ using Testcontainers.MySql;
 
 namespace SqlArtisan.IntegrationTests.Infrastructure;
 
-/// <summary>MySQL fixture, backed by a Testcontainers <c>mysql</c> container (8.0 for window functions).</summary>
+/// <summary>MySQL fixture, backed by a Testcontainers <c>mysql</c> container (8.0 for window
+/// functions).</summary>
 public sealed class MySqlFixture : IAsyncLifetime, IDatabaseFixture
 {
     private readonly MySqlContainer _container = new MySqlBuilder()
@@ -13,7 +14,8 @@ public sealed class MySqlFixture : IAsyncLifetime, IDatabaseFixture
 
     public Dbms Dbms => Dbms.MySql;
 
-    /// <summary>The live container's connection string, for tests that build their own connection.</summary>
+    /// <summary>The live container's connection string, for tests that build their own
+    /// connection.</summary>
     public string ConnectionString => _container.GetConnectionString();
 
     public IDbConnection OpenConnection()

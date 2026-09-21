@@ -12,7 +12,7 @@ public sealed class CommonTableExpression
 {
     private readonly string _name;
     private readonly ISubquery _subquery;
-    private string[]? _columnNames;
+    private readonly CteColumnName[]? _columnNames;
 
     internal CommonTableExpression(string name, ISubquery subquery)
     {
@@ -22,17 +22,33 @@ public sealed class CommonTableExpression
         _subquery = subquery;
     }
 
+    private CommonTableExpression(string name, ISubquery subquery, CteColumnName[] columnNames)
+    {
+        _name = name;
+        _subquery = subquery;
+        _columnNames = columnNames;
+    }
+
+    internal string Name => _name;
+
     /// <summary>
-    /// Emits this CTE with its column list — <c>"name"(col, ...) AS (subquery)</c>,
-    /// derived from the first query block: the form Oracle requires for a
-    /// recursive plain-<c>WITH</c> body.
+    /// Returns a copy of this CTE that emits its column list —
+    /// <c>"name"(col, ...) AS (subquery)</c>, derived from the first query block:
+    /// the form Oracle requires for a recursive plain-<c>WITH</c> body.
     /// </summary>
-    /// <returns>This CTE definition, now emitting its column list.</returns>
-    /// <exception cref="ArgumentException">A select item of the first query block has no name.</exception>
+    /// <returns>A new CTE definition emitting its column list; this instance is unchanged.</returns>
+    /// <exception cref="ArgumentException">A select item of the first query block has no name, or two share one.</exception>
     public CommonTableExpression WithColumnList()
     {
-        _columnNames = TryDeriveColumnNames() ?? throw NoColumnName();
-        return this;
+        CteColumnName[] columnNames = TryDeriveColumnNames() ?? throw NoColumnName();
+        if (HasDuplicateName(columnNames))
+        {
+            throw new ArgumentException(
+                "A CTE column list requires a distinct name for every column; "
+                    + "alias the duplicate with .As(...).");
+        }
+
+        return new CommonTableExpression(_name, _subquery, columnNames);
     }
 
     internal void Format(SqlBuildingBuffer buffer)
@@ -47,10 +63,10 @@ public sealed class CommonTableExpression
         AppendAsSubquery(buffer);
     }
 
-    // The list names are emitted bare, matching how a CTE column reference
-    // renders (DbColumn is unquoted) — quoting only the definition would break
-    // resolution on case-folding engines like Oracle (#165).
-    internal void Format(SqlBuildingBuffer buffer, string[] columnNames)
+    // Each list name renders exactly as its select item and handle reference do
+    // (bare for a column, quoted for a quoted alias): a definition quoted unlike
+    // its reference no longer resolves on a case-folding engine (#165).
+    internal void Format(SqlBuildingBuffer buffer, CteColumnName[] columnNames)
     {
         buffer.EncloseInAliasQuotes(_name);
         buffer.Append('(');
@@ -62,7 +78,14 @@ public sealed class CommonTableExpression
                 buffer.Append(", ");
             }
 
-            buffer.Append(columnNames[i]);
+            if (columnNames[i].Quote)
+            {
+                buffer.EncloseInAliasQuotes(columnNames[i].Name);
+            }
+            else
+            {
+                buffer.Append(columnNames[i].Name);
+            }
         }
 
         buffer.Append(')');
@@ -70,7 +93,7 @@ public sealed class CommonTableExpression
     }
 
     // Null instead of a throw so each construct site owns its guard message.
-    internal string[]? TryDeriveColumnNames()
+    internal CteColumnName[]? TryDeriveColumnNames()
     {
         SqlPart[]? selectItems = (_subquery as SelectBuilder)?.FirstSelectItems();
         if (selectItems is null)
@@ -78,13 +101,13 @@ public sealed class CommonTableExpression
             return null;
         }
 
-        string[] names = new string[selectItems.Length];
+        CteColumnName[] names = new CteColumnName[selectItems.Length];
         for (int i = 0; i < selectItems.Length; i++)
         {
-            string? name = selectItems[i] switch
+            CteColumnName? name = selectItems[i] switch
             {
-                DbColumn column => column.Name,
-                ExpressionAlias alias => alias.Name,
+                DbColumn column => new CteColumnName(column.Name, column.QuoteName),
+                ExpressionAlias alias => new CteColumnName(alias.Name, alias.QuoteAlias),
                 _ => null,
             };
 
@@ -93,17 +116,69 @@ public sealed class CommonTableExpression
                 return null;
             }
 
-            names[i] = name;
+            names[i] = name.Value;
         }
 
         return names;
     }
 
+    // Quadratic on a short list checked once; ordinal-exact — a case-folding
+    // collision is the engine's to judge.
+    internal static bool HasDuplicateName(CteColumnName[] names)
+    {
+        for (int i = 1; i < names.Length; i++)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                if (names[i].Name == names[j].Name)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    internal static bool HasDuplicateName(CommonTableExpression[] ctes)
+    {
+        for (int i = 1; i < ctes.Length; i++)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                if (ctes[i].Name == ctes[j].Name)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    internal static bool HasDuplicateName(string[] names)
+    {
+        for (int i = 1; i < names.Length; i++)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                if (names[i] == names[j])
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Not the EncloseInParentheses(ISubquery) overload: a CTE body is outside the
+    // correlated-DML guard (guards-and-empty-states.md, #253).
     private void AppendAsSubquery(SqlBuildingBuffer buffer)
     {
         buffer.EncloseInSpaces(Keywords.As);
         buffer.OpenParenthesis();
-        _subquery.Format(buffer);
+        buffer.FormatOutsideCorrelatedDmlGuard(_subquery);
         buffer.CloseParenthesis();
     }
 
@@ -111,3 +186,7 @@ public sealed class CommonTableExpression
         "A CTE column list requires a name for every column of the CTE's first query block; "
             + "alias the expression with .As(...).");
 }
+
+// A CTE column-list entry: the select item's name and whether that item
+// renders it quoted, so the list can match it exactly.
+internal readonly record struct CteColumnName(string Name, bool Quote);

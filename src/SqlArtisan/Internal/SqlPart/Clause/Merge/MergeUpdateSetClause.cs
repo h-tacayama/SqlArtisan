@@ -11,10 +11,14 @@ internal sealed class MergeUpdateSetClause : SqlPart
         _assignments = assignments;
     }
 
-    internal static MergeUpdateSetClause Parse(EqualityCondition[] items) =>
-        new(UpsertAssignmentResolver.Resolve(
-            items,
-            "UPDATE SET requires at least one assignment."));
+    internal static MergeUpdateSetClause Parse(EqualityCondition[] assignments)
+    {
+        EqualCondition[] resolved = AssignmentResolver.Resolve(
+            assignments, "UPDATE SET requires at least one assignment.");
+        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false);
+
+        return new(resolved);
+    }
 
     // MERGE's SET target is a target-table column by grammar, so PostgreSQL
     // rejects any qualification on it — unlike the SQL Server / MySQL joined

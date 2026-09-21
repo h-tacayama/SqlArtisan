@@ -2,8 +2,7 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The qualified star select item — <c>"t".*</c> (aliased) or <c>customer.*</c>
-/// (bare table name): every column of one table. Select-item-only, like
-/// <see cref="AsteriskMarker"/>.
+/// (bare table name): every column of one table.
 /// </summary>
 public sealed class QualifiedAsteriskMarker : SqlPart
 {

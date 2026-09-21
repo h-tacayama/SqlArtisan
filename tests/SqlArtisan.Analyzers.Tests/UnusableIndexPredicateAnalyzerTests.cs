@@ -55,7 +55,10 @@ public class UnusableIndexPredicateAnalyzerTests
     private static Task RunSilent(string statements, string? dbms = "postgresql") =>
         RunAsync(AnalyzerVerifier.Unmarked(Usage(statements)), [], dbms);
 
-    private static Task RunAsync(string source, DiagnosticResult[] expected, string? dbms = "postgresql")
+    private static Task RunAsync(
+        string source,
+        DiagnosticResult[] expected,
+        string? dbms = "postgresql")
     {
         var test = AnalyzerVerifier.Create(
             source,
@@ -94,6 +97,45 @@ public class UnusableIndexPredicateAnalyzerTests
             "Name",
             "matched with a leading-wildcard pattern");
 
+    // The wrap reaches WHERE through a predicate-building step on the wrapped
+    // expression itself — the step is part of the predicate, not its clause.
+    [Fact]
+    public Task Where_WrappedIndexedColumnUnderLike_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Upper(t.Name)|}.Like("X%")).Build();""",
+            "Name",
+            "wrapped in Upper");
+
+    [Fact]
+    public Task Where_WrappedIndexedColumnUnderNotLike_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Upper(t.Name)|}.NotLike("X%")).Build();""",
+            "Name",
+            "wrapped in Upper");
+
+    [Fact]
+    public Task Where_WrappedIndexedColumnUnderBetween_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Upper(t.Name)|}.Between("A", "B")).Build();""",
+            "Name",
+            "wrapped in Upper");
+
+    [Fact]
+    public Task Where_WrappedIndexedColumnUnderIn_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t).Where({|#0:Upper(t.Name)|}.In("A", "B")).Build();""",
+            "Name",
+            "wrapped in Upper");
+
+    [Fact]
+    public Task On_WrappedIndexedColumnUnderLike_Warns() =>
+        RunReporting(
+            """
+            var s = Select(t.Id).From(t).InnerJoin(r).On({|#0:Upper(t.Name)|}.Like("X%")).Build();
+            """,
+            "Name",
+            "wrapped in Upper");
+
     // A trailing wildcard leaves a prefix an index can range over; whether the
     // planner takes it is its own business.
     [Fact]
@@ -117,13 +159,15 @@ public class UnusableIndexPredicateAnalyzerTests
     [Fact]
     public Task Having_AggregateOverIndexedColumn_Silent() =>
         RunSilent(
-            "var s = Select(t.Id, Count(t.Id)).From(t).GroupBy(t.Id).Having(Count(t.Id) > 0).Build();");
+            "var s = Select(t.Id, Count(t.Id)).From(t).GroupBy(t.Id).Having(Count(t.Id) "
+                + "> 0).Build();");
 
     // A statement head inside a filter is not a wrapping function.
     [Fact]
     public Task Where_IndexedColumnInSubquery_Silent() =>
         RunSilent(
-            "var s = Select(t.Id).From(t).Where(Exists(Select(r.Id).From(r).Where(r.Id == t.Id))).Build();");
+            "var s = Select(t.Id).From(t).Where(Exists(Select(r.Id).From(r).Where(r.Id == "
+                + "t.Id))).Build();");
 
     [Fact]
     public Task Where_BareIndexedColumn_Silent() =>
@@ -148,7 +192,8 @@ public class UnusableIndexPredicateAnalyzerTests
             var s = Select(t.Id).From(t).Where(held).Build();
             """);
 
-    // The shape that shipped as a live false positive: see ReturnsCondition.
+    // The shape that shipped as a live false positive: a predicate-returning
+    // function is exempt (FluentChain.IsCondition), not a wrapped column.
     [Fact]
     public Task Where_FullTextContains_Silent() =>
         RunSilent(
@@ -172,5 +217,69 @@ public class UnusableIndexPredicateAnalyzerTests
 
     [Fact]
     public Task Where_NoTargetConfigured_Silent() =>
-        RunSilent("""var s = Select(t.Id).From(t).Where(Upper(t.Name) == "X").Build();""", dbms: null);
+        RunSilent(
+            """var s = Select(t.Id).From(t).Where(Upper(t.Name) == "X").Build();""",
+            dbms: null);
+
+    // A pseudo-row factory references the proposed value of the column; it
+    // wraps nothing, so the documented conditional-update idiom stays silent.
+    [Fact]
+    public Task Where_ExcludedIndexedColumnInUpsert_Silent() =>
+        RunSilent(
+            """var s = InsertInto(t, t.Name).Values("x").OnConflict(t.Name).DoUpdateSet(t.Name == Excluded(t.Name)).Where(Excluded(t.Name) != t.Name).Build();""");
+
+    // A call that yields a builder stage or a column handle references the
+    // column; only a call yielding an expression wraps it.
+    [Fact]
+    public Task Using_IndexedColumn_ThenWhere_Silent() =>
+        RunSilent("""var s = Select(t.Id).From(t).InnerJoin(r).Using(t.Name).Where(t.Plain == "a").Build();""");
+
+    [Fact]
+    public Task Where_DerivedTableColumnHandle_Silent() =>
+        RunSilent("""SubqueryDerivedTable d = Select(t.Name).From(t).AsTable("d"); var s = Select(d.Column(t.Name)).From(d).Where(d.Column(t.Name) == "x").Build();""");
+
+    // A CASE branch marker carries the column without wrapping it in a function;
+    // THEN and ELSE stay silent alike (the simple-CASE operand is the reported shape).
+    [Fact]
+    public Task Where_IndexedColumnInCaseElse_Silent() =>
+        RunSilent(
+            """var s = Select(t.Id).From(t).Where(Case(When(t.Plain == "a").Then("1"), Else(t.Name)) == "z").Build();""");
+
+    [Fact]
+    public Task Where_IndexedColumnInCaseThen_Silent() =>
+        RunSilent(
+            """var s = Select(t.Id).From(t).Where(Case(When(t.Plain == "a").Then(t.Name), Else("z")) == "z").Build();""");
+
+    // The simple-CASE operand transforms the column the way Cast does.
+    [Fact]
+    public Task Where_IndexedColumnAsSimpleCaseOperand_Warns() =>
+        RunReporting(
+            """var s = Select(t.Id).From(t)"""
+                + """.Where({|#0:Case(t.Name, When("a").Then("1"))|} == "z").Build();""",
+            "Name",
+            "wrapped in Case");
+
+    // A predicate handed through a helper is a foreign invocation the rule
+    // cannot read (release audit pass 8 pinned the IsForeignInvocation guard).
+    [Fact]
+    public Task Where_PredicateFromHelperMethod_Silent() =>
+        RunSilent(
+            """
+            static SqlCondition Wrap(SqlCondition c) => c;
+            var s = Select(t.Id).From(t).Where(Wrap(Upper(t.Name) == "x")).Build();
+            """);
+
+    // A pseudo-row factory references the column's affected value and wraps
+    // nothing; only the context rule (SQLA0102, outside OUTPUT) speaks here.
+    [Theory]
+    [InlineData("Inserted")]
+    [InlineData("Deleted")]
+    public Task Where_PseudoRowReference_ReportsOnlyTheContextRule(string pseudoRow) =>
+        RunAsync(
+            Usage($$"""var s = Update(t).Set(t.Plain == "x")"""
+                + $$""".Where({|#0:{{pseudoRow}}(t.Name)|} == "x").Build(Dbms.SqlServer);"""),
+            [new DiagnosticResult("SQLA0102", DiagnosticSeverity.Warning)
+                .WithLocation(0)
+                .WithArguments(pseudoRow, "outside an OUTPUT clause", "SQL Server")],
+            "sqlserver");
 }

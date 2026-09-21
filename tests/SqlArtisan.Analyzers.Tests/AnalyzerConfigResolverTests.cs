@@ -68,7 +68,10 @@ public class AnalyzerConfigResolverTests
     [InlineData("nonsense", null)]
     public void ResolveOverride_Values_ParseToExpectedTriState(string value, bool? expected)
     {
-        var options = new TestAnalyzerConfigOptions(new Dictionary<string, string> { ["key"] = value });
+        var options = new TestAnalyzerConfigOptions(
+            new Dictionary<string,
+            string>
+            { ["key"] = value });
 
         Assert.Equal(expected, AnalyzerConfigResolver.ResolveOverride(options, "key"));
     }
@@ -261,7 +264,10 @@ public class AnalyzerConfigResolverTests
     [InlineData("ANY", true, null)]
     [InlineData("19", true, "19")]
     [InlineData("none", false, null)]
-    public void ResolveTargets_SyntaxValueForms_ResolveAsExpected(string value, bool expectedPresent, string? expectedVersion)
+    public void ResolveTargets_SyntaxValueForms_ResolveAsExpected(
+        string value,
+        bool expectedPresent,
+        string? expectedVersion)
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
         {
@@ -310,7 +316,7 @@ public class AnalyzerConfigResolverTests
     }
 
     [Fact]
-    public void ResolveTargets_FamilyVisibleOnlyViaMSBuildProperty_StillGovernsOverEditorConfigLegacyPair()
+    public void ResolveTargets_FamilyViaMSBuildProperty_GovernsOverEditorConfigLegacyPair()
     {
         var options = new TestAnalyzerConfigOptions(new Dictionary<string, string>
         {
@@ -349,7 +355,9 @@ public class AnalyzerConfigResolverTests
             [AnalyzerConfigResolver.TargetDbmsKey] = "postgresql",
         });
 
-        bool succeeded = AnalyzerConfigResolver.TryEnumerateSyntaxKeys(options, out List<string> keys);
+        bool succeeded = AnalyzerConfigResolver.TryEnumerateSyntaxKeys(
+            options,
+            out List<string> keys);
 
         Assert.True(succeeded);
         Assert.Equal(2, keys.Count);
@@ -361,7 +369,9 @@ public class AnalyzerConfigResolverTests
     {
         var options = new KeysThrowingAnalyzerConfigOptions(new Dictionary<string, string>());
 
-        bool succeeded = AnalyzerConfigResolver.TryEnumerateSyntaxKeys(options, out List<string> keys);
+        bool succeeded = AnalyzerConfigResolver.TryEnumerateSyntaxKeys(
+            options,
+            out List<string> keys);
 
         Assert.False(succeeded);
         Assert.Empty(keys);

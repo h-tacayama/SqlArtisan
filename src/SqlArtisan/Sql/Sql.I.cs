@@ -52,39 +52,14 @@ public static partial class Sql
         new(condition, Resolve(then), Resolve(@else));
 
     /// <summary>
-    /// Starts an <c>INSERT INTO table</c> statement with no column list.
-    /// Continue with <c>.Values(...)</c> to supply the rows, which must line up
-    /// with the table's column order.
+    /// References <paramref name="column"/> of the <c>INSERTED</c> pseudo-table in
+    /// a SQL Server <c>OUTPUT</c> clause — the row's post-image after an
+    /// <c>INSERT</c> or <c>UPDATE</c>. Renders as <c>INSERTED.col</c>.
     /// </summary>
-    /// <param name="table">The target table.</param>
-    /// <returns>An insert builder awaiting the values to insert.</returns>
-    public static IInsertBuilderTable InsertInto(DbTableBase table) =>
-        new InsertBuilder(table, 0, new InsertIntoClause(table));
-
-    /// <summary>
-    /// Starts an <c>INSERT INTO table (c1, c2)</c> statement naming
-    /// <paramref name="columns"/> explicitly. Continue with <c>.Values(...)</c>
-    /// (or <c>.Select(...)</c>) to supply rows matching the listed columns.
-    /// </summary>
-    /// <param name="table">The target table.</param>
-    /// <param name="columns">The columns to insert into, emitted as a
-    /// parenthesized list after the table.</param>
-    /// <returns>An insert builder awaiting the values for the named columns.</returns>
-    public static IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns)
-    {
-        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
-
-        foreach (DbColumn column in columns)
-        {
-            if (column is null)
-            {
-                throw new ArgumentNullException(
-                    nameof(columns), "An INSERT column list must not contain a null column.");
-            }
-        }
-
-        return new InsertBuilder(table, columns.Length, new InsertIntoClause(table, columns));
-    }
+    /// <param name="column">The target-table column whose inserted value to read.</param>
+    /// <returns>An <c>INSERTED.col</c> reference.</returns>
+    /// <remarks>SQL Server syntax, valid only inside <c>Output(...)</c>.</remarks>
+    public static InsertedColumn Inserted(DbColumn column) => new(column);
 
     /// <summary>
     /// Starts an <c>INSERT IGNORE INTO table</c> statement (MySQL): rows whose
@@ -111,31 +86,52 @@ public static partial class Sql
     /// <returns>An insert builder awaiting the values for the named columns.</returns>
     /// <remarks>MySQL syntax. On PostgreSQL/SQLite express the do-nothing UPSERT
     /// with <c>InsertInto(...).Values(...).OnConflict().DoNothing()</c> instead.</remarks>
-    public static IInsertIgnoreBuilderColumns InsertIgnoreInto(DbTableBase table, params DbColumn[] columns)
+    public static IInsertIgnoreBuilderColumns InsertIgnoreInto(
+        DbTableBase table,
+        params DbColumn[] columns)
     {
-        CollectionGuard.ThrowIfEmpty(columns, "An INSERT column list requires at least one column.");
-
-        foreach (DbColumn column in columns)
-        {
-            if (column is null)
-            {
-                throw new ArgumentNullException(
-                    nameof(columns), "An INSERT column list must not contain a null column.");
-            }
-        }
+        CollectionGuard.ThrowIfEmpty(
+            columns, nameof(columns), "An INSERT column list requires at least one column.");
+        CollectionGuard.ThrowIfNullElement(
+            columns, nameof(columns), "An INSERT column list must not contain a null column.");
+        ColumnListGuard.ThrowIfDuplicate(
+            columns, "An INSERT column list must not name a column twice.");
 
         return new InsertBuilder(table, columns.Length, new InsertIgnoreIntoClause(table, columns));
     }
 
     /// <summary>
-    /// References <paramref name="column"/> of the <c>INSERTED</c> pseudo-table in
-    /// a SQL Server <c>OUTPUT</c> clause — the row's post-image after an
-    /// <c>INSERT</c> or <c>UPDATE</c>. Renders as <c>INSERTED.col</c>.
+    /// Starts an <c>INSERT INTO table</c> statement with no column list.
+    /// Continue with <c>.Values(...)</c> to supply the rows, which must line up
+    /// with the table's column order.
     /// </summary>
-    /// <param name="column">The target-table column whose inserted value to read.</param>
-    /// <returns>An <c>INSERTED.col</c> reference.</returns>
-    /// <remarks>SQL Server syntax, valid only inside <c>Output(...)</c>.</remarks>
-    public static InsertedColumn Inserted(DbColumn column) => new(column);
+    /// <param name="table">The target table.</param>
+    /// <returns>An insert builder awaiting the values to insert.</returns>
+    public static IInsertBuilderTable InsertInto(DbTableBase table) =>
+        new InsertBuilder(table, 0, new InsertIntoClause(table));
+
+    /// <summary>
+    /// Starts an <c>INSERT INTO table (c1, c2)</c> statement naming
+    /// <paramref name="columns"/> explicitly. Continue with <c>.Values(...)</c>
+    /// (or <c>.Select(...)</c>) to supply rows matching the listed columns.
+    /// </summary>
+    /// <param name="table">The target table.</param>
+    /// <param name="columns">The columns to insert into, emitted as a
+    /// parenthesized list after the table.</param>
+    /// <returns>An insert builder awaiting the values for the named columns.</returns>
+    public static IInsertBuilderColumnsOutput InsertInto(
+        DbTableBase table,
+        params DbColumn[] columns)
+    {
+        CollectionGuard.ThrowIfEmpty(
+            columns, nameof(columns), "An INSERT column list requires at least one column.");
+        CollectionGuard.ThrowIfNullElement(
+            columns, nameof(columns), "An INSERT column list must not contain a null column.");
+        ColumnListGuard.ThrowIfDuplicate(
+            columns, "An INSERT column list must not name a column twice.");
+
+        return new InsertBuilder(table, columns.Length, new InsertIntoClause(table, columns));
+    }
 
     /// <summary>
     /// The <c>INSTR(<paramref name="source"/>, <paramref name="substring"/>)</c>

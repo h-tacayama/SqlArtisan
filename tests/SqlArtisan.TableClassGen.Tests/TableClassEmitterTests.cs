@@ -141,6 +141,21 @@ public class TableClassEmitterTests
             """new DbColumn(this, "a\u000Ab")""",
             Emit(new CatalogTable("t", [new CatalogColumn("a\nb", "TEXT")])));
 
+    // U+2028/U+2029 end a C# source line without being control characters, so
+    // unescaped they break the emitted literal exactly like a newline.
+    [Fact]
+    public void Emit_NameWithUnicodeLineSeparator_EscapesTheLiteral()
+    {
+        CatalogTable table = new(
+            "t",
+            [new CatalogColumn("a\u2028b", "TEXT"), new CatalogColumn("c\u2029d", "TEXT")]);
+
+        string code = Emit(table);
+
+        Assert.Contains("""new DbColumn(this, "a\u2028b")""", code);
+        Assert.Contains("""new DbColumn(this, "c\u2029d")""", code);
+    }
+
     [Fact]
     public void Emit_NameHidingABaseMember_EmitsNew() =>
         Assert.Contains(
@@ -171,9 +186,10 @@ public class TableClassEmitterTests
                     _ => false,
                 })
                 .Select(m => m.Name)
-                // Constructors and property accessors carry no source-level name a
-                // generated property could collide with.
-                .Where(n => !n.StartsWith('.') && !n.StartsWith("get_") && !n.StartsWith("set_")),
+                // Constructors and accessors carry no source-level name a property
+                // could collide with; Finalize is the destructor, so it hides nothing.
+                .Where(n => !n.StartsWith('.') && !n.StartsWith("get_") && !n.StartsWith("set_"))
+                .Where(n => n != "Finalize"),
         ];
 
         Assert.Equal(visible.OrderBy(n => n, StringComparer.Ordinal),
@@ -206,5 +222,52 @@ public class TableClassEmitterTests
             "Column 'user_table' in table 'user' generates the property UserTable, which is also "
                 + "the class name; rename the column.",
             ex.Message);
+    }
+
+    // The profile the `new` modifier protects: every base-member name, the
+    // destructor name, and an all-separator name compile with warnings as errors.
+    [Fact]
+    public void Emit_EdgeCaseNames_CompilesWarningFree()
+    {
+        CatalogTable table = new(
+            "edge",
+            [
+                new CatalogColumn("asterisk", "TEXT"),
+                new CatalogColumn("equals", "TEXT"),
+                new CatalogColumn("finalize", "TEXT"),
+                new CatalogColumn("get_hash_code", "TEXT"),
+                new CatalogColumn("get_type", "TEXT"),
+                new CatalogColumn("memberwise_clone", "TEXT"),
+                new CatalogColumn("reference_equals", "TEXT"),
+                new CatalogColumn("to_string", "TEXT"),
+                new CatalogColumn("___", "TEXT"),
+            ],
+            "app");
+
+        GeneratedCodeCompiler.AssertCompiles([Emit(table)], warningsAsErrors: true);
+    }
+
+    [Fact]
+    public void Emit_ColumnWithNoName_ThrowsCommandLineException()
+    {
+        CatalogTable table = new("edge", [new CatalogColumn("", "TEXT")], "app");
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(() => Emit(table));
+
+        Assert.Equal(
+            "Column '' in table 'edge' generates no property name; rename the column.",
+            ex.Message);
+    }
+
+    // --lowercase reaches the table and column names only; the schema segment
+    // of a qualified name keeps the case the catalog reader handed down.
+    [Fact]
+    public void Emit_QualifySchema_KeepsSchemaSegmentCase()
+    {
+        CatalogTable table = new("employees", [new CatalogColumn("id", "INTEGER")], "HR");
+
+        string code = Emit(table, TestSettings.Create(qualifySchema: true));
+
+        Assert.Contains("base(\"HR.employees\", tableAlias)", code);
     }
 }

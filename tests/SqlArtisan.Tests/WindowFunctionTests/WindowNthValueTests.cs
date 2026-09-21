@@ -25,49 +25,35 @@ public class WindowNthValueTests
     [Fact]
     public void NthValue_OverOrderBy_CorrectSql()
     {
-        // Arrange
         string expected = "SELECT NTH_VALUE(code, 2) OVER (ORDER BY code)";
-
-        // Act
         SqlStatement sql =
             Select(NthValue(_t.Code, 2).Over(OrderBy(_t.Code))).Build();
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 
     [Fact]
     public void NthValue_OverPartitionByOrderBy_CorrectSql()
     {
-        // Arrange
         string expected =
             "SELECT NTH_VALUE(code, 2) OVER (PARTITION BY name ORDER BY code)";
-
-        // Act
         SqlStatement sql =
             Select(
                 NthValue(_t.Code, 2).Over(PartitionBy(_t.Name).OrderBy(_t.Code)))
             .Build();
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 
     [Fact]
     public void NthValue_OverFrameBetween_CorrectSql()
     {
-        // Arrange
         string expected =
-            "SELECT NTH_VALUE(code, 2) OVER (ORDER BY code ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)";
-
-        // Act
+            "SELECT NTH_VALUE(code, 2) OVER (ORDER BY code ROWS BETWEEN UNBOUNDED PRECEDING AND "
+                + "UNBOUNDED FOLLOWING)";
         SqlStatement sql =
             Select(
                 NthValue(_t.Code, 2).Over(
                     OrderBy(_t.Code).RowsBetween(UnboundedPreceding, UnboundedFollowing)))
             .Build();
-
-        // Assert
         Assert.Equal(expected, sql.Text);
     }
 }

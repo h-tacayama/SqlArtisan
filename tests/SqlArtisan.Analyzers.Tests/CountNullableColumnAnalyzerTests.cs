@@ -79,13 +79,16 @@ public class CountNullableColumnAnalyzerTests
     [Fact]
     public Task Count_NullableColumnInHaving_Warns() =>
         RunReporting(
-            "var sql = Select(t.Id).From(t).GroupBy(t.Id).Having({|#0:Count(t.Note)|} > 0).Build();",
+            "var sql = Select(t.Id).From(t).GroupBy(t.Id).Having({|#0:Count(t.Note)|} "
+                + "> 0).Build();",
             "Note");
 
     // An expression wrapping the count does not hide the query it sits in.
     [Fact]
     public Task Count_WrappedInCoalesce_Warns() =>
-        RunReporting("var sql = Select(Coalesce({|#0:Count(t.Note)|}, 0)).From(t).Build();", "Note");
+        RunReporting(
+            "var sql = Select(Coalesce({|#0:Count(t.Note)|}, 0)).From(t).Build();",
+            "Note");
 
     // The rule reports correct code, so it must stay off until asked for. Asserted
     // on the descriptor because the test harness force-enables every supported
@@ -100,6 +103,19 @@ public class CountNullableColumnAnalyzerTests
         Assert.False(descriptor.IsEnabledByDefault);
         Assert.Equal(DiagnosticSeverity.Info, descriptor.DefaultSeverity);
     }
+
+    // An outer join belonging to a nested subquery is not the outer statement's
+    // shape: only its own spine can null-supply the counted column.
+    [Fact]
+    public Task Count_OuterJoinOnlyInsideSubquery_Warns() =>
+        RunReporting(
+            """
+            T r = new T("r");
+            T x = new T("x");
+            var sql = Select({|#0:Count(t.Note)|}).From(t)
+                .Where(Exists(Select(r.Id).From(r).LeftJoin(x).On(r.Id == x.Id))).Build();
+            """,
+            "Note");
 
     // Past an outer join, counting the column is how you count matched rows —
     // COUNT(*) would count the unmatched ones too, so the advice would be wrong.
@@ -147,4 +163,26 @@ public class CountNullableColumnAnalyzerTests
         RunSilent(
             "var sql = Select(Count(t.Note)).From(t).Build();",
             "root = true\n\n[*.cs]\ndotnet_diagnostic.SQLA0203.severity = suggestion");
+
+    // A set operator opens a new query block, so a join in the other branch
+    // does not silence the count.
+    [Fact]
+    public Task Count_InFirstBranch_LeftJoinOnlyInSecond_Warns() =>
+        RunReporting(
+            "T r = new T(\"r\"); var sql = Select({|#0:Count(t.Note)|}).From(t)"
+                + ".Union.Select(Count(t.Id)).From(t).LeftJoin(r).On(t.Id == r.Id).Build();",
+            "Note");
+
+    [Fact]
+    public Task Count_LeftJoinInSameFirstBranch_Silent() =>
+        RunSilent(
+            "T r = new T(\"r\"); var sql = Select(Count(r.Note)).From(t).LeftJoin(r).On(t.Id == "
+                + "r.Id).Union.Select(Count(t.Id)).From(t).Build();");
+
+    [Fact]
+    public Task Count_InFirstBranchOfCorrelatedUnion_UnderOuterJoin_Silent() =>
+        RunSilent(
+            "T r = new T(\"r\"); T x = new T(\"x\"); var sql = Select(t.Id).From(t).LeftJoin(r)"
+                + ".On(t.Id == r.Id).Where(Exists(Select(Count(r.Note)).From(x).Union.Select(x.Id)"
+                + ".From(x))).Build();");
 }

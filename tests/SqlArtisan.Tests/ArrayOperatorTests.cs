@@ -80,7 +80,8 @@ public class ArrayOperatorTests
             .Build(Dbms.PostgreSql);
 
         Assert.Equal(
-            "SELECT \"t\".name FROM test_table \"t\" WHERE (\"t\".name && ARRAY[:0, :1]) AND (\"t\".name = :2)",
+            "SELECT \"t\".name FROM test_table \"t\" WHERE (\"t\".name && ARRAY[:0, :1]) AND "
+                + "(\"t\".name = :2)",
             sql.Text);
         Assert.Equal("a", sql.Parameters.Get<string>(":0"));
         Assert.Equal("b", sql.Parameters.Get<string>(":1"));

@@ -89,6 +89,26 @@ non-negative: Oracle is the only engine whose `FOR UPDATE` takes a `WAIT`
 clause, and it rejects every negative count with ORA-30005 at parse time,
 before lock contention can matter (#483).
 
+**Stated non-goals.** Three value shapes look like candidates and are not,
+because condition 1 fails outright:
+
+- `BindValue`'s `direction` and `size`. `Size = -1` is SqlClient's own
+  `varchar(max)`/`nvarchar(max)` spelling, so it is meaningful rather than
+  invalid, and an undefined `ParameterDirection` is rejected loudly by every
+  ADO.NET provider at bind time. Both also sit on the data side of condition 2.
+- A zero pagination or `FETCH` count. Condition 1 asks for a value no engine
+  accepts, and `LIMIT 0` runs on PostgreSQL 16.13 and SQLite 3.50.4
+  (live-verified), returning no rows rather than an error — one accepting
+  engine settles it, so the other three are not claimed here.
+- SQLite's `LIMIT -1`, which means "no limit" — a meaningful value, so the
+  `LIMIT`/`OFFSET` family cannot be guarded as universally invalid.
+
+(The negative `TOP`/`FETCH` counts, negative `Lag`/`Lead` offsets, and
+`RegexpOptions` flag alphabets are open questions awaiting live per-engine
+proof, not settled non-goals. Admitting one of those takes a rejection on
+every engine, where excluding the zero count above took a single accepting
+one — the asymmetry is condition 1's, not the evidence's.)
+
 ## Consequences
 
 - **`Interval`/`Timestampadd`/`Timestampdiff`'s `unit` deliberately stays

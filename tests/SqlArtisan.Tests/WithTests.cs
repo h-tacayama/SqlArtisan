@@ -99,7 +99,6 @@ public class WithTests
     {
         TestTable a = new("a");
         TestCte cte = new("cte");
-        ;
 
         TestTable b = new("b");
         SqlStatement sql =
@@ -275,7 +274,7 @@ public class WithTests
         expected.Append("FROM test_table \"c\" LEFT JOIN \"cte1\" ");
         expected.Append("ON \"c\".code = \"cte1\".cte_code ");
         expected.Append("LEFT JOIN \"cte2\" ON \"c\".code = \"cte2\".cte_code ");
-        expected.Append("WHERE \"c\".code > :2"); ;
+        expected.Append("WHERE \"c\".code > :2");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -374,7 +373,7 @@ public class WithTests
             .Set(
                 b.Code == 1,
                 b.Name == "Test",
-                b.CreatedAt == Sysdate)
+                b.CreatedAt == CurrentTimestamp)
             .Build();
 
         StringBuilder expected = new();
@@ -383,7 +382,7 @@ public class WithTests
         expected.Append("FROM test_table \"a\" ");
         expected.Append("WHERE \"a\".code = :0) ");
         expected.Append("INSERT INTO test_table (code, name, created_at) ");
-        expected.Append("VALUES (:1, :2, SYSDATE)");
+        expected.Append("VALUES (:1, :2, CURRENT_TIMESTAMP)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -433,37 +432,96 @@ public class WithTests
     }
 
     [Fact]
-    public void With_InsertIgnore_MySql_CorrectSql()
+    public void InsertIgnoreInto_MySql_MidChainWith_CorrectSql()
     {
         TestTable a = new("a");
         TestCte cte = new("cte");
 
         TestTable b = new();
         SqlStatement sql =
-            With(
+            InsertIgnoreInto(b, b.Code, b.Name)
+            .With(
                 cte.As(
                     Select(
                         a.Code.As(cte.CteCode),
                         a.Name.As(cte.CteName))
                     .From(a)
                     .Where(a.Code == 1)))
-            .InsertIgnoreInto(b, b.Code, b.Name)
             .Select(cte.CteCode, cte.CteName)
             .From(cte)
             .Build(Dbms.MySql);
 
         StringBuilder expected = new();
+        expected.Append("INSERT IGNORE INTO test_table (code, name) ");
         expected.Append("WITH `cte` AS ");
         expected.Append("(SELECT `a`.code cte_code, ");
         expected.Append("`a`.name cte_name ");
         expected.Append("FROM test_table `a` ");
         expected.Append("WHERE `a`.code = ?0) ");
-        expected.Append("INSERT IGNORE INTO test_table (code, name) ");
         expected.Append("SELECT `cte`.cte_code, ");
         expected.Append("`cte`.cte_name ");
         expected.Append("FROM `cte`");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+    }
+
+    // MySQL 8.0 takes a leading WITH before UPDATE and DELETE but not before
+    // INSERT (live: ER_PARSE_ERROR); the feeding SELECT carries the CTE instead.
+    [Fact]
+    public void With_MySql_LeadingWithBeforeInsertIgnore_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .InsertIgnoreInto(b, b.Code)
+            .Select(cte.CteCode)
+            .From(cte)
+            .Build(Dbms.MySql));
+
+        Assert.Equal(MySqlLeadingWithMessage, ex.Message);
+    }
+
+    [Fact]
+    public void With_MySql_LeadingWithBeforeInsert_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .InsertInto(b, b.Code)
+            .Values(1)
+            .Build(Dbms.MySql));
+
+        Assert.Equal(MySqlLeadingWithMessage, ex.Message);
+    }
+
+    [Fact]
+    public void With_MySql_LeadingWithBeforeUpdate_CorrectSql()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new("b");
+
+        SqlStatement sql =
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .Update(b)
+            .Set(b.Name == "x")
+            .Where(b.Code.In(Select(cte.CteCode).From(cte)))
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("WITH `cte` AS (SELECT `a`.code cte_code FROM test_table `a`) ");
+        expected.Append("UPDATE test_table AS `b` SET name = ?0 ");
+        expected.Append("WHERE `b`.code IN (SELECT `cte`.cte_code FROM `cte`)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("x", sql.Parameters.Get<string>("?0"));
     }
 
     [Fact]
@@ -486,7 +544,7 @@ public class WithTests
             .Set(
                 b.Code == 2,
                 b.Name == "Test",
-                b.CreatedAt == Sysdate)
+                b.CreatedAt == CurrentTimestamp)
             .Where(b.Code.In(Select(cte.CteCode).From(cte)))
             .Build();
 
@@ -500,7 +558,7 @@ public class WithTests
         expected.Append("UPDATE test_table AS \"b\" ");
         expected.Append("SET code = :1, ");
         expected.Append("name = :2, ");
-        expected.Append("created_at = SYSDATE ");
+        expected.Append("created_at = CURRENT_TIMESTAMP ");
         expected.Append("WHERE \"b\".code IN ");
         expected.Append("(SELECT \"cte\".cte_code FROM \"cte\")");
 
@@ -510,8 +568,10 @@ public class WithTests
     [Fact]
     public void Cte_NullSubquery_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() =>
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             new Cte("c").As(null!));
+
+        Assert.Equal("subquery", ex.ParamName);
     }
 
     [Fact]
@@ -552,7 +612,8 @@ public class WithTests
 
         StringBuilder expected = new();
         expected.Append("WITH RECURSIVE \"c\"(code, name) AS ");
-        expected.Append("(SELECT \"a\".code, \"a\".name FROM test_table \"a\" WHERE \"a\".code = :0 ");
+        expected.Append(
+            "(SELECT \"a\".code, \"a\".name FROM test_table \"a\" WHERE \"a\".code = :0 ");
         expected.Append("UNION ALL SELECT \"a\".code, \"a\".name FROM test_table \"a\" ");
         expected.Append("INNER JOIN \"c\" ON \"c\".code = \"a\".code) ");
         expected.Append("SELECT \"c\".code FROM \"c\"");
@@ -563,9 +624,12 @@ public class WithTests
     [Fact]
     public void WithRecursive_MultiCtes_EachCteGetsItsOwnColumnList()
     {
+        // The derived list renders each name as its select item does: bare for
+        // a column, quoted for a quoted alias — matching the handle reference.
         TestTable a = new("a");
         Cte c1 = new("c1");
         Cte c2 = new("c2");
+        ExpressionAlias n = a.Name.As("n");
 
         SqlStatement sql =
             WithRecursive(
@@ -574,8 +638,8 @@ public class WithTests
                     .UnionAll
                     .Select(a.Code).From(a).InnerJoin(c1).On(c1.Column("code") == a.Code)),
                 c2.As(
-                    Select(a.Name.As("n")).From(a)))
-            .Select(c1.Column("code"), c2.Column("n"))
+                    Select(n).From(a)))
+            .Select(c1.Column("code"), c2.Column(n))
             .From(c1, c2)
             .Build();
 
@@ -584,9 +648,9 @@ public class WithTests
         expected.Append("(SELECT \"a\".code FROM test_table \"a\" WHERE \"a\".code = :0 ");
         expected.Append("UNION ALL SELECT \"a\".code FROM test_table \"a\" ");
         expected.Append("INNER JOIN \"c1\" ON \"c1\".code = \"a\".code), ");
-        expected.Append("\"c2\"(n) AS ");
+        expected.Append("\"c2\"(\"n\") AS ");
         expected.Append("(SELECT \"a\".name \"n\" FROM test_table \"a\") ");
-        expected.Append("SELECT \"c1\".code, \"c2\".n FROM \"c1\", \"c2\"");
+        expected.Append("SELECT \"c1\".code, \"c2\".\"n\" FROM \"c1\", \"c2\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
@@ -678,7 +742,8 @@ public class WithTests
 
         StringBuilder expected = new();
         expected.Append("WITH \"c\"(code, name) AS ");
-        expected.Append("(SELECT \"a\".code, \"a\".name FROM test_table \"a\" WHERE \"a\".code = :0 ");
+        expected.Append(
+            "(SELECT \"a\".code, \"a\".name FROM test_table \"a\" WHERE \"a\".code = :0 ");
         expected.Append("UNION ALL SELECT \"a\".code, \"a\".name FROM test_table \"a\" ");
         expected.Append("INNER JOIN \"c\" ON \"c\".code = \"a\".code) ");
         expected.Append("SELECT \"c\".code FROM \"c\"");
@@ -732,4 +797,208 @@ public class WithTests
                 + "alias the expression with .As(...).",
             ex.Message);
     }
+
+    [Fact]
+    public void WithColumnList_DuplicateColumnNames_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestTable b = new("b");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            cte.As(Select(a.Code, b.Code).From(a).InnerJoin(b).On(a.Code == b.Code))
+                .WithColumnList());
+
+        Assert.Equal(
+            "A CTE column list requires a distinct name for every column; "
+                + "alias the duplicate with .As(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void WithRecursive_DuplicateColumnNames_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestTable b = new("b");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            WithRecursive(
+                cte.As(Select(a.Code, b.Code).From(a).InnerJoin(b).On(a.Code == b.Code))));
+
+        Assert.Equal(
+            "WITH RECURSIVE requires a distinct name for every column of the CTE's "
+                + "first query block; alias the duplicate with .As(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void WithColumnList_QuotedAliasItem_QuotesListEntry()
+    {
+        // The list entry renders as the alias does, so the quoted definition
+        // and the quoted handle reference stay one identifier (#165).
+        TestTable a = new("a");
+        Cte cte = new("cte");
+        ExpressionAlias code = a.Code.As("Code");
+
+        SqlStatement sql =
+            With(cte.As(Select(code, a.Name).From(a)).WithColumnList())
+            .Select(cte.Column(code), cte.Column("name"))
+            .From(cte)
+            .Build();
+
+        Assert.Equal(
+            "WITH \"cte\"(\"Code\", name) AS (SELECT \"a\".code \"Code\", \"a\".name FROM "
+                + "test_table \"a\") "
+                + "SELECT \"cte\".\"Code\", \"cte\".name FROM \"cte\"",
+            sql.Text);
+    }
+
+    [Fact]
+    public void WithColumnList_HeldOriginalCte_EmitsNoColumnList()
+    {
+        // WithColumnList returns a copy: a statement holding the original CTE entry
+        // keeps the plain form (copy-on-write for held value-like nodes).
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+
+        CommonTableExpression plain = cte.As(Select(a.Code.As(cte.CteCode)).From(a));
+        CommonTableExpression listed = plain.WithColumnList();
+
+        SqlStatement plainSql = With(plain).Select(cte.CteCode).From(cte).Build();
+        SqlStatement listedSql = With(listed).Select(cte.CteCode).From(cte).Build();
+
+        Assert.Equal(
+            "WITH \"cte\" AS (SELECT \"a\".code cte_code FROM test_table \"a\") "
+                + "SELECT \"cte\".cte_code FROM \"cte\"",
+            plainSql.Text);
+        Assert.Equal(
+            "WITH \"cte\"(cte_code) AS (SELECT \"a\".code cte_code FROM test_table \"a\") "
+                + "SELECT \"cte\".cte_code FROM \"cte\"",
+            listedSql.Text);
+    }
+
+    [Fact]
+    public void With_DuplicateCteName_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte first = new("cte");
+        TestCte second = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(
+                first.As(Select(a.Code).From(a)),
+                second.As(Select(a.Name).From(a))));
+
+        Assert.Equal(
+            "A WITH clause requires a distinct name for every common table expression.",
+            ex.Message);
+    }
+
+    // Oracle's DML grammars carry no subquery-factoring clause (ADR 0011); the
+    // nightly Oracle lane skips the executed twin for the same reason.
+    [Fact]
+    public void With_Oracle_LeadingWithBeforeInsert_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .InsertInto(b)
+            .Set(b.Code == 1)
+            .Build(Dbms.Oracle));
+
+        Assert.Equal(OracleLeadingWithMessage, ex.Message);
+    }
+
+    [Fact]
+    public void With_Oracle_LeadingWithBeforeUpdate_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new("b");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .Update(b)
+            .Set(b.Code == 2)
+            .Where(b.Code.In(Select(cte.CteCode).From(cte)))
+            .Build(Dbms.Oracle));
+
+        Assert.Equal(OracleLeadingWithMessage, ex.Message);
+    }
+
+    [Fact]
+    public void With_Oracle_LeadingWithBeforeDelete_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new("b");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .DeleteFrom(b)
+            .Where(b.Code.In(Select(cte.CteCode).From(cte)))
+            .Build(Dbms.Oracle));
+
+        Assert.Equal(OracleLeadingWithMessage, ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_Oracle_MidChainWith_CorrectSql()
+    {
+        // The legal twin: the CTE inside the feeding SELECT is Oracle's form.
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new();
+
+        SqlStatement sql =
+            InsertInto(b, b.Code)
+            .With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .Select(cte.CteCode)
+            .From(cte)
+            .Build(Dbms.Oracle);
+
+        Assert.Equal(
+            "INSERT INTO test_table (code) WITH \"cte\" AS (SELECT \"a\".code cte_code "
+                + "FROM test_table \"a\") SELECT \"cte\".cte_code FROM \"cte\"",
+            sql.Text);
+    }
+
+    [Fact]
+    public void With_InsertInto_DuplicateColumn_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(a.Code).From(a))).InsertInto(b, b.Code, b.Code));
+
+        Assert.Equal("An INSERT column list must not name a column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void With_InsertIgnoreInto_DuplicateColumn_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(a.Code).From(a))).InsertIgnoreInto(b, b.Name, b.Code, b.Name));
+
+        Assert.Equal("An INSERT column list must not name a column twice.", ex.Message);
+    }
+
+    private const string MySqlLeadingWithMessage =
+        "MySQL has no leading WITH on INSERT; put the CTE inside the feeding SELECT "
+        + "(InsertInto(...).With(...).Select(...)), otherwise inline the subquery.";
+
+    private const string OracleLeadingWithMessage =
+        "Oracle has no leading WITH on INSERT, UPDATE, or DELETE; for an INSERT, put the CTE "
+        + "inside the feeding SELECT (InsertInto(...).With(...).Select(...)), otherwise inline "
+        + "the subquery.";
 }

@@ -1,9 +1,9 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// PostgreSQL's <c>DISTINCT ON (expr, ...)</c> select prefix: keeps one row per
-/// distinct combination of the given expressions (the first per the
-/// <c>ORDER BY</c>). Pass it to <c>Select(DistinctOn(...), ...)</c>.
+/// PostgreSQL's <c>DISTINCT ON (expr, ...)</c> select prefix: keeps one row per distinct
+/// combination of the expressions (the first per the <c>ORDER BY</c>); passed to
+/// <c>Select(DistinctOn(...), ...)</c>.
 /// </summary>
 /// <remarks>
 /// PostgreSQL-only syntax; emitted as written on every dialect. Unlike
@@ -17,7 +17,7 @@ public sealed class DistinctOnKeyword : SqlPart
     internal DistinctOnKeyword(SqlExpression[] expressions)
     {
         CollectionGuard.ThrowIfEmpty(
-            expressions,
+            expressions, nameof(expressions),
             "DISTINCT ON requires at least one expression.");
 
         _expressions = expressions;

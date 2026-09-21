@@ -18,7 +18,8 @@ internal static class TypeCategoryMismatchRule
     // Where == spells an assignment rather than a comparison. SET coerces by
     // rules fixed per engine and cannot change which rows match, and "cast one
     // side" would name a side that is not there.
-    private static readonly HashSet<string> AssignmentSteps =
+    // Internal for the parity gate, like FluentChain's step sets.
+    internal static readonly HashSet<string> AssignmentSteps =
         ["DoUpdateSet", "OnDuplicateKeyUpdate", "Set", "ThenUpdateSet"];
 
     public static void Check(OperationAnalysisContext context, IBinaryOperation comparison)
@@ -62,7 +63,7 @@ internal static class TypeCategoryMismatchRule
 
     // A truth value and a number are one category in practice: T-SQL offers no
     // boolean literal, so `bit = 1` is its only spelling, and MySQL's BOOLEAN is
-    // TINYINT(1). Only PostgreSQL rejects the pair, and it does so loudly.
+    // TINYINT(1); an engine that rejects the pair does so loudly.
     private static bool Compatible(TypeCategory left, TypeCategory right) =>
         left == right
         || (IsTruthy(left) && IsTruthy(right));
@@ -79,6 +80,11 @@ internal static class TypeCategoryMismatchRule
 
         while (current.Parent is { } parent and not IBlockOperation)
         {
+            if (FluentChain.IsForeignInvocation(parent))
+            {
+                return false;
+            }
+
             if (parent is IInvocationOperation step
                 && DialectUsageAnalyzer.IsFromSqlArtisan(step.TargetMethod.ContainingAssembly)
                 && step.Instance is not null)
@@ -131,7 +137,8 @@ internal static class TypeCategoryMismatchRule
     {
         // int? carries exactly the type int does; a DTO's nullable field is one of
         // the commonest ways a value reaches a comparison.
-        if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable)
+        if (type is INamedTypeSymbol
+            { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable)
         {
             type = nullable.TypeArguments[0];
         }

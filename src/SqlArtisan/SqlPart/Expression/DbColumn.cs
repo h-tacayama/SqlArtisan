@@ -9,22 +9,39 @@ namespace SqlArtisan;
 /// </summary>
 public sealed class DbColumn : SqlExpression
 {
+    private readonly bool _quoteName;
+
     /// <summary>
     /// Creates a reference to the named column of <paramref name="owner"/>.
     /// </summary>
     /// <param name="owner">The table, CTE, or derived table that owns this column.</param>
     /// <param name="name">The column name as it appears in SQL.</param>
     public DbColumn(TableReference owner, string name)
+        : this(owner, name, quoteName: false)
+    {
+        // The name renders as a bare token, so whitespace is invalid on every
+        // dialect; the quoted path below leaves it to the engine.
+        StringGuard.ThrowIfNullOrWhiteSpace(name, "A column requires a name.");
+    }
+
+    // For a column materialized from a quoted SELECT-list alias: the reference
+    // must render quoted exactly as the definition did, or a case-folding
+    // engine resolves the two to different identifiers.
+    internal DbColumn(TableReference owner, string name, bool quoteName)
     {
         ArgumentNullException.ThrowIfNull(owner);
         StringGuard.ThrowIfNullOrEmpty(name, "A column requires a name.");
 
         Owner = owner;
         Name = name;
+        _quoteName = quoteName;
     }
 
     internal TableReference Owner { get; }
     internal string Name { get; }
+
+    // Read by As(DbColumn) so the alias definition renders as this reference does.
+    internal bool QuoteName => _quoteName;
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
@@ -42,13 +59,23 @@ public sealed class DbColumn : SqlExpression
             buffer.ThrowIfCorrelatedDmlColumn(Owner);
         }
 
-        buffer.Append(Name);
+        AppendName(buffer);
     }
 
-    // Renders the bare column name with no table-alias qualifier. DML contexts
-    // that name a target column — the INSERT column list, the ON CONFLICT
-    // target, and SET / DO UPDATE SET left sides — must stay unqualified;
-    // PostgreSQL rejects an alias-qualified column in those positions.
+    // Renders the bare column name: a DML context that names a target column
+    // must stay unqualified — PostgreSQL rejects an alias qualifier there.
     internal void FormatUnqualified(SqlBuildingBuffer buffer) =>
-        buffer.Append(Name);
+        AppendName(buffer);
+
+    private void AppendName(SqlBuildingBuffer buffer)
+    {
+        if (_quoteName)
+        {
+            buffer.EncloseInAliasQuotes(Name);
+        }
+        else
+        {
+            buffer.Append(Name);
+        }
+    }
 }

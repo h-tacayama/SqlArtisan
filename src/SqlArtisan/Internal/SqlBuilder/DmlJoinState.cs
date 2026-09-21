@@ -1,9 +1,8 @@
 namespace SqlArtisan.Internal;
 
-// Shared, mutable shape state for a joined UPDATE/DELETE: the builder sets these
-// flags as From/USING/JOIN steps are appended, and the clauses read them at
-// Build() — SQL Server calls .Set() before .From(t), so the shape isn't final
-// until then.
+// Shared, mutable shape state for a joined UPDATE/DELETE, read by the clauses at
+// Build() rather than when appended: SQL Server's .Set() precedes .From(t), so
+// the shape is not final until then.
 internal sealed class DmlJoinState
 {
     internal bool HasFrom { get; set; }

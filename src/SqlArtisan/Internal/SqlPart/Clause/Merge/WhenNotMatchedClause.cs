@@ -1,7 +1,5 @@
 namespace SqlArtisan.Internal;
 
-// Emits `WHEN NOT MATCHED [AND <condition>] THEN`. The INSERT action follows as a
-// separate, space-separated part.
 internal sealed class WhenNotMatchedClause(SqlCondition? extraCondition) : SqlPart
 {
     private readonly SqlCondition? _extraCondition = extraCondition;

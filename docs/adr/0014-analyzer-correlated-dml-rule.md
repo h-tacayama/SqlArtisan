@@ -125,3 +125,14 @@ the rule fires on every configured target).
   precedent for future rules that need "same object" or "known ctor value"
   facts (#256's follow-ups in the #232 vision).
 - The Analyzer ADR cluster grows to 0003 + 0008 + 0009 + 0013 + 0014.
+- **A MERGE `USING` derived-table source reading the unaliased target is
+  guarded; a CTE body reading it is not.** The source resolves in its own
+  scope, as the CTE body does, but it is also where the bare-column tautology
+  appears, aliasing the target is the documented remedy, and the loud path
+  costs nothing. The asymmetry is deliberate.
+- **`MergeInto(...)` is a target too** (release audit, pass 6). The runtime
+  guard has armed for MERGE since pass 4, and the rule fell behind it: a
+  `MergeInto(t).Using(subquery-reading-t)` chain was silent. The rule now
+  dispatches on `MergeInto` with the same alias and reference facts; a
+  MERGE has no joined form, so the joined-step exemption above does not
+  apply to it. The false-negative list is otherwise unchanged.

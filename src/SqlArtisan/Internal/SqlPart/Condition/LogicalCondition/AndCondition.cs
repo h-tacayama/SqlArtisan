@@ -9,8 +9,6 @@ public sealed class AndCondition : SqlCondition
         _core = new(leftSide, rightSide);
     }
 
-    // Copy-on-write extension of an existing AndCondition by one more operand
-    // (operator &, #399).
     internal AndCondition(AndCondition existing, SqlCondition additionalOperand)
     {
         _core = existing._core.Extend(additionalOperand);

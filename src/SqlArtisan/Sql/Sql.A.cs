@@ -24,13 +24,9 @@ public static partial class Sql
     /// The <c>ADD_MONTHS(<paramref name="dateTime"/>, <paramref name="months"/>)</c>
     /// function (the date/time shifted forward by the given number of months).
     /// </summary>
-    /// <remarks>
-    /// Dialect-specific (Oracle). On SQL Server use
-    /// <see cref="Dateadd(DateTimePart, object, object)"/> with the month part
-    /// instead; on MySQL/PostgreSQL use
-    /// <see cref="Interval(object, DateTimePart)"/> /
-    /// <see cref="IntervalLiteral(string, IntervalField)"/> with the <c>+</c> operator.
-    /// </remarks>
+    /// <remarks>Oracle syntax. SQL Server: <see cref="Dateadd(DateTimePart, object, object)"/>
+    /// with the month part; MySQL/PostgreSQL: <see cref="Interval(object, DateTimePart)"/> or
+    /// <see cref="IntervalLiteral(string, IntervalField)"/> with <c>+</c>.</remarks>
     /// <param name="dateTime">The date/time expression to shift.</param>
     /// <param name="months">The number of months to add.</param>
     /// <returns>An <see cref="AddMonthsFunction"/> emitting
@@ -90,7 +86,8 @@ public static partial class Sql
     /// <returns>An <see cref="ArrayConstructorExpression"/> emitting <c>ARRAY[elements]</c>.</returns>
     public static ArrayConstructorExpression Array(params object[] elements)
     {
-        CollectionGuard.ThrowIfEmpty(elements, "ARRAY[...] requires at least one element.");
+        CollectionGuard.ThrowIfEmpty(
+            elements, nameof(elements), "ARRAY[...] requires at least one element.");
         return new(Resolve(elements));
     }
 
@@ -127,9 +124,9 @@ public static partial class Sql
         new(Resolve(leftArray), Resolve(rightArray));
 
     /// <summary>
-    /// The bare <c>*</c> select item (<c>SELECT *</c>: every column of every table
-    /// in <c>FROM</c>). Valid only in a <c>SELECT</c> or <c>RETURNING</c> list;
-    /// for one table's columns use the table's <see cref="TableReference.Asterisk"/>.
+    /// The bare <c>*</c> select item (every column of every table in <c>FROM</c>). Valid in
+    /// a <c>SELECT</c>, <c>RETURNING</c>, or <c>OUTPUT</c> list and as <c>Count(Asterisk)</c>;
+    /// for one table's columns use <see cref="TableReference.Asterisk"/>.
     /// </summary>
     /// <remarks>Do not write <c>Select("*")</c> — a string is always a bind value,
     /// so it emits <c>SELECT :0</c> returning the literal <c>'*'</c>.</remarks>

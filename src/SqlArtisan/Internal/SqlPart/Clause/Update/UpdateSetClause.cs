@@ -11,36 +11,19 @@ internal sealed class UpdateSetClause : SqlPart
         _state = state;
     }
 
-    internal static UpdateSetClause Parse(EqualityCondition[] items, DmlJoinState state)
-    {
-        CollectionGuard.ThrowIfEmpty(items, "SET requires at least one assignment.");
-
-        var assignments = new EqualCondition[items.Length];
-
-        for (int i = 0; i < items.Length; i++)
-        {
-            if (items[i] is null)
-            {
-                throw new ArgumentNullException(
-                    nameof(items), ExpressionResolver.NullValueMessage);
-            }
-            else if (items[i] is not EqualCondition)
-            {
-                throw ExpressionResolver.UnresolvableValue("Assignment", items[i]);
-            }
-
-            assignments[i] = (EqualCondition)items[i];
-        }
-
-        return new(assignments, state);
-    }
+    internal static UpdateSetClause Parse(EqualityCondition[] assignments, DmlJoinState state) =>
+        new(
+            AssignmentResolver.Resolve(assignments, "SET requires at least one assignment."),
+            state);
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
+        // The only position where the alias survives into the SQL, and the
+        // shape is not final until .From(t) — so this arm checks at Build().
+        AssignmentResolver.ThrowIfDuplicateTarget(_assignments, _state.QualifiesSetTarget);
+
         buffer.Append($"{Keywords.Set} ");
 
-        // A joined UPDATE on SQL Server / MySQL qualifies the SET target
-        // (`SET t.col = ...`); PostgreSQL's UPDATE ... FROM keeps it unqualified.
         if (_state.QualifiesSetTarget)
         {
             buffer.AppendCsv(_assignments);

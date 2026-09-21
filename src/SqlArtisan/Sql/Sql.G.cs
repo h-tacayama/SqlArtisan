@@ -48,8 +48,10 @@ public static partial class Sql
     /// <param name="separator">The positional separator placed between values.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr, separator)</c>.</returns>
-    /// <remarks>SQLite's positional separator form. For MySQL's <c>SEPARATOR</c>
-    /// keyword form, pass <c>Sql.Separator(...)</c> instead.</remarks>
+    /// <remarks>SQLite's positional separator form. On MySQL the same call runs
+    /// but the second argument concatenates as another value per row and the
+    /// separator stays the default comma — spell MySQL's separator with
+    /// <c>Sql.Separator(...)</c> instead.</remarks>
     public static GroupConcatFunction GroupConcat(object expr, object separator) =>
         new(Resolve(expr), positionalSeparator: Resolve(separator));
 
@@ -62,10 +64,12 @@ public static partial class Sql
     /// <c>Sql.OrderBy(...)</c>.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr ORDER BY ...)</c>.</returns>
-    /// <remarks>A MySQL aggregate; on other dialects use
-    /// <see cref="Listagg(object, object)"/> (Oracle).</remarks>
+    /// <remarks>MySQL and SQLite syntax; on Oracle use
+    /// <see cref="Listagg(object, object)"/>.</remarks>
     public static GroupConcatFunction GroupConcat(object expr, OrderByClause orderByClause) =>
-        new(Resolve(expr), orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
+        new(
+            Resolve(expr),
+            orderByClause: NullGuard.ThrowIfNull(orderByClause, nameof(orderByClause)));
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr SEPARATOR separator)</c> string aggregate,
@@ -77,9 +81,12 @@ public static partial class Sql
     /// <c>Sql.Separator(...)</c>.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr SEPARATOR separator)</c>.</returns>
-    /// <inheritdoc cref="GroupConcat(object, OrderByClause)" path="/remarks"/>
+    /// <remarks>MySQL syntax; on Oracle use
+    /// <see cref="Listagg(object, object)"/>.</remarks>
     public static GroupConcatFunction GroupConcat(object expr, SeparatorClause separatorClause) =>
-        new(Resolve(expr), separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
+        new(
+            Resolve(expr),
+            separatorClause: NullGuard.ThrowIfNull(separatorClause, nameof(separatorClause)));
 
     /// <summary>
     /// The <c>GROUP_CONCAT(expr ORDER BY ... SEPARATOR separator)</c> string
@@ -93,7 +100,7 @@ public static partial class Sql
     /// <c>Sql.Separator(...)</c>.</param>
     /// <returns>A <see cref="GroupConcatFunction"/> emitting
     /// <c>GROUP_CONCAT(expr ORDER BY ... SEPARATOR separator)</c>.</returns>
-    /// <inheritdoc cref="GroupConcat(object, OrderByClause)" path="/remarks"/>
+    /// <inheritdoc cref="GroupConcat(object, SeparatorClause)" path="/remarks"/>
     public static GroupConcatFunction GroupConcat(
         object expr,
         OrderByClause orderByClause,
@@ -107,6 +114,8 @@ public static partial class Sql
     /// <param name="distinct">The <c>DISTINCT</c> keyword (<see cref="Sql.Distinct"/>),
     /// aggregating only distinct values.</param>
     /// <param name="expr">The value aggregated into the concatenated string.</param>
+    /// <returns>A <see cref="GroupConcatFunction"/> emitting
+    /// <c>GROUP_CONCAT(DISTINCT expr)</c>.</returns>
     public static GroupConcatFunction GroupConcat(DistinctKeyword distinct, object expr) =>
         new(Resolve(expr), distinct: NullGuard.ThrowIfNull(distinct, nameof(distinct)));
 
@@ -116,6 +125,8 @@ public static partial class Sql
     /// <param name="expr">The value aggregated into the concatenated string.</param>
     /// <param name="orderByClause">The inline ordering, built with
     /// <c>Sql.OrderBy(...)</c>.</param>
+    /// <returns>A <see cref="GroupConcatFunction"/> emitting
+    /// <c>GROUP_CONCAT(DISTINCT expr ORDER BY ...)</c>.</returns>
     public static GroupConcatFunction GroupConcat(
         DistinctKeyword distinct,
         object expr,
@@ -131,6 +142,8 @@ public static partial class Sql
     /// <param name="expr">The value aggregated into the concatenated string.</param>
     /// <param name="separatorClause">The <c>SEPARATOR</c> clause, built with
     /// <c>Sql.Separator(...)</c>.</param>
+    /// <returns>A <see cref="GroupConcatFunction"/> emitting
+    /// <c>GROUP_CONCAT(DISTINCT expr SEPARATOR separator)</c>.</returns>
     public static GroupConcatFunction GroupConcat(
         DistinctKeyword distinct,
         object expr,
@@ -148,6 +161,8 @@ public static partial class Sql
     /// <c>Sql.OrderBy(...)</c>.</param>
     /// <param name="separatorClause">The <c>SEPARATOR</c> clause, built with
     /// <c>Sql.Separator(...)</c>.</param>
+    /// <returns>A <see cref="GroupConcatFunction"/> emitting
+    /// <c>GROUP_CONCAT(DISTINCT expr ORDER BY ... SEPARATOR separator)</c>.</returns>
     public static GroupConcatFunction GroupConcat(
         DistinctKeyword distinct,
         object expr,
@@ -181,7 +196,7 @@ public static partial class Sql
     /// <param name="expr2">The second grouping-extension column.</param>
     /// <param name="others">Any further grouping-extension columns.</param>
     /// <returns>A <see cref="GroupingFunction"/> emitting <c>GROUPING(a, b, ...)</c>.</returns>
-    /// <remarks>MySQL and PostgreSQL only; Oracle accepts only the single-argument
+    /// <remarks>MySQL (8.0.1+) and PostgreSQL only; Oracle accepts only the single-argument
     /// form (use <see cref="GroupingId(object, object[])"/> there instead), and
     /// neither SQLite nor SQL Server support it.</remarks>
     public static GroupingFunction Grouping(object expr1, object expr2, params object[] others) =>

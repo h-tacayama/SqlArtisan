@@ -6,7 +6,10 @@ public sealed class TimestampdiffFunction : SqlExpression
     private readonly SqlExpression _startDate;
     private readonly SqlExpression _endDate;
 
-    internal TimestampdiffFunction(DateTimePart unit, SqlExpression startDate, SqlExpression endDate)
+    internal TimestampdiffFunction(
+        DateTimePart unit,
+        SqlExpression startDate,
+        SqlExpression endDate)
     {
         _unit = unit;
         _startDate = startDate;

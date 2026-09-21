@@ -26,6 +26,7 @@ public sealed class MatchFunction : IIncompleteExpression
     /// </summary>
     /// <param name="searchExpr">The text to search for.</param>
     /// <returns>A <see cref="MatchAgainstCondition"/> for a <c>WHERE</c> clause.</returns>
+    /// <remarks>MySQL syntax.</remarks>
     public MatchAgainstCondition Against(object searchExpr) =>
         new(_columns, Resolve(searchExpr), null);
 
@@ -33,6 +34,7 @@ public sealed class MatchFunction : IIncompleteExpression
     /// <param name="searchExpr">The text to search for.</param>
     /// <param name="modifier">The search modifier (e.g.
     /// <see cref="SearchModifier.InBooleanMode"/>), emitted after the text.</param>
+    /// <remarks>MySQL syntax.</remarks>
     public MatchAgainstCondition Against(object searchExpr, SearchModifier modifier) =>
         new(_columns, Resolve(searchExpr), modifier);
 
@@ -43,6 +45,7 @@ public sealed class MatchFunction : IIncompleteExpression
     /// </summary>
     /// <param name="searchExpr">The text to search for.</param>
     /// <returns>A <see cref="MatchAgainstExpression"/> emitting the relevance score.</returns>
+    /// <remarks>MySQL syntax.</remarks>
     public MatchAgainstExpression AgainstScore(object searchExpr) =>
         new(_columns, Resolve(searchExpr), null);
 
@@ -50,6 +53,7 @@ public sealed class MatchFunction : IIncompleteExpression
     /// <param name="searchExpr">The text to search for.</param>
     /// <param name="modifier">The search modifier (e.g.
     /// <see cref="SearchModifier.InBooleanMode"/>), emitted after the text.</param>
+    /// <remarks>MySQL syntax.</remarks>
     public MatchAgainstExpression AgainstScore(object searchExpr, SearchModifier modifier) =>
         new(_columns, Resolve(searchExpr), modifier);
 }

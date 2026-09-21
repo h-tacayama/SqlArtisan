@@ -8,7 +8,7 @@ public sealed class NextValueForFunction : SqlExpression
 
     internal NextValueForFunction(string sequenceName)
     {
-        StringGuard.ThrowIfNullOrEmpty(
+        StringGuard.ThrowIfNullOrWhiteSpace(
             sequenceName,
             "NEXT VALUE FOR requires a sequence name.");
 

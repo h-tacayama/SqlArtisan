@@ -6,27 +6,35 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// A literal-row source for a MERGE <c>USING</c> —
-    /// <c>(VALUES (…),(…)) "alias" (col1, col2)</c>. Each value binds as a
-    /// parameter; reference the named columns with <c>.Column(name)</c>.
+    /// A literal-row source for <c>FROM</c>, a join, or a MERGE <c>USING</c> —
+    /// <c>(VALUES (…),(…)) "alias" (col1, col2)</c>. Literal values bind as
+    /// parameters; reference the named columns with <c>.Column(name)</c>.
     /// </summary>
     /// <param name="alias">The source alias.</param>
     /// <param name="columnNames">The source column names, in row-value order.</param>
     /// <param name="rows">The literal rows; each supplies one value per column.</param>
-    /// <returns>A <see cref="ValuesDerivedTable"/> usable as a MERGE <c>USING</c> source.</returns>
+    /// <returns>A <see cref="ValuesDerivedTable"/> usable wherever a derived table is.</returns>
     /// <remarks>PostgreSQL (15+) and SQL Server. Oracle has no <c>VALUES</c> row
     /// constructor in <c>USING</c> — wrap the rows in a subquery source instead.</remarks>
     public static ValuesDerivedTable Values(
         string alias, string[] columnNames, object[][] rows)
     {
         StringGuard.ThrowIfNullOrEmpty(alias, "A derived table requires an alias.");
-        CollectionGuard.ThrowIfEmpty(columnNames, "A VALUES source requires at least one column.");
-        CollectionGuard.ThrowIfEmpty(rows, "A VALUES source requires at least one row.");
+        CollectionGuard.ThrowIfEmpty(
+            columnNames, nameof(columnNames), "A VALUES source requires at least one column.");
+        CollectionGuard.ThrowIfEmpty(
+            rows, nameof(rows), "A VALUES source requires at least one row.");
 
         foreach (string columnName in columnNames)
         {
-            StringGuard.ThrowIfNullOrEmpty(
+            StringGuard.ThrowIfNullOrWhiteSpace(
                 columnName, "A VALUES source requires a name for every column.");
+        }
+
+        if (CommonTableExpression.HasDuplicateName(columnNames))
+        {
+            throw new ArgumentException(
+                "A VALUES source requires a distinct name for every column.");
         }
 
         foreach (object[] row in rows)
@@ -66,6 +74,30 @@ public static partial class Sql
         new(Resolve(expr));
 
     /// <summary>
+    /// The <c>VARIANCE(<paramref name="expr"/>)</c> aggregate function.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="VarianceFunction"/> emitting <c>VARIANCE(expr)</c>.</returns>
+    /// <remarks>
+    /// MySQL, Oracle, and PostgreSQL syntax; MySQL computes the population statistic,
+    /// the other two the sample. <see cref="VarPop(object)"/> and
+    /// <see cref="VarSamp(object)"/> name the statistic on every dialect.
+    /// </remarks>
+    public static VarianceFunction Variance(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
+    /// The <c>VARP(<paramref name="expr"/>)</c> aggregate function: the
+    /// population variance of <paramref name="expr"/> across the group.
+    /// </summary>
+    /// <param name="expr">The numeric expression to aggregate.</param>
+    /// <returns>A <see cref="VarpFunction"/> emitting <c>VARP(expr)</c>.</returns>
+    /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
+    /// <see cref="VarPop(object)"/>.</remarks>
+    public static VarpFunction Varp(object expr) =>
+        new(Resolve(expr));
+
+    /// <summary>
     /// The <c>VAR_POP(<paramref name="expr"/>)</c> aggregate function: the
     /// population variance of <paramref name="expr"/> across the group.
     /// </summary>
@@ -85,31 +117,5 @@ public static partial class Sql
     /// <remarks>MySQL, Oracle, PostgreSQL. SQL Server spells this
     /// <see cref="Var(object)"/>.</remarks>
     public static VarSampFunction VarSamp(object expr) =>
-        new(Resolve(expr));
-
-    /// <summary>
-    /// The <c>VARIANCE(<paramref name="expr"/>)</c> aggregate function.
-    /// </summary>
-    /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="VarianceFunction"/> emitting <c>VARIANCE(expr)</c>.</returns>
-    /// <remarks>
-    /// MySQL, Oracle, PostgreSQL — but not the same statistic on all three:
-    /// MySQL's <c>VARIANCE</c> is the population variance, Oracle's and
-    /// PostgreSQL's is the sample variance. For a value that keeps its meaning
-    /// across dialects, use <see cref="VarPop(object)"/> or
-    /// <see cref="VarSamp(object)"/> instead.
-    /// </remarks>
-    public static VarianceFunction Variance(object expr) =>
-        new(Resolve(expr));
-
-    /// <summary>
-    /// The <c>VARP(<paramref name="expr"/>)</c> aggregate function: the
-    /// population variance of <paramref name="expr"/> across the group.
-    /// </summary>
-    /// <param name="expr">The numeric expression to aggregate.</param>
-    /// <returns>A <see cref="VarpFunction"/> emitting <c>VARP(expr)</c>.</returns>
-    /// <remarks>SQL Server syntax. MySQL, Oracle, and PostgreSQL spell this
-    /// <see cref="VarPop(object)"/>.</remarks>
-    public static VarpFunction Varp(object expr) =>
         new(Resolve(expr));
 }

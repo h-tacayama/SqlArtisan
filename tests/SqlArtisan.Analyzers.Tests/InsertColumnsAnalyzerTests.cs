@@ -123,4 +123,49 @@ public class InsertColumnsAnalyzerTests
     [Fact]
     public Task Insert_NoTargetConfigured_Silent() =>
         RunSilent("""var sql = InsertInto(t, t.Note).Values("x").Build();""", dbms: null);
+
+    // Roslyn orders Arguments as written, so the rule looks them up by name.
+    [Fact]
+    public Task Insert_NamedArgumentsReordered_OmittingRequiredColumn_Warns() =>
+        RunReporting(
+            """var s = {|#0:InsertInto(columns: t.Note, table: t)|}.Values("x").Build();""",
+            "Code");
+
+    [Fact]
+    public Task Insert_InlineColumnArray_OmittingRequiredColumn_Warns() =>
+        RunReporting(
+            """var s = {|#0:InsertInto(t, new[] { t.Note })|}.Values("x").Build();""",
+            "Code");
+
+    // The Set form emits the assigned columns as its list, so it is read like one.
+    [Fact]
+    public Task SetForm_OmitsRequiredColumn_Reports() =>
+        RunReporting("var s = {|#0:InsertInto(t)|}.Set(t.Note == \"x\").Build();", "Code");
+
+    [Fact]
+    public Task SetForm_AssignsRequiredColumn_Silent() =>
+        RunSilent("var s = InsertInto(t).Set(t.Code == \"c\", t.Note == \"x\").Build();");
+
+    [Fact]
+    public Task SetForm_AssignmentsBuiltElsewhere_Silent() =>
+        RunSilent(
+            "EqualityCondition[] a = [t.Note == \"x\"]; var s = InsertInto(t).Set(a).Build();");
+
+    [Fact]
+    public Task SetForm_InsertIgnore_Silent() =>
+        RunSilent("var s = InsertIgnoreInto(t).Set(t.Note == \"x\").Build();", "mysql");
+
+    // A collection expression is an inline list too (IdentifierLengthRule reads
+    // the same shape); release audit pass 8.
+    [Fact]
+    public Task Insert_CollectionExpressionOmittingRequiredColumn_Warns() =>
+        RunReporting(
+            """var s = {|#0:InsertInto(t, [t.Note])|}.Values("x").Build();""",
+            "Code");
+
+    [Fact]
+    public Task Insert_SetCollectionExpressionOmittingRequiredColumn_Warns() =>
+        RunReporting(
+            """var s = {|#0:InsertInto(t)|}.Set([t.Note == "x"]).Build();""",
+            "Code");
 }

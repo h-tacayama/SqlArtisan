@@ -10,14 +10,19 @@ namespace SqlArtisan;
 /// </summary>
 public class BindValue : SqlExpression
 {
+    // Sql.Bind shares it: the remedy for a null bind is BindNull, not Sql.Null.
+    internal const string NullValueMessage =
+        "Value cannot be null. Use Sql.BindNull to bind SQL NULL.";
+
     /// <summary>Creates an explicit bind-parameter handle for <paramref name="value"/>.</summary>
     /// <param name="value">The bound value.</param>
     /// <param name="dbType">The data type the parameter is bound as, or <see langword="null"/> to let the driver infer it.</param>
     /// <param name="direction">The parameter direction, or <see langword="null"/> for an ordinary input parameter.</param>
     /// <param name="size">The buffer size for variable-length types, or <see langword="null"/> when unset.</param>
     /// <remarks>
-    /// <paramref name="direction"/> and <paramref name="size"/> serve the Oracle
-    /// <c>RETURNING ... INTO</c> output-parameter path; <see cref="Sql.Bind(object)"/> never sets them.
+    /// The Dapper integration forwards <paramref name="direction"/> and <paramref name="size"/>
+    /// to the driver parameter (for example <c>size: -1</c> for a SqlClient <c>(MAX)</c> type);
+    /// Oracle array bind ignores <paramref name="size"/> and rejects a non-input direction.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>; bind SQL <c>NULL</c> with <see cref="Sql.BindNull(DbType?)"/>.</exception>
     public BindValue(
@@ -28,8 +33,7 @@ public class BindValue : SqlExpression
     {
         if (value is null)
         {
-            throw new ArgumentNullException(
-                nameof(value), ExpressionResolver.NullValueMessage);
+            throw new ArgumentNullException(nameof(value), NullValueMessage);
         }
 
         Value = value;

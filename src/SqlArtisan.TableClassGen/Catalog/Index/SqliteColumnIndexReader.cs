@@ -13,7 +13,7 @@ internal sealed class SqliteColumnIndexReader : IColumnIndexReader
         using (IDbCommand command = conn.CreateCommand())
         {
             command.CommandText = "SELECT name, \"partial\" FROM pragma_index_list(@table)";
-            AddParameter(command, "@table", tableName);
+            CatalogCommand.AddParameter(command, "@table", tableName);
 
             using IDataReader reader = command.ExecuteReader();
             while (reader.Read())
@@ -24,13 +24,14 @@ internal sealed class SqliteColumnIndexReader : IColumnIndexReader
 
         List<string> leadingColumns = [];
         List<string> partialLeadingColumns = [];
-        List<string> expressionIndexNames = [];
+        // A set: a multi-expression index reports one null-column row per expression.
+        HashSet<string> expressionIndexNames = [];
 
         foreach ((string indexName, bool partial) in indexes)
         {
             using IDbCommand command = conn.CreateCommand();
             command.CommandText = "SELECT seqno, name FROM pragma_index_info(@index)";
-            AddParameter(command, "@index", indexName);
+            CatalogCommand.AddParameter(command, "@index", indexName);
 
             using IDataReader reader = command.ExecuteReader();
             while (reader.Read())
@@ -54,15 +55,16 @@ internal sealed class SqliteColumnIndexReader : IColumnIndexReader
 
     // Only the expression-bearing indexes are scanned: a plain index's DDL names
     // its own column, which would mark every indexed column unknown.
-    private static List<string> ExpressionTexts(IDbConnection conn, List<string> indexNames)
+    private static List<string> ExpressionTexts(IDbConnection conn, IEnumerable<string> indexNames)
     {
         List<string> texts = [];
 
         foreach (string indexName in indexNames)
         {
             using IDbCommand command = conn.CreateCommand();
-            command.CommandText = "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = @name";
-            AddParameter(command, "@name", indexName);
+            command.CommandText =
+                "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = @name";
+            CatalogCommand.AddParameter(command, "@name", indexName);
 
             if (command.ExecuteScalar() is string sql)
             {
@@ -71,13 +73,5 @@ internal sealed class SqliteColumnIndexReader : IColumnIndexReader
         }
 
         return texts;
-    }
-
-    private static void AddParameter(IDbCommand command, string name, string value)
-    {
-        IDbDataParameter parameter = command.CreateParameter();
-        parameter.ParameterName = name;
-        parameter.Value = value;
-        command.Parameters.Add(parameter);
     }
 }

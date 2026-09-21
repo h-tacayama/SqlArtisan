@@ -1,6 +1,9 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, params SqlPart[] rootParts) :
+internal sealed class UpdateBuilder(
+    DbTableBase table,
+    DmlJoinState state,
+    params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
     IUpdateBuilderFrom,
     IUpdateBuilderFromJoinOn,
@@ -26,7 +29,7 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
 
     public IUpdateBuilderFrom From(params TableReference[] tables)
     {
-        CollectionGuard.ThrowIfEmpty(tables, "FROM requires at least one table.");
+        CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "FROM requires at least one table.");
         AddPart(new FromClause(tables));
         state.HasFrom = true;
 
@@ -92,7 +95,8 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
 
     public IUpdateBuilderOutputInto Output(params object[] items)
     {
-        CollectionGuard.ThrowIfEmpty(items, "OUTPUT requires at least one expression.");
+        CollectionGuard.ThrowIfEmpty(
+            items, nameof(items), "OUTPUT requires at least one expression.");
         AddPart(new OutputClause(SelectItemResolver.Resolve(items)));
         return this;
     }
@@ -124,15 +128,29 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
         return this;
     }
 
-    IUpdateBuilderFrom IUpdateBuilderFromJoinOn.Using(DbColumn column, params DbColumn[] additionalColumns)
+    IUpdateBuilderFrom IUpdateBuilderFromJoinOn.Using(
+        DbColumn column,
+        params DbColumn[] additionalColumns)
     {
-        AddPart(new JoinUsingClause([column, .. additionalColumns]));
+        CollectionGuard.ThrowIfNullElement(
+            additionalColumns,
+            nameof(additionalColumns),
+            "A USING column list must not contain a null column.");
+
+        AddPart(new JoinUsingClause([column, .. additionalColumns], nameof(column)));
         return this;
     }
 
-    IUpdateBuilderJoined IUpdateBuilderJoinOn.Using(DbColumn column, params DbColumn[] additionalColumns)
+    IUpdateBuilderJoined IUpdateBuilderJoinOn.Using(
+        DbColumn column,
+        params DbColumn[] additionalColumns)
     {
-        AddPart(new JoinUsingClause([column, .. additionalColumns]));
+        CollectionGuard.ThrowIfNullElement(
+            additionalColumns,
+            nameof(additionalColumns),
+            "A USING column list must not contain a null column.");
+
+        AddPart(new JoinUsingClause([column, .. additionalColumns], nameof(column)));
         return this;
     }
 
@@ -144,6 +162,7 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
 
     protected override void Validate(Dbms dbms)
     {
+        DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: false);
         if (state.IsJoined)
         {
             DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
@@ -153,8 +172,17 @@ internal sealed class UpdateBuilder(DbTableBase table, DmlJoinState state, param
             DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         }
 
+        OutputClause? output = FindPart<OutputClause>();
+        OutputClauseGuard.ThrowIfIntoWidthMismatch(output, FindPart<OutputIntoClause>());
         OutputClauseGuard.ThrowIfCombinedWithReturning(
-            FindPart<OutputClause>(), FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
+            output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
+
+        // Last so the dialect-independent pairing guard above reports first.
+        if (state.IsJoined)
+        {
+            DmlTargetGuard.ThrowIfSqlServerJoinedTargetNotRepeated(state, dbms, Keywords.Update);
+            DmlTargetGuard.ThrowIfUpdateTargetRepeatedOffSqlServer(state, dbms);
+        }
     }
 
     private void AddJoin(SqlPart joinClause)

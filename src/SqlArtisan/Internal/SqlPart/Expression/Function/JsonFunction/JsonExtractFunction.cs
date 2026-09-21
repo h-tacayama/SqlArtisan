@@ -2,8 +2,7 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>JSON_EXTRACT</c> function: extracts a value from a JSON document at
-/// the given path (MySQL, SQLite). The path is emitted as an inline string
-/// literal.
+/// the given path (MySQL, SQLite).
 /// </summary>
 public sealed class JsonExtractFunction : SqlExpression
 {

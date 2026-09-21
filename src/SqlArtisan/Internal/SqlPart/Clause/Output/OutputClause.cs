@@ -9,6 +9,9 @@ internal sealed class OutputClause : SqlPart
         _items = items;
     }
 
+    // Read by OutputClauseGuard's INTO width check.
+    internal SqlPart[] Items => _items;
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Output} ")
         .AppendSelectItems(_items);

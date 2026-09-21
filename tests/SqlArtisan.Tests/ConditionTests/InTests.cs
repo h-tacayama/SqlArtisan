@@ -154,7 +154,10 @@ public class InTests
     {
         IReadOnlyCollection<int> nullCollection = null!;
 
-        Assert.Throws<ArgumentNullException>(() => _t.Code.In(nullCollection));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            _t.Code.In(nullCollection));
+
+        Assert.Equal("values", ex.ParamName);
     }
 
     [Fact]
@@ -162,7 +165,10 @@ public class InTests
     {
         int[] nullArray = null!;
 
-        Assert.Throws<ArgumentNullException>(() => _t.Code.In(nullArray));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            _t.Code.In(nullArray));
+
+        Assert.Equal("values", ex.ParamName);
     }
 
     [Fact]
@@ -170,7 +176,10 @@ public class InTests
     {
         IReadOnlyCollection<int> nullCollection = null!;
 
-        Assert.Throws<ArgumentNullException>(() => _t.Code.NotIn(nullCollection));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            _t.Code.NotIn(nullCollection));
+
+        Assert.Equal("values", ex.ParamName);
     }
 
     [Fact]
@@ -178,6 +187,9 @@ public class InTests
     {
         int[] nullArray = null!;
 
-        Assert.Throws<ArgumentNullException>(() => _t.Code.NotIn(nullArray));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            _t.Code.NotIn(nullArray));
+
+        Assert.Equal("values", ex.ParamName);
     }
 }

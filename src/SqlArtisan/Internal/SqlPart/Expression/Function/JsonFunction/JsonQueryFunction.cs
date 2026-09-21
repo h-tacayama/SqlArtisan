@@ -2,8 +2,7 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The <c>JSON_QUERY</c> function: extracts a JSON object or array from a JSON
-/// document at the given path (Oracle, SQL Server). The path is emitted as an
-/// inline string literal.
+/// document at the given path (Oracle, SQL Server).
 /// </summary>
 public sealed class JsonQueryFunction : SqlExpression
 {

@@ -2,9 +2,8 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// Base class for the aggregate functions (e.g. <c>SUM</c>), each of which can
-/// become a window function via <c>Over(...)</c>. An aggregate is either an
-/// <see cref="UnfilteredAggregateFunction"/> or, once a row filter is applied, a
-/// <see cref="FilteredAggregateFunction"/>.
+/// become a window function via <c>Over(...)</c>; a row filter turns an
+/// <see cref="UnfilteredAggregateFunction"/> into a <see cref="FilteredAggregateFunction"/>.
 /// </summary>
 public abstract class AggregateFunction : SqlExpression
 {

@@ -112,6 +112,29 @@ public abstract class IntegrationTestBase
         Assert.Equal(2, count);
     }
 
+    // A leading WITH before a DELETE — the docs' claim for the engines whose
+    // grammar takes it there; OracleTests skips it (Oracle DML has none).
+    [Fact]
+    public virtual void Cte_LeadingWithBeforeDelete_Executes()
+    {
+        UsersTable u = new();
+        Cte doomed = new("doomed");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId).Values(190, "Temp", 20, 99),
+            transaction);
+        int deleted = connection.Execute(
+            With(doomed.As(Select(u.Id).From(u).Where(u.Id == 190)))
+                .DeleteFrom(u)
+                .Where(u.Id.In(Select(doomed.Column("id")).From(doomed))),
+            transaction);
+
+        Assert.Equal(1, deleted);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void WindowFunction_RowNumber_Executes()
     {
@@ -119,7 +142,8 @@ public abstract class IntegrationTestBase
         using IDbConnection connection = _fixture.OpenConnection();
 
         IEnumerable<int> rowNumbers = connection
-            .Query<int>(Select(RowNumber().Over(PartitionBy(u.DepartmentId).OrderBy(u.Age))).From(u));
+            .Query<int>(
+                Select(RowNumber().Over(PartitionBy(u.DepartmentId).OrderBy(u.Age))).From(u));
 
         Assert.Equal(5, rowNumbers.Count());
         Assert.Equal(2, rowNumbers.Max());
@@ -495,7 +519,8 @@ public abstract class IntegrationTestBase
         // The seed sets every user's created_at to this value; binding it as a
         // DateTime parameter must match all five rows.
         long count = Convert.ToInt64(connection.ExecuteScalar(
-            Select(Count(u.Id)).From(u).Where(u.CreatedAt == new DateTime(2020, 3, 15, 10, 30, 0))));
+            Select(Count(u.Id)).From(u).Where(
+                u.CreatedAt == new DateTime(2020, 3, 15, 10, 30, 0))));
 
         Assert.Equal(5, count);
     }
@@ -523,7 +548,12 @@ public abstract class IntegrationTestBase
         // The seeded users leave is_active NULL; only the inserted active row
         // matches the bound boolean parameter.
         connection.Execute(
-            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.IsActive).Values(170, "Active", 20, 99, true),
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.IsActive).Values(
+                170,
+                "Active",
+                20,
+                99,
+                true),
             transaction);
 
         long count = Convert.ToInt64(connection.ExecuteScalar(
@@ -586,7 +616,12 @@ public abstract class IntegrationTestBase
         using IDbTransaction transaction = connection.BeginTransaction();
 
         connection.Execute(
-            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.IsActive).Values(171, "Inactive", 20, 99, false),
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.IsActive).Values(
+                171,
+                "Inactive",
+                20,
+                99,
+                false),
             transaction);
 
         bool active = connection
@@ -651,7 +686,8 @@ public abstract class IntegrationTestBase
         int single = connection.QuerySingle<int>(Select(u.Id).From(u).Where(u.Id == 1));
         int first = connection.QueryFirst<int>(Select(u.Id).From(u).OrderBy(u.Id));
         int? none = connection.QueryFirstOrDefault<int?>(Select(u.Id).From(u).Where(u.Id == -1));
-        int singleOrDefault = connection.QuerySingleOrDefault<int>(Select(u.Id).From(u).Where(u.Id == 1));
+        int singleOrDefault = connection.QuerySingleOrDefault<int>(
+            Select(u.Id).From(u).Where(u.Id == 1));
 
         Assert.Equal(1, single);
         Assert.Equal(1, first);
@@ -678,21 +714,25 @@ public abstract class IntegrationTestBase
         // The async siblings of the passthroughs above — each builds for the
         // connection's dialect and dispatches to the matching Dapper async call.
         int single = await connection.QuerySingleAsync<int>(Select(u.Id).From(u).Where(u.Id == 1));
-        int singleOrDefault = await connection.QuerySingleOrDefaultAsync<int>(Select(u.Id).From(u).Where(u.Id == 1));
+        int singleOrDefault = await connection.QuerySingleOrDefaultAsync<int>(
+            Select(u.Id).From(u).Where(u.Id == 1));
         int first = await connection.QueryFirstAsync<int>(Select(u.Id).From(u).OrderBy(u.Id));
-        int? none = await connection.QueryFirstOrDefaultAsync<int?>(Select(u.Id).From(u).Where(u.Id == -1));
+        int? none = await connection.QueryFirstOrDefaultAsync<int?>(
+            Select(u.Id).From(u).Where(u.Id == -1));
 
         Assert.Equal(1, single);
         Assert.Equal(1, singleOrDefault);
         Assert.Equal(1, first);
         Assert.Null(none);
 
-        using (IDataReader reader = await connection.ExecuteReaderAsync(Select(u.Id).From(u).Where(u.Id == 1)))
+        using (IDataReader reader =
+            await connection.ExecuteReaderAsync(Select(u.Id).From(u).Where(u.Id == 1)))
         {
             Assert.True(reader.Read());
         }
 
-        using (var grid = await connection.QueryMultipleAsync(Select(u.Id).From(u).Where(u.Id == 1)))
+        using (
+            var grid = await connection.QueryMultipleAsync(Select(u.Id).From(u).Where(u.Id == 1)))
         {
             Assert.Equal(1, grid.Read<int>().Single());
         }
@@ -893,7 +933,12 @@ public abstract class IntegrationTestBase
         using IDbTransaction transaction = connection.BeginTransaction();
 
         connection.Execute(
-            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.IsActive).Values(140, "B", 20, 99, true),
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId, u.IsActive).Values(
+                140,
+                "B",
+                20,
+                99,
+                true),
             transaction);
 
         bool active = connection
@@ -932,7 +977,11 @@ public abstract class IntegrationTestBase
             .Query<string>(
                 With(labeled.As(
                     Select(
-                        Case(u.DepartmentId, When(10).Then("Low"), When(20).Then("Mid"), Else("Other"))
+                        Case(
+                            u.DepartmentId,
+                            When(10).Then("Low"),
+                            When(20).Then("Mid"),
+                            Else("Other"))
                             .As(labeled.Column("label")))
                     .From(u)))
                 .Select(labeled.Column("label"))

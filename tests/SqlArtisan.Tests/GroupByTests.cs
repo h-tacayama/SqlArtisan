@@ -79,8 +79,8 @@ public class GroupByTests
     [Fact]
     public void Rollup_MySql_CorrectSql()
     {
-        // Rollup(...) emits the standard function form on every dialect, MySQL
-        // included; MySQL's WITH ROLLUP suffix is the separate .WithRollup() API.
+        // MySQL has no GROUP BY ROLLUP(...) form (its spelling is the WITH ROLLUP
+        // suffix, the separate .WithRollup() API); Rollup(...) emits faithfully.
         SqlStatement sql =
             Select(
                 _t.Code,
@@ -153,6 +153,7 @@ public class GroupByTests
         expected.Append("COUNT(`t`.name) > ?0");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
     }
 
     [Fact]
@@ -448,23 +449,24 @@ public class GroupByTests
     public void Grouping_CaseLabelsSubtotalRow_CorrectSql()
     {
         // GROUPING(...) distinguishes a ROLLUP subtotal row (1) from a genuine data
-        // row (0), so it can drive a CASE label for the aggregated-away column.
+        // row (0), so it can drive a CASE label for the aggregated-away column —
+        // a text column, since PostgreSQL rejects a CASE mixing integer and text.
         SqlStatement sql =
             Select(
                 Case(
-                    When(Grouping(_t.Code) == 1).Then("Total"),
-                    Else(_t.Code)))
+                    When(Grouping(_t.Name) == 1).Then("Total"),
+                    Else(_t.Name)))
             .From(_t)
-            .GroupBy(Rollup(_t.Code))
+            .GroupBy(Rollup(_t.Name))
             .Build();
 
         StringBuilder expected = new();
         expected.Append("SELECT ");
-        expected.Append("CASE WHEN (GROUPING(\"t\".code) = :0) THEN :1 ELSE \"t\".code END ");
+        expected.Append("CASE WHEN (GROUPING(\"t\".name) = :0) THEN :1 ELSE \"t\".name END ");
         expected.Append("FROM ");
         expected.Append("test_table \"t\" ");
         expected.Append("GROUP BY ");
-        expected.Append("ROLLUP(\"t\".code)");
+        expected.Append("ROLLUP(\"t\".name)");
 
         Assert.Equal(expected.ToString(), sql.Text);
         Assert.Equal(1, sql.Parameters.Get<int>(":0"));
@@ -474,43 +476,53 @@ public class GroupByTests
     [Fact]
     public void GroupBy_WithNoItems_ThrowsArgumentException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() => Select(_t.Code).From(_t).GroupBy());
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Code).From(_t).GroupBy());
+
+        Assert.Equal("GROUP BY requires at least one item.", ex.Message);
     }
 
     [Fact]
     public void GroupBy_WithNullItems_ThrowsArgumentNullException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             Select(_t.Code).From(_t).GroupBy(null!));
+
+        Assert.Equal("groupByItems", ex.ParamName);
     }
 
     [Fact]
     public void Rollup_WithNullElements_ThrowsArgumentNullException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => Rollup(_t.Code, null!));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Rollup(_t.Code, null!));
+
+        Assert.Equal("elements", ex.ParamName);
     }
 
     [Fact]
     public void Cube_WithNullElements_ThrowsArgumentNullException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => Cube(_t.Code, null!));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            Cube(_t.Code, null!));
+
+        Assert.Equal("elements", ex.ParamName);
     }
 
     [Fact]
     public void GroupingSets_WithNullSets_ThrowsArgumentNullException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => GroupingSets(Group(_t.Code), null!));
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            GroupingSets(Group(_t.Code), null!));
+
+        Assert.Equal(
+            "GROUPING SETS must not contain a null grouping set. (Parameter 'sets')",
+            ex.Message);
     }
 
     [Fact]
     public void GroupingSets_WithNullSet_ThrowsArgumentNullException()
     {
-        // Act & Assert
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             GroupingSets(null!, Group(_t.Code)));
 

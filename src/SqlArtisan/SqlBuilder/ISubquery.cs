@@ -3,7 +3,9 @@ using SqlArtisan.Internal;
 namespace SqlArtisan;
 
 /// <summary>
-/// Marks a builder state whose query can be embedded as a subquery (a derived table, an <c>IN</c>/<c>EXISTS</c> operand, or a scalar subquery). Type a helper method or variable as this to hold a reusable subquery.
+/// Marks a builder state whose query can be embedded as a subquery (a derived table, an
+/// <c>IN</c>/<c>EXISTS</c> operand, or a scalar subquery). Type a helper method or variable as this
+/// to hold a reusable subquery.
 /// </summary>
 public interface ISubquery
 {

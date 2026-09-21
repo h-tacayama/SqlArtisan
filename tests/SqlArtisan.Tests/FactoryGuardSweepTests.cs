@@ -6,22 +6,17 @@ using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
 
-// Mechanizes the null-guard boundary in guards-and-empty-states.md: a
-// degenerate argument (null, empty string, empty array, null element) fed to
-// any public Sql factory must either throw — eagerly or at Build(), either is
-// loud — or build SQL recorded verbatim in AcceptedSilentBuilds. A silent
-// build outside that catalog is the class both 1.0 audit rounds kept finding
-// one instance at a time (empty DbColumn name, WITH "c" AS (), INTO :); this
-// sweep finds the next instance mechanically. Outside its reach: instance
-// members (e.g. SqlExpression.In, .Over), public constructors, and the
-// factories whose return type TryBuild does not embed — that last set is a
-// recorded ledger (UnembeddedReturnTypes), so it cannot grow silently;
-// extend TryBuild's switch to shrink it.
+// Mechanizes the null-guard boundary in guards-and-empty-states.md: a degenerate
+// argument fed to any public Sql factory must throw (eagerly or at Build()) or
+// build SQL recorded verbatim in AcceptedSilentBuilds (instance members excluded).
 public class FactoryGuardSweepTests
 {
-    // Key: "Signature :: injection". Value: the exact SQL the degenerate call
-    // builds. An entry asserts the acceptance is deliberate — most are an
-    // empty params tail that is simply the factory's smaller legal call.
+    private const string ResolverNullValueMessage =
+        "Value cannot be null. Use Sql.Null to represent SQL NULL.";
+
+    // Key: "Signature :: injection"; value: the exact SQL the degenerate call
+    // builds — an entry asserts the acceptance is deliberate (a smaller legal
+    // call, or a quoted/literal position, where whitespace is the engine's).
     private static readonly Dictionary<string, string> AcceptedSilentBuilds = new()
     {
         ["Case(SearchedCaseWhenClause, SearchedCaseWhenClause[]) :: whenClauses=[]"] =
@@ -42,9 +37,8 @@ public class FactoryGuardSweepTests
         ["StringAgg(Object, String, OrderByClause) :: separator=\"\""] =
             "SELECT STRING_AGG(:0, '' ORDER BY \"a\".c)",
         ["Separator(String) :: separator=\"\""] = "SELECT GROUP_CONCAT(`x`.c SEPARATOR '') FROM e `x`",
-        // Leading-parameter + empty params tail is the documented smaller call
-        // (Coalesce/Concat/Grouping already catalog this shape) — not a dropped
-        // clause, since the tail was never the sole carrier of meaning.
+        // A leading parameter plus an empty params tail is the documented smaller
+        // call (Coalesce/Concat/Grouping), not a dropped clause.
         ["Cube(Object, Object[]) :: elements=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY CUBE(:0)",
         ["Rollup(Object, Object[]) :: elements=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY ROLLUP(:0)",
         ["GroupingSets(GroupingSet, GroupingSet[]) :: sets=[]"] =
@@ -52,12 +46,30 @@ public class FactoryGuardSweepTests
         // Group() with zero columns is the documented grand-total row, not a
         // dropped column list.
         ["Group(Object[]) :: columns=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY GROUPING SETS(())",
-        // SqlHints.Format deliberately coalesces null to "" and elides an empty
-        // hint (SqlHints.cs) — hints are a non-semantic query-plan decoration
-        // with an existing no-hints spelling (bare Select(...)), unlike the
-        // clauses above whose absence changes the result.
+        // SqlHints elides a null or empty hint: a non-semantic decoration with
+        // its own no-hints spelling, unlike the clauses above.
         ["Hints(String) :: hints=null"] = "SELECT c FROM e",
         ["Hints(String) :: hints=\"\""] = "SELECT c FROM e",
+        // Whitespace in a quoted or string-literal position is the engine's to
+        // judge (guards-and-empty-states.md); only bare-token positions throw.
+        ["Currval(String) :: sequenceName=\" \""] = "SELECT CURRVAL(' ')",
+        ["Nextval(String) :: sequenceName=\" \""] = "SELECT NEXTVAL(' ')",
+        ["Hints(String) :: hints=\" \""] = "SELECT   c FROM e",
+        ["IntervalLiteral(String) :: text=\" \""] = "SELECT INTERVAL ' '",
+        ["IntervalLiteral(String, IntervalField) :: value=\" \""] = "SELECT INTERVAL ' ' YEAR",
+        ["JsonExtract(Object, String) :: path=\" \""] = "SELECT JSON_EXTRACT(:0, ' ')",
+        ["JsonQuery(Object, String) :: path=\" \""] = "SELECT JSON_QUERY(:0, ' ')",
+        ["JsonValue(Object, String) :: path=\" \""] = "SELECT JSON_VALUE(:0, ' ')",
+        ["PlaintoTsquery(String, Object) :: config=\" \""] = "SELECT PLAINTO_TSQUERY(' ', :0)",
+        ["ToTsquery(String, Object) :: config=\" \""] = "SELECT TO_TSQUERY(' ', :0)",
+        ["ToTsvector(String, Object) :: config=\" \""] = "SELECT TO_TSVECTOR(' ', :0)",
+        ["Separator(String) :: separator=\" \""] =
+            "SELECT GROUP_CONCAT(`x`.c SEPARATOR ' ') FROM e `x`",
+        ["StringAgg(Object, String) :: separator=\" \""] = "SELECT STRING_AGG(:0, ' ')",
+        ["StringAgg(Object, String, OrderByClause) :: separator=\" \""] =
+            "SELECT STRING_AGG(:0, ' ' ORDER BY \"a\".c)",
+        ["Values(String, String[], Object[][]) :: alias=\" \""] =
+            "SELECT c FROM (VALUES (:0)) \" \" (c1)",
     };
 
     [Fact]
@@ -78,12 +90,47 @@ public class FactoryGuardSweepTests
                 {
                     result = Invoke(method, args);
                 }
-                catch (TargetInvocationException)
+                catch (TargetInvocationException ex)
                 {
+                    if (ex.InnerException is NullReferenceException && IsElementInjection(label))
+                    {
+                        violations.Add(
+                            $"BARE NRE {key} — a null element owes a named ArgumentNullException.");
+                    }
+
+                    // A ParamName absent from the invoked signature leaks an internal
+                    // name (#497); the expression-resolver family's position names are exempt.
+                    if (ex.InnerException is ArgumentException { ParamName: { } paramName } argEx
+                        && !argEx.Message.StartsWith(
+                            ResolverNullValueMessage,
+                            StringComparison.Ordinal)
+                        && System.Array.TrueForAll(
+                            method.GetParameters(), p => p.Name != paramName))
+                    {
+                        violations.Add(
+                            $"FOREIGN PARAMNAME {key} — '{paramName}' is not a parameter "
+                                + "of the invoked signature.");
+                    }
+
                     continue; // eager throw — loud, OK
                 }
 
-                string? sql = TryBuild(result);
+                string? sql;
+                try
+                {
+                    sql = TryBuild(result);
+                }
+                catch (NullReferenceException) when (IsElementInjection(label))
+                {
+                    violations.Add(
+                        $"BARE NRE {key} — a null element owes a named ArgumentNullException.");
+                    continue;
+                }
+                catch (NullReferenceException)
+                {
+                    continue; // single-reference-parameter NRE — the loud-failure exemption
+                }
+
                 if (sql is null)
                 {
                     continue; // threw at Build() (loud, OK) or not embeddable
@@ -94,7 +141,8 @@ public class FactoryGuardSweepTests
                     usedCatalogKeys.Add(key);
                     if (sql != expected)
                     {
-                        violations.Add($"CATALOG MISMATCH {key}\n  expected: {expected}\n  actual:   {sql}");
+                        violations.Add(
+                            $"CATALOG MISMATCH {key}\n  expected: {expected}\n  actual:   {sql}");
                     }
                 }
                 else
@@ -106,12 +154,14 @@ public class FactoryGuardSweepTests
 
         foreach (string staleKey in AcceptedSilentBuilds.Keys.Except(usedCatalogKeys))
         {
-            violations.Add($"STALE CATALOG ENTRY {staleKey} — the case no longer builds silently; remove it.");
+            violations.Add(
+                $"STALE CATALOG ENTRY {staleKey} — the case no longer builds silently; remove it.");
         }
 
         Assert.True(
             violations.Count == 0,
-            $"{violations.Count} factory guard sweep violation(s):\n\n{string.Join("\n\n", violations)}");
+            $"{violations.Count} factory guard sweep "
+                + $"violation(s):\n\n{string.Join("\n\n", violations)}");
     }
 
     // Mirrors TryBuild's switch: a return type assignable to one of these is
@@ -161,7 +211,8 @@ public class FactoryGuardSweepTests
         Assert.True(
             unrecorded.Length == 0 && stale.Length == 0,
             $"Return types outside TryBuild's reach and not recorded (extend TryBuild or record "
-                + $"them): [{string.Join(", ", unrecorded)}]; stale records: [{string.Join(", ", stale)}]");
+                + $"them): [{string.Join(", ", unrecorded)}]; stale records: "
+                    + $"[{string.Join(", ", stale)}]");
     }
 
     private static IEnumerable<MethodInfo> SweepableMethods()
@@ -193,7 +244,15 @@ public class FactoryGuardSweepTests
         }
     }
 
-    private static IEnumerable<(int Index, string Label, object? Injected)> Injections(MethodInfo method)
+    // Element injections are the shapes the guards rule's element clause covers;
+    // a whole-argument null on a single reference parameter keeps the loud-NRE
+    // exemption, so only these labels turn an NRE into a sweep violation.
+    private static bool IsElementInjection(string label) =>
+        label.EndsWith("=[null]", StringComparison.Ordinal)
+        || label.EndsWith("=[(null, 1)]", StringComparison.Ordinal);
+
+    private static IEnumerable<(int Index, string Label, object? Injected)> Injections(
+        MethodInfo method)
     {
         ParameterInfo[] parameters = method.GetParameters();
         for (int i = 0; i < parameters.Length; i++)
@@ -205,6 +264,9 @@ public class FactoryGuardSweepTests
             {
                 yield return (i, $"{name}=null", null);
                 yield return (i, $"{name}=\"\"", "");
+                // Whitespace separates the bare-token positions (must throw) from
+                // quoted ones, where it is the engine's to judge.
+                yield return (i, $"{name}=\" \"", " ");
             }
             else if (t == typeof(object))
             {
@@ -235,7 +297,8 @@ public class FactoryGuardSweepTests
                 yield return (i, $"{name}=[]", System.Array.Empty<(object, object)>());
                 yield return (i, $"{name}=[(null, 1)]", new[] { ((object)null!, (object)1) });
             }
-            else if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IReadOnlyCollection<>)
+            else if (t.IsGenericType
+                && t.GetGenericTypeDefinition() == typeof(IReadOnlyCollection<>)
                 && !t.GetGenericArguments()[0].IsValueType)
             {
                 yield return (i, $"{name}=null", null);
@@ -378,7 +441,10 @@ public class FactoryGuardSweepTests
 
         if (t == typeof(CommonTableExpression[]))
         {
-            return new[] { new Cte("cte").As(Select(new DbTable("s").Column("c")).From(new DbTable("s"))) };
+            return new[]
+            {
+                new Cte("cte").As(Select(new DbTable("s").Column("c")).From(new DbTable("s"))),
+            };
         }
 
         if (t == typeof(SearchedCaseWhenClause))
@@ -560,6 +626,12 @@ public class FactoryGuardSweepTests
                 // Fall-throughs are ledgered in UnembeddedReturnTypes.
                 _ => null,
             };
+        }
+        catch (NullReferenceException)
+        {
+            // Rethrown so the sweep can flag a null element that reached Build()
+            // as a bare NRE instead of counting it as a compliant loud guard.
+            throw;
         }
         catch
         {

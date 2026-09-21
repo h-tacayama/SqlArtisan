@@ -88,10 +88,15 @@ public class MultiRowInsertTests
     [Fact]
     public void Values_MismatchedRowLength_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             InsertInto(_t, _t.Code, _t.Name)
             .Values(1, "a")
             .Values(2));
+
+        Assert.Equal(
+            "All rows in a multi-row INSERT must have the same number of values; "
+                + "the first row has 2, but this row has 1.",
+            ex.Message);
     }
 
     [Fact]
@@ -147,7 +152,8 @@ public class MultiRowInsertTests
     {
         const int rowCount = 500;
 
-        List<object[]> rows = [.. Enumerable.Range(0, rowCount).Select(i => new object[] { i, $"name{i}" })];
+        List<object[]> rows =
+            [.. Enumerable.Range(0, rowCount).Select(i => new object[] { i, $"name{i}" })];
 
         SqlStatement collection =
             InsertInto(_t, _t.Code, _t.Name)
@@ -188,8 +194,13 @@ public class MultiRowInsertTests
         ];
 
         // Per-row width validation reuses the existing multi-row guard.
-        Assert.Throws<ArgumentException>(() =>
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             InsertInto(_t, _t.Code, _t.Name).Values(rows));
+
+        Assert.Equal(
+            "All rows in a multi-row INSERT must have the same number of values; "
+                + "the first row has 2, but this row has 1.",
+            ex.Message);
     }
 
     [Fact]
@@ -208,8 +219,10 @@ public class MultiRowInsertTests
     {
         IEnumerable<object[]> nullRows = null!;
 
-        Assert.Throws<ArgumentNullException>(() =>
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             InsertInto(_t, _t.Code, _t.Name).Values(nullRows));
+
+        Assert.Equal("rows", ex.ParamName);
     }
 
     [Fact]
@@ -217,7 +230,9 @@ public class MultiRowInsertTests
     {
         object[][] nullRows = null!;
 
-        Assert.Throws<ArgumentNullException>(() =>
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
             InsertInto(_t, _t.Code, _t.Name).Values(nullRows));
+
+        Assert.Equal("rows", ex.ParamName);
     }
 }

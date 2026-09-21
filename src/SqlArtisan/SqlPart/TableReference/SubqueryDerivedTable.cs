@@ -21,10 +21,10 @@ public sealed class SubqueryDerivedTable : DerivedTableBase, IColumnAccessor
     public DbColumn Column(string name) => new(this, name);
 
     /// <inheritdoc/>
-    public DbColumn Column(DbColumn source) => new(this, source.Name);
+    public DbColumn Column(DbColumn source) => new(this, source.Name, source.QuoteName);
 
     /// <inheritdoc/>
-    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name);
+    public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name, alias.QuoteAlias);
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .EncloseInParentheses(_subquery)

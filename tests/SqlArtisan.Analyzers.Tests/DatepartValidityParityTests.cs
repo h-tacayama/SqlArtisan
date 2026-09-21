@@ -6,9 +6,8 @@ namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
 /// Ties <see cref="DatepartValidity"/>'s member-name strings to the real
-/// <see cref="DateTimePart"/> enum, which the rule matches by name rather
-/// than by a type reference (ADR 0009) — see <see cref="SchemaMetadataParityTests"/>
-/// for the sibling gate on the same pattern.
+/// <see cref="DateTimePart"/> enum, matched by name (ADR 0009);
+/// <see cref="SchemaMetadataParityTests"/> is the sibling gate on the same pattern.
 /// </summary>
 public class DatepartValidityParityTests
 {
@@ -20,7 +19,7 @@ public class DatepartValidityParityTests
     {
         string[] unmatchable =
         [
-            .. DatepartValidity.AllKnownMemberNames
+            .. DatepartValidity.AllKnownDatepartNames
                 .Except(RealMemberNames, StringComparer.Ordinal)
                 .OrderBy(name => name, StringComparer.Ordinal),
         ];
@@ -32,20 +31,16 @@ public class DatepartValidityParityTests
                 + string.Join("\n  ", unmatchable));
     }
 
-    // One direction only, and deliberately not "every member is covered by
-    // every consumer" — the core's own DateTimePart.cs doc says explicitly
-    // that not every field is valid for every function or dialect. The
-    // hazard here is the opposite of silence: the rule skips a (function,
-    // dialect) pair it has no list for, but within a pair it has one, it
-    // reports every member the list omits — so a member in no list at all
-    // is flagged wherever the rule looks, including dialects that accept it.
+    // One direction only (DateTimePart.cs says not every field fits every function):
+    // the hazard is a member in no list at all, which the rule then flags wherever
+    // it has a list — including on dialects that accept the field.
     [Fact]
     public void EveryRealDateTimePartMember_AppearsInAtLeastOneList()
     {
         string[] uncovered =
         [
             .. RealMemberNames
-                .Except(DatepartValidity.AllKnownMemberNames, StringComparer.Ordinal)
+                .Except(DatepartValidity.AllKnownDatepartNames, StringComparer.Ordinal)
                 .OrderBy(name => name, StringComparer.Ordinal),
         ];
 
@@ -91,7 +86,8 @@ public class DatepartValidityParityTests
         string[] realConsumers =
         [
             .. typeof(Sql)
-                .GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                .GetMethods(
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
                 .Where(m => m.GetParameters().Any(p => p.ParameterType == typeof(DateTimePart)))
                 .Select(m => m.Name)
                 .Distinct()

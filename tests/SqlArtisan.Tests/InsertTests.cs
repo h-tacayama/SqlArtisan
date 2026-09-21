@@ -1,4 +1,5 @@
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -12,7 +13,7 @@ public class InsertTests
         SqlStatement sql =
             InsertInto(t)
             .Values(1, "a", Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
@@ -47,7 +48,7 @@ public class InsertTests
         SqlStatement sql =
             InsertInto(t, t.Code, t.Name, t.CreatedAt)
             .Values(1, "a", Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
@@ -104,7 +105,7 @@ public class InsertTests
                 t.Code == 1,
                 t.Name == "a",
                 t.CreatedAt == Sysdate)
-            .Build();
+            .Build(Dbms.Oracle);
 
         StringBuilder expected = new();
         expected.Append("INSERT INTO ");
@@ -237,7 +238,9 @@ public class InsertTests
             InsertInto(t, t.Code, t.Name).Values(1, "a").Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE statement; use an unaliased target table.",
+            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
+                + "statement; use an unaliased target table — a correlated UPDATE or DELETE joins "
+                + "through From(...) instead.",
             ex.Message);
     }
 
@@ -301,7 +304,7 @@ public class InsertTests
             InsertInto(t).Set(t.Code == 1, null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
             ex.Message);
     }
 
@@ -424,7 +427,8 @@ public class InsertTests
         expected.Append(')');
 
         Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(2, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
     }
 
     [Fact]
@@ -437,6 +441,8 @@ public class InsertTests
             .Build(Dbms.MySql);
 
         Assert.Equal("INSERT IGNORE INTO test_table VALUES (?0, ?1)", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
     }
 
     [Fact]
@@ -452,6 +458,10 @@ public class InsertTests
         Assert.Equal(
             "INSERT IGNORE INTO test_table (code, name) VALUES (?0, ?1), (?2, ?3)",
             sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
+        Assert.Equal(2, sql.Parameters.Get<int>("?2"));
+        Assert.Equal("b", sql.Parameters.Get<string>("?3"));
     }
 
     [Fact]
@@ -466,6 +476,8 @@ public class InsertTests
         Assert.Equal(
             "INSERT IGNORE INTO test_table (code, name) VALUES (?0, ?1)",
             sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
+        Assert.Equal("a", sql.Parameters.Get<string>("?1"));
     }
 
     [Fact]
@@ -526,6 +538,8 @@ public class InsertTests
         expected.Append("VALUES (@0, @1)");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("@1"));
     }
 
     [Fact]
@@ -578,6 +592,41 @@ public class InsertTests
     }
 
     [Fact]
+    public void OnDuplicateKeyUpdate_ReturningOnHeldStage_ThrowsArgumentException()
+    {
+        // The typestate no longer offers RETURNING after ON DUPLICATE KEY
+        // UPDATE; a held pre-upsert stage still reaches it, so Build() backstops.
+        TestTable t = new();
+        IInsertBuilderValues held = InsertInto(t, t.Code).Values(1);
+        held.OnDuplicateKeyUpdate(t.Code == 2);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Returning(t.Code).Build(Dbms.MySql));
+
+        Assert.Equal(
+            "RETURNING cannot be combined with INSERT IGNORE or ON DUPLICATE KEY UPDATE; "
+                + "use one or the other.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_ReturningThroughCast_ThrowsArgumentException()
+    {
+        // No INSERT IGNORE stage offers RETURNING; the cast is the only route
+        // to the pairing, and Build() still refuses it.
+        TestTable t = new();
+        IReturning reached = (IReturning)InsertIgnoreInto(t).Values(1);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            reached.Returning(t.Code).Build(Dbms.MySql));
+
+        Assert.Equal(
+            "RETURNING cannot be combined with INSERT IGNORE or ON DUPLICATE KEY UPDATE; "
+                + "use one or the other.",
+            ex.Message);
+    }
+
+    [Fact]
     public void InsertInto_SqlServer_OutputAndOnConflict_ThrowsArgumentException()
     {
         TestTable t = new();
@@ -612,5 +661,239 @@ public class InsertTests
             "OUTPUT cannot be combined with ON CONFLICT or ON DUPLICATE KEY UPDATE; "
                 + "use one or the other.",
             ex.Message);
+    }
+
+    [Fact]
+    public void InsertIntoSet_NonColumnLeftSide_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Set(Abs(t.Code) == 5));
+
+        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertIntoSelect_WidthMismatch_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name).Select(s.Code).From(s).Build());
+
+        Assert.Equal(
+            "The INSERT column list declares 2 column(s), but the SELECT list has 1 item(s).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIntoSelect_QualifiedStar_CorrectSql()
+    {
+        // A star's width is the schema's, not countable, so the width check
+        // stays out of the way.
+        TestTable t = new();
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name).Select(s.Asterisk).From(s).Build();
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) SELECT \"s\".* FROM test_table \"s\"",
+            sql.Text);
+    }
+
+    [Fact]
+    public void InsertInto_MySql_AliasedTarget_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code).Values(1).Build(Dbms.MySql));
+
+        Assert.Equal(
+            "MySQL does not support aliasing the target of an INSERT statement; "
+                + "use an unaliased target table.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIntoSelect_SqlServer_TopWithOffset_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Select(Top(5), s.Code)
+                .From(s)
+                .OrderBy(s.Code)
+                .OffsetRows(3)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertIntoSelect_SqlServer_TopWithTiesWithoutOrderBy_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Select(Top(5).WithTies(), s.Code)
+                .From(s)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal("TOP ... WITH TIES requires an ORDER BY clause.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_DuplicateColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Code));
+
+        Assert.Equal("An INSERT column list must not name a column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertIgnoreInto_DuplicateColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertIgnoreInto(t, t.Name, t.Code, t.Name));
+
+        Assert.Equal("An INSERT column list must not name a column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputIntoWidthMismatch_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name)
+            .Output(Inserted(t.Code), Inserted(t.Name))
+            .Into(a, a.Code)
+            .Values(1, "x")
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "The OUTPUT list has 2 item(s), but the INTO column list declares 1 column(s).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_OutputIntoDuplicateColumn_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code, t.Name)
+            .Output(Inserted(t.Code), Inserted(t.Name))
+            .Into(a, a.Code, a.Code));
+
+        Assert.Equal(
+            "An OUTPUT INTO column list must not name a column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_OutputNoExpressions_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code).Output());
+
+        Assert.Equal("OUTPUT requires at least one expression.", ex.Message);
+    }
+
+    // A scalar subquery is a value in VALUES on every dialect; the resolver
+    // wraps it like the expression resolver does (release audit pass 8).
+    [Fact]
+    public void InsertInto_Values_ScalarSubquery_CorrectSql()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+
+        SqlStatement sql =
+            InsertInto(t, t.Code, t.Name)
+            .Values(1, Select(Max(s.Name)).From(s))
+            .Build();
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) "
+                + "VALUES (:0, (SELECT MAX(\"s\".name) FROM test_table \"s\"))",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void InsertInto_SetSameColumnFromTwoTables_ThrowsArgumentException()
+    {
+        // The SET target renders unqualified here, so a second table's
+        // same-named column emits INSERT INTO t (name, name).
+        TestTable t = new();
+        ArchiveTable archive = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Set(t.Name == "a", archive.Name == "b"));
+
+        Assert.Equal(
+            "A SET assignment list must not assign the same column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SetSameColumnFromTwoHandles_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable other = new("t2");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Set(t.Name == "a", other.Name == "b"));
+
+        Assert.Equal(
+            "A SET assignment list must not assign the same column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void DoUpdateSet_SameColumnFromTwoTables_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        ArchiveTable archive = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Values(1)
+                .OnConflict(t.Code)
+                .DoUpdateSet(t.Name == "a", archive.Name == "b"));
+
+        Assert.Equal(
+            "A SET assignment list must not assign the same column twice.", ex.Message);
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_SameColumnFromTwoHandles_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable other = new("t2");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t, t.Code)
+                .Values(1)
+                .OnDuplicateKeyUpdate(t.Name == "a", other.Name == "b"));
+
+        Assert.Equal(
+            "A SET assignment list must not assign the same column twice.", ex.Message);
     }
 }

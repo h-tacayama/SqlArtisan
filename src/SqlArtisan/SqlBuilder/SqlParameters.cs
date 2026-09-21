@@ -1,7 +1,8 @@
 namespace SqlArtisan;
 
 /// <summary>
-/// The parameters bound by a built <see cref="SqlStatement"/>, each a marker name paired with its value, in bind order.
+/// The parameters bound by a built <see cref="SqlStatement"/>, each a marker name paired with its
+/// value, in bind order.
 /// </summary>
 public sealed class SqlParameters
 {
@@ -40,8 +41,7 @@ public sealed class SqlParameters
     /// <typeparam name="T">The expected value type.</typeparam>
     /// <param name="name">The parameter marker name to look up.</param>
     /// <returns>The value cast to <typeparamref name="T"/>, or <see langword="default"/> if no parameter has that name.</returns>
-    /// <exception cref="InvalidCastException">The stored value is not a <typeparamref name="T"/>.</exception>
-    /// <exception cref="NullReferenceException">The stored value is <see langword="null"/> and <typeparamref name="T"/> is a non-nullable value type.</exception>
+    /// <exception cref="InvalidCastException">The stored value is not a <typeparamref name="T"/> — a stored SQL <c>NULL</c> included (it is held as <see cref="DBNull"/>, which casts to no <typeparamref name="T"/> but <see cref="object"/>).</exception>
     public T? Get<T>(string name)
     {
         foreach (KeyValuePair<string, BindValue> parameter in _parameters)

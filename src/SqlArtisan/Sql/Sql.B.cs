@@ -20,7 +20,7 @@ public static partial class Sql
     {
         if (value is null)
         {
-            throw new ArgumentNullException(nameof(value), NullValueMessage);
+            throw new ArgumentNullException(nameof(value), BindValue.NullValueMessage);
         }
 
         if (!IsBindable(value))
@@ -43,7 +43,7 @@ public static partial class Sql
     {
         if (values is null)
         {
-            throw new ArgumentNullException(nameof(values), NullValueMessage);
+            throw new ArgumentNullException(nameof(values), BindValue.NullValueMessage);
         }
 
         if (!IsBindableType(typeof(T)))
@@ -59,7 +59,7 @@ public static partial class Sql
     {
         if (values is null)
         {
-            throw new ArgumentNullException(nameof(values), NullValueMessage);
+            throw new ArgumentNullException(nameof(values), BindValue.NullValueMessage);
         }
 
         if (!IsBindableType(typeof(T)))

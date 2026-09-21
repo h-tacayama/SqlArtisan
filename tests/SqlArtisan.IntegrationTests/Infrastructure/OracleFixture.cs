@@ -5,12 +5,9 @@ using Testcontainers.Oracle;
 namespace SqlArtisan.IntegrationTests.Infrastructure;
 
 /// <summary>
-/// Oracle fixture, backed by Oracle Database XE 21c
-/// (<c>gvenzl/oracle-xe:21.3.0-slim-faststart</c>). The tag is pinned
-/// explicitly — matching the other fixtures — so the verified-against version
-/// is deterministic rather than tracking the Testcontainers module's default,
-/// which has drifted across releases. The image is large and slow to start, so
-/// the Oracle lane is the heaviest entry in the matrix.
+/// Oracle fixture on XE 21c (<c>gvenzl/oracle-xe:21.3.0-slim-faststart</c>), pinned with an
+/// explicit <c>.WithImage()</c> like the other fixtures so the verified-against version never
+/// tracks the module's default; the heaviest lane in the matrix.
 /// </summary>
 public sealed class OracleFixture : IAsyncLifetime, IDatabaseFixture
 {
@@ -20,6 +17,8 @@ public sealed class OracleFixture : IAsyncLifetime, IDatabaseFixture
 
     public Dbms Dbms => Dbms.Oracle;
 
+    /// <summary>The live container's connection string, for tests that build their own
+    /// connection.</summary>
     public string ConnectionString => _container.GetConnectionString();
 
     public IDbConnection OpenConnection()

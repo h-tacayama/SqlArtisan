@@ -9,10 +9,8 @@ using SqlArtisan.TableClassGen;
 
 namespace SqlArtisan.IntegrationTests.Tests;
 
-// Verifies the TableClassGen catalog readers against live engines: the SqlArtisan
-// information_schema builder path resolves the right dialect from the connection
-// and extracts the seeded schema. SQLite's bespoke path is covered in the fast
-// unit lane (SqlArtisan.TableClassGen.Tests).
+// The TableClassGen catalog readers against live engines; SQLite's bespoke path
+// is covered in the unit lane (SqlArtisan.TableClassGen.Tests).
 
 [Trait("Engine", "MySql")]
 public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
@@ -42,6 +40,25 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
         TableClassGenAssertions.AssertSeededSchema(reader.GetAllTables());
     }
 
+    // An INVISIBLE index is maintained but never chosen by the optimizer, so it
+    // serves no query and claims nothing — the MySQL arm of the status filter.
+    [Fact]
+    public void GenerateTables_MySql_InvisibleIndex_ClaimsNothing()
+    {
+        Execute("CREATE INDEX ix_invisible ON users (age) INVISIBLE");
+        try
+        {
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
+
+            CatalogTable users = reader.GetAllTables().Single(t => t.TableName == "users");
+            Assert.False(users.Columns.Single(c => c.Name == "age").IsIndexed);
+        }
+        finally
+        {
+            Execute("DROP INDEX ix_invisible ON users");
+        }
+    }
+
     // MySQL spells a functional index with a doubly-parenthesized expression
     // (8.0.13+), and reports it in STATISTICS.EXPRESSION with a null COLUMN_NAME.
     [Fact]
@@ -64,18 +81,16 @@ public sealed class MySqlTableClassGenTests : IClassFixture<MySqlFixture>
         }
     }
 
-    // #386: the fixture's own connecting user has grants on the seeded database
-    // only (Testcontainers' default MySQL account carries no CREATE USER, so a
-    // restricted second account cannot be minted here) — that user still
-    // authenticates against the real "mysql" system schema, but information_schema
-    // shows none of its tables, exactly as it shows none for a schema that does
-    // not exist at all.
+    // #386: the fixture's user has grants on the seeded database only, so the real
+    // "mysql" schema shows none of its tables in information_schema, exactly like a
+    // schema that does not exist (the default account cannot mint a second user).
     [Fact]
     public void GenerateTables_MySql_NoPrivileges_ReturnsEmptyLikeAnUnknownSchema()
     {
         MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
 
-        IReadOnlyList<CatalogTable> realSchemaNoGrant = SchemaReader(builder, "mysql").GetAllTables();
+        IReadOnlyList<CatalogTable> realSchemaNoGrant =
+            SchemaReader(builder, "mysql").GetAllTables();
         IReadOnlyList<CatalogTable> unknownSchema =
             SchemaReader(builder, "sqlartisan_unknown_schema").GetAllTables();
 
@@ -182,12 +197,29 @@ public sealed class SqlServerTableClassGenTests : IClassFixture<SqlServerFixture
         }
     }
 
-    // #386: a login mapped to a user with no grants still connects — CONNECT
-    // comes via the public role. The read never throws, which is the property
-    // in question, but it is not empty: master carries legacy compatibility
-    // tables (spt_fallback_db and siblings) SQL Server grants to public by
-    // default, so those are the only rows visible — proving the filtering,
-    // not a bare empty result.
+    // A disabled index serves no query, so it must not claim its column.
+    [Fact]
+    public void GenerateTables_SqlServer_DisabledIndex_ClaimsNothing()
+    {
+        Execute("CREATE INDEX ix_disabled ON users (age)");
+        Execute("ALTER INDEX ix_disabled ON users DISABLE");
+        try
+        {
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
+
+            CatalogTable users = reader.GetAllTables().Single(
+                t => string.Equals(t.TableName, "users", StringComparison.OrdinalIgnoreCase));
+            Assert.False(users.Columns.Single(c => c.Name == "age").IsIndexed);
+        }
+        finally
+        {
+            Execute("DROP INDEX ix_disabled ON users");
+        }
+    }
+
+    // #386: a login with no grants still connects via public, and the read
+    // filters rather than throws; master's public legacy tables (spt_fallback_db
+    // and siblings) are the only rows, proving the filtering, not an empty read.
     [Fact]
     public void GenerateTables_SqlServer_NoPrivileges_FiltersRatherThanThrows()
     {
@@ -269,7 +301,8 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
     [Fact]
     public void GenerateTables_PostgreSql_LowercaseNames_KeepsMixedCaseTable()
     {
-        Execute("CREATE TABLE IF NOT EXISTS \"MixedCaseTbl\" (\"Id\" integer, \"Val\" varchar(10))");
+        Execute(
+            "CREATE TABLE IF NOT EXISTS \"MixedCaseTbl\" (\"Id\" integer, \"Val\" varchar(10))");
         try
         {
             InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
@@ -312,6 +345,29 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
             Execute("DROP INDEX IF EXISTS ix_mixed");
             Execute("DROP INDEX IF EXISTS ix_upper_name");
             Execute("DROP INDEX IF EXISTS ix_age_dept");
+        }
+    }
+
+    // An invalid index (a failed CONCURRENTLY build's end state) serves no
+    // query, so it must not claim its column. The flag is flipped directly —
+    // a real failed concurrent build is nondeterministic to stage.
+    [Fact]
+    public void GenerateTables_PostgreSql_InvalidIndex_ClaimsNothing()
+    {
+        Execute("CREATE INDEX ix_invalid ON users (age)");
+        Execute(
+            "UPDATE pg_index SET indisvalid = false "
+                + "WHERE indexrelid = 'ix_invalid'::regclass");
+        try
+        {
+            InformationSchemaCatalogReader reader = new(ConnInfo(), lowercaseNames: false);
+
+            CatalogTable users = reader.GetAllTables().Single(t => t.TableName == "users");
+            Assert.False(users.Columns.Single(c => c.Name == "age").IsIndexed);
+        }
+        finally
+        {
+            Execute("DROP INDEX IF EXISTS ix_invalid");
         }
     }
 
@@ -380,7 +436,9 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
     public void GenerateTables_Oracle_ExtractsSeededSchema()
     {
         OracleConnectionStringBuilder builder = new(_fixture.ConnectionString);
-        string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
+        string[] dataSource = builder.DataSource.Split(
+            [':', '/'],
+            StringSplitOptions.RemoveEmptyEntries);
 
         DbConnectionInfo connInfo = new(
             Dbms.Oracle,
@@ -430,6 +488,26 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         }
     }
 
+    // An UNUSABLE index serves no query, so it must not claim its column
+    // (ALL_IND_COLUMNS records no status; the ALL_INDEXES join supplies it).
+    [Fact]
+    public void GenerateTables_Oracle_UnusableIndex_ClaimsNothing()
+    {
+        Execute("CREATE INDEX ix_unusable ON users (age)");
+        Execute("ALTER INDEX ix_unusable UNUSABLE");
+        try
+        {
+            OracleCatalogReader reader = new(ConnInfo(), lowercaseNames: true);
+
+            CatalogTable users = reader.GetAllTables().Single(t => t.TableName == "users");
+            Assert.False(users.Columns.Single(c => c.Name == "age").IsIndexed);
+        }
+        finally
+        {
+            TryExecute("DROP INDEX ix_unusable");
+        }
+    }
+
     // The four shapes HasDefault has to tell apart. Oracle records the identity
     // sequence and the virtual column's expression in DATA_DEFAULT, so DEFAULT_LENGTH
     // answers all three engine-assigned cases without reading the LONG.
@@ -461,18 +539,16 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
         }
     }
 
-    // #386: ALL_TABLES is privilege-filtered like the other engines' catalogs —
-    // reading it never throws for a schema the app user has no grant into. It is
-    // not empty here: SYSTEM owns a handful of tables (HELP, OL$...) Oracle grants
-    // to PUBLIC by default, so those are the only rows visible — proving the
-    // filtering, not a bare empty result. No restricted user is needed: the app
-    // user's own CONNECT + RESOURCE grant already excludes it from everything else
-    // SYSTEM owns.
+    // #386: ALL_TABLES is privilege-filtered — a schema without grants never
+    // throws; SYSTEM's PUBLIC-granted tables (HELP, OL$...) are the only rows,
+    // proving the filtering. The app user's own grant already excludes the rest.
     [Fact]
     public void GenerateTables_Oracle_NoPrivileges_FiltersRatherThanThrows()
     {
         OracleConnectionStringBuilder builder = new(_fixture.ConnectionString);
-        string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
+        string[] dataSource = builder.DataSource.Split(
+            [':', '/'],
+            StringSplitOptions.RemoveEmptyEntries);
 
         DbConnectionInfo connInfo = new(
             Dbms.Oracle,
@@ -505,7 +581,9 @@ public sealed class OracleTableClassGenTests : IClassFixture<OracleFixture>
     private DbConnectionInfo ConnInfo()
     {
         OracleConnectionStringBuilder builder = new(_fixture.ConnectionString);
-        string[] dataSource = builder.DataSource.Split([':', '/'], StringSplitOptions.RemoveEmptyEntries);
+        string[] dataSource = builder.DataSource.Split(
+            [':', '/'],
+            StringSplitOptions.RemoveEmptyEntries);
 
         return new DbConnectionInfo(
             Dbms.Oracle,

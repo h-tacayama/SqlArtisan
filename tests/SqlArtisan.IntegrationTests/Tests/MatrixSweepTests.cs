@@ -26,7 +26,8 @@ public abstract class MatrixSweepTestBase
         _fixture = fixture;
     }
 
-    /// <summary>Idempotent per-engine prerequisites (full-text artifacts) the sweep statements need.</summary>
+    /// <summary>Idempotent per-engine prerequisites (full-text artifacts) the sweep statements
+    /// need.</summary>
     protected virtual void PrepareEngine(IDbConnection connection)
     {
     }
@@ -68,7 +69,8 @@ public abstract class MatrixSweepTestBase
             string? error = TryExecute(connection, sweepCase, out bool isEngineRejection);
             if (expected && error is not null)
             {
-                failures.Add($"{Label(sweepCase)}: matrix says SUPPORTED, engine rejected: {error}");
+                failures.Add(
+                    $"{Label(sweepCase)}: matrix says SUPPORTED, engine rejected: {error}");
             }
             else if (!expected && error is null)
             {
@@ -78,7 +80,9 @@ public abstract class MatrixSweepTestBase
             {
                 // An infrastructure failure (timeout, dropped connection) must not
                 // count as the engine rejecting the construct's grammar.
-                failures.Add($"{Label(sweepCase)}: matrix says UNSUPPORTED, but the failure was not a database rejection: {error}");
+                failures.Add(
+                    $"{Label(sweepCase)}: matrix says UNSUPPORTED, but the failure was not a "
+                        + $"database rejection: {error}");
             }
             else if (expected)
             {
@@ -92,12 +96,16 @@ public abstract class MatrixSweepTestBase
 
         Assert.True(
             failures.Count == 0,
-            $"{_fixture.Dbms} dialect sweep ({accepted} accepts, {rejected} rejects, {skipped} skips all "
+            $"{_fixture.Dbms} dialect sweep ({accepted} accepts, {rejected} rejects, "
+                + $"{skipped} skips all "
                 + $"as expected): {failures.Count} matrix<->engine mismatches:\n  "
                 + string.Join("\n  ", failures));
     }
 
-    private string? TryExecute(IDbConnection connection, SweepCase sweepCase, out bool isEngineRejection)
+    private string? TryExecute(
+        IDbConnection connection,
+        SweepCase sweepCase,
+        out bool isEngineRejection)
     {
         isEngineRejection = false;
         try
@@ -161,12 +169,15 @@ public sealed class MatrixSweepCatalogTests
         Assert.Equal(MatrixSweepCatalog.Cases.Count, covered.Count); // no duplicate case keys
 
         List<string> missing = [.. DialectMatrix.AllKeys
-            .Where(key => !covered.Contains(key) && !MatrixSweepCatalog.ExcludedEntries.ContainsKey(key))
-            .Select(key => key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName)];
+            .Where(key =>
+                !covered.Contains(key) && !MatrixSweepCatalog.ExcludedEntries.ContainsKey(key))
+            .Select(key =>
+                key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName)];
 
         Assert.True(
             missing.Count == 0,
-            $"{missing.Count} matrix entries have neither a sweep case nor a documented exclusion:\n  "
+            $"{missing.Count} matrix entries have neither a sweep case nor a documented "
+                + $"exclusion:\n  "
                 + string.Join("\n  ", missing));
     }
 
@@ -178,7 +189,8 @@ public sealed class MatrixSweepCatalogTests
         List<string> stale = [.. MatrixSweepCatalog.Cases.Select(c => c.Key)
             .Concat(MatrixSweepCatalog.ExcludedEntries.Keys)
             .Where(key => !matrixKeys.Contains(key))
-            .Select(key => key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName)];
+            .Select(key =>
+                key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName)];
 
         Assert.True(
             stale.Count == 0,
@@ -196,21 +208,17 @@ public sealed class SqliteMatrixSweepTests : MatrixSweepTestBase, IClassFixture<
 
     protected override void PrepareEngine(IDbConnection connection)
     {
-        // The FTS5 virtual table behind the SQLite Match(...) shape.
-        try
-        {
-            connection.Execute("CREATE VIRTUAL TABLE sweep_fts USING fts5(name)");
-            connection.Execute("INSERT INTO sweep_fts(name) VALUES ('alice database')");
-        }
-        catch
-        {
-            // Already created by an earlier run against the same database.
-        }
+        // The FTS5 virtual table behind the SQLite Match(...) shape; a real
+        // failure (no FTS5) surfaces here instead of as a later sweep mismatch.
+        connection.Execute("CREATE VIRTUAL TABLE IF NOT EXISTS sweep_fts USING fts5(name)");
+        connection.Execute("DELETE FROM sweep_fts");
+        connection.Execute("INSERT INTO sweep_fts(name) VALUES ('alice database')");
     }
 }
 
 [Trait("Engine", "PostgreSql")]
-public sealed class PostgreSqlMatrixSweepTests : MatrixSweepTestBase, IClassFixture<PostgreSqlFixture>
+public sealed class PostgreSqlMatrixSweepTests
+    : MatrixSweepTestBase, IClassFixture<PostgreSqlFixture>
 {
     public PostgreSqlMatrixSweepTests(PostgreSqlFixture fixture) : base(fixture)
     {
@@ -218,9 +226,8 @@ public sealed class PostgreSqlMatrixSweepTests : MatrixSweepTestBase, IClassFixt
 
     protected override void PrepareEngine(IDbConnection connection)
     {
-        // The vector/bit distance operators (#343) exist only once pgvector is loaded.
-        // No try/catch: IF NOT EXISTS is idempotent, and a missing pgvector install
-        // should fail here, not as six confusing sweep failures.
+        // pgvector-only operators (#343). No try/catch: IF NOT EXISTS is idempotent,
+        // and a missing install should fail here, not as six sweep failures.
         connection.Execute("CREATE EXTENSION IF NOT EXISTS vector");
     }
 }
@@ -235,13 +242,13 @@ public sealed class MySqlMatrixSweepTests : MatrixSweepTestBase, IClassFixture<M
     protected override void PrepareEngine(IDbConnection connection)
     {
         // MATCH ... AGAINST needs a FULLTEXT index matching the searched columns.
-        try
+        long existing = connection.ExecuteScalar<long>(
+            "SELECT COUNT(*) FROM information_schema.STATISTICS "
+            + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' "
+            + "AND INDEX_NAME = 'sweep_ft_name'");
+        if (existing == 0)
         {
             connection.Execute("CREATE FULLTEXT INDEX sweep_ft_name ON users(name)");
-        }
-        catch
-        {
-            // Already created by an earlier run against the same database.
         }
     }
 }

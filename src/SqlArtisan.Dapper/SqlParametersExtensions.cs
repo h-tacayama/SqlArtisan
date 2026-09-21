@@ -15,7 +15,8 @@ public static class SqlParametersExtensions
     /// </summary>
     /// <param name="parameters">The SqlArtisan parameter bindings to convert.</param>
     /// <returns>A <see cref="DynamicParameters"/> carrying the same bindings, ready for Dapper.</returns>
-    /// <remarks>Used mainly by this package's <see cref="SqlMapper"/> connection extensions.</remarks>
+    /// <remarks>Used mainly by this package's <see cref="SqlMapper"/> connection
+    /// extensions.</remarks>
     public static DynamicParameters ToDynamicParameters(
         this SqlParameters parameters)
     {
@@ -25,8 +26,7 @@ public static class SqlParametersExtensions
         {
             if (bind is BindArrayValue)
             {
-                // Not passed as a raw value: Dapper would rewrite the marker
-                // into an IN list, corrupting = ANY (:n).
+                // See ArrayQueryParameter for why the array is not a raw value.
                 dynamicParameters.Add(name, new ArrayQueryParameter(bind.Value));
                 return;
             }

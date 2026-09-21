@@ -1,20 +1,17 @@
-using System.Text;
 using Dapper;
 
 namespace SqlArtisan.Benchmark;
 
 public static class DapperSqlBuilderBenchmark
 {
+    // A constant, as a caller would write it: assembling the template per call
+    // would charge this entrant for scaffolding no other entrant pays.
+    private const string Template =
+        "SELECT u.id AS user_id, u.name AS user_name, COUNT(o.id) AS order_count\n"
+        + "FROM users u/**innerjoin**//**where**//**groupby**//**orderby**/";
+
     public static (string Sql, int ParameterCount) Run()
     {
-        var template = new StringBuilder();
-        template.AppendLine("SELECT u.id AS user_id, u.name AS user_name, COUNT(o.id) AS order_count");
-        template.Append("FROM users u");
-        template.Append("/**innerjoin**/");
-        template.Append("/**where**/");
-        template.Append("/**groupby**/");
-        template.Append("/**orderby**/");
-
         DynamicParameters parameters = new();
         parameters.Add("p0", new DateTime(2024, 1, 1));
         parameters.Add("p1", new DateTime(2025, 1, 1));
@@ -26,7 +23,7 @@ public static class DapperSqlBuilderBenchmark
             .GroupBy("u.id, u.name")
             .OrderBy("order_count DESC");
 
-        SqlBuilder.Template query = builder.AddTemplate(template.ToString(), parameters);
+        SqlBuilder.Template query = builder.AddTemplate(Template, parameters);
 
         string sql = query.RawSql;
 

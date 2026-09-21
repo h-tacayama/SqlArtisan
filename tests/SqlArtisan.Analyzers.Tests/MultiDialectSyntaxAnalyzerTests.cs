@@ -4,12 +4,9 @@ using Microsoft.CodeAnalysis.Testing;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// The #432 <c>sqlartisan_syntax_*</c> family: set-valued rule behavior (join
-/// wording, one diagnostic per failing DBMS, an override resolved once) and
-/// the four SQLA0001 configuration-problem reasons plus SQLA0002's
-/// deprecation nag. <see cref="DialectUsageAnalyzerTests"/> covers the
-/// single-DBMS case (unchanged messages/counts); this file covers what only a
-/// multi-DBMS set can exercise.
+/// The #432 <c>sqlartisan_syntax_*</c> family: what only a multi-DBMS set can
+/// exercise (join wording, one diagnostic per failing DBMS, SQLA0001's reasons and
+/// SQLA0002); <see cref="DialectUsageAnalyzerTests"/> covers the single-DBMS case.
 /// </summary>
 public class MultiDialectSyntaxAnalyzerTests
 {
@@ -22,6 +19,19 @@ public class MultiDialectSyntaxAnalyzerTests
             void M()
             {
                 var x = {|#0:Rollup("a")|};
+            }
+        }
+        """;
+
+    private const string ConcatArityUsageTemplate = """
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
+
+        class C
+        {
+            void M()
+            {
+                var x = {|#0:Concat("a", "b", "c")|};
             }
         }
         """;
@@ -100,10 +110,9 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
-    // Except is version-bound on both MySQL (8.0.31) and Oracle (21) but plain
-    // matrix-supported on PostgreSQL with no bound — SQLA0101/0103's cardinality
-    // rule (one diagnostic per failing DBMS, unlike SQLA0100's join) means two
-    // reports here, and PostgreSQL contributes none.
+    // Except is version-bound on MySQL (8.0.31) and Oracle (21) but unbounded on
+    // PostgreSQL: SQLA0101 reports once per failing DBMS (unlike SQLA0100's join),
+    // so two reports here and none for PostgreSQL.
     [Fact]
     public async Task Sqla0101_SetHasMultipleVersionBoundDbms_ReportsOnePerFailingDbms()
     {
@@ -127,10 +136,9 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
-    // MergeInto fails two different ways across the set at once (#432's own
-    // example): MySQL has no matrix entry saying it supports MERGE at all
-    // (SQLA0100), PostgreSQL supports it but not below 15 (SQLA0101). Dropping
-    // either would hide a real, differently-actionable fact — both are reported.
+    // MergeInto fails two ways across the set (#432's example): MySQL has no MERGE
+    // entry (SQLA0100), PostgreSQL supports it only from 15 (SQLA0101); both facts
+    // are actionable, so both are reported.
     [Fact]
     public async Task ConstructFailsTwoWaysAcrossTheSet_ReportsBothSqla0100AndSqla0101()
     {
@@ -148,15 +156,19 @@ public class MultiDialectSyntaxAnalyzerTests
             .WithArguments("MergeInto", "MySQL", "sqlartisan_construct_merge_into"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101")
             .WithLocation(0)
-            .WithArguments("MergeInto", "PostgreSQL", "15", "14", "sqlartisan_construct_merge_into"));
+            .WithArguments(
+                "MergeInto",
+                "PostgreSQL",
+                "15",
+                "14",
+                "sqlartisan_construct_merge_into"));
 
         await test.RunAsync();
     }
 
-    // The override is the user's own claim about their configuration — dialect-
-    // independent, so it is resolved once per usage (ADR 0008, refined by #432),
-    // never once per DBMS in the set. Forcing Rollup unsupported across three
-    // configured dialects still reports exactly one diagnostic naming all three.
+    // The override is the user's claim about their configuration — dialect-
+    // independent, resolved once per usage (ADR 0008, #432): forcing Rollup
+    // unsupported across three dialects reports one diagnostic naming all three.
     [Fact]
     public async Task ConstructOverride_ResolvedOnceAcrossTheSet_NotDuplicatedPerDbms()
     {
@@ -203,11 +215,9 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
-    // SQLA0102's context rules pair each trigger with the one dialect whose
-    // grammar restricts it (#264) — becoming "is this dialect in the set", not
-    // "is it the target". PostgreSQL in the same set supports Limit outright
-    // (no matrix or context restriction) and contributes nothing; the
-    // diagnostic still fires exactly once, for MySQL.
+    // SQLA0102 pairs each trigger with the one dialect whose grammar restricts it
+    // (#264) — "is this dialect in the set", not "is it the target"; PostgreSQL
+    // supports Limit outright, so the diagnostic fires once, for MySQL.
     [Fact]
     public async Task Sqla0102_MySqlInASetWithPostgreSql_StillReports()
     {
@@ -228,7 +238,8 @@ public class MultiDialectSyntaxAnalyzerTests
                 {
                     T t = new T();
                     T s = new T();
-                    var q = Select(t.Id).From(t).Where(t.Id.In({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|}));
+                    var q = Select(t.Id).From(t).Where(
+                        t.Id.In({|#0:Select(s.Id).From(s).OrderBy(s.Id).Limit(2)|}));
                 }
             }
             """;
@@ -256,9 +267,13 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_syntax_postgres = 16
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_syntax_postgres", "mysql/oracle/postgresql/sqlite/sqlserver"));
+            .WithArguments(
+                "sqlartisan_syntax_postgres",
+                "mysql/oracle/postgresql/sqlite/sqlserver"));
 
         await test.RunAsync();
     }
@@ -273,11 +288,43 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_syntax_oracle = tru
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
             .WithArguments(
-                "sqlartisan_syntax_oracle", "tru", "any, none, or a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+                "sqlartisan_syntax_oracle", "tru", "any, none, or a numeric engine version such as "
+                    + "8.0.16, 23, 3.44, or 2022"));
 
+        await test.RunAsync();
+    }
+
+    // Reported per key, not per value: the same typo migrated from the MSBuild
+    // property into .editorconfig is two mistakes, each named (release audit pass 7).
+    [Fact]
+    public async Task LegacyDbmsSameJunkOnBothSurfaces_ReportsBothKeys()
+    {
+        const string globalConfig = """
+            is_global = true
+            build_property.SqlArtisanTargetDbms = postgres
+            build_property.SqlArtisanTargetVersion = 16
+            """;
+        const string editorConfig = """
+            root = true
+            [*.cs]
+            sqlartisan_target_dbms = postgres
+            """;
+
+        const string expected = "one of: mysql/oracle/postgresql/sqlite/sqlserver";
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("build_property.SqlArtisanTargetDbms", "postgres", expected));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_target_dbms", "postgres", expected));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_<dbms> = <version-or-any>"));
         await test.RunAsync();
     }
 
@@ -293,7 +340,9 @@ public class MultiDialectSyntaxAnalyzerTests
             build_property.SqlArtisanTargetVersion = 16 or so
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig: null);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig: null);
         test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
             .WithArguments(
@@ -318,7 +367,9 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_syntax_postgresql = 14!!
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
             .WithArguments(
                 "sqlartisan_syntax_postgresql",
@@ -338,9 +389,12 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_syntax_oracle = none
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
-            "In at least one file's effective configuration, every 'sqlartisan_syntax_*' key is 'none', "
+            "In at least one file's effective configuration, every 'sqlartisan_syntax_*' "
+                + "key is 'none', "
                 + "so that file has no dialect left to check"));
 
         await test.RunAsync();
@@ -362,7 +416,9 @@ public class MultiDialectSyntaxAnalyzerTests
         // Asserted by arguments, not just by id: the empty-set reason shares
         // SQLA0001, so a bare CompilerWarning("SQLA0001") would pass against
         // either message and prove nothing about which one won the dedup.
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
             .WithArguments(
                 "sqlartisan_syntax_oracle",
@@ -372,10 +428,9 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
-    // The same bad value through the MSBuild-property surface must report the
-    // same value-validation reason — reading only the .editorconfig key left
-    // the resolved set empty and reported "every key is 'none'", which no
-    // configuration here says.
+    // The same bad value through the MSBuild surface must report the same
+    // value-validation reason — reading only the .editorconfig key once left the
+    // set empty and reported "every key is 'none'".
     [Fact]
     public async Task InvalidValuedFamilyProperty_ReportsValueValidation_NotEmptySet()
     {
@@ -384,7 +439,9 @@ public class MultiDialectSyntaxAnalyzerTests
             build_property.SqlArtisanSyntaxOracle = tru
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig: null);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig: null);
         test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
             .WithArguments(
@@ -395,11 +452,9 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
-    // The shipped props declares a CompilerVisibleProperty per DBMS, and the
-    // SDK emits every declared property as a key — empty when unset — so these
-    // five reach every package consumer. Reading them as "family present"
-    // hijacked the resolution: a legacy-configured project lost its SQLA0100
-    // and got a coexistence report naming a key it never wrote.
+    // The shipped props declares a CompilerVisibleProperty per DBMS, so the SDK
+    // emits all five keys (empty when unset) to every consumer; read as "family
+    // present" they hijacked a legacy-configured project's resolution.
     [Fact]
     public async Task BlankFamilyPropertiesBesideLegacyPair_LeaveLegacyResolutionIntact()
     {
@@ -412,7 +467,9 @@ public class MultiDialectSyntaxAnalyzerTests
             build_property.SqlArtisanSyntaxSqlServer =
             """;
 
-        var test = AnalyzerVerifier.Create(RollupUsageTemplate, AnalyzerVerifier.LegacyEditorConfig("mysql"));
+        var test = AnalyzerVerifier.Create(
+            RollupUsageTemplate,
+            AnalyzerVerifier.LegacyEditorConfig("mysql"));
         test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
@@ -435,7 +492,9 @@ public class MultiDialectSyntaxAnalyzerTests
             build_property.SqlArtisanSyntaxSqlServer =
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig: null);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig: null);
         test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
 
         await test.RunAsync();
@@ -455,9 +514,46 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_syntax_oracle = any
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "postgresql", "PostgreSQL", "sqlartisan_syntax_postgresql = any"));
+            .WithArguments(
+                "sqlartisan_target_dbms",
+                "postgresql",
+                "PostgreSQL",
+                "sqlartisan_syntax_postgresql = any"));
+
+        await test.RunAsync();
+    }
+
+    // The report names the surface actually read: a project setting only the
+    // MSBuild property never wrote the .editorconfig line the message would
+    // otherwise claim is ignored.
+    [Fact]
+    public async Task LegacyDbmsViaMSBuildPropertyAndFamilyCoexist_ReportNamesTheMSBuildKey()
+    {
+        const string globalConfig = """
+            is_global = true
+            build_property.SqlArtisanTargetDbms = postgresql
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_oracle = any
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
+        test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "build_property.SqlArtisanTargetDbms",
+                "postgresql",
+                "PostgreSQL",
+                "sqlartisan_syntax_postgresql = any"));
 
         await test.RunAsync();
     }
@@ -477,19 +573,24 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_syntax_oracle = any
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "postgresql", "PostgreSQL", "sqlartisan_syntax_postgresql = 16"));
+            .WithArguments(
+                "sqlartisan_target_dbms",
+                "postgresql",
+                "PostgreSQL",
+                "sqlartisan_syntax_postgresql = 16"));
 
         await test.RunAsync();
     }
 
-    // The mid-migration state: the family names the same DBMS the legacy pair
-    // does, so nothing is dropped — a coexistence report here would claim a
-    // checked dialect is unchecked while an SQLA0101 in the same build proves
-    // it is checked, and would prescribe adding a key that is already written.
+    // Mid-migration: the family names the same DBMS the legacy pair does, so
+    // nothing is dropped — a coexistence report would claim an unchecked dialect
+    // while an SQLA0101 in the same build proves it checked.
     [Fact]
-    public async Task LegacyAndFamilyNameSameDbms_ReportsOnlyTheDialectDiagnostic_NoCoexistenceReport()
+    public async Task LegacyAndFamilySameDbms_ReportsTheDialectDiagnosticOnly()
     {
         const string editorConfig = """
             root = true
@@ -502,7 +603,12 @@ public class MultiDialectSyntaxAnalyzerTests
         var test = AnalyzerVerifier.Create(MergeIntoUsageTemplate, editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101")
             .WithLocation(0)
-            .WithArguments("MergeInto", "PostgreSQL", "15", "14", "sqlartisan_construct_merge_into"));
+            .WithArguments(
+                "MergeInto",
+                "PostgreSQL",
+                "15",
+                "14",
+                "sqlartisan_construct_merge_into"));
 
         await test.RunAsync();
     }
@@ -520,9 +626,12 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_syntax_postgresql = none
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001").WithMessage(
-            "In at least one file's effective configuration, every 'sqlartisan_syntax_*' key is 'none', "
+            "In at least one file's effective configuration, every 'sqlartisan_syntax_*' "
+                + "key is 'none', "
                 + "so that file has no dialect left to check"));
 
         await test.RunAsync();
@@ -542,7 +651,9 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_syntax_postgresql = tru
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
             .WithArguments(
                 "sqlartisan_syntax_postgresql",
@@ -565,7 +676,9 @@ public class MultiDialectSyntaxAnalyzerTests
             sqlartisan_target_version = 16
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(RollupUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
             .WithArguments("sqlartisan_syntax_<dbms> = <version-or-any>"));
 
@@ -585,11 +698,9 @@ public class MultiDialectSyntaxAnalyzerTests
         await test.RunAsync();
     }
 
-    // Like SQLA0001, SQLA0002 carries no file location, so only a global
-    // analyzer config reaches it (docs/analyzer.md's Migrating section names
-    // this as the TreatWarningsAsErrors escape hatch) — a file-scoped
-    // .editorconfig severity line does not (proven separately: it leaves the
-    // legacy pair's own SQLA0100 warning as the only diagnostic here too).
+    // Like SQLA0001, SQLA0002 carries no file location, so only a global analyzer
+    // config reaches it (docs/analyzer.md's Migrating section); the file-scoped
+    // twin below shows an .editorconfig severity line leaving it standing.
     [Fact]
     public async Task GlobalConfigSuppressesSqla0002_ButLeavesSqla0100Active()
     {
@@ -602,6 +713,120 @@ public class MultiDialectSyntaxAnalyzerTests
         var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
         test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", globalConfig));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task FileScopedSeverityDoesNotReachSqla0002()
+    {
+        string editorConfig = AnalyzerVerifier.LegacyEditorConfig("mysql")
+            + "\ndotnet_diagnostic.SQLA0002.severity = none\n";
+
+        var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_mysql = any"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task ArityLevelEntry_DisplayNameSaysDeclaredParameters()
+    {
+        // The declared-parameter phrasing is deliberate: at a params call site
+        // the declared count exceeds the written argument count, so an
+        // "N-argument form" display would read as a misfire.
+        var test = AnalyzerVerifier.Create(
+            ConcatArityUsageTemplate, AnalyzerVerifier.EditorConfig("oracle"));
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0100")
+                .WithLocation(0)
+                .WithMessage(
+                    "'Concat (overload declared with 4 parameters)' is not supported on Oracle. "
+                        + "Set 'sqlartisan_construct_concat_arity4 = supported' in .editorconfig "
+                        + "if your engine version supports it."));
+
+        await test.RunAsync();
+    }
+
+    private const string SecondaryUsageSource = """
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
+
+        class D
+        {
+            void M()
+            {
+                var x = Rollup("a");
+            }
+        }
+        """;
+
+    // Directory-scoped .editorconfig files are an advertised shape, so the
+    // dedup must key on the message content, not one compilation-wide flag —
+    // a coarser key mutes the second directory's differing suggestion.
+    [Fact]
+    public async Task TwoDirectoriesWithDifferentLegacyConfigs_ReportSqla0002ForEach()
+    {
+        const string rootConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_target_dbms = postgresql
+            """;
+        const string subConfig = """
+            [*.cs]
+            sqlartisan_target_dbms = oracle
+            sqlartisan_target_version = 21
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            rootConfig);
+        test.TestState.Sources.Add(("/sub/Second.cs", SecondaryUsageSource));
+        test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_postgresql = any"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
+            .WithArguments("sqlartisan_syntax_oracle = 21"));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task TwoDirectoriesWithDifferentDroppedVersions_ReportSqla0001ForEach()
+    {
+        const string rootConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_oracle = any
+            sqlartisan_target_dbms = postgresql
+            sqlartisan_target_version = 15
+            """;
+        const string subConfig = """
+            [*.cs]
+            sqlartisan_target_version = 16
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(RollupUsageTemplate),
+            rootConfig);
+        test.TestState.Sources.Add(("/sub/Second.cs", SecondaryUsageSource));
+        test.TestState.AnalyzerConfigFiles.Add(("/sub/.editorconfig", subConfig));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_target_dbms",
+                "postgresql",
+                "PostgreSQL",
+                "sqlartisan_syntax_postgresql = 15"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments(
+                "sqlartisan_target_dbms",
+                "postgresql",
+                "PostgreSQL",
+                "sqlartisan_syntax_postgresql = 16"));
 
         await test.RunAsync();
     }

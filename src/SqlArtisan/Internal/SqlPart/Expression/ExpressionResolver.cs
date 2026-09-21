@@ -57,7 +57,7 @@ internal static class ExpressionResolver
     // A T[]-typed sibling of the IReadOnlyCollection<T> overload: foreach over a
     // concrete array is a compiler-recognized zero-allocation loop, while the same
     // foreach through the interface allocates the array's enumerator (measured
-    // 32 B/call, ADR 0006). Every other array foreach in the library is this shape.
+    // 32 B/call, ADR 0006).
     internal static SqlExpression[] Resolve<T>(T[] items)
     {
         var resolved = new SqlExpression[items.Length];
@@ -152,7 +152,8 @@ internal static class ExpressionResolver
     internal static ArgumentException UnresolvableValue(string position, object item) =>
         item is IIncompleteExpression incomplete
             ? new ArgumentException(
-                $"{item.GetType().Name} is not a complete SQL expression. {incomplete.CompletionHint}")
+                $"{item.GetType().Name} is not a complete SQL expression. "
+                    + $"{incomplete.CompletionHint}")
             : new ArgumentException(
                 $"Invalid type for {position}: {item.GetType()}");
 

@@ -139,7 +139,9 @@ entries. Run this pass — an independent-context refutation catches
 overclaims your own drafting pass cannot see past.
 
 Spawn **one** independent subagent (`sa-reviewer`) with an explicitly
-adversarial mission — "try to refute this", never "check this is right".
+adversarial mission — "try to refute this", never "check this is right" —
+and, in a release audit, the audit framing: the corpus as it stands, never a
+diff, with no "mergeable" verdict in the report.
 One subagent covering all findings is the right shape here; do not spawn
 several to split the work or to re-verify each other. Prime refutation
 targets in docs:

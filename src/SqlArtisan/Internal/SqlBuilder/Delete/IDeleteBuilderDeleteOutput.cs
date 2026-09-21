@@ -12,6 +12,6 @@ public interface IDeleteBuilderDeleteOutput : IDeleteBuilderDelete
     /// <see cref="Sql.Deleted(DbColumn)"/>.
     /// </summary>
     /// <param name="items">The columns or expressions to output; literals are auto-parameterized and <c>.As(...)</c> aliases are allowed.</param>
-    /// <returns>The builder positioned to redirect the output <c>Into(...)</c> an archive table, or continue with <c>WHERE</c> / <c>FROM</c> / <c>USING</c> / build.</returns>
+    /// <returns>The builder positioned to redirect the output <c>Into(...)</c> an archive table, or continue with <c>WHERE</c> / <c>FROM</c> / build.</returns>
     IDeleteBuilderOutputInto Output(params object[] items);
 }

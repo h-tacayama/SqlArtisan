@@ -15,11 +15,9 @@ namespace SqlArtisan.Analyzers.Tests;
 /// exclusion) is <see cref="DialectMatrixCoverageTests"/>.
 ///
 /// <para>
-/// Also gates the one shape that gate pair cannot see (#491): a member entered
-/// *only* at arity level has no member-level row to fall back to, so its
-/// entries partition it rather than narrow it (ADR 0021) and an overload whose
-/// arity is missing falls out of coverage — silently, since the coverage gate
-/// keys on member name alone.
+/// Also gates the shape that pair cannot see (#491): a member entered only at
+/// arity level is partitioned, not narrowed, by its entries (ADR 0021), so an
+/// overload whose arity is missing falls out of coverage silently.
 /// </para>
 /// </summary>
 public class DialectMatrixIntegrityTests
@@ -41,7 +39,8 @@ public class DialectMatrixIntegrityTests
     {
         Assert.True(
             MemberExists(memberName, arity),
-            $"Matrix entry '{memberName}'{(arity is { } a ? $" (arity {a})" : string.Empty)} does not resolve to any public member in SqlArtisan.dll.");
+            $"Matrix entry '{memberName}'{(arity is { } a ? $" (arity {a})" : string.Empty)} does "
+                + $"not resolve to any public member in SqlArtisan.dll.");
     }
 
     private static bool MemberExists(string name, int? arity)
@@ -50,7 +49,8 @@ public class DialectMatrixIntegrityTests
         foreach (Type type in assembly.GetExportedTypes())
         {
             bool methodMatch = type
-                .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .GetMethods(BindingFlags.Public
+                    | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Where(m => (!m.IsSpecialName || IsOperator(m)) && m.Name == name)
                 .Any(m => !arity.HasValue || m.GetParameters().Length == arity.Value);
             if (methodMatch)
@@ -61,7 +61,8 @@ public class DialectMatrixIntegrityTests
             if (!arity.HasValue)
             {
                 bool propertyMatch = type
-                    .GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .GetProperties(BindingFlags.Public
+                        | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                     .Any(p => p.Name == name);
                 if (propertyMatch)
                 {
@@ -80,7 +81,8 @@ public class DialectMatrixIntegrityTests
     /// </summary>
     public static TheoryData<string> PartitionedMembers()
     {
-        HashSet<string> memberLevel = [.. DialectMatrix.AllKeys.Where(k => k.Arity is null).Select(k => k.MemberName)];
+        HashSet<string> memberLevel = [.. DialectMatrix.AllKeys.Where(k =>
+            k.Arity is null).Select(k => k.MemberName)];
 
         var data = new TheoryData<string>();
         foreach (string name in DialectMatrix.AllKeys
@@ -112,7 +114,8 @@ public class DialectMatrixIntegrityTests
             uncovered.Count == 0,
             $"'{memberName}' is entered only at arity level, so its entries partition the member "
             + $"rather than narrow a member-level fallback (ADR 0021). These public overloads have "
-            + $"no entry and would never warn: arity {string.Join(", ", uncovered)}. Add the missing "
+            + $"no entry and would never warn: arity {string.Join(", ", uncovered)}. "
+                + $"Add the missing "
             + "arity entries, or add a member-level entry to serve as the fallback.");
     }
 
@@ -122,7 +125,8 @@ public class DialectMatrixIntegrityTests
         foreach (Type type in assembly.GetExportedTypes())
         {
             foreach (MethodInfo method in type
-                .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .GetMethods(BindingFlags.Public
+                    | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Where(m => (!m.IsSpecialName || IsOperator(m)) && m.Name == memberName))
             {
                 yield return method.GetParameters().Length;

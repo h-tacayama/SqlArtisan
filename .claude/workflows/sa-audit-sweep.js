@@ -148,7 +148,8 @@ reading "Source control information is not available" is a known artifact
 of a sandboxed git remote that isn't a real github.com host, not a
 code-quality issue. Disregard only that exact warning; anything else still
 counts against the bar. Summarize any failure in one or two lines (if
-multiple test suites ran, name which one failed).`,
+multiple test suites ran, name which one failed). Report each suite's own
+pass count verbatim; never sum suites into a total.`,
   { model: 'haiku', effort: 'low', label: 'gates', phase: 'Gates', schema: GATES_SCHEMA }
 )
 
@@ -342,7 +343,8 @@ const reviewResults = await pipeline(
       `Deep-review this SqlArtisan file group as part of a larger multi-group
 pass. This audits the tree as it stands: phrase findings and the chunk verdict
 in audit terms (defects standing in shipped code), never as a merge/diff
-verdict. Gates already ran and passed/failed as follows — do not re-run them:
+verdict — the words "mergeable", "merge-ready", and "this change" do not
+belong in the report. Gates already ran and passed/failed as follows — do not re-run them:
 ${gates.summary}
 
 GROUP: ${unit.category}${unit.chunkLabel !== unit.category ? ` — ${unit.chunkLabel}` : ''}
@@ -366,16 +368,32 @@ your report.
 Separate MUST FIX (bugs, ADR violations, invalid/wrong SQL, missing guards)
 from SHOULD DISCUSS (convention trade-offs, coverage gaps, doc drift) and
 NITS. Cite file:line and, for any DBMS-grammar or allocation claim, the
-verbatim probe output that backs it.
+verbatim probe output that backs it — output captured in this run, never a
+remembered or reconstructed probe. A candidate asking the library to throw
+must name the decided mechanism it invokes — ADR 0011's Build(Dbms) bounded
+exception (analyzer-invisible value, no valid spelling on the target), ADR
+0012's eager value-domain guard, or an SQLA0102 analyzer context rule
+(the SQLA0102 context family) — and say why ADR 0007's faithful emission does
+not already answer it.
 
 Before filing any candidate — at every tier, SHOULD DISCUSS and NITS
-included — check it against the decided records: the ADRs, the
-.claude/rules/ clauses, and the decline ledger
-(.claude/rules/review-declines.md). One matching a precisely worded
-clause (or a ledger entry marked [precise]) is not a finding: cite the
-record and drop it. One that only resembles a terse ledger entry is NOT
-yours to suppress — report it normally, tagged "possibly decided by
-RD-NNN", and triage adjudicates the match (protocol in the ledger file).`,
+included — check it against the decided records: the ADRs and the
+.claude/rules/ clauses. One matching a clause that states the behaviour
+and why is not a finding: cite the record and drop it. One that only
+resembles a clause is not covered — report it normally.
+
+The FILES list above is your whole mandate: a finding about a file outside
+it belongs to another chunk — do not file it, and do not treat the list's
+edges as a coverage gap. Quote evidence verbatim (probe output, the cited
+line's text): paraphrased citations are where past sweeps' factual errors
+came from. Every count, git, or grep citation carries the command's pasted
+output, and every dialect-grammar claim you did not probe live is tagged
+grammar-unverified. This is an audit of the tree as it stands, never a diff
+review: describe the code's current state, and never a change; scoping a
+verdict by git diff, merge-base, or "pre-existing" is itself an INCONSISTENCY
+the verifier files, because it waves off standing defects. Before claiming a test or comment predates a convention, prove
+the vintage with git log --follow on that file (run git fetch --unshallow
+first if the clone is shallow) — never from the file's current shape.`,
       {
         agentType: 'sa-reviewer',
         model: 'sonnet',
@@ -402,7 +420,9 @@ ${review}
 
 For each finding: attempt to refute it against primary sources — the code
 itself, test catalogs, ADRs, or a live /tmp harness probe — never the
-review's own text. Re-output the full review with every finding annotated:
+review's own text. Verify the review's citations verbatim (a misquoted
+line or count is itself a refutation), and check any vintage claim
+("predates the convention") with git log --follow on an unshallowed clone. Re-output the full review with every finding annotated:
 - CONFIRMED — with the evidence that survived refutation (verbatim probe
   output or the primary source's file:line)
 - REFUTED — with the disproving evidence
@@ -472,14 +492,8 @@ Tasks:
    MUST FIX or SHOULD DISCUSS. A chunk marked "(adversarial verification
    unavailable...)" was never verified — say so in Coverage and treat its
    findings as unverified.
-3. Route findings tagged "possibly decided by RD-NNN" into the "Possibly
-   decided" section below, tag intact — never into MUST FIX / SHOULD
-   DISCUSS / NITS. Task 2 applies first: a REFUTED tagged finding drops
-   like any other refuted finding. What a tagged finding is never dropped
-   for is the decline match itself — triage adjudicates that
-   (.claude/rules/review-declines.md), the synthesis must not.
-4. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
-5. Decide a verdict: Clean / Clean after must-fix / Not clean. A failing gate
+3. Prioritize: MUST FIX > SHOULD DISCUSS > NITS.
+4. Decide a verdict: Clean / Clean after must-fix / Not clean. A failing gate
    above is itself a MUST FIX and blocks "Clean" — and so is a coverage gap
    (a missing or duplicated file above) and a chunk failure (a chunk above
    that never returned a result): both mean files in scope were silently
@@ -500,7 +514,6 @@ Output as a headed report:
 ### MUST FIX
 ### SHOULD DISCUSS
 ### NITS
-### Possibly decided (awaiting triage adjudication)
 
 ## Coverage
 - Scope: ${scopeLabel}

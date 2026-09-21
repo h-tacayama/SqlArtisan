@@ -57,14 +57,14 @@ public class UpsertTests
         // Arrange
         StringBuilder expected = new();
         expected.Append("INSERT INTO test_table (code, name, created_at) ");
-        expected.Append("VALUES (:0, :1, SYSDATE) ");
+        expected.Append("VALUES (:0, :1, CURRENT_TIMESTAMP) ");
         expected.Append("ON CONFLICT (code, name) ");
         expected.Append("DO UPDATE SET created_at = EXCLUDED.created_at");
 
         // Act
         SqlStatement sql =
             InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
-            .Values(1, "a", Sysdate)
+            .Values(1, "a", CurrentTimestamp)
             .OnConflict(_t.Code, _t.Name)
             .DoUpdateSet(_t.CreatedAt == Excluded(_t.CreatedAt))
             .Build(Dbms.PostgreSql);
@@ -76,12 +76,8 @@ public class UpsertTests
     [Fact]
     public void OnConflict_DoUpdateSet_WithWhere_CorrectSql()
     {
-        // Arrange
-        // In DO UPDATE ... WHERE, both the target row and EXCLUDED are in scope,
-        // so a target column must be qualified. The table alias declared on the
-        // INSERT target (INSERT INTO ... AS "d") supplies that qualifier
-        // naturally — no manual table-name qualification needed. The column list,
-        // ON CONFLICT target, and SET left side stay unqualified.
+        // In DO UPDATE ... WHERE both the target row and EXCLUDED are in scope, so the
+        // target alias qualifies the column; the list, target, and SET side stay bare.
         TestTable d = new("d");
 
         StringBuilder expected = new();
@@ -199,14 +195,14 @@ public class UpsertTests
         // Arrange
         StringBuilder expected = new();
         expected.Append("INSERT INTO test_table (code, name, created_at) ");
-        expected.Append("VALUES (?0, ?1, SYSDATE) ");
+        expected.Append("VALUES (?0, ?1, CURRENT_TIMESTAMP) ");
         expected.Append("AS new ");
         expected.Append("ON DUPLICATE KEY UPDATE name = new.name, created_at = new.created_at");
 
         // Act
         SqlStatement sql =
             InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
-            .Values(1, "a", Sysdate)
+            .Values(1, "a", CurrentTimestamp)
             .OnDuplicateKeyUpdate(
                 _t.Name == Excluded(_t.Name),
                 _t.CreatedAt == Excluded(_t.CreatedAt))
@@ -252,7 +248,20 @@ public class UpsertTests
             .DoUpdateSet(_t.Name == Excluded(_t.Name), null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'items')",
+            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OnDuplicateKeyUpdate_NullAssignment_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "a")
+            .OnDuplicateKeyUpdate(_t.Name == Excluded(_t.Name), null!));
+
+        Assert.Equal(
+            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
             ex.Message);
     }
 
@@ -291,7 +300,7 @@ public class UpsertTests
     }
 
     [Fact]
-    public void OnConflict_BuiltForOracle_EmitsFaithfullyWithoutThrowing()
+    public void OnConflict_Oracle_EmitsFaithfullyWithoutThrowing()
     {
         // Arrange
         // Oracle has no ON CONFLICT construct, so this is wrong-DBMS usage. Faithful
@@ -313,5 +322,62 @@ public class UpsertTests
 
         // Assert
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DoUpdateSet_NonColumnLeftSide_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code)
+                .Values(1)
+                .OnConflict(_t.Code)
+                .DoUpdateSet(Abs(_t.Code) == 5));
+
+        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+    }
+
+    [Fact]
+    public void OnConflict_PostgreSql_EmptyTargetWithDoUpdateSet_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code, _t.Name)
+                .Values(1, "x")
+                .OnConflict()
+                .DoUpdateSet(_t.Name == Excluded(_t.Name))
+                .Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "PostgreSQL requires a conflict target for ON CONFLICT DO UPDATE; "
+                + "name the column(s) in OnConflict(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void OnConflict_Sqlite_EmptyTargetWithDoUpdateSet_CorrectSql()
+    {
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(1, "x")
+            .OnConflict()
+            .DoUpdateSet(_t.Name == Excluded(_t.Name))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO test_table (code, name) ");
+        expected.Append("VALUES (:0, :1) ");
+        expected.Append("ON CONFLICT DO UPDATE SET name = excluded.name");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("x", sql.Parameters.Get<string>(":1"));
+    }
+
+    [Fact]
+    public void OnConflict_DuplicateTargetColumn_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code).Values(1).OnConflict(_t.Code, _t.Code));
+
+        Assert.Equal("An ON CONFLICT target must not name a column twice.", ex.Message);
     }
 }

@@ -12,6 +12,12 @@ internal sealed class InsertValuesClause : SqlPart
     internal static InsertValuesClause Parse(object[] values) =>
         new(InsertValueResolver.Resolve(values));
 
+    internal static InsertValuesClause FromResolved(SqlExpression[] firstRow) => new(firstRow);
+
+    internal int RowWidth => _rows[0].Length;
+
+    internal void AddResolvedRow(SqlExpression[] row) => _rows.Add(row);
+
     internal void AddRow(object[] values)
     {
         SqlExpression[] row = InsertValueResolver.Resolve(values);
@@ -19,8 +25,8 @@ internal sealed class InsertValuesClause : SqlPart
         if (row.Length != _rows[0].Length)
         {
             throw new ArgumentException(
-                "All rows in a multi-row INSERT must have the same number of values. " +
-                $"The first row has {_rows[0].Length}, but this row has {row.Length}.");
+                "All rows in a multi-row INSERT must have the same number of values; " +
+                $"the first row has {_rows[0].Length}, but this row has {row.Length}.");
         }
 
         _rows.Add(row);

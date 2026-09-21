@@ -1,13 +1,9 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The <c>GROUP_CONCAT(expr)</c> string aggregate (MySQL and SQLite). The two
-/// dialects diverge on the separator: SQLite takes a positional second argument
-/// (<c>GROUP_CONCAT(expr, sep)</c>), while MySQL uses a <c>SEPARATOR</c> keyword
-/// supplied via <c>Sql.Separator(...)</c>. <c>DISTINCT</c> is supported by both
-/// (SQLite only in the single-argument form, without a separator). MySQL also
-/// accepts an inline <c>ORDER BY</c>, passed as an <c>Sql.OrderBy(...)</c>
-/// argument because it sits inside the call.
+/// The <c>GROUP_CONCAT(expr)</c> string aggregate (MySQL and SQLite). SQLite takes the
+/// separator positionally, MySQL via <c>Sql.Separator(...)</c>; an inline <c>ORDER BY</c>
+/// (MySQL and SQLite) is passed as an <c>Sql.OrderBy(...)</c> argument.
 /// </summary>
 /// <remarks>
 /// MySQL silently truncates the result at <c>group_concat_max_len</c> (1024

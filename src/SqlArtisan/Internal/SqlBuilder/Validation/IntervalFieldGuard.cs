@@ -1,9 +1,8 @@
 namespace SqlArtisan.Internal;
 
-// Oracle interval literal field rules (ADR 0012). Each is call-site-fixed and
-// true wherever this literal shape is accepted at all, so each is eager. A
-// precision-bearing sole SECOND is deliberately *not* guarded: it renders
-// Oracle's leading precision, so it fails ADR 0012's universally-invalid test.
+// Oracle interval literal field rules (ADR 0012): call-site-fixed and true
+// wherever this literal shape is accepted at all, so eager. A sole SECOND with
+// precision is deliberately unguarded — it renders Oracle's leading precision.
 internal static class IntervalFieldGuard
 {
     private static readonly HashSet<(DateTimePart Leading, DateTimePart Trailing)> ValidRanges =
@@ -31,7 +30,8 @@ internal static class IntervalFieldGuard
         if (!ValidRanges.Contains((leading.Field, trailing.Field)))
         {
             throw new ArgumentException(
-                $"INTERVAL {DatepartKeywords.Of(leading.Field)} TO {DatepartKeywords.Of(trailing.Field)} is not a valid field range.");
+                $"INTERVAL {DatepartKeywords.Of(leading.Field)} TO "
+                    + $"{DatepartKeywords.Of(trailing.Field)} is not a valid field range.");
         }
 
         // A trailing precision is the fractional-seconds count, so it exists only on
@@ -39,7 +39,8 @@ internal static class IntervalFieldGuard
         if (trailing.HasPrecision && trailing.Field != DateTimePart.Second)
         {
             throw new ArgumentException(
-                $"A trailing {DatepartKeywords.Of(trailing.Field)} in an INTERVAL range does not support a precision; only TO SECOND does.");
+                $"A trailing {DatepartKeywords.Of(trailing.Field)} in an INTERVAL range does not "
+                    + $"support a precision; only TO SECOND does.");
         }
     }
 }

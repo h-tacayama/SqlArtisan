@@ -7,16 +7,16 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// The <c>UNBOUNDED PRECEDING</c> window-frame bound.
-    /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static FrameBound UnboundedPreceding => FrameBound.UnboundedPreceding();
-
-    /// <summary>
     /// The <c>UNBOUNDED FOLLOWING</c> window-frame bound.
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static FrameBound UnboundedFollowing => FrameBound.UnboundedFollowing();
+
+    /// <summary>
+    /// The <c>UNBOUNDED PRECEDING</c> window-frame bound.
+    /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public static FrameBound UnboundedPreceding => FrameBound.UnboundedPreceding();
 
     /// <summary>
     /// The <c>UNNEST(arrays)</c> table function: expands one or more arrays into
@@ -30,7 +30,8 @@ public static partial class Sql
     /// <returns>An <see cref="UnnestFunction"/> emitting <c>UNNEST(arrays)</c>.</returns>
     public static UnnestFunction Unnest(params object[] arrays)
     {
-        CollectionGuard.ThrowIfEmpty(arrays, "UNNEST(...) requires at least one array.");
+        CollectionGuard.ThrowIfEmpty(
+            arrays, nameof(arrays), "UNNEST(...) requires at least one array.");
         return new(Resolve(arrays));
     }
 

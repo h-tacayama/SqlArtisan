@@ -54,7 +54,8 @@ public class DialectUsageAnalyzerTests
     [Fact]
     public async Task NoTargetConfigured_StaysSilent()
     {
-        var test = AnalyzerVerifier.Create(RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty));
+        var test = AnalyzerVerifier.Create(
+            RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty));
         await test.RunAsync();
     }
 
@@ -85,7 +86,9 @@ public class DialectUsageAnalyzerTests
             sqlartisan_construct_rollup = supported
             """;
 
-        var test = AnalyzerVerifier.Create(RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+            editorConfig);
         await test.RunAsync();
     }
 
@@ -109,7 +112,9 @@ public class DialectUsageAnalyzerTests
     [Fact]
     public async Task VersionBoundConstructBelowDeclaredTarget_ReportsSqla0101()
     {
-        var test = AnalyzerVerifier.Create(DatetruncUsageTemplate, AnalyzerVerifier.EditorConfig("sqlserver", "2019"));
+        var test = AnalyzerVerifier.Create(
+            DatetruncUsageTemplate,
+            AnalyzerVerifier.EditorConfig("sqlserver", "2019"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101").WithLocation(0));
 
         await test.RunAsync();
@@ -119,7 +124,9 @@ public class DialectUsageAnalyzerTests
     public async Task VersionBoundConstructAtDeclaredTarget_StaysSilent()
     {
         var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(DatetruncUsageTemplate), AnalyzerVerifier.EditorConfig("sqlserver", "2022"));
+            AnalyzerVerifier.Unmarked(DatetruncUsageTemplate), AnalyzerVerifier.EditorConfig(
+                "sqlserver",
+                "2022"));
 
         await test.RunAsync();
     }
@@ -130,7 +137,9 @@ public class DialectUsageAnalyzerTests
     [Fact]
     public async Task VersionBoundConstruct_OracleDeclaredVersionNoBound_ReportsSqla0100()
     {
-        var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle", "23"));
+        var test = AnalyzerVerifier.Create(
+            WithRecursiveUsageTemplate,
+            AnalyzerVerifier.EditorConfig("oracle", "23"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
@@ -139,7 +148,9 @@ public class DialectUsageAnalyzerTests
     [Fact]
     public async Task VersionBoundConstruct_OracleNoDeclaredVersion_ReportsSqla0100()
     {
-        var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("oracle"));
+        var test = AnalyzerVerifier.Create(
+            WithRecursiveUsageTemplate,
+            AnalyzerVerifier.EditorConfig("oracle"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
         await test.RunAsync();
@@ -151,7 +162,9 @@ public class DialectUsageAnalyzerTests
     [Fact]
     public async Task VersionBoundConstruct_MySqlBelowBound_ReportsSqla0101()
     {
-        var test = AnalyzerVerifier.Create(WithRecursiveUsageTemplate, AnalyzerVerifier.EditorConfig("mysql", "5.7"));
+        var test = AnalyzerVerifier.Create(
+            WithRecursiveUsageTemplate,
+            AnalyzerVerifier.EditorConfig("mysql", "5.7"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101").WithLocation(0));
 
         await test.RunAsync();
@@ -161,15 +174,16 @@ public class DialectUsageAnalyzerTests
     public async Task VersionBoundConstruct_MySqlAtBound_StaysSilent()
     {
         var test = AnalyzerVerifier.Create(
-            AnalyzerVerifier.Unmarked(WithRecursiveUsageTemplate), AnalyzerVerifier.EditorConfig("mysql", "8.0"));
+            AnalyzerVerifier.Unmarked(WithRecursiveUsageTemplate), AnalyzerVerifier.EditorConfig(
+                "mysql",
+                "8.0"));
 
         await test.RunAsync();
     }
 
-    // DeleteBuilder.Using(params TableReference[]) (plain DELETE ... USING) shares its
-    // arity-1 matrix key with MergeBuilder.Using(TableReference), which carries no
-    // PostgreSQL 15 bound of its own — MERGE's bound lives on MergeInto instead. A
-    // declared version below 15 must not report SQLA0101 for the DELETE form.
+    // DeleteBuilder.Using(params TableReference[]) shares its arity-1 matrix key
+    // with MergeBuilder.Using, which carries no PostgreSQL 15 bound (MERGE's lives
+    // on MergeInto), so a version below 15 must not report SQLA0101 for DELETE.
     [Fact]
     public async Task DeleteUsing_PostgreSqlBelowMergeVersion_StaysSilent()
     {
@@ -194,7 +208,9 @@ public class DialectUsageAnalyzerTests
             }
             """;
 
-        var test = AnalyzerVerifier.Create(template, AnalyzerVerifier.EditorConfig("postgresql", "14"));
+        var test = AnalyzerVerifier.Create(
+            template,
+            AnalyzerVerifier.EditorConfig("postgresql", "14"));
 
         await test.RunAsync();
     }
@@ -203,7 +219,7 @@ public class DialectUsageAnalyzerTests
     // documented pitfall) — but the key itself still resolves, so it still
     // earns the SQLA0002 deprecation nag even though it has no dialect effect.
     [Fact]
-    public async Task VersionBoundConstruct_OnlyVersionDeclaredNoTargetDbms_StaysSilentOnDialectRulesButReportsSqla0002()
+    public async Task VersionOnlyNoTargetDbms_SilentOnDialectRules_ReportsSqla0002()
     {
         const string editorConfig = """
             root = true
@@ -212,7 +228,9 @@ public class DialectUsageAnalyzerTests
             sqlartisan_target_version = 2019
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(DatetruncUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(DatetruncUsageTemplate),
+            editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
             .WithArguments("sqlartisan_syntax_<dbms> = <version-or-any>"));
         await test.RunAsync();
@@ -229,7 +247,9 @@ public class DialectUsageAnalyzerTests
             sqlartisan_construct_datetrunc = supported
             """;
 
-        var test = AnalyzerVerifier.Create(AnalyzerVerifier.Unmarked(DatetruncUsageTemplate), editorConfig);
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(DatetruncUsageTemplate),
+            editorConfig);
         await test.RunAsync();
     }
 
@@ -241,10 +261,15 @@ public class DialectUsageAnalyzerTests
     {
         string editorConfig = AnalyzerVerifier.LegacyEditorConfig("postgres");
 
-        string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
+        string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace(
+            "|}",
+            string.Empty);
         var test = AnalyzerVerifier.Create(source, editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
-            .WithArguments("sqlartisan_target_dbms", "postgres", "one of: mysql/oracle/postgresql/sqlite/sqlserver"));
+            .WithArguments(
+                "sqlartisan_target_dbms",
+                "postgres",
+                "one of: mysql/oracle/postgresql/sqlite/sqlserver"));
 
         await test.RunAsync();
     }
@@ -257,11 +282,14 @@ public class DialectUsageAnalyzerTests
     {
         string editorConfig = AnalyzerVerifier.LegacyEditorConfig("postgresql", "latest");
 
-        string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace("|}", string.Empty);
+        string source = RollupUsageTemplate.Replace("{|#0:", string.Empty).Replace(
+            "|}",
+            string.Empty);
         var test = AnalyzerVerifier.Create(source, editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
             .WithArguments(
-                "sqlartisan_target_version", "latest", "a numeric engine version such as 8.0.16, 23, 3.44, or 2022"));
+                "sqlartisan_target_version", "latest", "a numeric engine version such as 8.0.16, "
+                    + "23, 3.44, or 2022"));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0002")
             .WithArguments("sqlartisan_syntax_postgresql = any"));
 
@@ -288,11 +316,33 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task InvalidOverrideValue_OnNonMatrixDerivedKey_ReportsSqla0001()
+    {
+        // ResolveOverride honors any construct-prefixed key, but Concat's member
+        // key derives from no matrix entry (its rows are arity-keyed), so a value
+        // typo there was silent before the options-key sweep (release audit pass 1).
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_mysql = any
+            sqlartisan_construct_concat = suported
+            """;
+
+        var test = AnalyzerVerifier.Create(RollupUsageTemplate, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0001")
+            .WithArguments("sqlartisan_construct_concat", "suported", "supported/unsupported"));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task StringAggThreeArgForm_OnSqlServer_ReportsSqla0100ButTwoArgFormDoesNot()
     {
-        // Real matrix arity split (not synthetic): StringAgg's 2-arg form is PostgreSQL + SQL
-        // Server, but the 3-arg inline-ORDER-BY form is PostgreSQL-only — SQL Server orders via
-        // the separate .WithinGroup(...) chain instead.
+        // Real matrix arity split (not synthetic): StringAgg's 2-arg form runs on
+        // PostgreSQL, SQLite, and SQL Server, but the 3-arg inline-ORDER-BY form drops
+        // SQL Server — it orders via the separate .WithinGroup(...) chain instead.
         const string source = """
             using SqlArtisan;
             using static SqlArtisan.Sql;
@@ -348,6 +398,56 @@ public class DialectUsageAnalyzerTests
         var test = AnalyzerVerifier.Create(source, editorConfig);
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
 
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task RegexpReplaceExtendedArity_BelowBound_ReportsSqla0101_BaseFormDoesNot()
+    {
+        // Real matrix arity split: the 3-arg base form predates PostgreSQL 15; 15
+        // added the position/occurrence signature, so only the extended arities
+        // carry the bound (release audit pass 1).
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = RegexpReplace("name", "a", "b");
+                    var bad = {|#0:RegexpReplace("name", "a", "b", 1)|};
+                }
+            }
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            source,
+            AnalyzerVerifier.EditorConfig("postgresql", "14"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0101").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task RegexpReplaceExtendedArity_PostgreSqlAtBound_StaysSilent()
+    {
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = RegexpReplace("name", "a", "b", 1);
+                }
+            }
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            source,
+            AnalyzerVerifier.EditorConfig("postgresql", "15"));
         await test.RunAsync();
     }
 
@@ -452,9 +552,9 @@ public class DialectUsageAnalyzerTests
     [Fact]
     public async Task RegexpLike_OnPostgreSql_StaysSilent()
     {
-        // Regression for a fixed false positive: the XML docs say "Oracle syntax" only, but
-        // PostgreSQL 15 added regexp_like with the same signature — the PostgreSQL 16 baseline
-        // supports it, so the original Oracle-only entry warned on valid PostgreSQL usage.
+        // Regression for a fixed false positive: PostgreSQL 15 added regexp_like with the
+        // same signature, so the original Oracle-only entry warned on valid PostgreSQL usage
+        // (the XML docs carried the same Oracle-only claim at the time).
         const string source = """
             using SqlArtisan;
             using static SqlArtisan.Sql;

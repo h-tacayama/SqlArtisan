@@ -23,7 +23,9 @@ built.
    resolve (CS1574 = 0).
 5. Layout: `<summary>` spans three `///` lines (open / text / close), even
    one-liners; `<param>` / `<returns>` / `<exception>` stay inline. Keywords →
-   `<see langword="null"/>`; SQL tokens → `<c>`.
+   `<see langword="null"/>`; SQL tokens → `<c>`. An argument constraint (null,
+   empty, must be non-empty) is stated by `<exception>`; `<param>` may restate
+   it and need not — never add one for parity alone.
 6. Put a builder step's doc on its `ISelectBuilder*` interface, not the
    implementation.
 

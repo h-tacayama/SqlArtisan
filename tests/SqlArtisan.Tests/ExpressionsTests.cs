@@ -106,4 +106,33 @@ public class ExpressionsTests
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
+
+    // Instance operator overloads sit outside the factory sweep's reach
+    // (typeof(Sql) statics only), so the family is gated here by reflection.
+    [Fact]
+    public void Operators_NullLeftOperand_EveryOverloadThrowsArgumentNullException()
+    {
+        System.Reflection.MethodInfo[] operators = [.. typeof(SqlExpression)
+            .GetMethods(
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(m => m.Name.StartsWith("op_", StringComparison.Ordinal)
+                && m.GetParameters().Length == 2
+                && m.GetParameters()[0].ParameterType == typeof(SqlExpression))];
+
+        Assert.Equal(11, operators.Length);
+
+        foreach (System.Reflection.MethodInfo op in operators)
+        {
+            System.Reflection.TargetInvocationException wrapped =
+                Assert.Throws<System.Reflection.TargetInvocationException>(() =>
+                    op.Invoke(null, [null, 1]));
+            ArgumentNullException ex = Assert.IsType<ArgumentNullException>(wrapped.InnerException);
+
+            Assert.Equal("this", ex.ParamName);
+            Assert.StartsWith(
+                "The left operand of an operator cannot be null; "
+                    + "write Sql.Null for a SQL NULL literal.",
+                ex.Message);
+        }
+    }
 }

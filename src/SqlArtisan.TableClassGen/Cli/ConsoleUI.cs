@@ -7,9 +7,7 @@ internal sealed class ConsoleUI
         Console.WriteLine();
         Console.WriteLine("Please enter database information.");
 
-        Console.Write(DatabaseTypePrompt);
-        string answer = Console.ReadLine() ?? string.Empty;
-        Dbms dbms = ParseDatabaseType(answer);
+        Dbms dbms = ReadDatabaseType();
 
         // SQLite is file-based, so it skips the host/port/credentials prompts.
         if (dbms == Dbms.Sqlite)
@@ -25,8 +23,7 @@ internal sealed class ConsoleUI
 
         int port = ReadPort(dbms);
 
-        Console.Write("Service name (or database name): ");
-        string serviceName = Console.ReadLine() ?? string.Empty;
+        string serviceName = ReadRequired("Service name (or database name): ", "database name");
 
         string? schema = null;
         if (dbms == Dbms.PostgreSql)
@@ -48,8 +45,7 @@ internal sealed class ConsoleUI
             schema = serviceName;
         }
 
-        Console.Write("Username: ");
-        string username = Console.ReadLine() ?? string.Empty;
+        string username = ReadRequired("Username: ", "user name");
 
         Console.Write("Password: ");
         string password = GetPasswordFromConsole();
@@ -64,6 +60,40 @@ internal sealed class ConsoleUI
             password);
     }
 
+    // Re-prompted like ReadPort: a blank answer here would otherwise surface as a
+    // driver error far from the prompt, where the CLI path says "--x is required".
+    private static string ReadRequired(string prompt, string what)
+    {
+        while (true)
+        {
+            Console.Write(prompt);
+            string answer = Console.ReadLine() ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(answer))
+            {
+                return answer;
+            }
+
+            Console.WriteLine($"A {what} is required.");
+        }
+    }
+
+    private static Dbms ReadDatabaseType()
+    {
+        while (true)
+        {
+            Console.Write(DatabaseTypePrompt);
+            string answer = Console.ReadLine() ?? string.Empty;
+            try
+            {
+                return ParseDatabaseType(answer);
+            }
+            catch (CommandLineException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+    }
+
     internal static int ReadPort(Dbms dbms)
     {
         while (true)
@@ -76,7 +106,7 @@ internal sealed class ConsoleUI
                 return DbmsOption.DefaultPort(dbms);
             }
 
-            if (int.TryParse(portStr, out int port) && port is > 0 and <= 65535)
+            if (DbmsOption.TryParsePort(portStr, out int port))
             {
                 return port;
             }
@@ -87,8 +117,7 @@ internal sealed class ConsoleUI
 
     private static DbConnectionInfo ReadSqliteConnectionInfo()
     {
-        Console.Write("Database file path: ");
-        string filePath = Console.ReadLine() ?? string.Empty;
+        string filePath = ReadRequired("Database file path: ", "file path");
 
         return new DbConnectionInfo(
             Dbms.Sqlite,
@@ -154,9 +183,16 @@ internal sealed class ConsoleUI
     {
         string value = answer.Trim();
 
-        return int.TryParse(value, out int choice) && choice >= 1 && choice <= Choices.Length
-            ? Choices[choice - 1].Dbms
-            : DbmsOption.Parse(value);
+        if (int.TryParse(value, out int choice) && choice >= 1 && choice <= Choices.Length)
+        {
+            return Choices[choice - 1].Dbms;
+        }
+
+        return DbmsOption.TryParse(value, out Dbms dbms)
+            ? dbms
+            : throw new CommandLineException(
+                "Enter a number from the list, or one of mysql, oracle, postgresql (or "
+                    + $"postgres), sqlite, sqlserver (or mssql) (got '{value}').");
     }
 
     private static string GetPasswordFromConsole()
@@ -185,24 +221,5 @@ internal sealed class ConsoleUI
 
         Console.WriteLine();
         return password;
-    }
-
-    public void ShowProgress(string message)
-    {
-        Console.WriteLine(message);
-    }
-
-    public void ShowError(string message)
-    {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"Error: {message}");
-        Console.ResetColor();
-    }
-
-    public void ShowSuccess(string message)
-    {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine(message);
-        Console.ResetColor();
     }
 }

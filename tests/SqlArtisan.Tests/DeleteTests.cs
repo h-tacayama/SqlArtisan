@@ -66,7 +66,9 @@ public class DeleteTests
             DeleteFrom(_t).Where(_t.Code == 1).Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE statement; use an unaliased target table.",
+            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
+                + "statement; use an unaliased target table — a correlated UPDATE or DELETE joins "
+                + "through From(...) instead.",
             ex.Message);
     }
 
@@ -105,7 +107,7 @@ public class DeleteTests
             .Build());
 
         Assert.Equal(
-            "The target of a correlated UPDATE or DELETE must be aliased.",
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
             ex.Message);
     }
 
@@ -144,7 +146,7 @@ public class DeleteTests
             .Build());
 
         Assert.Equal(
-            "The target of a correlated UPDATE or DELETE must be aliased.",
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
             ex.Message);
     }
 
@@ -458,5 +460,59 @@ public class DeleteTests
 
         Assert.Equal(
             "OUTPUT cannot be combined with USING; use one or the other.", ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_Using_ThrowsArgumentException()
+    {
+        // The re-list remedy the joined-target guard names is unreachable from
+        // a Using(...) chain, so T-SQL's missing USING form is named first.
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+                .Using(s)
+                .Where(t.Code == s.Code)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "SQL Server has no DELETE ... USING form; join through From(...), "
+                + "re-listing the target table.",
+            ex.Message);
+    }
+
+    // The exemption covers the whole body: a subquery nested inside the CTE still
+    // resolves in the CTE's scope (release audit pass 8).
+    [Theory]
+    [InlineData("in")]
+    [InlineData("exists")]
+    [InlineData("scalar")]
+    [InlineData("derived")]
+    public void DeleteFrom_CteBodyNestedSubqueryReferencingTarget_CorrectSql(string nesting)
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+
+        ISubquery body = nesting switch
+        {
+            "in" => Select(r.Code.As(cte.CteCode)).From(r).Where(r.Code.In(Select(t.Code).From(t))),
+            "exists" => Select(r.Code.As(cte.CteCode)).From(r)
+                .Where(Exists(Select(t.Code).From(t))),
+            "scalar" => Select(Select(Max(t.Code)).From(t).As("cte_code")).From(r),
+            _ => Select(r.Code.As(cte.CteCode)).From(Select(t.Code).From(t).AsTable("d"), r),
+        };
+
+        SqlStatement sql =
+            With(cte.As(body))
+            .DeleteFrom(t)
+            .Where(t.Code.In(Select(cte.CteCode).From(cte)))
+            .Build();
+
+        Assert.StartsWith("WITH \"cte\" AS (", sql.Text);
+        Assert.EndsWith(
+            "DELETE FROM test_table WHERE code IN (SELECT \"cte\".cte_code FROM \"cte\")",
+            sql.Text);
     }
 }

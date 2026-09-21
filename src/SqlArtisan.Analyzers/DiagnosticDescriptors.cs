@@ -20,13 +20,12 @@ internal static class DiagnosticDescriptors
     // guard is a shape the library can repeat, not because a queue is waiting.
     private const string ValidityCategory = "SqlArtisan.Validity";
 
-    private const string HelpLinkUri = "https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md";
+    private const string HelpLinkUri =
+        "https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md";
 
-    // {2} carries its own "one of: "/"a numeric ..." lead-in per call site (the
-    // target-dbms/override-value/target-version keys don't all read naturally
-    // under one fixed lead-in phrase). Retitled under #432: this id now also
-    // reports a valid-but-lossy configuration (an empty resolved set, a
-    // coexisting legacy pair), not only an unrecognized value.
+    // {2} carries its own lead-in phrase per call site — the config surfaces
+    // don't all read naturally under one fixed phrase. The id also covers
+    // valid-but-lossy configuration, not only unrecognized values (#432).
     public static readonly DiagnosticDescriptor InvalidConfiguration = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
@@ -37,10 +36,8 @@ internal static class DiagnosticDescriptors
         helpLinkUri: HelpLinkUri,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
-    // A second SQLA0001 report reason (#432): the DBMS-in-the-key-name shape
-    // Keys enumeration makes typo-detectable, unlike the legacy pair's
-    // DBMS-in-the-value shape (docs/analyzer.md's now-corrected claim that a
-    // key-name typo can never be caught).
+    // A second SQLA0001 reason (#432): a DBMS in the key name is typo-detectable
+    // through Keys enumeration, unlike the legacy pair's DBMS-in-the-value shape.
     public static readonly DiagnosticDescriptor UnrecognizedConfigurationKey = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
@@ -51,45 +48,40 @@ internal static class DiagnosticDescriptors
         helpLinkUri: HelpLinkUri,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
-    // A third SQLA0001 report reason (#432): every rule's "set non-empty" gate
-    // reads an all-`none` family exactly like "unconfigured" — the same silent
-    // failure mode the legacy pair's Backward Compatibility section calls out,
-    // reachable here by one typo-adjacent `none`. Scoped to "at least one file"
-    // rather than the whole build: a deliberate path-scoped `none` carve-out
-    // (docs/analyzer.md's own example) makes this true for that path alone
-    // while other files still resolve a real set.
+    // An all-`none` family reads like "unconfigured" to every rule (#432).
+    // Scoped to "at least one file": a path-scoped `none` carve-out is
+    // deliberate for that path while other files still resolve a real set.
     public static readonly DiagnosticDescriptor ConfigurationDisablesAllDialects = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
-        messageFormat: "In at least one file's effective configuration, every 'sqlartisan_syntax_*' key is 'none', so that file has no dialect left to check",
+        messageFormat: "In at least one file's effective configuration, every "
+            + "'sqlartisan_syntax_*' key is 'none', so that file has no dialect left to check",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
-    // A fourth SQLA0001 report reason (#432): the legacy pair and the family
-    // resolve independently (family wins outright, never merged), so a project
-    // adding sqlartisan_syntax_* alongside an existing legacy pair silently
-    // drops the legacy pair's DBMS unless told.
+    // A fourth SQLA0001 reason (#432): the family wins over the legacy pair
+    // outright, so a project adding it beside the pair drops that DBMS unless told.
     public static readonly DiagnosticDescriptor LegacyConfigurationIgnored = new(
         id: "SQLA0001",
         title: "SqlArtisan analyzer configuration problem",
-        messageFormat: "'{0} = {1}' is ignored where 'sqlartisan_syntax_*' is set, so {2} is not checked. Add '{3}' to keep it.",
+        messageFormat: "'{0} = {1}' is ignored where 'sqlartisan_syntax_*' is set, so {2} is not "
+            + "checked. Add '{3}' to keep it.",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri,
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
-    // A dedicated id (#432), not a fifth SQLA0001 reason: SQLA0001 exists so a
-    // misconfiguration never goes silently unnoticed, and sharing an id with a
-    // Warning-severity nag would give every NoWarn/severity-override lever
-    // that silences the nag the same reach into real config-error detection.
+    // A dedicated id (#432): sharing SQLA0001 with a Warning-severity nag would
+    // let every lever that silences the nag silence real config-error detection.
     public static readonly DiagnosticDescriptor LegacyConfigDeprecated = new(
         id: "SQLA0002",
         title: "'sqlartisan_target_dbms' / 'sqlartisan_target_version' are deprecated",
-        messageFormat: "'sqlartisan_target_dbms'/'sqlartisan_target_version' are deprecated; use '{0}' instead",
+        messageFormat: "'sqlartisan_target_dbms'/'sqlartisan_target_version' are deprecated; use "
+            + "'{0}' instead",
         category: ConfigurationCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -99,20 +91,20 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor UnsupportedDialectConstruct = new(
         id: "SQLA0100",
         title: "SQL construct not supported on the target dialect",
-        messageFormat: "'{0}' is not supported on {1}. Set '{2} = supported' in .editorconfig if your engine version supports it.",
+        messageFormat: "'{0}' is not supported on {1}. Set '{2} = supported' in .editorconfig if "
+            + "your engine version supports it.",
         category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // Distinct from SQLA0100 (#263): the dialect itself supports the construct, but
-    // not at the caller's declared sqlartisan_target_version — a version shortfall,
-    // not a dialect mismatch, so the remediation differs (raise the version, or
-    // override if the caller has verified their actual engine already supports it).
+    // Distinct from SQLA0100 (#263): a version shortfall, not a dialect mismatch,
+    // so the remediation differs (raise the version, or override after verifying).
     public static readonly DiagnosticDescriptor VersionBoundConstruct = new(
         id: "SQLA0101",
         title: "SQL construct requires a newer engine version than the declared target",
-        messageFormat: "'{0}' requires {1} {2}+ but the declared target version is {3}. Set '{4} = supported' in .editorconfig if your engine supports it.",
+        messageFormat: "'{0}' requires {1} {2}+ but the declared target version is {3}. Set '{4} = "
+            + "supported' in .editorconfig if your engine supports it.",
         category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -138,9 +130,8 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // No override-key hint, like SQLA0102: a construct-level sqlartisan_construct_*
-    // override says the construct itself works on the caller's engine, not that
-    // every DateTimePart value does — suppression is per-ID only.
+    // No override-key hint, like SQLA0102: a construct-level override speaks to
+    // the construct, not to a DateTimePart value (`supported` re-arms this check).
     public static readonly DiagnosticDescriptor InvalidDatepartArgument = new(
         id: "SQLA0104",
         title: "Datepart argument not supported on the target dialect",
@@ -166,7 +157,8 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor NotInNullableSubquery = new(
         id: "SQLA0201",
         title: "NOT IN over a nullable subquery column returns no rows when it yields NULL",
-        messageFormat: "'{0}' is nullable, so this NOT IN matches no rows at all when the subquery yields a NULL",
+        messageFormat: "'{0}' is nullable, so this NOT IN matches no rows at all when the subquery "
+            + "yields a NULL",
         category: SchemaCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -178,7 +170,8 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor InsertMissingRequiredColumn = new(
         id: "SQLA0202",
         title: "INSERT omits a column that is NOT NULL with no default",
-        messageFormat: "'{0}' is NOT NULL with no default and is missing from this INSERT's column list",
+        messageFormat: "'{0}' is NOT NULL with no default and is missing from this "
+            + "INSERT's column list",
         category: SchemaCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -190,7 +183,8 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor CountNullableColumn = new(
         id: "SQLA0203",
         title: "COUNT of a nullable column counts values, not rows",
-        messageFormat: "'{0}' is nullable, so this COUNT skips its NULL rows. Use Count(Asterisk) to count rows.",
+        messageFormat: "'{0}' is nullable, so this COUNT skips its NULL rows. Use Count(Asterisk) "
+            + "to count rows.",
         category: SchemaCategory,
         defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: false,
@@ -202,7 +196,8 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor UnusableIndexPredicate = new(
         id: "SQLA0204",
         title: "Filter shapes an indexed column so no index on it can be used",
-        messageFormat: "'{0}' leads an index, but this filter has it {1}, so no index on it can be used",
+        messageFormat: "'{0}' leads an index, but this filter has it {1}, so no index on "
+            + "it can be used",
         category: SchemaCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -214,20 +209,19 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor TypeCategoryMismatch = new(
         id: "SQLA0205",
         title: "Column compared to a value of another type category",
-        messageFormat: "'{0}' is {1}, but this compares it to {2}. Cast one side to say which you mean.",
+        messageFormat: "'{0}' is {1}, but this compares it to {2}. Cast one side to say "
+            + "which you mean.",
         category: SchemaCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // Mirrors the Build()-time guard's message (parity-tested, modulo the
-    // trailing period RS1032 forbids on a single-sentence diagnostic): the
-    // diagnostic is the same finding surfaced earlier, and suppressing it does
-    // not disable the throw.
+    // Mirrors the Build()-time guard's message (parity-tested, modulo the period
+    // RS1032 forbids): the same finding surfaced earlier; suppressing it keeps the throw.
     public static readonly DiagnosticDescriptor CorrelatedDmlTargetNotAliased = new(
         id: "SQLA0300",
-        title: "Correlated UPDATE or DELETE target is not aliased",
-        messageFormat: "The target of a correlated UPDATE or DELETE must be aliased",
+        title: "Correlated UPDATE, DELETE, or MERGE target is not aliased",
+        messageFormat: "The target of a correlated UPDATE, DELETE, or MERGE must be aliased",
         category: ValidityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

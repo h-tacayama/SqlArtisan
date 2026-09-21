@@ -17,7 +17,7 @@ using static SqlArtisan.Sql;
 // Its value is that it COMPILES: using DateTimePart in expression position across
 // every function that takes it proves the collision is gone. If the collision is
 // ever reintroduced, this file stops compiling. The SQL each function emits is
-// already covered exhaustively by FunctionTests.D/E, so no output is asserted here.
+// already covered exhaustively by FunctionTests.D/E/I/N/T, so no output is asserted here.
 namespace SqlArtisanRegressionTests;
 
 public class DateTimePartNameCollisionTests
@@ -32,6 +32,12 @@ public class DateTimePartNameCollisionTests
             Select(Dateadd(DateTimePart.Month, 1, CurrentTimestamp)).Build(),
             Select(Datediff(DateTimePart.Day, CurrentTimestamp, CurrentTimestamp)).Build(),
             Select(DateTrunc(DateTimePart.Month, CurrentTimestamp)).Build(),
+            Select(Datetrunc(DateTimePart.Month, CurrentTimestamp)).Build(),
+            Select(CurrentTimestamp + Interval(1, DateTimePart.Day)).Build(),
+            Select(Numtodsinterval(1, DateTimePart.Day)).Build(),
+            Select(Numtoyminterval(1, DateTimePart.Month)).Build(),
+            Select(Timestampadd(DateTimePart.Month, 1, CurrentTimestamp)).Build(),
+            Select(Timestampdiff(DateTimePart.Day, CurrentTimestamp, CurrentTimestamp)).Build(),
         ];
 
         Assert.All(statements, statement => Assert.False(string.IsNullOrEmpty(statement.Text)));

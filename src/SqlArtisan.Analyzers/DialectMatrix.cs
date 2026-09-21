@@ -53,14 +53,15 @@ internal static class DialectMatrix
     /// newer one; use the <c>sqlartisan_construct_*</c> override to correct
     /// for that rather than treating this table as exhaustive across versions.
     /// </summary>
-    public static readonly IReadOnlyDictionary<TargetDbms, string> VerifiedAgainstVersion = new Dictionary<TargetDbms, string>
-    {
-        [TargetDbms.MySql] = "MySQL 8.0 (Testcontainers `mysql:8.0`)",
-        [TargetDbms.Oracle] = "Oracle Database XE 21c (Testcontainers.Oracle module default image, gvenzl/oracle-xe:21.3.0-slim-faststart)",
-        [TargetDbms.PostgreSql] = "PostgreSQL 16 (Testcontainers `pgvector/pgvector:0.8.6-pg16`)",
-        [TargetDbms.Sqlite] = "the SQLite engine shipped by the pinned SQLitePCLRaw.bundle_e_sqlite3 3.0.3, via Microsoft.Data.Sqlite 9.0.5 (in-process, no container)",
-        [TargetDbms.SqlServer] = "SQL Server 2022 (Testcontainers `mcr.microsoft.com/mssql/server:2022-latest`)",
-    };
+    public static readonly IReadOnlyDictionary<TargetDbms, string> VerifiedAgainstVersion =
+        new Dictionary<TargetDbms, string>
+        {
+            [TargetDbms.MySql] = "MySQL 8.0 (Testcontainers `mysql:8.0`)",
+            [TargetDbms.Oracle] = "Oracle Database XE 21c (Testcontainers.Oracle module default image, gvenzl/oracle-xe:21.3.0-slim-faststart)",
+            [TargetDbms.PostgreSql] = "PostgreSQL 16 (Testcontainers `pgvector/pgvector:0.8.6-pg16`)",
+            [TargetDbms.Sqlite] = "the SQLite engine shipped by the pinned SQLitePCLRaw.bundle_e_sqlite3 3.0.3, via Microsoft.Data.Sqlite 9.0.5 (in-process, no container)",
+            [TargetDbms.SqlServer] = "SQL Server 2022 (Testcontainers `mcr.microsoft.com/mssql/server:2022-latest`)",
+        };
 
     private static readonly Dictionary<MatrixKey, DbmsSupport> Entries = new()
     {
@@ -131,8 +132,9 @@ internal static class DialectMatrix
         [new MatrixKey("StringAgg", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("Listagg")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         // GroupConcat: see the key-collision caveat above — the three arity-2 overloads
-        // (SQLite's positional separator, MySQL's OrderBy and Separator forms) collapse to
-        // this MySQL/SQLite union, so a MySQL-only form used on SQLite stays silent.
+        // (the positional separator: SQLite-only; the inline OrderBy: MySQL and SQLite
+        // 3.44+; the SEPARATOR keyword: MySQL-only) collapse to this MySQL/SQLite
+        // union, so a single-dialect form used on the other dialect stays silent.
         [new MatrixKey("GroupConcat")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: true, sqlServer: false),
 
         // --- PostgreSQL / Oracle single-dialect helpers ---
@@ -144,7 +146,7 @@ internal static class DialectMatrix
         // --- UPSERT / MERGE (CHANGELOG 0.3.0-beta.1, #85, #89) ---
         [new MatrixKey("OnConflict")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("OnDuplicateKeyUpdate")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: false, sqlite: false, sqlServer: false),
-        // MERGE is PostgreSQL 15+ (version caveat — use the override if targeting an older PostgreSQL).
+        // MERGE is PostgreSQL 15+; the Bounds row below makes that SQLA0101's verdict.
         [new MatrixKey("MergeInto")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("Excluded")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
 
@@ -252,6 +254,9 @@ internal static class DialectMatrix
 
         // --- Conversion functions ---
         [new MatrixKey("ToChar")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // PostgreSQL's to_char requires the format argument (like to_number below);
+        // the 1-arg form is Oracle-only.
+        [new MatrixKey("ToChar", 1)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
         [new MatrixKey("ToDate")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("ToNumber")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         // PostgreSQL's to_number requires the format argument (smoke-catalog note); the
@@ -260,10 +265,11 @@ internal static class DialectMatrix
         [new MatrixKey("ToTimestamp")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         // Format: SQL Server's FORMAT (Sql.F.cs XML docs, #231); both the 2-arg and
         // 3-arg (culture) overloads share this support, so one member-wide entry covers both.
-        // MySQL and SQLite each have their own same-named but incompatible FORMAT() (a
-        // number-decimals formatter and a printf() alias respectively) that accepts the
-        // call syntax without erroring — live-verified false positive on the MySQL 8.0
-        // integration sweep — so both stay false here despite the call "working".
+        // MySQL, PostgreSQL, and SQLite each have their own same-named but incompatible
+        // FORMAT() (a number-decimals formatter and two printf()-style substitutions)
+        // that can accept the call syntax without erroring — live-verified false positive
+        // on the MySQL 8.0 integration sweep — so all three stay false here despite the
+        // call "working".
         [new MatrixKey("Format")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         // --- REGEXP_* family: Oracle syntax; MySQL 8.0 has REGEXP_LIKE/REGEXP_REPLACE/
         // REGEXP_SUBSTR/REGEXP_INSTR (live-verified by the integration smoke catalog;
@@ -276,6 +282,12 @@ internal static class DialectMatrix
         [new MatrixKey("RegexpLike")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpCount")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpReplace")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        // RegexpReplace's support is identical at every arity; these rows exist only
+        // to carry PostgreSQL's 15 bound (below) on the position/occurrence/options
+        // arities without it spilling onto the pre-15 3-arg base form.
+        [new MatrixKey("RegexpReplace", 4)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("RegexpReplace", 5)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("RegexpReplace", 6)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("RegexpSubstr")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         // RegexpSubstr's 6-argument form adds subexpr, the capture-group position —
         // MySQL's REGEXP_SUBSTR tops out at 5 arguments (match_type, no subexpr;
@@ -288,7 +300,8 @@ internal static class DialectMatrix
         [new MatrixKey("RegexpInstr", 7)] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- Window functions ---
-        // NthValue: XML docs + docs/functions.md + docs/expressions.md all state "Not supported by SQL Server".
+        // NthValue: XML docs + docs/functions.md + docs/expressions.md all state "Not supported by
+        // SQL Server".
         [new MatrixKey("NthValue")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
 
         // --- Set operators ---
@@ -308,7 +321,8 @@ internal static class DialectMatrix
         // --- RETURNING (docs/query-statements.md: "supported by Oracle, PostgreSQL, and SQLite
         // (3.35+). Not supported by SQL Server (uses OUTPUT) or MySQL.") ---
         [new MatrixKey("Returning")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // "Into" (the RETURNING ... INTO chain) is Oracle-specific — narrower than Returning itself.
+        // "Into" (the RETURNING ... INTO chain) is Oracle-specific — narrower than Returning
+        // itself.
         [new MatrixKey("Into")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
         // --- OUTPUT (SQL Server): the RETURNING counterpart, plus the INSERTED./DELETED.
@@ -351,7 +365,8 @@ internal static class DialectMatrix
         [new MatrixKey("OrderBy")] = DbmsSupport.All,
         // On: join ON (universal) + MERGE ON (Oracle/PostgreSQL/SQL Server) share the name — union.
         [new MatrixKey("On")] = DbmsSupport.All,
-        // Set: UPDATE SET (universal); the SET-like INSERT emits standard INSERT (docs note), not MySQL's INSERT ... SET.
+        // Set: UPDATE SET (universal); the SET-like INSERT emits standard INSERT (docs note), not
+        // MySQL's INSERT ... SET.
         [new MatrixKey("Set")] = DbmsSupport.All,
         // Values: single-row INSERT is universal; Oracle before 23ai rejects multi-row VALUES
         // (#87; 23ai added the table value constructor) but the row count is a call-site value
@@ -364,20 +379,25 @@ internal static class DialectMatrix
         [new MatrixKey("CrossJoin")] = DbmsSupport.All,
         // FullJoin: MySQL has no FULL [OUTER] JOIN at all; SQLite added it in 3.39 (baseline OK).
         [new MatrixKey("FullJoin")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: true),
-        // NATURAL JOIN family (#197): standard SQL, but SQL Server has no NATURAL JOIN spelling at all.
+        // NATURAL JOIN family (#197): standard SQL, but SQL Server has no NATURAL JOIN spelling at
+        // all.
         [new MatrixKey("NaturalJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("NaturalLeftJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // NaturalRightJoin: SQLite added RIGHT JOIN in 3.39 (bundled baseline 3.50+), NATURAL included.
+        // NaturalRightJoin: SQLite added RIGHT JOIN in 3.39 (bundled baseline 3.50+), NATURAL
+        // included.
         [new MatrixKey("NaturalRightJoin")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // NaturalFullJoin: MySQL has no FULL JOIN at all (see FullJoin above), so NATURAL FULL is out too.
+        // NaturalFullJoin: MySQL has no FULL JOIN at all (see FullJoin above), so NATURAL FULL is
+        // out too.
         [new MatrixKey("NaturalFullJoin")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
-        // JOIN ... USING (#197): arity 2 (DbColumn, params DbColumn[]) avoids colliding with MERGE's
+        // JOIN ... USING (#197): arity 2 (DbColumn, params DbColumn[]) avoids colliding with
+        // MERGE's
         // arity-1 Using(TableReference) below — see the MatrixKey collision caveat above.
         [new MatrixKey("Using", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("With")] = DbmsSupport.All,
         // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
         // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL require
-        // it for recursion, SQLite accepts it. Oracle's rejection is live-probed on BOTH pinned images
+        // it for recursion, SQLite accepts it. Oracle's rejection is live-probed on BOTH pinned
+        // images
         // (21c: ORA-00905, 23ai: ORA-02000 — RECURSIVE parses as the query name), so the
         // once-registered "accepted at 23ai" claim is disproven; no version bound applies.
         [new MatrixKey("WithRecursive")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
@@ -385,7 +405,8 @@ internal static class DialectMatrix
         // grammar on all five engines; Oracle requires it on a recursive plain-WITH body
         // (ORA-32039), which is why the opt-in exists (#348).
         [new MatrixKey("WithColumnList")] = DbmsSupport.All,
-        // Asterisk: Sql.Asterisk (SELECT *) and TableReference.Asterisk (t.*) share the name — both universal.
+        // Asterisk: Sql.Asterisk (SELECT *) and TableReference.Asterisk (t.*) share the name — both
+        // universal.
         [new MatrixKey("Asterisk")] = DbmsSupport.All,
         [new MatrixKey("Distinct")] = DbmsSupport.All,
         // Hints: the mechanism (verbatim text after SELECT) is universal; the hint text itself
@@ -438,8 +459,9 @@ internal static class DialectMatrix
 
         // --- Functions with no dialect variance across the baselines ---
         [new MatrixKey("Abs")] = DbmsSupport.All,
-        // Exp/Floor/Power/Sqrt/Sign on SQLite are math functions (3.35+, SQLITE_ENABLE_MATH_FUNCTIONS;
-        // enabled in the bundled e_sqlite3 build) — sweep-confirm along with Mod.
+        // Exp/Floor/Power/Sqrt on SQLite are math functions (3.35+, SQLITE_ENABLE_MATH_FUNCTIONS;
+        // enabled in the bundled e_sqlite3 build); Sign is core but landed in the same
+        // release (sqlite func.c, outside the extension guard) — sweep-confirm with Mod.
         [new MatrixKey("Floor")] = DbmsSupport.All,
         [new MatrixKey("Exp")] = DbmsSupport.All,
         [new MatrixKey("Power")] = DbmsSupport.All,
@@ -485,7 +507,8 @@ internal static class DialectMatrix
         // (its concatenation operator is +, the existing AdditionOperator).
         [new MatrixKey("DoublePipe")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
 
-        // --- Window / analytic (universal on the baselines: MySQL 8.0+, SQLite 3.25+, SQL Server 2012+) ---
+        // --- Window / analytic (universal on the baselines: MySQL 8.0+, SQLite 3.25+, SQL Server
+        // 2012+) ---
         [new MatrixKey("Rank")] = DbmsSupport.All,
         [new MatrixKey("RowNumber")] = DbmsSupport.All,
         [new MatrixKey("DenseRank")] = DbmsSupport.All,
@@ -617,7 +640,8 @@ internal static class DialectMatrix
         // Oracle has CURRENT_DATE and CURRENT_TIMESTAMP but no CURRENT_TIME (no TIME type).
         [new MatrixKey("CurrentDate")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("CurrentTime")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
-        // Extract: ANSI EXTRACT(part FROM source) — no SQLite function, no T-SQL support (DATEPART).
+        // Extract: ANSI EXTRACT(part FROM source) — no SQLite function, no T-SQL support
+        // (DATEPART).
         [new MatrixKey("Extract")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
 
         // --- Aggregate chains ---
@@ -636,7 +660,8 @@ internal static class DialectMatrix
         [new MatrixKey("Union")] = DbmsSupport.All,
         [new MatrixKey("UnionAll")] = DbmsSupport.All,
         // Except/Intersect: MySQL added both in 8.0.31 (the floating mysql:8.0 baseline is past
-        // that); Oracle added EXCEPT in 21c (the pinned XE 21c baseline) — oracle-base.com 21c article.
+        // that); Oracle added EXCEPT in 21c (the pinned XE 21c baseline) — oracle-base.com 21c
+        // article.
         [new MatrixKey("Except")] = DbmsSupport.All,
         [new MatrixKey("Intersect")] = DbmsSupport.All,
         // The ALL variants: MySQL 8.0.31+, Oracle 21c+, PostgreSQL always; SQLite and SQL Server
@@ -693,6 +718,10 @@ internal static class DialectMatrix
         [new MatrixKey("Values", 3)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("WhenNotMatched")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
+        // The conditioned branch (WHEN [NOT] MATCHED AND cond THEN) is ISO/T-SQL/PostgreSQL 15;
+        // Oracle's MERGE takes the filter as a trailing WHERE on the action instead.
+        [new MatrixKey("WhenMatched", 1)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
+        [new MatrixKey("WhenNotMatched", 1)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("ThenInsert")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("ThenUpdateSet")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("DoNothing")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
@@ -752,6 +781,7 @@ internal static class DialectMatrix
 
         // --- MySQL 8.0.x point releases (matrix comments above; #263 register) ---
         [new MatrixKey("Grouping", 1)] = new VersionBounds(mySql: V("8.0.1")),
+        [new MatrixKey("Grouping", 3)] = new VersionBounds(mySql: V("8.0.1")),
         [new MatrixKey("JsonValue")] = new VersionBounds(mySql: V("8.0.21")),
         [new MatrixKey("Nowait")] = new VersionBounds(mySql: V("8.0")),
         [new MatrixKey("SkipLocked")] = new VersionBounds(mySql: V("8.0")),
@@ -767,13 +797,20 @@ internal static class DialectMatrix
         [new MatrixKey("MergeInto")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("WhenMatched")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("WhenNotMatched")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("WhenMatched", 1)] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("WhenNotMatched", 1)] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenInsert")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenUpdateSet")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenDelete")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("Values", 3)] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpLike")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("RegexpReplace")] = new VersionBounds(postgreSql: V("15")),
+        // RegexpReplace's 3-arg base form predates 15 (which added the position/
+        // occurrence signature), so the bound sits on the extended arities only and
+        // the member key stays unbounded.
+        [new MatrixKey("RegexpReplace", 4)] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpReplace", 5)] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpReplace", 6)] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15")),
         // TryGetMinVersion looks up the matched key exactly, with no member-wide
         // fallback (unlike Entries' TryGetEntryFrom) — the 6-arg key needs its own
@@ -798,7 +835,8 @@ internal static class DialectMatrix
         [new MatrixKey("Substring")] = new VersionBounds(sqlite: V("3.34")),
         // The math-functions extension (SQLITE_ENABLE_MATH_FUNCTIONS) landed in 3.35 — the
         // same release as RETURNING above, but a separate feature; the Entries comments above
-        // name it per row (Ceil/Ceiling, Floor/Exp/Power/Sqrt/Sign, Mod, Log/Ln/Log10).
+        // name it per row (Ceil/Ceiling, Floor/Exp/Power/Sqrt, Mod, Log/Ln/Log10). Sign shares
+        // the 3.35 bound as a core function added that release, outside the extension.
         [new MatrixKey("Ceil")] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("Ceiling")] = new VersionBounds(sqlite: V("3.35")),
         [new MatrixKey("Floor")] = new VersionBounds(sqlite: V("3.35")),
@@ -849,23 +887,28 @@ internal static class DialectMatrix
     /// neither side of the invariant, so it cannot be recorded at all and the
     /// dialect silently loses its <c>SQLA0101</c> coverage there (#443).
     /// </summary>
-    internal static readonly IReadOnlyDictionary<TargetDbms, EngineVersion> BaselineVersion = new Dictionary<TargetDbms, EngineVersion>
-    {
-        [TargetDbms.MySql] = V("8.0.31"),
-        [TargetDbms.Oracle] = V("21.3"),
-        [TargetDbms.PostgreSql] = V("16"),
-        [TargetDbms.Sqlite] = V("3.50"),
-        [TargetDbms.SqlServer] = V("2022"),
-    };
+    internal static readonly IReadOnlyDictionary<TargetDbms, EngineVersion> BaselineVersion =
+        new Dictionary<TargetDbms, EngineVersion>
+        {
+            [TargetDbms.MySql] = V("8.0.31"),
+            [TargetDbms.Oracle] = V("21.3"),
+            [TargetDbms.PostgreSql] = V("16"),
+            [TargetDbms.Sqlite] = V("3.50"),
+            [TargetDbms.SqlServer] = V("2022"),
+        };
 
     /// <summary>
     /// The minimum version <paramref name="target"/> must meet for the entry
     /// matched by <paramref name="matchedKey"/>, or <see langword="false"/> if
     /// no boundary is recorded for that exact key/dialect pair.
     /// </summary>
-    public static bool TryGetMinVersion(MatrixKey matchedKey, TargetDbms target, out EngineVersion min)
+    public static bool TryGetMinVersion(
+        MatrixKey matchedKey,
+        TargetDbms target,
+        out EngineVersion min)
     {
-        if (Bounds.TryGetValue(matchedKey, out VersionBounds bounds) && bounds.MinFor(target) is { } bound)
+        if (Bounds.TryGetValue(matchedKey, out VersionBounds bounds)
+            && bounds.MinFor(target) is { } bound)
         {
             min = bound;
             return true;
@@ -875,10 +918,15 @@ internal static class DialectMatrix
         return false;
     }
 
-    /// <summary>Exposed for the version-bounds gate tests (orphan check, baseline invariant, docs provenance).</summary>
+    /// <summary>Exposed for the version-bounds gate tests (orphan check, baseline invariant, docs
+    /// provenance).</summary>
     internal static IReadOnlyDictionary<MatrixKey, VersionBounds> AllBounds => Bounds;
 
-    public static bool TryGetEntry(string memberName, int? arity, out DbmsSupport support, out bool wasArityMatch) =>
+    public static bool TryGetEntry(
+        string memberName,
+        int? arity,
+        out DbmsSupport support,
+        out bool wasArityMatch) =>
         TryGetEntryFrom(Entries, memberName, arity, out support, out wasArityMatch);
 
     /// <summary>
@@ -905,7 +953,8 @@ internal static class DialectMatrix
 
     public static IEnumerable<string> AllOverrideKeys => Entries.Keys.Select(ToOverrideKey);
 
-    /// <summary>Exposed for the integrity test (matrix keys resolve to real public members).</summary>
+    /// <summary>Exposed for the integrity test (matrix keys resolve to real public
+    /// members).</summary>
     internal static IEnumerable<MatrixKey> AllKeys => Entries.Keys;
 
     private static string ToOverrideKey(MatrixKey key) => key.Arity is { } arity

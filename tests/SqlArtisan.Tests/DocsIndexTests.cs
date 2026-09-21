@@ -10,9 +10,9 @@ namespace SqlArtisan.Tests;
 // gate (#134).
 public class DocsIndexTests
 {
-    // Pages whose every `## ` section must be linked from docs/README.md.
-    // query-statements.md is excluded: its index links `### ` subsections
-    // through grouped entries, which this heading-level check cannot mirror.
+    // Pages whose every `## ` section must be linked from docs/README.md;
+    // query-statements.md (indexed by `### ` through grouped entries) and the
+    // task-oriented pages the index links whole stay out.
     private static readonly string[] s_indexedPages =
     [
         "docs/analyzer.md",
@@ -58,7 +58,8 @@ public class DocsIndexTests
 
                 Assert.True(
                     index.Contains(anchor, StringComparison.Ordinal),
-                    $"docs/README.md has no link to \"{heading}\" ({anchor}) — add it to the index in page order.");
+                    $"docs/README.md has no link to \"{heading}\" ({anchor}) — add it to the index "
+                        + $"in page order.");
             }
         }
     }
@@ -112,16 +113,15 @@ public class DocsIndexTests
             {
                 Assert.True(
                     anchors.Contains(link.Value),
-                    $"README.md links {link.Value}, which is not a `## ` section of {page} — fix or remove the stale anchor.");
+                    $"README.md links {link.Value}, which is not a `## ` section of {page} — "
+                        + "fix or remove the stale anchor.");
             }
         }
     }
 
-    // query-statements.md carries its own in-page `## Contents` list (grouping
-    // `### ` subsections under each `## ` statement) instead of relying on
-    // docs/README.md, so it needs its own drift check: every `## `/`### `
-    // heading (excluding `#### ` sub-subsections, which the list omits by
-    // design) must appear in that Contents block.
+    // query-statements.md carries its own `## Contents` list instead of relying
+    // on docs/README.md, so every `## `/`### ` heading (not `#### `, which the
+    // list omits by design) must appear in it.
     [Fact]
     public void QueryStatementsContents_EveryHeading_IsListed()
     {
@@ -153,7 +153,8 @@ public class DocsIndexTests
 
             Assert.True(
                 contents.Contains(anchor, StringComparison.Ordinal),
-                $"docs/query-statements.md's own Contents list is missing \"{heading}\" ({anchor}) — add it in page order.");
+                $"docs/query-statements.md's own Contents list is missing \"{heading}\" ({anchor}) "
+                    + $"— add it in page order.");
         }
     }
 

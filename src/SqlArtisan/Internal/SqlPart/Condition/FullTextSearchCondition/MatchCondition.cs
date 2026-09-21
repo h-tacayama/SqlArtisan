@@ -20,8 +20,6 @@ public sealed class MatchCondition : SqlCondition
     {
         _table.FormatAsMatchTarget(buffer);
 
-        buffer
-            .EncloseInSpaces(Keywords.Match)
-            .Append(_pattern);
+        buffer.EncloseInSpaces(Keywords.Match).Append(_pattern);
     }
 }
