@@ -10,14 +10,12 @@ namespace SqlArtisan.Analyzers;
 
 /// <summary>
 /// Reports SQLA0105 for a literal argument value <see cref="ArgumentValueValidity"/>
-/// says the target dialect rejects — a <c>RegexpOptions</c> member outside that
-/// engine's match-parameter alphabet (#528), or a negative row count on an engine
-/// that refuses one (#529).
+/// says the target dialect rejects: a <c>RegexpOptions</c> member outside its
+/// match-parameter alphabet (#528), or a negative row count (#529).
 /// </summary>
 /// <remarks>
-/// Silent whenever a fact is missing (a non-constant argument, an engine absent
-/// from the table) and, through <see cref="ValueDomainScope"/>, on a dialect
-/// SQLA0100/SQLA0101 already flags — the same contract SQLA0104 follows.
+/// Silent whenever a fact is missing, and — through
+/// <see cref="ValueDomainScope"/> — on a dialect SQLA0100/SQLA0101 already flags.
 /// </remarks>
 internal static class ArgumentValueValidityRule
 {
@@ -86,9 +84,8 @@ internal static class ArgumentValueValidityRule
         string memberName,
         string parameterName)
     {
-        // Only a negative constant is a fact: zero runs (ADR 0012 records
-        // `LIMIT 0` on two engines) and a count the analyzer cannot see stays
-        // the database's business, as ADR 0004 has it.
+        // Only a negative constant is a fact: `LIMIT 0` runs, and a count the
+        // analyzer cannot see stays the database's business (ADR 0004).
         if (FindArgument(invocation.Arguments, parameterName) is not { } argument
             || argument.Value.ConstantValue is not { HasValue: true, Value: int count }
             || count >= 0
@@ -154,10 +151,8 @@ internal static class ArgumentValueValidityRule
     }
 
     // Resolved against the argument's own enum type (ADR 0009's no-core-reference
-    // technique): the member names come from the compilation and so do the bits
-    // they are tested with, so the analyzer hardcodes neither. A zero-valued
-    // member is skipped — every combination would "contain" it, and `None`
-    // emits the empty match parameter every engine takes.
+    // technique): both the member names and the bits they are tested with come
+    // from the compilation. A zero-valued member would match every combination.
     private static List<string>? ResolveSetFlagNames(IOperation value)
     {
         if (value.ConstantValue is not { HasValue: true, Value: { } constant }

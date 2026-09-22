@@ -20,6 +20,7 @@ until you configure a target.
 - [Version-aware warnings (SQLA0101)](#version-aware-warnings-sqla0101)
 - [Context rules (SQLA0102)](#context-rules-sqla0102)
 - [Datepart validity (SQLA0104)](#datepart-validity-sqla0104)
+- [Argument value validity (SQLA0105)](#argument-value-validity-sqla0105)
 - [Correlated DML target (SQLA0300)](#correlated-dml-target-sqla0300)
 - [Schema-aware warnings (SQLA0200)](#schema-aware-warnings-sqla0200)
 - [Mixed-dialect projects](#mixed-dialect-projects)
@@ -99,6 +100,7 @@ still needs naming by ID.
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
 | `SQLA0104` | Warning | A literal `DateTimePart` argument to `Extract`/`Datepart`/`Dateadd`/`Datediff`/`DateTrunc`/`Datetrunc`/`Interval`/`Timestampadd`/`Timestampdiff` is not a value the configured dialect's grammar accepts for that function — see [Datepart validity](#datepart-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0105` | Warning | A literal argument value a configured dialect rejects, where the construct itself runs there: a `RegexpOptions` member outside that engine's match-parameter alphabet, or a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count — see [Argument value validity](#argument-value-validity-sqla0105). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join on its own spine — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -794,6 +796,83 @@ engine" is not a claim that every `DateTimePart` value does.
 
 ---
 
+## Argument value validity (SQLA0105)
+
+A construct can exist on a dialect while one *value* of one of its arguments
+does not. The dialect matrix keys on the construct — `RegexpLike`, `Limit` —
+so it has nothing to say about that, and the mismatch surfaces only when the
+database runs the statement. `SQLA0105` closes that gap for two argument
+values the analyzer can read at the call site.
+
+**The `REGEXP_*` match parameter.** `RegexpOptions` emits a letter per flag
+into the match parameter (`REGEXP_LIKE(x, p, 'ci')`), and the alphabets are
+the engines' own. MySQL has no letter for `ExcludingWhiteSpace` and rejects
+the call; Oracle and PostgreSQL accept every letter the enum can emit. SQLite
+and SQL Server have no `REGEXP_*` functions at all, so `SQLA0100` answers for
+them.
+
+```csharp
+// sqlartisan_syntax_mysql = any
+var q = Select(u.Name).From(u)
+    .Where(RegexpLike(u.Name, "^a b$", RegexpOptions.ExcludingWhiteSpace));
+// warning SQLA0105: 'ExcludingWhiteSpace' is not a valid match option for 'RegexpLike' on MySQL
+```
+
+`RegexpOptions` is a `[Flags]` enum, so the rule reads the combination: the
+letters an engine has stay silent and only the missing one reports, from the
+same argument.
+
+**A negative row count.** `Top`, `FetchFirst`, `FetchNext` and `Limit` each
+carry the count to the engine as a bind parameter, so the value is the
+database's to judge — and the engines disagree about it. MySQL, PostgreSQL and
+SQL Server reject a negative count in the spellings they support; Oracle runs
+a negative `FETCH`, and SQLite reads `LIMIT -1` as "no limit". Only the
+rejecting dialects are reported.
+
+```csharp
+// sqlartisan_syntax_mysql = any
+// sqlartisan_syntax_sqlite = any
+var q = Select(u.Id).From(u).OrderBy(u.Id).Limit(-1);
+// warning SQLA0105: '-1' is not a valid row count for 'Limit' on MySQL
+```
+
+| Construct | Reported on |
+|---|---|
+| `Top` | SQL Server |
+| `FetchFirst` | PostgreSQL |
+| `FetchNext` | PostgreSQL, SQL Server |
+| `Limit` | MySQL, PostgreSQL |
+
+`Offset` and `OffsetRows` are deliberately not checked: a negative offset has
+not been measured across the five engines, and a half-measured construct would
+report on one dialect for no reason worth defending.
+
+Every cell above — the rejections and the two acceptances that keep Oracle and
+SQLite silent alike — is checked against the engine versions in
+[Verified-against versions](#verified-against-versions).
+
+Three cases stay silent, never a false positive:
+
+- **The argument is not a compile-time constant** — a count or an option that
+  arrives through a variable or a computed expression cannot be resolved, the
+  same provable-from-the-expression-or-silent contract [Context
+  rules](#context-rules-sqla0102) follows.
+- **This rule has no fact for the (value, dialect) pair** — an engine absent
+  from the tables above is an engine nobody has measured, not a rejecting one.
+- **The matrix already flags the construct unsupported on that dialect at its
+  declared version** — `SQLA0100`/`SQLA0101` own that verdict; `SQLA0105`
+  would otherwise double-report the same usage.
+
+Suppression is per rule ID (`#pragma warning disable SQLA0105`, a
+`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0105.severity`); a
+`sqlartisan_construct_*` override never silences a value verdict on a dialect
+where the construct runs. An `unsupported` override hands the whole usage to
+`SQLA0100`, and a `supported` override on a dialect the matrix flags
+unsupported re-arms this check there — asserting "this construct runs on my
+engine" is not a claim that every argument value does.
+
+---
+
 ## Correlated DML target (SQLA0300)
 
 An UPDATE, DELETE, or MERGE whose subquery — or, for MERGE, whose `USING`
@@ -1146,9 +1225,10 @@ client-side before it reaches the engine.
 
 ## Verified-against versions
 
-The matrix's `verified` entries were checked against one representative
-version per dialect (the same engines the integration test matrix runs
-against):
+The matrix's `verified` entries, and the per-(value, dialect) facts
+[Argument value validity](#argument-value-validity-sqla0105) reports, were
+checked against one representative version per dialect (the same engines the
+integration test matrix runs against):
 
 | Dialect | Verified against |
 |---|---|

@@ -9,10 +9,9 @@ namespace SqlArtisan.Analyzers;
 /// so a finer-grained verdict on the same usage stays silent there (#449).
 /// </summary>
 /// <remarks>
-/// An <c>unsupported</c> override makes SQLA0100 fire for every target, which
-/// is what <see cref="For"/>'s null return means; a <c>supported</c> override
-/// re-arms the finer check on a dialect the matrix flags unsupported, because
-/// asserting the construct runs is not a claim about one argument value.
+/// An <c>unsupported</c> override makes SQLA0100 fire for every target, which is
+/// what <see cref="For"/>'s null return means; a <c>supported</c> override re-arms
+/// the finer check, since it claims the construct runs, not that every value does.
 /// </remarks>
 internal readonly struct ValueDomainScope
 {

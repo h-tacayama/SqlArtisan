@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- A `SQLA0105` analyzer warning for a literal argument value a configured
+  dialect rejects, where the construct itself runs there — the value dimension
+  the construct-level matrix cannot key on. Two value domains report under the
+  one ID. A `RegexpOptions` member outside an engine's match-parameter
+  alphabet: MySQL has no letter for `ExcludingWhiteSpace` and rejects the call,
+  while Oracle and PostgreSQL accept every letter the enum emits, and SQLite
+  and SQL Server have no `REGEXP_*` functions for `SQLA0100` to stay quiet
+  about. And a negative constant row count: reported for `Limit` on MySQL and
+  PostgreSQL, `FetchFirst` on PostgreSQL, `FetchNext` on PostgreSQL and SQL
+  Server, and `Top` on SQL Server — but never on Oracle, which runs a negative
+  `FETCH`, or SQLite, which reads `LIMIT -1` as "no limit". `Offset` and
+  `OffsetRows` are not checked at all: a negative offset is unmeasured across
+  the five engines. Every cell, rejection and acceptance alike, is
+  live-verified on the pinned lanes (MySQL 8.0, Oracle XE 21.3.0, PostgreSQL
+  16, SQLite 3.50, SQL Server 2022). Stays silent for an argument that is not a
+  compile-time constant, an engine the tables have no fact for, or a dialect
+  `SQLA0100`/`SQLA0101` already flags unsupported. See [Argument value
+  validity](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#argument-value-validity-sqla0105).
+  (#528, #529)
 - `SQLA0102` now covers the DML-statement shapes the construct-level matrix
   cannot express: a joined `DELETE` (`DELETE t FROM ...`, MySQL's and SQL
   Server's spelling) on Oracle, PostgreSQL and SQLite; `DELETE ... USING` on

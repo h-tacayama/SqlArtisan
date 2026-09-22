@@ -19,8 +19,7 @@ internal static class ArgumentValueValidity
 
     // The parameter SQLA0105 reads the literal RegexpOptions out of — each entry
     // matches that factory's own parameter name in Sql.R.cs. RegexpCount is listed
-    // though MySQL has no REGEXP_COUNT: the matrix flags that whole construct, and
-    // the entry still serves Oracle and PostgreSQL.
+    // for Oracle and PostgreSQL; the matrix owns MySQL, which has no REGEXP_COUNT.
     internal static readonly Dictionary<string, string> MatchOptionParameterName = new(
         StringComparer.Ordinal)
     {
@@ -74,10 +73,9 @@ internal static class ArgumentValueValidity
         ["Top"] = "count",
     };
 
-    // The cells a negative constant is rejected on. Absence is silence, and two
-    // absences are load-bearing: Oracle executes `FETCH FIRST -1 ROWS ONLY`
-    // (XE 21.3.0), and SQLite 3.50.4 reads `LIMIT -1` as "no limit" — reporting
-    // either would flag code that runs.
+    // Absence is silence, and two absences are load-bearing: Oracle XE 21.3.0
+    // executes `FETCH FIRST -1 ROWS ONLY` and SQLite 3.50.4 reads `LIMIT -1` as
+    // "no limit", so reporting either would flag code that runs.
     private static readonly HashSet<(string Member, TargetDbms Dbms)> NegativeRowCountRejected =
         new()
         {

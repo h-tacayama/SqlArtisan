@@ -141,10 +141,9 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // One id for both value domains, on the SQLA0001 principle: a lever that
-    // silences "this engine rejects the value you wrote" should silence the other
-    // half of the same statement, since neither is a nag and both are hard errors
-    // on the dialects named. {2} names the kind of value so one format serves both.
+    // One id for both value domains, on the SQLA0001 principle: neither half is a
+    // nag, so a lever silencing one should silence the other. {2} names the kind
+    // of value, which is what lets one format serve both (ADR 0022).
     public static readonly DiagnosticDescriptor InvalidArgumentValue = new(
         id: "SQLA0105",
         title: "Argument value not supported on the target dialect",

@@ -534,9 +534,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
     // SQLA0105 reads the alphabet per dialect, not per function (#528), so the
-    // gap MySQL leaves at 'x' is pinned on every REGEXP_* function that takes
-    // match_type — each paired with the letter it does have, so a rejection
-    // cannot come from the surrounding call shape instead.
+    // 'x' gap is pinned on every match_type taker — each paired with a letter
+    // MySQL does have, so a rejection cannot come from the call shape instead.
     [Theory]
     [InlineData("SELECT REGEXP_INSTR('Ab', 'ab', 1, 1, 0, '@')")]
     [InlineData("SELECT REGEXP_REPLACE('Ab', 'ab', 'x', 1, 0, '@')")]
