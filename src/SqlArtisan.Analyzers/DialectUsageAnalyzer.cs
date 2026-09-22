@@ -369,9 +369,19 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 ContextRules.CheckIntervalRequiresArithmeticOperand(
                     context, invocation, TargetDbmsNames.Display(TargetDbms.MySql));
                 break;
-            case "ForUpdate"
-                when ContextRules.RejectingTargets(targets, s_groupedLockUnsupported) is { } names:
-                ContextRules.CheckForUpdateAfterGroupBy(context, invocation, names);
+            case "ForUpdate":
+                if (ContextRules.RejectingTargets(targets, s_groupedLockUnsupported)
+                    is { } groupedNames)
+                {
+                    ContextRules.CheckForUpdateAfterGroupBy(context, invocation, groupedNames);
+                }
+
+                if (ContextRules.RejectingTargets(targets, s_rowLimitedLockUnsupported)
+                    is { } limitedNames)
+                {
+                    ContextRules.CheckForUpdateAfterRowLimiting(context, invocation, limitedNames);
+                }
+
                 break;
         }
     }
@@ -381,6 +391,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     // the matrix already calls the member unsupported, or when Build(Dbms) throws.
     private static readonly TargetDbms[] s_groupedLockUnsupported =
         [TargetDbms.Oracle, TargetDbms.PostgreSql];
+
+    // Oracle alone: PostgreSQL runs the pairing, and on the rest the matrix already
+    // calls either the row-limiting step or ForUpdate unsupported.
+    private static readonly TargetDbms[] s_rowLimitedLockUnsupported = [TargetDbms.Oracle];
 
     private static readonly TargetDbms[] s_joinedDmlUnsupported =
         [TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite];

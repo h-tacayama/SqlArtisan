@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- Pagination and `FOR UPDATE` can now be written in one chain:
+  `Limit`, `Offset`, `OffsetRows`, `FetchFirst` and `FetchNext` all return a
+  builder state that offers `ForUpdate(...)`, so the queue-worker claim
+  (`... LIMIT 1 FOR UPDATE SKIP LOCKED`) has a spelling. Both orders used to
+  fail to compile; the reverse one still does, because MySQL 8.0 rejects the
+  lock ahead of the row-limiting clause and row-limit-then-lock is the one
+  order it and PostgreSQL 16 both accept. MySQL 8.0 runs its `LIMIT` form of
+  the pairing and PostgreSQL 16 runs both row-limiting families; Oracle XE
+  21.3.0 rejects its own (`FETCH FIRST` / `OFFSET ... ROWS`) with ORA-02014,
+  which the analyzer reports as `SQLA0102`. See [FOR UPDATE
+  Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#for-update-clause).
+  (#520)
 - `SQLA0104` now reports two further kinds of literal argument value a
   configured dialect rejects, where the construct itself runs there. A
   `RegexpOptions` member outside an engine's match-parameter alphabet: MySQL

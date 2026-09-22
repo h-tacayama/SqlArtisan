@@ -238,6 +238,37 @@ internal static class ContextRules
     }
 
     /// <summary>
+    /// Oracle documents the row_limiting_clause as unspecifiable with the
+    /// for_update_clause; XE 21.3.0 raises ORA-02014 and PostgreSQL 16 runs the
+    /// pairing. Live twins on both lanes.
+    /// </summary>
+    public static void CheckForUpdateAfterRowLimiting(
+        OperationAnalysisContext context, IInvocationOperation forUpdate, string dialectNames)
+    {
+        // Oracle's own spellings only: Limit/Offset are already oracle:false in the
+        // matrix, so naming them here would report the same call twice.
+        bool limited = false;
+        for (IInvocationOperation? cursor = ChainChild(forUpdate);
+            cursor is not null;
+            cursor = ChainChild(cursor))
+        {
+            limited |= cursor.TargetMethod.Name is "FetchFirst" or "FetchNext" or "OffsetRows";
+        }
+
+        if (!limited)
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            forUpdate.Syntax.GetLocation(),
+            "ForUpdate",
+            "after a row-limiting clause",
+            dialectNames));
+    }
+
+    /// <summary>
     /// The statement position of a DML step, read off the one builder interface
     /// that declares it — the whole establishment, ADR 0013's presence proof at
     /// the type level rather than through a chain walk.

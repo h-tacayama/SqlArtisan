@@ -573,8 +573,8 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Ten rules ship today — six reading the
-construct's surroundings, four reading the DML statement a clause sits in.
+expression where the construct is used. Eleven rules ship today — seven reading
+the construct's surroundings, four reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
 Server 2022.
@@ -650,6 +650,20 @@ var q = Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId)
 // warning SQLA0102: 'ForUpdate' is not supported after a GROUP BY clause on PostgreSQL
 ```
 
+**`FOR UPDATE` after a row-limiting clause.** Oracle rejects the pairing
+(ORA-02014): its `row_limiting_clause` cannot be specified with the
+`for_update_clause`, so `FETCH FIRST` / `OFFSET ... ROWS` and `FOR UPDATE` have
+no combined spelling there. PostgreSQL runs it. MySQL and SQLite parse neither
+clause and SQL Server has no `FOR UPDATE`, so `SQLA0100` already covers all
+three. Take the row-limited read and the lock as two statements, or drop the
+row limit.
+
+```csharp
+// sqlartisan_syntax_oracle = any
+var q = Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(1).ForUpdate();
+// warning SQLA0102: 'ForUpdate' is not supported after a row-limiting clause on Oracle
+```
+
 ### DML statement shapes
 
 A joined `UPDATE` or `DELETE` has a different grammar on almost every engine,
@@ -658,7 +672,7 @@ engines that reject the spelling; where a spelling has no valid form at all on
 the resolved dialect, `Build(Dbms)` throws instead and no warning is needed.
 
 These four are settled by the builder stage the call binds to rather than by
-reading the chain, so — alone among the ten — they still warn when the builder
+reading the chain, so — alone among the eleven — they still warn when the builder
 is held in a variable.
 
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
@@ -714,7 +728,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the six that read the construct's surroundings, a subquery held in
+itself. For the seven that read the construct's surroundings, a subquery held in
 a variable, a builder chain continued from a helper method, or any shape the
 analyzer doesn't recognize stays silent — the same
 under-warn-but-never-false-positive principle the matrix follows.

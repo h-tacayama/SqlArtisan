@@ -771,4 +771,35 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId)
                 .OrderBy(u.DepartmentId).ForUpdate()));
     }
+
+    // #520: why PostgreSQL is absent from the row-limiting FOR UPDATE context rule
+    // — it runs both row-limiting families beside the lock, where Oracle rejects them.
+    [Fact]
+    public void LimitedForUpdate_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(u.Id).From(u).OrderBy(u.Id).Limit(1).ForUpdate(SkipLocked), transaction);
+
+        Assert.Equal(new[] { 1 }, ids);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void OffsetFetchForUpdate_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(1).ForUpdate(),
+            transaction);
+
+        Assert.Equal(new[] { 2 }, ids);
+        transaction.Rollback();
+    }
 }

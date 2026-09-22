@@ -627,4 +627,20 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId)
                 .OrderBy(u.DepartmentId).ForUpdate()));
     }
+
+    [Fact] // ORA-02014: the row_limiting_clause cannot be specified with the
+           // for_update_clause. The unlocked FETCH and the unlimited lock each run
+           // on this lane, so the pairing is the only difference (#520).
+    public void ContextRule_ForUpdateAfterRowLimiting_Rejected()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(1).ForUpdate()));
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).ForUpdate()));
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(1).ForUpdate()));
+    }
 }

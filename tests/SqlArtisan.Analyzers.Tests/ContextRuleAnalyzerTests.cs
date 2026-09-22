@@ -630,4 +630,57 @@ public class ContextRuleAnalyzerTests
         RunSilent("""
             var q = Select(t.Dep).From(t).GroupBy(t.Dep).OrderBy(t.Dep).ForUpdate();
             """, dbms: null);
+
+    [Fact]
+    public Task ForUpdateAfterFetchFirst_Oracle_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:Select(t.Id).From(t).OrderBy(t.Id).FetchFirst(1).ForUpdate()|};
+            """, "oracle");
+
+    [Fact]
+    public Task ForUpdateAfterOffsetRows_Oracle_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:Select(t.Id).From(t).OrderBy(t.Id).OffsetRows(1).ForUpdate()|};
+            """, "oracle");
+
+    [Fact]
+    public Task ForUpdateAfterOffsetRowsFetchNext_Oracle_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:Select(t.Id).From(t).OrderBy(t.Id).OffsetRows(1).FetchNext(1)
+                .ForUpdate()|};
+            """, "oracle");
+
+    // PostgreSQL 16 runs the row-limiting clause and the lock together.
+    [Fact]
+    public Task ForUpdateAfterFetchFirst_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id).From(t).OrderBy(t.Id).FetchFirst(1).ForUpdate();
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateAfterLimit_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id).From(t).OrderBy(t.Id).Limit(1).ForUpdate();
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateWithoutRowLimiting_Oracle_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id).From(t).OrderBy(t.Id).ForUpdate();
+            """, "oracle");
+
+    // The FetchFirst sits in a subquery argument, not in ForUpdate's receiver chain.
+    [Fact]
+    public Task ForUpdateWithRowLimitedSubquery_Oracle_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id).From(t)
+                .Where(t.Id.In(Select(s.Dep).From(s).OrderBy(s.Dep).FetchFirst(2))).ForUpdate();
+            """, "oracle");
+
+    [Fact]
+    public Task ForUpdateAfterFetchFirstViaVariable_Oracle_StaysSilent() =>
+        RunSilent("""
+            var p = Select(t.Id).From(t).OrderBy(t.Id).FetchFirst(1);
+            var q = p.ForUpdate();
+            """, "oracle");
 }

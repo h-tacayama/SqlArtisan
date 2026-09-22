@@ -581,4 +581,31 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Equal(new[] { 10, 20, 30 }, departments);
         transaction.Rollback();
     }
+
+    // #520: why only row-limit-then-lock is offered. The reverse order is a parse
+    // error here, and no builder chain can reach it, so the twin is raw SQL; the
+    // accepted order beside it is LimitedForUpdate_Executes.
+    [Fact]
+    public void ForUpdateBeforeLimit_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT id FROM users ORDER BY id FOR UPDATE LIMIT 1"));
+    }
+
+    // #520: the queue-worker claim — take the first unlocked row and lock it.
+    [Fact]
+    public void LimitedForUpdate_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(u.Id).From(u).OrderBy(u.Id).Limit(1).ForUpdate(SkipLocked), transaction);
+
+        Assert.Equal(new[] { 1 }, ids);
+        transaction.Rollback();
+    }
 }
