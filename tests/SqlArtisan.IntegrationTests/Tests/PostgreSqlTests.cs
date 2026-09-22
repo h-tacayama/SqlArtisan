@@ -677,8 +677,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     }
 
     // Why SQLA0104 leaves the OFFSET family out is a decision, not a gap (#532):
-    // the count reaches the engine as a bind parameter, so only a call-site
-    // constant is visible and the repo's own paging recipe passes a variable.
+    // the start reaches the engine as a bind parameter, and an offset goes
+    // negative by arithmetic rather than at the call site the rule can read.
     [Theory]
     [InlineData("SELECT id FROM users ORDER BY id OFFSET -1")]
     [InlineData("SELECT id FROM users ORDER BY id OFFSET -1 ROWS")]

@@ -28,15 +28,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `FetchFirst` on PostgreSQL, `FetchNext` on PostgreSQL and SQL Server, and
   `Top` on SQL Server — but never on Oracle, which runs a negative `FETCH`, or
   SQLite, which reads `LIMIT -1` as "no limit". `Offset` and `OffsetRows` are
-  not checked at all, and not for want of evidence: Oracle XE 21.3.0 takes a
-  negative offset, PostgreSQL 16.13 rejects it and SQLite 3.50.4 reads it as 0.
-  An offset is the argument callers pass as a variable, so the only spelling
-  this rule could see is one the paging recipe does not write. Every cell,
-  rejection and acceptance alike, is live-verified on the pinned lanes
-  (MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50, SQL Server 2022).
-  Stays silent for an argument that is not a compile-time constant, an engine
-  the tables have no fact for, or a dialect `SQLA0100`/`SQLA0101` already
-  flags unsupported.
+  not checked at all, and not for want of evidence: MySQL 8.0, PostgreSQL
+  16.13 and SQL Server 2022 all reject a negative offset, Oracle XE 21.3.0
+  takes it and SQLite 3.50.4 reads it as 0. An offset goes negative by
+  arithmetic, so the call-site constant this rule reads is not where it turns
+  bad. Every cell this warning reports, rejection and acceptance alike, is
+  live-verified on the pinned lanes (MySQL 8.0, Oracle XE 21.3.0, PostgreSQL
+  16, SQLite 3.50, SQL Server 2022). Stays silent for an argument that is not a
+  compile-time constant, an engine the tables have no fact for, or a dialect
+  `SQLA0100`/`SQLA0101` already flags unsupported.
   **`SQLA0104`'s title and scope widen from "datepart argument" to "argument
   value" to carry them, so an existing `dotnet_diagnostic.SQLA0104.severity`,
   `NoWarn` or `#pragma` that silenced the datepart warnings now silences these

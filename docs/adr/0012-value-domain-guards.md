@@ -115,10 +115,10 @@ because condition 1 fails outright:
   diagnostic could still flag a constant negative count at the call site; that
   is a `SQLA01xx` question, not a guard one, and `SQLA0104` answered it for the
   row counts (#528/#529). The `OFFSET` half of the same family is answered the
-  other way (#532): PostgreSQL 16.13 rejects a negative offset in both
-  spellings, while SQLite 3.50.4 reads it as 0 and Oracle takes it — all
-  live-verified — but an offset is the argument the paging recipe passes as a
-  variable, so the constant the analyzer can see is not the one callers write.
+  other way (#532): MySQL 8.0, PostgreSQL 16.13 and SQL Server 2022 all reject
+  a negative offset, Oracle XE 21.3.0 takes it and SQLite 3.50.4 reads it as 0
+  — every cell live-verified — but an offset goes negative by arithmetic, so
+  the call-site constant the analyzer can see is not where it turns bad.
 - A negative `Lag`/`Lead` offset (#523). This one *is* literal-embedded —
   `AnalyticLagFunction` prints the offset into the text — so condition 2 holds,
   and condition 1 is what fails: PostgreSQL 16.13 and SQLite 3.50.4 both accept
