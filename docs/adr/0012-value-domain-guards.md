@@ -89,7 +89,7 @@ non-negative: Oracle is the only engine whose `FOR UPDATE` takes a `WAIT`
 clause, and it rejects every negative count with ORA-30005 at parse time,
 before lock contention can matter (#483).
 
-**Stated non-goals.** Five value shapes look like candidates and are not,
+**Stated non-goals.** Six value shapes look like candidates and are not,
 because condition 1 fails outright:
 
 - `BindValue`'s `direction` and `size`. `Size = -1` is SqlClient's own
@@ -125,10 +125,26 @@ because condition 1 fails outright:
   engine that rejects the offset, the mirror function is a valid spelling of
   the same intent, so that ADR's second condition fails as well.
 
-(The `RegexpOptions` flag alphabets remain an open question awaiting live
-per-engine proof, not a settled non-goal. Admitting one takes a rejection on
-every engine, where excluding the three above took a single accepting one —
-the asymmetry is condition 1's, not the evidence's.)
+- A `RegexpOptions` match parameter (#523). The letters *are* printed into the
+  text (`REGEXP_LIKE(x, p, 'ci')`), so condition 2 holds, and conditions 1 and
+  3 both fail. Condition 1: every letter the enum can emit is valid on some
+  engine that has the functions at all — `'x'` runs on Oracle XE 21.3.0 and
+  PostgreSQL 16.13 though MySQL 8.0's `match_type` has no `'x'` (it takes
+  `'u'`, which the other two reject), and a contradictory pair is *accepted*
+  on all three, each applying the last letter (`'ci'` matches
+  case-insensitively, `'ic'` case-sensitively — live-verified on each). So the
+  "mutually exclusive" pair the enum's docs described is a meaningful value,
+  not an invalid one. Condition 3: the alphabets diverge per engine, which is
+  the definition of a domain no dialect-independent guard can encode. The
+  per-value gap MySQL's missing `'x'` leaves is invisible to the
+  construct-level matrix, which keys on `RegexpLike` rather than on the option
+  — an `SQLA0104`-class table (the `DatepartValidity` shape), not a guard.
+
+Nothing in this family is left open: the negative row count and the negative
+`Lag`/`Lead` offset above, and the `RegexpOptions` alphabets, were the
+standing questions, and each was excluded by an engine that accepts the
+value, where admitting one would have taken a rejection on every engine —
+the asymmetry is condition 1's, not the evidence's.
 
 ## Consequences
 

@@ -514,4 +514,46 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<Exception>(() =>
             connection.ExecuteScalar("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
     }
+
+    // ADR 0012 non-goal (#523 item 1): every letter SqlArtisan can emit is
+    // valid here, so no match parameter is universally invalid.
+    [Theory]
+    [InlineData("")]
+    [InlineData("c")]
+    [InlineData("i")]
+    [InlineData("m")]
+    [InlineData("n")]
+    [InlineData("x")]
+    public void RegexpMatchParameter_IsAcceptedByTheEngine(string flags)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(MatchParameterProbe(flags));
+    }
+
+    [Theory]
+    [InlineData("u")] // MySQL's Unicode letter, which Oracle's grammar has not.
+    [InlineData("z")]
+    public void RegexpMatchParameter_UnknownLetter_IsRejectedByTheEngine(string flags)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(MatchParameterProbe(flags)));
+    }
+
+    // 'Ab' matches pattern 'ab' only case-insensitively, so the answer names
+    // which half of the contradictory pair the engine applied: the last one.
+    [Theory]
+    [InlineData("ci", "YES")]
+    [InlineData("ic", "NO")]
+    public void RegexpContradictoryMatchParameter_ResolvesToTheLastLetter(
+        string flags, string expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<string>(MatchParameterProbe(flags)));
+    }
+
+    private static string MatchParameterProbe(string flags) =>
+        $"SELECT CASE WHEN REGEXP_LIKE('Ab', 'ab', '{flags}') THEN 'YES' ELSE 'NO' END FROM dual";
 }

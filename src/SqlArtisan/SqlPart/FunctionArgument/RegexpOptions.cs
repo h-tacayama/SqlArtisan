@@ -14,12 +14,16 @@ public enum RegexpOptions
     None = 0,
 
     /// <summary>
-    /// Case-sensitive matching (<c>'c'</c>). Mutually exclusive with <see cref="CaseInsensitive"/>.
+    /// Case-sensitive matching (<c>'c'</c>). Setting it beside
+    /// <see cref="CaseInsensitive"/> emits <c>'ci'</c>, which every engine reads as
+    /// the later letter — so the pair matches case-insensitively.
     /// </summary>
     CaseSensitive = 1 << 0,
 
     /// <summary>
-    /// Case-insensitive matching (<c>'i'</c>). Mutually exclusive with <see cref="CaseSensitive"/>.
+    /// Case-insensitive matching (<c>'i'</c>). It wins over
+    /// <see cref="CaseSensitive"/> when both are set: the letters emit in enum
+    /// order, so the pair is <c>'ci'</c> however the caller wrote it.
     /// </summary>
     CaseInsensitive = 1 << 1,
 

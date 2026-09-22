@@ -647,4 +647,44 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.ThrowsAny<DbException>(() =>
             connection.Execute("SELECT id FROM users ORDER BY id FETCH FIRST -1 ROWS ONLY"));
     }
+
+    // ADR 0012 non-goal (#523 item 1): the alphabet diverges per engine and a
+    // contradictory pair is accepted everywhere, so no value-domain guard fits.
+    [Theory]
+    [InlineData("")]
+    [InlineData("c")]
+    [InlineData("i")]
+    [InlineData("m")]
+    [InlineData("n")]
+    [InlineData("x")]
+    public void RegexpMatchParameter_IsAcceptedByTheEngine(string flags)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(MatchParameterProbe(flags));
+    }
+
+    [Theory]
+    [InlineData("u")] // MySQL's Unicode letter, which PostgreSQL has not.
+    [InlineData("z")]
+    public void RegexpMatchParameter_UnknownLetter_IsRejectedByTheEngine(string flags)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(MatchParameterProbe(flags)));
+    }
+
+    [Theory]
+    [InlineData("ci", true)]
+    [InlineData("ic", false)]
+    public void RegexpContradictoryMatchParameter_ResolvesToTheLastLetter(
+        string flags, bool expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<bool>(MatchParameterProbe(flags)));
+    }
+
+    private static string MatchParameterProbe(string flags) =>
+        $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 }
