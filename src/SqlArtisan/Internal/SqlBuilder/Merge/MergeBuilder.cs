@@ -162,7 +162,12 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         bool branchOpen = false;
         bool insertOpen = false;
         string? openClause = null;
-        List<(string Clause, string Action)> branches = [];
+
+        // Only Oracle and SQL Server bound the branch count, so only they
+        // pay for the set that tracks it (#523).
+        HashSet<string>? seenBranches = dbms is Dbms.Oracle or Dbms.SqlServer
+            ? new HashSet<string>(StringComparer.Ordinal)
+            : null;
 
         foreach (SqlPart part in PartsSpan)
         {
@@ -175,18 +180,19 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
             else if (part is MergeUpdateSetClause)
             {
                 branchOpen = false;
-                branches.Add((openClause!, $"{Keywords.Update} {Keywords.Set}"));
+                ThrowIfBranchRepeated(
+                    dbms, seenBranches, openClause, $"{Keywords.Update} {Keywords.Set}");
             }
             else if (part is MergeDeleteClause)
             {
                 branchOpen = false;
-                branches.Add((openClause!, Keywords.Delete));
+                ThrowIfBranchRepeated(dbms, seenBranches, openClause, Keywords.Delete);
             }
             else if (part is MergeInsertClause)
             {
                 branchOpen = false;
                 insertOpen = true;
-                branches.Add((openClause!, Keywords.Insert));
+                ThrowIfBranchRepeated(dbms, seenBranches, openClause, Keywords.Insert);
             }
             else if (part is InsertValuesClause)
             {
@@ -195,38 +201,32 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         }
 
         ThrowIfBranchUnfinished(branchOpen, insertOpen);
-        ThrowIfBranchRepeated(dbms, branches);
     }
 
-    // Oracle takes one branch per WHEN clause whatever its action (ORA-00905);
-    // SQL Server one per clause-and-action pair, so its matched UPDATE and
-    // DELETE coexist; PostgreSQL stacks freely — all live-verified (#523).
+    // Keyed on the WHEN clause alone for Oracle, on the clause-and-action pair
+    // for SQL Server — the one difference between the two engines' limits.
     private static void ThrowIfBranchRepeated(
-        Dbms dbms, List<(string Clause, string Action)> branches)
+        Dbms dbms, HashSet<string>? seenBranches, string? clause, string action)
     {
-        if (dbms != Dbms.Oracle && dbms != Dbms.SqlServer)
+        if (seenBranches is null || clause is null)
         {
             return;
         }
 
-        HashSet<string> seen = new(StringComparer.Ordinal);
-        foreach ((string clause, string action) in branches)
+        if (dbms == Dbms.Oracle && !seenBranches.Add(clause))
         {
-            if (dbms == Dbms.Oracle && !seen.Add(clause))
-            {
-                throw new ArgumentException(
-                    $"Oracle accepts at most one {clause} branch in a MERGE; combine the branch "
-                        + "conditions, or spell a matched delete as "
-                        + "ThenUpdateSet(...).DeleteWhere(...).");
-            }
+            throw new ArgumentException(
+                $"Oracle accepts at most one {clause} branch in a MERGE; combine the branch "
+                    + "conditions, or spell a matched delete as "
+                    + "ThenUpdateSet(...).DeleteWhere(...).");
+        }
 
-            if (dbms == Dbms.SqlServer && !seen.Add($"{clause} {action}"))
-            {
-                throw new ArgumentException(
-                    $"SQL Server accepts at most one {clause} branch with a {action} action in a "
-                        + "MERGE; give the branches different actions, or combine their "
-                        + "conditions.");
-            }
+        if (dbms == Dbms.SqlServer && !seenBranches.Add($"{clause} {action}"))
+        {
+            throw new ArgumentException(
+                $"SQL Server accepts at most one {clause} branch with the same action "
+                    + $"({action}) in a MERGE; give the branches different actions, or combine "
+                    + "their conditions.");
         }
     }
 

@@ -926,8 +926,9 @@ public class MergeTests
                 .Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "SQL Server accepts at most one WHEN MATCHED branch with a UPDATE SET action in a "
-                + "MERGE; give the branches different actions, or combine their conditions.",
+            "SQL Server accepts at most one WHEN MATCHED branch with the same action "
+                + "(UPDATE SET) in a MERGE; give the branches different actions, or combine "
+                + "their conditions.",
             ex.Message);
     }
 
@@ -943,9 +944,9 @@ public class MergeTests
                 .Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "SQL Server accepts at most one WHEN NOT MATCHED BY SOURCE branch with a UPDATE SET "
-                + "action in a MERGE; give the branches different actions, or combine their "
-                + "conditions.",
+            "SQL Server accepts at most one WHEN NOT MATCHED BY SOURCE branch with the same "
+                + "action (UPDATE SET) in a MERGE; give the branches different actions, or "
+                + "combine their conditions.",
             ex.Message);
     }
 

@@ -415,10 +415,10 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         using IDbConnection connection = _fixture.OpenConnection();
 
         // The integer ordinal is valid (so the table and columns are right).
-        connection.Execute("SELECT id, name FROM users ORDER BY 2");
+        connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 2");
 
         Assert.ThrowsAny<Exception>(() =>
-            connection.Execute("SELECT id, name FROM users ORDER BY 2.5"));
+            connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 2.5"));
     }
 
     [Fact]
@@ -427,7 +427,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         using IDbConnection connection = _fixture.OpenConnection();
 
         Assert.ThrowsAny<Exception>(() =>
-            connection.Execute("SELECT id, name FROM users ORDER BY -1"));
+            connection.ExecuteScalar("SELECT id, name FROM users ORDER BY -1"));
     }
 
     // ADR 0011 (#523): T-SQL bounds MERGE branches per clause-and-action pair,
@@ -466,10 +466,11 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Execute("SELECT TOP (0) id FROM users");
+        connection.ExecuteScalar("SELECT TOP (0) id FROM users");
 
-        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT TOP (-1) id FROM users"));
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT TOP (-1) id FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY"));
     }
 
@@ -478,9 +479,9 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Execute("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
+        connection.ExecuteScalar("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
 
         Assert.ThrowsAny<Exception>(() =>
-            connection.Execute("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+            connection.ExecuteScalar("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
     }
 }

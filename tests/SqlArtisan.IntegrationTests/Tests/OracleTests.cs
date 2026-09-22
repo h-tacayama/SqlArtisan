@@ -448,7 +448,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Execute("SELECT id, name FROM users ORDER BY 2.5");
+        connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 2.5");
     }
 
     [Fact]
@@ -456,12 +456,12 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Execute("SELECT id, name FROM users ORDER BY -1");
+        connection.ExecuteScalar("SELECT id, name FROM users ORDER BY -1");
 
         // Zero is still no column position here (ORA-01785), as the
         // dialect-blind guard has it.
         Assert.ThrowsAny<Exception>(() =>
-            connection.Execute("SELECT id, name FROM users ORDER BY 0"));
+            connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 0"));
     }
 
     // ADR 0011 (#523): Oracle's MERGE grammar has one merge_update_clause and
@@ -498,8 +498,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Execute("SELECT id FROM users ORDER BY id FETCH FIRST -1 ROWS ONLY");
-        connection.Execute("SELECT id FROM users ORDER BY id OFFSET -1 ROWS");
+        connection.ExecuteScalar("SELECT id FROM users ORDER BY id FETCH FIRST -1 ROWS ONLY");
+        connection.ExecuteScalar("SELECT id FROM users ORDER BY id OFFSET -1 ROWS");
     }
 
     [Fact]
@@ -507,9 +507,11 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Execute("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
+        // ORA-01428 is raised as the row is produced, so the probe must fetch
+        // one — ExecuteNonQuery on a SELECT never evaluates the window.
+        connection.ExecuteScalar("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
 
         Assert.ThrowsAny<Exception>(() =>
-            connection.Execute("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+            connection.ExecuteScalar("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
     }
 }

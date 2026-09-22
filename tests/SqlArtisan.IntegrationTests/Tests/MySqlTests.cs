@@ -447,9 +447,9 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Execute("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
+        connection.ExecuteScalar("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
 
         Assert.ThrowsAny<Exception>(() =>
-            connection.Execute("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+            connection.ExecuteScalar("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
     }
 }
