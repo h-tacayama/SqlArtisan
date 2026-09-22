@@ -90,11 +90,19 @@ where a gate does hold one.
 `DateTimePartNumbering.Claims` carries, per member, both the phrase the
 summary must contain and the rows an engine must return;
 `DateTimePartNumberingTests` gates the prose against that catalog in both
-directions (an uncatalogued claim fails, and an entry no summary states any
-more fails as inert); and `ExtractDayOfWeek_NumbersAsTheSummariesState`
-executes the rows on the PostgreSQL lane. Prose, catalog and engine move
-together or the build breaks — which is the property the four rounds behind
-this ADR were missing, not the subject matter.
+directions (a summary naming a day beside its number with no catalog entry
+fails, and an entry no summary states any more fails as inert); and
+`ExtractDayOfWeek_NumbersAsTheSummariesState` executes the rows on the
+PostgreSQL lane. For a basis written that way, prose, catalog and engine
+move together or the build breaks — which is the property the four rounds
+behind this ADR were missing, not the subject matter.
+
+The detector reads that one shape and no other, so it bounds what the gate
+can promise: a basis phrased another way — `IsoWeek`'s "week 1 holds the
+year's first Thursday" — passes unseen, and the catalog entry is the
+author's to add rather than the gate's to demand. Widening the detector
+would put every such claim under the catalog; until then the tier table's
+default is what governs them, and review is what enforces it.
 
 `Weekday` carries no such note, by measurement rather than oversight:
 `DATEPART(weekday, ...)` counts from the session's `@@DATEFIRST`, so the same
