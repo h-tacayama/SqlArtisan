@@ -17,10 +17,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   PostgreSQL, `FetchFirst` on PostgreSQL, `FetchNext` on PostgreSQL and SQL
   Server, and `Top` on SQL Server — but never on Oracle, which runs a negative
   `FETCH`, or SQLite, which reads `LIMIT -1` as "no limit". `Offset` and
-  `OffsetRows` are not checked at all: a negative offset is unmeasured across
-  the five engines. Every cell, rejection and acceptance alike, is
-  live-verified on the pinned lanes (MySQL 8.0, Oracle XE 21.3.0, PostgreSQL
-  16, SQLite 3.50, SQL Server 2022). Stays silent for an argument that is not a
+  `OffsetRows` are not checked at all: no engine is recorded as rejecting a
+  negative offset, and Oracle XE 21.3.0 accepts `OFFSET -1 ROWS`. Every cell,
+  rejection and acceptance alike, is live-verified on the pinned lanes
+  (MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50, SQL Server 2022). Stays silent for an argument that is not a
   compile-time constant, an engine the tables have no fact for, or a dialect
   `SQLA0100`/`SQLA0101` already flags unsupported. See [Argument value
   validity](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#argument-value-validity-sqla0105).

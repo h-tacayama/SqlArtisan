@@ -26,9 +26,10 @@ public class ArgumentValueValidityParityTests
     private static readonly Type[] PaginationInterfaces =
         [typeof(IPagination), typeof(ILimitOffsetBuilder), typeof(IOffsetFetchBuilder)];
 
-    // Measured on one engine each and nowhere else, so there is no per-dialect
-    // fact to report: Oracle XE 21.3.0 executes `OFFSET -1 ROWS` (ADR 0012).
-    private static readonly string[] UnmeasuredRowCountConstructs = ["Offset", "OffsetRows"];
+    // Not routed because no rejection is pinned: the one negative-offset twin is
+    // Oracle XE 21.3.0 accepting `OFFSET -1 ROWS` (ADR 0012), and the plain
+    // `OFFSET n` spelling has no twin on any engine.
+    private static readonly string[] UnroutedRowCountConstructs = ["Offset", "OffsetRows"];
 
     [Fact]
     public void EveryNameInEveryAlphabet_IsARealRegexpOptionsMember()
@@ -127,7 +128,7 @@ public class ArgumentValueValidityParityTests
     }
 
     [Fact]
-    public void EveryRowCountConstruct_IsRoutedOrRecordedUnmeasured()
+    public void EveryRowCountConstruct_IsRoutedOrRecordedUnrouted()
     {
         string[] unaccounted =
         [
@@ -135,20 +136,20 @@ public class ArgumentValueValidityParityTests
                 .Select(m => m.Name)
                 .Distinct(StringComparer.Ordinal)
                 .Where(name => !ArgumentValueValidity.RowCountParameterName.ContainsKey(name))
-                .Except(UnmeasuredRowCountConstructs, StringComparer.Ordinal)
+                .Except(UnroutedRowCountConstructs, StringComparer.Ordinal)
                 .OrderBy(name => name, StringComparer.Ordinal),
         ];
         string[] stale =
         [
-            .. UnmeasuredRowCountConstructs
+            .. UnroutedRowCountConstructs
                 .Except(RowCountMethods().Select(m => m.Name), StringComparer.Ordinal),
         ];
 
         Assert.True(
             unaccounted.Length == 0 && stale.Length == 0,
-            $"row-count constructs outside both SQLA0105's table and the unmeasured list: "
+            $"row-count constructs outside both SQLA0105's table and the unrouted list: "
                 + $"[{string.Join(", ", unaccounted)}]; "
-                + $"stale unmeasured entries: [{string.Join(", ", stale)}]");
+                + $"stale unrouted entries: [{string.Join(", ", stale)}]");
     }
 
     // A cell on a dialect SQLA0100/SQLA0101 owns can never fire, so it is a
