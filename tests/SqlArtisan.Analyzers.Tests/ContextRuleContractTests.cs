@@ -92,6 +92,9 @@ public class ContextRuleContractTests
     [InlineData("RightJoin")]
     [InlineData("ForUpdate")]
     [InlineData("GroupBy")]
+    [InlineData("FetchFirst")]
+    [InlineData("FetchNext")]
+    [InlineData("OffsetRows")]
     public void TriggerMember_ExistsInCoreApi(string methodName)
     {
         bool exists = Core.GetExportedTypes()

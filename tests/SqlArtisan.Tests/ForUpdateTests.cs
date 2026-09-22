@@ -195,6 +195,131 @@ public class ForUpdateTests
     }
 
     [Fact]
+    public void ForUpdate_AfterLimit_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            Select(t.Code)
+            .From(t)
+            .OrderBy(t.Code)
+            .Limit(1)
+            .ForUpdate()
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT code ");
+        expected.Append("FROM test_table ");
+        expected.Append("ORDER BY code ");
+        expected.Append("LIMIT :0 ");
+        expected.Append("FOR UPDATE");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void ForUpdate_SkipLockedAfterLimit_CorrectSql()
+    {
+        // The queue-worker claim: take one unlocked row and lock it (#520).
+        TestTable t = new();
+        SqlStatement sql =
+            Select(t.Code)
+            .From(t)
+            .OrderBy(t.Code)
+            .Limit(1)
+            .ForUpdate(SkipLocked)
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT code ");
+        expected.Append("FROM test_table ");
+        expected.Append("ORDER BY code ");
+        expected.Append("LIMIT :0 ");
+        expected.Append("FOR UPDATE SKIP LOCKED");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void ForUpdate_AfterLimitOffset_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            Select(t.Code)
+            .From(t)
+            .OrderBy(t.Code)
+            .Limit(10)
+            .Offset(20)
+            .ForUpdate()
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT code ");
+        expected.Append("FROM test_table ");
+        expected.Append("ORDER BY code ");
+        expected.Append("LIMIT :0 OFFSET :1 ");
+        expected.Append("FOR UPDATE");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(2, sql.Parameters.Count);
+        Assert.Equal(10, sql.Parameters.Get<object>(":0"));
+        Assert.Equal(20, sql.Parameters.Get<object>(":1"));
+    }
+
+    [Fact]
+    public void ForUpdate_AfterFetchFirst_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            Select(t.Code)
+            .From(t)
+            .OrderBy(t.Code)
+            .FetchFirst(1)
+            .ForUpdate()
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT code ");
+        expected.Append("FROM test_table ");
+        expected.Append("ORDER BY code ");
+        expected.Append("FETCH FIRST :0 ROWS ONLY ");
+        expected.Append("FOR UPDATE");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Count);
+        Assert.Equal(1, sql.Parameters.Get<object>(":0"));
+    }
+
+    [Fact]
+    public void ForUpdate_AfterOffsetRowsFetchNext_CorrectSql()
+    {
+        TestTable t = new();
+        SqlStatement sql =
+            Select(t.Code)
+            .From(t)
+            .OrderBy(t.Code)
+            .OffsetRows(20)
+            .FetchNext(10)
+            .ForUpdate()
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("SELECT code ");
+        expected.Append("FROM test_table ");
+        expected.Append("ORDER BY code ");
+        expected.Append("OFFSET :0 ROWS FETCH NEXT :1 ROWS ONLY ");
+        expected.Append("FOR UPDATE");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(2, sql.Parameters.Count);
+        Assert.Equal(20, sql.Parameters.Get<object>(":0"));
+        Assert.Equal(10, sql.Parameters.Get<object>(":1"));
+    }
+
+    [Fact]
     public void ForUpdate_NullOfClause_ThrowsArgumentNullException()
     {
         // A null OF list would silently widen the lock to every table.

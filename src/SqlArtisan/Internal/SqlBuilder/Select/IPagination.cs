@@ -11,7 +11,7 @@ public interface IPagination
     /// Appends <c>FETCH FIRST n ROWS ONLY</c> with no offset.
     /// </summary>
     /// <param name="count">The maximum number of rows to return.</param>
-    /// <returns>The terminal builder; build, or embed as a subquery.</returns>
+    /// <returns>The builder positioned to optionally lock the rows with <c>FOR UPDATE</c>, build, or embed as a subquery.</returns>
     /// <remarks>Standalone on Oracle and PostgreSQL; SQL Server requires an
     /// <c>OFFSET</c> — use <see cref="OffsetRows(int)"/> then
     /// <see cref="IOffsetFetchBuilder.FetchNext(int)"/> there.</remarks>
@@ -21,7 +21,7 @@ public interface IPagination
     /// Appends <c>LIMIT n</c>.
     /// </summary>
     /// <param name="count">The maximum number of rows to return.</param>
-    /// <returns>The builder positioned to optionally add an <c>OFFSET</c>, or build.</returns>
+    /// <returns>The builder positioned to optionally add an <c>OFFSET</c> or a <c>FOR UPDATE</c>, or build.</returns>
     /// <remarks>MySQL, PostgreSQL, and SQLite syntax; on Oracle use
     /// <see cref="FetchFirst(int)"/>, on SQL Server <see cref="OffsetRows(int)"/>
     /// then <see cref="IOffsetFetchBuilder.FetchNext(int)"/>.</remarks>
@@ -31,7 +31,7 @@ public interface IPagination
     /// Appends <c>OFFSET m</c>.
     /// </summary>
     /// <param name="start">The number of leading rows to skip.</param>
-    /// <returns>The terminal builder; build, or embed as a subquery.</returns>
+    /// <returns>The builder positioned to optionally lock the rows with <c>FOR UPDATE</c>, build, or embed as a subquery.</returns>
     /// <remarks>MySQL, PostgreSQL, and SQLite syntax — standalone only on PostgreSQL; MySQL
     /// and SQLite take it only after <see cref="Limit(int)"/> (<c>Build(Dbms)</c> throws
     /// there without one). Oracle and SQL Server: <see cref="OffsetRows(int)"/>.</remarks>
@@ -41,7 +41,7 @@ public interface IPagination
     /// Appends <c>OFFSET m ROWS</c>.
     /// </summary>
     /// <param name="start">The number of leading rows to skip.</param>
-    /// <returns>The builder positioned to optionally add a <c>FETCH NEXT n ROWS ONLY</c>, or build.</returns>
+    /// <returns>The builder positioned to optionally add a <c>FETCH NEXT n ROWS ONLY</c> or a <c>FOR UPDATE</c>, or build.</returns>
     /// <remarks>Oracle, PostgreSQL, and SQL Server syntax; on MySQL and SQLite
     /// use <see cref="Offset(int)"/>.</remarks>
     IOffsetFetchBuilder OffsetRows(int start);

@@ -556,13 +556,33 @@ SqlStatement sql =
 // FOR UPDATE OF "u".id WAIT 5
 ```
 
+#### Example claiming one row from a queue
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(u.Id)
+    .From(u)
+    .OrderBy(u.Id)
+    .Limit(1)
+    .ForUpdate(SkipLocked)
+    .Build();
+
+// SELECT id
+// FROM users
+// ORDER BY id
+// LIMIT :0
+// FOR UPDATE SKIP LOCKED
+```
+
+The row-limiting clause comes first and `ForUpdate(...)` ends the chain — the one order MySQL 8.0 and PostgreSQL 16 both accept, so the reverse does not compile.
+
 #### Supported Options
 - `Of()` for `OF`
 - `Nowait` for `NOWAIT`
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
 
-**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Of(...)` and `Wait(...)` are Oracle-only — `Of` names columns, the form MySQL and PostgreSQL reject. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`.
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Of(...)` and `Wait(...)` are Oracle-only — `Of` names columns, the form MySQL and PostgreSQL reject. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`.
 
 ---
 
