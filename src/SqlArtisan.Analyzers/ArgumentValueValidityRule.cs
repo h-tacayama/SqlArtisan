@@ -19,7 +19,7 @@ namespace SqlArtisan.Analyzers;
 /// </remarks>
 internal static class ArgumentValueValidityRule
 {
-    /// <summary>The kind of value each message names, filling its <c>{2}</c>.</summary>
+    // The kind of value a message names, filling its {2}.
     private const string MatchOptionNoun = "match option";
     private const string RowCountNoun = "row count";
 

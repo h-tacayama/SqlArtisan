@@ -77,11 +77,12 @@ with the shapes their domains actually have.**
 
 ### Scope this rule does not claim
 
-The `OFFSET` family (`Offset`, `OffsetRows`) is out. Only Oracle's acceptance
-of `OFFSET -1 ROWS` is pinned (ADR 0012); the other four engines are unmeasured,
-and a partially measured construct would report on one dialect for no reason
-the table could defend. `ArgumentValueValidityParityTests` names both members
-explicitly, so a new pagination construct cannot join them by being forgotten.
+The `OFFSET` family (`Offset`, `OffsetRows`) is out. The only negative-offset
+cell pinned as a twin is Oracle's acceptance of `OFFSET -1 ROWS` (ADR 0012), so
+no dialect has a rejection to report; filling the rest in would widen this
+change past what #529 asked for, on evidence that is not yet in the repo.
+`ArgumentValueValidityParityTests` names both members explicitly, so a new
+pagination construct cannot join them by being forgotten.
 
 ## Consequences
 

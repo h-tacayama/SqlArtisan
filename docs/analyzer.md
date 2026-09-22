@@ -843,12 +843,12 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).Limit(-1);
 | `FetchNext` | PostgreSQL, SQL Server |
 | `Limit` | MySQL, PostgreSQL |
 
-`Offset` and `OffsetRows` are deliberately not checked: a negative offset has
-not been measured across the five engines, and a half-measured construct would
-report on one dialect for no reason worth defending.
+`Offset` and `OffsetRows` are deliberately not checked: no engine is on record
+here as rejecting a negative offset, and a construct checked on one dialect
+alone would report for no reason worth defending.
 
-Every cell above — the rejections and the two acceptances that keep Oracle and
-SQLite silent alike — is checked against the engine versions in
+Every verdict in this section — the rejections and the two acceptances that
+keep Oracle and SQLite silent alike — is checked against the engine versions in
 [Verified-against versions](#verified-against-versions).
 
 Three cases stay silent, never a false positive:

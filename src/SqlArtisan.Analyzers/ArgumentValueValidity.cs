@@ -62,8 +62,8 @@ internal static class ArgumentValueValidity
     // --- Row counts: where a negative constant is rejected (#529) ---
 
     // The parameter SQLA0105 reads the row count out of. Offset/OffsetRows are
-    // deliberately absent: only Oracle's acceptance of `OFFSET -1 ROWS` is pinned
-    // (ADR 0012), so there is no per-dialect fact to report on yet.
+    // deliberately absent: the only negative-offset cell pinned as a twin is
+    // Oracle's acceptance (ADR 0012), so no dialect has a rejection to report.
     internal static readonly Dictionary<string, string> RowCountParameterName = new(
         StringComparer.Ordinal)
     {
@@ -79,8 +79,8 @@ internal static class ArgumentValueValidity
     private static readonly HashSet<(string Member, TargetDbms Dbms)> NegativeRowCountRejected =
         new()
         {
-            // `LIMIT must not be negative` (PostgreSQL 16.13), which its FETCH
-            // FIRST/NEXT spellings raise too — both compile to the same limit node.
+            // PostgreSQL 16.13 raises `LIMIT must not be negative` for all three
+            // spellings, the two FETCH ones included.
             ("FetchFirst", TargetDbms.PostgreSql),
             ("FetchNext", TargetDbms.PostgreSql),
             ("Limit", TargetDbms.PostgreSql),
