@@ -824,10 +824,12 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).Limit(-1);
 | `FetchNext` | PostgreSQL, SQL Server |
 | `Limit` | MySQL, PostgreSQL |
 
-`Offset` and `OffsetRows` are deliberately not checked: this rule carries only
-cells the integration tests pin, and no negative-offset rejection is pinned
-there yet. Read that as missing evidence rather than a guarantee — an
-unchecked construct is not a safe one.
+`Offset` and `OffsetRows` are deliberately not checked, and **not because a
+negative offset is safe** — Oracle takes one, PostgreSQL rejects it and SQLite
+reads it as 0. It is that an offset is the argument you pass as a
+variable, so the constant this rule can read is not the one you write. Clamp
+the page number before computing the offset; see
+[Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination).
 
 Every match-option and row-count verdict above — the rejections and the two
 acceptances that keep Oracle and SQLite silent alike — is checked against the

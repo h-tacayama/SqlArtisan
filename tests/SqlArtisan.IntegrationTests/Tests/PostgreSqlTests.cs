@@ -676,6 +676,21 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.ThrowsAny<DbException>(() => connection.Execute(statement));
     }
 
+    // Why SQLA0104 leaves the OFFSET family out is a decision, not a gap (#532):
+    // the count reaches the engine as a bind parameter, so only a call-site
+    // constant is visible and the repo's own paging recipe passes a variable.
+    [Theory]
+    [InlineData("SELECT id FROM users ORDER BY id OFFSET -1")]
+    [InlineData("SELECT id FROM users ORDER BY id OFFSET -1 ROWS")]
+    public void NegativeOffset_IsRejectedByTheEngine(string statement)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute(statement.Replace("-1", "0"));
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(statement));
+    }
+
     // ADR 0012 non-goal (#523 item 1): the alphabet diverges per engine and a
     // contradictory pair is accepted everywhere, so no value-domain guard fits.
     [Theory]

@@ -117,12 +117,17 @@ this cheap again.
 
 ### Scope this rule does not claim
 
-The `OFFSET` family (`Offset`, `OffsetRows`) is out. The only negative-offset
-cell pinned as a twin is Oracle's acceptance of `OFFSET -1 ROWS` (ADR 0012),
-and this rule reports no cell that is not pinned; filling the rest in would
-widen this change past what #529 asked for, on evidence that is not yet in the
-repo. That is a gap in the evidence, not a finding that every engine takes a
-negative offset.
+The `OFFSET` family (`Offset`, `OffsetRows`) is out, and #532 settled that it
+stays out. The engines do diverge — PostgreSQL 16.13 rejects a negative offset
+in both spellings, SQLite 3.50.4 reads it as 0, Oracle XE 21.3.0 takes it, all
+pinned as twins — so the exclusion is not for want of evidence. It is that the
+offset is the argument callers do not write as a literal: the paging recipe
+this repo teaches is `Page(int offset) => … .Limit(20).Offset(offset)`, where
+the row count is the constant and the offset is the parameter. Cells here would
+be correct and inert, while the defect that actually occurs — a computed offset
+that goes negative — stays invisible to a rule that reads only constants. That
+one is a documentation problem, and `docs/query-statements.md` carries the
+note.
 `ArgumentValueValidityParityTests` names both members explicitly, so a new
 pagination construct cannot join them by being forgotten.
 
