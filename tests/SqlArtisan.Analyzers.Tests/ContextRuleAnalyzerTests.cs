@@ -444,4 +444,190 @@ public class ContextRuleAnalyzerTests
         RunSilent("""
             var q = Select(Interval(30, DateTimePart.Day)).From(t);
             """, dbms: null);
+
+    [Theory]
+    [InlineData("oracle")]
+    [InlineData("postgresql")]
+    [InlineData("sqlite")]
+    public Task JoinedDeleteFrom_ReportsSqla0102(string dbms) =>
+        RunReporting("""
+            var q = {|#0:DeleteFrom(t).From(t, s)|}.Where(t.Dep == s.Id);
+            """, dbms);
+
+    [Theory]
+    [InlineData("mysql")]
+    [InlineData("sqlserver")]
+    public Task JoinedDeleteFrom_StaysSilent(string dbms) =>
+        RunSilent("""
+            var q = DeleteFrom(t).From(t, s).Where(t.Dep == s.Id);
+            """, dbms);
+
+    [Fact]
+    public Task JoinedDeleteFromWithJoin_PostgreSql_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:DeleteFrom(t).From(t)|}.InnerJoin(s).On(t.Dep == s.Id);
+            """, "postgresql");
+
+    // The declaring interface is the whole proof, so — unlike the walking rules —
+    // parking the builder in a variable hides nothing.
+    [Fact]
+    public Task JoinedDeleteFromViaVariable_PostgreSql_ReportsSqla0102() =>
+        RunReporting("""
+            var d = DeleteFrom(t);
+            var q = {|#0:d.From(t, s)|}.Where(t.Dep == s.Id);
+            """, "postgresql");
+
+    [Fact]
+    public Task JoinedDeleteFrom_NoTargetConfigured_StaysSilent() =>
+        RunSilent("""
+            var q = DeleteFrom(t).From(t, s).Where(t.Dep == s.Id);
+            """, dbms: null);
+
+    [Fact]
+    public Task SelectFrom_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id).From(t).InnerJoin(s).On(t.Dep == s.Id);
+            """, "postgresql");
+
+    [Fact]
+    public Task DeleteUsing_Oracle_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:DeleteFrom(t).Using(s)|}.Where(t.Dep == s.Id);
+            """, "oracle");
+
+    [Fact]
+    public Task DeleteUsing_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = DeleteFrom(t).Using(s).Where(t.Dep == s.Id);
+            """, "postgresql");
+
+    // The other two Using overloads: the JOIN ... USING(column) list and MERGE's
+    // source, neither of which is the DELETE ... USING clause. The column list is
+    // reachable only after From(...), so it is checked where the lead itself parses.
+    [Fact]
+    public Task DeleteJoinUsingColumns_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = DeleteFrom(t).From(t).InnerJoin(s).Using(t.Id);
+            """);
+
+    [Fact]
+    public Task MergeUsing_Oracle_StaysSilent() =>
+        RunSilent("""
+            var q = MergeInto(t).Using(s).On(t.Id == s.Id).WhenMatched()
+                .ThenUpdateSet(t.Dep == s.Dep);
+            """, "oracle");
+
+    [Theory]
+    [InlineData("oracle")]
+    [InlineData("postgresql")]
+    [InlineData("sqlite")]
+    public Task JoinedUpdateJoin_ReportsSqla0102(string dbms) =>
+        RunReporting("""
+            var q = {|#0:Update(t).InnerJoin(s)|}.On(t.Dep == s.Id).Set(t.Id == s.Id);
+            """, dbms);
+
+    [Fact]
+    public Task JoinedUpdateJoin_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Update(t).InnerJoin(s).On(t.Dep == s.Id).Set(t.Id == s.Id);
+            """);
+
+    [Fact]
+    public Task JoinedUpdateLeftJoin_PostgreSql_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:Update(t).LeftJoin(s)|}.On(t.Dep == s.Id).Set(t.Id == s.Id);
+            """, "postgresql");
+
+    // The second join hangs off IUpdateBuilderJoined, the other interface that
+    // declares the direct-join steps — and is the same defect as the first, so
+    // both are reported.
+    [Fact]
+    public async Task JoinedUpdateSecondJoin_PostgreSql_ReportsSqla0102PerJoin()
+    {
+        var test = AnalyzerVerifier.Create(
+            Usage("""
+                var q = {|#0:Update(t).InnerJoin(s)|}.On(t.Dep == s.Id);
+                var r = {|#1:q.RightJoin(s)|}.On(t.Id == s.Id).Set(t.Id == s.Id);
+                """),
+            AnalyzerVerifier.EditorConfig("postgresql"));
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0102").WithLocation(0));
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0102").WithLocation(1));
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("mysql")]
+    [InlineData("oracle")]
+    public Task JoinedUpdateFrom_ReportsSqla0102(string dbms) =>
+        RunReporting("""
+            var q = {|#0:Update(t).Set(t.Id == s.Id).From(s)|}.Where(t.Dep == s.Id);
+            """, dbms);
+
+    [Theory]
+    [InlineData("postgresql")]
+    [InlineData("sqlite")]
+    public Task JoinedUpdateFrom_StaysSilent(string dbms) =>
+        RunSilent("""
+            var q = Update(t).Set(t.Id == s.Id).From(s).Where(t.Dep == s.Id);
+            """, dbms);
+
+    // A join reached through From(...) is the FROM-form's own join, not the
+    // direct-join spelling the other rule reports.
+    [Fact]
+    public Task JoinedUpdateFromJoin_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Update(t).Set(t.Id == s.Id).From(s).InnerJoin(s).On(t.Dep == s.Id);
+            """, "postgresql");
+
+    [Theory]
+    [InlineData("oracle")]
+    [InlineData("postgresql")]
+    public Task ForUpdateAfterGroupBy_ReportsSqla0102(string dbms) =>
+        RunReporting("""
+            var q = {|#0:Select(t.Dep).From(t).GroupBy(t.Dep).OrderBy(t.Dep).ForUpdate()|};
+            """, dbms);
+
+    // MySQL locks the grouped query's base rows rather than rejecting it.
+    [Fact]
+    public Task ForUpdateAfterGroupBy_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Dep).From(t).GroupBy(t.Dep).OrderBy(t.Dep).ForUpdate();
+            """);
+
+    [Fact]
+    public Task ForUpdateAfterGroupByHaving_PostgreSql_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:Select(t.Dep).From(t).GroupBy(t.Dep).Having(t.Dep > 0)
+                .OrderBy(t.Dep).ForUpdate()|};
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateWithoutGroupBy_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Dep).From(t).OrderBy(t.Dep).ForUpdate();
+            """, "postgresql");
+
+    // The GroupBy sits in a subquery argument, not in ForUpdate's receiver chain.
+    [Fact]
+    public Task ForUpdateWithGroupedSubquery_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Id).From(t)
+                .Where(t.Id.In(Select(s.Dep).From(s).GroupBy(s.Dep))).ForUpdate();
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateAfterGroupByViaVariable_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var g = Select(t.Dep).From(t).GroupBy(t.Dep);
+            var q = g.OrderBy(t.Dep).ForUpdate();
+            """, "postgresql");
+
+    [Fact]
+    public Task ForUpdateAfterGroupBy_NoTargetConfigured_StaysSilent() =>
+        RunSilent("""
+            var q = Select(t.Dep).From(t).GroupBy(t.Dep).OrderBy(t.Dep).ForUpdate();
+            """, dbms: null);
 }

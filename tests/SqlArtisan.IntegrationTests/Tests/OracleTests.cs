@@ -556,4 +556,72 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
     private static string MatchParameterProbe(string flags) =>
         $"SELECT CASE WHEN REGEXP_LIKE('Ab', 'ab', '{flags}') THEN 'YES' ELSE 'NO' END FROM dual";
+
+    // #523: SQLA0102's live proofs for the DML-context rules. Oracle is the only
+    // engine that rejects all five shapes; the acceptance twin of each is the
+    // dialect the spelling belongs to (MySQL's or SQL Server's per-engine tests).
+    [Fact]
+    public void ContextRule_JoinedDeleteLead_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            DeleteFrom(u).From(u, o).Where((u.Id == o.UserId) & (u.Id == 3)), transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void ContextRule_DeleteUsing_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            DeleteFrom(u).Using(o).Where((u.Id == o.UserId) & (u.Id == 3)), transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void ContextRule_JoinedUpdateJoinForm_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 999), transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void ContextRule_JoinedUpdateFromForm_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            Update(u).Set(u.Age == 999).From(o).Where((u.Id == o.UserId) & (u.Id == 3)),
+            transaction));
+        transaction.Rollback();
+    }
+
+    [Fact] // ORA-01786. The ungrouped lock is proven by the dialect sweep's
+           // ForUpdate case, so the GROUP BY is the only difference.
+    public void ContextRule_ForUpdateAfterGroupBy_Rejected()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId)
+                .OrderBy(u.DepartmentId).ForUpdate()));
+    }
 }

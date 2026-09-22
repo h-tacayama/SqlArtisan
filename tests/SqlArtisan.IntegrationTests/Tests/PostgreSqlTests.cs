@@ -710,4 +710,45 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
 
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
+
+    // #523: SQLA0102's live proofs. The DELETE ... USING and FROM-form UPDATE
+    // spellings PostgreSQL does own are proven by JoinedDeleteUsing_Executes and
+    // JoinedUpdateFrom_Executes above.
+    [Fact]
+    public void ContextRule_JoinedDeleteLead_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            DeleteFrom(u).From(u, o).Where((u.Id == o.UserId) & (u.Id == 3)), transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void ContextRule_JoinedUpdateJoinForm_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 999), transaction));
+        transaction.Rollback();
+    }
+
+    [Fact] // SQLSTATE 0A000. The ungrouped lock is proven by the dialect sweep's
+           // ForUpdate case, so the GROUP BY is the only difference.
+    public void ContextRule_ForUpdateAfterGroupBy_Rejected()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId)
+                .OrderBy(u.DepartmentId).ForUpdate()));
+    }
 }

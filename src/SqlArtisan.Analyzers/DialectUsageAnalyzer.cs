@@ -300,9 +300,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    // Name-filter first so config resolution is paid only on trigger names. Each
-    // rule pairs its trigger with the one dialect whose grammar restricts it;
-    // elsewhere the matrix entry already answers (#264).
+    // Name-filter first so config resolution is paid only on trigger names. A rule
+    // names every dialect whose grammar restricts its trigger — one for the walking
+    // rules, a set for the DML shapes; elsewhere the matrix entry answers (#264).
     private static void AnalyzeContextRules(
         OperationAnalysisContext context,
         ConcurrentDictionary<SyntaxTree,
@@ -311,13 +311,34 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         var invocation = (IInvocationOperation)context.Operation;
         string name = invocation.TargetMethod.Name;
         if (name is not ("Limit" or "Grouping" or "PercentileCont" or "PercentileDisc"
-                or "Inserted" or "Deleted" or "Interval" or "IntervalLiteral")
+                or "Inserted" or "Deleted" or "Interval" or "IntervalLiteral"
+                or "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin"
+                or "ForUpdate")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
         }
 
+        // These names are on every query's hot path, so this name compare runs
+        // before the per-tree config lookup and drops all but the DML spellings.
+        ContextRules.DmlShape shape = ContextRules.ClassifyDmlShape(invocation);
+        if (shape == ContextRules.DmlShape.None
+            && name is "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin")
+        {
+            return;
+        }
+
         DialectTargetSet targets = GetTargets(context, cache);
+        if (shape != ContextRules.DmlShape.None)
+        {
+            if (ContextRules.RejectingTargets(targets, RejectingDialects(shape)) is { } names)
+            {
+                ContextRules.ReportDmlShape(context, invocation, shape, names);
+            }
+
+            return;
+        }
+
         switch (name)
         {
             case "Limit" when targets.Contains(TargetDbms.MySql):
@@ -344,8 +365,36 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 ContextRules.CheckIntervalRequiresArithmeticOperand(
                     context, invocation, TargetDbmsNames.Display(TargetDbms.MySql));
                 break;
+            case "ForUpdate"
+                when ContextRules.RejectingTargets(targets, s_groupedLockUnsupported) is { } names:
+                ContextRules.CheckForUpdateAfterGroupBy(context, invocation, names);
+                break;
         }
     }
+
+    // Enum declaration order, so a message listing several reads in the order
+    // docs-style.md fixes. Every dialect absent from a list parses that spelling,
+    // or has no valid form at all and is rejected at Build(Dbms) instead.
+    private static readonly TargetDbms[] s_groupedLockUnsupported =
+        [TargetDbms.Oracle, TargetDbms.PostgreSql];
+
+    private static readonly TargetDbms[] s_joinedDmlUnsupported =
+        [TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.Sqlite];
+
+    private static readonly TargetDbms[] s_deleteUsingUnsupported = [TargetDbms.Oracle];
+
+    private static readonly TargetDbms[] s_updateFromUnsupported =
+        [TargetDbms.MySql, TargetDbms.Oracle];
+
+    // Static instances, not a collection expression per call: this runs on every
+    // joined-DML step of every compilation (ADR 0006).
+    private static TargetDbms[] RejectingDialects(ContextRules.DmlShape shape) => shape switch
+    {
+        ContextRules.DmlShape.JoinedDeleteLead => s_joinedDmlUnsupported,
+        ContextRules.DmlShape.DeleteUsing => s_deleteUsingUnsupported,
+        ContextRules.DmlShape.JoinedUpdateJoin => s_joinedDmlUnsupported,
+        _ => s_updateFromUnsupported,
+    };
 
     // Name-filter first, like AnalyzeContextRules — only the DateTimePart
     // consumers below pay for target-set resolution.

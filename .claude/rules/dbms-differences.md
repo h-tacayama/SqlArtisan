@@ -54,9 +54,9 @@ triage):
 - **Context-bounded validity → an analyzer context rule (SQLA0102, ADR
   0013).** A construct valid in one syntactic context and rejected in another
   on the *same* engine — MySQL's `LIMIT` inside `IN`/`ANY`/`ALL`/`SOME`
-  subqueries, MySQL's `GROUPING()` outside a `WITH ROLLUP` query — cannot be
-  expressed by the construct-level matrix at all. Add a rule to
-  `src/SqlArtisan.Analyzers/ContextRules.cs` with a primary source and a
+  subqueries, or a joined `UPDATE`/`DELETE` spelling written for the wrong
+  engine — cannot be expressed by the construct-level matrix at all. Add a
+  rule to `src/SqlArtisan.Analyzers/ContextRules.cs` with a primary source and a
   live rejection proof in the per-engine integration tests, plus the docs
   note with the workaround. A restriction with no API surface to anchor on
   (Oracle's `PRIOR` outside `CONNECT BY` — CONNECT BY is wontfix per ADR

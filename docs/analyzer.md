@@ -573,8 +573,9 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Five rules ship today — three MySQL
-facts and two SQL Server facts — each live-verified against the engine.
+expression where the construct is used. Ten rules ship today — five reading a
+construct's surroundings, five reading the DML statement a clause sits in —
+each live-verified against every engine it names.
 
 **`LIMIT` inside an `IN` / `NOT IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL
 rejects a row-limited query directly under these positions ("This version of
@@ -635,10 +636,83 @@ var q = Select(u.Id).From(u).Where(Inserted(u.Id) == 1);
 // warning SQLA0102: 'Inserted' is not supported outside an OUTPUT clause on SQL Server
 ```
 
+### DML statement shapes
+
+A joined `UPDATE` or `DELETE` has a different grammar on almost every engine,
+and SqlArtisan emits whichever one you write (ADR 0001). The five rules below
+name the engines that reject the spelling; where a spelling has no valid form
+at all on the resolved dialect, `Build(Dbms)` throws instead and no warning is
+needed.
+
+Each is settled by the builder stage the call binds to, so these — unlike the
+rules above — still warn when the builder is held in a variable. Every verdict
+below is live-verified on the pinned lanes: MySQL 8.0, Oracle XE 21.3.0,
+PostgreSQL 16, SQLite 3.50 and SQL Server 2022.
+
+**A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
+bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
+Server parse. On Oracle, PostgreSQL and SQLite, write the join as
+`Using(...)` (PostgreSQL) or as a correlated `Where(...)` subquery.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = DeleteFrom(u).From(u, o).Where(u.Id == o.UserId);
+// warning SQLA0102: 'From' is not supported in a joined DELETE on PostgreSQL
+```
+
+**`DELETE ... USING`.** PostgreSQL and SQL Server's `USING` support comes from
+`MERGE`, which shares the member name, so the construct-level entry reads
+"supported" on Oracle as well — but Oracle's `DELETE` grammar has no `USING`
+clause (ORA-00933). Join through a correlated `Where(...)` subquery there.
+
+```csharp
+// sqlartisan_syntax_oracle = any
+var q = DeleteFrom(u).Using(o).Where(u.Id == o.UserId);
+// warning SQLA0102: 'Using' is not supported in a DELETE statement on Oracle
+```
+
+**A join placed directly on an `UPDATE` target.**
+`Update(t).InnerJoin(...).On(...).Set(...)` is MySQL's spelling, where the
+join precedes `SET`. Oracle, PostgreSQL and SQLite have no such form —
+PostgreSQL and SQLite take `Set(...).From(...)` instead.
+
+```csharp
+// sqlartisan_syntax_sqlite = any
+var q = Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 30);
+// warning SQLA0102: 'InnerJoin' is not supported joined directly onto an UPDATE target on SQLite
+```
+
+**`UPDATE ... SET ... FROM`.** The mirror case: PostgreSQL, SQLite and SQL
+Server take a `FROM` clause on `UPDATE`; MySQL and Oracle do not. Use the
+join-before-`SET` form on MySQL, and a correlated subquery on Oracle.
+
+```csharp
+// sqlartisan_syntax_mysql = any
+var q = Update(u).Set(u.Age == 30).From(o).Where(u.Id == o.UserId);
+// warning SQLA0102: 'From' is not supported in an UPDATE statement on MySQL
+```
+
+**`FOR UPDATE` over a grouped query.** Grouping collapses the rows the lock
+would name, so Oracle (ORA-01786) and PostgreSQL (SQLSTATE 0A000) reject the
+combination; MySQL locks the base rows instead. Lock the ungrouped rows in a
+separate statement, or drop the `GROUP BY`.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId)
+    .OrderBy(u.DepartmentId).ForUpdate();
+// warning SQLA0102: 'ForUpdate' is not supported after a GROUP BY clause on PostgreSQL
+```
+
+Not in this family: an `UPDATE ... FROM` that re-lists the target table. That
+one turns on whether two builder calls name the *same* table instance, which
+the analyzer cannot see, so `Build(Dbms)` rejects it (ADR 0011).
+
 A context rule warns only when the position is provable from the expression
-itself. A subquery held in a variable, a builder chain continued from a
-helper method, or any shape the analyzer doesn't recognize stays silent —
-the same under-warn-but-never-false-positive principle the matrix follows.
+itself. For the five that read a construct's surroundings, a subquery held in
+a variable, a builder chain continued from a helper method, or any shape the
+analyzer doesn't recognize stays silent — the same
+under-warn-but-never-false-positive principle the matrix follows.
 The absence side is equally strict: `Grouping` warns only when the chain
 shows a call *after* `.GroupBy(...)` that isn't `.WithRollup()` — from that
 point the builder's type can never accept the suffix — and a chain that

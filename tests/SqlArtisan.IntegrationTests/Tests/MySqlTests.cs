@@ -532,4 +532,37 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
+
+    [Fact] // #523: SQLA0102's live proof. MySQL has no UPDATE ... FROM; the JOIN
+           // spelling it does own is proven by JoinedUpdateJoin_Executes above.
+    public void ContextRule_JoinedUpdateFromForm_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            Update(u).Set(u.Age == 999).From(o).Where((u.Id == o.UserId) & (u.Id == 3)),
+            transaction));
+        transaction.Rollback();
+    }
+
+    // #523: why MySQL is absent from the FOR UPDATE context rule — it locks the
+    // grouped query's base rows where Oracle and PostgreSQL reject the statement.
+    [Fact]
+    public void GroupedForUpdate_Executes()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> departments = connection.Query<int>(
+            Select(u.DepartmentId).From(u).GroupBy(u.DepartmentId)
+                .OrderBy(u.DepartmentId).ForUpdate(),
+            transaction);
+
+        Assert.Equal(new[] { 10, 20, 30 }, departments);
+        transaction.Rollback();
+    }
 }

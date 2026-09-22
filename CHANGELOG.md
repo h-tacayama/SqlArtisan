@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- `SQLA0102` now covers the DML-statement shapes the construct-level matrix
+  cannot express: a joined `DELETE` (`DELETE t FROM ...`, MySQL's and SQL
+  Server's spelling) on Oracle, PostgreSQL and SQLite; `DELETE ... USING` on
+  Oracle, whose `MERGE`-shared matrix entry reads supported; a join placed
+  directly on an `UPDATE` target (MySQL's spelling) on Oracle, PostgreSQL and
+  SQLite; `UPDATE ... SET ... FROM` on MySQL and Oracle; and `FOR UPDATE` over
+  a grouped query on Oracle and PostgreSQL. Every verdict — rejection and
+  acceptance alike — is live-verified on the pinned lanes (MySQL 8.0, Oracle XE
+  21.3.0, PostgreSQL 16, SQLite 3.50, SQL Server 2022), and each rule is settled
+  by the builder stage the call binds to, so unlike the existing context rules,
+  holding the builder in a variable does not hide the warning.
+
 ### Fixed
 - `DateTimePart.Weekday` and `DateTimePart.Dayofyear` no longer claim MySQL.
   MySQL spells both as standalone functions (`WEEKDAY()`, `DAYOFYEAR()`) that
