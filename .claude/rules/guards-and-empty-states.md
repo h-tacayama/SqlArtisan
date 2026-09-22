@@ -159,6 +159,19 @@ case-insensitively, which is what the two members now document. MySQL's
 `SQLA0104`-class table to carry, never an ADR 0012 guard: its alphabet is
 open, so condition 3 fails as well (#523).
 
+**A `GROUP BY` column ordinal stays permissive on the engines that refuse it
+(decided — do not re-file):** Oracle XE 21.3.0 and SQL Server 2022 reject a
+bare constant there while MySQL 8.0, PostgreSQL 16.13 and SQLite 3.50.4 group
+by the position, so `Build(Dbms)` could throw the way `OrderBy`'s non-integer
+sort key does — and deliberately does not. ADR 0011's bar is an analyzer blind
+spot **and** no valid spelling, and both halves fail: a call-site constant is
+exactly what `SQLA0104` reads, and on the rejecting engines `GroupBy(column)`
+spells the same intent. A *non-constant* ordinal is a blind spot, but the valid
+spelling is still there, so the second condition fails for it too and the
+database stays the arbiter. The ordinal **below 1** is a different question and
+does guard — every engine refuses it, so ADR 0012's three conditions hold
+(#521).
+
 **A negative row count and a negative `Lag`/`Lead` offset stay permissive
 (decided — do not re-file):** `Top(-1)`, `FetchFirst(-1)` and `Limit(-1)`
 carry the count as a `BindValue`, so it reaches the engine as a bind

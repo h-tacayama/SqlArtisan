@@ -84,8 +84,8 @@ permissive default stands. `Numtoyminterval`'s and `Numtodsinterval`'s
 `interval_unit` argument — restricted to `YEAR`/`MONTH` and
 `DAY`/`HOUR`/`MINUTE`/`SECOND` respectively, the exact sets Oracle's own
 function definitions accept; no other engine has either function, so any
-other value is invalid everywhere (#448). A `GROUP BY` column ordinal below 1 (#521): it names no select-list position,
-and MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16.13, SQLite 3.50.4 and SQL Server
+other value is invalid everywhere (#448). A `GROUP BY` column ordinal below
+1 (#521): it names no select-list position, and MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16.13, SQLite 3.50.4 and SQL Server
 2022 all refuse it — live-verified on each. Note the contrast with `ORDER BY`,
 whose negative ordinal MySQL reads as a constant and accepts, which is why that
 one is an ADR 0011 bounded exception rather than a guard here.

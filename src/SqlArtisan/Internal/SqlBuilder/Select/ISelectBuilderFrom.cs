@@ -15,7 +15,7 @@ public interface ISelectBuilderFrom :
     /// <summary>
     /// Appends <c>GROUP BY a, b, ...</c>.
     /// </summary>
-    /// <param name="groupByItems">The grouping expressions, or grouping constructs such as <c>Sql.Rollup(...)</c>, <c>Sql.Cube(...)</c>, and <c>Sql.GroupingSets(...)</c>.</param>
+    /// <param name="groupByItems">The grouping expressions, a select-list position (<c>1</c> groups by the first item — MySQL, PostgreSQL, and SQLite), or grouping constructs such as <c>Sql.Rollup(...)</c>, <c>Sql.Cube(...)</c>, and <c>Sql.GroupingSets(...)</c>, whose own arguments stay expressions rather than positions.</param>
     /// <returns>The builder positioned after <c>GROUP BY</c>, ready for <c>HAVING</c>, <c>ORDER BY</c>, pagination, <c>WITH ROLLUP</c>, a set operator, or build.</returns>
     ISelectBuilderGroupBy GroupBy(params object[] groupByItems);
 
