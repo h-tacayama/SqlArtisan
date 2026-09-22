@@ -94,6 +94,26 @@ internal static class ArgumentValueValidity
             ("Top", TargetDbms.SqlServer),
         };
 
+    // --- GROUP BY ordinals: where grouping by a select-list position is
+    // rejected outright (#521 item 2) ---
+
+    // The parameter SQLA0104 reads the group keys out of. An ordinal below 1 is
+    // refused by every engine, so the library rejects that at the call instead.
+    internal const string GroupByItemsParameterName = "groupByItems";
+
+    // MySQL 8.0, PostgreSQL 16.13 and SQLite 3.50.4 group by the select-list
+    // position; these two refuse a bare constant there, loudly rather than by
+    // grouping everything into one — all five live-verified.
+    private static readonly HashSet<TargetDbms> OrdinalGroupByRejected =
+        [TargetDbms.Oracle, TargetDbms.SqlServer];
+
+    /// <summary>
+    /// Whether <paramref name="dbms"/> is measured to reject a <c>GROUP BY</c>
+    /// column ordinal.
+    /// </summary>
+    public static bool RejectsOrdinalGroupBy(TargetDbms dbms) =>
+        OrdinalGroupByRejected.Contains(dbms);
+
     /// <summary>
     /// The valid <c>RegexpOptions</c> member-name set for <paramref name="dbms"/>,
     /// or <see langword="null"/> when this rule has no alphabet for that engine —

@@ -380,6 +380,16 @@ SqlStatement sql =
 // HAVING COUNT(id) > :0
 ```
 
+A group key may also be a **select-list position** — `GroupBy(1, 2)` emits
+`GROUP BY 1, 2`, and positions mix freely with columns (`GroupBy(u.Id, 2)`).
+MySQL, PostgreSQL and SQLite group by the position; Oracle and SQL Server
+refuse a bare constant there, which the analyzer reports as `SQLA0104`. A
+position below 1 names nothing on any engine and is rejected at the call.
+
+A non-integer group key is emitted as written and keeps its decimal point, so
+`GroupBy(2.0)` is `GROUP BY 2.0` rather than a position. MySQL and SQLite read
+such a constant as a single group; Oracle, PostgreSQL and SQL Server reject it.
+
 To group by an expression that carries bind parameters — a `CASE` label, a `DECODE`, date math with a parameter — hold the expression in a variable and pass the **same instance** to `Select(...)` and `GroupBy(...)`; both occurrences then emit identical parameter markers and the statement runs everywhere. The two clauses need not match otherwise — here the `SELECT` side aliases the instance and adds an aggregate:
 
 ```csharp

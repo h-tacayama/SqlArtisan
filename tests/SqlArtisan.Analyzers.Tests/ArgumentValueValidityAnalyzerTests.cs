@@ -253,6 +253,49 @@ public class ArgumentValueValidityAnalyzerTests
             """,
             "Limit", "-1", "row count", "MySQL and PostgreSQL");
 
+    // --- GROUP BY column ordinals (#521 item 2) ---
+
+    [Fact]
+    public Task GroupBy_Oracle_Ordinal_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(t.Id).From(t).GroupBy({|#0:1|});""",
+            AnalyzerVerifier.EditorConfig("oracle"),
+            "GroupBy", "1", "column ordinal", "Oracle");
+
+    [Fact]
+    public Task GroupBy_SqlServer_Ordinal_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(t.Id).From(t).GroupBy({|#0:1|});""",
+            AnalyzerVerifier.EditorConfig("sqlserver"));
+
+    [Fact]
+    public Task GroupBy_PostgreSql_Ordinal_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id).From(t).GroupBy(1);""",
+            AnalyzerVerifier.EditorConfig("postgresql"));
+
+    // A column carries no ordinal, so a mixed list reports only the ordinal.
+    [Fact]
+    public Task GroupBy_Oracle_ColumnBesideOrdinal_ReportsOnlyTheOrdinal() =>
+        RunReporting(
+            """var q = Select(t.Id).From(t).GroupBy(t.Id, {|#0:2|});""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Fact]
+    public Task GroupBy_Oracle_ColumnsOnly_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id).From(t).GroupBy(t.Id, t.Name);""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Fact]
+    public Task GroupBy_Oracle_NonConstantOrdinal_StaysSilent() =>
+        RunSilent(
+            """
+            int n = System.DateTime.Now.Second;
+            var q = Select(t.Id).From(t).GroupBy(n);
+            """,
+            AnalyzerVerifier.EditorConfig("oracle"));
+
     [Fact]
     public Task Limit_NoTargetConfigured_StaysSilent() =>
         RunSilent(

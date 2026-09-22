@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `GroupBy(...)` now takes a **select-list position** as well as a column or
+  expression: `GroupBy(1, 2)` emits `GROUP BY 1, 2`, and positions mix with
+  columns (`GroupBy(u.Id, 2)`). Previously a bare integer threw
+  `Invalid type for GroupByItem: System.Int32`, while `OrderBy(1)` had always
+  worked — an asymmetry with no reason behind it. MySQL 8.0, PostgreSQL 16.13
+  and SQLite 3.50.4 group by the position; Oracle XE 21.3.0 and SQL Server 2022
+  refuse a bare constant there, loudly rather than by collapsing every row into
+  one group, and `SQLA0104` reports that at the call site. A position below 1
+  names nothing on any of the five, so it is rejected eagerly with
+  `A GROUP BY column ordinal must be 1 or greater.` A non-integer key is
+  emitted as written and keeps its decimal point, so `GroupBy(2.0)` is
+  `GROUP BY 2.0` and cannot silently re-read as a position; MySQL and SQLite
+  take such a constant as one group, the other three reject it. Every cell is
+  live-verified on the pinned lanes. (#521)
 - Pagination and `FOR UPDATE` can now be written in one chain:
   `Limit`, `Offset`, `OffsetRows`, `FetchFirst` and `FetchNext` all return a
   builder state that offers `ForUpdate(...)`, so the queue-worker claim

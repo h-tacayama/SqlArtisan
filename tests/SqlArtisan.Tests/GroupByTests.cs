@@ -530,4 +530,56 @@ public class GroupByTests
             "GROUPING SETS requires a grouping set. (Parameter 'set')",
             ex.Message);
     }
+
+    // ── Ordinal group keys (#521 item 2) ─────────────────────────────
+
+    [Fact]
+    public void GroupBy_Ordinal_CorrectSql()
+    {
+        SqlStatement sql = Select(_t.Name).From(_t).GroupBy(1).Build();
+
+        Assert.Equal("SELECT \"t\".name FROM test_table \"t\" GROUP BY 1", sql.Text);
+    }
+
+    [Fact]
+    public void GroupBy_OrdinalBesideColumn_CorrectSql()
+    {
+        SqlStatement sql = Select(_t.Name, _t.Code).From(_t).GroupBy(_t.Name, 2).Build();
+
+        Assert.Equal(
+            "SELECT \"t\".name, \"t\".code FROM test_table \"t\" GROUP BY \"t\".name, 2",
+            sql.Text);
+    }
+
+    // Every engine refuses an ordinal below 1 — MySQL 8.0, Oracle XE 21.3.0,
+    // PostgreSQL 16.13, SQLite 3.50.4 and SQL Server 2022 alike.
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void GroupBy_OrdinalBelowOne_ThrowsArgumentException(int ordinal)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Name).From(_t).GroupBy(ordinal));
+
+        Assert.Equal("A GROUP BY column ordinal must be 1 or greater.", ex.Message);
+    }
+
+    // Rendered with a decimal point so a whole value cannot re-read as an
+    // ordinal on the engines that take a fractional constant as one group.
+    [Fact]
+    public void GroupBy_WholeFractionalKey_KeepsItsDecimalPoint()
+    {
+        SqlStatement sql = Select(_t.Name).From(_t).GroupBy(2.0).Build();
+
+        Assert.Equal("SELECT \"t\".name FROM test_table \"t\" GROUP BY 2.0", sql.Text);
+    }
+
+    [Fact]
+    public void GroupBy_NonFiniteKey_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(_t.Name).From(_t).GroupBy(double.NaN));
+
+        Assert.Equal("A GROUP BY numeric group key must be finite.", ex.Message);
+    }
 }

@@ -23,6 +23,7 @@ internal static class ArgumentValueValidityRule
     // The kind of value a message names, filling its {2}.
     private const string MatchOptionNoun = "match option";
     private const string RowCountNoun = "row count";
+    private const string OrdinalNoun = "column ordinal";
 
     public static void Check(
         OperationAnalysisContext context,
@@ -42,7 +43,73 @@ internal static class ArgumentValueValidityRule
         {
             CheckRowCount(context, invocation, targets, memberName, countParameter);
         }
+
+        if (memberName == "GroupBy")
+        {
+            CheckGroupByOrdinal(context, invocation, targets, memberName);
+        }
     }
+
+    private static void CheckGroupByOrdinal(
+        OperationAnalysisContext context,
+        IInvocationOperation invocation,
+        DialectTargetSet targets,
+        string memberName)
+    {
+        if (FindArgument(invocation.Arguments, ArgumentValueValidity.GroupByItemsParameterName)
+                is not { } argument
+            || ValueDomainScope.For(context, invocation) is not { } scope)
+        {
+            return;
+        }
+
+        List<string>? invalidOn = null;
+
+        foreach (TargetDbms dbms in targets.Members)
+        {
+            if (ArgumentValueValidity.RejectsOrdinalGroupBy(dbms) && scope.Covers(dbms, targets))
+            {
+                (invalidOn ??= []).Add(TargetDbmsNames.Display(dbms));
+            }
+        }
+
+        if (invalidOn is not { Count: > 0 })
+        {
+            return;
+        }
+
+        // Per element, so a mixed list reports only the ordinals in it.
+        foreach (IOperation element in Elements(argument.Value))
+        {
+            if (Unwrap(element).ConstantValue is { HasValue: true, Value: int ordinal })
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.InvalidArgumentValue,
+                    element.Syntax.GetLocation(),
+                    memberName,
+                    ordinal.ToString(CultureInfo.InvariantCulture),
+                    OrdinalNoun,
+                    TargetDbmsNames.JoinDisplayNames(invalidOn)));
+            }
+        }
+    }
+
+    // A params array's elements, read the way IdentifierLengthRule reads them:
+    // the pinned Roslyn gives a collection expression no operation of its own.
+    private static IEnumerable<IOperation> Elements(IOperation value) =>
+        value switch
+        {
+            IArrayCreationOperation { Initializer: { } initializer } => initializer.ElementValues,
+            { Type: IArrayTypeSymbol } and not (IInvocationOperation or ILocalReferenceOperation
+                or IParameterReferenceOperation or IFieldReferenceOperation
+                or IPropertyReferenceOperation or IConversionOperation) => value.ChildOperations,
+            _ => [],
+        };
+
+    // An int reaches `object` through a boxing conversion, which carries the
+    // constant; the ordinal is the operand's, not the conversion's.
+    private static IOperation Unwrap(IOperation element) =>
+        element is IConversionOperation conversion ? conversion.Operand : element;
 
     private static void CheckMatchOptions(
         OperationAnalysisContext context,
