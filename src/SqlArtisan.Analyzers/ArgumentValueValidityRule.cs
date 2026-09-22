@@ -9,13 +9,14 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0105 for a literal argument value <see cref="ArgumentValueValidity"/>
+/// Reports SQLA0104 for a literal argument value <see cref="ArgumentValueValidity"/>
 /// says the target dialect rejects: a <c>RegexpOptions</c> member outside its
 /// match-parameter alphabet (#528), or a negative row count (#529).
 /// </summary>
 /// <remarks>
-/// Silent whenever a fact is missing, and — through
-/// <see cref="ValueDomainScope"/> — on a dialect SQLA0100/SQLA0101 already flags.
+/// The sibling of <see cref="DatepartValidityRule"/> under the same id — same
+/// verdict, same remediation — silent whenever a fact is missing, and, through
+/// <see cref="ValueDomainScope"/>, on a dialect SQLA0100/SQLA0101 already flags.
 /// </remarks>
 internal static class ArgumentValueValidityRule
 {

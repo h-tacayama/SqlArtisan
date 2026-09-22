@@ -20,6 +20,11 @@ internal static class DiagnosticDescriptors
     // guard is a shape the library can repeat, not because a queue is waiting.
     private const string ValidityCategory = "SqlArtisan.Validity";
 
+    // Shared so the two SQLA0104 descriptors cannot drift apart in an IDE's rule
+    // list, where the title is all a user sees.
+    private const string ArgumentValueTitle =
+        "Argument value not supported on the target dialect";
+
     private const string HelpLinkUri =
         "https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md";
 
@@ -131,22 +136,22 @@ internal static class DiagnosticDescriptors
         helpLinkUri: HelpLinkUri);
 
     // No override-key hint, like SQLA0102: a construct-level override speaks to
-    // the construct, not to a DateTimePart value (`supported` re-arms this check).
+    // the construct, not to an argument value (`supported` re-arms this check).
     public static readonly DiagnosticDescriptor InvalidDatepartArgument = new(
         id: "SQLA0104",
-        title: "Datepart argument not supported on the target dialect",
+        title: ArgumentValueTitle,
         messageFormat: "'{1}' is not a valid datepart for '{0}' on {2}",
         category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
-    // One id for both value domains, on the SQLA0001 principle: neither half is a
-    // nag, so a lever silencing one should silence the other. {2} names the kind
-    // of value, which is what lets one format serve both (ADR 0022).
+    // A second SQLA0104 reason, on the SQLA0001 principle: none of the three
+    // value domains is a nag, so a lever silencing one should silence the rest.
+    // {2} names the kind of value, which is what lets one format serve two (ADR 0022).
     public static readonly DiagnosticDescriptor InvalidArgumentValue = new(
-        id: "SQLA0105",
-        title: "Argument value not supported on the target dialect",
+        id: "SQLA0104",
+        title: ArgumentValueTitle,
         messageFormat: "'{1}' is not a valid {2} for '{0}' on {3}",
         category: DialectCategory,
         defaultSeverity: DiagnosticSeverity.Warning,

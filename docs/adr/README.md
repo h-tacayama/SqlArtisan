@@ -46,7 +46,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0019](0019-analyzer-multi-dialect-syntax-set.md) | Analyzer multi-dialect syntax set: `sqlartisan_syntax_*`, one key per DBMS | Analyzer | Accepted |
 | [0020](0020-documentation-precision-boundary.md) | Documentation precision boundary: what the docs assert, and what they delegate to the engine | | Accepted |
 | [0021](0021-analyzer-matrix-key-granularity.md) | Dialect-matrix key granularity: member-level by default, arity as a narrowing layer | Analyzer | Accepted |
-| [0022](0022-analyzer-value-domain-diagnostics.md) | Analyzer value-domain diagnostics: one ID for a literal argument value a dialect rejects | Analyzer | Accepted |
+| [0022](0022-analyzer-value-domain-argument-ids.md) | Value-domain arguments: every literal value verdict under one diagnostic ID | Analyzer | Accepted |
 
 ### Clusters
 
@@ -68,9 +68,10 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   project check a *set* of dialects instead of one (`sqlartisan_syntax_*`),
   refining 0008's precedence section and adding SQLA0002; 0021 fixes which of
   0008's two key levels the shipped matrix itself asserts at (member-level by
-  default, arity only to narrow it); 0022 adds the value dimension the matrix
-  cannot key on at all (SQLA0105), extending 0013's provable-or-silent
-  discipline to a literal argument value.
+  default, arity only to narrow it); 0022 keeps every verdict on the value
+  dimension the matrix cannot key on under one id (SQLA0104), applying 0019's
+  splitting test and 0013's provable-or-silent discipline to a literal
+  argument value.
 
 ## Consolidation trigger
 

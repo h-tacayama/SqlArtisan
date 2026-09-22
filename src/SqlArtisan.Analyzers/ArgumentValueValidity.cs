@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// The per-(value, dialect) facts SQLA0105 reads: which <c>RegexpOptions</c>
+/// The per-(value, dialect) facts SQLA0104 reads: which <c>RegexpOptions</c>
 /// members each engine's match-parameter alphabet has (#528), and which
 /// row-count constructs reject a negative constant on which engine (#529).
 /// </summary>
@@ -17,7 +17,7 @@ internal static class ArgumentValueValidity
 {
     // --- RegexpOptions: the match-parameter alphabet, per dialect (#528) ---
 
-    // The parameter SQLA0105 reads the literal RegexpOptions out of — each entry
+    // The parameter SQLA0104 reads the literal RegexpOptions out of — each entry
     // matches that factory's own parameter name in Sql.R.cs. RegexpCount is listed
     // for Oracle and PostgreSQL; the matrix owns MySQL, which has no REGEXP_COUNT.
     internal static readonly Dictionary<string, string> MatchOptionParameterName = new(
@@ -61,7 +61,7 @@ internal static class ArgumentValueValidity
 
     // --- Row counts: where a negative constant is rejected (#529) ---
 
-    // The parameter SQLA0105 reads the row count out of. Offset/OffsetRows are
+    // The parameter SQLA0104 reads the row count out of. Offset/OffsetRows are
     // deliberately absent: the only negative-offset cell pinned as a twin is
     // Oracle's acceptance (ADR 0012), so no dialect has a rejection to report.
     internal static readonly Dictionary<string, string> RowCountParameterName = new(

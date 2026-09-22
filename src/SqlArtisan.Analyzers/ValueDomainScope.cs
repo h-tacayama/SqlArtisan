@@ -4,9 +4,9 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// The never-both-fire contract the value-domain rules share (SQLA0104,
-/// SQLA0105): a dialect SQLA0100/SQLA0101 already flags is theirs to report,
-/// so a finer-grained verdict on the same usage stays silent there (#449).
+/// The never-both-fire contract SQLA0104's two rules share: a dialect
+/// SQLA0100/SQLA0101 already flags is theirs to report, so a finer-grained
+/// verdict on the same usage stays silent there (#449).
 /// </summary>
 /// <remarks>
 /// An <c>unsupported</c> override makes SQLA0100 fire for every target, which is

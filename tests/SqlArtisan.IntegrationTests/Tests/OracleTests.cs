@@ -493,7 +493,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
     // ADR 0012 non-goals (#523): Oracle takes a negative row count outright,
     // which is what keeps the FETCH family unguarded and, for #529, what keeps
-    // SQLA0105 silent on both its FETCH spellings; the LAG offset it rejects.
+    // SQLA0104 silent on both its FETCH spellings; the LAG offset it rejects.
     [Fact]
     public void NegativeFetchCount_IsAcceptedByTheEngine()
     {

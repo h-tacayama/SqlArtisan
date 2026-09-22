@@ -22,7 +22,7 @@ public class ArgumentValueValidityParityTests
             .OrderBy(name => name, StringComparer.Ordinal),
     ];
 
-    // The pagination surface SQLA0105's row-count table is measured against.
+    // The pagination surface SQLA0104's row-count table is measured against.
     private static readonly Type[] PaginationInterfaces =
         [typeof(IPagination), typeof(ILimitOffsetBuilder), typeof(IOffsetFetchBuilder)];
 
@@ -44,7 +44,7 @@ public class ArgumentValueValidityParityTests
         Assert.True(
             unmatchable.Length == 0,
             $"{unmatchable.Length} name(s) in ArgumentValueValidity's alphabets name no real "
-                + $"RegexpOptions member, so SQLA0105 can never match them:\n  "
+                + $"RegexpOptions member, so SQLA0104 can never match them:\n  "
                 + string.Join("\n  ", unmatchable));
     }
 
@@ -61,7 +61,7 @@ public class ArgumentValueValidityParityTests
         Assert.True(
             uncovered.Length == 0,
             $"{uncovered.Length} RegexpOptions member(s) appear in none of "
-                + "ArgumentValueValidity's alphabets, so SQLA0105 reports them on every dialect "
+                + "ArgumentValueValidity's alphabets, so SQLA0104 reports them on every dialect "
                 + $"it has an alphabet for — a false positive on each:\n  "
                 + string.Join("\n  ", uncovered));
     }
@@ -84,7 +84,7 @@ public class ArgumentValueValidityParityTests
         Assert.True(
             unrouted.Length == 0,
             $"{unrouted.Length} RegexpOptions-taking factory(ies) have no entry in "
-                + $"ArgumentValueValidity.MatchOptionParameterName, so SQLA0105 can never read "
+                + $"ArgumentValueValidity.MatchOptionParameterName, so SQLA0104 can never read "
                 + $"their argument:\n  {string.Join("\n  ", unrouted)}");
     }
 
@@ -123,7 +123,7 @@ public class ArgumentValueValidityParityTests
 
         Assert.True(
             wrong.Count == 0,
-            "entries naming a parameter the factory does not have, so SQLA0105 reads nothing: "
+            "entries naming a parameter the factory does not have, so SQLA0104 reads nothing: "
                 + string.Join(", ", wrong));
     }
 
@@ -147,7 +147,7 @@ public class ArgumentValueValidityParityTests
 
         Assert.True(
             unaccounted.Length == 0 && stale.Length == 0,
-            $"row-count constructs outside both SQLA0105's table and the unrouted list: "
+            $"row-count constructs outside both SQLA0104's table and the unrouted list: "
                 + $"[{string.Join(", ", unaccounted)}]; "
                 + $"stale unrouted entries: [{string.Join(", ", stale)}]");
     }
@@ -177,7 +177,7 @@ public class ArgumentValueValidityParityTests
 
         Assert.True(
             unreachable.Count == 0,
-            "row-count cells SQLA0105 can never report, because the construct itself is "
+            "row-count cells SQLA0104 can never report, because the construct itself is "
                 + "unsupported there: " + string.Join(", ", unreachable));
     }
 

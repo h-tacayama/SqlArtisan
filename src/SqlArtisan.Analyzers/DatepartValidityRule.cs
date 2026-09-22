@@ -33,8 +33,8 @@ internal static class DatepartValidityRule
             return;
         }
 
-        // The never-both-fire contract, shared with SQLA0105: a null scope means an
-        // `unsupported` override has already handed every target to SQLA0100.
+        // A null scope means an `unsupported` override has already handed every
+        // target to SQLA0100.
         if (ValueDomainScope.For(context, invocation) is not { } scope)
         {
             return;

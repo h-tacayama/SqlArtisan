@@ -5,6 +5,7 @@ paths:
   - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
   - "src/SqlArtisan.Analyzers/ContextRules.cs"
   - "src/SqlArtisan.Analyzers/ArgumentValueValidity.cs"
+  - "src/SqlArtisan.Analyzers/DatepartValidity.cs"
 ---
 
 # Handling a DBMS syntax difference
@@ -62,12 +63,13 @@ the dialect layer nor a plain matrix entry (the first two identified in the
   note with the workaround. A restriction with no API surface to anchor on
   (Oracle's `PRIOR` outside `CONNECT BY` — CONNECT BY is wontfix per ADR
   0010) stays a docs/ADR note only.
-- **Value-bounded validity → an analyzer value-domain rule (SQLA0105, ADR
+- **Value-bounded validity → an analyzer value-domain rule (SQLA0104, ADR
   0022).** A construct the engine has, with one *argument value* it rejects —
-  MySQL's match-parameter alphabet having no `'x'`, or a negative row count —
-  which the matrix cannot key on either. Add the cell to
-  `src/SqlArtisan.Analyzers/ArgumentValueValidity.cs` with a primary source, a
-  live rejection proof, and the acceptance twin that proves the probe was
+  a `DateTimePart` outside a function's grammar, MySQL's match-parameter
+  alphabet having no `'x'`, a negative row count — which the matrix cannot key
+  on either. Add the cell to `DatepartValidity.cs` (dateparts) or
+  `ArgumentValueValidity.cs` (the rest), with a primary source, a live
+  rejection proof, and the acceptance twin that proves the probe was
   well-formed. A value no engine accepts is ADR 0012's eager guard instead,
   and an engine nobody has measured is left out, never assumed to reject.
 

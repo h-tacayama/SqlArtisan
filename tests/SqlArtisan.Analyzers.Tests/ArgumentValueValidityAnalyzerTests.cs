@@ -30,13 +30,13 @@ public class ArgumentValueValidityAnalyzerTests
 
     private static Task RunReporting(
         string statements, string editorConfig, params string[] messageArguments) =>
-        RunAsync(Usage(statements), editorConfig, "SQLA0105", messageArguments);
+        RunAsync(Usage(statements), editorConfig, "SQLA0104", messageArguments);
 
     private static Task RunSilent(string statements, string editorConfig) =>
         RunAsync(AnalyzerVerifier.Unmarked(Usage(statements)), editorConfig, null);
 
     // The dialect a construct-level verdict owns still reports it, so the
-    // silence under test is SQLA0105's alone: SQLA0100 is expected by id.
+    // silence under test is the value rule's alone: SQLA0100 is expected by id.
     private static Task RunOwnedBySqla0100(string statements, string editorConfig) =>
         RunAsync(Usage(statements), editorConfig, "SQLA0100");
 
@@ -64,7 +64,7 @@ public class ArgumentValueValidityAnalyzerTests
     // --- RegexpOptions x the match-parameter alphabet (#528) ---
 
     [Fact]
-    public Task RegexpLike_MySql_ExcludingWhiteSpace_ReportsSqla0105() =>
+    public Task RegexpLike_MySql_ExcludingWhiteSpace_ReportsSqla0104() =>
         RunReporting(
             """
             SqlCondition c = RegexpLike(t.Name, "ab",
@@ -98,7 +98,7 @@ public class ArgumentValueValidityAnalyzerTests
     // The enum is [Flags], so the rule reads a combination: the letter MySQL
     // has is silent and the letter it lacks still reports, from one argument.
     [Fact]
-    public Task RegexpLike_MySql_CombinationCarryingTheGap_ReportsSqla0105Once() =>
+    public Task RegexpLike_MySql_CombinationCarryingTheGap_ReportsSqla0104Once() =>
         RunReporting(
             """
             SqlCondition c = RegexpLike(t.Name, "ab",
@@ -113,7 +113,7 @@ public class ArgumentValueValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("mysql"));
 
     [Fact]
-    public Task RegexpReplace_MySql_ExcludingWhiteSpace_ReportsSqla0105() =>
+    public Task RegexpReplace_MySql_ExcludingWhiteSpace_ReportsSqla0104() =>
         RunReporting(
             """
             var e = RegexpReplace(t.Name, "ab", "x", 1, 0,
@@ -144,14 +144,14 @@ public class ArgumentValueValidityAnalyzerTests
     // --- Negative row counts (#529) ---
 
     [Fact]
-    public Task Limit_MySql_NegativeCount_ReportsSqla0105() =>
+    public Task Limit_MySql_NegativeCount_ReportsSqla0104() =>
         RunReporting(
             """var q = Select(t.Id).From(t).OrderBy(t.Id).Limit({|#0:-1|});""",
             AnalyzerVerifier.EditorConfig("mysql"),
             "Limit", "-1", "row count", "MySQL");
 
     [Fact]
-    public Task Limit_PostgreSql_NegativeCount_ReportsSqla0105() =>
+    public Task Limit_PostgreSql_NegativeCount_ReportsSqla0104() =>
         RunReporting(
             """var q = Select(t.Id).From(t).OrderBy(t.Id).Limit({|#0:-1|});""",
             AnalyzerVerifier.EditorConfig("postgresql"));
@@ -170,13 +170,13 @@ public class ArgumentValueValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("mysql"));
 
     [Fact]
-    public Task Top_SqlServer_NegativeCount_ReportsSqla0105() =>
+    public Task Top_SqlServer_NegativeCount_ReportsSqla0104() =>
         RunReporting(
             """var q = Select(Top({|#0:-1|}), t.Id).From(t);""",
             AnalyzerVerifier.EditorConfig("sqlserver"));
 
     [Fact]
-    public Task FetchFirst_PostgreSql_NegativeCount_ReportsSqla0105() =>
+    public Task FetchFirst_PostgreSql_NegativeCount_ReportsSqla0104() =>
         RunReporting(
             """var q = Select(t.Id).From(t).OrderBy(t.Id).FetchFirst({|#0:-1|});""",
             AnalyzerVerifier.EditorConfig("postgresql"));
@@ -195,7 +195,7 @@ public class ArgumentValueValidityAnalyzerTests
             AnalyzerVerifier.EditorConfig("oracle"));
 
     [Fact]
-    public Task FetchNext_SqlServer_NegativeCount_ReportsSqla0105() =>
+    public Task FetchNext_SqlServer_NegativeCount_ReportsSqla0104() =>
         RunReporting(
             """var q = Select(t.Id).From(t).OrderBy(t.Id).OffsetRows(0).FetchNext({|#0:-1|});""",
             AnalyzerVerifier.EditorConfig("sqlserver"));

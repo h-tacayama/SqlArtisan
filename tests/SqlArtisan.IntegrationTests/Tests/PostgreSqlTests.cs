@@ -662,7 +662,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             connection.ExecuteScalar<int>("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
     }
 
-    // SQLA0105's twin for all three row-count spellings (#529): PostgreSQL
+    // SQLA0104's twin for all three row-count spellings (#529): PostgreSQL
     // compiles each to the same limit node, so each raises `LIMIT must not be
     // negative` — the acceptance twin is OracleTests.NegativeFetchCount.
     [Theory]

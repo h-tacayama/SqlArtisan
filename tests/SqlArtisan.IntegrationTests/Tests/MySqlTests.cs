@@ -533,7 +533,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
-    // SQLA0105 reads the alphabet per dialect, not per function (#528), so the
+    // SQLA0104 reads the alphabet per dialect, not per function (#528), so the
     // 'x' gap is pinned on every match_type taker — each paired with a letter
     // MySQL does have, so a rejection cannot come from the call shape instead.
     [Theory]
