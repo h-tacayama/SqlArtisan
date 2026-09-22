@@ -1067,6 +1067,31 @@ rows with `On(...)`, then add one or more `WhenMatched` / `WhenNotMatched`
 branches. As elsewhere, the SQL you write is the SQL that runs — the branches
 are per-dialect and SqlArtisan does not rewrite them.
 
+**How many branches each engine takes.** Oracle accepts one `WHEN MATCHED` and
+one `WHEN NOT MATCHED`, whatever action each carries — a second branch of
+either kind is `ORA-00905` (observed on Oracle XE 21.3.0). SQL Server bounds
+them per action instead, so one matched `UPDATE SET` beside one matched
+`DELETE` is legal while two matched `UPDATE SET` branches are not (observed on
+SQL Server 2022). PostgreSQL 16.13 stacks branches freely; only an
+unconditional branch closes the list, since nothing after it could match.
+`Build(Dbms.Oracle)` and `Build(Dbms.SqlServer)` reject the shapes their
+targets cannot spell rather than emitting them. On Oracle, a matched update
+that also deletes some of the rows it touched is the `DELETE WHERE` suffix,
+not a second branch:
+
+```csharp
+MergeInto(t)
+    .Using(s)
+    .On(t.Id == s.Id)
+    .WhenMatched().ThenUpdateSet(t.Name == s.Name).DeleteWhere(t.Age < 0)
+    .Build(Dbms.Oracle);
+
+// MERGE INTO users "t"
+// USING users "s"
+// ON ("t".id = "s".id)
+// WHEN MATCHED THEN UPDATE SET name = "s".name DELETE WHERE "t".age < :0
+```
+
 ```csharp
 UsersTable t = new("t");   // target, aliased
 UsersTable s = new("s");   // source, aliased
