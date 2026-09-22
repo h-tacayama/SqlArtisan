@@ -483,6 +483,19 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.ExecuteScalar("SELECT id FROM users ORDER BY id LIMIT -1"));
     }
 
+    // The MySQL half of #532's per-dialect offset verdict: docs name every
+    // engine the behaviour holds on, so this cell has to be measured too.
+    [Fact]
+    public void NegativeOffset_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT id FROM users ORDER BY id LIMIT 10 OFFSET 0");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT id FROM users ORDER BY id LIMIT 10 OFFSET -1"));
+    }
+
     // ADR 0011: the acceptance that keeps the non-integer sort-key guard off
     // MySQL — it reads the literal as a constant and orders by nothing.
     [Fact]
