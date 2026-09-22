@@ -89,7 +89,7 @@ non-negative: Oracle is the only engine whose `FOR UPDATE` takes a `WAIT`
 clause, and it rejects every negative count with ORA-30005 at parse time,
 before lock contention can matter (#483).
 
-**Stated non-goals.** Three value shapes look like candidates and are not,
+**Stated non-goals.** Five value shapes look like candidates and are not,
 because condition 1 fails outright:
 
 - `BindValue`'s `direction` and `size`. `Size = -1` is SqlClient's own

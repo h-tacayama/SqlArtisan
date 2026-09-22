@@ -161,9 +161,9 @@ fails there as well — and on the engines that reject it (Oracle, SQL Server
 and pinned by `Top_NegativeCount_BindsTheCountRatherThanPrintingIt`,
 `FetchFirst_NegativeCount_BindsTheCountRatherThanPrintingIt` and the
 `{Lag,Lead}_NegativeOffset_CorrectSql` pair. The `Lag`/`Lead` offset has a
-live twin on all five lanes; the row count has one on every lane whose
-grammar takes a `FETCH`/`TOP` count or rejects a negative `LIMIT` — Oracle,
-PostgreSQL, SQL Server, MySQL and SQLite (#523).
+live twin on all five lanes; the row count has one on all five too — a
+rejection on MySQL, PostgreSQL and SQL Server, an acceptance on Oracle and
+on SQLite, whose `LIMIT -1` means "no limit" (#523).
 
 **MERGE `WHEN` branch arity stays permissive (decided — do not re-file):** each
 engine bounds the branches differently — Oracle takes one per WHEN clause

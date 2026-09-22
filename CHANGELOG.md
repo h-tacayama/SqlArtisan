@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Documentation
 - `docs/query-statements.md` now states how many MERGE `WHEN` branches each
-  engine takes, including the rule Oracle, SQL Server and PostgreSQL share:
+  engine takes, including the rule PostgreSQL and SQL Server share:
   a branch following an unconditional branch of the same kind is rejected,
   because nothing could reach it. Branch arity stays dialect availability —
   SqlArtisan does not check it, and the engine names the offending branch.
