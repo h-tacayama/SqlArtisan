@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   emits the letters in enum order, so the pair is always `'ci'` and always
   matches case-insensitively. The summaries now say so.
 
-### Documentation
+### Docs
 - `docs/query-statements.md` now states how many MERGE `WHEN` branches each
   engine takes, including the rule PostgreSQL and SQL Server share:
   a branch following an unconditional branch of the same kind is rejected,

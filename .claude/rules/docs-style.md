@@ -88,6 +88,10 @@ with availability left to the database"). ADR cross-references belong in
   keeps it tied to `DialectMatrix`: `docs/analyzer.md`'s version-bound register
   and XML `<remarks>` (ADR 0020). Reference pages state which dialects support
   a construct and link to the register for the version.
+- `CHANGELOG.md`'s release subsections use Keep a Changelog's own vocabulary —
+  **Added, Changed, Deprecated, Removed, Fixed, Security** — plus three this
+  repo adds: **Docs, Tests, Build**. Not "Documentation": nothing gates these
+  headings, and that one drifted in unnoticed.
 - README→docs and docs↔docs links are absolute GitHub `blob/main` URLs;
   in-page anchors stay relative. In `llms.txt`, a page's URL form decides
   whether it joins the `llms-full.txt` deep bundle: pages meant for ingestion
