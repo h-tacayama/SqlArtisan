@@ -47,8 +47,24 @@ jobs:
         run: dotnet restore tests/SqlArtisan.IntegrationTests/SqlArtisan.IntegrationTests.csproj
 
       - name: Test (${{ matrix.engine }})
-        run: >
-          dotnet test tests/SqlArtisan.IntegrationTests
-          -c Release
-          --filter "Engine=${{ matrix.engine }}"
-          --logger "console;verbosity=normal"
+        run: |
+          set -o pipefail
+          dotnet test tests/SqlArtisan.IntegrationTests \
+            -c Release \
+            --filter "Engine=${{ matrix.engine }}" \
+            --logger "console;verbosity=normal" 2>&1 | tee /tmp/test.log
+
+      # TEMPORARY (#523 item 2): job logs are unreachable from the authoring
+      # container, so the probe report is re-emitted as a workflow annotation,
+      # which the check-runs API does serve. Removed with the probe itself.
+      - name: Probe report
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import re
+          text = open('/tmp/test.log', encoding='utf-8', errors='replace').read()
+          m = re.search(r'#523 item 2 probe.*?(?=\n\s*Stack Trace)', text, re.S)
+          body = m.group(0) if m else 'NO PROBE REPORT FOUND'
+          enc = body.replace('%', '%25').replace('\r', '').replace('\n', '%0A')
+          print('::error title=probe::' + enc[:4000])
+          PY
