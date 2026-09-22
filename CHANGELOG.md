@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.10.0-beta.1] - 2026-09-22
 ### Fixed
 - `OnConflict().DoUpdateSet(...)` — the targetless form — builds again for
   SQLite, which accepts it; the conflict-target guard now fires for
