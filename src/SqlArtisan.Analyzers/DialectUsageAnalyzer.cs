@@ -40,6 +40,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.ContextRestrictedConstruct,
         DiagnosticDescriptors.IdentifierTooLong,
         DiagnosticDescriptors.InvalidDatepartArgument,
+        DiagnosticDescriptors.InvalidArgumentValue,
         DiagnosticDescriptors.ConstantNullPredicate,
         DiagnosticDescriptors.NotInNullableSubquery,
         DiagnosticDescriptors.InsertMissingRequiredColumn,
@@ -90,6 +91,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             OperationKind.ObjectCreation);
         context.RegisterOperationAction(
             c => AnalyzeDatepartValidity(c, targetCache),
+            OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzeArgumentValueValidity(c, targetCache),
             OperationKind.Invocation);
         context.RegisterOperationAction(
             c => AnalyzeSchemaNullability(c, targetCache),
@@ -418,6 +422,31 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         DatepartValidityRule.Check(context, invocation, targets);
+    }
+
+    // Name-filter first, like AnalyzeDatepartValidity — the row-count names sit
+    // on every paginated query's hot path, so they must not pay for a config lookup.
+    private static void AnalyzeArgumentValueValidity(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
+    {
+        var invocation = (IInvocationOperation)context.Operation;
+        if (invocation.TargetMethod.Name is not ("RegexpCount" or "RegexpInstr" or "RegexpLike"
+                or "RegexpReplace" or "RegexpSubstr" or "FetchFirst" or "FetchNext" or "Limit"
+                or "Top")
+            || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
+        {
+            return;
+        }
+
+        DialectTargetSet targets = GetTargets(context, cache);
+        if (targets.IsEmpty)
+        {
+            return;
+        }
+
+        ArgumentValueValidityRule.Check(context, invocation, targets);
     }
 
     // IsNull / IsNotNull are SqlExpression properties, so the column under test is

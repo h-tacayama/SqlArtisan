@@ -4,6 +4,8 @@ paths:
   - "src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**/*.cs"
   - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
   - "src/SqlArtisan.Analyzers/ContextRules.cs"
+  - "src/SqlArtisan.Analyzers/ArgumentValueValidity.cs"
+  - "src/SqlArtisan.Analyzers/DatepartValidity.cs"
 ---
 
 # Handling a DBMS syntax difference
@@ -40,9 +42,9 @@ A construct that simply does not exist on a DBMS needs no flag at all: emit
 faithfully and leave availability to the database and the analyzer (ADR 0003) —
 do not gate it at `Build` time.
 
-Two further classes look like dialect differences but belong in **neither**
-the dialect layer nor a plain matrix entry (both identified in the #225
-triage):
+Three further classes look like dialect differences but belong in **neither**
+the dialect layer nor a plain matrix entry (the first two identified in the
+#225 triage, the third by #528/#529):
 
 - **Version-bounded availability → docs note + a #232 interval seed.** The
   matrix asserts against one pinned engine version (`VerifiedAgainstVersion`),
@@ -61,6 +63,15 @@ triage):
   note with the workaround. A restriction with no API surface to anchor on
   (Oracle's `PRIOR` outside `CONNECT BY` — CONNECT BY is wontfix per ADR
   0010) stays a docs/ADR note only.
+- **Value-bounded validity → an analyzer value-domain rule (SQLA0104, ADR
+  0022).** A construct the engine has, with one *argument value* it rejects —
+  a `DateTimePart` outside a function's grammar, MySQL's match-parameter
+  alphabet having no `'x'`, a negative row count — which the matrix cannot key
+  on either. Add the cell to `DatepartValidity.cs` (dateparts) or
+  `ArgumentValueValidity.cs` (the rest), with a primary source, a live
+  rejection proof, and the acceptance twin that proves the probe was
+  well-formed. A value no engine accepts is ADR 0012's eager guard instead,
+  and an engine nobody has measured is left out, never assumed to reject.
 
 No `SqlPart` names `Dbms` at all — `DialectBranchSweepTests` sweeps the two
 `SqlPart/` trees for the type name, so a node reads a difference through
@@ -70,7 +81,7 @@ carry it there.
 
 Before adding anything to `IDbmsDialect` or `DialectMatrix`, walk the classes
 above in order: token-level → construct-level → plain unavailability →
-version-bounded → context-bounded.
+version-bounded → context-bounded → value-bounded.
 
 An engine-rejection claim written in prose — a comment, an XML doc, a docs
 page — names the engine version it was observed on and has a live twin, or is

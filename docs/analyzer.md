@@ -19,7 +19,7 @@ until you configure a target.
 - [Correcting a warning: the override keys](#correcting-a-warning-the-override-keys)
 - [Version-aware warnings (SQLA0101)](#version-aware-warnings-sqla0101)
 - [Context rules (SQLA0102)](#context-rules-sqla0102)
-- [Datepart validity (SQLA0104)](#datepart-validity-sqla0104)
+- [Argument value validity (SQLA0104)](#argument-value-validity-sqla0104)
 - [Correlated DML target (SQLA0300)](#correlated-dml-target-sqla0300)
 - [Schema-aware warnings (SQLA0200)](#schema-aware-warnings-sqla0200)
 - [Mixed-dialect projects](#mixed-dialect-projects)
@@ -98,7 +98,7 @@ still needs naming by ID.
 | `SQLA0101` | Warning | A construct is supported on a configured dialect, but not at its declared version — see [Version-aware warnings](#version-aware-warnings-sqla0101). Checking more than one dialect reports one diagnostic per failing dialect. |
 | `SQLA0102` | Warning | A construct a configured dialect supports, used in a syntactic position that dialect rejects it in — see [Context rules](#context-rules-sqla0102). |
 | `SQLA0103` | Warning | A compile-time identifier literal — a table or expression alias, a CTE or derived-table name, a `VALUES` column name, or the Oracle `RETURNING` output variable — is longer than a configured dialect allows. Checking more than one dialect reports one diagnostic per dialect it's too long for. |
-| `SQLA0104` | Warning | A literal `DateTimePart` argument to `Extract`/`Datepart`/`Dateadd`/`Datediff`/`DateTrunc`/`Datetrunc`/`Interval`/`Timestampadd`/`Timestampdiff` is not a value the configured dialect's grammar accepts for that function — see [Datepart validity](#datepart-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
+| `SQLA0104` | Warning | A literal argument value a configured dialect rejects, where the construct itself runs there: a `DateTimePart` the function's grammar does not accept, a `RegexpOptions` member outside that engine's match-parameter alphabet, or a negative `Top`/`FetchFirst`/`FetchNext`/`Limit` count — see [Argument value validity](#argument-value-validity-sqla0104). Checking more than one dialect joins every failing one into a single diagnostic. |
 | `SQLA0200` | Warning | `IS NULL` / `IS NOT NULL` on a column the generated table class declares `NOT NULL`, so the predicate's answer is fixed before the query runs. Reported only in a statement that visibly builds its own query and has no outer join on its own spine — past one, the anti-join makes exactly this predicate meaningful; see [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0201` | Warning | `NOT IN` over a subquery whose selected column is nullable — one NULL makes the whole predicate NULL, so the query matches nothing. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0202` | Warning | An `INSERT` column list omits a column that is `NOT NULL` with no default, so the engine cannot construct the row. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
@@ -734,19 +734,28 @@ this construct," which is not what a context rule reports.
 
 ---
 
-## Datepart validity (SQLA0104)
+## Argument value validity (SQLA0104)
+
+A construct can exist on a dialect while one *value* of one of its arguments
+does not. The dialect matrix keys on the construct — `Extract`, `RegexpLike`,
+`Limit` — so it has nothing to say about that, and the mismatch surfaces only
+when the database runs the statement. `SQLA0104` closes that gap at the
+argument level, for three kinds of value the analyzer can read at the call
+site. All three share one ID: the verdict is the same in each case, and so is
+the remedy — change the value, or stop targeting that dialect.
+
+### A `DateTimePart` a function does not accept
 
 `DateTimePart` is a 42-member superset shared across eleven functions — its
 own XML doc says explicitly that not every field is valid for every function
 or dialect. `SQLA0104` covers nine of them (`Extract`, `Datepart`, `Dateadd`,
 `Datediff`, `DateTrunc`, `Datetrunc`, `Interval`, `Timestampadd`,
 `Timestampdiff`); `Numtodsinterval` and `Numtoyminterval` reject any unit
-outside their fixed set eagerly at the call instead (see Known limitations). `SQLA0100` cannot express that: the
-construct itself *is* supported, so a call like
-`Extract(DateTimePart.Epoch, x)` targeting Oracle passes the construct-level
-check and fails only when the database runs it (`EPOCH` is a PostgreSQL-only
-`EXTRACT` field). `SQLA0104` closes that gap at the argument level, for the
-eleven (function, dialect) pairings below:
+outside their fixed set eagerly at the call instead (see Known limitations).
+`SQLA0100` cannot express that: the construct itself *is* supported, so a call
+like `Extract(DateTimePart.Epoch, x)` targeting Oracle passes the
+construct-level check and fails only when the database runs it (`EPOCH` is a
+PostgreSQL-only `EXTRACT` field). The eleven (function, dialect) pairings:
 
 | Function | Checked dialect(s) |
 |---|---|
@@ -772,25 +781,82 @@ var q = Select(Datetrunc(DateTimePart.Weekday, u.CreatedAt)).From(u);
 
 Each list is built from the vendor's own reference, and six of the eight are
 spot-verified against a live engine (`SqlServerDateaddFields` and
-`MySqlTimestampUnits` have no lane anchor yet). Three cases stay silent, never a false positive:
+`MySqlTimestampUnits` have no lane anchor yet).
 
-- **The argument is not a compile-time constant** — a variable holding a
-  computed `DateTimePart` cannot be resolved, the same
-  provable-from-the-expression-or-silent contract [Context
+### A `RegexpOptions` letter an engine's match parameter has not
+
+`RegexpOptions` emits a letter per flag into the match parameter
+(`REGEXP_LIKE(x, p, 'ci')`), and the alphabets are the engines' own. MySQL has
+no letter for `ExcludingWhiteSpace` and rejects the call; Oracle and PostgreSQL
+accept every letter the enum can emit. SQLite and SQL Server have no
+`REGEXP_*` functions at all, so `SQLA0100` answers for them.
+
+```csharp
+// sqlartisan_syntax_mysql = any
+var q = Select(u.Name).From(u)
+    .Where(RegexpLike(u.Name, "^a b$", RegexpOptions.ExcludingWhiteSpace));
+// warning SQLA0104: 'ExcludingWhiteSpace' is not a valid match option for 'RegexpLike' on MySQL
+```
+
+`RegexpOptions` is a `[Flags]` enum, so the rule reads the combination: the
+letters an engine has stay silent and only the missing one reports, from the
+same argument.
+
+### A negative row count
+
+`Top`, `FetchFirst`, `FetchNext` and `Limit` each carry the count to the engine
+as a bind parameter, so the value is the database's to judge — and the engines
+disagree about it. MySQL, PostgreSQL and SQL Server reject a negative count in
+the spellings they support; Oracle runs a negative `FETCH`, and SQLite reads
+`LIMIT -1` as "no limit". Only the rejecting dialects are reported.
+
+```csharp
+// sqlartisan_syntax_mysql = any
+// sqlartisan_syntax_sqlite = any
+var q = Select(u.Id).From(u).OrderBy(u.Id).Limit(-1);
+// warning SQLA0104: '-1' is not a valid row count for 'Limit' on MySQL
+```
+
+| Construct | Reported on |
+|---|---|
+| `Top` | SQL Server |
+| `FetchFirst` | PostgreSQL |
+| `FetchNext` | PostgreSQL, SQL Server |
+| `Limit` | MySQL, PostgreSQL |
+
+`Offset` and `OffsetRows` are deliberately not checked: this rule carries only
+cells the integration tests pin, and no negative-offset rejection is pinned
+there yet. Read that as missing evidence rather than a guarantee — an
+unchecked construct is not a safe one.
+
+Every match-option and row-count verdict above — the rejections and the two
+acceptances that keep Oracle and SQLite silent alike — is checked against the
+engine versions in [Verified-against versions](#verified-against-versions).
+The datepart lists carry the narrower claim stated with them.
+
+### When it stays silent
+
+Three cases, never a false positive:
+
+- **The argument is not a compile-time constant** — a datepart, an option or a
+  count that arrives through a variable or a computed expression cannot be
+  resolved, the same provable-from-the-expression-or-silent contract [Context
   rules](#context-rules-sqla0102) follows.
-- **This rule has no list for the (function, dialect) pair** — e.g.
-  `Extract` targeting SQL Server, which `SQLA0100` already rejects outright.
-- **The matrix already flags the construct unsupported on that dialect at
-  its declared version** — `SQLA0100`/`SQLA0101` own that verdict; `SQLA0104`
+- **This rule has no fact for the pair** — `Extract` targeting SQL Server,
+  which `SQLA0100` already rejects outright; or an engine absent from this
+  rule's lists, which is an engine nobody has measured, not a rejecting one.
+- **The matrix already flags the construct unsupported on that dialect at its
+  declared version** — `SQLA0100`/`SQLA0101` own that verdict; `SQLA0104`
   would otherwise double-report the same usage.
 
 Suppression is per rule ID (`#pragma warning disable SQLA0104`, a
-`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`); a
-`sqlartisan_construct_*` override never silences a datepart verdict on a
-dialect where the construct runs. An `unsupported` override hands the whole
-usage to `SQLA0100`, and a `supported` override on a dialect the matrix flags
-unsupported re-arms this check there — asserting "this function runs on my
-engine" is not a claim that every `DateTimePart` value does.
+`[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`), and
+it covers all three value domains together; a `sqlartisan_construct_*` override
+never silences a value verdict on a dialect where the construct runs. An
+`unsupported` override hands the whole usage to `SQLA0100`, and a `supported`
+override on a dialect the matrix flags unsupported re-arms this check there —
+asserting "this construct runs on my engine" is not a claim that every argument
+value does.
 
 ---
 
@@ -1146,9 +1212,10 @@ client-side before it reaches the engine.
 
 ## Verified-against versions
 
-The matrix's `verified` entries were checked against one representative
-version per dialect (the same engines the integration test matrix runs
-against):
+The matrix's `verified` entries, and the match-option and row-count facts
+[Argument value validity](#argument-value-validity-sqla0104) reports, were
+checked against one representative version per dialect (the same engines the
+integration test matrix runs against):
 
 | Dialect | Verified against |
 |---|---|

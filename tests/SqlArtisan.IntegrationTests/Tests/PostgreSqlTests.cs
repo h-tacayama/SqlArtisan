@@ -662,13 +662,18 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             connection.ExecuteScalar<int>("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
     }
 
-    [Fact]
-    public void NegativeFetchCount_IsRejectedByTheEngine()
+    // SQLA0104's twin for all three row-count spellings (#529): each raises
+    // `LIMIT must not be negative` here — the acceptance twin is
+    // OracleTests.NegativeFetchCount.
+    [Theory]
+    [InlineData("SELECT id FROM users ORDER BY id FETCH FIRST -1 ROWS ONLY")]
+    [InlineData("SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY")]
+    [InlineData("SELECT id FROM users ORDER BY id LIMIT -1")]
+    public void NegativeRowCount_IsRejectedByTheEngine(string statement)
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        Assert.ThrowsAny<DbException>(() =>
-            connection.Execute("SELECT id FROM users ORDER BY id FETCH FIRST -1 ROWS ONLY"));
+        Assert.ThrowsAny<DbException>(() => connection.Execute(statement));
     }
 
     // ADR 0012 non-goal (#523 item 1): the alphabet diverges per engine and a
