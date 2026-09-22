@@ -57,12 +57,13 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
     the suffix. A chain still ending at `GroupBy(...)`, or any unrecognized
     parent shape (variable indirection, helper methods), stays silent.
   - *Declaring interface* (the four joined-DML rules, #523; the fifth, `FOR
-    UPDATE` over a grouped query, is an ordinary presence walk): where a fluent
-    step is declared on exactly one builder stage, the interface the call bound
-    to **is** the statement position, and no walk is needed — `From` on
-    `IDeleteBuilderDelete` is a joined `DELETE` wherever it is written. This
-    mode has no indirection blind spot: a receiver parked in a variable keeps
-    its static type.
+    UPDATE` over a grouped query, is an ordinary presence walk): a step name
+    alone decides nothing — every one of them is declared on several stages —
+    but the *pair* of name and declaring interface pins one statement position,
+    so the overload that bound **is** the position and no walk is needed:
+    `From` on `IDeleteBuilderDelete` is a joined `DELETE` wherever it is
+    written. This mode has no indirection blind spot: a receiver parked in a
+    variable keeps its static type.
   A reflection contract test pins the API facts each proof rests on, so core
   drift breaks the build rather than the rules' soundness. For the third mode
   that means the *whole set* of interfaces declaring a trigger name, since a

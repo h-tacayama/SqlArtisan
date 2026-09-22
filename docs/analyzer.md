@@ -574,8 +574,10 @@ engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
 expression where the construct is used. Ten rules ship today — six reading the
-construct's surroundings, four reading the DML statement a clause sits in —
-each live-verified against every engine it names.
+construct's surroundings, four reading the DML statement a clause sits in.
+Every verdict below, rejection and acceptance alike, is live-verified on the
+pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
+Server 2022.
 
 **`LIMIT` inside an `IN` / `NOT IN` / `ANY` / `ALL` / `SOME` subquery.** MySQL
 rejects a row-limited query directly under these positions ("This version of
@@ -657,9 +659,7 @@ the resolved dialect, `Build(Dbms)` throws instead and no warning is needed.
 
 These four are settled by the builder stage the call binds to rather than by
 reading the chain, so — alone among the ten — they still warn when the builder
-is held in a variable. Every verdict below is live-verified on the pinned
-lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
-Server 2022.
+is held in a variable.
 
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
@@ -676,8 +676,10 @@ var q = DeleteFrom(u).From(u, o).Where(u.Id == o.UserId);
 and `DELETE ... USING` — so its construct-level entry is their union, and
 Oracle reads "supported" on the strength of its `MERGE` alone. Its `DELETE`
 grammar has no `USING` (ORA-00933); join through a correlated `Where(...)`
-subquery instead. The entry already reads unsupported for MySQL and SQLite, so
-`SQLA0100` covers those two without a context rule.
+subquery instead. PostgreSQL is the one dialect whose `DELETE` takes the
+clause. The entry already reads unsupported for MySQL and SQLite, so
+`SQLA0100` covers those two without a context rule, and SQL Server — which has
+no `DELETE ... USING` either — is rejected at `Build(Dbms)`.
 
 ```csharp
 // sqlartisan_syntax_oracle = any
@@ -687,8 +689,9 @@ var q = DeleteFrom(u).Using(o).Where(u.Id == o.UserId);
 
 **A join placed directly on an `UPDATE` target.**
 `Update(t).InnerJoin(...).On(...).Set(...)` is MySQL's spelling, where the
-join precedes `SET`. Oracle, PostgreSQL and SQLite have no such form —
-PostgreSQL and SQLite take `Set(...).From(...)` instead.
+join precedes `SET`. No other dialect has it: PostgreSQL and SQLite take
+`Set(...).From(...)` instead, SQL Server re-lists the target in `From(...)`,
+and Oracle takes a correlated subquery.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
