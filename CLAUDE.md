@@ -99,7 +99,7 @@ Shared bases and one uncategorized node sit at that folder's root.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fourteen diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fifteen diagnostics:
 
 - **SQLA0001** — Analyzer configuration problem: an unrecognized key name or
   value, a `sqlartisan_syntax_*` family resolving to no dialect at all, or a
@@ -121,6 +121,12 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fourteen diagnostics:
   matching the argument's constant value against the enum's own members (never
   the underlying integer), the same technique SQLA0205 uses for
   `DbTypeCategory`.
+- **SQLA0105** — A literal argument value the target dialect rejects, where the
+  construct itself runs there: a `RegexpOptions` member outside that engine's
+  match-parameter alphabet, or a negative constant `Top`/`FetchFirst`/
+  `FetchNext`/`Limit` count. One ID over both value domains, and the silence
+  cells are load-bearing — Oracle executes a negative `FETCH` and SQLite reads
+  `LIMIT -1` as "no limit" (**ADR 0022**).
 - **SQLA0200** — Constant NULL predicate: `IS [NOT] NULL` on a column the
   generated table class declares NOT NULL. Reported only in a statement that
   visibly builds its own query and has no outer join on its own spine.

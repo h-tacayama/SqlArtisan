@@ -141,6 +141,19 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         helpLinkUri: HelpLinkUri);
 
+    // One id for both value domains, on the SQLA0001 principle: a lever that
+    // silences "this engine rejects the value you wrote" should silence the other
+    // half of the same statement, since neither is a nag and both are hard errors
+    // on the dialects named. {2} names the kind of value so one format serves both.
+    public static readonly DiagnosticDescriptor InvalidArgumentValue = new(
+        id: "SQLA0105",
+        title: "Argument value not supported on the target dialect",
+        messageFormat: "'{1}' is not a valid {2} for '{0}' on {3}",
+        category: DialectCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
     // Schema-derived, so it names no dialect: the column's own declaration decides
     // the answer on every engine. Silent unless the table class carries the fact.
     public static readonly DiagnosticDescriptor ConstantNullPredicate = new(

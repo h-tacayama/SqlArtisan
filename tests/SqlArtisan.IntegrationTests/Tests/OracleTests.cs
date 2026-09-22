@@ -492,13 +492,16 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     }
 
     // ADR 0012 non-goals (#523): Oracle takes a negative row count outright,
-    // which is what keeps the FETCH family unguarded; the LAG offset it rejects.
+    // which is what keeps the FETCH family unguarded and, for #529, what keeps
+    // SQLA0105 silent on both its FETCH spellings; the LAG offset it rejects.
     [Fact]
     public void NegativeFetchCount_IsAcceptedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
         connection.ExecuteScalar("SELECT id FROM users ORDER BY id FETCH FIRST -1 ROWS ONLY");
+        connection.ExecuteScalar(
+            "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY");
         connection.ExecuteScalar("SELECT id FROM users ORDER BY id OFFSET -1 ROWS");
     }
 

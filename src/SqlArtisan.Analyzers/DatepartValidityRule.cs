@@ -33,15 +33,9 @@ internal static class DatepartValidityRule
             return;
         }
 
-        int? arity = invocation.TargetMethod.Parameters.Length;
-
-        // An `unsupported` override makes SQLA0100 fire for every target, so the
-        // never-both-fire contract below must cover the override path too.
-        AnalyzerConfigOptions options =
-            context.Options.AnalyzerConfigOptionsProvider.GetOptions(invocation.Syntax.SyntaxTree);
-        DialectSupportResolver.OverrideResult? overrideResult =
-            DialectSupportResolver.ResolveOverride(options, memberName, arity);
-        if (overrideResult is { IsSupported: false })
+        // The never-both-fire contract, shared with SQLA0105: a null scope means an
+        // `unsupported` override has already handed every target to SQLA0100.
+        if (ValueDomainScope.For(context, invocation) is not { } scope)
         {
             return;
         }
@@ -50,22 +44,9 @@ internal static class DatepartValidityRule
 
         foreach (TargetDbms dbms in targets.Members)
         {
-            if (DatepartValidity.For(memberName, dbms) is not { } valid)
-            {
-                continue;
-            }
-
-            // Skip dialects SQLA0100/0101 already flag — unless a `supported` override
-            // silenced them: the user asserts it runs there, so this check re-arms.
-            if (overrideResult is not { IsSupported: true }
-                && DialectSupportResolver.MatchMatrixEntry(memberName, arity) is { } match
-                && !DialectSupportResolver.Evaluate(match, dbms, targets.VersionFor(dbms))
-                    .IsSupported)
-            {
-                continue;
-            }
-
-            if (!valid.Contains(datepart))
+            if (DatepartValidity.For(memberName, dbms) is { } valid
+                && !valid.Contains(datepart)
+                && scope.Covers(dbms, targets))
             {
                 (invalidOn ??= []).Add(TargetDbmsNames.Display(dbms));
             }

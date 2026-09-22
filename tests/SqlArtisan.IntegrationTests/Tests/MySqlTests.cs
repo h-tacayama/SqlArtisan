@@ -533,6 +533,23 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
+    // SQLA0105 reads the alphabet per dialect, not per function (#528), so the
+    // gap MySQL leaves at 'x' is pinned on every REGEXP_* function that takes
+    // match_type — each paired with the letter it does have, so a rejection
+    // cannot come from the surrounding call shape instead.
+    [Theory]
+    [InlineData("SELECT REGEXP_INSTR('Ab', 'ab', 1, 1, 0, '@')")]
+    [InlineData("SELECT REGEXP_REPLACE('Ab', 'ab', 'x', 1, 0, '@')")]
+    [InlineData("SELECT REGEXP_SUBSTR('Ab', 'ab', 1, 1, '@')")]
+    public void RegexpMatchParameter_ExcludingWhiteSpace_IsRejectedByTheEngine(string probe)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(probe.Replace("@", "i"));
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(probe.Replace("@", "x")));
+    }
+
     [Fact] // #523: SQLA0102's live proof. MySQL has no UPDATE ... FROM; the JOIN
            // spelling it does own is proven by JoinedUpdateJoin_Executes above.
     public void ContextRule_JoinedUpdateFromForm_Rejected()
