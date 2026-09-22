@@ -4090,9 +4090,10 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).Limit(-1);
 here as rejecting a negative offset, and a construct checked on one dialect
 alone would report for no reason worth defending.
 
-Every verdict in the two tables above — the rejections and the two acceptances
-that keep Oracle and SQLite silent alike — is checked against the engine
-versions in [Verified-against versions](#verified-against-versions).
+Every match-option and row-count verdict above — the rejections and the two
+acceptances that keep Oracle and SQLite silent alike — is checked against the
+engine versions in [Verified-against versions](#verified-against-versions).
+The datepart lists carry the narrower claim stated with them.
 
 ### When it stays silent
 
@@ -4103,8 +4104,8 @@ Three cases, never a false positive:
   resolved, the same provable-from-the-expression-or-silent contract [Context
   rules](#context-rules-sqla0102) follows.
 - **This rule has no fact for the pair** — `Extract` targeting SQL Server,
-  which `SQLA0100` already rejects outright; or an engine absent from the
-  tables above, which is an engine nobody has measured, not a rejecting one.
+  which `SQLA0100` already rejects outright; or an engine absent from this
+  rule's lists, which is an engine nobody has measured, not a rejecting one.
 - **The matrix already flags the construct unsupported on that dialect at its
   declared version** — `SQLA0100`/`SQLA0101` own that verdict; `SQLA0104`
   would otherwise double-report the same usage.
