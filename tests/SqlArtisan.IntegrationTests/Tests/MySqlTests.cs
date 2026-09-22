@@ -510,13 +510,24 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
                 "SELECT COUNT(*) FROM (SELECT department_id FROM users GROUP BY 1) g"));
     }
 
-    [Fact]
-    public void GroupByZeroOrdinal_IsRejectedByTheEngine()
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    public void GroupByOutOfRangeOrdinal_IsRejectedByTheEngine(string ordinal)
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-            "SELECT department_id FROM users GROUP BY 0"));
+            $"SELECT department_id FROM users GROUP BY {ordinal}"));
+    }
+
+    // Diverges from PostgreSQL, which rejects a non-integer constant outright.
+    [Fact]
+    public void GroupByNonIntegerConstant_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT COUNT(*) FROM users GROUP BY 2.5");
     }
 
     // ADR 0011: the acceptance that keeps the non-integer sort-key guard off

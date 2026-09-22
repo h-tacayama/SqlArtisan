@@ -505,6 +505,20 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT department_id FROM users GROUP BY 1"));
     }
 
+    // Not just the in-range ordinal: every bare constant is refused here, which
+    // is what a dialect-blind zero/negative guard rests on.
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    [InlineData("2.5")]
+    public void GroupByConstant_IsRejectedByTheEngine(string constant)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            $"SELECT department_id FROM users GROUP BY {constant}"));
+    }
+
     // The SQL Server half of #532's per-dialect offset verdict (OFFSET ... ROWS
     // is its spelling); docs name every engine the behaviour holds on.
     [Fact]
