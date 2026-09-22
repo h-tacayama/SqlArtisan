@@ -602,4 +602,49 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.ThrowsAny<DbException>(() =>
             connection.Execute("WITH c AS (SELECT id FROM users ORDER BY 0) SELECT id FROM c"));
     }
+
+    // #523/#525: MERGE branch arity is a documented non-goal, not a guard. What
+    // decides acceptance here is the condition, not the count.
+    [Fact]
+    public void MergeRepeatedWhenBranch_NeedsAConditionOnTheEarlierBranch()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT 1 AS id, 'x' AS name) s ON t.id = s.id "
+                + "WHEN MATCHED AND t.age > 0 THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED THEN DELETE",
+            transaction: transaction);
+
+        // Drop the condition off the first branch and the second is unreachable.
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT 1 AS id, 'x' AS name) s ON t.id = s.id "
+                + "WHEN MATCHED THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED THEN DELETE",
+            transaction: transaction));
+
+        transaction.Rollback();
+    }
+
+    // ADR 0012 non-goals (#523): the negative LAG offset PostgreSQL reads as a
+    // LEAD is the accepting engine condition 1 needs; the row count it rejects.
+    [Fact]
+    public void LagNegativeOffset_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<int>("SELECT LEAD(id, 1) OVER (ORDER BY id) FROM users"),
+            connection.ExecuteScalar<int>("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+    }
+
+    [Fact]
+    public void NegativeFetchCount_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute("SELECT id FROM users ORDER BY id FETCH FIRST -1 ROWS ONLY"));
+    }
 }

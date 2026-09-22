@@ -435,4 +435,39 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
         connection.Query<long>("SELECT ROW_NUMBER() OVER (ORDER BY -1) FROM users").ToList();
     }
+
+    // ADR 0012 non-goal (#523): the second accepting engine for the negative
+    // LAG offset — SQLite reads it as a LEAD, exactly as PostgreSQL does.
+    [Fact]
+    public void LagNegativeOffset_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<int>("SELECT LEAD(id, 1) OVER (ORDER BY id) FROM users"),
+            connection.ExecuteScalar<int>("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+    }
+
+    // ADR 0012 non-goal (#523): SQLite's LIMIT -1 means "no limit", which is
+    // why the row-count family cannot be guarded as universally invalid.
+    [Fact]
+    public void NegativeLimitCount_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<long>("SELECT COUNT(*) FROM users"),
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT id FROM users LIMIT -1)"));
+    }
+
+    // ADR 0011: the acceptance that keeps the non-integer sort-key guard off
+    // SQLite.
+    [Fact]
+    public void OrderByNonIntegerConstant_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 2.5");
+    }
 }

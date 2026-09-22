@@ -345,4 +345,30 @@ public class PaginationTests
         Assert.Equal("SELECT code FROM test_table ORDER BY code OFFSET :0", sql.Text);
         Assert.Equal(5, sql.Parameters.Get<int>(":0"));
     }
+
+    // ── Negative row counts stay permissive (ADR 0012 non-goal, #523) ─
+
+    [Fact]
+    public void Top_NegativeCount_BindsTheCountRatherThanPrintingIt()
+    {
+        // The count is a bind parameter, never statement text, so ADR 0012's
+        // literal-embedded condition excludes it — the engine is the arbiter.
+        SqlStatement sql = Select(Top(-1), _t.Code).From(_t).Build(Dbms.SqlServer);
+
+        Assert.Equal("SELECT TOP (@0) code FROM test_table", sql.Text);
+        Assert.Equal(-1, sql.Parameters.Get<int>("@0"));
+    }
+
+    [Fact]
+    public void FetchFirst_NegativeCount_BindsTheCountRatherThanPrintingIt()
+    {
+        // Oracle XE 21.3.0 takes a negative FETCH count outright, so no
+        // universally-invalid domain exists to guard (live-verified, #523).
+        SqlStatement sql =
+            Select(_t.Code).From(_t).OrderBy(_t.Code).FetchFirst(-1).Build(Dbms.Oracle);
+
+        Assert.Equal(
+            "SELECT code FROM test_table ORDER BY code FETCH FIRST :0 ROWS ONLY", sql.Text);
+        Assert.Equal(-1, sql.Parameters.Get<int>(":0"));
+    }
 }

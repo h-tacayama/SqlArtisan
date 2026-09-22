@@ -89,7 +89,7 @@ non-negative: Oracle is the only engine whose `FOR UPDATE` takes a `WAIT`
 clause, and it rejects every negative count with ORA-30005 at parse time,
 before lock contention can matter (#483).
 
-**Stated non-goals.** Three value shapes look like candidates and are not,
+**Stated non-goals.** Five value shapes look like candidates and are not,
 because condition 1 fails outright:
 
 - `BindValue`'s `direction` and `size`. `Size = -1` is SqlClient's own
@@ -102,12 +102,33 @@ because condition 1 fails outright:
   engine settles it, so the other three are not claimed here.
 - SQLite's `LIMIT -1`, which means "no limit" — a meaningful value, so the
   `LIMIT`/`OFFSET` family cannot be guarded as universally invalid.
+- A negative `TOP`/`FETCH`/`LIMIT` row count (#523), which fails **conditions 2
+  and 1 both**. `TopClause`, `FetchClause` and `LimitClause` each carry the
+  count as a `BindValue`, so the emitted text is `TOP (@0)` and `FETCH FIRST :0
+  ROWS ONLY` — the value never becomes part of the statement, and this ADR's
+  guardrail puts a bound value on the data side by construction (ADR 0004).
+  Condition 1 fails independently: Oracle XE 21.3.0 executes both
+  `FETCH FIRST -1 ROWS ONLY` and `OFFSET -1 ROWS` without complaint, while
+  PostgreSQL 16.13 (`LIMIT must not be negative`), SQL Server 2022 (`A TOP N or
+  FETCH rowcount value may not be negative.`) and MySQL 8.0 (a parse error on
+  `LIMIT -1`) reject theirs — all live-verified. A per-dialect analyzer
+  diagnostic could still flag a constant negative count at the call site; that
+  is a `SQLA01xx` question, not a guard one.
+- A negative `Lag`/`Lead` offset (#523). This one *is* literal-embedded —
+  `AnalyticLagFunction` prints the offset into the text — so condition 2 holds,
+  and condition 1 is what fails: PostgreSQL 16.13 and SQLite 3.50.4 both accept
+  it and read it as the mirror function (`LAG(id, -1)` returns what
+  `LEAD(id, 1)` does, live-verified on each), while Oracle XE 21.3.0
+  (ORA-01428), SQL Server 2022 (`Offset parameter for Lag and Lead functions
+  cannot be a negative value.`) and MySQL 8.0 (a parse error) reject it. Two
+  accepting engines settle it. ADR 0011 does not reach it either: on every
+  engine that rejects the offset, the mirror function is a valid spelling of
+  the same intent, so that ADR's second condition fails as well.
 
-(The negative `TOP`/`FETCH` counts, negative `Lag`/`Lead` offsets, and
-`RegexpOptions` flag alphabets are open questions awaiting live per-engine
-proof, not settled non-goals. Admitting one of those takes a rejection on
-every engine, where excluding the zero count above took a single accepting
-one — the asymmetry is condition 1's, not the evidence's.)
+(The `RegexpOptions` flag alphabets remain an open question awaiting live
+per-engine proof, not a settled non-goal. Admitting one takes a rejection on
+every engine, where excluding the three above took a single accepting one —
+the asymmetry is condition 1's, not the evidence's.)
 
 ## Consequences
 

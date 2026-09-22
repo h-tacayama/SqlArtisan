@@ -440,4 +440,78 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
                 transaction: transaction));
         transaction.Rollback();
     }
+
+    // ADR 0011 (#523): the accepted twins that keep both constant-sort-key
+    // guards off Oracle — it reads either literal as a constant expression.
+    [Fact]
+    public void OrderByNonIntegerConstant_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 2.5");
+    }
+
+    [Fact]
+    public void OrderByNegativeOrdinal_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT id, name FROM users ORDER BY -1");
+
+        // Zero is still no column position here (ORA-01785), as the
+        // dialect-blind guard has it.
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 0"));
+    }
+
+    // #523/#525: MERGE branch arity is a documented non-goal, not a guard —
+    // Oracle's grammar has one merge_update_clause and one merge_insert_clause.
+    [Fact]
+    public void MergeRepeatedWhenBranch_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT 1 id, 'x' name FROM dual) s ON (t.id = s.id) "
+                + "WHEN MATCHED THEN UPDATE SET t.name = t.name",
+            transaction: transaction);
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT 1 id, 'x' name FROM dual) s ON (t.id = s.id) "
+                + "WHEN MATCHED THEN UPDATE SET t.name = t.name WHEN MATCHED THEN DELETE",
+            transaction: transaction));
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT 999 id, 'x' name FROM dual) s ON (t.id = s.id) "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name) "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name)",
+            transaction: transaction));
+
+        transaction.Rollback();
+    }
+
+    // ADR 0012 non-goals (#523): Oracle takes a negative row count outright,
+    // which is what keeps the FETCH family unguarded; the LAG offset it rejects.
+    [Fact]
+    public void NegativeFetchCount_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT id FROM users ORDER BY id FETCH FIRST -1 ROWS ONLY");
+        connection.ExecuteScalar("SELECT id FROM users ORDER BY id OFFSET -1 ROWS");
+    }
+
+    [Fact]
+    public void LagNegativeOffset_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // ORA-01428 is raised as the row is produced, so the probe must fetch
+        // one — ExecuteNonQuery on a SELECT never evaluates the window.
+        connection.ExecuteScalar("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+    }
 }
