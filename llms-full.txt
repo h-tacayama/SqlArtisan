@@ -1050,6 +1050,14 @@ SqlStatement sql =
 
 The row counts are parameterized like other literals, so the bind-parameter prefix follows the target dialect (`:` / `@` / `?`).
 
+> [!WARNING]
+> **A negative computed offset means a different thing on each target.** Oracle
+> executes it and PostgreSQL rejects the statement, while SQLite reads it as 0
+> — so `Offset((page - 1) * size)` with `page` at 0 is a hard error on one
+> target and a silently wrong page on another. Nothing diagnoses it: the offset
+> travels as a bind parameter, so `Build(Dbms)` never sees it, and the analyzer
+> reads only call-site constants. Clamp the page number before computing it.
+
 #### TOP (SQL Server)
 
 SQL Server also spells row limiting as a `TOP (n)` select prefix. **`TOP (n) WITH TIES` also returns the rows tied with the last one under the `ORDER BY`**:
@@ -4086,10 +4094,12 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).Limit(-1);
 | `FetchNext` | PostgreSQL, SQL Server |
 | `Limit` | MySQL, PostgreSQL |
 
-`Offset` and `OffsetRows` are deliberately not checked: this rule carries only
-cells the integration tests pin, and no negative-offset rejection is pinned
-there yet. Read that as missing evidence rather than a guarantee — an
-unchecked construct is not a safe one.
+`Offset` and `OffsetRows` are deliberately not checked, and **not because a
+negative offset is safe** — Oracle takes one, PostgreSQL rejects it and SQLite
+reads it as 0. It is that an offset is the argument you pass as a
+variable, so the constant this rule can read is not the one you write. Clamp
+the page number before computing the offset; see
+[Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination).
 
 Every match-option and row-count verdict above — the rejections and the two
 acceptances that keep Oracle and SQLite silent alike — is checked against the

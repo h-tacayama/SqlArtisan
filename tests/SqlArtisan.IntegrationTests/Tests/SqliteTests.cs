@@ -461,6 +461,20 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                 "SELECT COUNT(*) FROM (SELECT id FROM users LIMIT -1)"));
     }
 
+    // The acceptance half of #532's OFFSET decision: SQLite reads a negative
+    // offset as 0 rather than rejecting it, so no cell could report here.
+    [Fact]
+    public void NegativeOffset_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT id FROM users LIMIT 10 OFFSET 0)"),
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT id FROM users LIMIT 10 OFFSET -1)"));
+    }
+
     // ADR 0011: the acceptance that keeps the non-integer sort-key guard off
     // SQLite.
     [Fact]

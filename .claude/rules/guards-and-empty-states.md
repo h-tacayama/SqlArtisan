@@ -174,7 +174,14 @@ and pinned by `Top_NegativeCount_BindsTheCountRatherThanPrintingIt`,
 `{Lag,Lead}_NegativeOffset_CorrectSql` pair. The `Lag`/`Lead` offset has a
 live twin on all five lanes; the row count has one on all five too — a
 rejection on MySQL, PostgreSQL and SQL Server, an acceptance on Oracle and
-on SQLite, whose `LIMIT -1` means "no limit" (#523).
+on SQLite, whose `LIMIT -1` means "no limit" (#523). The **negative `OFFSET`**
+is the same call and a further step: `SQLA0104` reports the row counts but
+deliberately not the offsets (#532), because `Build(Dbms)` cannot see a bound
+value and the analyzer sees only a call-site constant — which the repo's own
+paging recipe (`docs/cookbook.md`) does not write, since there the row count is
+the literal and the offset is the parameter. PostgreSQL 16.13's rejection and
+SQLite 3.50.4's read-as-zero are pinned as twins so the fact need not be
+re-derived; the decision is recorded in ADR 0022's scope section.
 
 **MERGE `WHEN` branch arity stays permissive (decided — do not re-file):** each
 engine bounds the branches differently — Oracle takes one per WHEN clause

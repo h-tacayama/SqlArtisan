@@ -62,8 +62,8 @@ internal static class ArgumentValueValidity
     // --- Row counts: where a negative constant is rejected (#529) ---
 
     // The parameter SQLA0104 reads the row count out of. Offset/OffsetRows are
-    // deliberately absent: the only negative-offset cell pinned as a twin is
-    // Oracle's acceptance (ADR 0012), and an unpinned rejection is not reported.
+    // absent by decision, not for want of evidence (#532): an offset is the
+    // argument the paging recipe passes as a variable, which this rule cannot see.
     internal static readonly Dictionary<string, string> RowCountParameterName = new(
         StringComparer.Ordinal)
     {

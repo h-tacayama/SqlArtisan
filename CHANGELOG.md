@@ -16,13 +16,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `FetchFirst` on PostgreSQL, `FetchNext` on PostgreSQL and SQL Server, and
   `Top` on SQL Server — but never on Oracle, which runs a negative `FETCH`, or
   SQLite, which reads `LIMIT -1` as "no limit". `Offset` and `OffsetRows` are
-  not checked at all: no negative-offset rejection is pinned in the integration
-  tests yet, Oracle XE 21.3.0's acceptance of `OFFSET -1 ROWS` being the only
-  cell on record. Every cell, rejection and
-  acceptance alike, is live-verified on the pinned lanes (MySQL 8.0, Oracle XE
-  21.3.0, PostgreSQL 16, SQLite 3.50, SQL Server 2022). Stays silent for an
-  argument that is not a compile-time constant, an engine the tables have no
-  fact for, or a dialect `SQLA0100`/`SQLA0101` already flags unsupported.
+  not checked at all, and not for want of evidence: Oracle XE 21.3.0 takes a
+  negative offset, PostgreSQL 16.13 rejects it and SQLite 3.50.4 reads it as 0.
+  An offset is the argument callers pass as a variable, so the only spelling
+  this rule could see is one the paging recipe does not write. Every cell,
+  rejection and acceptance alike, is live-verified on the pinned lanes
+  (MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50, SQL Server 2022).
+  Stays silent for an argument that is not a compile-time constant, an engine
+  the tables have no fact for, or a dialect `SQLA0100`/`SQLA0101` already
+  flags unsupported.
   **`SQLA0104`'s title and scope widen from "datepart argument" to "argument
   value" to carry them, so an existing `dotnet_diagnostic.SQLA0104.severity`,
   `NoWarn` or `#pragma` that silenced the datepart warnings now silences these
@@ -61,6 +63,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   matches case-insensitively. The summaries now say so.
 
 ### Docs
+- `docs/query-statements.md`'s pagination section now warns that a computed
+  offset going negative is caught by nothing: it travels as a bind parameter,
+  so `Build(Dbms)` never sees it, and the analyzer reads only call-site
+  constants. Oracle takes it, PostgreSQL rejects the statement and SQLite reads
+  it as 0, so the same bug is a hard error on one target and a silently wrong
+  page on another. Clamp the page number before computing the offset.
 - `docs/query-statements.md` now states how many MERGE `WHEN` branches each
   engine takes, including the rule PostgreSQL and SQL Server share:
   a branch following an unconditional branch of the same kind is rejected,

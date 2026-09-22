@@ -26,9 +26,9 @@ public class ArgumentValueValidityParityTests
     private static readonly Type[] PaginationInterfaces =
         [typeof(IPagination), typeof(ILimitOffsetBuilder), typeof(IOffsetFetchBuilder)];
 
-    // Not routed because no rejection is pinned: the one negative-offset twin is
-    // Oracle XE 21.3.0 accepting `OFFSET -1 ROWS` (ADR 0012), and the plain
-    // `OFFSET n` spelling has no twin on any engine.
+    // Not routed by decision (#532): engines do diverge on a negative offset,
+    // but it is the argument callers pass as a variable, so the only spelling
+    // this rule could see is one the repo's own paging recipe does not write.
     private static readonly string[] UnroutedRowCountConstructs = ["Offset", "OffsetRows"];
 
     [Fact]
