@@ -484,4 +484,37 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.ThrowsAny<Exception>(() =>
             connection.ExecuteScalar("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
     }
+
+    // REVIEW PROBE: is a matched UPDATE beside a matched DELETE legal when the
+    // FIRST branch carries no AND condition? Every existing twin conditions it.
+    [Fact]
+    public void ReviewProbe_TwoUnconditionedWhenMatched()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction tx = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN MATCHED THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED THEN DELETE;",
+            transaction: tx);
+
+        tx.Rollback();
+    }
+
+    // The mirror: NOT MATCHED BY SOURCE, first branch unconditioned.
+    [Fact]
+    public void ReviewProbe_TwoUnconditionedNotMatchedBySource()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction tx = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN NOT MATCHED BY SOURCE THEN UPDATE SET name = t.name "
+                + "WHEN NOT MATCHED BY SOURCE THEN DELETE;",
+            transaction: tx);
+
+        tx.Rollback();
+    }
 }
