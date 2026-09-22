@@ -214,8 +214,8 @@ public class OrderByTests
             .Build(Dbms.PostgreSql));
 
         Assert.Equal(
-            "PostgreSQL and SQLite do not accept a negative ORDER BY column ordinal; "
-                + "order by a column, an expression, or a positive ordinal instead.",
+            "PostgreSQL, SQLite, and SQL Server do not accept a negative ORDER BY column "
+                + "ordinal; order by a column, an expression, or a positive ordinal instead.",
             ex.Message);
     }
 
@@ -241,14 +241,15 @@ public class OrderByTests
     [Theory]
     [InlineData(Dbms.PostgreSql)]
     [InlineData(Dbms.Sqlite)]
+    [InlineData(Dbms.SqlServer)]
     public void OrderBy_NegativeOrdinal_ThrowsOnTheEnginesThatReadItAsAPosition(Dbms dbms)
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Select(_t.Code).From(_t).OrderBy(-1).Build(dbms));
 
         Assert.Equal(
-            "PostgreSQL and SQLite do not accept a negative ORDER BY column ordinal; "
-                + "order by a column, an expression, or a positive ordinal instead.",
+            "PostgreSQL, SQLite, and SQL Server do not accept a negative ORDER BY column "
+                + "ordinal; order by a column, an expression, or a positive ordinal instead.",
             ex.Message);
     }
 
@@ -260,6 +261,16 @@ public class OrderByTests
         SqlStatement sql = Select(_t.Code).From(_t).OrderBy(-1).Build(Dbms.MySql);
 
         Assert.Equal("SELECT `t`.code FROM test_table `t` ORDER BY -1", sql.Text);
+    }
+
+    [Fact]
+    public void OrderBy_Oracle_NegativeOrdinal_CorrectSql()
+    {
+        // Oracle reads it as a constant too (live-verified on XE 21.3.0, #523),
+        // so the guard leaves that dialect alone.
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(-1).Build(Dbms.Oracle);
+
+        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY -1", sql.Text);
     }
 
     [Theory]
@@ -315,18 +326,30 @@ public class OrderByTests
             sql.Text);
     }
 
-    [Fact]
-    public void OrderBy_PostgreSql_FractionalLiteral_ThrowsArgumentException()
+    [Theory]
+    [InlineData(Dbms.PostgreSql)]
+    [InlineData(Dbms.SqlServer)]
+    public void OrderBy_FractionalLiteral_ThrowsOnTheEnginesThatRejectIt(Dbms dbms)
     {
-        // MySQL and SQLite accept the no-op constant ordering; PostgreSQL
-        // rejects it, and the analyzer cannot see a value (ADR 0011).
+        // MySQL, SQLite and Oracle accept the no-op constant ordering;
+        // PostgreSQL and SQL Server reject it (ADR 0011).
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Select(_t.Code).From(_t).OrderBy(2.5).Build(Dbms.PostgreSql));
+            Select(_t.Code).From(_t).OrderBy(2.5).Build(dbms));
 
         Assert.Equal(
-            "PostgreSQL does not accept a non-integer constant as an ORDER BY sort key; "
-                + "order by a column or an expression instead.",
+            "PostgreSQL and SQL Server do not accept a non-integer constant as an ORDER BY "
+                + "sort key; order by a column or an expression instead.",
             ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_Oracle_FractionalLiteral_CorrectSql()
+    {
+        // Oracle takes the no-op constant ordering (live-verified on XE 21.3.0,
+        // #523), so the guard leaves that dialect alone.
+        SqlStatement sql = Select(_t.Code).From(_t).OrderBy(2.5).Build(Dbms.Oracle);
+
+        Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY 2.5", sql.Text);
     }
 
     [Fact]

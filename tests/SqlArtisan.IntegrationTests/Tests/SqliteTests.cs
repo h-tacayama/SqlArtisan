@@ -435,4 +435,16 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
         connection.Query<long>("SELECT ROW_NUMBER() OVER (ORDER BY -1) FROM users").ToList();
     }
+
+    // ADR 0012 non-goal (#523): the second accepting engine for the negative
+    // LAG offset — SQLite reads it as a LEAD, exactly as PostgreSQL does.
+    [Fact]
+    public void LagNegativeOffset_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<int>("SELECT LEAD(id, 1) OVER (ORDER BY id) FROM users"),
+            connection.ExecuteScalar<int>("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+    }
 }

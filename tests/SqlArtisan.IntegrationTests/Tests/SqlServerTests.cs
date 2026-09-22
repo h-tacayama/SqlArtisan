@@ -406,4 +406,81 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(700, inserted);
         transaction.Rollback();
     }
+
+    // ADR 0011 (#523): the SQL Server arms of the two constant-sort-key guards.
+    // T-SQL rejects both forms the engine cannot read as a column position.
+    [Fact]
+    public void OrderByNonIntegerConstant_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The integer ordinal is valid (so the table and columns are right).
+        connection.Execute("SELECT id, name FROM users ORDER BY 2");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute("SELECT id, name FROM users ORDER BY 2.5"));
+    }
+
+    [Fact]
+    public void OrderByNegativeOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute("SELECT id, name FROM users ORDER BY -1"));
+    }
+
+    // ADR 0011 (#523): T-SQL bounds MERGE branches per clause-and-action pair,
+    // so the matched UPDATE beside the matched DELETE is the accepted twin.
+    [Fact]
+    public void MergeRepeatedBranchAction_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN MATCHED AND t.age > 0 THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED THEN DELETE;",
+            transaction: transaction);
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN MATCHED AND t.age > 0 THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED AND t.age > 1 THEN UPDATE SET name = t.name;",
+            transaction: transaction));
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 999 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN NOT MATCHED AND s.id > 0 THEN INSERT (id, name) VALUES (s.id, s.name) "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name);",
+            transaction: transaction));
+
+        transaction.Rollback();
+    }
+
+    // ADR 0012 non-goals (#523): both values travel to the engine — the row
+    // count as a bind parameter, the LAG offset as text — so neither is guarded.
+    [Fact]
+    public void NegativeRowCount_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute("SELECT TOP (0) id FROM users");
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute("SELECT TOP (-1) id FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY"));
+    }
+
+    [Fact]
+    public void LagNegativeOffset_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+    }
 }

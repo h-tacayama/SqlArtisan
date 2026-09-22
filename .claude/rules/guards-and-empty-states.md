@@ -126,11 +126,16 @@ the full rationale.
   in `FROM` (T-SQL's joined spelling takes the alias from `FROM`); a joined
   `UPDATE` off SQL Server whose target IS re-listed in `FROM` — the mirror:
   that form's bare-alias lead is T-SQL's alone; a non-integer constant
-  `ORDER BY` sort key on PostgreSQL (`OrderBy(2.5)`) — MySQL and SQLite accept
-  the no-op ordering, PostgreSQL rejects it, and the value is invisible to
-  the analyzer; a negative constant `ORDER BY` ordinal on PostgreSQL and
-  SQLite (`OrderBy(-1)`) — both read it as a column position and reject it,
-  MySQL reads it as a constant and accepts it; `DeleteFrom(t).Using(...)` on SQL Server — T-SQL has no
+  `ORDER BY` sort key on PostgreSQL and SQL Server (`OrderBy(2.5)`) — MySQL,
+  SQLite and Oracle accept the no-op ordering, those two reject it, and the
+  value is invisible to the analyzer; a negative constant `ORDER BY` ordinal
+  on PostgreSQL, SQLite and SQL Server (`OrderBy(-1)`) — those three read it
+  as a column position and reject it, MySQL and Oracle read it as a constant
+  and accept it; a repeated MERGE `WHEN` branch on Oracle (one per clause,
+  ORA-00905) and SQL Server (one per clause-and-action pair, so a matched
+  `UPDATE SET` beside a matched `DELETE` stays legal) — PostgreSQL stacks
+  branches freely, and the count is builder state the construct-level matrix
+  cannot reach; `DeleteFrom(t).Using(...)` on SQL Server — T-SQL has no
   `DELETE ... USING` at all, and the message names the `From(...)` remedy
   the joined-target guard's own message could not reach from that chain
   (ADR 0011, "Later instances" section).
@@ -146,6 +151,21 @@ unaliased target renders bare columns beside joined tables, and one
 dialect-independent rule keeps every joined reference qualified. The guard is loud and the aliased spelling is valid on every
 dialect that has the joined form, so the PostgreSQL-accepts-unaliased shape
 is not an over-guard finding at any tier.
+
+**A negative row count and a negative `Lag`/`Lead` offset stay permissive
+(decided — do not re-file):** `Top(-1)`, `FetchFirst(-1)` and `Limit(-1)`
+carry the count as a `BindValue`, so it reaches the engine as a bind
+parameter and never as statement text — ADR 0012 condition 2 excludes it, and
+Oracle XE 21.3.0 accepts a negative `FETCH`/`OFFSET` outright, so condition 1
+fails too. `Lag(x, -1)` *is* printed into the text, but PostgreSQL 16.13 and
+SQLite 3.50.4 read it as the mirror function and accept it, so condition 1
+fails there as well — and on the engines that reject it (Oracle, SQL Server
+2022, MySQL 8.0) the mirror function is a valid spelling, which is why ADR
+0011's second condition fails too. Both are enumerated non-goals in ADR 0012
+and pinned by `Top_NegativeCount_BindsTheCountRatherThanPrintingIt`,
+`FetchFirst_NegativeCount_BindsTheCountRatherThanPrintingIt` and the
+`{Lag,Lead}_NegativeOffset_CorrectSql` pair, with live twins on every lane
+(#523).
 
 **Whitespace is rejected in a bare-token position, accepted in a quoted one
 (decided — do not re-file):** `DbSequence`'s constructor and `DbColumn`'s name

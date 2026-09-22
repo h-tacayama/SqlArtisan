@@ -439,4 +439,17 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         connection.Query<int>("SELECT id FROM users ORDER BY -1").ToList();
     }
+
+    // ADR 0012 non-goal (#523): MySQL's window grammar takes an unsigned
+    // integer, so the negative offset never reaches execution.
+    [Fact]
+    public void LagNegativeOffset_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Execute("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+    }
 }

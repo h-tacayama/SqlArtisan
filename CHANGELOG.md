@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- `OrderBy(2.5)` and `OrderBy(-1)` now throw at `Build(Dbms.SqlServer)` too,
+  instead of emitting an `ORDER BY` T-SQL rejects at execution. Oracle is
+  unaffected: it reads either literal as a constant expression and accepts it
+  (both facts live-verified on the SQL Server 2022 and Oracle XE 21.3.0 lanes).
+- A repeated MERGE `WHEN` branch throws at `Build(Dbms.Oracle)` — whose grammar
+  admits one `WHEN MATCHED` and one `WHEN NOT MATCHED` — and at
+  `Build(Dbms.SqlServer)` when two branches of the same clause share an action
+  kind. A matched `UPDATE SET` beside a matched `DELETE` stays legal on SQL
+  Server, and PostgreSQL stacks branches freely, as all three engines do live.
 
 ## [0.10.0-beta.1] - 2026-09-22
 ### Fixed

@@ -877,4 +877,117 @@ public class MergeTests
         Assert.Equal(
             "A SET assignment list must not assign the same column twice.", ex.Message);
     }
+
+    [Fact]
+    public void Merge_Oracle_TwoWhenMatchedBranches_ThrowsArgumentException()
+    {
+        // Oracle's MERGE grammar has one merge_update_clause and one
+        // merge_insert_clause; a second WHEN MATCHED is ORA-00905 on XE 21.3.0.
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched().ThenUpdateSet(_t.Name == _s.Name)
+                .WhenMatched().ThenDelete()
+                .Build(Dbms.Oracle));
+
+        Assert.Equal(
+            "Oracle accepts at most one WHEN MATCHED branch in a MERGE; combine the branch "
+                + "conditions, or spell a matched delete as ThenUpdateSet(...).DeleteWhere(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Merge_Oracle_TwoWhenNotMatchedBranches_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenNotMatched(_s.Code > 1).ThenInsert(_cols.Code).Values(_s.Code)
+                .WhenNotMatched().ThenInsert(_cols.Code).Values(_s.Code)
+                .Build(Dbms.Oracle));
+
+        Assert.Equal(
+            "Oracle accepts at most one WHEN NOT MATCHED branch in a MERGE; combine the branch "
+                + "conditions, or spell a matched delete as ThenUpdateSet(...).DeleteWhere(...).",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Merge_SqlServer_TwoMatchedUpdateBranches_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched(_s.Code > 1).ThenUpdateSet(_t.Name == _s.Name)
+                .WhenMatched().ThenUpdateSet(_t.Name == _s.Name)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "SQL Server accepts at most one WHEN MATCHED branch with a UPDATE SET action in a "
+                + "MERGE; give the branches different actions, or combine their conditions.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Merge_SqlServer_TwoNotMatchedBySourceUpdateBranches_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenNotMatchedBySource(_t.Code > 1).ThenUpdateSet(_t.Name == "a")
+                .WhenNotMatchedBySource().ThenUpdateSet(_t.Name == "b")
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(
+            "SQL Server accepts at most one WHEN NOT MATCHED BY SOURCE branch with a UPDATE SET "
+                + "action in a MERGE; give the branches different actions, or combine their "
+                + "conditions.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Merge_SqlServer_MatchedUpdateThenMatchedDelete_CorrectSql()
+    {
+        // T-SQL bounds the branches per action, not per WHEN clause, so one
+        // matched UPDATE beside one matched DELETE is legal (live-verified).
+        SqlStatement sql =
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched(_s.Code > 1).ThenUpdateSet(_t.Name == _s.Name)
+                .WhenMatched().ThenDelete()
+                .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "MERGE INTO test_table \"t\" USING test_table \"s\" ON (\"t\".code = \"s\".code) "
+                + "WHEN MATCHED AND \"s\".code > @0 THEN UPDATE SET name = \"s\".name "
+                + "WHEN MATCHED THEN DELETE;",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+    }
+
+    [Fact]
+    public void Merge_PostgreSql_TwoWhenMatchedBranches_CorrectSql()
+    {
+        // PostgreSQL 16.13 stacks WHEN branches freely, so the arity guard
+        // leaves it alone (live-verified).
+        SqlStatement sql =
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched(_s.Code > 1).ThenUpdateSet(_t.Name == _s.Name)
+                .WhenMatched().ThenDelete()
+                .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "MERGE INTO test_table \"t\" USING test_table \"s\" ON (\"t\".code = \"s\".code) "
+                + "WHEN MATCHED AND \"s\".code > :0 THEN UPDATE SET name = \"s\".name "
+                + "WHEN MATCHED THEN DELETE",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
 }
