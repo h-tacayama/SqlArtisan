@@ -998,7 +998,7 @@ SqlStatement sql =
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
 
-**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Of(...)` and `Wait(...)` are Oracle-only — `Of` names columns, the form MySQL and PostgreSQL reject.
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Of(...)` and `Wait(...)` are Oracle-only — `Of` names columns, the form MySQL and PostgreSQL reject. Oracle and PostgreSQL also reject `FOR UPDATE` over a grouped query, where MySQL locks the base rows; the analyzer reports that position as `SQLA0102`.
 
 ---
 
@@ -1283,8 +1283,9 @@ DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
 The joined target must be aliased, and on SQL Server a joined `UPDATE`/`DELETE`
 must re-list the target in `FROM` — T-SQL's joined form takes the target's alias
 from there — or `Build(Dbms.SqlServer)` throws. A re-listed target off SQL Server throws at
-`Build()`; the shapes that do not re-list it — Oracle, or `UPDATE … FROM` on
-MySQL — are emitted as written and rejected by the database instead. On Oracle, express the
+`Build()`. Every other wrong-dialect spelling is emitted as written and rejected
+by the database; with the analyzer configured, `SQLA0102` names it first — see
+[Context rules](analyzer.md#context-rules-sqla0102). On Oracle, express the
 shape as a correlated subquery or a [`MERGE`](#merge-statement).
 
 ---
@@ -3920,10 +3921,12 @@ var q = DeleteFrom(u).From(u, o).Where(u.Id == o.UserId);
 // warning SQLA0102: 'From' is not supported in a joined DELETE on PostgreSQL
 ```
 
-**`DELETE ... USING`.** PostgreSQL and SQL Server's `USING` support comes from
-`MERGE`, which shares the member name, so the construct-level entry reads
-"supported" on Oracle as well — but Oracle's `DELETE` grammar has no `USING`
-clause (ORA-00933). Join through a correlated `Where(...)` subquery there.
+**`DELETE ... USING`.** `Using` names two different clauses — `MERGE ... USING`
+and `DELETE ... USING` — so its construct-level entry is their union, and
+Oracle reads "supported" on the strength of its `MERGE` alone. Its `DELETE`
+grammar has no `USING` (ORA-00933); join through a correlated `Where(...)`
+subquery instead. MySQL and SQLite have neither clause, so `SQLA0100` already
+covers them.
 
 ```csharp
 // sqlartisan_syntax_oracle = any

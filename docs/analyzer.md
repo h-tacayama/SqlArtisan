@@ -660,10 +660,12 @@ var q = DeleteFrom(u).From(u, o).Where(u.Id == o.UserId);
 // warning SQLA0102: 'From' is not supported in a joined DELETE on PostgreSQL
 ```
 
-**`DELETE ... USING`.** PostgreSQL and SQL Server's `USING` support comes from
-`MERGE`, which shares the member name, so the construct-level entry reads
-"supported" on Oracle as well — but Oracle's `DELETE` grammar has no `USING`
-clause (ORA-00933). Join through a correlated `Where(...)` subquery there.
+**`DELETE ... USING`.** `Using` names two different clauses — `MERGE ... USING`
+and `DELETE ... USING` — so its construct-level entry is their union, and
+Oracle reads "supported" on the strength of its `MERGE` alone. Its `DELETE`
+grammar has no `USING` (ORA-00933); join through a correlated `Where(...)`
+subquery instead. MySQL and SQLite have neither clause, so `SQLA0100` already
+covers them.
 
 ```csharp
 // sqlartisan_syntax_oracle = any

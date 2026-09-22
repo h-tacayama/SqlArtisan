@@ -562,7 +562,7 @@ SqlStatement sql =
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
 
-**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Of(...)` and `Wait(...)` are Oracle-only — `Of` names columns, the form MySQL and PostgreSQL reject.
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Of(...)` and `Wait(...)` are Oracle-only — `Of` names columns, the form MySQL and PostgreSQL reject. Oracle and PostgreSQL also reject `FOR UPDATE` over a grouped query, where MySQL locks the base rows; the analyzer reports that position as `SQLA0102`.
 
 ---
 
@@ -847,8 +847,9 @@ DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
 The joined target must be aliased, and on SQL Server a joined `UPDATE`/`DELETE`
 must re-list the target in `FROM` — T-SQL's joined form takes the target's alias
 from there — or `Build(Dbms.SqlServer)` throws. A re-listed target off SQL Server throws at
-`Build()`; the shapes that do not re-list it — Oracle, or `UPDATE … FROM` on
-MySQL — are emitted as written and rejected by the database instead. On Oracle, express the
+`Build()`. Every other wrong-dialect spelling is emitted as written and rejected
+by the database; with the analyzer configured, `SQLA0102` names it first — see
+[Context rules](analyzer.md#context-rules-sqla0102). On Oracle, express the
 shape as a correlated subquery or a [`MERGE`](#merge-statement).
 
 ---
