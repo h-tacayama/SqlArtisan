@@ -253,6 +253,106 @@ public class ArgumentValueValidityAnalyzerTests
             """,
             "Limit", "-1", "row count", "MySQL and PostgreSQL");
 
+    // --- GROUP BY column ordinals (#521 item 2) ---
+
+    [Fact]
+    public Task GroupBy_Oracle_Ordinal_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(t.Id).From(t).GroupBy({|#0:1|});""",
+            AnalyzerVerifier.EditorConfig("oracle"),
+            "GroupBy", "1", "column ordinal", "Oracle");
+
+    [Fact]
+    public Task GroupBy_SqlServer_Ordinal_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(t.Id).From(t).GroupBy({|#0:1|});""",
+            AnalyzerVerifier.EditorConfig("sqlserver"));
+
+    [Fact]
+    public Task GroupBy_PostgreSql_Ordinal_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id).From(t).GroupBy(1);""",
+            AnalyzerVerifier.EditorConfig("postgresql"));
+
+    // A column carries no ordinal, so a mixed list reports only the ordinal.
+    [Fact]
+    public Task GroupBy_Oracle_ColumnBesideOrdinal_ReportsOnlyTheOrdinal() =>
+        RunReporting(
+            """var q = Select(t.Id).From(t).GroupBy(t.Id, {|#0:2|});""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Fact]
+    public Task GroupBy_Oracle_ColumnsOnly_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id).From(t).GroupBy(t.Id, t.Name);""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Fact]
+    public Task GroupBy_Oracle_NonConstantOrdinal_StaysSilent() =>
+        RunSilent(
+            """
+            int n = System.DateTime.Now.Second;
+            var q = Select(t.Id).From(t).GroupBy(n);
+            """,
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    // Every integral type renders as an ordinal, so the check follows the type
+    // rather than the int an enum's constant would also present as.
+    [Theory]
+    [InlineData("1L")]
+    [InlineData("(short)1")]
+    [InlineData("(byte)1")]
+    [InlineData("1u")]
+    public Task GroupBy_Oracle_NonIntOrdinalType_ReportsSqla0104(string literal) =>
+        RunReporting(
+            $$"""var q = Select(t.Id).From(t).GroupBy({|#0:{{literal}}|});""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    [Fact]
+    public Task GroupBy_Oracle_CollectionExpression_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(t.Id).From(t).GroupBy([{|#0:1|}]);""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    // The array's only child is its length, which names no group key.
+    [Fact]
+    public Task GroupBy_Oracle_ArrayWithoutInitializer_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id).From(t).GroupBy(new object[3]);""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    // An enum's constant is its underlying int, but GroupBy rejects the call
+    // outright on every dialect — naming one would point at the wrong problem.
+    [Fact]
+    public Task GroupBy_Oracle_EnumMember_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id).From(t).GroupBy(System.DayOfWeek.Tuesday);""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    // Below 1 throws at the call on every dialect, so this rule has nothing
+    // dialect-specific to say about it.
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    public Task GroupBy_Oracle_OrdinalBelowOne_StaysSilent(string ordinal) =>
+        RunSilent(
+            $$"""var q = Select(t.Id).From(t).GroupBy({{ordinal}});""",
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+    // A non-integer key is one group on MySQL and SQLite, rejected on the rest.
+    [Fact]
+    public Task GroupBy_PostgreSql_FractionalKey_ReportsSqla0104() =>
+        RunReporting(
+            """var q = Select(t.Id).From(t).GroupBy({|#0:2.5|});""",
+            AnalyzerVerifier.EditorConfig("postgresql"),
+            "GroupBy", "2.5", "group key", "PostgreSQL");
+
+    [Fact]
+    public Task GroupBy_Sqlite_FractionalKey_StaysSilent() =>
+        RunSilent(
+            """var q = Select(t.Id).From(t).GroupBy(2.5);""",
+            AnalyzerVerifier.EditorConfig("sqlite"));
+
     [Fact]
     public Task Limit_NoTargetConfigured_StaysSilent() =>
         RunSilent(

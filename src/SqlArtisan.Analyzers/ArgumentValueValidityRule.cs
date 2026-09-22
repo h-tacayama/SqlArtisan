@@ -23,6 +23,8 @@ internal static class ArgumentValueValidityRule
     // The kind of value a message names, filling its {2}.
     private const string MatchOptionNoun = "match option";
     private const string RowCountNoun = "row count";
+    private const string OrdinalNoun = "column ordinal";
+    private const string GroupKeyNoun = "group key";
 
     public static void Check(
         OperationAnalysisContext context,
@@ -42,7 +44,135 @@ internal static class ArgumentValueValidityRule
         {
             CheckRowCount(context, invocation, targets, memberName, countParameter);
         }
+
+        if (memberName == "GroupBy")
+        {
+            CheckGroupByOrdinal(context, invocation, targets, memberName);
+        }
     }
+
+    private static void CheckGroupByOrdinal(
+        OperationAnalysisContext context,
+        IInvocationOperation invocation,
+        DialectTargetSet targets,
+        string memberName)
+    {
+        if (FindArgument(invocation.Arguments, ArgumentValueValidity.GroupByItemsParameterName)
+                is not { } argument
+            || ValueDomainScope.For(context, invocation) is not { } scope)
+        {
+            return;
+        }
+
+        List<string>? invalidOn = null;
+        List<string>? fractionalInvalidOn = null;
+
+        foreach (TargetDbms dbms in targets.Members)
+        {
+            if (!scope.Covers(dbms, targets))
+            {
+                continue;
+            }
+
+            if (ArgumentValueValidity.RejectsOrdinalGroupBy(dbms))
+            {
+                (invalidOn ??= []).Add(TargetDbmsNames.Display(dbms));
+            }
+
+            if (ArgumentValueValidity.RejectsFractionalGroupKey(dbms))
+            {
+                (fractionalInvalidOn ??= []).Add(TargetDbmsNames.Display(dbms));
+            }
+        }
+
+        if (invalidOn is not { Count: > 0 } && fractionalInvalidOn is not { Count: > 0 })
+        {
+            return;
+        }
+
+        // Per element, so a mixed list reports only the keys in it.
+        foreach (IOperation element in Elements(Unwrap(argument.Value)))
+        {
+            IOperation key = Unwrap(element);
+            if (key.ConstantValue is not { HasValue: true, Value: { } value })
+            {
+                continue;
+            }
+
+            // The library renders every integral type as an ordinal, so the
+            // check follows the type rather than the boxed int an enum carries.
+            if (IsOrdinalType(key.Type) is true)
+            {
+                // Below 1 is rejected at the call on every dialect, so naming
+                // one here would point at the wrong problem.
+                if (ToOrdinal(value) is > 0 && invalidOn is { Count: > 0 })
+                {
+                    Report(context, element, memberName, value, OrdinalNoun, invalidOn);
+                }
+            }
+            else if (IsFractionalType(key.Type) is true && fractionalInvalidOn is { Count: > 0 })
+            {
+                Report(context, element, memberName, value, GroupKeyNoun, fractionalInvalidOn);
+            }
+        }
+    }
+
+    private static void Report(
+        OperationAnalysisContext context,
+        IOperation element,
+        string memberName,
+        object value,
+        string noun,
+        List<string> invalidOn) =>
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.InvalidArgumentValue,
+            element.Syntax.GetLocation(),
+            memberName,
+            Convert.ToString(value, CultureInfo.InvariantCulture),
+            noun,
+            TargetDbmsNames.JoinDisplayNames(invalidOn)));
+
+    private static bool IsOrdinalType(ITypeSymbol? type) => type?.SpecialType is
+        SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16
+        or SpecialType.System_UInt16 or SpecialType.System_Int32 or SpecialType.System_UInt32
+        or SpecialType.System_Int64 or SpecialType.System_UInt64
+        or SpecialType.System_IntPtr or SpecialType.System_UIntPtr;
+
+    private static bool IsFractionalType(ITypeSymbol? type) => type?.SpecialType is
+        SpecialType.System_Single or SpecialType.System_Double or SpecialType.System_Decimal;
+
+    private static long? ToOrdinal(object value) => value switch
+    {
+        sbyte v => v,
+        byte v => v,
+        short v => v,
+        ushort v => v,
+        int v => v,
+        uint v => v,
+        long v => v,
+        ulong v when v <= long.MaxValue => (long)v,
+        nint v => v,
+        _ => null,
+    };
+
+    // A params array's elements. Unlike IdentifierLengthRule's copy this must
+    // also refuse an array with no initializer, whose only child is its length.
+    private static IEnumerable<IOperation> Elements(IOperation value) =>
+        value switch
+        {
+            IArrayCreationOperation { Initializer: { } initializer } => initializer.ElementValues,
+            IArrayCreationOperation => [],
+            { Type: IArrayTypeSymbol } and not (IInvocationOperation or ILocalReferenceOperation
+                or IParameterReferenceOperation or IFieldReferenceOperation
+                or IPropertyReferenceOperation or IConversionOperation) => value.ChildOperations,
+            _ => [],
+        };
+
+    // A value reaches `object` through a boxing conversion, which carries the
+    // constant; the key is the operand's, not the conversion's. The params
+    // argument itself is wrapped the same way when written as `[1, 2]`.
+    private static IOperation Unwrap(IOperation element) =>
+        element is IConversionOperation conversion ? conversion.Operand : element;
 
     private static void CheckMatchOptions(
         OperationAnalysisContext context,

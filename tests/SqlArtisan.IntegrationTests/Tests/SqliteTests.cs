@@ -476,6 +476,43 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                 "SELECT COUNT(*) FROM (SELECT id FROM users LIMIT -1 OFFSET -1)"));
     }
 
+    // #521 item 2: SQLite takes the position, and -- like MySQL -- reads a
+    // fractional constant as one group rather than refusing it. Its rejection
+    // of an out-of-range ordinal is what the eager guard's fifth cell rests on.
+    [Fact]
+    public void GroupByOrdinal_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT DISTINCT department_id FROM users)"),
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT department_id FROM users GROUP BY 1)"));
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    public void GroupByOutOfRangeOrdinal_IsRejectedByTheEngine(string ordinal)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            $"SELECT department_id FROM users GROUP BY {ordinal}"));
+    }
+
+    [Fact]
+    public void GroupByFractionalConstant_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            1L,
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT department_id FROM users GROUP BY 2.5)"));
+    }
+
     // ADR 0011: the acceptance that keeps the non-integer sort-key guard off
     // SQLite.
     [Fact]

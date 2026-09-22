@@ -121,6 +121,17 @@ public class ArgumentValueValidityParityTests
             }
         }
 
+        bool groupByFound = typeof(IPagination).Assembly
+            .GetType("SqlArtisan.Internal.ISelectBuilderWhere")!
+            .GetMethod("GroupBy")!
+            .GetParameters()
+            .Any(p => p.Name == ArgumentValueValidity.GroupByItemsParameterName);
+
+        if (!groupByFound)
+        {
+            wrong.Add($"GroupBy -> '{ArgumentValueValidity.GroupByItemsParameterName}'");
+        }
+
         Assert.True(
             wrong.Count == 0,
             "entries naming a parameter the factory does not have, so SQLA0104 reads nothing: "

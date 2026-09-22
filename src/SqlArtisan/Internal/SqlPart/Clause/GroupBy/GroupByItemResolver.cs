@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace SqlArtisan.Internal;
 
 internal static class GroupByItemResolver
@@ -36,9 +38,57 @@ internal static class GroupByItemResolver
         {
             return grouping;
         }
+        else if (ExpressionResolver.IsNumeric(groupByItem))
+        {
+            return ResolveNumericGroupKey(groupByItem);
+        }
         else
         {
             throw ExpressionResolver.UnresolvableValue("GroupByItem", groupByItem);
+        }
+    }
+
+    private static readonly char[] FractionMarks = ['.', 'E', 'e'];
+
+    // An ordinal below 1 names no select-list position and every engine refuses
+    // it, so ADR 0012's three conditions hold and the throw is eager.
+    private static NumericGroupKey ResolveNumericGroupKey(object value)
+    {
+        // Invariant, not ToString(): a comma-decimal culture would split "2.5"
+        // into two group keys. IsNumeric guarantees IFormattable here.
+        string text = ((IFormattable)value).ToString(null, CultureInfo.InvariantCulture);
+
+        switch (value)
+        {
+            case sbyte or byte or short or ushort or int or uint or nint or nuint
+                or long or ulong:
+                if (text == "0" || text.StartsWith('-'))
+                {
+                    throw new ArgumentException(
+                        "A GROUP BY column ordinal must be 1 or greater.");
+                }
+
+                return new NumericGroupKey(text);
+
+            case float or double or decimal:
+                if ((value is double d && !double.IsFinite(d))
+                    || (value is float f && !float.IsFinite(f)))
+                {
+                    throw new ArgumentException(
+                        "A GROUP BY numeric group key must be finite.");
+                }
+
+                // A decimal point ("2" becomes "2.0") so a whole value cannot
+                // re-read as an ordinal on the engines that take the constant.
+                if (text.IndexOfAny(FractionMarks) < 0)
+                {
+                    text += ".0";
+                }
+
+                return new NumericGroupKey(text);
+
+            default:
+                throw ExpressionResolver.UnresolvableValue("GroupByItem", value);
         }
     }
 

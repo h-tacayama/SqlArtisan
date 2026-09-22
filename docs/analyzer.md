@@ -754,8 +754,8 @@ A construct can exist on a dialect while one *value* of one of its arguments
 does not. The dialect matrix keys on the construct — `Extract`, `RegexpLike`,
 `Limit` — so it has nothing to say about that, and the mismatch surfaces only
 when the database runs the statement. `SQLA0104` closes that gap at the
-argument level, for three kinds of value the analyzer can read at the call
-site. All three share one ID: the verdict is the same in each case, and so is
+argument level, for four kinds of value the analyzer can read at the call
+site. All four share one ID: the verdict is the same in each case, and so is
 the remedy — change the value, or stop targeting that dialect.
 
 ### A `DateTimePart` a function does not accept
@@ -815,6 +815,26 @@ var q = Select(u.Name).From(u)
 `RegexpOptions` is a `[Flags]` enum, so the rule reads the combination: the
 letters an engine has stay silent and only the missing one reports, from the
 same argument.
+
+### A `GROUP BY` position an engine has no ordinals for
+
+`GroupBy(1)` groups by the first select-list item. MySQL, PostgreSQL and SQLite
+read the position; Oracle and SQL Server refuse a bare constant there, loudly
+rather than by grouping everything into one row.
+
+```csharp
+// sqlartisan_syntax_oracle = any
+var q = Select(u.Id, Count(u.Id)).From(u).GroupBy(1);
+// warning SQLA0104: '1' is not a valid column ordinal for 'GroupBy' on Oracle
+```
+
+A non-integer key is reported the same way, on the three engines that refuse
+it: MySQL and SQLite read `GroupBy(2.5)` as a single group, while Oracle,
+PostgreSQL and SQL Server reject the statement.
+
+Only constants report: a column in the same list carries no key, so
+`GroupBy(u.Id, 2)` names just the `2`. A position below 1 is rejected at the
+call instead — no engine accepts one, so there is no dialect to advise about.
 
 ### A negative row count
 

@@ -491,6 +491,33 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // #521 item 2: Oracle is said to reject grouping by ordinal. The other
+    // possibility -- grouping by the constant -- would be silently wrong.
+    [Fact]
+    public void GroupByOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT department_id FROM users GROUP BY department_id");
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT department_id FROM users GROUP BY 1"));
+    }
+
+    // Not just the in-range ordinal: every bare constant is refused here, which
+    // is what a dialect-blind zero/negative guard rests on.
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    [InlineData("2.5")]
+    public void GroupByConstant_IsRejectedByTheEngine(string constant)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            $"SELECT department_id FROM users GROUP BY {constant}"));
+    }
+
     // ADR 0012 non-goals (#523): Oracle takes a negative row count outright,
     // which is what keeps the FETCH family unguarded and, for #529, what keeps
     // SQLA0104 silent on both its FETCH spellings; the LAG offset it rejects.
