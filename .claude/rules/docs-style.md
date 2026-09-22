@@ -78,7 +78,12 @@ with availability left to the database"). ADR cross-references belong in
 - **Result semantics are the engine's** — duplicate handling, `NULL` matching,
   multiplicity, collation, precision. Link the engine's manual; do not restate
   it. A hazard in *SqlArtisan's own emitted SQL* is a different thing and stays
-  (the callouts below).
+  (the callouts below). The one exception is a claim a gate ties to a live
+  twin: `DateTimePart`'s `Dow`/`Isodow` numbering, held by
+  `DateTimePartNumbering.Claims` at both ends (ADR 0020). Writing one without
+  that gate is the drift the ADR measured, so add the catalog entry and its
+  rows or leave the claim out — the gate only notices a day named beside its
+  number, so a basis phrased any other way is yours to catch.
 - **No version floor in a reference page.** A floor lives only where a test
   keeps it tied to `DialectMatrix`: `docs/analyzer.md`'s version-bound register
   and XML `<remarks>` (ADR 0020). Reference pages state which dialects support

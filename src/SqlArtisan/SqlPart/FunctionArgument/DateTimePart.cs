@@ -33,8 +33,9 @@ public enum DateTimePart
     DayMinute = 4,
 
     /// <summary>
-    /// The <c>DAYOFYEAR</c> field — day of the year (SQL Server / MySQL spelling; PostgreSQL uses
-    /// <see cref="Doy"/>).
+    /// The <c>DAYOFYEAR</c> field — day of the year (SQL Server; PostgreSQL uses
+    /// <see cref="Doy"/>). MySQL spells it as the <c>DAYOFYEAR()</c> function, which
+    /// takes no datepart.
     /// </summary>
     Dayofyear = 5,
 
@@ -206,7 +207,8 @@ public enum DateTimePart
     Week = 38,
 
     /// <summary>
-    /// The <c>WEEKDAY</c> field — day of the week (SQL Server / MySQL).
+    /// The <c>WEEKDAY</c> field — day of the week (SQL Server). MySQL spells it as
+    /// the <c>WEEKDAY()</c> function, which takes no datepart.
     /// </summary>
     Weekday = 39,
 

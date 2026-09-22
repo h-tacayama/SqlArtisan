@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed
+- `DateTimePart.Weekday` and `DateTimePart.Dayofyear` no longer claim MySQL.
+  MySQL spells both as standalone functions (`WEEKDAY()`, `DAYOFYEAR()`) that
+  take no datepart, and rejects either name as an `EXTRACT` unit — which is
+  what `SQLA0104` has always reported. The summaries said otherwise; a new
+  parity gate sweeps every `DateTimePart` attribution against the analyzer's
+  own lists so the two cannot drift again.
 - `OrderBy(2.5)` and `OrderBy(-1)` now throw at `Build(Dbms.SqlServer)` too,
   instead of emitting an `ORDER BY` T-SQL rejects at execution. Oracle is
   unaffected: it reads either literal as a constant expression and accepts it

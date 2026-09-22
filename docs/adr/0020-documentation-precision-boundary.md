@@ -58,7 +58,7 @@ manual rather than restating it.
 | What SqlArtisan emits | yes | unit tests (exact SQL strings) |
 | Which dialects support a construct | yes | `DialectMatrix.Entries` + `MatrixSweepTests` |
 | Minimum engine version | **no** — see below | — |
-| Result semantics; construct equivalence; SQL rewrites | **no** | — |
+| Result semantics; construct equivalence; SQL rewrites | **no** — one gated exception below | — |
 
 ### A version floor appears only where a gate keeps it synced
 
@@ -77,6 +77,40 @@ nothing ties them to `DialectMatrix`:
 
 Reference pages state *which dialects*, not *from which version*, and link to
 the register for the latter.
+
+### A result-semantics claim appears only where a gate ties it to a live twin
+
+The tier table's "no" is a consequence, not a prohibition. Result semantics
+were excluded because nothing in the repo held them — the same reason a
+version floor is banned from an ungated surface, and the same remedy applies
+where a gate does hold one.
+
+`DateTimePart`'s `Dow` and `Isodow` summaries name a numbering basis
+(`Sunday = 0`; `Monday = 1 … Sunday = 7`). Those stand because
+`DateTimePartNumbering.Claims` carries, per member, both the phrase the
+summary must contain and the rows an engine must return;
+`DateTimePartNumberingTests` gates the prose against that catalog in both
+directions (a summary naming a day beside its number with no catalog entry
+fails, and an entry no summary states any more fails as inert); and
+`ExtractDayOfWeek_NumbersAsTheSummariesState` executes the rows on the
+PostgreSQL lane. For a basis written that way, prose, catalog and engine
+move together or the build breaks — which is the property the four rounds
+behind this ADR were missing, not the subject matter.
+
+The detector reads that one shape and no other, so it bounds what the gate
+can promise: a basis phrased another way — `IsoWeek`'s "week 1 holds the
+year's first Thursday" — passes unseen, and the catalog entry is the
+author's to add rather than the gate's to demand. Widening the detector
+would put every such claim under the catalog; until then the tier table's
+default is what governs them, and review is what enforces it.
+
+`Weekday` carries no such note, by measurement rather than oversight:
+`DATEPART(weekday, ...)` counts from the session's `@@DATEFIRST`, so the same
+Monday reads 1 or 2 depending on the connection (live-verified on SQL Server
+2022 by `DatepartWeekday_NumberingFollowsDateFirst`). A value that is not
+fixed cannot be held by a catalog, so the claim is not made. The tier table's
+default governs every claim no gate reaches, which is still almost all of
+them (#523).
 
 ### Substitution: point at an API, never at a rewrite
 
@@ -134,6 +168,8 @@ substitute one construct for another.
   where the reader is actually writing the query.
 - `sa-diff-review` and `sa-docs-audit` gain the classification question: does
   this sentence claim an equivalence, supply a rewrite, or state result
-  semantics? If so it does not belong in the docs.
+  semantics? If so it does not belong in the docs — unless a gate holds it,
+  which for result semantics is the `DateTimePartNumbering` shape above and
+  for nothing else so far.
 - This boundary is what makes documentation review converge: a claim either has
   a source of truth in the repo, or it is not made.

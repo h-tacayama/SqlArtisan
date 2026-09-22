@@ -440,6 +440,23 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         connection.Query<int>("SELECT id FROM users ORDER BY -1").ToList();
     }
 
+    // #523 item 7: MySQL spells both of these as standalone functions, never as
+    // EXTRACT units — the attribution DateTimePart's summaries used to claim.
+    [Fact]
+    public void WeekdayAndDayofyear_AreNotExtractUnits()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The standalone functions run, so the table and column are right.
+        connection.ExecuteScalar("SELECT WEEKDAY(created_at) FROM users");
+        connection.ExecuteScalar("SELECT DAYOFYEAR(created_at) FROM users");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT EXTRACT(WEEKDAY FROM created_at) FROM users"));
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT EXTRACT(DAYOFYEAR FROM created_at) FROM users"));
+    }
+
     // ADR 0012 non-goal (#523): MySQL's window grammar takes an unsigned
     // integer, so the negative offset never reaches execution.
     [Fact]

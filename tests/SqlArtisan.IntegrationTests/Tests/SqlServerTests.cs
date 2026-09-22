@@ -407,6 +407,25 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // #523 item 7: DATEPART(weekday, ...) counts from whatever @@DATEFIRST the
+    // session carries, so it has no fixed numbering basis to document.
+    [Fact]
+    public void DatepartWeekday_NumberingFollowsDateFirst()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // 2026-09-21 is a Monday: first day of the week under DATEFIRST 1,
+        // second under DATEFIRST 7.
+        Assert.Equal(
+            1,
+            connection.ExecuteScalar<int>(
+                "SET DATEFIRST 1; SELECT DATEPART(weekday, '2026-09-21')"));
+        Assert.Equal(
+            2,
+            connection.ExecuteScalar<int>(
+                "SET DATEFIRST 7; SELECT DATEPART(weekday, '2026-09-21')"));
+    }
+
     // ADR 0011 (#523): the SQL Server arms of the two constant-sort-key guards.
     // T-SQL rejects both forms the engine cannot read as a column position.
     [Fact]

@@ -603,6 +603,29 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             connection.Execute("WITH c AS (SELECT id FROM users ORDER BY 0) SELECT id FROM c"));
     }
 
+    // The live end of DateTimePartNumbering: the rows that make each summary's
+    // numbering basis a measurement rather than an assertion (#523 item 7).
+    [Fact]
+    public void ExtractDayOfWeek_NumbersAsTheSummariesState()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        foreach ((string member, DateTimePartNumbering.NumberingClaim claim)
+            in DateTimePartNumbering.Claims)
+        {
+            foreach ((string date, int expected) in claim.Rows)
+            {
+                int actual = connection.ExecuteScalar<int>(
+                    $"SELECT EXTRACT({claim.Field} FROM DATE '{date}')");
+
+                Assert.True(
+                    expected == actual,
+                    $"DateTimePart.{member} states \"{claim.Phrase}\", but "
+                        + $"EXTRACT({claim.Field} FROM DATE '{date}') returned {actual}.");
+            }
+        }
+    }
+
     // #523/#525: MERGE branch arity is a documented non-goal, not a guard. What
     // decides acceptance here is the condition, not the count.
     [Fact]
