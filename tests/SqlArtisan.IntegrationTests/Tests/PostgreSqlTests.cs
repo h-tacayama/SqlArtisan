@@ -662,9 +662,9 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             connection.ExecuteScalar<int>("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
     }
 
-    // SQLA0104's twin for all three row-count spellings (#529): PostgreSQL
-    // compiles each to the same limit node, so each raises `LIMIT must not be
-    // negative` — the acceptance twin is OracleTests.NegativeFetchCount.
+    // SQLA0104's twin for all three row-count spellings (#529): each raises
+    // `LIMIT must not be negative` here — the acceptance twin is
+    // OracleTests.NegativeFetchCount.
     [Theory]
     [InlineData("SELECT id FROM users ORDER BY id FETCH FIRST -1 ROWS ONLY")]
     [InlineData("SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY")]

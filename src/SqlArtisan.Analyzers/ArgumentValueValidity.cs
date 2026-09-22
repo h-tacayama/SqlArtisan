@@ -63,7 +63,7 @@ internal static class ArgumentValueValidity
 
     // The parameter SQLA0104 reads the row count out of. Offset/OffsetRows are
     // deliberately absent: the only negative-offset cell pinned as a twin is
-    // Oracle's acceptance (ADR 0012), so no dialect has a rejection to report.
+    // Oracle's acceptance (ADR 0012), and an unpinned rejection is not reported.
     internal static readonly Dictionary<string, string> RowCountParameterName = new(
         StringComparer.Ordinal)
     {

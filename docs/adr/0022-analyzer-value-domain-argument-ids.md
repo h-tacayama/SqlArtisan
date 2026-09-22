@@ -22,7 +22,7 @@ accept.
   in their own combinations — and **accepted** by Oracle XE 21.3.0 (a negative
   `FETCH` runs) and by SQLite 3.50.4 (`LIMIT -1` means "no limit").
 
-ADR 0012 ruled both out as `Build()`-time guards and recorded each as a stated
+ADR 0012 ruled both out as eager factory-call guards and recorded each as a stated
 non-goal: the alphabets diverge per engine (its condition 3) and an engine
 accepts each value (its condition 1). It named the remaining question as a
 `SQLA01xx` one, and for the `RegexpOptions` half it was more specific than
@@ -118,9 +118,11 @@ this cheap again.
 ### Scope this rule does not claim
 
 The `OFFSET` family (`Offset`, `OffsetRows`) is out. The only negative-offset
-cell pinned as a twin is Oracle's acceptance of `OFFSET -1 ROWS` (ADR 0012), so
-no dialect has a rejection to report; filling the rest in would widen this
-change past what #529 asked for, on evidence that is not yet in the repo.
+cell pinned as a twin is Oracle's acceptance of `OFFSET -1 ROWS` (ADR 0012),
+and this rule reports no cell that is not pinned; filling the rest in would
+widen this change past what #529 asked for, on evidence that is not yet in the
+repo. That is a gap in the evidence, not a finding that every engine takes a
+negative offset.
 `ArgumentValueValidityParityTests` names both members explicitly, so a new
 pagination construct cannot join them by being forgotten.
 

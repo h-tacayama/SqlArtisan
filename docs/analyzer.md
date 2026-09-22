@@ -824,9 +824,10 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).Limit(-1);
 | `FetchNext` | PostgreSQL, SQL Server |
 | `Limit` | MySQL, PostgreSQL |
 
-`Offset` and `OffsetRows` are deliberately not checked: no engine is on record
-here as rejecting a negative offset, and a construct checked on one dialect
-alone would report for no reason worth defending.
+`Offset` and `OffsetRows` are deliberately not checked: this rule carries only
+cells the integration tests pin, and no negative-offset rejection is pinned
+there yet. Read that as missing evidence rather than a guarantee — an
+unchecked construct is not a safe one.
 
 Every match-option and row-count verdict above — the rejections and the two
 acceptances that keep Oracle and SQLite silent alike — is checked against the
@@ -1211,7 +1212,7 @@ client-side before it reaches the engine.
 
 ## Verified-against versions
 
-The matrix's `verified` entries, and the per-(value, dialect) facts
+The matrix's `verified` entries, and the match-option and row-count facts
 [Argument value validity](#argument-value-validity-sqla0104) reports, were
 checked against one representative version per dialect (the same engines the
 integration test matrix runs against):
