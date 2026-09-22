@@ -430,8 +430,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             connection.ExecuteScalar("SELECT id, name FROM users ORDER BY -1"));
     }
 
-    // ADR 0011 (#523): T-SQL bounds MERGE branches per clause-and-action pair,
-    // so the matched UPDATE beside the matched DELETE is the accepted twin.
+    // #523/#525: MERGE branch arity is a documented non-goal, not a guard —
+    // T-SQL bounds the branches per clause-and-action pair.
     [Fact]
     public void MergeRepeatedBranchAction_IsRejectedByTheEngine()
     {
@@ -483,5 +483,28 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         Assert.ThrowsAny<Exception>(() =>
             connection.ExecuteScalar("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+    }
+
+    // The second half of the same rule, and the one the guard withdrawn in #525
+    // never modelled: a branch may not follow an unconditional one of its kind.
+    [Fact]
+    public void MergeRepeatedWhenBranch_NeedsAConditionOnTheEarlierBranch()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN MATCHED THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED THEN DELETE;",
+            transaction: transaction));
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN NOT MATCHED BY SOURCE THEN UPDATE SET name = t.name "
+                + "WHEN NOT MATCHED BY SOURCE THEN DELETE;",
+            transaction: transaction));
+
+        transaction.Rollback();
     }
 }

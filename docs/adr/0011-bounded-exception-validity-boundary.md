@@ -147,7 +147,8 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
 - **A non-integer constant `ORDER BY` sort key on PostgreSQL and SQL Server**
   (release audit, pass 4; SQL Server added by #523). `OrderBy(2.5)` renders
   `ORDER BY 2.5`, a no-op ordering MySQL 8.0, SQLite 3.50.4 and Oracle XE
-  21.3.0 accept while PostgreSQL 16 and SQL Server 2022 reject it outright
+  21.3.0 accept (each pinned by `OrderByNonIntegerConstant_IsAcceptedByTheEngine`
+  on its lane) while PostgreSQL 16 and SQL Server 2022 reject it outright
   (`non-integer constant in ORDER BY`; `A constant expression was encountered
   in the ORDER BY list, position 1.` — both live-verified); the value is a
   literal the construct-level matrix cannot see, so `SelectBuilder.Validate`
@@ -155,7 +156,7 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
   SQL Server question stayed open until its lane ran. Live twins:
   `OrderByNonIntegerConstant_IsRejectedByTheEngine` on the PostgreSQL and SQL
   Server lanes, and `OrderByNonIntegerConstant_IsAcceptedByTheEngine` on the
-  Oracle lane.
+  Oracle, MySQL and SQLite lanes.
 - **A negative constant `ORDER BY` ordinal on PostgreSQL, SQLite, and SQL
   Server** (SQL Server added by #523). `OrderBy(-1)` renders `ORDER BY -1`,
   which those three read as a column position and reject (`ORDER BY position -1
@@ -224,22 +225,3 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
   on the PostgreSQL lane and
   `Upsert_OnConflictDoUpdateWithoutTarget_IsAcceptedByTheEngine` on the
   SQLite lane.
-- **A repeated MERGE `WHEN` branch on Oracle and SQL Server** (#523). Oracle's
-  MERGE grammar admits one `merge_update_clause` and one `merge_insert_clause`,
-  so a second `WHEN MATCHED` or `WHEN NOT MATCHED` is ORA-00905 whatever action
-  it carries (live-verified on XE 21.3.0); T-SQL bounds the branches per
-  clause-and-action pair instead (`An action of type 'WHEN MATCHED' cannot
-  appear more than once in a 'UPDATE' clause of a MERGE statement.` on 2022),
-  so one matched `UPDATE SET` beside one matched `DELETE` stays legal there
-  while a repeated pair does not. PostgreSQL 16.13 stacks branches freely —
-  only an unconditional branch closes the list — so `MergeBuilder.Validate`
-  throws for `Dbms.Oracle` and `Dbms.SqlServer` alone, each on its own rule.
-  The branch count is builder state (`WhenMatchedClause` and its siblings
-  paired with the action that follows); the analyzer's `WhenMatched` key
-  records only that the construct exists, so it cannot see a second one. The
-  Oracle message names `ThenUpdateSet(...).DeleteWhere(...)`, the spelling
-  Oracle's own grammar gives the matched-delete case the second branch was
-  reaching for. Live twins: `MergeRepeatedWhenBranch_IsRejectedByTheEngine` on
-  the Oracle lane, `MergeRepeatedBranchAction_IsRejectedByTheEngine` on the SQL
-  Server lane, and `MergeRepeatedWhenBranch_IsAcceptedByTheEngine` on the
-  PostgreSQL lane.

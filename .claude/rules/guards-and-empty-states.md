@@ -131,11 +131,7 @@ the full rationale.
   value is invisible to the analyzer; a negative constant `ORDER BY` ordinal
   on PostgreSQL, SQLite and SQL Server (`OrderBy(-1)`) — those three read it
   as a column position and reject it, MySQL and Oracle read it as a constant
-  and accept it; a repeated MERGE `WHEN` branch on Oracle (one per clause,
-  ORA-00905) and SQL Server (one per clause-and-action pair, so a matched
-  `UPDATE SET` beside a matched `DELETE` stays legal) — PostgreSQL stacks
-  branches freely, and the count is builder state the construct-level matrix
-  cannot reach; `DeleteFrom(t).Using(...)` on SQL Server — T-SQL has no
+  and accept it; `DeleteFrom(t).Using(...)` on SQL Server — T-SQL has no
   `DELETE ... USING` at all, and the message names the `From(...)` remedy
   the joined-target guard's own message could not reach from that chain
   (ADR 0011, "Later instances" section).
@@ -164,8 +160,26 @@ fails there as well — and on the engines that reject it (Oracle, SQL Server
 0011's second condition fails too. Both are enumerated non-goals in ADR 0012
 and pinned by `Top_NegativeCount_BindsTheCountRatherThanPrintingIt`,
 `FetchFirst_NegativeCount_BindsTheCountRatherThanPrintingIt` and the
-`{Lag,Lead}_NegativeOffset_CorrectSql` pair, with live twins on every lane
-(#523).
+`{Lag,Lead}_NegativeOffset_CorrectSql` pair. The `Lag`/`Lead` offset has a
+live twin on all five lanes; the row count has one on every lane whose
+grammar takes a `FETCH`/`TOP` count or rejects a negative `LIMIT` — Oracle,
+PostgreSQL, SQL Server, MySQL and SQLite (#523).
+
+**MERGE `WHEN` branch arity stays permissive (decided — do not re-file):** each
+engine bounds the branches differently — Oracle takes one per WHEN clause
+whatever its action (ORA-00905 on XE 21.3.0), SQL Server one per
+clause-and-action pair *and* refuses any branch following an unconditional one
+of the same clause, and PostgreSQL 16.13 applies that second rule too
+(`unreachable WHEN clause specified after unconditional WHEN clause`). A
+`Build(Dbms)` guard for this was written, measured and withdrawn (#523,
+#525): the shape is *dialect availability*, so the table above already
+governs it, and unlike the guard mission's targets it fails **loudly** on the
+engine, naming the exact branch — no silent wrongness to convert. It also cost
+a measured +320 B/build on SQL Server and +176 B on Oracle for a plain
+two-branch upsert, the commonest MERGE those two engines have, against ADR
+0006. The per-engine limits are documented in `docs/query-statements.md` and
+pinned by the `MergeRepeated*` twins on the Oracle, SQL Server and PostgreSQL
+lanes, so the knowledge is kept without the throw.
 
 **Whitespace is rejected in a bare-token position, accepted in a quoted one
 (decided — do not re-file):** `DbSequence`'s constructor and `DbColumn`'s name

@@ -603,10 +603,10 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             connection.Execute("WITH c AS (SELECT id FROM users ORDER BY 0) SELECT id FROM c"));
     }
 
-    // ADR 0011 (#523): the accepting engine that keeps the MERGE branch-arity
-    // guard off PostgreSQL — only an unconditional branch closes the list.
+    // #523/#525: MERGE branch arity is a documented non-goal, not a guard. What
+    // decides acceptance here is the condition, not the count.
     [Fact]
-    public void MergeRepeatedWhenBranch_IsAcceptedByTheEngine()
+    public void MergeRepeatedWhenBranch_NeedsAConditionOnTheEarlierBranch()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
@@ -616,6 +616,13 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
                 + "WHEN MATCHED AND t.age > 0 THEN UPDATE SET name = t.name "
                 + "WHEN MATCHED THEN DELETE",
             transaction: transaction);
+
+        // Drop the condition off the first branch and the second is unreachable.
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT 1 AS id, 'x' AS name) s ON t.id = s.id "
+                + "WHEN MATCHED THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED THEN DELETE",
+            transaction: transaction));
 
         transaction.Rollback();
     }

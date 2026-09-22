@@ -161,13 +161,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     {
         bool branchOpen = false;
         bool insertOpen = false;
-        string? openClause = null;
-
-        // Only Oracle and SQL Server bound the branch count, so only they
-        // pay for the set that tracks it (#523).
-        HashSet<string>? seenBranches = dbms is Dbms.Oracle or Dbms.SqlServer
-            ? new HashSet<string>(StringComparer.Ordinal)
-            : null;
 
         foreach (SqlPart part in PartsSpan)
         {
@@ -175,24 +168,15 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
             {
                 ThrowIfBranchUnfinished(branchOpen, insertOpen);
                 branchOpen = true;
-                openClause = ClauseSpelling(part);
             }
-            else if (part is MergeUpdateSetClause)
+            else if (part is MergeUpdateSetClause or MergeDeleteClause)
             {
                 branchOpen = false;
-                ThrowIfBranchRepeated(
-                    dbms, seenBranches, openClause, $"{Keywords.Update} {Keywords.Set}");
-            }
-            else if (part is MergeDeleteClause)
-            {
-                branchOpen = false;
-                ThrowIfBranchRepeated(dbms, seenBranches, openClause, Keywords.Delete);
             }
             else if (part is MergeInsertClause)
             {
                 branchOpen = false;
                 insertOpen = true;
-                ThrowIfBranchRepeated(dbms, seenBranches, openClause, Keywords.Insert);
             }
             else if (part is InsertValuesClause)
             {
@@ -202,40 +186,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
 
         ThrowIfBranchUnfinished(branchOpen, insertOpen);
     }
-
-    // Keyed on the WHEN clause alone for Oracle, on the clause-and-action pair
-    // for SQL Server — the one difference between the two engines' limits.
-    private static void ThrowIfBranchRepeated(
-        Dbms dbms, HashSet<string>? seenBranches, string? clause, string action)
-    {
-        if (seenBranches is null || clause is null)
-        {
-            return;
-        }
-
-        if (dbms == Dbms.Oracle && !seenBranches.Add(clause))
-        {
-            throw new ArgumentException(
-                $"Oracle accepts at most one {clause} branch in a MERGE; combine the branch "
-                    + "conditions, or spell a matched delete as "
-                    + "ThenUpdateSet(...).DeleteWhere(...).");
-        }
-
-        if (dbms == Dbms.SqlServer && !seenBranches.Add($"{clause} {action}"))
-        {
-            throw new ArgumentException(
-                $"SQL Server accepts at most one {clause} branch with the same action "
-                    + $"({action}) in a MERGE; give the branches different actions, or combine "
-                    + "their conditions.");
-        }
-    }
-
-    private static string ClauseSpelling(SqlPart part) => part switch
-    {
-        WhenMatchedClause => $"{Keywords.When} {Keywords.Matched}",
-        WhenNotMatchedClause => $"{Keywords.When} {Keywords.Not} {Keywords.Matched}",
-        _ => $"{Keywords.When} {Keywords.Not} {Keywords.Matched} {Keywords.By} {Keywords.Source}",
-    };
 
     private static void ThrowIfBranchUnfinished(bool branchOpen, bool insertOpen)
     {
