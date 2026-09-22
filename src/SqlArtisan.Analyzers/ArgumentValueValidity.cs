@@ -107,12 +107,25 @@ internal static class ArgumentValueValidity
     private static readonly HashSet<TargetDbms> OrdinalGroupByRejected =
         [TargetDbms.Oracle, TargetDbms.SqlServer];
 
+    // MySQL 8.0 and SQLite 3.50.4 read a non-integer constant as one group;
+    // these three reject it (`non-integer constant in GROUP BY` on PostgreSQL
+    // 16.13) — all five live-verified.
+    private static readonly HashSet<TargetDbms> FractionalGroupKeyRejected =
+        [TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.SqlServer];
+
     /// <summary>
     /// Whether <paramref name="dbms"/> is measured to reject a <c>GROUP BY</c>
     /// column ordinal.
     /// </summary>
     public static bool RejectsOrdinalGroupBy(TargetDbms dbms) =>
         OrdinalGroupByRejected.Contains(dbms);
+
+    /// <summary>
+    /// Whether <paramref name="dbms"/> is measured to reject a non-integer
+    /// constant <c>GROUP BY</c> key.
+    /// </summary>
+    public static bool RejectsFractionalGroupKey(TargetDbms dbms) =>
+        FractionalGroupKeyRejected.Contains(dbms);
 
     /// <summary>
     /// The valid <c>RegexpOptions</c> member-name set for <paramref name="dbms"/>,

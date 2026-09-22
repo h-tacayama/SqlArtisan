@@ -828,7 +828,11 @@ var q = Select(u.Id, Count(u.Id)).From(u).GroupBy(1);
 // warning SQLA0104: '1' is not a valid column ordinal for 'GroupBy' on Oracle
 ```
 
-Only the positions report: a column in the same list carries no ordinal, so
+A non-integer key is reported the same way, on the three engines that refuse
+it: MySQL and SQLite read `GroupBy(2.5)` as a single group, while Oracle,
+PostgreSQL and SQL Server reject the statement.
+
+Only constants report: a column in the same list carries no key, so
 `GroupBy(u.Id, 2)` names just the `2`. A position below 1 is rejected at the
 call instead — no engine accepts one, so there is no dialect to advise about.
 

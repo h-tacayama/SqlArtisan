@@ -562,6 +562,33 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             connection.Execute("WITH x AS (SELECT 1), x AS (SELECT 2) SELECT * FROM x"));
     }
 
+    // #521 item 2: the GROUP BY constant verdicts here — the position works, an
+    // out-of-range one does not, and a fractional key is refused outright
+    // unlike on MySQL and SQLite.
+    [Fact]
+    public void GroupByOrdinal_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT DISTINCT department_id FROM users) d"),
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT department_id FROM users GROUP BY 1) g"));
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    [InlineData("2.5")]
+    public void GroupByOutOfRangeConstant_IsRejectedByTheEngine(string constant)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            $"SELECT department_id FROM users GROUP BY {constant}"));
+    }
+
     // The live twin of SelectBuilder's non-integer sort-key guard (ADR 0011).
     [Fact]
     public void OrderByNonIntegerConstant_IsRejectedByTheEngine()

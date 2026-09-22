@@ -18,7 +18,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `A GROUP BY column ordinal must be 1 or greater.` A non-integer key is
   emitted as written and keeps its decimal point, so `GroupBy(2.0)` is
   `GROUP BY 2.0` and cannot silently re-read as a position; MySQL and SQLite
-  take such a constant as one group, the other three reject it. Every cell is
+  take such a constant as one group, and `SQLA0104` reports the other three,
+  which reject it. An integer inside `Rollup(...)`/`Cube(...)`/
+  `GroupingSets(...)` stays a bound value, not a position. Every cell is
   live-verified on the pinned lanes. (#521)
 - Pagination and `FOR UPDATE` can now be written in one chain:
   `Limit`, `Offset`, `OffsetRows`, `FetchFirst` and `FetchNext` all return a
