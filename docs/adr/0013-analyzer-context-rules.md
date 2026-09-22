@@ -56,11 +56,22 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
     so a chain whose call after `GroupBy` is anything else can never acquire
     the suffix. A chain still ending at `GroupBy(...)`, or any unrecognized
     parent shape (variable indirection, helper methods), stays silent.
+  - *Declaring interface* (the four joined-DML rules, #523; the fifth, `FOR
+    UPDATE` over a grouped query, is an ordinary presence walk): a step name
+    alone decides nothing — every one of them is declared on several stages —
+    but the *pair* of name and declaring interface pins one statement position,
+    so the overload that bound **is** the position and no walk is needed:
+    `From` on `IDeleteBuilderDelete` is a joined `DELETE` wherever it is
+    written. This mode has no indirection blind spot: a receiver parked in a
+    variable keeps its static type.
   A reflection contract test pins the API facts each proof rests on, so core
-  drift breaks the build rather than the rules' soundness.
-- **Hard-coded rules, not a declared table.** Two rules don't warrant the
-  `DialectMatrix`-style representation; extract a table when the register
-  grows.
+  drift breaks the build rather than the rules' soundness. For the third mode
+  that means the *whole set* of interfaces declaring a trigger name, since a
+  new one would silently join or escape a verdict.
+- **Hard-coded rules, with a table only where the register earned one.** The
+  walking rules stay one method each — their proofs have no common shape. The
+  DML shapes (#523) do share one, so they are a `ClassifyDmlShape` switch over
+  (member, declaring interface) plus a per-shape list of rejecting dialects.
 - **Every rule needs a primary source and a live proof.** Each shipped rule
   carries an engine-rejection test in the integration suite (the acceptance
   twin is already proven by the sweep or the per-engine facts). A context
@@ -94,4 +105,11 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
   quantified-subquery rule (`Offset` rides the same chain;
   `OffsetRows`/`FetchNext`/`FetchFirst` are already matrix-`false` on MySQL,
   so `SQLA0100` fires regardless of position).
+- A rule may name several dialects. The DML spellings are each valid on some
+  engine and rejected by two or three others, so the message joins the
+  configured targets its rejecting set covers and stays silent when the
+  configuration names none of them.
+- `From`, `InnerJoin` and `Using` are on the hot path of every query. The
+  declaring-interface test — a name compare, no walk — runs before the
+  per-tree config lookup, so an ordinary `SELECT` pays only that.
 - The Analyzer ADR cluster grows to 0003 + 0008 + 0009 + 0013.

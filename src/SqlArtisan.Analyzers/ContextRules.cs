@@ -12,11 +12,23 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 /// <remarks>
 /// Every walk is a whitelist over parent-operation shapes: an unrecognized shape
-/// returns silently, so indirection (a builder held in a variable, a helper
-/// method) yields a false negative, never a false positive (ADR 0003).
+/// returns silently, so indirection yields a false negative, never a false
+/// positive (ADR 0003). The DML-shape rules read a type and have no blind spot.
 /// </remarks>
 internal static class ContextRules
 {
+    // The statement positions the DML-shape rules report on. Each is settled by
+    // the builder interface the call bound to, so there is no walk to escape
+    // through — see ClassifyDmlShape (#523).
+    internal enum DmlShape
+    {
+        None,
+        JoinedDeleteLead,
+        DeleteUsing,
+        JoinedUpdateJoin,
+        JoinedUpdateFrom,
+    }
+
     /// <summary>
     /// MySQL rejects <c>LIMIT</c> directly inside an <c>IN</c>/<c>ANY</c>/<c>ALL</c>/<c>SOME</c>
     /// subquery (ER_NOT_SUPPORTED_YET), though scalar, <c>EXISTS</c>, CTE, and
@@ -192,6 +204,100 @@ internal static class ContextRules
                     return;
             }
         }
+    }
+
+    /// <summary>
+    /// Grouping collapses the rows the lock would name, so Oracle (ORA-01786) and
+    /// PostgreSQL (SQLSTATE 0A000) reject the pairing; MySQL locks the base rows.
+    /// Live twins on the Oracle XE 21.3.0, PostgreSQL 16 and MySQL 8.0 lanes.
+    /// </summary>
+    public static void CheckForUpdateAfterGroupBy(
+        OperationAnalysisContext context, IInvocationOperation forUpdate, string dialectNames)
+    {
+        // Enough on its own: no stage GroupBy(...) returns declares ForUpdate, so a
+        // grouped query reaches it only by chaining on past the GroupBy.
+        bool grouped = false;
+        for (IInvocationOperation? cursor = ChainChild(forUpdate);
+            cursor is not null;
+            cursor = ChainChild(cursor))
+        {
+            grouped |= cursor.TargetMethod.Name == "GroupBy";
+        }
+
+        if (!grouped)
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            forUpdate.Syntax.GetLocation(),
+            "ForUpdate",
+            "after a GROUP BY clause",
+            dialectNames));
+    }
+
+    /// <summary>
+    /// The statement position of a DML step, read off the one builder interface
+    /// that declares it — the whole establishment, ADR 0013's presence proof at
+    /// the type level rather than through a chain walk.
+    /// </summary>
+    /// <remarks>
+    /// Pinned by <c>ContextRuleContractTests</c>: a step that gains a second
+    /// declaration, or moves, breaks the build instead of the rules' soundness.
+    /// </remarks>
+    public static DmlShape ClassifyDmlShape(IInvocationOperation invocation) =>
+        (invocation.TargetMethod.Name, invocation.TargetMethod.ContainingType?.Name) switch
+        {
+            ("From", "IDeleteBuilderDelete") => DmlShape.JoinedDeleteLead,
+            ("Using", "IDeleteBuilderDelete") => DmlShape.DeleteUsing,
+            ("From", "IUpdateBuilderSet") => DmlShape.JoinedUpdateFrom,
+            ("InnerJoin" or "LeftJoin" or "RightJoin",
+                "IUpdateBuilderUpdate" or "IUpdateBuilderJoined") => DmlShape.JoinedUpdateJoin,
+            _ => DmlShape.None,
+        };
+
+    /// <summary>Reports the DML shape <paramref name="invocation"/> sits in.</summary>
+    public static void ReportDmlShape(
+        OperationAnalysisContext context,
+        IInvocationOperation invocation,
+        DmlShape shape,
+        string dialectNames)
+    {
+        // The member alone does not give the spelling away — a joined UPDATE has
+        // two mutually exclusive grammars — so each position names it.
+        string position = shape switch
+        {
+            DmlShape.JoinedDeleteLead => "in a joined DELETE",
+            DmlShape.DeleteUsing => "in a DELETE statement",
+            DmlShape.JoinedUpdateJoin => "joined directly onto an UPDATE target",
+            _ => "in an UPDATE statement",
+        };
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            invocation.Syntax.GetLocation(),
+            invocation.TargetMethod.Name,
+            position,
+            dialectNames));
+    }
+
+    /// <summary>
+    /// The configured targets that <paramref name="rejecting"/> covers, joined for
+    /// the message — <c>null</c> when the configuration names none of them.
+    /// </summary>
+    public static string? RejectingTargets(DialectTargetSet targets, TargetDbms[] rejecting)
+    {
+        List<string>? names = null;
+        foreach (TargetDbms dbms in rejecting)
+        {
+            if (targets.Contains(dbms))
+            {
+                (names ??= []).Add(TargetDbmsNames.Display(dbms));
+            }
+        }
+
+        return names is null ? null : TargetDbmsNames.JoinDisplayNames(names);
     }
 
     // Any other argument host stops the climb rather than risk crossing into

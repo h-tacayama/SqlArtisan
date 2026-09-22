@@ -470,4 +470,32 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
         connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 2.5");
     }
+
+    // #523: SQLA0102's live proofs. SQLite owns the FROM-form UPDATE
+    // (JoinedUpdateFrom_Executes above) but neither joined spelling.
+    [Fact]
+    public void ContextRule_JoinedDeleteLead_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            DeleteFrom(u).From(u, o).Where((u.Id == o.UserId) & (u.Id == 3)), transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void ContextRule_JoinedUpdateJoinForm_Rejected()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 999), transaction));
+        transaction.Rollback();
+    }
 }

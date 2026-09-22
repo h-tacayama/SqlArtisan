@@ -267,12 +267,14 @@ public class CorrelatedDmlAnalyzerTests
             var q = DeleteFrom(t).Using(r).Where(t.Id.In(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
             """);
 
+    // On MySQL, whose spelling the join-before-SET form is: elsewhere it also
+    // draws SQLA0102, which would mask what this case is asking about.
     [Fact]
     public Task Update_JoinedInnerJoinUnaliasedTarget_StaysSilent() =>
         RunSilent("""
             var q = Update(t).InnerJoin(r).On(t.Id == r.Id).Set(t.Id == 1).Where(
                 t.Id.In(Select(r.Id).From(r).Where(r.Dep == t.Dep)));
-            """);
+            """, "mysql");
 
     [Fact]
     public Task Update_NonReadonlyFieldTarget_StaysSilent() =>
