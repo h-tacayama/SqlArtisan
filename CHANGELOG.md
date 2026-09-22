@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- `DateTimePart.Weekday` and `DateTimePart.Dayofyear` no longer claim MySQL.
+  MySQL spells both as standalone functions (`WEEKDAY()`, `DAYOFYEAR()`) that
+  take no datepart, and rejects either name as an `EXTRACT` unit — which is
+  what `SQLA0104` has always reported. The summaries said otherwise; a new
+  parity gate sweeps every `DateTimePart` attribution against the analyzer's
+  own lists so the two cannot drift again.
 
 ## [0.10.0-beta.1] - 2026-09-22
 ### Fixed
