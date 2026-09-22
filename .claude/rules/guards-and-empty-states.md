@@ -148,6 +148,17 @@ dialect-independent rule keeps every joined reference qualified. The guard is lo
 dialect that has the joined form, so the PostgreSQL-accepts-unaliased shape
 is not an over-guard finding at any tier.
 
+**A `RegexpOptions` match parameter is never domain-checked (decided — do not
+re-file):** no letter the enum emits is universally invalid, and a
+contradictory pair is accepted on Oracle XE 21.3.0, PostgreSQL 16.13 and
+MySQL 8.0 alike, each applying the last letter — so `CaseSensitive |
+CaseInsensitive` is a meaningful value, not a mistake to reject. The letters
+emit in enum order, so that pair is always `'ci'` and always resolves
+case-insensitively, which is what the two members now document. MySQL's
+`match_type` has no `'x'`, which is a per-value dialect gap for an
+`SQLA0104`-class table to carry, never an ADR 0012 guard: its alphabet is
+open, so condition 3 fails as well (#523).
+
 **A negative row count and a negative `Lag`/`Lead` offset stay permissive
 (decided — do not re-file):** `Top(-1)`, `FetchFirst(-1)` and `Limit(-1)`
 carry the count as a `BindValue`, so it reaches the engine as a bind

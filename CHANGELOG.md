@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   instead of emitting an `ORDER BY` T-SQL rejects at execution. Oracle is
   unaffected: it reads either literal as a constant expression and accepts it
   (both facts live-verified on the SQL Server 2022 and Oracle XE 21.3.0 lanes).
+- `RegexpOptions.CaseSensitive` and `.CaseInsensitive` no longer claim to be
+  mutually exclusive. Nothing enforced it and no engine rejects the pair:
+  Oracle, PostgreSQL and MySQL each apply the last letter, and SqlArtisan
+  emits the letters in enum order, so the pair is always `'ci'` and always
+  matches case-insensitively. The summaries now say so.
 
 ### Documentation
 - `docs/query-statements.md` now states how many MERGE `WHEN` branches each
