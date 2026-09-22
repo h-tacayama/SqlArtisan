@@ -496,6 +496,29 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.ExecuteScalar("SELECT id FROM users ORDER BY id LIMIT 10 OFFSET -1"));
     }
 
+    // #521 item 2: whether GROUP BY takes an ordinal, and what it does with an
+    // out-of-range or fractional one. Probed before the API is widened.
+    [Fact]
+    public void GroupByOrdinal_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT DISTINCT department_id FROM users) d"),
+            connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM (SELECT department_id FROM users GROUP BY 1) g"));
+    }
+
+    [Fact]
+    public void GroupByZeroOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT department_id FROM users GROUP BY 0"));
+    }
+
     // ADR 0011: the acceptance that keeps the non-integer sort-key guard off
     // MySQL — it reads the literal as a constant and orders by nothing.
     [Fact]

@@ -493,6 +493,18 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY"));
     }
 
+    // #521 item 2: SQL Server is said to reject grouping by ordinal.
+    [Fact]
+    public void GroupByOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT department_id FROM users GROUP BY department_id");
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT department_id FROM users GROUP BY 1"));
+    }
+
     // The SQL Server half of #532's per-dialect offset verdict (OFFSET ... ROWS
     // is its spelling); docs name every engine the behaviour holds on.
     [Fact]
