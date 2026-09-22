@@ -27,8 +27,8 @@ public class ArgumentValueValidityParityTests
         [typeof(IPagination), typeof(ILimitOffsetBuilder), typeof(IOffsetFetchBuilder)];
 
     // Not routed by decision (#532): engines do diverge on a negative offset,
-    // but it is the argument callers pass as a variable, so the only spelling
-    // this rule could see is one the repo's own paging recipe does not write.
+    // but one goes negative by arithmetic, so the call-site constant this rule
+    // reads is not where the value turns bad.
     private static readonly string[] UnroutedRowCountConstructs = ["Offset", "OffsetRows"];
 
     [Fact]

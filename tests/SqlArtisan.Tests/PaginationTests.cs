@@ -371,4 +371,20 @@ public class PaginationTests
             "SELECT code FROM test_table ORDER BY code FETCH FIRST :0 ROWS ONLY", sql.Text);
         Assert.Equal(-1, sql.Parameters.Get<int>(":0"));
     }
+
+    [Theory]
+    [InlineData(false, "SELECT code FROM test_table ORDER BY code OFFSET :0")]
+    [InlineData(true, "SELECT code FROM test_table ORDER BY code OFFSET :0 ROWS")]
+    public void Offset_NegativeStart_BindsTheStartRatherThanPrintingIt(
+        bool rowsForm, string expected)
+    {
+        // SQLA0104 leaves the OFFSET family out on the strength of this: a bound
+        // start is one Build(Dbms) cannot see, so no guard can reach it (#532).
+        SqlStatement sql = rowsForm
+            ? Select(_t.Code).From(_t).OrderBy(_t.Code).OffsetRows(-1).Build()
+            : Select(_t.Code).From(_t).OrderBy(_t.Code).Offset(-1).Build();
+
+        Assert.Equal(expected, sql.Text);
+        Assert.Equal(-1, sql.Parameters.Get<int>(":0"));
+    }
 }

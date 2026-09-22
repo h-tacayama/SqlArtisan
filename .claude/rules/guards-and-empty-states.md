@@ -177,10 +177,9 @@ rejection on MySQL, PostgreSQL and SQL Server, an acceptance on Oracle and
 on SQLite, whose `LIMIT -1` means "no limit" (#523). The **negative `OFFSET`**
 is the same call and a further step: `SQLA0104` reports the row counts but
 deliberately not the offsets (#532), because `Build(Dbms)` cannot see a bound
-value and the analyzer sees only a call-site constant — which the repo's own
-paging recipe (`docs/cookbook.md`) does not write, since there the row count is
-the literal and the offset is the parameter. PostgreSQL 16.13's rejection and
-SQLite 3.50.4's read-as-zero are pinned as twins so the fact need not be
+value and the analyzer sees only a call-site constant — which a *negative*
+offset never is, since one goes negative by arithmetic rather than by being
+typed. All five engines are pinned as twins so the facts need not be
 re-derived; the decision is recorded in ADR 0022's scope section.
 
 **MERGE `WHEN` branch arity stays permissive (decided — do not re-file):** each

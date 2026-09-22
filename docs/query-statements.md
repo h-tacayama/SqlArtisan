@@ -635,12 +635,13 @@ SqlStatement sql =
 The row counts are parameterized like other literals, so the bind-parameter prefix follows the target dialect (`:` / `@` / `?`).
 
 > [!WARNING]
-> **A negative computed offset means a different thing on each target.** Oracle
-> executes it and PostgreSQL rejects the statement, while SQLite reads it as 0
-> — so `Offset((page - 1) * size)` with `page` at 0 is a hard error on one
-> target and a silently wrong page on another. Nothing diagnoses it: the offset
-> travels as a bind parameter, so `Build(Dbms)` never sees it, and the analyzer
-> reads only call-site constants. Clamp the page number before computing it.
+> **A negative computed offset means a different thing on each target.** MySQL,
+> PostgreSQL and SQL Server reject the statement; Oracle executes it and SQLite
+> reads it as 0 — so `Offset((page - 1) * size)` with `page` at 0 is a hard
+> error on three targets and a silently wrong page on the other two. Nothing
+> diagnoses it: the offset travels as a bind parameter, so `Build(Dbms)` never
+> sees it, and the analyzer reads only call-site constants. Clamp the page
+> number before computing it.
 
 #### TOP (SQL Server)
 

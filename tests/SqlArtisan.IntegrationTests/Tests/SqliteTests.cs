@@ -468,11 +468,12 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
+        // Compared against the whole table rather than a LIMITed window: a
+        // window wider than the seed would match whatever -1 meant.
         Assert.Equal(
+            connection.ExecuteScalar<long>("SELECT COUNT(*) FROM users"),
             connection.ExecuteScalar<long>(
-                "SELECT COUNT(*) FROM (SELECT id FROM users LIMIT 10 OFFSET 0)"),
-            connection.ExecuteScalar<long>(
-                "SELECT COUNT(*) FROM (SELECT id FROM users LIMIT 10 OFFSET -1)"));
+                "SELECT COUNT(*) FROM (SELECT id FROM users LIMIT -1 OFFSET -1)"));
     }
 
     // ADR 0011: the acceptance that keeps the non-integer sort-key guard off

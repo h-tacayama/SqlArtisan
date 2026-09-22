@@ -118,13 +118,16 @@ this cheap again.
 ### Scope this rule does not claim
 
 The `OFFSET` family (`Offset`, `OffsetRows`) is out, and #532 settled that it
-stays out. The engines do diverge — PostgreSQL 16.13 rejects a negative offset
-in both spellings, SQLite 3.50.4 reads it as 0, Oracle XE 21.3.0 takes it, all
-pinned as twins — so the exclusion is not for want of evidence. It is that the
-offset is the argument callers do not write as a literal: the paging recipe
-this repo teaches is `Page(int offset) => … .Limit(20).Offset(offset)`, where
-the row count is the constant and the offset is the parameter. Cells here would
-be correct and inert, while the defect that actually occurs — a computed offset
+stays out. The engines do diverge — MySQL 8.0, PostgreSQL 16.13 and SQL Server
+2022 reject a negative offset, Oracle XE 21.3.0 takes it and SQLite 3.50.4
+reads it as 0, every cell pinned as a twin — so the exclusion is not for want
+of evidence. It is that the
+offset is the argument nobody writes a *negative* literal into. A literal
+offset is written — `docs/cookbook.md` has `.Limit(20).Offset(40)` for a fixed
+page — but a negative one is not: an offset that goes negative does so by
+arithmetic, and the paging recipe that varies it passes a variable
+(`Page(int offset) => … .Limit(20).Offset(offset)`). Cells here would be
+correct and inert, while the defect that actually occurs — a computed offset
 that goes negative — stays invisible to a rule that reads only constants. That
 one is a documentation problem, and `docs/query-statements.md` carries the
 note.

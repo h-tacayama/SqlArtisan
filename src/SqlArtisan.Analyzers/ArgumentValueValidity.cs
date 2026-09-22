@@ -62,8 +62,8 @@ internal static class ArgumentValueValidity
     // --- Row counts: where a negative constant is rejected (#529) ---
 
     // The parameter SQLA0104 reads the row count out of. Offset/OffsetRows are
-    // absent by decision, not for want of evidence (#532): an offset is the
-    // argument the paging recipe passes as a variable, which this rule cannot see.
+    // absent by decision, not for want of evidence (#532): an offset goes
+    // negative by arithmetic, and this rule reads only a call-site constant.
     internal static readonly Dictionary<string, string> RowCountParameterName = new(
         StringComparer.Ordinal)
     {

@@ -493,6 +493,19 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY"));
     }
 
+    // The SQL Server half of #532's per-dialect offset verdict (OFFSET ... ROWS
+    // is its spelling); docs name every engine the behaviour holds on.
+    [Fact]
+    public void NegativeOffset_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT id FROM users ORDER BY id OFFSET 0 ROWS");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT id FROM users ORDER BY id OFFSET -1 ROWS"));
+    }
+
     [Fact]
     public void LagNegativeOffset_IsRejectedByTheEngine()
     {

@@ -839,10 +839,11 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).Limit(-1);
 | `Limit` | MySQL, PostgreSQL |
 
 `Offset` and `OffsetRows` are deliberately not checked, and **not because a
-negative offset is safe** — Oracle takes one, PostgreSQL rejects it and SQLite
-reads it as 0. It is that an offset is the argument you pass as a
-variable, so the constant this rule can read is not the one you write. Clamp
-the page number before computing the offset; see
+negative offset is safe** — MySQL, PostgreSQL and SQL Server all reject one,
+Oracle takes it and SQLite reads it as 0. It is that an offset goes negative by
+arithmetic, so the value this rule can read — a constant typed at the call
+site — is not where it turns bad. Clamp the page number before computing the
+offset; see
 [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination).
 
 Every match-option and row-count verdict above — the rejections and the two
