@@ -140,11 +140,11 @@ because condition 1 fails outright:
   construct-level matrix, which keys on `RegexpLike` rather than on the option
   — an `SQLA0104`-class table (the `DatepartValidity` shape), not a guard.
 
-Nothing in this family is left open: the three shapes above and the
-`RegexpOptions` alphabets were the standing questions, and each excluded
-itself on a single accepting engine, where admitting one would have taken a
-rejection on every engine — the asymmetry is condition 1's, not the
-evidence's.
+Nothing in this family is left open: the negative row count and the negative
+`Lag`/`Lead` offset above, and the `RegexpOptions` alphabets, were the
+standing questions, and each was excluded by an engine that accepts the
+value, where admitting one would have taken a rejection on every engine —
+the asymmetry is condition 1's, not the evidence's.
 
 ## Consequences
 
