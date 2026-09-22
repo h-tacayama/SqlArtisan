@@ -117,6 +117,27 @@ public class ContextRuleContractTests
         "ISelectBuilderJoin",
         "IUpdateBuilderFromJoinOn",
         "IUpdateBuilderJoinOn")]
+    [InlineData(
+        "InnerJoin",
+        "IDeleteBuilderFrom",
+        "IJoinOperator",
+        "IUpdateBuilderFrom",
+        "IUpdateBuilderJoined",
+        "IUpdateBuilderUpdate")]
+    [InlineData(
+        "LeftJoin",
+        "IDeleteBuilderFrom",
+        "IJoinOperator",
+        "IUpdateBuilderFrom",
+        "IUpdateBuilderJoined",
+        "IUpdateBuilderUpdate")]
+    [InlineData(
+        "RightJoin",
+        "IDeleteBuilderFrom",
+        "IJoinOperator",
+        "IUpdateBuilderFrom",
+        "IUpdateBuilderJoined",
+        "IUpdateBuilderUpdate")]
     public void DmlShapeTrigger_IsDeclaredOnExactlyTheseInterfaces(
         string methodName, params string[] expected)
     {

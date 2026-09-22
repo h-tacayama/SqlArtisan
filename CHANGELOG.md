@@ -14,9 +14,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   SQLite; `UPDATE ... SET ... FROM` on MySQL and Oracle; and `FOR UPDATE` over
   a grouped query on Oracle and PostgreSQL. Every verdict — rejection and
   acceptance alike — is live-verified on the pinned lanes (MySQL 8.0, Oracle XE
-  21.3.0, PostgreSQL 16, SQLite 3.50, SQL Server 2022), and each rule is settled
-  by the builder stage the call binds to, so unlike the existing context rules,
-  holding the builder in a variable does not hide the warning.
+  21.3.0, PostgreSQL 16, SQLite 3.50, SQL Server 2022). The four joined-DML
+  rules are settled by the builder stage the call binds to, so unlike the other
+  context rules they still warn when the builder is held in a variable; the
+  `FOR UPDATE` rule reads the chain and stays silent there, as the rest do.
 
 ### Fixed
 - `DateTimePart.Weekday` and `DateTimePart.Dayofyear` no longer claim MySQL.

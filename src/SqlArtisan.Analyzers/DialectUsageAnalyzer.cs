@@ -373,8 +373,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     }
 
     // Enum declaration order, so a message listing several reads in the order
-    // docs-style.md fixes. Every dialect absent from a list parses that spelling,
-    // or has no valid form at all and is rejected at Build(Dbms) instead.
+    // docs-style.md fixes. A dialect is absent when it parses the spelling, when
+    // the matrix already calls the member unsupported, or when Build(Dbms) throws.
     private static readonly TargetDbms[] s_groupedLockUnsupported =
         [TargetDbms.Oracle, TargetDbms.PostgreSql];
 

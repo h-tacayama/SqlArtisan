@@ -56,9 +56,10 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
     so a chain whose call after `GroupBy` is anything else can never acquire
     the suffix. A chain still ending at `GroupBy(...)`, or any unrecognized
     parent shape (variable indirection, helper methods), stays silent.
-  - *Declaring interface* (the DML-shape rules, #523): where a fluent step is
-    declared on exactly one builder stage, the interface the call bound to
-    **is** the statement position, and no walk is needed — `From` on
+  - *Declaring interface* (the four joined-DML rules, #523; the fifth, `FOR
+    UPDATE` over a grouped query, is an ordinary presence walk): where a fluent
+    step is declared on exactly one builder stage, the interface the call bound
+    to **is** the statement position, and no walk is needed — `From` on
     `IDeleteBuilderDelete` is a joined `DELETE` wherever it is written. This
     mode has no indirection blind spot: a receiver parked in a variable keeps
     its static type.
