@@ -425,4 +425,105 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             connection.ExecuteScalar<int>(
                 "SET DATEFIRST 7; SELECT DATEPART(weekday, '2026-09-21')"));
     }
+
+    // ADR 0011 (#523): the SQL Server arms of the two constant-sort-key guards.
+    // T-SQL rejects both forms the engine cannot read as a column position.
+    [Fact]
+    public void OrderByNonIntegerConstant_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The integer ordinal is valid (so the table and columns are right).
+        connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 2");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 2.5"));
+    }
+
+    [Fact]
+    public void OrderByNegativeOrdinal_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT id, name FROM users ORDER BY -1"));
+    }
+
+    // #523/#525: MERGE branch arity is a documented non-goal, not a guard —
+    // T-SQL bounds the branches per clause-and-action pair.
+    [Fact]
+    public void MergeRepeatedBranchAction_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN MATCHED AND t.age > 0 THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED THEN DELETE;",
+            transaction: transaction);
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN MATCHED AND t.age > 0 THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED AND t.age > 1 THEN UPDATE SET name = t.name;",
+            transaction: transaction));
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 999 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN NOT MATCHED AND s.id > 0 THEN INSERT (id, name) VALUES (s.id, s.name) "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name);",
+            transaction: transaction));
+
+        transaction.Rollback();
+    }
+
+    // ADR 0012 non-goals (#523): both values travel to the engine — the row
+    // count as a bind parameter, the LAG offset as text — so neither is guarded.
+    [Fact]
+    public void NegativeRowCount_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT TOP (0) id FROM users");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT TOP (-1) id FROM users"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY"));
+    }
+
+    [Fact]
+    public void LagNegativeOffset_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+    }
+
+    // The second half of the same rule, and the one the guard withdrawn in #525
+    // never modelled: a branch may not follow an unconditional one of its kind.
+    [Fact]
+    public void MergeRepeatedWhenBranch_NeedsAConditionOnTheEarlierBranch()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN MATCHED THEN UPDATE SET name = t.name "
+                + "WHEN MATCHED THEN DELETE;",
+            transaction: transaction));
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN NOT MATCHED BY SOURCE THEN UPDATE SET name = t.name "
+                + "WHEN NOT MATCHED BY SOURCE THEN DELETE;",
+            transaction: transaction));
+
+        transaction.Rollback();
+    }
 }

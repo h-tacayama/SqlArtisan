@@ -12,6 +12,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   what `SQLA0104` has always reported. The summaries said otherwise; a new
   parity gate sweeps every `DateTimePart` attribution against the analyzer's
   own lists so the two cannot drift again.
+- `OrderBy(2.5)` and `OrderBy(-1)` now throw at `Build(Dbms.SqlServer)` too,
+  instead of emitting an `ORDER BY` T-SQL rejects at execution. Oracle is
+  unaffected: it reads either literal as a constant expression and accepts it
+  (both facts live-verified on the SQL Server 2022 and Oracle XE 21.3.0 lanes).
+- `RegexpOptions.CaseSensitive` and `.CaseInsensitive` no longer claim to be
+  mutually exclusive. Nothing enforced it and no engine rejects the pair:
+  MySQL, Oracle and PostgreSQL each apply the last letter, and SqlArtisan
+  emits the letters in enum order, so the pair is always `'ci'` and always
+  matches case-insensitively. The summaries now say so.
+
+### Documentation
+- `docs/query-statements.md` now states how many MERGE `WHEN` branches each
+  engine takes, including the rule PostgreSQL and SQL Server share:
+  a branch following an unconditional branch of the same kind is rejected,
+  because nothing could reach it. Branch arity stays dialect availability —
+  SqlArtisan does not check it, and the engine names the offending branch.
 
 ## [0.10.0-beta.1] - 2026-09-22
 ### Fixed

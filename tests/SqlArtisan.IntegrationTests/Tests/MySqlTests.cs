@@ -456,4 +456,80 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.ThrowsAny<Exception>(() =>
             connection.ExecuteScalar("SELECT EXTRACT(DAYOFYEAR FROM created_at) FROM users"));
     }
+
+    // ADR 0012 non-goal (#523): MySQL's window grammar takes an unsigned
+    // integer, so the negative offset never reaches execution.
+    [Fact]
+    public void LagNegativeOffset_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT LAG(id, 1) OVER (ORDER BY id) FROM users");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT LAG(id, -1) OVER (ORDER BY id) FROM users"));
+    }
+
+    // ADR 0012 non-goal (#523): the parse error the negative-row-count entry
+    // names. MySQL's LIMIT grammar takes an unsigned integer only.
+    [Fact]
+    public void NegativeLimitCount_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT id FROM users ORDER BY id LIMIT 1");
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar("SELECT id FROM users ORDER BY id LIMIT -1"));
+    }
+
+    // ADR 0011: the acceptance that keeps the non-integer sort-key guard off
+    // MySQL — it reads the literal as a constant and orders by nothing.
+    [Fact]
+    public void OrderByNonIntegerConstant_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 2.5");
+    }
+
+    // ADR 0012 non-goal (#523 item 1): MySQL's match_type has no 'x', which is
+    // why RegexpOptions.ExcludingWhiteSpace has no spelling here.
+    [Theory]
+    [InlineData("")]
+    [InlineData("c")]
+    [InlineData("i")]
+    [InlineData("m")]
+    [InlineData("n")]
+    [InlineData("u")]
+    public void RegexpMatchParameter_IsAcceptedByTheEngine(string flags)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(MatchParameterProbe(flags));
+    }
+
+    [Theory]
+    [InlineData("x")]
+    [InlineData("z")]
+    public void RegexpMatchParameter_UnknownLetter_IsRejectedByTheEngine(string flags)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(MatchParameterProbe(flags)));
+    }
+
+    [Theory]
+    [InlineData("ci", 1)]
+    [InlineData("ic", 0)]
+    public void RegexpContradictoryMatchParameter_ResolvesToTheLastLetter(
+        string flags, int expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<int>(MatchParameterProbe(flags)));
+    }
+
+    private static string MatchParameterProbe(string flags) =>
+        $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 }

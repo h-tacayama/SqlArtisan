@@ -144,29 +144,40 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
   analyzer cannot see. A joined `DELETE` stays permissive: its repeated-`FROM`
   form is also MySQL's. Live twins: `JoinedUpdateRelistedTarget_IsRejectedByTheEngine`
   on the SQLite lane.
-- **A non-integer constant `ORDER BY` sort key on PostgreSQL** (release
-  audit, pass 4). `OrderBy(2.5)` renders `ORDER BY 2.5`, a no-op ordering
-  MySQL and SQLite accept while PostgreSQL rejects it outright (live-verified
-  on 16); the value is a literal the construct-level matrix cannot see, so
-  `SelectBuilder.Validate` throws for `Dbms.PostgreSql` alone. Live twins:
-  `OrderByNonIntegerConstant_IsRejectedByTheEngine` on the PostgreSQL lane.
-- **A negative constant `ORDER BY` ordinal on PostgreSQL and SQLite.**
-  `OrderBy(-1)` renders `ORDER BY -1`, which PostgreSQL and SQLite read as a
-  column position and reject (`ORDER BY position -1 is not in select list` on
-  16.13; `1st ORDER BY term out of range` on 3.50.4, both live-verified),
-  while MySQL reads it as a constant expression and orders by nothing (measured
-  on 8.0.46 on its lane). Oracle and SQL Server are not claimed. The literal is
-  invisible to the construct-level matrix, so `SelectBuilder.Validate` throws
-  for `Dbms.PostgreSql` and `Dbms.Sqlite`. The zero ordinal is a separate,
+- **A non-integer constant `ORDER BY` sort key on PostgreSQL and SQL Server**
+  (release audit, pass 4; SQL Server added by #523). `OrderBy(2.5)` renders
+  `ORDER BY 2.5`, a no-op ordering MySQL 8.0, SQLite 3.50.4 and Oracle XE
+  21.3.0 accept (each pinned by `OrderByNonIntegerConstant_IsAcceptedByTheEngine`
+  on its lane) while PostgreSQL 16 and SQL Server 2022 reject it outright
+  (`non-integer constant in ORDER BY`; `A constant expression was encountered
+  in the ORDER BY list, position 1.` — both live-verified); the value is a
+  literal the construct-level matrix cannot see, so `SelectBuilder.Validate`
+  throws for those two dialects. Oracle's acceptance is why the pass-4 entry's
+  SQL Server question stayed open until its lane ran. Live twins:
+  `OrderByNonIntegerConstant_IsRejectedByTheEngine` on the PostgreSQL and SQL
+  Server lanes, and `OrderByNonIntegerConstant_IsAcceptedByTheEngine` on the
+  Oracle, MySQL and SQLite lanes.
+- **A negative constant `ORDER BY` ordinal on PostgreSQL, SQLite, and SQL
+  Server** (SQL Server added by #523). `OrderBy(-1)` renders `ORDER BY -1`,
+  which those three read as a column position and reject (`ORDER BY position -1
+  is not in select list` on 16.13; `1st ORDER BY term out of range` on 3.50.4;
+  `The ORDER BY position number -1 is out of range of the number of items in
+  the select list.` on 2022 — all live-verified), while MySQL reads it as a
+  constant expression and orders by nothing (measured on 8.0.46 on its lane)
+  and Oracle XE 21.3.0 does the same. Oracle is therefore not claimed, though
+  it still rejects the zero ordinal (ORA-01785), as the dialect-blind guard
+  has it. The literal is invisible to the construct-level matrix, so
+  `SelectBuilder.Validate` throws for `Dbms.PostgreSql`, `Dbms.Sqlite`, and
+  `Dbms.SqlServer`. The zero ordinal is a separate,
   dialect-blind guard: no engine resolves position 0, so it is ADR 0007's
   incomplete construct and owes no entry here. Both arms are statement-scoped
   through `FindPart<OrderByClause>()`, in each query block the build renders,
   leaving `OVER (...)`, `WITHIN GROUP` and `GROUP_CONCAT` orderings — where the
   same literal is an expression — untouched.
-  Live twins: `OrderByNegativeOrdinal_IsRejectedByTheEngine` on the PostgreSQL
-  and SQLite lanes, `OrderByNegativeOrdinalInSubquery_IsRejectedByTheEngine` and
-  `OrderByZeroOrdinalInCteBody_IsRejectedByTheEngine` for the nested blocks, and
-  `OrderByNegativeOrdinal_IsAcceptedByTheEngine` on the MySQL lane.
+  Live twins: `OrderByNegativeOrdinal_IsRejectedByTheEngine` on the PostgreSQL,
+  SQLite and SQL Server lanes, `OrderByNegativeOrdinalInSubquery_IsRejectedByTheEngine`
+  and `OrderByZeroOrdinalInCteBody_IsRejectedByTheEngine` for the nested blocks,
+  and `OrderByNegativeOrdinal_IsAcceptedByTheEngine` on the MySQL and Oracle lanes.
 - **`DELETE ... USING` on SQL Server** (release audit, pass 5). T-SQL has no
   `USING` form for `DELETE` at all, so the shape has no valid spelling on the
   target; it is builder state (a `DeleteUsingClause` part) the analyzer's
@@ -214,4 +225,3 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
   on the PostgreSQL lane and
   `Upsert_OnConflictDoUpdateWithoutTarget_IsAcceptedByTheEngine` on the
   SQLite lane.
-

@@ -877,4 +877,46 @@ public class MergeTests
         Assert.Equal(
             "A SET assignment list must not assign the same column twice.", ex.Message);
     }
+
+    [Fact]
+    public void Merge_SqlServer_RepeatedWhenBranch_StaysPermissive()
+    {
+        // MERGE branch arity is dialect availability, not a guard: the engine
+        // rejects what it cannot take, loudly (rules file, "do not re-file").
+        SqlStatement sql =
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched(_s.Code > 1).ThenUpdateSet(_t.Name == _s.Name)
+                .WhenMatched().ThenDelete()
+                .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "MERGE INTO test_table \"t\" USING test_table \"s\" ON (\"t\".code = \"s\".code) "
+                + "WHEN MATCHED AND \"s\".code > @0 THEN UPDATE SET name = \"s\".name "
+                + "WHEN MATCHED THEN DELETE;",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+    }
+
+    [Fact]
+    public void Merge_PostgreSql_RepeatedWhenBranch_StaysPermissive()
+    {
+        // PostgreSQL 16.13 takes this pair because the first branch carries a
+        // condition; an unconditional first branch is rejected (live-verified).
+        SqlStatement sql =
+            MergeInto(_t)
+                .Using(_s)
+                .On(_t.Code == _s.Code)
+                .WhenMatched(_s.Code > 1).ThenUpdateSet(_t.Name == _s.Name)
+                .WhenMatched().ThenDelete()
+                .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "MERGE INTO test_table \"t\" USING test_table \"s\" ON (\"t\".code = \"s\".code) "
+                + "WHEN MATCHED AND \"s\".code > :0 THEN UPDATE SET name = \"s\".name "
+                + "WHEN MATCHED THEN DELETE",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
 }

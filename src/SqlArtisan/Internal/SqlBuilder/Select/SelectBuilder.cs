@@ -393,16 +393,16 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
                     + "add Limit(...) before Offset(...).");
         }
 
-        // A fractional constant sort key is a no-op ordering MySQL and SQLite
-        // accept, but PostgreSQL rejects it outright (live-verified on 16) — a
-        // value the analyzer cannot see, so the ADR 0011 shape (release audit,
-        // pass 4).
-        if (dbms == Dbms.PostgreSql
+        // A fractional constant sort key is a no-op ordering MySQL, SQLite and
+        // Oracle accept, but PostgreSQL and SQL Server reject it outright
+        // (live-verified) — a value the analyzer cannot see, so the ADR 0011
+        // shape (release audit, pass 4; SQL Server added for #523).
+        if ((dbms == Dbms.PostgreSql || dbms == Dbms.SqlServer)
             && FindPart<OrderByClause>() is { HasFractionalSortKey: true })
         {
             throw new ArgumentException(
-                "PostgreSQL does not accept a non-integer constant as an ORDER BY sort key; "
-                    + "order by a column or an expression instead.");
+                "PostgreSQL and SQL Server do not accept a non-integer constant as an ORDER BY "
+                    + "sort key; order by a column or an expression instead.");
         }
 
         // No engine resolves column position 0 (ADR 0007's incomplete
@@ -414,14 +414,14 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
                     + "order by a column, an expression, or a positive ordinal instead.");
         }
 
-        // PostgreSQL and SQLite read a negative literal as a position and
-        // reject it; MySQL reads it as a constant, so ADR 0011's bounded shape.
-        if ((dbms == Dbms.PostgreSql || dbms == Dbms.Sqlite)
+        // PostgreSQL, SQLite and SQL Server read a negative literal as a
+        // position and reject it; MySQL and Oracle take it as a constant (#523).
+        if ((dbms == Dbms.PostgreSql || dbms == Dbms.Sqlite || dbms == Dbms.SqlServer)
             && FindPart<OrderByClause>() is { HasNegativeOrdinal: true })
         {
             throw new ArgumentException(
-                "PostgreSQL and SQLite do not accept a negative ORDER BY column ordinal; "
-                    + "order by a column, an expression, or a positive ordinal instead.");
+                "PostgreSQL, SQLite, and SQL Server do not accept a negative ORDER BY column "
+                    + "ordinal; order by a column, an expression, or a positive ordinal instead.");
         }
 
         ITopSelectClause? top = FindPart<ITopSelectClause>();

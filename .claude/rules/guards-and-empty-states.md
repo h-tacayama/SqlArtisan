@@ -126,11 +126,12 @@ the full rationale.
   in `FROM` (T-SQL's joined spelling takes the alias from `FROM`); a joined
   `UPDATE` off SQL Server whose target IS re-listed in `FROM` — the mirror:
   that form's bare-alias lead is T-SQL's alone; a non-integer constant
-  `ORDER BY` sort key on PostgreSQL (`OrderBy(2.5)`) — MySQL and SQLite accept
-  the no-op ordering, PostgreSQL rejects it, and the value is invisible to
-  the analyzer; a negative constant `ORDER BY` ordinal on PostgreSQL and
-  SQLite (`OrderBy(-1)`) — both read it as a column position and reject it,
-  MySQL reads it as a constant and accepts it; `DeleteFrom(t).Using(...)` on SQL Server — T-SQL has no
+  `ORDER BY` sort key on PostgreSQL and SQL Server (`OrderBy(2.5)`) — MySQL,
+  SQLite and Oracle accept the no-op ordering, those two reject it, and the
+  value is invisible to the analyzer; a negative constant `ORDER BY` ordinal
+  on PostgreSQL, SQLite and SQL Server (`OrderBy(-1)`) — those three read it
+  as a column position and reject it, MySQL and Oracle read it as a constant
+  and accept it; `DeleteFrom(t).Using(...)` on SQL Server — T-SQL has no
   `DELETE ... USING` at all, and the message names the `From(...)` remedy
   the joined-target guard's own message could not reach from that chain
   (ADR 0011, "Later instances" section).
@@ -146,6 +147,50 @@ unaliased target renders bare columns beside joined tables, and one
 dialect-independent rule keeps every joined reference qualified. The guard is loud and the aliased spelling is valid on every
 dialect that has the joined form, so the PostgreSQL-accepts-unaliased shape
 is not an over-guard finding at any tier.
+
+**A `RegexpOptions` match parameter is never domain-checked (decided — do not
+re-file):** no letter the enum emits is universally invalid, and a
+contradictory pair is accepted on Oracle XE 21.3.0, PostgreSQL 16.13 and
+MySQL 8.0 alike, each applying the last letter — so `CaseSensitive |
+CaseInsensitive` is a meaningful value, not a mistake to reject. The letters
+emit in enum order, so that pair is always `'ci'` and always resolves
+case-insensitively, which is what the two members now document. MySQL's
+`match_type` has no `'x'`, which is a per-value dialect gap for an
+`SQLA0104`-class table to carry, never an ADR 0012 guard: its alphabet is
+open, so condition 3 fails as well (#523).
+
+**A negative row count and a negative `Lag`/`Lead` offset stay permissive
+(decided — do not re-file):** `Top(-1)`, `FetchFirst(-1)` and `Limit(-1)`
+carry the count as a `BindValue`, so it reaches the engine as a bind
+parameter and never as statement text — ADR 0012 condition 2 excludes it, and
+Oracle XE 21.3.0 accepts a negative `FETCH`/`OFFSET` outright, so condition 1
+fails too. `Lag(x, -1)` *is* printed into the text, but PostgreSQL 16.13 and
+SQLite 3.50.4 read it as the mirror function and accept it, so condition 1
+fails there as well — and on the engines that reject it (Oracle, SQL Server
+2022, MySQL 8.0) the mirror function is a valid spelling, which is why ADR
+0011's second condition fails too. Both are enumerated non-goals in ADR 0012
+and pinned by `Top_NegativeCount_BindsTheCountRatherThanPrintingIt`,
+`FetchFirst_NegativeCount_BindsTheCountRatherThanPrintingIt` and the
+`{Lag,Lead}_NegativeOffset_CorrectSql` pair. The `Lag`/`Lead` offset has a
+live twin on all five lanes; the row count has one on all five too — a
+rejection on MySQL, PostgreSQL and SQL Server, an acceptance on Oracle and
+on SQLite, whose `LIMIT -1` means "no limit" (#523).
+
+**MERGE `WHEN` branch arity stays permissive (decided — do not re-file):** each
+engine bounds the branches differently — Oracle takes one per WHEN clause
+whatever its action (ORA-00905 on XE 21.3.0), SQL Server one per
+clause-and-action pair *and* refuses any branch following an unconditional one
+of the same clause, and PostgreSQL 16.13 applies that second rule too
+(`unreachable WHEN clause specified after unconditional WHEN clause`). A
+`Build(Dbms)` guard for this was written, measured and withdrawn (#523,
+#525): the shape is *dialect availability*, so the table above already
+governs it, and unlike the guard mission's targets it fails **loudly** on the
+engine, naming the exact branch — no silent wrongness to convert. It also cost
+a measured +320 B/build on SQL Server and +176 B on Oracle for a plain
+two-branch upsert, the commonest MERGE those two engines have, against ADR
+0006. The per-engine limits are documented in `docs/query-statements.md` and
+pinned by the `MergeRepeated*` twins on the Oracle, SQL Server and PostgreSQL
+lanes, so the knowledge is kept without the throw.
 
 **Whitespace is rejected in a bare-token position, accepted in a quoted one
 (decided — do not re-file):** `DbSequence`'s constructor and `DbColumn`'s name

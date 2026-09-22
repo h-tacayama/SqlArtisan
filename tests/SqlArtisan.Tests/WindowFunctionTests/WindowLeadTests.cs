@@ -69,4 +69,15 @@ public class WindowLeadTests
         // Assert
         Assert.Equal(expected, sql.Text);
     }
+
+    [Fact]
+    public void Lead_NegativeOffset_CorrectSql()
+    {
+        // ADR 0012 non-goal (#523): PostgreSQL 16.13 and SQLite 3.50.4 read the
+        // negative offset as the mirror function, so the domain is not closed.
+        SqlStatement sql =
+            Select(Lead(_t.Code, -1).Over(OrderBy(_t.Code))).Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT LEAD(code, -1) OVER (ORDER BY code)", sql.Text);
+    }
 }
