@@ -46,4 +46,4 @@ jobs:
       # integration lanes filter by Engine trait and never select it — run it
       # here so a matrix entry without a sweep case fails the PR.
       - name: Test sweep-catalog completeness
-        run: dotnet test tests/SqlArtisan.IntegrationTests --no-build -c Release --filter "FullyQualifiedName~MatrixSweepCatalogTests|FullyQualifiedName~DialectGuardTwinTests" --verbosity normal
+        run: dotnet test tests/SqlArtisan.IntegrationTests --no-build -c Release --filter "FullyQualifiedName~MatrixSweepCatalogTests|FullyQualifiedName~DialectGuardTwinTests|FullyQualifiedName~DateTimePartNumberingTests" --verbosity normal
