@@ -1569,7 +1569,10 @@ SqlStatement sql =
 // WHEN NOT MATCHED THEN INSERT (id, name) VALUES ("s".id, "s".name);
 ```
 
-On PostgreSQL and SQL Server a `MERGE` can be fed by a CTE — `With(cte.As(...)).MergeInto(target)...`, described under [WITH Clause](#with-clause-common-table-expressions). On Oracle the CTE goes inside the subquery `Using(...)` names instead.
+On PostgreSQL and SQL Server a `MERGE` can be fed by a CTE —
+`With(cte.As(...)).MergeInto(target)...`, described under
+[WITH Clause](#with-clause-common-table-expressions). On Oracle the CTE goes
+inside the subquery `Using(...)` names instead.
 
 **How many branches each engine takes.** This is dialect availability, not
 something SqlArtisan checks: build what you mean and the engine rejects what it
@@ -1767,8 +1770,45 @@ SqlStatement sql =
 
 SqlArtisan also supports more advanced WITH clause scenarios:
 
-- **Recursive CTEs** — `WithRecursive()` emits `WITH RECURSIVE`, required by MySQL and PostgreSQL and accepted by SQLite (MySQL gained CTE support in a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)). Oracle — every version, 23ai included (live-verified) — and SQL Server reject the `RECURSIVE` keyword; there, recurse with plain `With(...)`. On Oracle a recursive body additionally requires the CTE column list — chain `.WithColumnList()` onto the CTE binding (`With(cte.As(...).WithColumnList())`) to emit it (`WITH "cte"(code) AS (...)`); SQL Server recurses with plain `With(...)` alone, and also accepts the list. The analyzer warns when `WithRecursive()` targets a dialect (or a declared version) that does not support it. `WithRecursive()` always includes the CTE column list, derived from the first query block — Oracle-style recursive `WITH` requires the list, and every engine accepts it; `.WithColumnList()` derives the same list under plain `With()`. Every select item of the CTE's first query block must therefore have a name: a plain column, or an expression aliased with `.As(...)` — an unnamed expression throws at the `WithRecursive()` or `.WithColumnList()` call. Plain `With()` emits a column list only for CTEs that opt in with `.WithColumnList()`.
-- **CTEs with DML main statements** — `With(...)` before an `UPDATE` or `DELETE` main statement is supported on MySQL, PostgreSQL, SQLite, and SQL Server, before an `INSERT` on PostgreSQL, SQLite, and SQL Server, and before a `MERGE` on PostgreSQL and SQL Server — MySQL and SQLite have no `MERGE` at all, so the CTE-fed form is out of reach there for want of the statement. Oracle's DML grammar has no leading `WITH`, and MySQL's `INSERT` grammar has none either (live-verified on 8.0), so there an `INSERT` carries its CTE inside the feeding `SELECT` (`InsertInto(...).With(...).Select(...)`); `Build(Dbms.Oracle)` and `Build(Dbms.MySql)` throw on the leading form. Oracle's `MERGE` grammar has no leading `WITH` either (live-verified on XE 21.3.0 and Free 23ai), and its remedy is a different one: `MERGE`'s own source slot takes a subquery, so the CTE goes inside the one `Using(...)` names, and `Build(Dbms.Oracle)` throws on the leading form. `WithRecursive(...)` opens each of these statements except `MERGE`, which no engine takes a recursive `WITH` before — PostgreSQL, the only engine with both the keyword and the statement, refuses the pairing whether or not the CTE body recurses (live-verified on 16) — so `WithRecursive(...).MergeInto(...)` does not compile. DML *inside* a CTE body (PostgreSQL data-modifying CTEs) is not supported.
+- **Recursive CTEs** — `WithRecursive()` emits `WITH RECURSIVE`, required by
+  MySQL and PostgreSQL and accepted by SQLite (MySQL gained CTE support in a
+  specific release — see the
+  [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)).
+  Oracle — every version, 23ai included (live-verified) — and SQL Server reject
+  the `RECURSIVE` keyword; there, recurse with plain `With(...)`. On Oracle a
+  recursive body additionally requires the CTE column list — chain
+  `.WithColumnList()` onto the CTE binding
+  (`With(cte.As(...).WithColumnList())`) to emit it
+  (`WITH "cte"(code) AS (...)`); SQL Server recurses with plain `With(...)`
+  alone, and also accepts the list. The analyzer warns when `WithRecursive()`
+  targets a dialect (or a declared version) that does not support it.
+  `WithRecursive()` always includes the CTE column list, derived from the first
+  query block — Oracle-style recursive `WITH` requires the list, and every
+  engine accepts it; `.WithColumnList()` derives the same list under plain
+  `With()`. Every select item of the CTE's first query block must therefore have
+  a name: a plain column, or an expression aliased with `.As(...)` — an unnamed
+  expression throws at the `WithRecursive()` or `.WithColumnList()` call. Plain
+  `With()` emits a column list only for CTEs that opt in with
+  `.WithColumnList()`.
+- **CTEs with DML main statements** — `With(...)` before an `UPDATE` or `DELETE`
+  main statement is supported on MySQL, PostgreSQL, SQLite, and SQL Server,
+  before an `INSERT` on PostgreSQL, SQLite, and SQL Server, and before a `MERGE`
+  on PostgreSQL and SQL Server — MySQL and SQLite have no `MERGE` at all, so the
+  CTE-fed form is out of reach there for want of the statement. Oracle's DML
+  grammar has no leading `WITH`, and MySQL's `INSERT` grammar has none either
+  (live-verified on 8.0), so there an `INSERT` carries its CTE inside the
+  feeding `SELECT` (`InsertInto(...).With(...).Select(...)`);
+  `Build(Dbms.Oracle)` and `Build(Dbms.MySql)` throw on the leading form.
+  Oracle's `MERGE` grammar has no leading `WITH` either (live-verified on XE
+  21.3.0 and Free 23ai), and its remedy is a different one: `MERGE`'s own source
+  slot takes a subquery, so the CTE goes inside the one `Using(...)` names, and
+  `Build(Dbms.Oracle)` throws on the leading form. `WithRecursive(...)` opens
+  each of these statements except `MERGE`, which no engine takes a recursive
+  `WITH` before — PostgreSQL, the only engine with both the keyword and the
+  statement, refuses the pairing whether or not the CTE body recurses
+  (live-verified on 16) — so `WithRecursive(...).MergeInto(...)` does not
+  compile. DML *inside* a CTE body (PostgreSQL data-modifying CTEs) is not
+  supported.
 
 ---
 

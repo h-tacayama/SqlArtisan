@@ -96,7 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#521)
 
 ### Changed
-- `WithRecursive(...)` now returns its own builder state, which opens a
+- **Breaking:** `WithRecursive(...)` now returns its own builder state, which opens a
   `SELECT`, `INSERT`, `UPDATE` or `DELETE` exactly as before but declares no
   `MergeInto`. No supported engine takes a recursive `WITH` before a `MERGE`:
   PostgreSQL 16 — the only one with both the keyword and the statement —
@@ -104,7 +104,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Server have no `RECURSIVE` keyword, and MySQL and SQLite have no `MERGE`. A
   chain valid nowhere is a compile error rather than a runtime one. Code that
   writes the state's type out (`IWithBuilderWith x = WithRecursive(...)`) now
-  needs `IWithBuilderWithRecursive`; a fluent chain is unaffected. (#521)
+  needs `IWithBuilderWithRecursive`; a fluent chain is unaffected.
+  Binary-breaking — rebuild against this version. (#521)
 
 ### Fixed
 - `DateTimePart.Weekday` and `DateTimePart.Dayofyear` no longer claim MySQL.
