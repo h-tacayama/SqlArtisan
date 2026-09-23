@@ -678,7 +678,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         int inserted = connection.ExecuteScalar<int>(
             InsertInto(u)
                 .Output(Inserted(u.Id))
-                .Values(904, "Heidi", 28, 10, null, 1, null),
+                .Values(904, "Heidi", 28, 10, new DateTime(2024, 1, 1), 1, "{}"),
             transaction);
 
         Assert.Equal(904, inserted);
@@ -697,7 +697,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             InsertInto(u)
                 .Output(Inserted(u.Id), Inserted(u.Name))
                 .Into(archive, archive.Id, archive.Name)
-                .Values(905, "Ivan", 33, 20, null, 1, null),
+                .Values(905, "Ivan", 33, 20, new DateTime(2024, 1, 1), 1, "{}"),
             transaction);
 
         Assert.Equal(

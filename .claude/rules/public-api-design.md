@@ -207,6 +207,19 @@ invisible, unexplained, and unsuppressible, and the adoption test is binary.
 Emit faithfully; put the guidance in `docs/`; let the matrix warn where a
 dialect genuinely rejects the construct.
 
+The test is on the **SQL**, not the chain. A typestate that withholds a step
+whose statement another chain already spells is an ergonomic difference, not an
+API hole, and does not earn a structural change to reach it.
+`InsertInto(t).Set(...)` takes no `.Output(...)` on that reading (#521, declined
+after measuring): `Set(...)` renders the same `(cols) VALUES (...)` the
+column-list chain renders — byte-identical output — so
+`INSERT ... OUTPUT ... VALUES` is already reachable as
+`InsertInto(t, cols).Output(...).Values(...)`, and threading `OUTPUT` between the
+two halves of one clause would have cost either a clause holding a clause or a
+general part-insertion hook on `SqlBuilderBase`. Build both chains and compare
+the emitted text before calling a missing step a gap; where the texts differ, it
+is a gap and this clause does not apply.
+
 ## Recorded trade-offs from the #149 freeze audit
 
 Resolved:

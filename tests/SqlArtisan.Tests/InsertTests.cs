@@ -542,6 +542,29 @@ public class InsertTests
         Assert.Equal("x", sql.Parameters.Get<string>("@1"));
     }
 
+    // The premise public-api-design.md declines .Output(...) on the Set chain on:
+    // the two chains render one statement, so the column-list one already spells it.
+    [Fact]
+    public void InsertInto_SetAndColumnListChains_EmitTheSameStatement()
+    {
+        TestTable viaSet = new();
+        TestTable viaColumns = new();
+
+        SqlStatement set =
+            InsertInto(viaSet)
+            .Set(viaSet.Code == 1, viaSet.Name == "x")
+            .Build(Dbms.SqlServer);
+        SqlStatement columns =
+            InsertInto(viaColumns, viaColumns.Code, viaColumns.Name)
+            .Values(1, "x")
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal("INSERT INTO test_table (code, name) VALUES (@0, @1)", set.Text);
+        Assert.Equal(set.Text, columns.Text);
+        Assert.Equal(1, set.Parameters.Get<int>("@0"));
+        Assert.Equal("x", set.Parameters.Get<string>("@1"));
+    }
+
     [Fact]
     public void InsertInto_SqlServer_ColumnlessOutput_CorrectSql()
     {
