@@ -27,7 +27,7 @@ public interface IInsertBuilder
     /// <c>Set(...)</c> or positional <c>Values(...)</c>.
     /// </summary>
     /// <param name="table">The table to insert into.</param>
-    /// <returns>The builder positioned to add <c>OUTPUT</c>, then the data via <c>Set(...)</c> or <c>Values(...)</c>.</returns>
+    /// <returns>The builder positioned to add <c>OUTPUT</c> — after which <c>Values(...)</c> supplies the data — or to supply it directly with <c>Set(...)</c> or <c>Values(...)</c>.</returns>
     IInsertBuilderTableOutput InsertInto(DbTableBase table);
 
     /// <summary>
