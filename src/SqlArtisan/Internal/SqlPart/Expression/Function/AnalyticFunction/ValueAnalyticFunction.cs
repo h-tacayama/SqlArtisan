@@ -1,14 +1,21 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// Base class for a value analytic function, which extends the ordered window
-/// with an optional explicit frame.
+/// Base class for a value analytic function, whose window may be left unordered
+/// or extended with an explicit frame.
 /// </summary>
 public abstract class ValueAnalyticFunction : AnalyticFunction
 {
     private protected ValueAnalyticFunction()
     {
     }
+
+    /// <summary>
+    /// Turns the analytic function into a window function partitioned but not
+    /// ordered: <c>OVER (PARTITION BY ...)</c>.
+    /// </summary>
+    public WindowFunction Over(PartitionByClause partitionByClause) =>
+        new(this, OverClause.Of(partitionByClause));
 
     /// <summary>
     /// Turns the analytic function into a window function with an explicit frame:

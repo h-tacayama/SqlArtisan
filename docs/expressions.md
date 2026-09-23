@@ -872,7 +872,7 @@ Both require an `OrderBy(...)` (optionally with `PartitionBy(...)`). The offset 
 
 ### Example using FIRST_VALUE / LAST_VALUE / NTH_VALUE
 
-`FirstValue(...)`, `LastValue(...)`, and `NthValue(...)` read a value from a specific row of the window. Unlike the ranking and offset functions, they can be scoped by an explicit frame (`Rows(...)` / `Range(...)`).
+`FirstValue(...)`, `LastValue(...)`, and `NthValue(...)` read a value from a specific row of the window. Unlike the ranking and offset functions, their window needs no `OrderBy(...)`, and they can be scoped by an explicit frame (`Rows(...)` / `Range(...)`).
 
 ```csharp
 UsersTable u = new();
@@ -892,6 +892,27 @@ SqlStatement sql =
 
 - `LastValue` is frame-sensitive: the default frame ends at the current row, so pair it with an explicit frame such as `RowsBetween(UnboundedPreceding, UnboundedFollowing)` to read the last row of the whole partition.
 - `NthValue`'s position is positive, emitted as an integer literal, and **not supported by SQL Server**.
+
+A bare `PartitionBy(...)` is also a window, giving a value from each partition with no ordering imposed:
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Id,
+        FirstValue(u.Salary)
+            .Over(PartitionBy(u.DepartmentId))
+            .As("any_salary"))
+    .From(u)
+    .Build();
+
+// SELECT id,
+// FIRST_VALUE(salary) OVER (PARTITION BY department_id) "any_salary"
+// FROM users
+```
+
+- Which row an unordered window reads is the engine's choice and can differ between runs, so add `.OrderBy(...)` whenever the value has to be a *particular* row's — "the top earner", "the most recent order". Leave it off only when any row of the partition will do.
+- SQL Server 2022 requires an ordered window for `FirstValue` and `LastValue`; chain `PartitionBy(...).OrderBy(...)` there. `NthValue` has no SQL Server spelling at all, ordered or not. The ranking and offset functions (`Rank`, `DenseRank`, `RowNumber`, `Ntile`, `CumeDist`, `PercentRank`, `Lag`, `Lead`) take no unordered window at all — `Over(...)` accepts only the ordered forms for them.
 
 ### Example using an Aggregate
 

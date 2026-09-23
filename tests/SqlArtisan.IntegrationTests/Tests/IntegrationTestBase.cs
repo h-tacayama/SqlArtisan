@@ -149,6 +149,40 @@ public abstract class IntegrationTestBase
         Assert.Equal(2, rowNumbers.Max());
     }
 
+    // A value analytic function over a partition with no ORDER BY (#521);
+    // SqlServerTests skips it — that engine requires the ORDER BY, and asserts
+    // the rejection in ContextRule_ValueWindowWithoutOrderBy_Rejected.
+    [Fact]
+    public virtual void WindowFunction_ValueFamilyPartitionOnly_Executes()
+    {
+        UsersTable u = new();
+        int[] department10Ages = [30, 40];
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // Department 30 holds one row, so an unordered window is deterministic there.
+        Assert.Equal(
+            new[] { 35 },
+            connection.Query<int>(
+                Select(FirstValue(u.Age).Over(PartitionBy(u.DepartmentId)))
+                    .From(u)
+                    .Where(u.DepartmentId == 30)));
+
+        // Which row the other two read is arbitrary; that it comes from the
+        // partition is not.
+        Assert.All(
+            connection.Query<int>(
+                Select(LastValue(u.Age).Over(PartitionBy(u.DepartmentId)))
+                    .From(u)
+                    .Where(u.DepartmentId == 10)),
+            age => Assert.Contains(age, department10Ages));
+        Assert.All(
+            connection.Query<int>(
+                Select(NthValue(u.Age, 2).Over(PartitionBy(u.DepartmentId)))
+                    .From(u)
+                    .Where(u.DepartmentId == 10)),
+            age => Assert.Contains(age, department10Ages));
+    }
+
     [Fact]
     public void GroupByHaving_FiltersGroups()
     {

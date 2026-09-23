@@ -54,6 +54,29 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
     }
 
+    [Fact] // #521: why Over(PartitionBy(...)) is declared on the value family alone
+           // (WindowOverShapeTests holds the API side).
+    public void PartitionOnlyWindow_RankingFamily_Rejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The value family takes the same unordered window, so only the ranking
+        // and offset functions are what Oracle 21c raises ORA-30485 for.
+        connection.ExecuteScalar(
+            "SELECT FIRST_VALUE(age) OVER (PARTITION BY department_id) FROM users");
+
+        string[] unordered =
+        [
+            "RANK()", "DENSE_RANK()", "ROW_NUMBER()", "NTILE(2)", "CUME_DIST()",
+            "PERCENT_RANK()", "LAG(age)", "LEAD(age)",
+        ];
+
+        Assert.All(
+            unordered,
+            function => Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+                $"SELECT {function} OVER (PARTITION BY department_id) FROM users")));
+    }
+
     // Binding a C# bool to NUMBER(1) is a driver concern, not a SqlArtisan one;
     // the four engines with a native boolean type cover the round-trip.
     [Fact(Skip = "Oracle XE 21c has no native boolean type; is_active is NUMBER(1).")]

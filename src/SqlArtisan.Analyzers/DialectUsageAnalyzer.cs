@@ -317,7 +317,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         if (name is not ("Limit" or "Grouping" or "PercentileCont" or "PercentileDisc"
                 or "Inserted" or "Deleted" or "Interval" or "IntervalLiteral"
                 or "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin"
-                or "ForUpdate")
+                or "ForUpdate" or "Over")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
@@ -355,6 +355,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 break;
             case "PercentileCont" or "PercentileDisc" when targets.Contains(TargetDbms.SqlServer):
                 ContextRules.CheckPercentileRequiresOver(
+                    context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
+                break;
+            case "Over" when targets.Contains(TargetDbms.SqlServer):
+                ContextRules.CheckUnorderedWindowRequiresOrderBy(
                     context, invocation, TargetDbmsNames.Display(TargetDbms.SqlServer));
                 break;
             case "Inserted" or "Deleted" when targets.Contains(TargetDbms.SqlServer):

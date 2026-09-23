@@ -46,4 +46,22 @@ public class WindowLastValueTests
             .Build();
         Assert.Equal(expected, sql.Text);
     }
+
+    [Fact]
+    public void LastValue_OverPartitionBy_CorrectSql()
+    {
+        string expected = "SELECT LAST_VALUE(code) OVER (PARTITION BY name)";
+        SqlStatement sql =
+            Select(LastValue(_t.Code).Over(PartitionBy(_t.Name))).Build();
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void LastValue_OverNullPartitionBy_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            LastValue(_t.Code).Over((SqlArtisan.Internal.PartitionByClause)null!));
+
+        Assert.Equal("partitionByClause", ex.ParamName);
+    }
 }

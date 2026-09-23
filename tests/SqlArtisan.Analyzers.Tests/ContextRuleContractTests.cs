@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using SqlArtisan.Internal;
 
 namespace SqlArtisan.Analyzers.Tests;
 
@@ -43,6 +44,43 @@ public class ContextRuleContractTests
             .Select(t => t.Name)];
 
         Assert.Equal(["ISelectBuilderGroupBy"], declaringInterfaces);
+    }
+
+    [Fact]
+    public void UnorderedOver_IsDeclaredOnlyOnTheValueAnalyticFamily()
+    {
+        // The rule reads the receiver's declared type, so the overload living
+        // anywhere else would make it report on a window SQL Server accepts.
+        List<string> declaringTypes = [.. Core.GetExportedTypes()
+            .SelectMany(t => t.GetMethods(
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            .Where(m => m.Name == "Over")
+            .Where(m => m.GetParameters() is [{ ParameterType.Name: "PartitionByClause" }])
+            .Select(m => m.DeclaringType!.Name)
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.Equal(
+            ["AggregateFunction", "PercentileFunction", "ValueAnalyticFunction"],
+            declaringTypes);
+    }
+
+    [Fact]
+    public void ValueAnalyticNodes_AreEachClassifiedByTheUnorderedOverRule()
+    {
+        // A node the family gains must be added to the rule's set or deliberately
+        // left out of it; NthValue is the one exclusion, and SQLA0100 covers it.
+        List<string> nodes = [.. Core.GetExportedTypes()
+            .Where(t => t.BaseType == typeof(ValueAnalyticFunction))
+            .Select(t => t.Name)
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.Equal(
+            ["AnalyticFirstValueFunction", "AnalyticLastValueFunction",
+                "AnalyticNthValueFunction"],
+            nodes);
+        Assert.Equal(
+            ["AnalyticFirstValueFunction", "AnalyticLastValueFunction"],
+            nodes.Where(ContextRules.OrderRequiringValueFunctions.Contains));
     }
 
     [Fact]

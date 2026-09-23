@@ -244,6 +244,29 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             new { p0 = 10, p1 = "Low", p2 = "Other", p3 = 10, p4 = "Low", p5 = "Other" }));
     }
 
+    [Fact(Skip = "SQL Server requires an ORDER BY in a value analytic function's "
+        + "window; ContextRule_ValueWindowWithoutOrderBy_Rejected asserts the rejection here.")]
+    public override void WindowFunction_ValueFamilyPartitionOnly_Executes()
+    {
+    }
+
+    [Fact] // SQLA0102 (#521): the live twin for CheckUnorderedWindowRequiresOrderBy.
+    public void ContextRule_ValueWindowWithoutOrderBy_Rejected()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // The same window with an ORDER BY runs, so only the missing ORDER BY
+        // is what SQL Server 2022 rejects.
+        connection.ExecuteScalar(
+            Select(FirstValue(u.Age).Over(PartitionBy(u.DepartmentId).OrderBy(u.Id))).From(u));
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            Select(FirstValue(u.Age).Over(PartitionBy(u.DepartmentId))).From(u)));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            Select(LastValue(u.Age).Over(PartitionBy(u.DepartmentId))).From(u)));
+    }
+
     [Fact] // ADR 0012 (#295): anchors PercentileFractionGuard.
     public void PercentileCont_FractionOutOfRange_Rejected()
     {
