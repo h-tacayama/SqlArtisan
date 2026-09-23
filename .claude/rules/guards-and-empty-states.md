@@ -38,7 +38,10 @@ the full rationale.
   unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
   (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
   `Using(...)` on `DELETE`, or with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
-  on `INSERT` — no dialect accepts both halves of any pairing (#400); an
+  on `INSERT` — no dialect accepts both halves of any pairing (#400) — and with
+  `Set(...)` on `INSERT`, which emits the column list T-SQL puts ahead of
+  `OUTPUT`, so neither order is valid (#521; the typestate withholds the pair
+  and `Build()` backstops a held stage); an
   `OnConflict()` with no conflict target paired with `.DoUpdateSet(...)` on
   PostgreSQL — SQLite takes the targetless form, so the guard is `Build(Dbms)`
   and `Dbms.PostgreSql`-scoped (ADR 0011; the earlier dialect-blind guard

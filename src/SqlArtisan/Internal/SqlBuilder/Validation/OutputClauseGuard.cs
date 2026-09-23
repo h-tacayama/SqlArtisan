@@ -38,6 +38,20 @@ internal static class OutputClauseGuard
         }
     }
 
+    // T-SQL puts an INSERT's column list ahead of OUTPUT, and Set(...) is what
+    // emits that list, so the pair is invalid in either order — the typestate
+    // withholds it, and a held builder can still append both (#521).
+    internal static void ThrowIfInsertCombinedWithSet(
+        OutputClause? output, InsertSetClause? set)
+    {
+        if (output is not null && set is not null)
+        {
+            throw new ArgumentException(
+                "OUTPUT cannot be combined with Set(...); name the columns with "
+                    + "InsertInto(table, columns) and supply the row with Values(...).");
+        }
+    }
+
     // #397's width class for the OUTPUT ... INTO redirect: an explicit INTO
     // column list must match the OUTPUT list one-to-one; a star item's width is
     // the schema's, so it is left to the engine.

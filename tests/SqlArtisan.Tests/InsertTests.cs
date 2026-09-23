@@ -565,6 +565,35 @@ public class InsertTests
         Assert.Equal("x", set.Parameters.Get<string>("@1"));
     }
 
+    // The typestate withholds the pair; a held builder can still append both, in
+    // either order, so Build() backstops it.
+    [Fact]
+    public void InsertInto_OutputThenSet_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        IInsertBuilderTableOutput held = InsertInto(t);
+        held.Output(Inserted(t.Code));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Set(t.Code == 1, t.Name == "x").Build(Dbms.SqlServer));
+
+        Assert.Equal(OutputWithSetMessage, ex.Message);
+    }
+
+    [Fact]
+    public void InsertInto_SetThenOutput_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        IInsertBuilderTableOutput held = InsertInto(t);
+        held.Set(t.Code == 1, t.Name == "x");
+        held.Output(Inserted(t.Code));
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            ((ISqlBuilder)held).Build(Dbms.SqlServer));
+
+        Assert.Equal(OutputWithSetMessage, ex.Message);
+    }
+
     [Fact]
     public void InsertInto_SqlServer_ColumnlessOutput_CorrectSql()
     {
@@ -997,4 +1026,8 @@ public class InsertTests
         Assert.Equal(
             "A SET assignment list must not assign the same column twice.", ex.Message);
     }
+
+    private const string OutputWithSetMessage =
+        "OUTPUT cannot be combined with Set(...); name the columns with "
+        + "InsertInto(table, columns) and supply the row with Values(...).";
 }

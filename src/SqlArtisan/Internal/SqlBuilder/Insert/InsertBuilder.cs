@@ -7,14 +7,14 @@ internal sealed class InsertBuilder(
     SelectBuilder(rootParts),
     IInsertBuilderColumns,
     IInsertBuilderColumnsOutput,
-    IInsertBuilderTableOutput,
-    IInsertBuilderTableOutputInto,
-    IInsertBuilderTableOutputRows,
     IInsertBuilderColumnsOutputInto,
     IInsertBuilderDoUpdateSet,
     IInsertBuilderOnConflict,
     IInsertBuilderSet,
     IInsertBuilderTable,
+    IInsertBuilderTableOutput,
+    IInsertBuilderTableOutputInto,
+    IInsertBuilderTableOutputRows,
     IInsertBuilderValues,
     IInsertIgnoreBuilderColumns,
     IInsertIgnoreBuilderSet,
@@ -207,6 +207,7 @@ internal sealed class InsertBuilder(
         OutputClauseGuard.ThrowIfIntoWidthMismatch(output, FindPart<OutputIntoClause>());
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
+        OutputClauseGuard.ThrowIfInsertCombinedWithSet(output, FindPart<InsertSetClause>());
         OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate = FindPart<OnDuplicateKeyUpdateClause>();
         OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(output, onConflict, onDuplicateKeyUpdate);
         ReturningGuard.ThrowIfCombinedWithMySqlInsertForm(
