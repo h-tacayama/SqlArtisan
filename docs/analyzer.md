@@ -573,7 +573,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Eleven rules ship today — seven reading
+expression where the construct is used. Twelve rules ship today — eight reading
 the construct's surroundings, four reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
@@ -627,6 +627,22 @@ var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u);
 // warning SQLA0102: 'PercentileCont' is not supported outside an OVER clause on SQL Server
 ```
 
+**A value analytic function in a window with no `ORDER BY`.** SQL Server
+requires an ordered window for `FirstValue(...)` and `LastValue(...)` ("The
+function 'FIRST_VALUE' must have an OVER clause with ORDER BY"), where the
+other four engines accept the window and leave which row is read to the engine
+— chain `PartitionBy(...).OrderBy(...)` there. `NthValue(...)` is not in this
+rule: SQL Server has no `NTH_VALUE` at all, so no ordering rescues it and the
+whole-construct `SQLA0100` is the verdict. A receiver held in a
+`ValueAnalyticFunction` variable no longer names which of the three it is, so
+the rule stays silent there rather than risk the wrong advice.
+
+```csharp
+// sqlartisan_syntax_sqlserver = any
+var q = Select(FirstValue(u.Age).Over(PartitionBy(u.DepartmentId))).From(u);
+// warning SQLA0102: 'Over' is not supported without an ORDER BY in a value analytic function's window on SQL Server
+```
+
 **`INSERTED` / `DELETED` outside an `OUTPUT` clause.** The pseudo-tables are
 bound by the `OUTPUT` clause itself, so `Inserted(...)` / `Deleted(...)`
 resolve against no table anywhere else — read the row images inside
@@ -672,7 +688,7 @@ engines that reject the spelling; where a spelling has no valid form at all on
 the resolved dialect, `Build(Dbms)` throws instead and no warning is needed.
 
 These four are settled by the builder stage the call binds to rather than by
-reading the chain, so — alone among the eleven — they still warn when the builder
+reading the chain, so — alone among the twelve — they still warn when the builder
 is held in a variable.
 
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
@@ -728,7 +744,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the seven that read the construct's surroundings, a subquery held in
+itself. For the eight that read the construct's surroundings, a subquery held in
 a variable, a builder chain continued from a helper method, or any shape the
 analyzer doesn't recognize stays silent — the same
 under-warn-but-never-false-positive principle the matrix follows.

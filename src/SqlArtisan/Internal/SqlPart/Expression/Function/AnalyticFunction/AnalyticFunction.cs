@@ -5,9 +5,9 @@ namespace SqlArtisan.Internal;
 /// functions, whose window must be ordered and cannot take a frame.
 /// </summary>
 /// <remarks>
-/// Only the ordered <c>Over(...)</c> overloads are exposed, unlike
-/// <see cref="AggregateFunction"/>, and this is not a <see cref="SqlExpression"/>
-/// itself: only a completed <c>Over(...)</c> call yields one.
+/// Only the ordered <c>Over(...)</c> overloads are declared here — the unordered
+/// and framed ones belong to <see cref="ValueAnalyticFunction"/> — and this is no
+/// <see cref="SqlExpression"/>: only a completed <c>Over(...)</c> call yields one.
 /// </remarks>
 public abstract class AnalyticFunction : SqlPart, IIncompleteExpression
 {

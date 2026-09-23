@@ -56,4 +56,22 @@ public class WindowNthValueTests
             .Build();
         Assert.Equal(expected, sql.Text);
     }
+
+    [Fact]
+    public void NthValue_OverPartitionBy_CorrectSql()
+    {
+        string expected = "SELECT NTH_VALUE(code, 2) OVER (PARTITION BY name)";
+        SqlStatement sql =
+            Select(NthValue(_t.Code, 2).Over(PartitionBy(_t.Name))).Build();
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void NthValue_OverNullPartitionBy_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            NthValue(_t.Code, 2).Over((SqlArtisan.Internal.PartitionByClause)null!));
+
+        Assert.Equal("partitionByClause", ex.ParamName);
+    }
 }

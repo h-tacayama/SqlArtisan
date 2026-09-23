@@ -87,6 +87,43 @@ internal static class ContextRules
             dialectName));
     }
 
+    // The value-family nodes SQL Server runs once the window is ordered. Internal
+    // for the parity gate: a node the family gains is classified here or nowhere.
+    internal static readonly HashSet<string> OrderRequiringValueFunctions =
+    [
+        "AnalyticFirstValueFunction", "AnalyticLastValueFunction"
+    ];
+
+    /// <summary>
+    /// SQL Server requires an <c>ORDER BY</c> in the window of a value analytic
+    /// function, so the partition-only window the other four engines accept has
+    /// no spelling there.
+    /// </summary>
+    /// <remarks>
+    /// Only a concrete receiver reports: NTH_VALUE fails on SQL Server for having
+    /// no function at all, which is SQLA0100's verdict, so a base-typed receiver
+    /// stays silent rather than risk misnaming that as a window shape (ADR 0003).
+    /// </remarks>
+    public static void CheckUnorderedWindowRequiresOrderBy(
+        OperationAnalysisContext context, IInvocationOperation over, string dialectName)
+    {
+        if (over.TargetMethod.ContainingType.Name != "ValueAnalyticFunction"
+            || over.TargetMethod.Parameters.Length != 1
+            || over.TargetMethod.Parameters[0].Type.Name != "PartitionByClause"
+            || over.Instance?.Type is not { Name: string node }
+            || !OrderRequiringValueFunctions.Contains(node))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            over.Syntax.GetLocation(),
+            over.TargetMethod.Name,
+            "without an ORDER BY in a value analytic function's window",
+            dialectName));
+    }
+
     /// <summary>
     /// SQL Server exposes the percentiles only as window functions, so the bare
     /// <c>WITHIN GROUP</c> form Oracle and PostgreSQL accept has no spelling there.

@@ -301,6 +301,92 @@ public class ContextRuleAnalyzerTests
             """, "sqlserver");
 
     [Fact]
+    public Task FirstValueOverPartitionOnly_SqlServer_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select({|#0:FirstValue(t.Id).Over(PartitionBy(t.Dep))|}).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task LastValueOverPartitionOnly_SqlServer_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select({|#0:LastValue(t.Id).Over(PartitionBy(t.Dep))|}).From(t);
+            """, "sqlserver");
+
+    // A base-typed receiver no longer names which function it is, and NthValue's
+    // failure there is not the window shape — so the rule goes silent (ADR 0003).
+    [Fact]
+    public Task FirstValueOverPartitionOnlyViaBaseVariable_SqlServer_StaysSilent() =>
+        RunSilent("""
+            ValueAnalyticFunction f = FirstValue(t.Id);
+            var q = Select(f.Over(PartitionBy(t.Dep))).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public async Task NthValueOverPartitionOnlyViaBaseVariable_SqlServer_ReportsSqla0100Only()
+    {
+        var test = AnalyzerVerifier.Create(
+            Usage("""
+                ValueAnalyticFunction f = {|#0:NthValue(t.Id, 2)|};
+                var q = Select(f.Over(PartitionBy(t.Dep))).From(t);
+                """),
+            AnalyzerVerifier.EditorConfig("sqlserver"));
+
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public Task FirstValueOverPartitionByOrderBy_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = Select(FirstValue(t.Id).Over(PartitionBy(t.Dep).OrderBy(t.Id))).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task FirstValueOverFrame_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = Select(FirstValue(t.Id).Over(OrderBy(t.Id).Rows(UnboundedPreceding))).From(t);
+            """, "sqlserver");
+
+    // The aggregate and percentile Over(PartitionByClause) overloads share the
+    // rule's name and parameter type; only the value family's is restricted.
+    [Fact]
+    public Task AggregateOverPartitionOnly_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Sum(t.Id).Over(PartitionBy(t.Dep))).From(t);
+            """, "sqlserver");
+
+    // SQL Server has no NTH_VALUE at all, so SQLA0100 is the whole verdict —
+    // naming the window shape would misname why it fails there.
+    [Fact]
+    public async Task NthValueOverPartitionOnly_SqlServer_ReportsSqla0100Only()
+    {
+        var test = AnalyzerVerifier.Create(
+            Usage("""
+                var q = Select({|#0:NthValue(t.Id, 2)|}.Over(PartitionBy(t.Dep))).From(t);
+                """),
+            AnalyzerVerifier.EditorConfig("sqlserver"));
+
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public Task FirstValueOverPartitionOnly_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(FirstValue(t.Id).Over(PartitionBy(t.Dep))).From(t);
+            """, "postgresql");
+
+    [Fact]
+    public Task FirstValueOverPartitionOnly_NoTargetConfigured_StaysSilent() =>
+        RunSilent("""
+            var q = Select(FirstValue(t.Id).Over(PartitionBy(t.Dep))).From(t);
+            """, dbms: null);
+
+    [Fact]
     public Task InsertedInOutput_SqlServer_StaysSilent() =>
         RunSilent("""
             var q = InsertInto(t, t.Id).Output(Inserted(t.Id)).Values(1);

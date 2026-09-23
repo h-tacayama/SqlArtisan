@@ -59,4 +59,22 @@ public class WindowFirstValueTests
         // Assert
         Assert.Equal(expected, sql.Text);
     }
+
+    [Fact]
+    public void FirstValue_OverPartitionBy_CorrectSql()
+    {
+        string expected = "SELECT FIRST_VALUE(code) OVER (PARTITION BY name)";
+        SqlStatement sql =
+            Select(FirstValue(_t.Code).Over(PartitionBy(_t.Name))).Build();
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
+    public void FirstValue_OverNullPartitionBy_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() =>
+            FirstValue(_t.Code).Over((SqlArtisan.Internal.PartitionByClause)null!));
+
+        Assert.Equal("partitionByClause", ex.ParamName);
+    }
 }
