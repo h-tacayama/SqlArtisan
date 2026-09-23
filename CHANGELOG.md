@@ -94,6 +94,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `SQLA0100` reports the statement there as it already did. See [WITH
   Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#with-clause-common-table-expressions).
   (#521)
+- `InsertInto(t)` — the chain with no column list — now takes `.Output(...)`, so
+  `INSERT INTO t OUTPUT INSERTED.id VALUES (...)` has a spelling. Only the
+  column-list chain reached an `Output` stage before. SQL Server 2022 runs the
+  columnless form, live-verified, and `.Into(...)` redirects it to an archive
+  table the same way. The state after `.Output(...)` offers `Values(...)` but
+  not `Set(...)`: that call emits the column list, which T-SQL puts ahead of
+  `OUTPUT`, so the pair has no spelling in that order and the chain does not
+  compile. See [OUTPUT
+  Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#output-clause-sql-server).
+  (#521)
 
 ### Changed
 - **Breaking:** `WithRecursive(...)` now returns its own builder state, which opens a

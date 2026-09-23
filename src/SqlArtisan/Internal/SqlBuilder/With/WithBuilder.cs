@@ -42,7 +42,7 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
             table, columns.Length, _withPart, new InsertIgnoreIntoClause(table, columns));
     }
 
-    public IInsertBuilderTable InsertInto(DbTableBase table) =>
+    public IInsertBuilderTableOutput InsertInto(DbTableBase table) =>
         new InsertBuilder(
             table,
             0,

@@ -543,6 +543,84 @@ public class InsertTests
     }
 
     [Fact]
+    public void InsertInto_SqlServer_ColumnlessOutput_CorrectSql()
+    {
+        // With no column list there is nothing for OUTPUT to follow but the table.
+        TestTable t = new();
+
+        SqlStatement sql =
+            InsertInto(t)
+            .Output(Inserted(t.Code))
+            .Values(1, "x")
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO test_table ");
+        expected.Append("OUTPUT INSERTED.code ");
+        expected.Append("VALUES (@0, @1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("@1"));
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_ColumnlessOutputInto_CorrectSql()
+    {
+        TestTable t = new();
+        ArchiveTable a = new();
+
+        SqlStatement sql =
+            InsertInto(t)
+            .Output(Inserted(t.Code), Inserted(t.Name))
+            .Into(a, a.Code, a.Name)
+            .Values(1, "x")
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("INSERT INTO test_table ");
+        expected.Append("OUTPUT INSERTED.code, INSERTED.name ");
+        expected.Append("INTO archive_table (code, name) ");
+        expected.Append("VALUES (@0, @1)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("@1"));
+    }
+
+    [Fact]
+    public void InsertInto_SqlServer_ColumnlessOutput_MultiRowValues_CorrectSql()
+    {
+        TestTable t = new();
+        object[][] rows = [[1, "x"], [2, "y"]];
+
+        SqlStatement sql =
+            InsertInto(t)
+            .Output(Inserted(t.Code))
+            .Values(rows)
+            .Build(Dbms.SqlServer);
+
+        Assert.Equal(
+            "INSERT INTO test_table OUTPUT INSERTED.code VALUES (@0, @1), (@2, @3)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("@1"));
+        Assert.Equal(2, sql.Parameters.Get<int>("@2"));
+        Assert.Equal("y", sql.Parameters.Get<string>("@3"));
+    }
+
+    [Fact]
+    public void InsertInto_ColumnlessOutput_Empty_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(t).Output());
+
+        Assert.Equal("OUTPUT requires at least one expression.", ex.Message);
+    }
+
+    [Fact]
     public void InsertInto_SqlServer_OutputIntoAliasedTarget_ThrowsArgumentException()
     {
         TestTable t = new();

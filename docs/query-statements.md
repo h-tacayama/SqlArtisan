@@ -1452,6 +1452,14 @@ SQL Server's `OUTPUT` is the counterpart to [`RETURNING`](#returning-clause): it
 
 `INSERT` sees only `INSERTED`; `DELETE` only `DELETED`; `UPDATE` both — the row's pre-image (`DELETED`) and post-image (`INSERTED`). Column aliases are allowed (`Deleted(u.Age).As("old_age")`).
 
+On `INSERT` the column list is optional, and so is having one to follow:
+`InsertInto(t).Output(...).Values(...)` emits
+`INSERT INTO t OUTPUT ... VALUES (...)`, which SQL Server 2022 runs. What that
+state does not offer is `Set(...)` — it emits the column list, and T-SQL puts
+the column list ahead of `OUTPUT`, so the two have no spelling in that order.
+Write the columns out (`InsertInto(t, t.Id, t.Name).Output(...)`) when you want
+both.
+
 ```csharp
 UsersTable u = new();
 SqlStatement sql =

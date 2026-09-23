@@ -107,7 +107,7 @@ public static partial class Sql
     /// </summary>
     /// <param name="table">The target table.</param>
     /// <returns>An insert builder awaiting the values to insert.</returns>
-    public static IInsertBuilderTable InsertInto(DbTableBase table) =>
+    public static IInsertBuilderTableOutput InsertInto(DbTableBase table) =>
         new InsertBuilder(table, 0, new InsertIntoClause(table));
 
     /// <summary>

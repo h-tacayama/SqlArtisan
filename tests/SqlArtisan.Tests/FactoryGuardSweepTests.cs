@@ -188,8 +188,9 @@ public class FactoryGuardSweepTests
         "AnalyticNthValueFunction", "AnalyticNtileFunction", "AnalyticPercentRankFunction",
         "AnalyticRankFunction", "AnalyticRowNumberFunction", "ListaggFunction", "MatchFunction",
         "PercentileContFunction", "PercentileDiscFunction", "SearchedCaseWhenCondition",
-        "SimpleCaseWhenExpression", "IInsertBuilderColumnsOutput", "IInsertBuilderTable",
-        "IInsertIgnoreBuilderColumns", "IInsertIgnoreBuilderTable", "IMergeBuilderTarget",
+        "SimpleCaseWhenExpression", "IInsertBuilderColumnsOutput",
+        "IInsertBuilderTableOutput", "IInsertIgnoreBuilderColumns",
+        "IInsertIgnoreBuilderTable", "IMergeBuilderTarget",
         "IUpdateBuilderUpdate",
         // Complete argument/clause objects TryBuild does not yet embed — a real
         // coverage gap, not a rejected category; extend TryBuild to shrink it.

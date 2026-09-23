@@ -627,4 +627,83 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(2, merged);
         transaction.Rollback();
     }
+
+    // The raw half of the docs' claim: T-SQL puts OUTPUT after the column list,
+    // and takes it with no column list at all.
+    [Fact]
+    public void OutputWithoutColumnList_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the column-list shape the builder already reaches.
+        Assert.Equal(
+            901,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users (id, name) OUTPUT INSERTED.id VALUES (901, 'x')",
+                transaction: transaction));
+
+        Assert.Equal(
+            902,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users OUTPUT INSERTED.id "
+                    + "VALUES (902, 'y', 30, 10, NULL, 1, NULL)",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // Why the state after a columnless OUTPUT withholds Set(...): that call emits
+    // the column list, which cannot follow OUTPUT.
+    [Fact]
+    public void OutputBeforeColumnList_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users OUTPUT INSERTED.id (id, name) VALUES (903, 'z')",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // The built half: the chain this lane exists to prove runs end to end.
+    [Fact]
+    public void Output_ColumnlessInsert_ReturnsInsertedId()
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int inserted = connection.ExecuteScalar<int>(
+            InsertInto(u)
+                .Output(Inserted(u.Id))
+                .Values(904, "Heidi", 28, 10, null, 1, null),
+            transaction);
+
+        Assert.Equal(904, inserted);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void OutputInto_ColumnlessInsert_Executes()
+    {
+        UsersTable u = new();
+        OutputArchiveTable archive = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            InsertInto(u)
+                .Output(Inserted(u.Id), Inserted(u.Name))
+                .Into(archive, archive.Id, archive.Name)
+                .Values(905, "Ivan", 33, 20, null, 1, null),
+            transaction);
+
+        Assert.Equal(
+            "Ivan",
+            connection.ExecuteScalar<string>(
+                Select(archive.Name).From(archive).Where(archive.Id == 905), transaction));
+        transaction.Rollback();
+    }
 }

@@ -7,6 +7,9 @@ internal sealed class InsertBuilder(
     SelectBuilder(rootParts),
     IInsertBuilderColumns,
     IInsertBuilderColumnsOutput,
+    IInsertBuilderTableOutput,
+    IInsertBuilderTableOutputInto,
+    IInsertBuilderTableOutputRows,
     IInsertBuilderColumnsOutputInto,
     IInsertBuilderDoUpdateSet,
     IInsertBuilderOnConflict,
@@ -43,6 +46,10 @@ internal sealed class InsertBuilder(
         return this;
     }
 
+    IInsertBuilderTableOutputRows IInsertBuilderTableOutputInto.Into(
+        DbTableBase table, params DbColumn[] columns) =>
+        (IInsertBuilderTableOutputRows)Into(table, columns);
+
     public IInsertBuilderOnConflict OnConflict(params DbColumn[] conflictTarget)
     {
         AddPart(new OnConflictClause(conflictTarget));
@@ -67,6 +74,11 @@ internal sealed class InsertBuilder(
         AddPart(new OutputClause(SelectItemResolver.Resolve(items)));
         return this;
     }
+
+    // Same call as the column-list OUTPUT; only the state handed back differs,
+    // withholding the Set(...) whose column list T-SQL puts ahead of OUTPUT.
+    IInsertBuilderTableOutputInto IInsertBuilderTableOutput.Output(params object[] items) =>
+        (IInsertBuilderTableOutputInto)Output(items);
 
     public IReturningBuilder Returning(params object[] expressions) =>
         ReturningBuilder.Create(this, expressions);
