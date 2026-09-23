@@ -112,7 +112,7 @@ internal static class DmlTargetGuard
     internal static void ThrowIfLeadingWithUnsupported(
         ReadOnlySpan<SqlPart> parts, Dbms dbms, bool insert)
     {
-        if (parts.Length == 0 || parts[0] is not (WithClause or WithRecursiveClause))
+        if (!LeadsWithCte(parts))
         {
             return;
         }
@@ -132,6 +132,23 @@ internal static class DmlTargetGuard
                 + "(InsertInto(...).With(...).Select(...)), otherwise inline the subquery.");
         }
     }
+
+    // Oracle's merge_statement carries no subquery_factoring_clause either, but
+    // its remedy is not the DML one above: MERGE's own source slot takes a
+    // subquery, so the CTE goes there (live on XE 21.3.0 and Free 23ai).
+    internal static void ThrowIfLeadingWithUnsupportedOnMerge(
+        ReadOnlySpan<SqlPart> parts, Dbms dbms)
+    {
+        if (dbms == Dbms.Oracle && LeadsWithCte(parts))
+        {
+            throw new ArgumentException(
+                "Oracle has no leading WITH on MERGE; put the CTE inside the subquery the "
+                + "Using(...) source names.");
+        }
+    }
+
+    private static bool LeadsWithCte(ReadOnlySpan<SqlPart> parts) =>
+        parts.Length > 0 && parts[0] is WithClause or WithRecursiveClause;
 
     // OUTPUT ... INTO is SQL Server-only, and its destination is a plain
     // INSERT target (FormatAsDmlTarget) — an alias there renders as

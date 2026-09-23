@@ -181,6 +181,41 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
+    // The CTE-fed MERGE head is a second declaration of the same (name, arity)
+    // key, so MySQL's missing MERGE keeps its SQLA0100 verdict through the chain
+    // — the safety net that lets the WITH state open it on every dialect (#521).
+    [Fact]
+    public async Task WithChainedMergeInto_OnMySql_ReportsSqla0100()
+    {
+        const string template = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class T : DbTableBase
+            {
+                public T(string alias) : base("t", alias) { }
+                public DbColumn Code => new(this, "code");
+            }
+
+            class C
+            {
+                void M()
+                {
+                    T t = new("t");
+                    T s = new("s");
+                    Cte c = new("c");
+                    var x = {|#0:With(c.As(Select(s.Code).From(s))).MergeInto(t)|};
+                }
+            }
+            """;
+
+        var test = AnalyzerVerifier.Create(
+            template, AnalyzerVerifier.EditorConfig("mysql", "8.0"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
     // DeleteBuilder.Using(params TableReference[]) shares its arity-1 matrix key
     // with MergeBuilder.Using, which carries no PostgreSQL 15 bound (MERGE's lives
     // on MergeInto), so a version below 15 must not report SQLA0101 for DELETE.

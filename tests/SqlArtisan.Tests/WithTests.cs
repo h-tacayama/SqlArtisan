@@ -993,6 +993,77 @@ public class WithTests
         Assert.Equal("An INSERT column list must not name a column twice.", ex.Message);
     }
 
+    [Fact]
+    public void With_MergeInto_CorrectSql()
+    {
+        // Arrange
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable t = new("t");
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS (SELECT \"a\".code cte_code FROM test_table \"a\") ");
+        expected.Append("MERGE INTO test_table \"t\" USING \"cte\" ");
+        expected.Append("ON (\"t\".code = \"cte\".cte_code) ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"t\".name");
+
+        // Act
+        SqlStatement sql =
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .MergeInto(t)
+            .Using(cte)
+            .On(t.Code == cte.CteCode)
+            .WhenMatched().ThenUpdateSet(t.Name == t.Name)
+            .Build(Dbms.PostgreSql);
+
+        // Assert
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // SQL Server's MERGE terminator still lands last, after the leading WITH.
+    [Fact]
+    public void With_MergeInto_SqlServer_CorrectSql()
+    {
+        // Arrange
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable t = new("t");
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS (SELECT \"a\".code cte_code FROM test_table \"a\") ");
+        expected.Append("MERGE INTO test_table \"t\" USING \"cte\" ");
+        expected.Append("ON (\"t\".code = \"cte\".cte_code) ");
+        expected.Append("WHEN MATCHED THEN UPDATE SET name = \"t\".name;");
+
+        // Act
+        SqlStatement sql =
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .MergeInto(t)
+            .Using(cte)
+            .On(t.Code == cte.CteCode)
+            .WhenMatched().ThenUpdateSet(t.Name == t.Name)
+            .Build(Dbms.SqlServer);
+
+        // Assert
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void With_Oracle_LeadingWithBeforeMerge_ThrowsArgumentException()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable t = new("t");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .MergeInto(t)
+            .Using(cte)
+            .On(t.Code == cte.CteCode)
+            .WhenMatched().ThenUpdateSet(t.Name == t.Name)
+            .Build(Dbms.Oracle));
+
+        Assert.Equal(OracleLeadingWithBeforeMergeMessage, ex.Message);
+    }
+
     private const string MySqlLeadingWithMessage =
         "MySQL has no leading WITH on INSERT; put the CTE inside the feeding SELECT "
         + "(InsertInto(...).With(...).Select(...)), otherwise inline the subquery.";
@@ -1001,4 +1072,8 @@ public class WithTests
         "Oracle has no leading WITH on INSERT, UPDATE, or DELETE; for an INSERT, put the CTE "
         + "inside the feeding SELECT (InsertInto(...).With(...).Select(...)), otherwise inline "
         + "the subquery.";
+
+    private const string OracleLeadingWithBeforeMergeMessage =
+        "Oracle has no leading WITH on MERGE; put the CTE inside the subquery the Using(...) "
+        + "source names.";
 }

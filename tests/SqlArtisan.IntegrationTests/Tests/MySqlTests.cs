@@ -420,8 +420,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
-    // #521 item 3 probe: MySQL 8.0 has no MERGE at all, so the CTE-fed form is
-    // unreachable here for want of the statement, not the leading WITH.
+    // MySQL 8.0 has no MERGE at all, so the CTE-fed form is out of reach here for
+    // want of the statement — SQLA0100's verdict, and no guard's.
     [Fact]
     public void MergeStatement_IsRejectedByTheEngine()
     {

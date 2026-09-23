@@ -1,5 +1,6 @@
 using System.Data;
 using Dapper;
+using SqlArtisan;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 using SqlArtisan.IntegrationTests.Schema;
@@ -589,8 +590,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
-    // #521 item 3 probe: T-SQL's MERGE grammar leads with an optional
-    // common_table_expression list.
+    // The raw half of the docs' claim: T-SQL's MERGE grammar leads with an
+    // optional common_table_expression list.
     [Fact]
     public void LeadingWithBeforeMerge_IsAcceptedByTheEngine()
     {
@@ -602,6 +603,28 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
                 + "MERGE INTO users AS t USING c AS s ON t.id = s.id "
                 + "WHEN MATCHED THEN UPDATE SET name = s.name;",
             transaction: transaction);
+        transaction.Rollback();
+    }
+
+    // The built half: the feature this lane exists to prove runs end to end.
+    [Fact]
+    public void Cte_LeadingWithBeforeMerge_Executes()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        Cte fresh = new("fresh");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int merged = connection.Execute(
+            With(fresh.As(Select(s.Id, s.Name).From(s).Where(s.Id <= 2)))
+                .MergeInto(t)
+                .Using(fresh)
+                .On(t.Id == fresh.Column("id"))
+                .WhenMatched().ThenUpdateSet(t.Name == fresh.Column("name")),
+            transaction);
+
+        Assert.Equal(2, merged);
         transaction.Rollback();
     }
 }

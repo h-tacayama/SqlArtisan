@@ -56,8 +56,8 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
             "SELECT age FROM users WHERE id = 1 FOR UPDATE WAIT -1"));
     }
 
-    // #521 item 3 probe: the 21c lane's rejecting twin, re-run at 23ai — the
-    // subquery-factoring clause is still not part of the MERGE grammar.
+    // The 21c lane's leading-WITH-before-MERGE rejection, re-run at 23ai: the
+    // subquery-factoring clause is still no part of the MERGE grammar.
     [Fact]
     public void LeadingWithBeforeMerge_IsRejectedByTheEngine()
     {

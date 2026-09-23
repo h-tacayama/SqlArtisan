@@ -551,8 +551,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // #521 item 3 probe: SQLite has no MERGE at all, so the CTE-fed form is
-    // unreachable here for want of the statement, not the leading WITH.
+    // SQLite has no MERGE at all, so the CTE-fed form is out of reach here for
+    // want of the statement — SQLA0100's verdict, and no guard's.
     [Fact]
     public void MergeStatement_IsRejectedByTheEngine()
     {

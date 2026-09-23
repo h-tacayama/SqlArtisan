@@ -464,7 +464,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
-    // #521 item 3 probe: does Oracle's MERGE take a leading WITH?
+    // The live twin of the leading-WITH guard for MERGE on Oracle (ADR 0011):
+    // the merge_statement grammar carries no subquery_factoring_clause.
     [Fact]
     public void LeadingWithBeforeMerge_IsRejectedByTheEngine()
     {
@@ -487,7 +488,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
-    // #521 item 3 probe: is the CTE reachable inside the USING source instead?
+    // The remedy that guard's message names, proved to run: MERGE's own source
+    // slot takes a subquery, so the CTE goes there.
     [Fact]
     public void CteInsideMergeUsingSubquery_IsAcceptedByTheEngine()
     {

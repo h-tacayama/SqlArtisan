@@ -225,3 +225,21 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
   on the PostgreSQL lane and
   `Upsert_OnConflictDoUpdateWithoutTarget_IsAcceptedByTheEngine` on the
   SQLite lane.
+- **A leading `WITH` before `MERGE` on Oracle** (#521 item 3). Oracle's
+  `merge_statement` carries no `subquery_factoring_clause` either
+  (live-verified on XE 21.3.0 and Free 23ai), so the leading shape has no
+  valid spelling there — but the remedy the two entries above name is not
+  available to it: `MERGE` has no feeding `SELECT` to carry the CTE, and its
+  own source slot takes a subquery instead, so the CTE goes inside the one
+  `Using(...)` names. That is why this is a guard of its own rather than a
+  fourth statement in the Oracle message: a shared message would misname the
+  way out. `MergeBuilder.Validate` throws for `Dbms.Oracle` alone —
+  PostgreSQL and SQL Server take the leading form, and MySQL and SQLite have
+  no `MERGE` for one to lead, which leaves those two to SQLA0100 rather than
+  to any guard. The recursive pairing needs no guard at all: `WithRecursive`
+  hands back a state that declares no `MergeInto`, so the chain no engine
+  accepts does not compile. Live twins:
+  `LeadingWithBeforeMerge_IsRejectedByTheEngine` on the Oracle and Oracle23ai
+  lanes, `CteInsideMergeUsingSubquery_IsAcceptedByTheEngine` for the remedy on
+  the Oracle lane, and `LeadingWithBeforeMerge_IsAcceptedByTheEngine` on the
+  PostgreSQL and SQL Server lanes.

@@ -159,6 +159,8 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     // VALUES — both invalid on every dialect that has MERGE.
     protected override void Validate(Dbms dbms)
     {
+        DmlTargetGuard.ThrowIfLeadingWithUnsupportedOnMerge(PartsSpan, dbms);
+
         bool branchOpen = false;
         bool insertOpen = false;
 
