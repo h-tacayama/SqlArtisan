@@ -733,4 +733,55 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(1).ForUpdate()));
     }
+
+    // #521 probe: Oracle's filtered MERGE branch — the filter is a trailing
+    // WHERE on the action, and WHEN [NOT] MATCHED takes no AND.
+    [Fact]
+    public void MergeFilteredBranch_TakesTrailingWhereNotAnd()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT 1 AS id, 'x' AS name FROM dual) s "
+                + "ON (t.id = s.id) WHEN MATCHED THEN UPDATE SET t.name = s.name "
+                + "WHERE s.name = 'x'",
+            transaction: transaction);
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT 901 AS id, 'x' AS name FROM dual) s "
+                + "ON (t.id = s.id) WHEN NOT MATCHED THEN INSERT (id, name) "
+                + "VALUES (s.id, s.name) WHERE s.name = 'x'",
+            transaction: transaction);
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute(
+                "MERGE INTO users t USING (SELECT 1 AS id, 'x' AS name FROM dual) s "
+                    + "ON (t.id = s.id) WHEN MATCHED AND s.name = 'x' THEN "
+                    + "UPDATE SET t.name = s.name",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // #521 probe: does Oracle's FOR UPDATE OF take a column list, and does it
+    // take a bare table name the way PostgreSQL's does?
+    [Fact]
+    public void ForUpdateOf_TakesAColumnListNotATable()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.ExecuteScalar(
+            "SELECT t.id FROM users t WHERE t.id = 1 FOR UPDATE OF t.id",
+            transaction: transaction);
+        connection.ExecuteScalar(
+            "SELECT t.id FROM users t WHERE t.id = 1 FOR UPDATE OF t.id, t.name",
+            transaction: transaction);
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.ExecuteScalar(
+                "SELECT t.id FROM users t WHERE t.id = 1 FOR UPDATE OF t",
+                transaction: transaction));
+        transaction.Rollback();
+    }
 }

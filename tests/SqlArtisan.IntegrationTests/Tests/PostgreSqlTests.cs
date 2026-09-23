@@ -888,4 +888,23 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(2, merged);
         transaction.Rollback();
     }
+
+    // #521 probe: PostgreSQL's FOR UPDATE OF names relations, so the column the
+    // Oracle-only Of(...) emits has no spelling here.
+    [Fact]
+    public void ForUpdateOf_NamesRelationsNotColumns()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.ExecuteScalar(
+            "SELECT t.id FROM users t WHERE t.id = 1 FOR UPDATE OF t",
+            transaction: transaction);
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.ExecuteScalar(
+                "SELECT t.id FROM users t WHERE t.id = 1 FOR UPDATE OF t.id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
 }

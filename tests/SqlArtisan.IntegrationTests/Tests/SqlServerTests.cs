@@ -627,4 +627,28 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         Assert.Equal(2, merged);
         transaction.Rollback();
     }
+
+    // #521 probe: does T-SQL take OUTPUT with no INSERT column list, and after
+    // the (cols) VALUES form the Set(...) chain renders?
+    [Fact]
+    public void OutputWithoutColumnList_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the column-list shape the builder already reaches.
+        Assert.Equal(
+            901,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users (id, name) OUTPUT INSERTED.id VALUES (901, 'x')",
+                transaction: transaction));
+
+        Assert.Equal(
+            902,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users OUTPUT INSERTED.id "
+                    + "VALUES (902, 'y', 30, 10, NULL, 1, NULL)",
+                transaction: transaction));
+        transaction.Rollback();
+    }
 }

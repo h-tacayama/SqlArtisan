@@ -684,4 +684,23 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Equal(new[] { 1 }, ids);
         transaction.Rollback();
     }
+
+    // #521 probe: MySQL 8.0 has FOR UPDATE OF too — but naming what? The matrix
+    // has Of as Oracle-only, so a relation-naming form here would be new ground.
+    [Fact]
+    public void ForUpdateOf_NamesRelationsNotColumns()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.ExecuteScalar(
+            "SELECT t.id FROM users t WHERE t.id = 1 FOR UPDATE OF t",
+            transaction: transaction);
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.ExecuteScalar(
+                "SELECT t.id FROM users t WHERE t.id = 1 FOR UPDATE OF t.id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
 }
