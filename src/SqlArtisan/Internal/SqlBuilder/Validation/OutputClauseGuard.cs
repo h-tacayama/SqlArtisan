@@ -1,8 +1,8 @@
 namespace SqlArtisan.Internal;
 
-// No Build(dbms) target accepts either half's pairing, so every guard here is
-// dialect-blind: three pair OUTPUT with a construct SQL Server does not have,
-// and one pairs it with a clause T-SQL takes only ahead of OUTPUT.
+// Each pair is OUTPUT beside what no target takes with it — a construct SQL Server
+// lacks, or Set(...)'s single (cols) VALUES (...) unit, which OUTPUT must split —
+// so all are dialect-blind. The INTO width check at the end is not a pair.
 internal static class OutputClauseGuard
 {
     internal static void ThrowIfCombinedWithReturning(
@@ -38,9 +38,9 @@ internal static class OutputClauseGuard
         }
     }
 
-    // T-SQL puts an INSERT's column list ahead of OUTPUT, and Set(...) is what
-    // emits that list, so the pair is invalid in either order — the typestate
-    // withholds it, and a held builder can still append both (#521).
+    // OUTPUT goes between an INSERT's column list and its VALUES, and Set(...) renders
+    // both as one unit, so SQL Server 2022 rejects either order (lane twins, #521);
+    // the typestate withholds the pair, and this backstops a held builder.
     internal static void ThrowIfInsertCombinedWithSet(
         OutputClause? output, InsertSetClause? set)
     {

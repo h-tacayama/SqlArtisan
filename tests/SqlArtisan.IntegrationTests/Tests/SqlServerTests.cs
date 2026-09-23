@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 using SqlArtisan;
 using SqlArtisan.Dapper;
@@ -660,9 +661,31 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        Assert.ThrowsAny<Exception>(() =>
+        Assert.ThrowsAny<DbException>(() =>
             connection.ExecuteScalar<int>(
                 "INSERT INTO users OUTPUT INSERTED.id (id, name) VALUES (903, 'z')",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // The other half of why OUTPUT and Set(...) never pair: Set(...) renders the
+    // column list and VALUES as one unit, and OUTPUT cannot trail it either.
+    [Fact]
+    public void OutputAfterValues_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the same statement with OUTPUT between the two halves.
+        Assert.Equal(
+            906,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users (id, name) OUTPUT INSERTED.id VALUES (906, 'q')",
+                transaction: transaction));
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users (id, name) VALUES (907, 'r') OUTPUT INSERTED.id",
                 transaction: transaction));
         transaction.Rollback();
     }
