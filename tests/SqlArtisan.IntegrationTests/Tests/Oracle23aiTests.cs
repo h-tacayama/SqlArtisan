@@ -55,4 +55,26 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             "SELECT age FROM users WHERE id = 1 FOR UPDATE WAIT -1"));
     }
+
+    // #521 item 3 probe: the 21c lane's rejecting twin, re-run at 23ai — the
+    // subquery-factoring clause is still not part of the MERGE grammar.
+    [Fact]
+    public void LeadingWithBeforeMerge_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT 1 AS id, 'x' AS name FROM dual) s "
+                + "ON (t.id = s.id) WHEN MATCHED THEN UPDATE SET t.name = s.name",
+            transaction: transaction);
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute(
+                "WITH c AS (SELECT 1 AS id, 'x' AS name FROM dual) "
+                    + "MERGE INTO users t USING c s ON (t.id = s.id) "
+                    + "WHEN MATCHED THEN UPDATE SET t.name = s.name",
+                transaction: transaction));
+        transaction.Rollback();
+    }
 }

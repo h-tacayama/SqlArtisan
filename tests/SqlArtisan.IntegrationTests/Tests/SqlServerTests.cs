@@ -588,4 +588,20 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         transaction.Rollback();
     }
+
+    // #521 item 3 probe: T-SQL's MERGE grammar leads with an optional
+    // common_table_expression list.
+    [Fact]
+    public void LeadingWithBeforeMerge_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "WITH c AS (SELECT 1 AS id, 'x' AS name) "
+                + "MERGE INTO users AS t USING c AS s ON t.id = s.id "
+                + "WHEN MATCHED THEN UPDATE SET name = s.name;",
+            transaction: transaction);
+        transaction.Rollback();
+    }
 }

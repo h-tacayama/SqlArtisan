@@ -464,6 +464,44 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // #521 item 3 probe: does Oracle's MERGE take a leading WITH?
+    [Fact]
+    public void LeadingWithBeforeMerge_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the same MERGE with the source inlined runs, so a
+        // rejection below can only come from the leading WITH.
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT 1 AS id, 'x' AS name FROM dual) s "
+                + "ON (t.id = s.id) WHEN MATCHED THEN UPDATE SET t.name = s.name",
+            transaction: transaction);
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "WITH c AS (SELECT 1 AS id, 'x' AS name FROM dual) "
+                    + "MERGE INTO users t USING c s ON (t.id = s.id) "
+                    + "WHEN MATCHED THEN UPDATE SET t.name = s.name",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // #521 item 3 probe: is the CTE reachable inside the USING source instead?
+    [Fact]
+    public void CteInsideMergeUsingSubquery_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING "
+                + "(WITH c AS (SELECT 1 AS id, 'x' AS name FROM dual) SELECT * FROM c) s "
+                + "ON (t.id = s.id) WHEN MATCHED THEN UPDATE SET t.name = s.name",
+            transaction: transaction);
+        transaction.Rollback();
+    }
+
     // ADR 0011 (#523): the accepted twins that keep both constant-sort-key
     // guards off Oracle — it reads either literal as a constant expression.
     [Fact]

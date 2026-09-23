@@ -829,4 +829,41 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(new[] { 2 }, ids);
         transaction.Rollback();
     }
+
+    // #521 item 3 probe: PostgreSQL 16 takes a leading WITH before MERGE, but
+    // refuses the RECURSIVE keyword there whatever the CTE body does.
+    [Fact]
+    public void LeadingWithBeforeMerge_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "WITH c AS (SELECT 1 AS id, 'x' AS name) "
+                + "MERGE INTO users t USING c s ON t.id = s.id "
+                + "WHEN MATCHED THEN UPDATE SET name = s.name",
+            transaction: transaction);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void LeadingWithRecursiveBeforeMerge_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the same RECURSIVE keyword over the same
+        // non-recursive body runs before a SELECT, so the refusal is MERGE's.
+        connection.Query<int>(
+            "WITH RECURSIVE c AS (SELECT 1 AS id) SELECT id FROM c",
+            transaction: transaction).ToList();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "WITH RECURSIVE c AS (SELECT 1 AS id, 'x' AS name) "
+                    + "MERGE INTO users t USING c s ON t.id = s.id "
+                    + "WHEN MATCHED THEN UPDATE SET name = s.name",
+                transaction: transaction));
+        transaction.Rollback();
+    }
 }

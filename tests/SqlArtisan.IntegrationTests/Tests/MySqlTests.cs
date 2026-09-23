@@ -420,6 +420,35 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
+    // #521 item 3 probe: MySQL 8.0 has no MERGE at all, so the CTE-fed form is
+    // unreachable here for want of the statement, not the leading WITH.
+    [Fact]
+    public void MergeStatement_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the leading WITH before an UPDATE runs here, so
+        // the rejections below are the missing MERGE and nothing else.
+        connection.Execute(
+            "WITH c AS (SELECT 1 AS id) UPDATE users SET name = name "
+                + "WHERE id IN (SELECT id FROM c)",
+            transaction: transaction);
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "MERGE INTO users t USING (SELECT 1 AS id, 'x' AS name) s ON t.id = s.id "
+                    + "WHEN MATCHED THEN UPDATE SET t.name = s.name",
+                transaction: transaction));
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "WITH c AS (SELECT 1 AS id, 'x' AS name) "
+                    + "MERGE INTO users t USING c s ON t.id = s.id "
+                    + "WHEN MATCHED THEN UPDATE SET t.name = s.name",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
     // The live twins of the ORDER BY ordinal guards: MySQL rejects position 0
     // but reads a negative literal as a constant and accepts it — the asymmetry
     // that scopes the ADR 0011 arm to PostgreSQL and SQLite.

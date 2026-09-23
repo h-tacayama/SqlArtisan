@@ -550,4 +550,33 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
             Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 999), transaction));
         transaction.Rollback();
     }
+
+    // #521 item 3 probe: SQLite has no MERGE at all, so the CTE-fed form is
+    // unreachable here for want of the statement, not the leading WITH.
+    [Fact]
+    public void MergeStatement_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the leading WITH before an UPDATE runs here, so
+        // the rejections below are the missing MERGE and nothing else.
+        connection.Execute(
+            "WITH c AS (SELECT 1 AS id) UPDATE users SET name = name "
+                + "WHERE id IN (SELECT id FROM c)",
+            transaction: transaction);
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s "
+                    + "ON t.id = s.id WHEN MATCHED THEN UPDATE SET name = s.name",
+                transaction: transaction));
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "WITH c AS (SELECT 1 AS id, 'x' AS name) "
+                    + "MERGE INTO users AS t USING c AS s ON t.id = s.id "
+                    + "WHEN MATCHED THEN UPDATE SET name = s.name",
+                transaction: transaction));
+        transaction.Rollback();
+    }
 }
