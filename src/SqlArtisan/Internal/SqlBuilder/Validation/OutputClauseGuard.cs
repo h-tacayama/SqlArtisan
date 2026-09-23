@@ -1,8 +1,8 @@
 namespace SqlArtisan.Internal;
 
-// Every guarded pair here is one SQL-Server-only construct beside one
-// SQL-Server-incompatible one, so no Build(dbms) target ever accepts both --
-// the same shape as SelectBuilder's TOP + OFFSET/FETCH exclusivity check.
+// No Build(dbms) target accepts either half's pairing, so every guard here is
+// dialect-blind: three pair OUTPUT with a construct SQL Server does not have,
+// and one pairs it with a clause T-SQL takes only ahead of OUTPUT.
 internal static class OutputClauseGuard
 {
     internal static void ThrowIfCombinedWithReturning(
