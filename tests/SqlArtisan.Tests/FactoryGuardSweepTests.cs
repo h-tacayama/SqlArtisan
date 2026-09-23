@@ -172,7 +172,10 @@ public class FactoryGuardSweepTests
         typeof(SqlStatement), typeof(ISqlBuilder), typeof(ExpressionAlias), typeof(SqlExpression),
         typeof(SqlCondition), typeof(TableReference), typeof(CommonTableExpression),
         typeof(SortOrder), typeof(SqlHints), typeof(GroupingSet), typeof(GroupingElement),
-        typeof(SeparatorClause), typeof(IWithBuilderWith), typeof(IWithBuilderWithRecursive),
+        typeof(SeparatorClause), typeof(IWithBuilderWith),
+        // No arm of its own in TryBuild: that switch sees one class implementing
+        // both WITH states, while this check keys on the declared return type.
+        typeof(IWithBuilderWithRecursive),
         typeof(OfClause),
     ];
 
@@ -617,12 +620,6 @@ public class FactoryGuardSweepTests
                         .Build(Dbms.MySql).Text,
                 IWithBuilderWith withBuilder =>
                     withBuilder.Select(new DbTable("e").Column("c"))
-                        .From(new DbTable("e"))
-                        .Build(Dbms.PostgreSql).Text,
-                // Its own arm: the recursive state is a sibling of the above, not
-                // a subtype, so one pattern cannot reach both.
-                IWithBuilderWithRecursive recursiveWithBuilder =>
-                    recursiveWithBuilder.Select(new DbTable("e").Column("c"))
                         .From(new DbTable("e"))
                         .Build(Dbms.PostgreSql).Text,
                 OfClause ofClause =>
