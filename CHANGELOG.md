@@ -83,6 +83,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   rules are settled by the builder stage the call binds to, so unlike the other
   context rules they still warn when the builder is held in a variable; the
   `FOR UPDATE` rule reads the chain and stays silent there, as the rest do.
+- `With(...)` now leads into `MergeInto(...)`, so a CTE-fed `MERGE` has a
+  spelling: `With(fresh.As(...)).MergeInto(t).Using(fresh).On(...)`. The chain
+  did not compile before, because the state `With(...)` returns declared every
+  DML head but that one. PostgreSQL 16 and SQL Server 2022 run the leading
+  form; Oracle XE 21.3.0 and Free 23ai reject it, so `Build(Dbms.Oracle)`
+  throws with `Oracle has no leading WITH on MERGE; put the CTE inside the
+  subquery the Using(...) source names.` — which is where Oracle does take one,
+  live-verified on both lanes. MySQL 8.0 and SQLite have no `MERGE` at all, so
+  `SQLA0100` reports the statement there as it already did. See [WITH
+  Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#with-clause-common-table-expressions).
+  (#521)
+
+### Changed
+- **Breaking:** `WithRecursive(...)` now returns its own builder state, which opens a
+  `SELECT`, `INSERT`, `UPDATE` or `DELETE` exactly as before but declares no
+  `MergeInto`. No supported engine takes a recursive `WITH` before a `MERGE`:
+  PostgreSQL 16 — the only one with both the keyword and the statement —
+  refuses the pairing whether or not the CTE body recurses, Oracle and SQL
+  Server have no `RECURSIVE` keyword, and MySQL and SQLite have no `MERGE`. A
+  chain valid nowhere is a compile error rather than a runtime one. Code that
+  writes the state's type out (`IWithBuilderWith x = WithRecursive(...)`) now
+  needs `IWithBuilderWithRecursive`; a fluent chain is unaffected.
+  Binary-breaking — rebuild against this version. (#521)
 
 ### Fixed
 - `DateTimePart.Weekday` and `DateTimePart.Dayofyear` no longer claim MySQL.

@@ -172,7 +172,11 @@ public class FactoryGuardSweepTests
         typeof(SqlStatement), typeof(ISqlBuilder), typeof(ExpressionAlias), typeof(SqlExpression),
         typeof(SqlCondition), typeof(TableReference), typeof(CommonTableExpression),
         typeof(SortOrder), typeof(SqlHints), typeof(GroupingSet), typeof(GroupingElement),
-        typeof(SeparatorClause), typeof(IWithBuilderWith), typeof(OfClause),
+        typeof(SeparatorClause), typeof(IWithBuilderWith),
+        // No arm of its own in TryBuild: that switch sees one class implementing
+        // both WITH states, while this check keys on the declared return type.
+        typeof(IWithBuilderWithRecursive),
+        typeof(OfClause),
     ];
 
     private static readonly string[] UnembeddedReturnTypes =

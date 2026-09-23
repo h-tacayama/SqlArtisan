@@ -829,4 +829,63 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(new[] { 2 }, ids);
         transaction.Rollback();
     }
+
+    // The raw half of the docs' claim: PostgreSQL 16 takes a leading WITH before
+    // MERGE, and refuses the RECURSIVE keyword there whatever the CTE body does.
+    [Fact]
+    public void LeadingWithBeforeMerge_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "WITH c AS (SELECT 1 AS id, 'x' AS name) "
+                + "MERGE INTO users t USING c s ON t.id = s.id "
+                + "WHEN MATCHED THEN UPDATE SET name = s.name",
+            transaction: transaction);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void LeadingWithRecursiveBeforeMerge_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the same RECURSIVE keyword over the same
+        // non-recursive body runs before a SELECT, so the refusal is MERGE's.
+        connection.Query<int>(
+            "WITH RECURSIVE c AS (SELECT 1 AS id) SELECT id FROM c",
+            transaction: transaction).ToList();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "WITH RECURSIVE c AS (SELECT 1 AS id, 'x' AS name) "
+                    + "MERGE INTO users t USING c s ON t.id = s.id "
+                    + "WHEN MATCHED THEN UPDATE SET name = s.name",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // The built half: the feature this lane exists to prove runs end to end.
+    [Fact]
+    public void Cte_LeadingWithBeforeMerge_Executes()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        Cte fresh = new("fresh");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int merged = connection.Execute(
+            With(fresh.As(Select(s.Id, s.Name).From(s).Where(s.Id <= 2)))
+                .MergeInto(t)
+                .Using(fresh)
+                .On(t.Id == fresh.Column("id"))
+                .WhenMatched().ThenUpdateSet(t.Name == fresh.Column("name")),
+            transaction);
+
+        Assert.Equal(2, merged);
+        transaction.Rollback();
+    }
 }

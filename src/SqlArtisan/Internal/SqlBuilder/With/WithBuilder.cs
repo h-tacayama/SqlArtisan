@@ -1,6 +1,6 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class WithBuilder : IWithBuilderWith
+internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
 {
     private readonly SqlPart _withPart;
 
@@ -61,6 +61,9 @@ internal sealed class WithBuilder : IWithBuilderWith
         return new InsertBuilder(
             table, columns.Length, _withPart, new InsertIntoClause(table, columns));
     }
+
+    public IMergeBuilderTarget MergeInto(DbTableBase target) =>
+        new MergeBuilder(target, _withPart, new MergeIntoClause(target));
 
     public ISelectBuilderSelect Select(params object[] selectItems) =>
         new SelectBuilder(_withPart, SelectClause.Parse(selectItems));
