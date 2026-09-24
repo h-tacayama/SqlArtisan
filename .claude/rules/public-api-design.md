@@ -221,12 +221,17 @@ return type. Two #521 entries were declined on that reading, after measuring:
 - `InsertInto(t)`, with no column list, takes no `.Output(...)` either. SQL
   Server 2022 runs `INSERT INTO t OUTPUT ... VALUES (...)`
   (`OutputWithoutColumnList_IsAcceptedByTheEngine`), but a positional row
-  fills the columns in declaration order, skipping identity, computed and
-  `rowversion` ones (`PositionalValues_FillTheColumnsANamedListWould`), so
-  naming those columns in `InsertInto(t, cols)` writes the same insert.
-  Reaching the columnless form took three new builder states and a
-  binary-breaking return type on `Sql.InsertInto` when it was built (#541,
-  withdrawn unmerged).
+  fills the columns in declaration order, skipping identity and computed
+  ones (`PositionalValues_SkipAnIdentityColumn`,
+  `PositionalValues_SkipAComputedColumn`), so naming the columns it fills in
+  `InsertInto(t, cols)` writes the same insert. A `rowversion` column is the
+  exception: a positional row must still fill its slot, with `DEFAULT`
+  (`PositionalValues_DoNotSkipARowversionColumn`,
+  `PositionalValues_FillARowversionSlotWithDefault`), which SqlArtisan has no
+  spelling for, while a column list leaves it out — so there too the
+  column-list chain writes no less. Reaching the columnless form took three
+  new builder states and a binary-breaking return type on `Sql.InsertInto`
+  when it was built (#541, withdrawn unmerged).
 
 `COUNT(*)` sat on the other side of that line: the library had no spelling
 for it (#233).
