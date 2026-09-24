@@ -1064,7 +1064,7 @@ The row-limiting clause comes first and `ForUpdate(...)` ends the chain — the 
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
 
-**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Of(...)` and `Wait(...)` are Oracle-only — `Of` names columns, the form MySQL and PostgreSQL reject. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`.
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs, which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`.
 
 ---
 
