@@ -342,6 +342,10 @@ internal static class DialectMatrix
         // does not — its delete is the in-clause DeleteWhere).
         [new MatrixKey("ThenDelete")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: true),
         [new MatrixKey("DeleteWhere")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        // Oracle's filtered branch: a trailing WHERE on the action, where the other MERGE
+        // engines condition the WHEN instead (WhenMatched/WhenNotMatched arity 1).
+        [new MatrixKey("UpdateWhere")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        [new MatrixKey("InsertWhere")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
         // ============ Full-coverage expansion (#93 step 1) ============
         // Everything below completes coverage of the public surface. Universal rows assert

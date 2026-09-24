@@ -554,6 +554,155 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // #521: Oracle filters a MERGE branch with a trailing WHERE on the action.
+    // Only the matched rows passing it are updated (Alice 30, Dave 25).
+    [Fact]
+    public void Merge_UpdateWhere_UpdatesOnlyTheRowsItAdmits()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        UsersTable c = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Name == "u").UpdateWhere(t.Age < 35),
+            transaction);
+
+        Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(c.Id)).From(c).Where(c.Name == "u"), transaction)));
+        transaction.Rollback();
+    }
+
+    // The filter may read the source as well as the target (Carol, 50).
+    [Fact]
+    public void Merge_UpdateWhere_ReadsTheSource()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        UsersTable c = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Name == "u").UpdateWhere(s.Age > 45),
+            transaction);
+
+        Assert.Equal(1, Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(c.Id)).From(c).Where(c.Name == "u"), transaction)));
+        transaction.Rollback();
+    }
+
+    // DELETE WHERE reaches only the rows the WHERE admitted: Bob and Eve go;
+    // Carol (50) was never updated, so she stays although she is over 35.
+    [Fact]
+    public void Merge_UpdateWhere_LimitsWhatDeleteWhereSees()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        UsersTable c = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Name == s.Name)
+                .UpdateWhere(t.Age < 45).DeleteWhere(t.Age >= 35),
+            transaction);
+
+        Assert.Equal(3, Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(c.Id)).From(c), transaction)));
+        Assert.Equal(1, Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(c.Id)).From(c).Where(c.Id == 3), transaction)));
+        transaction.Rollback();
+    }
+
+    // Why UpdateWhere comes before DeleteWhere in the chain: the engine takes
+    // the WHERE there only.
+    [Fact]
+    public void MergeDeleteWhereBeforeUpdateWhere_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT id, name FROM users) s ON (t.id = s.id) "
+                + "WHEN MATCHED THEN UPDATE SET t.name = s.name DELETE WHERE t.age >= 35 "
+                + "WHERE t.age < 45",
+            transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // The insert takes the same trailing WHERE, over the source: of five
+    // unmatched rows, those under 35 (Alice, Dave) are inserted.
+    [Fact]
+    public void Merge_InsertWhere_InsertsOnlyTheRowsItAdmits()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        UsersTable c = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Offsetting the key leaves every source row unmatched.
+        connection.Execute(
+            MergeInto(t).Using(s).On(t.Id == s.Id + 900)
+                .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id + 900, s.Name)
+                .InsertWhere(s.Age < 35),
+            transaction);
+
+        Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(c.Id)).From(c).Where(c.Id > 900), transaction)));
+        transaction.Rollback();
+    }
+
+    // A matched row the update's filter turns away is not inserted instead:
+    // three rows are filtered out, and only the unmatched 901 is inserted.
+    [Fact]
+    public void Merge_BothBranchesFiltered_ExecutesEachFilterOnItsOwnBranch()
+    {
+        UsersTable t = new("t");
+        UsersTable src = new("src");
+        UsersTable c = new();
+        SubqueryDerivedTable s =
+            Select(src.Id, src.Name, src.Age).From(src)
+                .UnionAll.Select(901, "a", 20).From(Dual)
+                .AsTable("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            MergeInto(t).Using(s).On(t.Id == s.Column("id"))
+                .WhenMatched().ThenUpdateSet(t.Name == "u").UpdateWhere(t.Age < 35)
+                .WhenNotMatched().ThenInsert(t.Id, t.Name)
+                .Values(s.Column("id"), s.Column("name"))
+                .InsertWhere(s.Column("age") < 35),
+            transaction);
+
+        Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(c.Id)).From(c).Where(c.Name == "u"), transaction)));
+        Assert.Equal(6, Convert.ToInt64(connection.ExecuteScalar(
+            Select(Count(c.Id)).From(c), transaction)));
+        transaction.Rollback();
+    }
+
+    // An unmatched row has no target row, so the insert filter cannot name
+    // one — the claim InsertWhere's remarks make.
+    [Fact]
+    public void MergeInsertWhere_NamingTheTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT 901 id, 'a' name FROM dual) s ON (t.id = s.id) "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name) WHERE t.age > 0",
+            transaction: transaction));
+        transaction.Rollback();
+    }
+
     // #521 item 2: Oracle is said to reject grouping by ordinal. The other
     // possibility -- grouping by the constant -- would be silently wrong.
     [Fact]

@@ -208,15 +208,23 @@ internal abstract class SqlBuilderBase
         ("DELETE WHERE", [typeof(MergeDeleteWhereClause)]),
         ("INSERT", [typeof(MergeInsertClause)]),
         ("VALUES", [typeof(InsertValuesClause)]),
+        ("UPDATE WHERE", [typeof(MergeUpdateWhereClause)]),
+        ("INSERT WHERE", [typeof(MergeInsertWhereClause)]),
     ];
 
-    // A branch takes one action; only Oracle's `UPDATE SET ... DELETE WHERE`
-    // pairs two, so DELETE WHERE is exclusive with the other two alone.
+    // A branch takes one action; Oracle's update carries its WHERE and DELETE WHERE
+    // and its insert its WHERE, so each filter is exclusive with the other actions.
     private static readonly (int Kind, int Other)[] ExclusiveBranchKinds = BuildExclusiveKinds(
         OncePerBranchClauses,
         ["UPDATE SET", "DELETE", "INSERT"],
         ["DELETE WHERE", "DELETE"],
-        ["DELETE WHERE", "INSERT"]);
+        ["DELETE WHERE", "INSERT"],
+        ["UPDATE WHERE", "DELETE"],
+        ["UPDATE WHERE", "INSERT"],
+        ["INSERT WHERE", "UPDATE SET"],
+        ["INSERT WHERE", "DELETE"],
+        ["INSERT WHERE", "DELETE WHERE"],
+        ["INSERT WHERE", "UPDATE WHERE"]);
 
     // A stage repeated on a held builder appends a duplicate clause, valid on no
     // dialect (#225); a set operator and a conditioned join each open what they must

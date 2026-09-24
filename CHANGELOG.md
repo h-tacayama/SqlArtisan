@@ -94,8 +94,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `SQLA0100` reports the statement there as it already did. See [WITH
   Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#with-clause-common-table-expressions).
   (#521)
+- Oracle's filtered `MERGE` branch: `UpdateWhere(...)` after `ThenUpdateSet(...)`
+  and `InsertWhere(...)` after the insert's `Values(...)` emit the trailing
+  `WHERE` Oracle takes on a branch's action —
+  `WHEN MATCHED THEN UPDATE SET ... WHERE ...` and
+  `WHEN NOT MATCHED THEN INSERT ... VALUES (...) WHERE ...`. Oracle has no `AND`
+  on `WHEN`, so `WhenMatched(condition)` was never its spelling and the filter
+  had none. `UpdateWhere(...)` goes before `DeleteWhere(...)`, which then
+  reaches only the rows it let through; Oracle XE 21.3.0 rejects the other
+  order. Both are Oracle-only in the dialect matrix, so `SQLA0100` reports them
+  on the other engines. See [MERGE
+  Statement](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement).
+  (#521)
 
 ### Changed
+- **Breaking:** the insert branch's `Values(...)` in a `MERGE` now returns
+  `IMergeBuilderValues`, which adds `InsertWhere(...)` to the
+  `IMergeBuilderWhen` it extends. A fluent chain is unaffected; code that
+  writes the state's type out keeps compiling, since the new state is an
+  `IMergeBuilderWhen`. Binary-breaking — rebuild against this version. (#521)
 - **Breaking:** `WithRecursive(...)` now returns its own builder state, which opens a
   `SELECT`, `INSERT`, `UPDATE` or `DELETE` exactly as before but declares no
   `MergeInto`. No supported engine takes a recursive `WITH` before a `MERGE`:

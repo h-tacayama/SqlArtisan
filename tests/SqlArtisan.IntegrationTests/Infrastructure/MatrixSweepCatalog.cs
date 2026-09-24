@@ -764,6 +764,21 @@ internal static class MatrixSweepCatalog
             return MergeInto(t).Using(s).On(t.Id == s.Id)
                 .WhenMatched().ThenUpdateSet(t.Name == s.Name).DeleteWhere(t.Age >= 50);
         });
+        AddMutating("UpdateWhere", _ =>
+        {
+            UsersTable t = new("t");
+            UsersTable s = new("s");
+            return MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Name == s.Name).UpdateWhere(t.Age < 35);
+        });
+        AddMutating("InsertWhere", _ =>
+        {
+            UsersTable t = new("t");
+            UsersTable s = new("s");
+            return MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id, s.Name)
+                .InsertWhere(s.Age > 0);
+        });
 
         // --- RETURNING ---
         cases.Add(new SweepCase(new MatrixKey("Returning"),
