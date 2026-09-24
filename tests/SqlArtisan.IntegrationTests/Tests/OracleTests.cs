@@ -882,4 +882,28 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(1).ForUpdate()));
     }
+
+    // #521: Oracle's OF names a column, and locks the rows of its table alone.
+    [Fact]
+    public void ForUpdate_OfColumn_LocksOnlyThatColumnsTable()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection a = _fixture.OpenConnection();
+        using IDbTransaction ta = a.BeginTransaction();
+        a.Query<int>(
+            Select(u.Id).From(u).InnerJoin(o).On(o.UserId == u.Id).Where(u.Id == 1)
+                .ForUpdate(Of(u.Id)),
+            ta).ToList();
+
+        // A second session asking NOWAIT finds the order free and the user locked.
+        using IDbConnection b = _fixture.OpenConnection();
+        using IDbTransaction tb = b.BeginTransaction();
+        b.Query<int>("SELECT id FROM orders WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb)
+            .ToList();
+        Assert.ThrowsAny<DbException>(() => b.Query<int>(
+            "SELECT id FROM users WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb).ToList());
+        tb.Rollback();
+        ta.Rollback();
+    }
 }

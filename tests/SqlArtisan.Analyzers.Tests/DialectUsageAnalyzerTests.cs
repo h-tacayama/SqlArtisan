@@ -1068,4 +1068,52 @@ public class DialectUsageAnalyzerTests
 
         await test.RunAsync();
     }
+
+    // #521: the relation-naming Of(table, ...) is keyed apart from Oracle's
+    // Of(column) by arity, so each reports on the other's engines.
+    private static string ForUpdateOfUsage(string ofArgument) => $$"""
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
+
+        class T : DbTableBase
+        {
+            public DbColumn Id;
+            public T(string alias) : base("t", alias) { Id = new DbColumn(this, "id"); }
+        }
+
+        class C
+        {
+            void M()
+            {
+                T t = new("t");
+                var x = Select(t.Id).From(t).ForUpdate({|#0:Of({{ofArgument}})|});
+            }
+        }
+        """;
+
+    [Theory]
+    [InlineData("t", "oracle")]
+    [InlineData("t.Id", "postgresql")]
+    [InlineData("t.Id", "mysql")]
+    public async Task ForUpdateOf_OffItsDialects_ReportsSqla0100(string ofArgument, string dbms)
+    {
+        var test = AnalyzerVerifier.Create(
+            ForUpdateOfUsage(ofArgument), AnalyzerVerifier.EditorConfig(dbms));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("t", "postgresql")]
+    [InlineData("t", "mysql")]
+    [InlineData("t.Id", "oracle")]
+    public async Task ForUpdateOf_OnItsDialects_StaysSilent(string ofArgument, string dbms)
+    {
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(ForUpdateOfUsage(ofArgument)),
+            AnalyzerVerifier.EditorConfig(dbms));
+
+        await test.RunAsync();
+    }
 }

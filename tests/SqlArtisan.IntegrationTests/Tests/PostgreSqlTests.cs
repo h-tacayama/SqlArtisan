@@ -888,4 +888,123 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(2, merged);
         transaction.Rollback();
     }
+
+    // #521: PostgreSQL's OF names the relation to lock; the joined one stays free.
+    [Fact]
+    public void ForUpdate_OfTable_LocksOnlyThatTable()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection a = _fixture.OpenConnection();
+        using IDbTransaction ta = a.BeginTransaction();
+        a.Query<int>(
+            Select(u.Id).From(u).InnerJoin(o).On(o.UserId == u.Id).Where(u.Id == 1)
+                .ForUpdate(Of(u)),
+            ta).ToList();
+
+        // A second session asking NOWAIT finds the order free and the user locked.
+        using IDbConnection b = _fixture.OpenConnection();
+        using IDbTransaction tb = b.BeginTransaction();
+        b.Query<int>("SELECT id FROM orders WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb)
+            .ToList();
+        Assert.ThrowsAny<DbException>(() => b.Query<int>(
+            "SELECT id FROM users WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb).ToList());
+        tb.Rollback();
+        ta.Rollback();
+    }
+
+    [Fact]
+    public void ForUpdate_OfTwoTables_WithSkipLocked_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(o.Id).From(u).InnerJoin(o).On(o.UserId == u.Id).Where(u.Id == 1)
+                .OrderBy(o.Id).ForUpdate(Of(u, o), SkipLocked),
+            transaction);
+
+        Assert.Equal(new[] { 1, 2 }, ids);
+        transaction.Rollback();
+    }
+
+    // PostgreSQL rejects a plain FOR UPDATE on an outer join; an OF naming the
+    // preserved side runs — the claim the docs and Of(table)'s remarks make.
+    [Fact]
+    public void ForUpdate_OuterJoin_RunsOnlyWithOfThePreservedSide()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        using (IDbTransaction t = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+                Select(u.Id).From(u).LeftJoin(o).On(o.UserId == u.Id).ForUpdate(), t).ToList());
+            t.Rollback();
+        }
+
+        using IDbTransaction transaction = connection.BeginTransaction();
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(u.Id).From(u).LeftJoin(o).On(o.UserId == u.Id).Where(u.Id == 4)
+                .ForUpdate(Of(u)),
+            transaction);
+
+        Assert.Equal(new[] { 4 }, ids);
+        transaction.Rollback();
+    }
+
+    // Why Of(table) renders the alias: once a table is aliased, the engine
+    // no longer takes its name in OF.
+    [Fact]
+    public void ForUpdateOfTableNameOfAliasedTable_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT u.id FROM users u JOIN orders o ON o.user_id = u.id FOR UPDATE OF users",
+            transaction: transaction).ToList());
+        transaction.Rollback();
+    }
+
+    // #521: an unaliased schema-qualified table locks by its bare name.
+    [Fact]
+    public void ForUpdate_OfQualifiedUnaliasedTable_Executes()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        string schema = connection.ExecuteScalar<string>("SELECT current_schema()")!;
+        DbTable t = new($"{schema}.users");
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(t.Column("id")).From(t).Where(t.Column("id") == 1).ForUpdate(Of(t)),
+            transaction);
+
+        Assert.Equal(new[] { 1 }, ids);
+        transaction.Rollback();
+    }
+
+    // Why Of(table) drops the schema from an unaliased table's name.
+    [Fact]
+    public void ForUpdateOfQualifiedRelation_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        string schema = connection.ExecuteScalar<string>("SELECT current_schema()")!;
+        string from = $"SELECT id FROM {schema}.users WHERE id = 1 ";
+
+        // Acceptance control: the same query naming the bare relation runs.
+        using (IDbTransaction t = connection.BeginTransaction())
+        {
+            connection.Query<int>(from + "FOR UPDATE OF users", transaction: t).ToList();
+            t.Rollback();
+        }
+
+        using IDbTransaction transaction = connection.BeginTransaction();
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            from + $"FOR UPDATE OF {schema}.users", transaction: transaction).ToList());
+        transaction.Rollback();
+    }
 }

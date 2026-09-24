@@ -330,4 +330,81 @@ public class ForUpdateTests
 
         Assert.Equal("ofClause", ex.ParamName);
     }
+
+    // #521: PostgreSQL's and MySQL's OF names the relation — the alias when the
+    // table has one, since both engines reject the table name then.
+    [Fact]
+    public void ForUpdate_OfTables_PostgreSql_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+        SqlStatement sql =
+            Select(t.Name)
+            .From(t)
+            .InnerJoin(s).On(t.Code == s.Code)
+            .ForUpdate(Of(t, s), SkipLocked)
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "SELECT \"t\".name FROM test_table \"t\" "
+                + "INNER JOIN test_table \"s\" ON \"t\".code = \"s\".code "
+                + "FOR UPDATE OF \"t\", \"s\" SKIP LOCKED",
+            sql.Text);
+    }
+
+    [Fact]
+    public void ForUpdate_OfTable_MySql_QuotesTheAliasInBackticks()
+    {
+        TestTable t = new("t");
+        SqlStatement sql = Select(t.Name).From(t).ForUpdate(Of(t), Nowait).Build(Dbms.MySql);
+
+        Assert.Equal("SELECT `t`.name FROM test_table `t` FOR UPDATE OF `t` NOWAIT", sql.Text);
+    }
+
+    [Fact]
+    public void ForUpdate_OfUnaliasedTable_RendersTheTableName()
+    {
+        TestTable t = new();
+        SqlStatement sql = Select(t.Name).From(t).ForUpdate(Of(t)).Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT name FROM test_table FOR UPDATE OF test_table", sql.Text);
+    }
+
+    [Fact]
+    public void Of_NullTable_ThrowsArgumentNullException()
+    {
+        ArgumentNullException exception =
+            Assert.Throws<ArgumentNullException>(() => Of((DbTableBase)null!));
+
+        Assert.Equal("table", exception.ParamName);
+    }
+
+    [Fact]
+    public void Of_NullInMoreTables_ThrowsArgumentNullException()
+    {
+        TestTable t = new("t");
+
+        ArgumentNullException exception =
+            Assert.Throws<ArgumentNullException>(() => Of(t, (DbTableBase)null!));
+
+        Assert.Equal(
+            "A FOR UPDATE OF list must not contain a null table. (Parameter 'moreTables')",
+            exception.Message);
+    }
+
+    // PostgreSQL rejects a schema-qualified relation in OF, so an unaliased
+    // qualified table renders its bare name (a quoted dot is part of the name).
+    [Theory]
+    [InlineData("public.users", "users")]
+    [InlineData("\"my.schema\".\"Users\"", "\"Users\"")]
+    [InlineData("\"a.b\"", "\"a.b\"")]
+    [InlineData("db.`t.x`", "`t.x`")]
+    public void ForUpdate_OfQualifiedUnaliasedTable_RendersTheUnqualifiedName(
+        string tableName, string expected)
+    {
+        DbTable t = new(tableName);
+        SqlStatement sql = Select(t.Column("id")).From(t).ForUpdate(Of(t)).Build(Dbms.PostgreSql);
+
+        Assert.Equal($"SELECT id FROM {tableName} FOR UPDATE OF {expected}", sql.Text);
+    }
 }

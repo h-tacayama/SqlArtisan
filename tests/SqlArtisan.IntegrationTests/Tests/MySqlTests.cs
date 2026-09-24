@@ -684,4 +684,59 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.Equal(new[] { 1 }, ids);
         transaction.Rollback();
     }
+
+    // #521: MySQL's OF names the relation to lock; the joined one stays free.
+    [Fact]
+    public void ForUpdate_OfTable_LocksOnlyThatTable()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection a = _fixture.OpenConnection();
+        using IDbTransaction ta = a.BeginTransaction();
+        a.Query<int>(
+            Select(u.Id).From(u).InnerJoin(o).On(o.UserId == u.Id).Where(u.Id == 1)
+                .ForUpdate(Of(u)),
+            ta).ToList();
+
+        // A second session asking NOWAIT finds the order free and the user locked.
+        using IDbConnection b = _fixture.OpenConnection();
+        using IDbTransaction tb = b.BeginTransaction();
+        b.Query<int>("SELECT id FROM orders WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb)
+            .ToList();
+        Assert.ThrowsAny<DbException>(() => b.Query<int>(
+            "SELECT id FROM users WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb).ToList());
+        tb.Rollback();
+        ta.Rollback();
+    }
+
+    // Why Of(table) renders the alias: once a table is aliased, the engine
+    // no longer takes its name in OF.
+    [Fact]
+    public void ForUpdateOfTableNameOfAliasedTable_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT u.id FROM users u JOIN orders o ON o.user_id = u.id FOR UPDATE OF users",
+            transaction: transaction).ToList());
+        transaction.Rollback();
+    }
+
+    // #521: an unaliased schema-qualified table locks by its bare name.
+    [Fact]
+    public void ForUpdate_OfQualifiedUnaliasedTable_Executes()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        string schema = connection.ExecuteScalar<string>("SELECT DATABASE()")!;
+        DbTable t = new($"{schema}.users");
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            Select(t.Column("id")).From(t).Where(t.Column("id") == 1).ForUpdate(Of(t)),
+            transaction);
+
+        Assert.Equal(new[] { 1 }, ids);
+        transaction.Rollback();
+    }
 }
