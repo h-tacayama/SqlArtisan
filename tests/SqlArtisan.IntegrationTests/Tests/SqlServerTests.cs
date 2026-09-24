@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 using SqlArtisan;
 using SqlArtisan.Dapper;
@@ -625,6 +626,157 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             transaction);
 
         Assert.Equal(2, merged);
+        transaction.Rollback();
+    }
+
+    // The fact public-api-design.md's decline of the columnless OUTPUT rests on:
+    // T-SQL takes the form, so declining it is ergonomic, not a missing spelling.
+    [Fact]
+    public void OutputWithoutColumnList_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the column-list shape the builder already reaches.
+        Assert.Equal(
+            901,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users (id, name) OUTPUT INSERTED.id VALUES (901, 'x')",
+                transaction: transaction));
+
+        Assert.Equal(
+            902,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users OUTPUT INSERTED.id "
+                    + "VALUES (902, 'y', 30, 10, NULL, 1, NULL)",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // Where OUTPUT goes on an INSERT, pinned from both sides with the twin below —
+    // the position #542's guard message will have to state.
+    [Fact]
+    public void OutputBeforeColumnList_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users OUTPUT INSERTED.id (id, name) VALUES (903, 'z')",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // The trailing side: #542's held builder appends OUTPUT after VALUES.
+    [Fact]
+    public void OutputAfterValues_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the same statement with OUTPUT between the two halves.
+        Assert.Equal(
+            906,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users (id, name) OUTPUT INSERTED.id VALUES (906, 'q')",
+                transaction: transaction));
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.ExecuteScalar<int>(
+                "INSERT INTO users (id, name) VALUES (907, 'r') OUTPUT INSERTED.id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // What a positional row skips, one column kind per twin: an identity column
+    // and a computed one take no value, so naming the rest writes the same row.
+    [Fact]
+    public void PositionalValues_SkipAnIdentityColumn()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "CREATE TABLE #identity (id INT IDENTITY(1, 1), a INT, b NVARCHAR(10))",
+            transaction: transaction);
+
+        (int, string) positional = connection.QuerySingle<(int, string)>(
+            "INSERT INTO #identity OUTPUT INSERTED.a, INSERTED.b VALUES (5, 'x')",
+            transaction: transaction);
+        (int, string) named = connection.QuerySingle<(int, string)>(
+            "INSERT INTO #identity (a, b) OUTPUT INSERTED.a, INSERTED.b VALUES (5, 'x')",
+            transaction: transaction);
+
+        Assert.Equal((5, "x"), positional);
+        Assert.Equal(positional, named);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void PositionalValues_SkipAComputedColumn()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "CREATE TABLE #computed (a INT, b NVARCHAR(10), c AS (a * 2))",
+            transaction: transaction);
+
+        (int, string, int) positional = connection.QuerySingle<(int, string, int)>(
+            "INSERT INTO #computed OUTPUT INSERTED.a, INSERTED.b, INSERTED.c VALUES (5, 'x')",
+            transaction: transaction);
+        (int, string, int) named = connection.QuerySingle<(int, string, int)>(
+            "INSERT INTO #computed (a, b) OUTPUT INSERTED.a, INSERTED.b, INSERTED.c "
+                + "VALUES (5, 'x')",
+            transaction: transaction);
+
+        Assert.Equal((5, "x", 10), positional);
+        Assert.Equal(positional, named);
+        transaction.Rollback();
+    }
+
+    // A rowversion column is the exception: a positional row must still fill its
+    // slot, while a column list simply leaves it out.
+    [Fact]
+    public void PositionalValues_DoNotSkipARowversionColumn()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "CREATE TABLE #rowversion (a INT, b NVARCHAR(10), v ROWVERSION)",
+            transaction: transaction);
+
+        // Acceptance control: the column list that leaves the rowversion out.
+        Assert.Equal(
+            5,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO #rowversion (a, b) OUTPUT INSERTED.a VALUES (5, 'x')",
+                transaction: transaction));
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.ExecuteScalar<int>(
+                "INSERT INTO #rowversion OUTPUT INSERTED.a VALUES (6, 'y')",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void PositionalValues_FillARowversionSlotWithDefault()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "CREATE TABLE #rowversion (a INT, b NVARCHAR(10), v ROWVERSION)",
+            transaction: transaction);
+
+        Assert.Equal(
+            7,
+            connection.ExecuteScalar<int>(
+                "INSERT INTO #rowversion OUTPUT INSERTED.a VALUES (7, 'z', DEFAULT)",
+                transaction: transaction));
         transaction.Rollback();
     }
 }
