@@ -554,6 +554,135 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // #521 (d): Oracle filters a MERGE branch with a trailing WHERE on the
+    // action. Only the matched rows passing it are updated (Alice 30, Dave 25).
+    [Fact]
+    public void MergeUpdateWhere_UpdatesOnlyTheRowsItAdmits()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT id, name FROM users) s ON (t.id = s.id) "
+                + "WHEN MATCHED THEN UPDATE SET t.name = 'u' WHERE t.age < 35",
+            transaction: transaction);
+
+        Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
+            "SELECT COUNT(*) FROM users WHERE name = 'u'", transaction: transaction)));
+        transaction.Rollback();
+    }
+
+    // The filter may read the source as well as the target.
+    [Fact]
+    public void MergeUpdateWhere_ReadsTheSource()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT id, age + 100 AS a FROM users) s ON (t.id = s.id) "
+                + "WHEN MATCHED THEN UPDATE SET t.name = 'u' WHERE s.a > 140",
+            transaction: transaction);
+
+        Assert.Equal(1, Convert.ToInt64(connection.ExecuteScalar(
+            "SELECT COUNT(*) FROM users WHERE name = 'u'", transaction: transaction)));
+        transaction.Rollback();
+    }
+
+    // WHERE precedes DELETE WHERE, and DELETE WHERE reaches only the rows the
+    // WHERE admitted: Bob and Eve go; Carol (50) was never updated, so stays.
+    [Fact]
+    public void MergeUpdateWhere_PrecedesDeleteWhere_WhichSeesOnlyUpdatedRows()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT id, name FROM users) s ON (t.id = s.id) "
+                + "WHEN MATCHED THEN UPDATE SET t.name = s.name WHERE t.age < 45 "
+                + "DELETE WHERE t.age >= 35",
+            transaction: transaction);
+
+        Assert.Equal(3, Convert.ToInt64(connection.ExecuteScalar(
+            "SELECT COUNT(*) FROM users", transaction: transaction)));
+        Assert.Equal(1, Convert.ToInt64(connection.ExecuteScalar(
+            "SELECT COUNT(*) FROM users WHERE id = 3", transaction: transaction)));
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT id, name FROM users) s ON (t.id = s.id) "
+                + "WHEN MATCHED THEN UPDATE SET t.name = s.name DELETE WHERE t.age >= 35 "
+                + "WHERE t.age < 45",
+            transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // The insert action takes the same trailing WHERE, over the source.
+    [Fact]
+    public void MergeInsertWhere_InsertsOnlyTheRowsItAdmits()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT 901 id, 'a' name, 1 f FROM dual "
+                + "UNION ALL SELECT 902, 'b', 0 FROM dual) s ON (t.id = s.id) "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name) WHERE s.f = 1",
+            transaction: transaction);
+
+        Assert.Equal(1, Convert.ToInt64(connection.ExecuteScalar(
+            "SELECT COUNT(*) FROM users WHERE id IN (901, 902)", transaction: transaction)));
+        transaction.Rollback();
+    }
+
+    // An unmatched row has no target row, so the insert filter cannot name one.
+    [Fact]
+    public void MergeInsertWhere_NamingTheTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT 901 id, 'a' name FROM dual) s ON (t.id = s.id) "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name) WHERE t.age > 0",
+            transaction: transaction));
+        transaction.Rollback();
+    }
+
+    // Both branches filtered in one statement.
+    [Fact]
+    public void MergeBothBranchesFiltered_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT id, name FROM users "
+                + "UNION ALL SELECT 901, 'a' FROM dual) s ON (t.id = s.id) "
+                + "WHEN MATCHED THEN UPDATE SET t.name = 'u' WHERE t.age < 35 "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name) WHERE s.id > 900",
+            transaction: transaction);
+
+        Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
+            "SELECT COUNT(*) FROM users WHERE name = 'u'", transaction: transaction)));
+        Assert.Equal(6, Convert.ToInt64(connection.ExecuteScalar(
+            "SELECT COUNT(*) FROM users", transaction: transaction)));
+        transaction.Rollback();
+    }
+
+    // The ISO spelling the conditioned WhenMatched(cond) renders is not Oracle's.
+    [Fact]
+    public void MergeWhenMatchedAnd_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT id, name FROM users) s ON (t.id = s.id) "
+                + "WHEN MATCHED AND t.age < 35 THEN UPDATE SET t.name = 'u'",
+            transaction: transaction));
+        transaction.Rollback();
+    }
+
     // #521 item 2: Oracle is said to reject grouping by ordinal. The other
     // possibility -- grouping by the constant -- would be silently wrong.
     [Fact]
