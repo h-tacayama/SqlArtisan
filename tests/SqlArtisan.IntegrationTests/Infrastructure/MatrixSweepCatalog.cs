@@ -527,6 +527,8 @@ internal static class MatrixSweepCatalog
         // --- FOR UPDATE ---
         Add("ForUpdate", _ => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate());
         Add("Of", _ => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(Of(u.Id)));
+        cases.Add(new SweepCase(new MatrixKey("Of", 2),
+            _ => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(Of(u))));
         Add("Nowait", _ => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(Nowait));
         Add("SkipLocked", _ => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(SkipLocked));
         Add("Wait", _ => Select(u.Id).From(u).Where(u.Id == 1).ForUpdate(Wait(3)));

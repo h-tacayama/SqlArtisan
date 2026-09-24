@@ -883,16 +883,20 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             Select(u.Id).From(u).OrderBy(u.Id).OffsetRows(1).FetchNext(1).ForUpdate()));
     }
 
-    // #521 (e) probe: which rows a FOR UPDATE OF on a join locks, seen from a
-    // second session that asks NOWAIT.
+    // #521: Oracle's OF names a column, and locks the rows of its table alone.
     [Fact]
-    public void ForUpdateOfColumn_LocksOnlyThatColumnsTable_Probe()
+    public void ForUpdate_OfColumn_LocksOnlyThatColumnsTable()
     {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
         using IDbConnection a = _fixture.OpenConnection();
         using IDbTransaction ta = a.BeginTransaction();
-        a.Query<int>("SELECT u.id FROM users u JOIN orders o ON o.user_id = u.id WHERE u.id = 1 "
-            + "FOR UPDATE OF u.id", transaction: ta).ToList();
+        a.Query<int>(
+            Select(u.Id).From(u).InnerJoin(o).On(o.UserId == u.Id).Where(u.Id == 1)
+                .ForUpdate(Of(u.Id)),
+            ta).ToList();
 
+        // A second session asking NOWAIT finds the order free and the user locked.
         using IDbConnection b = _fixture.OpenConnection();
         using IDbTransaction tb = b.BeginTransaction();
         b.Query<int>("SELECT id FROM orders WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb)
@@ -901,43 +905,5 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "SELECT id FROM users WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb).ToList());
         tb.Rollback();
         ta.Rollback();
-    }
-
-    // #521 (e) probe: columns of two tables in one OF lock both tables' rows.
-    [Fact]
-    public void ForUpdateOfTwoTablesColumns_LocksBoth_Probe()
-    {
-        using IDbConnection a = _fixture.OpenConnection();
-        using IDbTransaction ta = a.BeginTransaction();
-        a.Query<int>(
-            "SELECT u.id FROM users u JOIN orders o ON o.user_id = u.id WHERE u.id = 1 "
-                + "FOR UPDATE OF u.id, o.id",
-            transaction: ta).ToList();
-
-        using IDbConnection b = _fixture.OpenConnection();
-        using IDbTransaction tb = b.BeginTransaction();
-        Assert.ThrowsAny<DbException>(() => b.Query<int>(
-            "SELECT id FROM orders WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb).ToList());
-        tb.Rollback();
-        ta.Rollback();
-    }
-
-    // #521 (e) probe: Oracle's OF takes columns, not a table or alias.
-    [Fact]
-    public void ForUpdateOf_Shapes_Probe()
-    {
-        using IDbConnection connection = _fixture.OpenConnection();
-        const string join = "SELECT u.id FROM users u JOIN orders o ON o.user_id = u.id ";
-
-        using (IDbTransaction t = connection.BeginTransaction())
-        {
-            connection.Query<int>(join + "FOR UPDATE OF u.id, u.name", transaction: t).ToList();
-            t.Rollback();
-        }
-
-        using IDbTransaction transaction = connection.BeginTransaction();
-        Assert.ThrowsAny<DbException>(() =>
-            connection.Query<int>(join + "FOR UPDATE OF u", transaction: transaction).ToList());
-        transaction.Rollback();
     }
 }

@@ -685,16 +685,20 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
-    // #521 (e) probe: which rows a FOR UPDATE OF on a join locks, seen from a
-    // second session that asks NOWAIT.
+    // #521: MySQL's OF names the relation to lock; the joined one stays free.
     [Fact]
-    public void ForUpdateOfRelation_LocksOnlyThatRelation_Probe()
+    public void ForUpdate_OfTable_LocksOnlyThatTable()
     {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
         using IDbConnection a = _fixture.OpenConnection();
         using IDbTransaction ta = a.BeginTransaction();
-        a.Query<int>("SELECT u.id FROM users u JOIN orders o ON o.user_id = u.id WHERE u.id = 1 "
-            + "FOR UPDATE OF u", transaction: ta).ToList();
+        a.Query<int>(
+            Select(u.Id).From(u).InnerJoin(o).On(o.UserId == u.Id).Where(u.Id == 1)
+                .ForUpdate(Of(u)),
+            ta).ToList();
 
+        // A second session asking NOWAIT finds the order free and the user locked.
         using IDbConnection b = _fixture.OpenConnection();
         using IDbTransaction tb = b.BeginTransaction();
         b.Query<int>("SELECT id FROM orders WHERE id = 1 FOR UPDATE NOWAIT", transaction: tb)
@@ -705,49 +709,17 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         ta.Rollback();
     }
 
-    // #521 (e) probe: the shapes MySQL's relation-naming OF takes.
+    // Why Of(table) renders the alias: once a table is aliased, the engine
+    // no longer takes its name in OF.
     [Fact]
-    public void ForUpdateOf_Shapes_Probe()
-    {
-        using IDbConnection connection = _fixture.OpenConnection();
-        using IDbTransaction transaction = connection.BeginTransaction();
-        const string join = "SELECT u.id FROM users u JOIN orders o ON o.user_id = u.id ";
-
-        connection.Query<int>(join + "FOR UPDATE OF `u`", transaction: transaction).ToList();
-        connection.Query<int>(join + "FOR UPDATE OF u, o", transaction: transaction).ToList();
-        connection.Query<int>(join + "FOR UPDATE OF u SKIP LOCKED", transaction: transaction)
-            .ToList();
-        connection.Query<int>(join + "FOR UPDATE OF u NOWAIT", transaction: transaction).ToList();
-        connection.Query<int>(
-            "SELECT users.id FROM users JOIN orders ON orders.user_id = users.id "
-                + "FOR UPDATE OF users",
-            transaction: transaction).ToList();
-        transaction.Rollback();
-
-        foreach (string rejected in new[]
-        {
-            join + "FOR UPDATE OF users",
-            join + "FOR UPDATE OF u.id",
-        })
-        {
-            using IDbTransaction t = connection.BeginTransaction();
-            Assert.ThrowsAny<DbException>(() =>
-                connection.Query<int>(rejected, transaction: t).ToList());
-            t.Rollback();
-        }
-    }
-
-    // #521 (e) probe: whether MySQL, unlike PostgreSQL, locks an outer join
-    // without an OF.
-    [Fact]
-    public void ForUpdateOnOuterJoin_Probe()
+    public void ForUpdateOfTableNameOfAliasedTable_IsRejectedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        connection.Query<int>(
-            "SELECT u.id FROM users u LEFT JOIN orders o ON o.user_id = u.id FOR UPDATE",
-            transaction: transaction).ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT u.id FROM users u JOIN orders o ON o.user_id = u.id FOR UPDATE OF users",
+            transaction: transaction).ToList());
         transaction.Rollback();
     }
 }

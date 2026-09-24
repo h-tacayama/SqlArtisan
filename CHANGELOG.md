@@ -106,6 +106,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   on the other engines. See [MERGE
   Statement](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#merge-statement).
   (#521)
+- `Of(table, ...)` names the tables a PostgreSQL or MySQL `FOR UPDATE` locks —
+  `ForUpdate(Of(u), SkipLocked)` emits `FOR UPDATE OF "u" SKIP LOCKED`, and
+  `Of(u, o)` names more than one. Both engines take a relation there, not the
+  column Oracle's `Of(column)` names, so `OF` on a join had no spelling on
+  either: PostgreSQL 16 and MySQL 8.0 lock only the named tables' rows, and
+  PostgreSQL rejects a plain `FOR UPDATE` on an outer join, which `Of(...)`
+  naming the preserved side runs. An aliased table renders as its alias, since
+  both engines reject the table name once it is aliased. `SQLA0100` reports
+  `Of(table)` on Oracle and `Of(column)` on PostgreSQL and MySQL. See [FOR UPDATE
+  Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#for-update-clause).
+  (#521)
 
 ### Changed
 - **Breaking:** the insert branch's `Values(...)` in a `MERGE` now returns

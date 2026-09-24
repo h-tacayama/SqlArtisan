@@ -572,6 +572,36 @@ SqlStatement sql =
 // FOR UPDATE OF "u".id WAIT 5
 ```
 
+#### Example locking one side of a join
+PostgreSQL and MySQL name the tables to lock, not a column: `Of(u)` renders the
+table's alias, or its name when it has none, and takes further tables as
+`Of(u, o)`. The joined tables it leaves out stay unlocked.
+
+```csharp
+UsersTable u = new("u");
+OrdersTable o = new("o");
+SqlStatement sql =
+    Select(u.Id, o.Id)
+    .From(u)
+    .LeftJoin(o)
+    .On(u.Id == o.UserId)
+    .Where(u.Id == 1)
+    .ForUpdate(Of(u), SkipLocked)
+    .Build(Dbms.PostgreSql);
+
+// SELECT "u".id, "o".id
+// FROM users "u"
+// LEFT JOIN orders "o"
+// ON "u".id = "o".user_id
+// WHERE "u".id = :0
+// FOR UPDATE OF "u" SKIP LOCKED
+```
+
+On PostgreSQL an outer join needs this form: a plain `ForUpdate()` there is
+rejected, while `Of(...)` naming the preserved side runs (observed on PostgreSQL
+16.13). `Of(u.Id)` is Oracle's column form and `Of(u)` the PostgreSQL/MySQL table
+form; `SQLA0100` reports either one on the other engines.
+
 #### Example claiming one row from a queue
 ```csharp
 UsersTable u = new();
@@ -593,7 +623,7 @@ SqlStatement sql =
 The row-limiting clause comes first and `ForUpdate(...)` ends the chain — the one order MySQL 8.0 and PostgreSQL 16 both accept, so the reverse does not compile.
 
 #### Supported Options
-- `Of()` for `OF`
+- `Of(column)` for Oracle's `OF column`; `Of(table, ...)` for PostgreSQL's and MySQL's `OF table, ...`
 - `Nowait` for `NOWAIT`
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`

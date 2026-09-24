@@ -43,6 +43,8 @@ public class FactoryGuardSweepTests
         ["Rollup(Object, Object[]) :: elements=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY ROLLUP(:0)",
         ["GroupingSets(GroupingSet, GroupingSet[]) :: sets=[]"] =
             "SELECT \"x\".c FROM e \"x\" GROUP BY GROUPING SETS(\"a\".c)",
+        ["Of(DbTableBase, DbTableBase[]) :: moreTables=[]"] =
+            "SELECT \"x\".c FROM e \"x\" FOR UPDATE OF t",
         // Group() with zero columns is the documented grand-total row, not a
         // dropped column list.
         ["Group(Object[]) :: columns=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY GROUPING SETS(())",

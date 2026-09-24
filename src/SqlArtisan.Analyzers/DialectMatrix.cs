@@ -698,6 +698,9 @@ internal static class DialectMatrix
         // emitted form is Oracle-only (live-verified: the statement catalog runs
         // ForUpdateOf on Oracle alone).
         [new MatrixKey("Of")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
+        // Of(DbTableBase, params DbTableBase[]) is that relation-naming form; arity 2 keeps
+        // it apart from Of(DbColumn), the way JOIN ... USING's arity 2 does above (#197).
+        [new MatrixKey("Of", 2)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("Nowait")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("SkipLocked")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("Wait")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),

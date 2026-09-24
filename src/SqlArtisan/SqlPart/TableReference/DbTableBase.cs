@@ -54,6 +54,19 @@ public abstract class DbTableBase : TableReference
         }
     }
 
+    // Renders the relation a PostgreSQL / MySQL `FOR UPDATE OF` names: the
+    // alias when there is one, since both engines reject the table name then.
+    internal void FormatAsLockTarget(SqlBuildingBuffer buffer)
+    {
+        if (HasAlias)
+        {
+            buffer.EncloseInAliasQuotes(_tableAlias);
+            return;
+        }
+
+        base.Format(buffer);
+    }
+
     // Renders the reference a predicate targets by table (SQLite FTS5
     // `tbl MATCH ...`). FTS5 resolves the target as the hidden column named
     // after the table, so an aliased table must qualify it (`"a".tbl`) — a bare
