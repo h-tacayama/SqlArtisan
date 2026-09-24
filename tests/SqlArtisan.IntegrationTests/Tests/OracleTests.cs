@@ -641,18 +641,16 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     public void Merge_InsertWhere_InsertsOnlyTheRowsItAdmits()
     {
         UsersTable t = new("t");
-        UsersTable src = new("src");
+        UsersTable s = new("s");
         UsersTable c = new();
-        SubqueryDerivedTable s =
-            Select((src.Id + 900).As("id"), src.Name, src.Age).From(src).AsTable("s");
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
+        // Offsetting the key leaves every source row unmatched.
         connection.Execute(
-            MergeInto(t).Using(s).On(t.Id == s.Column("id"))
-                .WhenNotMatched().ThenInsert(t.Id, t.Name)
-                .Values(s.Column("id"), s.Column("name"))
-                .InsertWhere(s.Column("age") < 35),
+            MergeInto(t).Using(s).On(t.Id == s.Id + 900)
+                .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id + 900, s.Name)
+                .InsertWhere(s.Age < 35),
             transaction);
 
         Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
