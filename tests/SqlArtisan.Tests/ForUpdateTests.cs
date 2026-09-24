@@ -399,6 +399,7 @@ public class ForUpdateTests
     [InlineData("\"my.schema\".\"Users\"", "\"Users\"")]
     [InlineData("\"a.b\"", "\"a.b\"")]
     [InlineData("db.`t.x`", "`t.x`")]
+    [InlineData("users.", "users.")]
     public void ForUpdate_OfQualifiedUnaliasedTable_RendersTheUnqualifiedName(
         string tableName, string expected)
     {
