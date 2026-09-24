@@ -207,6 +207,28 @@ invisible, unexplained, and unsuppressible, and the adoption test is binary.
 Emit faithfully; put the guidance in `docs/`; let the matrix warn where a
 dialect genuinely rejects the construct.
 
+The converse is ADR 0010's triage: an addition earns its surface by
+strengthening a deterministic layer or by unblocking adoption, whose test is a
+query that cannot be written. A typestate that withholds a step is therefore
+not a hole when another chain already writes a statement with the same effect —
+that is an ergonomic difference, and it does not earn new states or a changed
+return type. Two #521 entries were declined on that reading, after measuring:
+
+- `InsertInto(t).Set(...)` takes no `.Output(...)`. `Set(...)` renders the
+  same `(cols) VALUES (...)` the column-list chain renders — byte-identical,
+  pinned by `InsertInto_SetAndColumnListChains_EmitTheSameStatement` — so
+  `InsertInto(t, cols).Output(...).Values(...)` already writes it.
+- `InsertInto(t)`, with no column list, takes no `.Output(...)` either. SQL
+  Server 2022 runs `INSERT INTO t OUTPUT ... VALUES (...)`
+  (`OutputWithoutColumnList_IsAcceptedByTheEngine`), but a positional row
+  fills the table's insertable columns in declaration order, so naming those
+  columns in `InsertInto(t, cols)` writes the same insert. Reaching the
+  columnless form took three new builder states and a binary-breaking return
+  type on `Sql.InsertInto` when it was built (#541, withdrawn unmerged).
+
+`COUNT(*)` sat on the other side of that line: the library had no spelling
+for it (#233).
+
 ## Recorded trade-offs from the #149 freeze audit
 
 Resolved:
