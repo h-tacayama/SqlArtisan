@@ -688,4 +688,32 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
                 transaction: transaction));
         transaction.Rollback();
     }
+
+    // The other fact that decline rests on: a positional row fills the columns in
+    // declaration order, skipping identity, computed and rowversion ones — so a
+    // column list naming what it fills writes the same insert.
+    [Fact]
+    public void PositionalValues_FillTheColumnsANamedListWould()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "CREATE TABLE #positional (id INT IDENTITY(1, 1), a INT, b NVARCHAR(10), "
+                + "c AS (a * 2), v ROWVERSION)",
+            transaction: transaction);
+
+        (int, string, int) positional = connection.QuerySingle<(int, string, int)>(
+            "INSERT INTO #positional OUTPUT INSERTED.a, INSERTED.b, INSERTED.c "
+                + "VALUES (5, 'x')",
+            transaction: transaction);
+        (int, string, int) named = connection.QuerySingle<(int, string, int)>(
+            "INSERT INTO #positional (a, b) OUTPUT INSERTED.a, INSERTED.b, INSERTED.c "
+                + "VALUES (5, 'x')",
+            transaction: transaction);
+
+        Assert.Equal((5, "x", 10), positional);
+        Assert.Equal(positional, named);
+        transaction.Rollback();
+    }
 }

@@ -221,10 +221,12 @@ return type. Two #521 entries were declined on that reading, after measuring:
 - `InsertInto(t)`, with no column list, takes no `.Output(...)` either. SQL
   Server 2022 runs `INSERT INTO t OUTPUT ... VALUES (...)`
   (`OutputWithoutColumnList_IsAcceptedByTheEngine`), but a positional row
-  fills the table's insertable columns in declaration order, so naming those
-  columns in `InsertInto(t, cols)` writes the same insert. Reaching the
-  columnless form took three new builder states and a binary-breaking return
-  type on `Sql.InsertInto` when it was built (#541, withdrawn unmerged).
+  fills the columns in declaration order, skipping identity, computed and
+  `rowversion` ones (`PositionalValues_FillTheColumnsANamedListWould`), so
+  naming those columns in `InsertInto(t, cols)` writes the same insert.
+  Reaching the columnless form took three new builder states and a
+  binary-breaking return type on `Sql.InsertInto` when it was built (#541,
+  withdrawn unmerged).
 
 `COUNT(*)` sat on the other side of that line: the library had no spelling
 for it (#233).
