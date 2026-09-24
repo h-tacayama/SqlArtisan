@@ -55,7 +55,8 @@ public abstract class DbTableBase : TableReference
     }
 
     // Renders the relation a PostgreSQL / MySQL `FOR UPDATE OF` names: the
-    // alias when there is one, since both engines reject the table name then.
+    // alias when there is one, since both engines reject the table name then;
+    // otherwise the name without its schema, which PostgreSQL requires there.
     internal void FormatAsLockTarget(SqlBuildingBuffer buffer)
     {
         if (HasAlias)
@@ -64,7 +65,41 @@ public abstract class DbTableBase : TableReference
             return;
         }
 
-        base.Format(buffer);
+        int start = LastQualifierEnd(_name);
+        buffer.Append(start == 0 ? _name : _name[start..]);
+    }
+
+    // The index just past the last `.` outside a quoted identifier, or 0 when
+    // the name is unqualified: `public.users` -> `users`, `"a.b"` stays whole.
+    private static int LastQualifierEnd(string name)
+    {
+        int end = 0;
+        char quote = '\0';
+        for (int i = 0; i < name.Length; i++)
+        {
+            char c = name[i];
+            if (quote != '\0')
+            {
+                if (c == quote)
+                {
+                    quote = '\0';
+                }
+            }
+            else if (c is '"' or '`')
+            {
+                quote = c;
+            }
+            else if (c == '[')
+            {
+                quote = ']';
+            }
+            else if (c == '.')
+            {
+                end = i + 1;
+            }
+        }
+
+        return end;
     }
 
     // Renders the reference a predicate targets by table (SQLite FTS5

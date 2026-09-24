@@ -574,8 +574,9 @@ SqlStatement sql =
 
 #### Example locking one side of a join
 PostgreSQL and MySQL name the tables to lock, not a column: `Of(u)` renders the
-table's alias, or its name when it has none, and takes further tables as
-`Of(u, o)`. The joined tables it leaves out stay unlocked.
+table's alias, or, when it has none, its name without the schema qualifier —
+PostgreSQL rejects a qualified name there. Further tables go in as `Of(u, o)`;
+the joined tables it leaves out stay unlocked.
 
 ```csharp
 UsersTable u = new("u");

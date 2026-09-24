@@ -17,7 +17,7 @@ public static partial class Sql
     /// The <c>OF table, ...</c> target for a <c>FOR UPDATE</c> clause, naming the tables whose
     /// rows are locked; the other tables in the query stay unlocked.
     /// </summary>
-    /// <param name="table">A table in the query's <c>FROM</c>; renders as its alias when it has one.</param>
+    /// <param name="table">A table in the query's <c>FROM</c>; renders as its alias, or else its name without the schema.</param>
     /// <param name="moreTables">Further tables to lock.</param>
     /// <returns>An <c>OF</c> clause for <c>FOR UPDATE OF ...</c>.</returns>
     /// <remarks>

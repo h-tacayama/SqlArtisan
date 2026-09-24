@@ -113,7 +113,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   either: PostgreSQL 16 and MySQL 8.0 lock only the named tables' rows, and
   PostgreSQL rejects a plain `FOR UPDATE` on an outer join, which `Of(...)`
   naming the preserved side runs. An aliased table renders as its alias, since
-  both engines reject the table name once it is aliased. `SQLA0100` reports
+  both engines reject the table name once it is aliased, and an unaliased one as
+  its name without the schema, which PostgreSQL requires there. `SQLA0100` reports
   `Of(table)` on Oracle and `Of(column)` on PostgreSQL and MySQL. See [FOR UPDATE
   Clause](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#for-update-clause).
   (#521)

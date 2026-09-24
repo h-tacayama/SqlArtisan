@@ -391,4 +391,20 @@ public class ForUpdateTests
             "A FOR UPDATE OF list must not contain a null table. (Parameter 'moreTables')",
             exception.Message);
     }
+
+    // PostgreSQL rejects a schema-qualified relation in OF, so an unaliased
+    // qualified table renders its bare name (a quoted dot is part of the name).
+    [Theory]
+    [InlineData("public.users", "users")]
+    [InlineData("\"my.schema\".\"Users\"", "\"Users\"")]
+    [InlineData("\"a.b\"", "\"a.b\"")]
+    [InlineData("db.`t.x`", "`t.x`")]
+    public void ForUpdate_OfQualifiedUnaliasedTable_RendersTheUnqualifiedName(
+        string tableName, string expected)
+    {
+        DbTable t = new(tableName);
+        SqlStatement sql = Select(t.Column("id")).From(t).ForUpdate(Of(t)).Build(Dbms.PostgreSql);
+
+        Assert.Equal($"SELECT id FROM {tableName} FOR UPDATE OF {expected}", sql.Text);
+    }
 }
