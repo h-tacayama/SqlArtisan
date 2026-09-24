@@ -779,24 +779,4 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
                 transaction: transaction));
         transaction.Rollback();
     }
-
-    // #521 (d): Oracle's trailing WHERE on a MERGE action is not T-SQL's; the
-    // conditioned branch is.
-    [Fact]
-    public void MergeActionTrailingWhere_IsRejectedByTheEngine()
-    {
-        using IDbConnection connection = _fixture.OpenConnection();
-        using IDbTransaction transaction = connection.BeginTransaction();
-
-        connection.Execute(
-            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
-                + "WHEN MATCHED AND t.age < 35 THEN UPDATE SET name = s.name;",
-            transaction: transaction);
-
-        Assert.ThrowsAny<DbException>(() => connection.Execute(
-            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
-                + "WHEN MATCHED THEN UPDATE SET name = s.name WHERE t.age < 35;",
-            transaction: transaction));
-        transaction.Rollback();
-    }
 }

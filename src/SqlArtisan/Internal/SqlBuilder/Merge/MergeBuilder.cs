@@ -6,7 +6,9 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     IMergeBuilderTarget,
     IMergeBuilderThenInsert,
     IMergeBuilderThenUpdateSet,
+    IMergeBuilderUpdateWhere,
     IMergeBuilderUsing,
+    IMergeBuilderValues,
     IMergeBuilderWhen,
     IMergeBuilderWhenMatched,
     IMergeBuilderWhenNotMatched,
@@ -26,9 +28,16 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
 
     public SqlStatement Build(Dbms dbms) => BuildCore(dbms);
 
+    // Shared by IMergeBuilderThenUpdateSet and IMergeBuilderUpdateWhere.
     public IMergeBuilderWhen DeleteWhere(SqlCondition condition)
     {
         AddPart(new MergeDeleteWhereClause(condition));
+        return this;
+    }
+
+    public IMergeBuilderWhen InsertWhere(SqlCondition condition)
+    {
+        AddPart(new MergeInsertWhereClause(condition));
         return this;
     }
 
@@ -83,13 +92,19 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
+    public IMergeBuilderUpdateWhere UpdateWhere(SqlCondition condition)
+    {
+        AddPart(new MergeUpdateWhereClause(condition));
+        return this;
+    }
+
     public IMergeBuilderUsing Using(TableReference source)
     {
         AddPart(new MergeUsingClause(source));
         return this;
     }
 
-    public IMergeBuilderWhen Values(params object[] values)
+    public IMergeBuilderValues Values(params object[] values)
     {
         // Checked here, not left to the resolver: the width guard below would
         // otherwise dereference a null array before any named guard runs.

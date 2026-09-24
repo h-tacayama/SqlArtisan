@@ -77,26 +77,4 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
                 transaction: transaction));
         transaction.Rollback();
     }
-
-    // #521 (d) probe: does 23ai still take only the trailing WHERE?
-    [Fact]
-    public void MergeFilteredBranch_Probe()
-    {
-        using IDbConnection connection = _fixture.OpenConnection();
-        using IDbTransaction transaction = connection.BeginTransaction();
-
-        connection.Execute(
-            "MERGE INTO users t USING (SELECT id, name FROM users) s ON (t.id = s.id) "
-                + "WHEN MATCHED THEN UPDATE SET t.name = 'u' WHERE t.age < 35 "
-                + "DELETE WHERE t.age < 0",
-            transaction: transaction);
-        Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
-            "SELECT COUNT(*) FROM users WHERE name = 'u'", transaction: transaction)));
-
-        Assert.ThrowsAny<System.Data.Common.DbException>(() => connection.Execute(
-            "MERGE INTO users t USING (SELECT id, name FROM users) s ON (t.id = s.id) "
-                + "WHEN MATCHED AND t.age < 35 THEN UPDATE SET t.name = 'v'",
-            transaction: transaction));
-        transaction.Rollback();
-    }
 }

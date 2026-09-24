@@ -1019,4 +1019,53 @@ public class DialectUsageAnalyzerTests
     // StyleCop.Analyzers, relies on) — and AnalyzerConfigResolverTests /
     // DialectSupportResolverTests already cover that resolution logic directly against
     // AnalyzerConfigOptions instances with differing values.
+
+    // #521: Oracle's action filters are matrix entries of their own, so the
+    // other MERGE engines report them rather than sharing Where's entry.
+    private const string MergeActionFilterTemplate = """
+        using SqlArtisan;
+        using static SqlArtisan.Sql;
+
+        class T : DbTableBase
+        {
+            public DbColumn Id;
+            public T(string alias) : base("t", alias) { Id = new DbColumn(this, "id"); }
+        }
+
+        class C
+        {
+            void M()
+            {
+                T t = new("t");
+                T s = new("s");
+                var x = {|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenMatched().ThenUpdateSet(t.Id == s.Id).UpdateWhere(t.Id == 1)|};
+                var y = {|#1:MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenNotMatched().ThenInsert(t.Id).Values(s.Id).InsertWhere(s.Id == 1)|};
+            }
+        }
+        """;
+
+    [Theory]
+    [InlineData("postgresql")]
+    [InlineData("sqlserver")]
+    public async Task MergeActionFilters_OffOracle_ReportSqla0100(string dbms)
+    {
+        var test = AnalyzerVerifier.Create(
+            MergeActionFilterTemplate, AnalyzerVerifier.EditorConfig(dbms));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(1));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task MergeActionFilters_OnOracle_StaySilent()
+    {
+        var test = AnalyzerVerifier.Create(
+            AnalyzerVerifier.Unmarked(MergeActionFilterTemplate.Replace("{|#1:", "{|#0:")),
+            AnalyzerVerifier.EditorConfig("oracle"));
+
+        await test.RunAsync();
+    }
 }
