@@ -24,7 +24,8 @@ public class InsertOutputShapeTests
             typeof(IInsertBuilderTableOutputInto).GetInterfaces());
     }
 
-    // Absence only holds where the factory hands back the OUTPUT-capable state.
+    // The other tests here inspect the interfaces alone; if Sql.InsertInto handed back
+    // the old state, Output(...) would be declared yet unreachable from it.
     [Fact]
     public void ColumnlessInsertFactory_ReturnsTheOutputCapableState()
     {

@@ -22,8 +22,8 @@ public interface IInsertBuilderTableOutputRows
 
     /// <summary>
     /// Appends one positional <c>VALUES (...)</c> row per element of the
-    /// <paramref name="rows"/> array — the array-typed sibling of the
-    /// <see cref="IEnumerable{T}"/> overload, keeping a jagged array off the <c>params</c> form.
+    /// <paramref name="rows"/> array — without this overload, a jagged <c>object[][]</c> would
+    /// be ambiguous between the <c>params</c> form and the <see cref="IEnumerable{T}"/> one.
     /// </summary>
     /// <param name="rows">The rows, each an array of values in column order; must be non-empty, and every row must be the same width.</param>
     /// <returns>The builder positioned to append more rows, or build — <c>RETURNING</c> and the upsert clauses are declared here as elsewhere, but pair with no <c>OUTPUT</c>, so writing one throws at <c>Build()</c>.</returns>

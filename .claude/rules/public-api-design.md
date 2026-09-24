@@ -215,8 +215,10 @@ after measuring): `Set(...)` renders the same `(cols) VALUES (...)` the
 column-list chain renders — byte-identical output — so
 `INSERT ... OUTPUT ... VALUES` is already reachable as
 `InsertInto(t, cols).Output(...).Values(...)`, and threading `OUTPUT` between the
-two halves of one clause would have cost either a clause holding a clause or a
-general part-insertion hook on `SqlBuilderBase`. Build both chains and compare
+two halves of one clause would have needed builder work — a clause that
+holds another clause, say, or deferring `VALUES` to build time the way
+`ReturningBuilder` defers `RETURNING` (`BuildWithPart`) — for a statement that
+already has a spelling. Build both chains and compare
 the emitted text before calling a missing step a gap; where the texts differ, it
 is a gap and this clause does not apply.
 
