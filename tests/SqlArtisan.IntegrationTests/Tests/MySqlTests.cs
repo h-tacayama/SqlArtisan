@@ -722,4 +722,24 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             transaction: transaction).ToList());
         transaction.Rollback();
     }
+
+    // #521 (e) probe: a schema-qualified, unaliased table in FOR UPDATE OF.
+    [Fact]
+    public void ForUpdateOfQualifiedTable_Probe()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        string schema = connection.ExecuteScalar<string>("SELECT DATABASE()")!;
+        string from = $"SELECT id FROM {schema}.users WHERE id = 1 ";
+
+        using (IDbTransaction t = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+                from + $"FOR UPDATE OF {schema}.users", transaction: t).ToList());
+            t.Rollback();
+        }
+
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Query<int>(from + "FOR UPDATE OF users", transaction: transaction).ToList();
+        transaction.Rollback();
+    }
 }
