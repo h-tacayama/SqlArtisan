@@ -183,6 +183,37 @@ public abstract class IntegrationTestBase
             age => Assert.Contains(age, department10Ages));
     }
 
+    // The same family over the whole result set, OVER () (#539); SqlServerTests
+    // skips it for the same reason and asserts that rejection alongside the other.
+    [Fact]
+    public virtual void WindowFunction_ValueFamilyWholeResultSet_Executes()
+    {
+        UsersTable u = new();
+        int[] department10Ages = [30, 40];
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // One row survives the filter, so the empty window is deterministic there.
+        Assert.Equal(
+            new[] { 35 },
+            connection.Query<int>(
+                Select(FirstValue(u.Age).Over())
+                    .From(u)
+                    .Where(u.DepartmentId == 30)));
+
+        Assert.All(
+            connection.Query<int>(
+                Select(LastValue(u.Age).Over())
+                    .From(u)
+                    .Where(u.DepartmentId == 10)),
+            age => Assert.Contains(age, department10Ages));
+        Assert.All(
+            connection.Query<int>(
+                Select(NthValue(u.Age, 2).Over())
+                    .From(u)
+                    .Where(u.DepartmentId == 10)),
+            age => Assert.Contains(age, department10Ages));
+    }
+
     [Fact]
     public void GroupByHaving_FiltersGroups()
     {

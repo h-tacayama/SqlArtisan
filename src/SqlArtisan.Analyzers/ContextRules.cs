@@ -96,8 +96,8 @@ internal static class ContextRules
 
     /// <summary>
     /// SQL Server requires an <c>ORDER BY</c> in the window of a value analytic
-    /// function, so the partition-only window the other four engines accept has
-    /// no spelling there.
+    /// function, so the empty and partition-only windows the other four engines
+    /// accept have no spelling there.
     /// </summary>
     /// <remarks>
     /// Only a concrete receiver reports: NTH_VALUE fails on SQL Server for having
@@ -108,8 +108,9 @@ internal static class ContextRules
         OperationAnalysisContext context, IInvocationOperation over, string dialectName)
     {
         if (over.TargetMethod.ContainingType.Name != "ValueAnalyticFunction"
-            || over.TargetMethod.Parameters.Length != 1
-            || over.TargetMethod.Parameters[0].Type.Name != "PartitionByClause"
+            || over.TargetMethod.Parameters.Length > 1
+            || (over.TargetMethod.Parameters.Length == 1
+                && over.TargetMethod.Parameters[0].Type.Name != "PartitionByClause")
             || over.Instance?.Type is not { Name: string node }
             || !OrderRequiringValueFunctions.Contains(node))
         {

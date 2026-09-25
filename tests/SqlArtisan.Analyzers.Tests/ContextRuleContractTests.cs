@@ -65,6 +65,23 @@ public class ContextRuleContractTests
     }
 
     [Fact]
+    public void EmptyOver_IsDeclaredOnlyWhereTheRuleExpectsIt()
+    {
+        // The rule keys on ValueAnalyticFunction; the ranking and offset family
+        // declaring an empty Over() would escape it.
+        List<string> declaringTypes = [.. Core.GetExportedTypes()
+            .SelectMany(t => t.GetMethods(
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            .Where(m => m.Name == "Over" && m.GetParameters().Length == 0)
+            .Select(m => m.DeclaringType!.Name)
+            .OrderBy(n => n, StringComparer.Ordinal)];
+
+        Assert.Equal(
+            ["AggregateFunction", "PercentileFunction", "ValueAnalyticFunction"],
+            declaringTypes);
+    }
+
+    [Fact]
     public void ValueAnalyticNodes_AreEachClassifiedByTheUnorderedOverRule()
     {
         // A node the family gains must be added to the rule's set or deliberately

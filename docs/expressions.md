@@ -911,8 +911,26 @@ SqlStatement sql =
 // FROM users
 ```
 
-- Which row an unordered window reads is the engine's choice and can differ between runs, so add `.OrderBy(...)` whenever the value has to be a *particular* row's — "the top earner", "the most recent order". Leave it off only when any row of the partition will do.
-- SQL Server 2022 requires an ordered window for `FirstValue` and `LastValue`; chain `PartitionBy(...).OrderBy(...)` there. `NthValue` has no SQL Server spelling at all, ordered or not. The ranking and offset functions (`Rank`, `DenseRank`, `RowNumber`, `Ntile`, `CumeDist`, `PercentRank`, `Lag`, `Lead`) take no unordered window at all — `Over(...)` accepts only the ordered forms for them.
+The empty `Over()` widens that window to the whole result set:
+
+```csharp
+UsersTable u = new();
+SqlStatement sql =
+    Select(
+        u.Id,
+        FirstValue(u.Salary)
+            .Over()
+            .As("any_salary"))
+    .From(u)
+    .Build();
+
+// SELECT id,
+// FIRST_VALUE(salary) OVER () "any_salary"
+// FROM users
+```
+
+- Which row an unordered window reads is the engine's choice and can differ between runs, so add `.OrderBy(...)` whenever the value has to be a *particular* row's — "the top earner", "the most recent order". Leave it off only when any row of the window will do.
+- SQL Server 2022 requires an ordered window for `FirstValue` and `LastValue`; chain `OrderBy(...)` or `PartitionBy(...).OrderBy(...)` there. `NthValue` has no SQL Server spelling at all, ordered or not. The ranking and offset functions (`Rank`, `DenseRank`, `RowNumber`, `Ntile`, `CumeDist`, `PercentRank`, `Lag`, `Lead`) take no unordered window at all — `Over(...)` accepts only the ordered forms for them.
 
 ### Example using an Aggregate
 

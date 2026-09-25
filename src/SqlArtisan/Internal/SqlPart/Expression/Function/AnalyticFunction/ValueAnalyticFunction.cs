@@ -11,6 +11,13 @@ public abstract class ValueAnalyticFunction : AnalyticFunction
     }
 
     /// <summary>
+    /// Turns the analytic function into a window function over the whole result
+    /// set: <c>OVER ()</c>.
+    /// </summary>
+    public WindowFunction Over() =>
+        new(this, OverClause.Of());
+
+    /// <summary>
     /// Turns the analytic function into a window function partitioned but not
     /// ordered: <c>OVER (PARTITION BY ...)</c>.
     /// </summary>

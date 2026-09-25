@@ -61,6 +61,15 @@ public class WindowFirstValueTests
     }
 
     [Fact]
+    public void FirstValue_OverEmpty_CorrectSql()
+    {
+        string expected = "SELECT FIRST_VALUE(code) OVER ()";
+        SqlStatement sql =
+            Select(FirstValue(_t.Code).Over()).Build();
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
     public void FirstValue_OverPartitionBy_CorrectSql()
     {
         string expected = "SELECT FIRST_VALUE(code) OVER (PARTITION BY name)";

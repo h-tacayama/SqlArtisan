@@ -630,9 +630,10 @@ var q = Select(PercentileCont(0.5).WithinGroup(OrderBy(u.Age))).From(u);
 **A value analytic function in a window with no `ORDER BY`.** SQL Server
 requires an ordered window for `FirstValue(...)` and `LastValue(...)` ("The
 function 'FIRST_VALUE' must have an OVER clause with ORDER BY"), where the
-other four engines accept the window and leave which row is read to the engine
-— chain `PartitionBy(...).OrderBy(...)` there. `NthValue(...)` is not in this
-rule: SQL Server has no `NTH_VALUE` at all, so no ordering rescues it and the
+other four engines accept the window — partitioned or empty — and leave which
+row is read to the engine; chain `OrderBy(...)` or
+`PartitionBy(...).OrderBy(...)` there. `NthValue(...)` is not in this rule: SQL
+Server has no `NTH_VALUE` at all, so no ordering rescues it and the
 whole-construct `SQLA0100` is the verdict. A receiver held in a
 `ValueAnalyticFunction` variable no longer names which of the three it is, so
 the rule stays silent there rather than risk the wrong advice.
@@ -640,6 +641,8 @@ the rule stays silent there rather than risk the wrong advice.
 ```csharp
 // sqlartisan_syntax_sqlserver = any
 var q = Select(FirstValue(u.Age).Over(PartitionBy(u.DepartmentId))).From(u);
+// warning SQLA0102: 'Over' is not supported without an ORDER BY in a value analytic function's window on SQL Server
+var r = Select(FirstValue(u.Age).Over()).From(u);
 // warning SQLA0102: 'Over' is not supported without an ORDER BY in a value analytic function's window on SQL Server
 ```
 

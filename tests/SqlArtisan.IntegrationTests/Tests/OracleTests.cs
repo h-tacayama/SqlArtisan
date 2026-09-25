@@ -54,16 +54,17 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
     }
 
-    [Fact] // #521: why Over(PartitionBy(...)) is declared on the value family alone
-           // (WindowOverShapeTests holds the API side).
-    public void PartitionOnlyWindow_RankingFamily_Rejected()
+    [Theory] // #521, #539: why the unordered Over overloads are declared on the value
+             // family alone (WindowOverShapeTests holds the API side).
+    [InlineData("PARTITION BY department_id")]
+    [InlineData("")]
+    public void UnorderedWindow_RankingFamily_Rejected(string window)
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
         // The value family takes the same unordered window, so only the ranking
         // and offset functions are what Oracle 21c raises ORA-30485 for.
-        connection.ExecuteScalar(
-            "SELECT FIRST_VALUE(age) OVER (PARTITION BY department_id) FROM users");
+        connection.ExecuteScalar($"SELECT FIRST_VALUE(age) OVER ({window}) FROM users");
 
         string[] unordered =
         [
@@ -74,7 +75,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.All(
             unordered,
             function => Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-                $"SELECT {function} OVER (PARTITION BY department_id) FROM users")));
+                $"SELECT {function} OVER ({window}) FROM users")));
     }
 
     // Binding a C# bool to NUMBER(1) is a driver concern, not a SqlArtisan one;

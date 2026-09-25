@@ -58,6 +58,15 @@ public class WindowNthValueTests
     }
 
     [Fact]
+    public void NthValue_OverEmpty_CorrectSql()
+    {
+        string expected = "SELECT NTH_VALUE(code, 2) OVER ()";
+        SqlStatement sql =
+            Select(NthValue(_t.Code, 2).Over()).Build();
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
     public void NthValue_OverPartitionBy_CorrectSql()
     {
         string expected = "SELECT NTH_VALUE(code, 2) OVER (PARTITION BY name)";
