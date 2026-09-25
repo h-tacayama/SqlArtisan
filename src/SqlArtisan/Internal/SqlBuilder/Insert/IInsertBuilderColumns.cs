@@ -14,7 +14,9 @@ public interface IInsertBuilderColumns : ISelectBuilder, IWithBuilder
     IInsertBuilderValues Values(params object[] values);
 
     /// <summary>
-    /// Appends one <c>VALUES (...)</c> row per element of <paramref name="rows"/>, each matching the declared column list — the collection-driven multi-row insert, without a per-row <c>Values(...)</c> call.
+    /// Appends one <c>VALUES (...)</c> row per element of <paramref name="rows"/>, each matching
+    /// the declared column list — the collection-driven multi-row insert, without a per-row
+    /// <c>Values(...)</c> call.
     /// </summary>
     /// <param name="rows">The rows, each an array of values in column order; must be non-empty, and every row must be the same width.</param>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c> or an upsert clause, or build.</returns>

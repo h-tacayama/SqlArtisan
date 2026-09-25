@@ -252,9 +252,9 @@ public static partial class Sql
         new(Resolve(source), Resolve(length));
 
     /// <summary>
-    /// The <c>LPAD(<paramref name="source"/>, <paramref name="length"/>, <paramref name="padding"/>)</c>
-    /// function: left-pads <paramref name="source"/> with <paramref name="padding"/> to
-    /// <paramref name="length"/> characters (truncating if longer).
+    /// The <c>LPAD(<paramref name="source"/>, <paramref name="length"/>,
+    /// <paramref name="padding"/>)</c> function: left-pads <paramref name="source"/> with
+    /// <paramref name="padding"/> to <paramref name="length"/> characters (truncating if longer).
     /// </summary>
     /// <param name="source">The string to pad.</param>
     /// <param name="length">The target total length.</param>

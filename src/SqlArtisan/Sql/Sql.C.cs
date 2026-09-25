@@ -530,8 +530,9 @@ public static partial class Sql
         new(Resolve(primary), Resolve(secondary));
 
     /// <summary>
-    /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>, <paramref name="third"/>, ...)</c>
-    /// function (three or more arguments joined into a single string).
+    /// The <c>CONCAT(<paramref name="primary"/>, <paramref name="secondary"/>,
+    /// <paramref name="third"/>, ...)</c> function (three or more arguments joined into a single
+    /// string).
     /// </summary>
     /// <param name="primary">The first string expression.</param>
     /// <param name="secondary">The second string expression.</param>

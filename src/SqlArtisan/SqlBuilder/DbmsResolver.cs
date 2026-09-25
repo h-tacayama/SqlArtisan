@@ -34,7 +34,9 @@ public static class DbmsResolver
     }
 
     /// <summary>
-    /// Registers a connection type so <see cref="Resolve(IDbConnection)"/> maps it to <paramref name="dbms"/>. The first registration for a type wins; a later one for the same type is ignored.
+    /// Registers a connection type so <see cref="Resolve(IDbConnection)"/> maps it to
+    /// <paramref name="dbms"/>. The first registration for a type wins; a later one for the same
+    /// type is ignored.
     /// </summary>
     /// <param name="typeFullName">The connection's fully qualified type name (e.g. <c>Npgsql.NpgsqlConnection</c>), matched case-insensitively.</param>
     /// <param name="dbms">The engine the connection type talks to.</param>

@@ -23,7 +23,8 @@ grow. Three shapes are exempt, and the gate reads these rules, not a count:
 
 - **A doc tag's own signature.** A `<param>`, `<returns>`, `<exception>`,
   `<typeparam>` line, or an `<inheritdoc cref="...">` whose cref carries a full
-  parameter list: the signature is one token and breaking it helps no one.
+  parameter list: the signature is one token and breaking it helps no one. The
+  tag must open the line; a `<paramref/>` inside a summary's prose wraps.
 - **A row of a data table.** A collection-initializer entry (`["key"] = …,`)
   or a catalog's single registration call (`Add…(…);`) — the row is the unit
   of reading, and one entry per line is the point of the file.
