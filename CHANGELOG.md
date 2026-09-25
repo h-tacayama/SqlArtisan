@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.11.0-beta.1] - 2026-09-25
 ### Added
 - `FirstValue(...)`, `LastValue(...)` and `NthValue(...)` now take a window
   with no ordering — `Over(PartitionBy(...))` and the empty `Over()`, emitting
