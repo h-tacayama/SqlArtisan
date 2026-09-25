@@ -10,7 +10,8 @@ public class LineLengthSweepTests
     // baseline: a row of a data table and a doc tag's own signature do not wrap.
     // The tag must open the line — a `<paramref/>` inside prose is not one (\b).
     private static readonly Regex s_docTagLine = new(
-        @"^///\s*<(param|returns|exception|typeparam)\b", RegexOptions.Compiled);
+        @"^///\s*<((param|returns|exception|typeparam)\b|inheritdoc\s+cref=)",
+        RegexOptions.Compiled);
 
     [Fact]
     public void NoLineOver100Columns()
@@ -69,7 +70,6 @@ public class LineLengthSweepTests
         string trimmed = line.TrimStart();
 
         return s_docTagLine.IsMatch(trimmed)
-            || line.Contains("<inheritdoc cref=", StringComparison.Ordinal)
             || line.Contains("\"\"\"", StringComparison.Ordinal)
             || IsTableRow(trimmed);
     }
