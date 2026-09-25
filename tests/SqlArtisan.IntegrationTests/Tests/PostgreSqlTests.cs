@@ -451,6 +451,22 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(new[] { 10, 20, 30 }, values);
     }
 
+    // A single-array UNNEST has no column list: its column takes the quoted
+    // alias's name, which a bare Column(...) misses once it has an upper-case
+    // letter. A column list renders bare, so it matches either way.
+    [Fact]
+    public void From_UnnestSingleArray_UpperCaseAliasReadByName_IsRejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        UnnestDerivedTable upper = Unnest(BindArray([1])).AsTable("V");
+        Assert.ThrowsAny<DbException>(() => connection
+            .Query<int>(Select(upper.Column("V")).From(upper)).ToList());
+
+        UnnestDerivedTable listed = Unnest(BindArray([1])).AsTable("T", "X");
+        Assert.Equal(new[] { 1 }, connection.Query<int>(Select(listed.Column("X")).From(listed)));
+    }
+
     [Fact]
     public async Task L2Distance_BoundVector_OrderByRoundTrips()
     {
