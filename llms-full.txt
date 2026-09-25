@@ -734,6 +734,15 @@ When you reference the derived table's columns repeatedly, subclass
 `DerivedTableBase` and expose them as typed `DbColumn` members (the same
 pattern as a CTE's `CteBase`); pass that instance as the handle.
 
+Read a column back the way it was named. `Column("id")` renders the name bare
+(`"x".id`), which matches a column the subquery projects bare — a plain column,
+or one named through the handle as above (`o.Id.As(x.Column("id"))`). A string
+alias is different: `.As("total")` renders quoted (`"total"`), so read it back
+with the alias itself, `x.Column(total)`. By name the reference misses where the
+engine folds the bare name to another case: on Oracle for a lower-case alias, and
+on PostgreSQL for one with an upper-case letter (observed on Oracle XE 21.3.0 and
+PostgreSQL 16.13).
+
 | Method | Emits | Typical DBMS |
 |---|---|---|
 | `CrossApply(subquery, handle)` | `CROSS APPLY (...) alias` | Oracle, SQL Server |
