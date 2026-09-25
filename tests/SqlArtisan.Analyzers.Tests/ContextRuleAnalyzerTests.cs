@@ -312,6 +312,46 @@ public class ContextRuleAnalyzerTests
             var q = Select({|#0:LastValue(t.Id).Over(PartitionBy(t.Dep))|}).From(t);
             """, "sqlserver");
 
+    [Fact]
+    public Task FirstValueOverEmpty_SqlServer_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select({|#0:FirstValue(t.Id).Over()|}).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public Task LastValueOverEmpty_SqlServer_ReportsSqla0102() =>
+        RunReporting("""
+            var q = Select({|#0:LastValue(t.Id).Over()|}).From(t);
+            """, "sqlserver");
+
+    // The aggregate Over() shares the rule's name and arity; SQL Server runs it.
+    [Fact]
+    public Task AggregateOverEmpty_SqlServer_StaysSilent() =>
+        RunSilent("""
+            var q = Select(Sum(t.Id).Over()).From(t);
+            """, "sqlserver");
+
+    [Fact]
+    public async Task NthValueOverEmpty_SqlServer_ReportsSqla0100Only()
+    {
+        var test = AnalyzerVerifier.Create(
+            Usage("""
+                var q = Select({|#0:NthValue(t.Id, 2)|}.Over()).From(t);
+                """),
+            AnalyzerVerifier.EditorConfig("sqlserver"));
+
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public Task FirstValueOverEmpty_PostgreSql_StaysSilent() =>
+        RunSilent("""
+            var q = Select(FirstValue(t.Id).Over()).From(t);
+            """, "postgresql");
+
     // A base-typed receiver no longer names which function it is, and NthValue's
     // failure there is not the window shape — so the rule goes silent (ADR 0003).
     [Fact]

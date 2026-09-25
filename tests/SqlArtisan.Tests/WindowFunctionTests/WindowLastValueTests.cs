@@ -48,6 +48,15 @@ public class WindowLastValueTests
     }
 
     [Fact]
+    public void LastValue_OverEmpty_CorrectSql()
+    {
+        string expected = "SELECT LAST_VALUE(code) OVER ()";
+        SqlStatement sql =
+            Select(LastValue(_t.Code).Over()).Build();
+        Assert.Equal(expected, sql.Text);
+    }
+
+    [Fact]
     public void LastValue_OverPartitionBy_CorrectSql()
     {
         string expected = "SELECT LAST_VALUE(code) OVER (PARTITION BY name)";

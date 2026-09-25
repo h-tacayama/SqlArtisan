@@ -252,7 +252,13 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     {
     }
 
-    [Fact] // SQLA0102 (#521): the live twin for CheckUnorderedWindowRequiresOrderBy.
+    [Fact(Skip = "SQL Server requires an ORDER BY in a value analytic function's "
+        + "window; ContextRule_ValueWindowWithoutOrderBy_Rejected asserts the rejection here.")]
+    public override void WindowFunction_ValueFamilyWholeResultSet_Executes()
+    {
+    }
+
+    [Fact] // SQLA0102 (#521, #539): the live twin for CheckUnorderedWindowRequiresOrderBy.
     public void ContextRule_ValueWindowWithoutOrderBy_Rejected()
     {
         UsersTable u = new();
@@ -267,6 +273,13 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             Select(FirstValue(u.Age).Over(PartitionBy(u.DepartmentId))).From(u)));
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
             Select(LastValue(u.Age).Over(PartitionBy(u.DepartmentId))).From(u)));
+
+        connection.ExecuteScalar(Select(FirstValue(u.Age).Over(OrderBy(u.Id))).From(u));
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            Select(FirstValue(u.Age).Over()).From(u)));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            Select(LastValue(u.Age).Over()).From(u)));
     }
 
     [Fact] // ADR 0012 (#295): anchors PercentileFractionGuard.

@@ -7,16 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - `FirstValue(...)`, `LastValue(...)` and `NthValue(...)` now take a window
-  with no ordering — `Over(PartitionBy(...))`, emitting
-  `FIRST_VALUE(x) OVER (PARTITION BY y)`. MySQL 8.0, Oracle XE 21.3.0,
-  PostgreSQL 16 and SQLite 3.50 all run that form; SQL Server 2022 requires the
-  `ORDER BY` for `FIRST_VALUE`/`LAST_VALUE` (and has no `NTH_VALUE` at all), and
-  `SQLA0102` reports it there. The ranking and offset functions keep the
-  ordered-only `Over(...)` overloads they had: Oracle XE 21.3.0 raises ORA-30485
-  for an unordered `RANK`, `DENSE_RANK`, `ROW_NUMBER`, `NTILE`, `CUME_DIST`,
-  `PERCENT_RANK`, `LAG` or `LEAD`. See [Window
+  with no ordering — `Over(PartitionBy(...))` and the empty `Over()`, emitting
+  `FIRST_VALUE(x) OVER (PARTITION BY y)` and `FIRST_VALUE(x) OVER ()`. MySQL
+  8.0, Oracle XE 21.3.0, PostgreSQL 16 and SQLite 3.50 all run both forms; SQL
+  Server 2022 requires the `ORDER BY` for `FIRST_VALUE`/`LAST_VALUE` (and has no
+  `NTH_VALUE` at all), and `SQLA0102` reports it there. The ranking and offset
+  functions keep the ordered-only `Over(...)` overloads they had: Oracle XE
+  21.3.0 raises ORA-30485 for an unordered `RANK`, `DENSE_RANK`, `ROW_NUMBER`,
+  `NTILE`, `CUME_DIST`, `PERCENT_RANK`, `LAG` or `LEAD`, partitioned or empty.
+  See [Window
   functions](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#window-functions).
-  (#521)
+  (#521, #539)
 - `GroupBy(...)` now takes a **select-list position** as well as a column or
   expression: `GroupBy(1, 2)` emits `GROUP BY 1, 2`, and positions mix with
   columns (`GroupBy(u.Id, 2)`). Previously a bare integer threw

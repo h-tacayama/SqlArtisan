@@ -3,8 +3,9 @@ using SqlArtisan.Internal;
 
 namespace SqlArtisan.Tests;
 
-// The partition-only window is the value family's alone: Oracle raises ORA-30485
-// for the ranking and offset functions (OracleTests.PartitionOnlyWindow_RankingFamily_Rejected).
+// The unordered windows — empty and partition-only — are the value family's alone:
+// Oracle raises ORA-30485 for the ranking and offset functions
+// (OracleTests.UnorderedWindow_RankingFamily_Rejected).
 public class WindowOverShapeTests
 {
     [Fact]
@@ -18,6 +19,7 @@ public class WindowOverShapeTests
             method => Assert.DoesNotContain(
                 method.GetParameters(),
                 parameter => parameter.ParameterType == typeof(PartitionByClause)));
+        Assert.All(declared, method => Assert.NotEmpty(method.GetParameters()));
     }
 
     [Fact]
@@ -25,6 +27,15 @@ public class WindowOverShapeTests
     {
         MethodInfo? over = typeof(ValueAnalyticFunction)
             .GetMethod("Over", [typeof(PartitionByClause)]);
+
+        Assert.NotNull(over);
+        Assert.Equal(typeof(ValueAnalyticFunction), over.DeclaringType);
+    }
+
+    [Fact]
+    public void ValueAnalyticFunction_DeclaresTheEmptyOver()
+    {
+        MethodInfo? over = typeof(ValueAnalyticFunction).GetMethod("Over", Type.EmptyTypes);
 
         Assert.NotNull(over);
         Assert.Equal(typeof(ValueAnalyticFunction), over.DeclaringType);
