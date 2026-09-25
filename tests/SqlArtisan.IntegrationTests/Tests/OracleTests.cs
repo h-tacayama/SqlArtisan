@@ -74,8 +74,10 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.All(
             unordered,
-            function => Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
-                $"SELECT {function} OVER ({window}) FROM users")));
+            function => Assert.Contains(
+                "ORA-30485",
+                Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+                    $"SELECT {function} OVER ({window}) FROM users")).Message));
     }
 
     // Binding a C# bool to NUMBER(1) is a driver concern, not a SqlArtisan one;
