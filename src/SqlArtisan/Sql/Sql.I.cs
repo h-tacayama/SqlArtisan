@@ -6,9 +6,9 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// The <c>IF(<paramref name="condition"/>, <paramref name="then"/>, <paramref name="else"/>)</c>
-    /// function: <paramref name="then"/> when <paramref name="condition"/> is
-    /// true, otherwise <paramref name="else"/>.
+    /// The <c>IF(<paramref name="condition"/>, <paramref name="then"/>,
+    /// <paramref name="else"/>)</c> function: <paramref name="then"/> when
+    /// <paramref name="condition"/> is true, otherwise <paramref name="else"/>.
     /// </summary>
     /// <param name="condition">The condition to test.</param>
     /// <param name="then">The value returned when <paramref name="condition"/> is true.</param>
@@ -36,9 +36,9 @@ public static partial class Sql
         new(Resolve(expr), Resolve(alt));
 
     /// <summary>
-    /// The <c>IIF(<paramref name="condition"/>, <paramref name="then"/>, <paramref name="else"/>)</c>
-    /// function: <paramref name="then"/> when <paramref name="condition"/> is
-    /// true, otherwise <paramref name="else"/>.
+    /// The <c>IIF(<paramref name="condition"/>, <paramref name="then"/>,
+    /// <paramref name="else"/>)</c> function: <paramref name="then"/> when
+    /// <paramref name="condition"/> is true, otherwise <paramref name="else"/>.
     /// </summary>
     /// <param name="condition">The condition to test.</param>
     /// <param name="then">The value returned when <paramref name="condition"/> is true.</param>

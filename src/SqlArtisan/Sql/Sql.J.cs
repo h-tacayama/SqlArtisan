@@ -142,9 +142,9 @@ public static partial class Sql
         new(Resolve(jsonDoc), path);
 
     /// <summary>
-    /// The <c>JULIANDAY(<paramref name="timevalue"/>, ...)</c> function: <paramref name="timevalue"/>
-    /// shifted/adjusted by each modifier in order, then returned as a Julian day
-    /// number (days since noon in Greenwich on November 24, 4714 B.C.).
+    /// The <c>JULIANDAY(<paramref name="timevalue"/>, ...)</c> function:
+    /// <paramref name="timevalue"/> shifted/adjusted by each modifier in order, then returned as a
+    /// Julian day number (days since noon in Greenwich on November 24, 4714 B.C.).
     /// </summary>
     /// <param name="timevalue">The time value to convert.</param>
     /// <param name="modifiers">Modifier strings applied in order; optional.</param>

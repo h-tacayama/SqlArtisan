@@ -145,7 +145,10 @@ public static partial class Sql
     /// </param>
     /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
     /// <param name="subPatternPos">The capture-group number whose position to return instead of the whole match's.</param>
-    /// <remarks>Oracle and PostgreSQL (15+) syntax — MySQL's <c>REGEXP_INSTR</c> has no <paramref name="subPatternPos"/> argument.</remarks>
+    /// <remarks>
+    /// Oracle and PostgreSQL (15+) syntax — MySQL's <c>REGEXP_INSTR</c> has no
+    /// <paramref name="subPatternPos"/> argument.
+    /// </remarks>
     public static RegexpInstrFunction RegexpInstr(
         object source,
         object pattern,

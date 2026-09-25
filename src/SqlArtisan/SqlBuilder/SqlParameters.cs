@@ -24,7 +24,8 @@ public sealed class SqlParameters
     public IEnumerable<string> ParameterNames => _parameters.Select(p => p.Key);
 
     /// <summary>
-    /// Invokes <paramref name="action"/> once per parameter, in bind order, with its marker name and value.
+    /// Invokes <paramref name="action"/> once per parameter, in bind order, with its marker name
+    /// and value.
     /// </summary>
     /// <param name="action">The callback receiving each parameter's name and value.</param>
     public void ForEach(Action<string, BindValue> action)

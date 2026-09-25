@@ -92,7 +92,9 @@ internal static class TestSchema
         (2, """{"name": "Bob", "city": "LA", "address": {"zip": "90001"}}"""),
     ];
 
-    /// <summary>Creates the tables (using <paramref name="ddl"/>) and seeds the baseline rows.</summary>
+    /// <summary>
+    /// Creates the tables (using <paramref name="ddl"/>) and seeds the baseline rows.
+    /// </summary>
     public static void Apply(IDbConnection connection, string[] ddl)
     {
         foreach (string statement in ddl)

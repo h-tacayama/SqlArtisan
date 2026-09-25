@@ -7,10 +7,10 @@ namespace SqlArtisan;
 public static partial class Sql
 {
     /// <summary>
-    /// The <c>TIMESTAMPADD(<paramref name="unit"/>, <paramref name="number"/>, <paramref name="dateTime"/>)</c>
-    /// function: <paramref name="dateTime"/> shifted by <paramref name="number"/>
-    /// units of <paramref name="unit"/>. Pass a negative <paramref name="number"/>
-    /// to subtract.
+    /// The <c>TIMESTAMPADD(<paramref name="unit"/>, <paramref name="number"/>,
+    /// <paramref name="dateTime"/>)</c> function: <paramref name="dateTime"/> shifted by
+    /// <paramref name="number"/> units of <paramref name="unit"/>. Pass a negative
+    /// <paramref name="number"/> to subtract.
     /// </summary>
     /// <param name="unit">The unit to add (year, month, day, ...).</param>
     /// <param name="number">The number of units to add; negative to subtract.</param>
@@ -28,9 +28,9 @@ public static partial class Sql
         new(unit, Resolve(number), Resolve(dateTime));
 
     /// <summary>
-    /// The <c>TIMESTAMPDIFF(<paramref name="unit"/>, <paramref name="startDate"/>, <paramref name="endDate"/>)</c>
-    /// function: <paramref name="endDate"/> minus <paramref name="startDate"/>,
-    /// counted in whole units of <paramref name="unit"/>.
+    /// The <c>TIMESTAMPDIFF(<paramref name="unit"/>, <paramref name="startDate"/>,
+    /// <paramref name="endDate"/>)</c> function: <paramref name="endDate"/> minus
+    /// <paramref name="startDate"/>, counted in whole units of <paramref name="unit"/>.
     /// </summary>
     /// <param name="unit">The unit to count the difference in.</param>
     /// <param name="startDate">The start date/time.</param>

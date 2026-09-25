@@ -82,7 +82,8 @@ public abstract class SqlExpression : SqlPart
         new EqualCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
-    /// The SQL inequality comparison: <c><paramref name="this"/> &lt;&gt; <paramref name="rightSide"/></c>.
+    /// The SQL inequality comparison: <c><paramref name="this"/> &lt;&gt;
+    /// <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
@@ -93,7 +94,8 @@ public abstract class SqlExpression : SqlPart
         new NotEqualCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
-    /// The SQL less-than comparison: <c><paramref name="this"/> &lt; <paramref name="rightSide"/></c>.
+    /// The SQL less-than comparison: <c><paramref name="this"/> &lt;
+    /// <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
@@ -104,7 +106,8 @@ public abstract class SqlExpression : SqlPart
         new LessThanCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
-    /// The SQL greater-than comparison: <c><paramref name="this"/> &gt; <paramref name="rightSide"/></c>.
+    /// The SQL greater-than comparison: <c><paramref name="this"/> &gt;
+    /// <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
@@ -113,7 +116,8 @@ public abstract class SqlExpression : SqlPart
         new GreaterThanCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
-    /// The SQL less-than-or-equal comparison: <c><paramref name="this"/> &lt;= <paramref name="rightSide"/></c>.
+    /// The SQL less-than-or-equal comparison: <c><paramref name="this"/> &lt;=
+    /// <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
@@ -124,7 +128,8 @@ public abstract class SqlExpression : SqlPart
         new LessThanOrEqualCondition(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
-    /// The SQL greater-than-or-equal comparison: <c><paramref name="this"/> &gt;= <paramref name="rightSide"/></c>.
+    /// The SQL greater-than-or-equal comparison: <c><paramref name="this"/> &gt;=
+    /// <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
@@ -155,7 +160,8 @@ public abstract class SqlExpression : SqlPart
         object rightSide) => new(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
-    /// The SQL multiplication operator: <c><paramref name="this"/> * <paramref name="rightSide"/></c>.
+    /// The SQL multiplication operator: <c><paramref name="this"/> *
+    /// <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>
     /// <param name="rightSide">The right operand — a literal, another expression, or a scalar subquery.</param>
@@ -203,7 +209,8 @@ public abstract class SqlExpression : SqlPart
     public ExpressionAlias As(DbColumn column) => new(this, column.Name, column.QuoteName);
 
     /// <summary>
-    /// The <c>expr BETWEEN <paramref name="rightSide1"/> AND <paramref name="rightSide2"/></c> condition.
+    /// The <c>expr BETWEEN <paramref name="rightSide1"/> AND <paramref name="rightSide2"/></c>
+    /// condition.
     /// </summary>
     /// <param name="rightSide1">The lower bound.</param>
     /// <param name="rightSide2">The upper bound.</param>
@@ -212,7 +219,8 @@ public abstract class SqlExpression : SqlPart
         new(this, Resolve(rightSide1), Resolve(rightSide2));
 
     /// <summary>
-    /// The <c>expr NOT BETWEEN <paramref name="rightSide1"/> AND <paramref name="rightSide2"/></c> condition.
+    /// The <c>expr NOT BETWEEN <paramref name="rightSide1"/> AND <paramref name="rightSide2"/></c>
+    /// condition.
     /// </summary>
     /// <param name="rightSide1">The lower bound.</param>
     /// <param name="rightSide2">The upper bound.</param>

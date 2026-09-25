@@ -45,7 +45,10 @@ internal static class AnalyzerConfigResolver
         || string.Equals(value, NoneValue, StringComparison.OrdinalIgnoreCase)
         || EngineVersion.TryParse(value, out _);
 
-    /// <summary>Whether <paramref name="key"/> is one of the five <c>sqlartisan_syntax_&lt;dbms&gt;</c> keys, any casing.</summary>
+    /// <summary>
+    /// Whether <paramref name="key"/> is one of the five <c>sqlartisan_syntax_&lt;dbms&gt;</c>
+    /// keys, any casing.
+    /// </summary>
     public static bool IsRecognizedSyntaxKey(string key)
     {
         foreach (TargetDbms dbms in AllDbms)
@@ -77,7 +80,10 @@ internal static class AnalyzerConfigResolver
         return false;
     }
 
-    /// <summary>Whether the family names <paramref name="dbms"/> on either surface, with any non-blank value.</summary>
+    /// <summary>
+    /// Whether the family names <paramref name="dbms"/> on either surface, with any non-blank
+    /// value.
+    /// </summary>
     public static bool IsFamilyKeySet(AnalyzerConfigOptions options, TargetDbms dbms) =>
         HasValue(options, SyntaxKey(dbms)) || HasValue(options, SyntaxMSBuildPropertyKey(dbms));
 

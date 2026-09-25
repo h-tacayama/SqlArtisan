@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace SqlArtisan.Tests;
 
 // .editorconfig's max_line_length is editor-only, so this sweep is the gate:
@@ -6,8 +8,9 @@ public class LineLengthSweepTests
 {
     // Each exemption is a rule in csharp-formatting.md, never a count in a
     // baseline: a row of a data table and a doc tag's own signature do not wrap.
-    private static readonly string[] DocTags =
-        ["<param", "<returns", "<exception", "<typeparam", "<inheritdoc cref="];
+    // The tag must open the line — a `<paramref/>` inside prose is not one (\b).
+    private static readonly Regex s_docTagLine = new(
+        @"^///\s*<(param|returns|exception|typeparam)\b", RegexOptions.Compiled);
 
     [Fact]
     public void NoLineOver100Columns()
@@ -65,7 +68,8 @@ public class LineLengthSweepTests
     {
         string trimmed = line.TrimStart();
 
-        return DocTags.Any(tag => line.Contains(tag, StringComparison.Ordinal))
+        return s_docTagLine.IsMatch(trimmed)
+            || line.Contains("<inheritdoc cref=", StringComparison.Ordinal)
             || line.Contains("\"\"\"", StringComparison.Ordinal)
             || IsTableRow(trimmed);
     }

@@ -62,10 +62,10 @@ public static partial class Sql
         new(Resolve(date), interval);
 
     /// <summary>
-    /// The <c>DATEADD(<paramref name="datepart"/>, <paramref name="number"/>, <paramref name="dateTime"/>)</c>
-    /// function: <paramref name="dateTime"/> shifted by
-    /// <paramref name="number"/> units of <paramref name="datepart"/>. Pass a
-    /// negative <paramref name="number"/> to subtract.
+    /// The <c>DATEADD(<paramref name="datepart"/>, <paramref name="number"/>,
+    /// <paramref name="dateTime"/>)</c> function: <paramref name="dateTime"/> shifted by
+    /// <paramref name="number"/> units of <paramref name="datepart"/>. Pass a negative
+    /// <paramref name="number"/> to subtract.
     /// </summary>
     /// <param name="datepart">The unit to add (year, month, day, ...).</param>
     /// <param name="number">The number of units to add; negative to subtract.</param>
@@ -78,9 +78,9 @@ public static partial class Sql
         new(datepart, Resolve(number), Resolve(dateTime));
 
     /// <summary>
-    /// The <c>DATEDIFF(<paramref name="datepart"/>, <paramref name="startDate"/>, <paramref name="endDate"/>)</c>
-    /// function: the number of <paramref name="datepart"/> boundaries
-    /// crossed between <paramref name="startDate"/> and <paramref name="endDate"/>.
+    /// The <c>DATEDIFF(<paramref name="datepart"/>, <paramref name="startDate"/>,
+    /// <paramref name="endDate"/>)</c> function: the number of <paramref name="datepart"/>
+    /// boundaries crossed between <paramref name="startDate"/> and <paramref name="endDate"/>.
     /// </summary>
     /// <param name="datepart">The unit of the boundaries to count.</param>
     /// <param name="startDate">The start date/time.</param>
@@ -149,8 +149,8 @@ public static partial class Sql
         new(Resolve(date), interval);
 
     /// <summary>
-    /// The <c>DATETIME(<paramref name="timevalue"/>, ...)</c> function: <paramref name="timevalue"/>
-    /// shifted/adjusted by each modifier in order, then read as a
+    /// The <c>DATETIME(<paramref name="timevalue"/>, ...)</c> function:
+    /// <paramref name="timevalue"/> shifted/adjusted by each modifier in order, then read as a
     /// <c>YYYY-MM-DD HH:MM:SS</c> datetime.
     /// </summary>
     /// <param name="timevalue">The time value to convert.</param>
@@ -473,8 +473,8 @@ public static partial class Sql
         new(Resolve(expressions));
 
     /// <summary>
-    /// The <c>||</c> concatenation operator: <c>(<paramref name="primary"/> || <paramref name="secondary"/> || ...)</c>,
-    /// chaining any number of arguments without nesting.
+    /// The <c>||</c> concatenation operator: <c>(<paramref name="primary"/> ||
+    /// <paramref name="secondary"/> || ...)</c>, chaining any number of arguments without nesting.
     /// </summary>
     /// <param name="primary">The first string expression.</param>
     /// <param name="secondary">The second string expression.</param>
