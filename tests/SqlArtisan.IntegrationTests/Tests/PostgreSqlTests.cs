@@ -451,6 +451,22 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.Equal(new[] { 10, 20, 30 }, values);
     }
 
+    // A single-array UNNEST has no column list: its column takes the quoted
+    // alias's name, which a bare Column(...) misses once it has an upper-case
+    // letter. A column list renders bare, so it matches either way.
+    [Fact]
+    public void From_UnnestSingleArray_UpperCaseAliasReadByName_IsRejected()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        UnnestDerivedTable upper = Unnest(BindArray([1])).AsTable("V");
+        Assert.ThrowsAny<DbException>(() => connection
+            .Query<int>(Select(upper.Column("V")).From(upper)).ToList());
+
+        UnnestDerivedTable listed = Unnest(BindArray([1])).AsTable("T", "X");
+        Assert.Equal(new[] { 1 }, connection.Query<int>(Select(listed.Column("X")).From(listed)));
+    }
+
     [Fact]
     public async Task L2Distance_BoundVector_OrderByRoundTrips()
     {
@@ -1006,5 +1022,54 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             from + $"FOR UPDATE OF {schema}.users", transaction: transaction).ToList());
         transaction.Rollback();
+    }
+
+    // PostgreSQL folds a bare name to lower case, so a lower-case string alias
+    // read back by name matches; one with an upper-case letter does not.
+    [Fact]
+    public void DerivedColumn_StringAliasReadByName_MatchesOnlyWhenLowerCase()
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        SubqueryDerivedTable lower = Select(u.Id.As("n")).From(u).AsTable("s");
+        Assert.Equal(
+            new[] { 1 },
+            connection.Query<int>(
+                Select(lower.Column("n")).From(lower).Where(lower.Column("n") == 1)));
+
+        ExpressionAlias upper = u.Id.As("N");
+        SubqueryDerivedTable s = Select(upper).From(u).AsTable("s");
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(s.Column("N")).From(s).Where(s.Column("N") == 1)).ToList());
+
+        Assert.Equal(
+            new[] { 1 },
+            connection.Query<int>(Select(s.Column(upper)).From(s).Where(s.Column(upper) == 1)));
+    }
+
+    // A CTE and a DerivedTable handle carry the same pairing as a subquery source.
+    [Fact]
+    public void CteAndDerivedTableColumn_UpperCaseAliasReadByName_IsRejected_ReadByAlias_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Cte c = new("c");
+        ExpressionAlias cn = u.Id.As("N");
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            With(c.As(Select(cn).From(u))).Select(c.Column("N")).From(c)).ToList());
+        Assert.NotEmpty(connection.Query<int>(
+            With(c.As(Select(cn).From(u))).Select(c.Column(cn)).From(c)));
+
+        DerivedTable x = new("x");
+        ExpressionAlias xn = o.Id.As("N");
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(x.Column("N")).From(u)
+                .CrossJoinLateral(Select(xn).From(o).Where(o.UserId == u.Id), x)).ToList());
+        Assert.NotEmpty(connection.Query<int>(
+            Select(x.Column(xn)).From(u)
+                .CrossJoinLateral(Select(xn).From(o).Where(o.UserId == u.Id), x)));
     }
 }

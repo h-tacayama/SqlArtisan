@@ -906,4 +906,81 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         tb.Rollback();
         ta.Rollback();
     }
+
+    // A string .As("n") renders quoted ("n") while Column("n") renders bare,
+    // which Oracle folds to N: the reference misses. Column(alias) matches.
+    [Fact]
+    public void DerivedColumn_StringAliasReadByName_IsRejected_ReadByAlias_Executes()
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        ExpressionAlias n = u.Id.As("n");
+        SubqueryDerivedTable s = Select(n).From(u).AsTable("s");
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(s.Column("n")).From(s).Where(s.Column("n") == 1)).ToList());
+
+        Assert.Equal(
+            new[] { 1 },
+            connection.Query<int>(Select(s.Column(n)).From(s).Where(s.Column(n) == 1)));
+    }
+
+    // Oracle folds the bare name to upper case, so by name misses whenever the
+    // alias has a lower-case letter, and matches an all-upper-case one.
+    [Fact]
+    public void DerivedColumn_StringAliasReadByName_MatchesOnlyWhenUpperCase()
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        SubqueryDerivedTable mixed = Select(u.Id.As("Nn")).From(u).AsTable("s");
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(mixed.Column("Nn")).From(mixed).Where(mixed.Column("Nn") == 1)).ToList());
+
+        SubqueryDerivedTable upper = Select(u.Id.As("N")).From(u).AsTable("s");
+        Assert.Equal(
+            new[] { 1 },
+            connection.Query<int>(
+                Select(upper.Column("N")).From(upper).Where(upper.Column("N") == 1)));
+    }
+
+    // A CTE carries the same pairing: its body's string alias renders quoted.
+    [Fact]
+    public void CteColumn_StringAliasReadByName_IsRejected_ReadByAlias_Executes()
+    {
+        UsersTable u = new("u");
+        Cte c = new("c");
+        ExpressionAlias n = u.Id.As("n");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            With(c.As(Select(n).From(u)))
+                .Select(c.Column("n")).From(c).Where(c.Column("n") == 1)).ToList());
+
+        Assert.Equal(
+            new[] { 1 },
+            connection.Query<int>(
+                With(c.As(Select(n).From(u)))
+                    .Select(c.Column(n)).From(c).Where(c.Column(n) == 1)));
+    }
+
+    // A DerivedTable handle carries the same pairing as a subquery source.
+    [Fact]
+    public void DerivedTableColumn_StringAliasReadByName_IsRejected_ReadByAlias_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        DerivedTable x = new("x");
+        ExpressionAlias n = o.Id.As("n");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(x.Column("n")).From(u)
+                .CrossApply(Select(n).From(o).Where(o.UserId == u.Id), x)).ToList());
+
+        Assert.NotEmpty(connection.Query<int>(
+            Select(x.Column(n)).From(u)
+                .CrossApply(Select(n).From(o).Where(o.UserId == u.Id), x)));
+    }
 }
