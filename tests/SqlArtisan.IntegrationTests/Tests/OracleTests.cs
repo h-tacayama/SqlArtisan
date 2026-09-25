@@ -964,4 +964,23 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
                 With(c.As(Select(n).From(u)))
                     .Select(c.Column(n)).From(c).Where(c.Column(n) == 1)));
     }
+
+    // A DerivedTable handle carries the same pairing as a subquery source.
+    [Fact]
+    public void DerivedTableColumn_StringAliasReadByName_IsRejected_ReadByAlias_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        DerivedTable x = new("x");
+        ExpressionAlias n = o.Id.As("n");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(x.Column("n")).From(u)
+                .CrossApply(Select(n).From(o).Where(o.UserId == u.Id), x)).ToList());
+
+        Assert.NotEmpty(connection.Query<int>(
+            Select(x.Column(n)).From(u)
+                .CrossApply(Select(n).From(o).Where(o.UserId == u.Id), x)));
+    }
 }

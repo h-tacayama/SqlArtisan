@@ -1047,4 +1047,29 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             new[] { 1 },
             connection.Query<int>(Select(s.Column(upper)).From(s).Where(s.Column(upper) == 1)));
     }
+
+    // A CTE and a DerivedTable handle carry the same pairing as a subquery source.
+    [Fact]
+    public void CteAndDerivedTableColumn_UpperCaseAliasReadByName_IsRejected_ReadByAlias_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Cte c = new("c");
+        ExpressionAlias cn = u.Id.As("N");
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            With(c.As(Select(cn).From(u))).Select(c.Column("N")).From(c)).ToList());
+        Assert.NotEmpty(connection.Query<int>(
+            With(c.As(Select(cn).From(u))).Select(c.Column(cn)).From(c)));
+
+        DerivedTable x = new("x");
+        ExpressionAlias xn = o.Id.As("N");
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(x.Column("N")).From(u)
+                .CrossJoinLateral(Select(xn).From(o).Where(o.UserId == u.Id), x)).ToList());
+        Assert.NotEmpty(connection.Query<int>(
+            Select(x.Column(xn)).From(u)
+                .CrossJoinLateral(Select(xn).From(o).Where(o.UserId == u.Id), x)));
+    }
 }

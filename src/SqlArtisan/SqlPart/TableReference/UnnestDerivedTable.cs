@@ -23,8 +23,9 @@ public sealed class UnnestDerivedTable : DerivedTableBase, IColumnAccessor
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Without a column list, the one column takes the alias's quoted name, and this renders it
-    /// bare: on PostgreSQL an alias with an upper-case letter no longer matches.
+    /// Without a column list, the one column takes the alias's quoted name, and every
+    /// <c>Column</c> overload here renders it bare: on PostgreSQL an alias with an upper-case
+    /// letter no longer matches, so give it a lower-case one.
     /// </remarks>
     public DbColumn Column(string name) => new(this, name);
 
@@ -33,6 +34,9 @@ public sealed class UnnestDerivedTable : DerivedTableBase, IColumnAccessor
     public DbColumn Column(DbColumn source) => new(this, source.Name);
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Renders bare whatever the alias's quoting; see <see cref="Column(string)"/>.
+    /// </remarks>
     public DbColumn Column(ExpressionAlias alias) => new(this, alias.Name);
 
     internal override void Format(SqlBuildingBuffer buffer)
