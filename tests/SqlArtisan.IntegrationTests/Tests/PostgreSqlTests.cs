@@ -1007,4 +1007,28 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             from + $"FOR UPDATE OF {schema}.users", transaction: transaction).ToList());
         transaction.Rollback();
     }
+
+    // PostgreSQL folds a bare name to lower case, so a lower-case string alias
+    // read back by name matches; one with an upper-case letter does not.
+    [Fact]
+    public void DerivedColumn_StringAliasReadByName_MatchesOnlyWhenLowerCase()
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        SubqueryDerivedTable lower = Select(u.Id.As("n")).From(u).AsTable("s");
+        Assert.Equal(
+            new[] { 1 },
+            connection.Query<int>(
+                Select(lower.Column("n")).From(lower).Where(lower.Column("n") == 1)));
+
+        ExpressionAlias upper = u.Id.As("N");
+        SubqueryDerivedTable s = Select(upper).From(u).AsTable("s");
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(s.Column("N")).From(s).Where(s.Column("N") == 1)).ToList());
+
+        Assert.Equal(
+            new[] { 1 },
+            connection.Query<int>(Select(s.Column(upper)).From(s).Where(s.Column(upper) == 1)));
+    }
 }

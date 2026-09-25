@@ -906,4 +906,23 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         tb.Rollback();
         ta.Rollback();
     }
+
+    // A string .As("n") renders quoted ("n") while Column("n") renders bare,
+    // which Oracle folds to N: the reference misses. Column(alias) matches.
+    [Fact]
+    public void DerivedColumn_StringAliasReadByName_IsRejected_ReadByAlias_Executes()
+    {
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        ExpressionAlias n = u.Id.As("n");
+        SubqueryDerivedTable s = Select(n).From(u).AsTable("s");
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Select(s.Column("n")).From(s).Where(s.Column("n") == 1)).ToList());
+
+        Assert.Equal(
+            new[] { 1 },
+            connection.Query<int>(Select(s.Column(n)).From(s).Where(s.Column(n) == 1)));
+    }
 }
