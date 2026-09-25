@@ -303,9 +303,11 @@ Read a column back the way it was named. `Column("id")` renders the name bare
 or one named through the handle as above (`o.Id.As(x.Column("id"))`). A string
 alias is different: `.As("total")` renders quoted (`"total"`), so read it back
 with the alias itself, `x.Column(total)`. By name the reference misses where the
-engine folds the bare name to another case: on Oracle for a lower-case alias, and
-on PostgreSQL for one with an upper-case letter (observed on Oracle XE 21.3.0 and
-PostgreSQL 16.13).
+engine folds the bare name to another case: on Oracle when the alias has a
+lower-case letter, and on PostgreSQL when it has an upper-case one (observed on
+Oracle XE 21.3.0 and PostgreSQL 16.13). A CTE's columns read back the same way.
+The `VALUES` and `UNNEST` sources are unaffected: their column lists render bare,
+so `Column("x")` matches them.
 
 | Method | Emits | Typical DBMS |
 |---|---|---|

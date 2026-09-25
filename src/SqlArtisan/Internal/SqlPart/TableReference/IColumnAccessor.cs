@@ -9,11 +9,6 @@ internal interface IColumnAccessor
     /// </summary>
     /// <param name="name">The column name to qualify with this derived table's alias.</param>
     /// <returns>A <see cref="DbColumn"/> qualified by this derived table's alias.</returns>
-    /// <remarks>
-    /// The name renders bare, while a string <c>.As("x")</c> alias renders quoted: read such an
-    /// alias back with <see cref="Column(ExpressionAlias)"/>. By name it misses on Oracle for a
-    /// lower-case alias, and on PostgreSQL for one with an upper-case letter.
-    /// </remarks>
     DbColumn Column(string name);
 
     /// <summary>

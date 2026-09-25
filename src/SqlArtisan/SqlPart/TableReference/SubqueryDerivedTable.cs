@@ -18,6 +18,11 @@ public sealed class SubqueryDerivedTable : DerivedTableBase, IColumnAccessor
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The name renders bare, while a string <c>.As("x")</c> alias renders quoted: read such an
+    /// alias back with <see cref="Column(ExpressionAlias)"/>. By name it misses on Oracle when the
+    /// alias has a lower-case letter, and on PostgreSQL when it has an upper-case one.
+    /// </remarks>
     public DbColumn Column(string name) => new(this, name);
 
     /// <inheritdoc/>
