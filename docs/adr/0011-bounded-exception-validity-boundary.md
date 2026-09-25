@@ -236,9 +236,14 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
   way out. `MergeBuilder.Validate` throws for `Dbms.Oracle` alone —
   PostgreSQL and SQL Server take the leading form, and MySQL and SQLite have
   no `MERGE` for one to lead, which leaves those two to SQLA0100 rather than
-  to any guard. The recursive pairing needs no guard at all: `WithRecursive`
+  to any guard. The recursive pairing is left to the typestate: `WithRecursive`
   hands back a state that declares no `MergeInto`, so the chain no engine
-  accepts does not compile. Live twins:
+  accepts does not compile (PostgreSQL's rejection is
+  `LeadingWithRecursiveBeforeMerge_IsRejectedByTheEngine`). A cast back to
+  `IWithBuilderWith` reaches `MergeInto` all the same. Oracle still throws,
+  since the guard reads the parts rather than the route, but on PostgreSQL and
+  SQL Server nothing backstops it: a cast escapes the typestate anywhere, and
+  this boundary adds no guard for one. Live twins:
   `LeadingWithBeforeMerge_IsRejectedByTheEngine` on the Oracle and Oracle23ai
   lanes, `CteInsideMergeUsingSubquery_IsAcceptedByTheEngine` for the remedy on
   the Oracle lane, and `LeadingWithBeforeMerge_IsAcceptedByTheEngine` on the

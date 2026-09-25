@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Operations;
 namespace SqlArtisan.Analyzers;
 
 /// <summary>
-/// Reports SQLA0104 for a literal argument value <see cref="ArgumentValueValidity"/>
-/// says the target dialect rejects: a <c>RegexpOptions</c> member outside its
-/// match-parameter alphabet (#528), or a negative row count (#529).
+/// Reports SQLA0104 for a literal argument value <see cref="ArgumentValueValidity"/> says the
+/// target dialect rejects: a <c>RegexpOptions</c> member outside its match-parameter alphabet
+/// (#528), a negative row count (#529), or a <c>GROUP BY</c> position or non-integer key (#537).
 /// </summary>
 /// <remarks>
 /// The sibling of <see cref="DatepartValidityRule"/> under the same id — same

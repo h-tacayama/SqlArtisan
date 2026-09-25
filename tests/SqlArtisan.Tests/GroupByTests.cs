@@ -541,6 +541,16 @@ public class GroupByTests
         Assert.Equal("SELECT \"t\".name FROM test_table \"t\" GROUP BY 1", sql.Text);
     }
 
+    // The headline example in the docs and CHANGELOG.
+    [Fact]
+    public void GroupBy_TwoOrdinals_CorrectSql()
+    {
+        SqlStatement sql = Select(_t.Name, _t.Code).From(_t).GroupBy(1, 2).Build();
+
+        Assert.Equal(
+            "SELECT \"t\".name, \"t\".code FROM test_table \"t\" GROUP BY 1, 2", sql.Text);
+    }
+
     [Fact]
     public void GroupBy_OrdinalBesideColumn_CorrectSql()
     {

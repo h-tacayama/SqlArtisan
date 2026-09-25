@@ -4313,8 +4313,8 @@ site — is not where it turns bad. Clamp the page number before computing the
 offset; see
 [Pagination](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/query-statements.md#pagination).
 
-Every match-option and row-count verdict above — the rejections and the two
-acceptances that keep Oracle and SQLite silent alike — is checked against the
+Every match-option, `GROUP BY` and row-count verdict above — the rejections
+and the acceptances that keep the other engines silent — is checked against the
 engine versions in [Verified-against versions](#verified-against-versions).
 The datepart lists carry the narrower claim stated with them.
 
@@ -4335,7 +4335,7 @@ Three cases, never a false positive:
 
 Suppression is per rule ID (`#pragma warning disable SQLA0104`, a
 `[SuppressMessage]` attribute, or `dotnet_diagnostic.SQLA0104.severity`), and
-it covers all three value domains together; a `sqlartisan_construct_*` override
+it covers all four value domains together; a `sqlartisan_construct_*` override
 never silences a value verdict on a dialect where the construct runs. An
 `unsupported` override hands the whole usage to `SQLA0100`, and a `supported`
 override on a dialect the matrix flags unsupported re-arms this check there —
@@ -4696,8 +4696,8 @@ client-side before it reaches the engine.
 
 ## Verified-against versions
 
-The matrix's `verified` entries, and the match-option and row-count facts
-[Argument value validity](#argument-value-validity-sqla0104) reports, were
+The matrix's `verified` entries, and the match-option, `GROUP BY` and row-count
+facts [Argument value validity](#argument-value-validity-sqla0104) reports, were
 checked against one representative version per dialect (the same engines the
 integration test matrix runs against):
 

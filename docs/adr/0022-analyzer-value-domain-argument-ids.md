@@ -152,11 +152,20 @@ pagination construct cannot join them by being forgotten.
   well-formed. A cell nobody has measured stays out — an unmeasured engine is
   not a rejecting one. ADR 0012's negative `Lag`/`Lead` offset is the next
   candidate on record, and it lands here rather than under a new id.
-- **Suppression is per rule ID and now covers three domains at once**
+- **Suppression is per rule ID and now covers every domain at once**
   (`#pragma`, `[SuppressMessage]`, `dotnet_diagnostic.SQLA0104.severity`). No
   new `.editorconfig` key family ships. If one domain ever needs its own knob,
   moving it to the next free dialect-band id is additive and breaks nothing —
   the direction this decision deliberately keeps open.
+
+### A fourth domain, added under this decision
+
+#537 (from #521) added a `GROUP BY` key: `GroupBy(1)` is a select-list
+position, which Oracle XE 21.3.0 and SQL Server 2022 refuse, and a non-integer
+constant, which Oracle, PostgreSQL 16.13 and SQL Server reject — every cell
+twinned on all five lanes. It reports under `SQLA0104` for the reasons above,
+and its cells live in `ArgumentValueValidity` beside the other two, so the
+three domains this ADR decided are four today; the decision is unchanged.
 
 Related: #528, #529 (this change), #523 (the triage that surfaced both),
 ADR 0012 (why none is a `Build()` guard, and where it classified the

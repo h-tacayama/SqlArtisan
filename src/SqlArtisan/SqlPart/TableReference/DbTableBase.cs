@@ -65,8 +65,10 @@ public abstract class DbTableBase : TableReference
             return;
         }
 
+        // A name ending in its separator leaves nothing to strip down to, so it
+        // renders whole, as FROM renders it, rather than as nothing.
         int start = LastQualifierEnd(_name);
-        buffer.Append(start == 0 ? _name : _name[start..]);
+        buffer.Append(start == 0 || start == _name.Length ? _name : _name[start..]);
     }
 
     // The index just past the last `.` outside a quoted identifier, or 0 when
