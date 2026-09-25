@@ -306,8 +306,10 @@ with the alias itself, `x.Column(total)`. By name the reference misses where the
 engine folds the bare name to another case: on Oracle when the alias has a
 lower-case letter, and on PostgreSQL when it has an upper-case one (observed on
 Oracle XE 21.3.0 and PostgreSQL 16.13). A CTE's columns read back the same way.
-The `VALUES` and `UNNEST` sources are unaffected: their column lists render bare,
-so `Column("x")` matches them.
+A `VALUES` source, and an `UNNEST` given a column list, are unaffected: the list
+renders bare, so `Column("x")` matches it. A single-array `UNNEST` has no list —
+its column takes the quoted alias's name — so give it a lower-case alias, as
+PostgreSQL rejects `Column("V")` on `.AsTable("V")`.
 
 | Method | Emits | Typical DBMS |
 |---|---|---|

@@ -22,6 +22,10 @@ public sealed class UnnestDerivedTable : DerivedTableBase, IColumnAccessor
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Without a column list, the one column takes the alias's quoted name, and this renders it
+    /// bare: on PostgreSQL an alias with an upper-case letter no longer matches.
+    /// </remarks>
     public DbColumn Column(string name) => new(this, name);
 
     // Bare like ValuesDerivedTable.Column(DbColumn), for the reason stated there.
