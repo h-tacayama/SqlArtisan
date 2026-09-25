@@ -134,8 +134,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   chain valid nowhere is a compile error rather than a runtime one. Code that
   writes the state's type out (`IWithBuilderWith x = WithRecursive(...)`) now
   needs `IWithBuilderWithRecursive` — retype it rather than cast, since a cast
-  back to `IWithBuilderWith` reaches `MergeInto` again with nothing to stop it;
-  a fluent chain is unaffected.
+  back to `IWithBuilderWith` reaches `MergeInto` again, and only
+  `Build(Dbms.Oracle)` stops it; a fluent chain is unaffected.
   Binary-breaking — rebuild against this version. (#521)
 
 ### Fixed

@@ -240,9 +240,10 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
   hands back a state that declares no `MergeInto`, so the chain no engine
   accepts does not compile (PostgreSQL's rejection is
   `LeadingWithRecursiveBeforeMerge_IsRejectedByTheEngine`). A cast back to
-  `IWithBuilderWith` reaches `MergeInto` all the same, and no guard backstops
-  it; a cast escapes the typestate anywhere, and this boundary does not guard
-  casts. Live twins:
+  `IWithBuilderWith` reaches `MergeInto` all the same. Oracle still throws,
+  since the guard reads the parts rather than the route, but on PostgreSQL and
+  SQL Server nothing backstops it: a cast escapes the typestate anywhere, and
+  this boundary adds no guard for one. Live twins:
   `LeadingWithBeforeMerge_IsRejectedByTheEngine` on the Oracle and Oracle23ai
   lanes, `CteInsideMergeUsingSubquery_IsAcceptedByTheEngine` for the remedy on
   the Oracle lane, and `LeadingWithBeforeMerge_IsAcceptedByTheEngine` on the
