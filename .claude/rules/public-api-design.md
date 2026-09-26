@@ -207,6 +207,15 @@ A type belongs in the root `SqlArtisan` namespace only when **all three** hold:
 Everything else — concrete nodes, clause types, builder internals — belongs in
 `Internal/` and is held only through the root types.
 
+**Recorded placement — `BindArrayValue` stays in the root.** It adds no member
+to `BindValue`, but it is the only way to tell an array bind from a scalar one:
+`SqlParameters.ForEach` hands every binding over as `BindValue`, and an
+execution layer must type-test for the array case — Dapper would otherwise
+expand the array into an `IN` list, so `SqlArtisan.Dapper` does exactly this
+(`SqlParametersExtensions.cs`). Any other execution layer written against
+`SqlParameters` needs the same test, so criterion 3 fails for it: no root type
+names the distinction (#556).
+
 A **public** type in `Internal/` is public only because a signature hands it
 back, so it exposes **no public constructor**, and it is declared `internal`
 when no signature names it. Both are gated (`PublicSurfaceBoundaryTests`), along
