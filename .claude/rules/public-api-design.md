@@ -198,6 +198,15 @@ invented name this file forbids.
 the interval fields (`Day()`/`Day(int)`, …, `ToSecond()`/`ToSecond(int)`) and
 `BindNull()`/`BindNull(DbType)` are the shipped instances.
 
+**Scope: `Sql.*` static factories only.** Public constructors keep optional
+nullable metadata (`BindValue(object, DbType?, ParameterDirection?, int?)`,
+`OutputParameter(string, DbType, int? size)`): a constructor is never a method
+group, so the missing-parentheses slip cannot happen; the analyzer keys `Sql.*`
+members, not constructors; and three independent optional parameters would
+need eight overloads where named arguments read naturally. The difference
+between `BindNull(DbType)` and `BindValue`'s `DbType?` is this boundary, not
+an inconsistency.
+
 ## Factory return types: the concrete node type, not `SqlExpression`
 
 A public `Sql.*` factory returns its own concrete node type (`Sql.Null` →
