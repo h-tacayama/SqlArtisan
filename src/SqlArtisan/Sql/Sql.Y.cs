@@ -10,8 +10,13 @@ public static partial class Sql
     /// field of <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>YEAR TO MONTH</c>).
     /// </summary>
-    /// <param name="precision">The leading field's digit count (0-9); omit for
-    /// Oracle's own default of 2.</param>
-    /// <returns>An <see cref="IntervalField"/> emitting <c>YEAR</c> or <c>YEAR(precision)</c>.</returns>
-    public static IntervalField Year(int? precision = null) => new(DateTimePart.Year, precision);
+    /// <returns>An <see cref="IntervalField"/> emitting <c>YEAR</c>.</returns>
+    public static IntervalField Year() => new(DateTimePart.Year, null);
+
+    /// <inheritdoc cref="Year()"/>
+    /// <param name="precision">The leading field's digit count (0-9); the no-argument
+    /// overload leaves Oracle's own default of 2.</param>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>YEAR(precision)</c>.</returns>
+    public static IntervalField Year(int precision) =>
+        new(DateTimePart.Year, precision);
 }

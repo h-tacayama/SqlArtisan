@@ -499,6 +499,9 @@ internal static class DialectMatrix
         [new MatrixKey("Var")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("Varp")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("CurrentTimestamp")] = DbmsSupport.All,
+        // The precision form (#553): SQL Server and SQLite spell CURRENT_TIMESTAMP only
+        // bare, with no parenthesized argument.
+        [new MatrixKey("CurrentTimestamp", 1)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
         // Concat split by declared arity (#234): Oracle's native CONCAT takes exactly 2
         // arguments, so the 2-arg form is universal but the 3+-arg form is invalid there.
         // SQLite: concat() since 3.44 (baseline 3.50+); SQL Server: CONCAT since 2012.
@@ -644,6 +647,8 @@ internal static class DialectMatrix
         // Oracle has CURRENT_DATE and CURRENT_TIMESTAMP but no CURRENT_TIME (no TIME type).
         [new MatrixKey("CurrentDate")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
         [new MatrixKey("CurrentTime")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
+        // SQLite's CURRENT_TIME is bare-only, like its CURRENT_TIMESTAMP (#553).
+        [new MatrixKey("CurrentTime", 1)] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         // Extract: ANSI EXTRACT(part FROM source) — no SQLite function, no T-SQL support
         // (DATEPART).
         [new MatrixKey("Extract")] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),

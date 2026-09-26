@@ -27,17 +27,17 @@ public class DateTimePartNameCollisionTests
     {
         SqlStatement[] statements =
         [
-            Select(Extract(DateTimePart.Year, CurrentTimestamp)).Build(),
-            Select(Datepart(DateTimePart.Year, CurrentTimestamp)).Build(),
-            Select(Dateadd(DateTimePart.Month, 1, CurrentTimestamp)).Build(),
-            Select(Datediff(DateTimePart.Day, CurrentTimestamp, CurrentTimestamp)).Build(),
-            Select(DateTrunc(DateTimePart.Month, CurrentTimestamp)).Build(),
-            Select(Datetrunc(DateTimePart.Month, CurrentTimestamp)).Build(),
-            Select(CurrentTimestamp + Interval(1, DateTimePart.Day)).Build(),
+            Select(Extract(DateTimePart.Year, CurrentTimestamp())).Build(),
+            Select(Datepart(DateTimePart.Year, CurrentTimestamp())).Build(),
+            Select(Dateadd(DateTimePart.Month, 1, CurrentTimestamp())).Build(),
+            Select(Datediff(DateTimePart.Day, CurrentTimestamp(), CurrentTimestamp())).Build(),
+            Select(DateTrunc(DateTimePart.Month, CurrentTimestamp())).Build(),
+            Select(Datetrunc(DateTimePart.Month, CurrentTimestamp())).Build(),
+            Select(CurrentTimestamp() + Interval(1, DateTimePart.Day)).Build(),
             Select(Numtodsinterval(1, DateTimePart.Day)).Build(),
             Select(Numtoyminterval(1, DateTimePart.Month)).Build(),
-            Select(Timestampadd(DateTimePart.Month, 1, CurrentTimestamp)).Build(),
-            Select(Timestampdiff(DateTimePart.Day, CurrentTimestamp, CurrentTimestamp)).Build(),
+            Select(Timestampadd(DateTimePart.Month, 1, CurrentTimestamp())).Build(),
+            Select(Timestampdiff(DateTimePart.Day, CurrentTimestamp(), CurrentTimestamp())).Build(),
         ];
 
         Assert.All(statements, statement => Assert.False(string.IsNullOrEmpty(statement.Text)));

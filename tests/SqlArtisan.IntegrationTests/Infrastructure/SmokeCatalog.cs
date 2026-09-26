@@ -127,10 +127,10 @@ internal static class SmokeCatalog
         // --- Niladic date/time functions ---
         // CURRENT_TIMESTAMP is universal; CURRENT_DATE has no SQL Server form;
         // CURRENT_TIME exists only on MySQL / PostgreSQL / SQLite.
-        Add("CurrentTimestamp", () => Scalar(CurrentTimestamp), All);
+        Add("CurrentTimestamp", () => Scalar(CurrentTimestamp()), All);
         Add("CurrentDate", () => Scalar(CurrentDate),
             Only(Dbms.MySql, Dbms.Oracle, Dbms.PostgreSql, Dbms.Sqlite));
-        Add("CurrentTime", () => Scalar(CurrentTime),
+        Add("CurrentTime", () => Scalar(CurrentTime()),
             Only(Dbms.MySql, Dbms.PostgreSql, Dbms.Sqlite));
         // Oracle SYSDATE / SYSTIMESTAMP selected FROM DUAL (also covers the DUAL table).
         Add("Sysdate", () => Select(Sysdate).From(Dual), Only(Dbms.Oracle));

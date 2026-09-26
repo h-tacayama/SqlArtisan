@@ -103,9 +103,9 @@ for the full per-dialect guide, including a MySQL semantics trap `||` has that
 ## Date and Time Functions
 
 - `AddMonths()` for `ADD_MONTHS` (Oracle)
-- `CurrentDate` for `CURRENT_DATE` (not supported by SQL Server — use `CurrentTimestamp` there)
-- `CurrentTime` for `CURRENT_TIME` (not supported by Oracle or SQL Server — use `CurrentTimestamp` there)
-- `CurrentTimestamp` for `CURRENT_TIMESTAMP`
+- `CurrentDate` for `CURRENT_DATE` (not supported by SQL Server — use `CurrentTimestamp()` there)
+- `CurrentTime()` for `CURRENT_TIME` (not supported by Oracle or SQL Server — use `CurrentTimestamp()` there); `CurrentTime(precision)` for `CURRENT_TIME(precision)` (MySQL, PostgreSQL)
+- `CurrentTimestamp()` for `CURRENT_TIMESTAMP`; `CurrentTimestamp(precision)` for `CURRENT_TIMESTAMP(precision)` (MySQL, Oracle, PostgreSQL — MySQL's bare form has whole-second precision)
 - `Date(timevalue[, modifier, ...])` for `DATE` (SQLite; 1-argument form also MySQL/PostgreSQL)
 - `DateAdd()` for `DATE_ADD` (MySQL — not `Dateadd()`, SQL Server's `DATEADD` below)
 - `Dateadd()` for `DATEADD` (SQL Server)

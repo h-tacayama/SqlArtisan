@@ -24,7 +24,7 @@ public class BindValue : SqlExpression
     /// to the driver parameter (for example <c>size: -1</c> for a SqlClient <c>(MAX)</c> type);
     /// Oracle array bind ignores <paramref name="size"/> and rejects a non-input direction.
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>; bind SQL <c>NULL</c> with <see cref="Sql.BindNull(DbType?)"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>; bind SQL <c>NULL</c> with <see cref="Sql.BindNull()"/>.</exception>
     public BindValue(
         object value,
         DbType? dbType = null,

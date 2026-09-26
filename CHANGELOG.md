@@ -5,6 +5,32 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- `CurrentTimestamp(precision)` and `CurrentTime(precision)` emit
+  `CURRENT_TIMESTAMP(p)` / `CURRENT_TIME(p)`, for fractional seconds — MySQL's
+  bare `CURRENT_TIMESTAMP` has whole-second precision. The precision form is
+  MySQL, Oracle and PostgreSQL for `CURRENT_TIMESTAMP` and MySQL and PostgreSQL
+  for `CURRENT_TIME`; `SQLA0100` reports it on SQL Server and SQLite, which
+  spell both keywords bare only. A precision outside 0-9 throws
+  `ArgumentException` at the call. (#553)
+
+### Changed
+- **Breaking:** `Sql.CurrentTimestamp` and `Sql.CurrentTime` are methods, not
+  properties: write `CurrentTimestamp()` and `CurrentTime()`. A property could
+  never gain the precision form above under the same name. Every existing
+  bare use is a compile error (CS1503 / CS0019), not a silent change — the
+  method is overloaded, so the old spelling cannot convert to `object`.
+  Binary-breaking — rebuild against this version. (#553)
+- **Breaking:** the interval fields `Year`, `Month`, `Day`, `Hour`, `Minute`
+  and `ToSecond` take their precision through a second overload instead of an
+  optional `int?`: `Day()` and `Day(2)` compile as before, but `Day(null)` or
+  a nullable variable (`Day(p)` with `p` an `int?`) no longer does — call
+  `Day()` for no precision. Binary-breaking — rebuild against this version.
+  (#553)
+- **Breaking:** `BindNull(DbType? dbType = null)` is split the same way into
+  `BindNull()` and `BindNull(DbType dbType)`; `BindNull()` and
+  `BindNull(DbType.Int32)` compile as before, `BindNull(null)` no longer does.
+  Binary-breaking — rebuild against this version. (#553)
 
 ## [0.11.0-beta.1] - 2026-09-25
 ### Added

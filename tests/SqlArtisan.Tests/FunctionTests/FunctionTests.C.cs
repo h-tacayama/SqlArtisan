@@ -304,15 +304,50 @@ public partial class FunctionTests
     [Fact]
     public void CurrentTime_NoParameters_CorrectSql()
     {
-        SqlStatement sql = Select(CurrentTime).Build();
+        SqlStatement sql = Select(CurrentTime()).Build();
         Assert.Equal("SELECT CURRENT_TIME", sql.Text);
+    }
+
+    [Fact]
+    public void CurrentTime_WithPrecision_CorrectSql()
+    {
+        SqlStatement sql = Select(CurrentTime(3)).Build();
+        Assert.Equal("SELECT CURRENT_TIME(3)", sql.Text);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(10)]
+    public void CurrentTime_PrecisionOutOfRange_ThrowsArgumentException(int precision)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => CurrentTime(precision));
+
+        Assert.Equal("CURRENT_TIME precision must be between 0 and 9.", ex.Message);
     }
 
     [Fact]
     public void CurrentTimestamp_NoParameters_CorrectSql()
     {
-        SqlStatement sql = Select(CurrentTimestamp).Build();
+        SqlStatement sql = Select(CurrentTimestamp()).Build();
         Assert.Equal("SELECT CURRENT_TIMESTAMP", sql.Text);
+    }
+
+    [Fact]
+    public void CurrentTimestamp_WithPrecision_CorrectSql()
+    {
+        SqlStatement sql = Select(CurrentTimestamp(3)).Build();
+        Assert.Equal("SELECT CURRENT_TIMESTAMP(3)", sql.Text);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(10)]
+    public void CurrentTimestamp_PrecisionOutOfRange_ThrowsArgumentException(int precision)
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => CurrentTimestamp(precision));
+
+        Assert.Equal("CURRENT_TIMESTAMP precision must be between 0 and 9.", ex.Message);
     }
 
     [Fact]

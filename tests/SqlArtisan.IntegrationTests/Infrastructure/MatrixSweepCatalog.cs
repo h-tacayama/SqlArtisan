@@ -260,7 +260,8 @@ internal static class MatrixSweepCatalog
         Add("Variance", _ => Select(Variance(o.Amount)).From(o));
         Add("Var", _ => Select(Var(o.Amount)).From(o));
         Add("Varp", _ => Select(Varp(o.Amount)).From(o));
-        Add("CurrentTimestamp", _ => Scalar(CurrentTimestamp));
+        Add("CurrentTimestamp", _ => Scalar(CurrentTimestamp()));
+        AddArity("CurrentTimestamp", 1, _ => Scalar(CurrentTimestamp(3)));
         AddArity("Concat", 2, _ => Scalar(Concat("a", "b")));
         AddArity("Concat", 4, _ => Scalar(Concat("a", "b", "c")));
         cases.Add(new SweepCase(new MatrixKey("DoublePipe"),
@@ -375,7 +376,8 @@ internal static class MatrixSweepCatalog
 
         // --- Date / time ---
         Add("CurrentDate", _ => Scalar(CurrentDate));
-        Add("CurrentTime", _ => Scalar(CurrentTime));
+        Add("CurrentTime", _ => Scalar(CurrentTime()));
+        AddArity("CurrentTime", 1, _ => Scalar(CurrentTime(3)));
         Add("Extract", _ => Scalar(Extract(DateTimePart.Year, u.CreatedAt)));
         Add("Datepart", _ => Scalar(Datepart(DateTimePart.Year, u.CreatedAt)));
         Add("Dateadd", _ => Scalar(Dateadd(DateTimePart.Day, 1, u.CreatedAt)));
