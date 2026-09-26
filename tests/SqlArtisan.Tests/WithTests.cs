@@ -373,7 +373,7 @@ public class WithTests
             .Set(
                 b.Code == 1,
                 b.Name == "Test",
-                b.CreatedAt == CurrentTimestamp)
+                b.CreatedAt == CurrentTimestamp())
             .Build();
 
         StringBuilder expected = new();
@@ -544,7 +544,7 @@ public class WithTests
             .Set(
                 b.Code == 2,
                 b.Name == "Test",
-                b.CreatedAt == CurrentTimestamp)
+                b.CreatedAt == CurrentTimestamp())
             .Where(b.Code.In(Select(cte.CteCode).From(cte)))
             .Build();
 

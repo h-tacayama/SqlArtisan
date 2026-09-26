@@ -83,8 +83,8 @@ public static partial class Sql
     /// An explicit bind-parameter handle for a SQL <c>NULL</c>, emitted as a
     /// marker (<c>:0</c>, <c>:1</c>, …) assigned at <c>Build()</c>.
     /// </summary>
-    /// <param name="dbType">The data type the parameter is bound as, or <see langword="null"/> to let the driver infer it.</param>
-    /// <returns>A bind-parameter handle for a SQL <c>NULL</c>.</returns>
+    /// <returns>A bind-parameter handle for a SQL <c>NULL</c>, its data type left
+    /// to the driver to infer.</returns>
     /// <remarks>
     /// Unlike a bare <see langword="null"/> literal, which inlines the <c>NULL</c>
     /// keyword directly into the SQL text (see <c>Values(...)</c>), this reserves
@@ -92,6 +92,11 @@ public static partial class Sql
     /// this value is null. <c>Bind(null)</c> still throws; reach for this
     /// factory when you deliberately want a bound <c>NULL</c>.
     /// </remarks>
-    public static BindValue BindNull(DbType? dbType = null) =>
-        new(DBNull.Value, dbType);
+    public static BindValue BindNull() => new(DBNull.Value, null);
+
+    /// <inheritdoc cref="BindNull()"/>
+    /// <param name="dbType">The data type the parameter is bound as.</param>
+    /// <returns>A bind-parameter handle for a SQL <c>NULL</c> of
+    /// <paramref name="dbType"/>.</returns>
+    public static BindValue BindNull(DbType dbType) => new(DBNull.Value, dbType);
 }

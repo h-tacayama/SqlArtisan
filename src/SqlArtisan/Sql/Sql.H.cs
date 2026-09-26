@@ -33,8 +33,13 @@ public static partial class Sql
     /// field of <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>HOUR TO SECOND</c>).
     /// </summary>
-    /// <param name="precision">The leading field's digit count (0-9); omit for
-    /// Oracle's own default of 2.</param>
-    /// <returns>An <see cref="IntervalField"/> emitting <c>HOUR</c> or <c>HOUR(precision)</c>.</returns>
-    public static IntervalField Hour(int? precision = null) => new(DateTimePart.Hour, precision);
+    /// <returns>An <see cref="IntervalField"/> emitting <c>HOUR</c>.</returns>
+    public static IntervalField Hour() => new(DateTimePart.Hour, null);
+
+    /// <inheritdoc cref="Hour()"/>
+    /// <param name="precision">The leading field's digit count (0-9); the no-argument
+    /// overload leaves Oracle's own default of 2.</param>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>HOUR(precision)</c>.</returns>
+    public static IntervalField Hour(int precision) =>
+        new(DateTimePart.Hour, precision);
 }

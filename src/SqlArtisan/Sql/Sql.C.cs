@@ -711,15 +711,38 @@ public static partial class Sql
     /// <summary>
     /// The <c>CURRENT_TIME</c> function (the current time of day).
     /// </summary>
+    /// <returns>A <see cref="CurrentTimeFunction"/> emitting <c>CURRENT_TIME</c>.</returns>
     /// <remarks>Not supported by Oracle or SQL Server.</remarks>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static CurrentTimeFunction CurrentTime => new();
+    public static CurrentTimeFunction CurrentTime() => new(null);
+
+    /// <summary>
+    /// The <c>CURRENT_TIME(precision)</c> function: the current time of day with
+    /// <paramref name="precision"/> fractional-second digits.
+    /// </summary>
+    /// <param name="precision">The fractional-second digits (0-9).</param>
+    /// <returns>A <see cref="CurrentTimeFunction"/> emitting
+    /// <c>CURRENT_TIME(precision)</c>.</returns>
+    /// <remarks>MySQL and PostgreSQL syntax.</remarks>
+    public static CurrentTimeFunction CurrentTime(int precision) => new(precision);
 
     /// <summary>
     /// The <c>CURRENT_TIMESTAMP</c> function (the current date and time).
     /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public static CurrentTimestampFunction CurrentTimestamp => new();
+    /// <returns>A <see cref="CurrentTimestampFunction"/> emitting
+    /// <c>CURRENT_TIMESTAMP</c>.</returns>
+    public static CurrentTimestampFunction CurrentTimestamp() => new(null);
+
+    /// <summary>
+    /// The <c>CURRENT_TIMESTAMP(precision)</c> function: the current date and time
+    /// with <paramref name="precision"/> fractional-second digits.
+    /// </summary>
+    /// <param name="precision">The fractional-second digits (0-9).</param>
+    /// <returns>A <see cref="CurrentTimestampFunction"/> emitting
+    /// <c>CURRENT_TIMESTAMP(precision)</c>.</returns>
+    /// <remarks>MySQL, Oracle, and PostgreSQL syntax. MySQL's bare
+    /// <c>CURRENT_TIMESTAMP</c> has whole-second precision; pass one for fractional
+    /// seconds there.</remarks>
+    public static CurrentTimestampFunction CurrentTimestamp(int precision) => new(precision);
 
     /// <summary>
     /// Gets the current value of a sequence using the PostgreSQL syntax

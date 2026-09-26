@@ -64,7 +64,7 @@ public class UpsertTests
         // Act
         SqlStatement sql =
             InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
-            .Values(1, "a", CurrentTimestamp)
+            .Values(1, "a", CurrentTimestamp())
             .OnConflict(_t.Code, _t.Name)
             .DoUpdateSet(_t.CreatedAt == Excluded(_t.CreatedAt))
             .Build(Dbms.PostgreSql);
@@ -202,7 +202,7 @@ public class UpsertTests
         // Act
         SqlStatement sql =
             InsertInto(_t, _t.Code, _t.Name, _t.CreatedAt)
-            .Values(1, "a", CurrentTimestamp)
+            .Values(1, "a", CurrentTimestamp())
             .OnDuplicateKeyUpdate(
                 _t.Name == Excluded(_t.Name),
                 _t.CreatedAt == Excluded(_t.CreatedAt))
