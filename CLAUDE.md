@@ -174,8 +174,8 @@ there, not here — a pointer line in this list is enough.
 dbms-differences, docs-style, guards-and-empty-states, public-api-design,
 sql-building-style, unit-tests.
 
-**Skills** (`.claude/skills/`): sa-add-sql-function, sa-diff-review,
-sa-diff-review-refinement, sa-docs-audit, sa-panel-audit,
+**Skills** (`.claude/skills/`): sa-add-sql-function, sa-clause-audit,
+sa-diff-review, sa-diff-review-refinement, sa-docs-audit, sa-panel-audit,
 sa-panel-diff-review, sa-run-benchmark, sa-run-integration-tests,
 sa-run-sql-harness, sa-write-xml-docs.
 

@@ -59,6 +59,14 @@ token (`Contains`, the plainer predicate use) and the other gets an invented
 qualifier (`ContainsScore`, #233-class invention, justified only by the CLR
 constraint — record any new instance here rather than resolving it ad hoc).
 
+**Recorded instance, a different constraint — `IntervalLiteral`:** the CLR
+*could* overload it onto `Interval` (every overload differs by arity or
+parameter type), but `Interval(object quantity, DateTimePart)` binds its value
+while `IntervalLiteral(string, IntervalField)` inlines it. One name would let
+the second argument's static type pick the emission mode silently — the trap
+the separator section below forbids. The qualifier is also the standard's own
+term (`<interval literal>`), not an invention (#554).
+
 ## BCL simple-name collisions: record here, don't rename
 
 A faithful SQL-token name can collide with a common BCL static-utility type of
@@ -151,6 +159,18 @@ when the construct has a natural "first" argument to split out; use the
 runtime guard when every argument plays the same role and splitting one out
 would misdescribe the construct (there is no privileged "first" array
 element in `ARRAY[...]`).
+
+## A token that takes arguments anywhere is a method, not a property
+
+A parameterless property is right only for a token that takes no argument on
+any supported dialect (`CurrentDate`, `ToHour`). If any dialect
+accepts an argument — a precision, a count — make the factory a method with
+that argument optional, even while no caller needs it yet: C# forbids a
+property and a method of the same name on one type (CS0102), so a property can
+never grow the argument form later without a major version, and the only
+additive escape would be an invented name this file forbids. `Day(int?
+precision = null)` is the shape. `CurrentTimestamp`/`CurrentTime` were shipped
+as properties against this; #553 converts them before 1.0.
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 
