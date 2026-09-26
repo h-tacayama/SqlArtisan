@@ -96,6 +96,11 @@ The reviewers' reports are drafts, not verdicts. For every finding:
   0016's wording; its stated reason did not apply to that function).
 - Reject a "breaking" claim when an analyzer, overload or record remedy
   exists.
+- Before filing a finding as breaking, check who uses the API as it stands —
+  the other packages in the repo, the docs, and the call shapes a user would
+  write — and what the fix would take from them (#552 would have removed
+  `Case(expr, whenArray)`; #556 missed that execution layers type-test
+  `BindArrayValue`).
 - Drop what is non-breaking **and** already recorded; keep everything else.
 
 ## 4. Land every finding
