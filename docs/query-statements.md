@@ -141,7 +141,7 @@ Columns are qualified by the alias — or rendered unqualified when the table ha
 #### FROM-less Queries
 ```csharp
 SqlStatement sql =
-    Select(CurrentTimestamp)
+    Select(CurrentTimestamp())
     .Build();
 
 // SELECT CURRENT_TIMESTAMP
@@ -803,7 +803,7 @@ SqlStatement sql =
     Update(u)
     .Set(
         u.Name == "newName",
-        u.CreatedAt == CurrentTimestamp)
+        u.CreatedAt == CurrentTimestamp())
     .Where(u.Id == 1)
     .Build();
 
@@ -952,7 +952,7 @@ On Oracle, express the shape as a correlated subquery or a
 UsersTable u = new();
 SqlStatement sql =
     InsertInto(u, u.Id, u.Name, u.CreatedAt)
-    .Values(1, "newName", CurrentTimestamp)
+    .Values(1, "newName", CurrentTimestamp())
     .Build();
 
 // INSERT INTO users
@@ -1023,7 +1023,7 @@ SqlStatement sql =
     .Set(
         u.Id == 1,
         u.Name == "newName",
-        u.CreatedAt == CurrentTimestamp)
+        u.CreatedAt == CurrentTimestamp())
     .Build();
 
 // INSERT INTO users

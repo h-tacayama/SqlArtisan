@@ -172,14 +172,31 @@ misuse that already fails loudly on first run (#552).
 ## A token that takes arguments anywhere is a method, not a property
 
 A parameterless property is right only for a token that takes no argument on
-any supported dialect (`CurrentDate`, `ToHour`). If any dialect
-accepts an argument — a precision, a count — make the factory a method with
-that argument optional, even while no caller needs it yet: C# forbids a
-property and a method of the same name on one type (CS0102), so a property can
-never grow the argument form later without a major version, and the only
-additive escape would be an invented name this file forbids. `Day(int?
-precision = null)` is the shape. `CurrentTimestamp`/`CurrentTime` were shipped
-as properties against this; #553 converts them before 1.0.
+any supported dialect (`CurrentDate`, `ToHour`). If any dialect accepts an
+argument — a precision, a count — the factory is a method, even while no
+caller needs the argument yet: C# forbids a property and a method of the same
+name on one type (CS0102), so a property can never grow the argument form
+later without a major version, and the only additive escape would be an
+invented name this file forbids.
+
+**Shape: an overload pair, `X()` and `X(int precision)` — never one
+`X(int? precision = null)`.** Three reasons, all measured (#553):
+
+- An optional-parameter method group has a natural delegate type, so a caller
+  who forgets the parentheses in an `object` position — `Select(X)`,
+  `col == X`, `Values(..., X)` — compiles with only warning CS8974 and throws
+  an opaque `Invalid type ... AnonymousDelegate` at run time. Two overloads
+  give the group no natural type, so the same slip is error CS1503/CS0019.
+- The pair gives the argument form its own declared arity, so the analyzer can
+  key it separately (`("CurrentTimestamp", 1)`); one optional parameter hides
+  it at arity 1 either way.
+- Neither overload takes `null`: "no argument" is spelled by calling `X()`,
+  not by passing `null` (`BindNull()` / `BindNull(DbType)` follows the same
+  pair for the same reason).
+
+`CurrentTimestamp()`/`CurrentTimestamp(int)`, `CurrentTime()`/`CurrentTime(int)`,
+the interval fields (`Day()`/`Day(int)`, …, `ToSecond()`/`ToSecond(int)`) and
+`BindNull()`/`BindNull(DbType)` are the shipped instances.
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 

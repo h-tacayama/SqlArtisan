@@ -135,12 +135,16 @@ public static partial class Sql
     /// <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>DAY TO SECOND</c>).
     /// </summary>
-    /// <param name="precision">The fractional-second digit count (0-9); omit for
-    /// Oracle's own default of 6. As a sole field rather than a range's trailing
+    /// <returns>An <see cref="IntervalField"/> emitting <c>SECOND</c>.</returns>
+    public static IntervalField ToSecond() => new(DateTimePart.Second, null);
+
+    /// <inheritdoc cref="ToSecond()"/>
+    /// <param name="precision">The fractional-second digit count (0-9); the no-argument
+    /// overload leaves Oracle's own default of 6. As a sole field rather than a range's trailing
     /// one, Oracle reads the same digits as the leading precision instead.</param>
-    public static IntervalField ToSecond(int? precision = null) => new(
-        DateTimePart.Second,
-        precision);
+    /// <returns>An <see cref="IntervalField"/> emitting <c>SECOND(precision)</c>.</returns>
+    public static IntervalField ToSecond(int precision) =>
+        new(DateTimePart.Second, precision);
 
     /// <summary>
     /// The <c>TO_TIMESTAMP(text, format)</c> function: parses <paramref name="text"/>

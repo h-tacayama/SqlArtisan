@@ -200,10 +200,15 @@ public static partial class Sql
     /// field of <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>DAY TO SECOND</c>).
     /// </summary>
-    /// <param name="precision">The leading field's digit count (0-9); omit for
-    /// Oracle's own default of 2.</param>
-    /// <returns>An <see cref="IntervalField"/> emitting <c>DAY</c> or <c>DAY(precision)</c>.</returns>
-    public static IntervalField Day(int? precision = null) => new(DateTimePart.Day, precision);
+    /// <returns>An <see cref="IntervalField"/> emitting <c>DAY</c>.</returns>
+    public static IntervalField Day() => new(DateTimePart.Day, null);
+
+    /// <inheritdoc cref="Day()"/>
+    /// <param name="precision">The leading field's digit count (0-9); the no-argument
+    /// overload leaves Oracle's own default of 2.</param>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>DAY(precision)</c>.</returns>
+    public static IntervalField Day(int precision) =>
+        new(DateTimePart.Day, precision);
 
     /// <summary>
     /// The <c>DECODE(<paramref name="expr"/>, search, result, ..., <paramref name="default"/>)</c>

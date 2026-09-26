@@ -158,7 +158,7 @@ public partial class FunctionTests
     public void Datediff_SqlServer_CorrectSql()
     {
         SqlStatement sql =
-            Select(Datediff(DateTimePart.Day, _t.CreatedAt, CurrentTimestamp))
+            Select(Datediff(DateTimePart.Day, _t.CreatedAt, CurrentTimestamp()))
             .Build(Dbms.SqlServer);
 
         StringBuilder expected = new();
@@ -188,21 +188,21 @@ public partial class FunctionTests
     {
         SqlStatement sql =
             Select(
-                Datepart(DateTimePart.Year, CurrentTimestamp),
-                Datepart(DateTimePart.Quarter, CurrentTimestamp),
-                Datepart(DateTimePart.Month, CurrentTimestamp),
-                Datepart(DateTimePart.Dayofyear, CurrentTimestamp),
-                Datepart(DateTimePart.Day, CurrentTimestamp),
-                Datepart(DateTimePart.Week, CurrentTimestamp),
-                Datepart(DateTimePart.Weekday, CurrentTimestamp),
-                Datepart(DateTimePart.Hour, CurrentTimestamp),
-                Datepart(DateTimePart.Minute, CurrentTimestamp),
-                Datepart(DateTimePart.Second, CurrentTimestamp),
-                Datepart(DateTimePart.Millisecond, CurrentTimestamp),
-                Datepart(DateTimePart.Microsecond, CurrentTimestamp),
-                Datepart(DateTimePart.Nanosecond, CurrentTimestamp),
-                Datepart(DateTimePart.Tzoffset, CurrentTimestamp),
-                Datepart(DateTimePart.IsoWeek, CurrentTimestamp))
+                Datepart(DateTimePart.Year, CurrentTimestamp()),
+                Datepart(DateTimePart.Quarter, CurrentTimestamp()),
+                Datepart(DateTimePart.Month, CurrentTimestamp()),
+                Datepart(DateTimePart.Dayofyear, CurrentTimestamp()),
+                Datepart(DateTimePart.Day, CurrentTimestamp()),
+                Datepart(DateTimePart.Week, CurrentTimestamp()),
+                Datepart(DateTimePart.Weekday, CurrentTimestamp()),
+                Datepart(DateTimePart.Hour, CurrentTimestamp()),
+                Datepart(DateTimePart.Minute, CurrentTimestamp()),
+                Datepart(DateTimePart.Second, CurrentTimestamp()),
+                Datepart(DateTimePart.Millisecond, CurrentTimestamp()),
+                Datepart(DateTimePart.Microsecond, CurrentTimestamp()),
+                Datepart(DateTimePart.Nanosecond, CurrentTimestamp()),
+                Datepart(DateTimePart.Tzoffset, CurrentTimestamp()),
+                Datepart(DateTimePart.IsoWeek, CurrentTimestamp()))
             .Build(Dbms.SqlServer);
 
         StringBuilder expected = new StringBuilder()

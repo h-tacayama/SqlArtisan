@@ -1312,10 +1312,11 @@ for, not a bug in the matrix.
   `Trunc(expr[, format])` is the example: a numeric argument is Oracle,
   PostgreSQL and SQLite 3.35+, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry and never
-  warns either way. The `IntervalLiteral(...)` field markers (`Year(...)`,
-  `Month(...)`, ..., `ToSecond(...)`) share this gap for the same reason:
-  Oracle's leading/fractional-digit precision is an optional argument, not a
-  separate overload, so the matrix can't see whether a call used it.
+  warns either way.
+- **The `IntervalLiteral(...)` field markers' precision is not modeled yet.**
+  `Year(3)`, `Day(2)`, ..., `ToSecond(4)` are overloads of their own, so the
+  matrix *could* key them by arity, but no entry exists: a leading-field
+  precision, which only Oracle accepts, does not warn on another target.
 - **`SQLA0104`'s lists don't model a source-type or column-type constraint.**
   Oracle's `EXTRACT` rejects `HOUR`/`MINUTE`/`SECOND` on a plain `DATE`
   source (it needs a `TIMESTAMP`) and the four `TIMEZONE_*` fields need

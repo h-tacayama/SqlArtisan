@@ -70,12 +70,15 @@ public static partial class Sql
     /// field of <see cref="IntervalLiteral(string, IntervalField, IntervalField)"/>
     /// (e.g. <c>MINUTE TO SECOND</c>).
     /// </summary>
-    /// <param name="precision">The leading field's digit count (0-9); omit for
-    /// Oracle's own default of 2.</param>
-    /// <returns>An <see cref="IntervalField"/> emitting <c>MINUTE</c> or <c>MINUTE(precision)</c>.</returns>
-    public static IntervalField Minute(int? precision = null) => new(
-        DateTimePart.Minute,
-        precision);
+    /// <returns>An <see cref="IntervalField"/> emitting <c>MINUTE</c>.</returns>
+    public static IntervalField Minute() => new(DateTimePart.Minute, null);
+
+    /// <inheritdoc cref="Minute()"/>
+    /// <param name="precision">The leading field's digit count (0-9); the no-argument
+    /// overload leaves Oracle's own default of 2.</param>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>MINUTE(precision)</c>.</returns>
+    public static IntervalField Minute(int precision) =>
+        new(DateTimePart.Minute, precision);
 
     /// <summary>
     /// The <c>MOD(<paramref name="dividend"/>, <paramref name="divisor"/>)</c>
@@ -96,10 +99,15 @@ public static partial class Sql
     /// never a leading field of a range — use <see cref="ToMonth"/> for
     /// <c>YEAR TO MONTH</c>'s trailing field.
     /// </summary>
-    /// <param name="precision">The field's digit count (0-9); omit for
-    /// Oracle's own default of 2.</param>
-    /// <returns>An <see cref="IntervalField"/> emitting <c>MONTH</c> or <c>MONTH(precision)</c>.</returns>
-    public static IntervalField Month(int? precision = null) => new(DateTimePart.Month, precision);
+    /// <returns>An <see cref="IntervalField"/> emitting <c>MONTH</c>.</returns>
+    public static IntervalField Month() => new(DateTimePart.Month, null);
+
+    /// <inheritdoc cref="Month()"/>
+    /// <param name="precision">The field's digit count (0-9); the no-argument
+    /// overload leaves Oracle's own default of 2.</param>
+    /// <returns>An <see cref="IntervalField"/> emitting <c>MONTH(precision)</c>.</returns>
+    public static IntervalField Month(int precision) =>
+        new(DateTimePart.Month, precision);
 
     /// <summary>
     /// The <c>MONTHS_BETWEEN(<paramref name="date1"/>, <paramref name="date2"/>)</c>

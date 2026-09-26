@@ -200,8 +200,8 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>INTERVAL '<paramref name="value"/>' field</c> literal, where
-    /// <paramref name="field"/> is <see cref="Year(int?)"/>, <see cref="Month(int?)"/>,
-    /// <see cref="Day(int?)"/>, <see cref="Hour(int?)"/>, <see cref="Minute(int?)"/>,
+    /// <paramref name="field"/> is <see cref="Year()"/>, <see cref="Month()"/>,
+    /// <see cref="Day()"/>, <see cref="Hour()"/>, <see cref="Minute()"/>,
     /// or <see cref="Second()"/>.
     /// </summary>
     /// <param name="value">The interval literal value, emitted inline between
@@ -226,16 +226,16 @@ public static partial class Sql
     /// </summary>
     /// <param name="value">The interval literal value, emitted inline between
     /// single quotes (its own quotes doubled).</param>
-    /// <param name="leadingField">The most significant field — <see cref="Year(int?)"/>,
-    /// <see cref="Day(int?)"/>, <see cref="Hour(int?)"/>, or <see cref="Minute(int?)"/>.</param>
+    /// <param name="leadingField">The most significant field — <see cref="Year()"/>,
+    /// <see cref="Day()"/>, <see cref="Hour()"/>, or <see cref="Minute()"/>.</param>
     /// <param name="trailingField">The least significant field — <see cref="ToMonth"/>,
-    /// <see cref="ToHour"/>, <see cref="ToMinute"/>, or <see cref="ToSecond(int?)"/>.</param>
+    /// <see cref="ToHour"/>, <see cref="ToMinute"/>, or <see cref="ToSecond()"/>.</param>
     /// <returns>An <see cref="IntervalLiteralExpression"/> emitting
     /// <c>INTERVAL 'value' leadingField TO trailingField</c>.</returns>
     /// <exception cref="ArgumentException"><paramref name="leadingField"/> and
     /// <paramref name="trailingField"/> are not one of the seven valid Oracle
     /// pairings, or <paramref name="trailingField"/> carries a precision without
-    /// being <see cref="ToSecond(int?)"/> — Oracle attaches a trailing precision
+    /// being <see cref="ToSecond(int)"/> — Oracle attaches a trailing precision
     /// to <c>SECOND</c> alone.</exception>
     /// <remarks>
     /// Oracle/PostgreSQL syntax. On Oracle, <paramref name="value"/> always

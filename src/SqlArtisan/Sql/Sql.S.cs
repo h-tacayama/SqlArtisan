@@ -20,14 +20,14 @@ public static partial class Sql
     /// <summary>
     /// The <c>SECOND</c> interval field, for the sole-field overload of
     /// <see cref="IntervalLiteral(string, IntervalField)"/>. <c>SECOND</c> is
-    /// never a leading field of a range — use <see cref="ToSecond(int?)"/> for
+    /// never a leading field of a range — use <see cref="ToSecond(int)"/> for
     /// a range's trailing field.
     /// </summary>
     /// <returns>An <see cref="IntervalField"/> emitting <c>SECOND</c>.</returns>
     /// <remarks>
     /// No precision parameter: Oracle's standalone <c>SECOND</c> takes a
     /// <c>(leading, fractional)</c> pair, which has no spelling here. For the
-    /// single-value form, <see cref="ToSecond(int?)"/> emits <c>SECOND(n)</c>.
+    /// single-value form, <see cref="ToSecond(int)"/> emits <c>SECOND(n)</c>.
     /// </remarks>
     public static IntervalField Second() => new(DateTimePart.Second, null);
 
