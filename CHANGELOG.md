@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   for `CURRENT_TIME`; `SQLA0100` reports it on SQL Server and SQLite, which
   spell both keywords bare only. A precision outside 0-9 throws
   `ArgumentException` at the call. (#553)
+- `SQLA0100` reports an interval field's precision where the target rejects it:
+  `Year(p)`, `Month(p)`, `Day(p)`, `Hour(p)` and `Minute(p)` are Oracle only,
+  and `ToSecond(p)` is Oracle and PostgreSQL. (#557)
 
 ### Changed
 - **Breaking:** `Sql.CurrentTimestamp` and `Sql.CurrentTime` are methods, not

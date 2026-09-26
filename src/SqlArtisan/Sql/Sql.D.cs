@@ -207,6 +207,7 @@ public static partial class Sql
     /// <param name="precision">The leading field's digit count (0-9); the no-argument
     /// overload leaves Oracle's own default of 2.</param>
     /// <returns>An <see cref="IntervalField"/> emitting <c>DAY(precision)</c>.</returns>
+    /// <remarks>Oracle syntax.</remarks>
     public static IntervalField Day(int precision) =>
         new(DateTimePart.Day, precision);
 
