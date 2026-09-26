@@ -434,7 +434,7 @@ To read every row on purpose, omit `.Where(...)` entirely. Any condition clause 
 
 ## JSON Operators
 
-Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators, and filter on JSONB content with the `@>`, `?`, `?|`, and `?&` predicates. The key or path on the right side is parameterized normally.
+Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators, and filter on JSONB content with the `@>`, `?`, `?|`, and `?&` predicates. The key or path on the right side is parameterized normally, with two consequences on MySQL and SQLite. An expression index over `doc ->> '$.a'` matches only a literal path, so a bound one scans instead (measured on SQLite) — for an indexed JSON field, use `JsonExtract(...)`, which inlines its path. And MySQL's grammar takes a string literal on the right of `->` / `->>`: the bound form runs because MySqlConnector interpolates parameters client-side by default, and a server-side prepared statement rejects it.
 
 ### Element Access (`->` / `->>`)
 

@@ -286,7 +286,9 @@ public static partial class Sql
 
     /// <inheritdoc cref="StringAgg(object, string)"/>
     /// <param name="expr">The expression aggregated across the group.</param>
-    /// <param name="separator">The string placed between concatenated values. Emitted as an inline string literal, since SQL Server requires the separator to be a literal.</param>
+    /// <param name="separator">The string placed between concatenated values. Emitted as
+    /// an inline string literal, like the 2-argument overload's, so the two emit the
+    /// separator the same way.</param>
     /// <param name="orderByClause">PostgreSQL's inline ordering, emitted inside the call (<c>STRING_AGG(expr, separator ORDER BY ...)</c>).</param>
     public static StringAggFunction StringAgg(
         object expr,

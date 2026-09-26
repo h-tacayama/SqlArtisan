@@ -28,20 +28,33 @@ the string names:
 | Position | Behavior | Mechanism |
 |----------|----------|-----------|
 | **Value** — anything the grammar accepts as a parameter | bound | `BindValue`; ADR 0004 |
-| **Grammar-forced literal** — a position whose dialect grammar rejects a bind marker | emitted inline, single-quoted, `'` doubled (and `\` doubled on MySQL) | `SqlBuildingBuffer.AppendStringLiteral` |
+| **Forced literal** — a position that needs a literal: the dialect grammar rejects a bind marker there, or a bind marker would change how the engine resolves or plans the statement | emitted inline, single-quoted, `'` doubled (and `\` doubled on MySQL) | `SqlBuildingBuffer.AppendStringLiteral` |
 | **Identifier** — a name or type token in the statement's structure | emitted verbatim, between the dialect's alias quotes where the position is quoted at all | `SqlBuildingBuffer.EncloseInAliasQuotes`, or a bare append |
 
 `Nextval` / `Currval` are the case that looked like an exception and is not.
-PostgreSQL's grammar takes the sequence name as a `'…'` string literal (cast to
-`regclass`), so `NEXTVAL('s')` lands on the *second* row — the same code path as
-`LIKE … ESCAPE`, `GROUP_CONCAT … SEPARATOR`, a JSON path, and a text-search
-configuration. The identifier spellings of the same concept, Oracle's
-`s.NEXTVAL` and SQL Server's `NEXT VALUE FOR s`, land on the third row and are
-emitted verbatim. Nothing there is sequence-name hardening.
+PostgreSQL takes the sequence name as a `regclass` argument, and a `'…'`
+literal there is resolved to the sequence when the statement is parsed (early
+binding); a bound name would be looked up at run time instead. So
+`NEXTVAL('s')` lands on the *second* row — the same code path as `LIKE …
+ESCAPE` and `GROUP_CONCAT … SEPARATOR`. The identifier spellings of the same
+concept, Oracle's `s.NEXTVAL` and SQL Server's `NEXT VALUE FOR s`, land on the
+third row and are emitted verbatim. Nothing there is sequence-name hardening.
+
+Two more entries on the second row are there for reasons of their own, not
+because every dialect's grammar rejects a marker (#557):
+
+- **A JSON function path.** An expression index over
+  `json_extract(doc, '$.a')` matches only the literal path: on SQLite 3.45.1 the
+  inline path plans `SEARCH … USING INDEX`, a bound one `SCAN` (#555). Oracle's
+  and SQL Server's `JSON_VALUE` / `JSON_QUERY` also require the literal in
+  their grammar.
+- **A PostgreSQL text-search configuration.** Inline, it resolves as a
+  `regconfig` constant; a string sent as a `text` parameter has no implicit
+  cast to `regconfig`.
 
 ## Decision
 
-**Only values and grammar-forced literals are protected. Identifier positions
+**Only values and forced literals are protected. Identifier positions
 carry author-written tokens and are emitted verbatim.**
 
 The library adds no escaping, quoting, or sanitizing to an identifier position.
