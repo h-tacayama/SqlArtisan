@@ -628,6 +628,8 @@ internal static class MatrixSweepCatalog
         Add("JsonExtract", _ => Scalar(JsonExtract(u.Data, "$.name")));
         Add("JsonValue", _ => Scalar(JsonValue(u.Data, "$.name")));
         Add("JsonQuery", _ => Scalar(JsonQuery(u.Data, "$.address")));
+        // MySQL's grammar wants a literal right of -> / ->>; the bound key passes only because
+        // MySqlConnector interpolates parameters client-side (docs/expressions.md).
         Add("JsonArrow", dbms => dbms == Dbms.PostgreSql
             ? Scalar(JsonArrow(u.Data, "address"))
             : Scalar(JsonArrow(u.Data, "$.address")));
