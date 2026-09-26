@@ -160,6 +160,15 @@ runtime guard when every argument plays the same role and splitting one out
 would misdescribe the construct (there is no privileged "first" array
 element in `ARRAY[...]`).
 
+**Recorded exception — simple `Case(object expr, params SimpleCaseWhenClause[])`**
+keeps the bare tail and its eager guard, although its searched sibling splits
+out the first `WHEN`. The bare tail is what lets a `WHEN` list built at run
+time pass straight through as an array for a `CASE` with no `ELSE`; splitting
+out the first `WHEN` would turn `Case(expr, whenArray)` into a compile error
+and remove that form. Only the literal `Case(expr)` is at stake, and it throws
+at the call site. A split would cost that form and a binary break to catch a
+misuse that already fails loudly on first run (#552).
+
 ## A token that takes arguments anywhere is a method, not a property
 
 A parameterless property is right only for a token that takes no argument on
