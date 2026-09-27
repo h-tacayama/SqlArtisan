@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -172,12 +173,12 @@ public class OrderByTests
     }
 
     [Fact]
-    public void OrderBy_ZeroOrdinal_ThrowsAtBuild()
+    public void OrderBy_ZeroOrdinal_ThrowsArgumentException()
     {
-        // Dialect-blind, but statement-scoped: the throw is at Build(), because
-        // a window's ordering reads the same literal as an expression.
+        // Dialect-blind and fixed at the call; only the statement position is
+        // guarded, because a window's ordering reads the same literal as an expression.
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Select(_t.Code).From(_t).OrderBy(0).Build(Dbms.MySql));
+            Select(_t.Code).From(_t).OrderBy(0));
 
         Assert.Equal(
             "No engine accepts 0 as an ORDER BY column ordinal; "
@@ -186,20 +187,19 @@ public class OrderByTests
     }
 
     [Fact]
-    public void OrderBy_ZeroOrdinal_InSubquery_ThrowsAtBuild()
+    public void OrderBy_ZeroOrdinal_LeavesTheStageRetryable()
     {
-        // A nested block resolves its own ordinals, so the guard runs on every
-        // query block, not only the one Build() was called on.
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Select(_t.Code)
-            .From(_t)
-            .Where(_t.Code.In(Select(_t.Code).From(_t).OrderBy(0)))
-            .Build(Dbms.MySql));
+        ISelectBuilderFrom held = Select(_t.Code).From(_t);
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.OrderBy(0));
+
+        SqlStatement sql = held.OrderBy(1).Build(Dbms.MySql);
 
         Assert.Equal(
             "No engine accepts 0 as an ORDER BY column ordinal; "
                 + "order by a column, an expression, or a positive ordinal instead.",
             ex.Message);
+        Assert.Equal("SELECT `t`.code FROM test_table `t` ORDER BY 1", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
     }
 
     [Fact]

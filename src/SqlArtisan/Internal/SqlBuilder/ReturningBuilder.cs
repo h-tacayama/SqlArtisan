@@ -73,6 +73,26 @@ internal sealed class ReturningBuilder : IReturningBuilder
             }
         }
 
+        // Both facts are fixed here, and Into freezes this stage, so a Build()-time
+        // throw would leave no stage to retry from; the buffer's checks are the backstop.
+        for (int i = 0; i < outputs.Length; i++)
+        {
+            if (string.IsNullOrEmpty(outputs[i].Variable))
+            {
+                throw new ArgumentException("An output variable name is required.");
+            }
+
+            for (int j = 0; j < i; j++)
+            {
+                if (outputs[j].Variable == outputs[i].Variable)
+                {
+                    throw new ArgumentException(
+                        "A RETURNING INTO clause requires a distinct name for every variable; "
+                            + $"'{outputs[i].Variable}' is duplicated.");
+                }
+            }
+        }
+
         _inner.AddPart(new ReturningIntoClause(_expressions, outputs));
         _inner.DischargeReturning();
         _completed = true;
