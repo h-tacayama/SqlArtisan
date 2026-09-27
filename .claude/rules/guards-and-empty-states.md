@@ -89,12 +89,12 @@ the full rationale.
   ban — ADR 0007's guardrail); a zero `ORDER BY` column ordinal
   (`OrderBy(0)`) — ordinals are 1-based wherever an engine resolves one, so
   `0` is no column position on any of them (live-verified on PostgreSQL 16
-  and SQLite 3.50.4, and on MySQL 8.0 on its lane). That guard and its
-  negative-ordinal sibling below run at `Build()`, for the statement position
-  of every query block — a nested `SELECT` and a CTE body resolve their own
-  ordinals — while `OVER (...)`, `WITHIN GROUP` and `GROUP_CONCAT` read the
-  same literal as an expression and take it, so those positions stay
-  unguarded on every dialect.
+  and SQLite 3.50.4, and on MySQL 8.0 on its lane). That guard throws at the
+  `OrderBy(...)` call and its dialect-scoped negative-ordinal sibling below at
+  `Build()`, both for the statement position of every query block — a nested
+  `SELECT` and a CTE body resolve their own ordinals — while `OVER (...)`,
+  `WITHIN GROUP` and `GROUP_CONCAT` read the same literal as an expression and
+  take it, so those positions stay unguarded on every dialect.
 - *Value-domain*: percentile fraction — finite (pre-existing) and 0..1 (#295);
   `Ntile(buckets)` and `NthValue(expr, n)` — both positive; a `PRECEDING`/
   `FOLLOWING` frame-bound offset — non-negative; a window frame's bound kind
@@ -374,7 +374,7 @@ the caller did not mean. Judge a null argument by which failure it produces:
   subquery in `CteBase.As` (previously emitted `WITH "c" AS ()`),
   `new BindValue(null)` (a never-true `= NULL` predicate the factory already
   rejected), and `default(OutputParameter)` — a struct default no annotation
-  can flag, revalidated at format time.
+  can flag, rejected at the `Into(...)` call (#569).
 - **Loud failure** (a `NullReferenceException` from dereferencing a single
   non-nullable reference parameter — `Column(DbColumn)`,
   `Exists(subquery)`, the condition operators): the nullable annotation *is*
@@ -434,7 +434,9 @@ cannot reach. A new typed element position lands on this shape, not a bare NRE.
   `FILTER` — so the throw lives in the clause node's own `Format`, letting one
   implementation serve all of them; see "no elision" above) and builder stages
   (`SqlBuilderBase._parts` only reaches its final shape once every stage call
-  has run). An eager check here would misfire on legal code.
+  has run). An eager check here would misfire on legal code. A fact fixed by
+  one stage's own arguments is the first bullet's case, not this one
+  (`OrderBy(0)`, `Into(...)`'s variable names, #569).
 
 ## Message grammar
 

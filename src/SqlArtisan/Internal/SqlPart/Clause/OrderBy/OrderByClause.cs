@@ -59,9 +59,8 @@ public sealed class OrderByClause : SqlPart
         }
     }
 
-    // Read by the dialect-blind zero-ordinal guard (ADR 0007): only the
-    // statement position resolves an ordinal, and FindPart never reaches a
-    // window's ordering.
+    // Read by SelectBuilder.OrderBy's dialect-blind guard (ADR 0007): only the
+    // statement position resolves an ordinal.
     internal bool HasZeroOrdinal
     {
         get

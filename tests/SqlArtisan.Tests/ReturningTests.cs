@@ -1,5 +1,6 @@
 using System.Data;
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -268,14 +269,13 @@ public class ReturningTests
     [Fact]
     public void ReturningInto_DefaultOutputParameter_ThrowsArgumentException()
     {
-        // default(OutputParameter) bypasses the constructor guard, so the
-        // format-time backstop must reject it instead of emitting a bare marker.
+        // default(OutputParameter) bypasses the constructor guard, so Into
+        // must reject it instead of emitting a bare marker.
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             InsertInto(_t)
             .Set(_t.Code == 1)
             .Returning(_t.Code)
-            .Into(default(OutputParameter))
-            .Build(Dbms.Oracle));
+            .Into(default(OutputParameter)));
 
         Assert.Equal("An output variable name is required.", ex.Message);
     }
@@ -337,13 +337,39 @@ public class ReturningTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             DeleteFrom(_t)
             .Returning(_t.Code, _t.Name)
-            .Into(new("b", DbType.Int32), new("b", DbType.Int32))
-            .Build());
+            .Into(new("b", DbType.Int32), new("b", DbType.Int32)));
 
         Assert.Equal(
             "A RETURNING INTO clause requires a distinct name for every variable; 'b' "
                 + "is duplicated.",
             ex.Message);
+    }
+
+    [Fact]
+    public void ReturningInto_DuplicateVariableName_LeavesTheStageRetryable()
+    {
+        // Into freezes the stage it completes, so a Build()-time throw left
+        // only "already built" to retry against (#569).
+        IReturningBuilder held = DeleteFrom(_t).Returning(_t.Code, _t.Name);
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Into(new("b", DbType.Int32), new("b", DbType.Int32)));
+
+        SqlStatement sql = held
+            .Into(new("b", DbType.Int32), new("c", DbType.String, 50))
+            .Build(Dbms.Oracle);
+
+        Assert.Equal(
+            "A RETURNING INTO clause requires a distinct name for every variable; 'b' "
+                + "is duplicated.",
+            ex.Message);
+        Assert.Equal(
+            "DELETE FROM test_table RETURNING code, name INTO :b, :c",
+            sql.Text);
+        Dictionary<string, BindValue> parameters = new();
+        sql.Parameters.ForEach((name, bind) => parameters.Add(name, bind));
+        Assert.Equal([":b", ":c"], parameters.Keys);
+        Assert.Equal(ParameterDirection.Output, parameters[":b"].Direction);
+        Assert.Equal(50, parameters[":c"].Size);
     }
 
     [Fact]

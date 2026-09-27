@@ -255,7 +255,17 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public ISelectBuilderOrderBy OrderBy(params object[] orderByItems)
     {
-        AddPart(OrderByClause.Parse(orderByItems));
+        OrderByClause orderBy = OrderByClause.Parse(orderByItems);
+        // No engine resolves column position 0 (ADR 0007's incomplete construct);
+        // checked here, not in Parse, because a window's ordering takes the literal.
+        if (orderBy.HasZeroOrdinal)
+        {
+            throw new ArgumentException(
+                "No engine accepts 0 as an ORDER BY column ordinal; "
+                    + "order by a column, an expression, or a positive ordinal instead.");
+        }
+
+        AddPart(orderBy);
         return this;
     }
 
@@ -405,15 +415,6 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
                     + "sort key; order by a column or an expression instead.");
         }
 
-        // No engine resolves column position 0 (ADR 0007's incomplete
-        // construct); FindPart never reaches a window's ordering, which takes it.
-        if (FindPart<OrderByClause>() is { HasZeroOrdinal: true })
-        {
-            throw new ArgumentException(
-                "No engine accepts 0 as an ORDER BY column ordinal; "
-                    + "order by a column, an expression, or a positive ordinal instead.");
-        }
-
         // PostgreSQL, SQLite and SQL Server read a negative literal as a
         // position and reject it; MySQL and Oracle take it as a constant (#523).
         if ((dbms == Dbms.PostgreSql || dbms == Dbms.Sqlite || dbms == Dbms.SqlServer)
@@ -424,8 +425,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
                     + "ordinal; order by a column, an expression, or a positive ordinal instead.");
         }
 
-        ITopSelectClause? top = FindPart<ITopSelectClause>();
-        if (top is null)
+        if (FindPart<ITopSelectClause>() is null)
         {
             return;
         }
@@ -441,9 +441,24 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
                 "TOP cannot be combined with LIMIT, OFFSET, or FETCH; use one or the other.");
         }
 
-        if (top.WithTies && FindPart<OrderByClause>() is null)
+        if (FindPart<OrderByClause>() is null && AnyTopWithTies())
         {
             throw new ArgumentException("TOP ... WITH TIES requires an ORDER BY clause.");
         }
+    }
+
+    // Every block's TOP, not FindPart's first: a compound query's later block
+    // carries its own (#569).
+    private bool AnyTopWithTies()
+    {
+        foreach (SqlPart part in PartsSpan)
+        {
+            if (part is ITopSelectClause { WithTies: true })
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

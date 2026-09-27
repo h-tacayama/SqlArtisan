@@ -33,6 +33,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   MySQL's alone and MySQL's `INSERT` takes no leading `WITH`, so no engine
   accepts the pairing; only MySQL and Oracle threw before, and PostgreSQL,
   SQLite and SQL Server emitted the statement. (#569)
+- `Build()` throws on `TOP ... WITH TIES` without an `ORDER BY` in any block of a
+  compound query; only the first block's `TOP` was checked, so
+  `...Union.Select(Top(1).WithTies(), ...)` built. (#569)
+- `Into(...)` throws at the call on a duplicate variable name or a
+  `default(OutputParameter)`, and `OrderBy(0)` throws at the call. `Into(...)`
+  threw only at `Build()`, after the stage was frozen, so retrying with
+  corrected names reported "already built"; `OrderBy(0)` threw only at
+  `Build()`, where `GroupBy(0)` already threw at the call. (#569)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

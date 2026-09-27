@@ -591,6 +591,21 @@ public class SelectTests
     }
 
     [Fact]
+    public void Top_SqlServer_WithTiesInLaterBlockNoOrderBy_ThrowsArgumentException()
+    {
+        // A compound query's later block carries its own TOP (#569).
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Select(Top(1), _t.Code)
+            .From(_t)
+            .Union
+            .Select(Distinct, Top(1).WithTies(), _t.Code)
+            .From(_t)
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal("TOP ... WITH TIES requires an ORDER BY clause.", ex.Message);
+    }
+
+    [Fact]
     public void Top_SqlServer_WithOffset_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
