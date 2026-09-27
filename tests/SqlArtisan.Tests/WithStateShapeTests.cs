@@ -23,12 +23,15 @@ public class WithStateShapeTests
 
     // INSERT IGNORE is MySQL's alone and MySQL's INSERT takes no leading WITH, so
     // neither WITH state opens it; the remedy is InsertIgnoreInto(...).With(...) (#569).
-    [Fact]
-    public void WithStates_OpenNoInsertIgnore()
+    // GetMethod on an interface skips its bases, so walk the whole hierarchy.
+    [Theory]
+    [InlineData(typeof(IWithBuilderWith))]
+    [InlineData(typeof(IWithBuilderWithRecursive))]
+    public void WithState_OpensNoInsertIgnore(Type state)
     {
-        Assert.Null(typeof(IInsertBuilder).GetMethod("InsertIgnoreInto"));
-        Assert.Null(typeof(IWithBuilderWith).GetMethod("InsertIgnoreInto"));
-        Assert.Null(typeof(IWithBuilderWithRecursive).GetMethod("InsertIgnoreInto"));
+        Assert.DoesNotContain(
+            state.GetInterfaces().Append(state).SelectMany(i => i.GetMethods()),
+            m => m.Name == "InsertIgnoreInto");
     }
 
     // Absence is only provable where the factory hands back the narrow state:

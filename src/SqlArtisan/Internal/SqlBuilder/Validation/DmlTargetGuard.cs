@@ -107,8 +107,8 @@ internal static class DmlTargetGuard
     }
 
     // ON DUPLICATE KEY UPDATE is MySQL's alone and MySQL's INSERT takes no leading
-    // WITH, so no target accepts the pairing (#400's shape): dialect-blind. Its stages
-    // are shared with the WITH-less chain, so no typestate can withhold it (#569).
+    // WITH, so no target accepts the pairing (#400's shape): dialect-blind. A typestate
+    // would need a WITH-led copy of the shared INSERT stages; this check costs less (#569).
     internal static void ThrowIfLeadingWithBeforeOnDuplicateKeyUpdate(
         ReadOnlySpan<SqlPart> parts, OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate)
     {

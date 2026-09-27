@@ -52,8 +52,9 @@ the full rationale.
   `INSERT` with `OnDuplicateKeyUpdate(...)` — the same MySQL-alone shape against
   MySQL's `INSERT`, which takes no leading `WITH`; the `WITH` states open no
   `InsertIgnoreInto` (ADR 0007's compile-time order), and `Build()` rejects ODKU
-  on every target, because its stages are shared with the `WITH`-less chain and
-  no typestate can withhold it (#569); a fixed column list naming one column twice
+  on every target: its stages are shared with the `WITH`-less chain, and
+  withholding it would take a `WITH`-led copy of the six `INSERT` stages (as
+  `IInsertIgnoreBuilder*` is for `INSERT IGNORE`), a cost the guard avoids (#569); a fixed column list naming one column twice
   — an `INSERT` column list, a `SET` assignment list (the token the target
   *renders as*, never its owner: `MergeUpdateSetClause`, `DoUpdateSetClause`,
   `InsertSetClause` and `OnDuplicateKeyUpdateClause` always render the target
