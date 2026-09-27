@@ -468,10 +468,15 @@ public class WithTests
         Assert.Equal(1, sql.Parameters.Get<int>("?0"));
     }
 
-    // MySQL 8.0 takes a leading WITH before UPDATE and DELETE but not before
-    // INSERT (live: ER_PARSE_ERROR); the feeding SELECT carries the CTE instead.
-    [Fact]
-    public void With_MySql_LeadingWithBeforeInsertIgnore_ThrowsArgumentException()
+    // INSERT IGNORE and ON DUPLICATE KEY UPDATE are MySQL's alone, so no target
+    // accepts them after a leading WITH; the guard ignores the dialect (#569).
+    [Theory]
+    [InlineData(Dbms.MySql)]
+    [InlineData(Dbms.Oracle)]
+    [InlineData(Dbms.PostgreSql)]
+    [InlineData(Dbms.Sqlite)]
+    [InlineData(Dbms.SqlServer)]
+    public void With_LeadingWithBeforeInsertIgnoreSelect_ThrowsArgumentException(Dbms dbms)
     {
         TestTable a = new("a");
         TestCte cte = new("cte");
@@ -482,13 +487,11 @@ public class WithTests
             .InsertIgnoreInto(b, b.Code)
             .Select(cte.CteCode)
             .From(cte)
-            .Build(Dbms.MySql));
+            .Build(dbms));
 
         Assert.Equal(InsertIgnoreLeadingWithMessage, ex.Message);
     }
 
-    // INSERT IGNORE and ON DUPLICATE KEY UPDATE are MySQL's alone, so no target
-    // accepts them after a leading WITH; the guard ignores the dialect (#569).
     [Theory]
     [InlineData(Dbms.MySql)]
     [InlineData(Dbms.Oracle)]
