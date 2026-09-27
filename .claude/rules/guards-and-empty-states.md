@@ -458,8 +458,8 @@ The `Invalid type for <X>: <type>` family is built by one helper,
 `ExpressionResolver.UnresolvableValue`, and `<X>` names **the position the
 value reached** — `SelectItem`, `ReturningItem`, `OutputItem`, `OrderByItem`,
 `GroupByItem`, `InsertValue`, `Assignment`, and `nameof(Bind)` where the factory
-resolves its own argument. A position that borrows another's resolver still
-names itself (`RETURNING` resolves as a `SELECT` list, #569).
+resolves its own argument. `RETURNING` and `OUTPUT` borrow the `SELECT`-list
+resolver but pass their own names (#569).
 Naming instead the type that position requires reads as a tautology against
 the offending type, never saying what the caller did wrong, and leaks an
 internal name into the public failure surface: that is how three `SET`-list

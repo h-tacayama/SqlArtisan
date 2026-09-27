@@ -9,12 +9,12 @@ namespace SqlArtisan;
 /// binds it as, plus an optional <see cref="Size"/> for variable-length types.
 /// </summary>
 /// <remarks>
-/// The type cannot be inferred from the returned column (a column reference
-/// carries a name, not a CLR type), so it is supplied here; a variable-length
-/// type such as a string also needs a <see cref="Size"/>.
+/// A variable-length type such as a string also needs a <see cref="Size"/>.
 /// </remarks>
 public readonly struct OutputParameter
 {
+    // The caller supplies the type: a column reference carries a name, not a CLR type.
+
     /// <summary>Creates an output parameter binding.</summary>
     /// <param name="variable">The output variable name, emitted as a bind marker (<c>:name</c>).</param>
     /// <param name="dbType">The data type the output parameter is bound as.</param>
