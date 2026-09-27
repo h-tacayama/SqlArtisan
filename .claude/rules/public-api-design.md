@@ -151,7 +151,9 @@ never overlap may split the emission: `JsonArrow(object, string)` and
 `(object, int)` inline the key, and `(object, SqlExpression)` emits the
 expression it is given — `Bind(key)` when a caller wants it bound (#557). With
 no `object` overload, a key typed `object` does not compile instead of silently
-binding.
+binding. Watch implicit conversions, which overlap types the signatures do not:
+a `char` converts to `int`, so `JsonArrow` carries a `char` overload that
+inlines it as a key rather than letting it become an array index.
 
 ## Minimum-arity enforcement: compile-time when the shape allows it
 

@@ -79,6 +79,16 @@ public class JsonOperatorTests
     }
 
     [Fact]
+    public void JsonArrow_CharKey_EmitsStringLiteral()
+    {
+        SqlStatement sql =
+            Select(JsonArrow(_t.Name, 'a'), JsonArrowText(_t.Name, 'b'))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT (\"t\".name -> 'a'), (\"t\".name ->> 'b')", sql.Text);
+    }
+
+    [Fact]
     public void JsonArrow_ExpressionKey_EmitsExpression()
     {
         SqlStatement sql =

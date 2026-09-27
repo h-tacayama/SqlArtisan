@@ -38,6 +38,17 @@ public static partial class Sql
         new(Resolve(jsonExpr), new JsonKeyLiteral(index));
 
     /// <summary>
+    /// The <c>(jsonExpr -&gt; key)</c> JSON operator with a one-character key, emitted as
+    /// an inline string literal — the overload keeps a <see langword="char"/> off the
+    /// <see langword="int"/> index one (MySQL, PostgreSQL, SQLite).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="key">The one-character key.</param>
+    /// <returns>A <c>-&gt;</c> operator expression.</returns>
+    public static JsonArrowOperator JsonArrow(object jsonExpr, char key) =>
+        new(Resolve(jsonExpr), new JsonKeyLiteral(key.ToString()));
+
+    /// <summary>
     /// The <c>(jsonExpr -&gt; key)</c> JSON operator with a key computed in SQL — a
     /// column, or a <see cref="BindValue"/> to bind it (MySQL, PostgreSQL, SQLite).
     /// </summary>
@@ -68,6 +79,17 @@ public static partial class Sql
     /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
     public static JsonArrowTextOperator JsonArrowText(object jsonExpr, int index) =>
         new(Resolve(jsonExpr), new JsonKeyLiteral(index));
+
+    /// <summary>
+    /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator with a one-character key, emitted as
+    /// an inline string literal — the overload keeps a <see langword="char"/> off the
+    /// <see langword="int"/> index one (MySQL, PostgreSQL, SQLite).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="key">The one-character key.</param>
+    /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
+    public static JsonArrowTextOperator JsonArrowText(object jsonExpr, char key) =>
+        new(Resolve(jsonExpr), new JsonKeyLiteral(key.ToString()));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator with a key computed in SQL — a

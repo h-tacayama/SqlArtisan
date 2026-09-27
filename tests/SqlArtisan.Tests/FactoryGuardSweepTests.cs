@@ -364,6 +364,11 @@ public class FactoryGuardSweepTests
             return 1;
         }
 
+        if (t == typeof(char))
+        {
+            return 'x';
+        }
+
         if (t == typeof(double))
         {
             return 0.5;

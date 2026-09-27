@@ -46,8 +46,8 @@ because every dialect's grammar rejects a marker (#557):
 - **A JSON function path.** An expression index over
   `json_extract(doc, '$.a')` matches only the literal path: on SQLite 3.45.1 the
   inline path plans `SEARCH … USING INDEX`, a bound one `SCAN` (#555). Oracle's
-  and SQL Server's `JSON_VALUE` / `JSON_QUERY` also require the literal in
-  their grammar.
+  `JSON_VALUE` / `JSON_QUERY` also require the literal in their grammar; SQL
+  Server did only before 2017.
 - **A `->` / `->>` key given as a C# `string`.** The same index matching holds
   for `doc ->> '$.a'`, and MySQL's grammar takes only a string literal on the
   right of the operator. An `int` array index is inlined too, as a bare number;
