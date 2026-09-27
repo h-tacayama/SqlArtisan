@@ -34,8 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   accepts the pairing; only MySQL and Oracle threw before, and PostgreSQL,
   SQLite and SQL Server emitted the statement. (#569)
 - `Build()` throws on `TOP ... WITH TIES` without an `ORDER BY` in any block of a
-  compound query; only the first block's `TOP` was checked, so
-  `...Union.Select(Top(1).WithTies(), ...)` built. (#569)
+  compound query. Only the first `TOP` in the chain was checked, so a later
+  block's `WITH TIES` built when an earlier block carried its own `TOP`. (#569)
 - `Into(...)` throws at the call on a duplicate variable name or a
   `default(OutputParameter)`, and `OrderBy(0)` throws at the call. `Into(...)`
   threw only at `Build()`, after the stage was frozen, so retrying with
