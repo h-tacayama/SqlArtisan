@@ -70,31 +70,37 @@ term (`<interval literal>`), not an invention (#554).
 
 ## Builder stage names: `I<Statement>Builder<State>`
 
-A fluent-chain stage interface names the statement it builds, then the
-point the chain has reached: `I` + `Select`/`Insert`/`InsertIgnore`/`Update`/
-`Delete`/`Merge`/`With` + `Builder` + a state word. The state word is
+A fluent-chain stage interface names the statement it builds, then what the
+chain has written: `I` + `Select`/`Insert`/`InsertIgnore`/`Update`/`Delete`/
+`Merge`/`With` + `Builder` + a state word. The bare `I<Statement>Builder` is
+the entry that opens the statement (`ISelectBuilder`, `IDeleteBuilder`, …;
+`IWithBuilder` opens a `WITH`). The state word names SQL, not C# methods:
 
-- the step that returns the stage, when one step does (`ISelectBuilderWhere`);
-- the clause position, when several steps land on one stage
-  (`ISelectBuilderFrom` after `From`, `On`, `Using`, `CrossJoin`, …;
-  `ISelectBuilderPaginated`);
-- that step plus a context word, when one step name opens two stages
-  (`IInsertBuilderTable` / `IInsertBuilderColumns` for the two `InsertInto`
-  arities, `IUpdateBuilderJoinOn` / `IUpdateBuilderFromJoinOn`);
+- the clause just written (`ISelectBuilderWhere`; `IMergeBuilderTarget` after
+  `MergeInto`; `IInsertIgnoreBuilderTable` / `IInsertIgnoreBuilderColumns`
+  for the two `InsertIgnoreInto` arities);
+- the clause position several steps return to (`ISelectBuilderFrom` after
+  `From`, `On`, `Using`, `CrossJoin`, …; `ISelectBuilderPaginated`;
+  `IMergeBuilderWhen`);
+- then the clause the stage offers or awaits, when that is what sets it apart
+  (`IDeleteBuilderDeleteOutput` extends `IDeleteBuilderDelete` with `Output`;
+  `ISelectBuilderLimitOffset` after `Limit`, `ISelectBuilderOffsetFetch` after
+  `OffsetRows`; `IUpdateBuilderJoinOn` awaits `ON`).
 
-followed by the clause the stage offers next when that clause is what tells
-it from a neighbouring stage (`IDeleteBuilderDeleteOutput` beside
-`IDeleteBuilderDelete`; `ISelectBuilderLimitOffset` after `Limit` and
-`ISelectBuilderOffsetFetch` after `OffsetRows`, beside
-`ISelectBuilderPaginated`). A stage several statements share takes its
-capability's name (`IReturningBuilder`, returned by `IReturning.Returning`). A capability
-interface composed into stages (`IPagination`, `IForUpdate`, `IJoinOperator`,
-`ISetOperator`, `IReturning`, `IUpsert`) carries no `Builder`.
+A detour through an optional clause returns the stage without it:
+`Output(...).Into(...)` returns `IDeleteBuilderDelete`, the base of the
+`IDeleteBuilderDeleteOutput` it left, not a new stage. A
+stage several statements share takes its capability's name
+(`IReturningBuilder`, from `IReturning.Returning`). A capability composed into
+stages carries no `Builder` (`IPagination`, `IForUpdate`, `IJoinOperator`,
+`ISetOperator`, `IUpsert`, `IReturning`); `IReturning` also ends an upsert
+action (`DoNothing()`, `DoUpdateSet(...).Where(...)`).
 
-Why not always name the stage after the step that returns it: a stage several
-steps land on has no single step, and one step name can open two stages, so
-that scheme needs these same exceptions while renaming 15 stages (#568).
-`BuilderStageNamingTests` pins the shape; the state word is review's call.
+Why not name every stage after the method that returns it: several methods
+land on one stage (`ISelectBuilderFrom`), and a method's name is not the
+clause it writes (`MergeInto` writes the target, `OffsetRows` the `OFFSET`)
+(#568). `BuilderStageNamingTests` pins the shape over every stage a public
+member returns; the state word is review's call.
 
 ## BCL simple-name collisions: record here, don't rename
 
