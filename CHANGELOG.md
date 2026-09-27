@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
+- **Breaking:** renamed the stage types `Limit(...)` and `OffsetRows(...)`
+  return to follow the other stages' `I<Statement>Builder<State>` names:
+  `ILimitOffsetBuilder` → `ISelectBuilderLimitOffset`, `IOffsetFetchBuilder` →
+  `ISelectBuilderOffsetFetch`. A chain that never writes the type name needs no
+  source change, but an assembly compiled against an earlier version must be
+  rebuilt: the return type is part of each method's signature. (#568)
 - **Breaking:** `WithRecursive(...)` no longer emits a CTE column list derived
   from the first query block: `WITH RECURSIVE "c" AS (...)`, not
   `WITH RECURSIVE "c"(id) AS (...)`. Every engine that accepts `RECURSIVE`

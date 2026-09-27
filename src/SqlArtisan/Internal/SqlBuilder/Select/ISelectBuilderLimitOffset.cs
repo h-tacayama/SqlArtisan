@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The state after <c>LIMIT n</c>: optionally add an <c>OFFSET</c> (MySQL/PostgreSQL/SQLite),
 /// lock the selected rows with <c>FOR UPDATE</c>, build, or embed as a subquery.
 /// </summary>
-public interface ILimitOffsetBuilder : ISqlBuilder, IForUpdate, ISubquery
+public interface ISelectBuilderLimitOffset : ISqlBuilder, IForUpdate, ISubquery
 {
     /// <summary>
     /// Appends <c>OFFSET m</c> after <c>LIMIT n</c>. Dialect-specific

@@ -4,12 +4,12 @@ namespace SqlArtisan.Internal;
 
 internal class SelectBuilder(params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
-    ILimitOffsetBuilder,
-    IOffsetFetchBuilder,
     ISelectBuilderFrom,
     ISelectBuilderGroupBy,
     ISelectBuilderHaving,
     ISelectBuilderJoin,
+    ISelectBuilderLimitOffset,
+    ISelectBuilderOffsetFetch,
     ISelectBuilderOrderBy,
     ISelectBuilderPaginated,
     ISelectBuilderSelect,
@@ -205,7 +205,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public ILimitOffsetBuilder Limit(int count)
+    public ISelectBuilderLimitOffset Limit(int count)
     {
         AddPart(new LimitClause(count));
         return this;
@@ -241,7 +241,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
-    public IOffsetFetchBuilder OffsetRows(int start)
+    public ISelectBuilderOffsetFetch OffsetRows(int start)
     {
         AddPart(new OffsetRowsClause(start));
         return this;

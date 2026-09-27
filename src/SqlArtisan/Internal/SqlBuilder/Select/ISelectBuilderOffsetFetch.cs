@@ -5,7 +5,7 @@ namespace SqlArtisan.Internal;
 /// PostgreSQL / SQL Server), lock the selected rows with <c>FOR UPDATE</c>, build, or embed as a
 /// subquery.
 /// </summary>
-public interface IOffsetFetchBuilder : ISqlBuilder, IForUpdate, ISubquery
+public interface ISelectBuilderOffsetFetch : ISqlBuilder, IForUpdate, ISubquery
 {
     /// <summary>
     /// Appends <c>FETCH NEXT n ROWS ONLY</c> after <c>OFFSET m ROWS</c>.

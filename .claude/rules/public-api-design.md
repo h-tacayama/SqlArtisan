@@ -3,6 +3,7 @@ description: Public API design decisions — naming categories, overload split f
 paths:
   - "src/SqlArtisan/Sql/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
+  - "src/SqlArtisan/Internal/SqlBuilder/**/I*.cs"
   - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
   - "tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs"
 ---
@@ -66,6 +67,40 @@ while `IntervalLiteral(string, IntervalField)` inlines it. One name would let
 the second argument's static type pick the emission mode silently — the trap
 the separator section below forbids. The qualifier is also the standard's own
 term (`<interval literal>`), not an invention (#554).
+
+## Builder stage names: `I<Statement>Builder<State>`
+
+A fluent-chain stage interface names the statement it builds, then what the
+chain has written: `I` + `Select`/`Insert`/`InsertIgnore`/`Update`/`Delete`/
+`Merge`/`With` + `Builder` + a state word. The bare `I<Statement>Builder` is
+the entry that opens the statement (`ISelectBuilder`, `IDeleteBuilder`, …;
+`IWithBuilder` opens a `WITH`). The state word names SQL, not C# methods:
+
+- the clause just written (`ISelectBuilderWhere`; `IMergeBuilderTarget` after
+  `MergeInto`; `IInsertIgnoreBuilderTable` / `IInsertIgnoreBuilderColumns`
+  for the two `InsertIgnoreInto` arities);
+- the clause position several steps return to (`ISelectBuilderFrom` after
+  `From`, `On`, `Using`, `CrossJoin`, …; `ISelectBuilderPaginated`;
+  `IMergeBuilderWhen`);
+- then the clause the stage offers or awaits, when that is what sets it apart
+  (`IDeleteBuilderDeleteOutput` extends `IDeleteBuilderDelete` with `Output`;
+  `ISelectBuilderLimitOffset` after `Limit`, `ISelectBuilderOffsetFetch` after
+  `OffsetRows`; `IUpdateBuilderJoinOn` awaits `ON`).
+
+A detour through an optional clause returns the stage without it:
+`Output(...).Into(...)` returns `IDeleteBuilderDelete`, the base of the
+`IDeleteBuilderDeleteOutput` it left, not a new stage. A
+stage several statements share takes its capability's name
+(`IReturningBuilder`, from `IReturning.Returning`). A capability composed into
+stages carries no `Builder` (`IPagination`, `IForUpdate`, `IJoinOperator`,
+`ISetOperator`, `IUpsert`, `IReturning`); `IReturning` also ends an upsert
+action (`DoNothing()`, `DoUpdateSet(...).Where(...)`).
+
+Why not name every stage after the method that returns it: several methods
+land on one stage (`ISelectBuilderFrom`), and a method's name is not the
+clause it writes (`MergeInto` writes the target, `OffsetRows` the `OFFSET`)
+(#568). `BuilderStageNamingTests` pins the shape over every stage a public
+member returns; the state word is review's call.
 
 ## BCL simple-name collisions: record here, don't rename
 
