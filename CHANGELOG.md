@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- **Breaking:** `WithRecursive(...)` no longer emits a CTE column list derived
+  from the first query block: `WITH RECURSIVE "c" AS (...)`, not
+  `WITH RECURSIVE "c"(id) AS (...)`. Every engine that accepts `RECURSIVE`
+  names the columns from the first query block, so result sets are unchanged.
+  An anchor with an unnamed item (`Select(Asterisk)`, a literal) or two
+  same-named items no longer throws. Chain `.WithColumnList()` onto a CTE to
+  keep its list. (#567)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

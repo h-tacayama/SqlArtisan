@@ -112,9 +112,9 @@ diagnostic `SQLA0101`.**
   own 11gR2 syntax. The register's "accepted at 23ai" premise was simply
   wrong, and the bound was withdrawn for good. The lasting fix that came out
   of the investigation is orthogonal to the bound: Oracle's recursive `WITH`
-  requires the CTE column list, so `WithRecursive()` now derives and emits
-  it on every dialect (`WithRecursiveClause`), which every other engine
-  accepts.
+  requires the CTE column list, which a CTE emits by opting in with
+  `.WithColumnList()` under plain `With()`. `WithRecursive()` emits no list
+  of its own: no engine that accepts `RECURSIVE` requires one (#567).
 
 ## Rejected alternatives
 
