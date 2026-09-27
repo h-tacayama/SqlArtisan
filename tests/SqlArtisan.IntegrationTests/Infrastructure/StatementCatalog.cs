@@ -155,6 +155,22 @@ internal static class StatementCatalog
                 .Select(c.Column("id")).From(c);
         }, Only(Dbms.PostgreSql, Dbms.Sqlite, Dbms.MySql));
 
+        // WITH RECURSIVE takes an anchor with no column name (`*`) because no
+        // column list is emitted (#567).
+        Add("RecursiveCteStarAnchor", () =>
+        {
+            UsersTable ru = new("ru");
+            UsersTable rn = new("rn");
+            Cte c = new("c");
+            return WithRecursive(
+                    c.As(
+                        Select(Asterisk).From(ru).Where(ru.Id == 1)
+                        .UnionAll
+                        .Select(rn.Asterisk).From(rn).InnerJoin(c).On(rn.Id == c.Column("id") + 1)
+                        .Where(rn.Id <= 3)))
+                .Select(c.Column("id")).From(c);
+        }, Only(Dbms.PostgreSql, Dbms.Sqlite, Dbms.MySql));
+
         // Recursive CTE via plain WITH — Oracle / SQL Server reject RECURSIVE, and
         // Oracle also requires the column list on a recursive body (#348).
         Add("RecursiveCtePlainWith", () =>

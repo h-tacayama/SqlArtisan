@@ -311,7 +311,7 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH RECURSIVE \"cte\"(cte_code, cte_name, cte_created_at) AS ");
+        expected.Append("WITH RECURSIVE \"cte\" AS ");
         expected.Append("(SELECT \"a\".code cte_code, ");
         expected.Append("\"a\".name cte_name, ");
         expected.Append("\"a\".created_at cte_created_at ");
@@ -325,6 +325,8 @@ public class WithTests
         expected.Append("FROM \"cte\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
     }
 
     [Fact]
@@ -595,7 +597,7 @@ public class WithTests
     }
 
     [Fact]
-    public void WithRecursive_DbColumnSelectItems_DerivesColumnListFromColumnNames()
+    public void WithRecursive_EmitsNoColumnList()
     {
         TestTable a = new("a");
         Cte c = new("c");
@@ -611,7 +613,7 @@ public class WithTests
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH RECURSIVE \"c\"(code, name) AS ");
+        expected.Append("WITH RECURSIVE \"c\" AS ");
         expected.Append(
             "(SELECT \"a\".code, \"a\".name FROM test_table \"a\" WHERE \"a\".code = :0 ");
         expected.Append("UNION ALL SELECT \"a\".code, \"a\".name FROM test_table \"a\" ");
@@ -619,13 +621,14 @@ public class WithTests
         expected.Append("SELECT \"c\".code FROM \"c\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]
-    public void WithRecursive_MultiCtes_EachCteGetsItsOwnColumnList()
+    public void WithRecursive_WithColumnList_EmitsOnlyThatCtesList()
     {
-        // The derived list renders each name as its select item does: bare for
-        // a column, quoted for a quoted alias — matching the handle reference.
+        // The list renders each name as its select item does: bare for a
+        // column, quoted for a quoted alias — matching the handle reference.
         TestTable a = new("a");
         Cte c1 = new("c1");
         Cte c2 = new("c2");
@@ -638,13 +641,14 @@ public class WithTests
                     .UnionAll
                     .Select(a.Code).From(a).InnerJoin(c1).On(c1.Column("code") == a.Code)),
                 c2.As(
-                    Select(n).From(a)))
+                    Select(n).From(a))
+                .WithColumnList())
             .Select(c1.Column("code"), c2.Column(n))
             .From(c1, c2)
             .Build();
 
         StringBuilder expected = new();
-        expected.Append("WITH RECURSIVE \"c1\"(code) AS ");
+        expected.Append("WITH RECURSIVE \"c1\" AS ");
         expected.Append("(SELECT \"a\".code FROM test_table \"a\" WHERE \"a\".code = :0 ");
         expected.Append("UNION ALL SELECT \"a\".code FROM test_table \"a\" ");
         expected.Append("INNER JOIN \"c1\" ON \"c1\".code = \"a\".code), ");
@@ -653,25 +657,37 @@ public class WithTests
         expected.Append("SELECT \"c1\".code, \"c2\".\"n\" FROM \"c1\", \"c2\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]
-    public void WithRecursive_UnnamedSelectItem_ThrowsArgumentException()
+    public void WithRecursive_UnnamedAnchorItems_Build()
     {
+        // No list is derived, so an anchor item without a name is not an error.
         TestTable a = new("a");
+        TestTable b = new("b");
         Cte c = new("c");
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+        SqlStatement sql =
             WithRecursive(
                 c.As(
-                    Select(a.Code + 1).From(a)
+                    Select(Asterisk).From(a).Where(a.Code == 1)
                     .UnionAll
-                    .Select(a.Code).From(c))));
+                    .Select(b.Asterisk).From(b).InnerJoin(c).On(c.Column("code") == b.Code - 1)))
+            .Select(c.Column("code"))
+            .From(c)
+            .Build();
 
-        Assert.Equal(
-            "WITH RECURSIVE requires a name for every column of the CTE's first query block; "
-                + "alias the expression with .As(...).",
-            ex.Message);
+        StringBuilder expected = new();
+        expected.Append("WITH RECURSIVE \"c\" AS ");
+        expected.Append("(SELECT * FROM test_table \"a\" WHERE \"a\".code = :0 ");
+        expected.Append("UNION ALL SELECT \"b\".* FROM test_table \"b\" ");
+        expected.Append("INNER JOIN \"c\" ON \"c\".code = (\"b\".code - :1)) ");
+        expected.Append("SELECT \"c\".code FROM \"c\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
     }
 
     [Fact]
@@ -812,23 +828,6 @@ public class WithTests
         Assert.Equal(
             "A CTE column list requires a distinct name for every column; "
                 + "alias the duplicate with .As(...).",
-            ex.Message);
-    }
-
-    [Fact]
-    public void WithRecursive_DuplicateColumnNames_ThrowsArgumentException()
-    {
-        TestTable a = new("a");
-        TestTable b = new("b");
-        TestCte cte = new("cte");
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            WithRecursive(
-                cte.As(Select(a.Code, b.Code).From(a).InnerJoin(b).On(a.Code == b.Code))));
-
-        Assert.Equal(
-            "WITH RECURSIVE requires a distinct name for every column of the CTE's "
-                + "first query block; alias the duplicate with .As(...).",
             ex.Message);
     }
 

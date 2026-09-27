@@ -66,7 +66,7 @@ public sealed class CommonTableExpression
     // Each list name renders exactly as its select item and handle reference do
     // (bare for a column, quoted for a quoted alias): a definition quoted unlike
     // its reference no longer resolves on a case-folding engine (#165).
-    internal void Format(SqlBuildingBuffer buffer, CteColumnName[] columnNames)
+    private void Format(SqlBuildingBuffer buffer, CteColumnName[] columnNames)
     {
         buffer.EncloseInAliasQuotes(_name);
         buffer.Append('(');
@@ -92,8 +92,7 @@ public sealed class CommonTableExpression
         AppendAsSubquery(buffer);
     }
 
-    // Null instead of a throw so each construct site owns its guard message.
-    internal CteColumnName[]? TryDeriveColumnNames()
+    private CteColumnName[]? TryDeriveColumnNames()
     {
         SqlPart[]? selectItems = (_subquery as SelectBuilder)?.FirstSelectItems();
         if (selectItems is null)
