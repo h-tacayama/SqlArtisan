@@ -106,6 +106,33 @@ internal static class DmlTargetGuard
         }
     }
 
+    // INSERT IGNORE and ON DUPLICATE KEY UPDATE are MySQL's alone, and MySQL's INSERT
+    // takes no leading WITH, so no target accepts the pairing (#400's shape): dialect-blind.
+    internal static void ThrowIfLeadingWithOnMySqlInsertForm(
+        ReadOnlySpan<SqlPart> parts,
+        InsertIgnoreIntoClause? insertIgnore,
+        OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate)
+    {
+        if (!LeadsWithCte(parts))
+        {
+            return;
+        }
+
+        if (insertIgnore is not null)
+        {
+            throw new ArgumentException(
+                "INSERT IGNORE takes no leading WITH; put the CTE inside the feeding SELECT "
+                + "(InsertIgnoreInto(...).With(...).Select(...)), otherwise inline the subquery.");
+        }
+
+        if (onDuplicateKeyUpdate is not null)
+        {
+            throw new ArgumentException(
+                "An INSERT with ON DUPLICATE KEY UPDATE takes no leading WITH; "
+                + "inline the subquery instead.");
+        }
+    }
+
     // Oracle's DML grammars carry no subquery-factoring clause and MySQL's INSERT
     // does not either (live: 8.0.46 ER_PARSE_ERROR), so the CTE belongs inside the
     // feeding SELECT. The leading part is builder state the analyzer cannot see (ADR 0011).

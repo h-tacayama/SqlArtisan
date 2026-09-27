@@ -48,7 +48,11 @@ the full rationale.
   (release audit); `Returning(...)` beside `INSERT IGNORE` or
   `OnDuplicateKeyUpdate(...)` — MySQL, the only engine with either, has no
   `RETURNING`, so the typestate withholds it and `Build()` backstops a held
-  stage (release audit pass 4); a fixed column list naming one column twice
+  stage (release audit pass 4); a leading `WITH` before `INSERT IGNORE` or an
+  `INSERT` with `OnDuplicateKeyUpdate(...)` — the same MySQL-alone shape against
+  MySQL's `INSERT`, which takes no leading `WITH`; `Build()` rejects both on
+  every target, and no typestate withholds them because ODKU's stages are shared
+  with the `WITH`-less chain (#569); a fixed column list naming one column twice
   — an `INSERT` column list, a `SET` assignment list (the token the target
   *renders as*, never its owner: `MergeUpdateSetClause`, `DoUpdateSetClause`,
   `InsertSetClause` and `OnDuplicateKeyUpdateClause` always render the target

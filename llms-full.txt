@@ -1871,6 +1871,10 @@ SqlArtisan also supports more advanced WITH clause scenarios:
   (live-verified on 8.0), so there an `INSERT` carries its CTE inside the
   feeding `SELECT` (`InsertInto(...).With(...).Select(...)`);
   `Build(Dbms.Oracle)` and `Build(Dbms.MySql)` throw on the leading form.
+  `INSERT IGNORE` and `ON DUPLICATE KEY UPDATE` are MySQL's alone, so `Build()`
+  throws on a leading `WITH` before either on every target; an `INSERT IGNORE`
+  carries its CTE inside the feeding `SELECT` too
+  (`InsertIgnoreInto(...).With(...).Select(...)`).
   Oracle's `MERGE` grammar has no leading `WITH` either (live-verified on XE
   21.3.0 and Free 23ai), and its remedy is a different one: `MERGE`'s own source
   slot takes a subquery, so the CTE goes inside the one `Using(...)` names, and

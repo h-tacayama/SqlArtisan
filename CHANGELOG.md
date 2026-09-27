@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   same-named items no longer throws. Chain `.WithColumnList()` onto a CTE to
   keep its list. (#567)
 
+### Fixed
+- `Build()` throws on a leading `With(...)` before `InsertIgnoreInto(...)` or
+  before an `INSERT` with `OnDuplicateKeyUpdate(...)`, on every target.
+  `INSERT IGNORE` and `ON DUPLICATE KEY UPDATE` are MySQL's alone, and MySQL's
+  `INSERT` takes no leading `WITH`, so no engine accepts either pairing; only
+  MySQL and Oracle threw before, and PostgreSQL, SQLite and SQL Server emitted
+  the statement. For `INSERT IGNORE`, put the CTE inside the feeding `SELECT`:
+  `InsertIgnoreInto(...).With(...).Select(...)`. (#569)
+
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
 - `CurrentTimestamp(precision)` and `CurrentTime(precision)` emit
