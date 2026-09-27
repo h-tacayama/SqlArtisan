@@ -37,6 +37,9 @@ public class FactoryGuardSweepTests
         ["StringAgg(Object, String, OrderByClause) :: separator=\"\""] =
             "SELECT STRING_AGG(:0, '' ORDER BY \"a\".c)",
         ["Separator(String) :: separator=\"\""] = "SELECT GROUP_CONCAT(`x`.c SEPARATOR '') FROM e `x`",
+        // An empty key names PostgreSQL's '' member, a legal key there.
+        ["JsonArrow(Object, String) :: key=\"\""] = "SELECT (:0 -> '')",
+        ["JsonArrowText(Object, String) :: key=\"\""] = "SELECT (:0 ->> '')",
         // A leading parameter plus an empty params tail is the documented smaller
         // call (Coalesce/Concat/Grouping), not a dropped clause.
         ["Cube(Object, Object[]) :: elements=[]"] = "SELECT \"x\".c FROM e \"x\" GROUP BY CUBE(:0)",
@@ -59,6 +62,8 @@ public class FactoryGuardSweepTests
         ["Hints(String) :: hints=\" \""] = "SELECT   c FROM e",
         ["IntervalLiteral(String) :: text=\" \""] = "SELECT INTERVAL ' '",
         ["IntervalLiteral(String, IntervalField) :: value=\" \""] = "SELECT INTERVAL ' ' YEAR",
+        ["JsonArrow(Object, String) :: key=\" \""] = "SELECT (:0 -> ' ')",
+        ["JsonArrowText(Object, String) :: key=\" \""] = "SELECT (:0 ->> ' ')",
         ["JsonExtract(Object, String) :: path=\" \""] = "SELECT JSON_EXTRACT(:0, ' ')",
         ["JsonQuery(Object, String) :: path=\" \""] = "SELECT JSON_QUERY(:0, ' ')",
         ["JsonValue(Object, String) :: path=\" \""] = "SELECT JSON_VALUE(:0, ' ')",
@@ -357,6 +362,11 @@ public class FactoryGuardSweepTests
         if (t == typeof(int) || t == typeof(int?))
         {
             return 1;
+        }
+
+        if (t == typeof(char))
+        {
+            return 'x';
         }
 
         if (t == typeof(double))

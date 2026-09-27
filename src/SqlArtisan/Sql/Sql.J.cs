@@ -17,22 +17,88 @@ public static partial class Sql
 
     /// <summary>
     /// The <c>(jsonExpr -&gt; key)</c> JSON operator: extracts a JSON element by
-    /// key or index, returning a JSON value (MySQL, PostgreSQL, SQLite).
+    /// key, returning a JSON value (MySQL, PostgreSQL, SQLite).
     /// </summary>
     /// <param name="jsonExpr">The JSON expression.</param>
-    /// <param name="key">The key or index to access.</param>
+    /// <param name="key">The key, or a MySQL/SQLite JSON path such as <c>'$.a'</c>. Emitted
+    /// as an inline string literal: MySQL's grammar takes only a literal there, and an
+    /// expression index over the field matches only a literal key.</param>
     /// <returns>A <c>-&gt;</c> operator expression.</returns>
-    public static JsonArrowOperator JsonArrow(object jsonExpr, object key) =>
+    public static JsonArrowOperator JsonArrow(object jsonExpr, string key) =>
+        new(Resolve(jsonExpr), new JsonKeyLiteral(key));
+
+    /// <summary>
+    /// The <c>(jsonExpr -&gt; index)</c> JSON operator: extracts a JSON array
+    /// element, returning a JSON value (PostgreSQL, SQLite).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="index">The zero-based array index, emitted as an inline integer.</param>
+    /// <returns>A <c>-&gt;</c> operator expression.</returns>
+    public static JsonArrowOperator JsonArrow(object jsonExpr, int index) =>
+        new(Resolve(jsonExpr), new JsonKeyLiteral(index));
+
+    /// <summary>
+    /// The <c>(jsonExpr -&gt; key)</c> JSON operator with a one-character key, emitted as
+    /// an inline string literal — the overload keeps a <see langword="char"/> off the
+    /// <see langword="int"/> index one (MySQL, PostgreSQL, SQLite).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="key">The one-character key.</param>
+    /// <returns>A <c>-&gt;</c> operator expression.</returns>
+    public static JsonArrowOperator JsonArrow(object jsonExpr, char key) =>
+        new(Resolve(jsonExpr), new JsonKeyLiteral(key.ToString()));
+
+    /// <summary>
+    /// The <c>(jsonExpr -&gt; key)</c> JSON operator with a key computed in SQL — a
+    /// column, or a <see cref="BindValue"/> to bind it (MySQL, PostgreSQL, SQLite).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="key">The key expression, emitted as written.</param>
+    /// <returns>A <c>-&gt;</c> operator expression.</returns>
+    public static JsonArrowOperator JsonArrow(object jsonExpr, SqlExpression key) =>
         new(Resolve(jsonExpr), Resolve(key));
 
     /// <summary>
     /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator: extracts a JSON element
-    /// as text by key or index (MySQL, PostgreSQL, SQLite).
+    /// as text by key (MySQL, PostgreSQL, SQLite).
     /// </summary>
     /// <param name="jsonExpr">The JSON expression.</param>
-    /// <param name="key">The key or index to access.</param>
+    /// <param name="key">The key, or a MySQL/SQLite JSON path such as <c>'$.a'</c>. Emitted
+    /// as an inline string literal: MySQL's grammar takes only a literal there, and an
+    /// expression index over the field matches only a literal key.</param>
     /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
-    public static JsonArrowTextOperator JsonArrowText(object jsonExpr, object key) =>
+    public static JsonArrowTextOperator JsonArrowText(object jsonExpr, string key) =>
+        new(Resolve(jsonExpr), new JsonKeyLiteral(key));
+
+    /// <summary>
+    /// The <c>(jsonExpr -&gt;&gt; index)</c> JSON operator: extracts a JSON array
+    /// element as text (PostgreSQL, SQLite).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="index">The zero-based array index, emitted as an inline integer.</param>
+    /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
+    public static JsonArrowTextOperator JsonArrowText(object jsonExpr, int index) =>
+        new(Resolve(jsonExpr), new JsonKeyLiteral(index));
+
+    /// <summary>
+    /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator with a one-character key, emitted as
+    /// an inline string literal — the overload keeps a <see langword="char"/> off the
+    /// <see langword="int"/> index one (MySQL, PostgreSQL, SQLite).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="key">The one-character key.</param>
+    /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
+    public static JsonArrowTextOperator JsonArrowText(object jsonExpr, char key) =>
+        new(Resolve(jsonExpr), new JsonKeyLiteral(key.ToString()));
+
+    /// <summary>
+    /// The <c>(jsonExpr -&gt;&gt; key)</c> JSON operator with a key computed in SQL — a
+    /// column, or a <see cref="BindValue"/> to bind it (MySQL, PostgreSQL, SQLite).
+    /// </summary>
+    /// <param name="jsonExpr">The JSON expression.</param>
+    /// <param name="key">The key expression, emitted as written.</param>
+    /// <returns>A <c>-&gt;&gt;</c> operator expression.</returns>
+    public static JsonArrowTextOperator JsonArrowText(object jsonExpr, SqlExpression key) =>
         new(Resolve(jsonExpr), Resolve(key));
 
     /// <summary>

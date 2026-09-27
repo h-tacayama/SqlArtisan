@@ -15,27 +15,95 @@ public class JsonOperatorTests
             Select(JsonArrow(_t.Name, "key"))
             .Build(Dbms.PostgreSql);
 
-        Assert.Equal("SELECT (\"t\".name -> :0)", sql.Text);
-        Assert.Equal("key", sql.Parameters.Get<string>(":0"));
+        Assert.Equal("SELECT (\"t\".name -> 'key')", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
     }
 
     [Fact]
     public void JsonArrow_MySql_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonArrow(_t.Name, "key"))
+            Select(JsonArrow(_t.Name, "$.key"))
             .Build(Dbms.MySql);
 
-        Assert.Equal("SELECT (`t`.name -> ?0)", sql.Text);
-        Assert.Equal("key", sql.Parameters.Get<string>("?0"));
+        Assert.Equal("SELECT (`t`.name -> '$.key')", sql.Text);
     }
 
     [Fact]
     public void JsonArrow_Sqlite_CorrectSql()
     {
         SqlStatement sql =
-            Select(JsonArrow(_t.Name, "key"))
+            Select(JsonArrow(_t.Name, "$.key"))
             .Build(Dbms.Sqlite);
+
+        Assert.Equal("SELECT (\"t\".name -> '$.key')", sql.Text);
+    }
+
+    [Fact]
+    public void JsonArrow_KeyWithQuote_EscapesLiteral()
+    {
+        SqlStatement sql =
+            Select(JsonArrow(_t.Name, "it's"))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT (\"t\".name -> 'it''s')", sql.Text);
+    }
+
+    [Fact]
+    public void JsonArrow_MySqlKeyWithBackslash_EscapesLiteral()
+    {
+        SqlStatement sql =
+            Select(JsonArrow(_t.Name, "$.a\\b"))
+            .Build(Dbms.MySql);
+
+        Assert.Equal("SELECT (`t`.name -> '$.a\\\\b')", sql.Text);
+    }
+
+    [Fact]
+    public void JsonArrow_NullKey_Throws()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => JsonArrow(_t.Name, (string)null!));
+        Assert.Equal("key", ex.ParamName);
+    }
+
+    [Fact]
+    public void JsonArrow_Index_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(JsonArrow(_t.Name, 0), JsonArrow(_t.Name, -1))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT (\"t\".name -> 0), (\"t\".name -> -1)", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void JsonArrow_CharKey_EmitsStringLiteral()
+    {
+        SqlStatement sql =
+            Select(JsonArrow(_t.Name, 'a'), JsonArrowText(_t.Name, 'b'))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT (\"t\".name -> 'a'), (\"t\".name ->> 'b')", sql.Text);
+    }
+
+    [Fact]
+    public void JsonArrow_ExpressionKey_EmitsExpression()
+    {
+        SqlStatement sql =
+            Select(JsonArrow(_t.Name, _t.Code))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT (\"t\".name -> \"t\".code)", sql.Text);
+    }
+
+    [Fact]
+    public void JsonArrow_BindValueKey_Binds()
+    {
+        SqlStatement sql =
+            Select(JsonArrow(_t.Name, Bind("key")))
+            .Build(Dbms.PostgreSql);
 
         Assert.Equal("SELECT (\"t\".name -> :0)", sql.Text);
         Assert.Equal("key", sql.Parameters.Get<string>(":0"));
@@ -48,9 +116,7 @@ public class JsonOperatorTests
             Select(JsonArrow(JsonArrow(_t.Name, "a"), "b"))
             .Build(Dbms.PostgreSql);
 
-        Assert.Equal("SELECT ((\"t\".name -> :0) -> :1)", sql.Text);
-        Assert.Equal("a", sql.Parameters.Get<string>(":0"));
-        Assert.Equal("b", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("SELECT ((\"t\".name -> 'a') -> 'b')", sql.Text);
     }
 
     // --- JsonArrowText (->>) ----------------------------------------------------
@@ -60,6 +126,27 @@ public class JsonOperatorTests
     {
         SqlStatement sql =
             Select(JsonArrowText(_t.Name, "key"))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal("SELECT (\"t\".name ->> 'key')", sql.Text);
+        Assert.Equal(0, sql.Parameters.Count);
+    }
+
+    [Fact]
+    public void JsonArrowText_Index_CorrectSql()
+    {
+        SqlStatement sql =
+            Select(JsonArrowText(_t.Name, 2))
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal("SELECT (\"t\".name ->> 2)", sql.Text);
+    }
+
+    [Fact]
+    public void JsonArrowText_BindValueKey_Binds()
+    {
+        SqlStatement sql =
+            Select(JsonArrowText(_t.Name, Bind("key")))
             .Build(Dbms.PostgreSql);
 
         Assert.Equal("SELECT (\"t\".name ->> :0)", sql.Text);
@@ -76,10 +163,9 @@ public class JsonOperatorTests
             .Build(Dbms.PostgreSql);
 
         Assert.Equal(
-            "SELECT \"t\".name FROM test_table \"t\" WHERE (\"t\".name ->> :0) = :1",
+            "SELECT \"t\".name FROM test_table \"t\" WHERE (\"t\".name ->> 'status') = :0",
             sql.Text);
-        Assert.Equal("status", sql.Parameters.Get<string>(":0"));
-        Assert.Equal("active", sql.Parameters.Get<string>(":1"));
+        Assert.Equal("active", sql.Parameters.Get<string>(":0"));
     }
 
     [Fact]
@@ -89,7 +175,7 @@ public class JsonOperatorTests
             Select(JsonArrowText(_t.Name, "city").As("city"))
             .Build(Dbms.PostgreSql);
 
-        Assert.Equal("SELECT (\"t\".name ->> :0) \"city\"", sql.Text);
+        Assert.Equal("SELECT (\"t\".name ->> 'city') \"city\"", sql.Text);
     }
 
     // --- JsonHashArrow (#>) -----------------------------------------------------

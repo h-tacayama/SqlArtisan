@@ -159,6 +159,33 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         Assert.Equal("NYC", city);
     }
 
+    // The reason JsonArrowText inlines its key (#557): an expression index over the
+    // field matches only a literal key, so a bound one scans the table instead.
+    [Theory]
+    [InlineData(false, "SEARCH")]
+    [InlineData(true, "SCAN")]
+    public void JsonArrowText_ExpressionIndex_MatchesOnlyInlineKey(bool bound, string access)
+    {
+        UsersTable u = new();
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        connection.Execute(
+            "CREATE INDEX ix_users_city ON users (data ->> '$.city')", null, transaction);
+
+        SqlExpression city = bound
+            ? JsonArrowText(u.Data, Bind("$.city"))
+            : JsonArrowText(u.Data, "$.city");
+        SqlStatement statement = Select(u.Id).From(u).Where(city == "NYC").Build(Dbms.Sqlite);
+        string plan = string.Join(" | ", connection.Query(
+                "EXPLAIN QUERY PLAN " + statement.Text,
+                statement.Parameters.ToDynamicParameters(),
+                transaction)
+            .Select(row => (string)row.detail));
+
+        Assert.StartsWith(access, plan);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void JsonArrow_ReadsNestedObject()
     {

@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and `ToSecond(p)` is Oracle and PostgreSQL. (#557)
 
 ### Changed
+- **Breaking:** `JsonArrow` and `JsonArrowText` emit a `string` or `int` key
+  inline — `(data -> 'address')`, `(data -> 0)` — instead of binding it. MySQL's
+  grammar takes only a string literal on the right of `->` / `->>`, so the bound
+  form failed under a server-side prepared statement, and an expression index
+  over the field matched only a literal key. The key parameter is now typed
+  `string`, `int` or `SqlExpression`: pass a column to compute the key in SQL,
+  or `Bind(key)` to keep binding it. A key typed `object` no longer compiles.
+  (#557)
 - **Breaking:** `Sql.CurrentTimestamp` and `Sql.CurrentTime` are methods, not
   properties: write `CurrentTimestamp()` and `CurrentTime()`. A property could
   never gain the precision form above under the same name. Every existing

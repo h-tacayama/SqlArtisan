@@ -46,7 +46,6 @@ public class ParameterAssertionRatchetTests
         ["FunctionTests/FunctionTests.U.cs"] = 2,
         ["HavingTests.cs"] = 3,
         ["InsertTests.cs"] = 5,
-        ["JsonOperatorTests.cs"] = 1,
         ["MultiRowInsertTests.cs"] = 4,
         ["PaginationTests.cs"] = 8,
         ["PublicSurfaceNamingTests.cs"] = 2,

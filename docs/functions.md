@@ -181,7 +181,7 @@ expression; for Oracle/PostgreSQL date-shift arithmetic (and MySQL's own
 
 ## JSON Functions
 
-JSON paths are emitted as inline string literals: an expression index over a JSON field matches only the literal path, and Oracle and SQL Server require a literal there in any case.
+JSON paths are emitted as inline string literals: an expression index over a JSON field matches only the literal path, and Oracle requires a literal there in any case.
 
 - `JsonExtract(jsonDoc, path)` for `JSON_EXTRACT(jsonDoc, 'path')` (MySQL, SQLite)
 - `JsonValue(jsonDoc, path)` for `JSON_VALUE(jsonDoc, 'path')` (MySQL, Oracle, SQL Server)
@@ -311,7 +311,7 @@ SqlArtisan automatically converts C# literal values into bind parameters (to bin
 
 Two kinds of string never become a bind parameter, and they behave differently:
 
-- **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and SQL Server's `STRING_AGG` separator, a JSON path, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL).
+- **Forced literals** — positions that need a literal, because the dialect rejects a bind marker there or because a marker would change how the engine resolves or plans the statement: the `LIKE ... ESCAPE` character, MySQL's `GROUP_CONCAT ... SEPARATOR` and SQL Server's `STRING_AGG` separator, a JSON path, a `JsonArrow` / `JsonArrowText` string key, a PostgreSQL text-search configuration, and the sequence name in `NEXTVAL('seq')` / `CURRVAL('seq')`. These are emitted inline as single-quoted literals with the quote character escaped (and the backslash too, on MySQL).
 - **Identifiers** — an alias, a table or column name, a `Cast(...)` target type, and the sequence name in the Oracle (`Sequence("s").Nextval`) and SQL Server (`NextValueFor("s")`) spellings. These are emitted **exactly as written**, with no escaping: a type name like `DECIMAL(10,2)` is not a name that could be quoted, and rewriting an alias you spelled would break the guarantee that the SQL you write is the SQL that runs. `Sql.Hints(...)` is not an identifier but behaves the same way — it is a raw-SQL escape hatch, emitted verbatim by definition.
 
 So automatic parameterization prevents injection **through values**. Build identifiers from constants or an allowlist you control — never straight from request input.

@@ -118,9 +118,10 @@ SqlStatement sql =
 // SELECT INTERVAL '123-11' YEAR(3) TO MONTH
 ```
 
-The optional `int?` is Oracle's precision (0-9; omit for its own default) —
-the leading-digit count on a sole or leading field, the fractional-seconds
-count on `ToSecond`. Only `ToSecond` may carry it as a *trailing* field;
+Each field has a precision overload — `Year(3)`, `Day(2)`, …, `ToSecond(4)` —
+taking 0-9; the no-argument form leaves the engine's own default. It is the
+leading-digit count on a sole or leading field (Oracle only), and the
+fractional-seconds count on `ToSecond` (Oracle and PostgreSQL). Only `ToSecond` may carry it as a *trailing* field;
 anywhere else on the trailing side it throws, as does a leading/trailing pair
 outside the seven Oracle allows (`Second()` can never lead; `Year`/`Month`
 never cross into `Day`/`Hour`/`Minute`/`Second`). `Second()` itself takes no
@@ -137,9 +138,8 @@ its *leading* precision, so use `ToSecond(n)` as a sole field for that form.
   literal never binds its value on Oracle, so for a bound quantity use
   [`Numtoyminterval(n, unit)` / `Numtodsinterval(n, unit)`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/functions.md#conversion-functions)
   instead.
-- **PostgreSQL** — the same two forms as Oracle (without precision, which
-  PostgreSQL applies only via `Cast(...)`, never inside the literal itself),
-  plus the bare `IntervalLiteral(text)` overload with the unit folded into
+- **PostgreSQL** — the same two forms as Oracle (with a precision on
+  `ToSecond(n)` only; `SQLA0100` reports one on a leading field), plus the bare `IntervalLiteral(text)` overload with the unit folded into
   the text (`INTERVAL '30 days'`).
 - **SQLite, SQL Server** — no `INTERVAL` construct; use `Dateadd(...)` on SQL
   Server instead.
@@ -434,7 +434,7 @@ To read every row on purpose, omit `.Where(...)` entirely. Any condition clause 
 
 ## JSON Operators
 
-Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators, and filter on JSONB content with the `@>`, `?`, `?|`, and `?&` predicates. The key or path on the right side is parameterized normally, with two consequences on MySQL and SQLite. An expression index over `doc ->> '$.a'` matches only a literal path, so a bound one scans instead (measured on SQLite) — for an indexed JSON field, use `JsonExtract(...)`, which inlines its path. And MySQL's grammar takes a string literal on the right of `->` / `->>`: the bound form runs because MySqlConnector interpolates parameters client-side by default, and a server-side prepared statement rejects it.
+Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators, and filter on JSONB content with the `@>`, `?`, `?|`, and `?&` predicates. A `->` / `->>` key given as a `string` or `int` is emitted inline, not bound: MySQL's grammar takes only a string literal there, and an expression index over `doc ->> '$.a'` matches only a literal key (a bound one scans instead, measured on SQLite). To compute the key in SQL, pass a `SqlExpression` — a column, or `Bind(key)` to bind it. The `#>` / `#>>` paths and the `@>` / `?` operands are parameterized normally.
 
 ### Element Access (`->` / `->>`)
 
@@ -446,7 +446,7 @@ SqlStatement sql =
     .From(u)
     .Build(Dbms.PostgreSql);
 
-// SELECT (data -> :0), (data ->> :1)
+// SELECT (data -> 'address'), (data ->> 'name')
 // FROM users
 ```
 
@@ -455,8 +455,11 @@ SqlStatement sql =
 Chaining is natural — the result is a `SqlExpression`:
 
 ```csharp
-// Nested access: (data -> :0) ->> :1
+// Nested access: ((data -> 'address') ->> 'city')
 JsonArrowText(JsonArrow(u.Data, "address"), "city")
+
+// Array element: (data -> 0)
+JsonArrow(u.Data, 0)
 ```
 
 ### Path Access (`#>` / `#>>`)
