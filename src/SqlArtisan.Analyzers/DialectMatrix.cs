@@ -694,7 +694,7 @@ internal static class DialectMatrix
         // MinusAll: Oracle 21c+ spelling of EXCEPT ALL.
         [new MatrixKey("MinusAll")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
-        // --- Pagination (IPagination / ILimitOffsetBuilder / IOffsetFetchBuilder XML remarks) ---
+        // --- Pagination (IPagination / ISelectBuilderLimitOffset / ...OffsetFetch remarks) ---
         [new MatrixKey("Limit")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         // Offset: standalone OFFSET is PostgreSQL-only, after Limit(...) it is MySQL/PostgreSQL/
         // SQLite — same member name on two interfaces, so this is their union (a standalone

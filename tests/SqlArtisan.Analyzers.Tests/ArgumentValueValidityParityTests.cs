@@ -24,7 +24,7 @@ public class ArgumentValueValidityParityTests
 
     // The pagination surface SQLA0104's row-count table is measured against.
     private static readonly Type[] PaginationInterfaces =
-        [typeof(IPagination), typeof(ILimitOffsetBuilder), typeof(IOffsetFetchBuilder)];
+        [typeof(IPagination), typeof(ISelectBuilderLimitOffset), typeof(ISelectBuilderOffsetFetch)];
 
     // Not routed by decision (#532): engines do diverge on a negative offset,
     // but one goes negative by arithmetic, so the call-site constant this rule

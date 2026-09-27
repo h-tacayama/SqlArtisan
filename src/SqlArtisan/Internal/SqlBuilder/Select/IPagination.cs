@@ -14,7 +14,7 @@ public interface IPagination
     /// <returns>The builder positioned to optionally lock the rows with <c>FOR UPDATE</c>, build, or embed as a subquery.</returns>
     /// <remarks>Standalone on Oracle and PostgreSQL; SQL Server requires an
     /// <c>OFFSET</c> — use <see cref="OffsetRows(int)"/> then
-    /// <see cref="IOffsetFetchBuilder.FetchNext(int)"/> there.</remarks>
+    /// <see cref="ISelectBuilderOffsetFetch.FetchNext(int)"/> there.</remarks>
     ISelectBuilderPaginated FetchFirst(int count);
 
     /// <summary>
@@ -24,8 +24,8 @@ public interface IPagination
     /// <returns>The builder positioned to optionally add an <c>OFFSET</c> or a <c>FOR UPDATE</c>, or build.</returns>
     /// <remarks>MySQL, PostgreSQL, and SQLite syntax; on Oracle use
     /// <see cref="FetchFirst(int)"/>, on SQL Server <see cref="OffsetRows(int)"/>
-    /// then <see cref="IOffsetFetchBuilder.FetchNext(int)"/>.</remarks>
-    ILimitOffsetBuilder Limit(int count);
+    /// then <see cref="ISelectBuilderOffsetFetch.FetchNext(int)"/>.</remarks>
+    ISelectBuilderLimitOffset Limit(int count);
 
     /// <summary>
     /// Appends <c>OFFSET m</c>.
@@ -44,5 +44,5 @@ public interface IPagination
     /// <returns>The builder positioned to optionally add a <c>FETCH NEXT n ROWS ONLY</c> or a <c>FOR UPDATE</c>, or build.</returns>
     /// <remarks>Oracle, PostgreSQL, and SQL Server syntax; on MySQL and SQLite
     /// use <see cref="Offset(int)"/>.</remarks>
-    IOffsetFetchBuilder OffsetRows(int start);
+    ISelectBuilderOffsetFetch OffsetRows(int start);
 }

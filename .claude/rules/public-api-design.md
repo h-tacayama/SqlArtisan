@@ -3,6 +3,7 @@ description: Public API design decisions — naming categories, overload split f
 paths:
   - "src/SqlArtisan/Sql/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
+  - "src/SqlArtisan/Internal/SqlBuilder/**/I*.cs"
   - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
   - "tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs"
 ---
@@ -66,6 +67,34 @@ while `IntervalLiteral(string, IntervalField)` inlines it. One name would let
 the second argument's static type pick the emission mode silently — the trap
 the separator section below forbids. The qualifier is also the standard's own
 term (`<interval literal>`), not an invention (#554).
+
+## Builder stage names: `I<Statement>Builder<State>`
+
+A fluent-chain stage interface names the statement it builds, then the
+point the chain has reached: `I` + `Select`/`Insert`/`InsertIgnore`/`Update`/
+`Delete`/`Merge`/`With` + `Builder` + a state word. The state word is
+
+- the step that returns the stage, when one step does (`ISelectBuilderWhere`);
+- the clause position, when several steps land on one stage
+  (`ISelectBuilderFrom` after `From`, `On`, `Using`, `CrossJoin`, …;
+  `ISelectBuilderPaginated`);
+- that step plus a context word, when one step name opens two stages
+  (`IInsertBuilderTable` / `IInsertBuilderColumns` for the two `InsertInto`
+  arities, `IUpdateBuilderJoinOn` / `IUpdateBuilderFromJoinOn`);
+
+followed by the clause the stage offers next when that clause is what tells
+it from a neighbouring stage (`IDeleteBuilderDeleteOutput` beside
+`IDeleteBuilderDelete`; `ISelectBuilderLimitOffset` after `Limit` and
+`ISelectBuilderOffsetFetch` after `OffsetRows`, beside
+`ISelectBuilderPaginated`). A stage several statements share takes its
+capability's name (`IReturningBuilder`, returned by `IReturning.Returning`). A capability
+interface composed into stages (`IPagination`, `IForUpdate`, `IJoinOperator`,
+`ISetOperator`, `IReturning`, `IUpsert`) carries no `Builder`.
+
+Why not always name the stage after the step that returns it: a stage several
+steps land on has no single step, and one step name can open two stages, so
+that scheme needs these same exceptions while renaming 15 stages (#568).
+`BuilderStageNamingTests` pins the shape; the state word is review's call.
 
 ## BCL simple-name collisions: record here, don't rename
 
