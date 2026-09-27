@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.12.0-beta.1] - 2026-09-27
 ### Added
 - `CurrentTimestamp(precision)` and `CurrentTime(precision)` emit
   `CURRENT_TIMESTAMP(p)` / `CURRENT_TIME(p)`, for fractional seconds — MySQL's
