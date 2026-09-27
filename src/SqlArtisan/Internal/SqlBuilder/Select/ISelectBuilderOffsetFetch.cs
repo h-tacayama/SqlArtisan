@@ -12,6 +12,6 @@ public interface ISelectBuilderOffsetFetch : ISqlBuilder, IForUpdate, ISubquery
     /// Dialect-specific (Oracle / PostgreSQL / SQL Server).
     /// </summary>
     /// <param name="count">The maximum number of rows to return.</param>
-    /// <returns>The builder positioned to optionally lock the rows with <c>FOR UPDATE</c>, build, or embed as a subquery.</returns>
+    /// <returns>The builder positioned after <c>FETCH NEXT</c>.</returns>
     ISelectBuilderPaginated FetchNext(int count);
 }

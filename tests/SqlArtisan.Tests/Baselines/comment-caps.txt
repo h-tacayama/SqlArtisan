@@ -16,7 +16,6 @@ src/SqlArtisan.Dapper/SqlMapper.cs 1
 src/SqlArtisan/Internal/SqlBuilder/Insert/IInsertBuilderColumns.cs 1
 src/SqlArtisan/Internal/SqlBuilder/Insert/IInsertBuilderTable.cs 1
 src/SqlArtisan/Internal/SqlBuilder/Insert/InsertBuilder.cs 3
-src/SqlArtisan/Internal/SqlBuilder/Select/SelectBuilder.cs 1
 src/SqlArtisan/Internal/SqlBuilder/SqlBuildingBuffer.cs 2
 src/SqlArtisan/Internal/SqlBuilder/Validation/DmlTargetGuard.cs 2
 src/SqlArtisan/Internal/SqlPart/AsteriskMarker.cs 1

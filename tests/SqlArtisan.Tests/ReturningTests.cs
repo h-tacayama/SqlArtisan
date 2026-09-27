@@ -233,7 +233,7 @@ public class ReturningTests
             .Returning(_t.Code, null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'selectItem')",
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'returningItem')",
             ex.Message);
     }
 
@@ -261,8 +261,8 @@ public class ReturningTests
             .Into(new OutputParameter("b", DbType.Int32)));
 
         Assert.Equal(
-            "RETURNING ... INTO requires plain column expressions; the output "
-            + "parameter names the value, so drop the .As(...) alias.",
+            "RETURNING ... INTO takes no column alias; the output parameter "
+            + "names the value, so drop the .As(...) alias.",
             ex.Message);
     }
 

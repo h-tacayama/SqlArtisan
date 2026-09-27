@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `InsertIgnoreInto(...).With(...).Select(...)`. Binary-breaking for an
   assembly that calls the removed members; rebuild against this version. (#569)
 
+- `Returning(...)` and `Output(...)` report a rejected item as their own
+  position: `Invalid type for ReturningItem` / `OutputItem`, and a null item as
+  `(Parameter 'returningItem')` / `'outputItem'`, where both said `SelectItem`.
+  `Returning(expr.As(...)).Into(...)` now says `RETURNING ... INTO takes no
+  column alias`; it named a requirement for plain column expressions that the
+  guard never enforced. (#569)
+
 ### Fixed
 - `Build()` throws on a leading `With(...)` before an `INSERT` with
   `OnDuplicateKeyUpdate(...)`, on every target. `ON DUPLICATE KEY UPDATE` is

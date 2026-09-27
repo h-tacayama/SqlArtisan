@@ -76,7 +76,7 @@ internal sealed class DeleteBuilder(
     {
         CollectionGuard.ThrowIfEmpty(
             items, nameof(items), "OUTPUT requires at least one expression.");
-        AddPart(new OutputClause(SelectItemResolver.Resolve(items)));
+        AddPart(new OutputClause(SelectItemResolver.Resolve(items, "OutputItem", "outputItem")));
         return this;
     }
 

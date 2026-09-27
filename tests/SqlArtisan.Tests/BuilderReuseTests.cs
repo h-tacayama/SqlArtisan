@@ -875,7 +875,7 @@ public class BuilderReuseTests
         IUpdateBuilderSet inner = Update(_t).Set(_t.Code == 1);
         ArgumentException rejected =
             Assert.Throws<ArgumentException>(() => inner.Returning(new object()));
-        Assert.Equal("Invalid type for SelectItem: System.Object", rejected.Message);
+        Assert.Equal("Invalid type for ReturningItem: System.Object", rejected.Message);
 
         SqlStatement sql = inner.Build();
 

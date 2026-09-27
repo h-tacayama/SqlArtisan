@@ -11,7 +11,7 @@ public interface ISelectBuilderGroupBy : ISqlBuilder, IPagination, ISetOperator,
     /// Appends <c>HAVING condition</c> to filter on aggregated groups.
     /// </summary>
     /// <param name="condition">The group filter, typically over an aggregate; literals it contains are auto-parameterized.</param>
-    /// <returns>The builder positioned after <c>HAVING</c>, ready for <c>ORDER BY</c>, pagination, or build.</returns>
+    /// <returns>The builder positioned after <c>HAVING</c>.</returns>
     ISelectBuilderHaving Having(SqlCondition condition);
 
     /// <inheritdoc cref="ISelectBuilderFrom.OrderBy(object[])"/>
@@ -22,7 +22,7 @@ public interface ISelectBuilderGroupBy : ISqlBuilder, IPagination, ISetOperator,
     /// Appends the <c>WITH ROLLUP</c> suffix to the <c>GROUP BY</c> clause
     /// (<c>GROUP BY a, b WITH ROLLUP</c>).
     /// </summary>
-    /// <returns>The builder positioned for <c>HAVING</c>, ordering, pagination, or build.</returns>
+    /// <returns>The builder positioned after <c>WITH ROLLUP</c>.</returns>
     /// <remarks>
     /// MySQL's grouping syntax, which SQL Server accepts as a legacy form. The
     /// standard <c>Sql.Rollup(...)</c> function form covers Oracle, PostgreSQL,

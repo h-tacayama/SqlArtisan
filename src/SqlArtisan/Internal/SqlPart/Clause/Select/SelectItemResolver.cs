@@ -11,27 +11,28 @@ internal static class SelectItemResolver
     {
         CollectionGuard.ThrowIfEmpty(
             selectItems, nameof(selectItems), "SELECT requires at least one item.");
-        return Resolve(selectItems);
+        return Resolve(selectItems, "SelectItem", "selectItem");
     }
 
-    internal static SqlPart[] Resolve(object[] selectItems)
+    // RETURNING and OUTPUT share the SELECT list's grammar but name their own
+    // position in a failure, since the value never reached a SELECT list.
+    internal static SqlPart[] Resolve(object[] items, string position, string paramName)
     {
-        var resolved = new SqlPart[selectItems.Length];
+        var resolved = new SqlPart[items.Length];
 
-        for (int i = 0; i < selectItems.Length; i++)
+        for (int i = 0; i < items.Length; i++)
         {
-            resolved[i] = Resolve(selectItems[i]);
+            resolved[i] = Resolve(items[i], position, paramName);
         }
 
         return resolved;
     }
 
-    internal static SqlPart Resolve(object selectItem)
+    private static SqlPart Resolve(object selectItem, string position, string paramName)
     {
         if (selectItem is null)
         {
-            throw new ArgumentNullException(
-                nameof(selectItem), ExpressionResolver.NullValueMessage);
+            throw new ArgumentNullException(paramName, ExpressionResolver.NullValueMessage);
         }
         else if (selectItem is SqlExpression expr)
         {
@@ -55,7 +56,7 @@ internal static class SelectItemResolver
         }
         else
         {
-            throw UnresolvableValue("SelectItem", selectItem);
+            throw UnresolvableValue(position, selectItem);
         }
     }
 }
