@@ -1292,6 +1292,12 @@ for, not a bug in the matrix.
 - **No cross-call inference.** The target comes from `.editorconfig`/MSBuild
   scope only; a literal `.Build(Dbms.MySql)` argument elsewhere in the file
   is not read as a hint.
+- **A `params` member's argument count is not modeled.** The key is the
+  declared parameter count, so `Greatest(x)` and `Greatest(x, y)` share one
+  entry. MySQL's `GREATEST` and `LEAST` need at least two arguments, where
+  Oracle, PostgreSQL and SQL Server accept one, and the one-argument call
+  does not warn on MySQL. A one-argument `GREATEST(x)` is just `x`, so no rule
+  is kept for it.
 - **Same-arity, different-type overloads share one key.** Two overloads of
   the same name with the same *parameter count* but different parameter
   *types* (e.g. `Match(object, params object[])` for MySQL vs.
@@ -1313,10 +1319,6 @@ for, not a bug in the matrix.
   PostgreSQL and SQLite 3.35+, a date/time argument is Oracle-only, and both shapes
   compile to the exact same C# overload. It has no matrix entry and never
   warns either way.
-- **The `IntervalLiteral(...)` field markers' precision is not modeled yet.**
-  `Year(3)`, `Day(2)`, ..., `ToSecond(4)` are overloads of their own, so the
-  matrix *could* key them by arity, but no entry exists: a leading-field
-  precision, which only Oracle accepts, does not warn on another target.
 - **`SQLA0104`'s lists don't model a source-type or column-type constraint.**
   Oracle's `EXTRACT` rejects `HOUR`/`MINUTE`/`SECOND` on a plain `DATE`
   source (it needs a `TIMESTAMP`) and the four `TIMEZONE_*` fields need

@@ -44,17 +44,6 @@ public class DialectMatrixCoverageTests
                 "Deliberately unentered: dialect support depends on the argument's runtime "
                 + "type (numeric vs. date TRUNC), which neither declared type nor arity "
                 + "distinguishes — see docs/analyzer.md.",
-            ["Sql.Year"] =
-                "An IntervalField argument for IntervalLiteral(...), not an independent "
-                + "construct — its own entries govern availability. The precision overload "
-                + "(arity 1) could carry a narrower entry of its own; it has none yet (#557).",
-            ["Sql.Month"] = "See Sql.Year.",
-            ["Sql.Day"] = "See Sql.Year.",
-            ["Sql.Hour"] = "See Sql.Year.",
-            ["Sql.Minute"] = "See Sql.Year.",
-            ["Sql.ToSecond"] = "See Sql.Year.",
-            // No precision parameter at all (unlike Sql.Year and its four siblings above),
-            // but the same "argument, not an independent construct" half of the reasoning applies.
             ["Sql.Second"] = "An IntervalField argument for IntervalLiteral(...), not an independent construct.",
             ["Sql.ToMonth"] = "See Sql.Second.",
             ["Sql.ToHour"] = "See Sql.Second.",

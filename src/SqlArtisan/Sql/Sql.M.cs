@@ -77,6 +77,7 @@ public static partial class Sql
     /// <param name="precision">The leading field's digit count (0-9); the no-argument
     /// overload leaves Oracle's own default of 2.</param>
     /// <returns>An <see cref="IntervalField"/> emitting <c>MINUTE(precision)</c>.</returns>
+    /// <remarks>Oracle syntax.</remarks>
     public static IntervalField Minute(int precision) =>
         new(DateTimePart.Minute, precision);
 
@@ -106,6 +107,7 @@ public static partial class Sql
     /// <param name="precision">The field's digit count (0-9); the no-argument
     /// overload leaves Oracle's own default of 2.</param>
     /// <returns>An <see cref="IntervalField"/> emitting <c>MONTH(precision)</c>.</returns>
+    /// <remarks>Oracle syntax.</remarks>
     public static IntervalField Month(int precision) =>
         new(DateTimePart.Month, precision);
 

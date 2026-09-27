@@ -33,6 +33,10 @@ internal sealed record SweepCase(
 /// </summary>
 internal static class MatrixSweepCatalog
 {
+    private const string FieldMarker =
+        "An IntervalLiteral field argument with no SQL of its own; the IntervalLiteral "
+        + "cases sweep the bare form, and the arity-1 case sweeps the precision.";
+
     /// <summary>Matrix entries deliberately not swept, with the reason.</summary>
     public static readonly IReadOnlyDictionary<MatrixKey, string> ExcludedEntries =
         new Dictionary<MatrixKey, string>
@@ -42,6 +46,12 @@ internal static class MatrixSweepCatalog
             + "generic accept/reject runner cannot do; the positive side is covered by "
                 + "OracleTests, and the "
             + "negative side would fail for binding (not grammar) reasons on every other engine.",
+            [new MatrixKey("Year")] = FieldMarker,
+            [new MatrixKey("Month")] = FieldMarker,
+            [new MatrixKey("Day")] = FieldMarker,
+            [new MatrixKey("Hour")] = FieldMarker,
+            [new MatrixKey("Minute")] = FieldMarker,
+            [new MatrixKey("ToSecond")] = FieldMarker,
             [new MatrixKey("ConditionIf")] =
             "A C#-side helper: the emitted SQL is identical to the underlying "
             + "condition (or absent), so there is no distinct construct for an engine to "
@@ -395,6 +405,15 @@ internal static class MatrixSweepCatalog
             "IntervalLiteral",
             3,
             _ => Scalar(u.CreatedAt + IntervalLiteral("1-2", Year(), ToMonth)));
+        AddArity("Year", 1, _ => Scalar(u.CreatedAt + IntervalLiteral("5", Year(3))));
+        AddArity("Month", 1, _ => Scalar(u.CreatedAt + IntervalLiteral("5", Month(3))));
+        AddArity("Day", 1, _ => Scalar(u.CreatedAt + IntervalLiteral("5", Day(3))));
+        AddArity("Hour", 1, _ => Scalar(u.CreatedAt + IntervalLiteral("5", Hour(3))));
+        AddArity("Minute", 1, _ => Scalar(u.CreatedAt + IntervalLiteral("5", Minute(3))));
+        AddArity(
+            "ToSecond",
+            1,
+            _ => Scalar(u.CreatedAt + IntervalLiteral("1 02:03:04.5", Day(), ToSecond(2))));
         Add("DateAdd", _ => Scalar(DateAdd(u.CreatedAt, Interval(30, DateTimePart.Day))));
         Add("DateSub", _ => Scalar(DateSub(u.CreatedAt, Interval(30, DateTimePart.Day))));
         Add("Timestampadd", _ => Scalar(Timestampadd(DateTimePart.Day, 1, u.CreatedAt)));

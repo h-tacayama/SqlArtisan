@@ -143,6 +143,7 @@ public static partial class Sql
     /// overload leaves Oracle's own default of 6. As a sole field rather than a range's trailing
     /// one, Oracle reads the same digits as the leading precision instead.</param>
     /// <returns>An <see cref="IntervalField"/> emitting <c>SECOND(precision)</c>.</returns>
+    /// <remarks>Oracle and PostgreSQL syntax.</remarks>
     public static IntervalField ToSecond(int precision) =>
         new(DateTimePart.Second, precision);
 

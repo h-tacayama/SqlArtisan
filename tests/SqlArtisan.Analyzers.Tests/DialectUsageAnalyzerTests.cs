@@ -645,6 +645,37 @@ public class DialectUsageAnalyzerTests
     }
 
     [Fact]
+    public async Task IntervalFieldPrecision_OnPostgreSql_ReportsSqla0100ExceptToSecond()
+    {
+        // #557: only Oracle takes a leading-field precision; PostgreSQL takes one on SECOND
+        // alone, so Day(3) warns there while Day() and ToSecond(2) stay silent.
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var ok = IntervalLiteral("1 02:03:04.5", Day(), ToSecond(2));
+                    var bad = IntervalLiteral("5", {|#0:Day(3)|});
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_postgresql = any
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task LogTwoArgForm_OnSqlServer_ReportsSqla0100ButOneArgFormDoesNot()
     {
         // #440: T-SQL reads LOG(value, base), the reverse of the base-first order the other
