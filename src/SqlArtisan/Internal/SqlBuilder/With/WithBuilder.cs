@@ -21,27 +21,6 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
         return new DeleteBuilder(table, state, _withPart, deleteClause);
     }
 
-    public IInsertIgnoreBuilderTable InsertIgnoreInto(DbTableBase table) =>
-        new InsertBuilder(
-            table,
-            0,
-            _withPart,
-            new InsertIgnoreIntoClause(table));
-
-    public IInsertIgnoreBuilderColumns InsertIgnoreInto(
-        DbTableBase table, params DbColumn[] columns)
-    {
-        CollectionGuard.ThrowIfEmpty(
-            columns, nameof(columns), "An INSERT column list requires at least one column.");
-        CollectionGuard.ThrowIfNullElement(
-            columns, nameof(columns), "An INSERT column list must not contain a null column.");
-        ColumnListGuard.ThrowIfDuplicate(
-            columns, "An INSERT column list must not name a column twice.");
-
-        return new InsertBuilder(
-            table, columns.Length, _withPart, new InsertIgnoreIntoClause(table, columns));
-    }
-
     public IInsertBuilderTable InsertInto(DbTableBase table) =>
         new InsertBuilder(
             table,

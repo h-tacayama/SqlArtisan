@@ -19,15 +19,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   An anchor with an unnamed item (`Select(Asterisk)`, a literal) or two
   same-named items no longer throws. Chain `.WithColumnList()` onto a CTE to
   keep its list. (#567)
+- **Breaking:** `With(...)` and `WithRecursive(...)` no longer offer
+  `InsertIgnoreInto(...)`. `INSERT IGNORE` is MySQL's alone and MySQL's
+  `INSERT` takes no leading `WITH`, so the chain ran on no engine: it threw at
+  `Build()` on MySQL and Oracle, and emitted SQL the engine rejects elsewhere.
+  Put the CTE inside the feeding `SELECT` instead:
+  `InsertIgnoreInto(...).With(...).Select(...)`. Binary-breaking for an
+  assembly that calls the removed members; rebuild against this version. (#569)
 
 ### Fixed
-- `Build()` throws on a leading `With(...)` before `InsertIgnoreInto(...)` or
-  before an `INSERT` with `OnDuplicateKeyUpdate(...)`, on every target.
-  `INSERT IGNORE` and `ON DUPLICATE KEY UPDATE` are MySQL's alone, and MySQL's
-  `INSERT` takes no leading `WITH`, so no engine accepts either pairing; only
-  MySQL and Oracle threw before, and PostgreSQL, SQLite and SQL Server emitted
-  the statement. For `INSERT IGNORE`, put the CTE inside the feeding `SELECT`:
-  `InsertIgnoreInto(...).With(...).Select(...)`. (#569)
+- `Build()` throws on a leading `With(...)` before an `INSERT` with
+  `OnDuplicateKeyUpdate(...)`, on every target. `ON DUPLICATE KEY UPDATE` is
+  MySQL's alone and MySQL's `INSERT` takes no leading `WITH`, so no engine
+  accepts the pairing; only MySQL and Oracle threw before, and PostgreSQL,
+  SQLite and SQL Server emitted the statement. (#569)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

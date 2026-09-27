@@ -165,19 +165,6 @@ public class BuilderElementGuardTests
     }
 
     [Fact]
-    public void WithBuilderInsertIgnoreInto_EmptyColumns_ThrowsArgumentException()
-    {
-        Cte c = new("c");
-        TestTable t = new();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            With(c.As(Select(t.Code.As(c.Column("code"))).From(t)))
-                .InsertIgnoreInto(new TestTable(), []));
-
-        Assert.Equal("An INSERT column list requires at least one column.", ex.Message);
-    }
-
-    [Fact]
     public void WithBuilderInsertInto_EmptyColumns_ThrowsArgumentException()
     {
         Cte c = new("c");

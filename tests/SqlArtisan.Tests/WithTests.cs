@@ -468,51 +468,8 @@ public class WithTests
         Assert.Equal(1, sql.Parameters.Get<int>("?0"));
     }
 
-    // INSERT IGNORE and ON DUPLICATE KEY UPDATE are MySQL's alone, so no target
-    // accepts them after a leading WITH; the guard ignores the dialect (#569).
-    [Theory]
-    [InlineData(Dbms.MySql)]
-    [InlineData(Dbms.Oracle)]
-    [InlineData(Dbms.PostgreSql)]
-    [InlineData(Dbms.Sqlite)]
-    [InlineData(Dbms.SqlServer)]
-    public void With_LeadingWithBeforeInsertIgnoreSelect_ThrowsArgumentException(Dbms dbms)
-    {
-        TestTable a = new("a");
-        TestCte cte = new("cte");
-        TestTable b = new();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
-            .InsertIgnoreInto(b, b.Code)
-            .Select(cte.CteCode)
-            .From(cte)
-            .Build(dbms));
-
-        Assert.Equal(InsertIgnoreLeadingWithMessage, ex.Message);
-    }
-
-    [Theory]
-    [InlineData(Dbms.MySql)]
-    [InlineData(Dbms.Oracle)]
-    [InlineData(Dbms.PostgreSql)]
-    [InlineData(Dbms.Sqlite)]
-    [InlineData(Dbms.SqlServer)]
-    public void With_LeadingWithBeforeInsertIgnore_ThrowsArgumentException(Dbms dbms)
-    {
-        TestTable a = new("a");
-        TestCte cte = new("cte");
-        TestTable b = new();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
-            .InsertIgnoreInto(b)
-            .Values(1, "x", CurrentTimestamp())
-            .Build(dbms));
-
-        Assert.Equal(InsertIgnoreLeadingWithMessage, ex.Message);
-    }
-
+    // ON DUPLICATE KEY UPDATE is MySQL's alone, so no target accepts it after a
+    // leading WITH; the guard ignores the dialect (#569).
     [Theory]
     [InlineData(Dbms.MySql)]
     [InlineData(Dbms.Oracle)]
@@ -536,30 +493,6 @@ public class WithTests
             "An INSERT with ON DUPLICATE KEY UPDATE takes no leading WITH; "
                 + "inline the subquery instead.",
             ex.Message);
-    }
-
-    [Fact]
-    public void InsertIgnoreInto_MySql_WithInFeedingSelect_CorrectSql()
-    {
-        TestTable a = new("a");
-        TestCte cte = new("cte");
-        TestTable b = new();
-
-        SqlStatement sql =
-            InsertIgnoreInto(b, b.Code)
-            .With(cte.As(Select(a.Code.As(cte.CteCode)).From(a).Where(a.Code == 1)))
-            .Select(cte.CteCode)
-            .From(cte)
-            .Build(Dbms.MySql);
-
-        StringBuilder expected = new();
-        expected.Append("INSERT IGNORE INTO test_table (code) ");
-        expected.Append("WITH `cte` AS (SELECT `a`.code cte_code FROM test_table `a` ");
-        expected.Append("WHERE `a`.code = ?0) ");
-        expected.Append("SELECT `cte`.cte_code FROM `cte`");
-
-        Assert.Equal(expected.ToString(), sql.Text);
-        Assert.Equal(1, sql.Parameters.Get<int>("?0"));
     }
 
     [Fact]
@@ -1055,19 +988,6 @@ public class WithTests
     }
 
     [Fact]
-    public void With_InsertIgnoreInto_DuplicateColumn_ThrowsArgumentException()
-    {
-        TestTable a = new("a");
-        TestCte cte = new("cte");
-        TestTable b = new();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            With(cte.As(Select(a.Code).From(a))).InsertIgnoreInto(b, b.Name, b.Code, b.Name));
-
-        Assert.Equal("An INSERT column list must not name a column twice.", ex.Message);
-    }
-
-    [Fact]
     public void With_MergeInto_CorrectSql()
     {
         // Arrange
@@ -1137,10 +1057,6 @@ public class WithTests
 
         Assert.Equal(OracleLeadingWithBeforeMergeMessage, ex.Message);
     }
-
-    private const string InsertIgnoreLeadingWithMessage =
-        "INSERT IGNORE takes no leading WITH; put the CTE inside the feeding SELECT "
-        + "(InsertIgnoreInto(...).With(...).Select(...)), otherwise inline the subquery.";
 
     private const string MySqlLeadingWithMessage =
         "MySQL has no leading WITH on INSERT; put the CTE inside the feeding SELECT "

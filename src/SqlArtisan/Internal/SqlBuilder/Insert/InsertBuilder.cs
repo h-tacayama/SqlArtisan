@@ -155,8 +155,8 @@ internal sealed class InsertBuilder(
         base.Validate(dbms);
 
         OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate = FindPart<OnDuplicateKeyUpdateClause>();
-        DmlTargetGuard.ThrowIfLeadingWithOnMySqlInsertForm(
-            PartsSpan, FindPart<InsertIgnoreIntoClause>(), onDuplicateKeyUpdate);
+        DmlTargetGuard.ThrowIfLeadingWithBeforeOnDuplicateKeyUpdate(
+            PartsSpan, onDuplicateKeyUpdate);
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: true);
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(table, dbms);

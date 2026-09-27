@@ -106,26 +106,13 @@ internal static class DmlTargetGuard
         }
     }
 
-    // INSERT IGNORE and ON DUPLICATE KEY UPDATE are MySQL's alone, and MySQL's INSERT
-    // takes no leading WITH, so no target accepts the pairing (#400's shape): dialect-blind.
-    internal static void ThrowIfLeadingWithOnMySqlInsertForm(
-        ReadOnlySpan<SqlPart> parts,
-        InsertIgnoreIntoClause? insertIgnore,
-        OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate)
+    // ON DUPLICATE KEY UPDATE is MySQL's alone and MySQL's INSERT takes no leading
+    // WITH, so no target accepts the pairing (#400's shape): dialect-blind. Its stages
+    // are shared with the WITH-less chain, so no typestate can withhold it (#569).
+    internal static void ThrowIfLeadingWithBeforeOnDuplicateKeyUpdate(
+        ReadOnlySpan<SqlPart> parts, OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate)
     {
-        if (!LeadsWithCte(parts))
-        {
-            return;
-        }
-
-        if (insertIgnore is not null)
-        {
-            throw new ArgumentException(
-                "INSERT IGNORE takes no leading WITH; put the CTE inside the feeding SELECT "
-                + "(InsertIgnoreInto(...).With(...).Select(...)), otherwise inline the subquery.");
-        }
-
-        if (onDuplicateKeyUpdate is not null)
+        if (onDuplicateKeyUpdate is not null && LeadsWithCte(parts))
         {
             throw new ArgumentException(
                 "An INSERT with ON DUPLICATE KEY UPDATE takes no leading WITH; "
