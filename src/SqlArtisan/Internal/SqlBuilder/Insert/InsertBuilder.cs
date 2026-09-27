@@ -154,6 +154,9 @@ internal sealed class InsertBuilder(
         // inherits the whole SELECT surface.
         base.Validate(dbms);
 
+        OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate = FindPart<OnDuplicateKeyUpdateClause>();
+        DmlTargetGuard.ThrowIfLeadingWithBeforeOnDuplicateKeyUpdate(
+            PartsSpan, onDuplicateKeyUpdate);
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: true);
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(table, dbms);
@@ -195,7 +198,6 @@ internal sealed class InsertBuilder(
         OutputClauseGuard.ThrowIfIntoWidthMismatch(output, FindPart<OutputIntoClause>());
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
-        OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate = FindPart<OnDuplicateKeyUpdateClause>();
         OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(output, onConflict, onDuplicateKeyUpdate);
         ReturningGuard.ThrowIfCombinedWithMySqlInsertForm(
             FindPart<InsertIgnoreIntoClause>(),

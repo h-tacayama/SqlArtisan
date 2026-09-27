@@ -106,6 +106,20 @@ internal static class DmlTargetGuard
         }
     }
 
+    // ON DUPLICATE KEY UPDATE is MySQL's alone and MySQL's INSERT takes no leading
+    // WITH, so no target accepts the pairing (#400's shape): dialect-blind. A typestate
+    // would need a WITH-led copy of the shared INSERT stages; this check costs less (#569).
+    internal static void ThrowIfLeadingWithBeforeOnDuplicateKeyUpdate(
+        ReadOnlySpan<SqlPart> parts, OnDuplicateKeyUpdateClause? onDuplicateKeyUpdate)
+    {
+        if (onDuplicateKeyUpdate is not null && LeadsWithCte(parts))
+        {
+            throw new ArgumentException(
+                "An INSERT with ON DUPLICATE KEY UPDATE takes no leading WITH; "
+                + "inline the subquery instead.");
+        }
+    }
+
     // Oracle's DML grammars carry no subquery-factoring clause and MySQL's INSERT
     // does not either (live: 8.0.46 ER_PARSE_ERROR), so the CTE belongs inside the
     // feeding SELECT. The leading part is builder state the analyzer cannot see (ADR 0011).

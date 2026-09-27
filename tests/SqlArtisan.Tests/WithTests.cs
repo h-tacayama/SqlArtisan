@@ -468,10 +468,42 @@ public class WithTests
         Assert.Equal(1, sql.Parameters.Get<int>("?0"));
     }
 
-    // MySQL 8.0 takes a leading WITH before UPDATE and DELETE but not before
-    // INSERT (live: ER_PARSE_ERROR); the feeding SELECT carries the CTE instead.
+    // The legal twin of the guard below: the other upsert on the same stages keeps
+    // its leading WITH.
     [Fact]
-    public void With_MySql_LeadingWithBeforeInsertIgnore_ThrowsArgumentException()
+    public void With_InsertValuesOnConflictDoUpdateSet_CorrectSql()
+    {
+        TestTable a = new("a");
+        TestCte cte = new("cte");
+        TestTable b = new();
+
+        SqlStatement sql =
+            With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
+            .InsertInto(b, b.Code)
+            .Values(1)
+            .OnConflict(b.Code)
+            .DoUpdateSet(b.Name == "x")
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS (SELECT \"a\".code cte_code FROM test_table \"a\") ");
+        expected.Append("INSERT INTO test_table (code) VALUES (:0) ");
+        expected.Append("ON CONFLICT (code) DO UPDATE SET name = :1");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal("x", sql.Parameters.Get<string>(":1"));
+    }
+
+    // ON DUPLICATE KEY UPDATE is MySQL's alone, so no target accepts it after a
+    // leading WITH; the guard ignores the dialect (#569).
+    [Theory]
+    [InlineData(Dbms.MySql)]
+    [InlineData(Dbms.Oracle)]
+    [InlineData(Dbms.PostgreSql)]
+    [InlineData(Dbms.Sqlite)]
+    [InlineData(Dbms.SqlServer)]
+    public void With_LeadingWithBeforeOnDuplicateKeyUpdate_ThrowsArgumentException(Dbms dbms)
     {
         TestTable a = new("a");
         TestCte cte = new("cte");
@@ -479,12 +511,15 @@ public class WithTests
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             With(cte.As(Select(a.Code.As(cte.CteCode)).From(a)))
-            .InsertIgnoreInto(b, b.Code)
-            .Select(cte.CteCode)
-            .From(cte)
-            .Build(Dbms.MySql));
+            .InsertInto(b, b.Code)
+            .Values(1)
+            .OnDuplicateKeyUpdate(b.Code == 2)
+            .Build(dbms));
 
-        Assert.Equal(MySqlLeadingWithMessage, ex.Message);
+        Assert.Equal(
+            "An INSERT with ON DUPLICATE KEY UPDATE takes no leading WITH; "
+                + "inline the subquery instead.",
+            ex.Message);
     }
 
     [Fact]
@@ -975,19 +1010,6 @@ public class WithTests
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             With(cte.As(Select(a.Code).From(a))).InsertInto(b, b.Code, b.Code));
-
-        Assert.Equal("An INSERT column list must not name a column twice.", ex.Message);
-    }
-
-    [Fact]
-    public void With_InsertIgnoreInto_DuplicateColumn_ThrowsArgumentException()
-    {
-        TestTable a = new("a");
-        TestCte cte = new("cte");
-        TestTable b = new();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            With(cte.As(Select(a.Code).From(a))).InsertIgnoreInto(b, b.Name, b.Code, b.Name));
 
         Assert.Equal("An INSERT column list must not name a column twice.", ex.Message);
     }
