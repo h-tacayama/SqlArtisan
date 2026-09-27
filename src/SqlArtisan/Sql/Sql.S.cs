@@ -383,7 +383,7 @@ public static partial class Sql
     /// The <c>SYSDATE</c> function.
     /// </summary>
     /// <remarks>Oracle syntax. For the standard current date/time use
-    /// <see cref="CurrentTimestamp"/> or <see cref="CurrentDate"/>.</remarks>
+    /// <see cref="CurrentTimestamp()"/> or <see cref="CurrentDate"/>.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static SysdateFunction Sysdate => new();
 
@@ -391,7 +391,7 @@ public static partial class Sql
     /// The <c>SYSTIMESTAMP</c> function.
     /// </summary>
     /// <remarks>Oracle syntax. For the standard current timestamp use
-    /// <see cref="CurrentTimestamp"/>.</remarks>
+    /// <see cref="CurrentTimestamp()"/>.</remarks>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public static SystimestampFunction Systimestamp => new();
 }

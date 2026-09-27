@@ -146,6 +146,13 @@ silently off the argument's static type, which is exactly the kind of trap
 this convention exists to avoid — if PostgreSQL's case is ever needed, name it
 distinctly instead of overloading.
 
+The trap is an `object` overload beside the `string` one. Overloads whose types
+never overlap may split the emission: `JsonArrow(object, string)` and
+`(object, int)` inline the key, and `(object, SqlExpression)` emits the
+expression it is given — `Bind(key)` when a caller wants it bound (#557). With
+no `object` overload, a key typed `object` does not compile instead of silently
+binding.
+
 ## Minimum-arity enforcement: compile-time when the shape allows it
 
 A factory requiring at least one argument enforces it two ways, both

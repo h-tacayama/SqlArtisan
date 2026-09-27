@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using Dapper;
+using MySqlConnector;
 using SqlArtisan;
 using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
@@ -100,13 +101,46 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
 
-        // (data ->> '$.name') — MySQL accepts a bound parameter as the path, so
-        // the key binds normally; ->> returns the unquoted scalar.
+        // (data ->> '$.name') — the key is inline; ->> returns the unquoted scalar.
         string name = connection
             .Query<string>(Select(JsonArrowText(u.Data, "$.name")).From(u).Where(u.Id == 1))
             .Single();
 
         Assert.Equal("Alice", name);
+    }
+
+    // MySQL's grammar takes only a string literal right of ->, so the inline key
+    // runs under a server-side prepared statement, where a bound one fails (#557).
+    [Fact]
+    public void JsonArrow_InlineKey_RunsServerPrepared()
+    {
+        UsersTable u = new();
+
+        object? name = ExecuteServerPrepared(
+            Select(JsonArrowText(u.Data, "$.name")).From(u).Where(u.Id == 1));
+
+        Assert.Equal("Alice", name);
+    }
+
+    [Fact]
+    public void JsonArrow_BoundKey_IsRejectedServerPrepared()
+    {
+        UsersTable u = new();
+
+        Assert.ThrowsAny<MySqlException>(() => ExecuteServerPrepared(
+            Select(JsonArrowText(u.Data, Bind("$.name"))).From(u).Where(u.Id == 1)));
+    }
+
+    private object? ExecuteServerPrepared(ISqlBuilder builder)
+    {
+        SqlStatement statement = builder.Build(Dbms.MySql);
+        using MySqlConnection connection = new(_fixture.ConnectionString + ";IgnorePrepare=false");
+        connection.Open();
+        using MySqlCommand command = new(statement.Text, connection);
+        statement.Parameters.ForEach(
+            (name, value) => command.Parameters.AddWithValue(name, value.Value));
+        command.Prepare();
+        return command.ExecuteScalar();
     }
 
     [Fact]

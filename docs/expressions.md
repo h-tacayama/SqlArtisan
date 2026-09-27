@@ -434,7 +434,7 @@ To read every row on purpose, omit `.Where(...)` entirely. Any condition clause 
 
 ## JSON Operators
 
-Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators, and filter on JSONB content with the `@>`, `?`, `?|`, and `?&` predicates. The key or path on the right side is parameterized normally, with two consequences on MySQL and SQLite. An expression index over `doc ->> '$.a'` matches only a literal path, so a bound one scans instead (measured on SQLite) — for an indexed JSON field, use `JsonExtract(...)`, which inlines its path. And MySQL's grammar takes a string literal on the right of `->` / `->>`: the bound form runs because MySqlConnector interpolates parameters client-side by default, and a server-side prepared statement rejects it.
+Access JSON elements with the `->`, `->>`, `#>`, and `#>>` infix operators, and filter on JSONB content with the `@>`, `?`, `?|`, and `?&` predicates. A `->` / `->>` key given as a `string` or `int` is emitted inline, not bound: MySQL's grammar takes only a string literal there, and an expression index over `doc ->> '$.a'` matches only a literal key (a bound one scans instead, measured on SQLite). To compute the key in SQL, pass a `SqlExpression` — a column, or `Bind(key)` to bind it. The `#>` / `#>>` paths and the `@>` / `?` operands are parameterized normally.
 
 ### Element Access (`->` / `->>`)
 
@@ -446,7 +446,7 @@ SqlStatement sql =
     .From(u)
     .Build(Dbms.PostgreSql);
 
-// SELECT (data -> :0), (data ->> :1)
+// SELECT (data -> 'address'), (data ->> 'name')
 // FROM users
 ```
 
@@ -455,8 +455,11 @@ SqlStatement sql =
 Chaining is natural — the result is a `SqlExpression`:
 
 ```csharp
-// Nested access: (data -> :0) ->> :1
+// Nested access: ((data -> 'address') ->> 'city')
 JsonArrowText(JsonArrow(u.Data, "address"), "city")
+
+// Array element: (data -> 0)
+JsonArrow(u.Data, 0)
 ```
 
 ### Path Access (`#>` / `#>>`)

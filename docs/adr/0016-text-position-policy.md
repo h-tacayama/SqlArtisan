@@ -48,6 +48,10 @@ because every dialect's grammar rejects a marker (#557):
   inline path plans `SEARCH … USING INDEX`, a bound one `SCAN` (#555). Oracle's
   and SQL Server's `JSON_VALUE` / `JSON_QUERY` also require the literal in
   their grammar.
+- **A `->` / `->>` key given as a C# `string` or `int`.** The same index
+  matching holds for `doc ->> '$.a'`, and MySQL's grammar takes only a string
+  literal on the right of the operator. A key given as a `SqlExpression` (a
+  column, or `Bind(...)` to bind it) is emitted as that expression (#557).
 - **A PostgreSQL text-search configuration.** Inline, it resolves as a
   `regconfig` constant; a string sent as a `text` parameter has no implicit
   cast to `regconfig`.
