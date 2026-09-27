@@ -127,8 +127,9 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     {
         UsersTable u = new();
 
-        Assert.ThrowsAny<MySqlException>(() => ExecuteServerPrepared(
+        MySqlException ex = Assert.Throws<MySqlException>(() => ExecuteServerPrepared(
             Select(JsonArrowText(u.Data, Bind("$.name"))).From(u).Where(u.Id == 1)));
+        Assert.Equal(MySqlErrorCode.ParseError, ex.ErrorCode);
     }
 
     private object? ExecuteServerPrepared(ISqlBuilder builder)
