@@ -1856,13 +1856,12 @@ SqlArtisan also supports more advanced WITH clause scenarios:
   (`WITH "cte"(code) AS (...)`); SQL Server recurses with plain `With(...)`
   alone, and also accepts the list. The analyzer warns when `WithRecursive()`
   targets a dialect (or a declared version) that does not support it.
-  Under both `With()` and `WithRecursive()`, a CTE emits a column list only
-  when it opts in with `.WithColumnList()`, which derives the list from the
-  first query block. Every select item of that block must then have a name: a
-  plain column, or an expression aliased with `.As(...)` — an unnamed
-  expression throws at the `.WithColumnList()` call. Without the opt-in, the
-  engine names the columns from the first query block, so an anchor such as
-  `Select(Asterisk)` works.
+  `.WithColumnList()` derives the list from the first query block, under
+  `With()` and `WithRecursive()` alike. Every select item of that block must
+  then have a name: a plain column, or an expression aliased with `.As(...)` —
+  an unnamed expression throws at the `.WithColumnList()` call.
+  `WithRecursive()` derives no list of its own, so without the opt-in an anchor
+  with an unnamed item such as `Select(Asterisk)` builds.
 - **CTEs with DML main statements** — `With(...)` before an `UPDATE` or `DELETE`
   main statement is supported on MySQL, PostgreSQL, SQLite, and SQL Server,
   before an `INSERT` on PostgreSQL, SQLite, and SQL Server, and before a `MERGE`

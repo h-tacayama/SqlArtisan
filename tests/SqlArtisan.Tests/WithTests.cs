@@ -325,6 +325,8 @@ public class WithTests
         expected.Append("FROM \"cte\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+        Assert.Equal(1, sql.Parameters.Get<int>(":1"));
     }
 
     [Fact]
@@ -619,6 +621,7 @@ public class WithTests
         expected.Append("SELECT \"c\".code FROM \"c\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]
@@ -654,6 +657,7 @@ public class WithTests
         expected.Append("SELECT \"c1\".code, \"c2\".\"n\" FROM \"c1\", \"c2\"");
 
         Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]

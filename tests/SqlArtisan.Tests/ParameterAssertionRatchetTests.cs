@@ -58,7 +58,7 @@ public class ParameterAssertionRatchetTests
         ["SubqueryTests.cs"] = 1,
         ["UpdateTests.cs"] = 4,
         ["UpsertTests.cs"] = 11,
-        ["WithTests.cs"] = 12,
+        ["WithTests.cs"] = 9,
     };
 
     [Fact]
