@@ -38,7 +38,10 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
             columns, "An INSERT column list must not name a column twice.");
 
         return new InsertBuilder(
-            table, columns.Length, _withPart, new InsertIntoClause(table, columns));
+            table,
+            columns.Length,
+            _withPart,
+            new InsertIntoClause(table, columns));
     }
 
     public IMergeBuilderTarget MergeInto(DbTableBase target) =>

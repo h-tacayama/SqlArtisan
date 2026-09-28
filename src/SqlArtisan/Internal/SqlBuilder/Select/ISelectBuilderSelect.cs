@@ -10,6 +10,6 @@ public interface ISelectBuilderSelect : ISqlBuilder, ISetOperator, ISubquery
     /// Appends <c>FROM a, b, ...</c>.
     /// </summary>
     /// <param name="tables">The table references to read from — base tables, aliased tables, derived tables, or subqueries.</param>
-    /// <returns>The builder positioned after <c>FROM</c>, ready for joins, <c>WHERE</c>, grouping, ordering, pagination, or build.</returns>
+    /// <returns>The builder positioned after <c>FROM</c>.</returns>
     ISelectBuilderFrom From(params TableReference[] tables);
 }

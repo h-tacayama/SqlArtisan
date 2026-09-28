@@ -394,8 +394,19 @@ public class DeleteTests
             DeleteFrom(t).Output(Deleted(t.Code), null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'selectItem')",
+            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'outputItem')",
             ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_OutputUnresolvableItem_ThrowsArgumentException()
+    {
+        TestTable t = new();
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t).Output(new object()));
+
+        Assert.Equal("Invalid type for OutputItem: System.Object", ex.Message);
     }
 
     [Fact]

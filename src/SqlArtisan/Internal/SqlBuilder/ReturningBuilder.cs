@@ -19,7 +19,8 @@ internal sealed class ReturningBuilder : IReturningBuilder
 
         // An alias is valid in a RETURNING list (PostgreSQL, SQLite), so it is
         // emitted faithfully here (ADR 0007); only the INTO form rejects it.
-        SqlPart[] resolved = SelectItemResolver.Resolve(expressions);
+        SqlPart[] resolved =
+            SelectItemResolver.Resolve(expressions, "ReturningItem", "returningItem");
         // Marked only once nothing here can throw, so a rejected list leaves the
         // inner builder exactly as it was.
         inner.MarkReturningPending();
@@ -68,8 +69,8 @@ internal sealed class ReturningBuilder : IReturningBuilder
             if (_expressions[i] is ExpressionAlias)
             {
                 throw new ArgumentException(
-                    "RETURNING ... INTO requires plain column expressions; the output "
-                    + "parameter names the value, so drop the .As(...) alias.");
+                    "RETURNING ... INTO takes no column alias; the output parameter "
+                    + "names the value, so drop the .As(...) alias.");
             }
         }
 

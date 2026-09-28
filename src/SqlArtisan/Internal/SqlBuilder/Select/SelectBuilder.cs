@@ -152,7 +152,8 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         // A null here would silently drop the OF list and widen the lock to every
         // table; the lockBehavior-only overload spells that on purpose.
         AddPart(new ForUpdateClause(
-            NullGuard.ThrowIfNull(ofClause, nameof(ofClause)), lockBehavior));
+            NullGuard.ThrowIfNull(ofClause, nameof(ofClause)),
+            lockBehavior));
         return this;
     }
 
@@ -403,10 +404,8 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
                     + "add Limit(...) before Offset(...).");
         }
 
-        // A fractional constant sort key is a no-op ordering MySQL, SQLite and
-        // Oracle accept, but PostgreSQL and SQL Server reject it outright
-        // (live-verified) — a value the analyzer cannot see, so the ADR 0011
-        // shape (release audit, pass 4; SQL Server added for #523).
+        // MySQL, SQLite and Oracle take a fractional constant sort key as a no-op; PostgreSQL
+        // and SQL Server reject it (live-verified), and the analyzer cannot see it (ADR 0011).
         if ((dbms == Dbms.PostgreSql || dbms == Dbms.SqlServer)
             && FindPart<OrderByClause>() is { HasFractionalSortKey: true })
         {
@@ -430,8 +429,8 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
             return;
         }
 
-        // TOP is SQL Server's alone and the row-limiting clauses are not, so the
-        // pairing has no valid spelling on any target (#400's class).
+        // TOP is SQL Server's alone, and SQL Server rejects it beside OFFSET/FETCH
+        // (TopWithOffsetFetch_IsRejectedByTheEngine), so no target runs the pairing.
         if (FindPart<LimitClause>() is not null
             || FindPart<OffsetClause>() is not null
             || FindPart<OffsetRowsClause>() is not null

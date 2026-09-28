@@ -11,6 +11,6 @@ public interface ISelectBuilderLimitOffset : ISqlBuilder, IForUpdate, ISubquery
     /// (MySQL / PostgreSQL / SQLite).
     /// </summary>
     /// <param name="start">The number of leading rows to skip.</param>
-    /// <returns>The builder positioned to optionally lock the rows with <c>FOR UPDATE</c>, build, or embed as a subquery.</returns>
+    /// <returns>The builder positioned after <c>OFFSET</c>.</returns>
     ISelectBuilderPaginated Offset(int start);
 }

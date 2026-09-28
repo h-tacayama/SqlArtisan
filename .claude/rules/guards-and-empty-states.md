@@ -322,7 +322,8 @@ failed build restores it, a rejected `Returning(...)` never marks it, and a
 second stage on one statement is refused — and widened two dialect guards:
 the leading `WITH` rejection to MySQL's `INSERT` (live: 8.0 `ER_PARSE_ERROR`),
 and `TOP` beside `LIMIT`/`OFFSET`/`FETCH` to every dialect, since `TOP` is SQL
-Server's alone and the row-limiting clauses are not. **The #400 pairings stay
+Server's alone and SQL Server rejects it beside `OFFSET`/`FETCH`
+(`TopWithOffsetFetch_IsRejectedByTheEngine`). **The #400 pairings stay
 Build()-time by decision** (pass 7): narrowing the `Output(...)` continuation
 types to withhold `Returning`/`Using`/upsert would split three interface
 families for a rejection the guard already states exactly, so ADR 0007's
@@ -455,8 +456,10 @@ so the wording is part of the contract.
 
 The `Invalid type for <X>: <type>` family is built by one helper,
 `ExpressionResolver.UnresolvableValue`, and `<X>` names **the position the
-value reached** — `SelectItem`, `OrderByItem`, `GroupByItem`, `InsertValue`,
-`Assignment`, and `nameof(Bind)` where the factory resolves its own argument.
+value reached** — `SelectItem`, `ReturningItem`, `OutputItem`, `OrderByItem`,
+`GroupByItem`, `InsertValue`, `Assignment`, and `nameof(Bind)` where the factory
+resolves its own argument. `RETURNING` and `OUTPUT` borrow the `SELECT`-list
+resolver but pass their own names (#569).
 Naming instead the type that position requires reads as a tautology against
 the offending type, never saying what the caller did wrong, and leaks an
 internal name into the public failure surface: that is how three `SET`-list

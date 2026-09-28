@@ -531,6 +531,23 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY"));
     }
 
+    // The Build() guard's reason (#569): SQL Server has TOP and OFFSET/FETCH, but
+    // not in one query.
+    [Fact]
+    public void TopWithOffsetFetch_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT TOP (1) id FROM users ORDER BY id");
+        connection.ExecuteScalar(
+            "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY");
+
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT TOP (1) id FROM users ORDER BY id OFFSET 0 ROWS"));
+        Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(
+            "SELECT TOP (1) id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"));
+    }
+
     // #521 item 2: SQL Server is said to reject grouping by ordinal.
     [Fact]
     public void GroupByOrdinal_IsRejectedByTheEngine()

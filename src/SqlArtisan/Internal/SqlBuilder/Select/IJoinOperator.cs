@@ -13,14 +13,14 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
-    /// <returns>The builder positioned back in the <c>FROM</c> state; the correlation supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
     ISelectBuilderFrom CrossApply(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
     /// Appends <c>CROSS JOIN table</c> — the unfiltered Cartesian product, so no <c>ON</c> follows.
     /// </summary>
     /// <param name="table">The table reference to cross-join.</param>
-    /// <returns>The builder positioned back in the <c>FROM</c> state; <c>CROSS JOIN</c> takes no <c>ON</c> predicate.</returns>
+    /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
     ISelectBuilderFrom CrossJoin(TableReference table);
 
     /// <summary>
@@ -30,42 +30,42 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
-    /// <returns>The builder positioned back in the <c>FROM</c> state; the correlation supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
     ISelectBuilderFrom CrossJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
     /// Appends <c>FULL JOIN table</c>. The join predicate is supplied by the following
-    /// <c>On(...)</c>.
+    /// <c>On(...)</c> or <c>Using(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to full-join.</param>
-    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
+    /// <returns>The builder positioned to supply the join predicate.</returns>
     /// <remarks>Oracle, PostgreSQL, SQLite (3.39+), and SQL Server syntax.</remarks>
     ISelectBuilderJoin FullJoin(TableReference table);
 
     /// <summary>
     /// Appends <c>INNER JOIN table</c>. The join predicate is supplied by the following
-    /// <c>On(...)</c>.
+    /// <c>On(...)</c> or <c>Using(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to inner-join.</param>
-    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
+    /// <returns>The builder positioned to supply the join predicate.</returns>
     ISelectBuilderJoin InnerJoin(TableReference table);
 
     /// <summary>
-    /// Joins a correlated derived table with <c>JOIN LATERAL (subquery) alias ON ...</c>,
-    /// the join predicate supplied by the following <c>On(...)</c>
+    /// Joins a correlated derived table with <c>JOIN LATERAL (subquery) alias</c>, the join
+    /// predicate supplied by the following <c>On(...)</c> or <c>Using(...)</c>
     /// (MySQL / Oracle / PostgreSQL).
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
-    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
+    /// <returns>The builder positioned to supply the join predicate.</returns>
     ISelectBuilderJoin JoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
     /// Appends <c>LEFT JOIN table</c>. The join predicate is supplied by the following
-    /// <c>On(...)</c>.
+    /// <c>On(...)</c> or <c>Using(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to left-join.</param>
-    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
+    /// <returns>The builder positioned to supply the join predicate.</returns>
     ISelectBuilderJoin LeftJoin(TableReference table);
 
     /// <summary>
@@ -75,7 +75,7 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
-    /// <returns>The builder positioned back in the <c>FROM</c> state; the lateral <c>ON TRUE</c> supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
     ISelectBuilderFrom LeftJoinLateral(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
@@ -83,7 +83,7 @@ public interface IJoinOperator
     /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-full-join.</param>
-    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
     /// <remarks>Oracle, PostgreSQL, and SQLite (3.39+) syntax.</remarks>
     ISelectBuilderFrom NaturalFullJoin(TableReference table);
 
@@ -92,7 +92,7 @@ public interface IJoinOperator
     /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-join.</param>
-    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite syntax.</remarks>
     ISelectBuilderFrom NaturalJoin(TableReference table);
 
@@ -101,7 +101,7 @@ public interface IJoinOperator
     /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-left-join.</param>
-    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite syntax.</remarks>
     ISelectBuilderFrom NaturalLeftJoin(TableReference table);
 
@@ -110,7 +110,7 @@ public interface IJoinOperator
     /// sides instead of an explicit <c>ON</c> predicate.
     /// </summary>
     /// <param name="table">The table reference to natural-right-join.</param>
-    /// <returns>The builder positioned back in the <c>FROM</c> state; the implicit match supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, and SQLite (3.39+) syntax.</remarks>
     ISelectBuilderFrom NaturalRightJoin(TableReference table);
 
@@ -121,15 +121,15 @@ public interface IJoinOperator
     /// </summary>
     /// <param name="subquery">The derived-table subquery; it may correlate to columns of the preceding tables.</param>
     /// <param name="alias">Names the derived table — a typed <see cref="DerivedTableBase"/> subclass, or an inline <see cref="DerivedTable"/> whose columns you read via <see cref="DerivedTable.Column(string)"/>.</param>
-    /// <returns>The builder positioned back in the <c>FROM</c> state; the correlation supplies the predicate, so no <c>ON</c> follows.</returns>
+    /// <returns>The builder positioned back in the <c>FROM</c> state.</returns>
     ISelectBuilderFrom OuterApply(ISubquery subquery, DerivedTableBase alias);
 
     /// <summary>
     /// Appends <c>RIGHT JOIN table</c>. The join predicate is supplied by the following
-    /// <c>On(...)</c>.
+    /// <c>On(...)</c> or <c>Using(...)</c>.
     /// </summary>
     /// <param name="table">The table reference to right-join.</param>
-    /// <returns>The builder positioned to supply the join predicate with <c>On(...)</c>.</returns>
+    /// <returns>The builder positioned to supply the join predicate.</returns>
     /// <remarks>MySQL, Oracle, PostgreSQL, SQLite (3.39+), and SQL Server syntax.</remarks>
     ISelectBuilderJoin RightJoin(TableReference table);
 }
