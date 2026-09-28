@@ -367,6 +367,26 @@ emitted `()` for nested all-empty groups even in mixed states; use the recursive
 operand *beside* an active one still drops out inside a non-empty AND/OR (that is
 `ConditionIf`'s contract); only an entirely empty clause throws.
 
+**An empty `OnConflict(...)` / `OUTPUT ... Into(t, ...)` column array keeps
+the column-less form (decided — do not re-file):** an empty conflict target
+renders a targetless `ON CONFLICT`, which arbitrates on every unique (or, on
+PostgreSQL, exclusion) constraint rather than the named one, and an empty
+`INTO` list renders a positional `INTO t` that skips the OUTPUT/INTO width
+check (`OutputClauseGuard.ThrowIfIntoWidthMismatch`). The ground recorded above
+for the explicit `INSERT` column list — a computed empty array silently
+switching to the column-less form and disabling the width check — holds here
+too, and so does "written as literals", which was true of the guarded lists
+as well; what differs is the cost. `InsertInto(table)` already existed, so
+that guard was free, and `ThenInsert()` was undocumented when its guard made
+it an overload. Both no-list forms here are documented call shapes —
+`OnConflict()` in the docs pages, `Into(t)` in the `*OutputInto` XML docs
+("omit to target the table's columns positionally") — so guarding either
+would take a no-list overload, and every assembly compiled with the
+zero-argument call would throw until rebuilt, a binary break paid by correct
+code for a misuse no docs page, cookbook recipe or companion package makes
+(none computes either list). A caller shape that computes either list
+reopens this (#579).
+
 ## Null arguments: where the runtime-guard obligation stops
 
 The guard mission targets **silent** wrongness — a build that succeeds with SQL
