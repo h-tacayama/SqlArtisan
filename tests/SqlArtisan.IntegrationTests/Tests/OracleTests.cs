@@ -467,23 +467,20 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
-    // IReturning's "Oracle requires Into(...)" (#569): with no INTO, the returned
-    // values have nowhere to go.
+    // SQLA0102 (#569): the live twin for CheckReturningRequiresInto.
     [Fact]
-    public void ReturningWithoutInto_IsRejectedByTheEngine()
+    public void ContextRule_ReturningWithoutInto_Rejected()
     {
+        UsersTable u = new();
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
         // Acceptance control: the same INSERT runs, so a rejection below can only
         // come from the INTO-less RETURNING.
-        connection.Execute(
-            "INSERT INTO users (id, name) VALUES (903, 'x')", transaction: transaction);
+        connection.Execute(InsertInto(u, u.Id, u.Name).Values(903, "x"), transaction);
 
-        Assert.ThrowsAny<DbException>(() =>
-            connection.Execute(
-                "INSERT INTO users (id, name) VALUES (904, 'x') RETURNING id",
-                transaction: transaction));
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            InsertInto(u, u.Id, u.Name).Values(904, "x").Returning(u.Id), transaction));
         transaction.Rollback();
     }
 
