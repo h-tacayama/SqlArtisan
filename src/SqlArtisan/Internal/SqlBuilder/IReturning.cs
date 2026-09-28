@@ -13,6 +13,7 @@ public interface IReturning : ISqlBuilder
     /// <param name="expressions">The columns or expressions to return; an alias renders as written, but <see cref="IReturningBuilder.Into"/>, which binds them to output parameters, takes unaliased expressions only.</param>
     /// <returns>The builder positioned to chain <c>Into(...)</c> or build.</returns>
     /// <exception cref="ArgumentException">No expressions were supplied.</exception>
-    /// <remarks>Oracle, PostgreSQL, and SQLite (3.35+) syntax.</remarks>
+    /// <remarks>Oracle, PostgreSQL, and SQLite (3.35+) syntax. Oracle requires
+    /// <see cref="IReturningBuilder.Into"/> after it.</remarks>
     IReturningBuilder Returning(params object[] expressions);
 }

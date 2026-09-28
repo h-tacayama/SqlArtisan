@@ -698,7 +698,7 @@ internal static class DialectMatrix
         [new MatrixKey("Limit")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         // Offset: standalone OFFSET is PostgreSQL-only, after Limit(...) it is MySQL/PostgreSQL/
         // SQLite — same member name on two interfaces, so this is their union (a standalone
-        // Offset on MySQL/SQLite stays silent rather than warn).
+        // Offset on MySQL/SQLite stays silent rather than warn; Build() rejects it, #569).
         [new MatrixKey("Offset")] = new DbmsSupport(mySql: true, oracle: false, postgreSql: true, sqlite: true, sqlServer: false),
         // OffsetRows/FetchNext: the ANSI OFFSET ... FETCH pair — Oracle 12c+, PostgreSQL, and
         // SQL Server 2012+ (PostgreSQL live-verified by the dialect sweep).

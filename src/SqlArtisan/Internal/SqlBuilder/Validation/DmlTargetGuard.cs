@@ -122,7 +122,7 @@ internal static class DmlTargetGuard
 
     // Oracle's DML grammars carry no subquery-factoring clause and MySQL's INSERT
     // does not either (live: 8.0.46 ER_PARSE_ERROR), so the CTE belongs inside the
-    // feeding SELECT. The leading part is builder state the analyzer cannot see (ADR 0011).
+    // feeding SELECT. A rule could see the WITH-only entry interfaces; none exists (#569).
     internal static void ThrowIfLeadingWithUnsupported(
         ReadOnlySpan<SqlPart> parts, Dbms dbms, bool insert)
     {

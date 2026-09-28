@@ -531,6 +531,27 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY"));
     }
 
+    // #569: Microsoft's INSERT reference says a derived_table SELECT cannot hold a
+    // CTE; the leading WITH is the form that runs.
+    [Fact]
+    public void MidChainWithInInsertSelect_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "WITH c AS (SELECT 904 AS id, 'x' AS name) "
+                + "INSERT INTO users (id, name) SELECT id, name FROM c",
+            transaction: transaction);
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "INSERT INTO users (id, name) WITH c AS (SELECT 905 AS id, 'x' AS name) "
+                + "SELECT id, name FROM c",
+            transaction: transaction));
+
+        transaction.Rollback();
+    }
+
     // The Build() guard's reason (#569): SQL Server has TOP and OFFSET/FETCH, but
     // not in one query.
     [Fact]

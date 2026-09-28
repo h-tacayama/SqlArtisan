@@ -245,7 +245,10 @@ that message beside `SetDefaultDbms`'s.
 "Structurally invisible to the analyzer" is a per-guard fact, not a law: the
 correlated-DML guard's provable subset now has an advisory analyzer duplicate
 (SQLA0300, ADR 0014) — the `Build()` guard remains the enforcement boundary,
-and suppressing the diagnostic never disables the throw.
+and suppressing the diagnostic never disables the throw. The leading-`WITH`
+and bare-`OFFSET` guards were admitted as invisible but are visible to a
+declaring-interface rule that does not exist; they stay on a cost ground
+(ADR 0011, #569). Check the premise before citing a guard as precedent.
 
 **CTE bodies are outside the correlated-DML guard (decided — do not re-file):**
 a CTE body cannot correlate with the outer UPDATE/DELETE target — its

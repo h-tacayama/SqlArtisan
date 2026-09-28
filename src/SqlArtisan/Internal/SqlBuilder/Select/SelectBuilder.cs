@@ -393,8 +393,8 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     // dialect-scoped checks are ADR 0011's bounded exceptions.
     protected override void Validate(Dbms dbms)
     {
-        // The Offset matrix key is the union of two interfaces, so the analyzer
-        // cannot see a bare OFFSET; MySQL and SQLite reject it (live-verified).
+        // MySQL and SQLite reject a bare OFFSET (live-verified). A declaring-interface rule
+        // could see it but none exists, and dropping the guard would drop the protection (#569).
         if ((dbms == Dbms.MySql || dbms == Dbms.Sqlite)
             && FindPart<OffsetClause>() is not null
             && FindPart<LimitClause>() is null)

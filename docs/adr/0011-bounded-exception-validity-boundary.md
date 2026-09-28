@@ -119,6 +119,17 @@ statement on each dialect the entry claims rejects it (and the accepted form
 on a dialect the guard leaves alone, where one exists), or `Live twin owed:`
 naming the lane not yet run; `DialectGuardTwinTests` gates both.
 
+Two kinds of entry below were admitted on a condition-1 premise that later
+proved false (#569): the leading `WITH` and the bare `OFFSET`. An ADR 0013
+declaring-interface rule could see both — `InsertInto` / `Update` /
+`DeleteFrom` / `MergeInto` are declared on entry interfaces only the `WITH`
+states open, and a bare `Offset` binds to `IPagination` where `Limit(...)`
+yields `ISelectBuilderLimitOffset` — though no such rule exists. Their guards
+stay: each rejects a shape with no valid spelling on its target, and removing
+one would drop protection users already have, for a rule only analyzer users
+would get. That is a cost ground for keeping a guard already shipped, not a
+precedent for admitting a new one the analyzer can see.
+
 - **Aliased `INSERT` target on MySQL.** MySQL's `INSERT` grammar has no
   target-alias slot at all — the 8.0.19+ `AS row_alias` is a separate,
   post-`VALUES` construct — so `InsertInto(new UsersTable("u"))` has no valid
@@ -206,8 +217,9 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
 - **A bare `OFFSET` on MySQL and SQLite** (release audit pass 8). Both engines
   take `OFFSET` only after `LIMIT` (`SELECT ... OFFSET 1` is `ER_PARSE_ERROR`
   on 8.0.46 and a syntax error on SQLite 3.45, live-verified); PostgreSQL takes
-  it alone. The analyzer's `Offset` key is the union of two interfaces, so the
-  standalone shape is invisible to it, and `SelectBuilder.Validate` throws at
+  it alone. The analyzer's `Offset` matrix key is the union of two interfaces,
+  so the standalone shape was taken to be invisible to it (a declaring-interface
+  rule could see it; see above), and `SelectBuilder.Validate` throws at
   `Build(MySql)`/`Build(Sqlite)` when an `OffsetClause` has no `LimitClause`.
   Live twins: `Pagination_OffsetWithoutLimit_IsRejectedByTheEngine` on the
   SQLite and MySQL lanes.
