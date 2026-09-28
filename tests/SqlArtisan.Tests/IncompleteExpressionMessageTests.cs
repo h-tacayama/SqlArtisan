@@ -9,9 +9,11 @@ public class IncompleteExpressionMessageTests
 {
     private readonly TestTable _t = new("t");
 
-    private const string AgainstHint = "Complete it with .Against(...) or .AgainstScore(...)";
-    private const string OverHint = "Complete it with .Over(...)";
-    private const string WithinGroupHint = "Complete it with .WithinGroup(OrderBy(...))";
+    private const string MatchMessage =
+        "MATCH requires an AGAINST clause; complete it with .Against(...) or .AgainstScore(...).";
+    private const string RankMessage = "RANK requires an OVER clause; complete it with .Over(...).";
+    private const string ListaggMessage =
+        "LISTAGG requires a WITHIN GROUP clause; complete it with .WithinGroup(OrderBy(...)).";
 
     [Fact]
     public void Rank_WithoutOver_Select_ThrowsWithOverHint()
@@ -19,8 +21,7 @@ public class IncompleteExpressionMessageTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => Select(Rank()).From(_t).Build());
 
-        Assert.Contains("is not a complete SQL expression", ex.Message);
-        Assert.Contains(OverHint, ex.Message);
+        Assert.Equal(RankMessage, ex.Message);
     }
 
     [Fact]
@@ -29,8 +30,7 @@ public class IncompleteExpressionMessageTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => Select(Listagg(_t.Name, ", ")).From(_t).Build());
 
-        Assert.Contains("is not a complete SQL expression", ex.Message);
-        Assert.Contains(WithinGroupHint, ex.Message);
+        Assert.Equal(ListaggMessage, ex.Message);
     }
 
     [Fact]
@@ -39,7 +39,10 @@ public class IncompleteExpressionMessageTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => Select(PercentileCont(0.5)).From(_t).Build());
 
-        Assert.Contains(WithinGroupHint, ex.Message);
+        Assert.Equal(
+            "PERCENTILE_CONT requires a WITHIN GROUP clause; complete it with "
+                + ".WithinGroup(OrderBy(...)).",
+            ex.Message);
     }
 
     [Fact]
@@ -48,7 +51,10 @@ public class IncompleteExpressionMessageTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => Select(PercentileDisc(0.5)).From(_t).Build());
 
-        Assert.Contains(WithinGroupHint, ex.Message);
+        Assert.Equal(
+            "PERCENTILE_DISC requires a WITHIN GROUP clause; complete it with "
+                + ".WithinGroup(OrderBy(...)).",
+            ex.Message);
     }
 
     [Fact]
@@ -57,8 +63,7 @@ public class IncompleteExpressionMessageTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => Select(Match(_t.Name)).From(_t).Build());
 
-        Assert.Contains("is not a complete SQL expression", ex.Message);
-        Assert.Contains(AgainstHint, ex.Message);
+        Assert.Equal(MatchMessage, ex.Message);
     }
 
     [Fact]
@@ -68,7 +73,7 @@ public class IncompleteExpressionMessageTests
             Assert.Throws<ArgumentException>(
                 () => Select(_t.Name).From(_t).OrderBy(Rank()).Build());
 
-        Assert.Contains(OverHint, ex.Message);
+        Assert.Equal(RankMessage, ex.Message);
     }
 
     [Fact]
@@ -78,7 +83,7 @@ public class IncompleteExpressionMessageTests
             Assert.Throws<ArgumentException>(
                 () => Select(_t.Name).From(_t).GroupBy(Listagg(_t.Name, ", ")).Build());
 
-        Assert.Contains(WithinGroupHint, ex.Message);
+        Assert.Equal(ListaggMessage, ex.Message);
     }
 
     [Fact]
@@ -88,7 +93,7 @@ public class IncompleteExpressionMessageTests
             Assert.Throws<ArgumentException>(
                 () => Select(_t.Name).From(_t).Where(_t.Name == Rank()).Build());
 
-        Assert.Contains(OverHint, ex.Message);
+        Assert.Equal(RankMessage, ex.Message);
     }
 
     [Fact]
@@ -97,7 +102,7 @@ public class IncompleteExpressionMessageTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => InsertInto(_t).Values(Rank()).Build());
 
-        Assert.Contains(OverHint, ex.Message);
+        Assert.Equal(RankMessage, ex.Message);
     }
 
     [Fact]
@@ -105,10 +110,7 @@ public class IncompleteExpressionMessageTests
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() => Bind(Rank()));
 
-        Assert.Equal(
-            "AnalyticRankFunction is not a complete SQL expression. "
-                + "Complete it with .Over(...) — a window function requires an OVER clause.",
-            ex.Message);
+        Assert.Equal(RankMessage, ex.Message);
     }
 
     [Fact]
@@ -117,10 +119,7 @@ public class IncompleteExpressionMessageTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => Update(_t).Set(_t.Name == Rank()).Build());
 
-        Assert.Equal(
-            "AnalyticRankFunction is not a complete SQL expression. "
-                + "Complete it with .Over(...) — a window function requires an OVER clause.",
-            ex.Message);
+        Assert.Equal(RankMessage, ex.Message);
     }
 
     [Fact]
@@ -131,7 +130,6 @@ public class IncompleteExpressionMessageTests
         ArgumentException ex =
             Assert.Throws<ArgumentException>(() => Select(new object()).From(_t).Build());
 
-        Assert.Contains("Invalid type for SelectItem", ex.Message);
-        Assert.DoesNotContain("is not a complete SQL expression", ex.Message);
+        Assert.Equal("Invalid type for SelectItem: System.Object", ex.Message);
     }
 }

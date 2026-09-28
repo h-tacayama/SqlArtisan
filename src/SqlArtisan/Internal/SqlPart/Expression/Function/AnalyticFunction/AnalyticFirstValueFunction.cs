@@ -9,6 +9,8 @@ public sealed class AnalyticFirstValueFunction : ValueAnalyticFunction
         _expr = expr;
     }
 
+    private protected override string FunctionName => Keywords.FirstValue;
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.FirstValue)
         .OpenParenthesis()

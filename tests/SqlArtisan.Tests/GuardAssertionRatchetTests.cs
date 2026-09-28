@@ -17,7 +17,6 @@ public class GuardAssertionRatchetTests
 
     private static readonly Dictionary<string, int> s_baseline = new(StringComparer.Ordinal)
     {
-        ["IncompleteExpressionMessageTests.cs"] = 10,
         ["AggregateWindowTests.cs"] = 2,
         ["PercentileTests.cs"] = 2,
         ["SqlBuilderTests/ExpressionResolverTests.cs"] = 3,

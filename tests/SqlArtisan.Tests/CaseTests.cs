@@ -835,8 +835,7 @@ public class CaseTests
             () => Select(When(_t.Name == "a")));
 
         Assert.Equal(
-            "SearchedCaseWhenCondition is not a complete SQL expression. "
-                + "Complete the WHEN branch with .Then(...).",
+            "A CASE WHEN branch requires THEN; complete it with .Then(...).",
             ex.Message);
     }
 
@@ -847,8 +846,7 @@ public class CaseTests
             () => Select(When("a")));
 
         Assert.Equal(
-            "SimpleCaseWhenExpression is not a complete SQL expression. "
-                + "Complete the WHEN branch with .Then(...).",
+            "A CASE WHEN branch requires THEN; complete it with .Then(...).",
             ex.Message);
     }
 }

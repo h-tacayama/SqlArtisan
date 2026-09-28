@@ -168,7 +168,7 @@ public class OrderByTests
             OrderBy(_t.Code, null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'orderByItem')",
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'orderByItem')",
             ex.Message);
     }
 

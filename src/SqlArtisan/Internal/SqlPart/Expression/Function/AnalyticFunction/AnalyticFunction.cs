@@ -15,8 +15,10 @@ public abstract class AnalyticFunction : SqlPart, IIncompleteExpression
     {
     }
 
-    string IIncompleteExpression.CompletionHint =>
-        "Complete it with .Over(...) — a window function requires an OVER clause.";
+    string IIncompleteExpression.IncompleteMessage =>
+        $"{FunctionName} requires an OVER clause; complete it with .Over(...).";
+
+    private protected abstract string FunctionName { get; }
 
     /// <summary>
     /// Turns the analytic function into a window function ordered over the whole

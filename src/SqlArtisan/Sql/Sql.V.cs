@@ -53,10 +53,10 @@ public static partial class Sql
             }
         }
 
-        InsertValuesClause body = InsertValuesClause.Parse(rows[0]);
+        InsertValuesClause body = InsertValuesClause.Parse(rows[0], "ValuesItem");
         for (int i = 1; i < rows.Length; i++)
         {
-            body.AddRow(rows[i]);
+            body.AddRow(rows[i], "ValuesItem");
         }
 
         return new ValuesDerivedTable(alias, columnNames, body);

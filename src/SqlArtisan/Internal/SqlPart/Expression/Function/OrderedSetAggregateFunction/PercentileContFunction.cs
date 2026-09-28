@@ -13,9 +13,9 @@ public sealed class PercentileContFunction : IIncompleteExpression
         _fraction = PercentileFractionGuard.Validate(fraction);
     }
 
-    string IIncompleteExpression.CompletionHint =>
-        "Complete it with .WithinGroup(OrderBy(...)) — PERCENTILE_CONT requires a WITHIN "
-            + "GROUP clause.";
+    string IIncompleteExpression.IncompleteMessage =>
+        "PERCENTILE_CONT requires a WITHIN GROUP clause; complete it with "
+            + ".WithinGroup(OrderBy(...)).";
 
     /// <summary>
     /// Supplies the mandatory <c>WITHIN GROUP (ORDER BY ...)</c> clause that the

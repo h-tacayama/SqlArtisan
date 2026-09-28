@@ -28,6 +28,8 @@ public sealed class AnalyticLeadFunction : AnalyticFunction
         _default = @default;
     }
 
+    private protected override string FunctionName => Keywords.Lead;
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Lead)
         .OpenParenthesis()

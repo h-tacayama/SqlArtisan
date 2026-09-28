@@ -9,6 +9,8 @@ public sealed class AnalyticNtileFunction : AnalyticFunction
         _buckets = WindowFrameGuard.ValidateNtileBuckets(buckets).ToInvariantString();
     }
 
+    private protected override string FunctionName => Keywords.Ntile;
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Ntile)
         .OpenParenthesis()

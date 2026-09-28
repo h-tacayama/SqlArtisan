@@ -4,7 +4,9 @@ namespace SqlArtisan.Internal;
 
 internal static class InsertValueResolver
 {
-    internal static SqlExpression[] Resolve(object?[] values)
+    internal static SqlExpression[] Resolve(object?[] values) => Resolve(values, "InsertValue");
+
+    internal static SqlExpression[] Resolve(object?[] values, string position)
     {
         CollectionGuard.ThrowIfEmpty(
             values, nameof(values), "A VALUES row requires at least one value.");
@@ -13,13 +15,15 @@ internal static class InsertValueResolver
 
         for (int i = 0; i < values.Length; i++)
         {
-            resolved[i] = Resolve(values[i]);
+            resolved[i] = Resolve(values[i], position);
         }
 
         return resolved;
     }
 
-    internal static SqlExpression Resolve(object? value)
+    internal static SqlExpression Resolve(object? value) => Resolve(value, "InsertValue");
+
+    internal static SqlExpression Resolve(object? value, string position)
     {
         if (value is null)
         {
@@ -41,7 +45,7 @@ internal static class InsertValueResolver
         }
         else
         {
-            throw UnresolvableValue("InsertValue", value);
+            throw UnresolvableValue(position, value);
         }
     }
 }

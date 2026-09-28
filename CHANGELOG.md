@@ -34,6 +34,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   column alias`; it named a requirement for plain column expressions that the
   guard never enforced. (#569)
 
+- Four guard messages now follow the one-sentence, SQL-spelling grammar:
+  - a C# `null` in a value position: `A C# null is not SQL NULL; pass Sql.Null
+    instead.` (was `Value cannot be null. Use Sql.Null to represent SQL NULL.`),
+    and in `Sql.Bind(...)`: `A C# null cannot be bound; use Sql.BindNull to bind
+    SQL NULL.`;
+  - an incomplete expression names its SQL construct, not its C# type:
+    `RANK requires an OVER clause; complete it with .Over(...).` (was
+    `AnalyticRankFunction is not a complete SQL expression. Complete it with
+    .Over(...) — ...`), and likewise for `LISTAGG`, `PERCENTILE_CONT`,
+    `PERCENTILE_DISC`, `MATCH` and a `CASE WHEN` branch without `THEN`;
+  - a set operator without its `SELECT`: `A UNION, INTERSECT, EXCEPT, or MINUS
+    is missing its SELECT; ...`;
+  - `Sql.Values(...)` reports a rejected row item as `Invalid type for
+    ValuesItem`, where it said `InsertValue`. (#569)
+
 ### Fixed
 - `Build()` throws on a leading `With(...)` before an `INSERT` with
   `OnDuplicateKeyUpdate(...)`, on every target. `ON DUPLICATE KEY UPDATE` is

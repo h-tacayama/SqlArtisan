@@ -17,8 +17,8 @@ public sealed class ListaggFunction : IIncompleteExpression
         _separator = separator;
     }
 
-    string IIncompleteExpression.CompletionHint =>
-        "Complete it with .WithinGroup(OrderBy(...)) — LISTAGG requires a WITHIN GROUP clause.";
+    string IIncompleteExpression.IncompleteMessage =>
+        "LISTAGG requires a WITHIN GROUP clause; complete it with .WithinGroup(OrderBy(...)).";
 
     /// <summary>
     /// Supplies Oracle's mandatory <c>WITHIN GROUP (ORDER BY ...)</c> clause:

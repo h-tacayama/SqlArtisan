@@ -409,8 +409,8 @@ internal abstract class SqlBuilderBase
     [DoesNotReturn]
     private static void ThrowSetOperatorOperandMissing() =>
         throw new ArgumentException(
-            "A set operator is missing its SELECT; the statement was built "
-            + "from a held builder before the operator was completed.");
+            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
+            + "built from a held builder before the operator was completed.");
 
     // For a Validate(Dbms) override that must walk clause order (e.g. MERGE's
     // branch pairing), where FindPart's first-of-type is not enough.

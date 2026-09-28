@@ -12,7 +12,7 @@ public class BindValue : SqlExpression
 {
     // Sql.Bind shares it: the remedy for a null bind is BindNull, not Sql.Null.
     internal const string NullValueMessage =
-        "Value cannot be null. Use Sql.BindNull to bind SQL NULL.";
+        "A C# null cannot be bound; use Sql.BindNull to bind SQL NULL.";
 
     /// <summary>Creates an explicit bind-parameter handle for <paramref name="value"/>.</summary>
     /// <param name="value">The bound value.</param>

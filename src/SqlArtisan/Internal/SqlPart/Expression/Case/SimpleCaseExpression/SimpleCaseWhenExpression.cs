@@ -4,7 +4,8 @@ namespace SqlArtisan.Internal;
 
 public sealed class SimpleCaseWhenExpression : SqlPart, IIncompleteExpression
 {
-    string IIncompleteExpression.CompletionHint => "Complete the WHEN branch with .Then(...).";
+    string IIncompleteExpression.IncompleteMessage =>
+        "A CASE WHEN branch requires THEN; complete it with .Then(...).";
 
     private readonly SqlExpression _whenExpr;
 
