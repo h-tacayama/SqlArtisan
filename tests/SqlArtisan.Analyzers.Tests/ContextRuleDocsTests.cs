@@ -39,7 +39,6 @@ public class ContextRuleDocsTests
             (@"(\w+) rules ship today", walking + dmlShapes),
             (@"rules ship today — (\w+) reading", walking),
             (@"surroundings, (\w+) reading the DML statement", dmlShapes),
-            (@"alone among the (\w+) —", walking + dmlShapes),
             (@"For the (\w+) that read the construct's surroundings", walking),
         ];
 

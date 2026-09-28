@@ -55,7 +55,11 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
     `WithRollup()` is declared solely on the stage `GroupBy(...)` returns,
     so a chain whose call after `GroupBy` is anything else can never acquire
     the suffix. A chain still ending at `GroupBy(...)`, or any unrecognized
-    parent shape (variable indirection, helper methods), stays silent.
+    parent shape (variable indirection, helper methods), stays silent. The
+    `Returning` rule (#569) is the forward-reading case: `Into(...)` is the
+    only step its stage declares, so a result built, or widened to
+    `ISqlBuilder`, has visibly lost it — whatever the receiver was held in —
+    while a result still typed as that stage stays silent.
   - *Declaring interface* (the four joined-DML rules, #523, and a `WITH`
     inside `INSERT ... SELECT`, #569; `FOR UPDATE` over a grouped query, #523's
     fifth, is an ordinary presence walk): a step name alone decides nothing —
