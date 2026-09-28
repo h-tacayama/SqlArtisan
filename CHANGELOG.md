@@ -49,6 +49,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   corrected names reported "already built"; `OrderBy(0)` threw only at
   `Build()`, where `GroupBy(0)` already threw at the call. (#569)
 
+### Docs
+- `Returning(...)`'s remarks now say Oracle requires `.Into(...)` after it: a
+  `RETURNING` with no `INTO` is rejected by the engine (live-verified).
+- `docs/query-statements.md` and `InsertInto(...).With(...)`'s remarks now say
+  SQL Server rejects a `WITH` inside `INSERT`'s feeding `SELECT`
+  (live-verified on 2022); use a leading `With(...).InsertInto(...)` there.
+
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
 - `CurrentTimestamp(precision)` and `CurrentTime(precision)` emit

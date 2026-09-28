@@ -119,6 +119,23 @@ statement on each dialect the entry claims rejects it (and the accepted form
 on a dialect the guard leaves alone, where one exists), or `Live twin owed:`
 naming the lane not yet run; `DialectGuardTwinTests` gates both.
 
+An entry's condition-1 sentence records why it was admitted; it is not a
+standing fact. ADR 0013's declaring-interface mode, which came later, can see
+several shapes below (#569):
+- the leading `WITH` — `InsertInto` / `Update` / `DeleteFrom` / `MergeInto`
+  are declared on entry interfaces only the `WITH` states open;
+- the bare `OFFSET` — it binds to `IPagination.Offset`, where `Limit(...)`
+  yields `ISelectBuilderLimitOffset`;
+- `DELETE ... USING` and the `USING`-only / direct-join joined shapes, which
+  `ContextRules.ClassifyDmlShape` already classifies — its dialect lists leave
+  SQL Server out because `Build(Dbms)` throws there.
+
+These guards stay: each rejects a shape with no valid spelling on its target,
+removing one would drop protection every user has for a warning only analyzer
+users would get, and the analyzer does not duplicate a `Build()` throw. That is
+a cost ground for keeping guards already shipped, not a precedent for admitting
+a new one the analyzer can see.
+
 - **Aliased `INSERT` target on MySQL.** MySQL's `INSERT` grammar has no
   target-alias slot at all — the 8.0.19+ `AS row_alias` is a separate,
   post-`VALUES` construct — so `InsertInto(new UsersTable("u"))` has no valid
@@ -132,8 +149,9 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
   `FROM`.** T-SQL's joined form takes the target's alias from `FROM`, so a
   joined shape that never re-lists the target (a `USING`-only `DELETE`, a
   PostgreSQL-style `UPDATE ... FROM aux`, a direct-join `UPDATE`) has no valid
-  T-SQL spelling; the shape lives in value-level builder state the analyzer
-  cannot read. PostgreSQL's forms legally omit the re-list, so the guard is
+  T-SQL spelling. `UPDATE ... FROM aux` turns on instance identity the
+  analyzer cannot read; the other two are declaring-interface shapes (see
+  above). PostgreSQL's forms legally omit the re-list, so the guard is
   `Dbms.SqlServer`-scoped. Live twin owed: the SQL Server lane pins only the
   accepted re-listed form (`JoinedUpdateFrom_Executes`).
 - **Joined `UPDATE` with the target re-listed in `FROM`, off SQL Server**
@@ -180,8 +198,9 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
   and `OrderByNegativeOrdinal_IsAcceptedByTheEngine` on the MySQL and Oracle lanes.
 - **`DELETE ... USING` on SQL Server** (release audit, pass 5). T-SQL has no
   `USING` form for `DELETE` at all, so the shape has no valid spelling on the
-  target; it is builder state (a `DeleteUsingClause` part) the analyzer's
-  context-free `Using` key unions with MERGE's support and cannot see. The
+  target. The matrix's context-free `Using` key unions it with MERGE's support,
+  but the declaring-interface rule classifies it and leaves SQL Server to this
+  guard (see above). The
   guard exists mainly for its message: the joined-target guard's re-list
   remedy is unreachable from a `Using(...)` chain, so this one names
   `From(...)` first. Live twin owed: the SQL Server lane has no raw
@@ -206,8 +225,9 @@ naming the lane not yet run; `DialectGuardTwinTests` gates both.
 - **A bare `OFFSET` on MySQL and SQLite** (release audit pass 8). Both engines
   take `OFFSET` only after `LIMIT` (`SELECT ... OFFSET 1` is `ER_PARSE_ERROR`
   on 8.0.46 and a syntax error on SQLite 3.45, live-verified); PostgreSQL takes
-  it alone. The analyzer's `Offset` key is the union of two interfaces, so the
-  standalone shape is invisible to it, and `SelectBuilder.Validate` throws at
+  it alone. The analyzer's `Offset` matrix key is the union of two interfaces,
+  so the standalone shape was taken to be invisible to it (a declaring-interface
+  rule can see it; see above), and `SelectBuilder.Validate` throws at
   `Build(MySql)`/`Build(Sqlite)` when an `OffsetClause` has no `LimitClause`.
   Live twins: `Pagination_OffsetWithoutLimit_IsRejectedByTheEngine` on the
   SQLite and MySQL lanes.

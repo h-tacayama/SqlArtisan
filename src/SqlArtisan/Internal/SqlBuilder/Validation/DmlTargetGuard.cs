@@ -3,8 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace SqlArtisan.Internal;
 
 // DML-target shape guards: most reject a target with no valid spelling on the
-// resolved dialect (ADR 0011 — the deciding facts are builder state the
-// analyzer cannot see); the joined-target alias rule is decided policy (#258).
+// resolved dialect (ADR 0011); the joined-target alias rule is decided policy (#258).
 internal static class DmlTargetGuard
 {
     [DoesNotReturn]
@@ -122,7 +121,7 @@ internal static class DmlTargetGuard
 
     // Oracle's DML grammars carry no subquery-factoring clause and MySQL's INSERT
     // does not either (live: 8.0.46 ER_PARSE_ERROR), so the CTE belongs inside the
-    // feeding SELECT. The leading part is builder state the analyzer cannot see (ADR 0011).
+    // feeding SELECT. A rule could see the WITH-only entry interfaces; none exists (#569).
     internal static void ThrowIfLeadingWithUnsupported(
         ReadOnlySpan<SqlPart> parts, Dbms dbms, bool insert)
     {

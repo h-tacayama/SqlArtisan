@@ -1435,6 +1435,8 @@ SqlArtisan also supports more advanced WITH clause scenarios:
   (live-verified on 8.0), so there an `INSERT` carries its CTE inside the
   feeding `SELECT` (`InsertInto(...).With(...).Select(...)`);
   `Build(Dbms.Oracle)` and `Build(Dbms.MySql)` throw on the leading form.
+  SQL Server is the reverse: it rejects the mid-chain form (live-verified on
+  2022), so an `INSERT` there takes the leading `With(...).InsertInto(...)`.
   `INSERT IGNORE` and `ON DUPLICATE KEY UPDATE` are MySQL's alone, so neither
   follows a leading `WITH` on any target: `With(...)` opens no
   `InsertIgnoreInto(...)`, whose CTE goes inside the feeding `SELECT`

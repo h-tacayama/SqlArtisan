@@ -467,6 +467,26 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // IReturning's "Oracle requires Into(...)" (#569): with no INTO, the returned
+    // values have nowhere to go.
+    [Fact]
+    public void ReturningWithoutInto_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        // Acceptance control: the same INSERT runs, so a rejection below can only
+        // come from the INTO-less RETURNING.
+        connection.Execute(
+            "INSERT INTO users (id, name) VALUES (903, 'x')", transaction: transaction);
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "INSERT INTO users (id, name) VALUES (904, 'x') RETURNING id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
     // The live twin of the leading-WITH guard for MERGE on Oracle (ADR 0011):
     // the merge_statement grammar carries no subquery_factoring_clause.
     [Fact]
