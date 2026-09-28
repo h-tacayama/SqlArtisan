@@ -22,11 +22,7 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
     }
 
     public IInsertBuilderTable InsertInto(DbTableBase table) =>
-        new InsertBuilder(
-            table,
-            0,
-            _withPart,
-            new InsertIntoClause(table));
+        new InsertBuilder(table, 0, _withPart, new InsertIntoClause(table));
 
     public IInsertBuilderColumnsOutput InsertInto(DbTableBase table, params DbColumn[] columns)
     {
@@ -53,14 +49,8 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
     public ISelectBuilderSelect Select(DistinctKeyword distinct, params object[] selectItems) =>
         new SelectBuilder(_withPart, SelectClauseWithDistinct.Parse(distinct, selectItems));
 
-    public ISelectBuilderSelect Select(
-        DistinctOnKeyword distinctOn,
-        params object[] selectItems) =>
-        new SelectBuilder(
-            _withPart,
-            SelectClauseWithDistinct.Parse(
-                distinctOn,
-                selectItems));
+    public ISelectBuilderSelect Select(DistinctOnKeyword distinctOn, params object[] selectItems) =>
+        new SelectBuilder(_withPart, SelectClauseWithDistinct.Parse(distinctOn, selectItems));
 
     public ISelectBuilderSelect Select(SqlHints hints, params object[] selectItems) =>
         new SelectBuilder(_withPart, SelectClauseWithHints.Parse(hints, selectItems));
@@ -69,23 +59,13 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
         SqlHints hints,
         DistinctKeyword distinct,
         params object[] selectItems) =>
-        new SelectBuilder(
-            _withPart,
-            SelectClauseWithOptions.Parse(
-                hints,
-                distinct,
-                selectItems));
+        new SelectBuilder(_withPart, SelectClauseWithOptions.Parse(hints, distinct, selectItems));
 
     public ISelectBuilderSelect Select(
         SqlHints hints,
         DistinctOnKeyword distinctOn,
         params object[] selectItems) =>
-        new SelectBuilder(
-            _withPart,
-            SelectClauseWithOptions.Parse(
-                hints,
-                distinctOn,
-                selectItems));
+        new SelectBuilder(_withPart, SelectClauseWithOptions.Parse(hints, distinctOn, selectItems));
 
     public ISelectBuilderSelect Select(TopClause top, params object[] selectItems) =>
         new SelectBuilder(_withPart, SelectClauseWithTop.Parse(top, selectItems));
@@ -94,12 +74,7 @@ internal sealed class WithBuilder : IWithBuilderWith, IWithBuilderWithRecursive
         DistinctKeyword distinct,
         TopClause top,
         params object[] selectItems) =>
-        new SelectBuilder(
-            _withPart,
-            SelectClauseWithDistinctTop.Parse(
-                distinct,
-                top,
-                selectItems));
+        new SelectBuilder(_withPart, SelectClauseWithDistinctTop.Parse(distinct, top, selectItems));
 
     public IUpdateBuilderUpdate Update(DbTableBase table)
     {

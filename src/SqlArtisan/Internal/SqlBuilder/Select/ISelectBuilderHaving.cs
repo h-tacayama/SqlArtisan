@@ -6,6 +6,5 @@ namespace SqlArtisan.Internal;
 public interface ISelectBuilderHaving : ISqlBuilder, IPagination, ISetOperator, ISubquery
 {
     /// <inheritdoc cref="ISelectBuilderFrom.OrderBy(object[])"/>
-    ISelectBuilderOrderBy OrderBy(
-        params object[] orderByItems);
+    ISelectBuilderOrderBy OrderBy(params object[] orderByItems);
 }

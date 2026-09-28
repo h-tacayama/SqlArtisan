@@ -10,6 +10,5 @@ public interface ISelectBuilderWithRollup : ISqlBuilder, IPagination, ISetOperat
     ISelectBuilderHaving Having(SqlCondition condition);
 
     /// <inheritdoc cref="ISelectBuilderFrom.OrderBy(object[])"/>
-    ISelectBuilderOrderBy OrderBy(
-        params object[] orderByItems);
+    ISelectBuilderOrderBy OrderBy(params object[] orderByItems);
 }

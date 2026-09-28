@@ -17,7 +17,5 @@ public interface IForUpdate
     /// <inheritdoc cref="ForUpdate(LockBehaviorBase?)"/>
     /// <param name="ofClause">What to lock, from <see cref="Sql.Of(DbColumn)"/> (<c>FOR UPDATE OF code</c>) or <see cref="Sql.Of(DbTableBase, DbTableBase[])"/> (<c>FOR UPDATE OF "u", "o"</c>).</param>
     /// <param name="lockBehavior">The lock-wait behavior to append — <see cref="Sql.Nowait"/>, <see cref="Sql.SkipLocked"/>, or <c>Sql.Wait(n)</c>; omit for a plain blocking lock.</param>
-    ISqlBuilder ForUpdate(
-        OfClause ofClause,
-        LockBehaviorBase? lockBehavior = null);
+    ISqlBuilder ForUpdate(OfClause ofClause, LockBehaviorBase? lockBehavior = null);
 }

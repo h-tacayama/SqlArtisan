@@ -210,8 +210,7 @@ public static partial class Sql
         CaseElseExpression elseExpr)
     {
         CollectionGuard.ThrowIfEmpty(
-            whenClauses, nameof(whenClauses),
-            "CASE requires at least one WHEN clause.");
+            whenClauses, nameof(whenClauses), "CASE requires at least one WHEN clause.");
         CollectionGuard.ThrowIfNullElement(
             whenClauses,
             nameof(whenClauses),
@@ -235,8 +234,7 @@ public static partial class Sql
         params SimpleCaseWhenClause[] whenClauses)
     {
         CollectionGuard.ThrowIfEmpty(
-            whenClauses, nameof(whenClauses),
-            "CASE requires at least one WHEN clause.");
+            whenClauses, nameof(whenClauses), "CASE requires at least one WHEN clause.");
         CollectionGuard.ThrowIfNullElement(
             whenClauses,
             nameof(whenClauses),
@@ -450,8 +448,7 @@ public static partial class Sql
         CaseElseExpression elseExpr)
     {
         CollectionGuard.ThrowIfEmpty(
-            whenClauses, nameof(whenClauses),
-            "CASE requires at least one WHEN clause.");
+            whenClauses, nameof(whenClauses), "CASE requires at least one WHEN clause.");
         CollectionGuard.ThrowIfNullElement(
             whenClauses,
             nameof(whenClauses),

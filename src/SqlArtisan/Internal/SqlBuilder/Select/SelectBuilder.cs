@@ -290,30 +290,21 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public ISelectBuilderSelect Select(DistinctKeyword distinct, params object[] selectItems)
     {
-        AddPart(
-            SelectClauseWithDistinct.Parse(
-                distinct,
-                selectItems));
+        AddPart(SelectClauseWithDistinct.Parse(distinct, selectItems));
 
         return this;
     }
 
     public ISelectBuilderSelect Select(DistinctOnKeyword distinctOn, params object[] selectItems)
     {
-        AddPart(
-            SelectClauseWithDistinct.Parse(
-                distinctOn,
-                selectItems));
+        AddPart(SelectClauseWithDistinct.Parse(distinctOn, selectItems));
 
         return this;
     }
 
     public ISelectBuilderSelect Select(SqlHints hints, params object[] selectItems)
     {
-        AddPart(
-            SelectClauseWithHints.Parse(
-                hints,
-                selectItems));
+        AddPart(SelectClauseWithHints.Parse(hints, selectItems));
 
         return this;
     }
@@ -323,11 +314,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         DistinctKeyword distinct,
         params object[] selectItems)
     {
-        AddPart(
-            SelectClauseWithOptions.Parse(
-                hints,
-                distinct,
-                selectItems));
+        AddPart(SelectClauseWithOptions.Parse(hints, distinct, selectItems));
 
         return this;
     }
@@ -337,11 +324,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         DistinctOnKeyword distinctOn,
         params object[] selectItems)
     {
-        AddPart(
-            SelectClauseWithOptions.Parse(
-                hints,
-                distinctOn,
-                selectItems));
+        AddPart(SelectClauseWithOptions.Parse(hints, distinctOn, selectItems));
 
         return this;
     }
@@ -357,11 +340,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         TopClause top,
         params object[] selectItems)
     {
-        AddPart(
-            SelectClauseWithDistinctTop.Parse(
-                distinct,
-                top,
-                selectItems));
+        AddPart(SelectClauseWithDistinctTop.Parse(distinct, top, selectItems));
 
         return this;
     }

@@ -28,8 +28,7 @@ internal static class DmlTargetGuard
     {
         if (!target.HasAlias)
         {
-            throw new ArgumentException(
-                "The target of a joined UPDATE or DELETE must be aliased.");
+            throw new ArgumentException("The target of a joined UPDATE or DELETE must be aliased.");
         }
     }
 
@@ -74,8 +73,7 @@ internal static class DmlTargetGuard
                 ? "re-list the target table in the FROM clause"
                 : "join through From(target, ...), re-listing the target table";
 
-            throw new ArgumentException(
-                $"A joined {statementName} on SQL Server must {remedy}.");
+            throw new ArgumentException($"A joined {statementName} on SQL Server must {remedy}.");
         }
     }
 

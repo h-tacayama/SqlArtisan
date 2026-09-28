@@ -15,8 +15,8 @@ internal static class AssignmentResolver
             if (assignments[i] is null)
             {
                 throw new ArgumentNullException(
-                    nameof(assignments), "A SET assignment list must not contain a "
-                        + "null assignment.");
+                    nameof(assignments),
+                    "A SET assignment list must not contain a null assignment.");
             }
             else if (assignments[i] is not EqualCondition assignment)
             {

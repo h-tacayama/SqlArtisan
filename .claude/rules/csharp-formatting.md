@@ -51,9 +51,11 @@ return cnn.Execute(
 ```
 
 A list that fits on one line stays on one line — only the shape of the wrap
-is fixed, not whether to wrap.
+is fixed, not whether to wrap. That holds member by member: an overload
+whose list fits stays on one line even when a sibling overload must wrap, so
+an overload family is not wrapped as one shape.
 
-Packing is deliberate — and stays — in exactly three shapes:
+Packing is deliberate — and stays — in exactly four shapes:
 
 - **Semantic grouping** — lines that group related arguments on purpose,
   e.g. `CatalogColumnIndexReader.Read` splitting inputs from outputs:
@@ -78,6 +80,21 @@ Packing is deliberate — and stays — in exactly three shapes:
       cnn,
       sqlBuilder,
       ...
+  ```
+
+- **A guard's arguments** — a wrapped `ThrowIf…` call or
+  `throw new …Exception(...)` may pack its arguments onto the one
+  continuation line: the subject with its `nameof`, the operands it checks,
+  the message. Packed, a message that fits there joins them; one that does
+  not takes the next line, and the rest stays in one piece. One argument per
+  line stays valid:
+
+  ```csharp
+  CollectionGuard.ThrowIfEmpty(
+      columns, nameof(columns), "An INSERT column list requires at least one column.");
+  CollectionGuard.ThrowIfEmpty(
+      searchResultPairs, nameof(searchResultPairs),
+      "DECODE requires at least one (search, result) pair.");
   ```
 
 A sync/async twin (`SqlMapper.cs` / `SqlMapper.Async.cs`) keeps its wrapped

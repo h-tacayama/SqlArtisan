@@ -17,8 +17,7 @@ public sealed class GroupingSetsGrouping : GroupingElement
     {
         if (set is null)
         {
-            throw new ArgumentNullException(
-                nameof(set), "GROUPING SETS requires a grouping set.");
+            throw new ArgumentNullException(nameof(set), "GROUPING SETS requires a grouping set.");
         }
 
         CollectionGuard.ThrowIfNullElement(

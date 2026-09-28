@@ -307,8 +307,7 @@ internal static class CommandLine
         List<string> items = [.. array.EnumerateArray().Select(e => e.ToString())];
 
         return items.Any(item => item.Contains(','))
-            ? throw new CommandLineException(
-                $"\"{name}\" array elements must not contain commas")
+            ? throw new CommandLineException($"\"{name}\" array elements must not contain commas")
             : string.Join(",", items);
     }
 

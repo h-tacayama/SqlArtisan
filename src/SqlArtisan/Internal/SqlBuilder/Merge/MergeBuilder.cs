@@ -214,8 +214,7 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
 
         if (insertOpen)
         {
-            throw new ArgumentException(
-                "A MERGE INSERT action requires a VALUES row.");
+            throw new ArgumentException("A MERGE INSERT action requires a VALUES row.");
         }
     }
 }

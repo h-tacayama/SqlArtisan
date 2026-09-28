@@ -320,7 +320,18 @@ strengthening a deterministic layer or by unblocking adoption, whose test is a
 query that cannot be written. A typestate that withholds a step is therefore
 not a hole when another chain already writes a statement with the same effect —
 that is an ergonomic difference, and it does not earn new states or a changed
-return type. Two #521 entries were declined on that reading, after measuring:
+return type.
+
+**Same effect** means the same rows — read, or changed — not the same SQL
+text. A rewrite inside the API that keeps the rows makes the gap ergonomic
+however different its text: a derived table around a FROM-less `Select`,
+a derived table filtered by `WHERE` for a `HAVING` with no `GROUP BY`, an
+added `ORDER BY`, a column list for a positional insert. A rewrite that can change the rows is not the
+same effect, and the gap is a hole: moving a `LEFT JOIN LATERAL ... ON cond`
+predicate into the body puts it before a `LIMIT` there, where `ON` applied it
+after — the body keeps different rows. Measure a gap against its rewrite on
+that test before calling it either. Two #521 entries were declined on that
+reading, after measuring:
 
 - `InsertInto(t).Set(...)` takes no `.Output(...)`. `Set(...)` renders the
   same `(cols) VALUES (...)` the column-list chain renders — byte-identical,

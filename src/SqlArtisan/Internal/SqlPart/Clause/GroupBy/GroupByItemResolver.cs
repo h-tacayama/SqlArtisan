@@ -64,8 +64,7 @@ internal static class GroupByItemResolver
                 or long or ulong:
                 if (text == "0" || text.StartsWith('-'))
                 {
-                    throw new ArgumentException(
-                        "A GROUP BY column ordinal must be 1 or greater.");
+                    throw new ArgumentException("A GROUP BY column ordinal must be 1 or greater.");
                 }
 
                 return new NumericGroupKey(text);
@@ -74,8 +73,7 @@ internal static class GroupByItemResolver
                 if ((value is double d && !double.IsFinite(d))
                     || (value is float f && !float.IsFinite(f)))
                 {
-                    throw new ArgumentException(
-                        "A GROUP BY numeric group key must be finite.");
+                    throw new ArgumentException("A GROUP BY numeric group key must be finite.");
                 }
 
                 // A decimal point ("2" becomes "2.0") so a whole value cannot
@@ -99,8 +97,7 @@ internal static class GroupByItemResolver
     {
         if (elements is null)
         {
-            throw new ArgumentNullException(
-                nameof(elements), ExpressionResolver.NullValueMessage);
+            throw new ArgumentNullException(nameof(elements), ExpressionResolver.NullValueMessage);
         }
 
         SqlPart[] resolved = new SqlPart[elements.Length + 1];

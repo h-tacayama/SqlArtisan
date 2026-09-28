@@ -15,8 +15,7 @@ public interface ISelectBuilderGroupBy : ISqlBuilder, IPagination, ISetOperator,
     ISelectBuilderHaving Having(SqlCondition condition);
 
     /// <inheritdoc cref="ISelectBuilderFrom.OrderBy(object[])"/>
-    ISelectBuilderOrderBy OrderBy(
-        params object[] orderByItems);
+    ISelectBuilderOrderBy OrderBy(params object[] orderByItems);
 
     /// <summary>
     /// Appends the <c>WITH ROLLUP</c> suffix to the <c>GROUP BY</c> clause
