@@ -4,7 +4,7 @@ namespace SqlArtisan.Internal;
 /// The state after <c>INSERT INTO table (col, ...) OUTPUT ...</c> (SQL Server):
 /// optionally redirect the output <c>INTO</c> a table, then supply the rows.
 /// </summary>
-public interface IInsertBuilderColumnsOutputInto : IInsertBuilderColumns
+public interface IInsertBuilderOutputInto : IInsertBuilderColumns
 {
     /// <summary>
     /// Appends <c>INTO table (col, ...)</c> (SQL Server), redirecting the
