@@ -367,6 +367,22 @@ emitted `()` for nested all-empty groups even in mixed states; use the recursive
 operand *beside* an active one still drops out inside a non-empty AND/OR (that is
 `ConditionIf`'s contract); only an entirely empty clause throws.
 
+**An empty `OnConflict(...)` / `OUTPUT ... Into(t, ...)` column array keeps
+the column-less form (decided — do not re-file):** an empty conflict target
+renders a targetless `ON CONFLICT`, which arbitrates on every unique (or, on
+PostgreSQL, exclusion) constraint rather than the named one, and an empty
+`INTO` list renders a positional `INTO t` that skips the OUTPUT/INTO width
+check (`OutputClauseGuard.ThrowIfIntoWidthMismatch`). The ground recorded above
+for the explicit `INSERT` column list — a computed empty array silently
+switching to the column-less form and disabling the width check — holds here
+too; what differs is the call shape and the cost. Both lists name a fixed key
+or destination and are written as literals (no docs page, cookbook recipe or
+companion package computes either), while `OnConflict()` is a documented call
+shape: guarding it would take an `OnConflict()` overload, and every assembly
+compiled with a targetless `.OnConflict()` call would throw until rebuilt, a
+binary break paid by correct code. A caller shape that computes either list
+reopens this (#579).
+
 ## Null arguments: where the runtime-guard obligation stops
 
 The guard mission targets **silent** wrongness — a build that succeeds with SQL
