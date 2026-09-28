@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `SQLA0102` reports a `Returning(...)` consumed without `.Into(...)` on
+  Oracle — built, or passed on as an `ISqlBuilder` — since Oracle takes
+  `RETURNING` only as `RETURNING ... INTO` (live-verified on XE 21.3.0). A
+  result still held as the `Returning` stage stays silent: it can take
+  `.Into(...)` later. (#569)
 - `SQLA0102` reports a `WITH` between `INSERT INTO` and its `SELECT`
   (`InsertInto(...).With(...).Select(...)`) on SQL Server, which takes a CTE
   only before the statement; lead with `With(...).InsertInto(...)` there. The

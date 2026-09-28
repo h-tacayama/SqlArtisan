@@ -317,7 +317,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         if (name is not ("Limit" or "Grouping" or "PercentileCont" or "PercentileDisc"
                 or "Inserted" or "Deleted" or "Interval" or "IntervalLiteral"
                 or "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin"
-                or "ForUpdate" or "Over" or "With")
+                or "ForUpdate" or "Over" or "With" or "Returning")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
@@ -372,6 +372,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                 && invocation.TargetMethod.Parameters.Length == 2:
                 ContextRules.CheckIntervalRequiresArithmeticOperand(
                     context, invocation, TargetDbmsNames.Display(TargetDbms.MySql));
+                break;
+            case "Returning" when targets.Contains(TargetDbms.Oracle):
+                ContextRules.CheckReturningRequiresInto(
+                    context, invocation, TargetDbmsNames.Display(TargetDbms.Oracle));
                 break;
             case "ForUpdate":
                 if (ContextRules.RejectingTargets(targets, s_groupedLockUnsupported)

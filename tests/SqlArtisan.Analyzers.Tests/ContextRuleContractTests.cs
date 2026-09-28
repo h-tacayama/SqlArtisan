@@ -151,6 +151,7 @@ public class ContextRuleContractTests
     [InlineData("FetchNext")]
     [InlineData("OffsetRows")]
     [InlineData("With")]
+    [InlineData("Returning")]
     public void TriggerMember_ExistsInCoreApi(string methodName)
     {
         bool exists = Core.GetExportedTypes()
@@ -238,6 +239,21 @@ public class ContextRuleContractTests
             .OrderBy(name => name, StringComparer.Ordinal)];
 
         Assert.Equal(["InnerJoin", "LeftJoin", "RightJoin"], joins);
+    }
+
+    [Fact]
+    public void Into_IsTheOnlyStepOfTheReturningStage()
+    {
+        // The rule's absence proof: a Returning(...) result consumed by anything
+        // but Into(...) can never acquire an INTO.
+        Type stage = Assert.Single(
+            Core.GetExportedTypes().Where(t => t.Name == "IReturningBuilder"));
+
+        MethodInfo into = Assert.Single(stage.GetMethods(
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly));
+
+        Assert.Equal("Into", into.Name);
+        Assert.Equal(["ISqlBuilder"], stage.GetInterfaces().Select(i => i.Name));
     }
 
     // The FOR UPDATE rule reads the receiver chain for a GroupBy, which finds one

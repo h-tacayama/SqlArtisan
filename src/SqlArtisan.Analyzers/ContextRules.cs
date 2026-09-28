@@ -308,6 +308,28 @@ internal static class ContextRules
     }
 
     /// <summary>
+    /// Oracle takes <c>RETURNING</c> only as <c>RETURNING ... INTO</c>; XE 21.3.0 rejects
+    /// it bare. <c>Into(...)</c> is the one step the stage <c>Returning(...)</c> returns
+    /// declares, so a result consumed any other way can never acquire it.
+    /// </summary>
+    public static void CheckReturningRequiresInto(
+        OperationAnalysisContext context, IInvocationOperation returning, string dialectName)
+    {
+        if (returning.TargetMethod.ReturnType.Name != "IReturningBuilder"
+            || !ConsumedWithoutInto(returning))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            returning.Syntax.GetLocation(),
+            "Returning",
+            "without an INTO clause",
+            dialectName));
+    }
+
+    /// <summary>
     /// The statement position of a DML step, read off the one builder interface
     /// that declares it — the whole establishment, ADR 0013's presence proof at
     /// the type level rather than through a chain walk.
@@ -370,6 +392,19 @@ internal static class ContextRules
         }
 
         return names is null ? null : TargetDbmsNames.JoinDisplayNames(names);
+    }
+
+    // A result held as IReturningBuilder can still take Into on a later line, so
+    // only a visible consumer counts: the next step, or a widening to ISqlBuilder.
+    private static bool ConsumedWithoutInto(IInvocationOperation returning)
+    {
+        if (FluentChain.Parent(returning) is { } next)
+        {
+            return next.TargetMethod.Name != "Into";
+        }
+
+        return returning.Parent is IConversionOperation { Type: { Name: "ISqlBuilder" } target }
+            && DialectUsageAnalyzer.IsFromSqlArtisan(target.ContainingAssembly);
     }
 
     // Any other argument host stops the climb rather than risk crossing into

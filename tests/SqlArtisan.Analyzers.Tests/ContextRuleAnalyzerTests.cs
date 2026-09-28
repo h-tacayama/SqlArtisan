@@ -745,6 +745,47 @@ public class ContextRuleAnalyzerTests
                 .Select(c.Column(s.Id)).From(c);
             """, "sqlserver");
 
+    [Fact]
+    public Task ReturningThenBuild_Oracle_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:InsertInto(t, t.Id).Values(1).Returning(t.Id)|}.Build();
+            """, "oracle");
+
+    [Theory]
+    [InlineData("var q = {|#0:Update(t).Set(t.Dep == 1).Returning(t.Id)|}.Build(Dbms.Oracle);")]
+    [InlineData("ISqlBuilder q = {|#0:DeleteFrom(t).Where(t.Id == 1).Returning(t.Id)|};")]
+    [InlineData("""
+        static void Run(ISqlBuilder b) { }
+        Run({|#0:InsertInto(t, t.Id).Values(1).Returning(t.Id)|});
+        """)]
+    public Task ReturningConsumedWithoutInto_Oracle_ReportsSqla0102(string statements) =>
+        RunReporting(statements, "oracle");
+
+    [Fact]
+    public Task ReturningInto_Oracle_StaysSilent() =>
+        RunSilent("""
+            var q = InsertInto(t, t.Id).Values(1).Returning(t.Id)
+                .Into(new OutputParameter("id", System.Data.DbType.Int32));
+            """, "oracle");
+
+    // A result held as IReturningBuilder can still take Into on a later line.
+    [Theory]
+    [InlineData("var r = InsertInto(t, t.Id).Values(1).Returning(t.Id);")]
+    [InlineData("""
+        static void Run(IReturningBuilder b) { }
+        Run(InsertInto(t, t.Id).Values(1).Returning(t.Id));
+        """)]
+    public Task ReturningHeldForInto_Oracle_StaysSilent(string statements) =>
+        RunSilent(statements, "oracle");
+
+    [Theory]
+    [InlineData("postgresql")]
+    [InlineData("sqlite")]
+    public Task ReturningThenBuild_StaysSilent(string dbms) =>
+        RunSilent("""
+            var q = InsertInto(t, t.Id).Values(1).Returning(t.Id).Build();
+            """, dbms);
+
     [Theory]
     [InlineData("oracle")]
     [InlineData("postgresql")]
