@@ -411,6 +411,8 @@ internal static class DialectMatrix
         // MERGE's
         // arity-1 Using(TableReference) below — see the MatrixKey collision caveat above.
         [new MatrixKey("Using", 2)] = new DbmsSupport(mySql: true, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
+        // With: the union of the leading Sql.With and the mid-chain IWithBuilder.With, which
+        // SQL Server rejects (#569) — a union, under-restricts SQL Server.
         [new MatrixKey("With")] = DbmsSupport.All,
         // WithRecursive: the RECURSIVE keyword itself is the gap — Oracle and SQL Server write
         // recursive CTEs as plain WITH and reject WITH RECURSIVE; MySQL 8.0+/PostgreSQL require

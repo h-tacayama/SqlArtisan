@@ -475,9 +475,14 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
+        // Acceptance control: the same INSERT runs, so a rejection below can only
+        // come from the INTO-less RETURNING.
+        connection.Execute(
+            "INSERT INTO users (id, name) VALUES (903, 'x')", transaction: transaction);
+
         Assert.ThrowsAny<DbException>(() =>
             connection.Execute(
-                "INSERT INTO users (id, name) VALUES (903, 'x') RETURNING id",
+                "INSERT INTO users (id, name) VALUES (904, 'x') RETURNING id",
                 transaction: transaction));
         transaction.Rollback();
     }

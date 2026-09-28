@@ -3,8 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace SqlArtisan.Internal;
 
 // DML-target shape guards: most reject a target with no valid spelling on the
-// resolved dialect (ADR 0011 — the deciding facts are builder state the
-// analyzer cannot see); the joined-target alias rule is decided policy (#258).
+// resolved dialect (ADR 0011); the joined-target alias rule is decided policy (#258).
 internal static class DmlTargetGuard
 {
     [DoesNotReturn]
