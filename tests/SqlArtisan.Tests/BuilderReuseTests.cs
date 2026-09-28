@@ -761,8 +761,8 @@ public class BuilderReuseTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Build());
 
         Assert.Equal(
-            "A set operator is missing its SELECT; the statement was built "
-                + "from a held builder before the operator was completed.",
+            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
+                + "built from a held builder before the operator was completed.",
             ex.Message);
     }
 
@@ -776,8 +776,8 @@ public class BuilderReuseTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() => second.Build());
 
         Assert.Equal(
-            "A set operator is missing its SELECT; the statement was built "
-                + "from a held builder before the operator was completed.",
+            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
+                + "built from a held builder before the operator was completed.",
             ex.Message);
     }
 
@@ -792,8 +792,8 @@ public class BuilderReuseTests
             Select(_t.Code).From(_t).Where(_t.Code.In(held)).Build());
 
         Assert.Equal(
-            "A set operator is missing its SELECT; the statement was built "
-                + "from a held builder before the operator was completed.",
+            "A UNION, INTERSECT, EXCEPT, or MINUS is missing its SELECT; the statement was "
+                + "built from a held builder before the operator was completed.",
             ex.Message);
     }
 

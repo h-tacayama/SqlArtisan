@@ -4,8 +4,7 @@ namespace SqlArtisan.Internal;
 
 internal static class ExpressionResolver
 {
-    internal const string NullValueMessage =
-        "Value cannot be null. Use Sql.Null to represent SQL NULL.";
+    internal const string NullValueMessage = "A C# null is not SQL NULL; pass Sql.Null instead.";
 
     internal static (SqlExpression, SqlExpression)[] Resolve((object, object)[] pairs)
     {
@@ -151,9 +150,7 @@ internal static class ExpressionResolver
     // (e.g. "SelectItem", "GroupByItem").
     internal static ArgumentException UnresolvableValue(string position, object item) =>
         item is IIncompleteExpression incomplete
-            ? new ArgumentException(
-                $"{item.GetType().Name} is not a complete SQL expression. "
-                    + $"{incomplete.CompletionHint}")
+            ? new ArgumentException(incomplete.IncompleteMessage)
             : new ArgumentException(
                 $"Invalid type for {position}: {item.GetType()}");
 

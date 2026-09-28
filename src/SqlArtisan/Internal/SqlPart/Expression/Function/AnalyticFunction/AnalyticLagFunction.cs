@@ -28,6 +28,8 @@ public sealed class AnalyticLagFunction : AnalyticFunction
         _default = @default;
     }
 
+    private protected override string FunctionName => Keywords.Lag;
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.Lag)
         .OpenParenthesis()

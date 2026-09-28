@@ -12,6 +12,8 @@ public sealed class AnalyticNthValueFunction : ValueAnalyticFunction
         _n = WindowFrameGuard.ValidateNthValuePosition(n).ToInvariantString();
     }
 
+    private protected override string FunctionName => Keywords.NthValue;
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.NthValue)
         .OpenParenthesis()

@@ -10,7 +10,11 @@ public partial class WindowCumeDistTests
     [Fact]
     public void CumeDist_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(CumeDist()).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(CumeDist()).Build());
+
+        Assert.Equal(
+            "CUME_DIST requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Fact]

@@ -9,7 +9,11 @@ public class WindowNthValueTests
     [Fact]
     public void NthValue_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(NthValue(_t.Name, 2)).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(NthValue(_t.Name, 2)).Build());
+
+        Assert.Equal(
+            "NTH_VALUE requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Theory]

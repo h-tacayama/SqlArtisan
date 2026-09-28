@@ -394,7 +394,7 @@ public class DeleteTests
             DeleteFrom(t).Output(Deleted(t.Code), null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.Null to represent SQL NULL. (Parameter 'outputItem')",
+            "A C# null is not SQL NULL; pass Sql.Null instead. (Parameter 'outputItem')",
             ex.Message);
     }
 

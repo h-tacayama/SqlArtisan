@@ -17,8 +17,8 @@ public sealed class MatchFunction : IIncompleteExpression
         _columns = columns;
     }
 
-    string IIncompleteExpression.CompletionHint =>
-        "Complete it with .Against(...) or .AgainstScore(...) — MATCH requires an AGAINST clause.";
+    string IIncompleteExpression.IncompleteMessage =>
+        "MATCH requires an AGAINST clause; complete it with .Against(...) or .AgainstScore(...).";
 
     /// <summary>
     /// Supplies the mandatory <c>AGAINST</c> clause as a predicate:

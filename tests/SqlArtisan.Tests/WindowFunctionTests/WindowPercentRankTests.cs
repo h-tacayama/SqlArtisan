@@ -10,7 +10,11 @@ public partial class WindowPercentRankTests
     [Fact]
     public void PercentRank_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(PercentRank()).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(PercentRank()).Build());
+
+        Assert.Equal(
+            "PERCENT_RANK requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Fact]

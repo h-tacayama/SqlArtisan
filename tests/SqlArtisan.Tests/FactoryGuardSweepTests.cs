@@ -12,7 +12,7 @@ namespace SqlArtisan.Tests;
 public class FactoryGuardSweepTests
 {
     private const string ResolverNullValueMessage =
-        "Value cannot be null. Use Sql.Null to represent SQL NULL.";
+        "A C# null is not SQL NULL; pass Sql.Null instead.";
 
     // Key: "Signature :: injection"; value: the exact SQL the degenerate call
     // builds — an entry asserts the acceptance is deliberate (a smaller legal

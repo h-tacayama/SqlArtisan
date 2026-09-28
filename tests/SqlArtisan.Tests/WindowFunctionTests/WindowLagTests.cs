@@ -9,7 +9,11 @@ public class WindowLagTests
     [Fact]
     public void Lag_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(Lag(_t.Name)).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(Lag(_t.Name)).Build());
+
+        Assert.Equal(
+            "LAG requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Fact]

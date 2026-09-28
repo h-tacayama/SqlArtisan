@@ -9,7 +9,11 @@ public class WindowLastValueTests
     [Fact]
     public void LastValue_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(LastValue(_t.Name)).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(LastValue(_t.Name)).Build());
+
+        Assert.Equal(
+            "LAST_VALUE requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Fact]

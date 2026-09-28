@@ -656,6 +656,21 @@ public class MergeTests
             ex.Message);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Values_UnresolvableItem_NamesItsOwnPosition(int row)
+    {
+        // Borrows the INSERT value resolver, but the value never reached an INSERT (#569).
+        object[][] rows = [[1], [2]];
+        rows[row] = [new object()];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Values("s", ["code"], rows));
+
+        Assert.Equal("Invalid type for ValuesItem: System.Object", ex.Message);
+    }
+
     [Fact]
     public void Values_EmptyColumnName_ThrowsArgumentException()
     {

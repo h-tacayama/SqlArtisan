@@ -105,7 +105,7 @@ public partial class FunctionTests
             Assert.Throws<ArgumentNullException>(() => Bind(null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.BindNull to bind SQL NULL. (Parameter 'value')",
+            "A C# null cannot be bound; use Sql.BindNull to bind SQL NULL. (Parameter 'value')",
             ex.Message);
     }
 
@@ -116,7 +116,7 @@ public partial class FunctionTests
             Assert.Throws<ArgumentNullException>(() => new BindValue(null!));
 
         Assert.Equal(
-            "Value cannot be null. Use Sql.BindNull to bind SQL NULL. (Parameter 'value')",
+            "A C# null cannot be bound; use Sql.BindNull to bind SQL NULL. (Parameter 'value')",
             ex.Message);
     }
 

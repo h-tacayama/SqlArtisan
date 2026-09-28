@@ -56,9 +56,10 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
     so a chain whose call after `GroupBy` is anything else can never acquire
     the suffix. A chain still ending at `GroupBy(...)`, or any unrecognized
     parent shape (variable indirection, helper methods), stays silent.
-  - *Declaring interface* (the four joined-DML rules, #523; the fifth, `FOR
-    UPDATE` over a grouped query, is an ordinary presence walk): a step name
-    alone decides nothing — every one of them is declared on several stages —
+  - *Declaring interface* (the four joined-DML rules, #523, and a `WITH`
+    inside `INSERT ... SELECT`, #569; `FOR UPDATE` over a grouped query, #523's
+    fifth, is an ordinary presence walk): a step name alone decides nothing —
+    every one of them is declared on several stages or factories —
     but the *pair* of name and declaring interface pins one statement position,
     so the overload that bound **is** the position and no walk is needed:
     `From` on `IDeleteBuilderDelete` is a joined `DELETE` wherever it is

@@ -9,6 +9,8 @@ public sealed class AnalyticLastValueFunction : ValueAnalyticFunction
         _expr = expr;
     }
 
+    private protected override string FunctionName => Keywords.LastValue;
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append(Keywords.LastValue)
         .OpenParenthesis()

@@ -17,21 +17,9 @@ public class GuardAssertionRatchetTests
 
     private static readonly Dictionary<string, int> s_baseline = new(StringComparer.Ordinal)
     {
-        ["IncompleteExpressionMessageTests.cs"] = 10,
         ["AggregateWindowTests.cs"] = 2,
         ["PercentileTests.cs"] = 2,
         ["SqlBuilderTests/ExpressionResolverTests.cs"] = 3,
-        ["WindowFunctionTests/WindowCumeDistTests.cs"] = 1,
-        ["WindowFunctionTests/WindowDenseRankTests.cs"] = 1,
-        ["WindowFunctionTests/WindowFirstValueTests.cs"] = 1,
-        ["WindowFunctionTests/WindowLagTests.cs"] = 1,
-        ["WindowFunctionTests/WindowLastValueTests.cs"] = 1,
-        ["WindowFunctionTests/WindowLeadTests.cs"] = 1,
-        ["WindowFunctionTests/WindowNthValueTests.cs"] = 1,
-        ["WindowFunctionTests/WindowNtileTests.cs"] = 1,
-        ["WindowFunctionTests/WindowPercentRankTests.cs"] = 1,
-        ["WindowFunctionTests/WindowRankTests.cs"] = 1,
-        ["WindowFunctionTests/WindowRowNumberTests.cs"] = 1,
     };
 
     [Fact]
