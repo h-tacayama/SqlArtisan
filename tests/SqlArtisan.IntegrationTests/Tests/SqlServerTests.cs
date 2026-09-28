@@ -538,7 +538,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
     }
 
     // SQLA0102 (#569): Microsoft's INSERT reference says the SELECT cannot hold a
-    // CTE. The leading WITH runs, so only the WITH's position is rejected.
+    // CTE. The leading WITH runs, so only the WITH's position is rejected; its key
+    // differs from the probe's, so a duplicate key cannot pass for the rejection.
     [Fact]
     public void ContextRule_InsertSelectWith_Rejected()
     {
@@ -549,7 +550,7 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
 
         connection.Execute(
             With(c.As(
-                    Select((u.Id + 900).As(c.Column("id")), u.Name.As(c.Column("name")))
+                    Select((u.Id + 800).As(c.Column("id")), u.Name.As(c.Column("name")))
                     .From(u)
                     .Where(u.Id == 1)))
                 .InsertInto(u, u.Id, u.Name)
