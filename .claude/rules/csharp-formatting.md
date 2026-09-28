@@ -82,10 +82,12 @@ Packing is deliberate — and stays — in exactly four shapes:
       ...
   ```
 
-- **A guard call's arguments** — a wrapped `ThrowIf…` guard packs its
-  subject (with `nameof(subject)`, when it takes one) and its message onto
-  the one continuation line. A message that does not fit there takes the
-  next line, and the subject stays in one piece:
+- **A guard's arguments** — a wrapped `ThrowIf…` call or
+  `throw new …Exception(...)` may pack its arguments onto the one
+  continuation line: the subject with its `nameof`, the operands it checks,
+  the message. Packed, a message that fits there joins them; one that does
+  not takes the next line, and the rest stays in one piece. One argument per
+  line stays valid:
 
   ```csharp
   CollectionGuard.ThrowIfEmpty(

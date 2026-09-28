@@ -15,9 +15,7 @@ public sealed class SearchedCaseWhenClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        ConditionGuard.ThrowIfEmpty(
-            _whenCondition,
-            "A CASE WHEN branch requires a condition.");
+        ConditionGuard.ThrowIfEmpty(_whenCondition, "A CASE WHEN branch requires a condition.");
 
         buffer
             .Append($"{Keywords.When} ")

@@ -82,8 +82,7 @@ internal static class OrderByItemResolver
                 if ((value is double d && !double.IsFinite(d))
                     || (value is float f && !float.IsFinite(f)))
                 {
-                    throw new ArgumentException(
-                        "An ORDER BY numeric sort key must be finite.");
+                    throw new ArgumentException("An ORDER BY numeric sort key must be finite.");
                 }
 
                 // A literal sort key, rendered with a decimal point ("2" becomes

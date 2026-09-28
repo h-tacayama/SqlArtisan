@@ -53,8 +53,7 @@ internal sealed class ReturningBuilder : IReturningBuilder
     {
         ThrowIfCompleted();
         CollectionGuard.ThrowIfEmpty(
-            outputs, nameof(outputs),
-            "INTO requires at least one output parameter.");
+            outputs, nameof(outputs), "INTO requires at least one output parameter.");
 
         if (outputs.Length != _expressions.Length)
         {

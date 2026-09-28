@@ -325,8 +325,8 @@ return type.
 **Same effect** means the same rows — read, or changed — not the same SQL
 text. A rewrite inside the API that keeps the rows makes the gap ergonomic
 however different its text: a derived table around a FROM-less `Select`,
-`GROUP BY ()` for a `HAVING` with no grouping, an added `ORDER BY`, a column
-list for a positional insert. A rewrite that can change the rows is not the
+a derived table filtered by `WHERE` for a `HAVING` with no `GROUP BY`, an
+added `ORDER BY`, a column list for a positional insert. A rewrite that can change the rows is not the
 same effect, and the gap is a hole: moving a `LEFT JOIN LATERAL ... ON cond`
 predicate into the body puts it before a `LIMIT` there, where `ON` applied it
 after — the body keeps different rows. Measure a gap against its rewrite on
