@@ -375,12 +375,16 @@ PostgreSQL, exclusion) constraint rather than the named one, and an empty
 check (`OutputClauseGuard.ThrowIfIntoWidthMismatch`). The ground recorded above
 for the explicit `INSERT` column list — a computed empty array silently
 switching to the column-less form and disabling the width check — holds here
-too; what differs is the call shape and the cost. Both lists name a fixed key
-or destination and are written as literals (no docs page, cookbook recipe or
-companion package computes either), while `OnConflict()` is a documented call
-shape: guarding it would take an `OnConflict()` overload, and every assembly
-compiled with a targetless `.OnConflict()` call would throw until rebuilt, a
-binary break paid by correct code. A caller shape that computes either list
+too, and so does "written as literals", which was true of the guarded lists
+as well; what differs is the cost. `InsertInto(table)` already existed, so
+that guard was free, and `ThenInsert()` was undocumented when its guard made
+it an overload. Both no-list forms here are documented call shapes —
+`OnConflict()` in the docs pages, `Into(t)` in the `*OutputInto` XML docs
+("omit to target the table's columns positionally") — so guarding either
+would take a no-list overload, and every assembly compiled with the
+zero-argument call would throw until rebuilt, a binary break paid by correct
+code for a misuse no docs page, cookbook recipe or companion package makes
+(none computes either list). A caller shape that computes either list
 reopens this (#579).
 
 ## Null arguments: where the runtime-guard obligation stops
