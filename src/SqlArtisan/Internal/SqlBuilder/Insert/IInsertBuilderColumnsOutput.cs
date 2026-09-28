@@ -14,5 +14,5 @@ public interface IInsertBuilderColumnsOutput : IInsertBuilderColumns
     /// </summary>
     /// <param name="items">The columns or expressions to output; literals are auto-parameterized and <c>.As(...)</c> aliases are allowed.</param>
     /// <returns>The builder positioned to redirect the output <c>Into(...)</c> an archive table, or supply the rows with <c>Values(...)</c> / a <c>SELECT</c>.</returns>
-    IInsertBuilderColumnsOutputInto Output(params object[] items);
+    IInsertBuilderOutputInto Output(params object[] items);
 }

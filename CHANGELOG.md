@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `ISelectBuilderOffsetFetch`. A chain that never writes the type name needs no
   source change, but an assembly compiled against an earlier version must be
   rebuilt: the return type is part of each method's signature. (#568)
+- **Breaking:** renamed the stage an `INSERT`'s `Output(...)` returns from
+  `IInsertBuilderColumnsOutputInto` to `IInsertBuilderOutputInto`, matching its
+  `DELETE` and `UPDATE` twins (`IDeleteBuilderOutputInto`,
+  `IUpdateBuilderOutputInto`). As with #568, only code that writes the type name
+  needs a source change, and an assembly compiled against an earlier version
+  must be rebuilt. (#580)
 - **Breaking:** `WithRecursive(...)` no longer emits a CTE column list derived
   from the first query block: `WITH RECURSIVE "c" AS (...)`, not
   `WITH RECURSIVE "c"(id) AS (...)`. Every engine that accepts `RECURSIVE`

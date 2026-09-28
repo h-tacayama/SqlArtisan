@@ -7,9 +7,9 @@ internal sealed class InsertBuilder(
     SelectBuilder(rootParts),
     IInsertBuilderColumns,
     IInsertBuilderColumnsOutput,
-    IInsertBuilderColumnsOutputInto,
     IInsertBuilderDoUpdateSet,
     IInsertBuilderOnConflict,
+    IInsertBuilderOutputInto,
     IInsertBuilderSet,
     IInsertBuilderTable,
     IInsertBuilderValues,
@@ -60,7 +60,7 @@ internal sealed class InsertBuilder(
         return this;
     }
 
-    public IInsertBuilderColumnsOutputInto Output(params object[] items)
+    public IInsertBuilderOutputInto Output(params object[] items)
     {
         CollectionGuard.ThrowIfEmpty(
             items, nameof(items), "OUTPUT requires at least one expression.");
