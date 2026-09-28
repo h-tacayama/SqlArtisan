@@ -47,10 +47,7 @@ public static partial class Sql
     public static ISelectBuilderSelect Select(
         DistinctKeyword distinct,
         params object[] selectItems) =>
-        new SelectBuilder(
-            SelectClauseWithDistinct.Parse(
-                distinct,
-                selectItems));
+        new SelectBuilder(SelectClauseWithDistinct.Parse(distinct, selectItems));
 
     /// <inheritdoc cref="Select(object[])"/>
     /// <param name="distinctOn">PostgreSQL's <c>DISTINCT ON (...)</c> prefix (<see cref="DistinctOn(object[])"/>), emitting <c>SELECT DISTINCT ON (...)</c>.</param>
@@ -58,10 +55,7 @@ public static partial class Sql
     public static ISelectBuilderSelect Select(
         DistinctOnKeyword distinctOn,
         params object[] selectItems) =>
-        new SelectBuilder(
-            SelectClauseWithDistinct.Parse(
-                distinctOn,
-                selectItems));
+        new SelectBuilder(SelectClauseWithDistinct.Parse(distinctOn, selectItems));
 
     /// <inheritdoc cref="Select(object[])"/>
     /// <param name="hints">Optimizer hints (<see cref="Hints(string)"/>), emitted after <c>SELECT</c>.</param>
@@ -77,11 +71,7 @@ public static partial class Sql
         SqlHints hints,
         DistinctKeyword distinct,
         params object[] selectItems) =>
-        new SelectBuilder(
-            SelectClauseWithOptions.Parse(
-                hints,
-                distinct,
-                selectItems));
+        new SelectBuilder(SelectClauseWithOptions.Parse(hints, distinct, selectItems));
 
     /// <inheritdoc cref="Select(object[])"/>
     /// <param name="hints">Optimizer hints (<see cref="Hints(string)"/>), emitted after <c>SELECT</c>.</param>
@@ -91,11 +81,7 @@ public static partial class Sql
         SqlHints hints,
         DistinctOnKeyword distinctOn,
         params object[] selectItems) =>
-        new SelectBuilder(
-            SelectClauseWithOptions.Parse(
-                hints,
-                distinctOn,
-                selectItems));
+        new SelectBuilder(SelectClauseWithOptions.Parse(hints, distinctOn, selectItems));
 
     /// <inheritdoc cref="Select(object[])"/>
     /// <param name="top">SQL Server's <c>TOP (n)</c> prefix (<see cref="Top(int)"/>), emitting <c>SELECT TOP (n)</c>.</param>
@@ -111,11 +97,7 @@ public static partial class Sql
         DistinctKeyword distinct,
         TopClause top,
         params object[] selectItems) =>
-        new SelectBuilder(
-            SelectClauseWithDistinctTop.Parse(
-                distinct,
-                top,
-                selectItems));
+        new SelectBuilder(SelectClauseWithDistinctTop.Parse(distinct, top, selectItems));
 
     /// <summary>
     /// Wraps a <c>GROUP_CONCAT</c> separator in MySQL's <c>SEPARATOR</c> keyword
