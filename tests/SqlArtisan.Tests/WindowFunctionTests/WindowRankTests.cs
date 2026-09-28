@@ -10,7 +10,11 @@ public partial class WindowRankTests
     [Fact]
     public void Rank_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(Rank()).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(Rank()).Build());
+
+        Assert.Equal(
+            "RANK requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Fact]

@@ -10,7 +10,11 @@ public partial class WindowRowNumberTests
     [Fact]
     public void RowNumber_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(RowNumber()).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(RowNumber()).Build());
+
+        Assert.Equal(
+            "ROW_NUMBER requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Fact]

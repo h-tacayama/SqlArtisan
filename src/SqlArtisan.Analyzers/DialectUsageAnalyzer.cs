@@ -317,7 +317,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         if (name is not ("Limit" or "Grouping" or "PercentileCont" or "PercentileDisc"
                 or "Inserted" or "Deleted" or "Interval" or "IntervalLiteral"
                 or "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin"
-                or "ForUpdate" or "Over")
+                or "ForUpdate" or "Over" or "With")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
@@ -327,7 +327,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         // before the per-tree config lookup and drops all but the DML spellings.
         ContextRules.DmlShape shape = ContextRules.ClassifyDmlShape(invocation);
         if (shape == ContextRules.DmlShape.None
-            && name is "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin")
+            && name is "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin" or "With")
         {
             return;
         }
@@ -408,6 +408,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     private static readonly TargetDbms[] s_updateFromUnsupported =
         [TargetDbms.MySql, TargetDbms.Oracle];
 
+    private static readonly TargetDbms[] s_insertSelectWithUnsupported = [TargetDbms.SqlServer];
+
     // Static instances, not a collection expression per call: this runs on every
     // joined-DML step of every compilation (ADR 0006).
     private static TargetDbms[] RejectingDialects(ContextRules.DmlShape shape) => shape switch
@@ -415,6 +417,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         ContextRules.DmlShape.JoinedDeleteLead => s_joinedDmlUnsupported,
         ContextRules.DmlShape.DeleteUsing => s_deleteUsingUnsupported,
         ContextRules.DmlShape.JoinedUpdateJoin => s_joinedDmlUnsupported,
+        ContextRules.DmlShape.InsertSelectWith => s_insertSelectWithUnsupported,
         _ => s_updateFromUnsupported,
     };
 

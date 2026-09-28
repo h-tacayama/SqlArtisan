@@ -573,8 +573,8 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Twelve rules ship today — eight reading
-the construct's surroundings, four reading the DML statement a clause sits in.
+expression where the construct is used. Thirteen rules ship today — eight reading
+the construct's surroundings, five reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
 Server 2022.
@@ -685,13 +685,14 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(1).ForUpdate();
 
 ### DML statement shapes
 
-A joined `UPDATE` or `DELETE` has a different grammar on almost every engine,
-and SqlArtisan emits whichever one you write. The four rules below name the
-engines that reject the spelling; where a spelling has no valid form at all on
-the resolved dialect, `Build(Dbms)` throws instead and no warning is needed.
+A joined `UPDATE` or `DELETE`, or a `WITH` inside `INSERT ... SELECT`, has a
+different grammar on some engines, and SqlArtisan emits whichever one you write.
+The five rules below name the engines that reject the spelling; where a spelling
+has no valid form at all on the resolved dialect, `Build(Dbms)` throws instead
+and no warning is needed.
 
-These four are settled by the builder stage the call binds to rather than by
-reading the chain, so — alone among the twelve — they still warn when the builder
+These five are settled by the builder stage the call binds to rather than by
+reading the chain, so — alone among the thirteen — they still warn when the builder
 is held in a variable.
 
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
@@ -740,6 +741,18 @@ join-before-`SET` form on MySQL, and a correlated subquery on Oracle.
 // sqlartisan_syntax_mysql = any
 var q = Update(u).Set(u.Age == 30).From(o).Where(u.Id == o.UserId);
 // warning SQLA0102: 'From' is not supported in an UPDATE statement on MySQL
+```
+
+**A `WITH` between `INSERT INTO` and its `SELECT`.**
+`InsertInto(t, ...).With(...).Select(...)` puts the CTE inside the feeding
+query, which SQL Server rejects: its `INSERT` takes a CTE only before the
+statement. Lead with it instead — `With(...).InsertInto(t, ...).Select(...)`.
+
+```csharp
+// sqlartisan_syntax_sqlserver = any
+var q = InsertInto(u, u.Id).With(c.As(Select(o.UserId).From(o)))
+    .Select(c.Column(o.UserId)).From(c);
+// warning SQLA0102: 'With' is not supported between INSERT INTO and its SELECT on SQL Server
 ```
 
 Not in this family: an `UPDATE ... FROM` that re-lists the target table. That

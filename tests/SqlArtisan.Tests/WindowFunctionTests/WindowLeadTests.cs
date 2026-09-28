@@ -9,7 +9,11 @@ public class WindowLeadTests
     [Fact]
     public void Lead_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(Lead(_t.Name)).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(Lead(_t.Name)).Build());
+
+        Assert.Equal(
+            "LEAD requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Fact]

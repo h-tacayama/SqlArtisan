@@ -135,6 +135,34 @@ public abstract class IntegrationTestBase
         transaction.Rollback();
     }
 
+    // The acceptance side of SQLA0102's InsertSelectWith rule; SqlServerTests
+    // overrides it with the rejection.
+    [Fact]
+    public virtual void Cte_WithInsideInsertSelect_Executes()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int inserted = connection.Execute(MidChainWithInsert(), transaction);
+
+        Assert.Equal(1, inserted);
+        transaction.Rollback();
+    }
+
+    protected static ISqlBuilder MidChainWithInsert()
+    {
+        UsersTable u = new();
+        Cte c = new("c");
+
+        return InsertInto(u, u.Id, u.Name)
+            .With(c.As(
+                Select((u.Id + 900).As(c.Column("id")), u.Name.As(c.Column("name")))
+                .From(u)
+                .Where(u.Id == 1)))
+            .Select(c.Column("id"), c.Column("name"))
+            .From(c);
+    }
+
     [Fact]
     public void WindowFunction_RowNumber_Executes()
     {

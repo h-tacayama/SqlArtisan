@@ -531,24 +531,34 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "SELECT id FROM users ORDER BY id OFFSET 0 ROWS FETCH NEXT -1 ROWS ONLY"));
     }
 
-    // #569: Microsoft's INSERT reference says a derived_table SELECT cannot hold a
-    // CTE; the leading WITH is the form that runs.
-    [Fact]
-    public void MidChainWithInInsertSelect_IsRejectedByTheEngine()
+    [Fact(Skip = "SQL Server rejects a WITH inside INSERT ... SELECT; "
+        + "ContextRule_InsertSelectWith_Rejected asserts the rejection here.")]
+    public override void Cte_WithInsideInsertSelect_Executes()
     {
+    }
+
+    // SQLA0102 (#569): Microsoft's INSERT reference says the SELECT cannot hold a
+    // CTE. The leading WITH runs, so only the WITH's position is rejected.
+    [Fact]
+    public void ContextRule_InsertSelectWith_Rejected()
+    {
+        UsersTable u = new();
+        Cte c = new("c");
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
         connection.Execute(
-            "WITH c AS (SELECT 904 AS id, 'x' AS name) "
-                + "INSERT INTO users (id, name) SELECT id, name FROM c",
-            transaction: transaction);
+            With(c.As(
+                    Select((u.Id + 900).As(c.Column("id")), u.Name.As(c.Column("name")))
+                    .From(u)
+                    .Where(u.Id == 1)))
+                .InsertInto(u, u.Id, u.Name)
+                .Select(c.Column("id"), c.Column("name"))
+                .From(c),
+            transaction);
 
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
-            "INSERT INTO users (id, name) WITH c AS (SELECT 905 AS id, 'x' AS name) "
-                + "SELECT id, name FROM c",
-            transaction: transaction));
-
+        Assert.ThrowsAny<DbException>(
+            () => connection.Execute(MidChainWithInsert(), transaction));
         transaction.Rollback();
     }
 

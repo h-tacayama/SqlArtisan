@@ -9,7 +9,11 @@ public class WindowNtileTests
     [Fact]
     public void Ntile_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(Ntile(4)).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(Ntile(4)).Build());
+
+        Assert.Equal(
+            "NTILE requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Theory]

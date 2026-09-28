@@ -27,6 +27,7 @@ internal static class ContextRules
         DeleteUsing,
         JoinedUpdateJoin,
         JoinedUpdateFrom,
+        InsertSelectWith,
     }
 
     /// <summary>
@@ -323,6 +324,7 @@ internal static class ContextRules
             ("From", "IUpdateBuilderSet") => DmlShape.JoinedUpdateFrom,
             ("InnerJoin" or "LeftJoin" or "RightJoin",
                 "IUpdateBuilderUpdate" or "IUpdateBuilderJoined") => DmlShape.JoinedUpdateJoin,
+            ("With", "IWithBuilder") => DmlShape.InsertSelectWith,
             _ => DmlShape.None,
         };
 
@@ -340,6 +342,7 @@ internal static class ContextRules
             DmlShape.JoinedDeleteLead => "in a joined DELETE",
             DmlShape.DeleteUsing => "in a DELETE statement",
             DmlShape.JoinedUpdateJoin => "joined directly onto an UPDATE target",
+            DmlShape.InsertSelectWith => "between INSERT INTO and its SELECT",
             _ => "in an UPDATE statement",
         };
 

@@ -9,7 +9,11 @@ public class WindowFirstValueTests
     [Fact]
     public void FirstValue_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(FirstValue(_t.Name)).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(FirstValue(_t.Name)).Build());
+
+        Assert.Equal(
+            "FIRST_VALUE requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Fact]

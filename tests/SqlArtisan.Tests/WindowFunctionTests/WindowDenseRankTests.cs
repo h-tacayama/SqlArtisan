@@ -10,7 +10,11 @@ public partial class WindowDenseRankTests
     [Fact]
     public void DenseRank_WithoutOver_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => Select(DenseRank()).Build());
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => Select(DenseRank()).Build());
+
+        Assert.Equal(
+            "DENSE_RANK requires an OVER clause; complete it with .Over(...).", ex.Message);
     }
 
     [Fact]

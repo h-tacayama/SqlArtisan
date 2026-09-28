@@ -708,6 +708,43 @@ public class ContextRuleAnalyzerTests
             var q = Update(t).Set(t.Id == s.Id).From(s).InnerJoin(s).On(t.Dep == s.Id);
             """, "postgresql");
 
+    [Fact]
+    public Task InsertSelectWith_SqlServer_ReportsSqla0102() =>
+        RunReporting("""
+            Cte c = new Cte("c");
+            var q = {|#0:InsertInto(t, t.Id).With(c.As(Select(s.Id).From(s)))|}
+                .Select(c.Column(s.Id)).From(c);
+            """, "sqlserver");
+
+    [Fact]
+    public Task InsertSelectWithViaVariable_SqlServer_ReportsSqla0102() =>
+        RunReporting("""
+            Cte c = new Cte("c");
+            var i = InsertInto(t, t.Id);
+            var q = {|#0:i.With(c.As(Select(s.Id).From(s)))|}.Select(c.Column(s.Id)).From(c);
+            """, "sqlserver");
+
+    [Theory]
+    [InlineData("mysql")]
+    [InlineData("oracle")]
+    [InlineData("postgresql")]
+    [InlineData("sqlite")]
+    public Task InsertSelectWith_StaysSilent(string dbms) =>
+        RunSilent("""
+            Cte c = new Cte("c");
+            var q = InsertInto(t, t.Id).With(c.As(Select(s.Id).From(s)))
+                .Select(c.Column(s.Id)).From(c);
+            """, dbms);
+
+    // The leading WITH is SQL Server's own spelling of the same statement.
+    [Fact]
+    public Task LeadingWithInsertSelect_SqlServer_StaysSilent() =>
+        RunSilent("""
+            Cte c = new Cte("c");
+            var q = With(c.As(Select(s.Id).From(s))).InsertInto(t, t.Id)
+                .Select(c.Column(s.Id)).From(c);
+            """, "sqlserver");
+
     [Theory]
     [InlineData("oracle")]
     [InlineData("postgresql")]

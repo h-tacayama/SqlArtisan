@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- `SQLA0102` reports a `WITH` between `INSERT INTO` and its `SELECT`
+  (`InsertInto(...).With(...).Select(...)`) on SQL Server, which takes a CTE
+  only before the statement; lead with `With(...).InsertInto(...)` there. The
+  rejection and the other four engines' acceptance are live-verified. Like the
+  joined-DML rules, it is settled by the builder stage the call binds to, so it
+  warns when the builder is held in a variable too. (#569)
+
 ### Changed
 - **Breaking:** renamed the stage types `Limit(...)` and `OffsetRows(...)`
   return to follow the other stages' `I<Statement>Builder<State>` names:
@@ -34,20 +42,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   column alias`; it named a requirement for plain column expressions that the
   guard never enforced. (#569)
 
-- Four guard messages now follow the one-sentence, SQL-spelling grammar:
+- Guard messages that were two sentences, or named a C# type, now read as one
+  sentence naming the SQL construct: (#569)
   - a C# `null` in a value position: `A C# null is not SQL NULL; pass Sql.Null
-    instead.` (was `Value cannot be null. Use Sql.Null to represent SQL NULL.`),
-    and in `Sql.Bind(...)`: `A C# null cannot be bound; use Sql.BindNull to bind
-    SQL NULL.`;
-  - an incomplete expression names its SQL construct, not its C# type:
-    `RANK requires an OVER clause; complete it with .Over(...).` (was
-    `AnalyticRankFunction is not a complete SQL expression. Complete it with
-    .Over(...) — ...`), and likewise for `LISTAGG`, `PERCENTILE_CONT`,
-    `PERCENTILE_DISC`, `MATCH` and a `CASE WHEN` branch without `THEN`;
+    instead.` (was `Value cannot be null. Use Sql.Null to represent SQL NULL.`);
+    a `null` passed to `Bind(...)`, `BindArray(...)` or `new BindValue(...)`:
+    `A C# null cannot be bound; use Sql.BindNull to bind SQL NULL.` (was
+    `Value cannot be null. Use Sql.BindNull to bind SQL NULL.`);
+  - an incomplete expression: `RANK requires an OVER clause; complete it with
+    .Over(...).` (was `AnalyticRankFunction is not a complete SQL expression.
+    Complete it with .Over(...) — ...`), and likewise for every window function
+    (`ROW_NUMBER`, `DENSE_RANK`, `PERCENT_RANK`, `CUME_DIST`, `NTILE`, `LAG`,
+    `LEAD`, `FIRST_VALUE`, `LAST_VALUE`, `NTH_VALUE`), `LISTAGG`,
+    `PERCENTILE_CONT`, `PERCENTILE_DISC`, `MATCH` and a `CASE WHEN` branch
+    without `THEN`;
   - a set operator without its `SELECT`: `A UNION, INTERSECT, EXCEPT, or MINUS
-    is missing its SELECT; ...`;
-  - `Sql.Values(...)` reports a rejected row item as `Invalid type for
-    ValuesItem`, where it said `InsertValue`. (#569)
+    is missing its SELECT; ...` (was `A set operator is missing its SELECT;
+    ...`).
+- `Sql.Values(...)` reports a rejected row item as `Invalid type for
+  ValuesItem`, where it said `InsertValue`, a position the value never reached.
+  (#569)
 
 ### Fixed
 - `Build()` throws on a leading `With(...)` before an `INSERT` with

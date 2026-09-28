@@ -150,6 +150,7 @@ public class ContextRuleContractTests
     [InlineData("FetchFirst")]
     [InlineData("FetchNext")]
     [InlineData("OffsetRows")]
+    [InlineData("With")]
     public void TriggerMember_ExistsInCoreApi(string methodName)
     {
         bool exists = Core.GetExportedTypes()
@@ -196,6 +197,7 @@ public class ContextRuleContractTests
         "IUpdateBuilderFrom",
         "IUpdateBuilderJoined",
         "IUpdateBuilderUpdate")]
+    [InlineData("With", "IWithBuilder")]
     public void DmlShapeTrigger_IsDeclaredOnExactlyTheseInterfaces(
         string methodName, params string[] expected)
     {
