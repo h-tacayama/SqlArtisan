@@ -243,7 +243,7 @@ public class UnusableIndexPredicateAnalyzerTests
 
     // The statement filter beside it still reports: the exclusion keys on the stage.
     [Fact]
-    public Task Where_WrappedIndexedColumnInMergeOn_Reports() =>
+    public Task On_WrappedIndexedColumnInMerge_Warns() =>
         RunReporting(
             """
             T m = new T("m");
