@@ -364,9 +364,9 @@ clause, so the form is SQLite's alone.
   `OnConflict` added there later is additive, and it can return new stages
   whose actions carry `OnConflict` again; only `DoNothing()` and
   `DoUpdateSet(...).Where(...)` on the first clause return the shared
-  `IReturning`, which cannot take `OnConflict` without offering it on every
-  `UPDATE` and `DELETE` stage too, so they stay closed short of a
-  return-type change. Added later,
+  `IReturning`, which cannot take `OnConflict` without offering it on the
+  `UPDATE` and `DELETE` stages that take `RETURNING` too, so they stay
+  closed short of a return-type change. Added later,
   the chain reaches every sequence whose first clause is an unfiltered
   `DO UPDATE`. The written order matters only for a row that violates two of
   the targets at once, where the first clause wins (live), so a leading
