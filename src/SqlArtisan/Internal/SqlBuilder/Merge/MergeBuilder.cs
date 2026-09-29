@@ -149,7 +149,8 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
-    // Where, like ThenUpdateSet, differs only by return type between its two stages.
+    // Both stages declare Where(SqlCondition) with different return types, so each is
+    // explicit; the two append different clauses.
     IMergeBuilderWhere IMergeBuilderThenUpdateSet.Where(SqlCondition condition)
     {
         AddPart(new MergeUpdateWhereClause(condition));
