@@ -78,12 +78,12 @@ override — so every build path (including `Returning()`, which funnels through
   than being silently bent. A future "throw for a valid-somewhere construct"
   admitted under this ADR must clear the same bar this one did: the analyzer
   structurally can't see it, *and* the resolved target has no valid spelling.
-  Absent both, the answer stays ADR 0007's default — emit faithfully — unless
-  the rejection is decided outside the bar in its own record. ADR 0017 is its
+  Absent both, the answer stays ADR 0007's default — emit faithfully. Some
+  rejections of valid-somewhere text do not follow that today: ADR 0017 is its
   own exception, and the joined-target alias requirement (#258) and the
   call-site-defect guards are decided in `guards-and-empty-states.md`;
-  reconciling those records with this ADR is open (#558, unit B5). One rejection
-  is decided outside the bar here: the dialect-blind walk rejects a second `ON
+  reconciling them with this ADR is open (#558, unit B5). One rejection is
+  decided outside the bar here: the dialect-blind walk rejects a second `ON
   CONFLICT` on a held stage although SQLite runs it, because the fluent chain
   does not offer the form and the held-stage repeat is read as a reuse slip
   (#581; the full reason is in `public-api-design.md` § "Opinions live in docs
