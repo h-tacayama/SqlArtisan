@@ -22,5 +22,5 @@ public interface IMergeBuilderThenUpdateSet : IMergeBuilderWhen
     /// </summary>
     /// <param name="condition">The predicate over the target and source rows; literals it contains are auto-parameterized.</param>
     /// <returns>The builder positioned to append <c>DELETE WHERE</c>, chain another <c>WHEN</c> branch, or build.</returns>
-    IMergeBuilderUpdateWhere Where(SqlCondition condition);
+    IMergeBuilderWhere Where(SqlCondition condition);
 }

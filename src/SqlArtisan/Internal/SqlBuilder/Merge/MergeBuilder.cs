@@ -6,13 +6,13 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     IMergeBuilderTarget,
     IMergeBuilderThenInsert,
     IMergeBuilderThenUpdateSet,
-    IMergeBuilderUpdateWhere,
     IMergeBuilderUsing,
     IMergeBuilderValues,
     IMergeBuilderWhen,
     IMergeBuilderWhenMatched,
     IMergeBuilderWhenNotMatched,
-    IMergeBuilderWhenNotMatchedBySource
+    IMergeBuilderWhenNotMatchedBySource,
+    IMergeBuilderWhere
 {
     // The column count of the most recent ThenInsert, cross-checked by the next
     // Values call — the same #397 width guard plain INSERT threads through its
@@ -150,7 +150,7 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     }
 
     // Where, like ThenUpdateSet, differs only by return type between its two stages.
-    IMergeBuilderUpdateWhere IMergeBuilderThenUpdateSet.Where(SqlCondition condition)
+    IMergeBuilderWhere IMergeBuilderThenUpdateSet.Where(SqlCondition condition)
     {
         AddPart(new MergeUpdateWhereClause(condition));
         return this;

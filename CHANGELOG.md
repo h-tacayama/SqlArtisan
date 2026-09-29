@@ -42,7 +42,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   no longer apply, and nothing warns that they are stale; suppress `SQLA0102`
   by its ID instead. On MySQL and SQLite the filter itself is no longer
   reported; `SQLA0100` still reports `MergeInto` there. Every caller needs a
-  source change and a rebuild. (#587)
+  source change and a rebuild. The stage the update action's `Where(...)`
+  returns is renamed from `IMergeBuilderUpdateWhere` to `IMergeBuilderWhere`,
+  matching `ISelectBuilderWhere`, `IUpdateBuilderWhere` and
+  `IDeleteBuilderWhere`. (#587)
 - **Breaking:** `WithRecursive(...)` no longer emits a CTE column list derived
   from the first query block: `WITH RECURSIVE "c" AS (...)`, not
   `WITH RECURSIVE "c"(id) AS (...)`. Every engine that accepts `RECURSIVE`

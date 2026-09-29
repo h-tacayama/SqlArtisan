@@ -5,7 +5,7 @@ namespace SqlArtisan.Internal;
 /// <c>Build</c> (inherited), or append <c>DELETE WHERE condition</c>, which reaches only the
 /// rows the <c>WHERE</c> let through.
 /// </summary>
-public interface IMergeBuilderUpdateWhere : IMergeBuilderWhen
+public interface IMergeBuilderWhere : IMergeBuilderWhen
 {
     /// <summary>
     /// Appends Oracle's in-clause <c>DELETE WHERE condition</c>, removing the just-updated rows
