@@ -6,13 +6,13 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     IMergeBuilderTarget,
     IMergeBuilderThenInsert,
     IMergeBuilderThenUpdateSet,
-    IMergeBuilderUpdateWhere,
     IMergeBuilderUsing,
     IMergeBuilderValues,
     IMergeBuilderWhen,
     IMergeBuilderWhenMatched,
     IMergeBuilderWhenNotMatched,
-    IMergeBuilderWhenNotMatchedBySource
+    IMergeBuilderWhenNotMatchedBySource,
+    IMergeBuilderWhere
 {
     // The column count of the most recent ThenInsert, cross-checked by the next
     // Values call — the same #397 width guard plain INSERT threads through its
@@ -31,12 +31,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     public IMergeBuilderWhen DeleteWhere(SqlCondition condition)
     {
         AddPart(new MergeDeleteWhereClause(condition));
-        return this;
-    }
-
-    public IMergeBuilderWhen InsertWhere(SqlCondition condition)
-    {
-        AddPart(new MergeInsertWhereClause(condition));
         return this;
     }
 
@@ -86,12 +80,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         params EqualityCondition[] assignments)
     {
         AddPart(MergeUpdateSetClause.Parse(assignments));
-        return this;
-    }
-
-    public IMergeBuilderUpdateWhere UpdateWhere(SqlCondition condition)
-    {
-        AddPart(new MergeUpdateWhereClause(condition));
         return this;
     }
 
@@ -158,6 +146,20 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     {
         AddPart(new WhenNotMatchedBySourceClause(
             NullGuard.ThrowIfNull(extraCondition, nameof(extraCondition))));
+        return this;
+    }
+
+    // Both stages declare Where(SqlCondition) with different return types, so each is
+    // explicit; the two append different clauses.
+    IMergeBuilderWhere IMergeBuilderThenUpdateSet.Where(SqlCondition condition)
+    {
+        AddPart(new MergeUpdateWhereClause(condition));
+        return this;
+    }
+
+    IMergeBuilderWhen IMergeBuilderValues.Where(SqlCondition condition)
+    {
+        AddPart(new MergeInsertWhereClause(condition));
         return this;
     }
 

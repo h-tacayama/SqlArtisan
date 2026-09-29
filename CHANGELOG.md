@@ -31,6 +31,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `IUpdateBuilderOutputInto`). As with #568, only code that writes the type name
   needs a source change, and an assembly compiled against an earlier version
   must be rebuilt. (#580)
+- **Breaking:** renamed Oracle's `MERGE` action filters `UpdateWhere(...)` and
+  `InsertWhere(...)` to `Where(...)`, since the clause is a plain `WHERE`: Oracle
+  has no `UPDATE WHERE` or `INSERT WHERE` token. The emitted SQL is unchanged.
+  The analyzer now reports the filter on PostgreSQL and SQL Server as `SQLA0102`
+  (a `WHERE` in a position those engines reject) instead of `SQLA0100`, and the
+  guard messages name the clauses `UPDATE SET ... WHERE` and `INSERT ... WHERE`
+  instead of `UPDATE WHERE` and `INSERT WHERE`. The override keys
+  `sqlartisan_construct_update_where` and `sqlartisan_construct_insert_where`
+  no longer apply, and nothing warns that they are stale; suppress `SQLA0102`
+  by its ID instead. On MySQL and SQLite the filter itself is no longer
+  reported; `SQLA0100` still reports `MergeInto` there. Every caller needs a
+  source change and a rebuild. The stage the update action's `Where(...)`
+  returns is renamed from `IMergeBuilderUpdateWhere` to `IMergeBuilderWhere`,
+  matching `ISelectBuilderWhere`, `IUpdateBuilderWhere` and
+  `IDeleteBuilderWhere`. (#587)
 - **Breaking:** `WithRecursive(...)` no longer emits a CTE column list derived
   from the first query block: `WITH RECURSIVE "c" AS (...)`, not
   `WITH RECURSIVE "c"(id) AS (...)`. Every engine that accepts `RECURSIVE`

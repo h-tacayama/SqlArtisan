@@ -221,10 +221,10 @@ lanes, so the knowledge is kept without the throw.
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must
 precede — `Output(...)` after an `INSERT`'s `Values(...)` (#542), or
-`UpdateWhere(...)` after `DeleteWhere(...)` on a held `ThenUpdateSet` stage
+`Where(...)` after `DeleteWhere(...)` on a held `ThenUpdateSet` stage
 (#544). Both render a statement the engine rejects outright
 (`OutputAfterValues_IsRejectedByTheEngine` on SQL Server,
-`MergeDeleteWhereBeforeUpdateWhere_IsRejectedByTheEngine` on Oracle), which is
+`MergeDeleteWhereBeforeUpdateActionWhere_IsRejectedByTheEngine` on Oracle), which is
 the walk's clause-order line below (SD23), not an exception to it. That
 `MergeBuilder.Validate` already walks the parts in order makes the MERGE check
 cheap, not warranted; revisit SD23 as a whole or not at all.
@@ -355,7 +355,7 @@ on this policy; never cite a row as already-enforced without checking the code.
 
 | Position | All-empty behavior |
 |---|---|
-| Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` / `.UpdateWhere(...)` / `.InsertWhere(...)` | **throw at Build()** |
+| Any written condition clause — `.Where(...)` (SELECT/UPDATE/DELETE), `.Having(...)`, aggregate `.Filter(...)`, JOIN/MERGE `.On(...)`, CASE `When(...)`, MERGE `.WhenMatched(cond)` / `.WhenNotMatched(cond)` / `.WhenNotMatchedBySource(cond)` / `.DeleteWhere(...)` / action `.Where(...)` | **throw at Build()** |
 | Empty SELECT list (#236); empty `SELECT`/`UPDATE` `.From()`; empty `IN`/`NOT IN`, empty `VALUES` row (#243); empty `SET`/`DO UPDATE SET`/`ON DUPLICATE KEY UPDATE`/MERGE `.ThenUpdateSet()`; empty `Sql.Decode(...)` pairs (#396); INSERT column-list vs. `VALUES` row width mismatch (#397); empty explicit `INSERT` column list (1.0 release review); empty explicit MERGE `.ThenInsert(cols)` column list and its column-list vs. `VALUES` width mismatch — `ThenInsert()` with no arguments stays the positional form, exactly as columnless `InsertInto(table)` does (release audit pass 1) | throw **eagerly** |
 
 There is **no elision** — omitting a clause is the only "no restriction". The

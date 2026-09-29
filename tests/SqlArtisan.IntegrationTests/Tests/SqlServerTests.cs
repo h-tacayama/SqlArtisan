@@ -563,6 +563,49 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         transaction.Rollback();
     }
 
+    // SQLA0102 (#587): SQL Server filters a MERGE branch on its WHEN and takes no
+    // WHERE after the action. The unfiltered actions run, so only the WHERE is rejected.
+    [Fact]
+    public void ContextRule_MergeActionWhere_Rejected()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        using (IDbTransaction transaction = connection.BeginTransaction())
+        {
+            connection.Execute(
+                MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenMatched().ThenUpdateSet(t.Name == s.Name),
+                transaction);
+            connection.Execute(
+                MergeInto(t).Using(s).On(t.Id == s.Id + 900)
+                    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id + 900, s.Name),
+                transaction);
+            transaction.Rollback();
+        }
+
+        // One transaction each, as on the PostgreSQL lane.
+        using (IDbTransaction transaction = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<DbException>(() => connection.Execute(
+                MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenMatched().ThenUpdateSet(t.Name == s.Name).Where(t.Age < 35),
+                transaction));
+            transaction.Rollback();
+        }
+
+        using (IDbTransaction transaction = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<DbException>(() => connection.Execute(
+                MergeInto(t).Using(s).On(t.Id == s.Id + 900)
+                    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id + 900, s.Name)
+                    .Where(s.Age < 35),
+                transaction));
+            transaction.Rollback();
+        }
+    }
+
     // The Build() guard's reason (#569): SQL Server has TOP and OFFSET/FETCH, but
     // not in one query.
     [Fact]

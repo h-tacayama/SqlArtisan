@@ -208,8 +208,8 @@ internal abstract class SqlBuilderBase
         ("DELETE WHERE", [typeof(MergeDeleteWhereClause)]),
         ("INSERT", [typeof(MergeInsertClause)]),
         ("VALUES", [typeof(InsertValuesClause)]),
-        ("UPDATE WHERE", [typeof(MergeUpdateWhereClause)]),
-        ("INSERT WHERE", [typeof(MergeInsertWhereClause)]),
+        ("UPDATE SET ... WHERE", [typeof(MergeUpdateWhereClause)]),
+        ("INSERT ... WHERE", [typeof(MergeInsertWhereClause)]),
     ];
 
     // A branch takes one action; Oracle's update carries its WHERE and DELETE WHERE
@@ -219,12 +219,12 @@ internal abstract class SqlBuilderBase
         ["UPDATE SET", "DELETE", "INSERT"],
         ["DELETE WHERE", "DELETE"],
         ["DELETE WHERE", "INSERT"],
-        ["UPDATE WHERE", "DELETE"],
-        ["UPDATE WHERE", "INSERT"],
-        ["INSERT WHERE", "UPDATE SET"],
-        ["INSERT WHERE", "DELETE"],
-        ["INSERT WHERE", "DELETE WHERE"],
-        ["INSERT WHERE", "UPDATE WHERE"]);
+        ["UPDATE SET ... WHERE", "DELETE"],
+        ["UPDATE SET ... WHERE", "INSERT"],
+        ["INSERT ... WHERE", "UPDATE SET"],
+        ["INSERT ... WHERE", "DELETE"],
+        ["INSERT ... WHERE", "DELETE WHERE"],
+        ["INSERT ... WHERE", "UPDATE SET ... WHERE"]);
 
     // A stage repeated on a held builder appends a duplicate clause (#225); most are valid
     // on no dialect, and SQLite's second ON CONFLICT is rejected by decision (#581). A set

@@ -577,7 +577,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     // #521: Oracle filters a MERGE branch with a trailing WHERE on the action.
     // Only the matched rows passing it are updated (Alice 30, Dave 25).
     [Fact]
-    public void Merge_UpdateWhere_UpdatesOnlyTheRowsItAdmits()
+    public void Merge_UpdateActionWhere_UpdatesOnlyTheRowsItAdmits()
     {
         UsersTable t = new("t");
         UsersTable s = new("s");
@@ -587,7 +587,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         connection.Execute(
             MergeInto(t).Using(s).On(t.Id == s.Id)
-                .WhenMatched().ThenUpdateSet(t.Name == "u").UpdateWhere(t.Age < 35),
+                .WhenMatched().ThenUpdateSet(t.Name == "u").Where(t.Age < 35),
             transaction);
 
         Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
@@ -597,7 +597,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
     // The filter may read the source as well as the target (Carol, 50).
     [Fact]
-    public void Merge_UpdateWhere_ReadsTheSource()
+    public void Merge_UpdateActionWhere_ReadsTheSource()
     {
         UsersTable t = new("t");
         UsersTable s = new("s");
@@ -607,7 +607,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         connection.Execute(
             MergeInto(t).Using(s).On(t.Id == s.Id)
-                .WhenMatched().ThenUpdateSet(t.Name == "u").UpdateWhere(s.Age > 45),
+                .WhenMatched().ThenUpdateSet(t.Name == "u").Where(s.Age > 45),
             transaction);
 
         Assert.Equal(1, Convert.ToInt64(connection.ExecuteScalar(
@@ -618,7 +618,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     // DELETE WHERE reaches only the rows the WHERE admitted: Bob and Eve go;
     // Carol (50) was never updated, so she stays although she is over 35.
     [Fact]
-    public void Merge_UpdateWhere_LimitsWhatDeleteWhereSees()
+    public void Merge_UpdateActionWhere_LimitsWhatDeleteWhereSees()
     {
         UsersTable t = new("t");
         UsersTable s = new("s");
@@ -629,7 +629,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         connection.Execute(
             MergeInto(t).Using(s).On(t.Id == s.Id)
                 .WhenMatched().ThenUpdateSet(t.Name == s.Name)
-                .UpdateWhere(t.Age < 45).DeleteWhere(t.Age >= 35),
+                .Where(t.Age < 45).DeleteWhere(t.Age >= 35),
             transaction);
 
         Assert.Equal(3, Convert.ToInt64(connection.ExecuteScalar(
@@ -639,10 +639,10 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
-    // Why UpdateWhere comes before DeleteWhere in the chain: the engine takes
+    // Why the update's Where comes before DeleteWhere in the chain: the engine takes
     // the WHERE there only.
     [Fact]
-    public void MergeDeleteWhereBeforeUpdateWhere_IsRejectedByTheEngine()
+    public void MergeDeleteWhereBeforeUpdateActionWhere_IsRejectedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
@@ -658,7 +658,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     // The insert takes the same trailing WHERE, over the source: of five
     // unmatched rows, those under 35 (Alice, Dave) are inserted.
     [Fact]
-    public void Merge_InsertWhere_InsertsOnlyTheRowsItAdmits()
+    public void Merge_InsertActionWhere_InsertsOnlyTheRowsItAdmits()
     {
         UsersTable t = new("t");
         UsersTable s = new("s");
@@ -670,7 +670,7 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         connection.Execute(
             MergeInto(t).Using(s).On(t.Id == s.Id + 900)
                 .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id + 900, s.Name)
-                .InsertWhere(s.Age < 35),
+                .Where(s.Age < 35),
             transaction);
 
         Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
@@ -695,10 +695,10 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         connection.Execute(
             MergeInto(t).Using(s).On(t.Id == s.Column("id"))
-                .WhenMatched().ThenUpdateSet(t.Name == "u").UpdateWhere(t.Age < 35)
+                .WhenMatched().ThenUpdateSet(t.Name == "u").Where(t.Age < 35)
                 .WhenNotMatched().ThenInsert(t.Id, t.Name)
                 .Values(s.Column("id"), s.Column("name"))
-                .InsertWhere(s.Column("age") < 35),
+                .Where(s.Column("age") < 35),
             transaction);
 
         Assert.Equal(2, Convert.ToInt64(connection.ExecuteScalar(
@@ -709,9 +709,9 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     }
 
     // An unmatched row has no target row, so the insert filter cannot name
-    // one — the claim InsertWhere's remarks make.
+    // one — the claim the insert's Where remarks make.
     [Fact]
-    public void MergeInsertWhere_NamingTheTarget_IsRejectedByTheEngine()
+    public void MergeInsertActionWhere_NamingTheTarget_IsRejectedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();

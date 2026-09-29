@@ -78,7 +78,9 @@ the entry that opens the statement (`ISelectBuilder`, `IDeleteBuilder`, …;
 
 - the clause just written (`ISelectBuilderWhere`; `IMergeBuilderTarget` after
   `MergeInto`; `IInsertIgnoreBuilderTable` / `IInsertIgnoreBuilderColumns`
-  for the two `InsertIgnoreInto` arities);
+  for the two `InsertIgnoreInto` arities; `IMergeBuilderWhere` after the
+  update action's `Where`, with no `Update` qualifier because the insert
+  action's `Where` has no stage of its own to tell it from, #587);
 - the clause position several steps return to (`ISelectBuilderFrom` after
   `From`, `On`, `Using`, `CrossJoin`, …; `ISelectBuilderPaginated`;
   `IMergeBuilderWhen`);

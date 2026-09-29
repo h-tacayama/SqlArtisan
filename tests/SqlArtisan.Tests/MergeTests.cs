@@ -147,7 +147,7 @@ public class MergeTests
     // #521: Oracle filters a branch with a trailing WHERE on its action, ahead
     // of DELETE WHERE, which then reaches only the rows the WHERE let through.
     [Fact]
-    public void Merge_Oracle_MatchedUpdate_WithUpdateWhereAndDeleteWhere()
+    public void Merge_Oracle_MatchedUpdate_WithWhereAndDeleteWhere()
     {
         // Arrange
         StringBuilder expected = new();
@@ -164,7 +164,7 @@ public class MergeTests
             .Using(_s)
             .On(_t.Code == _s.Code)
             .WhenMatched().ThenUpdateSet(_t.Name == _s.Name)
-            .UpdateWhere(_t.Name != _s.Name)
+            .Where(_t.Name != _s.Name)
             .DeleteWhere(_s.Code == 0)
             .Build(Dbms.Oracle);
 
@@ -175,7 +175,7 @@ public class MergeTests
     }
 
     [Fact]
-    public void Merge_Oracle_NotMatchedInsert_WithInsertWhere()
+    public void Merge_Oracle_NotMatchedInsert_WithWhere()
     {
         // Arrange
         StringBuilder expected = new();
@@ -193,9 +193,9 @@ public class MergeTests
             MergeInto(_t)
             .Using(_s)
             .On(_t.Code == _s.Code)
-            .WhenMatched().ThenUpdateSet(_t.Name == _s.Name).UpdateWhere(_s.Code > 5)
+            .WhenMatched().ThenUpdateSet(_t.Name == _s.Name).Where(_s.Code > 5)
             .WhenNotMatched().ThenInsert(_t.Code, _t.Name).Values(_s.Code, _s.Name)
-            .InsertWhere(_s.Name.IsNotNull)
+            .Where(_s.Name.IsNotNull)
             .Build(Dbms.Oracle);
 
         // Assert
@@ -500,31 +500,31 @@ public class MergeTests
     }
 
     [Fact]
-    public void Merge_UpdateWhereAllConditionsExcluded_ThrowsArgumentException()
+    public void Merge_UpdateActionWhereAllConditionsExcluded_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             MergeInto(_t)
             .Using(_s)
             .On(_t.Code == _s.Code)
             .WhenMatched().ThenUpdateSet(_t.Name == _s.Name)
-            .UpdateWhere(ConditionIf(false, _s.Name == "x"))
+            .Where(ConditionIf(false, _s.Name == "x"))
             .Build(Dbms.Oracle));
 
-        Assert.Equal("A MERGE UPDATE WHERE clause requires a condition.", ex.Message);
+        Assert.Equal("A MERGE UPDATE SET ... WHERE clause requires a condition.", ex.Message);
     }
 
     [Fact]
-    public void Merge_InsertWhereAllConditionsExcluded_ThrowsArgumentException()
+    public void Merge_InsertActionWhereAllConditionsExcluded_ThrowsArgumentException()
     {
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             MergeInto(_t)
             .Using(_s)
             .On(_t.Code == _s.Code)
             .WhenNotMatched().ThenInsert(_t.Code, _t.Name).Values(_s.Code, _s.Name)
-            .InsertWhere(ConditionIf(false, _s.Name == "x"))
+            .Where(ConditionIf(false, _s.Name == "x"))
             .Build(Dbms.Oracle));
 
-        Assert.Equal("A MERGE INSERT WHERE clause requires a condition.", ex.Message);
+        Assert.Equal("A MERGE INSERT ... WHERE clause requires a condition.", ex.Message);
     }
 
     [Fact]

@@ -745,6 +745,50 @@ public class ContextRuleAnalyzerTests
                 .Select(c.Column(s.Id)).From(c);
             """, "sqlserver");
 
+    [Theory]
+    [InlineData("postgresql")]
+    [InlineData("sqlserver")]
+    public Task MergeUpdateActionWhere_ReportsSqla0102(string dbms) =>
+        RunReporting("""
+            var q = {|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Dep == s.Dep).Where(t.Id == 1)|};
+            """, dbms);
+
+    [Theory]
+    [InlineData("postgresql")]
+    [InlineData("sqlserver")]
+    public Task MergeInsertActionWhere_ReportsSqla0102(string dbms) =>
+        RunReporting("""
+            var q = {|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenNotMatched().ThenInsert(t.Id).Values(s.Id).Where(s.Id == 1)|};
+            """, dbms);
+
+    [Fact]
+    public Task MergeActionWhereViaVariable_PostgreSql_ReportsSqla0102() =>
+        RunReporting("""
+            var u = MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Dep == s.Dep);
+            var q = {|#0:u.Where(t.Id == 1)|};
+            """, "postgresql");
+
+    [Fact]
+    public Task MergeActionWhere_Oracle_StaysSilent() =>
+        RunSilent("""
+            var q = MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Dep == s.Dep).Where(t.Id == 1)
+                .WhenNotMatched().ThenInsert(t.Id).Values(s.Id).Where(s.Id == 1);
+            """, "oracle");
+
+    // The other stages declaring Where filter a statement or an upsert action, not MERGE.
+    [Theory]
+    [InlineData("var q = Select(t.Id).From(t).Where(t.Id == 1);")]
+    [InlineData("var q = Update(t).Set(t.Dep == 1).Where(t.Id == 1);")]
+    [InlineData("var q = DeleteFrom(t).Where(t.Id == 1);")]
+    [InlineData("var q = InsertInto(t, t.Id).Values(1).OnConflict(t.Id)"
+        + ".DoUpdateSet(t.Dep == 1).Where(t.Id == 1);")]
+    public Task StatementWhere_PostgreSql_StaysSilent(string statement) =>
+        RunSilent(statement, "postgresql");
+
     [Fact]
     public Task ReturningThenBuild_Oracle_ReportsSqla0102() =>
         RunReporting("""

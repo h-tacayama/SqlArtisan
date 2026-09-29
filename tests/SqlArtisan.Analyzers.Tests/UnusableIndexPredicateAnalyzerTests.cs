@@ -228,6 +228,31 @@ public class UnusableIndexPredicateAnalyzerTests
         RunSilent(
             """var s = InsertInto(t, t.Name).Values("x").OnConflict(t.Name).DoUpdateSet(t.Name == Excluded(t.Name)).Where(Excluded(t.Name) != t.Name).Build();""");
 
+    // A MERGE action's Where is not a filtering step, like its DeleteWhere sibling.
+    [Fact]
+    public Task Where_WrappedIndexedColumnOnMergeAction_Silent() =>
+        RunSilent(
+            """
+            T m = new T("m");
+            var s = MergeInto(m).Using(r).On(m.Id == r.Id)
+                .WhenMatched().ThenUpdateSet(m.Plain == r.Plain).Where(Upper(m.Name) == "A")
+                .WhenNotMatched().ThenInsert(m.Id).Values(r.Id).Where(Upper(r.Name) == "B")
+                .Build();
+            """,
+            dbms: "oracle");
+
+    // The statement filter beside it still reports: the exclusion keys on the stage.
+    [Fact]
+    public Task On_WrappedIndexedColumnInMerge_Warns() =>
+        RunReporting(
+            """
+            T m = new T("m");
+            var s = MergeInto(m).Using(r).On({|#0:Upper(m.Name)|} == r.Name)
+                .WhenMatched().ThenUpdateSet(m.Plain == r.Plain).Build();
+            """,
+            "Name",
+            "wrapped in Upper");
+
     // A call that yields a builder stage or a column handle references the
     // column; only a call yielding an expression wraps it.
     [Fact]
