@@ -1156,7 +1156,9 @@ A `CASE` *branch* over the column is not reported: `Then(t.Key)` and
 
 Only `WHERE` and `ON` are checked. The same call in a select list or an
 `ORDER BY` costs no index, and `HAVING` filters groups after any index has done
-its work. A condition built apart from its clause is left alone: nothing at that
+its work. A `MERGE` action's `Where(...)` is not checked either: like
+`DeleteWhere(...)` and `WhenMatched(condition)`, it filters the rows `ON` has
+already sorted into its branch. A condition built apart from its clause is left alone: nothing at that
 point shows it will ever reach a `WHERE`. A call that *is* the predicate — full-text
 `Contains` / `Freetext`, the JSONB containment and existence predicates
 (`JsonbContains`, `JsonbExists*`), the array predicates (`ArrayOverlaps`,

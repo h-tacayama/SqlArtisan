@@ -60,9 +60,10 @@ reported under a new diagnostic ID `SQLA0102`, registered from the same
     only step its stage declares, so a result built, or widened to
     `ISqlBuilder`, has visibly lost it — whatever the receiver was held in —
     while a result still typed as that stage stays silent.
-  - *Declaring interface* (the four joined-DML rules, #523, and a `WITH`
-    inside `INSERT ... SELECT`, #569; `FOR UPDATE` over a grouped query, #523's
-    fifth, is an ordinary presence walk): a step name alone decides nothing —
+  - *Declaring interface* (the four joined-DML rules, #523, a `WITH`
+    inside `INSERT ... SELECT`, #569, and a `WHERE` on a `MERGE` action, #587;
+    `FOR UPDATE` over a grouped query, #523's fifth, is an ordinary presence
+    walk): a step name alone decides nothing —
     every one of them is declared on several stages or factories —
     but the *pair* of name and declaring interface pins one statement position,
     so the overload that bound **is** the position and no walk is needed:

@@ -124,7 +124,11 @@ internal static class UnusableIndexPredicateRule
                 && !FluentChain.IsExpression(step.Instance.Type)
                 && !FluentChain.IsCondition(step.Instance.Type))
             {
-                return FilteringSteps.Contains(step.TargetMethod.Name);
+                // A MERGE action's Where filters rows ON already sorted into its branch,
+                // as DeleteWhere and WhenMatched(cond) do; neither is in the step set.
+                return FilteringSteps.Contains(step.TargetMethod.Name)
+                    && ContextRules.ClassifyDmlShape(step)
+                        != ContextRules.DmlShape.MergeActionWhere;
             }
 
             current = parent;
