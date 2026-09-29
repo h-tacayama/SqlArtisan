@@ -75,19 +75,19 @@ override — so every build path (including `Returning()`, which funnels through
 ## Consequences
 
 - **ADR 0007's dividing test gains one explicit, enumerated exception** rather
-  than being silently bent. Any future "throw for a valid-somewhere construct"
-  must clear the same bar this one did: the analyzer structurally can't see it,
-  *and* the resolved target has no valid spelling. Absent both, the answer stays
-  ADR 0007's default — emit faithfully. Not every rejection of
-  valid-somewhere text runs through this bar: ADR 0017 is its own exception,
-  and the joined-target alias requirement (#258) and the call-site-defect
-  guards are decided in `guards-and-empty-states.md`; reconciling those
-  records with this one is open (#558, unit B5). One more is decided here:
-  the dialect-blind walk rejects a second `ON CONFLICT` on a held stage
-  although SQLite runs it, because the fluent chain does not offer the form
-  and the held-stage repeat is read as a reuse slip (#581; the full reason is
-  in `public-api-design.md` § "Opinions live in docs and the analyzer, not in
-  API holes").
+  than being silently bent. A future "throw for a valid-somewhere construct"
+  admitted under this ADR must clear the same bar this one did: the analyzer
+  structurally can't see it, *and* the resolved target has no valid spelling.
+  Absent both, the answer stays ADR 0007's default — emit faithfully — unless
+  the rejection is decided outside the bar in its own record. ADR 0017 is its
+  own exception, and the joined-target alias requirement (#258) and the
+  call-site-defect guards are decided in `guards-and-empty-states.md`;
+  reconciling those records with this ADR is open (#558, unit B5). One rejection
+  is decided outside the bar here: the dialect-blind walk rejects a second `ON
+  CONFLICT` on a held stage although SQLite runs it, because the fluent chain
+  does not offer the form and the held-stage repeat is read as a reuse slip
+  (#581; the full reason is in `public-api-design.md` § "Opinions live in docs
+  and the analyzer, not in API holes").
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should
