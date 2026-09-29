@@ -226,9 +226,9 @@ internal abstract class SqlBuilderBase
         ["INSERT WHERE", "DELETE WHERE"],
         ["INSERT WHERE", "UPDATE WHERE"]);
 
-    // A stage repeated on a held builder appends a duplicate clause, valid on no
-    // dialect (#225); a set operator and a conditioned join each open what they must
-    // also receive (ADR 0017; a MERGE WHEN's action pairing is MergeBuilder.Validate's).
+    // A stage repeated on a held builder appends a duplicate clause (#225); most are valid
+    // on no dialect, and SQLite's second ON CONFLICT is rejected by decision (#581). A set
+    // operator and a conditioned join open what they must also receive (ADR 0017).
     private void ThrowIfDuplicateClauseInBlock()
     {
         ulong seen = 0;

@@ -358,18 +358,31 @@ for it (#233).
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT
 (code) DO NOTHING` (3.45.1, live) and PostgreSQL 16 rejects the second
-clause, so the form is SQLite's alone. `DoUpdateSet(...)` returns its own
-stage, so an `OnConflict` added there later is additive, and it can return
-new stages whose actions carry `OnConflict` again; only `DoNothing()` and
-`DoUpdateSet(...).Where(...)` on the first clause return the shared
-`IReturning` and stay closed without a return-type change. Added later, then,
-it reaches every sequence whose first clause is an unfiltered `DO UPDATE`.
-The written order matters only for a row that violates two of the targets
-at once, where the first clause wins (live), so a leading `DO NOTHING` or
-filtered `DO UPDATE` can usually move behind an unfiltered one; one that
-must win over a later clause, or a statement with no unfiltered `DO UPDATE`
-to lead, stays unwritable. Reserving a stage type now would be a binary
-break paid for a form no caller has asked for (#581).
+clause, so the form is SQLite's alone.
+
+- *The fluent chain.* `DoUpdateSet(...)` returns its own stage, so an
+  `OnConflict` added there later is additive, and it can return new stages
+  whose actions carry `OnConflict` again; only `DoNothing()` and
+  `DoUpdateSet(...).Where(...)` on the first clause return the shared
+  `IReturning` and stay closed without a return-type change. Added later,
+  the chain reaches every sequence whose first clause is an unfiltered
+  `DO UPDATE`. The written order matters only for a row that violates two of
+  the targets at once, where the first clause wins (live), so a leading
+  `DO NOTHING` or filtered `DO UPDATE` can usually move behind an unfiltered
+  one; one that must win over a later clause, or a statement with no
+  unfiltered `DO UPDATE` to lead, stays out of the chain's reach.
+- *A held stage.* Calling `OnConflict` twice on a held stage compiles, and
+  the once-per-block walk (`SqlBuilderBase.ThrowIfDuplicateClauseInBlock`)
+  rejects the second clause at `Build()` on every dialect, SQLite included.
+  That departs from ADR 0007's test, which leaves text valid on some dialect
+  to the engine, and does so on purpose: the walk reads a stage called twice
+  on a held builder as a reuse slip, and emitting this one for SQLite would
+  make that slip the only spelling of a form the chain does not offer.
+  A duplicated `SET` list, which SQLite also runs and the library rejects as
+  a call-site defect (`guards-and-empty-states.md`), is the precedent.
+
+Reserving a stage type now would be a binary break paid for a form no caller
+has asked for (#581).
 
 ## Recorded trade-offs from the #149 freeze audit
 

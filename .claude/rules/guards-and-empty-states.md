@@ -310,6 +310,9 @@ than re-admit it. **The walk checks multiplicity and slot exclusivity, not
 clause order** (decided, pass 5, SD23): a held `ORDER BY ... WHERE` is the
 typestate's to prevent, and the walk stays a backstop for what the typestate
 cannot see — a repeated or stacked stage on one held instance.
+Some repeats it rejects are valid somewhere; SQLite's second `ON CONFLICT` is
+rejected on every dialect by decision (`public-api-design.md` § "Opinions…",
+#581).
 Its sixth pass extended slot exclusivity to the upsert (`ON CONFLICT` /
 `ON DUPLICATE KEY UPDATE`), conflict-action (`DO NOTHING` / `DO UPDATE SET`),
 and MERGE branch-action slots, paired a set operator with the `SELECT` that
