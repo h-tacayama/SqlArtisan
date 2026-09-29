@@ -52,11 +52,13 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 
 - **Boundary** (0007 + 0011 + 0012 + 0017) — *What does the library reject?*
   0007 draws the line (incomplete → reject; dialect availability →
-  permissive); 0011 carves one enumerated exception (aliased DML target on
-  SQL Server); 0012 adds value-domain guards (a universally invalid embedded
-  value also rejects); 0017 adds a second enumerated exception (an omitted
-  join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
-  are required to answer "will the library throw for this?"
+  permissive); 0011 carves one enumerated exception (aliased DML target on SQL
+  Server) and records one rejection decided outside its bar (SQLite's second
+  `ON CONFLICT` on a held stage, #581); 0012 adds value-domain guards (a
+  universally invalid embedded value also rejects); 0017 adds a second
+  enumerated exception (an omitted join predicate some dialects silently
+  reinterpret as `CROSS JOIN`). All four are required to answer "will the
+  library throw for this?"
 - **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019 + 0021 + 0022) — *How
   does the dialect analyzer work?* 0003 chooses the permissive-API +
   opt-in-analyzer approach; 0008 designs the override configuration; 0009
