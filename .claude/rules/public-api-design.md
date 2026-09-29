@@ -364,7 +364,9 @@ clause, so the form is SQLite's alone.
   `OnConflict` added there later is additive, and it can return new stages
   whose actions carry `OnConflict` again; only `DoNothing()` and
   `DoUpdateSet(...).Where(...)` on the first clause return the shared
-  `IReturning` and stay closed without a return-type change. Added later,
+  `IReturning`, which cannot take `OnConflict` without offering it on every
+  `UPDATE` and `DELETE` stage too, so they stay closed short of a
+  return-type change. Added later,
   the chain reaches every sequence whose first clause is an unfiltered
   `DO UPDATE`. The written order matters only for a row that violates two of
   the targets at once, where the first clause wins (live), so a leading
@@ -379,9 +381,6 @@ clause, so the form is SQLite's alone.
   stage called twice on a held builder as a reuse slip, and emitting this one
   for SQLite would make that slip the only spelling of a form the chain does
   not offer.
-  A `SET` list naming one column twice, which SQLite also runs and the
-  library rejects as a call-site defect (`guards-and-empty-states.md`), is
-  the precedent.
 
 Reserving a stage type now would be a binary break paid for a form no caller
 has asked for (#581).

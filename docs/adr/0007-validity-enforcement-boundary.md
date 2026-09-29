@@ -69,8 +69,8 @@ yes-somewhere → dialect availability → permissive.
   exception — an aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server — admitted only
   because the analyzer structurally cannot see the construct *and* the resolved
   target has no valid spelling at all; any further exception must clear the same
-  bar, or be enumerated in ADR 0011 as decided outside it (SQLite's second
-  `ON CONFLICT` on a held stage, #581).
+  bar or be recorded as decided outside it, as SQLite's second `ON CONFLICT`
+  on a held stage is in ADR 0011 (#581).
 - **A pseudo-column reference outside its context stays permissive.**
   `Sql.Excluded(...)` outside an upsert's `DO UPDATE SET`, or
   `Inserted`/`Deleted` under the wrong `OUTPUT` verb, builds and emits: each
