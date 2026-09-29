@@ -10,7 +10,7 @@ internal sealed class MergeInsertWhereClause(SqlCondition condition) : SqlPart
     {
         ConditionGuard.ThrowIfEmpty(
             _condition,
-            "A MERGE INSERT WHERE clause requires a condition.");
+            "A MERGE INSERT ... WHERE clause requires a condition.");
 
         buffer
             .Append($"{Keywords.Where} ")

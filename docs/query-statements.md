@@ -1219,15 +1219,15 @@ MergeInto(t)
 
 Oracle has no `AND` on `WHEN`, so `WhenMatched(condition)` and
 `WhenNotMatched(condition)` are not its spelling of a filtered branch. It puts
-the filter on the action instead, as a trailing `WHERE` — `UpdateWhere(...)`
-after `ThenUpdateSet(...)`, `InsertWhere(...)` after the insert's `Values(...)`:
+the filter on the action instead, as a trailing `WHERE` — `Where(...)` after
+`ThenUpdateSet(...)` or after the insert's `Values(...)`:
 
 ```csharp
 MergeInto(t)
     .Using(s)
     .On(t.Id == s.Id)
-    .WhenMatched().ThenUpdateSet(t.Name == s.Name).UpdateWhere(t.Name != s.Name)
-    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id, s.Name).InsertWhere(s.Name.IsNotNull)
+    .WhenMatched().ThenUpdateSet(t.Name == s.Name).Where(t.Name != s.Name)
+    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id, s.Name).Where(s.Name.IsNotNull)
     .Build(Dbms.Oracle);
 
 // MERGE INTO users "t"
@@ -1239,7 +1239,7 @@ MergeInto(t)
 
 A matched row the `UPDATE`'s filter turns away is left as it is — neither
 updated nor inserted. The filter goes before `DELETE WHERE`, which then reaches
-only the rows it let through: in `.UpdateWhere(t.Age < 45).DeleteWhere(t.Age >= 35)`,
+only the rows it let through: in `.Where(t.Age < 45).DeleteWhere(t.Age >= 35)`,
 a matched row aged 50 is neither updated nor deleted. The `INSERT`'s filter may
 name only source columns — an unmatched row has no target row, and Oracle
 rejects a target column there (observed on Oracle XE 21.3.0).
@@ -1302,7 +1302,7 @@ subquery source (`… .AsTable("s")`) instead.
 .WhenMatched(s.Status == "active").ThenUpdateSet(t.Name == s.Name)
 
 // Oracle's filtered branch: WHEN MATCHED THEN UPDATE SET ... WHERE ...
-.WhenMatched().ThenUpdateSet(t.Name == s.Name).UpdateWhere(s.Status == "active")
+.WhenMatched().ThenUpdateSet(t.Name == s.Name).Where(s.Status == "active")
 
 // Oracle in-clause DELETE: WHEN MATCHED THEN UPDATE SET ... DELETE WHERE ...
 .WhenMatched().ThenUpdateSet(t.Name == s.Name).DeleteWhere(t.Name.IsNull)

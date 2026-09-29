@@ -17,13 +17,10 @@ public interface IMergeBuilderThenUpdateSet : IMergeBuilderWhen
 
     /// <summary>
     /// Appends Oracle's <c>WHERE condition</c> to the <c>UPDATE SET</c>, updating only the matched
-    /// rows that satisfy it.
+    /// rows that satisfy it. On PostgreSQL and SQL Server, condition the branch with
+    /// <c>WhenMatched(condition)</c>.
     /// </summary>
     /// <param name="condition">The predicate over the target and source rows; literals it contains are auto-parameterized.</param>
     /// <returns>The builder positioned to append <c>DELETE WHERE</c>, chain another <c>WHEN</c> branch, or build.</returns>
-    /// <remarks>
-    /// Oracle syntax; PostgreSQL and SQL Server spell the filter
-    /// <c>WhenMatched(condition)</c>.
-    /// </remarks>
-    IMergeBuilderUpdateWhere UpdateWhere(SqlCondition condition);
+    IMergeBuilderUpdateWhere Where(SqlCondition condition);
 }

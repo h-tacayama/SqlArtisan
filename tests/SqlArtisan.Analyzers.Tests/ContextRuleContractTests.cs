@@ -152,6 +152,7 @@ public class ContextRuleContractTests
     [InlineData("OffsetRows")]
     [InlineData("With")]
     [InlineData("Returning")]
+    [InlineData("Where")]
     public void TriggerMember_ExistsInCoreApi(string methodName)
     {
         bool exists = Core.GetExportedTypes()
@@ -199,6 +200,18 @@ public class ContextRuleContractTests
         "IUpdateBuilderJoined",
         "IUpdateBuilderUpdate")]
     [InlineData("With", "IWithBuilder")]
+    [InlineData(
+        "Where",
+        "IDeleteBuilderDelete",
+        "IDeleteBuilderFrom",
+        "IDeleteBuilderUsing",
+        "IInsertBuilderDoUpdateSet",
+        "IMergeBuilderThenUpdateSet",
+        "IMergeBuilderValues",
+        "ISelectBuilderFrom",
+        "IUpdateBuilderFrom",
+        "IUpdateBuilderJoinedSet",
+        "IUpdateBuilderSet")]
     public void DmlShapeTrigger_IsDeclaredOnExactlyTheseInterfaces(
         string methodName, params string[] expected)
     {

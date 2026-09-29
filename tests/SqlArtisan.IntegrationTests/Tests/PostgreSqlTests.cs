@@ -803,6 +803,50 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // SQLA0102 (#587): PostgreSQL filters a MERGE branch on its WHEN and takes no
+    // WHERE after the action. The unfiltered actions run, so only the WHERE is rejected.
+    [Fact]
+    public void ContextRule_MergeActionWhere_Rejected()
+    {
+        UsersTable t = new("t");
+        UsersTable s = new("s");
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        using (IDbTransaction transaction = connection.BeginTransaction())
+        {
+            connection.Execute(
+                MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenMatched().ThenUpdateSet(t.Name == s.Name),
+                transaction);
+            connection.Execute(
+                MergeInto(t).Using(s).On(t.Id == s.Id + 900)
+                    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id + 900, s.Name),
+                transaction);
+            transaction.Rollback();
+        }
+
+        // One transaction each: a failed statement aborts PostgreSQL's transaction,
+        // so a second assertion in it would pass whatever its SQL.
+        using (IDbTransaction transaction = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<DbException>(() => connection.Execute(
+                MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenMatched().ThenUpdateSet(t.Name == s.Name).Where(t.Age < 35),
+                transaction));
+            transaction.Rollback();
+        }
+
+        using (IDbTransaction transaction = connection.BeginTransaction())
+        {
+            Assert.ThrowsAny<DbException>(() => connection.Execute(
+                MergeInto(t).Using(s).On(t.Id == s.Id + 900)
+                    .WhenNotMatched().ThenInsert(t.Id, t.Name).Values(s.Id + 900, s.Name)
+                    .Where(s.Age < 35),
+                transaction));
+            transaction.Rollback();
+        }
+    }
+
     [Fact] // SQLSTATE 0A000. The ungrouped lock is proven by the dialect sweep's
            // ForUpdate case, so the GROUP BY is the only difference.
     public void ContextRule_ForUpdateAfterGroupBy_Rejected()

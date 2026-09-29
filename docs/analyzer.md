@@ -573,8 +573,8 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Fourteen rules ship today — nine reading
-the construct's surroundings, five reading the DML statement a clause sits in.
+expression where the construct is used. Fifteen rules ship today — nine reading
+the construct's surroundings, six reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
 Server 2022.
@@ -699,13 +699,13 @@ var q = InsertInto(u, u.Id, u.Name).Values(1, "x").Returning(u.Id).Build();
 
 ### DML statement shapes
 
-A joined `UPDATE` or `DELETE`, or a `WITH` inside `INSERT ... SELECT`, has a
-different grammar on some engines, and SqlArtisan emits whichever one you write.
-The five rules below name the engines that reject the spelling; where a spelling
+A joined `UPDATE` or `DELETE`, a `WITH` inside `INSERT ... SELECT`, or a filter
+on a `MERGE` action has a different grammar on some engines, and SqlArtisan
+emits whichever one you write. The six rules below name the engines that reject the spelling; where a spelling
 has no valid form at all on the resolved dialect, `Build(Dbms)` throws instead
 and no warning is needed.
 
-These five are settled by the builder stage the call binds to rather than by
+These six are settled by the builder stage the call binds to rather than by
 reading the chain, so they still warn when the builder is held in a variable —
 as the `RETURNING` rule does, since it reads only what follows the call; the
 rules that read back up the chain stay silent there.
@@ -768,6 +768,20 @@ statement. Lead with it instead — `With(...).InsertInto(t, ...).Select(...)`.
 var q = InsertInto(u, u.Id).With(c.As(Select(o.UserId).From(o)))
     .Select(c.Column(o.UserId)).From(c);
 // warning SQLA0102: 'With' is not supported between INSERT INTO and its SELECT on SQL Server
+```
+
+**A `WHERE` on a `MERGE` action.** `Where(...)` after `ThenUpdateSet(...)` or
+after the insert's `Values(...)` is Oracle's filtered branch, a trailing `WHERE`
+on the action. PostgreSQL and SQL Server have no such clause; their filtered
+branch conditions the `WHEN` instead — `WhenMatched(condition)` or
+`WhenNotMatched(condition)`.
+MySQL and SQLite have no `MERGE`, which `SQLA0100` already reports.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = MergeInto(t).Using(s).On(t.Id == s.Id)
+    .WhenMatched().ThenUpdateSet(t.Name == s.Name).Where(t.Name != s.Name);
+// warning SQLA0102: 'Where' is not supported as a filter on a MERGE action on PostgreSQL
 ```
 
 Not in this family: an `UPDATE ... FROM` that re-lists the target table. That

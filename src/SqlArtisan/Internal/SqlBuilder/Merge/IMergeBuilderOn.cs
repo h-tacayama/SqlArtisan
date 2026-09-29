@@ -21,7 +21,7 @@ public interface IMergeBuilderOn
     /// <param name="extraCondition">The extra predicate the matched rows must satisfy.</param>
     /// <remarks>PostgreSQL (15+) and SQL Server syntax. Oracle has no <c>AND</c> on a
     /// <c>WHEN</c> branch; its filter is a trailing <c>WHERE</c> on the action:
-    /// <c>ThenUpdateSet(...).UpdateWhere(...)</c>.</remarks>
+    /// <c>ThenUpdateSet(...).Where(...)</c>.</remarks>
     /// <returns>The builder positioned to supply the matched action (<c>UPDATE</c> or <c>DELETE</c>).</returns>
     IMergeBuilderWhenMatched WhenMatched(SqlCondition extraCondition);
 
@@ -40,7 +40,7 @@ public interface IMergeBuilderOn
     /// <param name="extraCondition">The extra predicate the unmatched source rows must satisfy.</param>
     /// <remarks>PostgreSQL (15+) and SQL Server syntax. Oracle has no <c>AND</c> on a
     /// <c>WHEN</c> branch; its filter is a trailing <c>WHERE</c> on the action:
-    /// <c>ThenInsert(...).Values(...).InsertWhere(...)</c>.</remarks>
+    /// <c>ThenInsert(...).Values(...).Where(...)</c>.</remarks>
     /// <returns>The builder positioned to supply the not-matched action (typically <c>INSERT</c>).</returns>
     IMergeBuilderWhenNotMatched WhenNotMatched(SqlCondition extraCondition);
 

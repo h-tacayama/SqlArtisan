@@ -58,6 +58,11 @@ separate, deliberate decision.
   `Rollup()` → `ArgumentException`, null → `ArgumentNullException`).
 - **When to reach for it** — dialect availability or the sibling to use instead,
   in `<remarks>`; reference a param in prose with `<paramref name="x"/>`.
+  A member restricted only by its **position** (an SQLA0102 context rule, whose
+  matrix entry it shares with an unrestricted spelling — `Update(t).InnerJoin`,
+  MERGE's action `Where`) names its dialects in `<summary>` instead:
+  `XmlDocDialectParityTests` checks a `<remarks>` dialect list against the
+  member's matrix entry, which for such a member is the shared, unrestricted one.
 
 ## Leave out
 

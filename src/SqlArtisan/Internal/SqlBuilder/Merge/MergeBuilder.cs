@@ -34,12 +34,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
-    public IMergeBuilderWhen InsertWhere(SqlCondition condition)
-    {
-        AddPart(new MergeInsertWhereClause(condition));
-        return this;
-    }
-
     public IMergeBuilderOn On(SqlCondition condition)
     {
         AddPart(new MergeOnClause(condition));
@@ -86,12 +80,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         params EqualityCondition[] assignments)
     {
         AddPart(MergeUpdateSetClause.Parse(assignments));
-        return this;
-    }
-
-    public IMergeBuilderUpdateWhere UpdateWhere(SqlCondition condition)
-    {
-        AddPart(new MergeUpdateWhereClause(condition));
         return this;
     }
 
@@ -158,6 +146,19 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     {
         AddPart(new WhenNotMatchedBySourceClause(
             NullGuard.ThrowIfNull(extraCondition, nameof(extraCondition))));
+        return this;
+    }
+
+    // Where, like ThenUpdateSet, differs only by return type between its two stages.
+    IMergeBuilderUpdateWhere IMergeBuilderThenUpdateSet.Where(SqlCondition condition)
+    {
+        AddPart(new MergeUpdateWhereClause(condition));
+        return this;
+    }
+
+    IMergeBuilderWhen IMergeBuilderValues.Where(SqlCondition condition)
+    {
+        AddPart(new MergeInsertWhereClause(condition));
         return this;
     }
 

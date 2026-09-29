@@ -696,26 +696,26 @@ public class BuilderReuseTests
     }
 
     [Fact]
-    public void UpdateWhere_Twice_OnHeldBranch_ThrowsArgumentException()
+    public void UpdateActionWhere_Twice_OnHeldBranch_ThrowsArgumentException()
     {
         TestTable t = new("t");
         TestTable s = new("s");
         IMergeBuilderThenUpdateSet held =
             MergeInto(t).Using(s).On(t.Code == s.Code)
             .WhenMatched().ThenUpdateSet(t.Name == s.Name);
-        held.UpdateWhere(t.Code == 1);
-        ISqlBuilder second = held.UpdateWhere(t.Code == 2);
+        held.Where(t.Code == 1);
+        ISqlBuilder second = held.Where(t.Code == 2);
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() => second.Build(Dbms.Oracle));
 
         Assert.Equal(
-            "A MERGE WHEN branch takes at most one UPDATE WHERE clause; "
+            "A MERGE WHEN branch takes at most one UPDATE SET ... WHERE clause; "
                 + "a stage on a held builder was called twice.",
             ex.Message);
     }
 
     [Fact]
-    public void InsertWhere_AfterTheNextBranch_OnHeldStage_ThrowsArgumentException()
+    public void InsertActionWhere_AfterTheNextBranch_OnHeldStage_ThrowsArgumentException()
     {
         // The held INSERT's filter lands in the UPDATE branch that followed it.
         TestTable t = new("t");
@@ -724,12 +724,12 @@ public class BuilderReuseTests
             MergeInto(t).Using(s).On(t.Code == s.Code)
             .WhenNotMatched().ThenInsert(t.Code, t.Name).Values(s.Code, s.Name);
         held.WhenMatched().ThenUpdateSet(t.Name == s.Name);
-        ISqlBuilder second = held.InsertWhere(s.Code > 0);
+        ISqlBuilder second = held.Where(s.Code > 0);
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() => second.Build(Dbms.Oracle));
 
         Assert.Equal(
-            "A MERGE WHEN branch takes one action; INSERT WHERE cannot be combined with "
+            "A MERGE WHEN branch takes one action; INSERT ... WHERE cannot be combined with "
                 + "UPDATE SET, and a stage on a held builder supplied both.",
             ex.Message);
     }

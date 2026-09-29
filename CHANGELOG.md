@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `IUpdateBuilderOutputInto`). As with #568, only code that writes the type name
   needs a source change, and an assembly compiled against an earlier version
   must be rebuilt. (#580)
+- **Breaking:** renamed Oracle's `MERGE` action filters `UpdateWhere(...)` and
+  `InsertWhere(...)` to `Where(...)`, since the clause is a plain `WHERE`: Oracle
+  has no `UPDATE WHERE` or `INSERT WHERE` token. The emitted SQL is unchanged.
+  The analyzer now reports the filter on PostgreSQL and SQL Server as `SQLA0102`
+  (a `WHERE` in a position those engines reject) instead of `SQLA0100`, and the
+  guard messages name the clauses `UPDATE SET ... WHERE` and `INSERT ... WHERE`
+  instead of `UPDATE WHERE` and `INSERT WHERE`. Every caller needs a source
+  change and a rebuild. (#587)
 - **Breaking:** `WithRecursive(...)` no longer emits a CTE column list derived
   from the first query block: `WITH RECURSIVE "c" AS (...)`, not
   `WITH RECURSIVE "c"(id) AS (...)`. Every engine that accepts `RECURSIVE`
