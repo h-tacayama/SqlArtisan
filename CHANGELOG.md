@@ -37,8 +37,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   The analyzer now reports the filter on PostgreSQL and SQL Server as `SQLA0102`
   (a `WHERE` in a position those engines reject) instead of `SQLA0100`, and the
   guard messages name the clauses `UPDATE SET ... WHERE` and `INSERT ... WHERE`
-  instead of `UPDATE WHERE` and `INSERT WHERE`. Every caller needs a source
-  change and a rebuild. (#587)
+  instead of `UPDATE WHERE` and `INSERT WHERE`. The override keys
+  `sqlartisan_construct_update_where` and `sqlartisan_construct_insert_where`
+  no longer apply, and nothing warns that they are stale; suppress `SQLA0102`
+  by its ID instead. On MySQL and SQLite the filter itself is no longer
+  reported; `SQLA0100` still reports `MergeInto` there. Every caller needs a
+  source change and a rebuild. (#587)
 - **Breaking:** `WithRecursive(...)` no longer emits a CTE column list derived
   from the first query block: `WITH RECURSIVE "c" AS (...)`, not
   `WITH RECURSIVE "c"(id) AS (...)`. Every engine that accepts `RECURSIVE`
