@@ -111,6 +111,10 @@ Copy from `Sql.C.cs`: `Ceil`/`Ceiling` (`<remarks>` cross-ref) and `Cast`
   list disambiguates), then add `<param>` only for new args. If adding any
   `<param>` trips **CS1573**, re-list the inherited params too — required, not
   redundant.
+- A member that inherits a doc but states its own `<returns>` (or any other
+  tag the source also has) must exclude that tag from the inherit —
+  `path="/*[not(self::returns)]"`: IntelliSense keeps the **first** of two
+  same-named tags, which is the inherited one, so the local text never shows.
 - Overloads that genuinely differ in behavior (not just arity) are **not** a
   family — document each in full (e.g. `Trim(object)` → `TRIM(x)` vs
   `Trim(object, object)` → `TRIM(BOTH c FROM x)`).

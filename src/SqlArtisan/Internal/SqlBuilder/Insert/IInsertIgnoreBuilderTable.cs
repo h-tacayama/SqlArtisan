@@ -14,15 +14,15 @@ public interface IInsertIgnoreBuilderTable
     /// <returns>The builder positioned to build.</returns>
     IInsertIgnoreBuilderSet Set(params EqualityCondition[] assignments);
 
-    /// <inheritdoc cref="IInsertBuilderTable.Values(object[])"/>
+    /// <inheritdoc cref="IInsertBuilderTable.Values(object[])" path="/*[not(self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(params object[] values);
 
-    /// <inheritdoc cref="IInsertBuilderTable.Values(IEnumerable{object[]})" path="/*[not(self::remarks)]"/>
+    /// <inheritdoc cref="IInsertBuilderTable.Values(IEnumerable{object[]})" path="/*[not(self::remarks or self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(IEnumerable<object[]> rows);
 
-    /// <inheritdoc cref="IInsertBuilderTable.Values(object[][])" path="/*[not(self::remarks)]"/>
+    /// <inheritdoc cref="IInsertBuilderTable.Values(object[][])" path="/*[not(self::remarks or self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(object[][] rows);
 }
