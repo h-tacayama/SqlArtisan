@@ -58,8 +58,8 @@ internal sealed class ReturningBuilder : IReturningBuilder
         if (outputs.Length != _expressions.Length)
         {
             throw new ArgumentException(
-                "INTO requires one output parameter per RETURNING expression " +
-                $"({_expressions.Length} expected, {outputs.Length} provided).");
+                "INTO requires one output parameter per RETURNING expression "
+                + $"({_expressions.Length} expected, {outputs.Length} provided).");
         }
 
         for (int i = 0; i < _expressions.Length; i++)

@@ -1,9 +1,7 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after a <c>VALUES</c> row on an <c>INSERT IGNORE</c>: append more rows or build. No
-/// upsert clause — <c>INSERT IGNORE</c> already resolves duplicate-key conflicts — and no
-/// <c>RETURNING</c>, which MySQL lacks.
+/// The state after a <c>VALUES</c> row on an <c>INSERT IGNORE</c>: append more rows or build.
 /// </summary>
 public interface IInsertIgnoreBuilderValues : ISqlBuilder
 {

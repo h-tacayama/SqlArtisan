@@ -77,9 +77,8 @@ internal sealed class InsertBuilder(
         return this;
     }
 
-    // The narrowed INSERT IGNORE chain reuses the same builder; only the static
-    // return type drops IUpsert, so ON CONFLICT / ON DUPLICATE KEY UPDATE can't
-    // be chained after INSERT IGNORE (ODKU would override IGNORE — nonsense SQL).
+    // The INSERT IGNORE stages drop IReturning (MySQL has none) and IUpsert (an
+    // upsert after IGNORE is not offered; public-api-design.md § "Opinions…").
     IInsertIgnoreBuilderSet IInsertIgnoreBuilderTable.Set(params EqualityCondition[] assignments) =>
         (IInsertIgnoreBuilderSet)Set(assignments);
 
@@ -150,7 +149,7 @@ internal sealed class InsertBuilder(
 
     protected override void Validate(Dbms dbms)
     {
-        // The base TOP guards still apply to the INSERT ... SELECT chain, which
+        // The SELECT guards still apply to the INSERT ... SELECT chain, which
         // inherits the whole SELECT surface.
         base.Validate(dbms);
 
@@ -179,8 +178,8 @@ internal sealed class InsertBuilder(
             if (countable && selectItems.Length != columnCount)
             {
                 throw new ArgumentException(
-                    $"The INSERT column list declares {columnCount} column(s), " +
-                    $"but the SELECT list has {selectItems.Length} item(s).");
+                    $"The INSERT column list declares {columnCount} column(s), "
+                    + $"but the SELECT list has {selectItems.Length} item(s).");
             }
         }
 
@@ -228,8 +227,8 @@ internal sealed class InsertBuilder(
                 if (columnCount > 0 && resolvedRow.Length != columnCount)
                 {
                     throw new ArgumentException(
-                        $"The INSERT column list declares {columnCount} column(s), " +
-                        $"but this VALUES row has {resolvedRow.Length} value(s).");
+                        $"The INSERT column list declares {columnCount} column(s), "
+                        + $"but this VALUES row has {resolvedRow.Length} value(s).");
                 }
 
                 expectedWidth = resolvedRow.Length;
@@ -237,8 +236,8 @@ internal sealed class InsertBuilder(
             else if (resolvedRow.Length != expectedWidth)
             {
                 throw new ArgumentException(
-                    "All rows in a multi-row INSERT must have the same number of values; " +
-                    $"the first row has {expectedWidth}, but this row has {resolvedRow.Length}.");
+                    "All rows in a multi-row INSERT must have the same number of values; "
+                    + $"the first row has {expectedWidth}, but this row has {resolvedRow.Length}.");
             }
 
             resolved.Add(resolvedRow);
@@ -263,9 +262,8 @@ internal sealed class InsertBuilder(
         }
     }
 
-    // The single-row append shared by every Values overload. A repeat call grows
-    // the held clause via AddRow (which validates row width), bypassing AddPart's
-    // once-per-part guard.
+    // A repeat Values(...) call grows the held clause (AddRow checks its width)
+    // rather than adding a second VALUES part.
     private void AddValuesRow(object[] values)
     {
         if (values is null)
@@ -279,8 +277,8 @@ internal sealed class InsertBuilder(
             if (columnCount > 0 && values.Length > 0 && values.Length != columnCount)
             {
                 throw new ArgumentException(
-                    $"The INSERT column list declares {columnCount} column(s), " +
-                    $"but this VALUES row has {values.Length} value(s).");
+                    $"The INSERT column list declares {columnCount} column(s), "
+                    + $"but this VALUES row has {values.Length} value(s).");
             }
 
             _valuesClause = InsertValuesClause.Parse(values);

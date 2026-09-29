@@ -96,6 +96,16 @@ stages carries no `Builder` (`IPagination`, `IForUpdate`, `IJoinOperator`,
 `ISetOperator`, `IUpsert`, `IReturning`); `IReturning` also ends an upsert
 action (`DoNothing()`, `DoUpdateSet(...).Where(...)`).
 
+**A member that returns a capability shared across statements ends its
+statement's chain.** `IReturning` and `ISqlBuilder` are shared by several
+statements' stages, so a clause that may follow such a member in its own
+statement can later be added only by offering it on every stage that shares
+the capability, or by changing the member's return type (a binary break).
+Before 1.0, check each such member against the engines' grammar for a clause
+that can follow it, and either give the member its own stage or record the
+continuation as not offered — #581's record under "Opinions…" is the worked
+example.
+
 Why not name every stage after the method that returns it: several methods
 land on one stage (`ISelectBuilderFrom`), and a method's name is not the
 clause it writes (`MergeInto` writes the target, `OffsetRows` the `OFFSET`)
@@ -165,6 +175,13 @@ same-name same-arity overloads collide into a support union.
 > while `List<T>`, arrays, and sets all do — so `IReadOnlyCollection<T>`
 > keeps strings on the `params` path and still covers every runtime
 > collection.
+
+**Recorded scope — `Values(IEnumerable<object[]> rows)`:** the hazard needs a
+single value that is itself a collection of the element type, and no value
+SqlArtisan binds is an `IEnumerable<object[]>`. `IEnumerable` is what lets a
+lazy sequence of rows pass straight through; typed `IReadOnlyCollection`, a
+lazy sequence would fall to `params object[]` as one value and be rejected
+at the call. `Values_LazyRowSequence_CorrectSql` pins the lazy path.
 
 ## Separator/format-string parameters: `string` = inline literal, `object` = bound
 
@@ -354,6 +371,22 @@ reading, after measuring:
 
 `COUNT(*)` sat on the other side of that line: the library had no spelling
 for it (#233).
+
+**Not yet offered (#582):** the A3 review found these DML forms with no
+spelling here. Each would be a new member, overload or factory, which
+`docs/versioning.md` counts as a minor change, and one is added when a user
+needs it (ADR 0010), so a later audit that finds one missing has found this
+list, not a new hole:
+`INSERT ... SELECT` followed by `RETURNING`, `ON CONFLICT` or
+`ON DUPLICATE KEY UPDATE`; `MERGE ... OUTPUT` (SQL Server) and
+`MERGE ... RETURNING` (PostgreSQL 17); an `ON CONFLICT` target with an index
+predicate, an expression, or `ON CONSTRAINT`; `DEFAULT VALUES` and a `DEFAULT`
+value; `INSERT IGNORE ... ON DUPLICATE KEY UPDATE`; SQLite's
+`INSERT OR IGNORE` / `OR REPLACE` and MySQL's `REPLACE`; MySQL's
+`UPDATE`/`DELETE ... ORDER BY [LIMIT]`, multi-target `DELETE` and
+`UPDATE`/`DELETE IGNORE`; PostgreSQL's `OVERRIDING SYSTEM VALUE`; Oracle's
+`INSERT ALL`/`INSERT FIRST`. Several ON CONFLICT clauses in one `INSERT` are
+decided separately, below.
 
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT

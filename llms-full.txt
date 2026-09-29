@@ -1577,9 +1577,8 @@ SqlStatement sql =
 
 `IGNORE` downgrades the statement's errors to warnings — not only duplicate keys
 but foreign-key violations and out-of-range values, whose rows are skipped or
-coerced. On PostgreSQL and SQLite the do-nothing
-insert is `ON CONFLICT DO NOTHING` (above), so SQLite's `INSERT OR IGNORE` is not
-exposed separately.
+coerced. On PostgreSQL and SQLite, SqlArtisan's do-nothing insert is
+`ON CONFLICT DO NOTHING` (above); SQLite's `INSERT OR IGNORE` is not exposed.
 
 ---
 

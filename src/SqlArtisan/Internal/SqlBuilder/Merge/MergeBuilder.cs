@@ -28,7 +28,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
 
     public SqlStatement Build(Dbms dbms) => BuildCore(dbms);
 
-    // Shared by IMergeBuilderThenUpdateSet and IMergeBuilderUpdateWhere.
     public IMergeBuilderWhen DeleteWhere(SqlCondition condition)
     {
         AddPart(new MergeDeleteWhereClause(condition));
@@ -47,8 +46,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
-    // Shared by IMergeBuilderWhenMatched and IMergeBuilderWhenNotMatchedBySource
-    // (same signature and return type), so one implementation satisfies both.
     public IMergeBuilderWhen ThenDelete()
     {
         AddPart(new MergeDeleteClause());
@@ -115,8 +112,8 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
             && values.Length != _pendingInsertColumnCount)
         {
             throw new ArgumentException(
-                $"The INSERT column list declares {_pendingInsertColumnCount} column(s), " +
-                $"but this VALUES row has {values.Length} value(s).");
+                $"The INSERT column list declares {_pendingInsertColumnCount} column(s), "
+                + $"but this VALUES row has {values.Length} value(s).");
         }
 
         AddPart(InsertValuesClause.Parse(values));
@@ -164,8 +161,6 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
-    // SQL Server requires a MERGE to end in a semicolon; the dialect supplies it
-    // (empty for every other DBMS, leaving their output unchanged).
     protected override void AppendTrailing(SqlBuildingBuffer buffer) =>
         buffer.AppendMergeTerminator();
 

@@ -11,11 +11,11 @@ public interface IInsertIgnoreBuilderColumns : ISelectBuilder, IWithBuilder
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(params object[] values);
 
-    /// <inheritdoc cref="IInsertBuilderColumns.Values(IEnumerable{object[]})"/>
+    /// <inheritdoc cref="IInsertBuilderColumns.Values(IEnumerable{object[]})" path="/*[not(self::remarks)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(IEnumerable<object[]> rows);
 
-    /// <inheritdoc cref="IInsertBuilderColumns.Values(object[][])"/>
+    /// <inheritdoc cref="IInsertBuilderColumns.Values(object[][])" path="/*[not(self::remarks)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(object[][] rows);
 }

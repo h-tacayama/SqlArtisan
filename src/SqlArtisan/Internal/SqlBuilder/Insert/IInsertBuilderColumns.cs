@@ -20,16 +20,11 @@ public interface IInsertBuilderColumns : ISelectBuilder, IWithBuilder
     /// </summary>
     /// <param name="rows">The rows, each an array of values in column order; must be non-empty, and every row must be the same width.</param>
     /// <returns>The builder positioned to append more rows, add <c>RETURNING</c> or an upsert clause, or build.</returns>
+    /// <remarks>MySQL, Oracle, PostgreSQL, SQLite, and SQL Server — on Oracle
+    /// version-bound when it emits more than one row: 21c rejects a multi-row
+    /// <c>VALUES</c>, 23ai accepts it.</remarks>
     IInsertBuilderValues Values(IEnumerable<object[]> rows);
 
-    /// <summary>
-    /// Appends one <c>VALUES (...)</c> row per element of the
-    /// <paramref name="rows"/> array — the array-typed sibling of the
-    /// <see cref="IEnumerable{T}"/> overload, so a jagged <c>object[][]</c>
-    /// (e.g. a <c>.Select(...).ToArray()</c>) is not ambiguous with the
-    /// <c>params object[]</c> form.
-    /// </summary>
-    /// <param name="rows">The rows, each an array of values in column order; must be non-empty, and every row must be the same width.</param>
-    /// <returns>The builder positioned to append more rows, add <c>RETURNING</c> or an upsert clause, or build.</returns>
+    /// <inheritdoc cref="Values(IEnumerable{object[]})"/>
     IInsertBuilderValues Values(object[][] rows);
 }

@@ -18,11 +18,11 @@ public interface IInsertIgnoreBuilderTable
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(params object[] values);
 
-    /// <inheritdoc cref="IInsertBuilderTable.Values(IEnumerable{object[]})"/>
+    /// <inheritdoc cref="IInsertBuilderTable.Values(IEnumerable{object[]})" path="/*[not(self::remarks)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(IEnumerable<object[]> rows);
 
-    /// <inheritdoc cref="IInsertBuilderTable.Values(object[][])"/>
+    /// <inheritdoc cref="IInsertBuilderTable.Values(object[][])" path="/*[not(self::remarks)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(object[][] rows);
 }
