@@ -374,12 +374,14 @@ clause, so the form is SQLite's alone.
 - *A held stage.* Calling `OnConflict` twice on a held stage compiles, and
   the once-per-block walk (`SqlBuilderBase.ThrowIfDuplicateClauseInBlock`)
   rejects the second clause at `Build()` on every dialect, SQLite included.
-  That departs from ADR 0007's test, which leaves text valid on some dialect
-  to the engine, and does so on purpose: the walk reads a stage called twice
-  on a held builder as a reuse slip, and emitting this one for SQLite would
-  make that slip the only spelling of a form the chain does not offer.
-  A duplicated `SET` list, which SQLite also runs and the library rejects as
-  a call-site defect (`guards-and-empty-states.md`), is the precedent.
+  That departs on purpose from ADR 0007's test, which leaves text valid on
+  some dialect to the engine, and ADR 0011 enumerates it: the walk reads a
+  stage called twice on a held builder as a reuse slip, and emitting this one
+  for SQLite would make that slip the only spelling of a form the chain does
+  not offer.
+  A `SET` list naming one column twice, which SQLite also runs and the
+  library rejects as a call-site defect (`guards-and-empty-states.md`), is
+  the precedent.
 
 Reserving a stage type now would be a binary break paid for a form no caller
 has asked for (#581).
