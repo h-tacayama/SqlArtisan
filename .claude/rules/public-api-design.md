@@ -359,16 +359,17 @@ for it (#233).
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT
 (code) DO NOTHING` (3.45.1, live) and PostgreSQL 16 rejects the second
 clause, so the form is SQLite's alone. `DoUpdateSet(...)` returns its own
-stage, so an `OnConflict` added there later is additive; after `DoNothing()`
-or `DoUpdateSet(...).Where(...)`, which return the shared `IReturning`, it
-would take a return-type change. Added later, then, it reaches the
-sequences in which every clause but the last is an unfiltered `DO UPDATE`.
+stage, so an `OnConflict` added there later is additive, and it can return
+new stages whose actions carry `OnConflict` again; only `DoNothing()` and
+`DoUpdateSet(...).Where(...)` on the first clause return the shared
+`IReturning` and stay closed without a return-type change. Added later, then,
+it reaches every sequence whose first clause is an unfiltered `DO UPDATE`.
 The written order matters only for a row that violates two of the targets
-at once, where the first clause wins (live), so a statement with one
-`DO NOTHING` or filtered `DO UPDATE` can usually move it last; two of them,
-or one that must win over a later clause, stay unwritable. Reserving a
-stage type now would be a binary break paid for a form no caller has asked
-for (#581).
+at once, where the first clause wins (live), so a leading `DO NOTHING` or
+filtered `DO UPDATE` can usually move behind an unfiltered one; one that
+must win over a later clause, or a statement with no unfiltered `DO UPDATE`
+to lead, stays unwritable. Reserving a stage type now would be a binary
+break paid for a form no caller has asked for (#581).
 
 ## Recorded trade-offs from the #149 freeze audit
 
