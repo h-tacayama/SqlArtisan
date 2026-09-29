@@ -69,7 +69,8 @@ the full rationale.
   from the `OUTPUT` list.
   These are call-site defects rejected whatever the engine does — eagerly,
   but for the joined-`UPDATE` arm above, which decides at `Build()` once the
-  shape is final — not ADR 0012 domain guards: only a duplicated CTE name is
+  shape is final, and the `OUTPUT ... INTO` width check, which also runs at
+  `Build()` — not ADR 0012 domain guards: only a duplicated CTE name is
   rejected everywhere.
   Live-verified (PostgreSQL 16, MySQL 8.0, SQLite 3.45): PostgreSQL rejects a
   duplicated `INSERT` list, `SET` list, and `USING` list but accepts a

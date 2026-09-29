@@ -7,15 +7,15 @@ namespace SqlArtisan.Internal;
 /// </summary>
 public interface IInsertIgnoreBuilderColumns : ISelectBuilder, IWithBuilder
 {
-    /// <inheritdoc cref="IInsertBuilderColumns.Values(object[])"/>
+    /// <inheritdoc cref="IInsertBuilderColumns.Values(object[])" path="/*[not(self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(params object[] values);
 
-    /// <inheritdoc cref="IInsertBuilderColumns.Values(IEnumerable{object[]})"/>
+    /// <inheritdoc cref="IInsertBuilderColumns.Values(IEnumerable{object[]})" path="/*[not(self::remarks or self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(IEnumerable<object[]> rows);
 
-    /// <inheritdoc cref="IInsertBuilderColumns.Values(object[][])"/>
+    /// <inheritdoc cref="IInsertBuilderColumns.Values(object[][])" path="/*[not(self::remarks or self::returns)]"/>
     /// <returns>The builder positioned to append more rows or build.</returns>
     IInsertIgnoreBuilderValues Values(object[][] rows);
 }

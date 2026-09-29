@@ -148,6 +148,29 @@ public class MultiRowInsertTests
     }
 
     [Fact]
+    public void Values_LazyRowSequence_CorrectSql()
+    {
+        IEnumerable<object[]> rows = LazyRows();
+        Assert.False(rows is IReadOnlyCollection<object[]>);
+
+        SqlStatement sql =
+            InsertInto(_t, _t.Code, _t.Name)
+            .Values(rows)
+            .Build();
+
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) VALUES (:0, :1), (:2, :3)",
+            sql.Text);
+        Assert.Equal(4, sql.Parameters.Count);
+
+        static IEnumerable<object[]> LazyRows()
+        {
+            yield return [1, "a"];
+            yield return [2, "b"];
+        }
+    }
+
+    [Fact]
     public void Values_LargeRowCollection_MatchesChainedParameterCount()
     {
         const int rowCount = 500;

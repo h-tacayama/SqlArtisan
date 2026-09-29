@@ -1,8 +1,8 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>WHEN NOT MATCHED [AND ...] THEN</c>: insert a new row. Name
-/// the target columns, then supply their values via
+/// The state after <c>WHEN NOT MATCHED [AND ...] THEN</c>: insert a new row, with a
+/// column list or positionally, then supply its values via
 /// <see cref="IMergeBuilderThenInsert"/>.
 /// </summary>
 public interface IMergeBuilderWhenNotMatched
