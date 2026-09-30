@@ -116,8 +116,9 @@ statement at `RETURNING`.
 
 The same check covers what a return type drops: a member whose stage stops
 carrying a capability its receiver carries, such as `ISubquery`, removes that
-position for every caller, and restoring it is the same binary break
-(`ForUpdate(...)`, #590). Swept (#590): the other members that leave
+position for every caller, or leaves an `object` overload to take it in another
+form (`In(...)` read a locked query as a one-value list), and restoring it is
+the same binary break (`ForUpdate(...)`, #590). Swept (#590): the other members that leave
 `ISubquery` behind return a stage that still awaits a clause — a join's
 `ON`/`USING` (`ISelectBuilderJoin`) or a set operator's right-hand query
 (`ISelectBuilderSetOperator`) — which is no complete query to embed.

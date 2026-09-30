@@ -22,7 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   takes `FOR UPDATE` only in a top-level `SELECT`. Each rejection is
   live-verified on Oracle XE 21.3.0 and Free 23ai, as is MySQL 8.0's and
   PostgreSQL 16's acceptance of a locked `IN` subquery, CTE body and derived
-  table. A locked query held in a variable first stays silent. (#590)
+  table. A locked query held first in a `var`, which takes the `ForUpdate`
+  stage's type, stays silent. (#590)
 
 ### Changed
 - **Breaking:** `ForUpdate(...)` now returns its own stage,
@@ -33,8 +34,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   SqlArtisan.Dapper member that takes one accepts it unchanged; an inferred
   type now resolves to the stage, so `cond ? q.ForUpdate() : q`, an implicitly
   typed array mixing the two, or a `var` later assigned another builder needs an
-  explicit `ISqlBuilder`. An assembly compiled against an earlier version must
-  be rebuilt. (#590)
+  explicit `ISqlBuilder`. `In(...)` and `NotIn(...)` over a locked query, which
+  compiled before through their `object` overloads as a one-value list
+  (`id IN ((SELECT ... FOR UPDATE))`), now bind to the subquery overloads and
+  emit `id IN (SELECT ... FOR UPDATE)`. An assembly compiled against an earlier
+  version must be rebuilt. (#590)
 - **Breaking:** renamed the stage types `Limit(...)` and `OffsetRows(...)`
   return to follow the other stages' `I<Statement>Builder<State>` names:
   `ILimitOffsetBuilder` → `ISelectBuilderLimitOffset`, `IOffsetFetchBuilder` →

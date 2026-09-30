@@ -455,7 +455,19 @@ internal static class ContextRules
             _ => null,
         };
         return member is not null
-            && DialectUsageAnalyzer.IsFromSqlArtisan(member.ContainingAssembly);
+            && DialectUsageAnalyzer.IsFromSqlArtisan(member.ContainingAssembly)
+            && !OverridesObjectMember(member);
+    }
+
+    // SqlExpression.Equals(object) compares references and builds no SQL.
+    private static bool OverridesObjectMember(IMethodSymbol member)
+    {
+        while (member.OverriddenMethod is { } overridden)
+        {
+            member = overridden;
+        }
+
+        return member.ContainingType.SpecialType == SpecialType.System_Object;
     }
 
     // A result held as IReturningBuilder can still take Into on a later line, so

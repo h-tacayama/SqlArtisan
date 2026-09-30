@@ -983,6 +983,9 @@ public class ContextRuleAnalyzerTests
     [InlineData("""
         var q = System.Convert.ToString(Select(t.Id).From(t).ForUpdate());
         """)]
+    [InlineData("""
+        var q = t.Id.Equals(Select(s.Dep).From(s).ForUpdate());
+        """)]
     public Task ForUpdateNotAsSubquery_Oracle_StaysSilent(string statements) =>
         RunSilent(statements, "oracle");
 

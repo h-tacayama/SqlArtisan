@@ -688,8 +688,8 @@ top-level `SELECT`, so it rejects a locked query used as an `IN` or `EXISTS`
 operand, a scalar subquery, a CTE body or a derived table. MySQL and PostgreSQL
 run a locked `IN` subquery, CTE body and derived table. On Oracle, take the
 locked read and the statement that uses its rows as two statements. The rule
-warns where the locked query is passed as a subquery; one held in a variable
-first stays silent.
+warns where the locked query is passed as a subquery; one held first in a `var`,
+which takes the `ForUpdate` stage's type, stays silent.
 
 ```csharp
 // sqlartisan_syntax_oracle = any
