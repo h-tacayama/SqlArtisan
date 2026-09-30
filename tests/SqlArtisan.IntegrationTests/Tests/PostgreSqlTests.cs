@@ -1149,4 +1149,29 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             Select(x.Column(xn)).From(u)
                 .CrossJoinLateral(Select(xn).From(o).Where(o.UserId == u.Id), x)));
     }
+
+    // #590: a locked SELECT as a subquery, a CTE body and a derived table on PostgreSQL.
+    [Fact]
+    public void LockedSubqueryInIn_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>("SELECT id FROM users WHERE id IN (SELECT user_id FROM orders FOR UPDATE)").ToList();
+    }
+
+    [Fact]
+    public void LockedCteBody_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>("WITH c AS (SELECT id FROM users FOR UPDATE) SELECT id FROM c").ToList();
+    }
+
+    [Fact]
+    public void LockedDerivedTable_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>("SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList();
+    }
 }

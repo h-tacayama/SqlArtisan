@@ -77,4 +77,32 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
                 transaction: transaction));
         transaction.Rollback();
     }
+
+    // #590: a locked SELECT as a subquery, a CTE body and a derived table on Oracle 23ai.
+    [Fact]
+    public void LockedSubqueryInIn_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.Query<int>(
+            "SELECT id FROM users WHERE id IN (SELECT user_id FROM orders FOR UPDATE)").ToList());
+    }
+
+    [Fact]
+    public void LockedCteBody_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.Query<int>(
+            "WITH c AS (SELECT id FROM users FOR UPDATE) SELECT id FROM c").ToList());
+    }
+
+    [Fact]
+    public void LockedDerivedTable_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<Exception>(() => connection.Query<int>(
+            "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList());
+    }
 }

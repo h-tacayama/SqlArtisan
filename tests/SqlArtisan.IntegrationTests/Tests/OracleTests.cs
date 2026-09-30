@@ -1026,4 +1026,32 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             Select(x.Column(n)).From(u)
                 .CrossApply(Select(n).From(o).Where(o.UserId == u.Id), x)));
     }
+
+    // #590: a locked SELECT as a subquery, a CTE body and a derived table on Oracle 21c.
+    [Fact]
+    public void LockedSubqueryInIn_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT id FROM users WHERE id IN (SELECT user_id FROM orders FOR UPDATE)").ToList());
+    }
+
+    [Fact]
+    public void LockedCteBody_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "WITH c AS (SELECT id FROM users FOR UPDATE) SELECT id FROM c").ToList());
+    }
+
+    [Fact]
+    public void LockedDerivedTable_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList());
+    }
 }
