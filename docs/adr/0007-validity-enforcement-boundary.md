@@ -70,7 +70,8 @@ yes-somewhere → dialect availability → permissive.
   because the analyzer structurally cannot see the construct *and* the resolved
   target has no valid spelling at all; any further exception must clear the same
   bar. ADR 0011 also decides the once-per-block walk's rejections outside it — a
-  stage repeated on a held builder, even where an engine runs the repeat (#581).
+  once-per-block clause a held stage writes twice, even where an engine runs the
+  repeat (#581).
 - **A pseudo-column reference outside its context stays permissive.**
   `Sql.Excluded(...)` outside an upsert's `DO UPDATE SET`, or
   `Inserted`/`Deleted` under the wrong `OUTPUT` verb, builds and emits: each

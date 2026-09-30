@@ -83,10 +83,12 @@ override — so every build path (including `Returning()`, which funnels through
   own exception, and the joined-target alias requirement (#258) and the
   call-site-defect guards are decided in `guards-and-empty-states.md`;
   reconciling them with this ADR is open (#558, unit B5). The once-per-block
-  walk's rejections are decided outside the bar here: a stage called twice on
-  a held builder is read as a reuse slip and rejected on every dialect, even
-  where an engine runs the repeat, because which repeats a statement carries
-  is what the fluent chain offers. Two such repeats are recorded — SQLite's
+  walk's rejections are decided outside the bar here: a clause a query block
+  takes once, or a slot, that a held stage writes twice is read as a reuse
+  slip and rejected on every dialect, even where an engine runs the repeat,
+  because which repeats a statement carries is what the fluent chain offers.
+  Clauses that legally repeat, such as joins and set operators, are outside
+  the walk. Two such repeats are recorded — SQLite's
   second `ON CONFLICT` (#581) and PostgreSQL's second locking clause (#582) —
   and `public-api-design.md` § "Opinions live in docs and the analyzer, not in
   API holes" records each form as not offered.

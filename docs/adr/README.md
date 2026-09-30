@@ -54,11 +54,11 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   0007 draws the line (incomplete → reject; dialect availability →
   permissive); 0011 carves one enumerated exception (aliased DML target on SQL
   Server) and decides the once-per-block walk's rejections outside its bar (a
-  stage repeated on a held builder is a reuse slip, #581); 0012 adds
-  value-domain guards (a universally invalid embedded value also rejects);
-  0017 adds a second enumerated exception (an omitted join predicate some
-  dialects silently reinterpret as `CROSS JOIN`). All four are required to
-  answer "will the library throw for this?"
+  once-per-block clause a held stage writes twice is a reuse slip, #581);
+  0012 adds value-domain guards (a universally invalid embedded value also
+  rejects); 0017 adds a second enumerated exception (an omitted join predicate
+  some dialects silently reinterpret as `CROSS JOIN`). All four are required
+  to answer "will the library throw for this?"
 - **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019 + 0021 + 0022) — *How
   does the dialect analyzer work?* 0003 chooses the permissive-API +
   opt-in-analyzer approach; 0008 designs the override configuration; 0009

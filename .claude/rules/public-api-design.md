@@ -106,7 +106,10 @@ the capability, or by changing the member's return type (a binary break).
 Before 1.0, check each such member against the engines' grammar for a clause
 that can follow it, and either give the member its own stage or record the
 continuation as not offered — #581's record under "Opinions…" is the worked
-example.
+example. Checked (#582): `DoNothing()` and `DoUpdateSet(...).Where(...)`
+(#581); `ForUpdate(...)` and `Into(...)` (under "Opinions…");
+`OnDuplicateKeyUpdate(...)`, after which MySQL's reference syntax for `INSERT`
+lists no clause.
 
 Why not name every stage after the method that returns it: several methods
 land on one stage (`ISelectBuilderFrom`), and a method's name is not the
@@ -413,9 +416,9 @@ clause, so the form is SQLite's alone.
   rejects the second clause at `Build()` on every dialect, SQLite included.
   That departs on purpose from ADR 0007's test, which leaves text valid on
   some dialect to the engine, and ADR 0011 decides it: the walk reads a
-  stage called twice on a held builder as a reuse slip, and emitting this one
-  for SQLite would make that slip the only spelling of a form the chain does
-  not offer.
+  once-per-block clause a held stage writes twice as a reuse slip, and
+  emitting this one for SQLite would make that slip the only spelling of a
+  form the chain does not offer.
 
 Reserving a stage type now would be a binary break paid for a form no caller
 has asked for (#581).
