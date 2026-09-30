@@ -907,6 +907,22 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // The other continuation ForUpdate's ISqlBuilder return forecloses: a row limit
+    // after the lock. The chain offers it before ForUpdate, as the two tests above do.
+    [Fact]
+    public void RowLimitAfterLock_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.Equal(new[] { 1 }, connection.Query<int>(
+            "SELECT id FROM users ORDER BY id FOR UPDATE LIMIT 1", transaction: transaction));
+        Assert.Equal(new[] { 2 }, connection.Query<int>(
+            "SELECT id FROM users ORDER BY id FOR UPDATE OFFSET 1 ROWS FETCH FIRST 1 ROWS ONLY",
+            transaction: transaction));
+        transaction.Rollback();
+    }
+
     // The raw half of the docs' claim: PostgreSQL 16 takes a leading WITH before
     // MERGE, and refuses the RECURSIVE keyword there whatever the CTE body does.
     [Fact]

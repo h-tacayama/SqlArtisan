@@ -294,6 +294,17 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                 + "FOLLOWING) FROM users"));
     }
 
+    // The walk rejects an ON after a condition-free join on every dialect, SQLite
+    // included, although SQLite runs the text (ADR 0011).
+    [Fact]
+    public void OnAfterCrossJoin_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.NotEmpty(connection.Query<int>(
+            "SELECT u.id FROM users u CROSS JOIN orders o ON u.id = o.user_id"));
+    }
+
     // The live twin of SelectBuilder's bare-OFFSET guard (ADR 0011).
     [Fact]
     public void Pagination_OffsetWithoutLimit_IsRejectedByTheEngine()

@@ -694,8 +694,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     }
 
     // #520: why only row-limit-then-lock is offered. The reverse order is a parse
-    // error here, and no builder chain can reach it, so the twin is raw SQL; the
-    // accepted order beside it is LimitedForUpdate_Executes.
+    // error here, and the fluent chain does not offer it (a held stage can still write
+    // it, SD23), so the twin is raw SQL; the accepted order is LimitedForUpdate_Executes.
     [Fact]
     public void ForUpdateBeforeLimit_IsRejectedByTheEngine()
     {

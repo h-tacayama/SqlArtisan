@@ -434,6 +434,11 @@ binary break (§ "Builder stage names").
   SqlArtisan offers one locking clause per query block and no `FOR SHARE`,
   and the walk rejects a held stage's second `ForUpdate` as it does the
   second `ON CONFLICT` above.
+- *A row limit after the lock.* PostgreSQL 16 also runs `FOR UPDATE LIMIT 1`
+  and `FOR UPDATE OFFSET 1 ROWS FETCH FIRST 1 ROWS ONLY`
+  (`PostgreSqlTests.RowLimitAfterLock_IsAcceptedByTheEngine`), an order MySQL
+  rejects (`MySqlTests.ForUpdateBeforeLimit_IsRejectedByTheEngine`). The
+  chain offers the row limit before `ForUpdate` only (#520).
 - *Oracle's `LOG ERRORS`.* Oracle runs an `error_logging_clause` after
   `RETURNING ... INTO`
   (`OracleTests.LogErrorsAfterReturningInto_IsAcceptedByTheEngine`).
