@@ -1027,14 +1027,42 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
                 .CrossApply(Select(n).From(o).Where(o.UserId == u.Id), x)));
     }
 
-    // #590: a locked SELECT as a subquery, a CTE body and a derived table on Oracle 21c.
+    // #590: Oracle XE 21.3.0 takes FOR UPDATE only in a top-level SELECT; each unlocked control
+    // runs, so the lock is what the engine rejects.
     [Fact]
     public void LockedSubqueryInIn_IsRejectedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
+        connection.Query<int>(
+            "SELECT id FROM users WHERE id IN (SELECT user_id FROM orders)").ToList();
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             "SELECT id FROM users WHERE id IN (SELECT user_id FROM orders FOR UPDATE)").ToList());
+    }
+
+    [Fact]
+    public void LockedExistsSubquery_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            "SELECT id FROM users u WHERE EXISTS "
+            + "(SELECT 1 FROM orders o WHERE o.user_id = u.id)").ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT id FROM users u WHERE EXISTS "
+            + "(SELECT 1 FROM orders o WHERE o.user_id = u.id FOR UPDATE)").ToList());
+    }
+
+    [Fact]
+    public void LockedScalarSubquery_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            "SELECT id FROM users WHERE id = (SELECT user_id FROM orders WHERE id = 1)").ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT id FROM users WHERE id = "
+            + "(SELECT user_id FROM orders WHERE id = 1 FOR UPDATE)").ToList());
     }
 
     [Fact]
@@ -1042,6 +1070,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
+        connection.Query<int>(
+            "WITH c AS (SELECT id FROM users) SELECT id FROM c").ToList();
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             "WITH c AS (SELECT id FROM users FOR UPDATE) SELECT id FROM c").ToList());
     }
@@ -1051,6 +1081,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
+        connection.Query<int>(
+            "SELECT d.id FROM (SELECT id FROM users) d").ToList();
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
             "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList());
     }

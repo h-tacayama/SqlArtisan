@@ -391,6 +391,12 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
                     ContextRules.CheckForUpdateAfterRowLimiting(context, invocation, limitedNames);
                 }
 
+                if (targets.Contains(TargetDbms.Oracle))
+                {
+                    ContextRules.CheckForUpdateInSubquery(
+                        context, invocation, TargetDbmsNames.Display(TargetDbms.Oracle));
+                }
+
                 break;
         }
     }

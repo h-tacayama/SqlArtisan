@@ -309,6 +309,27 @@ internal static class ContextRules
     }
 
     /// <summary>
+    /// Oracle takes the for_update_clause only in a top-level <c>SELECT</c>; XE 21.3.0
+    /// and Free 23ai reject a locked <c>IN</c> subquery, CTE body and derived table,
+    /// which MySQL 8.0 and PostgreSQL 16 run. Live twins on those four lanes.
+    /// </summary>
+    public static void CheckForUpdateInSubquery(
+        OperationAnalysisContext context, IInvocationOperation forUpdate, string dialectName)
+    {
+        if (!ConsumedAsSubquery(forUpdate))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            forUpdate.Syntax.GetLocation(),
+            "ForUpdate",
+            "in a subquery",
+            dialectName));
+    }
+
+    /// <summary>
     /// Oracle takes <c>RETURNING</c> only as <c>RETURNING ... INTO</c>; XE 21.3.0 rejects
     /// it bare. <c>Into(...)</c> is the one step the stage <c>Returning(...)</c> returns
     /// declares, so a result consumed any other way can never acquire it.
@@ -397,6 +418,20 @@ internal static class ContextRules
 
         return names is null ? null : TargetDbmsNames.JoinDisplayNames(names);
     }
+
+    // Every subquery position takes ISubquery: a conversion or an ISubquery member
+    // (As, AsTable). A result parked in a variable converts out of sight here.
+    private static bool ConsumedAsSubquery(IInvocationOperation forUpdate) =>
+        forUpdate.Parent switch
+        {
+            IConversionOperation { Type: { Name: "ISubquery" } target } =>
+                DialectUsageAnalyzer.IsFromSqlArtisan(target.ContainingAssembly),
+            IInvocationOperation host when host.Instance == forUpdate =>
+                host.TargetMethod.ContainingType.Name == "ISubquery"
+                    && DialectUsageAnalyzer.IsFromSqlArtisan(
+                        host.TargetMethod.ContainingAssembly),
+            _ => false,
+        };
 
     // A result held as IReturningBuilder can still take Into on a later line, so
     // only a visible consumer counts: the next step, or a widening to ISqlBuilder.

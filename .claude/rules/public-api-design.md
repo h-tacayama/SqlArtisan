@@ -107,11 +107,20 @@ Before 1.0, check each such member against the engines' grammar for a clause
 that can follow it, and either give the member its own stage or record the
 continuation as not offered — #581's record under "Opinions…" is the worked
 example. Checked (#582): `DoNothing()` and `DoUpdateSet(...).Where(...)`
-(#581); `ForUpdate(...)` and `Into(...)` (under "Opinions…");
+(#581); `ForUpdate(...)`, given its own stage (#590), and `Into(...)` (under
+"Opinions…");
 `OnDuplicateKeyUpdate(...)`, after which MySQL's reference syntax for `INSERT`
 lists no clause; and `Returning(...)` (under "Opinions…"), whose shared
 stage offers `Into(...)` alone, while PostgreSQL's reference syntax ends the
 statement at `RETURNING`.
+
+The same check covers what a return type drops: a member whose stage stops
+carrying a capability its receiver carries, such as `ISubquery`, removes that
+position for every caller, and restoring it is the same binary break
+(`ForUpdate(...)`, #590). Swept (#590): the other members that leave
+`ISubquery` behind return a stage that still awaits a clause — a join's
+`ON`/`USING` (`ISelectBuilderJoin`) or a set operator's right-hand query
+(`ISelectBuilderSetOperator`) — which is no complete query to embed.
 
 Why not name every stage after the method that returns it: several methods
 land on one stage (`ISelectBuilderFrom`), and a method's name is not the
@@ -426,12 +435,14 @@ Reserving a stage type now would be a binary break paid for a form no caller
 has asked for (#581).
 
 **What may follow `ForUpdate(...)`, `Into(...)` or `Returning(...)` is not
-offered (decided — do not re-file):** the first two return the shared
-`ISqlBuilder` and the third the `IReturningBuilder` stage that `INSERT`,
-`UPDATE` and `DELETE` share, so a clause an engine takes after them can be
-added only by changing the return type, a binary break, or, after
+offered (decided — do not re-file):** `Into(...)` returns the shared
+`ISqlBuilder` and `Returning(...)` the `IReturningBuilder` stage that
+`INSERT`, `UPDATE` and `DELETE` share, so a clause an engine takes after them
+can be added only by changing the return type, a binary break, or, after
 `Returning(...)`, by offering it on all three statements (§ "Builder stage
-names").
+names"). `ForUpdate(...)` returns its own `ISelectBuilderForUpdate`, which
+also embeds the locked query as a subquery (#590), so a clause after it stays
+an additive change, left to demand (ADR 0010).
 
 - *A second locking clause.* PostgreSQL 16 runs `FOR UPDATE OF u NOWAIT FOR
   UPDATE OF o SKIP LOCKED`, a wait policy per table
@@ -451,8 +462,8 @@ names").
   (`SqliteTests.RowLimitAfterReturning_IsRejectedByTheEngine`).
 - *MySQL's `INTO`.* MySQL 8.0 runs `SELECT ... FOR UPDATE INTO @id`
   (`MySqlTests.IntoAfterLock_IsAcceptedByTheEngine`). SqlArtisan offers no
-  `SELECT ... INTO`; added later, it would not reach a query ending in
-  `ForUpdate(...)`.
+  `SELECT ... INTO`; added later, it can reach a query ending in
+  `ForUpdate(...)` through that stage.
 - *Oracle's `LOG ERRORS`.* Oracle runs an `error_logging_clause` after
   `RETURNING ... INTO`
   (`OracleTests.LogErrorsAfterReturningInto_IsAcceptedByTheEngine`).

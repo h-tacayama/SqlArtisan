@@ -1070,7 +1070,24 @@ SqlStatement sql =
 // FOR UPDATE SKIP LOCKED
 ```
 
-The row-limiting clause comes first and `ForUpdate(...)` ends the chain — the one order MySQL 8.0 and PostgreSQL 16 both accept, so the reverse does not compile.
+The row-limiting clause comes first and `ForUpdate(...)` is the query's last clause — the one order MySQL 8.0 and PostgreSQL 16 both accept, so the reverse does not compile.
+
+#### Example claiming and deleting one row in one statement
+A locked query is still a subquery, so the claim can feed the statement that consumes the row:
+```csharp
+UsersTable u = new();
+UsersTable q = new("q");
+SqlStatement sql =
+    DeleteFrom(u)
+    .Where(u.Id.In(
+        Select(q.Id).From(q).OrderBy(q.Id).Limit(1).ForUpdate(SkipLocked)))
+    .Returning(u.Id)
+    .Build();
+
+// DELETE FROM users
+// WHERE id IN (SELECT "q".id FROM users "q" ORDER BY "q".id LIMIT :0 FOR UPDATE SKIP LOCKED)
+// RETURNING id
+```
 
 #### Supported Options
 - `Of(column)` for Oracle's `OF column`; `Of(table, ...)` for PostgreSQL's and MySQL's `OF table, ...`
@@ -1078,7 +1095,7 @@ The row-limiting clause comes first and `ForUpdate(...)` ends the chain — the 
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
 
-**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs, which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`.
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs, which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`. Oracle takes `FOR UPDATE` only in a top-level `SELECT`, so Oracle XE 21.3.0 and Free 23ai reject a locked subquery, CTE body or derived table; MySQL 8.0 and PostgreSQL 16 run a locked `IN` subquery, CTE body and derived table. `SQLA0102` reports the Oracle position too.
 
 ---
 
@@ -4042,7 +4059,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Fifteen rules ship today — nine reading
+expression where the construct is used. Sixteen rules ship today — ten reading
 the construct's surroundings, six reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
@@ -4152,6 +4169,20 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(1).ForUpdate();
 // warning SQLA0102: 'ForUpdate' is not supported after a row-limiting clause on Oracle
 ```
 
+**`FOR UPDATE` in a subquery.** Oracle takes the `for_update_clause` only in a
+top-level `SELECT`, so it rejects a locked query used as an `IN` or `EXISTS`
+operand, a scalar subquery, a CTE body or a derived table. MySQL and PostgreSQL
+run a locked `IN` subquery, CTE body and derived table. On Oracle, take the
+locked read and the statement that uses its rows as two statements. The rule
+warns where the locked query is passed as a subquery; one held in a variable
+first stays silent.
+
+```csharp
+// sqlartisan_syntax_oracle = any
+var q = DeleteFrom(u).Where(u.Id.In(Select(o.UserId).From(o).ForUpdate(SkipLocked)));
+// warning SQLA0102: 'ForUpdate' is not supported in a subquery on Oracle
+```
+
 **`RETURNING` without `INTO`.** Oracle takes `RETURNING` only as
 `RETURNING ... INTO`, binding each returned value to an output variable; with no
 `INTO` the statement is rejected. PostgreSQL and SQLite take a bare
@@ -4258,7 +4289,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the nine that read the construct's surroundings, any shape the
+itself. For the ten that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

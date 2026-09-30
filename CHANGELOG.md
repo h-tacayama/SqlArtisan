@@ -17,8 +17,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   rejection and the other four engines' acceptance are live-verified. Like the
   joined-DML rules, it is settled by the builder stage the call binds to, so it
   warns when the builder is held in a variable too. (#569)
+- `SQLA0102` reports a locked query passed as a subquery (an `IN` or `EXISTS`
+  operand, a scalar subquery, a CTE body or a derived table) on Oracle, which
+  takes `FOR UPDATE` only in a top-level `SELECT`. Each rejection is
+  live-verified on Oracle XE 21.3.0 and Free 23ai, as is MySQL 8.0's and
+  PostgreSQL 16's acceptance of a locked `IN` subquery, CTE body and derived
+  table. A locked query held in a variable first stays silent. (#590)
 
 ### Changed
+- **Breaking:** `ForUpdate(...)` now returns its own stage,
+  `ISelectBuilderForUpdate`, which is also an `ISubquery`: a locked query embeds
+  as a subquery or CTE body without a cast, as in
+  `DeleteFrom(u).Where(u.Id.In(Select(q.Id).From(q).Limit(1).ForUpdate(SkipLocked)))`
+  on PostgreSQL. The stage still builds like the `ISqlBuilder` it extends, so
+  only an assembly compiled against an earlier version must be rebuilt. (#590)
 - **Breaking:** renamed the stage types `Limit(...)` and `OffsetRows(...)`
   return to follow the other stages' `I<Statement>Builder<State>` names:
   `ILimitOffsetBuilder` → `ISelectBuilderLimitOffset`, `IOffsetFetchBuilder` →

@@ -634,7 +634,24 @@ SqlStatement sql =
 // FOR UPDATE SKIP LOCKED
 ```
 
-The row-limiting clause comes first and `ForUpdate(...)` ends the chain — the one order MySQL 8.0 and PostgreSQL 16 both accept, so the reverse does not compile.
+The row-limiting clause comes first and `ForUpdate(...)` is the query's last clause — the one order MySQL 8.0 and PostgreSQL 16 both accept, so the reverse does not compile.
+
+#### Example claiming and deleting one row in one statement
+A locked query is still a subquery, so the claim can feed the statement that consumes the row:
+```csharp
+UsersTable u = new();
+UsersTable q = new("q");
+SqlStatement sql =
+    DeleteFrom(u)
+    .Where(u.Id.In(
+        Select(q.Id).From(q).OrderBy(q.Id).Limit(1).ForUpdate(SkipLocked)))
+    .Returning(u.Id)
+    .Build();
+
+// DELETE FROM users
+// WHERE id IN (SELECT "q".id FROM users "q" ORDER BY "q".id LIMIT :0 FOR UPDATE SKIP LOCKED)
+// RETURNING id
+```
 
 #### Supported Options
 - `Of(column)` for Oracle's `OF column`; `Of(table, ...)` for PostgreSQL's and MySQL's `OF table, ...`
@@ -642,7 +659,7 @@ The row-limiting clause comes first and `ForUpdate(...)` ends the chain — the 
 - `SkipLocked` for `SKIP LOCKED`
 - `Wait()` for `WAIT`
 
-**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs, which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`.
+**Dialect note:** `FOR UPDATE` is not available on SQLite and SQL Server. Among the options, `Wait(...)` is Oracle-only, and `Of(...)` has one form per side: `Of(column)` is Oracle's, which MySQL and PostgreSQL reject, and `Of(table, ...)` is theirs, which Oracle rejects. Oracle XE 21.3.0 and PostgreSQL 16 also reject `FOR UPDATE` over a grouped query, where MySQL 8.0 locks the base rows; the analyzer reports that position as `SQLA0102`. Oracle XE 21.3.0 rejects it after a row-limiting clause as well (`FETCH FIRST` / `OFFSET ... ROWS`), which PostgreSQL 16 runs; MySQL 8.0 has neither clause and runs its own `LIMIT ... FOR UPDATE`. Also `SQLA0102`. Oracle takes `FOR UPDATE` only in a top-level `SELECT`, so Oracle XE 21.3.0 and Free 23ai reject a locked subquery, CTE body or derived table; MySQL 8.0 and PostgreSQL 16 run a locked `IN` subquery, CTE body and derived table. `SQLA0102` reports the Oracle position too.
 
 ---
 

@@ -892,6 +892,25 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // #590: the claim and the delete in one statement, the lock as an IN subquery.
+    [Fact]
+    public void LockedSubqueryClaim_Executes()
+    {
+        UsersTable u = new();
+        UsersTable q = new("q");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            DeleteFrom(u)
+                .Where(u.Id.In(Select(q.Id).From(q).OrderBy(q.Id).Limit(1).ForUpdate(SkipLocked)))
+                .Returning(u.Id),
+            transaction);
+
+        Assert.Equal(new[] { 1 }, ids);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void OffsetFetchForUpdate_Executes()
     {
@@ -1150,13 +1169,14 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
                 .CrossJoinLateral(Select(xn).From(o).Where(o.UserId == u.Id), x)));
     }
 
-    // #590: a locked SELECT as a subquery, a CTE body and a derived table on PostgreSQL.
+    // #590: PostgreSQL 16 runs a locked SELECT as a subquery, a CTE body and a derived table.
     [Fact]
     public void LockedSubqueryInIn_IsAcceptedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Query<int>("SELECT id FROM users WHERE id IN (SELECT user_id FROM orders FOR UPDATE)").ToList();
+        connection.Query<int>(
+            "SELECT id FROM users WHERE id IN (SELECT user_id FROM orders FOR UPDATE)").ToList();
     }
 
     [Fact]
@@ -1164,7 +1184,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Query<int>("WITH c AS (SELECT id FROM users FOR UPDATE) SELECT id FROM c").ToList();
+        connection.Query<int>(
+            "WITH c AS (SELECT id FROM users FOR UPDATE) SELECT id FROM c").ToList();
     }
 
     [Fact]
@@ -1172,6 +1193,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Query<int>("SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList();
+        connection.Query<int>(
+            "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList();
     }
 }

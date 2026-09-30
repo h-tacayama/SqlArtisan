@@ -796,13 +796,14 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
-    // #590: a locked SELECT as a subquery, a CTE body and a derived table on MySQL.
+    // #590: MySQL 8.0 runs a locked SELECT as a subquery, a CTE body and a derived table.
     [Fact]
     public void LockedSubqueryInIn_IsAcceptedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Query<int>("SELECT id FROM users WHERE id IN (SELECT user_id FROM orders FOR UPDATE)").ToList();
+        connection.Query<int>(
+            "SELECT id FROM users WHERE id IN (SELECT user_id FROM orders FOR UPDATE)").ToList();
     }
 
     [Fact]
@@ -810,7 +811,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Query<int>("WITH c AS (SELECT id FROM users FOR UPDATE) SELECT id FROM c").ToList();
+        connection.Query<int>(
+            "WITH c AS (SELECT id FROM users FOR UPDATE) SELECT id FROM c").ToList();
     }
 
     [Fact]
@@ -818,6 +820,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     {
         using IDbConnection connection = _fixture.OpenConnection();
 
-        connection.Query<int>("SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList();
+        connection.Query<int>(
+            "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList();
     }
 }
