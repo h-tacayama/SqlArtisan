@@ -17,8 +17,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   rejection and the other four engines' acceptance are live-verified. Like the
   joined-DML rules, it is settled by the builder stage the call binds to, so it
   warns when the builder is held in a variable too. (#569)
+- `SQLA0102` reports a locked query passed as a subquery (an `IN` or `EXISTS`
+  operand, a compared or selected scalar subquery, a CTE body or a derived
+  table) on Oracle, which takes `FOR UPDATE` only in a top-level `SELECT`.
+  Oracle XE 21.3.0's and Free 23ai's rejection of a locked `IN`, `EXISTS`,
+  compared or selected scalar, CTE body, derived table, `CROSS APPLY` and
+  `CROSS JOIN LATERAL` inline view is live-verified, as is MySQL 8.0's and
+  PostgreSQL 16's acceptance of a locked `IN` subquery, CTE body and derived
+  table. A locked query passed as another value (a function argument,
+  an `INSERT` value), or held first in a `var`, which takes the `ForUpdate`
+  stage's type, stays silent. (#590)
 
 ### Changed
+- **Breaking:** `ForUpdate(...)` now returns its own stage,
+  `ISelectBuilderForUpdate`, which is also an `ISubquery`: a locked query embeds
+  as a subquery or CTE body without a cast, as in
+  `DeleteFrom(u).Where(u.Id.In(Select(q.Id).From(q).Limit(1).ForUpdate(SkipLocked)))`
+  on PostgreSQL. The stage extends `ISqlBuilder`, so every SqlArtisan and
+  SqlArtisan.Dapper member that takes one accepts it unchanged; an inferred
+  type now resolves to the stage, so `cond ? q.ForUpdate() : q`, an implicitly
+  typed array mixing the two, or a `var` later assigned another builder needs an
+  explicit `ISqlBuilder`. `In(...)` and `NotIn(...)` over a locked query, which
+  compiled before through their `object` overloads as a one-value list
+  (`id IN ((SELECT ... FOR UPDATE))`), now bind to the subquery overloads and
+  emit `id IN (SELECT ... FOR UPDATE)`. An assembly compiled against an earlier
+  version must be rebuilt. (#590)
 - **Breaking:** renamed the stage types `Limit(...)` and `OffsetRows(...)`
   return to follow the other stages' `I<Statement>Builder<State>` names:
   `ILimitOffsetBuilder` → `ISelectBuilderLimitOffset`, `IOffsetFetchBuilder` →

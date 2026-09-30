@@ -693,7 +693,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
-    // A continuation ForUpdate's ISqlBuilder return forecloses: INTO after the lock,
+    // A continuation not offered after ForUpdate: INTO after the lock,
     // the position the manual prefers from 8.0.20. SqlArtisan has no SELECT ... INTO.
     [Fact]
     public void IntoAfterLock_IsAcceptedByTheEngine()
@@ -794,5 +794,33 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
 
         Assert.Equal(new[] { 1 }, ids);
         transaction.Rollback();
+    }
+
+    // #590: MySQL 8.0 runs a locked SELECT as a subquery, a CTE body and a derived table.
+    [Fact]
+    public void LockedSubqueryInIn_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            "SELECT id FROM users WHERE id IN (SELECT user_id FROM orders FOR UPDATE)").ToList();
+    }
+
+    [Fact]
+    public void LockedCteBody_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            "WITH c AS (SELECT id FROM users FOR UPDATE) SELECT id FROM c").ToList();
+    }
+
+    [Fact]
+    public void LockedDerivedTable_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList();
     }
 }

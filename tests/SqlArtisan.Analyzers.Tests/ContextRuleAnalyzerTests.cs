@@ -931,4 +931,82 @@ public class ContextRuleAnalyzerTests
             var p = Select(t.Id).From(t).OrderBy(t.Id).FetchFirst(1);
             var q = p.ForUpdate();
             """, "oracle");
+
+    [Theory]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id.In({|#0:Select(s.Dep).From(s).ForUpdate()|}));
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(Exists({|#0:Select(s.Dep).From(s).ForUpdate()|}));
+        """)]
+    [InlineData("""
+        Cte c = new("c");
+        var q = With(c.As({|#0:Select(s.Dep).From(s).ForUpdate()|})).Select(c.Column("dep")).From(c);
+        """)]
+    [InlineData("""
+        var d = {|#0:Select(s.Dep).From(s).ForUpdate(SkipLocked)|}.AsTable("d");
+        """)]
+    [InlineData("""
+        var q = Select({|#0:Select(s.Dep).From(s).ForUpdate()|}.As("m")).From(t);
+        """)]
+    [InlineData("""
+        ISubquery q = {|#0:Select(s.Dep).From(s).ForUpdate()|};
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id == {|#0:Select(s.Dep).From(s).ForUpdate()|});
+        """)]
+    [InlineData("""
+        var q = Select({|#0:Select(s.Dep).From(s).ForUpdate()|}).From(t);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id, {|#0:Select(s.Dep).From(s).ForUpdate()|}).From(t);
+        """)]
+    [InlineData("""
+        Cte c = new("c");
+        var q = With(c.As(Select(t.Id).From(t)))
+            .Select({|#0:Select(s.Dep).From(s).ForUpdate()|}).From(c);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .CrossApply({|#0:Select(s.Dep).From(s).ForUpdate()|}, new DerivedTable("x"));
+        """)]
+    public Task ForUpdateInSubquery_Oracle_ReportsSqla0102(string statements) =>
+        RunReporting(statements, "oracle");
+
+    // MySQL 8.0 and PostgreSQL 16 run a locked subquery, CTE body and derived table.
+    [Theory]
+    [InlineData("mysql")]
+    [InlineData("postgresql")]
+    public Task ForUpdateInSubquery_StaysSilent(string dbms) =>
+        RunSilent("""
+            var q = Select(t.Id).From(t).Where(t.Id.In(Select(s.Dep).From(s).ForUpdate()));
+            """, dbms);
+
+    [Theory]
+    [InlineData("""
+        var q = Select(t.Id).From(t).ForUpdate().Build();
+        """)]
+    [InlineData("""
+        object q = Select(t.Id).From(t).ForUpdate();
+        """)]
+    [InlineData("""
+        var q = System.Convert.ToString(Select(t.Id).From(t).ForUpdate());
+        """)]
+    [InlineData("""
+        var q = t.Id.Equals(Select(s.Dep).From(s).ForUpdate());
+        """)]
+    // Object positions outside the named hosts are not read, whatever they embed.
+    [InlineData("""
+        var q = Select(Nvl(Select(s.Dep).From(s).ForUpdate(), 0)).From(t);
+        """)]
+    public Task ForUpdateNotAsSubquery_Oracle_StaysSilent(string statements) =>
+        RunSilent(statements, "oracle");
+
+    // The conversion happens where the variable is read, out of the rule's sight.
+    [Fact]
+    public Task ForUpdateInSubqueryViaVariable_Oracle_StaysSilent() =>
+        RunSilent("""
+            var locked = Select(s.Dep).From(s).ForUpdate();
+            var q = Select(t.Id).From(t).Where(t.Id.In(locked));
+            """, "oracle");
 }

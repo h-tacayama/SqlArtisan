@@ -408,4 +408,63 @@ public class ForUpdateTests
 
         Assert.Equal($"SELECT id FROM {tableName} FOR UPDATE OF {expected}", sql.Text);
     }
+
+    // #590: the locked query embeds as a subquery, the queue-claim pattern.
+    [Fact]
+    public void ForUpdate_AsInSubquery_CorrectSql()
+    {
+        TestTable t = new();
+        TestTable q = new("q");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Where(t.Code.In(
+                Select(q.Code).From(q).OrderBy(q.Code).Limit(1).ForUpdate(SkipLocked)))
+            .Build(Dbms.PostgreSql);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM test_table ");
+        expected.Append("WHERE code IN ");
+        expected.Append("(SELECT \"q\".code FROM test_table \"q\" ORDER BY \"q\".code ");
+        expected.Append("LIMIT :0 FOR UPDATE SKIP LOCKED)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
+    }
+
+    [Fact]
+    public void ForUpdate_AsCteBody_CorrectSql()
+    {
+        TestTable t = new("t");
+        Cte c = new("c");
+
+        SqlStatement sql =
+            With(c.As(Select(t.Code).From(t).ForUpdate()))
+            .Select(c.Column(t.Code))
+            .From(c)
+            .Build(Dbms.MySql);
+
+        StringBuilder expected = new();
+        expected.Append("WITH `c` AS ");
+        expected.Append("(SELECT `t`.code FROM test_table `t` FOR UPDATE) ");
+        expected.Append("SELECT `c`.code ");
+        expected.Append("FROM `c`");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void ForUpdate_AsDerivedTable_CorrectSql()
+    {
+        TestTable t = new("t");
+        SubqueryDerivedTable d = Select(t.Code).From(t).ForUpdate(Nowait).AsTable("d");
+
+        SqlStatement sql = Select(d.Column("code")).From(d).Build(Dbms.PostgreSql);
+
+        StringBuilder expected = new();
+        expected.Append("SELECT \"d\".code ");
+        expected.Append("FROM (SELECT \"t\".code FROM test_table \"t\" FOR UPDATE NOWAIT) \"d\"");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
 }

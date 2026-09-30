@@ -4,6 +4,7 @@ namespace SqlArtisan.Internal;
 
 internal class SelectBuilder(params SqlPart[] rootParts) :
     SqlBuilderBase(rootParts),
+    ISelectBuilderForUpdate,
     ISelectBuilderFrom,
     ISelectBuilderGroupBy,
     ISelectBuilderHaving,
@@ -141,13 +142,15 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
 
     public void Format(SqlBuildingBuffer buffer) => FormatCore(buffer);
 
-    public ISqlBuilder ForUpdate(LockBehaviorBase? lockBehavior = null)
+    public ISelectBuilderForUpdate ForUpdate(LockBehaviorBase? lockBehavior = null)
     {
         AddPart(new ForUpdateClause(lockBehavior));
         return this;
     }
 
-    public ISqlBuilder ForUpdate(OfClause ofClause, LockBehaviorBase? lockBehavior = null)
+    public ISelectBuilderForUpdate ForUpdate(
+        OfClause ofClause,
+        LockBehaviorBase? lockBehavior = null)
     {
         // A null here would silently drop the OF list and widen the lock to every
         // table; the lockBehavior-only overload spells that on purpose.

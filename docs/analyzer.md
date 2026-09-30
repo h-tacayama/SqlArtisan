@@ -573,7 +573,7 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Fifteen rules ship today — nine reading
+expression where the construct is used. Sixteen rules ship today — ten reading
 the construct's surroundings, six reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
@@ -683,6 +683,21 @@ var q = Select(u.Id).From(u).OrderBy(u.Id).FetchFirst(1).ForUpdate();
 // warning SQLA0102: 'ForUpdate' is not supported after a row-limiting clause on Oracle
 ```
 
+**`FOR UPDATE` in a subquery.** Oracle takes the `for_update_clause` only in a
+top-level `SELECT`, so it rejects a locked query used as an `IN` or `EXISTS`
+operand, a scalar subquery, a CTE body or a derived table. MySQL and PostgreSQL
+run a locked `IN` subquery, CTE body and derived table. On Oracle, take the
+locked read and the statement that uses its rows as two statements. The rule
+warns where the locked query is passed as a subquery, compared, or selected; a
+locked query passed as another value (a function argument, an `INSERT` value), or
+held first in a `var`, which takes the `ForUpdate` stage's type, stays silent.
+
+```csharp
+// sqlartisan_syntax_oracle = any
+var q = DeleteFrom(u).Where(u.Id.In(Select(o.UserId).From(o).ForUpdate(SkipLocked)));
+// warning SQLA0102: 'ForUpdate' is not supported in a subquery on Oracle
+```
+
 **`RETURNING` without `INTO`.** Oracle takes `RETURNING` only as
 `RETURNING ... INTO`, binding each returned value to an output variable; with no
 `INTO` the statement is rejected. PostgreSQL and SQLite take a bare
@@ -789,7 +804,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the nine that read the construct's surroundings, any shape the
+itself. For the ten that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the
