@@ -439,6 +439,10 @@ binary break (§ "Builder stage names").
   (`PostgreSqlTests.RowLimitAfterLock_IsAcceptedByTheEngine`), an order MySQL
   rejects (`MySqlTests.ForUpdateBeforeLimit_IsRejectedByTheEngine`). The
   chain offers the row limit before `ForUpdate` only (#520).
+- *MySQL's `INTO`.* MySQL 8.0 runs `SELECT ... FOR UPDATE INTO @id`
+  (`MySqlTests.IntoAfterLock_IsAcceptedByTheEngine`). SqlArtisan offers no
+  `SELECT ... INTO`; added later, it would not reach a query ending in
+  `ForUpdate(...)`.
 - *Oracle's `LOG ERRORS`.* Oracle runs an `error_logging_clause` after
   `RETURNING ... INTO`
   (`OracleTests.LogErrorsAfterReturningInto_IsAcceptedByTheEngine`).

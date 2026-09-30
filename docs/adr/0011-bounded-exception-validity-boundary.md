@@ -88,12 +88,13 @@ override — so every build path (including `Returning()`, which funnels through
   slip and rejected on every dialect, even where an engine runs the repeat,
   because which repeats a statement carries is what the fluent chain offers.
   Clauses that legally repeat, such as joins and set operators, are outside
-  its once-per-kind check. The engine-run cases recorded are SQLite's second
-  `ON CONFLICT` (#581), PostgreSQL's second locking clause (#582), and
-  SQLite's `ON` after a `CROSS JOIN`
-  (`SqliteTests.OnAfterCrossJoin_IsAcceptedByTheEngine`); `public-api-design.md`
-  § "Opinions live in docs and the analyzer, not in API holes" records the
-  first two forms as not offered.
+  its once-per-kind check. Recorded engine-run cases: SQLite's second `ON
+  CONFLICT` (#581); PostgreSQL's second locking clause (#582); SQLite's `ON`
+  after a `CROSS JOIN` (`SqliteTests.OnAfterCrossJoin_IsAcceptedByTheEngine`);
+  and SQL Server's plain `OUTPUT` after `OUTPUT ... INTO`
+  (`SqlServerTests.OutputAfterOutputInto_IsAcceptedByTheEngine`), a pair the
+  chain does not offer. `public-api-design.md` § "Opinions live in docs and
+  the analyzer, not in API holes" records the first two forms as not offered.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should

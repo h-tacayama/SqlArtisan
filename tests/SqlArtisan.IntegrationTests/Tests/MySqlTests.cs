@@ -693,6 +693,27 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
+    // A continuation ForUpdate's ISqlBuilder return forecloses: INTO after the lock,
+    // the position the manual prefers from 8.0.20. SqlArtisan has no SELECT ... INTO.
+    [Fact]
+    public void IntoAfterLock_IsAcceptedByTheEngine()
+    {
+        // Without AllowUserVariables the driver reads @id as a missing parameter.
+        MySqlConnectionStringBuilder builder = new(_fixture.ConnectionString)
+        {
+            AllowUserVariables = true,
+        };
+        using MySqlConnection connection = new(builder.ConnectionString);
+        connection.Open();
+        using MySqlTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "SELECT id FROM users WHERE id = 1 FOR UPDATE INTO @id", transaction: transaction);
+
+        Assert.Equal(1, connection.ExecuteScalar<int>("SELECT @id", transaction: transaction));
+        transaction.Rollback();
+    }
+
     // #520: why only row-limit-then-lock is offered. The reverse order is a parse
     // error here, and the fluent chain does not offer it (a held stage can still write
     // it, SD23), so the twin is raw SQL; the accepted order is LimitedForUpdate_Executes.

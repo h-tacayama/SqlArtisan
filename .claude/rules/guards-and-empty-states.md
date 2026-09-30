@@ -311,10 +311,9 @@ than re-admit it. **The walk checks multiplicity and slot exclusivity, not
 clause order** (decided, pass 5, SD23): a held `ORDER BY ... WHERE` is the
 typestate's to prevent, and the walk stays a backstop for what the typestate
 cannot see — a repeated or stacked stage on one held instance.
-Some repeats it rejects run on some engine (SQLite's second `ON CONFLICT` or
-an `ON` after a `CROSS JOIN`, PostgreSQL's second locking clause); they are
-rejected on every dialect by decision (ADR 0011, which lists the recorded
-cases).
+Some repeats it rejects run on some engine (for example SQLite's second
+`ON CONFLICT`, PostgreSQL's second locking clause); they are rejected on
+every dialect by decision (ADR 0011, which lists the recorded cases).
 Its sixth pass extended slot exclusivity to the upsert (`ON CONFLICT` /
 `ON DUPLICATE KEY UPDATE`), conflict-action (`DO NOTHING` / `DO UPDATE SET`),
 and MERGE branch-action slots, paired a set operator with the `SELECT` that
