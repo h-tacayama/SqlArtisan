@@ -92,8 +92,8 @@ override — so every build path (including `Returning()`, which funnels through
   joined-target alias requirement (#258) holds on every dialect, whatever an
   engine takes unaliased: a column is qualified only by its owner's
   correlation name (`DbColumn.Format`), so an unaliased target's columns would
-  render bare beside the joined tables', and one rule keeps every joined
-  reference qualified. The aliased spelling runs on each lane with a
+  render bare beside the joined tables', and one rule keeps every target
+  reference qualified (a joined table's own alias stays the caller's choice). The aliased spelling runs on each lane with a
   joined-DML twin (`Joined*_Executes` on MySQL, PostgreSQL, SQLite and SQL
   Server). The once-per-block walk's rejections are decided outside the bar
   here too: a clause a query block takes once, or a slot, that a held stage

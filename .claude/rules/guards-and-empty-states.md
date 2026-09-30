@@ -127,7 +127,8 @@ the full rationale.
   digit-only `OutputParameter` name, which is the positional bind markers'
   namespace (release audit pass 5).
 - *Bounded exception*: aliased un-joined `INSERT`/`UPDATE`/`DELETE` target on
-  SQL Server (the joined forms require the alias instead — next paragraph);
+  SQL Server (on the joined forms the library requires the alias instead —
+  next paragraph);
   aliased `INSERT` target on MySQL (its INSERT grammar has no target-alias
   slot); a joined `UPDATE`/`DELETE` on SQL Server whose target is not re-listed
   in `FROM` (T-SQL's joined spelling takes the alias from `FROM`); a joined
@@ -150,8 +151,8 @@ deliberate uniform requirement (#258, reaffirmed in the release audit after
 independent reviews split on it; ADR 0011 decides it outside its bar): a
 column is qualified only by its owner's correlation name (`DbColumn.Format`),
 so an unaliased target's columns would render bare beside the joined
-tables', and one dialect-independent rule keeps every joined reference
-qualified. The guard is loud and the aliased spelling runs on each lane with
+tables', and one dialect-independent rule keeps every target reference
+qualified (a joined table's own alias stays the caller's choice). The guard is loud and the aliased spelling runs on each lane with
 a joined-DML twin (`Joined*_Executes` on MySQL, PostgreSQL, SQLite and SQL
 Server), so an engine that accepts an unaliased joined target is not an
 over-guard finding at any tier.
