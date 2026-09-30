@@ -80,12 +80,25 @@ override — so every build path (including `Returning()`, which funnels through
   structurally can't see it, *and* the resolved target has no valid spelling.
   Absent both, the answer stays ADR 0007's default — emit faithfully. Some
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
-  own exception, and the joined-target alias requirement (#258) and the
-  call-site-defect guards are decided in `guards-and-empty-states.md`;
-  reconciling them with this ADR is open (#558, unit B5). The once-per-block
-  walk's rejections are decided outside the bar here: a clause a query block
-  takes once, or a slot, that a held stage writes twice is read as a reuse
-  slip and rejected on every dialect, even where an engine runs the repeat,
+  own exception, and three classes are decided outside the bar here. The
+  call-site-defect guards, enumerated in `guards-and-empty-states.md` — a
+  fixed list that repeats a name, and an `OUTPUT ... INTO` list whose width
+  differs from its `OUTPUT` list — reject on every dialect, even where an
+  engine runs the text: a name listed twice in one list, or an `INTO` list
+  that does not match the list it stores, is read as a slip, not a spelling.
+  An engine that runs the repeat reports nothing — MySQL and SQLite silently
+  keep a duplicated `SET`'s last assignment
+  (`DuplicateSetAssignment_IsAcceptedByTheEngine` on both lanes). The
+  joined-target alias requirement (#258) holds on every dialect, whatever an
+  engine takes unaliased: a column is qualified only by its owner's
+  correlation name (`DbColumn.Format`), so an unaliased target's columns would
+  render bare beside the joined tables', and one rule keeps every target
+  reference qualified (a joined table's own alias stays the caller's choice). The aliased spelling runs on each lane with a
+  joined-DML twin (`Joined*_Executes` on MySQL, PostgreSQL, SQLite and SQL
+  Server). The once-per-block walk's rejections are decided outside the bar
+  here too: a clause a query block takes once, or a slot, that a held stage
+  writes twice is read as a reuse slip and rejected on every dialect, even
+  where an engine runs the repeat,
   because which repeats a statement carries is what the fluent chain offers.
   Clauses that legally repeat, such as joins and set operators, are outside
   its once-per-kind check. Recorded engine-run cases: SQLite's second `ON

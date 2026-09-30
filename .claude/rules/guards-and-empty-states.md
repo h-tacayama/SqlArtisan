@@ -67,11 +67,11 @@ the full rationale.
   source's column names, an `ON CONFLICT` target, a join `USING` list, an
   `OUTPUT ... INTO` list — and an `OUTPUT ... INTO` list whose width differs
   from the `OUTPUT` list.
-  These are call-site defects rejected whatever the engine does — eagerly,
-  but for the joined-`UPDATE` arm above, which decides at `Build()` once the
-  shape is final, and the `OUTPUT ... INTO` width check, which also runs at
-  `Build()` — not ADR 0012 domain guards: only a duplicated CTE name is
-  rejected everywhere.
+  These are call-site defects rejected whatever the engine does (ADR 0011
+  decides the class outside its bar) — eagerly, but for the joined-`UPDATE`
+  arm above, which decides at `Build()` once the shape is final, and the
+  `OUTPUT ... INTO` width check, which also runs at `Build()` — not ADR 0012
+  domain guards: only a duplicated CTE name is rejected everywhere.
   Live-verified (PostgreSQL 16, MySQL 8.0, SQLite 3.45): PostgreSQL rejects a
   duplicated `INSERT` list, `SET` list, and `USING` list but accepts a
   duplicated CTE/derived column list; MySQL rejects the `INSERT` and CTE
@@ -127,7 +127,8 @@ the full rationale.
   digit-only `OutputParameter` name, which is the positional bind markers'
   namespace (release audit pass 5).
 - *Bounded exception*: aliased un-joined `INSERT`/`UPDATE`/`DELETE` target on
-  SQL Server (the joined forms require the alias instead — next paragraph);
+  SQL Server (on the joined forms the library requires the alias instead —
+  next paragraph);
   aliased `INSERT` target on MySQL (its INSERT grammar has no target-alias
   slot); a joined `UPDATE`/`DELETE` on SQL Server whose target is not re-listed
   in `FROM` (T-SQL's joined spelling takes the alias from `FROM`); a joined
@@ -145,15 +146,16 @@ the full rationale.
 
 **Joined-target alias requirement (decided — do not re-file):**
 `ThrowIfJoinedTargetUnaliased` fires for every joined `UPDATE`/`DELETE` shape
-on **every** dialect, including PostgreSQL's and SQLite's unaliased
-`UPDATE ... FROM` / `DELETE ... USING`, which those engines themselves accept.
-This is a deliberate uniform requirement (#258, reaffirmed in the release
-audit after independent reviews split on it): SQL Server genuinely requires
-the alias — MySQL's joined forms do not, live-verified on 8.0.46 — an
-unaliased target renders bare columns beside joined tables, and one
-dialect-independent rule keeps every joined reference qualified. The guard is loud and the aliased spelling is valid on every
-dialect that has the joined form, so the PostgreSQL-accepts-unaliased shape
-is not an over-guard finding at any tier.
+on **every** dialect, whatever an engine takes unaliased. This is a
+deliberate uniform requirement (#258, reaffirmed in the release audit after
+independent reviews split on it; ADR 0011 decides it outside its bar): a
+column is qualified only by its owner's correlation name (`DbColumn.Format`),
+so an unaliased target's columns would render bare beside the joined
+tables', and one dialect-independent rule keeps every target reference
+qualified (a joined table's own alias stays the caller's choice). The guard is loud and the aliased spelling runs on each lane with
+a joined-DML twin (`Joined*_Executes` on MySQL, PostgreSQL, SQLite and SQL
+Server), so an engine that accepts an unaliased joined target is not an
+over-guard finding at any tier.
 
 **A `RegexpOptions` match parameter is never domain-checked (decided — do not
 re-file):** no letter the enum emits is universally invalid, and a

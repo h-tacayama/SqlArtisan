@@ -23,7 +23,7 @@ internal static class DmlTargetGuard
     }
 
     // A decided uniform requirement, not a grammar fact on every dialect
-    // (#258; guards-and-empty-states.md, joined-target clause).
+    // (#258, ADR 0011; guards-and-empty-states.md, joined-target clause).
     internal static void ThrowIfJoinedTargetUnaliased(DbTableBase target)
     {
         if (!target.HasAlias)
