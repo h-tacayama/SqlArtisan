@@ -294,6 +294,22 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                 + "FOLLOWING) FROM users"));
     }
 
+    // Why Returning(...)'s shared stage offers only Into: the bundled build takes no
+    // ORDER BY or LIMIT after RETURNING (it lacks SQLITE_ENABLE_UPDATE_DELETE_LIMIT).
+    [Fact]
+    public void RowLimitAfterReturning_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "UPDATE users SET age = age RETURNING id ORDER BY id LIMIT 1",
+            transaction: transaction));
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "DELETE FROM users RETURNING id LIMIT 1", transaction: transaction));
+        transaction.Rollback();
+    }
+
     // The walk rejects an ON after a condition-free join on every dialect, SQLite
     // included, although SQLite runs the text (ADR 0011).
     [Fact]

@@ -109,7 +109,11 @@ continuation as not offered — #581's record under "Opinions…" is the worked
 example. Checked (#582): `DoNothing()` and `DoUpdateSet(...).Where(...)`
 (#581); `ForUpdate(...)` and `Into(...)` (under "Opinions…");
 `OnDuplicateKeyUpdate(...)`, after which MySQL's reference syntax for `INSERT`
-lists no clause.
+lists no clause; and `Returning(...)`, whose shared stage offers `Into(...)`
+alone — PostgreSQL's reference syntax ends the statement at `RETURNING`, the
+bundled SQLite rejects `ORDER BY` or `LIMIT` after it
+(`SqliteTests.RowLimitAfterReturning_IsRejectedByTheEngine`), and what follows
+Oracle's `RETURNING ... INTO` is recorded under `Into(...)`.
 
 Why not name every stage after the method that returns it: several methods
 land on one stage (`ISelectBuilderFrom`), and a method's name is not the
@@ -451,6 +455,14 @@ binary break (§ "Builder stage names").
 
 As with #581, a stage type reserved now would be a binary break paid for
 forms no caller has asked for (#582).
+
+**SQL Server's `OUTPUT ... INTO` beside a plain `OUTPUT` is not offered
+(decided — do not re-file):** T-SQL takes one of each in a statement
+(`SqlServerTests.OutputAfterOutputInto_IsAcceptedByTheEngine`), but
+`Output(...).Into(...)` returns a stage without `Output`, and a held stage's
+second `Output` is a reuse slip the walk rejects (ADR 0011). Whether offering
+the pair later needs a return-type change is not settled here; it is weighed
+when a user needs it (ADR 0010).
 
 ## Recorded trade-offs from the #149 freeze audit
 
