@@ -294,8 +294,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                 + "FOLLOWING) FROM users"));
     }
 
-    // Why Returning(...)'s shared stage offers only Into: the bundled build takes no
-    // ORDER BY or LIMIT after RETURNING (it lacks SQLITE_ENABLE_UPDATE_DELETE_LIMIT).
+    // The bundled build lacks SQLITE_ENABLE_UPDATE_DELETE_LIMIT, so it rejects the
+    // ORDER BY and LIMIT that SQLite's grammar otherwise takes after RETURNING.
     [Fact]
     public void RowLimitAfterReturning_IsRejectedByTheEngine()
     {

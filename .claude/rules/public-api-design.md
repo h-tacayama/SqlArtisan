@@ -109,11 +109,9 @@ continuation as not offered — #581's record under "Opinions…" is the worked
 example. Checked (#582): `DoNothing()` and `DoUpdateSet(...).Where(...)`
 (#581); `ForUpdate(...)` and `Into(...)` (under "Opinions…");
 `OnDuplicateKeyUpdate(...)`, after which MySQL's reference syntax for `INSERT`
-lists no clause; and `Returning(...)`, whose shared stage offers `Into(...)`
-alone — PostgreSQL's reference syntax ends the statement at `RETURNING`, the
-bundled SQLite rejects `ORDER BY` or `LIMIT` after it
-(`SqliteTests.RowLimitAfterReturning_IsRejectedByTheEngine`), and what follows
-Oracle's `RETURNING ... INTO` is recorded under `Into(...)`.
+lists no clause; and `Returning(...)` (under "Opinions…"), whose shared
+stage offers `Into(...)` alone, while PostgreSQL's reference syntax ends the
+statement at `RETURNING`.
 
 Why not name every stage after the method that returns it: several methods
 land on one stage (`ISelectBuilderFrom`), and a method's name is not the
@@ -427,10 +425,13 @@ clause, so the form is SQLite's alone.
 Reserving a stage type now would be a binary break paid for a form no caller
 has asked for (#581).
 
-**What may follow `ForUpdate(...)` or `Into(...)` is not offered (decided —
-do not re-file):** both return the shared `ISqlBuilder`, so a clause an
-engine takes after them can be added only by changing the return type, a
-binary break (§ "Builder stage names").
+**What may follow `ForUpdate(...)`, `Into(...)` or `Returning(...)` is not
+offered (decided — do not re-file):** the first two return the shared
+`ISqlBuilder` and the third the `IReturningBuilder` stage that `INSERT`,
+`UPDATE` and `DELETE` share, so a clause an engine takes after them can be
+added only by changing the return type, a binary break, or, after
+`Returning(...)`, by offering it on all three statements (§ "Builder stage
+names").
 
 - *A second locking clause.* PostgreSQL 16 runs `FOR UPDATE OF u NOWAIT FOR
   UPDATE OF o SKIP LOCKED`, a wait policy per table
@@ -443,6 +444,11 @@ binary break (§ "Builder stage names").
   (`PostgreSqlTests.RowLimitAfterLock_IsAcceptedByTheEngine`), an order MySQL
   rejects (`MySqlTests.ForUpdateBeforeLimit_IsRejectedByTheEngine`). The
   chain offers the row limit before `ForUpdate` only (#520).
+- *SQLite's `ORDER BY` / `LIMIT` after `RETURNING`.* SQLite's grammar
+  (`src/parse.y`) puts them after `RETURNING` on `UPDATE` and `DELETE`, in
+  builds with `SQLITE_ENABLE_UPDATE_DELETE_LIMIT`; the bundled build lacks
+  the option and rejects them
+  (`SqliteTests.RowLimitAfterReturning_IsRejectedByTheEngine`).
 - *MySQL's `INTO`.* MySQL 8.0 runs `SELECT ... FOR UPDATE INTO @id`
   (`MySqlTests.IntoAfterLock_IsAcceptedByTheEngine`). SqlArtisan offers no
   `SELECT ... INTO`; added later, it would not reach a query ending in
