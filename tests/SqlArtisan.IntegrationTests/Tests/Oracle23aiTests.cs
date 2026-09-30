@@ -147,11 +147,11 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         using IDbConnection connection = _fixture.OpenConnection();
 
         connection.Query<int>(
-            "SELECT u.id FROM users u, "
-            + "LATERAL (SELECT o.id FROM users o WHERE o.id = u.id) x").ToList();
+            "SELECT u.id FROM users u CROSS JOIN LATERAL "
+            + "(SELECT o.id FROM users o WHERE o.id = u.id) x").ToList();
         Assert.ThrowsAny<Exception>(() => connection.Query<int>(
-            "SELECT u.id FROM users u, "
-            + "LATERAL (SELECT o.id FROM users o WHERE o.id = u.id FOR UPDATE) x").ToList());
+            "SELECT u.id FROM users u CROSS JOIN LATERAL "
+            + "(SELECT o.id FROM users o WHERE o.id = u.id FOR UPDATE) x").ToList());
     }
 
     [Fact]

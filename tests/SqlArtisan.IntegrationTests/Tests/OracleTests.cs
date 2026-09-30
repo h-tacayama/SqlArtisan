@@ -1096,11 +1096,11 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         using IDbConnection connection = _fixture.OpenConnection();
 
         connection.Query<int>(
-            "SELECT u.id FROM users u, "
-            + "LATERAL (SELECT o.id FROM users o WHERE o.id = u.id) x").ToList();
+            "SELECT u.id FROM users u CROSS JOIN LATERAL "
+            + "(SELECT o.id FROM users o WHERE o.id = u.id) x").ToList();
         Assert.ThrowsAny<DbException>(() => connection.Query<int>(
-            "SELECT u.id FROM users u, "
-            + "LATERAL (SELECT o.id FROM users o WHERE o.id = u.id FOR UPDATE) x").ToList());
+            "SELECT u.id FROM users u CROSS JOIN LATERAL "
+            + "(SELECT o.id FROM users o WHERE o.id = u.id FOR UPDATE) x").ToList());
     }
 
     [Fact]
