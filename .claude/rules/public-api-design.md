@@ -435,8 +435,7 @@ binary break (§ "Builder stage names").
   `RETURNING ... INTO`
   (`OracleTests.LogErrorsAfterReturningInto_IsAcceptedByTheEngine`).
   SqlArtisan offers `LOG ERRORS` on no statement; added later to the DML
-  stages, it would reach every statement except one ending in
-  `RETURNING ... INTO`.
+  stages, it would not reach a statement ending in `RETURNING ... INTO`.
 
 As with #581, a stage type reserved now would be a binary break paid for
 forms no caller has asked for (#582).
