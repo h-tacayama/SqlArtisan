@@ -29,8 +29,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `ISelectBuilderForUpdate`, which is also an `ISubquery`: a locked query embeds
   as a subquery or CTE body without a cast, as in
   `DeleteFrom(u).Where(u.Id.In(Select(q.Id).From(q).Limit(1).ForUpdate(SkipLocked)))`
-  on PostgreSQL. The stage still builds like the `ISqlBuilder` it extends, so
-  only an assembly compiled against an earlier version must be rebuilt. (#590)
+  on PostgreSQL. The stage extends `ISqlBuilder`, so every SqlArtisan and
+  SqlArtisan.Dapper member that takes one accepts it unchanged; an inferred
+  type now resolves to the stage, so `cond ? q.ForUpdate() : q`, an implicitly
+  typed array mixing the two, or a `var` later assigned another builder needs an
+  explicit `ISqlBuilder`. An assembly compiled against an earlier version must
+  be rebuilt. (#590)
 - **Breaking:** renamed the stage types `Limit(...)` and `OffsetRows(...)`
   return to follow the other stages' `I<Statement>Builder<State>` names:
   `ILimitOffsetBuilder` → `ISelectBuilderLimitOffset`, `IOffsetFetchBuilder` →

@@ -419,19 +419,44 @@ internal static class ContextRules
         return names is null ? null : TargetDbmsNames.JoinDisplayNames(names);
     }
 
-    // Every subquery position takes ISubquery: a conversion or an ISubquery member
-    // (As, AsTable). A result parked in a variable converts out of sight here.
+    // An ISubquery parameter, an ISubquery member (As, AsTable), or an object-typed
+    // SqlArtisan position, whose resolvers embed an ISubquery as a subquery or reject
+    // it. A result parked in a variable converts out of sight here.
     private static bool ConsumedAsSubquery(IInvocationOperation forUpdate) =>
         forUpdate.Parent switch
         {
             IConversionOperation { Type: { Name: "ISubquery" } target } =>
                 DialectUsageAnalyzer.IsFromSqlArtisan(target.ContainingAssembly),
+            IConversionOperation { Type.SpecialType: SpecialType.System_Object } boxed =>
+                HostIsSqlArtisan(boxed),
             IInvocationOperation host when host.Instance == forUpdate =>
                 host.TargetMethod.ContainingType.Name == "ISubquery"
                     && DialectUsageAnalyzer.IsFromSqlArtisan(
                         host.TargetMethod.ContainingAssembly),
             _ => false,
         };
+
+    // Climbs through a params array to the call or operator the value is handed to.
+    private static bool HostIsSqlArtisan(IOperation value)
+    {
+        IOperation? current = value.Parent;
+        while (current is IArgumentOperation
+            or IArrayInitializerOperation
+            or IArrayCreationOperation)
+        {
+            current = current.Parent;
+        }
+
+        IMethodSymbol? member = current switch
+        {
+            IInvocationOperation call => call.TargetMethod,
+            IBinaryOperation binary => binary.OperatorMethod,
+            IObjectCreationOperation creation => creation.Constructor,
+            _ => null,
+        };
+        return member is not null
+            && DialectUsageAnalyzer.IsFromSqlArtisan(member.ContainingAssembly);
+    }
 
     // A result held as IReturningBuilder can still take Into on a later line, so
     // only a visible consumer counts: the next step, or a widening to ISqlBuilder.

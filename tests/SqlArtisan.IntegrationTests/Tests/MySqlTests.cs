@@ -693,7 +693,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         transaction.Rollback();
     }
 
-    // A continuation ForUpdate's ISqlBuilder return forecloses: INTO after the lock,
+    // A continuation not offered after ForUpdate: INTO after the lock,
     // the position the manual prefers from 8.0.20. SqlArtisan has no SELECT ... INTO.
     [Fact]
     public void IntoAfterLock_IsAcceptedByTheEngine()

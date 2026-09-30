@@ -269,6 +269,21 @@ public class ContextRuleContractTests
         Assert.Equal(["ISqlBuilder"], stage.GetInterfaces().Select(i => i.Name));
     }
 
+    [Fact]
+    public void SubqueryMembers_AreAllEmbeddings()
+    {
+        // The locked-subquery rule reports any ISubquery member called on the
+        // ForUpdate result, sound only while each one embeds the query.
+        Type subquery = Assert.Single(Core.GetExportedTypes().Where(t => t.Name == "ISubquery"));
+
+        string[] members = [.. subquery
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Select(m => m.Name)
+            .Order()];
+
+        Assert.Equal(["As", "AsTable"], members);
+    }
+
     // The FOR UPDATE rule reads the receiver chain for a GroupBy, which finds one
     // only because the grouped stages reach ForUpdate by chaining further steps
     // rather than declaring it themselves.

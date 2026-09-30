@@ -859,7 +859,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
                 .OrderBy(u.DepartmentId).ForUpdate()));
     }
 
-    // A continuation ForUpdate's ISqlBuilder return forecloses (public-api-design.md
+    // A continuation not offered after ForUpdate (public-api-design.md
     // § "Opinions…"): a second locking clause, each with its own OF and wait policy.
     [Fact]
     public void RepeatedLockingClause_IsAcceptedByTheEngine()
@@ -926,7 +926,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
-    // Another continuation ForUpdate's ISqlBuilder return forecloses: a row limit
+    // Another continuation not offered after ForUpdate: a row limit
     // after the lock. The chain offers it before ForUpdate, as the two tests above do.
     [Fact]
     public void RowLimitAfterLock_IsAcceptedByTheEngine()

@@ -952,6 +952,15 @@ public class ContextRuleAnalyzerTests
     [InlineData("""
         ISubquery q = {|#0:Select(s.Dep).From(s).ForUpdate()|};
         """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t).Where(t.Id == {|#0:Select(s.Dep).From(s).ForUpdate()|});
+        """)]
+    [InlineData("""
+        var q = Select({|#0:Select(s.Dep).From(s).ForUpdate()|}).From(t);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id, {|#0:Select(s.Dep).From(s).ForUpdate()|}).From(t);
+        """)]
     public Task ForUpdateInSubquery_Oracle_ReportsSqla0102(string statements) =>
         RunReporting(statements, "oracle");
 
@@ -964,11 +973,18 @@ public class ContextRuleAnalyzerTests
             var q = Select(t.Id).From(t).Where(t.Id.In(Select(s.Dep).From(s).ForUpdate()));
             """, dbms);
 
-    [Fact]
-    public Task ForUpdateThenBuild_Oracle_StaysSilent() =>
-        RunSilent("""
-            var q = Select(t.Id).From(t).ForUpdate().Build();
-            """, "oracle");
+    [Theory]
+    [InlineData("""
+        var q = Select(t.Id).From(t).ForUpdate().Build();
+        """)]
+    [InlineData("""
+        object q = Select(t.Id).From(t).ForUpdate();
+        """)]
+    [InlineData("""
+        var q = System.Convert.ToString(Select(t.Id).From(t).ForUpdate());
+        """)]
+    public Task ForUpdateNotAsSubquery_Oracle_StaysSilent(string statements) =>
+        RunSilent(statements, "oracle");
 
     // The conversion happens where the variable is read, out of the rule's sight.
     [Fact]
