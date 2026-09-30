@@ -412,13 +412,34 @@ clause, so the form is SQLite's alone.
   the once-per-block walk (`SqlBuilderBase.ThrowIfDuplicateClauseInBlock`)
   rejects the second clause at `Build()` on every dialect, SQLite included.
   That departs on purpose from ADR 0007's test, which leaves text valid on
-  some dialect to the engine, and ADR 0011 enumerates it: the walk reads a
+  some dialect to the engine, and ADR 0011 decides it: the walk reads a
   stage called twice on a held builder as a reuse slip, and emitting this one
   for SQLite would make that slip the only spelling of a form the chain does
   not offer.
 
 Reserving a stage type now would be a binary break paid for a form no caller
 has asked for (#581).
+
+**What may follow `ForUpdate(...)` or `Into(...)` is not offered (decided —
+do not re-file):** both return the shared `ISqlBuilder`, so a clause an
+engine takes after them can be added only by changing the return type, a
+binary break (§ "Builder stage names").
+
+- *A second locking clause.* PostgreSQL 16 runs `FOR UPDATE OF u NOWAIT FOR
+  UPDATE OF o SKIP LOCKED`, a wait policy per table
+  (`PostgreSqlTests.RepeatedLockingClause_IsAcceptedByTheEngine`).
+  SqlArtisan offers one locking clause per query block and no `FOR SHARE`,
+  and the walk rejects a held stage's second `ForUpdate` as it does the
+  second `ON CONFLICT` above.
+- *Oracle's `LOG ERRORS`.* Oracle runs an `error_logging_clause` after
+  `RETURNING ... INTO`
+  (`OracleTests.LogErrorsAfterReturningInto_IsAcceptedByTheEngine`).
+  SqlArtisan offers `LOG ERRORS` on no statement; added later to the DML
+  stages, it would reach every statement except one ending in
+  `RETURNING ... INTO`.
+
+As with #581, a stage type reserved now would be a binary break paid for
+forms no caller has asked for (#582).
 
 ## Recorded trade-offs from the #149 freeze audit
 

@@ -170,6 +170,24 @@ public class BuilderReuseTests
             ex.Message);
     }
 
+    // PostgreSQL runs a second locking clause, but the held-stage repeat is a reuse
+    // slip rejected on every dialect (ADR 0011).
+    [Fact]
+    public void ForUpdate_PostgreSql_CalledTwiceOnHeldStage_ThrowsArgumentException()
+    {
+        ISelectBuilderFrom held = Select(_t.Code).From(_t);
+        held.ForUpdate(Of(_t), Nowait);
+        held.ForUpdate(SkipLocked);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => held.Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "A statement takes at most one FOR UPDATE clause per query block; "
+                + "a stage on a held builder was called twice.",
+            ex.Message);
+    }
+
     [Fact]
     public void Where_CalledTwiceOnHeldSubquery_ThrowsArgumentException()
     {

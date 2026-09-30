@@ -859,6 +859,23 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
                 .OrderBy(u.DepartmentId).ForUpdate()));
     }
 
+    // The continuation ForUpdate's ISqlBuilder return forecloses (public-api-design.md
+    // § "Opinions…"): a second locking clause, each with its own OF and wait policy.
+    [Fact]
+    public void RepeatedLockingClause_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            "SELECT u.id FROM users u INNER JOIN orders o ON u.id = o.user_id ORDER BY u.id "
+                + "FOR UPDATE OF u NOWAIT FOR UPDATE OF o SKIP LOCKED",
+            transaction: transaction);
+
+        Assert.NotEmpty(ids);
+        transaction.Rollback();
+    }
+
     // #520: why PostgreSQL is absent from the row-limiting FOR UPDATE context rule
     // — it runs both row-limiting families beside the lock, where Oracle rejects them.
     [Fact]

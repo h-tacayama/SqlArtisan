@@ -227,7 +227,7 @@ internal abstract class SqlBuilderBase
         ["INSERT ... WHERE", "UPDATE SET ... WHERE"]);
 
     // A stage repeated on a held builder appends a duplicate clause (#225); most are valid
-    // on no dialect, and SQLite's second ON CONFLICT is rejected by decision (#581). A set
+    // on no dialect, and those some engine runs are rejected by decision (ADR 0011). A set
     // operator and a conditioned join open what they must also receive (ADR 0017).
     private void ThrowIfDuplicateClauseInBlock()
     {
