@@ -986,6 +986,10 @@ public class ContextRuleAnalyzerTests
     [InlineData("""
         var q = t.Id.Equals(Select(s.Dep).From(s).ForUpdate());
         """)]
+    // Object positions outside the named hosts are not read, whatever they embed.
+    [InlineData("""
+        var q = Select(Nvl(Select(s.Dep).From(s).ForUpdate(), 0)).From(t);
+        """)]
     public Task ForUpdateNotAsSubquery_Oracle_StaysSilent(string statements) =>
         RunSilent(statements, "oracle");
 

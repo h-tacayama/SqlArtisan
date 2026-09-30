@@ -284,6 +284,83 @@ public class ContextRuleContractTests
         Assert.Equal(["As", "AsTable"], members);
     }
 
+    // The locked-subquery rule reads a boxed ForUpdate result only at these hosts;
+    // each must embed the query, not bind or reject it.
+    [Fact]
+    public void SubqueryComparisonOperators_AreTheObjectComparisonsOfSqlExpression()
+    {
+        string[] operators = [.. typeof(SqlExpression)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.IsSpecialName
+                && m.GetParameters() is [_, { ParameterType: var right }]
+                && right == typeof(object)
+                && typeof(SqlCondition).IsAssignableFrom(m.ReturnType))
+            .Select(m => m.Name)
+            .Order()];
+
+        Assert.Equal(ContextRules.SubqueryComparisonOperators.Order(), operators);
+    }
+
+    public static TheoryData<Func<SqlExpression, object, SqlCondition>> Comparisons =>
+        new()
+        {
+            (l, r) => l == r,
+            (l, r) => l != r,
+            (l, r) => l < r,
+            (l, r) => l > r,
+            (l, r) => l <= r,
+            (l, r) => l >= r,
+        };
+
+    [Theory]
+    [MemberData(nameof(Comparisons))]
+    public void SubqueryComparisonOperator_EmbedsALockedQuery(
+        Func<SqlExpression, object, SqlCondition> compare)
+    {
+        DbTable t = new("t");
+        DbTable s = new("s");
+
+        string sql = Sql.Select(t.Column("id")).From(t)
+            .Where(compare(t.Column("id"), Sql.Select(s.Column("id")).From(s).ForUpdate()))
+            .Build(Dbms.Oracle).Text;
+
+        Assert.EndsWith(" (SELECT id FROM s FOR UPDATE)", sql);
+    }
+
+    [Fact]
+    public void SelectHosts_AreDeclaredOnSqlAndISelectBuilderOnly()
+    {
+        string[] hosts = [.. Core.GetExportedTypes()
+            .SelectMany(t => t.GetMethods(
+                BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance
+                    | BindingFlags.DeclaredOnly))
+            .Where(m => m.Name == "Select"
+                && m.GetParameters().Any(p => p.ParameterType == typeof(object[])))
+            .Select(m => m.DeclaringType!.Name)
+            .Distinct()
+            .Order()];
+
+        Assert.Equal(["ISelectBuilder", "Sql"], hosts);
+    }
+
+    [Fact]
+    public void SelectHosts_EmbedALockedQuery()
+    {
+        DbTable t = new("t");
+        DbTable s = new("s");
+        Cte c = new("c");
+        const string Locked = "(SELECT id FROM s FOR UPDATE)";
+
+        string direct = Sql.Select(Sql.Select(s.Column("id")).From(s).ForUpdate())
+            .From(t).Build(Dbms.Oracle).Text;
+        string afterWith = Sql.With(c.As(Sql.Select(t.Column("id")).From(t)))
+            .Select(Sql.Select(s.Column("id")).From(s).ForUpdate())
+            .From(c).Build(Dbms.Oracle).Text;
+
+        Assert.Contains("SELECT " + Locked + " FROM", direct);
+        Assert.Contains("SELECT " + Locked + " FROM", afterWith);
+    }
+
     // The FOR UPDATE rule reads the receiver chain for a GroupBy, which finds one
     // only because the grouped stages reach ForUpdate by chaining further steps
     // rather than declaring it themselves.

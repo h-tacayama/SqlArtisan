@@ -18,11 +18,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   joined-DML rules, it is settled by the builder stage the call binds to, so it
   warns when the builder is held in a variable too. (#569)
 - `SQLA0102` reports a locked query passed as a subquery (an `IN` or `EXISTS`
-  operand, a scalar subquery, a CTE body or a derived table) on Oracle, which
-  takes `FOR UPDATE` only in a top-level `SELECT`. Each rejection is
-  live-verified on Oracle XE 21.3.0 and Free 23ai, as is MySQL 8.0's and
-  PostgreSQL 16's acceptance of a locked `IN` subquery, CTE body and derived
-  table. A locked query held first in a `var`, which takes the `ForUpdate`
+  operand, a compared or selected scalar subquery, a CTE body or a derived
+  table) on Oracle, which takes `FOR UPDATE` only in a top-level `SELECT`.
+  Oracle XE 21.3.0's and Free 23ai's rejection of a locked `IN`, `EXISTS`,
+  compared scalar, CTE body and derived table is live-verified, as is MySQL
+  8.0's and PostgreSQL 16's acceptance of a locked `IN` subquery, CTE body and
+  derived table. A locked query passed as another value (a function argument,
+  an `INSERT` value), or held first in a `var`, which takes the `ForUpdate`
   stage's type, stays silent. (#590)
 
 ### Changed

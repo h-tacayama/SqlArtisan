@@ -419,16 +419,16 @@ internal static class ContextRules
         return names is null ? null : TargetDbmsNames.JoinDisplayNames(names);
     }
 
-    // An ISubquery parameter, an ISubquery member (As, AsTable), or an object-typed
-    // SqlArtisan position, whose resolvers embed an ISubquery as a subquery or reject
-    // it. A result parked in a variable converts out of sight here.
+    // A conversion to ISubquery, an ISubquery member (As, AsTable), or one of the
+    // object-typed hosts that embed it: a comparison operand or a select item. A
+    // result parked in a var keeps the stage type and converts out of sight here.
     private static bool ConsumedAsSubquery(IInvocationOperation forUpdate) =>
         forUpdate.Parent switch
         {
             IConversionOperation { Type: { Name: "ISubquery" } target } =>
                 DialectUsageAnalyzer.IsFromSqlArtisan(target.ContainingAssembly),
             IConversionOperation { Type.SpecialType: SpecialType.System_Object } boxed =>
-                HostIsSqlArtisan(boxed),
+                IsEmbeddingObjectHost(boxed),
             IInvocationOperation host when host.Instance == forUpdate =>
                 host.TargetMethod.ContainingType.Name == "ISubquery"
                     && DialectUsageAnalyzer.IsFromSqlArtisan(
@@ -436,8 +436,9 @@ internal static class ContextRules
             _ => false,
         };
 
-    // Climbs through a params array to the call or operator the value is handed to.
-    private static bool HostIsSqlArtisan(IOperation value)
+    // Named hosts only, each pinned by ContextRuleContractTests to embed the query;
+    // other object positions stay silent rather than assume they do.
+    private static bool IsEmbeddingObjectHost(IOperation value)
     {
         IOperation? current = value.Parent;
         while (current is IArgumentOperation
@@ -449,26 +450,23 @@ internal static class ContextRules
 
         IMethodSymbol? member = current switch
         {
-            IInvocationOperation call => call.TargetMethod,
-            IBinaryOperation binary => binary.OperatorMethod,
-            IObjectCreationOperation creation => creation.Constructor,
+            IBinaryOperation { OperatorMethod: { } op }
+                when op.ContainingType.Name == "SqlExpression"
+                    && SubqueryComparisonOperators.Contains(op.Name) => op,
+            IInvocationOperation { TargetMethod: { Name: "Select" } select }
+                when select.ContainingType.Name is "Sql" or "ISelectBuilder" => select,
             _ => null,
         };
         return member is not null
-            && DialectUsageAnalyzer.IsFromSqlArtisan(member.ContainingAssembly)
-            && !OverridesObjectMember(member);
+            && DialectUsageAnalyzer.IsFromSqlArtisan(member.ContainingAssembly);
     }
 
-    // SqlExpression.Equals(object) compares references and builds no SQL.
-    private static bool OverridesObjectMember(IMethodSymbol member)
-    {
-        while (member.OverriddenMethod is { } overridden)
-        {
-            member = overridden;
-        }
-
-        return member.ContainingType.SpecialType == SpecialType.System_Object;
-    }
+    // Internal for the contract gate, which pins that each one embeds the query.
+    internal static readonly HashSet<string> SubqueryComparisonOperators =
+    [
+        "op_Equality", "op_Inequality", "op_LessThan", "op_GreaterThan",
+        "op_LessThanOrEqual", "op_GreaterThanOrEqual",
+    ];
 
     // A result held as IReturningBuilder can still take Into on a later line, so
     // only a visible consumer counts: the next step, or a widening to ISqlBuilder.
