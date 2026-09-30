@@ -1066,6 +1066,44 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     }
 
     [Fact]
+    public void LockedSelectedScalarSubquery_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            "SELECT u.id, (SELECT o.id FROM users o WHERE o.id = u.id) FROM users u").ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT u.id, (SELECT o.id FROM users o WHERE o.id = u.id FOR UPDATE) "
+            + "FROM users u").ToList());
+    }
+
+    [Fact]
+    public void LockedCrossApply_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            "SELECT u.id FROM users u "
+            + "CROSS APPLY (SELECT o.id FROM users o WHERE o.id = u.id) x").ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT u.id FROM users u "
+            + "CROSS APPLY (SELECT o.id FROM users o WHERE o.id = u.id FOR UPDATE) x").ToList());
+    }
+
+    [Fact]
+    public void LockedLateralInlineView_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.Query<int>(
+            "SELECT u.id FROM users u, "
+            + "LATERAL (SELECT o.id FROM users o WHERE o.id = u.id) x").ToList();
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT u.id FROM users u, "
+            + "LATERAL (SELECT o.id FROM users o WHERE o.id = u.id FOR UPDATE) x").ToList());
+    }
+
+    [Fact]
     public void LockedCteBody_IsRejectedByTheEngine()
     {
         using IDbConnection connection = _fixture.OpenConnection();

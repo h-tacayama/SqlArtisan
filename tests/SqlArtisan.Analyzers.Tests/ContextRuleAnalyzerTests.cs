@@ -961,6 +961,15 @@ public class ContextRuleAnalyzerTests
     [InlineData("""
         var q = Select(t.Id, {|#0:Select(s.Dep).From(s).ForUpdate()|}).From(t);
         """)]
+    [InlineData("""
+        Cte c = new("c");
+        var q = With(c.As(Select(t.Id).From(t)))
+            .Select({|#0:Select(s.Dep).From(s).ForUpdate()|}).From(c);
+        """)]
+    [InlineData("""
+        var q = Select(t.Id).From(t)
+            .CrossApply({|#0:Select(s.Dep).From(s).ForUpdate()|}, new DerivedTable("x"));
+        """)]
     public Task ForUpdateInSubquery_Oracle_ReportsSqla0102(string statements) =>
         RunReporting(statements, "oracle");
 

@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   operand, a compared or selected scalar subquery, a CTE body or a derived
   table) on Oracle, which takes `FOR UPDATE` only in a top-level `SELECT`.
   Oracle XE 21.3.0's and Free 23ai's rejection of a locked `IN`, `EXISTS`,
-  compared scalar, CTE body and derived table is live-verified, as is MySQL
+  compared or selected scalar, CTE body, derived table, `CROSS APPLY` and
+  `LATERAL` inline view is live-verified, as is MySQL
   8.0's and PostgreSQL 16's acceptance of a locked `IN` subquery, CTE body and
   derived table. A locked query passed as another value (a function argument,
   an `INSERT` value), or held first in a `var`, which takes the `ForUpdate`
