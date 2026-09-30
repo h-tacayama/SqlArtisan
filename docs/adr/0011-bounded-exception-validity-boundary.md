@@ -82,12 +82,20 @@ override — so every build path (including `Returning()`, which funnels through
   rejections of valid-somewhere text do not follow that today: ADR 0017 is its
   own exception, and the joined-target alias requirement (#258) and the
   call-site-defect guards are decided in `guards-and-empty-states.md`;
-  reconciling them with this ADR is open (#558, unit B5). One rejection is
-  decided outside the bar here: the dialect-blind walk rejects a second `ON
-  CONFLICT` on a held stage although SQLite runs it, because the fluent chain
-  does not offer the form and the held-stage repeat is read as a reuse slip
-  (#581; the full reason is in `public-api-design.md` § "Opinions live in docs
-  and the analyzer, not in API holes").
+  reconciling them with this ADR is open (#558, unit B5). The once-per-block
+  walk's rejections are decided outside the bar here: a clause a query block
+  takes once, or a slot, that a held stage writes twice is read as a reuse
+  slip and rejected on every dialect, even where an engine runs the repeat,
+  because which repeats a statement carries is what the fluent chain offers.
+  Clauses that legally repeat, such as joins and set operators, are outside
+  its once-per-kind check. Recorded engine-run cases: SQLite's second `ON
+  CONFLICT` (#581); PostgreSQL's second locking clause (#582); SQLite's `ON`
+  after a `CROSS JOIN` (`SqliteTests.OnAfterCrossJoin_IsAcceptedByTheEngine`);
+  and SQL Server's plain `OUTPUT` after `OUTPUT ... INTO`
+  (`SqlServerTests.OutputAfterOutputInto_IsAcceptedByTheEngine`), a pair the
+  chain does not offer. `public-api-design.md` § "Opinions live in docs and
+  the analyzer, not in API holes" records the first, second and fourth forms
+  as not offered.
 - **Revisit when joined DML lands (#237).** Once `UPDATE … FROM` / `DELETE … FROM`
   give SQL Server a real spelling for the aliased/correlated shape, this guard's
   premise ("no valid spelling exists") weakens; re-evaluate whether it should

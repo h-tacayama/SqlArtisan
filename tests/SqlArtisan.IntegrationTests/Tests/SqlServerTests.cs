@@ -606,6 +606,23 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
         }
     }
 
+    // The walk rejects a held stage's OUTPUT after OUTPUT ... INTO on every dialect
+    // (ADR 0011); SQL Server runs the text, one of each.
+    [Fact]
+    public void OutputAfterOutputInto_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            "DELETE FROM users OUTPUT DELETED.id INTO output_archive (id) OUTPUT DELETED.id "
+                + "WHERE id = 3",
+            transaction: transaction);
+
+        Assert.Equal(new[] { 3 }, ids);
+        transaction.Rollback();
+    }
+
     // The Build() guard's reason (#569): SQL Server has TOP and OFFSET/FETCH, but
     // not in one query.
     [Fact]

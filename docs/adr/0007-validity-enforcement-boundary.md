@@ -69,8 +69,9 @@ yes-somewhere → dialect availability → permissive.
   exception — an aliased `INSERT`/`UPDATE`/`DELETE` target on SQL Server — admitted only
   because the analyzer structurally cannot see the construct *and* the resolved
   target has no valid spelling at all; any further exception must clear the same
-  bar. ADR 0011 also records one rejection decided outside it — SQLite's second
-  `ON CONFLICT` on a held stage (#581).
+  bar. ADR 0011 also decides the once-per-block walk's rejections outside it — a
+  once-per-block clause or slot a held stage writes twice, even where an engine
+  runs the repeat (#581, #582).
 - **A pseudo-column reference outside its context stays permissive.**
   `Sql.Excluded(...)` outside an upsert's `DO UPDATE SET`, or
   `Inserted`/`Deleted` under the wrong `OUTPUT` verb, builds and emits: each

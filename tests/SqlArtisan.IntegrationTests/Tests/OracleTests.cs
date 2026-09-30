@@ -484,6 +484,29 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // The continuation Into's ISqlBuilder return forecloses (public-api-design.md
+    // § "Opinions…"): an error_logging_clause after RETURNING ... INTO.
+    [Fact]
+    public void LogErrorsAfterReturningInto_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        // DDL commits, so the log table is created outside the rolled-back work.
+        connection.Execute("BEGIN DBMS_ERRLOG.CREATE_ERROR_LOG('USERS', 'ERR_USERS'); END;");
+        using IDbTransaction transaction = connection.BeginTransaction();
+        DynamicParameters outputs = new();
+        outputs.Add("outId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+        connection.Execute(
+            "UPDATE users SET name = name WHERE id = 1 RETURNING id INTO :outId "
+                + "LOG ERRORS INTO err_users REJECT LIMIT UNLIMITED",
+            outputs,
+            transaction);
+
+        Assert.Equal(1, Convert.ToInt32(outputs.Get<object>("outId")!.ToString()));
+        transaction.Rollback();
+    }
+
     // The live twin of the leading-WITH guard for MERGE on Oracle (ADR 0011):
     // the merge_statement grammar carries no subquery_factoring_clause.
     [Fact]

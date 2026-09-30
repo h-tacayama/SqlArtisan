@@ -859,6 +859,23 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
                 .OrderBy(u.DepartmentId).ForUpdate()));
     }
 
+    // A continuation ForUpdate's ISqlBuilder return forecloses (public-api-design.md
+    // § "Opinions…"): a second locking clause, each with its own OF and wait policy.
+    [Fact]
+    public void RepeatedLockingClause_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> ids = connection.Query<int>(
+            "SELECT u.id FROM users u INNER JOIN orders o ON u.id = o.user_id ORDER BY u.id "
+                + "FOR UPDATE OF u NOWAIT FOR UPDATE OF o SKIP LOCKED",
+            transaction: transaction);
+
+        Assert.NotEmpty(ids);
+        transaction.Rollback();
+    }
+
     // #520: why PostgreSQL is absent from the row-limiting FOR UPDATE context rule
     // — it runs both row-limiting families beside the lock, where Oracle rejects them.
     [Fact]
@@ -887,6 +904,22 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
             transaction);
 
         Assert.Equal(new[] { 2 }, ids);
+        transaction.Rollback();
+    }
+
+    // Another continuation ForUpdate's ISqlBuilder return forecloses: a row limit
+    // after the lock. The chain offers it before ForUpdate, as the two tests above do.
+    [Fact]
+    public void RowLimitAfterLock_IsAcceptedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.Equal(new[] { 1 }, connection.Query<int>(
+            "SELECT id FROM users ORDER BY id FOR UPDATE LIMIT 1", transaction: transaction));
+        Assert.Equal(new[] { 2 }, connection.Query<int>(
+            "SELECT id FROM users ORDER BY id FOR UPDATE OFFSET 1 ROWS FETCH FIRST 1 ROWS ONLY",
+            transaction: transaction));
         transaction.Rollback();
     }
 

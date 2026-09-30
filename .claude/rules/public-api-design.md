@@ -106,7 +106,12 @@ the capability, or by changing the member's return type (a binary break).
 Before 1.0, check each such member against the engines' grammar for a clause
 that can follow it, and either give the member its own stage or record the
 continuation as not offered — #581's record under "Opinions…" is the worked
-example.
+example. Checked (#582): `DoNothing()` and `DoUpdateSet(...).Where(...)`
+(#581); `ForUpdate(...)` and `Into(...)` (under "Opinions…");
+`OnDuplicateKeyUpdate(...)`, after which MySQL's reference syntax for `INSERT`
+lists no clause; and `Returning(...)` (under "Opinions…"), whose shared
+stage offers `Into(...)` alone, while PostgreSQL's reference syntax ends the
+statement at `RETURNING`.
 
 Why not name every stage after the method that returns it: several methods
 land on one stage (`ISelectBuilderFrom`), and a method's name is not the
@@ -412,13 +417,58 @@ clause, so the form is SQLite's alone.
   the once-per-block walk (`SqlBuilderBase.ThrowIfDuplicateClauseInBlock`)
   rejects the second clause at `Build()` on every dialect, SQLite included.
   That departs on purpose from ADR 0007's test, which leaves text valid on
-  some dialect to the engine, and ADR 0011 enumerates it: the walk reads a
-  stage called twice on a held builder as a reuse slip, and emitting this one
-  for SQLite would make that slip the only spelling of a form the chain does
-  not offer.
+  some dialect to the engine, and ADR 0011 decides it: the walk reads a
+  once-per-block clause a held stage writes twice as a reuse slip, and
+  emitting this one for SQLite would make that slip the only spelling of a
+  form the chain does not offer.
 
 Reserving a stage type now would be a binary break paid for a form no caller
 has asked for (#581).
+
+**What may follow `ForUpdate(...)`, `Into(...)` or `Returning(...)` is not
+offered (decided — do not re-file):** the first two return the shared
+`ISqlBuilder` and the third the `IReturningBuilder` stage that `INSERT`,
+`UPDATE` and `DELETE` share, so a clause an engine takes after them can be
+added only by changing the return type, a binary break, or, after
+`Returning(...)`, by offering it on all three statements (§ "Builder stage
+names").
+
+- *A second locking clause.* PostgreSQL 16 runs `FOR UPDATE OF u NOWAIT FOR
+  UPDATE OF o SKIP LOCKED`, a wait policy per table
+  (`PostgreSqlTests.RepeatedLockingClause_IsAcceptedByTheEngine`).
+  SqlArtisan offers one locking clause per query block and no `FOR SHARE`,
+  and the walk rejects a held stage's second `ForUpdate` as it does the
+  second `ON CONFLICT` above.
+- *A row limit after the lock.* PostgreSQL 16 also runs `FOR UPDATE LIMIT 1`
+  and `FOR UPDATE OFFSET 1 ROWS FETCH FIRST 1 ROWS ONLY`
+  (`PostgreSqlTests.RowLimitAfterLock_IsAcceptedByTheEngine`), an order MySQL
+  rejects (`MySqlTests.ForUpdateBeforeLimit_IsRejectedByTheEngine`). The
+  chain offers the row limit before `ForUpdate` only (#520).
+- *SQLite's `ORDER BY` / `LIMIT` after `RETURNING`.* SQLite's grammar
+  (`src/parse.y`) puts them after `RETURNING` on `UPDATE` and `DELETE`, in
+  builds with `SQLITE_ENABLE_UPDATE_DELETE_LIMIT`; the bundled build lacks
+  the option and rejects them
+  (`SqliteTests.RowLimitAfterReturning_IsRejectedByTheEngine`).
+- *MySQL's `INTO`.* MySQL 8.0 runs `SELECT ... FOR UPDATE INTO @id`
+  (`MySqlTests.IntoAfterLock_IsAcceptedByTheEngine`). SqlArtisan offers no
+  `SELECT ... INTO`; added later, it would not reach a query ending in
+  `ForUpdate(...)`.
+- *Oracle's `LOG ERRORS`.* Oracle runs an `error_logging_clause` after
+  `RETURNING ... INTO`
+  (`OracleTests.LogErrorsAfterReturningInto_IsAcceptedByTheEngine`).
+  SqlArtisan offers `LOG ERRORS` on no statement; added later to the DML
+  stages, it would not reach a statement ending in `RETURNING ... INTO`.
+
+As with #581, a stage type reserved now would be a binary break paid for
+forms no caller has asked for (#582).
+
+**SQL Server's `OUTPUT ... INTO` beside a plain `OUTPUT` is not offered
+(decided — do not re-file):** T-SQL takes one of each in a statement
+(`SqlServerTests.OutputAfterOutputInto_IsAcceptedByTheEngine`), but
+`Output(...).Into(...)` returns a stage without `Output`, and a held stage's
+second `Output` is a reuse slip the walk rejects (ADR 0011). Whether offering
+the pair later needs a return-type change is not settled here; it is weighed
+when a user needs it (ADR 0010).
 
 ## Recorded trade-offs from the #149 freeze audit
 
