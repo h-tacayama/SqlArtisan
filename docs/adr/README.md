@@ -53,10 +53,12 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 - **Boundary** (0007 + 0011 + 0012 + 0017) — *What does the library reject?*
   0007 draws the line (incomplete → reject; dialect availability →
   permissive); 0011 carves one enumerated exception (aliased DML target on SQL
-  Server) and decides the once-per-block walk's rejections outside its bar (a
-  once-per-block clause or slot a held stage writes twice is a reuse slip,
-  #581, #582); 0012 adds value-domain guards (a universally invalid embedded
-  value also rejects); 0017 adds a second enumerated exception (an omitted
+  Server) and decides three classes outside its bar: the once-per-block walk's
+  rejections (a once-per-block clause or slot a held stage writes twice is a
+  reuse slip, #581, #582), the call-site-defect guards (a list that repeats a
+  name, or an `OUTPUT ... INTO` width mismatch), and the joined-target alias
+  requirement (#258); 0012 adds value-domain guards (a universally invalid
+  embedded value also rejects); 0017 adds a second enumerated exception (an omitted
   join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
   are required to answer "will the library throw for this?"
 - **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019 + 0021 + 0022) — *How

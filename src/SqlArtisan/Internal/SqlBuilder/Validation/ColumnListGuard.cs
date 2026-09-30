@@ -1,8 +1,8 @@
 namespace SqlArtisan.Internal;
 
 // A column list fixed at the call site that names one column twice is a
-// call-site defect: engines that take it drop or overwrite one entry silently
-// (guards-and-empty-states.md names which), so it fails here — #225's class.
+// call-site defect (#225's class, ADR 0011): engines that take it drop or
+// overwrite one entry silently (guards-and-empty-states.md names which).
 internal static class ColumnListGuard
 {
     internal static void ThrowIfDuplicate(DbColumn[] columns, string message)
