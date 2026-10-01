@@ -592,11 +592,12 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Seventeen rules ship today — ten reading
+expression where the construct is used. Eighteen rules ship today — eleven reading
 the construct's surroundings, seven reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
-Server 2022 — and the Oracle floors on Free 23ai. A floor below a lane's
+Server 2022 — the Oracle floors on Free 23ai, and `WHEN NOT MATCHED BY SOURCE` on
+PostgreSQL 17. A floor below a lane's
 version rests on the vendor's release notes, as the version-bound register's
 does.
 
@@ -733,6 +734,23 @@ var q = InsertInto(u, u.Id, u.Name).Values(1, "x").Returning(u.Id).Build();
 // warning SQLA0102: 'Returning' is not supported without an INTO clause on Oracle
 ```
 
+**A repeated `MERGE` branch.** The engines bound a `MERGE`'s `WHEN` branches
+differently. Oracle takes one `WHEN MATCHED` and one `WHEN NOT MATCHED`.
+PostgreSQL and SQL Server refuse a branch after an unconditioned branch of the
+same clause, which nothing could reach. SQL Server also takes each action once per
+clause, so a second `WHEN NOT MATCHED` is always refused there. Condition the earlier
+branch — `WhenMatched(condition)` — or, on Oracle, filter the one branch with
+`Where(...)` and `DeleteWhere(...)`. The rule reads back up the chain, so an
+earlier branch held in a variable stays silent.
+
+```csharp
+// sqlartisan_syntax_postgresql = any
+var q = MergeInto(t).Using(s).On(t.Id == s.Id)
+    .WhenMatched().ThenUpdateSet(t.Name == s.Name)
+    .WhenMatched().ThenDelete();
+// warning SQLA0102: 'WhenMatched' is not supported after an unconditioned WHEN MATCHED branch on PostgreSQL
+```
+
 ### DML statement shapes
 
 A joined `UPDATE` or `DELETE`, a `WITH` inside `INSERT ... SELECT`, a filter
@@ -843,7 +861,7 @@ one turns on whether two builder calls name the *same* table instance, which
 the analyzer cannot see, so `Build(Dbms)` rejects it instead.
 
 A context rule warns only when the position is provable from the expression
-itself. For the ten that read the construct's surroundings, any shape the
+itself. For the eleven that read the construct's surroundings, any shape the
 analyzer doesn't recognize stays silent — and, for those that read back up the
 chain, so does a subquery held in a variable or a builder chain continued from a
 helper method — the same under-warn-but-never-false-positive principle the

@@ -831,6 +831,150 @@ public class ContextRuleAnalyzerTests
                 .WhenNotMatched().ThenInsert(t.Id).Values(s.Id).Where(s.Id == 1);
             """, "oracle");
 
+    [Fact]
+    public async Task MergeBranchAfterUnconditioned_ReportsEveryMergeDialect()
+    {
+        var test = AnalyzerVerifier.Create(
+            Usage("""
+                var q = {|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenMatched().ThenUpdateSet(t.Dep == s.Dep)
+                    .WhenMatched()|}.ThenUpdateSet(t.Id == s.Id);
+                """),
+            """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_oracle = any
+            sqlartisan_syntax_postgresql = any
+            sqlartisan_syntax_sqlserver = any
+            """);
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0102")
+            .WithLocation(0)
+            .WithArguments(
+                "WhenMatched",
+                "after an unconditioned WHEN MATCHED branch",
+                "Oracle, PostgreSQL and SQL Server"));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task MergeBranchSameAction_SqlServer_ReportsSqla0102()
+    {
+        var test = AnalyzerVerifier.Create(
+            Usage("""
+                var q = {|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenMatched(s.Id > 1).ThenUpdateSet(t.Dep == s.Dep)
+                    .WhenMatched(s.Id > 2)|}.ThenUpdateSet(t.Dep == s.Dep);
+                """),
+            AnalyzerVerifier.EditorConfig("sqlserver"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0102")
+            .WithLocation(0)
+            .WithArguments(
+                "WhenMatched", "after a WHEN MATCHED branch with the same action", "SQL Server"));
+
+        await test.RunAsync();
+    }
+
+    // WHEN NOT MATCHED has one action, so any second one repeats it.
+    [Fact]
+    public Task MergeNotMatchedAfterConditioned_SqlServer_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenNotMatched(s.Id > 1).ThenInsert(t.Id).Values(s.Id)
+                .WhenNotMatched()|}.ThenInsert(t.Id).Values(s.Id);
+            """, "sqlserver");
+
+    [Fact]
+    public Task MergeNotMatchedRepeated_Oracle_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenNotMatched().ThenInsert(t.Id).Values(s.Id)
+                .WhenNotMatched()|}.ThenInsert(t.Id).Values(s.Id);
+            """, "oracle");
+
+    [Theory]
+    [InlineData("sqlserver", "any")]
+    [InlineData("postgresql", "17")]
+    public Task MergeBySourceAfterUnconditioned_ReportsSqla0102(string dbms, string version) =>
+        RunAsync(
+            Usage("""
+                var q = {|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenNotMatchedBySource().ThenUpdateSet(t.Dep == 0)
+                    .WhenNotMatchedBySource()|}.ThenDelete();
+                """),
+            AnalyzerVerifier.EditorConfig(dbms, version),
+            expectWarning: true);
+
+    // Below 17 the matrix already reports both BY SOURCE calls; the rule adds nothing.
+    [Fact]
+    public async Task MergeBySourceAfterUnconditioned_PostgreSql16_ReportsSqla0100Only()
+    {
+        var test = AnalyzerVerifier.Create(
+            Usage("""
+                var q = {|#1:{|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenNotMatchedBySource()|}.ThenUpdateSet(t.Dep == 0)
+                    .WhenNotMatchedBySource()|}.ThenDelete();
+                """),
+            AnalyzerVerifier.EditorConfig("postgresql"));
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(1));
+
+        await test.RunAsync();
+    }
+
+    // An override that silences SQLA0100 hands the repeat back to this rule.
+    [Fact]
+    public Task MergeBySourceAfterUnconditioned_PostgreSql16Overridden_ReportsSqla0102() =>
+        RunAsync(
+            Usage("""
+                var q = {|#0:MergeInto(t).Using(s).On(t.Id == s.Id)
+                    .WhenNotMatchedBySource().ThenUpdateSet(t.Dep == 0)
+                    .WhenNotMatchedBySource()|}.ThenDelete();
+                """),
+            """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_postgresql = any
+            sqlartisan_construct_when_not_matched_by_source = supported
+            """,
+            expectWarning: true);
+
+    [Theory]
+    [InlineData("postgresql")]
+    [InlineData("sqlserver")]
+    public Task MergeBranchAfterConditioned_StaysSilent(string dbms) =>
+        RunSilent("""
+            var q = MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched(s.Id > 1).ThenUpdateSet(t.Dep == s.Dep)
+                .WhenMatched().ThenDelete()
+                .WhenNotMatched().ThenInsert(t.Id).Values(s.Id);
+            """, dbms);
+
+    [Theory]
+    [InlineData("oracle")]
+    [InlineData("postgresql")]
+    [InlineData("sqlserver")]
+    public Task MergeOneBranchPerClause_StaysSilent(string dbms) =>
+        RunSilent("""
+            var q = MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Dep == s.Dep)
+                .WhenNotMatched().ThenInsert(t.Id).Values(s.Id);
+            """, dbms);
+
+    // The rule reads back up the chain, so an earlier branch held in a variable is out
+    // of sight (ADR 0003).
+    [Fact]
+    public Task MergeRepeatedBranchViaVariable_Oracle_StaysSilent() =>
+        RunSilent("""
+            var m = MergeInto(t).Using(s).On(t.Id == s.Id)
+                .WhenMatched().ThenUpdateSet(t.Dep == s.Dep);
+            var q = m.WhenMatched().ThenUpdateSet(t.Id == s.Id);
+            """, "oracle");
+
     // The other stages declaring Where filter a statement or an upsert action, not MERGE.
     [Theory]
     [InlineData("var q = Select(t.Id).From(t).Where(t.Id == 1);")]

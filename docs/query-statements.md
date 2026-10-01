@@ -1205,9 +1205,10 @@ On PostgreSQL and SQL Server a `MERGE` can be fed by a CTE —
 [WITH Clause](#with-clause-common-table-expressions). On Oracle the CTE goes
 inside the subquery `Using(...)` names instead.
 
-**How many branches each engine takes.** This is dialect availability, not
-something SqlArtisan checks: build what you mean and the engine rejects what it
-cannot take, naming the branch. Oracle accepts one `WHEN MATCHED` and one
+**How many branches each engine takes.** `Build()` does not check this: the
+engine rejects what it cannot take, naming the branch, and the
+[analyzer](analyzer.md#context-rules-sqla0102) reports a repeated branch in the
+chain that writes it (`SQLA0102`). Oracle accepts one `WHEN MATCHED` and one
 `WHEN NOT MATCHED`, whatever action each carries — a second branch of either
 kind is `ORA-00905` (observed on Oracle XE 21.3.0). SQL Server bounds them per
 action, so a matched `UPDATE SET` and a matched `DELETE` can coexist, and

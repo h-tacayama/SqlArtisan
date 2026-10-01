@@ -214,21 +214,22 @@ offset never is, since one goes negative by arithmetic rather than by being
 typed. All five engines are pinned as twins so the facts need not be
 re-derived; the decision is recorded in ADR 0022's scope section.
 
-**MERGE `WHEN` branch arity stays permissive (decided — do not re-file):** each
-engine bounds the branches differently — Oracle takes one per WHEN clause
-whatever its action (ORA-00905 on XE 21.3.0), SQL Server one per
+**MERGE `WHEN` branch arity is the analyzer's, not a guard (decided — do not
+re-file):** each engine bounds the branches differently — Oracle takes one per
+WHEN clause whatever its action (ORA-00905 on XE 21.3.0), SQL Server one per
 clause-and-action pair *and* refuses any branch following an unconditional one
 of the same clause, and PostgreSQL 16.13 applies that second rule too
-(`unreachable WHEN clause specified after unconditional WHEN clause`). A
-`Build(Dbms)` guard for this was written, measured and withdrawn (#523,
-#525): the shape is *dialect availability*, so the table above already
-governs it, and unlike the guard mission's targets it fails **loudly** on the
-engine, naming the exact branch — no silent wrongness to convert. It also cost
-a measured +320 B/build on SQL Server and +176 B on Oracle for a plain
-two-branch upsert, the commonest MERGE those two engines have, against ADR
-0006. The per-engine limits are documented in `docs/query-statements.md` and
-pinned by the `MergeRepeated*` twins on the Oracle, SQL Server and PostgreSQL
-lanes, so the knowledge is kept without the throw.
+(`unreachable WHEN clause specified after unconditional WHEN clause`). Each
+branch is one the engine takes, refused only after another, so the shape is
+*context-bounded* and `SQLA0102` reports it (`CheckRepeatedMergeBranch`, #582)
+wherever the chain shows both branches. A `Build(Dbms)` guard for it was
+written, measured and withdrawn (#523, #525): unlike the guard mission's
+targets it fails **loudly** on the engine, naming the exact branch — no silent
+wrongness to convert — and it cost a measured +320 B/build on SQL Server and
++176 B on Oracle for a plain two-branch upsert, the commonest MERGE those two
+engines have, against ADR 0006. The per-engine limits are documented in
+`docs/query-statements.md` and pinned by the `MergeRepeated*` twins on the
+Oracle, SQL Server and PostgreSQL lanes (`BY SOURCE` on PostgreSQL 17).
 
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must

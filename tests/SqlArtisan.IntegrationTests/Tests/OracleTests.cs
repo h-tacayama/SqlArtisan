@@ -570,8 +570,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             connection.ExecuteScalar("SELECT id, name FROM users ORDER BY 0"));
     }
 
-    // #523/#525: MERGE branch arity is a documented non-goal, not a guard —
-    // Oracle's grammar has one merge_update_clause and one merge_insert_clause.
+    // SQLA0102's twin (#582): Oracle's grammar has one merge_update_clause and one
+    // merge_insert_clause.
     [Fact]
     public void MergeRepeatedWhenBranch_IsRejectedByTheEngine()
     {
