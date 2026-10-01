@@ -455,20 +455,22 @@ that buys a `Build()` guard instead is the stage copies the withholding
 needs. On the withheld route — through a set operator too — every stage that
 offers the withheld step, or leads to one that does, needs a copy if a valid
 chain also reaches it. A stage only that route reaches is changed in place,
-and a copy whose members match an existing stage for the same statement
-position (the branch end a MERGE action returns to, say) is that stage;
-neither counts. A node type counts like a stage.
+and a copy whose members match an existing stage of the same statement and
+position (its `I<Statement>Builder` name fits; the branch end a MERGE action
+returns to, say) is that stage; neither counts. A node type counts like a
+stage.
 
 - **Four or fewer copies: compile time.** `WithRecursive` (1, #521), the
   `WhenNotMatchedBySource` branch (1), the direct-join `UPDATE`'s `SET`,
   which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582) and
   `InsertIgnoreInto` (4: its Table, Columns, Values and Set stages, #275).
 - **Five or more: a `Build()` guard**, its count recorded here. A leading
-  `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); `TOP ... WITH TIES`
-  without an `ORDER BY` (8: the `SELECT` stages before it and the set
-  operator); `TOP` beside `LIMIT`/`OFFSET`/`FETCH` (9); the `OUTPUT`
-  pairings (10, across three statement families, #400); an
-  `INSERT ... SELECT` embedded as a subquery (13).
+  `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); `TOP` beside
+  `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
+  the `SELECT` stages before it, the set operator, and a `TopClause` copy,
+  since a plain `Top(n)` reaches it too); the `OUTPUT` pairings (10, across
+  three statement families, #400); an `INSERT ... SELECT` embedded as a
+  subquery (13).
 
 Each copy doubles later edits to the stage it mirrors (all but one later
 commit to an `INSERT IGNORE` stage since #275 also edited its `INSERT` twin);
