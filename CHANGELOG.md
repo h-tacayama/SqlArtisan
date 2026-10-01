@@ -29,6 +29,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   stage's type, stays silent. (#590)
 
 ### Changed
+- **Breaking:** `WhenMatched(condition)` and `WhenNotMatched(condition)` no
+  longer offer Oracle's action `Where(...)` / `DeleteWhere(...)`: Oracle has no
+  `AND` on `WHEN`, and PostgreSQL and SQL Server have no action `WHERE`, so the
+  pair ran nowhere. They return the new `IMergeBuilderWhenMatchedAnd` /
+  `IMergeBuilderWhenNotMatchedAnd`, whose insert awaits its values on
+  `IMergeBuilderWhenNotMatchedAndThenInsert`. `Build()` now rejects an action
+  filter a held builder lands in a conditioned or `WHEN NOT MATCHED BY SOURCE`
+  branch. Code that writes the stage types out needs the new names, and an
+  assembly compiled against an earlier version must be rebuilt. (#582)
 - **Breaking:** the joined `DELETE ... FROM` and MySQL's direct-join `UPDATE`
   (join before `SET`) no longer offer `Returning(...)`: MySQL and SQL Server,
   the only engines with those forms, have no `RETURNING`, and the engines with it

@@ -1,7 +1,7 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>WHEN MATCHED [AND ...] THEN</c>: update the matched rows
+/// The state after <c>WHEN MATCHED THEN</c>: update the matched rows
 /// (<c>UPDATE SET ...</c>) or remove them (<c>DELETE</c>, PostgreSQL / SQL Server).
 /// </summary>
 public interface IMergeBuilderWhenMatched

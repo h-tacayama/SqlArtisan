@@ -45,7 +45,12 @@ the full rationale.
   the typestate withholds it on the first two, and `Build()` backstops a held
   stage and the re-listed form, which instance identity decides; an `UPDATE`
   joining before `SET` and through `FROM` too — the typestate keeps the
-  spellings apart, so only a held stage reaches both (#582); an
+  spellings apart, so only a held stage reaches both (#582); Oracle's MERGE
+  action `WHERE` / `DELETE WHERE` in a conditioned (`WHEN ... AND`) or
+  `WHEN NOT MATCHED BY SOURCE` branch — Oracle, the one engine with the
+  filters, has neither branch form, and PostgreSQL and SQL Server reject an
+  action `WHERE` (#582); the typestate withholds them there, and `Build()`
+  backstops a held stage that lands one in such a branch; an
   `OnConflict()` with no conflict target paired with `.DoUpdateSet(...)` on
   PostgreSQL — SQLite takes the targetless form, so the guard is `Build(Dbms)`
   and `Dbms.PostgreSql`-scoped (ADR 0011; the earlier dialect-blind guard
@@ -471,8 +476,10 @@ stage.
   `WhenNotMatchedBySource` branch (1), the direct-join `UPDATE`'s `SET`,
   which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582),
   `RETURNING` on the joined `DELETE ... FROM` and direct-join `UPDATE` (2: their
-  `WHERE` stages, #582) and `InsertIgnoreInto` (4: its Table, Columns, Values
-  and Set stages, #275).
+  `WHERE` stages, #582), Oracle's MERGE action filters on a conditioned branch
+  (3: the `WHEN MATCHED AND` and `WHEN NOT MATCHED AND` stages and the latter's
+  `INSERT`, #582) and `InsertIgnoreInto` (4: its Table, Columns, Values and Set
+  stages, #275).
 - **Five or more: a `Build()` guard**, its count recorded here. A leading
   `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); `TOP` beside
   `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
