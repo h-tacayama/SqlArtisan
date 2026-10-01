@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   table. A locked query passed as another value (a function argument,
   an `INSERT` value), or held first in a `var`, which takes the `ForUpdate`
   stage's type, stays silent. (#590)
+- `SQLA0102` reports a second `Values(...)` row on Oracle before 23ai, which
+  rejects the multi-row `VALUES` that call emits (live-verified on XE 21.3.0;
+  Free 23ai runs it). The collection overloads stay silent, their row count
+  being a runtime value. (#582)
 
 ### Changed
 - Four call-site defects now throw at the call that writes them instead of at
@@ -146,6 +150,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#569)
 
 ### Fixed
+- `SQLA0102`'s `UPDATE ... FROM` rule reads the declared engine version: it no
+  longer reports Oracle 23 or later, where 23ai added the form (live-verified on
+  Free 23ai), and it now reports SQLite before 3.33, which added it. Declaring
+  no version keeps reading Oracle and SQLite at their verified baselines, so
+  that default is unchanged. (#582)
 - `Build()` throws on a leading `With(...)` before an `INSERT` with
   `OnDuplicateKeyUpdate(...)`, on every target. `ON DUPLICATE KEY UPDATE` is
   MySQL's alone and MySQL's `INSERT` takes no leading `WITH`, so no engine

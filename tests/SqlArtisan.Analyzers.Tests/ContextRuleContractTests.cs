@@ -199,6 +199,16 @@ public class ContextRuleContractTests
         "IUpdateBuilderFrom",
         "IUpdateBuilderJoined",
         "IUpdateBuilderUpdate")]
+    [InlineData(
+        "Values",
+        "IInsertBuilderColumns",
+        "IInsertBuilderTable",
+        "IInsertBuilderValues",
+        "IInsertIgnoreBuilderColumns",
+        "IInsertIgnoreBuilderTable",
+        "IInsertIgnoreBuilderValues",
+        "IMergeBuilderThenInsert",
+        "IMergeBuilderWhenNotMatchedAndThenInsert")]
     [InlineData("With", "IWithBuilder")]
     [InlineData(
         "Where",
