@@ -43,9 +43,7 @@ the full rationale.
   PostgreSQL — SQLite takes the targetless form, so the guard is `Build(Dbms)`
   and `Dbms.PostgreSql`-scoped (ADR 0011; the earlier dialect-blind guard
   rejected SQLite's valid statement, and was corrected);
-  `StringAgg`'s inline `ORDER BY` argument combined with `.WithinGroup(...)` —
-  the two orderings are one construct spelled per dialect, never stacked
-  (release audit); `Returning(...)` beside `INSERT IGNORE` or
+  `Returning(...)` beside `INSERT IGNORE` or
   `OnDuplicateKeyUpdate(...)` — MySQL, the only engine with either, has no
   `RETURNING`, so the typestate withholds it and `Build()` backstops a held
   stage (release audit pass 4); a leading `WITH` before `INSERT IGNORE` or an
@@ -448,6 +446,40 @@ constructors — `FROM`, JOIN/DELETE `USING`, `ON CONFLICT`, `OUTPUT INTO`,
 from an element injection (whole-argument nulls keep the loud-NRE exemption);
 and `BuilderElementGuardTests` pins the builder-side sites the factory sweep
 cannot reach. A new typed element position lands on this shape, not a bare NRE.
+
+## Compile time or a guard: the copy count (decided — do not re-file)
+
+ADR 0007's compile-time-first order covers a rejected pairing or order in a
+fluent chain too: withhold the step through the return type. The one cost
+that buys a `Build()` guard instead is the stage copies the withholding
+needs. On the withheld route — through a set operator too — every stage that
+offers the withheld step, or leads to one that does, needs a copy if a valid
+chain also reaches it. A stage only that route reaches is changed in place,
+and a copy whose members match an existing stage of the same statement and
+position (its `I<Statement>Builder` name fits; the branch end a MERGE action
+returns to, say) is that stage; neither counts. A node type counts like a
+stage.
+
+- **Four or fewer copies: compile time.** `WithRecursive` (1, #521), the
+  `WhenNotMatchedBySource` branch (1), the direct-join `UPDATE`'s `SET`,
+  which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582) and
+  `InsertIgnoreInto` (4: its Table, Columns, Values and Set stages, #275).
+- **Five or more: a `Build()` guard**, its count recorded here. A leading
+  `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); `TOP` beside
+  `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:
+  the `SELECT` stages before it, the set operator, and a `TopClause` copy,
+  since a plain `Top(n)` reaches it too); the `OUTPUT` pairings (10, across
+  three statement families, #400); an `INSERT ... SELECT` embedded as a
+  subquery (13).
+
+Each copy doubles later edits to the stage it mirrors (all but one later
+commit to an `INSERT IGNORE` stage since #275 also edited its `INSERT` twin);
+that is the cost the line prices. How rarely the pairing is written, and
+whether the analyzer reports it, are not inputs. Either way, a held stage
+that can reach both halves needs a `Build()` backstop, since a type
+constrains one chain and not a held instance (the walk, `ReturningGuard`); a
+cast does not (ADR 0011, the leading-`WITH`-before-`MERGE` entry). A fact no
+type carries — a dialect, a table instance's identity — is a guard outright.
 
 ## When to throw: eagerly vs at Build()
 

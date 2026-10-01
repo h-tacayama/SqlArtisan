@@ -108,8 +108,8 @@ check the diff against each:
   clause is genuinely optional (SQL Server `STRING_AGG`, MySQL `GROUP_CONCAT`
   ordering).
 - **Mutable builder fields returning `this`** are acceptable **only on a
-  single-owner fluent-chain step** — precedent: `TopClause.Percent`/`WithTies`,
-  `StringAggFunction.WithinGroup`. No guard reaches these node-level mutators
+  single-owner fluent-chain step** — precedent: `TopClause.Percent`/`WithTies`.
+  No guard reaches these node-level mutators
   (the #245 freeze-after-Build guard intercepts statement-builder stages
   only), so the acceptability rests on the idiom: the node is configured
   inline and handed straight to its statement, not held. Docs must never

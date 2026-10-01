@@ -58,8 +58,11 @@ yes-somewhere → dialect availability → permissive.
   you wrote" presumes a complete expression. An incomplete one has no faithful SQL
   to emit, so rejecting it does not weaken ADR 0001.
 - **Mechanism order is fixed:** prefer compile-time (pending / narrowed types);
-  fall back to a runtime exception only where the surface is `object`-typed. New
-  mandatory-clause constructs follow the same pattern.
+  fall back to a runtime exception where the surface is `object`-typed, or
+  where withholding a step would take five or more stage copies
+  (`guards-and-empty-states.md` § "Compile time or a guard", which records each
+  count). New mandatory-clause constructs and rejected pairings in a fluent
+  chain follow the same order.
 - **Guardrail:** the library must never throw for dialect availability. A future
   change that, say, threw on `CUBE` for MySQL would violate this ADR — that belongs
   to the analyzer and the database. The release audit's fifth pass applied it
