@@ -10,7 +10,10 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     IMergeBuilderValues,
     IMergeBuilderWhen,
     IMergeBuilderWhenMatched,
+    IMergeBuilderWhenMatchedAnd,
     IMergeBuilderWhenNotMatched,
+    IMergeBuilderWhenNotMatchedAnd,
+    IMergeBuilderWhenNotMatchedAndThenInsert,
     IMergeBuilderWhenNotMatchedBySource,
     IMergeBuilderWhere
 {
@@ -67,9 +70,29 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
-    // ThenUpdateSet differs only by return type between the two branch interfaces,
-    // so each is implemented explicitly.
+    // These differ only by return type between branch interfaces; a conditioned or
+    // BY SOURCE branch returns the branch end, without Oracle's action filters.
+    IMergeBuilderWhenNotMatchedAndThenInsert IMergeBuilderWhenNotMatchedAnd.ThenInsert()
+    {
+        ThenInsert();
+        return this;
+    }
+
+    IMergeBuilderWhenNotMatchedAndThenInsert IMergeBuilderWhenNotMatchedAnd.ThenInsert(
+        params DbColumn[] columns)
+    {
+        ThenInsert(columns);
+        return this;
+    }
+
     IMergeBuilderThenUpdateSet IMergeBuilderWhenMatched.ThenUpdateSet(
+        params EqualityCondition[] assignments)
+    {
+        AddPart(MergeUpdateSetClause.Parse(assignments));
+        return this;
+    }
+
+    IMergeBuilderWhen IMergeBuilderWhenMatchedAnd.ThenUpdateSet(
         params EqualityCondition[] assignments)
     {
         AddPart(MergeUpdateSetClause.Parse(assignments));
@@ -108,13 +131,19 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
+    IMergeBuilderWhen IMergeBuilderWhenNotMatchedAndThenInsert.Values(params object[] values)
+    {
+        Values(values);
+        return this;
+    }
+
     public IMergeBuilderWhenMatched WhenMatched()
     {
         AddPart(new WhenMatchedClause(null));
         return this;
     }
 
-    public IMergeBuilderWhenMatched WhenMatched(SqlCondition extraCondition)
+    public IMergeBuilderWhenMatchedAnd WhenMatched(SqlCondition extraCondition)
     {
         // A null here would silently render the unconditioned branch the
         // zero-argument overload spells on purpose.
@@ -129,7 +158,7 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
         return this;
     }
 
-    public IMergeBuilderWhenNotMatched WhenNotMatched(SqlCondition extraCondition)
+    public IMergeBuilderWhenNotMatchedAnd WhenNotMatched(SqlCondition extraCondition)
     {
         AddPart(new WhenNotMatchedClause(
             NullGuard.ThrowIfNull(extraCondition, nameof(extraCondition))));
@@ -166,15 +195,16 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
     protected override void AppendTrailing(SqlBuildingBuffer buffer) =>
         buffer.AppendMergeTerminator();
 
-    // Branch pairing a per-kind duplicate table cannot express: a held stage can
-    // leave a WHEN with no action (`... THEN` trailing) or an INSERT with no
-    // VALUES — both invalid on every dialect that has MERGE.
+    // Branch pairing a per-kind duplicate table cannot express: a held stage can leave
+    // a WHEN with no action or an INSERT with no VALUES, invalid wherever MERGE runs, or
+    // land Oracle's action filter in the conditioned or BY SOURCE branch its type withholds.
     protected override void Validate(Dbms dbms)
     {
         DmlTargetGuard.ThrowIfLeadingWithUnsupportedOnMerge(PartsSpan, dbms);
 
         bool branchOpen = false;
         bool insertOpen = false;
+        bool filterable = false;
 
         foreach (SqlPart part in PartsSpan)
         {
@@ -182,6 +212,8 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
             {
                 ThrowIfBranchUnfinished(branchOpen, insertOpen);
                 branchOpen = true;
+                filterable = part is WhenMatchedClause { IsConditioned: false }
+                    or WhenNotMatchedClause { IsConditioned: false };
             }
             else if (part is MergeUpdateSetClause or MergeDeleteClause)
             {
@@ -195,6 +227,15 @@ internal sealed class MergeBuilder(DbTableBase target, params SqlPart[] rootPart
             else if (part is InsertValuesClause)
             {
                 insertOpen = false;
+            }
+            else if (!filterable
+                && part
+                    is MergeUpdateWhereClause or MergeDeleteWhereClause or MergeInsertWhereClause)
+            {
+                throw new ArgumentException(
+                    "Oracle's MERGE action WHERE and DELETE WHERE belong to a WHEN MATCHED or "
+                        + "WHEN NOT MATCHED branch without AND; a stage on a held builder "
+                        + "attached one to another branch.");
             }
         }
 

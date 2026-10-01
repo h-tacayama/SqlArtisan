@@ -4,6 +4,8 @@ internal sealed class WhenNotMatchedClause(SqlCondition? extraCondition) : SqlPa
 {
     private readonly SqlCondition? _extraCondition = extraCondition;
 
+    internal bool IsConditioned => _extraCondition is not null;
+
     internal override void Format(SqlBuildingBuffer buffer)
     {
         buffer.Append($"{Keywords.When} {Keywords.Not} {Keywords.Matched}");

@@ -6,6 +6,8 @@ internal sealed class WhenMatchedClause(SqlCondition? extraCondition) : SqlPart
 {
     private readonly SqlCondition? _extraCondition = extraCondition;
 
+    internal bool IsConditioned => _extraCondition is not null;
+
     internal override void Format(SqlBuildingBuffer buffer)
     {
         buffer.Append($"{Keywords.When} {Keywords.Matched}");

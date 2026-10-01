@@ -1022,4 +1022,76 @@ public class MergeTests
             sql.Text);
         Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
+
+    // Oracle's action filters need an unconditioned WHEN, and PostgreSQL and SQL
+    // Server have no action WHERE, so the conditioned branch withholds them.
+    [Theory]
+    [InlineData(typeof(IMergeBuilderWhenMatchedAnd))]
+    [InlineData(typeof(IMergeBuilderWhenNotMatchedAnd))]
+    [InlineData(typeof(IMergeBuilderWhenNotMatchedAndThenInsert))]
+    public void ConditionedBranch_ReachesNoActionFilter(Type stage)
+    {
+        HashSet<Type> seen = [];
+        Queue<Type> pending = new([stage]);
+        while (pending.TryDequeue(out Type? current))
+        {
+            if (current == typeof(IMergeBuilderWhen) || !seen.Add(current))
+            {
+                continue;
+            }
+
+            foreach (System.Reflection.MethodInfo method in current.GetMethods())
+            {
+                Assert.DoesNotContain(method.Name, new[] { "Where", "DeleteWhere" });
+                pending.Enqueue(method.ReturnType);
+            }
+        }
+    }
+
+    [Fact]
+    public void HeldUpdateStage_FilterLandsInConditionedBranch_ThrowsAtBuild()
+    {
+        IMergeBuilderThenUpdateSet held =
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet(_t.Name == _s.Name);
+        held.WhenMatched(_s.Code > 1).ThenUpdateSet(_t.Name == "x");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Where(_t.Code > 1).Build(Dbms.Oracle));
+
+        Assert.Equal(MisplacedFilterMessage, ex.Message);
+    }
+
+    [Fact]
+    public void HeldUpdateStage_DeleteWhereLandsInBySourceBranch_ThrowsAtBuild()
+    {
+        IMergeBuilderThenUpdateSet held =
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet(_t.Name == _s.Name);
+        held.WhenNotMatchedBySource().ThenUpdateSet(_t.Name == "x");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.DeleteWhere(_t.Code > 1).Build(Dbms.SqlServer));
+
+        Assert.Equal(MisplacedFilterMessage, ex.Message);
+    }
+
+    [Fact]
+    public void HeldInsertStage_FilterLandsInConditionedBranch_ThrowsAtBuild()
+    {
+        IMergeBuilderValues held =
+            MergeInto(_t).Using(_s).On(_t.Code == _s.Code)
+            .WhenNotMatched().ThenInsert(_cols.Code).Values(_s.Code);
+        held.WhenNotMatched(_s.Code > 1).ThenInsert(_cols.Name).Values(_s.Name);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Where(_s.Code > 1).Build(Dbms.PostgreSql));
+
+        Assert.Equal(MisplacedFilterMessage, ex.Message);
+    }
+
+    private const string MisplacedFilterMessage =
+        "Oracle's MERGE action WHERE and DELETE WHERE belong to a WHEN MATCHED or "
+            + "WHEN NOT MATCHED branch without AND; a stage on a held builder "
+            + "attached one to another branch.";
 }
