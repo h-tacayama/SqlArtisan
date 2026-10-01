@@ -10,6 +10,7 @@ internal sealed class UpdateBuilder(
     IUpdateBuilderJoinOn,
     IUpdateBuilderJoined,
     IUpdateBuilderJoinedSet,
+    IUpdateBuilderJoinedWhere,
     IUpdateBuilderOutputInto,
     IUpdateBuilderSet,
     IUpdateBuilderSetOutput,
@@ -54,6 +55,7 @@ internal sealed class UpdateBuilder(
     public IUpdateBuilderJoinOn InnerJoin(TableReference joined)
     {
         AddJoin(new InnerJoinClause(joined));
+        state.HasDirectJoin = true;
         return this;
     }
 
@@ -72,6 +74,7 @@ internal sealed class UpdateBuilder(
     public IUpdateBuilderJoinOn LeftJoin(TableReference joined)
     {
         AddJoin(new LeftJoinClause(joined));
+        state.HasDirectJoin = true;
         return this;
     }
 
@@ -107,6 +110,7 @@ internal sealed class UpdateBuilder(
     public IUpdateBuilderJoinOn RightJoin(TableReference joined)
     {
         AddJoin(new RightJoinClause(joined));
+        state.HasDirectJoin = true;
         return this;
     }
 
@@ -160,6 +164,14 @@ internal sealed class UpdateBuilder(
         return this;
     }
 
+    // The direct-join form's WHERE returns a stage without RETURNING, which MySQL,
+    // the only engine with the form, does not have.
+    IUpdateBuilderJoinedWhere IUpdateBuilderJoinedSet.Where(SqlCondition condition)
+    {
+        AddPart(new WhereClause(condition));
+        return this;
+    }
+
     protected override void Validate(Dbms dbms)
     {
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: false);
@@ -171,6 +183,10 @@ internal sealed class UpdateBuilder(
         {
             DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         }
+
+        DmlTargetGuard.ThrowIfUpdateJoinSpellingsMixed(state);
+        ReturningGuard.ThrowIfCombinedWithJoinedUpdate(
+            state, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
 
         OutputClause? output = FindPart<OutputClause>();
         OutputClauseGuard.ThrowIfIntoWidthMismatch(output, FindPart<OutputIntoClause>());

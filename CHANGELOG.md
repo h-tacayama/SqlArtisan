@@ -29,6 +29,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   stage's type, stays silent. (#590)
 
 ### Changed
+- **Breaking:** the joined `DELETE ... FROM` and MySQL's direct-join `UPDATE`
+  (join before `SET`) no longer offer `Returning(...)`: MySQL and SQL Server,
+  the only engines with those forms, have no `RETURNING`, and the engines with it
+  reject the forms. Their `Where(...)` returns the new
+  `IDeleteBuilderFromWhere` / `IUpdateBuilderJoinedWhere`. `Build()` now
+  rejects `RETURNING` on those two forms when a held builder still reaches it,
+  `RETURNING` on an `UPDATE` that re-lists its target in `FROM`, and an
+  `UPDATE` that joins before `SET` and through `FROM` too. Code that writes the
+  stage types out needs the new names, and an assembly compiled against an
+  earlier version must be rebuilt. (#582)
 - **Breaking:** `StringAgg(expr, separator, OrderBy(...))` now returns
   `StringAggOrderByFunction`, which has no `.WithinGroup(...)`: stacking SQL
   Server's `WITHIN GROUP` on PostgreSQL's inline ordering, which no dialect

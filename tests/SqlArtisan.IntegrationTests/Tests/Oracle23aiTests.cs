@@ -175,4 +175,53 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         Assert.ThrowsAny<Exception>(() => connection.Query<int>(
             "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList());
     }
+
+    // #582: 23ai added UPDATE ... FROM, but the joined forms SqlArtisan withholds
+    // RETURNING from stay rejected; the FROM control, led by the table name, runs.
+    // Its source is one row per user: ORA-30926 rejects a row updated twice.
+    [Fact]
+    public void JoinedUpdateRelistedTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "UPDATE users \"u\" SET age = 1 FROM (SELECT DISTINCT user_id FROM orders) \"o\" "
+                + "WHERE \"o\".user_id = \"u\".id",
+            transaction: transaction);
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute(
+                "UPDATE \"u\" SET age = 1 FROM users \"u\" "
+                    + "INNER JOIN orders \"o\" ON \"o\".user_id = \"u\".id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void JoinedDeleteLead_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute(
+                "DELETE \"u\" FROM users \"u\" "
+                    + "INNER JOIN orders \"o\" ON \"o\".user_id = \"u\".id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void JoinedUpdateJoinForm_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<Exception>(() =>
+            connection.Execute(
+                "UPDATE users \"u\" INNER JOIN orders \"o\" ON \"o\".user_id = \"u\".id "
+                    + "SET \"u\".age = 1",
+                transaction: transaction));
+        transaction.Rollback();
+    }
 }

@@ -1,4 +1,5 @@
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -765,4 +766,67 @@ public class UpdateTests
                 + "re-listing the target table.",
             ex.Message);
     }
+
+    // MySQL, the only engine with the direct-join form, has no RETURNING.
+    [Theory]
+    [InlineData(typeof(IUpdateBuilderJoinedSet))]
+    [InlineData(typeof(IUpdateBuilderJoinedWhere))]
+    public void DirectJoinUpdateStage_OffersNoReturning(Type stage)
+    {
+        Assert.False(typeof(IReturning).IsAssignableFrom(stage));
+    }
+
+    [Fact]
+    public void Update_HeldStageJoinedThenSetReturning_ThrowsAtBuild()
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+        IUpdateBuilderUpdate held = Update(t);
+        held.InnerJoin(a).On(a.Code == t.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Set(t.Name == "a").Returning(t.Code).Build(Dbms.PostgreSql));
+
+        Assert.Equal(JoinedUpdateReturningMessage, ex.Message);
+    }
+
+    // The re-listed target is decided by instance identity, which no type carries.
+    [Fact]
+    public void Update_RelistedTargetReturning_ThrowsAtBuild()
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+                .Set(t.Name == "a")
+                .From(t)
+                .InnerJoin(a).On(a.Code == t.Code)
+                .Returning(t.Code)
+                .Build(Dbms.SqlServer));
+
+        Assert.Equal(JoinedUpdateReturningMessage, ex.Message);
+    }
+
+    [Fact]
+    public void Update_HeldStageJoinedThenSetFrom_ThrowsAtBuild()
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+        ArchiveTable b = new("b");
+        IUpdateBuilderUpdate held = Update(t);
+        held.InnerJoin(a).On(a.Code == t.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Set(t.Name == "a").From(b).Build(Dbms.MySql));
+
+        Assert.Equal(
+            "An UPDATE joins its tables before SET or through FROM, not both; "
+                + "a stage on a held builder supplied both.",
+            ex.Message);
+    }
+
+    private const string JoinedUpdateReturningMessage =
+        "RETURNING cannot be combined with an UPDATE that joins before SET or re-lists its "
+            + "target in FROM; join through From(...) without the target instead.";
 }

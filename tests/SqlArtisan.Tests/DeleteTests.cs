@@ -1,4 +1,5 @@
 using System.Text;
+using SqlArtisan.Internal;
 using static SqlArtisan.Sql;
 
 namespace SqlArtisan.Tests;
@@ -525,5 +526,31 @@ public class DeleteTests
         Assert.EndsWith(
             "DELETE FROM test_table WHERE code IN (SELECT \"cte\".cte_code FROM \"cte\")",
             sql.Text);
+    }
+
+    // No engine that spells DELETE ... FROM has RETURNING, so the stage withholds it.
+    [Theory]
+    [InlineData(typeof(IDeleteBuilderFrom))]
+    [InlineData(typeof(IDeleteBuilderFromWhere))]
+    public void JoinedDeleteStage_OffersNoReturning(Type stage)
+    {
+        Assert.False(typeof(IReturning).IsAssignableFrom(stage));
+    }
+
+    [Fact]
+    public void DeleteFrom_HeldStageJoinedThenReturning_ThrowsAtBuild()
+    {
+        TestTable t = new("t");
+        ArchiveTable a = new("a");
+        IDeleteBuilderDeleteOutput held = DeleteFrom(t);
+        held.From(t).InnerJoin(a).On(a.Code == t.Code);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            held.Returning(t.Code).Build(Dbms.PostgreSql));
+
+        Assert.Equal(
+            "RETURNING cannot be combined with a joined DELETE ... FROM; "
+                + "join through Using(...) instead.",
+            ex.Message);
     }
 }

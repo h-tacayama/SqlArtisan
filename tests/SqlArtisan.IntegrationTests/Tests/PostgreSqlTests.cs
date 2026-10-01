@@ -391,6 +391,26 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // SQL Server's re-listed target leads with the bare alias, which PostgreSQL
+    // reads as a table name; the control, led by the table name, runs (#582).
+    [Fact]
+    public void JoinedUpdateRelistedTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "UPDATE users AS \"u\" SET age = 1 FROM orders AS \"o\" "
+                + "WHERE \"o\".user_id = \"u\".id",
+            transaction: transaction);
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "UPDATE \"u\" SET age = 1 FROM users AS \"u\" "
+                    + "INNER JOIN orders AS \"o\" ON \"o\".user_id = \"u\".id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
     [Fact]
     public void JoinedDeleteUsing_Executes()
     {
