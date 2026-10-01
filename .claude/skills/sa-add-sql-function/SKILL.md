@@ -257,6 +257,9 @@ interface that omits the now-invalid methods:
   pending type is **not** a `SqlExpression`, so omitting the clause fails at
   `Select(...)` (e.g. `ListaggFunction` → `ListaggWithinGroupFunction`).
 
+When withholding a step takes five or more stage copies, a `Build()` guard
+rejects it instead (`guards-and-empty-states.md` § "Compile time or a guard").
+
 Verify the guard the way you verify SQL: a throwaway with the bad chain behind
 `#if BAD` must fail to compile (CS1061), per the `sa-run-sql-harness` skill.
 

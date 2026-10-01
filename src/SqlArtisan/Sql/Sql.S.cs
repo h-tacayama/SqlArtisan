@@ -272,7 +272,7 @@ public static partial class Sql
     /// an inline string literal, like the 2-argument overload's, so the two emit the
     /// separator the same way.</param>
     /// <param name="orderByClause">PostgreSQL's inline ordering, emitted inside the call (<c>STRING_AGG(expr, separator ORDER BY ...)</c>).</param>
-    public static StringAggFunction StringAgg(
+    public static StringAggOrderByFunction StringAgg(
         object expr,
         string separator,
         OrderByClause orderByClause) =>

@@ -305,17 +305,11 @@ public partial class FunctionTests
         Assert.Equal("A sequence requires a name.", ex.Message);
     }
 
+    // The two orderings are one construct spelled per dialect, so the inline form
+    // offers no WithinGroup to stack on it.
     [Fact]
-    public void StringAgg_InlineOrderByWithWithinGroup_ThrowsArgumentException()
+    public void StringAgg_InlineOrderBy_OffersNoWithinGroup()
     {
-        TestTable t = new();
-
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            StringAgg(t.Name, ", ", OrderBy(t.Name)).WithinGroup(OrderBy(t.Name)));
-
-        Assert.Equal(
-            "STRING_AGG cannot combine an inline ORDER BY argument with "
-                + "WITHIN GROUP (ORDER BY ...); use one or the other.",
-            ex.Message);
+        Assert.Null(typeof(SqlArtisan.Internal.StringAggOrderByFunction).GetMethod("WithinGroup"));
     }
 }

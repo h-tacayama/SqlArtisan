@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   stage's type, stays silent. (#590)
 
 ### Changed
+- **Breaking:** `StringAgg(expr, separator, OrderBy(...))` now returns
+  `StringAggOrderByFunction`, which has no `.WithinGroup(...)`: stacking SQL
+  Server's `WITHIN GROUP` on PostgreSQL's inline ordering, which no dialect
+  accepts, is a compile error rather than an `ArgumentException`. The emitted
+  SQL is unchanged. Code that writes the type out needs the new name, and an
+  assembly compiled against an earlier version must be rebuilt. (#582)
 - **Breaking:** `ForUpdate(...)` now returns its own stage,
   `ISelectBuilderForUpdate`, which is also an `ISubquery`: a locked query embeds
   as a subquery or CTE body without a cast, as in
