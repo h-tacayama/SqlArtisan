@@ -150,6 +150,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#569)
 
 ### Fixed
+- `WhenNotMatchedBySource(...)` is documented and analyzed as PostgreSQL 17+
+  syntax as well as SQL Server's: PostgreSQL 17 added `WHEN NOT MATCHED BY
+  SOURCE`, and a declared `sqlartisan_syntax_postgresql` of 17 or later no
+  longer reports it as `SQLA0100`. A new PostgreSQL 17 integration lane
+  live-verifies the bound. (#582)
 - `SQLA0102`'s `UPDATE ... FROM` rule reads the declared engine version: it no
   longer reports Oracle 23 or later, where 23ai added the form (live-verified on
   Free 23ai), and it now reports SQLite before 3.33, which added it. Declaring

@@ -51,8 +51,7 @@ public static partial class Sql
     /// <param name="target">The table to merge rows into.</param>
     /// <returns>A merge builder positioned to accept <c>Using(...).On(...)</c>.</returns>
     /// <remarks>Oracle, PostgreSQL (15+), and SQL Server syntax. The emitted SQL
-    /// is per-dialect: SQL Server appends the required terminating semicolon and
-    /// supports <c>WHEN NOT MATCHED BY SOURCE</c>.</remarks>
+    /// is per-dialect: SQL Server appends the required terminating semicolon.</remarks>
     public static IMergeBuilderTarget MergeInto(DbTableBase target) =>
         new MergeBuilder(target, new MergeIntoClause(target));
 

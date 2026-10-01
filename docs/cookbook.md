@@ -472,7 +472,8 @@ from the source:
 Product t = new("t");
 StagingProduct s = new("s");
 
-// SQL Server (WHEN NOT MATCHED BY SOURCE is SQL Server-only):
+// SQL Server (PostgreSQL takes WHEN NOT MATCHED BY SOURCE too, from the version in the
+// analyzer's version-bound register):
 SqlStatement sql =
     MergeInto(t).Using(s).On(t.ProductId == s.ProductId)
         .WhenMatched(t.Price != s.Price).ThenUpdateSet(t.Price == s.Price)

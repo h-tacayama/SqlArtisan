@@ -827,6 +827,8 @@ internal static class DialectMatrix
         [new MatrixKey("ThenUpdateSet")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("ThenDelete")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("Values", 3)] = new VersionBounds(postgreSql: V("15")),
+        // PostgreSQL 17 release notes; proven by the PostgreSql17 lane's bound sweep.
+        [new MatrixKey("WhenNotMatchedBySource")] = new VersionBounds(postgreSql: V("17")),
         [new MatrixKey("RegexpLike")] = new VersionBounds(postgreSql: V("15")),
         [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15")),
         // RegexpReplace's 3-arg base form predates 15 (which added the position/
