@@ -187,11 +187,12 @@ a new one the analyzer can see.
 - **Joined `UPDATE` with the target re-listed in `FROM`, off SQL Server**
   (release audit, pass 2) — the mirror of the guard above. The re-listed form
   makes the lead render as the bare alias, which only T-SQL resolves
-  (live-verified rejection on SQLite); the re-listing is instance identity —
+  (live-verified rejection on every other lane); the re-listing is instance identity —
   `ReferenceEquals` between the target and a `FROM` element — which the
   analyzer cannot see. A joined `DELETE` stays permissive: its repeated-`FROM`
   form is also MySQL's. Live twins: `JoinedUpdateRelistedTarget_IsRejectedByTheEngine`
-  on the PostgreSQL and SQLite lanes.
+  on the MySQL, Oracle (21c and 23ai), PostgreSQL and SQLite lanes, and
+  `JoinedUpdateFrom_Executes` for the accepted form on the SQL Server lane.
 - **A non-integer constant `ORDER BY` sort key on PostgreSQL and SQL Server**
   (release audit, pass 4; SQL Server added by #523). `OrderBy(2.5)` renders
   `ORDER BY 2.5`, a no-op ordering MySQL 8.0, SQLite 3.50.4 and Oracle XE

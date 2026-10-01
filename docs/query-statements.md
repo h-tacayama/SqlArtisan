@@ -961,8 +961,9 @@ On Oracle, express the shape as a correlated subquery or a
 
 The MySQL / SQL Server `DELETE ... FROM` and MySQL's join-before-`SET` stages
 do not offer `Returning(...)`, since neither engine has `RETURNING`; on an
-`UPDATE` re-listing its target, `Returning(...)` throws at `Build()`. A chain also takes one join spelling: joining before
-`SET` and adding a `FROM` throws at `Build()`.
+`UPDATE` re-listing its target, `Returning(...)` throws at `Build()`. A chain
+also takes one join spelling: joining before `SET` and adding a `FROM` throws
+at `Build()`.
 
 ---
 

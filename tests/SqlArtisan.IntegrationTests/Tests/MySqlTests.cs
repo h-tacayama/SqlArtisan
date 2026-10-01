@@ -660,6 +660,21 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         Assert.ThrowsAny<Exception>(() => connection.ExecuteScalar(probe.Replace("@", "x")));
     }
 
+    // SQL Server's re-listed target leads with the bare alias; MySQL has no
+    // UPDATE ... FROM at all (#582).
+    [Fact]
+    public void JoinedUpdateRelistedTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "UPDATE `u` SET age = 1 FROM users AS `u` "
+                    + "INNER JOIN orders AS `o` ON `o`.user_id = `u`.id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
     [Fact] // #523: SQLA0102's live proof. MySQL has no UPDATE ... FROM; the JOIN
            // spelling it does own is proven by JoinedUpdateJoin_Executes above.
     public void ContextRule_JoinedUpdateFromForm_Rejected()

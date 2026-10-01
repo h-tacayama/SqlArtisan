@@ -884,6 +884,21 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         transaction.Rollback();
     }
 
+    // SQL Server's re-listed target leads with the bare alias; Oracle 21c has no
+    // UPDATE ... FROM at all (#582).
+    [Fact]
+    public void JoinedUpdateRelistedTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(
+                "UPDATE \"u\" SET age = 1 FROM users \"u\" "
+                    + "INNER JOIN orders \"o\" ON \"o\".user_id = \"u\".id",
+                transaction: transaction));
+        transaction.Rollback();
+    }
+
     [Fact]
     public void ContextRule_JoinedUpdateFromForm_Rejected()
     {
