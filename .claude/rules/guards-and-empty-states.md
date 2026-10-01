@@ -38,7 +38,14 @@ the full rationale.
   unlabeled `CROSS JOIN` spelling, not a construct with independent meaning
   (ADR 0017); `Output(...)` (SQL Server) combined with `Returning(...)`, with
   `Using(...)` on `DELETE`, or with `OnConflict(...)`/`OnDuplicateKeyUpdate(...)`
-  on `INSERT` — no dialect accepts both halves of any pairing (#400); an
+  on `INSERT` — no dialect accepts both halves of any pairing (#400);
+  `Returning(...)` on a joined `DELETE ... FROM`, a direct-join `UPDATE`, or an
+  `UPDATE` re-listing its target — those forms belong to MySQL and SQL Server,
+  which have no `RETURNING`, and the engines with it reject the forms (#582);
+  the typestate withholds it on the first two, and `Build()` backstops a held
+  stage and the re-listed form, which instance identity decides; an `UPDATE`
+  joining before `SET` and through `FROM` too — the typestate keeps the
+  spellings apart, so only a held stage reaches both (#582); an
   `OnConflict()` with no conflict target paired with `.DoUpdateSet(...)` on
   PostgreSQL — SQLite takes the targetless form, so the guard is `Build(Dbms)`
   and `Dbms.PostgreSql`-scoped (ADR 0011; the earlier dialect-blind guard
@@ -462,8 +469,10 @@ stage.
 
 - **Four or fewer copies: compile time.** `WithRecursive` (1, #521), the
   `WhenNotMatchedBySource` branch (1), the direct-join `UPDATE`'s `SET`,
-  which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582) and
-  `InsertIgnoreInto` (4: its Table, Columns, Values and Set stages, #275).
+  which leaves out `From` (1), `StringAgg`'s inline `ORDER BY` (1, #582),
+  `RETURNING` on the joined `DELETE ... FROM` and direct-join `UPDATE` (2: their
+  `WHERE` stages, #582) and `InsertIgnoreInto` (4: its Table, Columns, Values
+  and Set stages, #275).
 - **Five or more: a `Build()` guard**, its count recorded here. A leading
   `WITH` before `ON DUPLICATE KEY UPDATE` (6, #569); `TOP` beside
   `LIMIT`/`OFFSET`/`FETCH` (9); `TOP ... WITH TIES` without an `ORDER BY` (9:

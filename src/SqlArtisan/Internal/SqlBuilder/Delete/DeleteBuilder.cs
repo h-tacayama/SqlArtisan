@@ -9,6 +9,7 @@ internal sealed class DeleteBuilder(
     IDeleteBuilderDeleteOutput,
     IDeleteBuilderFrom,
     IDeleteBuilderFromJoinOn,
+    IDeleteBuilderFromWhere,
     IDeleteBuilderOutputInto,
     IDeleteBuilderUsing,
     IDeleteBuilderWhere
@@ -114,6 +115,14 @@ internal sealed class DeleteBuilder(
         return this;
     }
 
+    // The joined form's WHERE returns a stage without RETURNING, which no engine
+    // that spells DELETE ... FROM has.
+    IDeleteBuilderFromWhere IDeleteBuilderFrom.Where(SqlCondition condition)
+    {
+        AddPart(new WhereClause(condition));
+        return this;
+    }
+
     protected override void Validate(Dbms dbms)
     {
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: false);
@@ -126,6 +135,9 @@ internal sealed class DeleteBuilder(
         {
             DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         }
+
+        ReturningGuard.ThrowIfCombinedWithJoinedDelete(
+            state, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
 
         OutputClause? output = FindPart<OutputClause>();
         OutputClauseGuard.ThrowIfIntoWidthMismatch(output, FindPart<OutputIntoClause>());

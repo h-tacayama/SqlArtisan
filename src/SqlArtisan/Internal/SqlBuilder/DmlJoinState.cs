@@ -9,6 +9,10 @@ internal sealed class DmlJoinState
 
     internal bool HasJoin { get; set; }
 
+    // A join written before SET — MySQL's multi-table UPDATE — as opposed to one
+    // after a FROM; HasJoin covers both.
+    internal bool HasDirectJoin { get; set; }
+
     internal bool HasUsing { get; set; }
 
     // The target table instance was re-listed in a joined FROM — the SQL Server

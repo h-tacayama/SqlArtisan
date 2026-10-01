@@ -174,4 +174,16 @@ internal static class DmlTargetGuard
                 "The destination table of OUTPUT ... INTO must not be aliased.");
         }
     }
+
+    // The typestate keeps the two spellings apart; a held IUpdateBuilderUpdate can
+    // still join before SET and add a FROM after it.
+    internal static void ThrowIfUpdateJoinSpellingsMixed(DmlJoinState state)
+    {
+        if (state.HasDirectJoin && state.HasFrom)
+        {
+            throw new ArgumentException(
+                "An UPDATE joins its tables before SET or through FROM, not both; "
+                    + "a stage on a held builder supplied both.");
+        }
+    }
 }

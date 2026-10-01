@@ -3,9 +3,9 @@ namespace SqlArtisan.Internal;
 /// <summary>
 /// The state after <c>DELETE alias FROM target ...</c> (the SQL Server / MySQL
 /// form, where the target is re-listed in <c>FROM</c>): join further tables,
-/// filter with <c>WHERE</c>, add <c>RETURNING</c>, or build.
+/// filter with <c>WHERE</c>, or build.
 /// </summary>
-public interface IDeleteBuilderFrom : ISqlBuilder, IReturning
+public interface IDeleteBuilderFrom : ISqlBuilder
 {
     /// <summary>
     /// Appends <c>FULL JOIN table</c>; supply its predicate with the following <c>On(...)</c>.
@@ -41,6 +41,6 @@ public interface IDeleteBuilderFrom : ISqlBuilder, IReturning
     /// Appends <c>WHERE condition</c> to restrict which rows are deleted.
     /// </summary>
     /// <param name="condition">The row filter; literals it contains are auto-parameterized.</param>
-    /// <returns>The builder positioned for <c>RETURNING</c> or build.</returns>
-    IDeleteBuilderWhere Where(SqlCondition condition);
+    /// <returns>The builder positioned to build.</returns>
+    IDeleteBuilderFromWhere Where(SqlCondition condition);
 }

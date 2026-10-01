@@ -959,6 +959,12 @@ by the database; with the analyzer configured it is named first — see
 On Oracle, express the shape as a correlated subquery or a
 [`MERGE`](#merge-statement).
 
+`Returning(...)` follows the PostgreSQL and SQLite forms only: the MySQL / SQL Server
+`DELETE ... FROM` and MySQL's join-before-`SET` stages do not offer it, since
+neither engine has `RETURNING`, and a re-listed `UPDATE` target throws at
+`Build()` if one is added. A chain also takes one join spelling: joining before
+`SET` and adding a `FROM` throws at `Build()`.
+
 ---
 
 ## INSERT Statement
