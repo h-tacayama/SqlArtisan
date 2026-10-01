@@ -698,17 +698,21 @@ public class InsertTests
     }
 
     [Fact]
-    public void InsertIntoSelect_WidthMismatch_ThrowsArgumentException()
+    public void InsertIntoSelect_WidthMismatch_ThrowsAtSelect()
     {
         TestTable t = new();
         TestTable s = new("s");
+        IInsertBuilderColumnsOutput held = InsertInto(t, t.Code, t.Name);
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            InsertInto(t, t.Code, t.Name).Select(s.Code).From(s).Build());
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Select(s.Code));
 
         Assert.Equal(
             "The INSERT column list declares 2 column(s), but the SELECT list has 1 item(s).",
             ex.Message);
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) "
+                + "SELECT \"s\".code, \"s\".name FROM test_table \"s\"",
+            held.Select(s.Code, s.Name).From(s).Build().Text);
     }
 
     [Fact]
@@ -798,21 +802,27 @@ public class InsertTests
     }
 
     [Fact]
-    public void InsertInto_SqlServer_OutputIntoWidthMismatch_ThrowsArgumentException()
+    public void InsertInto_SqlServer_OutputIntoWidthMismatch_ThrowsAtInto()
     {
         TestTable t = new();
         ArchiveTable a = new();
+        IInsertBuilderOutputInto held =
+            InsertInto(t, t.Code, t.Name).Output(Inserted(t.Code), Inserted(t.Name));
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            InsertInto(t, t.Code, t.Name)
-            .Output(Inserted(t.Code), Inserted(t.Name))
-            .Into(a, a.Code)
-            .Values(1, "x")
-            .Build(Dbms.SqlServer));
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Into(a, a.Code));
 
         Assert.Equal(
             "The OUTPUT list has 2 item(s), but the INTO column list declares 1 column(s).",
             ex.Message);
+
+        SqlStatement sql = held.Into(a, a.Code, a.Name).Values(1, "x").Build(Dbms.SqlServer);
+        Assert.Equal(
+            "INSERT INTO test_table (code, name) "
+                + "OUTPUT INSERTED.code, INSERTED.name INTO archive_table (code, name) "
+                + "VALUES (@0, @1)",
+            sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>("@0"));
+        Assert.Equal("x", sql.Parameters.Get<string>("@1"));
     }
 
     [Fact]

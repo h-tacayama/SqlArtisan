@@ -639,15 +639,19 @@ public class UpdateTests
     }
 
     [Fact]
-    public void Update_SetSameColumnTwice_ThrowsAtBuild()
+    public void Update_SetSameColumnTwice_ThrowsAtSet()
     {
-        // The UPDATE arm reads the rendered token, and whether the alias is
-        // rendered is not decided until .From(t) — so this one throws at Build().
+        // One correlation name renders one token whatever .From(t) decides later.
+        IUpdateBuilderUpdate held = Update(_t);
+
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Update(_t).Set(_t.Code == 1, _t.Name == "x", _t.Code == 2).Build(Dbms.PostgreSql));
+            held.Set(_t.Code == 1, _t.Name == "x", _t.Code == 2));
 
         Assert.Equal(
             "A SET assignment list must not assign the same column twice.", ex.Message);
+        SqlStatement sql = held.Set(_t.Code == 1).Build(Dbms.PostgreSql);
+        Assert.Equal("UPDATE test_table SET code = :0", sql.Text);
+        Assert.Equal(1, sql.Parameters.Get<int>(":0"));
     }
 
     [Fact]
@@ -663,12 +667,13 @@ public class UpdateTests
     }
 
     [Fact]
-    public void Update_SetSameColumnFromTwoTables_ThrowsAtBuild()
+    public void Update_SetSameColumnFromTwoUnaliasedTables_ThrowsAtSet()
     {
+        // Neither table has a correlation name, so both render `name` in either form.
         ArchiveTable archive = new();
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Update(_t).Set(_t.Name == "a", archive.Name == "b").Build(Dbms.PostgreSql));
+            Update(_t).Set(_t.Name == "a", archive.Name == "b"));
 
         Assert.Equal(
             "A SET assignment list must not assign the same column twice.", ex.Message);
@@ -697,7 +702,7 @@ public class UpdateTests
     }
 
     [Fact]
-    public void Update_MySql_JoinedSetSameCorrelationNameTwice_ThrowsAtBuild()
+    public void Update_MySql_JoinedSetSameCorrelationNameTwice_ThrowsAtSet()
     {
         TestTable t = new("t1");
         ArchiveTable a = new("t2");
@@ -705,8 +710,7 @@ public class UpdateTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Update(t)
                 .InnerJoin(a).On(a.Code == t.Code)
-                .Set(t.Name == "a", t.Name == "b")
-                .Build(Dbms.MySql));
+                .Set(t.Name == "a", t.Name == "b"));
 
         Assert.Equal(
             "A SET assignment list must not assign the same column twice.", ex.Message);

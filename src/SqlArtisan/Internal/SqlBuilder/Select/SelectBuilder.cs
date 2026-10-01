@@ -285,29 +285,41 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return this;
     }
 
+    // INSERT ... SELECT checks its column list against the select list it receives.
+    private protected virtual void OnSelectItems(SqlPart[] selectItems)
+    {
+    }
+
+    private void AddSelectItems<TClause>(TClause clause)
+        where TClause : SqlPart, ISelectItemsClause
+    {
+        OnSelectItems(clause.SelectItems);
+        AddPart(clause);
+    }
+
     public ISelectBuilderSelect Select(params object[] selectItems)
     {
-        AddPart(SelectClause.Parse(selectItems));
+        AddSelectItems(SelectClause.Parse(selectItems));
         return this;
     }
 
     public ISelectBuilderSelect Select(DistinctKeyword distinct, params object[] selectItems)
     {
-        AddPart(SelectClauseWithDistinct.Parse(distinct, selectItems));
+        AddSelectItems(SelectClauseWithDistinct.Parse(distinct, selectItems));
 
         return this;
     }
 
     public ISelectBuilderSelect Select(DistinctOnKeyword distinctOn, params object[] selectItems)
     {
-        AddPart(SelectClauseWithDistinct.Parse(distinctOn, selectItems));
+        AddSelectItems(SelectClauseWithDistinct.Parse(distinctOn, selectItems));
 
         return this;
     }
 
     public ISelectBuilderSelect Select(SqlHints hints, params object[] selectItems)
     {
-        AddPart(SelectClauseWithHints.Parse(hints, selectItems));
+        AddSelectItems(SelectClauseWithHints.Parse(hints, selectItems));
 
         return this;
     }
@@ -317,7 +329,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         DistinctKeyword distinct,
         params object[] selectItems)
     {
-        AddPart(SelectClauseWithOptions.Parse(hints, distinct, selectItems));
+        AddSelectItems(SelectClauseWithOptions.Parse(hints, distinct, selectItems));
 
         return this;
     }
@@ -327,14 +339,14 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         DistinctOnKeyword distinctOn,
         params object[] selectItems)
     {
-        AddPart(SelectClauseWithOptions.Parse(hints, distinctOn, selectItems));
+        AddSelectItems(SelectClauseWithOptions.Parse(hints, distinctOn, selectItems));
 
         return this;
     }
 
     public ISelectBuilderSelect Select(TopClause top, params object[] selectItems)
     {
-        AddPart(SelectClauseWithTop.Parse(top, selectItems));
+        AddSelectItems(SelectClauseWithTop.Parse(top, selectItems));
         return this;
     }
 
@@ -343,7 +355,7 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         TopClause top,
         params object[] selectItems)
     {
-        AddPart(SelectClauseWithDistinctTop.Parse(distinct, top, selectItems));
+        AddSelectItems(SelectClauseWithDistinctTop.Parse(distinct, top, selectItems));
 
         return this;
     }

@@ -71,17 +71,17 @@ the full rationale.
   unqualified, so two handles — or two different tables — sharing a column
   name are one token and are rejected eagerly; `UpdateSetClause` is the fifth
   case because `DmlJoinState.QualifiesSetTarget` re-qualifies it for the
-  joined form, so that arm compares `alias.column` and runs at `Build()`,
-  where the shape is final — a joined multi-table `UPDATE` with distinct
-  correlation names stays legal), a `WITH` clause's CTE names, a `Values(...)`
+  joined form, so that arm compares `alias.column` at `Build()`, where the
+  shape is final — a joined multi-table `UPDATE` with distinct correlation
+  names stays legal — after rejecting at `Set(...)` the pairs that share one,
+  or that are both unaliased, which render one token either way), a `WITH` clause's CTE names, a `Values(...)`
   source's column names, an `ON CONFLICT` target, a join `USING` list, an
   `OUTPUT ... INTO` list — and an `OUTPUT ... INTO` list whose width differs
   from the `OUTPUT` list.
   These are call-site defects rejected whatever the engine does (ADR 0011
-  decides the class outside its bar) — eagerly, but for the joined-`UPDATE`
-  arm above, which decides at `Build()` once the shape is final, and the
-  `OUTPUT ... INTO` width check, which also runs at `Build()` — not ADR 0012
-  domain guards: only a duplicated CTE name is rejected everywhere.
+  decides the class outside its bar) — eagerly, the `OUTPUT ... INTO` width
+  at `Into(...)`, but for the joined-`UPDATE` arm's cross-name pairs above,
+  which wait for `Build()` — not ADR 0012 domain guards: only a duplicated CTE name is rejected everywhere.
   Live-verified (PostgreSQL 16, MySQL 8.0, SQLite 3.45): PostgreSQL rejects a
   duplicated `INSERT` list, `SET` list, and `USING` list but accepts a
   duplicated CTE/derived column list; MySQL rejects the `INSERT` and CTE
@@ -515,7 +515,14 @@ type carries — a dialect, a table instance's identity — is a guard outright.
   (`SqlBuilderBase._parts` only reaches its final shape once every stage call
   has run). An eager check here would misfire on legal code. A fact fixed by
   one stage's own arguments is the first bullet's case, not this one
-  (`OrderBy(0)`, `Into(...)`'s variable names, #569).
+  (`OrderBy(0)`, `Into(...)`'s variable names, #569), and so is one fixed by
+  the stages already called: the `OUTPUT ... INTO` width at `Into(...)`, the
+  `INSERT ... SELECT` width at the first `Select(...)`, the joined
+  `DELETE ... FROM`'s re-listed target at `From(...)` (#582).
+- **A condition clause stays Build()-time even where its node is one
+  statement's own** (the MERGE `ON`, `WHEN ... AND`, `DeleteWhere` and action
+  `Where`): an empty condition is rejected one way in every position, so the
+  empty-state table above has one row for all of them (#582).
 
 ## Message grammar
 

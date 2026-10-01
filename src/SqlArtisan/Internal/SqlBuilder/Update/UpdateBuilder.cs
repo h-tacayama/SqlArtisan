@@ -67,7 +67,9 @@ internal sealed class UpdateBuilder(
 
     public IUpdateBuilderSet Into(DbTableBase table, params DbColumn[] columns)
     {
-        AddPart(new OutputIntoClause(table, columns));
+        OutputIntoClause into = new(table, columns);
+        OutputClauseGuard.ThrowIfIntoWidthMismatch(FindPart<OutputClause>(), into);
+        AddPart(into);
         return this;
     }
 
@@ -189,7 +191,6 @@ internal sealed class UpdateBuilder(
             state, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
 
         OutputClause? output = FindPart<OutputClause>();
-        OutputClauseGuard.ThrowIfIntoWidthMismatch(output, FindPart<OutputIntoClause>());
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
 
