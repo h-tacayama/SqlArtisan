@@ -441,20 +441,30 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         _ => s_updateFromUnsupported,
     };
 
-    private static readonly EngineVersion s_oracle23 = EngineVersion.Parse("23");
-    private static readonly EngineVersion s_sqlite333 = EngineVersion.Parse("3.33");
-
     // The version a rejecting dialect starts accepting the shape at, read against the
     // declared version or, with none, the matrix baseline, as a Bounds row is (ADR 0015).
-    // Oracle 23ai added UPDATE ... FROM and multi-row VALUES; SQLite 3.33, UPDATE ... FROM.
-    private static EngineVersion? AcceptedFrom(ContextRules.DmlShape shape, TargetDbms dbms) =>
-        (shape, dbms) switch
+    // Internal for the provenance gate, which ties each floor to docs/analyzer.md.
+    internal static readonly (ContextRules.DmlShape Shape, TargetDbms Dbms, EngineVersion From)[]
+        DmlShapeFloors =
+        [
+            (ContextRules.DmlShape.JoinedUpdateFrom, TargetDbms.Oracle, DialectMatrix.V("23")),
+            (ContextRules.DmlShape.JoinedUpdateFrom, TargetDbms.Sqlite, DialectMatrix.V("3.33")),
+            (ContextRules.DmlShape.InsertValuesRow, TargetDbms.Oracle, DialectMatrix.V("23")),
+        ];
+
+    private static EngineVersion? AcceptedFrom(ContextRules.DmlShape shape, TargetDbms dbms)
+    {
+        foreach ((ContextRules.DmlShape Shape, TargetDbms Dbms, EngineVersion From) floor
+            in DmlShapeFloors)
         {
-            (ContextRules.DmlShape.JoinedUpdateFrom, TargetDbms.Oracle) => s_oracle23,
-            (ContextRules.DmlShape.JoinedUpdateFrom, TargetDbms.Sqlite) => s_sqlite333,
-            (ContextRules.DmlShape.InsertValuesRow, TargetDbms.Oracle) => s_oracle23,
-            _ => null,
-        };
+            if (floor.Shape == shape && floor.Dbms == dbms)
+            {
+                return floor.From;
+            }
+        }
+
+        return null;
+    }
 
     private static string? RejectingDmlTargets(
         DialectTargetSet targets,

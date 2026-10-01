@@ -21,6 +21,37 @@ public class ContextRuleDocsTests
         "nineteen", "twenty",
     ];
 
+    // A floor is a version in docs, so it lives only on a gated register row: the
+    // row naming its trigger and dialect must carry the version (ADR 0020).
+    [Fact]
+    public void EveryDmlShapeFloor_HasARegisterRow()
+    {
+        string[] lines = File.ReadAllLines(Path.Combine(FindRepoRoot(), "docs", "analyzer.md"));
+
+        List<string> missing = [];
+        foreach ((ContextRules.DmlShape shape, TargetDbms dbms, EngineVersion from)
+            in DialectUsageAnalyzer.DmlShapeFloors)
+        {
+            string trigger = shape switch
+            {
+                ContextRules.DmlShape.JoinedUpdateFrom => "From",
+                ContextRules.DmlShape.InsertValuesRow => "Values",
+                _ => throw new InvalidOperationException($"Name the trigger of {shape} here."),
+            };
+
+            Regex row = new(
+                $@"^\| `{trigger}` \|.*\| {Regex.Escape(TargetDbmsNames.Display(dbms))} \| "
+                    + $@"{Regex.Escape(from.ToString())} \|$");
+            if (!lines.Any(line => row.IsMatch(line)))
+            {
+                missing.Add($"{shape}/{dbms} {from}");
+            }
+        }
+
+        Assert.True(
+            missing.Count == 0, $"Floor(s) with no register row: {string.Join("; ", missing)}");
+    }
+
     // Each count sentence must occur exactly once, so a second copy of one fails
     // here rather than drifting unwatched like the two this gate was missing.
     [Fact]

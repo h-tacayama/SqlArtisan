@@ -898,7 +898,7 @@ internal static class DialectMatrix
         [new MatrixKey("Trim")] = new VersionBounds(sqlServer: V("2017")),
     };
 
-    private static EngineVersion V(string text) => EngineVersion.Parse(text);
+    internal static EngineVersion V(string text) => EngineVersion.Parse(text);
 
     /// <summary>
     /// The machine-comparable floor of each dialect's <see cref="VerifiedAgainstVersion"/>

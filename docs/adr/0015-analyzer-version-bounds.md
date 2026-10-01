@@ -122,7 +122,10 @@ A context rule (`SQLA0102`, ADR 0013) names the dialects that reject a
 position, and a dialect can stop rejecting it at a version: Oracle 23ai added
 `UPDATE ... FROM` and the multi-row `VALUES` table value constructor, and
 SQLite 3.33 added `UPDATE ... FROM`. Each such pairing carries a floor
-(`DialectUsageAnalyzer.AcceptedFrom`), read exactly as a `Bounds` row is: the
+(`DialectUsageAnalyzer.DmlShapeFloors`), with a row and a source in
+`docs/analyzer.md`'s version-bound register that
+`ContextRuleDocsTests.EveryDmlShapeFloor_HasARegisterRow` ties to the code. It
+is read exactly as a `Bounds` row is: the
 declared version, or with none the `BaselineVersion`, at or past the floor is
 silent. Below it the rule still reports `SQLA0102`, not `SQLA0101`: the
 version-bound message's remedy is a `sqlartisan_construct_*` override, which a
