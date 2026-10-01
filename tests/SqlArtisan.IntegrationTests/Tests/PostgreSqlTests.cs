@@ -392,7 +392,7 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     }
 
     // SQL Server's re-listed target leads with the bare alias, which PostgreSQL
-    // reads as a table name; the unaliased-lead control runs (#582).
+    // reads as a table name; the control, led by the table name, runs (#582).
     [Fact]
     public void JoinedUpdateRelistedTarget_IsRejectedByTheEngine()
     {
