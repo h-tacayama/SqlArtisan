@@ -823,6 +823,22 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         transaction.Rollback();
     }
 
+    // #582: the rejecting half of MERGE ... RETURNING, which PostgreSQL 17 added
+    // (PostgreSql17Tests.MergeReturning_Executes); the same MERGE runs without it.
+    [Fact]
+    public void MergeReturning_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+        const string merge = "MERGE INTO users AS t USING users AS s ON t.id = s.id "
+            + "WHEN MATCHED THEN UPDATE SET name = s.name";
+
+        connection.Execute(merge, transaction: transaction);
+        Assert.ThrowsAny<DbException>(() =>
+            connection.Execute(merge + " RETURNING t.id", transaction: transaction));
+        transaction.Rollback();
+    }
+
     // SQLA0102 (#587): PostgreSQL filters a MERGE branch on its WHEN and takes no
     // WHERE after the action. The unfiltered actions run, so only the WHERE is rejected.
     [Fact]

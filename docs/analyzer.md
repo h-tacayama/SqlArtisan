@@ -478,7 +478,7 @@ Declaring a version below the bound reports the construct as version-bound
 `supported`/`not supported` verdict, and a version at or above the bound
 resolves the construct as supported. For most rows that reproduces the plain
 verdict exactly; where the bound sits above the dialect's verified baseline
-(the Oracle 23 row below), the plain verdict is `not supported`, and declaring
+(the Oracle 23 and PostgreSQL 17 rows below), the plain verdict is `not supported`, and declaring
 the version is what lifts it.
 
 | Construct | Dialect | Minimum version | Why |
@@ -494,6 +494,7 @@ the version is what lifts it.
 | `MergeInto`, `WhenMatched`, `WhenNotMatched`, `ThenInsert`, `ThenUpdateSet`, `ThenDelete`, the 3-argument `Values` (MERGE `USING` literal rows) | PostgreSQL | 15 | `MERGE` landed in PostgreSQL 15. `Using` itself carries no bound — the key is shared with `DeleteBuilder`'s plain `DELETE ... USING`, which predates and does not require PostgreSQL 15; the `MergeInto` bound still flags a MERGE statement below 15. |
 | `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` | PostgreSQL | 15 | `regexp_like`, `regexp_count`, `regexp_substr`, and `regexp_instr` landed in PostgreSQL 15. `regexp_replace` predates it — 15 is where it gained the position and occurrence arguments — so the bound covers only `RegexpReplace`'s position/occurrence/options overloads (4+ arguments); the 3-argument call is not reported below 15. MySQL's `REGEXP_SUBSTR`/`REGEXP_INSTR` top out at 5/6 arguments respectively (neither has `subexpr`), so `RegexpSubstr`'s 6-argument and `RegexpInstr`'s 7-argument overloads are MySQL-unsupported at any version, independent of this PostgreSQL bound. |
 | `Log10` | PostgreSQL | 12 | `log10()` landed in PostgreSQL 12; before it, base-10 was spelled `log(x)`. |
+| `WhenNotMatchedBySource` (both forms) | PostgreSQL | 17 | `MERGE ... WHEN NOT MATCHED BY SOURCE` landed in PostgreSQL 17 — live-verified on the PostgreSQL 17 lane. |
 | `RightJoin`, `FullJoin`, `NaturalRightJoin`, `NaturalFullJoin` | SQLite | 3.39 | `RIGHT JOIN`/`FULL JOIN` landed in SQLite 3.39. |
 | `Returning` | SQLite | 3.35 | `RETURNING` landed in SQLite 3.35. |
 | `Ceil`, `Ceiling`, `Exp`, `Floor`, `Ln`, `Log` (both forms), `Log10`, `Mod`, `Power`, `Sign`, `Sqrt` | SQLite | 3.35 | The `SQLITE_ENABLE_MATH_FUNCTIONS` extension landed in 3.35 (enabled in the project's pinned `bundle_e_sqlite3`), and `sign()` arrived in the same release as a core function; none of these functions exist below it. |
@@ -559,7 +560,9 @@ both are live-verified on Free 23ai, and their rejection on XE 21.3.0.
 list both `MERGE` and the `regexp_count` / `regexp_instr` / `regexp_like` /
 `regexp_substr` family as new in 15. The
 [version 12 release notes](https://www.postgresql.org/docs/12/release-12.html)
-add `log10()` as a named alias for the base-10 `log()`.
+add `log10()` as a named alias for the base-10 `log()`, and the
+[version 17 release notes](https://www.postgresql.org/docs/17/release-17.html)
+add `WHEN NOT MATCHED BY SOURCE` to `MERGE`.
 
 **SQLite** — the per-release change logs:
 
@@ -1375,7 +1378,7 @@ integration test matrix runs against):
 |---|---|
 | MySQL | MySQL 8.0 |
 | Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0101` reports and the Oracle 23 floors of the `SQLA0102` DML rules |
-| PostgreSQL | PostgreSQL 16 |
+| PostgreSQL | PostgreSQL 16, plus PostgreSQL 17 (`postgres:17`) for the version-bound entries above 16 |
 | SQLite | `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 (via `Microsoft.Data.Sqlite` 9.0.5) |
 | SQL Server | SQL Server 2022 |
 

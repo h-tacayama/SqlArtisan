@@ -45,18 +45,20 @@ public interface IMergeBuilderOn
     IMergeBuilderWhenNotMatchedAnd WhenNotMatched(SqlCondition extraCondition);
 
     /// <summary>
-    /// <c>WHEN NOT MATCHED BY SOURCE THEN</c> (SQL Server): act on target rows with
-    /// no source match (typically an <c>UPDATE</c> or <c>DELETE</c>).
+    /// <c>WHEN NOT MATCHED BY SOURCE THEN</c>: act on target rows with no source match
+    /// (typically an <c>UPDATE</c> or <c>DELETE</c>).
     /// </summary>
     /// <returns>The builder positioned to supply the not-matched-by-source action (<c>UPDATE</c> or <c>DELETE</c>).</returns>
+    /// <remarks>PostgreSQL (17+) and SQL Server syntax.</remarks>
     IMergeBuilderWhenNotMatchedBySource WhenNotMatchedBySource();
 
     /// <summary>
-    /// <c>WHEN NOT MATCHED BY SOURCE AND condition THEN</c> (SQL Server): as
+    /// <c>WHEN NOT MATCHED BY SOURCE AND condition THEN</c>: as
     /// <see cref="WhenNotMatchedBySource()"/>, but filtered by
     /// <paramref name="extraCondition"/>.
     /// </summary>
     /// <param name="extraCondition">The extra predicate the unmatched target rows must satisfy.</param>
     /// <returns>The builder positioned to supply the not-matched-by-source action (<c>UPDATE</c> or <c>DELETE</c>).</returns>
+    /// <remarks>PostgreSQL (17+) and SQL Server syntax.</remarks>
     IMergeBuilderWhenNotMatchedBySource WhenNotMatchedBySource(SqlCondition extraCondition);
 }

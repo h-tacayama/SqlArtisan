@@ -159,7 +159,8 @@ other SQLite rows do.
   every `Entries` key.
 - A future above-baseline flip (a currently-`false` cell gaining a bound)
   needs its own live-proof lane before it can ship — the pinned 23ai lane
-  already exists for Oracle, and this ADR's `WithRecursive` record is
+  already exists for Oracle, a PostgreSQL 17 lane (`PostgreSql17BoundSweepTests`)
+  for PostgreSQL since `WhenNotMatchedBySource` (#582), and this ADR's `WithRecursive` record is
   the discipline's proof of value: a plausible register claim was caught by
   the lane, a plausible-but-wrong fix was falsified by the same lane, and a
   raw-SQL grammar probe settled the underlying engine fact before anything
