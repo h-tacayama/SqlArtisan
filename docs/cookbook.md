@@ -466,14 +466,15 @@ key (or use the driver's last-insert-id facility) in the same transaction. See
 ### Synchronizing a table from staging
 
 Full catalog sync — update changed rows, insert new ones, delete rows gone
-from the source:
+from the source. `WhenNotMatchedBySource()` is PostgreSQL and SQL Server
+syntax; PostgreSQL takes it from the version in the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 ```csharp
 Product t = new("t");
 StagingProduct s = new("s");
 
-// SQL Server (PostgreSQL takes WHEN NOT MATCHED BY SOURCE too, from the version in the
-// analyzer's version-bound register):
+// SQL Server:
 SqlStatement sql =
     MergeInto(t).Using(s).On(t.ProductId == s.ProductId)
         .WhenMatched(t.Price != s.Price).ThenUpdateSet(t.Price == s.Price)

@@ -1335,7 +1335,7 @@ subquery source (`… .AsTable("s")`) instead.
 // PostgreSQL / SQL Server: WHEN MATCHED THEN DELETE
 .WhenMatched().ThenDelete()
 
-// SQL Server, and PostgreSQL from the version in the analyzer's version-bound register:
+// PostgreSQL (from the version in the version-bound register) / SQL Server:
 // WHEN NOT MATCHED BY SOURCE THEN UPDATE/DELETE
 .WhenNotMatchedBySource().ThenUpdateSet(t.Name == "archived")
 .WhenNotMatchedBySource(t.Name.IsNull).ThenDelete()
