@@ -1386,10 +1386,11 @@ DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
 // DELETE "t" FROM acct "t" INNER JOIN ledger "u" ON "t".id = "u".id
 ```
 
-The joined target must be aliased, and on SQL Server a joined `UPDATE`/`DELETE`
-must re-list the target in `FROM` — T-SQL's joined form takes the target's alias
-from there — or `Build(Dbms.SqlServer)` throws. A re-listed target off SQL Server throws at
-`Build()`. Every other wrong-dialect spelling is emitted as written and rejected
+The joined target must be aliased. A joined `DELETE ... FROM` must re-list the
+target in `FROM`, or `From(...)` throws; on SQL Server a joined `UPDATE` must too
+— T-SQL's joined form takes the target's alias from there — or
+`Build(Dbms.SqlServer)` throws. A re-listed `UPDATE` target off SQL Server throws
+at `Build()`. Every other wrong-dialect spelling is emitted as written and rejected
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
 On Oracle, express the shape as a correlated subquery or a

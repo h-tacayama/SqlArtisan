@@ -16,8 +16,8 @@ internal sealed class UpdateSetClause : SqlPart
         EqualCondition[] resolved =
             AssignmentResolver.Resolve(assignments, "SET requires at least one assignment.");
 
-        // A pair sharing a correlation name renders one token in either form, so
-        // it is rejected here; the rest wait for Build(), once .From(t) is known.
+        // A pair sharing a correlation name, or both unaliased, renders one token either
+        // way, so it is rejected here; the rest wait for Build(), once .From(t) is known.
         AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: true);
         return new(resolved, state);
     }

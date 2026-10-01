@@ -667,12 +667,13 @@ public class UpdateTests
     }
 
     [Fact]
-    public void Update_SetSameColumnFromTwoTables_ThrowsAtBuild()
+    public void Update_SetSameColumnFromTwoUnaliasedTables_ThrowsAtSet()
     {
+        // Neither table has a correlation name, so both render `name` in either form.
         ArchiveTable archive = new();
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            Update(_t).Set(_t.Name == "a", archive.Name == "b").Build(Dbms.PostgreSql));
+            Update(_t).Set(_t.Name == "a", archive.Name == "b"));
 
         Assert.Equal(
             "A SET assignment list must not assign the same column twice.", ex.Message);

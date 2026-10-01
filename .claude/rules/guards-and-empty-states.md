@@ -74,7 +74,7 @@ the full rationale.
   joined form, so that arm compares `alias.column` at `Build()`, where the
   shape is final — a joined multi-table `UPDATE` with distinct correlation
   names stays legal — after rejecting at `Set(...)` the pairs that share one,
-  which render one token either way), a `WITH` clause's CTE names, a `Values(...)`
+  or that are both unaliased, which render one token either way), a `WITH` clause's CTE names, a `Values(...)`
   source's column names, an `ON CONFLICT` target, a join `USING` list, an
   `OUTPUT ... INTO` list — and an `OUTPUT ... INTO` list whose width differs
   from the `OUTPUT` list.
