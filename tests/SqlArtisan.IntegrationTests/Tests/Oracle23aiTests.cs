@@ -178,6 +178,7 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
 
     // #582: 23ai added UPDATE ... FROM, but the joined forms SqlArtisan withholds
     // RETURNING from stay rejected; the FROM control, led by the table name, runs.
+    // Its source is one row per user: ORA-30926 rejects a row updated twice.
     [Fact]
     public void JoinedUpdateRelistedTarget_IsRejectedByTheEngine()
     {
@@ -185,7 +186,8 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         using IDbTransaction transaction = connection.BeginTransaction();
 
         connection.Execute(
-            "UPDATE users \"u\" SET age = 1 FROM orders \"o\" WHERE \"o\".user_id = \"u\".id",
+            "UPDATE users \"u\" SET age = 1 FROM (SELECT DISTINCT user_id FROM orders) \"o\" "
+                + "WHERE \"o\".user_id = \"u\".id",
             transaction: transaction);
         Assert.ThrowsAny<Exception>(() =>
             connection.Execute(
