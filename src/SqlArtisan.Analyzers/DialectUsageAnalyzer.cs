@@ -317,7 +317,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         if (name is not ("Limit" or "Grouping" or "PercentileCont" or "PercentileDisc"
                 or "Inserted" or "Deleted" or "Interval" or "IntervalLiteral"
                 or "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin"
-                or "ForUpdate" or "Over" or "With" or "Returning" or "Where")
+                or "ForUpdate" or "Over" or "With" or "Returning" or "Where" or "Values")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
@@ -328,7 +328,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         ContextRules.DmlShape shape = ContextRules.ClassifyDmlShape(invocation);
         if (shape == ContextRules.DmlShape.None
             && name is "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin" or "With"
-                or "Where")
+                or "Where" or "Values")
         {
             return;
         }
@@ -336,7 +336,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DialectTargetSet targets = GetTargets(context, cache);
         if (shape != ContextRules.DmlShape.None)
         {
-            if (ContextRules.RejectingTargets(targets, RejectingDialects(shape)) is { } names)
+            if (RejectingDmlTargets(targets, shape) is { } names)
             {
                 ContextRules.ReportDmlShape(context, invocation, shape, names);
             }
@@ -417,7 +417,10 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     private static readonly TargetDbms[] s_deleteUsingUnsupported = [TargetDbms.Oracle];
 
     private static readonly TargetDbms[] s_updateFromUnsupported =
-        [TargetDbms.MySql, TargetDbms.Oracle];
+        [TargetDbms.MySql, TargetDbms.Oracle, TargetDbms.Sqlite];
+
+    // Oracle 21c rejects the table value constructor 23ai added (#87).
+    private static readonly TargetDbms[] s_valuesRowUnsupported = [TargetDbms.Oracle];
 
     private static readonly TargetDbms[] s_insertSelectWithUnsupported = [TargetDbms.SqlServer];
 
@@ -434,8 +437,48 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         ContextRules.DmlShape.JoinedUpdateJoin => s_joinedDmlUnsupported,
         ContextRules.DmlShape.InsertSelectWith => s_insertSelectWithUnsupported,
         ContextRules.DmlShape.MergeActionWhere => s_mergeActionWhereUnsupported,
+        ContextRules.DmlShape.InsertValuesRow => s_valuesRowUnsupported,
         _ => s_updateFromUnsupported,
     };
+
+    private static readonly EngineVersion s_oracle23 = EngineVersion.Parse("23");
+    private static readonly EngineVersion s_sqlite333 = EngineVersion.Parse("3.33");
+
+    // The version a rejecting dialect starts accepting the shape at, read against the
+    // declared version or, with none, the matrix baseline, as a Bounds row is (ADR 0015).
+    // Oracle 23ai added UPDATE ... FROM and multi-row VALUES; SQLite 3.33, UPDATE ... FROM.
+    private static EngineVersion? AcceptedFrom(ContextRules.DmlShape shape, TargetDbms dbms) =>
+        (shape, dbms) switch
+        {
+            (ContextRules.DmlShape.JoinedUpdateFrom, TargetDbms.Oracle) => s_oracle23,
+            (ContextRules.DmlShape.JoinedUpdateFrom, TargetDbms.Sqlite) => s_sqlite333,
+            (ContextRules.DmlShape.InsertValuesRow, TargetDbms.Oracle) => s_oracle23,
+            _ => null,
+        };
+
+    private static string? RejectingDmlTargets(
+        DialectTargetSet targets,
+        ContextRules.DmlShape shape)
+    {
+        List<string>? names = null;
+        foreach (TargetDbms dbms in RejectingDialects(shape))
+        {
+            if (!targets.Contains(dbms))
+            {
+                continue;
+            }
+
+            if (AcceptedFrom(shape, dbms) is { } floor
+                && (targets.VersionFor(dbms) ?? DialectMatrix.BaselineVersion[dbms]) >= floor)
+            {
+                continue;
+            }
+
+            (names ??= []).Add(TargetDbmsNames.Display(dbms));
+        }
+
+        return names is null ? null : TargetDbmsNames.JoinDisplayNames(names);
+    }
 
     // Name-filter first, like AnalyzeContextRules — only the DateTimePart
     // consumers below pay for target-set resolution.

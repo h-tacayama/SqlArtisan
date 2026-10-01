@@ -60,9 +60,11 @@ the dialect layer nor a plain matrix entry (the first two identified in the
   engine — cannot be expressed by the construct-level matrix at all. Add a
   rule to `src/SqlArtisan.Analyzers/ContextRules.cs` with a primary source and a
   live rejection proof in the per-engine integration tests, plus the docs
-  note with the workaround. A restriction with no API surface to anchor on
-  (Oracle's `PRIOR` outside `CONNECT BY` — CONNECT BY is wontfix per ADR
-  0010) stays a docs/ADR note only.
+  note with the workaround. A dialect that accepts the position from some
+  version on gets a floor beside the rule's dialect list (ADR 0015, "Context
+  rules take the same floor"), never a second rule. A restriction with no API
+  surface to anchor on (Oracle's `PRIOR` outside `CONNECT BY` — CONNECT BY is
+  wontfix per ADR 0010) stays a docs/ADR note only.
 - **Value-bounded validity → an analyzer value-domain rule (SQLA0104, ADR
   0022).** A construct the engine has, with one *argument value* it rejects —
   a `DateTimePart` outside a function's grammar, MySQL's match-parameter

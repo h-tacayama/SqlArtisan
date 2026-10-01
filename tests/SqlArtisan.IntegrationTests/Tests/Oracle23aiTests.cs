@@ -176,6 +176,22 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
             "SELECT d.id FROM (SELECT id FROM users FOR UPDATE) d").ToList());
     }
 
+    // #582: the acceptance twin behind SQLA0102's Oracle 23 floor for the FROM form,
+    // as SqlArtisan emits it. orders.id is unique, so no row is updated twice.
+    [Fact]
+    public void JoinedUpdateFrom_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            Update(u).Set(u.Age == 999).From(o).Where(u.Id == o.Id),
+            transaction);
+        transaction.Rollback();
+    }
+
     // #582: 23ai added UPDATE ... FROM, but the joined forms SqlArtisan withholds
     // RETURNING from stay rejected; the FROM control, led by the table name, runs.
     // Its source is one row per user: ORA-30926 rejects a row updated twice.

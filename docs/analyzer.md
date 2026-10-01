@@ -573,8 +573,8 @@ A construct can be valid on a dialect in one position and rejected by the same
 engine in another. The construct-level warnings above cannot express that —
 the construct itself *is* supported — so these facts ship as **context
 rules**: `SQLA0102` fires when the offending position is visible in the
-expression where the construct is used. Sixteen rules ship today — ten reading
-the construct's surroundings, six reading the DML statement a clause sits in.
+expression where the construct is used. Seventeen rules ship today — ten reading
+the construct's surroundings, seven reading the DML statement a clause sits in.
 Every verdict below, rejection and acceptance alike, is live-verified on the
 pinned lanes: MySQL 8.0, Oracle XE 21.3.0, PostgreSQL 16, SQLite 3.50 and SQL
 Server 2022.
@@ -714,13 +714,17 @@ var q = InsertInto(u, u.Id, u.Name).Values(1, "x").Returning(u.Id).Build();
 
 ### DML statement shapes
 
-A joined `UPDATE` or `DELETE`, a `WITH` inside `INSERT ... SELECT`, or a filter
-on a `MERGE` action has a different grammar on some engines, and SqlArtisan
-emits whichever one you write. The six rules below name the engines that reject the spelling; where a spelling
-has no valid form at all on the resolved dialect, `Build(Dbms)` throws instead
-and no warning is needed.
+A joined `UPDATE` or `DELETE`, a `WITH` inside `INSERT ... SELECT`, a filter
+on a `MERGE` action, or a second `VALUES` row has a different grammar on some
+engines, and SqlArtisan emits whichever one you write. The seven rules below
+name the engines that reject the spelling; where a spelling has no valid form
+at all on the resolved dialect, `Build(Dbms)` throws instead and no warning is
+needed. Two of them name an engine version that lifts the rejection: declaring
+that version or a later one (`sqlartisan_syntax_oracle = 23`) silences the
+warning, and declaring none reads the engine at its verified baseline, as the
+version-bound register does.
 
-These six are settled by the builder stage the call binds to rather than by
+These seven are settled by the builder stage the call binds to rather than by
 reading the chain, so they still warn when the builder is held in a variable —
 as the `RETURNING` rule does, since it reads only what follows the call; the
 rules that read back up the chain stay silent there.
@@ -764,8 +768,9 @@ var q = Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 30);
 ```
 
 **`UPDATE ... SET ... FROM`.** The mirror case: PostgreSQL, SQLite and SQL
-Server take a `FROM` clause on `UPDATE`; MySQL and Oracle do not. Use the
-join-before-`SET` form on MySQL, and a correlated subquery on Oracle.
+Server take a `FROM` clause on `UPDATE`; MySQL and Oracle before 23ai do not,
+and nor does SQLite before 3.33. Use the join-before-`SET` form on MySQL, and a
+correlated subquery on Oracle before 23ai.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
@@ -797,6 +802,19 @@ MySQL and SQLite have no `MERGE`, which `SQLA0100` already reports.
 var q = MergeInto(t).Using(s).On(t.Id == s.Id)
     .WhenMatched().ThenUpdateSet(t.Name == s.Name).Where(t.Name != s.Name);
 // warning SQLA0102: 'Where' is not supported as a filter on a MERGE action on PostgreSQL
+```
+
+**A second `VALUES` row.** `Values(...)` called again after a first row emits
+a multi-row `VALUES`, which Oracle before 23ai rejects. For an Oracle batch on
+any version, use
+[`SqlArtisan.ArrayBind`](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/guides/oracle-array-bind.md).
+The collection overloads (`Values(rows)`) stay silent: their row count is a
+runtime value.
+
+```csharp
+// sqlartisan_syntax_oracle = any
+var q = InsertInto(u, u.Id, u.Name).Values(1, "a").Values(2, "b");
+// warning SQLA0102: 'Values' is not supported as a second VALUES row on Oracle
 ```
 
 Not in this family: an `UPDATE ... FROM` that re-lists the target table. That
@@ -1338,7 +1356,7 @@ integration test matrix runs against):
 | Dialect | Verified against |
 |---|---|
 | MySQL | MySQL 8.0 |
-| Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0101` reports |
+| Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0101` reports and the Oracle 23 floors of the `SQLA0102` DML rules |
 | PostgreSQL | PostgreSQL 16 |
 | SQLite | `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 (via `Microsoft.Data.Sqlite` 9.0.5) |
 | SQL Server | SQL Server 2022 |

@@ -29,6 +29,7 @@ internal static class ContextRules
         JoinedUpdateFrom,
         InsertSelectWith,
         MergeActionWhere,
+        InsertValuesRow,
     }
 
     /// <summary>
@@ -371,6 +372,7 @@ internal static class ContextRules
             ("With", "IWithBuilder") => DmlShape.InsertSelectWith,
             ("Where", "IMergeBuilderThenUpdateSet" or "IMergeBuilderValues")
                 => DmlShape.MergeActionWhere,
+            ("Values", "IInsertBuilderValues") => DmlShape.InsertValuesRow,
             _ => DmlShape.None,
         };
 
@@ -390,6 +392,7 @@ internal static class ContextRules
             DmlShape.JoinedUpdateJoin => "joined directly onto an UPDATE target",
             DmlShape.InsertSelectWith => "between INSERT INTO and its SELECT",
             DmlShape.MergeActionWhere => "as a filter on a MERGE action",
+            DmlShape.InsertValuesRow => "as a second VALUES row",
             _ => "in an UPDATE statement",
         };
 

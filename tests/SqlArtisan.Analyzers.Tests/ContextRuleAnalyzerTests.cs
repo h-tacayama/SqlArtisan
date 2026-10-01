@@ -700,6 +700,58 @@ public class ContextRuleAnalyzerTests
             var q = Update(t).Set(t.Id == s.Id).From(s).Where(t.Dep == s.Id);
             """, dbms);
 
+    // Oracle 23ai and SQLite 3.33 added the FROM form: a declared version at or past
+    // that floor is silent, one below it reports, and none reads the matrix baseline.
+    [Theory]
+    [InlineData("oracle", "21")]
+    [InlineData("sqlite", "3.32")]
+    public Task JoinedUpdateFrom_BelowFloor_ReportsSqla0102(string dbms, string version) =>
+        RunAsync(
+            Usage("""
+                var q = {|#0:Update(t).Set(t.Id == s.Id).From(s)|}.Where(t.Dep == s.Id);
+                """),
+            AnalyzerVerifier.EditorConfig(dbms, version),
+            expectWarning: true);
+
+    [Theory]
+    [InlineData("oracle", "23")]
+    [InlineData("sqlite", "3.33")]
+    public Task JoinedUpdateFrom_AtFloor_StaysSilent(string dbms, string version) =>
+        RunAsync(
+            AnalyzerVerifier.Unmarked(Usage("""
+                var q = Update(t).Set(t.Id == s.Id).From(s).Where(t.Dep == s.Id);
+                """)),
+            AnalyzerVerifier.EditorConfig(dbms, version),
+            expectWarning: false);
+
+    [Fact]
+    public Task SecondValuesRow_Oracle_ReportsSqla0102() =>
+        RunReporting("""
+            var q = {|#0:InsertInto(t, t.Id).Values(1).Values(2)|};
+            """, "oracle");
+
+    [Fact]
+    public Task SecondValuesRow_Oracle23_StaysSilent() =>
+        RunAsync(
+            AnalyzerVerifier.Unmarked(Usage("""
+                var q = InsertInto(t, t.Id).Values(1).Values(2);
+                """)),
+            AnalyzerVerifier.EditorConfig("oracle", "23"),
+            expectWarning: false);
+
+    // One row, or a collection whose row count is a value the stage cannot prove.
+    [Theory]
+    [InlineData("var q = InsertInto(t, t.Id).Values(1);")]
+    [InlineData("var q = InsertInto(t, t.Id).Values(new[] { new object[] { 1 } });")]
+    public Task FirstValuesRow_Oracle_StaysSilent(string statement) =>
+        RunSilent(statement, "oracle");
+
+    [Fact]
+    public Task SecondValuesRow_MySql_StaysSilent() =>
+        RunSilent("""
+            var q = InsertInto(t, t.Id).Values(1).Values(2);
+            """);
+
     // A join reached through From(...) is the FROM-form's own join, not the
     // direct-join spelling the other rule reports.
     [Fact]

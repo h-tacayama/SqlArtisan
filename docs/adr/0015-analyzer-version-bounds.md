@@ -116,6 +116,23 @@ diagnostic `SQLA0101`.**
   `.WithColumnList()` under plain `With()`. `WithRecursive()` emits no list
   of its own: no engine that accepts `RECURSIVE` requires one (#567).
 
+## Context rules take the same floor (#582)
+
+A context rule (`SQLA0102`, ADR 0013) names the dialects that reject a
+position, and a dialect can stop rejecting it at a version: Oracle 23ai added
+`UPDATE ... FROM` and the multi-row `VALUES` table value constructor, and
+SQLite 3.33 added `UPDATE ... FROM`. Each such pairing carries a floor
+(`DialectUsageAnalyzer.AcceptedFrom`), read exactly as a `Bounds` row is: the
+declared version, or with none the `BaselineVersion`, at or past the floor is
+silent. Below it the rule still reports `SQLA0102`, not `SQLA0101`: the
+version-bound message's remedy is a `sqlartisan_construct_*` override, which a
+context rule never consults, since the construct itself is supported. The
+seed and live-proof discipline above applies unchanged: both Oracle floors lift
+a rejection at the baseline, so each has a 23ai acceptance twin
+(`Oracle23aiTests.MultiRowValues_Executes`, `JoinedUpdateFrom_Executes`); the
+SQLite floor sits below the baseline and rests on the release notes, as the
+other SQLite rows do.
+
 ## Rejected alternatives
 
 - **A full version × dialect × construct matrix.** Rejected in Context above
