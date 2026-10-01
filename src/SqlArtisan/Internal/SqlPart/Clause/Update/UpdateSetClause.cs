@@ -11,15 +11,19 @@ internal sealed class UpdateSetClause : SqlPart
         _state = state;
     }
 
-    internal static UpdateSetClause Parse(EqualityCondition[] assignments, DmlJoinState state) =>
-        new(
-            AssignmentResolver.Resolve(assignments, "SET requires at least one assignment."),
-            state);
+    internal static UpdateSetClause Parse(EqualityCondition[] assignments, DmlJoinState state)
+    {
+        EqualCondition[] resolved =
+            AssignmentResolver.Resolve(assignments, "SET requires at least one assignment.");
+
+        // A pair sharing a correlation name renders one token in either form, so
+        // it is rejected here; the rest wait for Build(), once .From(t) is known.
+        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: true);
+        return new(resolved, state);
+    }
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        // The only position where the alias survives into the SQL, and the
-        // shape is not final until .From(t) — so this arm checks at Build().
         AssignmentResolver.ThrowIfDuplicateTarget(_assignments, _state.QualifiesSetTarget);
 
         buffer.Append($"{Keywords.Set} ");

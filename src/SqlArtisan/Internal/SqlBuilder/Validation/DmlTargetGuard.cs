@@ -37,9 +37,9 @@ internal static class DmlTargetGuard
     // lead keeps `DELETE FROM target` and a second FROM follows, invalid on every
     // dialect. A wrong-dialect joined form is emitted faithfully and left to the
     // database (ADR 0001); only this structurally-broken case throws.
-    internal static void ThrowIfJoinedDeleteTargetNotRepeated(DmlJoinState state)
+    internal static void ThrowIfJoinedDeleteTargetNotRepeated(bool targetRepeated)
     {
-        if (state.HasFrom && !state.TargetRepeatedInFrom)
+        if (!targetRepeated)
         {
             throw new ArgumentException(
                 "A joined DELETE ... FROM must re-list the target table in the FROM clause.");

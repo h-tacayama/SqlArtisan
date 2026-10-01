@@ -277,19 +277,22 @@ public class DeleteTests
     }
 
     [Fact]
-    public void DeleteFrom_FromNotRepeatingTarget_ThrowsArgumentException()
+    public void DeleteFrom_FromNotRepeatingTarget_ThrowsAtFrom()
     {
         // The SQL Server / MySQL joined DELETE must re-list its target in FROM;
         // omitting it would emit a target-less DELETE alias.
         TestTable t = new("t");
         TestTable s = new("s");
+        IDeleteBuilderDeleteOutput held = DeleteFrom(t);
 
-        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
-            DeleteFrom(t).From(s).InnerJoin(s).On(t.Code == s.Code).Build(Dbms.SqlServer));
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.From(s));
 
         Assert.Equal(
             "A joined DELETE ... FROM must re-list the target table in the FROM clause.",
             ex.Message);
+        Assert.Equal(
+            "DELETE \"t\" FROM test_table \"t\", test_table \"s\"",
+            held.From(t, s).Build(Dbms.SqlServer).Text);
     }
 
     [Fact]

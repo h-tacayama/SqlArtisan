@@ -28,18 +28,18 @@ internal sealed class DeleteBuilder(
     public IDeleteBuilderFrom From(params TableReference[] tables)
     {
         CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "FROM requires at least one table.");
-        AddPart(new FromClause(tables));
-        state.HasFrom = true;
-
+        FromClause from = new(tables);
+        bool targetRepeated = false;
         foreach (TableReference reference in tables)
         {
-            if (ReferenceEquals(reference, table))
-            {
-                state.TargetRepeatedInFrom = true;
-                break;
-            }
+            targetRepeated |= ReferenceEquals(reference, table);
         }
 
+        DmlTargetGuard.ThrowIfJoinedDeleteTargetNotRepeated(targetRepeated);
+
+        AddPart(from);
+        state.HasFrom = true;
+        state.TargetRepeatedInFrom = targetRepeated;
         return this;
     }
 
@@ -57,7 +57,9 @@ internal sealed class DeleteBuilder(
 
     public IDeleteBuilderDelete Into(DbTableBase table, params DbColumn[] columns)
     {
-        AddPart(new OutputIntoClause(table, columns));
+        OutputIntoClause into = new(table, columns);
+        OutputClauseGuard.ThrowIfIntoWidthMismatch(FindPart<OutputClause>(), into);
+        AddPart(into);
         return this;
     }
 
@@ -129,7 +131,6 @@ internal sealed class DeleteBuilder(
         if (state.IsJoined)
         {
             DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
-            DmlTargetGuard.ThrowIfJoinedDeleteTargetNotRepeated(state);
         }
         else
         {
@@ -140,7 +141,6 @@ internal sealed class DeleteBuilder(
             state, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
 
         OutputClause? output = FindPart<OutputClause>();
-        OutputClauseGuard.ThrowIfIntoWidthMismatch(output, FindPart<OutputIntoClause>());
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfDeleteCombinedWithUsing(output, FindPart<DeleteUsingClause>());

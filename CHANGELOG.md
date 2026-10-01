@@ -29,6 +29,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   stage's type, stays silent. (#590)
 
 ### Changed
+- Four call-site defects now throw at the call that writes them instead of at
+  `Build()`: an `OUTPUT ... INTO` column list whose width differs from the
+  `OUTPUT` list (at `Into(...)`), an `INSERT ... SELECT` select list whose
+  width differs from the column list (at the first `Select(...)`), a joined
+  `DELETE ... FROM` that does not re-list its target (at `From(...)`), and an
+  `UPDATE` `SET` list assigning one column of one correlation name twice (at
+  `Set(...)`). The messages are unchanged, and the builder is left as it was,
+  so the corrected call can follow on the same chain. (#582)
 - **Breaking:** `WhenMatched(condition)` and `WhenNotMatched(condition)` no
   longer offer Oracle's action `Where(...)` / `DeleteWhere(...)`: Oracle has no
   `AND` on `WHEN`, and PostgreSQL and SQL Server have no action `WHERE`, so the

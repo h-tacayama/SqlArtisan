@@ -39,7 +39,9 @@ internal sealed class InsertBuilder(
 
     public IInsertBuilderColumns Into(DbTableBase table, params DbColumn[] columns)
     {
-        AddPart(new OutputIntoClause(table, columns));
+        OutputIntoClause into = new(table, columns);
+        OutputClauseGuard.ThrowIfIntoWidthMismatch(FindPart<OutputClause>(), into);
+        AddPart(into);
         return this;
     }
 
@@ -147,6 +149,32 @@ internal sealed class InsertBuilder(
         return this;
     }
 
+    // #397's width class, extended to INSERT ... SELECT where the select list's
+    // width is knowable (a star item's width is the schema's). Only the first block
+    // feeds the column list; a set operator's later blocks are the engine's to width.
+    private protected override void OnSelectItems(SqlPart[] selectItems)
+    {
+        if (columnCount == 0 || FirstSelectItems() is not null)
+        {
+            return;
+        }
+
+        foreach (SqlPart item in selectItems)
+        {
+            if (item is AsteriskMarker or QualifiedAsteriskMarker)
+            {
+                return;
+            }
+        }
+
+        if (selectItems.Length != columnCount)
+        {
+            throw new ArgumentException(
+                $"The INSERT column list declares {columnCount} column(s), "
+                + $"but the SELECT list has {selectItems.Length} item(s).");
+        }
+    }
+
     protected override void Validate(Dbms dbms)
     {
         // The SELECT guards still apply to the INSERT ... SELECT chain, which
@@ -160,29 +188,6 @@ internal sealed class InsertBuilder(
         DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(table, dbms);
 
-        // #397's width class, extended to INSERT ... SELECT where the select
-        // list's width is knowable (a star item's width is the schema's).
-        SqlPart[]? selectItems = FirstSelectItems();
-        if (columnCount > 0 && selectItems is not null)
-        {
-            bool countable = true;
-            foreach (SqlPart item in selectItems)
-            {
-                if (item is AsteriskMarker or QualifiedAsteriskMarker)
-                {
-                    countable = false;
-                    break;
-                }
-            }
-
-            if (countable && selectItems.Length != columnCount)
-            {
-                throw new ArgumentException(
-                    $"The INSERT column list declares {columnCount} column(s), "
-                    + $"but the SELECT list has {selectItems.Length} item(s).");
-            }
-        }
-
         OnConflictClause? onConflict = FindPart<OnConflictClause>();
         if (dbms == Dbms.PostgreSql
             && onConflict is { HasTarget: false }
@@ -194,7 +199,6 @@ internal sealed class InsertBuilder(
         }
 
         OutputClause? output = FindPart<OutputClause>();
-        OutputClauseGuard.ThrowIfIntoWidthMismatch(output, FindPart<OutputIntoClause>());
         OutputClauseGuard.ThrowIfCombinedWithReturning(
             output, FindPart<ReturningClause>(), FindPart<ReturningIntoClause>());
         OutputClauseGuard.ThrowIfInsertCombinedWithUpsert(output, onConflict, onDuplicateKeyUpdate);
