@@ -278,22 +278,25 @@ were admitted as invisible but are visible to ADR 0013's declaring-interface
 mode; they stay on a cost ground (ADR 0011, #569). An entry's condition-1
 sentence is its admission record, so check it before citing it as precedent.
 
-**CTE bodies are outside the correlated-DML guard (decided — do not re-file):**
-the target instance legitimately appears in a CTE body as the CTE's own
-relation, so `CommonTableExpression` renders its body with the guard
-suspended — the whole body, subqueries nested inside it included (#253, pinned by
-`DeleteFrom_CteBodyReferencingTarget_CorrectSql` and the nested theory beside
-it; the depth-only exemption that re-armed on a nested subquery was release
-audit pass 8's fix). The guard keys on the target *instance*: a second,
-unaliased instance of the target table inside the subquery renders the
-tautology unguarded (`Update(new T()) ... new T().Id`), the same instance-
-identity fact ADR 0014 records for the analyzer — the harness template uses
-one instance for that reason. A CTE body nested in a subquery can still
-correlate: SQLite 3.50.4 resolves a qualified outer reference there
-(`Returning_Sqlite_AliasedTargetCorrelatedCteBody_Executes`, #595). But a bare target column written there binds the
-body's own relation first, which is SQL's scoping. The guard's
-instance-identity check cannot separate that from the legitimate
-read-the-target shape without breaking it.
+**A top-level CTE body is outside the correlated-DML guard (decided — do not
+re-file):** the target instance legitimately appears in a `With(...)` body as
+the CTE's own relation, so `CommonTableExpression` renders its body with the
+guard suspended — the whole body, subqueries nested inside it included (#253,
+pinned by `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and the nested
+theory beside it; the depth-only exemption that re-armed on a nested subquery
+was release audit pass 8's fix). The guard keys on the target *instance*: a
+second, unaliased instance of the target table inside the subquery renders the
+tautology unguarded (`Update(new T()) ... new T().Id`), the same
+instance-identity fact ADR 0014 records for the analyzer — the harness
+template uses one instance for that reason.
+
+**A CTE body nested in a subquery is an open gap, not a decision (#607):** the
+same suspension reaches it today, but such a body can correlate with the
+target. SQLite 3.50.4 resolves a qualified outer reference there
+(`Returning_Sqlite_AliasedTargetCorrelatedCteBody_Executes`, #595), so a bare
+column of an unaliased target binds the body's own relation silently. That is
+the tautology the guard exists to stop. #607 tracks scoping the suspension to
+top-level bodies.
 
 ## The empty-state policy (#236)
 

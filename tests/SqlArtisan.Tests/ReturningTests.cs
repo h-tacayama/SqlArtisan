@@ -582,8 +582,9 @@ public class ReturningTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // In a scope that rebinds the table name or the alias, test_table.code would
-    // bind the inner relation; the alias stays, so SQLite rejects it instead.
+    // A scope exposing the table name would bind test_table.code to its own
+    // relation, so the alias stays and SQLite rejects it; one exposing the alias
+    // reads the written "t".code itself, which a swap would send to the target.
 
     [Fact]
     public void Returning_Sqlite_SubqueryRebindingTheTableName_KeepsTheAlias()
