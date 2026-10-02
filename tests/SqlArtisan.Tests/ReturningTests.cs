@@ -485,8 +485,8 @@ public class ReturningTests
     [Fact]
     public void Returning_Sqlite_JoinedUpdate_QualifiesOnlyTheTarget()
     {
-        // A FROM relation stays alias-qualified: SQLite's RETURNING cannot read
-        // it, and the table name would not reach it either, so it still fails.
+        // A FROM relation stays alias-qualified: SQLite 3.50.4's RETURNING cannot
+        // read it, and the table name would not reach it either, so it still fails.
         TestTable t = new("t");
         ArchiveTable a = new("a");
         SqlStatement sql =
@@ -583,7 +583,7 @@ public class ReturningTests
     }
 
     // A scope exposing the table name would bind test_table.code to its own
-    // relation, so the alias stays and SQLite rejects it; one exposing the alias
+    // relation, so the alias stays and SQLite 3.50.4 rejects it; one exposing the alias
     // reads the written "t".code itself, which a swap would send to the target.
 
     [Fact]

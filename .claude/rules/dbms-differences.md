@@ -39,8 +39,9 @@ make `Build` silently rewrite the author's SQL, violating ADR 0001.
 > MySQL's suffix is the separate `.GroupBy(...).WithRollup()` step.
 
 **A context-conditional swap stays token-level only when its
-meaning-changing contexts are enumerable and excluded.** SQLite resolves an
-aliased target in `RETURNING` by its table name alone, so
+meaning-changing contexts are enumerable and excluded.** SQLite 3.50.4, the
+lane's engine, resolves an aliased target in `RETURNING` by its table name
+alone, so
 `ReturningIgnoresTargetAlias` swaps `"u".id` for `users.id` (#595). The swap
 changes meaning in a subquery or CTE body whose FROM or JOIN exposes either
 name, which is the `WITH ROLLUP` trap. Under the table name, `users.id` binds

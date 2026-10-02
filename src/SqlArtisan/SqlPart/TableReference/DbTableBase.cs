@@ -69,7 +69,7 @@ public abstract class DbTableBase : TableReference
     }
 
     // SQLite's RETURNING resolves its target by this name, whatever the alias,
-    // and rejects a schema there (`main.users.id`).
+    // and SQLite 3.50.4 rejects a schema there (`main.users.id`).
     internal void FormatNameWithoutSchema(SqlBuildingBuffer buffer) =>
         buffer.Append(NameWithoutSchema);
 

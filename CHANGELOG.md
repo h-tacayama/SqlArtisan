@@ -175,8 +175,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   subquery or CTE body inside `RETURNING` can read the target. A subquery or
   CTE body that exposes a relation under the target's table name (the table
   unaliased, a CTE named after it, or an alias equal to it) keeps the target's
-  alias: the table name would bind that inner relation, so SQLite rejects the
-  statement instead of returning its value. Other engines' output is
+  alias: the table name would bind that inner relation, so SQLite 3.50.4
+  rejects the statement instead of returning its value. Other engines' output is
   unchanged. (#595)
 - `WhenNotMatchedBySource(...)` is documented and analyzed as PostgreSQL 17+
   syntax as well as SQL Server's: PostgreSQL 17 added `WHEN NOT MATCHED BY
