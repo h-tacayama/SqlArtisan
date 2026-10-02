@@ -339,7 +339,6 @@ public class UpsertTests
             "The left side of each DO UPDATE SET assignment must be a column.", ex.Message);
     }
 
-    // ON DUPLICATE KEY UPDATE has no SET token, so the message names the clause itself.
     [Fact]
     public void OnDuplicateKeyUpdate_NonColumnLeftSide_ThrowsArgumentException()
     {
