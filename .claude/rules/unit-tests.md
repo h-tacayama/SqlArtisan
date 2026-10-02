@@ -52,8 +52,9 @@ paths:
   next edited for substance, and an unrelated edit elsewhere in the file does
   not lapse the rest of it. `CommentCapRatchetTests` gates the
   comment caps the same way; `LineLengthSweepTests` and `FormattingSweepTests`
-  hold the 100-column limit and the brace-adjacent blank lines at zero, with no
-  baseline at all, over `src/` and `tests/` alike.
+  hold the 100-column limit, the brace-adjacent blank lines and the
+  line-ending `+` / `&&` / `||` at zero, with no baseline at all, over `src/`
+  and `tests/` alike.
 - `FunctionTests.{A..Y}.cs` mirror `Sql.{A..Y}.cs`; put a function's tests in the
   file for its leading letter (`public partial class FunctionTests`).
 - Run `dotnet test tests/SqlArtisan.Tests` and `dotnet format SqlArtisan.sln`
