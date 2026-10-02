@@ -487,8 +487,8 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             connection.ExecuteScalar("SELECT id, name FROM users ORDER BY -1"));
     }
 
-    // #523/#525: MERGE branch arity is a documented non-goal, not a guard —
-    // T-SQL bounds the branches per clause-and-action pair.
+    // SQLA0102's twin (#582): T-SQL bounds the branches per clause-and-action pair,
+    // a condition on each notwithstanding.
     [Fact]
     public void MergeRepeatedBranchAction_IsRejectedByTheEngine()
     {
@@ -501,6 +501,12 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
                 + "WHEN MATCHED THEN DELETE;",
             transaction: transaction);
 
+        connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN NOT MATCHED BY SOURCE AND t.id < 0 THEN UPDATE SET name = t.name "
+                + "WHEN NOT MATCHED BY SOURCE AND t.id < -1 THEN DELETE;",
+            transaction: transaction);
+
         Assert.ThrowsAny<Exception>(() => connection.Execute(
             "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
                 + "WHEN MATCHED AND t.age > 0 THEN UPDATE SET name = t.name "
@@ -511,6 +517,18 @@ public sealed class SqlServerTests : IntegrationTestBase, IClassFixture<SqlServe
             "MERGE INTO users AS t USING (SELECT 999 AS id, 'x' AS name) AS s ON t.id = s.id "
                 + "WHEN NOT MATCHED AND s.id > 0 THEN INSERT (id, name) VALUES (s.id, s.name) "
                 + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name);",
+            transaction: transaction));
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN MATCHED AND t.id < 0 THEN DELETE "
+                + "WHEN MATCHED AND t.id < -1 THEN DELETE;",
+            transaction: transaction));
+
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id, 'x' AS name) AS s ON t.id = s.id "
+                + "WHEN NOT MATCHED BY SOURCE AND t.id < 0 THEN UPDATE SET name = t.name "
+                + "WHEN NOT MATCHED BY SOURCE AND t.id < -1 THEN UPDATE SET name = t.name;",
             transaction: transaction));
 
         transaction.Rollback();

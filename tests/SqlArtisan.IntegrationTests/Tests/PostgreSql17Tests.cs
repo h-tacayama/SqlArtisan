@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 
@@ -30,6 +31,28 @@ public sealed class PostgreSql17Tests : IClassFixture<PostgreSql17Fixture>
             "MERGE INTO users AS t USING users AS s ON t.id = s.id "
                 + "WHEN MATCHED THEN UPDATE SET name = s.name RETURNING t.id",
             transaction: transaction);
+        transaction.Rollback();
+    }
+
+    // SQLA0102's twin (#582): WHEN NOT MATCHED BY SOURCE takes the 16 lane's rule for
+    // the other two clauses — no branch after an unconditioned one of its clause.
+    [Fact]
+    public void MergeRepeatedBySourceBranch_NeedsAConditionOnTheEarlierBranch()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id) AS s ON t.id = s.id "
+                + "WHEN NOT MATCHED BY SOURCE AND t.id < 0 THEN DELETE "
+                + "WHEN NOT MATCHED BY SOURCE THEN UPDATE SET name = t.name",
+            transaction: transaction);
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "MERGE INTO users AS t USING (SELECT 1 AS id) AS s ON t.id = s.id "
+                + "WHEN NOT MATCHED BY SOURCE THEN UPDATE SET name = t.name "
+                + "WHEN NOT MATCHED BY SOURCE AND t.id < 0 THEN DELETE",
+            transaction: transaction));
         transaction.Rollback();
     }
 }

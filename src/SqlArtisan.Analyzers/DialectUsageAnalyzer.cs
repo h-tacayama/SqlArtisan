@@ -317,7 +317,8 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         if (name is not ("Limit" or "Grouping" or "PercentileCont" or "PercentileDisc"
                 or "Inserted" or "Deleted" or "Interval" or "IntervalLiteral"
                 or "From" or "Using" or "InnerJoin" or "LeftJoin" or "RightJoin"
-                or "ForUpdate" or "Over" or "With" or "Returning" or "Where" or "Values")
+                or "ForUpdate" or "Over" or "With" or "Returning" or "Where" or "Values"
+                or "WhenMatched" or "WhenNotMatched" or "WhenNotMatchedBySource")
             || !IsFromSqlArtisan(invocation.TargetMethod.ContainingAssembly))
         {
             return;
@@ -377,6 +378,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             case "Returning" when targets.Contains(TargetDbms.Oracle):
                 ContextRules.CheckReturningRequiresInto(
                     context, invocation, TargetDbmsNames.Display(TargetDbms.Oracle));
+                break;
+            case "WhenMatched" or "WhenNotMatched" or "WhenNotMatchedBySource":
+                ContextRules.CheckRepeatedMergeBranch(context, invocation, targets);
                 break;
             case "ForUpdate":
                 if (ContextRules.RejectingTargets(targets, s_groupedLockUnsupported)

@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   rejects the multi-row `VALUES` that call emits (live-verified on XE 21.3.0;
   Free 23ai runs it). The collection overloads stay silent, their row count
   being a runtime value. (#582)
+- `SQLA0102` reports a repeated `MERGE` `WHEN` branch the target rejects: any
+  second `WhenMatched` / `WhenNotMatched` on Oracle, a branch after an
+  unconditioned branch of the same clause on PostgreSQL and SQL Server, and a
+  repeated clause-and-action pair on SQL Server. Each rejection is live-verified
+  on the Oracle XE 21.3.0, PostgreSQL 16 and 17, and SQL Server 2022 lanes. An
+  earlier branch held in a variable stays silent. (#582)
 
 ### Changed
 - Four call-site defects now throw at the call that writes them instead of at

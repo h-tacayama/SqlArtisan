@@ -353,6 +353,93 @@ internal static class ContextRules
     }
 
     /// <summary>
+    /// Oracle XE 21.3.0 takes one branch per WHEN clause (ORA-00905); PostgreSQL 16 and
+    /// SQL Server 2022 refuse a branch after an unconditioned one of its clause, and SQL
+    /// Server a repeated action too. Live twins on those lanes, BY SOURCE's on PostgreSQL 17.
+    /// </summary>
+    public static void CheckRepeatedMergeBranch(
+        OperationAnalysisContext context, IInvocationOperation branch, DialectTargetSet targets)
+    {
+        string clause = branch.TargetMethod.Name;
+        string? action = FluentChain.Parent(branch)?.TargetMethod.Name;
+        MergeBranchRepeat repeat = MergeBranchRepeat.None;
+        IInvocationOperation later = branch;
+        for (IInvocationOperation? cursor = ChainChild(branch);
+            cursor is not null && repeat != MergeBranchRepeat.AfterUnconditioned;
+            cursor = ChainChild(cursor))
+        {
+            if (cursor.TargetMethod.Name == clause)
+            {
+                MergeBranchRepeat found = cursor.TargetMethod.Parameters.Length == 0
+                    ? MergeBranchRepeat.AfterUnconditioned
+                    : action is not null && later.TargetMethod.Name == action
+                        ? MergeBranchRepeat.SameAction
+                        : MergeBranchRepeat.AfterAnother;
+                repeat = found > repeat ? found : repeat;
+            }
+
+            later = cursor;
+        }
+
+        if (repeat == MergeBranchRepeat.None)
+        {
+            return;
+        }
+
+        // A dialect where SQLA0100/0101 already rejects the branch itself is left out, so
+        // one call is not reported twice; the override decides that as AnalyzeUsage does.
+        int arity = branch.TargetMethod.Parameters.Length;
+        DialectSupportResolver.OverrideResult? overridden = DialectSupportResolver.ResolveOverride(
+            context.Options.AnalyzerConfigOptionsProvider.GetOptions(branch.Syntax.SyntaxTree),
+            clause,
+            arity);
+        if (overridden is { IsSupported: false })
+        {
+            return;
+        }
+
+        DialectSupportResolver.MatrixMatch? match =
+            DialectSupportResolver.MatchMatrixEntry(clause, arity);
+        List<string>? names = null;
+        foreach (TargetDbms dbms in RepeatRejecting(repeat))
+        {
+            if (targets.Contains(dbms)
+                && (overridden is not null
+                    || match is not { } entry
+                    || DialectSupportResolver.Evaluate(entry, dbms, targets.VersionFor(dbms))
+                        .IsSupported))
+            {
+                (names ??= []).Add(TargetDbmsNames.Display(dbms));
+            }
+        }
+
+        if (names is null)
+        {
+            return;
+        }
+
+        string keyword = clause switch
+        {
+            "WhenMatched" => "WHEN MATCHED",
+            "WhenNotMatched" => "WHEN NOT MATCHED",
+            _ => "WHEN NOT MATCHED BY SOURCE",
+        };
+        string position = repeat switch
+        {
+            MergeBranchRepeat.AfterUnconditioned => $"after an unconditioned {keyword} branch",
+            MergeBranchRepeat.SameAction => $"after a {keyword} branch with the same action",
+            _ => $"after another {keyword} branch",
+        };
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            DiagnosticDescriptors.ContextRestrictedConstruct,
+            branch.Syntax.GetLocation(),
+            clause,
+            position,
+            TargetDbmsNames.JoinDisplayNames(names)));
+    }
+
+    /// <summary>
     /// The statement position of a DML step, read off the one builder interface
     /// that declares it — the whole establishment, ADR 0013's presence proof at
     /// the type level rather than through a chain walk.
@@ -421,6 +508,31 @@ internal static class ContextRules
 
         return names is null ? null : TargetDbmsNames.JoinDisplayNames(names);
     }
+
+    // Ordered by how many engines refuse the shape, each set containing the one before.
+    private enum MergeBranchRepeat
+    {
+        None,
+        AfterAnother,
+        SameAction,
+        AfterUnconditioned,
+    }
+
+    // Static instances, not a collection expression per call (ADR 0006).
+    private static readonly TargetDbms[] s_anyRepeatUnsupported = [TargetDbms.Oracle];
+
+    private static readonly TargetDbms[] s_sameActionUnsupported =
+        [TargetDbms.Oracle, TargetDbms.SqlServer];
+
+    private static readonly TargetDbms[] s_unreachableBranchUnsupported =
+        [TargetDbms.Oracle, TargetDbms.PostgreSql, TargetDbms.SqlServer];
+
+    private static TargetDbms[] RepeatRejecting(MergeBranchRepeat repeat) => repeat switch
+    {
+        MergeBranchRepeat.AfterUnconditioned => s_unreachableBranchUnsupported,
+        MergeBranchRepeat.SameAction => s_sameActionUnsupported,
+        _ => s_anyRepeatUnsupported,
+    };
 
     // A conversion to ISubquery, an ISubquery member (As, AsTable), or one of the
     // object-typed hosts that embed it: a comparison operand or a select item. A

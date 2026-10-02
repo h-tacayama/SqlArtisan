@@ -689,8 +689,8 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
         }
     }
 
-    // #523/#525: MERGE branch arity is a documented non-goal, not a guard. What
-    // decides acceptance here is the condition, not the count.
+    // SQLA0102's twin (#582): what decides acceptance here is the condition, not the
+    // count, for WHEN MATCHED and WHEN NOT MATCHED alike.
     [Fact]
     public void MergeRepeatedWhenBranch_NeedsAConditionOnTheEarlierBranch()
     {
@@ -709,8 +709,21 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
                 + "WHEN MATCHED THEN UPDATE SET name = t.name "
                 + "WHEN MATCHED THEN DELETE",
             transaction: transaction));
-
         transaction.Rollback();
+
+        using IDbTransaction second = connection.BeginTransaction();
+        connection.Execute(
+            "MERGE INTO users t USING (SELECT 999 AS id, 'x' AS name) s ON t.id = s.id "
+                + "WHEN NOT MATCHED AND s.id > 0 THEN INSERT (id, name) VALUES (s.id, s.name) "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name)",
+            transaction: second);
+
+        Assert.ThrowsAny<DbException>(() => connection.Execute(
+            "MERGE INTO users t USING (SELECT 999 AS id, 'x' AS name) s ON t.id = s.id "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name) "
+                + "WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name)",
+            transaction: second));
+        second.Rollback();
     }
 
     // ADR 0012 non-goals (#523): the negative LAG offset PostgreSQL reads as a
