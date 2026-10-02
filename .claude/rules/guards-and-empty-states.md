@@ -539,6 +539,9 @@ so the wording is part of the contract.
   `From(...)` chain and "join through `From(target, ...)`" on the direct-join
   chain, which has no FROM (the `DELETE ... USING` guard was the first such
   split, pass 5; the UPDATE twin, pass 8).
+- A guard shared by several clauses names the clause the caller wrote, never
+  one sibling's spelling: `AssignmentResolver` takes each caller's clause,
+  since `ON DUPLICATE KEY UPDATE` has no `SET` token to name (#582).
 
 The `Invalid type for <X>: <type>` family is built by one helper,
 `ExpressionResolver.UnresolvableValue`, and `<X>` names **the position the

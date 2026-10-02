@@ -439,7 +439,8 @@ public class MergeTests
             .Build(Dbms.Oracle));
 
         Assert.Equal(
-            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
+            "The UPDATE SET assignment list must not contain a null assignment. "
+                + "(Parameter 'assignments')",
             ex.Message);
     }
 
@@ -712,7 +713,7 @@ public class MergeTests
                 .WhenMatched()
                 .ThenUpdateSet(Abs(_cols.Code) == 5));
 
-        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+        Assert.Equal("The left side of each UPDATE SET assignment must be a column.", ex.Message);
     }
 
     [Fact]
@@ -978,7 +979,7 @@ public class MergeTests
                 .WhenMatched().ThenUpdateSet(_t.Name == "a", _s.Name == "b"));
 
         Assert.Equal(
-            "A SET assignment list must not assign the same column twice.", ex.Message);
+            "The UPDATE SET assignment list must not assign the same column twice.", ex.Message);
     }
 
     [Fact]

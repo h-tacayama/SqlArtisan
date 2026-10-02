@@ -248,7 +248,8 @@ public class UpsertTests
             .DoUpdateSet(_t.Name == Excluded(_t.Name), null!));
 
         Assert.Equal(
-            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
+            "The DO UPDATE SET assignment list must not contain a null assignment. "
+                + "(Parameter 'assignments')",
             ex.Message);
     }
 
@@ -261,7 +262,8 @@ public class UpsertTests
             .OnDuplicateKeyUpdate(_t.Name == Excluded(_t.Name), null!));
 
         Assert.Equal(
-            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
+            "The ON DUPLICATE KEY UPDATE assignment list must not contain a null assignment. "
+                + "(Parameter 'assignments')",
             ex.Message);
     }
 
@@ -333,7 +335,22 @@ public class UpsertTests
                 .OnConflict(_t.Code)
                 .DoUpdateSet(Abs(_t.Code) == 5));
 
-        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+        Assert.Equal(
+            "The left side of each DO UPDATE SET assignment must be a column.", ex.Message);
+    }
+
+    // ON DUPLICATE KEY UPDATE has no SET token, so the message names the clause itself.
+    [Fact]
+    public void OnDuplicateKeyUpdate_NonColumnLeftSide_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            InsertInto(_t, _t.Code)
+                .Values(1)
+                .OnDuplicateKeyUpdate(Abs(_t.Code) == 5));
+
+        Assert.Equal(
+            "The left side of each ON DUPLICATE KEY UPDATE assignment must be a column.",
+            ex.Message);
     }
 
     [Fact]

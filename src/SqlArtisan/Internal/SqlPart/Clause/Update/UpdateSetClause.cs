@@ -13,18 +13,18 @@ internal sealed class UpdateSetClause : SqlPart
 
     internal static UpdateSetClause Parse(EqualityCondition[] assignments, DmlJoinState state)
     {
-        EqualCondition[] resolved =
-            AssignmentResolver.Resolve(assignments, "SET requires at least one assignment.");
+        EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Keywords.Set);
 
         // A pair sharing a correlation name, or both unaliased, renders one token either
         // way, so it is rejected here; the rest wait for Build(), once .From(t) is known.
-        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: true);
+        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: true, Keywords.Set);
         return new(resolved, state);
     }
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
-        AssignmentResolver.ThrowIfDuplicateTarget(_assignments, _state.QualifiesSetTarget);
+        AssignmentResolver.ThrowIfDuplicateTarget(
+            _assignments, _state.QualifiesSetTarget, Keywords.Set);
 
         buffer.Append($"{Keywords.Set} ");
 
