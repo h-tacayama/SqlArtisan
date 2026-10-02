@@ -585,7 +585,8 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
 
         Assert.ThrowsAny<Exception>(() => connection.Execute(
             "MERGE INTO users t USING (SELECT 1 id, 'x' name FROM dual) s ON (t.id = s.id) "
-                + "WHEN MATCHED THEN UPDATE SET t.name = t.name WHEN MATCHED THEN DELETE",
+                + "WHEN MATCHED THEN UPDATE SET t.name = t.name "
+                + "WHEN MATCHED THEN UPDATE SET t.name = s.name",
             transaction: transaction));
 
         Assert.ThrowsAny<Exception>(() => connection.Execute(

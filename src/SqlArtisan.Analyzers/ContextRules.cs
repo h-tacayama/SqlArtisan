@@ -353,9 +353,9 @@ internal static class ContextRules
     }
 
     /// <summary>
-    /// Oracle takes one branch per WHEN clause (ORA-00905); PostgreSQL 16 and SQL Server
-    /// 2022 refuse a branch after an unconditioned one of its clause, and SQL Server a
-    /// repeated action too. Live twins on those lanes and BY SOURCE's on PostgreSQL 17.
+    /// Oracle XE 21.3.0 takes one branch per WHEN clause (ORA-00905); PostgreSQL 16 and
+    /// SQL Server 2022 refuse a branch after an unconditioned one of its clause, and SQL
+    /// Server a repeated action too. Live twins on those lanes, BY SOURCE's on PostgreSQL 17.
     /// </summary>
     public static void CheckRepeatedMergeBranch(
         OperationAnalysisContext context, IInvocationOperation branch, DialectTargetSet targets)

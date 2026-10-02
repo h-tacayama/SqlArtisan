@@ -1643,10 +1643,10 @@ inside the subquery `Using(...)` names instead.
 
 **How many branches each engine takes.** `Build()` does not check this: the
 engine rejects what it cannot take, naming the branch, and the
-[analyzer](analyzer.md#context-rules-sqla0102) reports a repeated branch in the
-chain that writes it (`SQLA0102`). Oracle accepts one `WHEN MATCHED` and one
-`WHEN NOT MATCHED`, whatever action each carries — a second branch of either
-kind is `ORA-00905` (observed on Oracle XE 21.3.0). SQL Server bounds them per
+[analyzer](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102)
+reports a repeated branch in the chain that writes it (`SQLA0102`). Oracle
+accepts one `WHEN MATCHED` and one `WHEN NOT MATCHED` — a second branch of
+either kind is `ORA-00905` (observed on Oracle XE 21.3.0). SQL Server bounds them per
 action, so a matched `UPDATE SET` and a matched `DELETE` can coexist, and
 PostgreSQL bounds them not at all — but **both refuse a branch that follows an
 unconditional branch of the same kind**, because nothing could reach it

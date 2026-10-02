@@ -216,7 +216,7 @@ re-derived; the decision is recorded in ADR 0022's scope section.
 
 **MERGE `WHEN` branch arity is the analyzer's, not a guard (decided — do not
 re-file):** each engine bounds the branches differently — Oracle takes one per
-WHEN clause whatever its action (ORA-00905 on XE 21.3.0), SQL Server one per
+WHEN clause (ORA-00905 on XE 21.3.0), SQL Server one per
 clause-and-action pair *and* refuses any branch following an unconditional one
 of the same clause, and PostgreSQL 16.13 applies that second rule too
 (`unreachable WHEN clause specified after unconditional WHEN clause`). Each
