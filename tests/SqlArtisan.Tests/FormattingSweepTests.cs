@@ -73,9 +73,29 @@ public class FormattingSweepTests
                 + "with it instead:\n  " + string.Join("\n  ", offenders));
     }
 
+    [Theory]
+    [InlineData("string q = @\"\"\"\";", "string q = @_;")]
+    [InlineData("string q = @\"\"\"x\"\" y\" + z;", "string q = @_ + z;")]
+    [InlineData("string q = $@\"a {b} \"\"c\"\"\" + z;", "string q = $@_ + z;")]
+    [InlineData("string q = \"a \\\" b\" + z;", "string q = _ + z;")]
+    [InlineData("char c = '\"'; int n = a +", "char c = _; int n = a +")]
+    [InlineData("char c = '\\''; int n = a +", "char c = _; int n = a +")]
+    [InlineData("int n = a + /* b && */ c; // d ||", "int n = a +  c; ")]
+    [InlineData("f++;", "f++;")]
+    public void CodeOnly_BlanksLiteralsAndDropsComments(string line, string expected) =>
+        Assert.Equal(expected, CodeOnly([line])[0]);
+
+    [Fact]
+    public void CodeOnly_MultiLineRawString_BlanksItsBody()
+    {
+        string[] code = CodeOnly(["string q = \"\"\"", "    a &&", "    \"\"\" + z;"]);
+
+        Assert.Equal(["string q = _", "", " + z;"], code);
+    }
+
     // Each line's code with literals blanked and comments dropped, so an operator
     // inside a string or a comment never reads as a trailing one.
-    private static string[] CodeOnly(string[] lines)
+    internal static string[] CodeOnly(string[] lines)
     {
         string[] code = new string[lines.Length];
         Mode mode = Mode.Code;
@@ -98,24 +118,24 @@ public class FormattingSweepTests
                         mode = Mode.BlockComment;
                         i += 2;
                         break;
-                    case Mode.Code when c == '"':
-                        int quotes = QuoteRun(line, i);
-                        if (quotes >= 3)
-                        {
-                            mode = Mode.RawString;
-                            rawQuotes = quotes;
-                            i += quotes;
-                        }
-                        else
-                        {
-                            mode = At(line, i - 1) == '@'
-                                || (At(line, i - 1) == '$' && At(line, i - 2) == '@')
-                                    ? Mode.VerbatimString
-                                    : Mode.RegularString;
-                            i++;
-                        }
-
+                    // The prefix decides before the quote run: a raw literal takes no `@`,
+                    // and `@""""` is a verbatim one-quote string, not a raw opener.
+                    case Mode.Code when c == '"' && (At(line, i - 1) == '@'
+                        || (At(line, i - 1) == '$' && At(line, i - 2) == '@')):
+                        mode = Mode.VerbatimString;
                         kept.Append('_');
+                        i++;
+                        break;
+                    case Mode.Code when c == '"' && QuoteRun(line, i) >= 3:
+                        mode = Mode.RawString;
+                        rawQuotes = QuoteRun(line, i);
+                        kept.Append('_');
+                        i += rawQuotes;
+                        break;
+                    case Mode.Code when c == '"':
+                        mode = Mode.RegularString;
+                        kept.Append('_');
+                        i++;
                         break;
                     case Mode.Code when c == '\'':
                         int close = line.IndexOf('\'', i + (At(line, i + 1) == '\\' ? 3 : 2));
