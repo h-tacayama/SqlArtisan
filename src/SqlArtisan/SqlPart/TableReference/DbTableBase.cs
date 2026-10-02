@@ -32,6 +32,7 @@ public abstract class DbTableBase : TableReference
 
     internal override void Format(SqlBuildingBuffer buffer)
     {
+        buffer.NoteRelation(this);
         base.Format(buffer);
 
         if (!string.IsNullOrEmpty(_tableAlias))

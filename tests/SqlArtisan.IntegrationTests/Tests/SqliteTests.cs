@@ -466,6 +466,61 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         }
     }
 
+    // The hazard the guard stops in a CTE body (#607): a bare target column binds
+    // orders.id, so EXISTS holds for all five users, not the four with orders —
+    // at top level too, since SQLite resolves a body where it is used.
+    [Fact]
+    public void CorrelatedCteBody_BareTargetColumn_BindsTheBodysRelation()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        string[] statements =
+        [
+            "UPDATE users SET age = age WHERE EXISTS (WITH c AS (SELECT o.id FROM orders o "
+                + "WHERE o.user_id = id) SELECT c.id FROM c) RETURNING id",
+            "WITH c AS (SELECT o.id FROM orders o WHERE o.user_id = id) "
+                + "UPDATE users SET age = age WHERE EXISTS (SELECT c.id FROM c) RETURNING id",
+        ];
+        foreach (string statement in statements)
+        {
+            Assert.Equal(
+                new[] { 1, 2, 3, 4, 5 },
+                connection.Query<int>(statement, transaction: transaction).OrderBy(id => id));
+        }
+
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void CorrelatedCteBody_AliasedTarget_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        Cte userOrders = new("user_orders");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> nested = connection.Query<int>(
+            Update(u).Set(u.Age == u.Age)
+                .Where(Exists(
+                    With(userOrders.As(Select(o.Id).From(o).Where(o.UserId == u.Id)))
+                    .Select(userOrders.Column("id"))
+                    .From(userOrders)))
+                .Returning(u.Id),
+            transaction);
+        IEnumerable<int> topLevel = connection.Query<int>(
+            With(userOrders.As(Select(o.Id).From(o).Where(o.UserId == u.Id)))
+                .Update(u).Set(u.Age == u.Age)
+                .Where(Exists(Select(userOrders.Column("id")).From(userOrders)))
+                .Returning(u.Id),
+            transaction);
+
+        Assert.Equal(new[] { 1, 2, 3, 5 }, nested.OrderBy(id => id));
+        Assert.Equal(new[] { 1, 2, 3, 5 }, topLevel.OrderBy(id => id));
+        transaction.Rollback();
+    }
+
     [Fact] // SQLite's UPDATE ... FROM (3.33+); the bundled driver is well past it.
     public void JoinedUpdateFrom_Executes()
     {

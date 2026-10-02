@@ -202,6 +202,26 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_CteBodyInSubqueryCorrelatingUnaliasedTarget_ThrowsArgumentException()
+    {
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(_t)
+            .Set(_t.Name == "x")
+            .Where(Exists(
+                With(cte.As(Select(r.Code.As(cte.CteCode)).From(r).Where(r.Code == _t.Code)))
+                .Select(cte.CteCode)
+                .From(cte)))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
+    [Fact]
     public void Update_CorrelatedSubqueryAliasedTarget_CorrectSql()
     {
         TestTable c = new("c");

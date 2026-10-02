@@ -154,8 +154,8 @@ public class DeleteTests
     [Fact]
     public void DeleteFrom_CteBodyReferencingTarget_CorrectSql()
     {
-        // A CTE body cannot correlate with the DML target — its reference
-        // resolves in the CTE's own FROM — so the guard leaves it alone.
+        // The body lists the target as its own relation, so its reference reads
+        // that relation rather than correlating, and the guard leaves it alone.
         TestTable t = new();
         TestCte cte = new("cte");
 
@@ -171,6 +171,94 @@ public class DeleteTests
         expected.Append("DELETE FROM test_table ");
         expected.Append("WHERE code IN ");
         expected.Append("(SELECT \"cte\".cte_code FROM \"cte\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // A CTE body that never lists the target can only reach it by correlation,
+    // where a bare target column binds the body's own relation (#607).
+    [Fact]
+    public void DeleteFrom_CteBodyInSubqueryCorrelatingUnaliasedTarget_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+            .Where(Exists(
+                With(cte.As(Select(r.Code.As(cte.CteCode)).From(r).Where(r.Code == t.Code)))
+                .Select(cte.CteCode)
+                .From(cte)))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
+    // SQLite resolves a top-level CTE body's outer reference at its use site.
+    [Fact]
+    public void DeleteFrom_TopLevelCteBodyCorrelatingUnaliasedTarget_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(Select(r.Code.As(cte.CteCode)).From(r).Where(r.Code == t.Code)))
+            .DeleteFrom(t)
+            .Where(Exists(Select(cte.CteCode).From(cte)))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_CteBodyNestedSubqueryCorrelatingUnaliasedTarget_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestTable x = new("x");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(
+                Select(r.Code.As(cte.CteCode))
+                .From(r)
+                .Where(Exists(Select(x.Code).From(x).Where(x.Code == t.Code)))))
+            .DeleteFrom(t)
+            .Where(t.Code.In(Select(cte.CteCode).From(cte)))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_CteBodyInSubqueryCorrelatingAliasedTarget_CorrectSql()
+    {
+        TestTable t = new("t");
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Where(Exists(
+                With(cte.As(Select(r.Code.As(cte.CteCode)).From(r).Where(r.Code == t.Code)))
+                .Select(cte.CteCode)
+                .From(cte)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM test_table AS \"t\" ");
+        expected.Append("WHERE EXISTS (WITH \"cte\" AS ");
+        expected.Append("(SELECT \"r\".code cte_code FROM test_table \"r\" ");
+        expected.Append("WHERE \"r\".code = \"t\".code) ");
+        expected.Append("SELECT \"cte\".cte_code FROM \"cte\")");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }
