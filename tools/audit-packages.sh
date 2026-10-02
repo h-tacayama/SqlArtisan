@@ -8,11 +8,18 @@
 set -euo pipefail
 found=0
 for proj in src/*/*.csproj; do
-  hits=$(dotnet list "$proj" package --vulnerable --include-transitive --format json \
-    | jq -r '.projects[].frameworks[]?
+  # With --format json, dotnet list writes its own errors to stdout; jq would
+  # swallow them into a bare parse error, so a failed listing is reported first.
+  if ! json=$(dotnet list "$proj" package --vulnerable --include-transitive --format json); then
+    echo "::error::$proj: dotnet list failed:"
+    printf '%s\n' "$json"
+    exit 1
+  fi
+  hits=$(jq -r '.projects[].frameworks[]?
         | (.topLevelPackages // []) + (.transitivePackages // [])
         | .[] | select(.vulnerabilities)
-        | "\(.id) \(.resolvedVersion): \([.vulnerabilities[].advisoryurl] | join(" "))"')
+        | "\(.id) \(.resolvedVersion): \([.vulnerabilities[].advisoryurl] | join(" "))"' \
+    <<< "$json")
   if [ -n "$hits" ]; then
     while IFS= read -r hit; do echo "::error::$proj uses $hit"; done <<< "$hits"
     found=1
