@@ -1532,7 +1532,7 @@ SqlStatement sql =
 // RETURNING users.id
 ```
 
-A subquery or CTE body inside that `RETURNING` must not expose a relation under the target's table name: the table itself unaliased, a CTE named after it, or an alias equal to it. The table name would bind that inner relation instead of the target, so the target keeps its alias there and SQLite rejects the statement. A relation aliased like the target keeps the alias too; there `"u".id` reads that inner relation, as the statement is written.
+A subquery or CTE body inside that `RETURNING` must not expose a relation under the target's table name: the table itself unaliased, a CTE named after it, or an alias equal to it. The table name would bind that inner relation instead of the target, so the target keeps its alias there and SQLite rejects the statement (on SQLite 3.50.4). A relation aliased like the target keeps the alias too; there `"u".id` reads that inner relation, as the statement is written.
 
 ### RETURNING INTO (Oracle)
 

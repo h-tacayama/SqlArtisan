@@ -153,6 +153,22 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // The table-name qualifier drops the schema because SQLite rejects one there.
+    [Fact]
+    public void Returning_Sqlite_SchemaQualifiedTarget_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "UPDATE users AS \"u\" SET age = 31 WHERE \"u\".id = 1 RETURNING main.users.id",
+            transaction: transaction));
+        Assert.Equal(1, connection.Query<int>(
+            "UPDATE users AS \"u\" SET age = 31 WHERE \"u\".id = 1 RETURNING users.id",
+            transaction: transaction).Single());
+        transaction.Rollback();
+    }
+
     [Fact]
     public void Returning_Sqlite_AliasedTargetCorrelatedSubquery_Executes()
     {
