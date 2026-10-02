@@ -3,8 +3,8 @@ using System.Text;
 namespace SqlArtisan.Tests;
 
 // The shapes csharp-formatting.md names that the formatter cannot see (IDE2000 gates
-// runs only): no blank line directly after `{` or before `}`, and no wrapped operator
-// left at a line's end.
+// runs only): no blank line directly after `{` or before `}`, and no code line ending
+// in `+`, `&&` or `||`.
 public class FormattingSweepTests
 {
     private enum Mode
