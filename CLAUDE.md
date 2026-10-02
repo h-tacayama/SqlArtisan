@@ -75,7 +75,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 |----------|---------|-------------|
 | `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`), and the DB-less `MatrixSweepCatalogTests`, `DialectGuardTwinTests` and `DateTimePartNumberingTests` slices. |
 | `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests across 7 lanes in parallel (Oracle runs at both 21c and 23ai, PostgreSQL at both 16 and 17). |
-| `release.yml` | Tag push (`v*`) | Full verify → integration tests → pack & push 4 NuGet packages. |
+| `release.yml` | Tag push (`v*`) | Full verify plus a vulnerable-package audit of `src/` → integration tests → pack & push 4 NuGet packages. |
 
 ## How to add a new SQL function (the most common task)
 
@@ -247,7 +247,8 @@ never made unprompted. Once approved, do it in one commit:
 3. `CHANGELOG.md`: finalize the `## [Unreleased]` section under the new version
    and date.
 4. Regenerate `llms-full.txt` (`bash tools/regen-llms-full.sh`).
-5. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`).
+5. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`,
+   `bash tools/audit-packages.sh`).
 6. Merge to `main`, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
    — `release.yml` reads the version from `Directory.Build.props`, not the tag,
    so they must already agree before pushing it. Tag push is user-performed.

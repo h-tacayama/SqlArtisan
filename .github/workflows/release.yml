@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  # Gate the publish on the same checks CI runs (format / build / test); a red
-  # tree must never reach nuget.org.
+  # Gate the publish on the same checks CI runs (format / build / test), plus a
+  # package audit; a red tree must never reach nuget.org.
   verify:
     runs-on: ubuntu-latest
 
@@ -32,6 +32,10 @@ jobs:
 
       - name: Restore
         run: dotnet restore SqlArtisan.sln
+
+      # Release-only; tools/audit-packages.sh says why it stays out of ci.yml.
+      - name: Audit shipped projects' packages
+        run: bash tools/audit-packages.sh
 
       - name: Verify formatting (.editorconfig)
         run: dotnet format SqlArtisan.sln --verify-no-changes
