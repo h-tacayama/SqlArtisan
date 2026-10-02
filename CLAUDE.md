@@ -247,7 +247,8 @@ never made unprompted. Once approved, do it in one commit:
 3. `CHANGELOG.md`: finalize the `## [Unreleased]` section under the new version
    and date.
 4. Regenerate `llms-full.txt` (`bash tools/regen-llms-full.sh`).
-5. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`).
+5. Run the full gate set (`dotnet test` ×3, `dotnet format --verify-no-changes`,
+   `bash tools/audit-packages.sh`).
 6. Merge to `main`, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
    — `release.yml` reads the version from `Directory.Build.props`, not the tag,
    so they must already agree before pushing it. Tag push is user-performed.
