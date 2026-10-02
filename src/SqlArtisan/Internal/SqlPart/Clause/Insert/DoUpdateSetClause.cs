@@ -2,6 +2,8 @@ namespace SqlArtisan.Internal;
 
 internal sealed class DoUpdateSetClause : SqlPart
 {
+    private const string Clause = $"{Keywords.Do} {Keywords.Update} {Keywords.Set}";
+
     private readonly EqualCondition[] _assignments;
 
     private DoUpdateSetClause(EqualCondition[] assignments)
@@ -11,14 +13,13 @@ internal sealed class DoUpdateSetClause : SqlPart
 
     internal static DoUpdateSetClause Parse(EqualityCondition[] assignments)
     {
-        EqualCondition[] resolved = AssignmentResolver.Resolve(
-            assignments, "DO UPDATE SET requires at least one assignment.");
-        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false);
+        EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Clause);
+        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false, Clause);
 
         return new(resolved);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Do} {Keywords.Update} {Keywords.Set} ")
+        .Append($"{Clause} ")
         .AppendAssignmentsCsv(_assignments);
 }

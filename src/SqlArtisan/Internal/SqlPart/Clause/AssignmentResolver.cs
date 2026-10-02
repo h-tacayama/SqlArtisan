@@ -1,12 +1,19 @@
 namespace SqlArtisan.Internal;
 
 // The shared assignment-list resolver behind every SET-shaped clause, so the
-// null/shape/left-side checks live once.
+// null/shape/left-side checks live once. Each list message names the caller's own
+// clause: ON DUPLICATE KEY UPDATE has no SET token to name.
 internal static class AssignmentResolver
 {
-    internal static EqualCondition[] Resolve(EqualityCondition[] assignments, string emptyMessage)
+    internal static EqualCondition[] Resolve(EqualityCondition[] assignments, string clause)
     {
-        CollectionGuard.ThrowIfEmpty(assignments, nameof(assignments), emptyMessage);
+        // Inline rather than CollectionGuard.ThrowIfEmpty, which takes the message
+        // eagerly: interpolating it would allocate on every call (ADR 0006).
+        ArgumentNullException.ThrowIfNull(assignments);
+        if (assignments.Length == 0)
+        {
+            throw new ArgumentException($"{clause} requires at least one assignment.");
+        }
 
         var resolved = new EqualCondition[assignments.Length];
 
@@ -16,7 +23,7 @@ internal static class AssignmentResolver
             {
                 throw new ArgumentNullException(
                     nameof(assignments),
-                    "A SET assignment list must not contain a null assignment.");
+                    $"The {clause} assignment list must not contain a null assignment.");
             }
             else if (assignments[i] is not EqualCondition assignment)
             {
@@ -29,7 +36,7 @@ internal static class AssignmentResolver
                 if (assignment.LeftSide is not DbColumn)
                 {
                     throw new ArgumentException(
-                        "The left side of a SET assignment must be a column.");
+                        $"The left side of each {clause} assignment must be a column.");
                 }
 
                 resolved[i] = assignment;
@@ -42,7 +49,8 @@ internal static class AssignmentResolver
     // Keyed on the token the target renders as, never on its owner: the
     // always-unqualified clauses drop owner and alias, so two handles — or two
     // tables — sharing a column name emit `SET a = 1, a = 2` all the same.
-    internal static void ThrowIfDuplicateTarget(EqualCondition[] assignments, bool qualified)
+    internal static void ThrowIfDuplicateTarget(
+        EqualCondition[] assignments, bool qualified, string clause)
     {
         for (int i = 1; i < assignments.Length; i++)
         {
@@ -53,7 +61,7 @@ internal static class AssignmentResolver
                 if (RendersSameToken(target, earlier, qualified))
                 {
                     throw new ArgumentException(
-                        "A SET assignment list must not assign the same column twice.");
+                        $"The {clause} assignment list must not assign the same column twice.");
                 }
             }
         }

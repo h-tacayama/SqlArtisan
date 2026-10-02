@@ -2,6 +2,9 @@ namespace SqlArtisan.Internal;
 
 internal sealed class OnDuplicateKeyUpdateClause : SqlPart
 {
+    private const string Clause =
+        $"{Keywords.On} {Keywords.Duplicate} {Keywords.Key} {Keywords.Update}";
+
     private readonly EqualCondition[] _assignments;
 
     private OnDuplicateKeyUpdateClause(EqualCondition[] assignments)
@@ -11,14 +14,13 @@ internal sealed class OnDuplicateKeyUpdateClause : SqlPart
 
     internal static OnDuplicateKeyUpdateClause Parse(EqualityCondition[] assignments)
     {
-        EqualCondition[] resolved = AssignmentResolver.Resolve(
-            assignments, "ON DUPLICATE KEY UPDATE requires at least one assignment.");
-        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false);
+        EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Clause);
+        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false, Clause);
 
         return new(resolved);
     }
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.On} {Keywords.Duplicate} {Keywords.Key} {Keywords.Update} ")
+        .Append($"{Clause} ")
         .AppendAssignmentsCsv(_assignments);
 }

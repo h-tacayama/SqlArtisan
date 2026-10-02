@@ -45,8 +45,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   width differs from the column list (at the first `Select(...)`), a joined
   `DELETE ... FROM` that does not re-list its target (at `From(...)`), and an
   `UPDATE` `SET` list assigning one column twice under one correlation name, or
-  from two unaliased tables (at `Set(...)`). The messages are unchanged, and the builder is left as it was,
-  so the corrected call can follow on the same chain. (#582)
+  from two unaliased tables (at `Set(...)`). The builder is left as it was, so
+  the corrected call can follow on the same chain. (#582)
+- The assignment-list guards now name the clause the call wrote instead of
+  `SET`, which `OnDuplicateKeyUpdate(...)` emits no token for: a null
+  assignment, a non-column left side and a column assigned twice read, for
+  example, `The ON DUPLICATE KEY UPDATE assignment list must not contain a null
+  assignment.` The `SET`, `UPDATE SET` and `DO UPDATE SET` lists are reworded
+  the same way (`The SET assignment list ...`,
+  `The left side of each SET assignment ...`). (#582)
 - **Breaking:** `WhenMatched(condition)` and `WhenNotMatched(condition)` no
   longer offer Oracle's action `Where(...)` / `DeleteWhere(...)`: Oracle has no
   `AND` on `WHEN`, and PostgreSQL and SQL Server have no action `WHERE`, so the

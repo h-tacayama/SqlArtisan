@@ -474,7 +474,7 @@ public class UpdateTests
             Update(_t).Set(_t.Code == 1, null!));
 
         Assert.Equal(
-            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
+            "The SET assignment list must not contain a null assignment. (Parameter 'assignments')",
             ex.Message);
     }
 
@@ -596,7 +596,7 @@ public class UpdateTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             Update(_t).Set(Abs(_t.Code) == 5));
 
-        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+        Assert.Equal("The left side of each SET assignment must be a column.", ex.Message);
     }
 
     [Fact]
@@ -648,7 +648,7 @@ public class UpdateTests
             held.Set(_t.Code == 1, _t.Name == "x", _t.Code == 2));
 
         Assert.Equal(
-            "A SET assignment list must not assign the same column twice.", ex.Message);
+            "The SET assignment list must not assign the same column twice.", ex.Message);
         SqlStatement sql = held.Set(_t.Code == 1).Build(Dbms.PostgreSql);
         Assert.Equal("UPDATE test_table SET code = :0", sql.Text);
         Assert.Equal(1, sql.Parameters.Get<int>(":0"));
@@ -663,7 +663,7 @@ public class UpdateTests
             Update(_t).Set(_t.Name == "a", other.Name == "b").Build(Dbms.PostgreSql));
 
         Assert.Equal(
-            "A SET assignment list must not assign the same column twice.", ex.Message);
+            "The SET assignment list must not assign the same column twice.", ex.Message);
     }
 
     [Fact]
@@ -676,7 +676,7 @@ public class UpdateTests
             Update(_t).Set(_t.Name == "a", archive.Name == "b"));
 
         Assert.Equal(
-            "A SET assignment list must not assign the same column twice.", ex.Message);
+            "The SET assignment list must not assign the same column twice.", ex.Message);
     }
 
     [Fact]
@@ -713,7 +713,7 @@ public class UpdateTests
                 .Set(t.Name == "a", t.Name == "b"));
 
         Assert.Equal(
-            "A SET assignment list must not assign the same column twice.", ex.Message);
+            "The SET assignment list must not assign the same column twice.", ex.Message);
     }
 
     [Fact]

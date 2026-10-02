@@ -4,6 +4,8 @@ namespace SqlArtisan.Internal;
 // standalone UPDATE statement's SET clause, MERGE leads with the UPDATE keyword.
 internal sealed class MergeUpdateSetClause : SqlPart
 {
+    private const string Clause = $"{Keywords.Update} {Keywords.Set}";
+
     private readonly EqualCondition[] _assignments;
 
     private MergeUpdateSetClause(EqualCondition[] assignments)
@@ -13,9 +15,8 @@ internal sealed class MergeUpdateSetClause : SqlPart
 
     internal static MergeUpdateSetClause Parse(EqualityCondition[] assignments)
     {
-        EqualCondition[] resolved = AssignmentResolver.Resolve(
-            assignments, "UPDATE SET requires at least one assignment.");
-        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false);
+        EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Clause);
+        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false, Clause);
 
         return new(resolved);
     }
@@ -24,6 +25,6 @@ internal sealed class MergeUpdateSetClause : SqlPart
     // rejects any qualification on it — unlike the SQL Server / MySQL joined
     // UPDATE, which qualifies its SET target (UpdateSetClause).
     internal override void Format(SqlBuildingBuffer buffer) => buffer
-        .Append($"{Keywords.Update} {Keywords.Set} ")
+        .Append($"{Clause} ")
         .AppendAssignmentsCsv(_assignments);
 }

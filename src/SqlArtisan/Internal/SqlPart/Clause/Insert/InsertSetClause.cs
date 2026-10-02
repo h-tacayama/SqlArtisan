@@ -13,9 +13,8 @@ internal sealed class InsertSetClause : SqlPart
 
     internal static InsertSetClause Parse(EqualityCondition[] assignments)
     {
-        EqualCondition[] resolved = AssignmentResolver.Resolve(
-            assignments, "SET requires at least one assignment.");
-        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false);
+        EqualCondition[] resolved = AssignmentResolver.Resolve(assignments, Keywords.Set);
+        AssignmentResolver.ThrowIfDuplicateTarget(resolved, qualified: false, Keywords.Set);
 
         var columns = new SqlExpression[resolved.Length];
         var values = new SqlExpression[resolved.Length];

@@ -304,7 +304,7 @@ public class InsertTests
             InsertInto(t).Set(t.Code == 1, null!));
 
         Assert.Equal(
-            "A SET assignment list must not contain a null assignment. (Parameter 'assignments')",
+            "The SET assignment list must not contain a null assignment. (Parameter 'assignments')",
             ex.Message);
     }
 
@@ -694,7 +694,7 @@ public class InsertTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             InsertInto(t).Set(Abs(t.Code) == 5));
 
-        Assert.Equal("The left side of a SET assignment must be a column.", ex.Message);
+        Assert.Equal("The left side of each SET assignment must be a column.", ex.Message);
     }
 
     [Fact]
@@ -883,7 +883,7 @@ public class InsertTests
             InsertInto(t).Set(t.Name == "a", archive.Name == "b"));
 
         Assert.Equal(
-            "A SET assignment list must not assign the same column twice.", ex.Message);
+            "The SET assignment list must not assign the same column twice.", ex.Message);
     }
 
     [Fact]
@@ -896,7 +896,7 @@ public class InsertTests
             InsertInto(t).Set(t.Name == "a", other.Name == "b"));
 
         Assert.Equal(
-            "A SET assignment list must not assign the same column twice.", ex.Message);
+            "The SET assignment list must not assign the same column twice.", ex.Message);
     }
 
     [Fact]
@@ -912,7 +912,7 @@ public class InsertTests
                 .DoUpdateSet(t.Name == "a", archive.Name == "b"));
 
         Assert.Equal(
-            "A SET assignment list must not assign the same column twice.", ex.Message);
+            "The DO UPDATE SET assignment list must not assign the same column twice.", ex.Message);
     }
 
     [Fact]
@@ -927,6 +927,7 @@ public class InsertTests
                 .OnDuplicateKeyUpdate(t.Name == "a", other.Name == "b"));
 
         Assert.Equal(
-            "A SET assignment list must not assign the same column twice.", ex.Message);
+            "The ON DUPLICATE KEY UPDATE assignment list must not assign the same column twice.",
+            ex.Message);
     }
 }
