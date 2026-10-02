@@ -170,6 +170,27 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    [Fact]
+    public void Returning_Sqlite_AliasedTargetCorrelatedCteBody_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        Cte userOrders = new("user_orders");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int orderCount = connection.Query<int>(
+            Update(u).Set(u.Age == u.Age).Where(u.Id == 1)
+                .Returning(
+                    With(userOrders.As(Select(o.Id).From(o).Where(o.UserId == u.Id)))
+                    .Select(Count(Asterisk))
+                    .From(userOrders)),
+            transaction).Single();
+
+        Assert.Equal(2, orderCount);
+        transaction.Rollback();
+    }
+
     // A FROM relation keeps its alias: SQLite's RETURNING cannot read it at
     // all, so the statement still fails rather than reading the target.
     [Fact]
@@ -228,6 +249,7 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         UsersTable inner = new();
         OrdersTable o = new("o");
         Cte shadow = new("users");
+        Cte lower = new("lower_ids");
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
@@ -242,6 +264,13 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                     .Select(Count(Asterisk))
                     .From(shadow)
                     .Where(shadow.Column("id") < u.Id)),
+            transaction));
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Update(u).Set(u.Age == u.Age).Where(u.Id == 3)
+                .Returning(
+                    With(lower.As(Select(inner.Id).From(inner).Where(inner.Id < u.Id)))
+                    .Select(Count(Asterisk))
+                    .From(lower)),
             transaction));
         transaction.Rollback();
     }

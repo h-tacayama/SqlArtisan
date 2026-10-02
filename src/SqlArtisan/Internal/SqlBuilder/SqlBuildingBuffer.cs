@@ -22,7 +22,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     private bool _disposed;
     // Correlated-DML guard state (#253): a bare target column rendered inside a
     // subquery resolves to the inner scope — a silent tautology — so
-    // DbColumn's Format fails loudly instead.
+    // DbColumn's Format fails loudly instead. Holds an aliased target too (#595).
     private TableReference? _correlatedDmlTarget;
     private int _subqueryDepth;
     // Fits the padding beside _disposed, so it costs no build an allocation.
@@ -327,12 +327,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
                 "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.");
         }
 
-        // SQLite RETURNING (#595): a scope rebinding the target's name or alias
-        // keeps the alias; one set operator's blocks share the verdict.
         TableReference? target = _correlatedDmlTarget;
-        if (_qualifyReturningByTableName
-            && target is DbTableBase { HasAlias: true } returningTarget
-            && (subquery is not SelectBuilder select || select.BindsAnyRelation(returningTarget)))
+        if (HoldsReturningTarget && RebindsReturningTarget(subquery))
         {
             _correlatedDmlTarget = null;
         }
@@ -356,6 +352,16 @@ internal sealed class SqlBuildingBuffer : IDisposable
         _qualifyReturningByTableName = false;
         return this;
     }
+
+    private bool HoldsReturningTarget =>
+        _qualifyReturningByTableName && _correlatedDmlTarget is DbTableBase { HasAlias: true };
+
+    // A scope exposing the target's table name would capture `users.id`; one
+    // exposing its alias owns the `"u".id` the caller wrote, which a swap would
+    // send to the target. Either keeps the alias; set-operator blocks share it.
+    private bool RebindsReturningTarget(ISubquery subquery) =>
+        subquery is not SelectBuilder select
+        || select.BindsAnyRelation((DbTableBase)_correlatedDmlTarget!);
 
     // SQLite resolves the target in RETURNING by table name alone; a scope that
     // rebinds the name or the alias clears the slot (EncloseInParentheses).
@@ -386,11 +392,15 @@ internal sealed class SqlBuildingBuffer : IDisposable
             : name;
 
     // A CTE body resolves in its own scope, so the guard is off for the whole
-    // body — subqueries nested inside it included (#253).
+    // body — subqueries nested inside it included (#253). An aliased RETURNING
+    // target stays unless the body rebinds it: SQLite resolves it there (#595).
     internal void FormatOutsideCorrelatedDmlGuard(ISubquery body)
     {
         TableReference? target = _correlatedDmlTarget;
-        _correlatedDmlTarget = null;
+        if (!HoldsReturningTarget || RebindsReturningTarget(body))
+        {
+            _correlatedDmlTarget = null;
+        }
 
         try
         {

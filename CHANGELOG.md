@@ -172,11 +172,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `"u".id`, which SQLite rejects (`no such column: u.id`, live-verified on
   3.50.4). `INSERT`, UPSERT, `UPDATE`, `UPDATE ... FROM` and `DELETE` with an
   aliased target can now return a column by name on SQLite, and a correlated
-  subquery inside `RETURNING` can read the target. Inside a subquery that reads
-  the target's own table, or a CTE named after it, without an alias, the
-  target keeps its alias: the table name would bind that inner relation, so
-  SQLite rejects the statement instead of returning its value. Other engines'
-  output is unchanged. (#595)
+  subquery or CTE body inside `RETURNING` can read the target. A subquery or
+  CTE body that exposes a relation under the target's table name (the table
+  unaliased, a CTE named after it, or an alias equal to it) keeps the target's
+  alias: the table name would bind that inner relation, so SQLite rejects the
+  statement instead of returning its value. Other engines' output is
+  unchanged. (#595)
 - `WhenNotMatchedBySource(...)` is documented and analyzed as PostgreSQL 17+
   syntax as well as SQL Server's: PostgreSQL 17 added `WHEN NOT MATCHED BY
   SOURCE`, and a declared `sqlartisan_syntax_postgresql` of 17 or later no

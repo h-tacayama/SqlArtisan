@@ -714,7 +714,7 @@ public class ReturningTests
     }
 
     [Fact]
-    public void Returning_Sqlite_CteBody_KeepsTheAlias()
+    public void Returning_Sqlite_CorrelatedCteBody_CorrectSql()
     {
         TestTable t = new("t");
         ArchiveTable a = new("a");
@@ -731,7 +731,30 @@ public class ReturningTests
         expected.Append("DELETE FROM test_table AS \"t\" ");
         expected.Append("RETURNING (WITH \"c\" AS ");
         expected.Append("(SELECT \"a\".code FROM archive_table \"a\" ");
-        expected.Append("WHERE \"a\".code = \"t\".code) ");
+        expected.Append("WHERE \"a\".code = test_table.code) ");
+        expected.Append("SELECT COUNT(*) FROM \"c\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Returning_Sqlite_CteBodyRebindingTheTableName_KeepsTheAlias()
+    {
+        TestTable t = new("t");
+        TestTable inner = new();
+        TestCte c = new("c");
+        SqlStatement sql =
+            DeleteFrom(t)
+            .Returning(
+                With(c.As(Select(inner.Code).From(inner).Where(inner.Code < t.Code)))
+                .Select(Count(Asterisk))
+                .From(c))
+            .Build(Dbms.Sqlite);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE FROM test_table AS \"t\" ");
+        expected.Append("RETURNING (WITH \"c\" AS ");
+        expected.Append("(SELECT code FROM test_table WHERE code < \"t\".code) ");
         expected.Append("SELECT COUNT(*) FROM \"c\")");
 
         Assert.Equal(expected.ToString(), sql.Text);

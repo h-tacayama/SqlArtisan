@@ -232,15 +232,17 @@ engines have, against ADR 0006. The per-engine limits are documented in
 Oracle, SQL Server and PostgreSQL lanes (`BY SOURCE` on PostgreSQL 17).
 
 **A same-named relation under SQLite's `RETURNING` stays unguarded (decided —
-do not re-file):** inside a subquery whose FROM or JOIN rebinds an aliased
-target's table name or alias, the target keeps `"u".col` instead of SQLite's
+do not re-file):** inside a subquery or CTE body whose FROM or JOIN exposes an
+aliased target's table name, the target keeps `"u".col` instead of SQLite's
 `users.col` spelling (#595). The table name would bind the inner relation
 silently. The alias fails loudly (`no such column`), with no silent wrongness
-to convert, so no `Build(Sqlite)` guard is added. The scope check matches by
-name, unlike the correlated-DML guard's instance identity, because the capture
-comes from the library's own rewrite and from any relation so named. It is
-pinned by `Returning_Sqlite_SameNamedInnerRelation_IsRejectedByTheEngine` on
-the SQLite lane.
+to convert, so no `Build(Sqlite)` guard is added. A scope exposing the alias
+keeps `"u".col` too, but there it binds the inner relation as written and
+runs. The scope check matches by name, unlike the correlated-DML guard's
+instance identity, because the capture comes from the library's own rewrite
+and from any relation so named. It is pinned by
+`Returning_Sqlite_SameNamedInnerRelation_IsRejectedByTheEngine` on the SQLite
+lane.
 
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must

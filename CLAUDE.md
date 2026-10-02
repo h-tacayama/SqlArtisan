@@ -24,7 +24,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/Sql/Sql.{A..Y}.cs` | Public API. `static partial class Sql`, one file per **leading letter** of the function name (gaps at K, Q, X, Z). |
 | `src/SqlArtisan/Internal/SqlPart/Expression/Function/**` | Internal function node classes (`*Function : SqlExpression`), organized into categories (see below). |
 | `src/SqlArtisan/Internal/SqlBuilder/**` | Statement builders (Select/Insert/Update/Delete/Merge/With), `SqlBuildingBuffer`, validation guards. |
-| `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`, `BackslashEscapesStringLiterals`, `DmlTableAliasSeparator`, `ExcludedName`, `MergeTerminator`). |
+| `src/SqlArtisan/Internal/SqlBuilder/DbmsDialect/**` | Per-DBMS syntax (`IDbmsDialect`: `AliasQuote`, `ParameterMarker`, `BackslashEscapesStringLiterals`, `DmlTableAliasSeparator`, `ExcludedName`, `MergeTerminator`, `ReturningIgnoresTargetAlias`). |
 | `src/SqlArtisan/Internal/SqlPart/Keywords.cs` | All SQL keyword string constants. |
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
