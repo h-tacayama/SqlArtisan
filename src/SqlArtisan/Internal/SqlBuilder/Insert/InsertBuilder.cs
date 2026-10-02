@@ -53,9 +53,8 @@ internal sealed class InsertBuilder(
 
     public ISqlBuilder OnDuplicateKeyUpdate(params EqualityCondition[] assignments)
     {
-        // Parse before appending anything: a throw after AddPart(RowAliasClause)
-        // would leave the alias behind, and the supported fix-up retry on the
-        // same instance would then emit it twice (`AS new AS new`).
+        // Parse first: a throw after AddPart(RowAliasClause) would leave the alias, and a
+        // fix-up retry on the same instance would emit it twice (`AS new AS new`).
         OnDuplicateKeyUpdateClause parsed = OnDuplicateKeyUpdateClause.Parse(assignments);
         AddPart(new RowAliasClause());
         AddPart(parsed);

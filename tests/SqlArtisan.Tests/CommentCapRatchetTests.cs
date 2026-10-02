@@ -7,11 +7,14 @@ namespace SqlArtisan.Tests;
 // survivors), so a new or edited comment may not add one.
 public class CommentCapRatchetTests
 {
+    // The last alternative is an explicit interface implementation (`IFoo IBar.Baz(`),
+    // which opens with no modifier.
     private static readonly Regex s_declaration = new(
         @"^\s*(?:\[|(?:public|private|protected|internal|static|sealed|abstract|override|virtual"
             + @"|readonly|partial|async|extern|new|const|class|interface|struct|record|enum"
             + @"|delegate"
-            + @"|event|namespace|using)\b)",
+            + @"|event|namespace|using)\b"
+            + @"|[\w<>\[\],.? ]+?\s+I[A-Z]\w*(?:<[^>]*>)?\.\w+\s*[(<{=])",
         RegexOptions.Compiled);
 
     private static readonly Regex s_partStart = new(
