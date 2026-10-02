@@ -16,4 +16,6 @@ internal sealed class MySqlDialect : IDbmsDialect
     public string MergeTerminator => "";
 
     public char ParameterMarker => '?';
+
+    public bool ReturningIgnoresTargetAlias => false;
 }

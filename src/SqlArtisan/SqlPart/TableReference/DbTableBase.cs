@@ -65,44 +65,13 @@ public abstract class DbTableBase : TableReference
             return;
         }
 
-        // A name ending in its separator leaves nothing to strip down to, so it
-        // renders whole, as FROM renders it, rather than as nothing.
-        int start = LastQualifierEnd(_name);
-        buffer.Append(start == 0 || start == _name.Length ? _name : _name[start..]);
+        FormatNameWithoutSchema(buffer);
     }
 
-    // The index just past the last `.` outside a quoted identifier, or 0 when
-    // the name is unqualified: `public.users` -> `users`, `"a.b"` stays whole.
-    private static int LastQualifierEnd(string name)
-    {
-        int end = 0;
-        char quote = '\0';
-        for (int i = 0; i < name.Length; i++)
-        {
-            char c = name[i];
-            if (quote != '\0')
-            {
-                if (c == quote)
-                {
-                    quote = '\0';
-                }
-            }
-            else if (c is '"' or '`')
-            {
-                quote = c;
-            }
-            else if (c == '[')
-            {
-                quote = ']';
-            }
-            else if (c == '.')
-            {
-                end = i + 1;
-            }
-        }
-
-        return end;
-    }
+    // SQLite's RETURNING resolves its target by this name, whatever the alias,
+    // and rejects a schema there (`main.users.id`).
+    internal void FormatNameWithoutSchema(SqlBuildingBuffer buffer) =>
+        buffer.Append(NameWithoutSchema);
 
     // Renders the reference a predicate targets by table (SQLite FTS5
     // `tbl MATCH ...`). FTS5 resolves the target as the hidden column named

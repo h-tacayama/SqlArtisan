@@ -11,5 +11,5 @@ internal sealed class ReturningClause : SqlPart
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.Returning} ")
-        .AppendSelectItems(_expressions);
+        .AppendReturningItems(_expressions);
 }

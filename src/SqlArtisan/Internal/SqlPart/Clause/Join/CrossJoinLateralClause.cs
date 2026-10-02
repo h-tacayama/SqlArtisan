@@ -1,9 +1,11 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class CrossJoinLateralClause : SqlPart
+internal sealed class CrossJoinLateralClause : SqlPart, IJoinedRelation
 {
     private readonly ISubquery _subquery;
     private readonly DerivedTableBase _alias;
+
+    TableReference IJoinedRelation.Relation => _alias;
 
     internal CrossJoinLateralClause(ISubquery subquery, DerivedTableBase alias)
     {

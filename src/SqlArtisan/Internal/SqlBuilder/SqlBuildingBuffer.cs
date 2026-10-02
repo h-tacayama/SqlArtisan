@@ -25,6 +25,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // DbColumn's Format fails loudly instead.
     private TableReference? _correlatedDmlTarget;
     private int _subqueryDepth;
+    // Fits the padding beside _disposed, so it costs no build an allocation.
+    private bool _qualifyReturningByTableName;
 
     internal SqlBuildingBuffer(Dbms dbms)
     {
@@ -325,16 +327,63 @@ internal sealed class SqlBuildingBuffer : IDisposable
                 "An INSERT statement cannot be embedded as a subquery; embed its SELECT instead.");
         }
 
+        // SQLite RETURNING (#595): a scope rebinding the target's name or alias
+        // keeps the alias; one set operator's blocks share the verdict.
+        TableReference? target = _correlatedDmlTarget;
+        if (_qualifyReturningByTableName
+            && target is DbTableBase { HasAlias: true } returningTarget
+            && (subquery is not SelectBuilder select || select.BindsAnyRelation(returningTarget)))
+        {
+            _correlatedDmlTarget = null;
+        }
+
         Append('(');
         _subqueryDepth++;
         subquery.Format(this);
         _subqueryDepth--;
         Append(')');
+        _correlatedDmlTarget = target;
         return this;
     }
 
     internal void SetCorrelatedDmlGuardTarget(DbTableBase? target) =>
         _correlatedDmlTarget = target;
+
+    internal SqlBuildingBuffer AppendReturningItems(SqlPart[] items)
+    {
+        _qualifyReturningByTableName = _dialect.ReturningIgnoresTargetAlias;
+        AppendSelectItems(items);
+        _qualifyReturningByTableName = false;
+        return this;
+    }
+
+    // SQLite resolves the target in RETURNING by table name alone; a scope that
+    // rebinds the name or the alias clears the slot (EncloseInParentheses).
+    internal bool QualifiesByTableName(TableReference owner) =>
+        _qualifyReturningByTableName
+        && ReferenceEquals(owner, _correlatedDmlTarget)
+        && owner is DbTableBase { HasAlias: true };
+
+    // Matched by name, not instance: the capture comes from any relation so
+    // named, the target's own instance or another (#595).
+    internal static bool BindsName(TableReference relation, DbTableBase target)
+    {
+        ReadOnlySpan<char> exposed = relation.ExposedName;
+        return SameIdentifier(exposed, target.ExposedName)
+            || SameIdentifier(exposed, target.NameWithoutSchema);
+    }
+
+    // SQLite folds identifier case and ignores quoting when it resolves a name,
+    // so both are dropped; matching too much only keeps the alias.
+    private static bool SameIdentifier(ReadOnlySpan<char> a, ReadOnlySpan<char> b) =>
+        Unquote(a).Equals(Unquote(b), StringComparison.OrdinalIgnoreCase);
+
+    private static ReadOnlySpan<char> Unquote(ReadOnlySpan<char> name) =>
+        name.Length >= 2
+            && ((name[0] is '"' or '`' && name[^1] == name[0])
+                || (name[0] == '[' && name[^1] == ']'))
+            ? name[1..^1]
+            : name;
 
     // A CTE body resolves in its own scope, so the guard is off for the whole
     // body — subqueries nested inside it included (#253).
@@ -556,7 +605,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private SqlBuildingBuffer Append(ReadOnlySpan<char> value)
+    internal SqlBuildingBuffer Append(ReadOnlySpan<char> value)
     {
         if (value.IsEmpty)
         {

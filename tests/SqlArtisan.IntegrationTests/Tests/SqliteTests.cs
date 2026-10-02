@@ -91,6 +91,186 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
+    // SQLite resolves RETURNING against the target's table name alone, ignoring
+    // its alias, so an aliased target's columns render table-qualified (#595).
+    [Fact]
+    public void Returning_Sqlite_AliasedTarget_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.Equal(201, connection.Query<int>(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId)
+                .Values(201, "New", 20, 1)
+                .Returning(u.Id),
+            transaction).Single());
+        Assert.Equal(21, connection.Query<int>(
+            InsertInto(u, u.Id, u.Name, u.Age, u.DepartmentId)
+                .Values(201, "New", 21, 1)
+                .OnConflict(u.Id)
+                .DoUpdateSet(u.Age == Excluded(u.Age))
+                .Returning(u.Age),
+            transaction).Single());
+        Assert.Equal(31, connection.Query<int>(
+            Update(u).Set(u.Age == 31).Where(u.Id == 1).Returning(u.Age),
+            transaction).Single());
+        Assert.Equal(new[] { 2 }, connection.Query<int>(
+            Update(u).Set(u.Age == 41).From(o).Where((o.UserId == u.Id) & (o.Id == 3))
+                .Returning(u.Id),
+            transaction));
+        Assert.Equal(201, connection.Query<int>(
+            DeleteFrom(u).Where(u.Id == 201).Returning(u.Id),
+            transaction).Single());
+        transaction.Rollback();
+    }
+
+    // The twin above runs only because SQLite ignores the alias here; SQLite's
+    // own suite calls that "goofy" and open to change, which this would catch.
+    [Fact]
+    public void Returning_Sqlite_AliasQualifier_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        string[] statements =
+        [
+            "INSERT INTO users AS \"u\" (id, name) VALUES (201, 'New') RETURNING \"u\".id",
+            "INSERT INTO users AS \"u\" (id, name) VALUES (1, 'New') "
+                + "ON CONFLICT (id) DO UPDATE SET name = excluded.name RETURNING \"u\".id",
+            "UPDATE users AS \"u\" SET age = 31 WHERE \"u\".id = 1 RETURNING \"u\".id",
+            "UPDATE users AS \"u\" SET age = 41 FROM orders \"o\" "
+                + "WHERE \"o\".user_id = \"u\".id RETURNING \"u\".id",
+            "DELETE FROM users AS \"u\" WHERE \"u\".id = 4 RETURNING \"u\".id",
+        ];
+        foreach (string statement in statements)
+        {
+            Assert.ThrowsAny<DbException>(
+                () => connection.Query<int>(statement, transaction: transaction));
+        }
+
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void Returning_Sqlite_AliasedTargetCorrelatedSubquery_Executes()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int orderCount = connection.Query<int>(
+            Update(u).Set(u.Age == u.Age).Where(u.Id == 1)
+                .Returning(Select(Count(Asterisk)).From(o).Where(o.UserId == u.Id)),
+            transaction).Single();
+
+        Assert.Equal(2, orderCount);
+        transaction.Rollback();
+    }
+
+    // A FROM relation keeps its alias: SQLite's RETURNING cannot read it at
+    // all, so the statement still fails rather than reading the target.
+    [Fact]
+    public void Returning_Sqlite_JoinedRelationColumn_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Update(u).Set(u.Age == 41).From(o).Where(o.UserId == u.Id).Returning(o.Id),
+            transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void Returning_Sqlite_SelfJoinedUpdate_ReturnsTheTarget()
+    {
+        UsersTable u = new("u");
+        UsersTable next = new("n");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int id = connection.Query<int>(
+            Update(u).Set(u.Age == next.Age).From(next)
+                .Where((next.Id == u.Id + 1) & (u.Id == 1))
+                .Returning(u.Id),
+            transaction).Single();
+
+        Assert.Equal(1, id);
+        transaction.Rollback();
+    }
+
+    // The hazard the next twin avoids: under a same-named inner relation the
+    // table-name qualifier binds that relation and miscounts without an error.
+    [Fact]
+    public void Returning_Sqlite_TableNameUnderSameNamedRelation_BindsTheInner()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int count = connection.Query<int>(
+            "UPDATE users AS \"u\" SET age = age WHERE \"u\".id = 3 "
+                + "RETURNING (SELECT COUNT(*) FROM users WHERE id < users.id)",
+            transaction: transaction).Single();
+
+        Assert.Equal(0, count);
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void Returning_Sqlite_SameNamedInnerRelation_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        UsersTable inner = new();
+        OrdersTable o = new("o");
+        Cte shadow = new("users");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Update(u).Set(u.Age == u.Age).Where(u.Id == 3)
+                .Returning(Select(Count(Asterisk)).From(inner).Where(inner.Id < u.Id)),
+            transaction));
+        Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            Update(u).Set(u.Age == u.Age).Where(u.Id == 3)
+                .Returning(
+                    With(shadow.As(Select(o.UserId.As("id")).From(o)))
+                    .Select(Count(Asterisk))
+                    .From(shadow)
+                    .Where(shadow.Column("id") < u.Id)),
+            transaction));
+        transaction.Rollback();
+    }
+
+    [Fact]
+    public void Returning_Sqlite_AliasedInnerRelation_Executes()
+    {
+        UsersTable u = new("u");
+        UsersTable inner = new("i");
+        OrdersTable o = new("o");
+        Cte userIds = new("user_ids");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        Assert.Equal(2, connection.Query<int>(
+            Update(u).Set(u.Age == u.Age).Where(u.Id == 3)
+                .Returning(Select(Count(Asterisk)).From(inner).Where(inner.Id < u.Id)),
+            transaction).Single());
+        Assert.Equal(3, connection.Query<int>(
+            Update(u).Set(u.Age == u.Age).Where(u.Id == 3)
+                .Returning(
+                    With(userIds.As(Select(o.UserId.As("id")).From(o)))
+                    .Select(Count(Asterisk))
+                    .From(userIds)
+                    .Where(userIds.Column("id") < u.Id)),
+            transaction).Single());
+        transaction.Rollback();
+    }
+
     [Fact]
     public void StringAggregation_GroupConcat_Executes()
     {

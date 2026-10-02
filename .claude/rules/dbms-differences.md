@@ -38,6 +38,17 @@ make `Build` silently rewrite the author's SQL, violating ADR 0001.
 > trailing item. Fix: `Rollup(...)` always emits the standard function form;
 > MySQL's suffix is the separate `.GroupBy(...).WithRollup()` step.
 
+**A context-conditional swap stays token-level only when its
+meaning-changing contexts are enumerable and excluded.** SQLite resolves an
+aliased target in `RETURNING` by its table name alone, so
+`ReturningIgnoresTargetAlias` swaps `"u".id` for `users.id` (#595). Inside a
+subquery whose FROM or JOIN rebinds that name or the alias, the swapped name
+binds the inner relation, which is the `WITH ROLLUP` trap. The swap stays
+token-level only because those scopes can be found mechanically, by a
+relation's exposed name, and the swap is withheld there. The alias then
+stands and the engine rejects it. A swap whose meaning-changing contexts
+cannot be enumerated is construct-level.
+
 A construct that simply does not exist on a DBMS needs no flag at all: emit
 faithfully and leave availability to the database and the analyzer (ADR 0003) —
 do not gate it at `Build` time.
