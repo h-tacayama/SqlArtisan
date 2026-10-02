@@ -33,4 +33,11 @@ internal interface IDbmsDialect
     string MergeTerminator { get; }
 
     char ParameterMarker { get; }
+
+    /// <summary>
+    /// Whether <c>RETURNING</c> resolves the DML target by its table name alone,
+    /// ignoring its alias (true only on SQLite, which rejects <c>"u".id</c> there
+    /// but accepts <c>users.id</c>), so a target column renders table-qualified.
+    /// </summary>
+    bool ReturningIgnoresTargetAlias { get; }
 }

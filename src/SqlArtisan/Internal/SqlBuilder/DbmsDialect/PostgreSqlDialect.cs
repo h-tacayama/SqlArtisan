@@ -15,4 +15,6 @@ internal sealed class PostgreSqlDialect : IDbmsDialect
     public string MergeTerminator => "";
 
     public char ParameterMarker => ':';
+
+    public bool ReturningIgnoresTargetAlias => false;
 }

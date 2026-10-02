@@ -1,9 +1,11 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class CrossApplyClause : SqlPart
+internal sealed class CrossApplyClause : SqlPart, IJoinedRelation
 {
     private readonly ISubquery _subquery;
     private readonly DerivedTableBase _alias;
+
+    TableReference IJoinedRelation.Relation => _alias;
 
     internal CrossApplyClause(ISubquery subquery, DerivedTableBase alias)
     {

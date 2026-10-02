@@ -17,6 +17,8 @@ internal sealed class DeleteBuilder(
     private protected override DbTableBase? CorrelatedDmlGuardTarget =>
         table.HasAlias ? null : table;
 
+    private protected override DbTableBase? ReturningTarget => table;
+
     protected override string StatementName => Keywords.Delete;
 
     public SqlStatement Build() =>

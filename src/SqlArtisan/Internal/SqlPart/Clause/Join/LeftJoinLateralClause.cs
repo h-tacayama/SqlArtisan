@@ -1,9 +1,11 @@
 namespace SqlArtisan.Internal;
 
-internal sealed class LeftJoinLateralClause : SqlPart
+internal sealed class LeftJoinLateralClause : SqlPart, IJoinedRelation
 {
     private readonly ISubquery _subquery;
     private readonly DerivedTableBase _alias;
+
+    TableReference IJoinedRelation.Relation => _alias;
 
     internal LeftJoinLateralClause(ISubquery subquery, DerivedTableBase alias)
     {

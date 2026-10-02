@@ -11,6 +11,8 @@ internal sealed class FromClause : SqlPart
         _tables = tables;
     }
 
+    internal TableReference[] Tables => _tables;
+
     internal override void Format(SqlBuildingBuffer buffer) => buffer
         .Append($"{Keywords.From} ")
         .AppendCsv(_tables);

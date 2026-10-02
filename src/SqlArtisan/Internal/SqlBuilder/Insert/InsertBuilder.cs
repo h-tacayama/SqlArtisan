@@ -23,6 +23,8 @@ internal sealed class InsertBuilder(
 
     private InsertValuesClause? _valuesClause;
 
+    private protected override DbTableBase? ReturningTarget => table;
+
     protected override string StatementName => Keywords.Insert;
 
     public IReturning DoNothing()

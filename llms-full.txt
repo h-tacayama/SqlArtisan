@@ -1951,6 +1951,25 @@ SqlStatement sql =
 // RETURNING id, name
 ```
 
+On SQLite, a column of an aliased target renders qualified by the table name inside `RETURNING`, while `WHERE` and `SET` keep the alias. SQLite resolves `RETURNING` against the table name and rejects the alias there (`no such column: u.id` on SQLite 3.50.4):
+
+```csharp
+UsersTable u = new("u");
+SqlStatement sql =
+    Update(u)
+    .Set(u.Name == "newName")
+    .Where(u.Id == 1)
+    .Returning(u.Id)
+    .Build(Dbms.Sqlite);
+
+// UPDATE users AS "u"
+// SET name = :0
+// WHERE "u".id = :1
+// RETURNING users.id
+```
+
+A subquery or CTE body inside that `RETURNING` must not expose a relation under the target's table name: the table itself unaliased, a CTE named after it, or an alias equal to it. The table name would bind that inner relation instead of the target, so the target keeps its alias there and SQLite rejects the statement. A relation aliased like the target keeps the alias too; there `"u".id` reads that inner relation, as the statement is written.
+
 ### RETURNING INTO (Oracle)
 
 For Oracle, chain `Into()` after `Returning()` to bind the returned columns into output parameters. Each output is an `OutputParameter` — a variable name, its `DbType`, and an optional size (required for variable-length types such as strings). The type cannot be inferred from the returned column, so it is supplied here. The number of output parameters must match the number of returned expressions, and each variable name must be unique. They are registered with `ParameterDirection.Output` so you can read their values after execution.

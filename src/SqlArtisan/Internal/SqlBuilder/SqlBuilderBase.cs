@@ -27,6 +27,10 @@ internal abstract class SqlBuilderBase
     // loudly instead of silently resolving to the inner scope.
     private protected virtual DbTableBase? CorrelatedDmlGuardTarget => null;
 
+    // The INSERT/UPDATE/DELETE target a RETURNING clause reads, which SQLite
+    // resolves by table name alone (#595).
+    private protected virtual DbTableBase? ReturningTarget => null;
+
     // The SQL spelling of the statement, for the single-use guard message.
     protected abstract string StatementName { get; }
 
@@ -93,7 +97,11 @@ internal abstract class SqlBuilderBase
         ThrowIfDuplicateClauseInBlock();
         Validate(dbms);
         using SqlBuildingBuffer buffer = new(dbms);
-        buffer.SetCorrelatedDmlGuardTarget(CorrelatedDmlGuardTarget);
+        // The guard's target is unaliased, so an aliased RETURNING target shares
+        // the slot; DbColumn tells them apart by the alias (#595).
+        buffer.SetCorrelatedDmlGuardTarget(
+            CorrelatedDmlGuardTarget
+                ?? (ReturningTarget is { HasAlias: true } aliased ? aliased : null));
         buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
         AppendTrailing(buffer);
         // Set last so a throw above (Validate / empty-clause guard) leaves the

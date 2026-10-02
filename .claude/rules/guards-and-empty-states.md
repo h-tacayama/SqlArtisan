@@ -231,6 +231,19 @@ engines have, against ADR 0006. The per-engine limits are documented in
 `docs/query-statements.md` and pinned by the `MergeRepeated*` twins on the
 Oracle, SQL Server and PostgreSQL lanes (`BY SOURCE` on PostgreSQL 17).
 
+**A same-named relation under SQLite's `RETURNING` stays unguarded (decided —
+do not re-file):** inside a subquery or CTE body whose FROM or JOIN exposes an
+aliased target's table name, the target keeps `"u".col` instead of SQLite's
+`users.col` spelling (#595). The table name would bind the inner relation
+silently. The alias fails loudly (`no such column`), with no silent wrongness
+to convert, so no `Build(Sqlite)` guard is added. A scope exposing the alias
+keeps `"u".col` too, but there it binds the inner relation as written and
+runs. The scope check matches by name, unlike the correlated-DML guard's
+instance identity, because the capture comes from the library's own rewrite
+and from any relation so named. It is pinned by
+`Returning_Sqlite_SameNamedInnerRelation_IsRejectedByTheEngine` on the SQLite
+lane.
+
 **A held stage's out-of-order clause stays unguarded (decided — do not
 re-file):** a held builder can still append a clause after the one it must
 precede — `Output(...)` after an `INSERT`'s `Values(...)` (#542), or
@@ -265,22 +278,25 @@ were admitted as invisible but are visible to ADR 0013's declaring-interface
 mode; they stay on a cost ground (ADR 0011, #569). An entry's condition-1
 sentence is its admission record, so check it before citing it as precedent.
 
-**CTE bodies are outside the correlated-DML guard (decided — do not re-file):**
-a CTE body cannot correlate with the outer UPDATE/DELETE target — its
-references resolve in the CTE's own scope — and the target instance
-legitimately appears there as the CTE's own relation, so
-`CommonTableExpression` renders its body with the guard suspended — the whole
-body, subqueries nested inside it included (#253, pinned by
-`DeleteFrom_CteBodyReferencingTarget_CorrectSql` and the nested theory beside
-it; the depth-only exemption that re-armed on a nested subquery was release
-audit pass 8's fix). The guard keys on the target *instance*: a second,
-unaliased instance of the target table inside the subquery renders the
-tautology unguarded (`Update(new T()) ... new T().Id`), the same instance-
-identity fact ADR 0014 records for the analyzer — the harness template uses
-one instance for that reason. A target reference written inside a CTE body
-*intending* correlation binds to the CTE's own scope — that is SQL's scoping,
-which the guard's instance-identity check cannot separate from the legitimate
-read-the-target shape without breaking it.
+**A top-level CTE body is outside the correlated-DML guard (decided — do not
+re-file):** the target instance legitimately appears in a `With(...)` body as
+the CTE's own relation, so `CommonTableExpression` renders its body with the
+guard suspended — the whole body, subqueries nested inside it included (#253,
+pinned by `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and the nested
+theory beside it; the depth-only exemption that re-armed on a nested subquery
+was release audit pass 8's fix). The guard keys on the target *instance*: a
+second, unaliased instance of the target table inside the subquery renders the
+tautology unguarded (`Update(new T()) ... new T().Id`), the same
+instance-identity fact ADR 0014 records for the analyzer — the harness
+template uses one instance for that reason.
+
+**A CTE body nested in a subquery is an open gap, not a decision (#607):** the
+same suspension reaches it today, but such a body can correlate with the
+target. SQLite 3.50.4 resolves a qualified outer reference there
+(`Returning_Sqlite_AliasedTargetCorrelatedCteBody_Executes`, #595), so a bare
+column of an unaliased target binds the body's own relation silently. That is
+the tautology the guard exists to stop. #607 tracks scoping the suspension to
+top-level bodies.
 
 ## The empty-state policy (#236)
 

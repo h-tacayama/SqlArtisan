@@ -13,4 +13,6 @@ internal sealed class OracleDialect : IDbmsDialect
     public string MergeTerminator => "";
 
     public char ParameterMarker => ':';
+
+    public bool ReturningIgnoresTargetAlias => false;
 }

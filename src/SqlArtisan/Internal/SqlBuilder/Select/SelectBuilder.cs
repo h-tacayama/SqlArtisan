@@ -100,6 +100,32 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         }
     }
 
+    // Whether any FROM or JOIN relation of this subquery's blocks exposes the
+    // RETURNING target's name or alias (SqlBuildingBuffer, #595).
+    internal bool BindsAnyRelation(DbTableBase target)
+    {
+        foreach (SqlPart part in PartsSpan)
+        {
+            if (part is FromClause from)
+            {
+                foreach (TableReference table in from.Tables)
+                {
+                    if (SqlBuildingBuffer.BindsName(table, target))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else if (part is IJoinedRelation join
+                && SqlBuildingBuffer.BindsName(join.Relation, target))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public SqlStatement Build() =>
         BuildCore(SqlArtisanConfig.DefaultDbms);
 

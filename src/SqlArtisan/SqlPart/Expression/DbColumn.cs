@@ -47,7 +47,12 @@ public sealed class DbColumn : SqlExpression
     {
         string correlationName = Owner.CorrelationName;
 
-        if (!string.IsNullOrEmpty(correlationName))
+        if (buffer.QualifiesByTableName(Owner))
+        {
+            ((DbTableBase)Owner).FormatNameWithoutSchema(buffer);
+            buffer.Append('.');
+        }
+        else if (!string.IsNullOrEmpty(correlationName))
         {
             buffer.EncloseInAliasQuotes(correlationName);
             buffer.Append('.');
