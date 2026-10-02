@@ -25,8 +25,9 @@
     assemblies back to this exact commit on GitHub so consumers can step into
     SqlArtisan source; symbols ship as a separate .snupkg with portable PDBs.
     These apply to every project — harmless for the non-packed tests/benchmark,
-    which are simply never packed. (.NET 8's SDK bundles the Source Link
-    infrastructure but not the GitHub host package, so it is referenced below.)
+    which are simply never packed. The SDK bundles Source Link too, but a package
+    reference turns that copy off; it is referenced so NuGet's audit sees the
+    version that runs, which `release.yml` gates on.
   -->
   <PropertyGroup>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -38,7 +39,7 @@
 
   <!-- Build-time only (PrivateAssets=all): never flows to consumers as a dependency. -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.112" PrivateAssets="all" />
   </ItemGroup>
 
   <!--

@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  # Gate the publish on the same checks CI runs (format / build / test); a red
-  # tree must never reach nuget.org.
+  # Gate the publish on the same checks CI runs (format / build / test), plus a
+  # package audit; a red tree must never reach nuget.org.
   verify:
     runs-on: ubuntu-latest
 
@@ -32,6 +32,26 @@ jobs:
 
       - name: Restore
         run: dotnet restore SqlArtisan.sln
+
+      # Kept out of ci.yml: an advisory published upstream would otherwise turn
+      # unrelated PRs red. Scoped to src/, whose packages build or ship in what
+      # reaches nuget.org (Source Link included).
+      - name: Audit shipped projects' packages
+        run: |
+          set -euo pipefail
+          found=0
+          for proj in src/*/*.csproj; do
+            hits=$(dotnet list "$proj" package --vulnerable --include-transitive --format json \
+              | jq -r '.projects[].frameworks[]?
+                  | (.topLevelPackages // []) + (.transitivePackages // [])
+                  | .[] | select(.vulnerabilities)
+                  | "\(.id) \(.resolvedVersion): \([.vulnerabilities[].advisoryurl] | join(" "))"')
+            if [ -n "$hits" ]; then
+              while IFS= read -r hit; do echo "::error::$proj uses $hit"; done <<< "$hits"
+              found=1
+            fi
+          done
+          exit $found
 
       - name: Verify formatting (.editorconfig)
         run: dotnet format SqlArtisan.sln --verify-no-changes
