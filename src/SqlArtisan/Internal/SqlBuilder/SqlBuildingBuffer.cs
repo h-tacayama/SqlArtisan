@@ -363,8 +363,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
         subquery is not SelectBuilder select
         || select.BindsAnyRelation((DbTableBase)_correlatedDmlTarget!);
 
-    // SQLite resolves the target in RETURNING by table name alone; a subquery or
-    // CTE body that rebinds the name or the alias clears the slot.
+    // SQLite 3.50.4 resolves the target in RETURNING by table name alone; a
+    // subquery or CTE body that rebinds the name or the alias clears the slot.
     internal bool QualifiesByTableName(TableReference owner) =>
         _qualifyReturningByTableName
         && ReferenceEquals(owner, _correlatedDmlTarget)

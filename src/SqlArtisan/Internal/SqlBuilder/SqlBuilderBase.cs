@@ -28,7 +28,7 @@ internal abstract class SqlBuilderBase
     private protected virtual DbTableBase? CorrelatedDmlGuardTarget => null;
 
     // The INSERT/UPDATE/DELETE target a RETURNING clause reads, which SQLite
-    // resolves by table name alone (#595).
+    // 3.50.4 resolves by table name alone (#595).
     private protected virtual DbTableBase? ReturningTarget => null;
 
     // The SQL spelling of the statement, for the single-use guard message.
