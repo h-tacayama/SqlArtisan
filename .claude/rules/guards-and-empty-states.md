@@ -235,8 +235,8 @@ Oracle, SQL Server and PostgreSQL lanes (`BY SOURCE` on PostgreSQL 17).
 do not re-file):** inside a subquery or CTE body whose FROM or JOIN exposes an
 aliased target's table name, the target keeps `"u".col` instead of SQLite's
 `users.col` spelling (#595). The table name would bind the inner relation
-silently. The alias fails loudly (`no such column`), with no silent wrongness
-to convert, so no `Build(Sqlite)` guard is added. A scope exposing the alias
+silently. The alias fails loudly (`no such column` on SQLite 3.50.4), with no
+silent wrongness to convert, so no `Build(Sqlite)` guard is added. A scope exposing the alias
 keeps `"u".col` too, but there it binds the inner relation as written and
 runs. The scope check matches by name, unlike the correlated-DML guard's
 instance identity, because the capture comes from the library's own rewrite
