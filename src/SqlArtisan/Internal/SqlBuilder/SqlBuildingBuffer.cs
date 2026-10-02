@@ -363,8 +363,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
         subquery is not SelectBuilder select
         || select.BindsAnyRelation((DbTableBase)_correlatedDmlTarget!);
 
-    // SQLite resolves the target in RETURNING by table name alone; a scope that
-    // rebinds the name or the alias clears the slot (EncloseInParentheses).
+    // SQLite resolves the target in RETURNING by table name alone; a subquery or
+    // CTE body that rebinds the name or the alias clears the slot.
     internal bool QualifiesByTableName(TableReference owner) =>
         _qualifyReturningByTableName
         && ReferenceEquals(owner, _correlatedDmlTarget)
@@ -391,9 +391,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
             ? name[1..^1]
             : name;
 
-    // A CTE body resolves in its own scope, so the guard is off for the whole
-    // body — subqueries nested inside it included (#253). An aliased RETURNING
-    // target stays unless the body rebinds it: SQLite resolves it there (#595).
+    // The guard is off for a whole CTE body, where the target may be the body's
+    // own relation (#253). An aliased RETURNING target stays unless the body
+    // rebinds it, since SQLite resolves a nested body's outer reference (#595).
     internal void FormatOutsideCorrelatedDmlGuard(ISubquery body)
     {
         TableReference? target = _correlatedDmlTarget;
