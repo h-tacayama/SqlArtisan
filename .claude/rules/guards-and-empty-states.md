@@ -538,7 +538,9 @@ so the wording is part of the contract.
   SQL Server joined-`UPDATE` guard says "re-list the target in FROM" on the
   `From(...)` chain and "join through `From(target, ...)`" on the direct-join
   chain, which has no FROM (the `DELETE ... USING` guard was the first such
-  split, pass 5; the UPDATE twin, pass 8).
+  split, pass 5; the UPDATE twin, pass 8). The empty join `ON` names
+  `CROSS JOIN` only on the `SELECT` chain, the one with `CrossJoin`; a joined
+  `UPDATE` or `DELETE` states the requirement alone (`DmlOnClause`, #582).
 - A guard shared by several clauses names the clause the caller wrote, never
   one sibling's spelling: `AssignmentResolver` takes each caller's clause,
   since `ON DUPLICATE KEY UPDATE` has no `SET` token to name (#582).

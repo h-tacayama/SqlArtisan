@@ -88,13 +88,13 @@ internal sealed class UpdateBuilder(
 
     IUpdateBuilderFrom IUpdateBuilderFromJoinOn.On(SqlCondition condition)
     {
-        AddPart(new OnClause(condition));
+        AddPart(new DmlOnClause(condition));
         return this;
     }
 
     IUpdateBuilderJoined IUpdateBuilderJoinOn.On(SqlCondition condition)
     {
-        AddPart(new OnClause(condition));
+        AddPart(new DmlOnClause(condition));
         return this;
     }
 

@@ -434,6 +434,37 @@ public class UpdateTests
     }
 
     [Fact]
+    public void Update_MySql_JoinOnAllConditionsExcluded_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .InnerJoin(s).On(ConditionIf(false, t.Code == s.Code))
+            .Set(t.Name == s.Name)
+            .Build(Dbms.MySql));
+
+        Assert.Equal("A JOIN's ON clause requires a condition.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_SqlServer_FromJoinOnAllConditionsExcluded_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            Update(t)
+            .Set(t.Name == s.Name)
+            .From(t)
+            .InnerJoin(s).On(ConditionIf(false, t.Code == s.Code))
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal("A JOIN's ON clause requires a condition.", ex.Message);
+    }
+
+    [Fact]
     public void Update_Join_UnaliasedTarget_ThrowsArgumentException()
     {
         TestTable t = new();
