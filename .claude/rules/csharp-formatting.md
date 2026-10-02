@@ -126,7 +126,9 @@ stay on one line.
 A condition or expression that wraps breaks **before** the operator, so
 `&&` / `||` / `+` lead the continuation line.
 (`dotnet_style_operator_placement_when_wrapping` tells editors the same;
-the formatter cannot enforce it.)
+the formatter cannot enforce it. `FormattingSweepTests` holds a line-ending
+`+`, `&&` or `||` at zero over `src/` and `tests/`, reading code outside
+literals and comments; any other operator's placement is review's to hold.)
 
 ## Blank lines
 
