@@ -76,12 +76,21 @@ public class FormattingSweepTests
     [Theory]
     [InlineData("string q = @\"\"\"\";", "string q = @_;")]
     [InlineData("string q = @\"\"\"x\"\" y\" + z;", "string q = @_ + z;")]
-    [InlineData("string q = $@\"a {b} \"\"c\"\"\" + z;", "string q = $@_ + z;")]
+    [InlineData("string q = $@\"a {b} \"\"c\"\"\" + z;", "string q = $@_b + z;")]
     [InlineData("string q = \"a \\\" b\" + z;", "string q = _ + z;")]
     [InlineData("char c = '\"'; int n = a +", "char c = _; int n = a +")]
     [InlineData("char c = '\\''; int n = a +", "char c = _; int n = a +")]
     [InlineData("int n = a + /* b && */ c; // d ||", "int n = a +  c; ")]
     [InlineData("f++;", "f++;")]
+    [InlineData(
+        "string m = $\"[{string.Join(\"\\\", \\\"\", xs)}]\" +",
+        "string m = $_string.Join(_, xs) +")]
+    [InlineData("string m = $\"got '{json.Trim('\"')}'\" +", "string m = $_json.Trim(_) +")]
+    [InlineData(
+        "string m = $\"{(a ? \"/*\" : \"x\")}\"; bool b = p &&",
+        "string m = $_(a ? _ : _); bool b = p &&")]
+    [InlineData("string m = $\"{a ?? \"//\"} {{x}}\" +", "string m = $_a ?? _ +")]
+    [InlineData("string m = $$\"\"\"{a} {{b}}\"\"\" +", "string m = $$_b +")]
     public void CodeOnly_BlanksLiteralsAndDropsComments(string line, string expected) =>
         Assert.Equal(expected, CodeOnly([line])[0]);
 
@@ -93,13 +102,23 @@ public class FormattingSweepTests
         Assert.Equal(["string q = _", "", " + z;"], code);
     }
 
+    [Fact]
+    public void CodeOnly_MultiLineInterpolationHole_ReadsTheHoleAsCode()
+    {
+        string[] code = CodeOnly(
+            ["string m = $@\"a {", "    x +", "    } b", "c\" +", "    y;", "int n = p &&"]);
+
+        Assert.Equal(["string m = $@_", "    x +", "    ", " +", "    y;", "int n = p &&"], code);
+    }
+
     // Each line's code with literals blanked and comments dropped, so an operator
-    // inside a string or a comment never reads as a trailing one.
+    // inside a string or a comment never reads as a trailing one. An interpolation
+    // hole is code again, so a string or comment nested in one cannot desync the read.
     internal static string[] CodeOnly(string[] lines)
     {
         string[] code = new string[lines.Length];
-        Mode mode = Mode.Code;
-        int rawQuotes = 0;
+        Stack<Frame> frames = new();
+        frames.Push(new Frame(Mode.Code));
 
         for (int n = 0; n < lines.Length; n++)
         {
@@ -108,95 +127,126 @@ public class FormattingSweepTests
             int i = 0;
             while (i < line.Length)
             {
-                char c = line[i];
-                switch (mode)
-                {
-                    case Mode.Code when c == '/' && At(line, i + 1) == '/':
-                        i = line.Length;
-                        break;
-                    case Mode.Code when c == '/' && At(line, i + 1) == '*':
-                        mode = Mode.BlockComment;
-                        i += 2;
-                        break;
-                    // The prefix decides before the quote run: a raw literal takes no `@`,
-                    // and `@""""` is a verbatim one-quote string, not a raw opener.
-                    case Mode.Code when c == '"' && (At(line, i - 1) == '@'
-                        || (At(line, i - 1) == '$' && At(line, i - 2) == '@')):
-                        mode = Mode.VerbatimString;
-                        kept.Append('_');
-                        i++;
-                        break;
-                    case Mode.Code when c == '"' && QuoteRun(line, i) >= 3:
-                        mode = Mode.RawString;
-                        rawQuotes = QuoteRun(line, i);
-                        kept.Append('_');
-                        i += rawQuotes;
-                        break;
-                    case Mode.Code when c == '"':
-                        mode = Mode.RegularString;
-                        kept.Append('_');
-                        i++;
-                        break;
-                    case Mode.Code when c == '\'':
-                        int close = line.IndexOf('\'', i + (At(line, i + 1) == '\\' ? 3 : 2));
-                        i = close < 0 ? line.Length : close + 1;
-                        kept.Append('_');
-                        break;
-                    case Mode.Code:
-                        kept.Append(c);
-                        i++;
-                        break;
-                    case Mode.BlockComment:
-                        if (c == '*' && At(line, i + 1) == '/')
-                        {
-                            mode = Mode.Code;
-                            i += 2;
-                        }
-                        else
-                        {
-                            i++;
-                        }
-
-                        break;
-                    case Mode.RegularString:
-                        if (c == '"')
-                        {
-                            mode = Mode.Code;
-                        }
-
-                        i += c == '\\' ? 2 : 1;
-                        break;
-                    case Mode.VerbatimString when c == '"' && At(line, i + 1) == '"':
-                        i += 2;
-                        break;
-                    case Mode.VerbatimString:
-                        if (c == '"')
-                        {
-                            mode = Mode.Code;
-                        }
-
-                        i++;
-                        break;
-                    case Mode.RawString when c == '"' && QuoteRun(line, i) >= rawQuotes:
-                        mode = Mode.Code;
-                        i += QuoteRun(line, i);
-                        break;
-                    default:
-                        i++;
-                        break;
-                }
+                i = Step(line, i, frames, kept);
             }
 
-            // A regular string cannot span lines; an unclosed one is a malformed read.
-            if (mode == Mode.RegularString)
+            // Only an interpolation hole lets a regular string span lines; one left
+            // open with no hole above it is unterminated, so the read restarts as code.
+            if (frames.Peek().Mode == Mode.RegularString)
             {
-                mode = Mode.Code;
+                frames.Pop();
             }
 
             code[n] = kept.ToString();
         }
 
         return code;
+    }
+
+    private static int Step(string line, int i, Stack<Frame> frames, StringBuilder kept)
+    {
+        Frame top = frames.Peek();
+        char c = line[i];
+        switch (top.Mode)
+        {
+            case Mode.Code when c == '/' && At(line, i + 1) == '/':
+                return line.Length;
+            case Mode.Code when c == '/' && At(line, i + 1) == '*':
+                frames.Push(new Frame(Mode.BlockComment));
+                return i + 2;
+            case Mode.Code when c == '"':
+                return OpenString(line, i, frames, kept);
+            case Mode.Code when c == '\'':
+                int close = line.IndexOf('\'', i + (At(line, i + 1) == '\\' ? 3 : 2));
+                kept.Append('_');
+                return close < 0 ? line.Length : close + 1;
+            case Mode.Code when top.IsHole && c == '{':
+                top.Depth++;
+                kept.Append(c);
+                return i + 1;
+            case Mode.Code when top.IsHole && c == '}':
+                if (top.Depth == 0)
+                {
+                    frames.Pop();
+                    return i + 1;
+                }
+
+                top.Depth--;
+                kept.Append(c);
+                return i + 1;
+            case Mode.Code:
+                kept.Append(c);
+                return i + 1;
+            case Mode.BlockComment when c == '*' && At(line, i + 1) == '/':
+                frames.Pop();
+                return i + 2;
+            case Mode.RegularString when c == '\\':
+                return i + 2;
+            case Mode.VerbatimString when c == '"' && At(line, i + 1) == '"':
+                return i + 2;
+            case Mode.RegularString or Mode.VerbatimString when c == '"':
+                frames.Pop();
+                return i + 1;
+            case Mode.RegularString or Mode.VerbatimString when top.Dollars > 0 && c == '{':
+                if (At(line, i + 1) == '{')
+                {
+                    return i + 2;
+                }
+
+                frames.Push(Frame.Hole());
+                return i + 1;
+            case Mode.RawString when c == '"' && QuoteRun(line, i) >= top.Quotes:
+                frames.Pop();
+                return i + top.Quotes;
+            case Mode.RawString when top.Dollars > 0 && c == '{':
+                int run = BraceRun(line, i);
+                if (run >= top.Dollars)
+                {
+                    frames.Push(Frame.Hole());
+                }
+
+                return i + run;
+            default:
+                return i + 1;
+        }
+    }
+
+    // The prefix decides before the quote run: a raw literal takes no `@`, and
+    // `@""""` is a verbatim one-quote string, not a raw opener.
+    private static int OpenString(string line, int i, Stack<Frame> frames, StringBuilder kept)
+    {
+        int dollars = 0;
+        bool verbatim = false;
+        for (int back = i - 1; back >= 0 && line[back] is '$' or '@'; back--)
+        {
+            dollars += line[back] == '$' ? 1 : 0;
+            verbatim |= line[back] == '@';
+        }
+
+        kept.Append('_');
+        int quotes = QuoteRun(line, i);
+        if (!verbatim && quotes >= 3)
+        {
+            frames.Push(new Frame(Mode.RawString) { Quotes = quotes, Dollars = dollars });
+            return i + quotes;
+        }
+
+        frames.Push(new Frame(verbatim ? Mode.VerbatimString : Mode.RegularString)
+        {
+            Dollars = dollars,
+        });
+        return i + 1;
+    }
+
+    private static int BraceRun(string line, int start)
+    {
+        int end = start;
+        while (end < line.Length && line[end] == '{')
+        {
+            end++;
+        }
+
+        return end - start;
     }
 
     private static char At(string line, int index) =>
@@ -211,5 +261,20 @@ public class FormattingSweepTests
         }
 
         return end - start;
+    }
+
+    private sealed class Frame(Mode mode)
+    {
+        public Mode Mode { get; } = mode;
+
+        public bool IsHole { get; private init; }
+
+        public int Depth { get; set; }
+
+        public int Quotes { get; init; }
+
+        public int Dollars { get; init; }
+
+        public static Frame Hole() => new(Mode.Code) { IsHole = true };
     }
 }
