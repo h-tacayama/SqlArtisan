@@ -256,6 +256,21 @@ public class DeleteTests
     }
 
     [Fact]
+    public void DeleteFrom_SqlServer_FromJoinOnAllConditionsExcluded_ThrowsArgumentException()
+    {
+        TestTable t = new("t");
+        TestTable s = new("s");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+            .From(t)
+            .InnerJoin(s).On(ConditionIf(false, t.Code == s.Code))
+            .Build(Dbms.SqlServer));
+
+        Assert.Equal("A JOIN's ON clause requires a condition.", ex.Message);
+    }
+
+    [Fact]
     public void DeleteFrom_MySql_FromJoin_CorrectSql()
     {
         TestTable t = new("t");

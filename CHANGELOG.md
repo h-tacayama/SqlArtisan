@@ -54,6 +54,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   assignment.` The `SET`, `UPDATE SET` and `DO UPDATE SET` lists are reworded
   the same way (`The SET assignment list ...`,
   `The left side of each SET assignment ...`). (#582)
+- An empty join `ON` in a joined `UPDATE` or `DELETE` now reads
+  `A JOIN's ON clause requires a condition.`: the `SELECT` message's
+  "an unconditioned join is a CROSS JOIN" pointed at a `CrossJoin` those chains
+  do not have. The `SELECT` message is unchanged. (#582)
 - **Breaking:** `WhenMatched(condition)` and `WhenNotMatched(condition)` no
   longer offer Oracle's action `Where(...)` / `DeleteWhere(...)`: Oracle has no
   `AND` on `WHEN`, and PostgreSQL and SQL Server have no action `WHERE`, so the
