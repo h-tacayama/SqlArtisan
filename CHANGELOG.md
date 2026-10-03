@@ -176,8 +176,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   the statement. A block that reads the target as its own relation builds as
   before; aliasing the target is the fix for the rest. Each branch of a set
   operator is a block of its own, so a branch that lists the target does not
-  cover one that correlates; a compound's trailing `ORDER BY`, which names its
-  result columns, may still name the target's column. (#607, #611)
+  cover one that correlates; a compound's trailing `ORDER BY` may still name the
+  target's column where a branch lists the target. (#607, #611)
 - `SQLA0300` no longer reports a target column inside a CTE body, where a
   `With(...)` chain sits in a subquery or a MERGE `USING` source. It warned on
   a body that reads the target as its own relation, which builds; `Build()`

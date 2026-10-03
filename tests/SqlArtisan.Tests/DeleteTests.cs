@@ -426,6 +426,31 @@ public class DeleteTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    // With no branch listing the target, the ORDER BY name can only reach a
+    // branch's own column of that name.
+    [Fact]
+    public void DeleteFrom_CteBodyOrderByTargetColumnNoListing_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestTable x = new("x");
+        TestCte cte = new("cte");
+        DbColumn cteCode = new(cte, "code");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(
+                Select(r.Code).From(r)
+                .Union.Select(x.Code).From(x)
+                .OrderBy(t.Code)))
+            .DeleteFrom(t)
+            .Where(t.Code.In(Select(cteCode).From(cte)))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
     // The last branch is checked before the compound's ORDER BY takes over.
     [Fact]
     public void DeleteFrom_CteBodyLastBranchCorrelatingBeforeOrderBy_ThrowsArgumentException()

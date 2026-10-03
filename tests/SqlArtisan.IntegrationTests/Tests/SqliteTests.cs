@@ -524,8 +524,24 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
         transaction.Rollback();
     }
 
-    // A compound's trailing ORDER BY names its result columns, so the target's
-    // bare column there builds and runs (#611).
+    // A compound ORDER BY name matching no result column resolves through a
+    // branch's FROM to a column that branch selects, or is rejected (#611).
+    [Fact]
+    public void CompoundOrderBy_NameMatchingNoResultColumn_ResolvesThroughBranchFrom()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        IEnumerable<int> rows = connection.Query<int>(
+            "SELECT o.user_id FROM orders o UNION SELECT o.id FROM orders o ORDER BY id");
+        DbException ex = Assert.ThrowsAny<DbException>(() => connection.Query<int>(
+            "SELECT o.user_id FROM orders o UNION SELECT o.user_id FROM orders o ORDER BY id"));
+
+        Assert.NotEmpty(rows);
+        Assert.Contains("does not match any column in the result set", ex.Message);
+    }
+
+    // A branch listing the target reads it as its own relation, so the target's
+    // bare column in the compound's ORDER BY builds and runs (#611).
     [Fact]
     public void CorrelatedCteBody_CompoundOrderByTargetColumn_Executes()
     {

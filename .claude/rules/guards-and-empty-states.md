@@ -299,12 +299,16 @@ shadow the column, so the rule matches the guard's plain-subquery reading. Each
 set-operator branch is a block of its own, so a listing in one branch does not
 cover a correlation in another (#611,
 `DeleteFrom_CteBodyBranchCorrelatingUnaliasedTarget_ThrowsArgumentException`).
-A compound's trailing `ORDER BY` names its result columns, so a target column
-there is exempt, once the last branch has been checked
+A target column in a compound's trailing `ORDER BY` passes only where some branch
+lists the target, checked after the last branch: SQLite 3.50.4 resolves an
+`ORDER BY` name matching no result column through a branch's FROM
+(`CompoundOrderBy_NameMatchingNoResultColumn_ResolvesThroughBranchFrom`), so
+without a listing it reaches a branch's own column
 (`DeleteFrom_CteBodyCompoundOrderByTargetColumn_CorrectSql`,
-`CorrelatedCteBody_CompoundOrderByTargetColumn_Executes`). The guard keys on the
-target *instance*: a second, unaliased instance of the target table inside the
-subquery renders the tautology unguarded (`Update(new T()) ... new T().Id`), the
+`DeleteFrom_CteBodyOrderByTargetColumnNoListing_ThrowsArgumentException`). The
+guard keys on the target *instance*: a second, unaliased instance of the target
+table inside the subquery renders the tautology unguarded
+(`Update(new T()) ... new T().Id`), the
 same instance-identity fact ADR 0014 records for the analyzer — the harness
 template uses one instance for that reason.
 
