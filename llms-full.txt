@@ -4552,12 +4552,12 @@ value does.
 ## Correlated DML target (SQLA0300)
 
 An UPDATE, DELETE, or MERGE whose subquery — or, for MERGE, whose `USING`
-source — references a column of the **unaliased** target table is silently
-wrong: the bare outer column can resolve to the inner table, and then the
-subquery no longer depends on the outer row and the statement updates or
-deletes the wrong rows. `Build()` rejects this statement at run time;
-`SQLA0300` is the same finding surfaced at compile time, where the fix is
-cheapest.
+source — references a column of the **unaliased** target table can be
+silently wrong: the bare outer column can resolve to the inner table, and
+then the subquery no longer depends on the outer row and the statement
+updates or deletes the wrong rows. `Build()` rejects this statement at run
+time; `SQLA0300` is the same finding surfaced at compile time, where the fix
+is cheapest.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -4587,14 +4587,17 @@ report a statement that builds. Known cases include:
 - a `With(...)` chain passed as a subquery or as a MERGE `USING` source,
   whose CTE body reads the target inside a query block that lists the
   target in its own `FROM` or join;
-- a CTE body whose set-operator branches split the two, one listing the
-  target and another reading it: the run-time guard checks those branches
-  as one block, while the warning gives the reading column the verdict the
-  guard gives it anywhere else. Neither sees whether that branch's table
-  has a column of the same name, so the statement may or may not bind the
-  wrong table.
+- a CTE body of such a chain whose set-operator branches split the two, one
+  listing the target and another reading it: the run-time guard checks those
+  branches as one block, while the warning gives the reading column the
+  verdict the guard gives it anywhere else. Neither sees whether that
+  branch's table has a column of the same name, so the statement may or may
+  not bind the wrong table.
 
-It fires on every configured dialect, because the wrong-scope
+A top-level `With(...)` body is not walked at all, so a target column read
+there stays silent and is left to `Build()`.
+
+The warning fires on every configured dialect, because the wrong-scope
 resolution is universal, not a dialect fact.
 
 The warning reports only what is provable from the source. The target must
