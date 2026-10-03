@@ -15,9 +15,9 @@ namespace SqlArtisan.Analyzers;
 /// compile time (#256, advisory per ADR 0014).
 /// </summary>
 /// <remarks>
-/// Unprovable shapes fail toward silence (ADR 0003). The one false positive
-/// outside ADR 0014's Unsafe.AsRef escape: a CTE body block listing the
-/// target reports though Build() accepts it (#610).
+/// Unprovable shapes fail toward silence (ADR 0003). The shapes that still
+/// report a statement that builds (#610 among them) are scoped out of the
+/// soundness claim in ADR 0014.
 /// </remarks>
 internal static class CorrelatedDmlRule
 {

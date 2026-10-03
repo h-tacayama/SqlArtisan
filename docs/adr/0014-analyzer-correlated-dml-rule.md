@@ -34,8 +34,7 @@ define the rule class:
   every analyzer trigger shape has a twin test that executes
   `Build()` and asserts the real `ArgumentException`, so "the analyzer
   fires only where the runtime throws" is proven by execution, not
-  argument — bar the two known false positives recorded below (#610 and
-  the `Unsafe.AsRef` escape).
+  argument, within the scope the soundness claim below sets out.
 - **Symbol-identity proof.** The first rule keyed on `ISymbol` comparison
   rather than member names: the target (argument 0 of `Update`/`DeleteFrom`,
   a local or a this-bound `readonly` field) must be the same symbol as the
@@ -64,16 +63,18 @@ throwing where a block correlates without listing the target (#607); this walk
 does not model a block's listing, so it leaves top-level bodies to `Build()`.
 When a `With(...)` chain is passed as a subquery argument, its CTE bodies are
 walked as the Select-headed chains they are, while its main SELECT stays the
-`With(...)`-headed false negative below. So a block inside such a body
-that lists the target in its own FROM or join — at any depth, with the
-chain passed as a subquery or as a MERGE `USING` source — reports though
-`Build()` accepts it: a known false positive, tracked in #610.
+`With(...)`-headed false negative below. So a target column read inside
+such a body reports whatever its block lists — with the chain passed as a
+subquery or as a MERGE `USING` source. Where its own block lists the
+target, `Build()` accepts it: a false positive, tracked in #610. Where only
+a sibling set-operator branch lists it, `Build()` accepts it too, but the
+SQL is the tautology (the runtime's documented set-operator gap), so that
+report is correct.
 Descent stops
 at lambdas/local functions.
 
 Accepted false negatives (the ADR 0003 direction — silence over a false
-positive; #610 above and the `Unsafe.AsRef` escape below are the two
-known false positives): table classes from referenced assemblies (no
+positive, within the soundness claim below): table classes from referenced assemblies (no
 declaration syntax), non-readonly fields, helper indirection for the
 table or the subquery, a builder split across statements, and
 `With(...)`-headed subqueries. A joined UPDATE/DELETE (`.From(...)` /
@@ -96,9 +97,15 @@ against: reassigning the target through an `in` parameter via
 the no-write scan to count, so a target realiased that way can still be
 reported on code that builds. Detecting it would need semantic-model
 argument binding for every call — cost out of proportion to code that
-defeats the language's own readonly-ref semantics. The soundness claim is
-therefore "never a false positive on code that respects readonly-ref
-semantics," save the nested CTE body tracked in #610.
+defeats the language's own readonly-ref semantics.
+
+The rule identifies a target column by its receiver symbol, not by the
+column's run-time owner, so a table class exposing another instance's
+`DbColumn` (`public DbColumn OrderId => _o.Id;`) reports on code that
+builds. TableClassGen emits columns owned by their own instance. The
+soundness claim is therefore scoped: no false positive on code that
+respects readonly-ref semantics and whose table classes own their columns,
+save the CTE body blocks tracked in #610.
 
 Identity decisions follow ADR 0013: standard Roslyn suppression only, no
 `sqlartisan_*` key family (a construct-override key would misdescribe the

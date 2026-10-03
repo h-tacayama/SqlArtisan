@@ -6,8 +6,8 @@ namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
 /// The empirical parity gate for SQLA0300: a reported shape throws the same
-/// finding at Build(), an exempt shape builds. A CTE body block listing the
-/// target reports yet builds — the known exception, outside this gate (#610).
+/// finding at Build(), an exempt shape builds. Shapes ADR 0014 scopes out of
+/// its soundness claim (#610 among them) sit outside this gate.
 /// </summary>
 public class CorrelatedDmlParityTests
 {

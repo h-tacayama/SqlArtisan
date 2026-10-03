@@ -28,8 +28,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
     // Fits the padding beside _disposed, so it costs no build an allocation.
     private bool _qualifyReturningByTableName;
     // Inside a CTE body the guard defers to each query block's end: a target
-    // column is legitimate only where its own block lists the target (#607). One
-    // byte in the padding beside _disposed, so it costs no build an allocation.
+    // column is legitimate only where its own block lists the target (#607).
+    // A byte flags enum, so it shares that padding.
     private CteGuard _cteGuard;
 
     internal SqlBuildingBuffer(Dbms dbms)
