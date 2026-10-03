@@ -197,7 +197,7 @@ public class DeleteTests
             ex.Message);
     }
 
-    // SQLite resolves a top-level CTE body's outer reference at its use site.
+    // A top-level body is no shelter: the bare code binds "r".code here.
     [Fact]
     public void DeleteFrom_TopLevelCteBodyCorrelatingUnaliasedTarget_ThrowsArgumentException()
     {

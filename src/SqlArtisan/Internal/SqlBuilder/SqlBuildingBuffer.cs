@@ -401,8 +401,8 @@ internal sealed class SqlBuildingBuffer : IDisposable
             ? name[1..^1]
             : name;
 
-    // A CTE body may read the target as its own relation (#253), so the guard
-    // defers to each block's end; a SQLite body correlates even at top level
+    // A body may list the target (#253), so the guard defers to each block's end;
+    // elsewhere a bare column can bind the body's same-named one, top level too
     // (#607). An aliased RETURNING target stays unless the body rebinds it (#595).
     internal void FormatCteBody(ISubquery body)
     {
