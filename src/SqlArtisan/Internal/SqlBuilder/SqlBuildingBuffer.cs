@@ -471,7 +471,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
 
     // A compound ORDER BY name picks a result column (SQLite 3.50.4 also through a
     // branch's FROM); a target column there passes only where a branch lists the
-    // target, else only the outer row is left (#253). The last branch goes first.
+    // target, as in any block. The last branch is checked first.
     internal SqlBuildingBuffer BeginCompoundOrderBy()
     {
         EndSetOperatorBranch();

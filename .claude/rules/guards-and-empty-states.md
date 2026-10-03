@@ -309,8 +309,8 @@ selects it (`CompoundOrderBy_NameMatchingNoResultColumn_ResolvesThroughBranchFro
 so on SQLite 3.50.4 it can land on another branch's expression but never on the
 outer row; the other engines are not verified. That is the compound choosing
 among its own columns, so it stays outside the guard. With no listing the target
-cannot be what the name means, so its author can only have meant the outer row,
-which the name does not reach — #253's silent rebinding. The
+cannot be what the name means, so the bare target column is rejected as in any
+block that does not list the target. The
 guard keys on the target *instance*: a second, unaliased instance of the target
 table inside the subquery renders the tautology unguarded
 (`Update(new T()) ... new T().Id`), the same instance-identity fact ADR 0014
