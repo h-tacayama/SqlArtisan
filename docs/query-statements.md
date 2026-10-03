@@ -837,9 +837,10 @@ SqlStatement sql =
 ### Correlated UPDATE / DELETE
 
 A target-table column referenced inside a subquery renders bare when the
-target has no alias, and every engine resolves it to the subquery's own
-table — the subquery no longer depends on the outer row, so the statement
-silently updates or deletes the **wrong rows**. SqlArtisan refuses to build that form; `Build()` throws:
+target has no alias, and it can resolve to the subquery's own table — the
+subquery then no longer depends on the outer row, so the statement silently
+updates or deletes the **wrong rows**. SqlArtisan refuses to build that
+form; `Build()` throws:
 
 > The target of a correlated UPDATE, DELETE, or MERGE must be aliased.
 

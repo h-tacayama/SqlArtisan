@@ -286,9 +286,11 @@ it (#253, #607; `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and
 `DeleteFrom_CteBodyNestedSubqueryReferencingTarget_CorrectSql` pin the listed
 shapes). The check waits for the block's end
 because its FROM follows its SELECT list. A block that does not list the target
-reaches it only by correlation, where a bare column binds the block's own
-relation. That holds for a top-level `With(...)` body too, since SQLite 3.50.4
-resolves a body at its use site
+reaches it only by correlation, and the guard cannot see the schema to tell
+whether a bare column there binds the target or a same-named column of the
+block's own relation, so it rejects it, as the plain-subquery guard does. That
+holds for a top-level `With(...)` body too, since SQLite 3.50.4 resolves a body
+at its use site, where the bare column bound the body's own same-named column
 (`CorrelatedCteBody_BareTargetColumn_BindsTheBodysRelation`). A listing in a
 sibling or an enclosing block does not count: a relation in between can still
 shadow the column, so the rule matches the guard's plain-subquery reading. Set

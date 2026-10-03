@@ -69,8 +69,10 @@ such a body reports whatever its block lists — with the chain passed as a
 subquery or as a MERGE `USING` source. Where its own block lists the
 target, `Build()` accepts it: a false positive, tracked in #610. Where only
 a sibling set-operator branch lists it, `Build()` accepts it too (the
-runtime's documented set-operator gap), but the bare column binds that
-branch's own relation rather than the target, so that report is correct.
+runtime's documented set-operator gap); the report there is the verdict the
+guard gives that bare column in any block that does not list the target.
+Neither side sees the schema, so whether the branch's relation shadows the
+column, making the statement wrong, is not something either can decide.
 Descent stops at lambdas/local functions.
 
 Accepted false negatives (the ADR 0003 direction — silence where the walk
