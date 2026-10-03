@@ -306,10 +306,11 @@ had (`DeleteFrom_CteBodyCompoundOrderByTargetColumn_CorrectSql`,
 listing is necessary, not sufficient: an `ORDER BY` name picks a result column,
 which SQLite 3.50.4 also finds through a branch's FROM and rejects when no branch
 selects it (`CompoundOrderBy_NameMatchingNoResultColumn_ResolvesThroughBranchFrom`),
-so it can land on another branch's expression but never on the outer row. That is
-the compound choosing among its own columns, so it stays outside the guard. With
-no listing the target cannot be what the name means, so its author can only have
-meant the outer row, which the name never reaches — #253's silent rebinding. The
+so on SQLite 3.50.4 it can land on another branch's expression but never on the
+outer row; the other engines are not verified. That is the compound choosing
+among its own columns, so it stays outside the guard. With no listing the target
+cannot be what the name means, so its author can only have meant the outer row,
+which the name does not reach — #253's silent rebinding. The
 guard keys on the target *instance*: a second, unaliased instance of the target
 table inside the subquery renders the tautology unguarded
 (`Update(new T()) ... new T().Id`), the same instance-identity fact ADR 0014
