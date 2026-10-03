@@ -468,7 +468,7 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
     // The hazard the guard stops in a CTE body (#607): a bare target column binds
     // orders.id, so EXISTS holds for all five users, not the four with orders,
-    // nested or at top level alike.
+    // nested or at top level alike, and beside a branch that lists users (#611).
     [Fact]
     public void CorrelatedCteBody_BareTargetColumn_BindsTheBodysRelation()
     {
@@ -481,6 +481,9 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
                 + "WHERE o.user_id = id) SELECT c.id FROM c) RETURNING id",
             "WITH c AS (SELECT o.id FROM orders o WHERE o.user_id = id) "
                 + "UPDATE users SET age = age WHERE EXISTS (SELECT c.id FROM c) RETURNING id",
+            "UPDATE users SET age = age WHERE EXISTS (WITH c AS (SELECT id FROM users "
+                + "WHERE id IS NULL UNION SELECT o.id FROM orders o WHERE o.user_id = id) "
+                + "SELECT c.id FROM c) RETURNING id",
         ];
         foreach (string statement in statements)
         {
@@ -518,6 +521,31 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
 
         Assert.Equal(new[] { 1, 2, 3, 5 }, nested.OrderBy(id => id));
         Assert.Equal(new[] { 1, 2, 3, 5 }, topLevel.OrderBy(id => id));
+        transaction.Rollback();
+    }
+
+    // A compound's trailing ORDER BY names its result columns, so the target's
+    // bare column there builds and runs (#611).
+    [Fact]
+    public void CorrelatedCteBody_CompoundOrderByTargetColumn_Executes()
+    {
+        UsersTable u = new();
+        OrdersTable o = new("o");
+        Cte ids = new("ids");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        IEnumerable<int> updated = connection.Query<int>(
+            With(ids.As(
+                Select(u.Id).From(u).Where(u.Id == 1)
+                .Union.Select(o.UserId).From(o).Where(o.UserId == 5)
+                .OrderBy(u.Id)))
+                .Update(u).Set(u.Age == u.Age)
+                .Where(u.Id.In(Select(ids.Column("id")).From(ids)))
+                .Returning(u.Id),
+            transaction);
+
+        Assert.Equal(new[] { 1, 5 }, updated.OrderBy(id => id));
         transaction.Rollback();
     }
 

@@ -174,9 +174,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   block's own relation silently: SQLite 3.50.4 updated every row instead of
   the four that matched, whether the CTE was nested in a subquery or headed
   the statement. A block that reads the target as its own relation builds as
-  before; aliasing the target is the fix for the
-  rest. The branches of a set operator are checked as one block, so a branch
-  that lists the target still covers a correlating branch. (#607)
+  before; aliasing the target is the fix for the rest. Each branch of a set
+  operator is a block of its own, so a branch that lists the target does not
+  cover one that correlates; a compound's trailing `ORDER BY`, which names its
+  result columns, may still name the target's column. (#607, #611)
+- `SQLA0300` no longer reports a target column inside a CTE body, where a
+  `With(...)` chain sits in a subquery or a MERGE `USING` source. It warned on
+  a body that reads the target as its own relation, which builds; `Build()`
+  now guards every CTE body, so a body that correlates still fails there.
+  (#610)
 - `Returning(...)` on SQLite qualifies an aliased target's columns by the table
   name — `UPDATE users AS "u" ... RETURNING users.id` — where it emitted
   `"u".id`, which SQLite rejects (`no such column: u.id`, live-verified on

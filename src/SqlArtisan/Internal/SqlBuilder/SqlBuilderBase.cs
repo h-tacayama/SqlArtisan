@@ -130,8 +130,14 @@ internal abstract class SqlBuilderBase
     {
         ThrowIfDuplicateClauseInBlock();
         Validate(buffer.Dbms);
-        buffer.AppendSpaceSeparated(CollectionsMarshal.AsSpan(_parts));
+        AppendNestedParts(buffer, CollectionsMarshal.AsSpan(_parts));
     }
+
+    // Hook for a nested render that marks part of its clauses for the guard.
+    protected virtual void AppendNestedParts(
+        SqlBuildingBuffer buffer,
+        ReadOnlySpan<SqlPart> parts) =>
+        buffer.AppendSpaceSeparated(parts);
 
     // One entry per clause kind a query block takes at most once; grouped
     // types count as one kind, and clauses that legally repeat stay out.

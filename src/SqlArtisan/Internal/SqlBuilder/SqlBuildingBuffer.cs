@@ -454,6 +454,21 @@ internal sealed class SqlBuildingBuffer : IDisposable
         }
     }
 
+    // Each set-operator branch is its own block (#611).
+    internal SqlBuildingBuffer EndSetOperatorBranch()
+    {
+        ThrowIfBlockCorrelates();
+        _cteGuard &= CteGuard.InBody;
+        return this;
+    }
+
+    // A compound's trailing ORDER BY names its result columns, so a bare target
+    // column there reaches no outer scope: the last branch is checked first, and
+    // what the ORDER BY reads is dropped after it.
+    internal SqlBuildingBuffer BeginCompoundOrderBy() => EndSetOperatorBranch();
+
+    internal void EndCompoundOrderBy() => _cteGuard &= CteGuard.InBody;
+
     // Checked once a block is fully rendered, since its FROM follows its SELECT
     // list. A listing elsewhere does not count: an enclosing block's relation
     // can be shadowed by one in between, which is #253's tautology again.

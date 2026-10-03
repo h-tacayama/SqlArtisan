@@ -16,7 +16,7 @@ namespace SqlArtisan.Analyzers;
 /// </summary>
 /// <remarks>
 /// Unprovable shapes fail toward silence (ADR 0003), but the rule is not free
-/// of false positives: ADR 0014 records the known cases (#610 among them).
+/// of false positives: ADR 0014 records the known cases.
 /// </remarks>
 internal static class CorrelatedDmlRule
 {
@@ -291,6 +291,16 @@ internal static class CorrelatedDmlRule
         if (IsTargetColumn(node, target) && IsInsideSubquery(node, root))
         {
             return node;
+        }
+
+        // CTE bodies are left to Build(), which guards them block by block (#607,
+        // #611); a body may list the target as its own relation (#610).
+        if (node is IInvocationOperation { TargetMethod.Name: "With" or "WithRecursive" } with
+            && DialectUsageAnalyzer.IsFromSqlArtisan(with.TargetMethod.ContainingAssembly))
+        {
+            return with.Instance is { } receiver
+                ? FindCorrelatedColumn(receiver, target, root)
+                : null;
         }
 
         foreach (IOperation child in node.ChildOperations)
