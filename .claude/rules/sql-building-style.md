@@ -2,6 +2,7 @@
 description: SQL emission style — one-token keyword atoms, const-interpolated phrases, buffer spacing helpers
 paths:
   - "src/SqlArtisan/Internal/**/*.cs"
+  - "src/SqlArtisan/SqlPart/**/*.cs"
 ---
 
 # SQL building style (keywords & spacing)

@@ -117,9 +117,9 @@ SqlStatement sql =
 ```
 
 For `Format` chains over `SqlBuildingBuffer` (under
-`src/SqlArtisan/Internal/**`), `sql-building-style.md` rule 4 is the
-authority — it additionally lets a short statement chain in a block body
-stay on one line.
+`src/SqlArtisan/Internal/**` and `src/SqlArtisan/SqlPart/**`),
+`sql-building-style.md` rule 4 is the authority — it additionally lets a
+short statement chain in a block body stay on one line.
 
 ## Wrapped operators
 
