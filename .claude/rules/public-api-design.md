@@ -1,5 +1,5 @@
 ---
-description: Public API design decisions — naming categories, overload split for analyzer arity, collection parameters, factory return types, no opinion-holes
+description: Public API design decisions — naming categories, overload split for analyzer arity, collection parameters, operator overloads, factory return types, no opinion-holes
 paths:
   - "src/SqlArtisan/Sql/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
@@ -284,6 +284,31 @@ members, not constructors; and three independent optional parameters would
 need eight overloads where named arguments read naturally. The difference
 between `BindNull(DbType)` and `BindValue`'s `DbType?` is this boundary, not
 an inconsistency.
+
+## Operator overloads: every operand order binds to SqlArtisan or fails to compile
+
+When no user-defined operator applies, C# falls back to its built-in ones.
+`string + object` is built in, so with only `operator +(SqlExpression, object)`
+the call `"Dr. " + col` compiles as string concatenation through
+`ToString()`. The text `"Dr. SqlArtisan.DbColumn"` is then auto-parameterized,
+and the query runs with wrong rows (#613). For every overloaded operator,
+enumerate the operand orders a caller can write: a literal or a nullable
+variable on either side, and `null`. Each order must either bind a SqlArtisan
+operator or fail to compile (CS0019). Adding the missing order after 1.0
+changes the emitted SQL of code that already compiles, which is a major
+version.
+
+- Name the concrete left type (`(string, SqlExpression)`), never `object`. An
+  `(object, SqlExpression)` overload makes `col + col` and `col + null`
+  ambiguous (CS0034).
+- Every compound operand renders inside parentheses (`(l op r)`, and each
+  operand of `AND` / `OR`), so the emitted SQL keeps the C# tree whatever
+  each engine's precedence is. A node that drops them changes rows.
+- `==` / `!=` override `Equals` / `GetHashCode` by reference, which keeps
+  CS0660/CS0661 quiet without a suppression. Their shared return type is
+  CS0216's (§ "Recorded trade-offs").
+- Interpolation (`$"{col}"`) reaches `ToString()` without any operator, so no
+  overload can close it. It is left to the analyzer (#613).
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 
