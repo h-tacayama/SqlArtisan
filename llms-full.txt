@@ -4597,12 +4597,13 @@ report a statement that builds. Known cases include:
   target in its own `FROM` or join;
 - a CTE body of such a chain whose set-operator branches split the two, one
   listing the target and another reading it: the run-time guard checks those
-  branches as one block, while the warning gives the reading column the
-  verdict the guard gives it anywhere else. Neither sees whether that
-  branch's table has a column of the same name, so the statement may or may
-  not bind the wrong table.
+  branches as one block, so the statement builds. Neither sees whether the
+  reading branch's table has a column of the same name, so the statement may
+  or may not bind the wrong table.
 
-A top-level `With(...)` body is not walked at all, so a target column read
+The warning is reported once per statement, at the first target column in
+source order, which can be a column of a branch that lists the target. A
+top-level `With(...)` body is not walked at all, so a target column read
 there stays silent and is left to `Build()`.
 
 The warning fires on every configured dialect, because the wrong-scope

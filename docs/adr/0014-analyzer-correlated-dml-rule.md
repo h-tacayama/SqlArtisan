@@ -64,14 +64,15 @@ throwing where a block correlates without listing the target (#607); this walk
 does not model a block's listing, so it leaves top-level bodies to `Build()`.
 When a `With(...)` chain is passed as a subquery argument, its CTE bodies are
 walked as the Select-headed chains they are, while its main SELECT stays the
-`With(...)`-headed false negative below. So a target column read inside
-such a body reports whatever its block lists — with the chain passed as a
-subquery or as a MERGE `USING` source. Where its own block lists the
-target, `Build()` accepts it: a false positive, tracked in #610. Where only
-a sibling set-operator branch lists it, `Build()` accepts it too (the
-runtime's documented set-operator gap); the report there is the verdict the
-guard gives that bare column in any block that does not list the target.
-Neither side sees the schema, so whether the branch's relation shadows the
+`With(...)`-headed false negative below. The rule reports once per
+statement, at the first target column it meets in source order, so a body
+holding a target column reports whatever its blocks list — with the chain
+passed as a subquery or as a MERGE `USING` source. Where every such
+column's own block lists the target, `Build()` accepts it: a false
+positive, tracked in #610. Where only a sibling set-operator branch lists
+it, `Build()` accepts it too (the runtime's documented set-operator gap),
+and the diagnostic may sit on the listing branch's own column. Neither side
+sees the schema, so whether the reading branch's relation shadows the
 column, making the statement wrong, is not something either can decide.
 Descent stops at lambdas/local functions.
 
