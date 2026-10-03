@@ -31,10 +31,11 @@ define the rule class:
   enforces — suppressing the diagnostic does not disable the `Build()`
   throw. The message mirrors the guard's message (bar the trailing period
   RS1032 forbids on a single-sentence diagnostic), pinned by a parity test;
-  every analyzer trigger shape has a twin test that executes
-  `Build()` and asserts the real `ArgumentException`, so "the analyzer
-  fires only where the runtime throws" is proven by execution, not
-  argument, within the scope the soundness claim below sets out.
+  each trigger shape in the parity suite has a twin test that executes
+  `Build()` and asserts the real `ArgumentException`, so agreement with the
+  runtime is proven by execution for those shapes, not argued for all. The
+  rule can still report code that builds; the known cases are recorded
+  below.
 - **Symbol-identity proof.** The first rule keyed on `ISymbol` comparison
   rather than member names: the target (argument 0 of `Update`/`DeleteFrom`,
   a local or a this-bound `readonly` field) must be the same symbol as the
@@ -67,19 +68,17 @@ walked as the Select-headed chains they are, while its main SELECT stays the
 such a body reports whatever its block lists — with the chain passed as a
 subquery or as a MERGE `USING` source. Where its own block lists the
 target, `Build()` accepts it: a false positive, tracked in #610. Where only
-a sibling set-operator branch lists it, `Build()` accepts it too, but the
-SQL is the tautology (the runtime's documented set-operator gap), so that
-report is correct.
-Descent stops
-at lambdas/local functions.
+a sibling set-operator branch lists it, `Build()` accepts it too (the
+runtime's documented set-operator gap), but the bare column binds that
+branch's own relation rather than the target, so that report is correct.
+Descent stops at lambdas/local functions.
 
-Accepted false negatives (the ADR 0003 direction — silence over a false
-positive, within the soundness claim below): table classes from referenced assemblies (no
-declaration syntax), non-readonly fields, helper indirection for the
-table or the subquery, a builder split across statements, and
-`With(...)`-headed subqueries. A joined UPDATE/DELETE (`.From(...)` /
-`.Using(...)` / a join step **visible in the same expression chain**) with
-an unaliased target is
+Accepted false negatives (the ADR 0003 direction — silence where the walk
+cannot prove the shape): table classes from referenced assemblies (no
+declaration syntax), non-readonly fields, helper indirection for the table
+or the subquery, a builder split across statements, and `With(...)`-headed
+subqueries. A joined UPDATE/DELETE (`.From(...)` / `.Using(...)` / a join
+step **visible in the same expression chain**) with an unaliased target is
 deliberately silent: its own Build()-time guard throws a *different*
 message ("joined … must be aliased") before the correlated guard arms, so a
 "correlated" diagnostic would misdescribe it — the joined guard is the
@@ -102,10 +101,12 @@ defeats the language's own readonly-ref semantics.
 The rule identifies a target column by its receiver symbol, not by the
 column's run-time owner, so a table class exposing another instance's
 `DbColumn` (`public DbColumn OrderId => _o.Id;`) reports on code that
-builds. TableClassGen emits columns owned by their own instance. The
-soundness claim is therefore scoped: no false positive on code that
-respects readonly-ref semantics and whose table classes own their columns,
-save the CTE body blocks tracked in #610.
+builds; TableClassGen emits columns owned by their own instance. The walk
+is also flow-insensitive: a correlated subquery under `ConditionIf(false,
+…)` or in an untaken `?:` arm reports though it never renders. So the rule
+fails toward silence where it cannot prove a shape, but it is not free of
+false positives: these cases, #610 and the `Unsafe.AsRef` escape are the
+known ones, not a closed list.
 
 Identity decisions follow ADR 0013: standard Roslyn suppression only, no
 `sqlartisan_*` key family (a construct-override key would misdescribe the

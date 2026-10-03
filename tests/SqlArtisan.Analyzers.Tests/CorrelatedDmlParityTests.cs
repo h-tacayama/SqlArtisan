@@ -5,9 +5,9 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// The empirical parity gate for SQLA0300: a reported shape throws the same
-/// finding at Build(), an exempt shape builds. Shapes ADR 0014 scopes out of
-/// its soundness claim (#610 among them) sit outside this gate.
+/// The empirical parity gate for SQLA0300: each shape here that the analyzer
+/// reports throws the same finding at Build(), and each exempt shape builds.
+/// The known cases that report yet build are recorded in ADR 0014 (#610).
 /// </summary>
 public class CorrelatedDmlParityTests
 {

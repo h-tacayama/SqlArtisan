@@ -15,9 +15,8 @@ namespace SqlArtisan.Analyzers;
 /// compile time (#256, advisory per ADR 0014).
 /// </summary>
 /// <remarks>
-/// Unprovable shapes fail toward silence (ADR 0003). The shapes that still
-/// report a statement that builds (#610 among them) are scoped out of the
-/// soundness claim in ADR 0014.
+/// Unprovable shapes fail toward silence (ADR 0003), but the rule is not free
+/// of false positives: ADR 0014 records the known cases (#610 among them).
 /// </remarks>
 internal static class CorrelatedDmlRule
 {

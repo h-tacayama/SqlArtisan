@@ -1036,11 +1036,10 @@ value does.
 ## Correlated DML target (SQLA0300)
 
 An UPDATE, DELETE, or MERGE whose subquery — or, for MERGE, whose `USING`
-source — references a column of the **unaliased** target table is a silent
-tautology: the bare outer column resolves to the
-inner table, so the condition compares a row to itself and the statement
-updates or deletes every row. `Build()` rejects this statement at
-run time; `SQLA0300` is the same finding surfaced at compile time, where
+source — references a column of the **unaliased** target table is silently
+wrong: the bare outer column resolves to the inner table, so the subquery
+no longer depends on the outer row and the statement can update or delete
+the wrong rows. `Build()` rejects this statement at run time; `SQLA0300` is the same finding surfaced at compile time, where
 the fix is cheapest.
 
 ```csharp
@@ -1062,17 +1061,19 @@ dialect, and MERGE has no joined form.
 The diagnostic is **advisory duplication** of the `Build()` guard:
 suppressing it does not stop the exception — the statement still fails to
 build. The analyzer reads the source, not the built statement, so it can
-report a statement that builds. Known cases:
+report a statement that builds. Known cases include:
 
 - a table class whose column members belong to another instance;
+- a correlated subquery that never renders, under `ConditionIf(false, …)`
+  or in an untaken `?:` arm;
 - a `readonly` target rewritten through `Unsafe.AsRef`;
 - a `With(...)` chain passed as a subquery or as a MERGE `USING` source,
   whose CTE body reads the target inside a query block that lists the
   target in its own `FROM` or join.
 
 A CTE body whose set-operator branches split the two, one listing the
-target and another reading it, also builds, but that statement still
-matches every row, so the warning there is correct.
+target and another reading it, also builds, but the bare column there binds
+that branch's own table rather than the target, so the warning is correct.
 
 It fires on every configured dialect, because the wrong-scope
 resolution is universal, not a dialect fact.
