@@ -27,9 +27,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
     private int _subqueryDepth;
     // Fits the padding beside _disposed, so it costs no build an allocation.
     private bool _qualifyReturningByTableName;
-    // Inside a CTE body the guard defers: a target column is a correlation only
-    // if the body never lists the target as a relation (#607). One byte, so it
-    // shares the padding beside _disposed and costs no build an allocation.
+    // Inside a CTE body the guard defers to each query block's end: a target
+    // column is legitimate only where its own block lists the target (#607). One
+    // byte in the padding beside _disposed, so it costs no build an allocation.
     private CteGuard _cteGuard;
 
     internal SqlBuildingBuffer(Dbms dbms)
@@ -337,12 +337,18 @@ internal sealed class SqlBuildingBuffer : IDisposable
             _correlatedDmlTarget = null;
         }
 
+        // Inside a CTE body a subquery is its own block for the deferred guard.
+        CteGuard outer = _cteGuard;
+        _cteGuard &= CteGuard.InBody;
+
         Append('(');
         _subqueryDepth++;
         subquery.Format(this);
+        ThrowIfBlockCorrelates();
         _subqueryDepth--;
         Append(')');
         _correlatedDmlTarget = target;
+        _cteGuard = outer;
         return this;
     }
 
@@ -396,9 +402,9 @@ internal sealed class SqlBuildingBuffer : IDisposable
             : name;
 
     // A CTE body may read the target as its own relation (#253), so the guard
-    // defers to the body's end; a SQLite body correlates even at top level (#607).
-    // An aliased RETURNING target stays unless the body rebinds it (#595).
-    internal void FormatOutsideCorrelatedDmlGuard(ISubquery body)
+    // defers to each block's end; a SQLite body correlates even at top level
+    // (#607). An aliased RETURNING target stays unless the body rebinds it (#595).
+    internal void FormatCteBody(ISubquery body)
     {
         TableReference? target = _correlatedDmlTarget;
         bool guardsTarget = target is DbTableBase { HasAlias: false };
@@ -408,16 +414,12 @@ internal sealed class SqlBuildingBuffer : IDisposable
         }
 
         CteGuard outer = _cteGuard;
-        // A listing in an enclosing body still scopes a nested body's reference.
-        _cteGuard = guardsTarget ? CteGuard.InBody | (outer & CteGuard.TargetListed) : 0;
+        _cteGuard = guardsTarget ? CteGuard.InBody : 0;
 
         try
         {
             body.Format(this);
-            if (_cteGuard == (CteGuard.InBody | CteGuard.TargetColumnSeen))
-            {
-                DmlTargetGuard.ThrowCorrelatedUnaliasedTarget();
-            }
+            ThrowIfBlockCorrelates();
         }
         finally
         {
@@ -443,12 +445,23 @@ internal sealed class SqlBuildingBuffer : IDisposable
         }
     }
 
-    // A CTE body listing the guarded target reads it as its own relation (#253).
+    // A block listing the guarded target reads it as its own relation (#253).
     internal void NoteRelation(TableReference relation)
     {
         if ((_cteGuard & CteGuard.InBody) != 0 && ReferenceEquals(relation, _correlatedDmlTarget))
         {
             _cteGuard |= CteGuard.TargetListed;
+        }
+    }
+
+    // Checked once a block is fully rendered, since its FROM follows its SELECT
+    // list. A listing elsewhere does not count: an enclosing block's relation
+    // can be shadowed by one in between, which is #253's tautology again.
+    private void ThrowIfBlockCorrelates()
+    {
+        if (_cteGuard == (CteGuard.InBody | CteGuard.TargetColumnSeen))
+        {
+            DmlTargetGuard.ThrowCorrelatedUnaliasedTarget();
         }
     }
 

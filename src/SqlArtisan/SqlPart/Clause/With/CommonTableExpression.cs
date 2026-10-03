@@ -171,13 +171,13 @@ public sealed class CommonTableExpression
         return false;
     }
 
-    // Not the EncloseInParentheses(ISubquery) overload: a CTE body is outside the
-    // correlated-DML guard (guards-and-empty-states.md, #253).
+    // Not the EncloseInParentheses(ISubquery) overload: a CTE body takes the
+    // correlated-DML guard deferred (guards-and-empty-states.md, #253, #607).
     private void AppendAsSubquery(SqlBuildingBuffer buffer)
     {
         buffer.EncloseInSpaces(Keywords.As);
         buffer.OpenParenthesis();
-        buffer.FormatOutsideCorrelatedDmlGuard(_subquery);
+        buffer.FormatCteBody(_subquery);
         buffer.CloseParenthesis();
     }
 

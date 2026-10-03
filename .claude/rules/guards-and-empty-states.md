@@ -278,23 +278,25 @@ were admitted as invisible but are visible to ADR 0013's declaring-interface
 mode; they stay on a cost ground (ADR 0011, #569). An entry's condition-1
 sentence is its admission record, so check it before citing it as precedent.
 
-**A CTE body defers the correlated-DML guard to its end (decided — do not
-re-file):** the target instance legitimately appears in a CTE body as the
-CTE's own relation, so a target column there throws only if the body lists
-the target nowhere — the whole body, subqueries nested inside it included
-(#253, #607; `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and the nested
-theory beside it pin the listed shapes). A body that never lists the target
-can reach it only by correlation, where a bare column binds the body's own
+**A CTE body defers the correlated-DML guard to each query block's end
+(decided — do not re-file):** the target instance legitimately appears in a CTE
+body as the CTE's own relation, so a target column there throws only if its own
+block lists the target nowhere — the body's block and each subquery nested in
+it (#253, #607; `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and the nested
+theory beside it pin the listed shapes). The check waits for the block's end
+because its FROM follows its SELECT list. A block that does not list the target
+reaches it only by correlation, where a bare column binds the block's own
 relation. That holds for a top-level `With(...)` body too, since SQLite 3.50.4
 resolves a body at its use site
-(`CorrelatedCteBody_BareTargetColumn_BindsTheBodysRelation`). A listing in an
-enclosing body counts for a nested one. A body that both lists the target and
-correlates with it stays unguarded, as SQL scoping cannot separate the two.
-The guard keys on the target *instance*: a second, unaliased instance of the
-target table inside the subquery renders the tautology unguarded
-(`Update(new T()) ... new T().Id`), the same instance-identity fact ADR 0014
-records for the analyzer — the harness template uses one instance for that
-reason.
+(`CorrelatedCteBody_BareTargetColumn_BindsTheBodysRelation`). A listing in a
+sibling or an enclosing block does not count: a relation in between can still
+shadow the column, so the rule matches the guard's plain-subquery reading. Set
+operator branches of one block share it, so a listing in one branch covers a
+correlation in another — the one shape left unguarded. The guard keys on the
+target *instance*: a second, unaliased instance of the target table inside the
+subquery renders the tautology unguarded (`Update(new T()) ... new T().Id`), the
+same instance-identity fact ADR 0014 records for the analyzer — the harness
+template uses one instance for that reason.
 
 ## The empty-state policy (#236)
 

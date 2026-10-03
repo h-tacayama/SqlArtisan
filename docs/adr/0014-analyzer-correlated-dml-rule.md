@@ -58,9 +58,13 @@ assignment. The subquery boundary is the source image of the runtime's
 `EncloseInParentheses(ISubquery)`: a Select-headed chain bound as an
 argument of a SqlArtisan call, scanned only in the arguments of the chain
 *after* the DML head — `With(...)` CTE bodies sit on the receiver side and
-are structurally invisible. The runtime guards a CTE body only when it never
-lists the target (#607), a fact this walk does not model, so it leaves those
-bodies to `Build()`. Descent stops
+are structurally invisible. The runtime guards a CTE body block by block,
+throwing where a block correlates without listing the target (#607); this walk
+does not model a block's listing, so it leaves top-level bodies to `Build()`.
+A `With(...)` chain passed as a subquery argument is walked like any
+Select-headed subquery, so a nested body whose own block lists the target
+reports though `Build()` accepts it — a known false positive, tracked in #610.
+Descent stops
 at lambdas/local functions.
 
 Accepted false negatives (the ADR 0003 direction — never a false
@@ -128,8 +132,8 @@ the rule fires on every configured target).
   facts (#256's follow-ups in the #232 vision).
 - The Analyzer ADR cluster grows to 0003 + 0008 + 0009 + 0013 + 0014.
 - **A MERGE `USING` derived-table source reading the unaliased target is
-  guarded; a CTE body listing it as its own relation is not** (a body that
-  never lists it is, #607). The source resolves in its own
+  guarded; a CTE body block listing it as its own relation is not** (a block
+  that correlates without listing it is, #607). The source resolves in its own
   scope, as the CTE body does, but it is also where the bare-column tautology
   appears, aliasing the target is the documented remedy, and the loud path
   costs nothing. The asymmetry is deliberate.
