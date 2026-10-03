@@ -848,12 +848,12 @@ The same guard arms `MergeInto(...)`: a target column referenced inside a
 subquery in any `MERGE` clause needs the aliased target too.
 
 > [!WARNING]
-> **Inside a CTE body, the guard checks the branches of a set operator as
-> one block.** A branch that lists the unaliased target in its own `FROM`
-> lets another branch read a bare target column unguarded. Whether that
-> column binds the target or a same-named column of the branch's own table
-> depends on the schema, and under a top-level `With(...)` nothing reports
-> it. Alias the target.
+> **In a CTE body's set operator, a bare target column can silently bind a
+> same-named column of its branch's table once another branch lists the
+> target.** The guard checks those branches as one block, so a branch that
+> lists the unaliased target in its own `FROM` lets another read a bare
+> target column unguarded; which column it binds depends on the schema, and
+> under a top-level `With(...)` nothing reports it. Alias the target.
 
 Alias the target — the outer reference then renders qualified and the
 statement means what it says:
