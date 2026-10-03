@@ -176,7 +176,8 @@ public class DeleteTests
     }
 
     // A CTE body that never lists the target can only reach it by correlation,
-    // where a bare target column binds the body's own relation (#607).
+    // where a bare target column can bind a same-named column of the body's own
+    // relation (#607).
     [Fact]
     public void DeleteFrom_CteBodyInSubqueryCorrelatingUnaliasedTarget_ThrowsArgumentException()
     {
