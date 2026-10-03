@@ -461,6 +461,26 @@ public class CorrelatedDmlAnalyzerTests
             var q = DeleteFrom(t).Where(t.Id.In(With(cte.As(Select(r.Id).From(r))).Select(cte.Column("id")).From(cte).Where(cte.Column("id") == t.Dep)));
             """);
 
+    // CTE bodies are left to Build(), which accepts a body block listing the target
+    // (#610) and throws on one correlating without it (#607, #611).
+    [Theory]
+    [InlineData("Select(t.Id).From(t)")]
+    [InlineData("Select(r.Id).From(r).Where(r.Id.In(Select(t.Id).From(t)))")]
+    [InlineData("Select(t.Id).From(t).Union.Select(r.Id).From(r).Where(r.Dep == t.Dep)")]
+    [InlineData("Select(r.Id).From(r).Where(r.Dep == t.Dep)")]
+    public Task DeleteFrom_NestedCteBody_StaysSilent(string body) =>
+        RunSilent($$"""
+            var cte = new Cte("c");
+            var q = DeleteFrom(t).Where(Exists(With(cte.As({{body}})).Select(cte.Column("id")).From(cte)));
+            """);
+
+    [Fact]
+    public Task MergeInto_UsingCteBodyListingTarget_StaysSilent() =>
+        RunSilent("""
+            var cte = new Cte("c");
+            var q = MergeInto(t).Using(With(cte.As(Select(t.Id).From(t))).Select(cte.Column("id")).From(cte).AsTable("s")).On(t.Id == r.Id).WhenMatched().ThenDelete();
+            """);
+
     // In top-level statements each statement is its own MemberDeclarationSyntax
     // (GlobalStatementSyntax), so a member-bounded write scan would miss the
     // sibling reassignment and false-positive on a statement Build() accepts.

@@ -295,16 +295,27 @@ body's own same-named column, nested or not
 resolves a body at its use site, so without one it can reach the target
 (`CorrelatedCteBody_AliasedTarget_Executes`). A listing in a
 sibling or an enclosing block does not count: a relation in between can still
-shadow the column, so the rule matches the guard's plain-subquery reading. Set
-operator branches of one block share it, so a listing in one branch covers a
-correlation in another — a shape left unguarded. It stays so because the
-guard's state is per block: checking each branch apart would also reject a
-compound's trailing `ORDER BY`, which names its result columns, so closing it
-needs those trailing clauses exempted (#611). The guard keys on the
-target *instance*: a second, unaliased instance of the target table inside the
-subquery renders the tautology unguarded (`Update(new T()) ... new T().Id`), the
-same instance-identity fact ADR 0014 records for the analyzer — the harness
-template uses one instance for that reason.
+shadow the column, so the rule matches the guard's plain-subquery reading. Each
+set-operator branch is a block of its own, so a listing in one branch does not
+cover a correlation in another (#611,
+`DeleteFrom_CteBodyBranchCorrelatingUnaliasedTarget_ThrowsArgumentException`).
+A target column in a compound's trailing `ORDER BY` passes only where some branch
+lists the target, checked after the last branch — the acceptance the shared block
+had (`DeleteFrom_CteBodyCompoundOrderByTargetColumn_CorrectSql`,
+`DeleteFrom_CteBodyOrderByTargetColumnNoListing_ThrowsArgumentException`). The
+listing is necessary, not sufficient: an `ORDER BY` name picks a result column,
+which SQLite 3.50.4 also finds through a branch's FROM and rejects when no branch
+selects it (`CompoundOrderBy_NameMatchingNoResultColumn_ResolvesThroughBranchFrom`),
+so on SQLite 3.50.4 it can land on another branch's expression but never on the
+outer row; the other engines are not verified. That is the compound choosing
+among its own columns, so it stays outside the guard. With no listing the target
+cannot be what the name means, so the bare target column is rejected as in any
+block that does not list the target. The
+guard keys on the target *instance*: a second, unaliased instance of the target
+table inside the subquery renders the tautology unguarded
+(`Update(new T()) ... new T().Id`), the same instance-identity fact ADR 0014
+records for the analyzer — the harness template uses one instance for that
+reason.
 
 ## The empty-state policy (#236)
 
