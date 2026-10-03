@@ -69,11 +69,11 @@ positive, tracked in #610.
 Descent stops
 at lambdas/local functions.
 
-Accepted false negatives (the ADR 0003 direction — never a false
-positive): table classes from referenced assemblies (no declaration
-syntax), non-readonly fields, helper indirection for the table or the
-subquery, a builder split across statements, and `With(...)`-headed
-subqueries. A joined UPDATE/DELETE (`.From(...)` / `.Using(...)` / a join
+Accepted false negatives (the ADR 0003 direction — silence over a false
+positive, #610 the one known exception): table classes from referenced
+assemblies (no declaration syntax), non-readonly fields, helper
+indirection for the table or the subquery, a builder split across
+statements, and `With(...)`-headed subqueries. A joined UPDATE/DELETE (`.From(...)` / `.Using(...)` / a join
 step **visible in the same expression chain**) with an unaliased target is
 deliberately silent: its own Build()-time guard throws a *different*
 message ("joined … must be aliased") before the correlated guard arms, so a
@@ -94,7 +94,7 @@ reported on code that builds. Detecting it would need semantic-model
 argument binding for every call — cost out of proportion to code that
 defeats the language's own readonly-ref semantics. The soundness claim is
 therefore "never a false positive on code that respects readonly-ref
-semantics."
+semantics," save the nested CTE body tracked in #610.
 
 Identity decisions follow ADR 0013: standard Roslyn suppression only, no
 `sqlartisan_*` key family (a construct-override key would misdescribe the

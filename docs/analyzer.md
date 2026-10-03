@@ -1061,7 +1061,9 @@ dialect, and MERGE has no joined form.
 
 The diagnostic is **advisory duplication** of the `Build()` guard:
 suppressing it does not stop the exception — the statement still fails to
-build. It fires on every configured dialect, because the wrong-scope
+build. One known exception reports a statement that builds: a `With(...)`
+chain passed as a subquery whose CTE body lists the target in its own
+`FROM`. It fires on every configured dialect, because the wrong-scope
 resolution is universal, not a dialect fact.
 
 The warning reports only what is provable from the source. The target must
