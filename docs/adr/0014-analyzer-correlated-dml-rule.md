@@ -65,8 +65,8 @@ does not model a block's listing, so it leaves top-level bodies to `Build()`.
 When a `With(...)` chain is passed as a subquery argument, its CTE bodies are
 walked as the Select-headed chains they are, while its main SELECT stays the
 `With(...)`-headed false negative below. The rule reports once per
-statement, at the first target column it meets in source order, so a body
-holding a target column reports whatever its blocks list — with the chain
+statement, on a target column read inside a subquery (a CTE body included),
+so a body holding a target column reports whatever its blocks list — with the chain
 passed as a subquery or as a MERGE `USING` source. Where every such
 column's own block lists the target, `Build()` accepts it: a false
 positive, tracked in #610. Where only a sibling set-operator branch lists

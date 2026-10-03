@@ -1077,9 +1077,9 @@ report a statement that builds. Known cases include:
   reading branch's table has a column of the same name, so the statement may
   or may not bind the wrong table.
 
-The warning is reported once per statement, at the first target column the
-analyzer reaches as it walks the statement in source order, which can be a
-column of a branch that lists the target. A top-level `With(...)` body is
+The warning is reported once per statement, on a target column read inside a
+subquery (a CTE body included); that column can belong to a branch that
+lists the target. A top-level `With(...)` body is
 not walked at all, so a target column read there stays silent and is left
 to `Build()`.
 
