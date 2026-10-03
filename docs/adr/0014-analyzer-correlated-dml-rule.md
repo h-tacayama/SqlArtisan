@@ -34,7 +34,8 @@ define the rule class:
   every analyzer trigger shape has a twin test that executes
   `Build()` and asserts the real `ArgumentException`, so "the analyzer
   fires only where the runtime throws" is proven by execution, not
-  argument.
+  argument — bar the two known false positives recorded below (#610 and
+  the `Unsafe.AsRef` escape).
 - **Symbol-identity proof.** The first rule keyed on `ISymbol` comparison
   rather than member names: the target (argument 0 of `Update`/`DeleteFrom`,
   a local or a this-bound `readonly` field) must be the same symbol as the
@@ -63,18 +64,21 @@ throwing where a block correlates without listing the target (#607); this walk
 does not model a block's listing, so it leaves top-level bodies to `Build()`.
 When a `With(...)` chain is passed as a subquery argument, its CTE bodies are
 walked as the Select-headed chains they are, while its main SELECT stays the
-`With(...)`-headed false negative below. So a nested body whose own block
-lists the target reports though `Build()` accepts it — a known false
-positive, tracked in #610.
+`With(...)`-headed false negative below. So a block inside such a body
+that lists the target in its own FROM or join — at any depth, with the
+chain passed as a subquery or as a MERGE `USING` source — reports though
+`Build()` accepts it: a known false positive, tracked in #610.
 Descent stops
 at lambdas/local functions.
 
 Accepted false negatives (the ADR 0003 direction — silence over a false
-positive, #610 the one known exception): table classes from referenced
-assemblies (no declaration syntax), non-readonly fields, helper
-indirection for the table or the subquery, a builder split across
-statements, and `With(...)`-headed subqueries. A joined UPDATE/DELETE (`.From(...)` / `.Using(...)` / a join
-step **visible in the same expression chain**) with an unaliased target is
+positive; #610 above and the `Unsafe.AsRef` escape below are the two
+known false positives): table classes from referenced assemblies (no
+declaration syntax), non-readonly fields, helper indirection for the
+table or the subquery, a builder split across statements, and
+`With(...)`-headed subqueries. A joined UPDATE/DELETE (`.From(...)` /
+`.Using(...)` / a join step **visible in the same expression chain**) with
+an unaliased target is
 deliberately silent: its own Build()-time guard throws a *different*
 message ("joined … must be aliased") before the correlated guard arms, so a
 "correlated" diagnostic would misdescribe it — the joined guard is the

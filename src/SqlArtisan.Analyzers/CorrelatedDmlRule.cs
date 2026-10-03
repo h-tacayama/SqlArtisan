@@ -15,9 +15,9 @@ namespace SqlArtisan.Analyzers;
 /// compile time (#256, advisory per ADR 0014).
 /// </summary>
 /// <remarks>
-/// Every proof fails toward silence (ADR 0003): any target or walk shape the
-/// rule cannot prove unaliased yields a false negative, never a false
-/// positive.
+/// Unprovable shapes fail toward silence (ADR 0003). The one false positive
+/// outside ADR 0014's Unsafe.AsRef escape: a CTE body block listing the
+/// target reports though Build() accepts it (#610).
 /// </remarks>
 internal static class CorrelatedDmlRule
 {
