@@ -467,8 +467,8 @@ public sealed class SqliteTests : IntegrationTestBase, IClassFixture<SqliteFixtu
     }
 
     // The hazard the guard stops in a CTE body (#607): a bare target column binds
-    // orders.id, so EXISTS holds for all five users, not the four with orders —
-    // at top level too, since SQLite resolves a body where it is used.
+    // orders.id, so EXISTS holds for all five users, not the four with orders,
+    // nested or at top level alike.
     [Fact]
     public void CorrelatedCteBody_BareTargetColumn_BindsTheBodysRelation()
     {

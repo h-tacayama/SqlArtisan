@@ -173,8 +173,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   body, so the bare column rendered and could bind a same-named column of the
   block's own relation silently: SQLite 3.50.4 updated every row instead of
   the four that matched, whether the CTE was nested in a subquery or headed
-  the statement, since SQLite resolves a body where it is used. A block that reads the target as
-  its own relation builds as before; aliasing the target is the fix for the
+  the statement. A block that reads the target as its own relation builds as
+  before; aliasing the target is the fix for the
   rest. The branches of a set operator are checked as one block, so a branch
   that lists the target still covers a correlating branch. (#607)
 - `Returning(...)` on SQLite qualifies an aliased target's columns by the table
