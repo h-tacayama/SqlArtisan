@@ -126,46 +126,6 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
         return false;
     }
 
-    // ORDER BY ends a compound (its step offers no set operator), so one after
-    // any set operator is the compound's own (#611).
-    protected override void AppendNestedParts(
-        SqlBuildingBuffer buffer,
-        ReadOnlySpan<SqlPart> parts)
-    {
-        int orderBy = CompoundOrderByIndex(parts);
-        if (orderBy < 0)
-        {
-            buffer.AppendSpaceSeparated(parts);
-            return;
-        }
-
-        buffer.AppendSpaceSeparated(parts[..orderBy]).AppendSpace().BeginCompoundOrderBy();
-        parts[orderBy].Format(buffer);
-        buffer.EndCompoundOrderBy();
-        if (orderBy + 1 < parts.Length)
-        {
-            buffer.AppendSpace().AppendSpaceSeparated(parts[(orderBy + 1)..]);
-        }
-    }
-
-    private static int CompoundOrderByIndex(ReadOnlySpan<SqlPart> parts)
-    {
-        bool compound = false;
-        for (int i = 0; i < parts.Length; i++)
-        {
-            if (parts[i] is UnionOperator or ExceptOperator or IntersectOperator or MinusOperator)
-            {
-                compound = true;
-            }
-            else if (compound && parts[i] is OrderByClause)
-            {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
     public SqlStatement Build() =>
         BuildCore(SqlArtisanConfig.DefaultDbms);
 
@@ -447,6 +407,46 @@ internal class SelectBuilder(params SqlPart[] rootParts) :
     {
         AddPart(new WithRollupClause());
         return this;
+    }
+
+    // ORDER BY ends a compound (its step offers no set operator), so one after
+    // any set operator is the compound's own (#611).
+    protected override void AppendNestedParts(
+        SqlBuildingBuffer buffer,
+        ReadOnlySpan<SqlPart> parts)
+    {
+        int orderBy = CompoundOrderByIndex(parts);
+        if (orderBy < 0)
+        {
+            buffer.AppendSpaceSeparated(parts);
+            return;
+        }
+
+        buffer.AppendSpaceSeparated(parts[..orderBy]).AppendSpace().BeginCompoundOrderBy();
+        parts[orderBy].Format(buffer);
+        buffer.EndCompoundOrderBy();
+        if (orderBy + 1 < parts.Length)
+        {
+            buffer.AppendSpace().AppendSpaceSeparated(parts[(orderBy + 1)..]);
+        }
+    }
+
+    private static int CompoundOrderByIndex(ReadOnlySpan<SqlPart> parts)
+    {
+        bool compound = false;
+        for (int i = 0; i < parts.Length; i++)
+        {
+            if (parts[i] is UnionOperator or ExceptOperator or IntersectOperator or MinusOperator)
+            {
+                compound = true;
+            }
+            else if (compound && parts[i] is OrderByClause)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     // The TOP pairings are incomplete constructs on every dialect (ADR 0007); the
