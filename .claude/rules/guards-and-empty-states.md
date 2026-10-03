@@ -295,7 +295,7 @@ at its use site, where the bare column bound the body's own same-named column
 sibling or an enclosing block does not count: a relation in between can still
 shadow the column, so the rule matches the guard's plain-subquery reading. Set
 operator branches of one block share it, so a listing in one branch covers a
-correlation in another — the one shape left unguarded. The guard keys on the
+correlation in another — a shape left unguarded. The guard keys on the
 target *instance*: a second, unaliased instance of the target table inside the
 subquery renders the tautology unguarded (`Update(new T()) ... new T().Id`), the
 same instance-identity fact ADR 0014 records for the analyzer — the harness

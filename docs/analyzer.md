@@ -1038,10 +1038,10 @@ value does.
 An UPDATE, DELETE, or MERGE whose subquery — or, for MERGE, whose `USING`
 source — references a column of the **unaliased** target table can be
 silently wrong: the bare outer column can resolve to the inner table, and
-then the subquery no longer depends on the outer row and the statement
-updates or deletes the wrong rows. `Build()` rejects this statement at run
-time; `SQLA0300` is the same finding surfaced at compile time, where the fix
-is cheapest.
+then the subquery no longer depends on the outer row and the statement acts
+on the wrong rows or, from a `SET` subquery, writes the wrong values.
+`Build()` rejects this statement at run time; `SQLA0300` is the same finding
+surfaced at compile time, where the fix is cheapest.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
