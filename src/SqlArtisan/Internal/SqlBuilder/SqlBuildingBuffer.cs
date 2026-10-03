@@ -454,12 +454,49 @@ internal sealed class SqlBuildingBuffer : IDisposable
         }
     }
 
+    // Each set-operator branch is its own block (#611); whether any branch listed
+    // the target carries on for the compound's ORDER BY.
+    internal SqlBuildingBuffer EndSetOperatorBranch()
+    {
+        bool listed = (_cteGuard & (CteGuard.TargetListed | CteGuard.CompoundListed)) != 0;
+        ThrowIfBlockCorrelates();
+        _cteGuard &= CteGuard.InBody;
+        if (listed && _cteGuard != 0)
+        {
+            _cteGuard |= CteGuard.CompoundListed;
+        }
+
+        return this;
+    }
+
+    // A compound ORDER BY name picks a result column (SQLite 3.50.4 also through a
+    // branch's FROM); a target column there passes only where a branch lists the
+    // target, else only the outer row is left (#253). The last branch goes first.
+    internal SqlBuildingBuffer BeginCompoundOrderBy()
+    {
+        EndSetOperatorBranch();
+        if ((_cteGuard & CteGuard.CompoundListed) != 0)
+        {
+            _cteGuard = CteGuard.InBody | CteGuard.TargetListed;
+        }
+
+        return this;
+    }
+
+    internal void EndCompoundOrderBy()
+    {
+        ThrowIfBlockCorrelates();
+        _cteGuard &= CteGuard.InBody;
+    }
+
     // Checked once a block is fully rendered, since its FROM follows its SELECT
     // list. A listing elsewhere does not count: an enclosing block's relation
     // can be shadowed by one in between, which is #253's tautology again.
     private void ThrowIfBlockCorrelates()
     {
-        if (_cteGuard == (CteGuard.InBody | CteGuard.TargetColumnSeen))
+        const CteGuard Block =
+            CteGuard.InBody | CteGuard.TargetColumnSeen | CteGuard.TargetListed;
+        if ((_cteGuard & Block) == (CteGuard.InBody | CteGuard.TargetColumnSeen))
         {
             DmlTargetGuard.ThrowCorrelatedUnaliasedTarget();
         }
@@ -471,6 +508,7 @@ internal sealed class SqlBuildingBuffer : IDisposable
         InBody = 1,
         TargetColumnSeen = 2,
         TargetListed = 4,
+        CompoundListed = 8,
     }
 
     internal SqlBuildingBuffer EncloseInSpaces(string value)

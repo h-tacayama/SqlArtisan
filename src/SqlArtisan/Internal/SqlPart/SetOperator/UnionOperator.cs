@@ -5,6 +5,7 @@ internal sealed class UnionOperator(bool all) : SqlPart
     private readonly bool _all = all;
 
     internal override void Format(SqlBuildingBuffer buffer) => buffer
+        .EndSetOperatorBranch()
         .Append(Keywords.Union)
         .PrependSpaceIfNotNull(_all ? Keywords.All : null);
 }

@@ -60,29 +60,24 @@ assignment. The subquery boundary is the source image of the runtime's
 argument of a SqlArtisan call, scanned only in the arguments of the chain
 *after* the DML head — `With(...)` CTE bodies sit on the receiver side and
 are structurally invisible. The runtime guards a CTE body block by block,
-throwing where a block correlates without listing the target (#607); this walk
-does not model a block's listing, so it leaves top-level bodies to `Build()`.
-When a `With(...)` chain is passed as a subquery argument, its CTE bodies are
-walked as the Select-headed chains they are, while its main SELECT stays the
-`With(...)`-headed false negative below. The rule reports once per
-statement, on a target column read inside a subquery (a CTE body included),
-so a body holding a target column reports whatever its blocks list — with the chain
-passed as a subquery or as a MERGE `USING` source. Where every such
-column's own block lists the target, `Build()` accepts it: a false
-positive, tracked in #610. Where only a sibling set-operator branch lists
-it, `Build()` accepts it too (the runtime's documented set-operator gap),
-and the diagnostic may sit on the listing branch's own column. Neither side
-sees the schema, so whether the reading branch's relation shadows the
-column, making the statement wrong, is not something either can decide.
-Descent stops at lambdas/local functions.
+each set-operator branch a block of its own, throwing where a block
+correlates without listing the target (#607, #611). This walk does not model
+a block's listing, so it leaves every CTE body to `Build()`: it does not
+descend into the arguments of `With(...)` / `WithRecursive(...)`, whether the
+chain heads the statement or is passed as a subquery or a MERGE `USING`
+source. Walking a body would report one that reads the target as its own
+relation, which `Build()` accepts (#610); a body that correlates loses only
+the early report, since `Build()` throws. The rule reports once per
+statement, on a target column read inside a subquery. Descent stops at
+lambdas/local functions.
 
 Accepted false negatives (the ADR 0003 direction — silence where the walk
 cannot prove the shape): table classes from referenced assemblies (no
 declaration syntax), non-readonly fields, helper indirection for the table
-or the subquery, a builder split across statements, and `With(...)`-headed
-subqueries. A joined UPDATE/DELETE (`.From(...)` / `.Using(...)` / a join
-step **visible in the same expression chain**) with an unaliased target is
-deliberately silent: its own Build()-time guard throws a *different*
+or the subquery, a builder split across statements, `With(...)`-headed
+subqueries, and every CTE body. A joined UPDATE/DELETE (`.From(...)` /
+`.Using(...)` / a join step **visible in the same expression chain**) with
+an unaliased target is deliberately silent: its own Build()-time guard throws a *different*
 message ("joined … must be aliased") before the correlated guard arms, so a
 "correlated" diagnostic would misdescribe it — the joined guard is the
 report there. A join step added on a builder variable in a *later*
@@ -108,8 +103,8 @@ builds; TableClassGen emits columns owned by their own instance. The walk
 is also flow-insensitive: a correlated subquery under `ConditionIf(false,
 …)` or in an untaken `?:` arm reports though it never renders. So the rule
 fails toward silence where it cannot prove a shape, but it is not free of
-false positives: these cases, #610 and the `Unsafe.AsRef` escape are the
-known ones, not a closed list.
+false positives: these cases and the `Unsafe.AsRef` escape are the known
+ones, not a closed list.
 
 Identity decisions follow ADR 0013: standard Roslyn suppression only, no
 `sqlartisan_*` key family (a construct-override key would misdescribe the

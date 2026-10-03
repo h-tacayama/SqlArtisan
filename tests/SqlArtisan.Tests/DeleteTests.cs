@@ -321,6 +321,159 @@ public class DeleteTests
             ex.Message);
     }
 
+    // Each set-operator branch is its own block: a branch listing the target does
+    // not scope another that correlates with it, in either order (#611).
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void DeleteFrom_CteBodyBranchCorrelatingUnaliasedTarget_ThrowsArgumentException(
+        bool listingFirst)
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+        ISubquery body = listingFirst
+            ? Select(t.Code.As(cte.CteCode)).From(t)
+                .Union.Select(r.Code).From(r).Where(r.Code == t.Code)
+            : Select(r.Code.As(cte.CteCode)).From(r).Where(r.Code == t.Code)
+                .Union.Select(t.Code).From(t);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(body))
+            .DeleteFrom(t)
+            .Where(t.Code.In(Select(cte.CteCode).From(cte)))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_NestedCteBodyBranchCorrelatingUnaliasedTarget_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            DeleteFrom(t)
+            .Where(Exists(
+                With(cte.As(
+                    Select(t.Code.As(cte.CteCode)).From(t)
+                    .Union.Select(r.Code).From(r).Where(r.Code == t.Code)))
+                .Select(cte.CteCode)
+                .From(cte)))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_CteBodySetOperatorBranchesEachListingTarget_CorrectSql()
+    {
+        TestTable t = new();
+        TestCte cte = new("cte");
+
+        SqlStatement sql =
+            With(cte.As(
+                Select(t.Code.As(cte.CteCode)).From(t)
+                .Union.Select(t.Name).From(t)))
+            .DeleteFrom(t)
+            .Where(t.Code.In(Select(cte.CteCode).From(cte)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS ");
+        expected.Append("(SELECT code cte_code FROM test_table ");
+        expected.Append("UNION SELECT name FROM test_table) ");
+        expected.Append("DELETE FROM test_table ");
+        expected.Append("WHERE code IN ");
+        expected.Append("(SELECT \"cte\".cte_code FROM \"cte\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // A compound's trailing ORDER BY names its result columns, not an outer scope.
+    [Fact]
+    public void DeleteFrom_CteBodyCompoundOrderByTargetColumn_CorrectSql()
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+        DbColumn cteCode = new(cte, "code");
+
+        SqlStatement sql =
+            With(cte.As(
+                Select(t.Code).From(t)
+                .Union.Select(r.Code).From(r)
+                .OrderBy(t.Code)))
+            .DeleteFrom(t)
+            .Where(t.Code.In(Select(cteCode).From(cte)))
+            .Build();
+
+        StringBuilder expected = new();
+        expected.Append("WITH \"cte\" AS ");
+        expected.Append("(SELECT code FROM test_table ");
+        expected.Append("UNION SELECT \"r\".code FROM test_table \"r\" ");
+        expected.Append("ORDER BY code) ");
+        expected.Append("DELETE FROM test_table ");
+        expected.Append("WHERE code IN ");
+        expected.Append("(SELECT \"cte\".code FROM \"cte\")");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    // With no branch listing the target, the ORDER BY name can only reach a
+    // branch's own column of that name.
+    [Fact]
+    public void DeleteFrom_CteBodyOrderByTargetColumnNoListing_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestTable x = new("x");
+        TestCte cte = new("cte");
+        DbColumn cteCode = new(cte, "code");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(
+                Select(r.Code).From(r)
+                .Union.Select(x.Code).From(x)
+                .OrderBy(t.Code)))
+            .DeleteFrom(t)
+            .Where(t.Code.In(Select(cteCode).From(cte)))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
+    // The last branch is checked before the compound's ORDER BY takes over.
+    [Fact]
+    public void DeleteFrom_CteBodyLastBranchCorrelatingBeforeOrderBy_ThrowsArgumentException()
+    {
+        TestTable t = new();
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+        DbColumn cteCode = new(cte, "code");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            With(cte.As(
+                Select(t.Code).From(t)
+                .Union.Select(r.Code).From(r).Where(r.Code == t.Code)
+                .OrderBy(t.Code)))
+            .DeleteFrom(t)
+            .Where(t.Code.In(Select(cteCode).From(cte)))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
     [Fact]
     public void DeleteFrom_CteBodyInSubqueryCorrelatingAliasedTarget_CorrectSql()
     {

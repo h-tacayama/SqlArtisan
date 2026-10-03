@@ -1067,21 +1067,13 @@ report a statement that builds. Known cases include:
 - a table class whose column members belong to another instance;
 - a correlated subquery that never renders, under `ConditionIf(false, …)`
   or in an untaken `?:` arm;
-- a `readonly` target rewritten through `Unsafe.AsRef`;
-- a `With(...)` chain passed as a subquery or as a MERGE `USING` source,
-  whose CTE body reads the target inside a query block that lists the
-  target in its own `FROM` or join;
-- a CTE body of such a chain whose set-operator branches split the two, one
-  listing the target and another reading it: the run-time guard checks those
-  branches as one block, so the statement builds. Neither sees whether the
-  reading branch's table has a column of the same name, so the statement may
-  or may not bind the wrong table.
+- a `readonly` target rewritten through `Unsafe.AsRef`.
 
 The warning is reported once per statement, on a target column read inside a
-subquery (a CTE body included); that column can belong to a branch that
-lists the target. A top-level `With(...)` body is
-not walked at all, so a target column read there stays silent and is left
-to `Build()`.
+subquery. CTE bodies are not walked, whether the `With(...)` chain heads the
+statement or sits in a subquery or a MERGE `USING` source: a target column
+read there stays silent and is left to `Build()`, which accepts a body that
+reads the target as its own relation and rejects one that correlates.
 
 The warning fires on every configured dialect, because the wrong-scope
 resolution is universal, not a dialect fact.

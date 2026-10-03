@@ -7,7 +7,7 @@ namespace SqlArtisan.Analyzers.Tests;
 /// <summary>
 /// The empirical parity gate for SQLA0300: each shape here that the analyzer
 /// reports throws the same finding at Build(), and each exempt shape builds.
-/// The known cases that report yet build are recorded in ADR 0014 (#610).
+/// The known cases that report yet build are recorded in ADR 0014.
 /// </summary>
 public class CorrelatedDmlParityTests
 {
