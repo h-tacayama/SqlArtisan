@@ -5,9 +5,9 @@ using static SqlArtisan.Sql;
 namespace SqlArtisan.Analyzers.Tests;
 
 /// <summary>
-/// The empirical no-false-positive gate for SQLA0300: every shape the analyzer
-/// reports must throw the same finding at Build(), and the exempt shapes must
-/// build — parity proven by execution, not argument.
+/// The empirical parity gate for SQLA0300: each shape here that the analyzer
+/// reports throws the same finding at Build(), and each exempt shape builds.
+/// The known cases that report yet build are recorded in ADR 0014 (#610).
 /// </summary>
 public class CorrelatedDmlParityTests
 {

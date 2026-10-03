@@ -367,6 +367,28 @@ public class MergeTests
     }
 
     [Fact]
+    public void Merge_CteBodyInSubqueryCorrelatingUnaliasedTarget_ThrowsArgumentException()
+    {
+        TestTable r = new("r");
+        TestCte cte = new("cte");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            MergeInto(_cols)
+            .Using(_s)
+            .On(_cols.Code == _s.Code)
+            .WhenMatched().ThenUpdateSet(
+                _cols.Name == With(cte.As(Select(r.Name.As(cte.CteName)).From(r)
+                        .Where(r.Code == _cols.Code)))
+                    .Select(cte.CteName)
+                    .From(cte))
+            .Build());
+
+        Assert.Equal(
+            "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.",
+            ex.Message);
+    }
+
+    [Fact]
     public void Merge_CorrelatedSubqueryAliasedTarget_CorrectSql()
     {
         TestTable r = new("r");

@@ -278,25 +278,33 @@ were admitted as invisible but are visible to ADR 0013's declaring-interface
 mode; they stay on a cost ground (ADR 0011, #569). An entry's condition-1
 sentence is its admission record, so check it before citing it as precedent.
 
-**A top-level CTE body is outside the correlated-DML guard (decided — do not
-re-file):** the target instance legitimately appears in a `With(...)` body as
-the CTE's own relation, so `CommonTableExpression` renders its body with the
-guard suspended — the whole body, subqueries nested inside it included (#253,
-pinned by `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and the nested
-theory beside it; the depth-only exemption that re-armed on a nested subquery
-was release audit pass 8's fix). The guard keys on the target *instance*: a
-second, unaliased instance of the target table inside the subquery renders the
-tautology unguarded (`Update(new T()) ... new T().Id`), the same
-instance-identity fact ADR 0014 records for the analyzer — the harness
+**A CTE body defers the correlated-DML guard to each query block's end
+(decided — do not re-file):** the target instance legitimately appears in a CTE
+body as the CTE's own relation, so a target column there throws only if its own
+block lists the target nowhere — the body's block and each subquery nested in
+it (#253, #607; `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and
+`DeleteFrom_CteBodyNestedSubqueryReferencingTarget_CorrectSql` pin the listed
+shapes). The check waits for the block's end
+because its FROM follows its SELECT list. A block that does not list the target
+reaches it only by correlation, and the guard cannot see the schema to tell
+whether a bare column there binds the target or a same-named column of the
+block's own relation, so it rejects it, as the plain-subquery guard does. That
+holds for a top-level `With(...)` body too: a bare column there binds the
+body's own same-named column, nested or not
+(`CorrelatedCteBody_BareTargetColumn_BindsTheBodysRelation`), and SQLite 3.50.4
+resolves a body at its use site, so without one it can reach the target
+(`CorrelatedCteBody_AliasedTarget_Executes`). A listing in a
+sibling or an enclosing block does not count: a relation in between can still
+shadow the column, so the rule matches the guard's plain-subquery reading. Set
+operator branches of one block share it, so a listing in one branch covers a
+correlation in another — a shape left unguarded. It stays so because the
+guard's state is per block: checking each branch apart would also reject a
+compound's trailing `ORDER BY`, which names its result columns, so closing it
+needs those trailing clauses exempted (#611). The guard keys on the
+target *instance*: a second, unaliased instance of the target table inside the
+subquery renders the tautology unguarded (`Update(new T()) ... new T().Id`), the
+same instance-identity fact ADR 0014 records for the analyzer — the harness
 template uses one instance for that reason.
-
-**A CTE body nested in a subquery is an open gap, not a decision (#607):** the
-same suspension reaches it today, but such a body can correlate with the
-target. SQLite 3.50.4 resolves a qualified outer reference there
-(`Returning_Sqlite_AliasedTargetCorrelatedCteBody_Executes`, #595), so a bare
-column of an unaliased target binds the body's own relation silently. That is
-the tautology the guard exists to stop. #607 tracks scoping the suspension to
-top-level bodies.
 
 ## The empty-state policy (#236)
 

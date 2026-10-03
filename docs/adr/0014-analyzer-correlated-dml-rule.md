@@ -31,10 +31,11 @@ define the rule class:
   enforces — suppressing the diagnostic does not disable the `Build()`
   throw. The message mirrors the guard's message (bar the trailing period
   RS1032 forbids on a single-sentence diagnostic), pinned by a parity test;
-  every analyzer trigger shape has a twin test that executes
-  `Build()` and asserts the real `ArgumentException`, so "the analyzer
-  fires only where the runtime throws" is proven by execution, not
-  argument.
+  each trigger shape in the parity suite has a twin test that executes
+  `Build()` and asserts the real `ArgumentException`, so agreement with the
+  runtime is proven by execution for those shapes, not argued for all. The
+  rule can still report code that builds; the known cases are recorded
+  below.
 - **Symbol-identity proof.** The first rule keyed on `ISymbol` comparison
   rather than member names: the target (argument 0 of `Update`/`DeleteFrom`,
   a local or a this-bound `readonly` field) must be the same symbol as the
@@ -58,13 +59,27 @@ assignment. The subquery boundary is the source image of the runtime's
 `EncloseInParentheses(ISubquery)`: a Select-headed chain bound as an
 argument of a SqlArtisan call, scanned only in the arguments of the chain
 *after* the DML head — `With(...)` CTE bodies sit on the receiver side and
-are structurally invisible, matching the runtime's behavior. Descent stops
-at lambdas/local functions.
+are structurally invisible. The runtime guards a CTE body block by block,
+throwing where a block correlates without listing the target (#607); this walk
+does not model a block's listing, so it leaves top-level bodies to `Build()`.
+When a `With(...)` chain is passed as a subquery argument, its CTE bodies are
+walked as the Select-headed chains they are, while its main SELECT stays the
+`With(...)`-headed false negative below. The rule reports once per
+statement, on a target column read inside a subquery (a CTE body included),
+so a body holding a target column reports whatever its blocks list — with the chain
+passed as a subquery or as a MERGE `USING` source. Where every such
+column's own block lists the target, `Build()` accepts it: a false
+positive, tracked in #610. Where only a sibling set-operator branch lists
+it, `Build()` accepts it too (the runtime's documented set-operator gap),
+and the diagnostic may sit on the listing branch's own column. Neither side
+sees the schema, so whether the reading branch's relation shadows the
+column, making the statement wrong, is not something either can decide.
+Descent stops at lambdas/local functions.
 
-Accepted false negatives (the ADR 0003 direction — never a false
-positive): table classes from referenced assemblies (no declaration
-syntax), non-readonly fields, helper indirection for the table or the
-subquery, a builder split across statements, and `With(...)`-headed
+Accepted false negatives (the ADR 0003 direction — silence where the walk
+cannot prove the shape): table classes from referenced assemblies (no
+declaration syntax), non-readonly fields, helper indirection for the table
+or the subquery, a builder split across statements, and `With(...)`-headed
 subqueries. A joined UPDATE/DELETE (`.From(...)` / `.Using(...)` / a join
 step **visible in the same expression chain**) with an unaliased target is
 deliberately silent: its own Build()-time guard throws a *different*
@@ -84,9 +99,17 @@ against: reassigning the target through an `in` parameter via
 the no-write scan to count, so a target realiased that way can still be
 reported on code that builds. Detecting it would need semantic-model
 argument binding for every call — cost out of proportion to code that
-defeats the language's own readonly-ref semantics. The soundness claim is
-therefore "never a false positive on code that respects readonly-ref
-semantics."
+defeats the language's own readonly-ref semantics.
+
+The rule identifies a target column by its receiver symbol, not by the
+column's run-time owner, so a table class exposing another instance's
+`DbColumn` (`public DbColumn OrderId => _o.Id;`) reports on code that
+builds; TableClassGen emits columns owned by their own instance. The walk
+is also flow-insensitive: a correlated subquery under `ConditionIf(false,
+…)` or in an untaken `?:` arm reports though it never renders. So the rule
+fails toward silence where it cannot prove a shape, but it is not free of
+false positives: these cases, #610 and the `Unsafe.AsRef` escape are the
+known ones, not a closed list.
 
 Identity decisions follow ADR 0013: standard Roslyn suppression only, no
 `sqlartisan_*` key family (a construct-override key would misdescribe the
@@ -126,7 +149,8 @@ the rule fires on every configured target).
   facts (#256's follow-ups in the #232 vision).
 - The Analyzer ADR cluster grows to 0003 + 0008 + 0009 + 0013 + 0014.
 - **A MERGE `USING` derived-table source reading the unaliased target is
-  guarded; a CTE body reading it is not.** The source resolves in its own
+  guarded; a CTE body block listing it as its own relation is not** (a block
+  that correlates without listing it is, #607). The source resolves in its own
   scope, as the CTE body does, but it is also where the bare-column tautology
   appears, aliasing the target is the documented remedy, and the loud path
   costs nothing. The asymmetry is deliberate.

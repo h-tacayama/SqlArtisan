@@ -1036,12 +1036,12 @@ value does.
 ## Correlated DML target (SQLA0300)
 
 An UPDATE, DELETE, or MERGE whose subquery — or, for MERGE, whose `USING`
-source — references a column of the **unaliased** target table is a silent
-tautology: the bare outer column resolves to the
-inner table, so the condition compares a row to itself and the statement
-updates or deletes every row. `Build()` rejects exactly this statement at
-run time; `SQLA0300` is the same finding surfaced at compile time, where
-the fix is cheapest.
+source — references a column of the **unaliased** target table can be
+silently wrong: the bare outer column can resolve to the inner table, and
+then the subquery no longer depends on the outer row and the statement acts
+on the wrong rows or, from a `SET` subquery, writes the wrong values.
+`Build()` rejects this statement at run time; `SQLA0300` is the same finding
+surfaced at compile time, where the fix is cheapest.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -1061,7 +1061,29 @@ dialect, and MERGE has no joined form.
 
 The diagnostic is **advisory duplication** of the `Build()` guard:
 suppressing it does not stop the exception — the statement still fails to
-build. It fires on every configured dialect, because the wrong-scope
+build. The analyzer reads the source, not the built statement, so it can
+report a statement that builds. Known cases include:
+
+- a table class whose column members belong to another instance;
+- a correlated subquery that never renders, under `ConditionIf(false, …)`
+  or in an untaken `?:` arm;
+- a `readonly` target rewritten through `Unsafe.AsRef`;
+- a `With(...)` chain passed as a subquery or as a MERGE `USING` source,
+  whose CTE body reads the target inside a query block that lists the
+  target in its own `FROM` or join;
+- a CTE body of such a chain whose set-operator branches split the two, one
+  listing the target and another reading it: the run-time guard checks those
+  branches as one block, so the statement builds. Neither sees whether the
+  reading branch's table has a column of the same name, so the statement may
+  or may not bind the wrong table.
+
+The warning is reported once per statement, on a target column read inside a
+subquery (a CTE body included); that column can belong to a branch that
+lists the target. A top-level `With(...)` body is
+not walked at all, so a target column read there stays silent and is left
+to `Build()`.
+
+The warning fires on every configured dialect, because the wrong-scope
 resolution is universal, not a dialect fact.
 
 The warning reports only what is provable from the source. The target must
