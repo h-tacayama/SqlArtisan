@@ -396,7 +396,7 @@ public class DeleteTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // A compound's trailing ORDER BY names its result columns, not an outer scope.
+    // A branch listing the target lets the compound's ORDER BY name the target's column.
     [Fact]
     public void DeleteFrom_CteBodyCompoundOrderByTargetColumn_CorrectSql()
     {
@@ -426,8 +426,8 @@ public class DeleteTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
-    // With no branch listing the target, the ORDER BY name can only reach a
-    // branch's own column of that name.
+    // With no branch listing the target, the ORDER BY's target column is rejected as
+    // in any block that does not list it.
     [Fact]
     public void DeleteFrom_CteBodyOrderByTargetColumnNoListing_ThrowsArgumentException()
     {
