@@ -282,8 +282,9 @@ sentence is its admission record, so check it before citing it as precedent.
 (decided — do not re-file):** the target instance legitimately appears in a CTE
 body as the CTE's own relation, so a target column there throws only if its own
 block lists the target nowhere — the body's block and each subquery nested in
-it (#253, #607; `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and the nested
-theory beside it pin the listed shapes). The check waits for the block's end
+it (#253, #607; `DeleteFrom_CteBodyReferencingTarget_CorrectSql` and
+`DeleteFrom_CteBodyNestedSubqueryReferencingTarget_CorrectSql` pin the listed
+shapes). The check waits for the block's end
 because its FROM follows its SELECT list. A block that does not list the target
 reaches it only by correlation, where a bare column binds the block's own
 relation. That holds for a top-level `With(...)` body too, since SQLite 3.50.4

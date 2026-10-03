@@ -61,9 +61,11 @@ argument of a SqlArtisan call, scanned only in the arguments of the chain
 are structurally invisible. The runtime guards a CTE body block by block,
 throwing where a block correlates without listing the target (#607); this walk
 does not model a block's listing, so it leaves top-level bodies to `Build()`.
-A `With(...)` chain passed as a subquery argument is walked like any
-Select-headed subquery, so a nested body whose own block lists the target
-reports though `Build()` accepts it — a known false positive, tracked in #610.
+When a `With(...)` chain is passed as a subquery argument, its CTE bodies are
+walked as the Select-headed chains they are, while its main SELECT stays the
+`With(...)`-headed false negative below. So a nested body whose own block
+lists the target reports though `Build()` accepts it — a known false
+positive, tracked in #610.
 Descent stops
 at lambdas/local functions.
 
