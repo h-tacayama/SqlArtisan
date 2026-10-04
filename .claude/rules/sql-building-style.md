@@ -51,3 +51,10 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
    (`BuilderInterfaceOrderingTests` gates the list). Ties and case fall to
    ordinal order (`Select` before `SelectAll`, `Where` before `WhereIf`). This
    is mechanical and keeps builders consistent as they grow.
+
+6. **Parenthesize compound operands.** An infix expression node renders its
+   whole expression inside parentheses (`BinaryOperator`'s `(l op r)`,
+   `OperatorJoinedFunctionCore`'s `(a || b || c)`), and each operand of
+   `AND` / `OR`, and the operand of `NOT`, is enclosed. The
+   emitted SQL then keeps the C# tree whatever each engine's precedence is;
+   a node that drops them changes rows.

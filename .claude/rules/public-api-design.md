@@ -301,15 +301,17 @@ after 1.0 changes which rows code that already compiles reads, which is a
 major version (`docs/versioning.md`). Which overloads close an order is
 decided by compiling them against every neighbouring order, not by this file.
 
-- Every compound operand renders inside parentheses (`(l op r)`, and each
-  operand of `AND` / `OR`), so the emitted SQL keeps the C# tree whatever
-  each engine's precedence is. A node that drops them changes rows.
+- The emitted SQL keeps the C# operator tree because compound operands are
+  parenthesized (`sql-building-style.md` rule 6).
 - Open today, with #613 deciding each remedy:
   - a `string` or `string?` left operand of `+`, and `+=` on a string;
-  - `==` / `!=` with a left operand typed `object` or as a class-constrained
-    type parameter, or typed as an interface against a right operand whose
-    static type is not sealed (`SqlExpression`, not `DbColumn`). These
-    compile to C# reference equality and bind a `bool`;
+  - `==` / `!=` whose left operand is a reference type not derived from
+    `SqlExpression`, wherever C# has a reference conversion between the two
+    operand types: `object`, `SqlPart` or a
+    class-constrained type parameter against any right operand, an interface
+    against a right operand whose static type is not sealed (`SqlExpression`,
+    not `DbColumn`). These compile to C# reference equality and bind a
+    `bool`;
   - interpolation (`$"{col}"`), which reaches `ToString()` without any
     operator.
 
