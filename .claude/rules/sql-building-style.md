@@ -1,5 +1,5 @@
 ---
-description: SQL emission style — one-token keyword atoms, const-interpolated phrases, buffer spacing helpers
+description: SQL emission style — one-token keyword atoms, const-interpolated phrases, buffer spacing helpers, operand parentheses
 paths:
   - "src/SqlArtisan/Internal/**/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
@@ -55,6 +55,6 @@ Rules for `Format` implementations and `Keywords.cs` (#207 / #208):
 6. **Parenthesize compound operands.** An infix expression node renders its
    whole expression inside parentheses (`BinaryOperator`'s `(l op r)`,
    `OperatorJoinedFunctionCore`'s `(a || b || c)`), and each operand of
-   `AND` / `OR`, and the operand of `NOT`, is enclosed. The
-   emitted SQL then keeps the C# tree whatever each engine's precedence is;
-   a node that drops them changes rows.
+   `AND` / `OR`, and the operand of `NOT`, is enclosed. The emitted SQL then
+   keeps the C# tree whatever each engine's precedence is; a node that drops
+   them changes rows.

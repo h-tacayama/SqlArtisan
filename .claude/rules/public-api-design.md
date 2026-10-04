@@ -307,11 +307,10 @@ decided by compiling them against every neighbouring order, not by this file.
   - a `string` or `string?` left operand of `+`, and `+=` on a string;
   - `==` / `!=` whose left operand is a reference type not derived from
     `SqlExpression`, wherever C# has a reference conversion between the two
-    operand types: `object`, `SqlPart` or a
-    class-constrained type parameter against any right operand, an interface
-    against a right operand whose static type is not sealed (`SqlExpression`,
-    not `DbColumn`). These compile to C# reference equality and bind a
-    `bool`;
+    operand types: `object`, `SqlPart` or a class-constrained type parameter
+    against any right operand, an interface against a right operand whose
+    static type is not sealed (`SqlExpression`, not `DbColumn`). These
+    compile to C# reference equality and bind a `bool`;
   - interpolation (`$"{col}"`), which reaches `ToString()` without any
     operator.
 
