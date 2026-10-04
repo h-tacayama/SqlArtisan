@@ -313,6 +313,9 @@ decided by compiling them against every neighbouring order, not by this file.
     compile to C# reference equality and bind a `bool`;
   - interpolation (`$"{col}"`), which reaches `ToString()` without any
     operator.
+- A `dynamic` operand is outside the requirement: it binds at run time to
+  whatever order its runtime type forms, so a `string` concatenates and an
+  `object` compares references.
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 
