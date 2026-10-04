@@ -559,7 +559,7 @@ public class DialectUsageAnalyzerTests
     }
 
     // The method form is PostgreSQL's alone: its arity-1 rows narrow the union
-    // rows the Oracle property above needs.
+    // rows the Oracle property (next test) needs.
     [Theory]
     [InlineData("Nextval")]
     [InlineData("Currval")]

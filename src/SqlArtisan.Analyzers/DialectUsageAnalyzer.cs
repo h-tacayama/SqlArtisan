@@ -966,8 +966,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
     internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) =>
         assembly?.Name == SqlArtisanAssemblyName;
 
-    // The matrix is keyed by name, so a member rendering no SQL would match a same-named
-    // row by coincidence (DateTimePart.Day, SqlParameters.Count); enum values are SQLA0104's.
+    // An enum member or a SqlParameters/SqlStatement member can only match a same-named row
+    // by coincidence (DateTimePart.Day, SqlParameters.Count); DateTimePart and RegexpOptions
+    // values are SQLA0104's.
     private static bool IsConstructMember(ISymbol member) =>
         IsFromSqlArtisan(member.ContainingAssembly)
         && member.ContainingType.TypeKind != TypeKind.Enum
