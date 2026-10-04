@@ -103,6 +103,14 @@ argument lists in the same shape — the packed-vs-one-per-line divergence
 structure may differ (the async file routes through a helper the sync file
 has no use for).
 
+## Expression bodies
+
+Whether an expression body breaks after `=>` is the author's call when the
+one-line form fits; the 100-column limit is the only constraint. About a
+third of `src/`'s two-line bodies would fit on one line, and joining them
+would churn blame for no behavioral gain, so no gate holds the shape — the
+same call #504 made for wrapped lists (#614).
+
 ## Wrapped fluent chains
 
 When a builder/fluent chain wraps, put **one member per line**, the `.`
