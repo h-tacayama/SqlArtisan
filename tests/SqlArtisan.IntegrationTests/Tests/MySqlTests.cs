@@ -645,9 +645,13 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
     // Why Against(...)'s null message names no Sql.Null remedy (#614): AGAINST (NULL)
-    // runs and matches no row, beside a twin search that matches the seeded Alice.
-    [Fact]
-    public void AgainstNull_MatchesNoRow()
+    // runs and matches no row in every modifier form, beside a twin that matches Alice.
+    [Theory]
+    [InlineData("")]
+    [InlineData(" IN NATURAL LANGUAGE MODE")]
+    [InlineData(" IN BOOLEAN MODE")]
+    [InlineData(" WITH QUERY EXPANSION")]
+    public void AgainstNull_MatchesNoRow(string modifier)
     {
         using IDbConnection connection = _fixture.OpenConnection();
         long existing = connection.ExecuteScalar<long>(
@@ -660,13 +664,13 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         }
 
         Assert.True(connection.ExecuteScalar<long>(
-            "SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST('Alice')") > 0);
+            $"SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST('Alice'{modifier})") > 0);
 
         string verdict;
         try
         {
             verdict = "rows=" + connection.ExecuteScalar<long>(
-                "SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST(NULL)");
+                $"SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST(NULL{modifier})");
         }
         catch (DbException ex)
         {
