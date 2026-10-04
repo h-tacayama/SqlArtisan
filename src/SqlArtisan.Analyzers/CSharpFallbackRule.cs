@@ -27,8 +27,8 @@ internal static class CSharpFallbackRule
             || !(IsSqlArtisanObject(Unconverted(binary.LeftOperand).Type)
                 || IsSqlArtisanObject(Unconverted(binary.RightOperand).Type))
             // A null check is meant as C#: no operand order makes it SQL.
-            || IsNullLiteral(binary.LeftOperand)
-            || IsNullLiteral(binary.RightOperand)
+            || IsNullConstant(binary.LeftOperand)
+            || IsNullConstant(binary.RightOperand)
             || !TryFindSqlArtisanSink(binary, out ITypeSymbol? parameterType)
             // A bool parameter (ConditionIf's `when`) takes the C# test on purpose.
             || parameterType?.SpecialType == SpecialType.System_Boolean)
@@ -161,11 +161,9 @@ internal static class CSharpFallbackRule
     private static bool IsFromSqlArtisan(ITypeSymbol type) =>
         DialectUsageAnalyzer.IsFromSqlArtisan(type.ContainingAssembly);
 
-    private static bool IsNullLiteral(IOperation operand) =>
-        Unconverted(operand) is ILiteralOperation
-        {
-            ConstantValue: { HasValue: true, Value: null },
-        };
+    // `null`, `default`, a null constant: any compile-time null.
+    private static bool IsNullConstant(IOperation operand) =>
+        Unconverted(operand).ConstantValue is { HasValue: true, Value: null };
 
     private static IOperation Unconverted(IOperation operation)
     {

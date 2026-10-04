@@ -84,7 +84,8 @@ public class CSharpFallbackAnalyzerTests
     public Task NullCheckIntoAValuePosition_StaysSilent() =>
         RunSilent("""
             SqlCondition extra = null;
-            var q = Select(Bind(extra != null), p == null, null != p).From(t);
+            var q = Select(Bind(extra != null), p == null, null != p, p == default).From(t);
+            var r = Select(default(SqlPart) == t.Id, (object)null == t.Id).From(t);
             """);
 
     // Nothing proves either operand holds a query object.

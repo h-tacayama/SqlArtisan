@@ -62,15 +62,17 @@ concatenation, and the compiler's `params` array, and reports only on reaching
 an argument of a SqlArtisan invocation or constructor, or an operand of a
 SqlArtisan operator (`col == $"{col}"` binds the type name as surely as a
 `Select` argument does). A result held in a local, a ternary, a helper's return
-value stops the walk — and stays silent, the price of no false positives. An `object`-typed
-operand stays silent for the same reason: nothing proves it holds a query object.
+value stops the walk — and stays silent, the price of no false positives. An
+`object` on both sides of `==` / `!=`, or beside a string's `+`, stays silent
+for the same reason: nothing proves a query object is involved.
 
 `SQLA0301` also needs the `bool` to land in a parameter of another type, where
 it is boxed and bound. `ConditionIf(bool when, …)` takes the C# test on purpose
 — `ConditionIf(extra != null, extra)` is the optional-filter idiom — so a
 `bool` parameter is correct code, not the hazard. A comparison with a `null`
-literal is skipped wherever it lands: no operand order makes a null check SQL,
-so it is never the swapped-operand mistake the rule names.
+constant (`null`, `default`, a null `const`) is skipped wherever it lands: no
+operand order makes a null check SQL, so it is never the swapped-operand
+mistake the rule names.
 
 ### The band
 
