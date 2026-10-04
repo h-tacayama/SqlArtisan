@@ -284,6 +284,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `Build()`, where `GroupBy(0)` already threw at the call. (#569)
 
 ### Tests
+- Integration twins for #614's engine claims: Oracle rejects
+  `NULLS FIRST NULLS LAST` and reads an empty match
+  parameter as the default; `'n'` lets `.` match a newline on MySQL and Oracle
+  and stops it on PostgreSQL (with `'m'`); SQL Server runs `@0 + name` as
+  concatenation. (#614)
 - `PublicEnumAppendOnlyTests` gates `docs/versioning.md`'s append-only rule:
   every public enum member of the library packages matches a name→value
   baseline, no enum repeats a value, and the enums are the set `versioning.md`

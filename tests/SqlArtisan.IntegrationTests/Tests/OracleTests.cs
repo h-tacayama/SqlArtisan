@@ -843,6 +843,43 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
     private static string MatchParameterProbe(string flags) =>
         $"SELECT CASE WHEN REGEXP_LIKE('Ab', 'ab', '{flags}') THEN 'YES' ELSE 'NO' END FROM dual";
 
+    // RegexpOptions.NewLine's documented meaning (#614): 'n' lets `.` match a
+    // newline, which it does not by default.
+    [Theory]
+    [InlineData(", 'n'", "YES")]
+    [InlineData("", "NO")]
+    public void RegexpNewLineLetter_LetsDotMatchANewline(string parameter, string expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<string>(
+            "SELECT CASE WHEN REGEXP_LIKE('a' || CHR(10) || 'b', '^a.b$'"
+                + parameter + ") THEN 'YES' ELSE 'NO' END FROM dual"));
+    }
+
+    // RegexpOptions.None emits '', which Oracle reads as NULL: the call must still
+    // match as with no parameter, not yield NULL (a match only YES can show).
+    [Fact]
+    public void RegexpEmptyMatchParameter_ReadsAsTheDefault()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal("YES", connection.ExecuteScalar<string>(MatchParameterProbe("").Replace(
+            "'ab'", "'Ab'", StringComparison.Ordinal)));
+    }
+
+    // The live twin of SortOrder's repeated-NULLS guard (#614); one ordering runs.
+    [Fact]
+    public void RepeatedNullOrdering_IsRejectedByTheEngine()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar("SELECT id FROM users ORDER BY id NULLS FIRST");
+
+        Assert.ThrowsAny<DbException>(() =>
+            connection.ExecuteScalar("SELECT id FROM users ORDER BY id NULLS FIRST NULLS LAST"));
+    }
+
     // #523: SQLA0102's live proofs for the DML-context rules. Oracle is the only
     // engine that rejects all five shapes; the acceptance twin of each is the
     // dialect the spelling belongs to (MySQL's or SQL Server's per-engine tests).

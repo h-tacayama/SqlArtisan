@@ -644,6 +644,20 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
+    // RegexpOptions.NewLine's documented meaning (#614): 'n' lets `.` match a
+    // line terminator, which it does not by default. A '\n' escape, not CHAR(10),
+    // keeps the subject non-binary, which REGEXP_LIKE requires beside the pattern.
+    [Theory]
+    [InlineData("n", 1)]
+    [InlineData("", 0)]
+    public void RegexpNewLineLetter_LetsDotMatchANewline(string flags, int expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<int>(
+            $"SELECT REGEXP_LIKE('a\\nb', '^a.b$', '{flags}')"));
+    }
+
     // SQLA0104 reads the alphabet per dialect, not per function (#528), so the
     // 'x' gap is pinned on every match_type taker — each paired with a letter
     // MySQL does have, so a rejection cannot come from the call shape instead.
