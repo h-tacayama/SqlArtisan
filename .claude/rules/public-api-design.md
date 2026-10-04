@@ -308,7 +308,8 @@ decided by compiling them against every neighbouring order, not by this file.
   operator marked `[Obsolete(..., error: true)]` whose message names the
   remedy. A string beside an `ExpressionAlias`, in either order, is closed so
   (#613): `.As(...)` binds before `+`, so `"Dr. " + col.As("n")` adds the
-  string to the alias, and an alias is never an operand in SQL.
+  string to the alias, and no SqlArtisan operator takes an alias as an operand
+  (`col + col.As("n")` throws).
 - Open today, each an analyzer candidate in #614:
   - `+` between a `string` and an operand typed as neither `SqlExpression`
     (or a type derived from it) nor `ExpressionAlias`, in either order (and
