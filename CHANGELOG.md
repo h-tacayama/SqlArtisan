@@ -39,10 +39,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
-- A C# null at a comparison — `==`, `!=`, `<`, `>`, `<=`, `>=`, `Between`,
-  `NotBetween`, `Like`, `NotLike`, an `In`/`NotIn` element, or a simple `Case`
-  operand or `When` value — now names `.IsNull` / `.IsNotNull` in its
-  `ArgumentNullException` (and `==` also names `Sql.Null`, for a `SET`). The old
+- A C# null at a comparison or predicate operand — `==`, `!=`, `<`, `>`, `<=`,
+  `>=`, `Between`, `NotBetween`, `Like`, `NotLike`, an `In`/`NotIn` element, a
+  simple `Case` operand or `When` value, `RegexpLike`, `ArrayContainedBy`,
+  `ArrayContains`, `ArrayOverlaps`, `JsonbContains`, `JsonbExists` or `TsMatch`
+  — now names `.IsNull` / `.IsNotNull` in its `ArgumentNullException` (and the
+  right side of `==` also names `Sql.Null`, for a `SET`). The old
   message said to pass `Sql.Null`, which builds `= NULL`: a comparison with
   NULL rather than a NULL test, so PostgreSQL 16 and SQLite counted 0 rows
   where `IS NULL` counted 1. These messages report the caller's parameter name,
@@ -192,9 +194,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   throws `InvalidOperationException`. The second call silently replaced the
   first, so `.NullsFirst.NullsLast` emitted `NULLS LAST`; written out, the pair
   is rejected by PostgreSQL 16 and SQLite. (#614)
-- `new BindValue(...)` throws on a SqlArtisan expression or query
-  (`new BindValue(u.Id + 1)`), which bound the node object itself rather than
-  rendering SQL. Any other value still passes through to the driver. (#614)
+- `new BindValue(...)` throws on a SqlArtisan object — an expression, a query,
+  a pending node such as `PercentileCont(0.5)`, or a built statement — which
+  bound the object itself (`new BindValue(u.Id + 1)` bound an
+  `AdditionOperator`) rather than rendering SQL. Any other value, an enum
+  included, still passes through to the driver. (#614)
 - `Match(table, ...)` on SQLite drops a schema from the target:
   `new DbTable("main.ft", "f")` emits `"f".ft MATCH`, where it emitted
   `"f".main.ft MATCH`, which SQLite 3.45.1 rejects (`no such column`), and the

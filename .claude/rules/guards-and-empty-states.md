@@ -446,7 +446,12 @@ the caller did not mean. Judge a null argument by which failure it produces:
 
 - **Silent acceptance** (the statement still builds): guard it, whatever the
   parameter's type. Shipped instances: `object`-typed value positions
-  (`ExpressionResolver`'s "Use `Sql.Null`…" message), string identifiers
+  (`ExpressionResolver`'s "pass `Sql.Null`" message) — except a comparison or
+  predicate operand (`=`, `BETWEEN`, `LIKE`, `IN`, a simple `CASE`,
+  `REGEXP_LIKE`, the array / JSONB / text-search predicates), where `Sql.Null`
+  builds a comparison with NULL rather than a NULL test, so a new predicate
+  factory resolves its operands with `ResolveCompared`, which names `.IsNull`
+  (#614) — string identifiers
   (`StringGuard`), null elements inside arrays/`params` (#403), a null
   subquery in `CteBase.As` (previously emitted `WITH "c" AS ()`),
   `new BindValue(null)` (a never-true `= NULL` predicate the factory already

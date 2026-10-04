@@ -145,14 +145,18 @@ internal static class ExpressionResolver
 #pragma warning restore IDE0046
     }
 
-    // The comparison positions' resolver. A C# null there is usually a nullable
-    // variable meant as a NULL test, and NullValueMessage's Sql.Null would build
+    // The comparison and predicate positions' resolver. A C# null there is usually a
+    // nullable variable meant as a NULL test, and NullValueMessage's Sql.Null would build
     // `= NULL`, which is unknown rather than a test; paramName is the caller's own.
     internal static SqlExpression ResolveCompared(object item, string paramName, string construct)
     {
         if (item is null)
         {
-            throw NullCompared(paramName, construct);
+            // `=`'s right side is also the SET assignment, where Sql.Null is right.
+            throw construct == Operators.Equal
+                ? new ArgumentNullException(paramName, "= cannot take a C# null; "
+                    + "test for NULL with .IsNull, or write Sql.Null to assign NULL.")
+                : NullCompared(paramName, construct);
         }
 
         return Resolve(item);
@@ -217,13 +221,9 @@ internal static class ExpressionResolver
         return Resolve(item);
     }
 
-    // `=` is also the SET assignment, where Sql.Null is the right remedy.
     internal static ArgumentNullException NullCompared(string paramName, string construct) =>
-        construct == Operators.Equal
-            ? new(paramName, "= cannot take a C# null; test for NULL with .IsNull, "
-                + "or write Sql.Null to assign NULL.")
-            : new(paramName, $"{construct} cannot compare a C# null; "
-                + "test for NULL with .IsNull or .IsNotNull.");
+        new(paramName, $"{construct} cannot compare a C# null; "
+            + "test for NULL with .IsNull or .IsNotNull.");
 
     // Builds the exception for a value that reached a value position but isn't a
     // usable expression, shared by every resolver. A "pending" type (a window

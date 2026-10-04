@@ -114,9 +114,9 @@ public class ExpressionsTests
     {
         Dictionary<string, string> messages = new()
         {
+            // Unlike the right side, no SET remedy: an assignment target must be a column.
             ["op_Equality"] =
-                "= cannot take a C# null; test for NULL with .IsNull, "
-                    + "or write Sql.Null to assign NULL.",
+                "= cannot compare a C# null; test for NULL with .IsNull or .IsNotNull.",
             ["op_Inequality"] =
                 "<> cannot compare a C# null; test for NULL with .IsNull or .IsNotNull.",
             ["op_LessThan"] =

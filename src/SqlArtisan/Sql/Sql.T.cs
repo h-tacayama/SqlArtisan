@@ -256,5 +256,7 @@ public static partial class Sql
     /// <returns>A <see cref="TsMatchCondition"/> emitting <c>vector @@ query</c>.</returns>
     /// <remarks>PostgreSQL syntax.</remarks>
     public static TsMatchCondition TsMatch(object vector, object query) =>
-        new(Resolve(vector), Resolve(query));
+        new(
+            ResolveCompared(vector, nameof(vector), Operators.TsMatch),
+            ResolveCompared(query, nameof(query), Operators.TsMatch));
 }

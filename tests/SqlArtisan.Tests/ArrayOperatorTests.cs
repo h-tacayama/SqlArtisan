@@ -121,4 +121,41 @@ public class ArrayOperatorTests
             sql.Text);
         Assert.Equal("a", sql.Parameters.Get<string>(":0"));
     }
+
+    // A strict predicate: following the old Sql.Null remedy matched no row.
+    [Fact]
+    public void ArrayContainedBy_NullRightArray_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => ArrayContainedBy(_t.Name, null!));
+
+        Assert.Equal(
+            "<@ cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'rightArray')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ArrayContains_NullLeftArray_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => ArrayContains(null!, _t.Name));
+
+        Assert.Equal(
+            "@> cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'leftArray')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ArrayOverlaps_NullRightArray_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => ArrayOverlaps(_t.Name, null!));
+
+        Assert.Equal(
+            "&& cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'rightArray')",
+            ex.Message);
+    }
 }
