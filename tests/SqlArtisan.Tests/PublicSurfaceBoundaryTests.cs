@@ -147,9 +147,10 @@ public class PublicSurfaceBoundaryTests
         Assert.True(
             derivable.Count == 0,
             $"{derivable.Count} unsealed public types in {RootNamespace} can be derived from "
-                + "outside the assembly — make the constructor private protected, or, where "
-                + "deriving is the documented use, say so by naming the type in this test's "
-                + "allowlist and in its XML docs:\n  "
+                + "outside the assembly — seal a concrete class, make an abstract base's "
+                + "constructor private protected, or, where deriving is the documented use "
+                + "or an in-assembly subclass needs the class open, name the type in this "
+                + "test's allowlist and say which in its XML docs:\n  "
                 + string.Join("\n  ", derivable));
     }
 
