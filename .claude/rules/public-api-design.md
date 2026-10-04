@@ -1,5 +1,5 @@
 ---
-description: Public API design decisions — naming categories, overload split for analyzer arity, collection parameters, factory return types, no opinion-holes
+description: Public API design decisions — naming categories, overload split for analyzer arity, collection parameters, operator overloads, factory return types, no opinion-holes
 paths:
   - "src/SqlArtisan/Sql/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
@@ -284,6 +284,39 @@ members, not constructors; and three independent optional parameters would
 need eight overloads where named arguments read naturally. The difference
 between `BindNull(DbType)` and `BindValue`'s `DbType?` is this boundary, not
 an inconsistency.
+
+## Operator overloads: operand orders that fall to a C# built-in
+
+When no user-defined operator applies, C# falls back to its built-in ones.
+`string + object` is built in, so with only `operator +(SqlExpression, object)`
+the call `"Dr. " + col` compiles as string concatenation through
+`ToString()`. The text `"Dr. SqlArtisan.DbColumn"` is then auto-parameterized,
+and the query runs with wrong rows (#613). For every overloaded operator,
+enumerate the operand orders a caller can write, and compile each one: a
+literal, a nullable variable, and an `object`-, interface- or
+type-parameter-typed operand on either side, compound assignment (`+=`), and
+`null`. Each order must either bind a SqlArtisan operator or fail to compile
+(CS0019), except the orders listed below as open. Adding the missing order
+after 1.0 changes which rows code that already compiles reads, which is a
+major version (`docs/versioning.md`). Which overloads close an order is
+decided by compiling them against every neighbouring order, not by this file.
+
+- The emitted SQL keeps the C# operator tree because compound operands are
+  parenthesized (`sql-building-style.md` rule 6).
+- Open today, with #613 deciding each remedy:
+  - a `string` or `string?` left operand of `+`, and `+=` on a string;
+  - `==` / `!=` whose left operand is a reference type not derived from
+    `SqlExpression`, wherever C# has a reference conversion between the two
+    operand types (a type parameter counts as its effective base class):
+    `object`, `SqlPart`, or a type parameter constrained to `class` or to a
+    base of `SqlExpression`, against any right operand; an interface against
+    a right operand whose static type is not sealed (`SqlExpression`, not
+    `DbColumn`). These compile to C# reference equality and bind a `bool`;
+  - interpolation (`$"{col}"`), which reaches `ToString()` without any
+    operator.
+- A `dynamic` operand is outside the requirement: it binds at run time to
+  whatever order its runtime type forms, so a `string` concatenates and an
+  `object` compares references.
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 
