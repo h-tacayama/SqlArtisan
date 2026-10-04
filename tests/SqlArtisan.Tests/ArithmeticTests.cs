@@ -30,6 +30,15 @@ public class ArithmeticTests
     }
 
     [Fact]
+    public void Addition_ColumnAndNestedStringLeftSum_NestsTheSum()
+    {
+        SqlStatement sql = Select(_t.Name + (" " + _t.Code)).Build();
+
+        Assert.Equal("SELECT (\"t\".name + (:0 + \"t\".code))", sql.Text);
+        Assert.Equal(" ", sql.Parameters.Get<string>(":0"));
+    }
+
+    [Fact]
     public void Addition_StringAndColumnInWhere_ComparesTheConcatenation()
     {
         SqlStatement sql =
