@@ -231,6 +231,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   corrected names reported "already built"; `OrderBy(0)` threw only at
   `Build()`, where `GroupBy(0)` already threw at the call. (#569)
 
+### Tests
+- Integration twins for #614's engine claims: Oracle rejects `NEXTVAL('s')` /
+  `CURRVAL('s')` and `NULLS FIRST NULLS LAST`, and reads an empty match
+  parameter as the default; `'n'` lets `.` match a newline on MySQL and Oracle
+  and stops it on PostgreSQL (with `'m'`); SQL Server runs `@0 + name` as
+  concatenation. (#614)
+
 ### Docs
 - `Returning(...)`'s remarks now say Oracle requires `.Into(...)` after it: a
   `RETURNING` with no `INTO` is rejected by the engine (live-verified).

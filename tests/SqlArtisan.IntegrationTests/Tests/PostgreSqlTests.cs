@@ -807,6 +807,20 @@ public sealed class PostgreSqlTests : IntegrationTestBase, IClassFixture<Postgre
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
+    // The opposite of RegexpOptions.NewLine's meaning elsewhere (#614): 'n' and its
+    // synonym 'm' stop `.` matching a newline, which it does by default here.
+    [Theory]
+    [InlineData("n", false)]
+    [InlineData("m", false)]
+    [InlineData("", true)]
+    public void RegexpNewLineLetter_StopsDotMatchingANewline(string flags, bool expected)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        Assert.Equal(expected, connection.ExecuteScalar<bool>(
+            $"SELECT REGEXP_LIKE(E'a\\nb', 'a.b', '{flags}')"));
+    }
+
     // #523: SQLA0102's live proofs. The DELETE ... USING and FROM-form UPDATE
     // spellings PostgreSQL does own are proven by JoinedDeleteUsing_Executes and
     // JoinedUpdateFrom_Executes above.
