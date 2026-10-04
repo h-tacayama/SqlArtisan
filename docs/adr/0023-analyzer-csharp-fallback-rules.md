@@ -98,8 +98,9 @@ The hazard holds on every engine, but the analyzer as a whole is opt-in (ADR
   construction: a user-defined operator binds, and the rule reads only C#'s
   built-in ones.
 - **A missing warning never means the operand is safe.** A result routed
-  through a variable, an operand typed `object`, or one whose static type is
-  not sealed reaches the same `ToString()` unreported.
+  through a variable, `object` on both sides, or an operand whose static type
+  is not sealed and that no SqlArtisan member has just created reaches the same
+  `ToString()` unreported.
 - **Suppression is per rule ID**; no `.editorconfig` key family ships.
 
 Related: #614 (this change), #558 (the review), #613 (the overloads that
