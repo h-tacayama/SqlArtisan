@@ -42,16 +42,28 @@ public sealed class SortOrder : SqlPart
     /// (<c>... NULLS FIRST</c>).
     /// </summary>
     /// <remarks>Not available on MySQL or SQL Server; SQLite (3.30+).</remarks>
+    /// <exception cref="InvalidOperationException">This sort key already has a
+    /// <c>NULLS FIRST</c> or <c>NULLS LAST</c> ordering.</exception>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NullsFirst => new(_exprOrAlias, _direction, NullOrdering.NullsFirst);
+    public SortOrder NullsFirst => WithNullOrdering(NullOrdering.NullsFirst);
 
     /// <summary>
     /// Gets this sort key with its <see langword="null"/> values sorted last
     /// (<c>... NULLS LAST</c>).
     /// </summary>
     /// <remarks>Not available on MySQL or SQL Server; SQLite (3.30+).</remarks>
+    /// <exception cref="InvalidOperationException">This sort key already has a
+    /// <c>NULLS FIRST</c> or <c>NULLS LAST</c> ordering.</exception>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    public SortOrder NullsLast => new(_exprOrAlias, _direction, NullOrdering.NullsLast);
+    public SortOrder NullsLast => WithNullOrdering(NullOrdering.NullsLast);
+
+    // A second ordering would silently replace the first; the SQL as written
+    // (`NULLS FIRST NULLS LAST`) is rejected by PostgreSQL 16 and SQLite.
+    private SortOrder WithNullOrdering(NullOrdering nullOrdering) =>
+        _nullOrdering == NullOrdering.None
+            ? new(_exprOrAlias, _direction, nullOrdering)
+            : throw new InvalidOperationException(
+                "A sort key takes one NULLS FIRST or NULLS LAST ordering.");
 
     internal override void Format(SqlBuildingBuffer buffer)
     {

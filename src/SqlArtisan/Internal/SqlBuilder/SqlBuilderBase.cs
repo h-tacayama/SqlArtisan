@@ -94,9 +94,11 @@ internal abstract class SqlBuilderBase
     protected SqlStatement BuildCore(Dbms dbms)
     {
         ThrowIfBuilt();
+        // Resolves the dialect first: Validate's dialect checks would otherwise
+        // answer an Unknown target (an unregistered Build(cnn)) with their own message.
+        using SqlBuildingBuffer buffer = new(dbms);
         ThrowIfDuplicateClauseInBlock();
         Validate(dbms);
-        using SqlBuildingBuffer buffer = new(dbms);
         // The guard's target is unaliased, so an aliased RETURNING target shares
         // the slot; DbColumn tells them apart by the alias (#595).
         buffer.SetCorrelatedDmlGuardTarget(

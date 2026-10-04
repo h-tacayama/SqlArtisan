@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Data;
+using SqlArtisan.Internal;
 
 namespace SqlArtisan;
 
@@ -42,9 +43,12 @@ public static class DbmsResolver
     /// <param name="dbms">The engine the connection type talks to.</param>
     /// <exception cref="ArgumentNullException"><paramref name="typeFullName"/> is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="typeFullName"/> is empty or whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="dbms"/> is
+    /// <see cref="Dbms.Unknown"/> or an undefined value.</exception>
     public static void RegisterProvider(string typeFullName, Dbms dbms)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(typeFullName);
+        DbmsGuard.ThrowIfUnsupported(dbms);
 
         s_providerMap.TryAdd(typeFullName, dbms);
     }

@@ -33,6 +33,7 @@ internal sealed class UpdateBuilder(
     public IUpdateBuilderFrom From(params TableReference[] tables)
     {
         CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "FROM requires at least one table.");
+        DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
         AddPart(new FromClause(tables));
         state.HasFrom = true;
 
@@ -179,11 +180,7 @@ internal sealed class UpdateBuilder(
     protected override void Validate(Dbms dbms)
     {
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: false);
-        if (state.IsJoined)
-        {
-            DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
-        }
-        else
+        if (!state.IsJoined)
         {
             DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         }
@@ -206,6 +203,7 @@ internal sealed class UpdateBuilder(
 
     private void AddJoin(SqlPart joinClause)
     {
+        DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
         AddPart(joinClause);
         state.HasJoin = true;
     }

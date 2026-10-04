@@ -38,6 +38,7 @@ internal sealed class DeleteBuilder(
         }
 
         DmlTargetGuard.ThrowIfJoinedDeleteTargetNotRepeated(targetRepeated);
+        DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
 
         AddPart(from);
         state.HasFrom = true;
@@ -97,6 +98,7 @@ internal sealed class DeleteBuilder(
     public IDeleteBuilderUsing Using(params TableReference[] tables)
     {
         CollectionGuard.ThrowIfEmpty(tables, nameof(tables), "USING requires at least one table.");
+        DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
         AddPart(new DeleteUsingClause(tables));
         state.HasUsing = true;
         return this;
@@ -130,11 +132,7 @@ internal sealed class DeleteBuilder(
     protected override void Validate(Dbms dbms)
     {
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: false);
-        if (state.IsJoined)
-        {
-            DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
-        }
-        else
+        if (!state.IsJoined)
         {
             DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
         }
@@ -158,6 +156,7 @@ internal sealed class DeleteBuilder(
 
     private void AddJoin(SqlPart joinClause)
     {
+        DmlTargetGuard.ThrowIfJoinedTargetUnaliased(table);
         AddPart(joinClause);
         state.HasJoin = true;
     }

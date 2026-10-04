@@ -13,7 +13,11 @@ public static class SqlBuilderExtensions
     /// <param name="sqlBuilder">The builder to render.</param>
     /// <param name="cnn">The connection whose provider type selects the dialect via <see cref="DbmsResolver.Resolve(IDbConnection)"/>; an unregistered provider yields <see cref="Dbms.Unknown"/>.</param>
     /// <returns>The rendered SQL text and its bound parameters.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">The connection's provider is unregistered (resolves to <see cref="Dbms.Unknown"/>).</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="cnn"/> is
+    /// <see langword="null"/> or its provider is unregistered (either resolves to
+    /// <see cref="Dbms.Unknown"/>).</exception>
+    /// <exception cref="ArgumentException">The builder was already built, or the statement
+    /// breaks a rule only the whole statement shows on the resolved dialect.</exception>
     public static SqlStatement Build(this ISqlBuilder sqlBuilder, IDbConnection cnn)
     {
         Dbms dbms = DbmsResolver.Resolve(cnn);

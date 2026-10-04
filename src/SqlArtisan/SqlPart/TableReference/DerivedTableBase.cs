@@ -9,6 +9,7 @@ namespace SqlArtisan;
 /// <see cref="DbColumn"/> members; for a one-off, use the inline
 /// <see cref="DerivedTable"/> instead.
 /// </summary>
+/// <param name="name">The derived-table alias, rendered quoted.</param>
 public abstract class DerivedTableBase(string name)
     : TableReference(name, "A derived table requires an alias.")
 {
