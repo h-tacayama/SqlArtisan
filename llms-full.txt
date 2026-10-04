@@ -4665,8 +4665,8 @@ so a result held in a variable first stays silent, and so does a comparison
 with `object` on both sides, or an `object` beside a string's `+`: nothing
 proves a SqlArtisan object is involved. `SQLA0301` also stays silent on a null
 check (`extra != null`, `p == default`), which no operand order turns into SQL,
-and on a reference check passed to `ConditionIf`, whose condition is a C#
-`bool` by design.
+and on a reference check passed as `ConditionIf`'s `when`, a C# `bool` by
+design.
 
 `SQLA0302` reports an object only where its text is provably a type name: its
 type is sealed (a column, a sequence, a generated table class), or a SqlArtisan
