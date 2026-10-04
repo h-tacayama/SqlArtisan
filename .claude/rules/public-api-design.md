@@ -295,7 +295,7 @@ and the query runs with wrong rows (#613). For every overloaded operator,
 enumerate the operand orders a caller can write: a literal, a nullable
 variable, or an `object`- or interface-typed operand on either side, and
 `null`. Each order must either bind a SqlArtisan operator or fail to compile
-(CS0019), except the two the last bullet records. Adding the missing order
+(CS0019), except the orders the last bullet records. Adding the missing order
 after 1.0 changes which rows code that already compiles reads, which is a
 major version (`docs/versioning.md`).
 
@@ -305,14 +305,17 @@ major version (`docs/versioning.md`).
 - Every compound operand renders inside parentheses (`(l op r)`, and each
   operand of `AND` / `OR`), so the emitted SQL keeps the C# tree whatever
   each engine's precedence is. A node that drops them changes rows.
-- Two orders no overload can close, so they stay open until an analyzer
-  rule or a throwing `ToString()` closes them (#613 weighs both):
-  - `==` / `!=` with an `object`- or interface-typed left operand
-    (`o == col`, an `ISubquery` against an expression). These compile to C#
-    reference equality and bind a `bool`. Closing them would take an
-    `(object, SqlExpression)` overload, which the bullet above rules out.
+- An interface SqlArtisan owns is a concrete left type too: `sub == expr`
+  (an `ISubquery` against a `SqlExpression`) falls to reference equality today,
+  and an `(ISubquery, SqlExpression)` overload closes it. Such an overload also
+  takes `null == col`, so it needs the left-operand null guard.
+- No overload can close these, so they stay open (#613 weighs the remedies):
+  - `==` / `!=` with a left operand typed `object` or an interface SqlArtisan
+    does not own (`o == col`). They compile to C# reference equality and bind
+    a `bool`. Closing them would take an `(object, SqlExpression)` overload,
+    which the first bullet rules out, so only an analyzer rule reaches them.
   - Interpolation (`$"{col}"`), which reaches `ToString()` without any
-    operator.
+    operator. An analyzer rule or a throwing `ToString()` closes it.
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 
