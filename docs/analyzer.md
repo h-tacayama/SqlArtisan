@@ -478,8 +478,8 @@ Declaring a version below the bound reports the construct as version-bound
 `supported`/`not supported` verdict, and a version at or above the bound
 resolves the construct as supported. For most rows that reproduces the plain
 verdict exactly; where the bound sits above the dialect's verified baseline
-(the Oracle 23 and PostgreSQL 17 rows below), the plain verdict is `not supported`, and declaring
-the version is what lifts it.
+(the Oracle 23, PostgreSQL 17 and SQL Server 2025 rows below), the plain verdict is
+`not supported`, and declaring the version is what lifts it.
 
 | Construct | Dialect | Minimum version | Why |
 |---|---|---|---|
@@ -506,6 +506,7 @@ the version is what lifts it.
 | `Iif` | SQL Server | 2012 | `IIF(...)` has been available since SQL Server 2012. |
 | `Trim` (1-argument form), `ConcatWs` | SQL Server | 2017 | `TRIM(...)` and `CONCAT_WS(...)` both landed in SQL Server 2017. |
 | `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim`/`Trim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the trim-characters overloads all landed in SQL Server 2022. |
+| `DoublePipe`, `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` (every form) | SQL Server | 2025 | The `\|\|` concatenation operator and the `REGEXP_*` family landed in SQL Server 2025 — live-verified on the SQL Server 2025 lane. `REGEXP_LIKE` also needs the database at compatibility level 170: at 160, which an upgraded database can keep, SQL Server 2025 does not recognize it, and the declared version cannot tell the two apart. |
 
 Two `SQLA0102` DML rules carry the same kind of floor — a version from which
 a dialect stops rejecting the position (see
@@ -937,9 +938,10 @@ spot-verified against a live engine (`SqlServerDateaddFields` and
 
 `RegexpOptions` emits a letter per flag into the match parameter
 (`REGEXP_LIKE(x, p, 'ci')`), and the alphabets are the engines' own. MySQL has
-no letter for `ExcludingWhiteSpace` and rejects the call; Oracle and PostgreSQL
-accept every letter the enum can emit. SQLite and SQL Server have no
-`REGEXP_*` functions at all, so `SQLA0100` answers for them.
+no letter for `ExcludingWhiteSpace` and rejects the call; SQL Server 2025 has
+none for `NewLine` or `ExcludingWhiteSpace`; Oracle and PostgreSQL accept every
+letter the enum can emit. SQLite and SQL Server before 2025 have no `REGEXP_*`
+functions at all, so `SQLA0100` or `SQLA0101` answers for them.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
@@ -1412,7 +1414,7 @@ integration test matrix runs against):
 | Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0101` reports and the Oracle 23 floors of the `SQLA0102` DML rules |
 | PostgreSQL | PostgreSQL 16, plus PostgreSQL 17 (`postgres:17`) for the version-bound entries above 16 |
 | SQLite | `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 (via `Microsoft.Data.Sqlite` 9.0.5) |
-| SQL Server | SQL Server 2022 |
+| SQL Server | SQL Server 2022, plus SQL Server 2025 (`mcr.microsoft.com/mssql/server:2025-latest`) for the version-bound entries above 2022 and its `RegexpOptions` alphabet |
 
 An older or newer engine version may disagree with a `false` entry in
 either direction — that's what the `supported`/`unsupported` overrides are

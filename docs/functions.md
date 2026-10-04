@@ -74,10 +74,10 @@ not at the SqlArtisan layer.
 - `Right()` for `RIGHT` (MySQL, PostgreSQL, SQL Server)
 - `Rpad()` for `RPAD` (MySQL, Oracle, PostgreSQL; the 2-argument form is Oracle/PostgreSQL only)
 - `Rtrim()` for `RTRIM` (two-argument trim-set form: Oracle, PostgreSQL, SQLite, SQL Server)
-- `RegexpCount()` for `REGEXP_COUNT` (Oracle, PostgreSQL)
-- `RegexpInstr()` for `REGEXP_INSTR` (MySQL, Oracle, PostgreSQL; the 7-argument `subPatternPos` form is Oracle/PostgreSQL only)
-- `RegexpReplace()` for `REGEXP_REPLACE` (MySQL, Oracle, PostgreSQL)
-- `RegexpSubstr()` for `REGEXP_SUBSTR` (MySQL, Oracle, PostgreSQL; the 6-argument `subPatternPos` form is Oracle/PostgreSQL only)
+- `RegexpCount()` for `REGEXP_COUNT` (Oracle, PostgreSQL, SQL Server)
+- `RegexpInstr()` for `REGEXP_INSTR` (MySQL, Oracle, PostgreSQL, SQL Server; the 7-argument `subPatternPos` form is Oracle/PostgreSQL/SQL Server only)
+- `RegexpReplace()` for `REGEXP_REPLACE` (MySQL, Oracle, PostgreSQL, SQL Server)
+- `RegexpSubstr()` for `REGEXP_SUBSTR` (MySQL, Oracle, PostgreSQL, SQL Server; the 6-argument `subPatternPos` form is Oracle/PostgreSQL/SQL Server only)
 - `Replace()` for `REPLACE`
 - `Strpos()` for `STRPOS`
 - `Substr()` for `SUBSTR` (not supported by SQL Server — use `Substring()` there)
@@ -85,6 +85,8 @@ not at the SqlArtisan layer.
 - `Substring()` for `SUBSTRING` (MySQL, PostgreSQL, SQLite, SQL Server; on Oracle use `Substr()`)
 - `Trim()` for `TRIM` (the two-argument trim-set form is not supported by SQLite — nest `Ltrim()`/`Rtrim()` there)
 - `Upper()` for `UPPER`
+
+PostgreSQL and SQL Server gained the `REGEXP_*` family in specific releases — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 > [!WARNING]
 > **On PostgreSQL, `RegexpOptions.NewLine` and `RegexpOptions.MultipleLines` both

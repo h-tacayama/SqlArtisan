@@ -35,7 +35,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
 | `tests/SqlArtisan.Tests/` | xUnit unit tests. `FunctionTests.{A..Y}.cs` mirror `Sql.{A..Y}.cs`. |
 | `tests/SqlArtisan.Analyzers.Tests/` | Analyzer unit tests (matrix coverage/integrity, config resolution, diagnostic verification). |
-| `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests: MySql, Oracle, Oracle23ai, PostgreSql, PostgreSql17, SqlServer via Testcontainers; Sqlite in-process. |
+| `tests/SqlArtisan.IntegrationTests/` | Per-engine integration tests: MySql, Oracle, Oracle23ai, PostgreSql, PostgreSql17, SqlServer, SqlServer2025 via Testcontainers; Sqlite in-process. |
 | `tests/SqlArtisan.TableClassGen.Tests/` | TableClassGen unit tests (catalog reading, emitted code, drift detection). |
 | `tests/SqlArtisan.Benchmark/` | BenchmarkDotNet comparisons vs other builders. |
 | `docs/` | User-facing docs: `query-statements`, `expressions`, `functions`, `analyzer`, `cookbook`, `comparison`, `versioning`, plus `guides/` (Dapper quickstart, AI assistants, Oracle array bind). |
@@ -74,7 +74,7 @@ Three GitHub Actions workflows in `.github/workflows/`:
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
 | `ci.yml` | Push to `main`, all PRs | Format check, build, unit tests (`SqlArtisan.Tests`, `Analyzers.Tests`, `TableClassGen.Tests`), and the DB-less `MatrixSweepCatalogTests`, `DialectGuardTwinTests` and `DateTimePartNumberingTests` slices. |
-| `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests across 7 lanes in parallel (Oracle runs at both 21c and 23ai, PostgreSQL at both 16 and 17). |
+| `integration.yml` | Nightly cron, `workflow_call`, manual | Integration tests across 8 lanes in parallel (Oracle runs at both 21c and 23ai, PostgreSQL at both 16 and 17, SQL Server at both 2022 and 2025). |
 | `release.yml` | Tag push (`v*`) | Full verify plus a vulnerable-package audit of `src/` → integration tests → pack & push 4 NuGet packages. |
 
 ## How to add a new SQL function (the most common task)

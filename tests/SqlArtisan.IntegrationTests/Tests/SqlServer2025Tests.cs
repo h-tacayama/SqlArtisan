@@ -1,23 +1,16 @@
 using System.Data;
 using Dapper;
-using SqlArtisan.Analyzers;
-using SqlArtisan.Dapper;
 using SqlArtisan.IntegrationTests.Infrastructure;
 
 namespace SqlArtisan.IntegrationTests.Tests;
 
 /// <summary>
-/// Engine facts true at SQL Server 2025 but not at the 2022 baseline lane (#614):
-/// <c>||</c> and the <c>REGEXP_*</c> family, as SqlArtisan emits them.
+/// SQL Server 2025 facts beside its bound sweep (#614): the <c>REGEXP_*</c> match-parameter
+/// alphabet, and what a database kept at compatibility level 160 still accepts.
 /// </summary>
 [Trait("Engine", "SqlServer2025")]
 public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
 {
-    private static readonly string[] s_sweptMembers =
-    [
-        "DoublePipe", "RegexpLike", "RegexpCount", "RegexpReplace", "RegexpSubstr", "RegexpInstr",
-    ];
-
     private readonly SqlServer2025Fixture _fixture;
 
     public SqlServer2025Tests(SqlServer2025Fixture fixture)
@@ -25,25 +18,10 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
         _fixture = fixture;
     }
 
-    // Each case is the sweep's own statement, so a verdict here is the cell 2025 would get.
+    // An upgraded database can keep compatibility level 160, where REGEXP_LIKE alone of
+    // the 2025 constructs is not recognized — the version bound cannot see the level.
     [Fact]
-    public void AddedConstructs_AreAcceptedAt2025()
-    {
-        using IDbConnection connection = _fixture.OpenConnection();
-        List<string> verdicts = [.. MatrixSweepCatalog.Cases
-            .Where(c => s_sweptMembers.Contains(c.Key.MemberName))
-            .Select(c => $"{Label(c.Key)}: {TryScalar(connection, c.Build(_fixture.Dbms))}")];
-
-        Assert.NotEmpty(verdicts);
-        Assert.True(
-            verdicts.TrueForAll(v => v.EndsWith(": ok", StringComparison.Ordinal)),
-            "SQL Server 2025 verdicts:\n  " + string.Join("\n  ", verdicts));
-    }
-
-    // An upgraded database can keep compatibility level 160; whether the 2025 constructs
-    // still parse there decides if a version bound alone describes them.
-    [Fact]
-    public void AddedConstructs_AtCompatibilityLevel160()
+    public void AddedConstructs_AtCompatibilityLevel160_RejectOnlyRegexpLike()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         connection.Execute(
@@ -59,15 +37,13 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
                 "SELECT REGEXP_SUBSTR('Ab', 'A')",
                 "SELECT REGEXP_INSTR('Ab', 'A')",
             }
-            .Select(sql => sql + " -> " + TryScalarWithMessage(connection, sql))];
+            .Select(sql => TryScalar(connection, sql))];
 
-        Assert.True(
-            verdicts.TrueForAll(v => !v.Contains("rejected", StringComparison.Ordinal)),
-            "Compatibility level 160 verdicts:\n  " + string.Join("\n  ", verdicts));
+        Assert.Equal(["ab", "rejected", "1", "xb", "A", "1"], verdicts);
     }
 
-    // The match-parameter alphabet, read letter by letter as RegexpOptions emits it;
-    // '' is RegexpOptions.None.
+    // The live twin of ArgumentValueValidity's SQL Server alphabet: each letter as
+    // RegexpOptions emits it ('' is None); 'n' and 'x' are the gaps SQLA0104 reports.
     [Fact]
     public void RegexpMatchParameter_Alphabet()
     {
@@ -82,19 +58,6 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
             verdicts);
     }
 
-    private static string TryScalar(IDbConnection connection, ISqlBuilder builder)
-    {
-        try
-        {
-            connection.ExecuteScalar(builder);
-            return "ok";
-        }
-        catch (Exception ex)
-        {
-            return "rejected (" + ex.Message.Split('\n')[0].Trim() + ")";
-        }
-    }
-
     private static string TryScalar(IDbConnection connection, string sql)
     {
         try
@@ -106,19 +69,4 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
             return "rejected";
         }
     }
-
-    private static string TryScalarWithMessage(IDbConnection connection, string sql)
-    {
-        try
-        {
-            return Convert.ToString(connection.ExecuteScalar(sql)) ?? "null";
-        }
-        catch (Exception ex)
-        {
-            return "rejected (" + ex.Message.Split('\n')[0].Trim() + ")";
-        }
-    }
-
-    private static string Label(MatrixKey key) =>
-        key.Arity is { } arity ? $"{key.MemberName}/arity{arity}" : key.MemberName;
 }

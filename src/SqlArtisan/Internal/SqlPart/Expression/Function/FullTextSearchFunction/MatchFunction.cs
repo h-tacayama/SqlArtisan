@@ -28,7 +28,7 @@ public sealed class MatchFunction : IIncompleteExpression
     /// <returns>A <see cref="MatchAgainstCondition"/> for a <c>WHERE</c> clause.</returns>
     /// <remarks>MySQL syntax.</remarks>
     public MatchAgainstCondition Against(object searchExpr) =>
-        new(_columns, Resolve(searchExpr), null);
+        new(_columns, ResolveCompared(searchExpr, nameof(searchExpr), Keywords.Against), null);
 
     /// <inheritdoc cref="Against(object)"/>
     /// <param name="searchExpr">The text to search for.</param>
@@ -36,7 +36,7 @@ public sealed class MatchFunction : IIncompleteExpression
     /// <see cref="SearchModifier.InBooleanMode"/>), emitted after the text.</param>
     /// <remarks>MySQL syntax.</remarks>
     public MatchAgainstCondition Against(object searchExpr, SearchModifier modifier) =>
-        new(_columns, Resolve(searchExpr), modifier);
+        new(_columns, ResolveCompared(searchExpr, nameof(searchExpr), Keywords.Against), modifier);
 
     /// <summary>
     /// Supplies the mandatory <c>AGAINST</c> clause as a value — the relevance

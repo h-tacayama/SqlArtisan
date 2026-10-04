@@ -52,11 +52,19 @@ internal static class ArgumentValueValidity
         "CaseSensitive", "CaseInsensitive", "MultipleLines", "NewLine", "ExcludingWhiteSpace",
     };
 
+    // learn.microsoft.com REGEXP_LIKE, flags: c, i, m and s. SQL Server 2025 rejects 'n'
+    // and 'x', so NewLine and ExcludingWhiteSpace are the gaps; 2022 has no REGEXP_*.
+    private static readonly HashSet<string> SqlServerMatchOptions = new(StringComparer.Ordinal)
+    {
+        "CaseSensitive", "CaseInsensitive", "MultipleLines",
+    };
+
     private static readonly Dictionary<TargetDbms, HashSet<string>> MatchOptionTable = new()
     {
         [TargetDbms.MySql] = MySqlMatchOptions,
         [TargetDbms.Oracle] = OracleMatchOptions,
         [TargetDbms.PostgreSql] = PostgreSqlMatchOptions,
+        [TargetDbms.SqlServer] = SqlServerMatchOptions,
     };
 
     // --- Row counts: where a negative constant is rejected (#529) ---

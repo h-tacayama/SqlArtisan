@@ -644,10 +644,10 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
-    // What a C# null at Against(...) would become under the Sql.Null remedy its message
-    // still names (#614): the engine's verdict on AGAINST (NULL), beside a running twin.
+    // Why Against(...) names .IsNull for a C# null rather than Sql.Null (#614):
+    // AGAINST (NULL) runs and matches no row, beside a twin search that runs.
     [Fact]
-    public void AgainstNull_Verdict()
+    public void AgainstNull_MatchesNoRow()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         long existing = connection.ExecuteScalar<long>(
