@@ -1,3 +1,5 @@
+using SqlArtisan.Internal;
+
 namespace SqlArtisan;
 
 /// <summary>
@@ -19,10 +21,7 @@ public static class SqlArtisanConfig
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="dbms"/> is <see cref="Dbms.Unknown"/> or an undefined value.</exception>
     public static void SetDefaultDbms(Dbms dbms)
     {
-        if (dbms == Dbms.Unknown || !Enum.IsDefined(dbms))
-        {
-            throw new ArgumentOutOfRangeException(nameof(dbms), dbms, "Unsupported DBMS.");
-        }
+        DbmsGuard.ThrowIfUnsupported(dbms);
 
         DefaultDbms = dbms;
     }

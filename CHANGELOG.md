@@ -39,6 +39,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
+- An unaliased target of a joined `UPDATE` or `DELETE` throws at the `From(...)`,
+  join or `Using(...)` call that joins it instead of at `Build()`; the alias is
+  fixed by then, and the same `From(...)` already threw its re-list check. (#614)
+- `DbmsResolver.RegisterProvider` throws `ArgumentOutOfRangeException` on
+  `Dbms.Unknown` or an undefined value, as `SetDefaultDbms` does. It accepted
+  them, and the first registration for a type wins, so the bad entry could not
+  be replaced and surfaced only at `Build(cnn)` as "Unsupported DBMS". (#614)
+- A `RegexpOptions` value with an undefined bit throws
+  `ArgumentOutOfRangeException`. The bit emitted no letter, so
+  `(RegexpOptions)(32 | 2)` built `'i'`, and appending a flag at that bit would
+  have changed the SQL the same call emits. (#614)
+- `.WithColumnList()` over a `Select(Asterisk)` or `Select(t.Asterisk)` block
+  says to select the columns by name; it said to alias the expression with
+  `.As(...)`, which neither marker has. (#614)
 - Four call-site defects now throw at the call that writes them instead of at
   `Build()`: an `OUTPUT ... INTO` column list whose width differs from the
   `OUTPUT` list (at `Into(...)`), an `INSERT ... SELECT` select list whose
@@ -180,6 +194,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#569)
 
 ### Fixed
+- `Build(Dbms.Unknown)` on a joined `UPDATE` that re-lists its target throws
+  the documented `ArgumentOutOfRangeException` ("Unsupported DBMS"). It threw
+  "Only SQL Server supports a joined UPDATE that re-lists the target table",
+  which a SQL Server user building through an unregistered connection read as
+  rejecting their own engine's form. (#614)
 - `Build()` throws the correlated-DML guard's message when a query block in a
   CTE body reads a column of an unaliased `UPDATE`/`DELETE`/`MERGE` target
   without listing the target in that block. The guard was off for every CTE
