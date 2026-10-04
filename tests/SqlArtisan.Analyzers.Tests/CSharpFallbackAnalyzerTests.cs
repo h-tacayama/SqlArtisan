@@ -10,7 +10,7 @@ public class CSharpFallbackAnalyzerTests
         using SqlArtisan.Internal;
         using static SqlArtisan.Sql;
 
-        class T : DbTableBase
+        sealed class T : DbTableBase
         {
             public DbColumn Id;
             public DbColumn Name;
@@ -138,11 +138,22 @@ public class CSharpFallbackAnalyzerTests
             "var q = Select(t.Name + (\"x\" + {|#0:Select(t.Name).From(t)|})).From(t);",
             "SQLA0302");
 
+    // Generated table classes are sealed, so nothing can override ToString behind one.
     [Fact]
-    public Task SqlPartConcatenatedIntoLike_ReportsSqla0302() =>
+    public Task SealedTableClassConcatenatedIntoLike_ReportsSqla0302() =>
         RunReporting(
-            "var q = Select(t.Id).From(t).Where(t.Name.Like(\"%\" + {|#0:p|} + \"%\"));",
+            "var q = Select(t.Id).From(t).Where(t.Name.Like(\"%\" + {|#0:t|} + \"%\"));",
             "SQLA0302");
+
+    // A DbTableBase- or SqlPart-typed value may hold a user table class overriding ToString.
+    [Fact]
+    public Task ExtensibleBaseTypedValue_StaysSilent() =>
+        RunSilent("""
+            DbTableBase tb = t;
+            var q = Select(t.Id).From(t).Where(t.Name.Like("%" + p + $"{tb}"));
+            Local(t); void Local<TB>(TB e) where TB : DbTableBase
+            { var r = Select(t.Id).From(t).Where(t.Name.Like($"{e}")); }
+            """);
 
     [Fact]
     public Task SubqueryConcatenatedIntoLike_ReportsSqla0302() =>

@@ -37,12 +37,18 @@ operator.**
   remedy is the same (build the text in SQL), and a user who silences one wants
   the other silenced too — ADR 0019's splitting test says merge.
 
-A *query object* is a reference type from SqlArtisan, or one deriving from or
-implementing one, that formats as its type name: nothing on its chain overrides
-`ToString()`. That takes in every `SqlPart`, the builder stages, a pending node
-(`Listagg(...)` before `.WithinGroup(...)`) and a `DbSequence` alike, without a
-list to keep current. A built `SqlStatement` is not one: its `ToString()` is its
-SQL text, by design. A type parameter is one when a constraint is.
+`SQLA0301` reads any reference type from SqlArtisan, or one deriving from or
+implementing one; a type parameter counts when a constraint does. Reference
+equality binds a `bool` whatever the object's `ToString()` says.
+
+`SQLA0302` needs more: proof the text is a type name. That holds when nothing on
+the static type's chain overrides `ToString()` *and* no subclass can hide behind
+it — the type is sealed (`DbColumn`, `DbSequence`, a generated table class), or
+a SqlArtisan member created the object (a builder stage, `Listagg(...)` before
+`.WithinGroup(...)`). A value typed `DbTableBase` or `SqlPart`, or a type
+parameter constrained to one, may hold a user table class whose override
+returns real text, so it stays silent. A built `SqlStatement` is never reported:
+its `ToString()` is its SQL text, by design.
 
 ### Only the flow into SqlArtisan is reported
 

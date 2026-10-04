@@ -24,8 +24,8 @@ internal static class CSharpFallbackRule
         if (binary.OperatorMethod is not null
             || binary.OperatorKind
                 is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals)
-            || !(IsQueryObject(Unconverted(binary.LeftOperand).Type)
-                || IsQueryObject(Unconverted(binary.RightOperand).Type))
+            || !(IsSqlArtisanObject(Unconverted(binary.LeftOperand).Type)
+                || IsSqlArtisanObject(Unconverted(binary.RightOperand).Type))
             || !TryFindSqlArtisanSink(binary, out ITypeSymbol? parameterType)
             // A bool parameter (ConditionIf's `when`) takes the C# test on purpose.
             || parameterType?.SpecialType == SpecialType.System_Boolean)
@@ -52,7 +52,7 @@ internal static class CSharpFallbackRule
 
         foreach (IOperation operand in new[] { binary.LeftOperand, binary.RightOperand })
         {
-            if (IsQueryObject(Unconverted(operand).Type))
+            if (FormatsAsTypeName(operand))
             {
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.QueryObjectAsText,
@@ -73,8 +73,7 @@ internal static class CSharpFallbackRule
 
         foreach (IInterpolatedStringContentOperation part in interpolated.Parts)
         {
-            if (part is IInterpolationOperation hole
-                && IsQueryObject(Unconverted(hole.Expression).Type))
+            if (part is IInterpolationOperation hole && FormatsAsTypeName(hole.Expression))
             {
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.QueryObjectAsText,
@@ -84,13 +83,12 @@ internal static class CSharpFallbackRule
         }
     }
 
-    // A SqlArtisan reference type that formats as its type name: none on its chain
-    // overrides ToString, as SqlStatement does to return its SQL text by design.
-    private static bool IsQueryObject(ITypeSymbol? type)
+    // A reference type from SqlArtisan, or one deriving from or implementing one.
+    private static bool IsSqlArtisanObject(ITypeSymbol? type)
     {
         if (type is ITypeParameterSymbol parameter)
         {
-            return parameter.ConstraintTypes.Any(IsQueryObject);
+            return parameter.ConstraintTypes.Any(IsSqlArtisanObject);
         }
 
         if (type is null || type.TypeKind == TypeKind.Error || !type.IsReferenceType)
@@ -98,8 +96,45 @@ internal static class CSharpFallbackRule
             return false;
         }
 
-        bool fromSqlArtisan = IsFromSqlArtisan(type)
-            || type.AllInterfaces.Any(IsFromSqlArtisan);
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        {
+            if (IsFromSqlArtisan(current))
+            {
+                return true;
+            }
+        }
+
+        return type.AllInterfaces.Any(IsFromSqlArtisan);
+    }
+
+    // Provable only when no ToString override can hide behind the static type: a sealed
+    // type, or an object a SqlArtisan member created. A DbTableBase- or SqlPart-typed
+    // value may hold a user table class that overrides it (ADR 0003).
+    private static bool FormatsAsTypeName(IOperation value)
+    {
+        IOperation operation = Unconverted(value);
+        if (operation.Type is not { } type
+            || type is ITypeParameterSymbol
+            || !IsSqlArtisanObject(type)
+            || OverridesToString(type))
+        {
+            return false;
+        }
+
+        return type.IsSealed || operation switch
+        {
+            IInvocationOperation invocation => IsSqlArtisanFactory(invocation.TargetMethod),
+            IPropertyReferenceOperation property =>
+                IsSqlArtisanFactory(property.Property.GetMethod),
+            IObjectCreationOperation creation => creation.Constructor is { } constructor
+                && IsFromSqlArtisan(constructor.ContainingType),
+            _ => false,
+        };
+    }
+
+    // SqlStatement's override returns its SQL text, by design.
+    private static bool OverridesToString(ITypeSymbol type)
+    {
         for (ITypeSymbol? current = type;
             current is not null && current.SpecialType != SpecialType.System_Object;
             current = current.BaseType)
@@ -107,14 +142,18 @@ internal static class CSharpFallbackRule
             if (current.GetMembers(nameof(ToString)).OfType<IMethodSymbol>()
                 .Any(method => method.IsOverride && method.Parameters.IsEmpty))
             {
-                return false;
+                return true;
             }
-
-            fromSqlArtisan |= IsFromSqlArtisan(current);
         }
 
-        return fromSqlArtisan;
+        return false;
     }
+
+    // A generic return can hand back the caller's own object; any other is SqlArtisan's.
+    private static bool IsSqlArtisanFactory(IMethodSymbol? method) =>
+        method is not null
+        && DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly)
+        && method.OriginalDefinition.ReturnType is not ITypeParameterSymbol;
 
     private static bool IsFromSqlArtisan(ITypeSymbol type) =>
         DialectUsageAnalyzer.IsFromSqlArtisan(type.ContainingAssembly);
