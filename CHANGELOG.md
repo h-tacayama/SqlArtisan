@@ -137,6 +137,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Put the CTE inside the feeding `SELECT` instead:
   `InsertIgnoreInto(...).With(...).Select(...)`. Binary-breaking for an
   assembly that calls the removed members; rebuild against this version. (#569)
+- **Breaking:** a string on the left of `+` with a `SqlExpression` on the
+  right now builds SQL addition, as a column on the left already did:
+  `"Dr. " + u.LastName` emits `(:0 + last_name)` with `Dr. ` bound, SQL
+  Server's concatenation. C# used to compile it as string concatenation, so
+  the statement bound the text `Dr. SqlArtisan.DbColumn` and matched the wrong
+  rows without an error. Assigning the result to a `string` no longer
+  compiles. A string beside an alias no longer compiles either, in either
+  order: `.As(...)` binds before `+`, so `"Dr. " + u.LastName.As("n")` added
+  the string to the alias. Alias the whole sum instead:
+  `("Dr. " + u.LastName).As("n")`. Any other right operand that is not a
+  `SqlExpression` still concatenates in C#: a subquery, a function still
+  pending its clause (`RowNumber()` before `.Over(...)`, `Listagg(...)` before
+  `.WithinGroup(...)`), or an `object`-typed value. (#613)
 
 - `Returning(...)` and `Output(...)` report a rejected item as their own
   position: `Invalid type for ReturningItem` / `OutputItem`, and a null item as
