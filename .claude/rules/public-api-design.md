@@ -304,12 +304,18 @@ decided by compiling them against every neighbouring order, not by this file.
 
 - The emitted SQL keeps the C# operator tree because compound operands are
   parenthesized (`sql-building-style.md` rule 6).
+- An order with no SQL meaning can be closed as a compile error instead: an
+  operator marked `[Obsolete(..., error: true)]` whose message names the
+  remedy. A string beside an `ExpressionAlias`, in either order, is closed so
+  (#613): `.As(...)` binds before `+`, so `"Dr. " + col.As("n")` adds the
+  string to the alias, and an alias is never an operand in SQL.
 - Open today, each an analyzer candidate in #614:
   - a `string` left operand of `+` (and `+=` on a string) whose right operand
-    is not typed as `SqlExpression` or a type derived from it: a subquery
-    stage (`"x" + Select(...)`), a function still pending its clause
-    (`RowNumber()` before `.Over(...)`, which a column on the left would reject
-    instead) or an `object`-typed value still compiles as C# concatenation;
+    is typed as neither `SqlExpression` (or a type derived from it) nor
+    `ExpressionAlias`: a subquery stage (`"x" + Select(...)`), a function
+    still pending its clause (`RowNumber()` before `.Over(...)`, which a column
+    on the left would reject instead) or an `object`-typed value still
+    compiles as C# concatenation;
   - `==` / `!=` whose left operand is a reference type not derived from
     `SqlExpression`, wherever C# has a reference conversion between the two
     operand types (a type parameter counts as its effective base class):

@@ -64,6 +64,36 @@ public sealed class ExpressionAlias : SqlPart, ISortable
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public SortOrder NullsLast => new(this, NullOrdering.NullsLast);
 
+    internal const string StringLeftOfAliasMessage =
+        "An alias names a whole SELECT-list item; alias the sum instead: (\"x\" + col).As(...).";
+
+    internal const string StringRightOfAliasMessage =
+        "An alias names a whole SELECT-list item; alias the sum instead: (col + \"x\").As(...).";
+
+    /// <summary>
+    /// Not supported: <c>"Dr. " + col.As("n")</c> adds a string to an alias, because
+    /// <c>.As(...)</c> binds before <c>+</c>. Alias the whole sum instead:
+    /// <c>("Dr. " + col).As("n")</c>.
+    /// </summary>
+    /// <param name="leftSide">The string.</param>
+    /// <param name="rightSide">The alias.</param>
+    /// <returns>Never returns; the call does not compile.</returns>
+    [Obsolete(StringLeftOfAliasMessage, error: true)]
+    public static AdditionOperator operator +(string leftSide, ExpressionAlias rightSide) =>
+        throw new InvalidOperationException(StringLeftOfAliasMessage);
+
+    /// <summary>
+    /// Not supported: <c>col.As("n") + " Jr"</c> adds a string to an alias, because
+    /// <c>.As(...)</c> binds before <c>+</c>. Alias the whole sum instead:
+    /// <c>(col + " Jr").As("n")</c>.
+    /// </summary>
+    /// <param name="leftSide">The alias.</param>
+    /// <param name="rightSide">The string.</param>
+    /// <returns>Never returns; the call does not compile.</returns>
+    [Obsolete(StringRightOfAliasMessage, error: true)]
+    public static AdditionOperator operator +(ExpressionAlias leftSide, string rightSide) =>
+        throw new InvalidOperationException(StringRightOfAliasMessage);
+
     internal override void Format(SqlBuildingBuffer buffer) => AppendAlias(buffer);
 
     internal void FormatAsSelect(SqlBuildingBuffer buffer)

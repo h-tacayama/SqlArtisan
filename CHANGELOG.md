@@ -143,10 +143,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Server's concatenation. C# used to compile it as string concatenation, so
   the statement bound the text `Dr. SqlArtisan.DbColumn` and matched the wrong
   rows without an error. Assigning the result to a `string` no longer
-  compiles. A right operand that is not a `SqlExpression` still concatenates
-  in C#: a subquery, a function still pending its clause (`RowNumber()` before
-  `.Over(...)`, `Listagg(...)` before `.WithinGroup(...)`), or an
-  `object`-typed value. (#613)
+  compiles. A string beside an alias no longer compiles either, in either
+  order: `.As(...)` binds before `+`, so `"Dr. " + u.LastName.As("n")` added
+  the string to the alias. Alias the whole sum instead:
+  `("Dr. " + u.LastName).As("n")`. Any other right operand that is not a
+  `SqlExpression` still concatenates in C#: a subquery, a function still
+  pending its clause (`RowNumber()` before `.Over(...)`, `Listagg(...)` before
+  `.WithinGroup(...)`), or an `object`-typed value. (#613)
 
 - `Returning(...)` and `Output(...)` report a rejected item as their own
   position: `Invalid type for ReturningItem` / `OutputItem`, and a null item as

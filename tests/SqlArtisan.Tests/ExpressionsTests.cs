@@ -150,4 +150,26 @@ public class ExpressionsTests
                 + "write Sql.Null for a SQL NULL literal.",
             ex.Message);
     }
+
+    // A string beside an alias would otherwise compile as C# concatenation and
+    // bind the alias's type name, so both orders are compile errors (#613).
+    [Theory]
+    [InlineData(typeof(string), typeof(ExpressionAlias), "(\"x\" + col).As(...).")]
+    [InlineData(typeof(ExpressionAlias), typeof(string), "(col + \"x\").As(...).")]
+    public void Addition_StringBesideAlias_IsACompileError(
+        Type left,
+        Type right,
+        string remedy)
+    {
+        System.Reflection.MethodInfo op = typeof(ExpressionAlias).GetMethod(
+            "op_Addition",
+            [left, right])!;
+        ObsoleteAttribute obsolete = Assert.Single(
+            op.GetCustomAttributes(typeof(ObsoleteAttribute), false).Cast<ObsoleteAttribute>());
+
+        Assert.True(obsolete.IsError);
+        Assert.Equal(
+            "An alias names a whole SELECT-list item; alias the sum instead: " + remedy,
+            obsolete.Message);
+    }
 }
