@@ -334,4 +334,16 @@ public partial class FunctionTests
 
         Assert.Equal("TO_TSQUERY requires a configuration name.", ex.Message);
     }
+
+    [Fact]
+    public void TsMatch_NullQuery_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => TsMatch(_t.Name, null!));
+
+        Assert.Equal(
+            "@@ cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'query')",
+            ex.Message);
+    }
 }

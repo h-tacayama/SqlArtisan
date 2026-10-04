@@ -9,7 +9,10 @@ namespace SqlArtisan;
 /// repeatedly — or to get IntelliSense on column names — subclass
 /// <see cref="DbTableBase"/> (or generate one with SqlArtisan.TableClassGen) instead.
 /// </summary>
-public sealed class DbTable(string tableName, string tableAlias = "")
+/// <param name="tableName">The table name as it appears in SQL.</param>
+/// <param name="tableAlias">The table alias, or <see langword="null"/> or an empty string for
+/// none.</param>
+public sealed class DbTable(string tableName, string? tableAlias = "")
     : DbTableBase(tableName, tableAlias), IColumnAccessor
 {
     /// <summary>

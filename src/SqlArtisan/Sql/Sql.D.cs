@@ -491,7 +491,7 @@ public static partial class Sql
     /// <em>logical OR</em> under the default <c>sql_mode</c> — valid SQL with silently
     /// different semantics — so use <see cref="Concat(object, object)"/> /
     /// <see cref="Concat(object, object, object, object[])"/> there instead. SQL Server
-    /// rejects <c>||</c> entirely; its concatenation operator is <c>+</c>, already
+    /// 2022 rejects <c>||</c>; its concatenation operator is <c>+</c>, already
     /// emitted by the existing <c>+</c> operator on <see cref="SqlExpression"/>.
     /// </remarks>
     public static DoublePipeOperator DoublePipe(

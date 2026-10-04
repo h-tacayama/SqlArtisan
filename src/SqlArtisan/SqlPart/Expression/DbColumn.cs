@@ -24,9 +24,8 @@ public sealed class DbColumn : SqlExpression
         StringGuard.ThrowIfNullOrWhiteSpace(name, "A column requires a name.");
     }
 
-    // For a column materialized from a quoted SELECT-list alias: the reference
-    // must render quoted exactly as the definition did, or a case-folding
-    // engine resolves the two to different identifiers.
+    // A reference renders quoted exactly as its definition did, or a case-folding
+    // engine resolves the two to different identifiers (#165).
     internal DbColumn(TableReference owner, string name, bool quoteName)
     {
         ArgumentNullException.ThrowIfNull(owner);
@@ -38,9 +37,9 @@ public sealed class DbColumn : SqlExpression
     }
 
     internal TableReference Owner { get; }
+
     internal string Name { get; }
 
-    // Read by As(DbColumn) so the alias definition renders as this reference does.
     internal bool QuoteName => _quoteName;
 
     internal override void Format(SqlBuildingBuffer buffer)

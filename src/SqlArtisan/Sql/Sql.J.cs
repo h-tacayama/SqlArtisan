@@ -110,7 +110,9 @@ public static partial class Sql
     /// <param name="jsonValue">The JSONB value that must be contained.</param>
     /// <returns>A <see cref="JsonbContainsCondition"/> emitting <c>jsonExpr @&gt; jsonValue</c>.</returns>
     public static JsonbContainsCondition JsonbContains(object jsonExpr, object jsonValue) =>
-        new(Resolve(jsonExpr), Resolve(jsonValue));
+        new(
+            ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbContains),
+            ResolveCompared(jsonValue, nameof(jsonValue), Operators.JsonbContains));
 
     /// <summary>
     /// The JSONB key-existence predicate <c>jsonExpr ? key</c>: whether
@@ -121,7 +123,9 @@ public static partial class Sql
     /// <param name="key">The key to test for.</param>
     /// <returns>A <see cref="JsonbExistsCondition"/> emitting <c>jsonExpr ? key</c>.</returns>
     public static JsonbExistsCondition JsonbExists(object jsonExpr, object key) =>
-        new(Resolve(jsonExpr), Resolve(key));
+        new(
+            ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExists),
+            ResolveCompared(key, nameof(key), Operators.JsonbExists));
 
     /// <summary>
     /// The JSONB all-keys-existence predicate <c>jsonExpr ?&amp; ARRAY[keys]</c>:
@@ -134,7 +138,9 @@ public static partial class Sql
     public static JsonbExistsAllCondition JsonbExistsAll(object jsonExpr, params object[] keys)
     {
         CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?& requires at least one key.");
-        return new(Resolve(jsonExpr), Resolve(keys));
+        return new(
+            ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExistsAll),
+            Resolve(keys));
     }
 
     /// <summary>
@@ -148,7 +154,9 @@ public static partial class Sql
     public static JsonbExistsAnyCondition JsonbExistsAny(object jsonExpr, params object[] keys)
     {
         CollectionGuard.ThrowIfEmpty(keys, nameof(keys), "?| requires at least one key.");
-        return new(Resolve(jsonExpr), Resolve(keys));
+        return new(
+            ResolveCompared(jsonExpr, nameof(jsonExpr), Operators.JsonbExistsAny),
+            Resolve(keys));
     }
 
     /// <summary>

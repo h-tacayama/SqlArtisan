@@ -3,8 +3,8 @@ using System.Text.RegularExpressions;
 namespace SqlArtisan.Tests;
 
 // Mechanizes code-comments.md's caps like the other ratchets: every over-cap
-// block is pinned per file in Baselines/comment-caps.txt (code-comments.md's pre-rule
-// survivors), so a new or edited comment may not add one.
+// block is pinned per file in Baselines/comment-caps.txt (pre-rule survivors and
+// post-rule blocks pinned since; code-comments.md), so a new or edited comment may not add one.
 public class CommentCapRatchetTests
 {
     // The last alternative is an explicit interface implementation (`IFoo IBar.Baz(`),
@@ -92,8 +92,12 @@ public class CommentCapRatchetTests
                     i++;
                 }
 
+                // A doc block between a `//` header and its member (`/// <inheritdoc/>`)
+                // leaves it a header.
                 int next = i;
-                while (next < lines.Length && lines[next].Trim().Length == 0)
+                while (next < lines.Length
+                    && (lines[next].Trim().Length == 0
+                        || lines[next].TrimStart().StartsWith("///", StringComparison.Ordinal)))
                 {
                     next++;
                 }

@@ -10,6 +10,7 @@ namespace SqlArtisan;
 /// subclass <see cref="DerivedTableBase"/> and expose them as typed members
 /// instead.
 /// </summary>
+/// <param name="name">The derived-table alias, rendered quoted.</param>
 public sealed class DerivedTable(string name) : DerivedTableBase(name), IColumnAccessor
 {
     /// <inheritdoc/>

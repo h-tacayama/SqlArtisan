@@ -95,7 +95,7 @@ public class PublicSurfaceBoundaryTests
     /// The root namespace cannot take the same blanket — deriving is the
     /// documented use of three bases there (<see cref="DbTableBase"/>,
     /// <see cref="CteBase"/>, <see cref="DerivedTableBase"/>) — so
-    /// <see cref="ExportedAbstractType_InRootNamespace_IsDerivableOnlyWhenAllowlisted"/>
+    /// <see cref="ExportedOpenType_InRootNamespace_IsDerivableOnlyWhenAllowlisted"/>
     /// scans it against that allowlist rather than leaving it unchecked.
     /// </summary>
     [Fact]
@@ -116,7 +116,7 @@ public class PublicSurfaceBoundaryTests
     }
 
     /// <summary>
-    /// Every public abstract type here that is not on the allowlist is closed to
+    /// Every unsealed public class here that is not on the allowlist is closed to
     /// a foreign subclass only by accident of separate mechanisms — a <c>private
     /// protected</c> constructor, or an <c>internal abstract</c> member such a
     /// subclass cannot implement (CS0534) — and nothing asserted that. An ADR
@@ -125,18 +125,20 @@ public class PublicSurfaceBoundaryTests
     /// promoted base that implements every abstract member and keeps a protected
     /// constructor taking a raw token reopens the hole #492 closed, silently.
     /// Deriving here is a surface decision, so it is made once in the allowlist.
+    /// <see cref="BindValue"/> is listed only because <see cref="BindArrayValue"/>
+    /// derives from it; deriving from it is not covered (docs/versioning.md).
     /// </summary>
     [Fact]
-    public void ExportedAbstractType_InRootNamespace_IsDerivableOnlyWhenAllowlisted()
+    public void ExportedOpenType_InRootNamespace_IsDerivableOnlyWhenAllowlisted()
     {
-        // By type rather than by name: renaming or unexporting one of the three
+        // By type rather than by name: renaming or unexporting one of these
         // fails to compile here instead of silently shrinking what is permitted.
         HashSet<Type> derivableByDesign =
-            [typeof(DbTableBase), typeof(CteBase), typeof(DerivedTableBase)];
+            [typeof(DbTableBase), typeof(CteBase), typeof(DerivedTableBase), typeof(BindValue)];
 
         List<string> derivable = [.. typeof(Sql).Assembly.GetExportedTypes()
-            // A static class is abstract and sealed; only an open base is derivable.
-            .Where(t => t.Namespace == RootNamespace && t.IsClass && t.IsAbstract && !t.IsSealed)
+            // A static class is abstract and sealed; only an unsealed class is derivable.
+            .Where(t => t.Namespace == RootNamespace && t.IsClass && !t.IsSealed)
             .Where(t => !derivableByDesign.Contains(t))
             .Where(IsExternallyDerivable)
             .Select(t => t.Name)
@@ -144,10 +146,11 @@ public class PublicSurfaceBoundaryTests
 
         Assert.True(
             derivable.Count == 0,
-            $"{derivable.Count} public abstract types in {RootNamespace} can be derived from "
-                + "outside the assembly — make the constructor private protected, or, where "
-                + "deriving is the documented use, say so by naming the type in this test's "
-                + "allowlist and in its XML docs:\n  "
+            $"{derivable.Count} unsealed public types in {RootNamespace} can be derived from "
+                + "outside the assembly — seal a concrete class, make an abstract base's "
+                + "constructor private protected, or, where deriving is the documented use "
+                + "or an in-assembly subclass needs the class open, name the type in this "
+                + "test's allowlist and say which in its XML docs:\n  "
                 + string.Join("\n  ", derivable));
     }
 

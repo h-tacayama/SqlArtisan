@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace SqlArtisan.Tests;
 
 // Pins the shape of public-api-design.md's stage-name clause (#568) over every
-// Internal interface a public member returns, plus the named entries — so a
+// Internal or root interface a public member returns, plus the named entries — so a
 // stage cannot drop its prefix, with or without Builder. The state word is review's.
 public class BuilderStageNamingTests
 {
@@ -13,8 +13,9 @@ public class BuilderStageNamingTests
             + "Builder([A-Z][A-Za-z]*)?$",
         RegexOptions.Compiled);
 
-    // A capability that also ends an upsert action (DoNothing(), DoUpdateSet().Where()).
-    private static readonly HashSet<string> s_capabilityStages = ["IReturning"];
+    // A capability that also ends an upsert action (DoNothing(), DoUpdateSet().Where()), and
+    // ISqlBuilder, the recorded exception (public-api-design.md § Builder stage names).
+    private static readonly HashSet<string> s_capabilityStages = ["IReturning", "ISqlBuilder"];
 
     public static IEnumerable<object[]> StageInterfaces()
     {
@@ -29,7 +30,8 @@ public class BuilderStageNamingTests
 
         return returned
             .Concat(named)
-            .Where(t => t.IsInterface && t.Namespace == "SqlArtisan.Internal")
+            .Where(t => t.IsInterface
+                && t.Namespace is "SqlArtisan.Internal" or "SqlArtisan")
             .Select(t => t.Name)
             .Distinct()
             .OrderBy(name => name, StringComparer.Ordinal)
@@ -54,5 +56,6 @@ public class BuilderStageNamingTests
         Assert.Contains("ISelectBuilderLimitOffset", names);
         Assert.Contains("IDeleteBuilder", names);
         Assert.Contains("IReturning", names);
+        Assert.Contains("ISqlBuilder", names);
     }
 }

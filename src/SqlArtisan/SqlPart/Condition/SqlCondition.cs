@@ -19,9 +19,7 @@ public abstract class SqlCondition : SqlPart
     /// <param name="leftSide">The left operand.</param>
     /// <param name="rightSide">The right operand.</param>
     /// <returns>The combined <c>AND</c> condition.</returns>
-    public static AndCondition operator &(
-        SqlCondition leftSide,
-        SqlCondition rightSide)
+    public static AndCondition operator &(SqlCondition leftSide, SqlCondition rightSide)
     {
         if (leftSide is AndCondition andCondition)
         {
@@ -41,9 +39,7 @@ public abstract class SqlCondition : SqlPart
     /// <param name="leftSide">The left operand.</param>
     /// <param name="rightSide">The right operand.</param>
     /// <returns>The combined <c>OR</c> condition.</returns>
-    public static OrCondition operator |(
-        SqlCondition leftSide,
-        SqlCondition rightSide)
+    public static OrCondition operator |(SqlCondition leftSide, SqlCondition rightSide)
     {
         if (leftSide is OrCondition orCondition)
         {

@@ -1387,7 +1387,8 @@ DeleteFrom(t).From(t).InnerJoin(u).On(t.Id == u.Id).Build(Dbms.SqlServer);
 // DELETE "t" FROM acct "t" INNER JOIN ledger "u" ON "t".id = "u".id
 ```
 
-The joined target must be aliased. A joined `DELETE ... FROM` must re-list the
+The joined target must be aliased, or the `From(...)`, join or `Using(...)` call
+that joins it throws. A joined `DELETE ... FROM` must re-list the
 target in `FROM`, or `From(...)` throws; on SQL Server a joined `UPDATE` must too
 — T-SQL's joined form takes the target's alias from there — or
 `Build(Dbms.SqlServer)` throws. A re-listed `UPDATE` target off SQL Server throws
@@ -1886,7 +1887,7 @@ SqlArtisan also supports more advanced WITH clause scenarios:
   `.WithColumnList()` derives the list from the first query block, under
   `With()` and `WithRecursive()` alike. Every select item of that block must
   then have a name: a plain column, or an expression aliased with `.As(...)` —
-  an unnamed expression throws at the `.WithColumnList()` call.
+  an unnamed expression or `*` throws at the `.WithColumnList()` call.
   `WithRecursive()` derives no list of its own, so without the opt-in an anchor
   with an unnamed item such as `Select(Asterisk)` builds.
 - **CTEs with DML main statements** — `With(...)` before an `UPDATE` or `DELETE`
@@ -3279,6 +3280,13 @@ not at the SqlArtisan layer.
 - `Substring()` for `SUBSTRING` (MySQL, PostgreSQL, SQLite, SQL Server; on Oracle use `Substr()`)
 - `Trim()` for `TRIM` (the two-argument trim-set form is not supported by SQLite — nest `Ltrim()`/`Rtrim()` there)
 - `Upper()` for `UPPER`
+
+> [!WARNING]
+> **On PostgreSQL, `RegexpOptions.NewLine` and `RegexpOptions.MultipleLines` both
+> stop `.` from matching a newline.** There `'n'` and `'m'` mean newline-sensitive
+> matching, the opposite of `NewLine`'s meaning on MySQL and Oracle, and PostgreSQL's
+> `.` matches a newline by default — so leave `NewLine` off there. See
+> [PostgreSQL: embedded options](https://www.postgresql.org/docs/current/functions-matching.html#POSIX-EMBEDDED-OPTIONS-TABLE).
 
 On Oracle, chain two-argument `Concat(a, b)` calls (`Concat(Concat(a, b), c)`)
 for three or more arguments, or use the `||` operator instead — see
@@ -6237,7 +6245,9 @@ treated as a bug — please open an
 The packages expose these namespaces, and they carry different promises.
 
 - **`SqlArtisan`** — the API. Every type here is yours to name in a
-  declaration, and everything on this page applies to it in full.
+  declaration, and everything on this page applies to it in full. One
+  exception: deriving from `BindValue` is not covered. It is unsealed only so
+  that `BindArrayValue` can derive from it; construct it, don't subclass it.
 - **`SqlArtisan.Internal`** — the values the API hands back. A `Sql.*` call
   returns a type from here because the chain is typed: `Sql.Sum(...)` has to
   return something that offers `.Over(...)` where `Sql.Abs(...)` does not.
@@ -6286,7 +6296,9 @@ Three cases are specific to this library, beyond the usual API-level changes:
   a new value gets the next unused number, and no existing value's number
   changes. Reassigning a shipped value would silently change behavior for a
   caller who hasn't rebuilt against the new version — the same class of risk
-  the emitted-SQL rule above guards against.
+  the emitted-SQL rule above guards against. A member is replaced by
+  appending its successor at the next unused value and marking the old one
+  `[Obsolete]`, never by an alias that repeats its number.
 
 Analyzer diagnostic updates (the SQLA rules) may also land in a
 minor release: they change build-time diagnostics, never runtime behavior.

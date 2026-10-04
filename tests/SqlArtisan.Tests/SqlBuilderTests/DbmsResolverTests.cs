@@ -91,6 +91,30 @@ public class DbmsResolverTests
             ex.Message);
     }
 
+    // First registration wins, so an accepted bad entry could not be corrected
+    // later and would surface only at Build(cnn), as an unrelated failure.
+    [Fact]
+    public void RegisterProvider_Unknown_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            DbmsResolver.RegisterProvider("Custom.UnknownConnection", Dbms.Unknown));
+
+        Assert.Equal(
+            $"Unsupported DBMS. (Parameter 'dbms'){Environment.NewLine}Actual value was Unknown.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void RegisterProvider_UndefinedValue_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            DbmsResolver.RegisterProvider("Custom.UndefinedConnection", (Dbms)99));
+
+        Assert.Equal(
+            $"Unsupported DBMS. (Parameter 'dbms'){Environment.NewLine}Actual value was 99.",
+            ex.Message);
+    }
+
     private sealed class RegisteredConnection : FakeConnectionBase;
 
     private sealed class UnregisteredConnection : FakeConnectionBase;

@@ -22,7 +22,9 @@ treated as a bug — please open an
 The packages expose these namespaces, and they carry different promises.
 
 - **`SqlArtisan`** — the API. Every type here is yours to name in a
-  declaration, and everything on this page applies to it in full.
+  declaration, and everything on this page applies to it in full. One
+  exception: deriving from `BindValue` is not covered. It is unsealed only so
+  that `BindArrayValue` can derive from it; construct it, don't subclass it.
 - **`SqlArtisan.Internal`** — the values the API hands back. A `Sql.*` call
   returns a type from here because the chain is typed: `Sql.Sum(...)` has to
   return something that offers `.Over(...)` where `Sql.Abs(...)` does not.
@@ -71,7 +73,9 @@ Three cases are specific to this library, beyond the usual API-level changes:
   a new value gets the next unused number, and no existing value's number
   changes. Reassigning a shipped value would silently change behavior for a
   caller who hasn't rebuilt against the new version — the same class of risk
-  the emitted-SQL rule above guards against.
+  the emitted-SQL rule above guards against. A member is replaced by
+  appending its successor at the next unused value and marking the old one
+  `[Obsolete]`, never by an alias that repeats its number.
 
 Analyzer diagnostic updates (the SQLA rules) may also land in a
 minor release: they change build-time diagnostics, never runtime behavior.

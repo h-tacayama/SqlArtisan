@@ -63,9 +63,9 @@ src/SqlArtisan/SqlPart/TableReference/DbTableBase.cs 1
 src/SqlArtisan/SqlPart/TableReference/DerivedTable.cs 1
 src/SqlArtisan/SqlPart/TableReference/DerivedTableBase.cs 1
 src/SqlArtisan/SqlPart/TableReference/SubqueryDerivedTable.cs 1
-src/SqlArtisan/SqlPart/TableReference/TableReference.cs 2
+src/SqlArtisan/SqlPart/TableReference/TableReference.cs 1
 src/SqlArtisan/SqlPart/TableReference/UnnestDerivedTable.cs 1
-src/SqlArtisan/SqlPart/TableReference/ValuesDerivedTable.cs 2
+src/SqlArtisan/SqlPart/TableReference/ValuesDerivedTable.cs 1
 tests/SqlArtisan.Analyzers.Tests/AnalyzerConfigResolverTests.cs 1
 tests/SqlArtisan.Analyzers.Tests/ClaudeMdDiagnosticParityTests.cs 1
 tests/SqlArtisan.Analyzers.Tests/ConstructKeyNamingTests.cs 1
