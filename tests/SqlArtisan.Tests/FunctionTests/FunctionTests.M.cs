@@ -130,6 +130,35 @@ public partial class FunctionTests
         Assert.Equal("database", sql.Parameters.Get<string>(":0"));
     }
 
+    // FTS5 reads a schema at the target as a qualifier: `main.ft MATCH` is
+    // "no such column" (SQLite 3.45.1), while `ft` and `"f".ft` resolve.
+    [Fact]
+    public void Match_Sqlite_SchemaQualified_DropsSchema()
+    {
+        DbTable aliased = new("main.articles", "a");
+        DbTable unaliased = new("main.articles");
+
+        SqlStatement aliasedSql =
+            Select(aliased.Column("body"))
+            .From(aliased)
+            .Where(Match(aliased, "database"))
+            .Build(Dbms.Sqlite);
+        SqlStatement unaliasedSql =
+            Select(unaliased.Column("body"))
+            .From(unaliased)
+            .Where(Match(unaliased, "database"))
+            .Build(Dbms.Sqlite);
+
+        Assert.Equal(
+            "SELECT \"a\".body FROM main.articles \"a\" WHERE \"a\".articles MATCH :0",
+            aliasedSql.Text);
+        Assert.Equal("database", aliasedSql.Parameters.Get<string>(":0"));
+        Assert.Equal(
+            "SELECT body FROM main.articles WHERE articles MATCH :0",
+            unaliasedSql.Text);
+        Assert.Equal("database", unaliasedSql.Parameters.Get<string>(":0"));
+    }
+
     [Fact]
     public void Max_DateTimeValue_CorrectSql()
     {

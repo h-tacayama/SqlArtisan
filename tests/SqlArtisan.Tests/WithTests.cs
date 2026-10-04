@@ -830,6 +830,25 @@ public class WithTests
         Assert.Equal(expected.ToString(), sql.Text);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WithColumnList_AsteriskSelectItem_ThrowsArgumentException(bool qualified)
+    {
+        TestTable a = new("a");
+        Cte c = new("c");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            c.As(
+                (qualified ? Select(a.Asterisk) : Select(Asterisk)).From(a))
+            .WithColumnList());
+
+        Assert.Equal(
+            "A CTE column list requires a name for every column of the CTE's first query block; "
+                + "select the columns by name instead of *.",
+            ex.Message);
+    }
+
     [Fact]
     public void WithColumnList_UnnamedSelectItem_ThrowsArgumentException()
     {

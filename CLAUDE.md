@@ -205,12 +205,12 @@ which chunks it across single reviewers instead of tripling it.
   function nodes.
 - Public API lives in `Sql.*.cs`, `src/SqlArtisan/SqlBuilder/`, the
   table-reference types under `src/SqlArtisan/SqlPart/TableReference/`,
-  `DbColumn`/`BindValue` under `src/SqlArtisan/SqlPart/Expression/`, the
+  `DbColumn`/`BindValue`/`BindArrayValue` under `src/SqlArtisan/SqlPart/Expression/`, the
   function-argument enums under `src/SqlArtisan/SqlPart/FunctionArgument/`, and
   the schema-metadata attributes under `src/SqlArtisan/Metadata/`. Types users must
-  **name** in a declaration position (`SqlExpression`, `SqlCondition`, `TableReference`,
-  `ISubquery`, `SortOrder`, `ExpressionAlias`, `CommonTableExpression`,
-  `DbSequence`) live in the root namespace. Everything under `Internal/` is
+  **name** in a declaration position (`SqlExpression`, `SqlCondition`,
+  `EqualityCondition`, `TableReference`, `ISubquery`, `SortOrder`, `ExpressionAlias`,
+  `CommonTableExpression`, `DbSequence`) live in the root namespace. Everything under `Internal/` is
   implementation detail.
 - Name public members after their SQL token — **underscores are the only word
   boundaries** (`ADD_MONTHS`→`AddMonths`, `DATEADD`→`Dateadd`).

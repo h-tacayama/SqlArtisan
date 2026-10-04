@@ -14,14 +14,14 @@ public abstract class DbTableBase : TableReference
     /// Initializes a table with an explicit name and alias.
     /// </summary>
     /// <param name="tableName">The table name as it appears in SQL.</param>
-    /// <param name="tableAlias">The table alias, or an empty string for none.</param>
-    public DbTableBase(string tableName, string tableAlias)
+    /// <param name="tableAlias">The table alias, or <see langword="null"/> or an empty string for none.</param>
+    public DbTableBase(string tableName, string? tableAlias)
         : base(tableName, "A table requires a name.")
     {
         // The name renders as a bare token (a CTE or derived-table name is
         // alias-quoted), so whitespace is invalid on every dialect.
         StringGuard.ThrowIfNullOrWhiteSpace(tableName, "A table requires a name.");
-        _tableAlias = tableAlias;
+        _tableAlias = tableAlias ?? "";
     }
 
     internal override string CorrelationName => _tableAlias;
@@ -76,7 +76,8 @@ public abstract class DbTableBase : TableReference
     // `tbl MATCH ...`). FTS5 resolves the target as the hidden column named
     // after the table, so an aliased table must qualify it (`"a".tbl`) — a bare
     // quoted alias falls back to a string literal (no such column) and fails
-    // with "unable to use function MATCH in the requested context".
+    // with "unable to use function MATCH in the requested context". A schema
+    // there reads as a qualifier (`main.ft` is "no such column", SQLite 3.45.1).
     internal void FormatAsMatchTarget(SqlBuildingBuffer buffer)
     {
         if (!string.IsNullOrEmpty(_tableAlias))
@@ -85,6 +86,6 @@ public abstract class DbTableBase : TableReference
             buffer.Append('.');
         }
 
-        base.Format(buffer);
+        FormatNameWithoutSchema(buffer);
     }
 }

@@ -42,7 +42,12 @@ public sealed class SqlParameters
     /// <typeparam name="T">The expected value type.</typeparam>
     /// <param name="name">The parameter marker name to look up.</param>
     /// <returns>The value cast to <typeparamref name="T"/>, or <see langword="default"/> if no parameter has that name.</returns>
-    /// <exception cref="InvalidCastException">The stored value is not a <typeparamref name="T"/> — a stored SQL <c>NULL</c> included (it is held as <see cref="DBNull"/>, which casts to no <typeparamref name="T"/> but <see cref="object"/>).</exception>
+    /// <remarks>
+    /// A missing name is not an error, so for a value type <typeparamref name="T"/> it reads
+    /// the same as a bound <see langword="default"/>. Check <see cref="ParameterNames"/> to
+    /// test whether a parameter exists.
+    /// </remarks>
+    /// <exception cref="InvalidCastException">The stored value cannot be cast to <typeparamref name="T"/>. A stored SQL <c>NULL</c> is held as <see cref="DBNull"/>, so it throws unless <typeparamref name="T"/> is a type <see cref="DBNull"/> converts to, such as <see cref="object"/>.</exception>
     public T? Get<T>(string name)
     {
         foreach (KeyValuePair<string, BindValue> parameter in _parameters)

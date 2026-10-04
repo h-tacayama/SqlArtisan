@@ -240,7 +240,7 @@ public static partial class Sql
             nameof(whenClauses),
             "A CASE expression must not contain a null WHEN clause.");
 
-        return new(Resolve(expr), whenClauses);
+        return new(ResolveSimpleCase(expr, nameof(expr)), whenClauses);
     }
 
     /// <inheritdoc cref="Case(object, SimpleCaseWhenClause[])"/>
@@ -248,7 +248,7 @@ public static partial class Sql
         object expr,
         SimpleCaseWhenClause whenClause,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [whenClause],
             elseExpr);
 
@@ -258,7 +258,7 @@ public static partial class Sql
         SimpleCaseWhenClause whenClause1,
         SimpleCaseWhenClause whenClause2,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [
                 whenClause1,
                 whenClause2,
@@ -272,7 +272,7 @@ public static partial class Sql
         SimpleCaseWhenClause whenClause2,
         SimpleCaseWhenClause whenClause3,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [
                 whenClause1,
                 whenClause2,
@@ -288,7 +288,7 @@ public static partial class Sql
         SimpleCaseWhenClause whenClause3,
         SimpleCaseWhenClause whenClause4,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [
                 whenClause1,
                 whenClause2,
@@ -306,7 +306,7 @@ public static partial class Sql
         SimpleCaseWhenClause whenClause4,
         SimpleCaseWhenClause whenClause5,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [
                 whenClause1,
                 whenClause2,
@@ -326,7 +326,7 @@ public static partial class Sql
         SimpleCaseWhenClause whenClause5,
         SimpleCaseWhenClause whenClause6,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [
                 whenClause1,
                 whenClause2,
@@ -348,7 +348,7 @@ public static partial class Sql
         SimpleCaseWhenClause whenClause6,
         SimpleCaseWhenClause whenClause7,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [
                 whenClause1,
                 whenClause2,
@@ -372,7 +372,7 @@ public static partial class Sql
         SimpleCaseWhenClause whenClause7,
         SimpleCaseWhenClause whenClause8,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [
                 whenClause1,
                 whenClause2,
@@ -398,7 +398,7 @@ public static partial class Sql
         SimpleCaseWhenClause whenClause8,
         SimpleCaseWhenClause whenClause9,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [
                 whenClause1,
                 whenClause2,
@@ -426,7 +426,7 @@ public static partial class Sql
         SimpleCaseWhenClause whenClause9,
         SimpleCaseWhenClause whenClause10,
         CaseElseExpression elseExpr) => new(
-            Resolve(expr),
+            ResolveSimpleCase(expr, nameof(expr)),
             [
                 whenClause1,
                 whenClause2,
@@ -454,7 +454,7 @@ public static partial class Sql
             nameof(whenClauses),
             "A CASE expression must not contain a null WHEN clause.");
 
-        return new(Resolve(expr), whenClauses, elseExpr);
+        return new(ResolveSimpleCase(expr, nameof(expr)), whenClauses, elseExpr);
     }
 
     /// <summary>

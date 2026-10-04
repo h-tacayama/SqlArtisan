@@ -105,6 +105,10 @@ public sealed class CommonTableExpression
             {
                 DbColumn column => new CteColumnName(column.Name, column.QuoteName),
                 ExpressionAlias alias => new CteColumnName(alias.Name, alias.QuoteAlias),
+                // Neither marker has As(...), so the generic remedy is unreachable.
+                AsteriskMarker or QualifiedAsteriskMarker => throw new ArgumentException(
+                    "A CTE column list requires a name for every column of the CTE's first "
+                        + "query block; select the columns by name instead of *."),
                 _ => null,
             };
 
