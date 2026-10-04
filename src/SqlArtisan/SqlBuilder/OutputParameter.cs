@@ -8,14 +8,13 @@ namespace SqlArtisan;
 /// variable name paired with the <see cref="System.Data.DbType"/> the driver
 /// binds it as, plus an optional <see cref="Size"/> for variable-length types.
 /// </summary>
-/// <remarks>
-/// A variable-length type such as a string also needs a <see cref="Size"/>.
-/// </remarks>
 public readonly struct OutputParameter
 {
     // The caller supplies the type: a column reference carries a name, not a CLR type.
 
-    /// <summary>Creates an output parameter binding.</summary>
+    /// <summary>
+    /// Creates an output parameter binding.
+    /// </summary>
     /// <param name="variable">The output variable name, emitted as a bind marker (<c>:name</c>).</param>
     /// <param name="dbType">The data type the output parameter is bound as.</param>
     /// <param name="size">The buffer size for variable-length types (for example strings); omit for fixed-width types.</param>
@@ -38,14 +37,19 @@ public readonly struct OutputParameter
         Size = size;
     }
 
-    /// <summary>Gets the output variable name, emitted as a bind marker (<c>:name</c>).</summary>
+    /// <summary>
+    /// Gets the output variable name, emitted as a bind marker (<c>:name</c>).
+    /// </summary>
     public string Variable { get; }
 
-    /// <summary>Gets the data type the output parameter is bound as.</summary>
+    /// <summary>
+    /// Gets the data type the output parameter is bound as.
+    /// </summary>
     public DbType DbType { get; }
 
-    /// <summary>Gets the buffer size for variable-length types, or <see langword="null"/> when
-    /// unset.</summary>
+    /// <summary>
+    /// Gets the buffer size for variable-length types, or <see langword="null"/> when unset.
+    /// </summary>
     public int? Size { get; }
 
     private static bool IsDigitsOnly(string value)

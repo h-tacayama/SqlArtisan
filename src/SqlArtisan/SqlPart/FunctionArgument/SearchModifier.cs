@@ -18,6 +18,8 @@ public enum SearchModifier
     /// </summary>
     InBooleanMode = 1,
 
-    /// <summary>Query expansion search (<c>WITH QUERY EXPANSION</c>).</summary>
+    /// <summary>
+    /// Query expansion search (<c>WITH QUERY EXPANSION</c>).
+    /// </summary>
     WithQueryExpansion = 2,
 }

@@ -524,8 +524,8 @@ internal static class DialectMatrix
         // DoublePipe (Sql.D.cs XML docs, #234): native on Oracle/PostgreSQL/SQLite (every
         // version). MySQL rejects it under the default sql_mode's PIPES_AS_CONCAT-off
         // meaning — || is logical OR there, valid SQL with silently different semantics,
-        // exactly the trap this entry exists to flag. SQL Server has no || operator at all
-        // (its concatenation operator is +, the existing AdditionOperator).
+        // exactly the trap this entry exists to flag. SQL Server 2022, the verified baseline,
+        // rejects || (its concatenation operator is +, the existing AdditionOperator).
         [new MatrixKey("DoublePipe")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: true, sqlServer: false),
 
         // --- Window / analytic (universal on the baselines: MySQL 8.0+, SQLite 3.25+, SQL Server

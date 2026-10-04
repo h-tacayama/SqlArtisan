@@ -110,8 +110,8 @@ public enum DateTimePart
     Microsecond = 19,
 
     /// <summary>
-    /// The <c>MICROSECONDS</c> field — the seconds field including fractional microseconds
-    /// (PostgreSQL).
+    /// The <c>MICROSECONDS</c> field — the seconds field, fractional part included,
+    /// times 1,000,000 (PostgreSQL).
     /// </summary>
     Microseconds = 20,
 
@@ -126,8 +126,8 @@ public enum DateTimePart
     Millisecond = 22,
 
     /// <summary>
-    /// The <c>MILLISECONDS</c> field — the seconds field including fractional milliseconds
-    /// (PostgreSQL).
+    /// The <c>MILLISECONDS</c> field — the seconds field, fractional part included,
+    /// times 1,000 (PostgreSQL).
     /// </summary>
     Milliseconds = 23,
 

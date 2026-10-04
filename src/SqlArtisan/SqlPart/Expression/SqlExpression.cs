@@ -271,10 +271,10 @@ public abstract class SqlExpression : SqlPart
     /// <exception cref="ArgumentException"><paramref name="values"/> is empty (an
     /// empty <c>IN</c> list is invalid SQL).</exception>
     /// <remarks>
-    /// Takes <see cref="IReadOnlyCollection{T}"/>, not <see cref="IEnumerable{T}"/>: a
-    /// <see cref="string"/> is an <c>IEnumerable&lt;char&gt;</c> but not a collection, so
-    /// <c>In("abc")</c> stays a single-value predicate instead of one bind per character.
+    /// A <see cref="string"/> stays one value: <c>In("abc")</c> binds <c>"abc"</c>, not
+    /// one value per character.
     /// </remarks>
+    // IReadOnlyCollection<T>, not IEnumerable<T>: a string is an IEnumerable<char>.
     public InCondition In<T>(IReadOnlyCollection<T> values)
     {
         CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
@@ -288,11 +288,8 @@ public abstract class SqlExpression : SqlPart
     /// <param name="values">The candidate values; must be non-empty.</param>
     /// <returns>The <c>IN</c> condition.</returns>
     /// <exception cref="ArgumentException"><paramref name="values"/> is empty.</exception>
-    /// <remarks>
-    /// A typed sibling of the <see cref="IReadOnlyCollection{T}"/> overload,
-    /// needed because a reference-type array is covariantly convertible to
-    /// <c>object[]</c> and would otherwise be ambiguous with the <c>params</c> one.
-    /// </remarks>
+    // A reference-type array converts covariantly to object[], so without this
+    // overload it would be ambiguous with the params one.
     public InCondition In<T>(T[] values)
     {
         CollectionGuard.ThrowIfEmpty(values, nameof(values), "IN requires at least one value.");
@@ -321,7 +318,6 @@ public abstract class SqlExpression : SqlPart
         return new(this, ResolveCompared(expressions, nameof(expressions), NotInConstruct));
     }
 
-    /// <inheritdoc cref="In{T}(System.Collections.Generic.IReadOnlyCollection{T})"/>
     /// <summary>
     /// The <c>expr NOT IN (<paramref name="values"/>)</c> condition, one bind per
     /// element of an existing collection — pass a <c>List&lt;T&gt;</c>,
@@ -332,13 +328,16 @@ public abstract class SqlExpression : SqlPart
     /// <returns>The <c>NOT IN</c> condition.</returns>
     /// <exception cref="ArgumentException"><paramref name="values"/> is empty (an
     /// empty <c>NOT IN</c> list is invalid SQL).</exception>
+    /// <remarks>
+    /// A <see cref="string"/> stays one value: <c>NotIn("abc")</c> binds <c>"abc"</c>, not
+    /// one value per character.
+    /// </remarks>
     public NotInCondition NotIn<T>(IReadOnlyCollection<T> values)
     {
         CollectionGuard.ThrowIfEmpty(values, nameof(values), "NOT IN requires at least one value.");
         return new(this, ResolveCompared(values, nameof(values), NotInConstruct));
     }
 
-    /// <inheritdoc cref="In{T}(T[])"/>
     /// <summary>
     /// The <c>expr NOT IN (<paramref name="values"/>)</c> condition for an array of
     /// candidate values — one bind per element.
