@@ -4663,10 +4663,10 @@ SqlArtisan member or an operand of a SqlArtisan operator (`u.Name == $"{u.Id}"`)
 The same C# anywhere else — a log line, a reference check — is correct code,
 so a result held in a variable first stays silent, and so does a comparison
 with `object` on both sides, or an `object` beside a string's `+`: nothing
-proves a SqlArtisan object is involved. `SQLA0301` also stays silent on a null
-check (`extra != null`, `p == default`), which no operand order turns into SQL,
-and on a reference check passed as `ConditionIf`'s `when`, a C# `bool` by
-design.
+proves a SqlArtisan object is involved. `SQLA0301` also stays silent where no
+operand order turns the comparison into SQL — a null check (`extra != null`,
+`p == default`), or two tables or two sequences compared — and on a reference
+check passed as `ConditionIf`'s `when`, a C# `bool` by design.
 
 `SQLA0302` reports an object only where its text is provably a type name: its
 type is sealed (a column, a sequence, a generated table class), or a SqlArtisan

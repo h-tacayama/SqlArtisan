@@ -72,7 +72,9 @@ it is boxed and bound. `ConditionIf(bool when, …)` takes the C# test on purpos
 `bool` parameter is correct code, not the hazard. A comparison with a `null`
 constant (`null`, `default`, a null `const`) is skipped wherever it lands: no
 operand order makes a null check SQL, so it is never the swapped-operand
-mistake the rule names.
+mistake the rule names. The same holds when neither operand's static type can
+be a `SqlExpression` (two tables, two sequences), and the rule skips that too;
+an interface or `object` counts as one that can.
 
 ### The band
 

@@ -21,17 +21,25 @@ internal static class CSharpFallbackRule
         OperationAnalysisContext context,
         IBinaryOperation binary)
     {
+        ITypeSymbol? left = Unconverted(binary.LeftOperand).Type;
+        ITypeSymbol? right = Unconverted(binary.RightOperand).Type;
         if (binary.OperatorMethod is not null
             || binary.OperatorKind
                 is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals)
-            || !(IsSqlArtisanObject(Unconverted(binary.LeftOperand).Type)
-                || IsSqlArtisanObject(Unconverted(binary.RightOperand).Type))
+            || !(IsSqlArtisanObject(left) || IsSqlArtisanObject(right))
+            // Two tables or two sequences: no operand order makes that a SQL comparison.
+            || context.Compilation.GetTypeByMetadataName("SqlArtisan.SqlExpression")
+                is not { } expression
+            || !(CanHoldExpression(left, expression) || CanHoldExpression(right, expression))
             // A null check is meant as C#: no operand order makes it SQL.
             || IsNullConstant(binary.LeftOperand)
             || IsNullConstant(binary.RightOperand)
             || !TryFindSqlArtisanSink(binary, out ITypeSymbol? parameterType)
             // A bool parameter (ConditionIf's `when`) takes the C# test on purpose.
-            || parameterType?.SpecialType == SpecialType.System_Boolean)
+            || parameterType?.SpecialType == SpecialType.System_Boolean
+            // CS0019 already rejects it: nothing compiles, so nothing binds.
+            || binary.SemanticModel?.GetDiagnostics(binary.Syntax.Span, context.CancellationToken)
+                .Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error) != false)
         {
             return;
         }
@@ -160,6 +168,39 @@ internal static class CSharpFallbackRule
 
     private static bool IsFromSqlArtisan(ITypeSymbol type) =>
         DialectUsageAnalyzer.IsFromSqlArtisan(type.ContainingAssembly);
+
+    // An interface counts: a SqlExpression subclass may implement it.
+    private static bool CanHoldExpression(ITypeSymbol? type, INamedTypeSymbol expression)
+    {
+        if (type is ITypeParameterSymbol parameter)
+        {
+            return parameter.ConstraintTypes.All(
+                constraint => CanHoldExpression(constraint, expression));
+        }
+
+        if (type is null || type.TypeKind == TypeKind.Interface)
+        {
+            return type is not null;
+        }
+
+        for (ITypeSymbol? current = expression; current is not null; current = current.BaseType)
+        {
+            if (SymbolEqualityComparer.Default.Equals(current, type))
+            {
+                return true;
+            }
+        }
+
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        {
+            if (SymbolEqualityComparer.Default.Equals(current, expression))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     // `null`, `default`, a null constant: any compile-time null.
     private static bool IsNullConstant(IOperation operand) =>

@@ -88,6 +88,24 @@ public class CSharpFallbackAnalyzerTests
             var r = Select(default(SqlPart) == t.Id, (object)null == t.Id).From(t);
             """);
 
+    // Neither side can be a SqlExpression, so no operand order makes a SQL comparison.
+    [Fact]
+    public Task ReferenceCheckBetweenTables_StaysSilent() =>
+        RunSilent("""
+            DbTableBase a = t, b = new T("u");
+            var q = Select(a == b, Bind(t == new T("u")), a != t).From(t);
+            """);
+
+    // CS0019 already rejects the comparison, so nothing binds.
+    [Fact]
+    public async Task NonCompilingComparison_ReportsOnlyTheCompilerError()
+    {
+        var test = AnalyzerVerifier.Create(
+            Usage("var q = Select({|CS0019:name == t.Id|}).From(t);"),
+            AnalyzerVerifier.EditorConfig("postgresql"));
+        await test.RunAsync();
+    }
+
     // Nothing proves either operand holds a query object.
     [Fact]
     public Task ObjectsOrClassConstrainedTypeParameter_StaysSilent() =>

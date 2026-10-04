@@ -330,11 +330,12 @@ decided by compiling them against every neighbouring order, not by this file.
   SqlArtisan argument or operator operand — `SQLA0301` for `==` / `!=`,
   `SQLA0302` for `+` and interpolation (ADR 0023). An operand typed `object` or
   a `class`-constrained type parameter — on both sides of `==` / `!=`, or
-  beside a string's `+` — and `+=` stay unreported, since nothing there proves
-  a query object is involved; so does an operand of `+` or interpolation
-  whose static type is not sealed and that no SqlArtisan member has just
-  created, since a `DbTableBase`- or `SqlPart`-typed one may hold a user
-  override of `ToString()`:
+  beside a string's `+` — stays unreported, since nothing there proves a query
+  object is involved. `+=` stays unreported too: the rule reads the binary `+`
+  and interpolation only, never a compound assignment. So does an operand of
+  `+` or interpolation whose static type is not sealed and that no SqlArtisan
+  member has just created, since a `DbTableBase`- or `SqlPart`-typed one may
+  hold a user override of `ToString()`:
   - `+` between a `string` and an operand typed as neither `SqlExpression`
     (or a type derived from it) nor `ExpressionAlias`, in either order (and
     `+=` on a string): a subquery stage (`"x" + Select(...)`), a function
