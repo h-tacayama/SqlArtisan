@@ -45,7 +45,7 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
     // The live twin of ArgumentValueValidity's SQL Server alphabet: each letter as
     // RegexpOptions emits it ('' is None); 'n' and 'x' are the gaps SQLA0104 reports.
     [Fact]
-    public void RegexpMatchParameter_Alphabet()
+    public void RegexpLike_MatchParameterLetters_MatchTheAnalyzerAlphabet()
     {
         using IDbConnection connection = _fixture.OpenConnection();
         List<string> verdicts = [.. new[] { "", "c", "i", "m", "n", "x", "ci" }
@@ -56,6 +56,25 @@ public sealed class SqlServer2025Tests : IClassFixture<SqlServer2025Fixture>
         Assert.Equal(
             ["'': 0", "'c': 0", "'i': 1", "'m': 0", "'n': rejected", "'x': rejected", "'ci': 1"],
             verdicts);
+    }
+
+    // SQLA0104 reads the alphabet per dialect, not per function (#528), so the 'n' and
+    // 'x' gaps are pinned on every other flags taker, each beside a letter it has.
+    [Theory]
+    [InlineData("SELECT REGEXP_COUNT('Ab', 'ab', 1, '@')")]
+    [InlineData("SELECT REGEXP_INSTR('Ab', 'ab', 1, 1, 0, '@')")]
+    [InlineData("SELECT REGEXP_REPLACE('Ab', 'ab', 'x', 1, 0, '@')")]
+    [InlineData("SELECT REGEXP_SUBSTR('Ab', 'ab', 1, 1, '@')")]
+    public void RegexpMatchParameter_NewLineAndExcludingWhiteSpace_AreRejectedByTheEngine(
+        string probe)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+
+        connection.ExecuteScalar(probe.Replace("@", "i"));
+
+        Assert.Equal(
+            ["rejected", "rejected"],
+            new[] { "n", "x" }.Select(flag => TryScalar(connection, probe.Replace("@", flag))));
     }
 
     private static string TryScalar(IDbConnection connection, string sql)

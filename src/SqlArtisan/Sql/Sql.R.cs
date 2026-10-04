@@ -173,7 +173,11 @@ public static partial class Sql
     /// <param name="source">The string tested.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_LIKE</c> condition.</returns>
-    /// <remarks>MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
+    /// <remarks>
+    /// MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax. SQL Server also
+    /// needs the database at compatibility level 170; at 160 it does not recognize the
+    /// function.
+    /// </remarks>
     public static RegexpLikeCondition RegexpLike(object source, object pattern) =>
         new(
             ResolveCompared(source, nameof(source), Keywords.RegexpLike),

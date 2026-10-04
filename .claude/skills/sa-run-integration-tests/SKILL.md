@@ -33,7 +33,7 @@ do not derive from `IntegrationTestBase`.
 ## Run it
 
 ```bash
-# Whole matrix (needs Docker; pulls 6 images on first run)
+# Whole matrix (needs Docker; pulls 7 images on first run)
 dotnet test tests/SqlArtisan.IntegrationTests -c Release
 
 # One lane — Engine ∈ { Sqlite, PostgreSql, MySql, SqlServer, Oracle, Oracle23ai, PostgreSql17, SqlServer2025 }

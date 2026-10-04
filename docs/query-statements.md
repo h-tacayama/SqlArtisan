@@ -116,8 +116,11 @@ SqlStatement sql =
 // SELECT /*+ INDEX("u" users_ix) */ "u".id
 // FROM users "u"
 ```
-The hint text is emitted verbatim, so name the alias as it renders. On Oracle, a
-bare `u` folds to `U`, matches no alias, and the hint is silently ignored.
+The hint text is emitted verbatim, so name the alias as it renders.
+
+> [!NOTE]
+> On Oracle, a bare `u` in a hint folds to `U`, matches no alias, and the hint
+> is silently ignored — the query runs with the plan the hint meant to change.
 
 ---
 
