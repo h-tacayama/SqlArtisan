@@ -41,11 +41,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - An unaliased target of a joined `UPDATE` or `DELETE` throws at the `From(...)`,
   join or `Using(...)` call that joins it instead of at `Build()`; the alias is
-  fixed by then, and the same `From(...)` already threw its re-list check. (#614)
+  fixed by then, and a `DELETE`'s `From(...)` already threw its re-list check.
+  (#614)
 - `DbmsResolver.RegisterProvider` throws `ArgumentOutOfRangeException` on
   `Dbms.Unknown` or an undefined value, as `SetDefaultDbms` does. It accepted
   them, and the first registration for a type wins, so the bad entry could not
-  be replaced and surfaced only at `Build(cnn)` as "Unsupported DBMS". (#614)
+  be replaced and surfaced only at `Build(cnn)`, as an unrelated failure. (#614)
 - A `RegexpOptions` value with an undefined bit throws
   `ArgumentOutOfRangeException`. The bit emitted no letter, so
   `(RegexpOptions)(32 | 2)` built `'i'`, and appending a flag at that bit would
