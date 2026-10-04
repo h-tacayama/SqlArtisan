@@ -304,11 +304,8 @@ version.
 - Every compound operand renders inside parentheses (`(l op r)`, and each
   operand of `AND` / `OR`), so the emitted SQL keeps the C# tree whatever
   each engine's precedence is. A node that drops them changes rows.
-- `==` / `!=` override `Equals` / `GetHashCode` by reference, which keeps
-  CS0660/CS0661 quiet without a suppression. Their shared return type is
-  CS0216's (§ "Recorded trade-offs").
 - Interpolation (`$"{col}"`) reaches `ToString()` without any operator, so no
-  overload can close it. It is left to the analyzer (#613).
+  overload can close it; only an analyzer rule can (#613).
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 

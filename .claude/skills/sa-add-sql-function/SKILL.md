@@ -84,8 +84,7 @@ Const keyword interpolations may carry their own edge spaces
 (`$"{Keywords.Where} "`); the helpers cover spacing a const string cannot — a
 part between operands, an optional token, a runtime value. Full rules (incl.
 one-token keyword constants and one-method-per-line wrapped chains) live in
-`.claude/rules/sql-building-style.md` (auto-loaded when editing `Internal/**` or
-`SqlPart/**`).
+`.claude/rules/sql-building-style.md` (auto-loaded when editing `Internal/**`).
 
 For 3+ args with several optional ones, see `RegexpCountFunction` which delegates
 to `VariadicFunctionCore`.
