@@ -67,6 +67,19 @@ public class RegexpLikeTests
             "REGEXP_LIKE(\"t\".name, :0, 'cimnx')",
             1, "[2-5]");
 
+    // An undefined bit emitted no letter, so `(RegexpOptions)(32 | 2)` built 'i'.
+    [Fact]
+    public void RegexpLike_UndefinedOptionBit_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RegexpLike(_t.Name, "[2-5]", (RegexpOptions)(32 | 2)));
+
+        Assert.Equal(
+            "The value is not a defined RegexpOptions combination. (Parameter 'options')"
+                + Environment.NewLine + "Actual value was 34.",
+            ex.Message);
+    }
+
     [Fact]
     public void RegexpLike_NullPattern_ThrowsArgumentNullException()
     {

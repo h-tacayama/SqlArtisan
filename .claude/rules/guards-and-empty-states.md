@@ -156,7 +156,8 @@ the full rationale.
 
 **Joined-target alias requirement (decided — do not re-file):**
 `ThrowIfJoinedTargetUnaliased` fires for every joined `UPDATE`/`DELETE` shape
-on **every** dialect, whatever an engine takes unaliased. This is a
+on **every** dialect, whatever an engine takes unaliased, at the `From` /
+join / `Using` call that joins the target (#614). This is a
 deliberate uniform requirement (#258, reaffirmed in the release audit after
 independent reviews split on it; ADR 0011 decides it outside its bar): a
 column is qualified only by its owner's correlation name (`DbColumn.Format`),
@@ -176,7 +177,10 @@ emit in enum order, so that pair is always `'ci'` and always resolves
 case-insensitively, which is what the two members now document. MySQL's
 `match_type` has no `'x'`, which is a per-value dialect gap for an
 `SQLA0104`-class table to carry, never an ADR 0012 guard: its alphabet is
-open, so condition 3 fails as well (#523).
+open, so condition 3 fails as well (#523). An undefined bit is not a letter:
+it emits nothing today and would emit a new letter once a flag is appended at
+that bit, so it throws `ArgumentOutOfRangeException` like an undefined
+`DateTimePart` (#614).
 
 **A `GROUP BY` column ordinal stays permissive on the engines that refuse it
 (decided — do not re-file):** Oracle XE 21.3.0 and SQL Server 2022 reject a

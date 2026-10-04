@@ -39,6 +39,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
+- An unaliased target of a joined `UPDATE` or `DELETE` throws at the `From(...)`,
+  join or `Using(...)` call that joins it instead of at `Build()`; the alias is
+  fixed by then, and a `DELETE`'s `From(...)` already threw its re-list check.
+  (#614)
+- `DbmsResolver.RegisterProvider` throws `ArgumentOutOfRangeException` on
+  `Dbms.Unknown` or an undefined value, as `SetDefaultDbms` does. It accepted
+  them, and the first registration for a type wins, so the bad entry could not
+  be replaced and surfaced only at `Build(cnn)`, as an unrelated failure. (#614)
+- A `RegexpOptions` value with an undefined bit throws
+  `ArgumentOutOfRangeException`. The bit emitted no letter, so
+  `(RegexpOptions)(32 | 2)` built `'i'`, and appending a flag at that bit would
+  have changed the SQL the same call emits. (#614)
+- `.WithColumnList()` over a `Select(Asterisk)` or `Select(t.Asterisk)` block
+  says to select the columns by name; it said to alias the expression with
+  `.As(...)`, which neither marker has. (#614)
 - A C# null at a comparison or predicate operand — `==`, `!=`, `<`, `>`, `<=`,
   `>=`, `Between`, `NotBetween`, `Like`, `NotLike`, an `In`/`NotIn` element, a
   simple `Case` operand or `When` value, `RegexpLike`, `ArrayContainedBy`,
@@ -191,6 +206,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#569)
 
 ### Fixed
+- `Build(Dbms.Unknown)` on a joined `UPDATE` that re-lists its target throws
+  the documented `ArgumentOutOfRangeException` ("Unsupported DBMS"). It threw
+  "Only SQL Server supports a joined UPDATE that re-lists the target table",
+  which a SQL Server user building through an unregistered connection read as
+  rejecting their own engine's form. (#614)
 - `.NullsFirst` / `.NullsLast` on a sort key that already has a null ordering
   throws `InvalidOperationException`. The second call silently replaced the
   first, so `.NullsFirst.NullsLast` emitted `NULLS LAST`; written out, the pair
