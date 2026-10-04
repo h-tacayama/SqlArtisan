@@ -283,7 +283,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   corrected names reported "already built"; `OrderBy(0)` threw only at
   `Build()`, where `GroupBy(0)` already threw at the call. (#569)
 
+### Tests
+- `PublicEnumAppendOnlyTests` gates `docs/versioning.md`'s append-only rule:
+  every public enum member of the library packages matches a name→value
+  baseline, no enum repeats a value, and the enums are the set `versioning.md`
+  names. `CommentCapRatchetTests` reads a `//` header above a `///` block as a
+  header, which drops one phantom entry from its baseline. (#614)
+
 ### Docs
+- `docs/versioning.md` says how a public enum member is replaced: its
+  successor takes the next unused value and the old member is marked
+  `[Obsolete]`, never aliased. (#614)
 - `DateTimePart.Microseconds` / `.Milliseconds` say PostgreSQL returns the
   seconds field times 1,000,000 / 1,000 (`28500000` for `28.5` seconds); they
   said "including fractional microseconds". (#614)
