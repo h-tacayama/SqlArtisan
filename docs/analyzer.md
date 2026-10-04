@@ -1136,11 +1136,17 @@ Build the text in SQL instead, with `Concat(...)` for example. A built
 Both rules report only where the value goes straight into an argument of a
 SqlArtisan member or an operand of a SqlArtisan operator (`u.Name == $"{u.Id}"`).
 The same C# anywhere else — a log line, a reference check — is correct code,
-so a value held in a variable first, or typed `object`, stays silent, and so
-does a reference check passed to `ConditionIf`, whose condition is a C# `bool`
-by design. `SQLA0302` also stays silent on a value typed `DbTableBase` or
-`SqlPart`, which may hold a table class of yours that overrides `ToString()`.
-A missing warning therefore never means the operand is safe.
+so a result held in a variable first stays silent, and so does an operand
+typed `object`. `SQLA0301` also stays silent on a null check (`extra != null`),
+which no operand order turns into SQL, and on a reference check passed to
+`ConditionIf`, whose condition is a C# `bool` by design.
+
+`SQLA0302` reports an object only where its text is provably a type name: its
+type is sealed (a column, a sequence, a generated table class), or a SqlArtisan
+member has just created it (`Select(...).From(...)`, `Listagg(...)`). Any other
+value — a subquery or expression held in a variable, a `DbTableBase`-typed
+value, which may hold a table class of yours that overrides `ToString()` —
+stays silent. A missing warning therefore never means the operand is safe.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0301`, a `[SuppressMessage]` attribute, or

@@ -79,6 +79,14 @@ public class CSharpFallbackAnalyzerTests
             var r = Select(t.Id).From(t).Where(ConditionIf(condition: t.Id == 1, when: p == null));
             """);
 
+    // A null check is C# on purpose: no operand order turns it into SQL.
+    [Fact]
+    public Task NullCheckIntoAValuePosition_StaysSilent() =>
+        RunSilent("""
+            SqlCondition extra = null;
+            var q = Select(Bind(extra != null), p == null, null != p).From(t);
+            """);
+
     // Nothing proves either operand holds a query object.
     [Fact]
     public Task ObjectsOrClassConstrainedTypeParameter_StaysSilent() =>

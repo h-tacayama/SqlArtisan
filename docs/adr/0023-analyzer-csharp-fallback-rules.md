@@ -45,9 +45,11 @@ equality binds a `bool` whatever the object's `ToString()` says.
 the static type's chain overrides `ToString()` *and* no subclass can hide behind
 it — the type is sealed (`DbColumn`, `DbSequence`, a generated table class), or
 a SqlArtisan member created the object (a builder stage, `Listagg(...)` before
-`.WithinGroup(...)`). A value typed `DbTableBase` or `SqlPart`, or a type
+`.WithinGroup(...)`). Any other static type stays silent, whether or not the
+value sits in a variable: a `DbTableBase`- or `SqlPart`-typed value, or a type
 parameter constrained to one, may hold a user table class whose override
-returns real text, so it stays silent. A built `SqlStatement` is never reported:
+returns real text, and the rule does not split the remaining non-sealed types
+(`SqlExpression`, `ISubquery`, a builder stage held in a `var`) from those. A built `SqlStatement` is never reported:
 its `ToString()` is its SQL text, by design.
 
 ### Only the flow into SqlArtisan is reported
@@ -59,14 +61,16 @@ operator upward through implicit conversions, an enclosing string
 concatenation, and the compiler's `params` array, and reports only on reaching
 an argument of a SqlArtisan invocation or constructor, or an operand of a
 SqlArtisan operator (`col == $"{col}"` binds the type name as surely as a
-`Select` argument does). A local, a ternary, a helper's return value stops the
-walk — and stays silent, the price of no false positives. An `object`-typed
+`Select` argument does). A result held in a local, a ternary, a helper's return
+value stops the walk — and stays silent, the price of no false positives. An `object`-typed
 operand stays silent for the same reason: nothing proves it holds a query object.
 
 `SQLA0301` also needs the `bool` to land in a parameter of another type, where
 it is boxed and bound. `ConditionIf(bool when, …)` takes the C# test on purpose
 — `ConditionIf(extra != null, extra)` is the optional-filter idiom — so a
-`bool` parameter is correct code, not the hazard.
+`bool` parameter is correct code, not the hazard. A comparison with a `null`
+literal is skipped wherever it lands: no operand order makes a null check SQL,
+so it is never the swapped-operand mistake the rule names.
 
 ### The band
 
@@ -91,8 +95,9 @@ The hazard holds on every engine, but the analyzer as a whole is opt-in (ADR
   An order a future overload closes leaves the rule silent on it by
   construction: a user-defined operator binds, and the rule reads only C#'s
   built-in ones.
-- **A missing warning never means the operand is safe.** A value routed through
-  a variable, or typed `object`, reaches the same `ToString()` unreported.
+- **A missing warning never means the operand is safe.** A result routed
+  through a variable, an operand typed `object`, or one whose static type is
+  not sealed reaches the same `ToString()` unreported.
 - **Suppression is per rule ID**; no `.editorconfig` key family ships.
 
 Related: #614 (this change), #558 (the review), #613 (the overloads that
