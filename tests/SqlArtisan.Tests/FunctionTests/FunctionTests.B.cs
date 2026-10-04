@@ -167,6 +167,24 @@ public partial class FunctionTests
         }
     }
 
+    // An array reports its element type's assembly; a SqlArtisan enum element
+    // binds as the enum itself does.
+    [Fact]
+    public void BindArray_SqlArtisanEnumElements_Binds()
+    {
+        DateTimePart[] parts = [DateTimePart.Day, DateTimePart.Month];
+
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == Any(BindArray(parts)))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\" WHERE \"t\".code = ANY (:0)", sql.Text);
+        Assert.Equal(parts, sql.Parameters.Get<DateTimePart[]>(":0"));
+    }
+
     [Fact]
     public void Bind_NonBindableValue_ThrowsArgumentException()
     {

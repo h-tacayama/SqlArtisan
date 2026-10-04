@@ -361,4 +361,18 @@ public class JsonOperatorTests
                 + "(Parameter 'key')",
             ex.Message);
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void JsonbExistsAllOrAny_NullJsonExpr_ThrowsArgumentNullException(bool all)
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => all ? JsonbExistsAll(null!, "a") : JsonbExistsAny(null!, "a"));
+
+        Assert.Equal(
+            $"{(all ? "?&" : "?|")} cannot compare a C# null; "
+                + "test for NULL with .IsNull or .IsNotNull. (Parameter 'jsonExpr')",
+            ex.Message);
+    }
 }

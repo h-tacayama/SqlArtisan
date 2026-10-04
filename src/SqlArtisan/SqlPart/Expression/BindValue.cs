@@ -40,9 +40,7 @@ public class BindValue : SqlExpression
 
         // The driver would get the object itself (`new BindValue(u.Id + 1)` bound an
         // AdditionOperator); an enum binds as the resolver binds any enum.
-        if (value is SqlPart or ISqlBuilder or ISubquery
-            || (value.GetType() is { IsEnum: false } type
-                && type.Assembly == typeof(BindValue).Assembly))
+        if (value is SqlPart or ISqlBuilder or ISubquery || IsSqlArtisanObject(value.GetType()))
         {
             throw new ArgumentException(
                 "A SqlArtisan object cannot be bound; pass a .NET value, "
@@ -75,6 +73,14 @@ public class BindValue : SqlExpression
     /// Gets the buffer size for variable-length types, or <see langword="null"/> when unset.
     /// </summary>
     public int? Size { get; }
+
+    // An array reports its element type's assembly, so BindArray's element is what
+    // is tested: an array of a SqlArtisan enum binds like the enum itself.
+    private static bool IsSqlArtisanObject(Type type)
+    {
+        Type tested = type.GetElementType() ?? type;
+        return !tested.IsEnum && tested.Assembly == typeof(BindValue).Assembly;
+    }
 
     internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.AddParameter(this);

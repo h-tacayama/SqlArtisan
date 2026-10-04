@@ -42,7 +42,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - A C# null at a comparison or predicate operand — `==`, `!=`, `<`, `>`, `<=`,
   `>=`, `Between`, `NotBetween`, `Like`, `NotLike`, an `In`/`NotIn` element, a
   simple `Case` operand or `When` value, `RegexpLike`, `ArrayContainedBy`,
-  `ArrayContains`, `ArrayOverlaps`, `JsonbContains`, `JsonbExists` or `TsMatch`
+  `ArrayContains`, `ArrayOverlaps`, `JsonbContains`, `JsonbExists`, `TsMatch`, or
+  the JSON side of `JsonbExistsAll` / `JsonbExistsAny`
   — now names `.IsNull` / `.IsNotNull` in its `ArgumentNullException` (and the
   right side of `==` also names `Sql.Null`, for a `SET`). The old
   message said to pass `Sql.Null`, which builds `= NULL`: a comparison with
