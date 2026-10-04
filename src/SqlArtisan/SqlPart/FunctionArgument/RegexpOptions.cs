@@ -30,11 +30,20 @@ public enum RegexpOptions
     /// <summary>
     /// Multi-line mode (<c>'m'</c>): <c>^</c> and <c>$</c> match at line breaks within the source.
     /// </summary>
+    /// <remarks>
+    /// On PostgreSQL <c>'m'</c> is newline-sensitive matching, so <c>.</c> also stops
+    /// matching a newline there.
+    /// </remarks>
     MultipleLines = 1 << 2,
 
     /// <summary>
     /// Newline mode (<c>'n'</c>): the <c>.</c> metacharacter also matches the newline character.
     /// </summary>
+    /// <remarks>
+    /// On PostgreSQL <c>'n'</c> means the opposite: newline-sensitive matching, where
+    /// <c>.</c> stops matching a newline (it matches one by default there) and
+    /// <c>^</c> / <c>$</c> match at line breaks.
+    /// </remarks>
     NewLine = 1 << 3,
 
     /// <summary>

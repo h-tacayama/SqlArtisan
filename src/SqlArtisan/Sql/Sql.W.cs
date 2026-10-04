@@ -32,7 +32,7 @@ public static partial class Sql
     /// <param name="whenExpr">The value compared against the case operand.</param>
     /// <returns>A simple <c>WHEN</c> arm awaiting <c>.Then(...)</c>.</returns>
     public static SimpleCaseWhenExpression When(object whenExpr) =>
-        new(Resolve(whenExpr));
+        new(ResolveSimpleCase(whenExpr, nameof(whenExpr)));
 
     /// <summary>
     /// Begins a <c>WITH</c> clause (Common Table Expressions). Define each CTE with

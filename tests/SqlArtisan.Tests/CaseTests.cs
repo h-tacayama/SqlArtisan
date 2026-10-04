@@ -849,4 +849,28 @@ public class CaseTests
             "A CASE WHEN branch requires THEN; complete it with .Then(...).",
             ex.Message);
     }
+
+    [Fact]
+    public void Case_SimpleNullWhenValue_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => When((object)null!));
+
+        Assert.Equal(
+            "A simple CASE cannot match a C# null; test for NULL with a searched "
+                + "When(expr.IsNull). (Parameter 'whenExpr')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Case_SimpleNullOperand_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => Case((object)null!, When(1).Then("A")));
+
+        Assert.Equal(
+            "A simple CASE cannot match a C# null; test for NULL with a searched "
+                + "When(expr.IsNull). (Parameter 'expr')",
+            ex.Message);
+    }
 }

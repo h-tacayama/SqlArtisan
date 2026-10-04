@@ -66,4 +66,28 @@ public class RegexpLikeTests
                 | RegexpOptions.ExcludingWhiteSpace),
             "REGEXP_LIKE(\"t\".name, :0, 'cimnx')",
             1, "[2-5]");
+
+    [Fact]
+    public void RegexpLike_NullPattern_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => RegexpLike(_t.Name, null!));
+
+        Assert.Equal(
+            "REGEXP_LIKE cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'pattern')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void RegexpLike_NullSourceWithOptions_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => RegexpLike(null!, "[2-5]", RegexpOptions.CaseInsensitive));
+
+        Assert.Equal(
+            "REGEXP_LIKE cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'source')",
+            ex.Message);
+    }
 }

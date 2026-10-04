@@ -359,4 +359,22 @@ public class OrderByTests
 
         Assert.Equal("SELECT \"t\".code FROM test_table \"t\" ORDER BY 1", sql.Text);
     }
+
+    [Fact]
+    public void OrderBy_NullOrderingRepeated_ThrowsInvalidOperationException()
+    {
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => _t.Code.Desc.NullsFirst.NullsLast);
+
+        Assert.Equal("A sort key takes one NULLS FIRST or NULLS LAST ordering.", ex.Message);
+    }
+
+    [Fact]
+    public void OrderBy_SameNullOrderingRepeated_ThrowsInvalidOperationException()
+    {
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => _t.Code.NullsLast.NullsLast);
+
+        Assert.Equal("A sort key takes one NULLS FIRST or NULLS LAST ordering.", ex.Message);
+    }
 }
