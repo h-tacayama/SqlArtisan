@@ -36,12 +36,10 @@ public class XmlDocDialectParityTests
     private static readonly IReadOnlySet<(string Name, int? Arity)> ExcludedMembers =
         new HashSet<(string, int?)>
     {
-        // These five can never be retired by rewording: DialectMatrix keys them
+        // These three can never be retired by rewording: DialectMatrix keys them
         // as the *union* of two distinct APIs colliding on one (name, arity)
         // (see its own doc comment), which no single remark can represent.
         ("Match", 2),
-        ("Nextval", 1),
-        ("Currval", 1),
         ("GroupConcat", 2),
         ("With", 1),
 

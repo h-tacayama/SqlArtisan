@@ -180,6 +180,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#569)
 
 ### Fixed
+- `SQLA0100` reports `Sql.Nextval("s")` and `Sql.Currval("s")` on Oracle, where
+  `NEXTVAL('s')` is not Oracle's form; `Sequence("s").Nextval` stays silent
+  there. The two forms shared one matrix row, the union of their dialects, so
+  the function form was silent on Oracle. (#614)
+- `SQLA0100` no longer reads an enum member or a member of `SqlParameters` /
+  `SqlStatement` as a construct. The matrix is keyed by name, so
+  `sqlartisan_construct_day = unsupported` reported `DateTimePart.Day`, and a
+  `Count` override reported `SqlParameters.Count`. (#614)
 - `Build()` throws the correlated-DML guard's message when a query block in a
   CTE body reads a column of an unaliased `UPDATE`/`DELETE`/`MERGE` target
   without listing the target in that block. The guard was off for every CTE

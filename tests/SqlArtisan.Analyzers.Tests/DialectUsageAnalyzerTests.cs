@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 
@@ -554,13 +558,39 @@ public class DialectUsageAnalyzerTests
         await test.RunAsync();
     }
 
+    // The method form is PostgreSQL's alone: its arity-1 rows narrow the union
+    // rows the Oracle property above needs.
+    [Theory]
+    [InlineData("Nextval")]
+    [InlineData("Currval")]
+    public async Task SequenceFunctionForm_OnOracle_ReportsSqla0100(string member)
+    {
+        string source = $$"""
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M()
+                {
+                    var x = {|#0:{{member}}("users_id_seq")|};
+                }
+            }
+            """;
+
+        var test = AnalyzerVerifier.Create(source, AnalyzerVerifier.EditorConfig("oracle"));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("SQLA0100").WithLocation(0));
+
+        await test.RunAsync();
+    }
+
     [Fact]
     public async Task SequenceNextvalProperty_OnOracle_StaysSilent()
     {
         // Regression for a fixed false positive: Sequence("s").Nextval is Oracle's form, but the
         // DbSequence.Nextval property shares its name with Sql.Nextval("s") (PostgreSQL's form),
         // and the entry was originally PostgreSQL-only — warning on the correct Oracle usage.
-        // The entry is now the union of both forms' dialects.
+        // The member-level entry is now the union, which a property lookup reaches.
         const string source = """
             using SqlArtisan;
             using static SqlArtisan.Sql;
@@ -1095,6 +1125,65 @@ public class DialectUsageAnalyzerTests
         var test = AnalyzerVerifier.Create(
             AnalyzerVerifier.Unmarked(ForUpdateOfUsage(ofArgument)),
             AnalyzerVerifier.EditorConfig(dbms));
+
+        await test.RunAsync();
+    }
+
+    // The matrix is keyed by member name alone, so every public enum member is
+    // referenced under an override naming it unsupported: one reaching a lookup
+    // would report here, whatever rows the matrix gains later.
+    [Fact]
+    public async Task EnumMembers_UnderSameNamedUnsupportedOverride_StaySilent()
+    {
+        StringBuilder body = new();
+        StringBuilder editorConfig =
+            new("root = true\n\n[*.cs]\nsqlartisan_syntax_postgresql = any\n");
+        HashSet<string> keys = [];
+        foreach (Type type in typeof(Sql).Assembly.GetExportedTypes().Where(t => t.IsEnum))
+        {
+            foreach (string name in Enum.GetNames(type))
+            {
+                body.Append(
+                    $"        object {type.Name}{name} = global::{type.FullName}.{name};\n");
+                if (keys.Add(name))
+                {
+                    editorConfig.Append($"{ConstructKeyNaming.MemberKey(name)} = unsupported\n");
+                }
+            }
+        }
+
+        var test = AnalyzerVerifier.Create(
+            $"class C\n{{\n    void M()\n    {{\n{body}    }}\n}}\n",
+            editorConfig.ToString());
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task SqlParametersCount_UnderCountUnsupportedOverride_StaysSilent()
+    {
+        const string source = """
+            using SqlArtisan;
+            using static SqlArtisan.Sql;
+
+            class C
+            {
+                void M(DbTable t)
+                {
+                    SqlStatement sql = Select(t.Column("id")).From(t).Build();
+                    int n = sql.Parameters.Count;
+                }
+            }
+            """;
+        const string editorConfig = """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_postgresql = any
+            sqlartisan_construct_count = unsupported
+            """;
+
+        var test = AnalyzerVerifier.Create(source, editorConfig);
 
         await test.RunAsync();
     }
