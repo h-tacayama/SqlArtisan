@@ -13,9 +13,7 @@ public sealed class ExpressionAlias : SqlPart, ISortable
 {
     private readonly SqlExpression _expr;
 
-    // A CTE / derived-table handle column (As(DbColumn)) is emitted bare, exactly as
-    // DbColumn later references it: quoting only the definition leaves it lowercase on
-    // a case-folding engine, where the bare reference folds and no longer resolves (#165).
+    // Bare for a handle column (As(DbColumn)), as DbColumn references it (#165).
     private readonly bool _quoteAlias;
 
     internal ExpressionAlias(SqlExpression expr, string name, bool quoteAlias = true)
@@ -29,9 +27,6 @@ public sealed class ExpressionAlias : SqlPart, ISortable
 
     internal string Name { get; }
 
-    // Whether the definition renders the alias quoted — a handle-column
-    // reference must match, or the reference folds while the definition
-    // does not (#165's hazard, in the other direction).
     internal bool QuoteAlias => _quoteAlias;
 
     /// <summary>

@@ -63,9 +63,7 @@ public sealed class CommonTableExpression
         AppendAsSubquery(buffer);
     }
 
-    // Each list name renders exactly as its select item and handle reference do
-    // (bare for a column, quoted for a quoted alias): a definition quoted unlike
-    // its reference no longer resolves on a case-folding engine (#165).
+    // Each list name renders as its select item and handle reference do (#165, DbColumn).
     private void Format(SqlBuildingBuffer buffer, CteColumnName[] columnNames)
     {
         buffer.EncloseInAliasQuotes(_name);
@@ -186,6 +184,5 @@ public sealed class CommonTableExpression
             + "alias the expression with .As(...).");
 }
 
-// A CTE column-list entry: the select item's name and whether that item
-// renders it quoted, so the list can match it exactly.
+// A CTE column-list entry: the select item's name and its quoting.
 internal readonly record struct CteColumnName(string Name, bool Quote);
