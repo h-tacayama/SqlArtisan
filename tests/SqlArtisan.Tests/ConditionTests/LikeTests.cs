@@ -81,4 +81,28 @@ public class LikeTests
         Assert.Equal(1, sql.Parameters.Count);
         Assert.Equal("100\\%", sql.Parameters.Get<object>("?0"));
     }
+
+    [Fact]
+    public void Like_NullPattern_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => _t.Name.Like(null!));
+
+        Assert.Equal(
+            "LIKE cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'rightSide')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void NotLike_NullPattern_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => _t.Name.NotLike(null!));
+
+        Assert.Equal(
+            "NOT LIKE cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'rightSide')",
+            ex.Message);
+    }
 }

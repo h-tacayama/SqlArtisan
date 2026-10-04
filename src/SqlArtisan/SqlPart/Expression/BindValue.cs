@@ -8,6 +8,9 @@ namespace SqlArtisan;
 /// <see cref="Sql.Bind(object)"/>. Hold it in a variable and pass the same
 /// instance to more than one clause to bind the same marker in each.
 /// </summary>
+/// <remarks>
+/// Not for subclassing; deriving from it is not covered by the versioning policy.
+/// </remarks>
 public class BindValue : SqlExpression
 {
     // Sql.Bind shares it: the remedy for a null bind is BindNull, not Sql.Null.
@@ -25,6 +28,8 @@ public class BindValue : SqlExpression
     /// Oracle array bind ignores <paramref name="size"/> and rejects a non-input direction.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>; bind SQL <c>NULL</c> with <see cref="Sql.BindNull()"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is a SqlArtisan object
+    /// (an expression, a query, or a built statement) rather than a .NET value.</exception>
     public BindValue(
         object value,
         DbType? dbType = null,
@@ -34,6 +39,16 @@ public class BindValue : SqlExpression
         if (value is null)
         {
             throw new ArgumentNullException(nameof(value), NullValueMessage);
+        }
+
+        // The driver would get the object itself (`new BindValue(u.Id + 1)` bound an
+        // AdditionOperator); an enum binds as the resolver binds any enum.
+        if (value is SqlPart or ISqlBuilder or ISubquery || IsSqlArtisanObject(value.GetType()))
+        {
+            throw new ArgumentException(
+                "A SqlArtisan object cannot be bound; pass a .NET value, "
+                    + "or write an expression in place of the bind.",
+                nameof(value));
         }
 
         Value = value;
@@ -61,6 +76,14 @@ public class BindValue : SqlExpression
     /// Gets the buffer size for variable-length types, or <see langword="null"/> when unset.
     /// </summary>
     public int? Size { get; }
+
+    // An array reports its element type's assembly, so BindArray's element is what
+    // is tested: an array of a SqlArtisan enum binds like the enum itself.
+    private static bool IsSqlArtisanObject(Type type)
+    {
+        Type tested = type.GetElementType() ?? type;
+        return !tested.IsEnum && tested.Assembly == typeof(BindValue).Assembly;
+    }
 
     internal override void Format(SqlBuildingBuffer buffer) =>
         buffer.AddParameter(this);

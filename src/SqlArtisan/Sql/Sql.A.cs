@@ -100,7 +100,9 @@ public static partial class Sql
     /// <param name="rightArray">The array to search.</param>
     /// <returns>An <see cref="ArrayContainedByCondition"/> emitting <c>leftArray &lt;@ rightArray</c>.</returns>
     public static ArrayContainedByCondition ArrayContainedBy(object leftArray, object rightArray) =>
-        new(Resolve(leftArray), Resolve(rightArray));
+        new(
+            ResolveCompared(leftArray, nameof(leftArray), Operators.ArrayContainedBy),
+            ResolveCompared(rightArray, nameof(rightArray), Operators.ArrayContainedBy));
 
     /// <summary>
     /// The array containment predicate <c>leftArray @&gt; rightArray</c>: whether
@@ -111,7 +113,9 @@ public static partial class Sql
     /// <param name="rightArray">The array that must be contained.</param>
     /// <returns>An <see cref="ArrayContainsCondition"/> emitting <c>leftArray @&gt; rightArray</c>.</returns>
     public static ArrayContainsCondition ArrayContains(object leftArray, object rightArray) =>
-        new(Resolve(leftArray), Resolve(rightArray));
+        new(
+            ResolveCompared(leftArray, nameof(leftArray), Operators.ArrayContains),
+            ResolveCompared(rightArray, nameof(rightArray), Operators.ArrayContains));
 
     /// <summary>
     /// The array overlap predicate <c>leftArray &amp;&amp; rightArray</c>: whether
@@ -121,7 +125,9 @@ public static partial class Sql
     /// <param name="rightArray">The second array.</param>
     /// <returns>An <see cref="ArrayOverlapsCondition"/> emitting <c>leftArray &amp;&amp; rightArray</c>.</returns>
     public static ArrayOverlapsCondition ArrayOverlaps(object leftArray, object rightArray) =>
-        new(Resolve(leftArray), Resolve(rightArray));
+        new(
+            ResolveCompared(leftArray, nameof(leftArray), Operators.ArrayOverlaps),
+            ResolveCompared(rightArray, nameof(rightArray), Operators.ArrayOverlaps));
 
     /// <summary>
     /// The bare <c>*</c> select item (every column of every table in <c>FROM</c>). Valid in
