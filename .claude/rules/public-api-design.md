@@ -310,9 +310,9 @@ decided by compiling them against every neighbouring order, not by this file.
   (#613): `.As(...)` binds before `+`, so `"Dr. " + col.As("n")` adds the
   string to the alias, and an alias is never an operand in SQL.
 - Open today, each an analyzer candidate in #614:
-  - a `string` left operand of `+` (and `+=` on a string) whose right operand
-    is typed as neither `SqlExpression` (or a type derived from it) nor
-    `ExpressionAlias`: a subquery stage (`"x" + Select(...)`), a function
+  - `+` between a `string` and an operand typed as neither `SqlExpression`
+    (or a type derived from it) nor `ExpressionAlias`, in either order (and
+    `+=` on a string): a subquery stage (`"x" + Select(...)`), a function
     still pending its clause (`RowNumber()` before `.Over(...)`, which a column
     on the left would reject instead) or an `object`-typed value still
     compiles as C# concatenation;
