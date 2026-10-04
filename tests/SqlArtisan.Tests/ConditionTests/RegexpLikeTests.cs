@@ -66,4 +66,41 @@ public class RegexpLikeTests
                 | RegexpOptions.ExcludingWhiteSpace),
             "REGEXP_LIKE(\"t\".name, :0, 'cimnx')",
             1, "[2-5]");
+
+    // An undefined bit emitted no letter, so `(RegexpOptions)(32 | 2)` built 'i'.
+    [Fact]
+    public void RegexpLike_UndefinedOptionBit_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RegexpLike(_t.Name, "[2-5]", (RegexpOptions)(32 | 2)));
+
+        Assert.Equal(
+            "The value is not a defined RegexpOptions combination. (Parameter 'options')"
+                + Environment.NewLine + "Actual value was 34.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void RegexpLike_NullPattern_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => RegexpLike(_t.Name, null!));
+
+        Assert.Equal(
+            "REGEXP_LIKE cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'pattern')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void RegexpLike_NullSourceWithOptions_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => RegexpLike(null!, "[2-5]", RegexpOptions.CaseInsensitive));
+
+        Assert.Equal(
+            "REGEXP_LIKE cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'source')",
+            ex.Message);
+    }
 }

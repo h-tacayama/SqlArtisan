@@ -484,6 +484,32 @@ public class UpdateTests
         Assert.Equal("A JOIN's ON clause requires a condition.", ex.Message);
     }
 
+    // The target's alias is fixed by the time it is joined, so the call that
+    // joins it throws rather than Build().
+    [Fact]
+    public void Update_FromUnaliasedTarget_ThrowsAtFrom()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+        IUpdateBuilderSet held = Update(t).Set(t.Name == "x");
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.From(s));
+
+        Assert.Equal("The target of a joined UPDATE or DELETE must be aliased.", ex.Message);
+    }
+
+    [Fact]
+    public void Update_DirectJoinUnaliasedTarget_ThrowsAtJoin()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+        IUpdateBuilderUpdate held = Update(t);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.InnerJoin(s));
+
+        Assert.Equal("The target of a joined UPDATE or DELETE must be aliased.", ex.Message);
+    }
+
     [Fact]
     public void Update_Join_UnaliasedTarget_ThrowsArgumentException()
     {

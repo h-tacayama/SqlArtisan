@@ -337,4 +337,42 @@ public class JsonOperatorTests
 
         Assert.Equal("?| requires at least one key.", ex.Message);
     }
+
+    [Fact]
+    public void JsonbContains_NullValue_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => JsonbContains(_t.Name, null!));
+
+        Assert.Equal(
+            "@> cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'jsonValue')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void JsonbExists_NullKey_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => JsonbExists(_t.Name, null!));
+
+        Assert.Equal(
+            "? cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'key')",
+            ex.Message);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void JsonbExistsAllOrAny_NullJsonExpr_ThrowsArgumentNullException(bool all)
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => all ? JsonbExistsAll(null!, "a") : JsonbExistsAny(null!, "a"));
+
+        Assert.Equal(
+            $"{(all ? "?&" : "?|")} cannot compare a C# null; "
+                + "test for NULL with .IsNull or .IsNotNull. (Parameter 'jsonExpr')",
+            ex.Message);
+    }
 }

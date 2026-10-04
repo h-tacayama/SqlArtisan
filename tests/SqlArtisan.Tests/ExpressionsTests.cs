@@ -112,6 +112,33 @@ public class ExpressionsTests
     [Fact]
     public void Operators_NullLeftOperand_EveryOverloadThrowsArgumentNullException()
     {
+        Dictionary<string, string> messages = new()
+        {
+            // Unlike the right side, no SET remedy: an assignment target must be a column.
+            ["op_Equality"] =
+                "= cannot compare a C# null; test for NULL with .IsNull or .IsNotNull.",
+            ["op_Inequality"] =
+                "<> cannot compare a C# null; test for NULL with .IsNull or .IsNotNull.",
+            ["op_LessThan"] =
+                "< cannot compare a C# null; test for NULL with .IsNull or .IsNotNull.",
+            ["op_GreaterThan"] =
+                "> cannot compare a C# null; test for NULL with .IsNull or .IsNotNull.",
+            ["op_LessThanOrEqual"] =
+                "<= cannot compare a C# null; test for NULL with .IsNull or .IsNotNull.",
+            ["op_GreaterThanOrEqual"] =
+                ">= cannot compare a C# null; test for NULL with .IsNull or .IsNotNull.",
+            ["op_Addition"] =
+                "The left operand of + cannot be null; write Sql.Null for a SQL NULL literal.",
+            ["op_Subtraction"] =
+                "The left operand of - cannot be null; write Sql.Null for a SQL NULL literal.",
+            ["op_Multiply"] =
+                "The left operand of * cannot be null; write Sql.Null for a SQL NULL literal.",
+            ["op_Division"] =
+                "The left operand of / cannot be null; write Sql.Null for a SQL NULL literal.",
+            ["op_Modulus"] =
+                "The left operand of % cannot be null; write Sql.Null for a SQL NULL literal.",
+        };
+
         System.Reflection.MethodInfo[] operators = [.. typeof(SqlExpression)
             .GetMethods(
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
@@ -119,7 +146,7 @@ public class ExpressionsTests
                 && m.GetParameters().Length == 2
                 && m.GetParameters()[0].ParameterType == typeof(SqlExpression))];
 
-        Assert.Equal(11, operators.Length);
+        Assert.Equal(messages.Count, operators.Length);
 
         foreach (System.Reflection.MethodInfo op in operators)
         {
@@ -129,10 +156,7 @@ public class ExpressionsTests
             ArgumentNullException ex = Assert.IsType<ArgumentNullException>(wrapped.InnerException);
 
             Assert.Equal("this", ex.ParamName);
-            Assert.StartsWith(
-                "The left operand of an operator cannot be null; "
-                    + "write Sql.Null for a SQL NULL literal.",
-                ex.Message);
+            Assert.Equal($"{messages[op.Name]} (Parameter 'this')", ex.Message);
         }
     }
 
@@ -145,10 +169,8 @@ public class ExpressionsTests
         ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => left + t.Name);
 
         Assert.Equal("leftSide", ex.ParamName);
-        Assert.StartsWith(
-            "The left operand of an operator cannot be null; "
-                + "write Sql.Null for a SQL NULL literal.",
-            ex.Message);
+        Assert.Equal("The left operand of + cannot be null; write Sql.Null for a SQL NULL literal. "
+                + "(Parameter 'leftSide')", ex.Message);
     }
 
     // A string beside an alias would otherwise compile as C# concatenation and

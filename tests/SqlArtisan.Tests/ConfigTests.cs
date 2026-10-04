@@ -142,4 +142,23 @@ public class ConfigTests : IDisposable
             $"Unsupported DBMS. (Parameter 'dbms'){Environment.NewLine}Actual value was 99.",
             ex.Message);
     }
+
+    // The joined UPDATE guard is the library's one negated DBMS check ("only SQL
+    // Server"), so it answered Unknown before the dialect was resolved.
+    [Fact]
+    public void Build_UnknownDbms_JoinedUpdateRelistingTarget_ThrowsArgumentOutOfRangeException()
+    {
+        TestTable s = new("s");
+
+        ArgumentOutOfRangeException ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Update(_t)
+                .Set(_t.Name == s.Name)
+                .From(_t)
+                .InnerJoin(s).On(_t.Code == s.Code)
+                .Build(Dbms.Unknown));
+
+        Assert.Equal(
+            $"Unsupported DBMS. (Parameter 'dbms'){Environment.NewLine}Actual value was Unknown.",
+            ex.Message);
+    }
 }

@@ -156,7 +156,8 @@ the full rationale.
 
 **Joined-target alias requirement (decided — do not re-file):**
 `ThrowIfJoinedTargetUnaliased` fires for every joined `UPDATE`/`DELETE` shape
-on **every** dialect, whatever an engine takes unaliased. This is a
+on **every** dialect, whatever an engine takes unaliased, at the `From` /
+join / `Using` call that joins the target (#614). This is a
 deliberate uniform requirement (#258, reaffirmed in the release audit after
 independent reviews split on it; ADR 0011 decides it outside its bar): a
 column is qualified only by its owner's correlation name (`DbColumn.Format`),
@@ -176,7 +177,10 @@ emit in enum order, so that pair is always `'ci'` and always resolves
 case-insensitively, which is what the two members now document. MySQL's
 `match_type` has no `'x'`, which is a per-value dialect gap for an
 `SQLA0104`-class table to carry, never an ADR 0012 guard: its alphabet is
-open, so condition 3 fails as well (#523).
+open, so condition 3 fails as well (#523). An undefined bit is not a letter:
+it emits nothing today and would emit a new letter once a flag is appended at
+that bit, so it throws `ArgumentOutOfRangeException` like an undefined
+`DateTimePart` (#614).
 
 **A `GROUP BY` column ordinal stays permissive on the engines that refuse it
 (decided — do not re-file):** Oracle XE 21.3.0 and SQL Server 2022 reject a
@@ -446,7 +450,14 @@ the caller did not mean. Judge a null argument by which failure it produces:
 
 - **Silent acceptance** (the statement still builds): guard it, whatever the
   parameter's type. Shipped instances: `object`-typed value positions
-  (`ExpressionResolver`'s "Use `Sql.Null`…" message), string identifiers
+  (`ExpressionResolver`'s "pass `Sql.Null`" message) — except a comparison or
+  predicate operand (`=`, `BETWEEN`, `LIKE`, `IN`, a simple `CASE`,
+  `REGEXP_LIKE`, the array and JSONB predicates bar a `?&` / `?|` key, `@@`),
+  where `Sql.Null` builds a comparison with NULL rather than a NULL test, so a
+  new predicate factory resolves its operands with `ResolveCompared`, which
+  names `.IsNull` (#614). The full-text predicates (`Contains`, `Freetext`,
+  `Against`, SQLite `Match`) keep the `Sql.Null` message until their engines'
+  NULL handling is verified; SQLite's `MATCH NULL` fails loudly — string identifiers
   (`StringGuard`), null elements inside arrays/`params` (#403), a null
   subquery in `CteBase.As` (previously emitted `WITH "c" AS ()`),
   `new BindValue(null)` (a never-true `= NULL` predicate the factory already
@@ -459,6 +470,10 @@ the caller did not mean. Judge a null argument by which failure it produces:
   the factory call (`Column`) or at `Build()` (a stored subquery or
   condition). Either way the statement never builds, so nothing is silently
   wrong. No runtime guard is owed; do not file these in review.
+- **Documented null** (the parameter is annotated nullable and its docs give
+  `null` a meaning): no guard is owed, because the statement builds exactly
+  as documented. `DbTableBase` / `DbTable`'s `tableAlias` is `string?`, where
+  `null` and an empty string both mean no alias (#614).
 
 Settled during the 1.0 release review, where one panel seat filed the loud-NRE
 class as a defect and another declined the identical class as
