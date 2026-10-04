@@ -285,7 +285,7 @@ need eight overloads where named arguments read naturally. The difference
 between `BindNull(DbType)` and `BindValue`'s `DbType?` is this boundary, not
 an inconsistency.
 
-## Operator overloads: every operand order binds to SqlArtisan or fails to compile
+## Operator overloads: operand orders that fall to a C# built-in
 
 When no user-defined operator applies, C# falls back to its built-in ones.
 `string + object` is built in, so with only `operator +(SqlExpression, object)`
@@ -295,8 +295,9 @@ and the query runs with wrong rows (#613). For every overloaded operator,
 enumerate the operand orders a caller can write: a literal, a nullable
 variable, or an `object`- or interface-typed operand on either side, and
 `null`. Each order must either bind a SqlArtisan operator or fail to compile
-(CS0019). Adding the missing order after 1.0 changes which rows code that
-already compiles reads, which is a major version (`docs/versioning.md`).
+(CS0019), except the two the last bullet records. Adding the missing order
+after 1.0 changes which rows code that already compiles reads, which is a
+major version (`docs/versioning.md`).
 
 - Name the concrete left type (`(string, SqlExpression)`), never `object`. An
   `(object, SqlExpression)` overload makes `col + col` and `col + null`
