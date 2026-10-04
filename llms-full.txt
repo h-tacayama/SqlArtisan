@@ -6237,7 +6237,9 @@ treated as a bug — please open an
 The packages expose these namespaces, and they carry different promises.
 
 - **`SqlArtisan`** — the API. Every type here is yours to name in a
-  declaration, and everything on this page applies to it in full.
+  declaration, and everything on this page applies to it in full. One
+  exception: deriving from `BindValue` is not covered. It is unsealed only so
+  that `BindArrayValue` can derive from it; construct it, don't subclass it.
 - **`SqlArtisan.Internal`** — the values the API hands back. A `Sql.*` call
   returns a type from here because the chain is typed: `Sql.Sum(...)` has to
   return something that offers `.Over(...)` where `Sql.Abs(...)` does not.

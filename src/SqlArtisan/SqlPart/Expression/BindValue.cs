@@ -8,6 +8,9 @@ namespace SqlArtisan;
 /// <see cref="Sql.Bind(object)"/>. Hold it in a variable and pass the same
 /// instance to more than one clause to bind the same marker in each.
 /// </summary>
+/// <remarks>
+/// Not for subclassing; deriving from it is not covered by the versioning policy.
+/// </remarks>
 public class BindValue : SqlExpression
 {
     // Sql.Bind shares it: the remedy for a null bind is BindNull, not Sql.Null.
