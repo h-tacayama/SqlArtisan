@@ -132,7 +132,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DialectTargetSet> cache)
     {
         IMethodSymbol method = ((IInvocationOperation)context.Operation).TargetMethod;
-        if (!IsFromSqlArtisan(method.ContainingAssembly))
+        if (!IsConstructMember(method))
         {
             return;
         }
@@ -146,7 +146,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DialectTargetSet> cache)
     {
         IPropertySymbol property = ((IPropertyReferenceOperation)context.Operation).Property;
-        if (!IsFromSqlArtisan(property.ContainingAssembly))
+        if (!IsConstructMember(property))
         {
             return;
         }
@@ -160,7 +160,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DialectTargetSet> cache)
     {
         IFieldSymbol field = ((IFieldReferenceOperation)context.Operation).Field;
-        if (!IsFromSqlArtisan(field.ContainingAssembly))
+        if (!IsConstructMember(field))
         {
             return;
         }
@@ -965,6 +965,15 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
 
     internal static bool IsFromSqlArtisan(IAssemblySymbol? assembly) =>
         assembly?.Name == SqlArtisanAssemblyName;
+
+    // An enum member or a SqlParameters/SqlStatement member can only match a same-named row
+    // by coincidence (DateTimePart.Day, SqlParameters.Count); DateTimePart and RegexpOptions
+    // values are SQLA0104's.
+    private static bool IsConstructMember(ISymbol member) =>
+        IsFromSqlArtisan(member.ContainingAssembly)
+        && member.ContainingType.TypeKind != TypeKind.Enum
+        && !(member.ContainingType.ContainingNamespace.ToDisplayString() == "SqlArtisan"
+            && member.ContainingType.Name is "SqlParameters" or "SqlStatement");
 
     private static string DisplayName(string memberName, int? arity, bool isArityLevel)
     {

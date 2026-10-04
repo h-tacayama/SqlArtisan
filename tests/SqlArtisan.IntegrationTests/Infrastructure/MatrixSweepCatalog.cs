@@ -708,14 +708,26 @@ internal static class MatrixSweepCatalog
         });
 
         // --- Sequences ---
+
+        // Member-level rows serve DbSequence's property on Oracle; the arity-1 rows are
+        // the method alone, so Oracle's rejection of NEXTVAL('s') is swept there.
         Add("Nextval", dbms => dbms == Dbms.Oracle
             ? Select(Sequence("test_seq").Nextval).From(u).Where(u.Id == 1)
             : Select(Nextval("test_seq")).From(u).Where(u.Id == 1));
+        AddArity("Nextval", 1, _ => Select(Nextval("test_seq")).From(u).Where(u.Id == 1));
         cases.Add(new SweepCase(new MatrixKey("Currval"),
-            _ => Select(Currval("test_seq")).From(u).Where(u.Id == 1),
+            dbms => dbms == Dbms.Oracle
+                ? Select(Sequence("test_seq").Currval).From(u).Where(u.Id == 1)
+                : Select(Currval("test_seq")).From(u).Where(u.Id == 1),
             PositiveSkips: new Dictionary<Dbms, string>
             {
                 [Dbms.Oracle] = "CURRVAL is session-state-dependent (defined only after NEXTVAL); the dedicated sequence test covers it.",
+                [Dbms.PostgreSql] = "currval is session-state-dependent (defined only after nextval); the dedicated sequence test covers it.",
+            }));
+        cases.Add(new SweepCase(new MatrixKey("Currval", 1),
+            _ => Select(Currval("test_seq")).From(u).Where(u.Id == 1),
+            PositiveSkips: new Dictionary<Dbms, string>
+            {
                 [Dbms.PostgreSql] = "currval is session-state-dependent (defined only after nextval); the dedicated sequence test covers it.",
             }));
         Add("NextValueFor", _ => Select(NextValueFor("test_seq")).From(u).Where(u.Id == 1));

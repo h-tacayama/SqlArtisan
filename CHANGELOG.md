@@ -206,6 +206,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#569)
 
 ### Fixed
+- `SQLA0100` reports `Sql.Nextval("s")` and `Sql.Currval("s")` on Oracle, where
+  `NEXTVAL('s')` is not Oracle's form; `Sequence("s").Nextval` stays silent
+  there. The two forms shared one matrix row, the union of their dialects, so
+  the function form was silent on Oracle. (#614)
+- `SQLA0100` no longer reads an enum member or a member of `SqlParameters` /
+  `SqlStatement` as a construct. The matrix is keyed by name, so
+  `sqlartisan_construct_day = unsupported` reported `DateTimePart.Day`, and a
+  `Count` override reported `SqlParameters.Count`. (#614)
 - `Build(Dbms.Unknown)` on a joined `UPDATE` that re-lists its target throws
   the documented `ArgumentOutOfRangeException` ("Unsupported DBMS"). It threw
   "Only SQL Server supports a joined UPDATE that re-lists the target table",
