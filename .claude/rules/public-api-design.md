@@ -60,6 +60,12 @@ token (`Contains`, the plainer predicate use) and the other gets an invented
 qualifier (`ContainsScore`, #233-class invention, justified only by the CLR
 constraint — record any new instance here rather than resolving it ad hoc).
 
+**Recorded instance of the CLR constraint — `AsTable`:** a subquery's and an
+`Unnest(...)`'s scalar alias (`As(string)` → `ExpressionAlias`) and their
+derived-table alias would share the `(string)` signature, which no overload
+can tell apart by return type, so the derived-table form takes the invented
+qualifier (`ISubquery.AsTable`, `UnnestFunction.AsTable`; #614).
+
 **Recorded instance, a different constraint — `IntervalLiteral`:** the CLR
 *could* overload it onto `Interval` (every overload differs by arity or
 parameter type), but `Interval(object quantity, DateTimePart)` binds its value
@@ -96,7 +102,10 @@ stage several statements share takes its capability's name
 (`IReturningBuilder`, from `IReturning.Returning`). A capability composed into
 stages carries no `Builder` (`IPagination`, `IForUpdate`, `IJoinOperator`,
 `ISetOperator`, `IUpsert`, `IReturning`); `IReturning` also ends an upsert
-action (`DoNothing()`, `DoUpdateSet(...).Where(...)`).
+action (`DoNothing()`, `DoUpdateSet(...).Where(...)`). `ISqlBuilder` is the one
+recorded exception: a capability by that test, it is the root build contract
+every stage composes, and renaming it would break every `this ISqlBuilder`
+extension, so it keeps `Builder` (#614).
 
 **A member that returns a capability shared across statements ends its
 statement's chain.** `IReturning` and `ISqlBuilder` are shared by several
@@ -163,6 +172,13 @@ file imports both `SqlArtisan` and `System.Data.Common` unqualified and
 trigger here, ordinary namespace resolution is (`CS0104` on the bare name,
 resolved by qualifying either type). Record it here for the same reason:
 not grounds for a rename, cheap to qualify at the one call site that needs it.
+Other recorded instances, by reach (#614): `SortOrder` with
+`Microsoft.Data.SqlClient.SortOrder` and `System.Data.SqlClient.SortOrder` —
+the widest, since a SQL Server data-access file imports SqlClient for its
+connection and `SortOrder` is the type a sort helper declares; `SqlStatement`
+with MySQL Connector/NET's `MySqlX.XDevAPI.Relational.SqlStatement`; and
+`SqlExpression` with EF Core's
+`Microsoft.EntityFrameworkCore.Query.SqlExpressions.SqlExpression`.
 
 ## Overload split for analyzer arity
 
@@ -355,6 +371,15 @@ A type belongs in the root `SqlArtisan` namespace only when **all three** hold:
 Everything else — concrete nodes, clause types, builder internals — belongs in
 `Internal/` and is held only through the root types.
 
+**The three criteria govern query content; argument and metadata types sit in
+the root on a separate ground.** `DateTimePart`, `RegexpOptions` and
+`SearchModifier` (`FunctionArgument/`), and `DbColumnMetadataAttribute` and
+`DbTypeCategory` (`Metadata/`), fail criterion 1, yet callers and
+TableClassGen's emitted code write their names, and the root is the only
+namespace that is not `Internal`. ADR 0005 covers `SqlBuilder/` on the same
+ground. Moving any of them after 1.0 breaks callers, emitted code and the
+analyzer's name resolution (#614).
+
 **Recorded placement — `BindArrayValue` stays in the root.** It adds no member
 to `BindValue`, but it is the only way to tell an array bind from a scalar one:
 `SqlParameters.ForEach` hands every binding over as `BindValue`, and an
@@ -448,6 +473,20 @@ value; `INSERT IGNORE ... ON DUPLICATE KEY UPDATE`; SQLite's
 `UPDATE`/`DELETE IGNORE`; PostgreSQL's `OVERRIDING SYSTEM VALUE`; Oracle's
 `INSERT ALL`/`INSERT FIRST`. Several ON CONFLICT clauses in one `INSERT` are
 decided separately, below.
+
+**Not yet offered (#614):** the A4 review found these expression and
+table-source forms with no spelling, and none needs a breaking change to add,
+so the same reading applies:
+`COLLATE` (PostgreSQL 16 orders `ORDER BY n COLLATE "und-x-icu"` unlike any
+`Lower(...)` rewrite, and `Cast`'s type string cannot carry it); a
+table-source modifier after the alias — PostgreSQL's `TABLESAMPLE`, MySQL's
+`USE INDEX` / `FORCE INDEX` — which no name can reach once the alias renders
+(#225, #243); PostgreSQL's `UNNEST(...) WITH ORDINALITY`, where
+`ROW_NUMBER() OVER ()` promises no order; the bitwise operators, whose
+`MOD`-based rewrite returns different rows for negative values; and an
+`ExpressionAlias` as an operand, which SQLite reads inside an `ORDER BY` or
+`WHERE` expression but no operator here takes (#613 made a string beside one
+a compile error).
 
 **Several `ON CONFLICT` clauses in one `INSERT` are not offered (decided —
 do not re-file):** SQLite runs `ON CONFLICT (id) DO UPDATE ... ON CONFLICT

@@ -8,6 +8,7 @@ namespace SqlArtisan;
 /// <see cref="CteBase.As"/>; its columns are referenced by name through
 /// <see cref="Column(string)"/>.
 /// </summary>
+/// <param name="name">The CTE name as it appears in SQL.</param>
 public sealed class Cte(string name) : CteBase(name), IColumnAccessor
 {
     /// <summary>

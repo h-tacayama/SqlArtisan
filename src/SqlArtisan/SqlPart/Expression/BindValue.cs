@@ -14,7 +14,9 @@ public class BindValue : SqlExpression
     internal const string NullValueMessage =
         "A C# null cannot be bound; use Sql.BindNull to bind SQL NULL.";
 
-    /// <summary>Creates an explicit bind-parameter handle for <paramref name="value"/>.</summary>
+    /// <summary>
+    /// Creates an explicit bind-parameter handle for <paramref name="value"/>.
+    /// </summary>
     /// <param name="value">The bound value.</param>
     /// <param name="dbType">The data type the parameter is bound as, or <see langword="null"/> to let the driver infer it.</param>
     /// <param name="direction">The parameter direction, or <see langword="null"/> for an ordinary input parameter.</param>

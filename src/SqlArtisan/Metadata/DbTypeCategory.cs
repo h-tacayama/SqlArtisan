@@ -6,9 +6,9 @@ namespace SqlArtisan;
 /// </summary>
 /// <remarks>
 /// No precision, length, or scale: comparing a <c>numeric(10,2)</c> column to an
-/// <c>int</c> is not a mismatch, and carrying width would invite judgments about
-/// values rather than types.
+/// <c>int</c> is not a mismatch.
 /// </remarks>
+// Width would invite judgments about values rather than types.
 public enum DbTypeCategory
 {
     /// <summary>

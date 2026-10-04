@@ -13,8 +13,10 @@ public class BuilderStageNamingTests
             + "Builder([A-Z][A-Za-z]*)?$",
         RegexOptions.Compiled);
 
-    // A capability that also ends an upsert action (DoNothing(), DoUpdateSet().Where()).
-    private static readonly HashSet<string> s_capabilityStages = ["IReturning"];
+    // A capability that also ends an upsert action (DoNothing(), DoUpdateSet().Where()),
+    // and the root build contract every stage composes: a capability by shape, but
+    // renaming it would break every `this ISqlBuilder` extension (public-api-design.md).
+    private static readonly HashSet<string> s_capabilityStages = ["IReturning", "ISqlBuilder"];
 
     public static IEnumerable<object[]> StageInterfaces()
     {
@@ -29,7 +31,8 @@ public class BuilderStageNamingTests
 
         return returned
             .Concat(named)
-            .Where(t => t.IsInterface && t.Namespace == "SqlArtisan.Internal")
+            .Where(t => t.IsInterface
+                && t.Namespace is "SqlArtisan.Internal" or "SqlArtisan")
             .Select(t => t.Name)
             .Distinct()
             .OrderBy(name => name, StringComparer.Ordinal)
@@ -54,5 +57,6 @@ public class BuilderStageNamingTests
         Assert.Contains("ISelectBuilderLimitOffset", names);
         Assert.Contains("IDeleteBuilder", names);
         Assert.Contains("IReturning", names);
+        Assert.Contains("ISqlBuilder", names);
     }
 }

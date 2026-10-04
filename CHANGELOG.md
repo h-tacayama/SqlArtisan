@@ -232,6 +232,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `Build()`, where `GroupBy(0)` already threw at the call. (#569)
 
 ### Docs
+- `DateTimePart.Microseconds` / `.Milliseconds` say PostgreSQL returns the
+  seconds field times 1,000,000 / 1,000 (`28500000` for `28.5` seconds); they
+  said "including fractional microseconds". (#614)
+- `Build()`, `Build(Dbms)` and `Build(IDbConnection)` document the
+  `ArgumentException` a guard or a second build throws, and `Build(cnn)` that
+  a null connection resolves to `Dbms.Unknown`. (#614)
+- `NotIn<T>(...)` shows its own `NOT IN` text in IntelliSense instead of
+  `In<T>`'s, `DerivedTable`, `DerivedTableBase` and `Cte` document their name
+  parameter, and `DialectMatrix`'s SQL Server `||` claim is scoped to the
+  verified 2022. (#614)
 - `Returning(...)`'s remarks now say Oracle requires `.Into(...)` after it: a
   `RETURNING` with no `INTO` is rejected by the engine (live-verified).
 - `docs/query-statements.md` and `InsertInto(...).With(...)`'s remarks now say
