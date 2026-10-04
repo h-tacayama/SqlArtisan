@@ -292,11 +292,11 @@ When no user-defined operator applies, C# falls back to its built-in ones.
 the call `"Dr. " + col` compiles as string concatenation through
 `ToString()`. The text `"Dr. SqlArtisan.DbColumn"` is then auto-parameterized,
 and the query runs with wrong rows (#613). For every overloaded operator,
-enumerate the operand orders a caller can write: a literal or a nullable
-variable on either side, and `null`. Each order must either bind a SqlArtisan
-operator or fail to compile (CS0019). Adding the missing order after 1.0
-changes the emitted SQL of code that already compiles, which is a major
-version.
+enumerate the operand orders a caller can write: a literal, a nullable
+variable, or an `object`- or interface-typed operand on either side, and
+`null`. Each order must either bind a SqlArtisan operator or fail to compile
+(CS0019). Adding the missing order after 1.0 changes which rows code that
+already compiles reads, which is a major version (`docs/versioning.md`).
 
 - Name the concrete left type (`(string, SqlExpression)`), never `object`. An
   `(object, SqlExpression)` overload makes `col + col` and `col + null`
@@ -304,8 +304,14 @@ version.
 - Every compound operand renders inside parentheses (`(l op r)`, and each
   operand of `AND` / `OR`), so the emitted SQL keeps the C# tree whatever
   each engine's precedence is. A node that drops them changes rows.
-- Interpolation (`$"{col}"`) reaches `ToString()` without any operator, so no
-  overload can close it; only an analyzer rule can (#613).
+- Two orders no overload can close, so they stay open until an analyzer
+  rule or a throwing `ToString()` closes them (#613 weighs both):
+  - `==` / `!=` with an `object`- or interface-typed left operand
+    (`o == col`, an `ISubquery` against an expression). These compile to C#
+    reference equality and bind a `bool`. Closing them would take an
+    `(object, SqlExpression)` overload, which the bullet above rules out.
+  - Interpolation (`$"{col}"`), which reaches `ToString()` without any
+    operator.
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 
