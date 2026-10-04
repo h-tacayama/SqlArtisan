@@ -644,6 +644,37 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
+    // What a C# null at Against(...) would become under the Sql.Null remedy its message
+    // still names (#614): the engine's verdict on AGAINST (NULL), beside a running twin.
+    [Fact]
+    public void AgainstNull_Verdict()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        long existing = connection.ExecuteScalar<long>(
+            "SELECT COUNT(*) FROM information_schema.STATISTICS "
+            + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' "
+            + "AND INDEX_NAME = 'probe_ft_name'");
+        if (existing == 0)
+        {
+            connection.Execute("CREATE FULLTEXT INDEX probe_ft_name ON users(name)");
+        }
+
+        connection.ExecuteScalar("SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST('Alice')");
+
+        string verdict;
+        try
+        {
+            verdict = "rows=" + connection.ExecuteScalar<long>(
+                "SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST(NULL)");
+        }
+        catch (DbException ex)
+        {
+            verdict = "rejected: " + ex.Message;
+        }
+
+        Assert.Equal("rows=0", verdict);
+    }
+
     // RegexpOptions.NewLine's documented meaning (#614): 'n' lets `.` match a
     // line terminator, which it does not by default. A '\n' escape, not CHAR(10),
     // keeps the subject non-binary, which REGEXP_LIKE requires beside the pattern.
