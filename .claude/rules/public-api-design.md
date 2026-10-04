@@ -305,6 +305,10 @@ decided by compiling them against every neighbouring order, not by this file.
 - The emitted SQL keeps the C# operator tree because compound operands are
   parenthesized (`sql-building-style.md` rule 6).
 - Open today, each an analyzer candidate in #614:
+  - a `string` left operand of `+` (and `+=` on a string) whose right operand
+    is not typed as `SqlExpression` or a type derived from it: a subquery
+    stage (`"x" + Select(...)`) or an `object`-typed value still compiles as
+    C# concatenation;
   - `==` / `!=` whose left operand is a reference type not derived from
     `SqlExpression`, wherever C# has a reference conversion between the two
     operand types (a type parameter counts as its effective base class):
