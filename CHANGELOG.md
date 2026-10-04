@@ -143,8 +143,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Server's concatenation. C# used to compile it as string concatenation, so
   the statement bound the text `Dr. SqlArtisan.DbColumn` and matched the wrong
   rows without an error. Assigning the result to a `string` no longer
-  compiles. A subquery or an `object`-typed value on the right still
-  concatenates in C#. (#613)
+  compiles. A right operand that is not an expression type still
+  concatenates in C#: a subquery, a window function before `.Over(...)`, or an
+  `object`-typed value. (#613)
 
 - `Returning(...)` and `Output(...)` report a rejected item as their own
   position: `Invalid type for ReturningItem` / `OutputItem`, and a null item as
