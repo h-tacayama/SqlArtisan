@@ -292,28 +292,25 @@ When no user-defined operator applies, C# falls back to its built-in ones.
 the call `"Dr. " + col` compiles as string concatenation through
 `ToString()`. The text `"Dr. SqlArtisan.DbColumn"` is then auto-parameterized,
 and the query runs with wrong rows (#613). For every overloaded operator,
-enumerate the operand orders a caller can write: a literal, a nullable
-variable, or an `object`- or interface-typed operand on either side, and
+enumerate the operand orders a caller can write, and compile each one: a
+literal, a nullable variable, and an `object`-, interface- or
+type-parameter-typed operand on either side, compound assignment (`+=`), and
 `null`. Each order must either bind a SqlArtisan operator or fail to compile
-(CS0019), except the orders the last bullet records. Adding the missing order
+(CS0019), except the orders listed below as open. Adding the missing order
 after 1.0 changes which rows code that already compiles reads, which is a
-major version (`docs/versioning.md`).
+major version (`docs/versioning.md`). Which overloads close an order is
+decided by compiling them against every neighbouring order, not by this file.
 
-- Name the concrete left type (`(string, SqlExpression)`), never `object`. An
-  `(object, SqlExpression)` overload makes `col + col` and `col + null`
-  ambiguous (CS0034).
 - Every compound operand renders inside parentheses (`(l op r)`, and each
   operand of `AND` / `OR`), so the emitted SQL keeps the C# tree whatever
   each engine's precedence is. A node that drops them changes rows.
 - Open today, with #613 deciding each remedy:
-  - `==` / `!=` with a left operand typed `object`, or typed as an interface
-    against a right operand whose static type is not sealed (`sub == expr`,
-    an `ISubquery` against a `SqlExpression`). They compile to C# reference
-    equality and bind a `bool`. The `object` order has no overload remedy (the
-    first bullet), and an interface overload must not make a neighbouring
-    order ambiguous: every stage that composes `ISubquery` also composes
-    `ISqlBuilder`, so naming both is CS0034 on `stage == expr`.
-  - Interpolation (`$"{col}"`), which reaches `ToString()` without any
+  - a `string` or `string?` left operand of `+`, and `+=` on a string;
+  - `==` / `!=` with a left operand typed `object` or as a class-constrained
+    type parameter, or typed as an interface against a right operand whose
+    static type is not sealed (`SqlExpression`, not `DbColumn`). These
+    compile to C# reference equality and bind a `bool`;
+  - interpolation (`$"{col}"`), which reaches `ToString()` without any
     operator.
 
 ## Factory return types: the concrete node type, not `SqlExpression`
