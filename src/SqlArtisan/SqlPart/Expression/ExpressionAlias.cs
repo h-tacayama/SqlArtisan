@@ -13,7 +13,8 @@ public sealed class ExpressionAlias : SqlPart, ISortable
 {
     private readonly SqlExpression _expr;
 
-    // Bare for a handle column (As(DbColumn)), as DbColumn references it (#165).
+    // As(DbColumn) copies the column's quoting, so the definition renders as DbColumn
+    // references it (#165).
     private readonly bool _quoteAlias;
 
     internal ExpressionAlias(SqlExpression expr, string name, bool quoteAlias = true)
