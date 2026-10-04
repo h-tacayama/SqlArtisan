@@ -150,6 +150,17 @@ public abstract class SqlExpression : SqlPart
         object rightSide) => new(OperandGuard.ThrowIfNull(@this), Resolve(rightSide));
 
     /// <summary>
+    /// The SQL addition operator with a string first:
+    /// <c><paramref name="leftSide"/> + <paramref name="rightSide"/></c>, as in SQL Server's
+    /// <c>"Dr. " + u.LastName</c> concatenation.
+    /// </summary>
+    /// <param name="leftSide">The left operand, bound as a parameter.</param>
+    /// <param name="rightSide">The right operand.</param>
+    /// <returns>The addition expression.</returns>
+    public static AdditionOperator operator +(string leftSide, SqlExpression rightSide) =>
+        new(Resolve(OperandGuard.ThrowIfNull(leftSide)), Resolve(rightSide));
+
+    /// <summary>
     /// The SQL subtraction operator: <c><paramref name="this"/> - <paramref name="rightSide"/></c>.
     /// </summary>
     /// <param name="this">The left operand.</param>

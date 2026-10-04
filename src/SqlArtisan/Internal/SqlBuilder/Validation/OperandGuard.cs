@@ -2,7 +2,7 @@ namespace SqlArtisan.Internal;
 
 // The operator overloads take a null left operand when a nullable variable is
 // used unchecked; the parenthesized render then drops it silently (`( + :0)`),
-// so every operator rejects it here — the same door for all eleven.
+// so every operator rejects it here — the same door for all twelve.
 internal static class OperandGuard
 {
     internal const string NullLeftOperandMessage =
@@ -11,4 +11,8 @@ internal static class OperandGuard
     // Named after the operators' own parameter, so ParamName reads as the caller's.
     internal static SqlExpression ThrowIfNull(SqlExpression? @this) =>
         @this ?? throw new ArgumentNullException(nameof(@this), NullLeftOperandMessage);
+
+    // `null + col` binds the string-left `+` too, so it keeps this message.
+    internal static string ThrowIfNull(string? leftSide) =>
+        leftSide ?? throw new ArgumentNullException(nameof(leftSide), NullLeftOperandMessage);
 }

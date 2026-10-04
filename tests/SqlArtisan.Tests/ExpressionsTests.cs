@@ -135,4 +135,19 @@ public class ExpressionsTests
                 ex.Message);
         }
     }
+
+    [Fact]
+    public void Addition_NullStringLeftOperand_ThrowsArgumentNullException()
+    {
+        TestTable t = new("t");
+        string left = null!;
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(() => left + t.Name);
+
+        Assert.Equal("leftSide", ex.ParamName);
+        Assert.StartsWith(
+            "The left operand of an operator cannot be null; "
+                + "write Sql.Null for a SQL NULL literal.",
+            ex.Message);
+    }
 }

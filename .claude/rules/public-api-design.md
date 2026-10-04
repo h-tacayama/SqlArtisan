@@ -288,11 +288,12 @@ an inconsistency.
 ## Operator overloads: operand orders that fall to a C# built-in
 
 When no user-defined operator applies, C# falls back to its built-in ones.
-`string + object` is built in, so with only `operator +(SqlExpression, object)`
-the call `"Dr. " + col` compiles as string concatenation through
-`ToString()`. The text `"Dr. SqlArtisan.DbColumn"` is then auto-parameterized,
-and the query runs with wrong rows (#613). For every overloaded operator,
-enumerate the operand orders a caller can write, and compile each one: a
+`string + object` is built in, so while `+` took only `(SqlExpression, object)`
+the call `"Dr. " + col` compiled as string concatenation through
+`ToString()`: the text `"Dr. SqlArtisan.DbColumn"` was auto-parameterized, and
+the query ran with wrong rows. `+` takes `(string, SqlExpression)` too for that
+reason (#613). For every overloaded operator, enumerate the operand orders a
+caller can write, and compile each one: a
 literal, a nullable variable, and an `object`-, interface- or
 type-parameter-typed operand on either side, compound assignment (`+=`), and
 `null`. Each order must either bind a SqlArtisan operator or fail to compile
@@ -303,8 +304,7 @@ decided by compiling them against every neighbouring order, not by this file.
 
 - The emitted SQL keeps the C# operator tree because compound operands are
   parenthesized (`sql-building-style.md` rule 6).
-- Open today, with #613 deciding each remedy:
-  - a `string` or `string?` left operand of `+`, and `+=` on a string;
+- Open today, each an analyzer candidate in #614:
   - `==` / `!=` whose left operand is a reference type not derived from
     `SqlExpression`, wherever C# has a reference conversion between the two
     operand types (a type parameter counts as its effective base class):
@@ -315,8 +315,7 @@ decided by compiling them against every neighbouring order, not by this file.
   - interpolation (`$"{col}"`), which reaches `ToString()` without any
     operator.
 - A `dynamic` operand is outside the requirement: it binds at run time to
-  whatever order its runtime type forms, so a `string` concatenates and an
-  `object` compares references.
+  whatever order its runtime type forms, so an `object` compares references.
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 

@@ -162,7 +162,7 @@ SqlStatement sql =
 
 - **Oracle, PostgreSQL, SQLite (every version)** — `DoublePipe(a, b, ...)` for the native `||` operator, chaining any number of arguments without nesting.
 - **MySQL** — `Concat(a, b)` / `Concat(a, b, c, ...)` for the `CONCAT` function.
-- **SQL Server** — the existing `+` operator (`u.FirstName + " " + u.LastName`) for native concatenation, or the 2-argument `Concat(a, b)` function; SQL Server has no `||` operator at all.
+- **SQL Server** — the existing `+` operator (`u.FirstName + " " + u.LastName`, or `"Dr. " + u.LastName` with the text first) for native concatenation, or the 2-argument `Concat(a, b)` function; SQL Server has no `||` operator at all.
 - **Oracle's `CONCAT`** takes exactly two arguments — `Concat(a, b, c)` (three or more) is invalid there; use `DoublePipe(...)` for chains of three or more on Oracle.
 
 > [!NOTE]
