@@ -47,6 +47,7 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
 | [0020](0020-documentation-precision-boundary.md) | Documentation precision boundary: what the docs assert, and what they delegate to the engine | | Accepted |
 | [0021](0021-analyzer-matrix-key-granularity.md) | Dialect-matrix key granularity: member-level by default, arity as a narrowing layer | Analyzer | Accepted |
 | [0022](0022-analyzer-value-domain-argument-ids.md) | Value-domain arguments: every literal value verdict under one diagnostic ID | Analyzer | Accepted |
+| [0023](0023-analyzer-csharp-fallback-rules.md) | C# fallbacks: a query object C# resolves without SqlArtisan | Analyzer | Accepted |
 
 ### Clusters
 
@@ -61,8 +62,8 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   embedded value also rejects); 0017 adds a second enumerated exception (an omitted
   join predicate some dialects silently reinterpret as `CROSS JOIN`). All four
   are required to answer "will the library throw for this?"
-- **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019 + 0021 + 0022) — *How
-  does the dialect analyzer work?* 0003 chooses the permissive-API +
+- **Analyzer** (0003 + 0008 + 0009 + 0013 + 0014 + 0015 + 0018 + 0019 + 0021 +
+  0022 + 0023) — *How does the dialect analyzer work?* 0003 chooses the permissive-API +
   opt-in-analyzer approach; 0008 designs the override configuration; 0009
   decides bundled distribution; 0013 adds position-dependent context rules
   (SQLA0102); 0014 adds the advisory correlated-DML rule (SQLA0300)
@@ -75,7 +76,8 @@ only part of a cluster produces incomplete (and potentially wrong) conclusions.
   default, arity only to narrow it); 0022 keeps every verdict on the value
   dimension the matrix cannot key on under one id (SQLA0104), applying 0019's
   splitting test and 0013's provable-or-silent discipline to a literal
-  argument value.
+  argument value; 0023 adds the C# fallback rules (SQLA0301, SQLA0302) and
+  widens the question 0018 gave the Validity band.
 
 ## Consolidation trigger
 

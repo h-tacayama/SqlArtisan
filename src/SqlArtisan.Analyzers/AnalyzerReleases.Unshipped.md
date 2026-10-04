@@ -19,3 +19,5 @@ SQLA0203 | SqlArtisan.Schema | Disabled | COUNT of a column the generated table 
 SQLA0204 | SqlArtisan.Schema | Warning | A filter wraps an indexed column in a function or matches it with a leading-wildcard pattern, so no index on it can be used.
 SQLA0205 | SqlArtisan.Schema | Warning | A column is compared to a value of another type category, which can change which rows match, not just how fast.
 SQLA0300 | SqlArtisan.Validity | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the same violation Build() rejects.
+SQLA0301 | SqlArtisan.Validity | Warning | A C# reference comparison involving a SqlArtisan object is passed to a SqlArtisan member, which binds the bool result instead of building a SQL comparison.
+SQLA0302 | SqlArtisan.Validity | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member, which binds its type name instead of SQL.

@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `SQLA0301` reports `==` / `!=` that C# resolves as reference equality —
+  the left operand an `object`, a `SqlPart` or a type parameter constrained to
+  one — passed to a SqlArtisan member, where it binds a `bool` instead of
+  comparing in SQL. `SQLA0302` reports a SqlArtisan object interpolated
+  (`$"{col}"`) or concatenated with a string where no SqlArtisan `+` takes it (a
+  subquery, `RowNumber()` before `.Over(...)`), which binds the object's type
+  name. Both report only where the value goes straight into a SqlArtisan
+  argument; a log line or a reference check elsewhere stays silent. (#614)
 - `SQLA0102` reports a `Returning(...)` consumed without `.Into(...)` on
   Oracle — built, or passed on as an `ISqlBuilder` — since Oracle takes
   `RETURNING` only as `RETURNING ... INTO` (live-verified on XE 21.3.0). A

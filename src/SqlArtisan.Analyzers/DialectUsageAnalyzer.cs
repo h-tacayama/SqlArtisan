@@ -47,7 +47,9 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         DiagnosticDescriptors.CountNullableColumn,
         DiagnosticDescriptors.UnusableIndexPredicate,
         DiagnosticDescriptors.TypeCategoryMismatch,
-        DiagnosticDescriptors.CorrelatedDmlTargetNotAliased);
+        DiagnosticDescriptors.CorrelatedDmlTargetNotAliased,
+        DiagnosticDescriptors.ReferenceEqualityBound,
+        DiagnosticDescriptors.QueryObjectAsText);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -116,6 +118,12 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(
             c => AnalyzeCorrelatedDml(c, targetCache),
             OperationKind.Invocation);
+        context.RegisterOperationAction(
+            c => AnalyzeCSharpFallback(c, targetCache),
+            OperationKind.Binary);
+        context.RegisterOperationAction(
+            c => AnalyzeInterpolation(c, targetCache),
+            OperationKind.InterpolatedString);
         context.RegisterCompilationEndAction(ValidateConfiguration);
     }
 
@@ -701,6 +709,35 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
         }
 
         CorrelatedDmlRule.Check(context, invocation);
+    }
+
+    private static void AnalyzeCSharpFallback(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
+    {
+        if (GetTargets(context, cache).IsEmpty)
+        {
+            return;
+        }
+
+        var binary = (IBinaryOperation)context.Operation;
+        CSharpFallbackRule.CheckReferenceEquality(context, binary);
+        CSharpFallbackRule.CheckConcatenation(context, binary);
+    }
+
+    private static void AnalyzeInterpolation(
+        OperationAnalysisContext context,
+        ConcurrentDictionary<SyntaxTree,
+        DialectTargetSet> cache)
+    {
+        if (GetTargets(context, cache).IsEmpty)
+        {
+            return;
+        }
+
+        CSharpFallbackRule.CheckInterpolation(
+            context, (IInterpolatedStringOperation)context.Operation);
     }
 
     private static void AnalyzeIdentifierLength(

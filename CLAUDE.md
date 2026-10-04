@@ -29,7 +29,7 @@ building on ADRs 0001–0003/0007. See `docs/adr/README.md` for the full index.
 | `src/SqlArtisan/SqlBuilder/` | Public surface: `Dbms`, `DbmsResolver`, `SqlArtisanConfig`, `SqlStatement`, `SqlParameters`, `ISqlBuilder`, `ISubquery`, `OutputParameter`. |
 | `src/SqlArtisan/SqlPart/` | Public types: `Clause/`, `Condition/`, `Expression/`, `FunctionArgument/`, `TableReference/`. Everything here renders SQL or is consumed while rendering it. |
 | `src/SqlArtisan/Metadata/` | Schema-metadata attributes on generated table classes (`DbColumnMetadataAttribute`, `DbTypeCategory`). Compile-time data, never rendered and never read at run time. |
-| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0300). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
+| `src/SqlArtisan.Analyzers/` | Opt-in Roslyn analyzer (SQLA0001–SQLA0302). Bundled inside the main NuGet package. Targets `netstandard2.0`. |
 | `src/SqlArtisan.ArrayBind/` | Oracle array-bind execution (one round trip per batch, not per row). |
 | `src/SqlArtisan.Dapper/` | Dapper integration (sync/async SqlMapper extensions). |
 | `src/SqlArtisan.TableClassGen/` | Argument-driven tool that generates table classes from a live DB (all five DBMS), and reports drift between them and the schema (`--check` / `--fix`). |
@@ -99,7 +99,7 @@ Shared bases and one uncategorized node sit at that folder's root.
 
 ## Analyzer
 
-The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fourteen diagnostics:
+The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships sixteen diagnostics:
 
 - **SQLA0001** — Analyzer configuration problem: an unrecognized key name or
   value, a `sqlartisan_syntax_*` family resolving to no dialect at all, or a
@@ -145,6 +145,12 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships fourteen diagnostics:
   underlying integer), gated by `SchemaMetadataParityTests`.
 - **SQLA0300** — Correlated `UPDATE`/`DELETE`/`MERGE` with an unaliased target — the
   same violation `Build()` rejects, surfaced early.
+- **SQLA0301** — A C# reference comparison (`o == col`, the left operand not a
+  `SqlExpression`) passed to a SqlArtisan member, which binds the `bool` instead
+  of building a SQL comparison.
+- **SQLA0302** — A SqlArtisan object interpolated into a string passed to a
+  SqlArtisan member (`Like($"%{col}%")`), which binds its type name. Both report
+  only where the value flows straight into a SqlArtisan argument (**ADR 0023**).
 
 Each ID sits in a numbered band that **is** its category, so a family gains a
 rule without renumbering and a bulk-severity setting reaches one family only

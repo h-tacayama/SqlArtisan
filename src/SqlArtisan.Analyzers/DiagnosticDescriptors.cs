@@ -16,8 +16,8 @@ internal static class DiagnosticDescriptors
     private const string DialectCategory = "SqlArtisan.Dialect";
     private const string SchemaCategory = "SqlArtisan.Schema";
 
-    // Holds one rule today. The band exists because mirroring a Build()-time
-    // guard is a shape the library can repeat, not because a queue is waiting.
+    // Statements that cannot mean what they say: one Build() rejects (SQLA0300), or
+    // one C# resolves without SqlArtisan so it binds a C# value (SQLA0301-0302).
     private const string ValidityCategory = "SqlArtisan.Validity";
 
     // Shared so the two SQLA0104 descriptors cannot drift apart in an IDE's rule
@@ -239,6 +239,26 @@ internal static class DiagnosticDescriptors
         id: "SQLA0300",
         title: "Correlated UPDATE, DELETE, or MERGE target is not aliased",
         messageFormat: "The target of a correlated UPDATE, DELETE, or MERGE must be aliased",
+        category: ValidityCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
+    public static readonly DiagnosticDescriptor ReferenceEqualityBound = new(
+        id: "SQLA0301",
+        title: "C# reference equality on a SqlArtisan object binds a bool",
+        messageFormat: "This compares C# references and binds the bool result; put the SqlArtisan "
+            + "expression on the left so its operator builds the SQL comparison",
+        category: ValidityCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: HelpLinkUri);
+
+    public static readonly DiagnosticDescriptor QueryObjectAsText = new(
+        id: "SQLA0302",
+        title: "A SqlArtisan object formatted as text binds its type name",
+        messageFormat: "'{0}' formats as its type name, not as SQL; build the text in SQL "
+            + "instead, with Concat(...) for example",
         category: ValidityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
