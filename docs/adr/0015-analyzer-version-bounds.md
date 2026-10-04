@@ -52,8 +52,9 @@ diagnostic `SQLA0101`.**
   row: `supported ⇔ declared ≥ min`. A currently-`true` cell below its bound
   flips to unsupported (SQL Server 2019 asking about `Datetrunc`, `true` in
   `Entries`); a currently-`false` cell above its bound would flip to
-  supported — no seeded bound sits on a false cell today (see the
-  `WithRecursive` record below), but the semantics are symmetric by design.
+  supported — the semantics are symmetric by design, and the Oracle 23,
+  PostgreSQL 17 and SQL Server 2025 rows lift false cells this way (the
+  `WithRecursive` record below is a candidate the live lane disproved).
   With no declared version, or no `Bounds` row for that exact
   key, the plain bool decides — identical to every build before this ADR.
   Per the #262 reservation, `sqlartisan_construct_*` overrides are checked

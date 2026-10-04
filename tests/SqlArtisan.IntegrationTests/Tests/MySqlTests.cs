@@ -644,8 +644,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
-    // Why Against(...) names .IsNull for a C# null rather than Sql.Null (#614):
-    // AGAINST (NULL) runs and matches no row, beside a twin search that runs.
+    // Why Against(...)'s null message names no Sql.Null remedy (#614): AGAINST (NULL)
+    // runs and matches no row, beside a twin search that matches the seeded Alice.
     [Fact]
     public void AgainstNull_MatchesNoRow()
     {
@@ -659,7 +659,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
             connection.Execute("CREATE FULLTEXT INDEX probe_ft_name ON users(name)");
         }
 
-        connection.ExecuteScalar("SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST('Alice')");
+        Assert.True(connection.ExecuteScalar<long>(
+            "SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST('Alice')") > 0);
 
         string verdict;
         try

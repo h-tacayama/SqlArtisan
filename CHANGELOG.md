@@ -47,9 +47,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
-- `Match(...).Against(null)` names `.IsNull` / `.IsNotNull` instead of
-  suggesting `Sql.Null`: MySQL 8.0 runs `AGAINST (NULL)` and matches no row.
-  `AgainstScore(null)` keeps the `Sql.Null` message. (#614)
+- `Match(...).Against(null)` no longer suggests `Sql.Null`: MySQL 8.0 runs
+  `AGAINST (NULL)` and matches no row, so the message says so and asks for the
+  search text or no predicate at all. `AgainstScore(null)` keeps the
+  `Sql.Null` message. (#614)
 - An unaliased target of a joined `UPDATE` or `DELETE` throws at the `From(...)`,
   join or `Using(...)` call that joins it instead of at `Build()`; the alias is
   fixed by then, and a `DELETE`'s `From(...)` already threw its re-list check.
@@ -321,8 +322,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   a null connection resolves to `Dbms.Unknown`. (#614)
 - `NotIn<T>(...)` shows its own `NOT IN` text in IntelliSense instead of
   `In<T>`'s, `DerivedTable`, `DerivedTableBase` and `Cte` document their name
-  parameter, and `DoublePipe(...)`'s remarks scope SQL Server's `||` rejection
-  to the verified 2022. (#614)
+  parameter. (#614)
 - `RegexpOptions.NewLine` and `.MultipleLines` now say what they do on
   PostgreSQL, where `'n'` and `'m'` both mean newline-sensitive matching: `.`
   stops matching a newline, the opposite of `NewLine` on MySQL and Oracle. A

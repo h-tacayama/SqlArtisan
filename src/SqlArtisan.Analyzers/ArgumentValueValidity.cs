@@ -19,7 +19,7 @@ internal static class ArgumentValueValidity
 
     // The parameter SQLA0104 reads the literal RegexpOptions out of — each entry
     // matches that factory's own parameter name in Sql.R.cs. RegexpCount is listed
-    // for Oracle and PostgreSQL; the matrix owns MySQL, which has no REGEXP_COUNT.
+    // for Oracle, PostgreSQL and SQL Server; the matrix owns MySQL, which has none.
     internal static readonly Dictionary<string, string> MatchOptionParameterName = new(
         StringComparer.Ordinal)
     {
