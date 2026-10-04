@@ -459,6 +459,10 @@ the caller did not mean. Judge a null argument by which failure it produces:
   the factory call (`Column`) or at `Build()` (a stored subquery or
   condition). Either way the statement never builds, so nothing is silently
   wrong. No runtime guard is owed; do not file these in review.
+- **Documented null** (the parameter is annotated nullable and its docs give
+  `null` a meaning): no guard is owed, because the statement builds exactly
+  as documented. `DbTableBase` / `DbTable`'s `tableAlias` is `string?`, where
+  `null` and an empty string both mean no alias (#614).
 
 Settled during the 1.0 release review, where one panel seat filed the loud-NRE
 class as a defect and another declined the identical class as

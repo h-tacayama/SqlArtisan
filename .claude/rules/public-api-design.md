@@ -548,9 +548,11 @@ Reviewed and kept as-is — not defects, not scheduled for change:
   only bites an explicit `SqlMapper.Member` reference with both namespaces
   imported (`CS0104`), which extension-method call syntax never triggers.
 - **`SqlParameters.Get<T>`** returns the type's default when no parameter has
-  the given name, rather than throwing — the one intentionally quiet lookup
-  in a library whose mission is loud failure, kept for the common
-  "does this bind exist" check; documented on the member itself.
+  the given name, rather than throwing. It reads a built statement's bound
+  values, which no SQL depends on, so the loud-failure mission does not reach
+  it. It is not an existence check: for a value type `T`, a missing name and a
+  bound default read the same, so existence is tested with `ParameterNames`.
+  Documented on the member itself.
 - **`DbmsResolver`'s first-registration-wins policy** for
   `RegisterProvider` (the nine built-in ADO.NET-provider-to-`Dbms` mappings
   register in the static constructor, before any user code runs, and can

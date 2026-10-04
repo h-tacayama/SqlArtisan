@@ -237,6 +237,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `docs/query-statements.md` and `InsertInto(...).With(...)`'s remarks now say
   SQL Server rejects a `WITH` inside `INSERT`'s feeding `SELECT`
   (live-verified on 2022); use a leading `With(...).InsertInto(...)` there.
+- `DbTable` and `DbTableBase` take a `string?` alias. `null`, like an empty
+  string, means no alias; the behavior is unchanged, and the annotation and
+  docs now say so. (#614)
+- `docs/versioning.md` and `BindValue`'s remarks state that deriving from
+  `BindValue` is not covered: it is unsealed only so that `BindArrayValue` can
+  derive from it. (#614)
+- `SqlParameters.Get<T>`'s remarks say a missing name reads as `default`, so a
+  value-type `T` cannot test whether a parameter exists; use `ParameterNames`.
+  (#614)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added
