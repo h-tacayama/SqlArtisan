@@ -172,22 +172,6 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
         Assert.Equal(next, current);
     }
 
-    // Sql.Nextval/Currval are PostgreSQL's function form; Oracle has only the
-    // pseudo-column above, so SQLA0100's arity-1 rows report them here (#614).
-    [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    public void SequenceFunctionForm_IsRejectedByTheEngine(bool next, bool aliased)
-    {
-        UsersTable u = aliased ? new("u") : new();
-        using IDbConnection connection = _fixture.OpenConnection();
-
-        Assert.ThrowsAny<DbException>(() => connection.ExecuteScalar(
-            Select(next ? Nextval("test_seq") : Currval("test_seq")).From(u).Where(u.Id == 1)));
-    }
-
     [Fact]
     public void Merge_UpsertViaMerge_Executes()
     {

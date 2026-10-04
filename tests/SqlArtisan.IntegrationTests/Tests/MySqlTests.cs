@@ -645,7 +645,8 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
     // RegexpOptions.NewLine's documented meaning (#614): 'n' lets `.` match a
-    // line terminator, which it does not by default.
+    // line terminator, which it does not by default. A '\n' escape, not CHAR(10),
+    // keeps the subject non-binary, which REGEXP_LIKE requires beside the pattern.
     [Theory]
     [InlineData("n", 1)]
     [InlineData("", 0)]
@@ -654,7 +655,7 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
         using IDbConnection connection = _fixture.OpenConnection();
 
         Assert.Equal(expected, connection.ExecuteScalar<int>(
-            $"SELECT REGEXP_LIKE(CONCAT('a', CHAR(10), 'b'), '^a.b$', '{flags}')"));
+            $"SELECT REGEXP_LIKE('a\\nb', '^a.b$', '{flags}')"));
     }
 
     // SQLA0104 reads the alphabet per dialect, not per function (#528), so the
