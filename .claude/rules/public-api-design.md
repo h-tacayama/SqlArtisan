@@ -305,17 +305,16 @@ major version (`docs/versioning.md`).
 - Every compound operand renders inside parentheses (`(l op r)`, and each
   operand of `AND` / `OR`), so the emitted SQL keeps the C# tree whatever
   each engine's precedence is. A node that drops them changes rows.
-- An interface SqlArtisan owns is a concrete left type too: `sub == expr`
-  (an `ISubquery` against a `SqlExpression`) falls to reference equality today,
-  and an `(ISubquery, SqlExpression)` overload closes it. Such an overload also
-  takes `null == col`, so it needs the left-operand null guard.
-- No overload can close these, so they stay open (#613 weighs the remedies):
-  - `==` / `!=` with a left operand typed `object` or an interface SqlArtisan
-    does not own (`o == col`). They compile to C# reference equality and bind
-    a `bool`. Closing them would take an `(object, SqlExpression)` overload,
-    which the first bullet rules out, so only an analyzer rule reaches them.
+- Open today, with #613 deciding each remedy:
+  - `==` / `!=` with a left operand typed `object`, or typed as an interface
+    against a right operand whose static type is not sealed (`sub == expr`,
+    an `ISubquery` against a `SqlExpression`). They compile to C# reference
+    equality and bind a `bool`. The `object` order has no overload remedy (the
+    first bullet), and an interface overload must not make a neighbouring
+    order ambiguous: every stage that composes `ISubquery` also composes
+    `ISqlBuilder`, so naming both is CS0034 on `stage == expr`.
   - Interpolation (`$"{col}"`), which reaches `ToString()` without any
-    operator. An analyzer rule or a throwing `ToString()` closes it.
+    operator.
 
 ## Factory return types: the concrete node type, not `SqlExpression`
 
