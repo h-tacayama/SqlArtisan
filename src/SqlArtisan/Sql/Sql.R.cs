@@ -175,7 +175,9 @@ public static partial class Sql
     /// <returns>A <c>REGEXP_LIKE</c> condition.</returns>
     /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
     public static RegexpLikeCondition RegexpLike(object source, object pattern) =>
-        new(Resolve(source), Resolve(pattern));
+        new(
+            ResolveCompared(source, nameof(source), Keywords.RegexpLike),
+            ResolveCompared(pattern, nameof(pattern), Keywords.RegexpLike));
 
     /// <inheritdoc cref="RegexpLike(object, object)"/>
     /// <param name="source">The string tested.</param>
@@ -185,8 +187,8 @@ public static partial class Sql
         object source,
         object pattern,
         RegexpOptions options) => new(
-            Resolve(source),
-            Resolve(pattern),
+            ResolveCompared(source, nameof(source), Keywords.RegexpLike),
+            ResolveCompared(pattern, nameof(pattern), Keywords.RegexpLike),
             options);
 
     /// <summary>

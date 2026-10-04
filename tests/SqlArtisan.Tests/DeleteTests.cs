@@ -635,6 +635,30 @@ public class DeleteTests
     }
 
     [Fact]
+    public void DeleteFrom_FromUnaliasedTarget_ThrowsAtFrom()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+        IDeleteBuilderDeleteOutput held = DeleteFrom(t);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.From(t, s));
+
+        Assert.Equal("The target of a joined UPDATE or DELETE must be aliased.", ex.Message);
+    }
+
+    [Fact]
+    public void DeleteFrom_UsingUnaliasedTarget_ThrowsAtUsing()
+    {
+        TestTable t = new();
+        TestTable s = new("s");
+        IDeleteBuilderDeleteOutput held = DeleteFrom(t);
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => held.Using(s));
+
+        Assert.Equal("The target of a joined UPDATE or DELETE must be aliased.", ex.Message);
+    }
+
+    [Fact]
     public void DeleteFrom_UsingNoTables_ThrowsArgumentException()
     {
         TestTable t = new("t");

@@ -192,4 +192,84 @@ public class InTests
 
         Assert.Equal("values", ex.ParamName);
     }
+
+    [Fact]
+    public void In_NullParamsElement_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => _t.Code.In(1, null!));
+
+        Assert.Equal(
+            "IN cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'expressions')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void In_NullCollectionElement_ThrowsArgumentNullException()
+    {
+        List<string?> values = ["a", null];
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => _t.Name.In(values));
+
+        Assert.Equal(
+            "IN cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'values')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void In_NullArrayElement_ThrowsArgumentNullException()
+    {
+        int?[] values = [1, null];
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => _t.Code.In(values));
+
+        Assert.Equal(
+            "IN cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'values')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void NotIn_NullParamsElement_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => _t.Code.NotIn(1, null!));
+
+        Assert.Equal(
+            "NOT IN cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'expressions')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void NotIn_NullCollectionElement_ThrowsArgumentNullException()
+    {
+        HashSet<string?> values = ["a", null];
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => _t.Name.NotIn(values));
+
+        Assert.Equal(
+            "NOT IN cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'values')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void NotIn_NullArrayElement_ThrowsArgumentNullException()
+    {
+        string?[] values = ["a", null];
+
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => _t.Name.NotIn(values));
+
+        Assert.Equal(
+            "NOT IN cannot compare a C# null; test for NULL with .IsNull or .IsNotNull. "
+                + "(Parameter 'values')",
+            ex.Message);
+    }
 }

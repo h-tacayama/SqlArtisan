@@ -77,12 +77,13 @@ declaration syntax), non-readonly fields, helper indirection for the table
 or the subquery, a builder split across statements, `With(...)`-headed
 subqueries, and every CTE body. A joined UPDATE/DELETE (`.From(...)` /
 `.Using(...)` / a join step **visible in the same expression chain**) with
-an unaliased target is deliberately silent: its own Build()-time guard throws a *different*
-message ("joined … must be aliased") before the correlated guard arms, so a
-"correlated" diagnostic would misdescribe it — the joined guard is the
+an unaliased target is deliberately silent: its own guard throws a
+*different* message ("joined … must be aliased") at the joining call,
+before the correlated guard arms, so a "correlated" diagnostic would
+misdescribe it — the joined guard is the
 report there. A join step added on a builder variable in a *later*
 statement is invisible to the walk, so that shape still reports
-"correlated" while Build() throws the joined message — accepted: the
+"correlated" while the join step throws the joined message — accepted: the
 statement is unbuildable either way, the exception type matches, and the
 remediation (alias the target) is identical, so only the message label
 diverges. The runtime accepted-false-positive (one instance reused for both

@@ -39,6 +39,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
+- An unaliased target of a joined `UPDATE` or `DELETE` throws at the `From(...)`,
+  join or `Using(...)` call that joins it instead of at `Build()`; the alias is
+  fixed by then, and a `DELETE`'s `From(...)` already threw its re-list check.
+  (#614)
+- `DbmsResolver.RegisterProvider` throws `ArgumentOutOfRangeException` on
+  `Dbms.Unknown` or an undefined value, as `SetDefaultDbms` does. It accepted
+  them, and the first registration for a type wins, so the bad entry could not
+  be replaced and surfaced only at `Build(cnn)`, as an unrelated failure. (#614)
+- A `RegexpOptions` value with an undefined bit throws
+  `ArgumentOutOfRangeException`. The bit emitted no letter, so
+  `(RegexpOptions)(32 | 2)` built `'i'`, and appending a flag at that bit would
+  have changed the SQL the same call emits. (#614)
+- `.WithColumnList()` over a `Select(Asterisk)` or `Select(t.Asterisk)` block
+  says to select the columns by name; it said to alias the expression with
+  `.As(...)`, which neither marker has. (#614)
+- A C# null at a comparison or predicate operand — `==`, `!=`, `<`, `>`, `<=`,
+  `>=`, `Between`, `NotBetween`, `Like`, `NotLike`, an `In`/`NotIn` element, a
+  simple `Case` operand or `When` value, `RegexpLike`, `ArrayContainedBy`,
+  `ArrayContains`, `ArrayOverlaps`, `JsonbContains`, `JsonbExists`, `TsMatch`, or
+  the JSON side of `JsonbExistsAll` / `JsonbExistsAny`
+  — now names `.IsNull` / `.IsNotNull` in its `ArgumentNullException` (and the
+  right side of `==` also names `Sql.Null`, for a `SET`). The old
+  message said to pass `Sql.Null`, which builds `= NULL`: a comparison with
+  NULL rather than a NULL test, so PostgreSQL 16 and SQLite counted 0 rows
+  where `IS NULL` counted 1. These messages report the caller's parameter name,
+  and a null left operand's message names the operator. (#614)
 - Four call-site defects now throw at the call that writes them instead of at
   `Build()`: an `OUTPUT ... INTO` column list whose width differs from the
   `OUTPUT` list (at `Into(...)`), an `INSERT ... SELECT` select list whose
@@ -180,6 +206,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#569)
 
 ### Fixed
+- `SQLA0100` reports `Sql.Nextval("s")` and `Sql.Currval("s")` on Oracle, where
+  `NEXTVAL('s')` is not Oracle's form; `Sequence("s").Nextval` stays silent
+  there. The two forms shared one matrix row, the union of their dialects, so
+  the function form was silent on Oracle. (#614)
+- `SQLA0100` no longer reads an enum member or a member of `SqlParameters` /
+  `SqlStatement` as a construct. The matrix is keyed by name, so
+  `sqlartisan_construct_day = unsupported` reported `DateTimePart.Day`, and a
+  `Count` override reported `SqlParameters.Count`. (#614)
+- `Build(Dbms.Unknown)` on a joined `UPDATE` that re-lists its target throws
+  the documented `ArgumentOutOfRangeException` ("Unsupported DBMS"). It threw
+  "Only SQL Server supports a joined UPDATE that re-lists the target table",
+  which a SQL Server user building through an unregistered connection read as
+  rejecting their own engine's form. (#614)
+- `.NullsFirst` / `.NullsLast` on a sort key that already has a null ordering
+  throws `InvalidOperationException`. The second call silently replaced the
+  first, so `.NullsFirst.NullsLast` emitted `NULLS LAST`; written out, the pair
+  is rejected by PostgreSQL 16 and SQLite. (#614)
+- `new BindValue(...)` throws on a SqlArtisan object — an expression, a query,
+  a pending node such as `PercentileCont(0.5)`, or a built statement — which
+  bound the object itself (`new BindValue(u.Id + 1)` bound an
+  `AdditionOperator`) rather than rendering SQL. Any other value, an enum
+  included, still passes through to the driver. (#614)
+- `Match(table, ...)` on SQLite drops a schema from the target:
+  `new DbTable("main.ft", "f")` emits `"f".ft MATCH`, where it emitted
+  `"f".main.ft MATCH`, which SQLite 3.45.1 rejects (`no such column`), and the
+  unaliased form emits `ft MATCH` for `main.ft MATCH`. (#614)
 - `Build()` throws the correlated-DML guard's message when a query block in a
   CTE body reads a column of an unaliased `UPDATE`/`DELETE`/`MERGE` target
   without listing the target in that block. The guard was off for every CTE
@@ -242,11 +294,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `In<T>`'s, `DerivedTable`, `DerivedTableBase` and `Cte` document their name
   parameter, and `DoublePipe(...)`'s remarks scope SQL Server's `||` rejection
   to the verified 2022. (#614)
+- `RegexpOptions.NewLine` and `.MultipleLines` now say what they do on
+  PostgreSQL, where `'n'` and `'m'` both mean newline-sensitive matching: `.`
+  stops matching a newline, the opposite of `NewLine` on MySQL and Oracle. A
+  `docs/functions.md` warning says to leave `NewLine` off there (PostgreSQL 16
+  verified). (#614)
 - `Returning(...)`'s remarks now say Oracle requires `.Into(...)` after it: a
   `RETURNING` with no `INTO` is rejected by the engine (live-verified).
 - `docs/query-statements.md` and `InsertInto(...).With(...)`'s remarks now say
   SQL Server rejects a `WITH` inside `INSERT`'s feeding `SELECT`
   (live-verified on 2022); use a leading `With(...).InsertInto(...)` there.
+- `DbTable` and `DbTableBase` take a `string?` alias. `null`, like an empty
+  string, means no alias; the behavior is unchanged, and the annotation and
+  docs now say so. (#614)
+- `docs/versioning.md` and `BindValue`'s remarks state that deriving from
+  `BindValue` is not covered: it is unsealed only so that `BindArrayValue` can
+  derive from it. (#614)
+- `SqlParameters.Get<T>`'s remarks say a missing name reads as `default`, so a
+  value-type `T` cannot test whether a parameter exists; use `ParameterNames`.
+  (#614)
 
 ## [0.12.0-beta.1] - 2026-09-27
 ### Added

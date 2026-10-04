@@ -86,6 +86,13 @@ not at the SqlArtisan layer.
 - `Trim()` for `TRIM` (the two-argument trim-set form is not supported by SQLite — nest `Ltrim()`/`Rtrim()` there)
 - `Upper()` for `UPPER`
 
+> [!WARNING]
+> **On PostgreSQL, `RegexpOptions.NewLine` and `RegexpOptions.MultipleLines` both
+> stop `.` from matching a newline.** There `'n'` and `'m'` mean newline-sensitive
+> matching, the opposite of `NewLine`'s meaning on MySQL and Oracle, and PostgreSQL's
+> `.` matches a newline by default — so leave `NewLine` off there. See
+> [PostgreSQL: embedded options](https://www.postgresql.org/docs/current/functions-matching.html#POSIX-EMBEDDED-OPTIONS-TABLE).
+
 On Oracle, chain two-argument `Concat(a, b)` calls (`Concat(Concat(a, b), c)`)
 for three or more arguments, or use the `||` operator instead — see
 [Expressions: String Concatenation](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/expressions.md#string-concatenation)

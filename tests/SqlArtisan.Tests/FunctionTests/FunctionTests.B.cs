@@ -121,6 +121,71 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void BindValue_SqlExpressionValue_ThrowsArgumentException()
+    {
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => new BindValue(_t.Code + 1));
+
+        Assert.Equal(
+            "A SqlArtisan object cannot be bound; pass a .NET value, "
+                + "or write an expression in place of the bind. (Parameter 'value')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void BindValue_SubqueryValue_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => new BindValue(Select(_t.Code).From(_t)));
+
+        Assert.Equal(
+            "A SqlArtisan object cannot be bound; pass a .NET value, "
+                + "or write an expression in place of the bind. (Parameter 'value')",
+            ex.Message);
+    }
+
+    // Pending nodes and the built statement are SqlArtisan objects without being
+    // SqlPart, and bound the object itself just the same.
+    [Fact]
+    public void BindValue_NonPartSqlArtisanObject_ThrowsArgumentException()
+    {
+        object[] values =
+        [
+            PercentileCont(0.5),
+            Select(_t.Code).From(_t).Build(),
+            Sequence("s"),
+        ];
+
+        foreach (object value in values)
+        {
+            ArgumentException ex = Assert.Throws<ArgumentException>(() => new BindValue(value));
+
+            Assert.Equal(
+                "A SqlArtisan object cannot be bound; pass a .NET value, "
+                    + "or write an expression in place of the bind. (Parameter 'value')",
+                ex.Message);
+        }
+    }
+
+    // An array reports its element type's assembly; a SqlArtisan enum element
+    // binds as the enum itself does.
+    [Fact]
+    public void BindArray_SqlArtisanEnumElements_Binds()
+    {
+        DateTimePart[] parts = [DateTimePart.Day, DateTimePart.Month];
+
+        SqlStatement sql =
+            Select(_t.Code)
+            .From(_t)
+            .Where(_t.Code == Any(BindArray(parts)))
+            .Build(Dbms.PostgreSql);
+
+        Assert.Equal(
+            "SELECT \"t\".code FROM test_table \"t\" WHERE \"t\".code = ANY (:0)", sql.Text);
+        Assert.Equal(parts, sql.Parameters.Get<DateTimePart[]>(":0"));
+    }
+
+    [Fact]
     public void Bind_NonBindableValue_ThrowsArgumentException()
     {
         ArgumentException ex =

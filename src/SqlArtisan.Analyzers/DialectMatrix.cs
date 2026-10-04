@@ -323,12 +323,14 @@ internal static class DialectMatrix
         [new MatrixKey("Minus")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
         // --- Sequences ---
-        // Nextval/Currval are a name collision (see the caveat above): Sql.Nextval("seq") is
-        // PostgreSQL's function form, while Sequence("seq").Nextval is Oracle's — a property on
-        // DbSequence with the same member name. A PostgreSQL-only entry would false-positive on
-        // the correct Oracle form, so both are the union of the two forms' dialects.
+        // Nextval/Currval share a name across two forms: Sql.Nextval("seq") is PostgreSQL's
+        // function form, while Sequence("seq").Nextval is Oracle's — a property on DbSequence.
+        // A property lookup carries no arity, so the member-level rows are the union and serve
+        // the property, and the arity-1 rows narrow the method to PostgreSQL (ADR 0021).
         [new MatrixKey("Nextval")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Nextval", 1)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("Currval")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: true, sqlite: false, sqlServer: false),
+        [new MatrixKey("Currval", 1)] = new DbmsSupport(mySql: false, oracle: false, postgreSql: true, sqlite: false, sqlServer: false),
         [new MatrixKey("NextValueFor")] = new DbmsSupport(mySql: false, oracle: false, postgreSql: false, sqlite: false, sqlServer: true),
         [new MatrixKey("Sequence")] = new DbmsSupport(mySql: false, oracle: true, postgreSql: false, sqlite: false, sqlServer: false),
 
