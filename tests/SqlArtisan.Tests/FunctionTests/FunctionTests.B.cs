@@ -121,6 +121,30 @@ public partial class FunctionTests
     }
 
     [Fact]
+    public void BindValue_SqlExpressionValue_ThrowsArgumentException()
+    {
+        ArgumentException ex =
+            Assert.Throws<ArgumentException>(() => new BindValue(_t.Code + 1));
+
+        Assert.Equal(
+            "A SqlArtisan expression or query cannot be bound; write it in place of the bind. "
+                + "(Parameter 'value')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void BindValue_SubqueryValue_ThrowsArgumentException()
+    {
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => new BindValue(Select(_t.Code).From(_t)));
+
+        Assert.Equal(
+            "A SqlArtisan expression or query cannot be bound; write it in place of the bind. "
+                + "(Parameter 'value')",
+            ex.Message);
+    }
+
+    [Fact]
     public void Bind_NonBindableValue_ThrowsArgumentException()
     {
         ArgumentException ex =

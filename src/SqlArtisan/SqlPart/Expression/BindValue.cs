@@ -25,6 +25,8 @@ public class BindValue : SqlExpression
     /// Oracle array bind ignores <paramref name="size"/> and rejects a non-input direction.
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>; bind SQL <c>NULL</c> with <see cref="Sql.BindNull()"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is a SqlArtisan
+    /// expression or query, which renders as SQL rather than binding.</exception>
     public BindValue(
         object value,
         DbType? dbType = null,
@@ -34,6 +36,15 @@ public class BindValue : SqlExpression
         if (value is null)
         {
             throw new ArgumentNullException(nameof(value), NullValueMessage);
+        }
+
+        // The driver would receive the node object itself (`new BindValue(u.Id + 1)`
+        // binds an AdditionOperator); any other type passes through to the driver.
+        if (value is SqlPart or ISqlBuilder or ISubquery)
+        {
+            throw new ArgumentException(
+                "A SqlArtisan expression or query cannot be bound; write it in place of the bind.",
+                nameof(value));
         }
 
         Value = value;
