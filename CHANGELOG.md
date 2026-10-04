@@ -239,6 +239,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   header, which drops one phantom entry from its baseline. (#614)
 
 ### Docs
+- `docs/versioning.md` says how a public enum member is replaced: its
+  successor takes the next unused value and the old member is marked
+  `[Obsolete]`, never aliased. (#614)
 - `Returning(...)`'s remarks now say Oracle requires `.Into(...)` after it: a
   `RETURNING` with no `INTO` is rejected by the engine (live-verified).
 - `docs/query-statements.md` and `InsertInto(...).With(...)`'s remarks now say

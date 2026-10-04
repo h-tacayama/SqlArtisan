@@ -4,7 +4,7 @@ namespace SqlArtisan.Tests;
 
 // Mechanizes code-comments.md's caps like the other ratchets: every over-cap
 // block is pinned per file in Baselines/comment-caps.txt (pre-rule survivors and
-// deliberate admissions alike), so a new or edited comment may not add one.
+// post-rule blocks pinned since; code-comments.md), so a new or edited comment may not add one.
 public class CommentCapRatchetTests
 {
     // The last alternative is an explicit interface implementation (`IFoo IBar.Baz(`),

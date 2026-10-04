@@ -39,9 +39,10 @@ grandfathering below reaches it.
 in `tests/SqlArtisan.Tests/Baselines/comment-caps.txt`, trim when their file
 is next edited for substance, and are not re-raised in review before then —
 a bulk reflow would churn blame for no behavioral gain. The file also holds
-post-rule blocks a change admitted (f87a648 pinned three in the root types), so
-an entry is no evidence its block predates the caps, and a post-rule block
-gets no grace when edited (#614). A doc block split
+post-rule blocks: f87a648 created it from the tree as it stood, pinning blocks
+written after `603c157f` beside the survivors, so an entry is no evidence its
+block predates the caps, and a post-rule block gets no grace when edited
+(#614). A doc block split
 into `<para>` parts is measured per part. `// Arrange` / `// Act` / `//
 Assert` labels ride the same grace: the pre-rule ones stay, the cap ratchet
 does not count them (one line each), and none is added — a label restates
@@ -65,7 +66,7 @@ Smells 5 and 6 are near-mechanical (a greppable phrase list, a line count);
 
 Audited at review time — the `sa-diff-review` skill runs this checklist over
 the diff — and mechanically: `CommentCapRatchetTests` pins every over-cap block
-per file (`tests/SqlArtisan.Tests/Baselines/comment-caps.txt`, the survivors
-and admissions above), so a new or edited comment cannot add one. A
+per file (`tests/SqlArtisan.Tests/Baselines/comment-caps.txt`, the blocks
+grandfathered or pinned above), so a new or edited comment cannot add one. A
 block that earns its length by a why past the cap is a deliberate baseline edit
 in the same change, never a silent one (release audit pass 8).

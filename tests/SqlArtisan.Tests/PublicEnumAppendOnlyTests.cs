@@ -2,8 +2,8 @@ using System.Text.RegularExpressions;
 
 namespace SqlArtisan.Tests;
 
-// Gates docs/versioning.md's "public enum values are append-only" over every shipped
-// assembly: a shipped member keeps its number, and a new one is added to the baseline.
+// Gates docs/versioning.md's "public enum values are append-only" over the library
+// packages: a shipped member keeps its number, and a new one is added to the baseline.
 public class PublicEnumAppendOnlyTests
 {
     // The library packages; TableClassGen ships as a tool, with no API to call.
@@ -24,7 +24,8 @@ public class PublicEnumAppendOnlyTests
             "Baselines",
             "public-enums.txt");
         List<string> baseline = [.. File.ReadAllLines(path)
-            .Where(line => line.Length > 0 && !line.StartsWith('#'))];
+            .Where(line => line.Length > 0 && !line.StartsWith('#'))
+            .OrderBy(entry => entry, StringComparer.Ordinal)];
 
         List<string> found = [.. PublicEnums()
             .SelectMany(type => Enum.GetNames(type).Select(name =>

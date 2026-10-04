@@ -1,6 +1,6 @@
 # Every public enum member of the shipped library packages, as "Enum.Member value",
 # sorted ordinally. PublicEnumAppendOnlyTests requires an exact match: a shipped
-# value keeps its number, and a new member is appended here at the next unused value.
+# value keeps its number, and a new member takes the next unused value (any line order).
 DateTimePart.Century 0
 DateTimePart.Day 1
 DateTimePart.DayHour 2
