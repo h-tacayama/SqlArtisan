@@ -231,6 +231,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   corrected names reported "already built"; `OrderBy(0)` threw only at
   `Build()`, where `GroupBy(0)` already threw at the call. (#569)
 
+### Tests
+- `PublicEnumAppendOnlyTests` gates `docs/versioning.md`'s append-only rule:
+  every public enum member of the library packages matches a name→value
+  baseline, no enum repeats a value, and the enums are the set `versioning.md`
+  names. `CommentCapRatchetTests` reads a `//` header above a `///` block as a
+  header, which drops one phantom entry from its baseline. (#614)
+
 ### Docs
 - `Returning(...)`'s remarks now say Oracle requires `.Into(...)` after it: a
   `RETURNING` with no `INTO` is rejected by the engine (live-verified).
