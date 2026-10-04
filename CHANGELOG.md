@@ -240,8 +240,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   a null connection resolves to `Dbms.Unknown`. (#614)
 - `NotIn<T>(...)` shows its own `NOT IN` text in IntelliSense instead of
   `In<T>`'s, `DerivedTable`, `DerivedTableBase` and `Cte` document their name
-  parameter, and `DialectMatrix`'s SQL Server `||` claim is scoped to the
-  verified 2022. (#614)
+  parameter, and `DoublePipe(...)`'s remarks scope SQL Server's `||` rejection
+  to the verified 2022. (#614)
 - `Returning(...)`'s remarks now say Oracle requires `.Into(...)` after it: a
   `RETURNING` with no `INTO` is rejected by the engine (live-verified).
 - `docs/query-statements.md` and `InsertInto(...).With(...)`'s remarks now say

@@ -103,8 +103,8 @@ stage several statements share takes its capability's name
 stages carries no `Builder` (`IPagination`, `IForUpdate`, `IJoinOperator`,
 `ISetOperator`, `IUpsert`, `IReturning`); `IReturning` also ends an upsert
 action (`DoNothing()`, `DoUpdateSet(...).Where(...)`). `ISqlBuilder` is the one
-recorded exception: a capability by that test, it is the root build contract
-every stage composes, and renaming it would break every `this ISqlBuilder`
+recorded exception: a capability by that test, it is the build contract every
+buildable stage composes, and renaming it would break every `this ISqlBuilder`
 extension, so it keeps `Builder` (#614).
 
 **A member that returns a capability shared across statements ends its
@@ -376,9 +376,10 @@ the root on a separate ground.** `DateTimePart`, `RegexpOptions` and
 `SearchModifier` (`FunctionArgument/`), and `DbColumnMetadataAttribute` and
 `DbTypeCategory` (`Metadata/`), fail criterion 1, yet callers and
 TableClassGen's emitted code write their names, and the root is the only
-namespace that is not `Internal`. ADR 0005 covers `SqlBuilder/` on the same
-ground. Moving any of them after 1.0 breaks callers, emitted code and the
-analyzer's name resolution (#614).
+namespace that is not `Internal`; ADR 0005 likewise places `SqlBuilder/` in the
+public surface without the three criteria. Moving any of them after 1.0 breaks
+callers; moving the `Metadata/` pair also breaks TableClassGen's emitted code
+and the analyzer's attribute lookup (#614).
 
 **Recorded placement — `BindArrayValue` stays in the root.** It adds no member
 to `BindValue`, but it is the only way to tell an array bind from a scalar one:
@@ -477,8 +478,9 @@ decided separately, below.
 **Not yet offered (#614):** the A4 review found these expression and
 table-source forms with no spelling, and none needs a breaking change to add,
 so the same reading applies:
-`COLLATE` (PostgreSQL 16 orders `ORDER BY n COLLATE "und-x-icu"` unlike any
-`Lower(...)` rewrite, and `Cast`'s type string cannot carry it); a
+`COLLATE` (on a `C`-collation PostgreSQL 16 database, `ORDER BY lower(n)` gives
+`E,f,é` where `n COLLATE "und-x-icu"` gives `E,é,f`, and `Cast`'s type string
+cannot carry it); a
 table-source modifier after the alias — PostgreSQL's `TABLESAMPLE`, MySQL's
 `USE INDEX` / `FORCE INDEX` — which no name can reach once the alias renders
 (#225, #243); PostgreSQL's `UNNEST(...) WITH ORDINALITY`, where

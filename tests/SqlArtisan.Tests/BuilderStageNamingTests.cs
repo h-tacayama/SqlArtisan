@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace SqlArtisan.Tests;
 
 // Pins the shape of public-api-design.md's stage-name clause (#568) over every
-// Internal interface a public member returns, plus the named entries — so a
+// Internal or root interface a public member returns, plus the named entries — so a
 // stage cannot drop its prefix, with or without Builder. The state word is review's.
 public class BuilderStageNamingTests
 {
@@ -13,9 +13,8 @@ public class BuilderStageNamingTests
             + "Builder([A-Z][A-Za-z]*)?$",
         RegexOptions.Compiled);
 
-    // A capability that also ends an upsert action (DoNothing(), DoUpdateSet().Where()),
-    // and the root build contract every stage composes: a capability by shape, but
-    // renaming it would break every `this ISqlBuilder` extension (public-api-design.md).
+    // A capability that also ends an upsert action (DoNothing(), DoUpdateSet().Where()), and
+    // ISqlBuilder, the recorded exception (public-api-design.md § Builder stage names).
     private static readonly HashSet<string> s_capabilityStages = ["IReturning", "ISqlBuilder"];
 
     public static IEnumerable<object[]> StageInterfaces()
