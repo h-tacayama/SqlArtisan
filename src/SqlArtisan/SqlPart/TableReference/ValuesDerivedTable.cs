@@ -23,9 +23,7 @@ public sealed class ValuesDerivedTable : DerivedTableBase, IColumnAccessor
     /// <inheritdoc/>
     public DbColumn Column(string name) => new(this, name);
 
-    // The explicit column list renders its names bare, so a reference must
-    // render bare too — carrying a select item's quoting here would split one
-    // identifier in two on a case-folding engine (#165).
+    // Bare, as the explicit column list renders its names (#165, DbColumn).
     /// <inheritdoc/>
     public DbColumn Column(DbColumn source) => new(this, source.Name);
 

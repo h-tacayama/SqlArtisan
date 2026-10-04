@@ -29,7 +29,6 @@ public abstract class TableReference : SqlPart
             ? new(_name, quoteQualifier: false)
             : new(CorrelationName, quoteQualifier: true);
 
-    // The name used to qualify column references belonging to this relation.
     internal abstract string CorrelationName { get; }
 
     // The name a qualifier in an enclosing scope resolves against: the
@@ -48,16 +47,13 @@ public abstract class TableReference : SqlPart
         }
     }
 
-    // Whether the name is alias-quoted when rendered. A reference whose name also
-    // qualifies column references — a CTE or derived table — must quote it so the
-    // two agree; otherwise a bare name case-folds on Oracle (`x` -> `X`) while the
-    // quoted column reference does not, breaking resolution (ORA-00904). Real table
-    // names stay bare (DbTableBase quotes only its separate alias). Overriding this
-    // flag is the single place a subclass opts into quoting.
+    // A CTE or derived-table name also qualifies column references, so it is quoted
+    // to match them: a bare name case-folds on Oracle while the quoted reference does
+    // not (ORA-00904).
     private protected virtual bool QuoteName => false;
 
     // The index just past the last `.` outside a quoted identifier, or 0 when
-    // the name is unqualified: `public.users` -> `users`, `"a.b"` stays whole.
+    // the name is unqualified.
     private static int LastQualifierEnd(string name)
     {
         int end = 0;
