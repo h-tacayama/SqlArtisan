@@ -148,9 +148,10 @@ The Roslyn analyzer (`src/SqlArtisan.Analyzers/`) ships sixteen diagnostics:
 - **SQLA0301** — A C# reference comparison (`o == col`, the left operand not a
   `SqlExpression`) passed to a SqlArtisan member, which binds the `bool` instead
   of building a SQL comparison.
-- **SQLA0302** — A SqlArtisan object interpolated into a string passed to a
-  SqlArtisan member (`Like($"%{col}%")`), which binds its type name. Both report
-  only where the value flows straight into a SqlArtisan argument (**ADR 0023**).
+- **SQLA0302** — A SqlArtisan object interpolated or concatenated into a string
+  passed to a SqlArtisan member (`Like($"%{col}%")`), which binds its type name.
+  Both report only where the value flows straight into a SqlArtisan argument or
+  operator operand (**ADR 0023**).
 
 Each ID sits in a numbered band that **is** its category, so a family gains a
 rule without renumbering and a bulk-severity setting reaches one family only

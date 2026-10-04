@@ -28,7 +28,8 @@ by the time SqlArtisan receives the argument, it is an ordinary `bool` or
 ## Decision
 
 **Two analyzer rules report these, as Warnings, only where the result flows
-straight into an argument of a SqlArtisan member.**
+straight into an argument of a SqlArtisan member or an operand of a SqlArtisan
+operator.**
 
 - **`SQLA0301`** — C# reference equality with a query-object operand.
 - **`SQLA0302`** — a query object interpolated or concatenated into a string.
@@ -36,22 +37,30 @@ straight into an argument of a SqlArtisan member.**
   remedy is the same (build the text in SQL), and a user who silences one wants
   the other silenced too — ADR 0019's splitting test says merge.
 
-A *query object* is a SqlArtisan `SqlPart`, a SqlArtisan `ISubquery` or
-`ISqlBuilder`, or a pending node (`IIncompleteExpression`); a type parameter is
-one when a constraint is. A built `SqlStatement` is not: its `ToString()` is its
-SQL text, by design.
+A *query object* is a reference type from SqlArtisan, or one deriving from or
+implementing one, that formats as its type name: nothing on its chain overrides
+`ToString()`. That takes in every `SqlPart`, the builder stages, a pending node
+(`Listagg(...)` before `.WithinGroup(...)`) and a `DbSequence` alike, without a
+list to keep current. A built `SqlStatement` is not one: its `ToString()` is its
+SQL text, by design. A type parameter is one when a constraint is.
 
-### Only the flow into an argument is reported
+### Only the flow into SqlArtisan is reported
 
 The same C# is correct code anywhere else: a log line interpolating a column, a
 test asserting two parts are one instance. ADR 0003 keeps the analyzer silent
 where it cannot prove the hazard, so the rule follows the value from the
 operator upward through implicit conversions, an enclosing string
 concatenation, and the compiler's `params` array, and reports only on reaching
-an argument of a SqlArtisan invocation or constructor. A local, a ternary, a
-helper's return value stops the walk — and stays silent, the price of no false
-positives. An `object`-typed operand stays silent for the same reason: nothing
-proves it holds a query object.
+an argument of a SqlArtisan invocation or constructor, or an operand of a
+SqlArtisan operator (`col == $"{col}"` binds the type name as surely as a
+`Select` argument does). A local, a ternary, a helper's return value stops the
+walk — and stays silent, the price of no false positives. An `object`-typed
+operand stays silent for the same reason: nothing proves it holds a query object.
+
+`SQLA0301` also needs the `bool` to land in a parameter of another type, where
+it is boxed and bound. `ConditionIf(bool when, …)` takes the C# test on purpose
+— `ConditionIf(extra != null, extra)` is the optional-filter idiom — so a
+`bool` parameter is correct code, not the hazard.
 
 ### The band
 

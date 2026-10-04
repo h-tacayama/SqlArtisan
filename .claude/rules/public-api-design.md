@@ -328,8 +328,9 @@ decided by compiling them against every neighbouring order, not by this file.
   (`col + col.As("n")` throws).
 - Open today, each reported by the analyzer where it flows straight into a
   SqlArtisan argument — `SQLA0301` for `==` / `!=`, `SQLA0302` for `+` and
-  interpolation (ADR 0023). An `object`-typed `+` operand and `+=` stay
-  unreported, since nothing there proves a query object reaches the argument:
+  interpolation (ADR 0023). An operand typed `object` or a `class`-constrained
+  type parameter — on both sides of `==` / `!=`, or beside a string's `+` — and
+  `+=` stay unreported, since nothing there proves a query object is involved:
   - `+` between a `string` and an operand typed as neither `SqlExpression`
     (or a type derived from it) nor `ExpressionAlias`, in either order (and
     `+=` on a string): a subquery stage (`"x" + Select(...)`), a function

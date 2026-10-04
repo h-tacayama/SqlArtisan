@@ -107,8 +107,8 @@ still needs naming by ID.
 | `SQLA0204` | Warning | A `WHERE` or `ON` predicate wraps an indexed column in a function, or matches it with a leading-wildcard pattern, so no index on it can be used. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0205` | Warning | A column is compared to a value of another type category — a text column against a number, say. The engine reconciles the two for you, and on MySQL that changes which rows match. See [Schema-aware warnings](#schema-aware-warnings-sqla0200). |
 | `SQLA0300` | Warning | A correlated UPDATE, DELETE, or MERGE has an unaliased target — the statement `Build()` rejects at run time, surfaced early; see [Correlated DML target](#correlated-dml-target-sqla0300). |
-| `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
-| `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
+| `SQLA0301` | Warning | `==` or `!=` that C# resolves as reference equality, because the left operand is not a SqlArtisan expression, passed to a SqlArtisan member or operator — it binds a `bool` instead of comparing in SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
+| `SQLA0302` | Warning | A SqlArtisan object interpolated or concatenated into a string passed to a SqlArtisan member or operator — it binds the object's type name instead of SQL; see [C# fallbacks](#c-fallbacks-sqla0301-sqla0302). |
 
 `SQLA0001` and `SQLA0002` are both compilation-end diagnostics with no file
 location: they appear in **build** output (CLI and CI, and an IDE's Error
@@ -1112,7 +1112,7 @@ C# compares the two references and passes the `bool` on:
 ```csharp
 // sqlartisan_syntax_postgresql = any
 object value = 42;
-var q = Select(u.Id).From(u).Where(value == u.Id);
+var q = Select(value == u.Id).From(u);
 // warning SQLA0301: This compares C# references and binds the bool result; ...
 ```
 
@@ -1121,9 +1121,9 @@ the SQL comparison.
 
 `SQLA0302` reports a SqlArtisan object formatted as text: interpolated
 (`$"%{u.Name}%"`), or concatenated with a string where no SqlArtisan `+` takes
-the operand — a subquery, or a function still waiting for its clause
-(`RowNumber()` before `.Over(...)`). Either way the text holds the object's type
-name:
+the operand — a subquery, a sequence, or a function still waiting for its clause
+(`Listagg(...)` before `.WithinGroup(...)`). Either way the text holds the
+object's type name:
 
 ```csharp
 var q = Select(u.Id).From(u).Where(u.Name.Like($"%{u.Name}%"));
@@ -1134,9 +1134,11 @@ Build the text in SQL instead, with `Concat(...)` for example. A built
 `SqlStatement` is not reported: its text is its SQL by design.
 
 Both rules report only where the value goes straight into an argument of a
-SqlArtisan member. The same C# anywhere else — a log line, a reference check —
-is correct code, so a value held in a variable first, or typed `object`,
-stays silent. A missing warning therefore never means the operand is safe.
+SqlArtisan member or an operand of a SqlArtisan operator (`u.Name == $"{u.Id}"`).
+The same C# anywhere else — a log line, a reference check — is correct code,
+so a value held in a variable first, or typed `object`, stays silent, and so
+does a reference check passed to `ConditionIf`, whose condition is a C# `bool`
+by design. A missing warning therefore never means the operand is safe.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0301`, a `[SuppressMessage]` attribute, or

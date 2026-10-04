@@ -27,10 +27,12 @@ public class CSharpFallbackAnalyzerTests
         }
         """;
 
-    private static async Task RunReporting(string statements, string id)
+    private static async Task RunReporting(
+        string statements,
+        string id,
+        string dbms = "postgresql")
     {
-        var test = AnalyzerVerifier.Create(
-            Usage(statements), AnalyzerVerifier.EditorConfig("postgresql"));
+        var test = AnalyzerVerifier.Create(Usage(statements), AnalyzerVerifier.EditorConfig(dbms));
         test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning(id).WithLocation(0));
         await test.RunAsync();
     }
@@ -58,11 +60,31 @@ public class CSharpFallbackAnalyzerTests
         RunReporting("var q = Select(t.Id, {|#0:o == t.Id|}).From(t);", "SQLA0301");
 
     [Fact]
-    public Task ConstrainedTypeParameterLeftOfColumn_ReportsSqla0301() =>
+    public Task SqlPartConstrainedTypeParameterLeftOfObject_ReportsSqla0301() =>
         RunReporting(
             "Local(t.Id); void Local<TP>(TP e) where TP : SqlPart "
                 + "{ var q = Select({|#0:e == o|}); }",
             "SQLA0301");
+
+    [Fact]
+    public Task ReferenceEqualityAsSqlArtisanOperand_ReportsSqla0301() =>
+        RunReporting("var q = Select(t.Id).From(t).Where(t.Id == ({|#0:o == t.Id|}));", "SQLA0301");
+
+    // ConditionIf's `when` takes the C# test on purpose.
+    [Fact]
+    public Task ReferenceCheckIntoABoolParameter_StaysSilent() =>
+        RunSilent("""
+            SqlCondition extra = null;
+            var q = Select(t.Id).From(t).Where(t.Id == 1 & ConditionIf(extra != null, extra));
+            var r = Select(t.Id).From(t).Where(ConditionIf(condition: t.Id == 1, when: p == null));
+            """);
+
+    // Nothing proves either operand holds a query object.
+    [Fact]
+    public Task ObjectsOrClassConstrainedTypeParameter_StaysSilent() =>
+        RunSilent(
+            "Local(o); void Local<TC>(TC e) where TC : class "
+                + "{ var q = Select(e == o, o == name); }");
 
     [Fact]
     public Task ColumnLeft_BindsSqlArtisansOperator_StaysSilent() =>
@@ -89,10 +111,32 @@ public class CSharpFallbackAnalyzerTests
     public Task ColumnInterpolatedIntoSelect_ReportsSqla0302() =>
         RunReporting("var q = Select($\"{|#0:{t.Id}|}\").From(t);", "SQLA0302");
 
-    // A pending node is no SqlPart yet, and formats as its type name all the same.
+    // Listagg before WithinGroup is no SqlPart yet, and formats as its type name all the same.
     [Fact]
     public Task PendingNodeInterpolated_ReportsSqla0302() =>
-        RunReporting("var q = Select($\"n{|#0:{RowNumber()}|}\").From(t);", "SQLA0302");
+        RunReporting(
+            "var q = Select($\"n{|#0:{Listagg(t.Name, \",\")}|}\").From(t);",
+            "SQLA0302",
+            dbms: "oracle");
+
+    [Fact]
+    public Task SequenceInterpolated_ReportsSqla0302() =>
+        RunReporting(
+            "DbSequence s = Sequence(\"s\"); var q = Select(t.Id).From(t)"
+                + ".Where(t.Name.Like($\"{|#0:{s}|}\"));",
+            "SQLA0302",
+            dbms: "oracle");
+
+    [Fact]
+    public Task InterpolationAsSqlArtisanOperand_ReportsSqla0302() =>
+        RunReporting(
+            "var q = Select(t.Id).From(t).Where(t.Name == $\"{|#0:{t.Id}|}\");", "SQLA0302");
+
+    [Fact]
+    public Task ConcatenationAsSqlArtisanOperand_ReportsSqla0302() =>
+        RunReporting(
+            "var q = Select(t.Name + (\"x\" + {|#0:Select(t.Name).From(t)|})).From(t);",
+            "SQLA0302");
 
     [Fact]
     public Task SqlPartConcatenatedIntoLike_ReportsSqla0302() =>

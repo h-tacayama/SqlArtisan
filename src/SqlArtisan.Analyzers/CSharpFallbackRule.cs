@@ -11,9 +11,9 @@ namespace SqlArtisan.Analyzers;
 /// instead of building SQL (ADR 0023).
 /// </summary>
 /// <remarks>
-/// Reported only where the value flows straight into an argument of a SqlArtisan
-/// member: the same C# elsewhere (a log line, a reference check) is correct code,
-/// and ADR 0003 keeps the analyzer silent where it cannot prove the hazard.
+/// Reported only where the value flows straight into a SqlArtisan member's argument
+/// or operator's operand: the same C# elsewhere (a log line, a reference check) is
+/// correct code, and ADR 0003 keeps the analyzer silent where it cannot prove the hazard.
 /// </remarks>
 internal static class CSharpFallbackRule
 {
@@ -26,7 +26,9 @@ internal static class CSharpFallbackRule
                 is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals)
             || !(IsQueryObject(Unconverted(binary.LeftOperand).Type)
                 || IsQueryObject(Unconverted(binary.RightOperand).Type))
-            || !FlowsIntoSqlArtisanArgument(binary))
+            || !TryFindSqlArtisanSink(binary, out ITypeSymbol? parameterType)
+            // A bool parameter (ConditionIf's `when`) takes the C# test on purpose.
+            || parameterType?.SpecialType == SpecialType.System_Boolean)
         {
             return;
         }
@@ -43,7 +45,7 @@ internal static class CSharpFallbackRule
         if (binary.OperatorMethod is not null
             || binary.OperatorKind != BinaryOperatorKind.Add
             || binary.Type?.SpecialType != SpecialType.System_String
-            || !FlowsIntoSqlArtisanArgument(binary))
+            || !TryFindSqlArtisanSink(binary, out _))
         {
             return;
         }
@@ -64,7 +66,7 @@ internal static class CSharpFallbackRule
         OperationAnalysisContext context,
         IInterpolatedStringOperation interpolated)
     {
-        if (!FlowsIntoSqlArtisanArgument(interpolated))
+        if (!TryFindSqlArtisanSink(interpolated, out _))
         {
             return;
         }
@@ -82,49 +84,40 @@ internal static class CSharpFallbackRule
         }
     }
 
-    // A SqlArtisan query part or query: what renders as SQL only through SqlArtisan.
-    // A built SqlStatement is not one — its ToString is the SQL text by design.
+    // A SqlArtisan reference type that formats as its type name: none on its chain
+    // overrides ToString, as SqlStatement does to return its SQL text by design.
     private static bool IsQueryObject(ITypeSymbol? type)
     {
-        if (type is null || type.TypeKind == TypeKind.Error)
-        {
-            return false;
-        }
-
         if (type is ITypeParameterSymbol parameter)
         {
             return parameter.ConstraintTypes.Any(IsQueryObject);
         }
 
-        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
+        if (type is null || type.TypeKind == TypeKind.Error || !type.IsReferenceType)
         {
-            if (IsSqlArtisanType(current, "SqlPart"))
-            {
-                return true;
-            }
+            return false;
         }
 
-        foreach (INamedTypeSymbol contract in type.AllInterfaces)
+        bool fromSqlArtisan = IsFromSqlArtisan(type)
+            || type.AllInterfaces.Any(IsFromSqlArtisan);
+        for (ITypeSymbol? current = type;
+            current is not null && current.SpecialType != SpecialType.System_Object;
+            current = current.BaseType)
         {
-            if (IsQueryContract(contract))
+            if (current.GetMembers(nameof(ToString)).OfType<IMethodSymbol>()
+                .Any(method => method.IsOverride && method.Parameters.IsEmpty))
             {
-                return true;
+                return false;
             }
+
+            fromSqlArtisan |= IsFromSqlArtisan(current);
         }
 
-        return type.TypeKind == TypeKind.Interface && IsQueryContract(type);
+        return fromSqlArtisan;
     }
 
-    // IIncompleteExpression marks a pending node (RowNumber() before .Over(...)), which
-    // is no SqlPart yet but formats as its type name all the same.
-    private static bool IsQueryContract(ITypeSymbol type) =>
-        IsSqlArtisanType(type, "ISubquery")
-        || IsSqlArtisanType(type, "ISqlBuilder")
-        || IsSqlArtisanType(type, "IIncompleteExpression");
-
-    private static bool IsSqlArtisanType(ITypeSymbol type, string name) =>
-        type.Name == name
-        && DialectUsageAnalyzer.IsFromSqlArtisan(type.ContainingAssembly);
+    private static bool IsFromSqlArtisan(ITypeSymbol type) =>
+        DialectUsageAnalyzer.IsFromSqlArtisan(type.ContainingAssembly);
 
     private static IOperation Unconverted(IOperation operation)
     {
@@ -136,11 +129,13 @@ internal static class CSharpFallbackRule
         return operation;
     }
 
-    // The value reaches the argument through implicit conversions, an enclosing string
-    // concatenation and, for a params tail, the compiler's own array; anything else (a
-    // local, a ternary) stops the walk.
-    private static bool FlowsIntoSqlArtisanArgument(IOperation operation)
+    // Where the value lands: an argument of a SqlArtisan member or an operand of a
+    // SqlArtisan operator, reached through implicit conversions, an enclosing string
+    // concatenation and a params array. Anything else (a local, a ternary) stops the walk.
+    private static bool TryFindSqlArtisanSink(IOperation operation, out ITypeSymbol? parameterType)
     {
+        parameterType = null;
+        IOperation child = operation;
         IOperation? current = operation.Parent;
         while (current is IConversionOperation { IsImplicit: true }
             or IArrayInitializerOperation
@@ -152,18 +147,34 @@ internal static class CSharpFallbackRule
                 Type.SpecialType: SpecialType.System_String,
             })
         {
+            child = current;
             current = current.Parent;
         }
 
-        return current is IArgumentOperation { Parent: { } invoked }
-            && invoked switch
-            {
-                IInvocationOperation invocation => DialectUsageAnalyzer.IsFromSqlArtisan(
-                    invocation.TargetMethod.ContainingAssembly),
-                IObjectCreationOperation creation =>
-                    creation.Constructor is { } constructor
-                    && DialectUsageAnalyzer.IsFromSqlArtisan(constructor.ContainingAssembly),
-                _ => false,
-            };
+        IMethodSymbol? method = current switch
+        {
+            IArgumentOperation { Parent: IInvocationOperation invocation } =>
+                invocation.TargetMethod,
+            IArgumentOperation { Parent: IObjectCreationOperation creation } =>
+                creation.Constructor,
+            IBinaryOperation binary => binary.OperatorMethod,
+            IUnaryOperation unary => unary.OperatorMethod,
+            _ => null,
+        };
+        if (method is null || !DialectUsageAnalyzer.IsFromSqlArtisan(method.ContainingAssembly))
+        {
+            return false;
+        }
+
+        parameterType = current switch
+        {
+            IArgumentOperation { Parameter: { IsParams: true, Type: IArrayTypeSymbol array } } =>
+                array.ElementType,
+            IArgumentOperation argument => argument.Parameter?.Type,
+            IBinaryOperation binary when method.Parameters.Length == 2 =>
+                method.Parameters[binary.LeftOperand == child ? 0 : 1].Type,
+            _ => method.Parameters.FirstOrDefault()?.Type,
+        };
+        return true;
     }
 }
