@@ -19,7 +19,7 @@ public static partial class Sql
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_COUNT</c> function expression.</returns>
-    /// <remarks>Oracle and PostgreSQL (15+) syntax.</remarks>
+    /// <remarks>Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
     public static RegexpCountFunction RegexpCount(object source, object pattern) =>
         new(Resolve(source), Resolve(pattern));
 
@@ -58,7 +58,7 @@ public static partial class Sql
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_INSTR</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
     public static RegexpInstrFunction RegexpInstr(object source, object pattern) =>
         new(Resolve(source), Resolve(pattern));
 
@@ -146,8 +146,8 @@ public static partial class Sql
     /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
     /// <param name="subPatternPos">The capture-group number whose position to return instead of the whole match's.</param>
     /// <remarks>
-    /// Oracle and PostgreSQL (15+) syntax — MySQL's <c>REGEXP_INSTR</c> has no
-    /// <paramref name="subPatternPos"/> argument.
+    /// Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax — MySQL's <c>REGEXP_INSTR</c>
+    /// has no <paramref name="subPatternPos"/> argument.
     /// </remarks>
     public static RegexpInstrFunction RegexpInstr(
         object source,
@@ -173,7 +173,11 @@ public static partial class Sql
     /// <param name="source">The string tested.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_LIKE</c> condition.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
+    /// <remarks>
+    /// MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax. SQL Server also
+    /// needs the database at compatibility level 170; at 160 it does not recognize the
+    /// function.
+    /// </remarks>
     public static RegexpLikeCondition RegexpLike(object source, object pattern) =>
         new(
             ResolveCompared(source, nameof(source), Keywords.RegexpLike),
@@ -200,7 +204,7 @@ public static partial class Sql
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL syntax.</remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL, and SQL Server (2025+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -215,7 +219,7 @@ public static partial class Sql
     /// <param name="replacement">The replacement text (may reference capture groups).</param>
     /// <param name="position">The 1-based character position to start searching from.</param>
     /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -233,7 +237,7 @@ public static partial class Sql
     /// <param name="position">The 1-based character position to start searching from.</param>
     /// <param name="occurrence">Which match to replace; <c>0</c> replaces all.</param>
     /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -254,7 +258,7 @@ public static partial class Sql
     /// <param name="occurrence">Which match to replace; <c>0</c> replaces all.</param>
     /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
     /// <returns>A <c>REGEXP_REPLACE</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
     public static RegexpReplaceFunction RegexpReplace(
         object source,
         object pattern,
@@ -276,7 +280,7 @@ public static partial class Sql
     /// <param name="source">The string searched.</param>
     /// <param name="pattern">The regular-expression pattern.</param>
     /// <returns>A <c>REGEXP_SUBSTR</c> function expression.</returns>
-    /// <remarks>MySQL, Oracle, and PostgreSQL (15+) syntax.</remarks>
+    /// <remarks>MySQL, Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax.</remarks>
     public static RegexpSubstrFunction RegexpSubstr(object source, object pattern) =>
         new(Resolve(source), Resolve(pattern));
 
@@ -332,8 +336,10 @@ public static partial class Sql
     /// <param name="occurrence">Which match to return (1-based).</param>
     /// <param name="options">Match modifiers, emitted as Oracle's flag literal (e.g. <c>'i'</c>).</param>
     /// <param name="subPatternPos">The capture-group number to return instead of the whole match.</param>
-    /// <remarks>Oracle and PostgreSQL (15+) syntax — MySQL's <c>REGEXP_SUBSTR</c> has no
-    /// <paramref name="subPatternPos"/> argument.</remarks>
+    /// <remarks>
+    /// Oracle, PostgreSQL (15+), and SQL Server (2025+) syntax — MySQL's <c>REGEXP_SUBSTR</c>
+    /// has no <paramref name="subPatternPos"/> argument.
+    /// </remarks>
     public static RegexpSubstrFunction RegexpSubstr(
         object source,
         object pattern,

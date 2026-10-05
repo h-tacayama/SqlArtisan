@@ -545,13 +545,18 @@ PostgreSQL syntax; emitted faithfully on every dialect, with availability left t
 // The hint below refers to this alias "u".
 UsersTable u = new("u");
 SqlStatement sql =
-    Select(Hints("/*+ INDEX(u users_ix) */"), u.Id)
+    Select(Hints("/*+ INDEX(\"u\" users_ix) */"), u.Id)
     .From(u)
     .Build();
 
-// SELECT /*+ INDEX(u users_ix) */ "u".id
+// SELECT /*+ INDEX("u" users_ix) */ "u".id
 // FROM users "u"
 ```
+The hint text is emitted verbatim, so name the alias as it renders.
+
+> [!NOTE]
+> On Oracle, a bare `u` in a hint folds to `U`, matches no alias, and the hint
+> is silently ignored — the query runs with the plan the hint meant to change.
 
 ---
 
@@ -2217,7 +2222,7 @@ SqlStatement sql =
 // FROM users
 ```
 
-- **Oracle, PostgreSQL, SQLite (every version)** — `DoublePipe(a, b, ...)` for the native `||` operator, chaining any number of arguments without nesting.
+- **Oracle, PostgreSQL, SQLite (every version), and SQL Server (from a specific release — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs))** — `DoublePipe(a, b, ...)` for the native `||` operator, chaining any number of arguments without nesting.
 - **MySQL** — `Concat(a, b)` / `Concat(a, b, c, ...)` for the `CONCAT` function.
 - **SQL Server** — the existing `+` operator (`u.FirstName + " " + u.LastName`, or `"Dr. " + u.LastName` with the text first) for native concatenation, or the 2-argument `Concat(a, b)` function.
 - **Oracle's `CONCAT`** takes exactly two arguments — `Concat(a, b, c)` (three or more) is invalid there; use `DoublePipe(...)` for chains of three or more on Oracle.
@@ -3269,10 +3274,10 @@ not at the SqlArtisan layer.
 - `Right()` for `RIGHT` (MySQL, PostgreSQL, SQL Server)
 - `Rpad()` for `RPAD` (MySQL, Oracle, PostgreSQL; the 2-argument form is Oracle/PostgreSQL only)
 - `Rtrim()` for `RTRIM` (two-argument trim-set form: Oracle, PostgreSQL, SQLite, SQL Server)
-- `RegexpCount()` for `REGEXP_COUNT` (Oracle, PostgreSQL)
-- `RegexpInstr()` for `REGEXP_INSTR` (MySQL, Oracle, PostgreSQL; the 7-argument `subPatternPos` form is Oracle/PostgreSQL only)
-- `RegexpReplace()` for `REGEXP_REPLACE` (MySQL, Oracle, PostgreSQL)
-- `RegexpSubstr()` for `REGEXP_SUBSTR` (MySQL, Oracle, PostgreSQL; the 6-argument `subPatternPos` form is Oracle/PostgreSQL only)
+- `RegexpCount()` for `REGEXP_COUNT` (Oracle, PostgreSQL, SQL Server)
+- `RegexpInstr()` for `REGEXP_INSTR` (MySQL, Oracle, PostgreSQL, SQL Server; the 7-argument `subPatternPos` form is Oracle/PostgreSQL/SQL Server only)
+- `RegexpReplace()` for `REGEXP_REPLACE` (MySQL, Oracle, PostgreSQL, SQL Server)
+- `RegexpSubstr()` for `REGEXP_SUBSTR` (MySQL, Oracle, PostgreSQL, SQL Server; the 6-argument `subPatternPos` form is Oracle/PostgreSQL/SQL Server only)
 - `Replace()` for `REPLACE`
 - `Strpos()` for `STRPOS`
 - `Substr()` for `SUBSTR` (not supported by SQL Server — use `Substring()` there)
@@ -3280,6 +3285,8 @@ not at the SqlArtisan layer.
 - `Substring()` for `SUBSTRING` (MySQL, PostgreSQL, SQLite, SQL Server; on Oracle use `Substr()`)
 - `Trim()` for `TRIM` (the two-argument trim-set form is not supported by SQLite — nest `Ltrim()`/`Rtrim()` there)
 - `Upper()` for `UPPER`
+
+PostgreSQL and SQL Server gained the `REGEXP_*` family in specific releases — see the [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs).
 
 > [!WARNING]
 > **On PostgreSQL, `RegexpOptions.NewLine` and `RegexpOptions.MultipleLines` both
@@ -4002,8 +4009,8 @@ Declaring a version below the bound reports the construct as version-bound
 `supported`/`not supported` verdict, and a version at or above the bound
 resolves the construct as supported. For most rows that reproduces the plain
 verdict exactly; where the bound sits above the dialect's verified baseline
-(the Oracle 23 and PostgreSQL 17 rows below), the plain verdict is `not supported`, and declaring
-the version is what lifts it.
+(the Oracle 23, PostgreSQL 17 and SQL Server 2025 rows below), the plain verdict is
+`not supported`, and declaring the version is what lifts it.
 
 | Construct | Dialect | Minimum version | Why |
 |---|---|---|---|
@@ -4030,6 +4037,7 @@ the version is what lifts it.
 | `Iif` | SQL Server | 2012 | `IIF(...)` has been available since SQL Server 2012. |
 | `Trim` (1-argument form), `ConcatWs` | SQL Server | 2017 | `TRIM(...)` and `CONCAT_WS(...)` both landed in SQL Server 2017. |
 | `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim`/`Trim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the trim-characters overloads all landed in SQL Server 2022. |
+| `DoublePipe`, `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` (every form) | SQL Server | 2025 | The `\|\|` concatenation operator and the `REGEXP_*` family landed in SQL Server 2025 — live-verified on the SQL Server 2025 lane. `REGEXP_LIKE` also needs the database at compatibility level 170: at 160, which an upgraded database can keep, SQL Server 2025 does not recognize it, and the declared version cannot tell the two apart. |
 
 Two `SQLA0102` DML rules carry the same kind of floor — a version from which
 a dialect stops rejecting the position (see
@@ -4105,6 +4113,7 @@ add `WHEN NOT MATCHED BY SOURCE` to `MERGE`.
 - [`CONCAT_WS`](https://learn.microsoft.com/en-us/sql/t-sql/functions/concat-ws-transact-sql) — 2017.
 - [`DATETRUNC`](https://learn.microsoft.com/en-us/sql/t-sql/functions/datetrunc-transact-sql), [`GREATEST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-greatest-transact-sql), [`LEAST`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-least-transact-sql), and the [`LTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/ltrim-transact-sql) / [`RTRIM`](https://learn.microsoft.com/en-us/sql/t-sql/functions/rtrim-transact-sql) trim-characters argument — 2022 (16.x).
 - [`IIF`](https://learn.microsoft.com/en-us/sql/t-sql/functions/logical-functions-iif-transact-sql) — 2012 (11.x).
+- The [`||`](https://learn.microsoft.com/en-us/sql/t-sql/language-elements/string-concatenation-pipes-transact-sql) operator and the [`REGEXP_*` functions](https://learn.microsoft.com/en-us/sql/t-sql/functions/regular-expressions-functions-transact-sql) — 2025 (17.x); [`REGEXP_LIKE`](https://learn.microsoft.com/en-us/sql/t-sql/functions/regexp-like-transact-sql) also needs database compatibility level 170.
 
 </details>
 
@@ -4461,9 +4470,10 @@ spot-verified against a live engine (`SqlServerDateaddFields` and
 
 `RegexpOptions` emits a letter per flag into the match parameter
 (`REGEXP_LIKE(x, p, 'ci')`), and the alphabets are the engines' own. MySQL has
-no letter for `ExcludingWhiteSpace` and rejects the call; Oracle and PostgreSQL
-accept every letter the enum can emit. SQLite and SQL Server have no
-`REGEXP_*` functions at all, so `SQLA0100` answers for them.
+no letter for `ExcludingWhiteSpace` and rejects the call; SQL Server 2025 has
+none for `NewLine` or `ExcludingWhiteSpace`; Oracle and PostgreSQL accept every
+letter the enum can emit. SQLite and SQL Server before 2025 have no `REGEXP_*`
+functions at all, so `SQLA0100` or `SQLA0101` answers for them.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
@@ -4936,7 +4946,7 @@ integration test matrix runs against):
 | Oracle | Oracle Database XE 21c (`gvenzl/oracle-xe:21.3.0-slim-faststart`), plus Oracle Database Free 23ai (`gvenzl/oracle-free:23-slim-faststart`) for the version-bound entries `SQLA0101` reports and the Oracle 23 floors of the `SQLA0102` DML rules |
 | PostgreSQL | PostgreSQL 16, plus PostgreSQL 17 (`postgres:17`) for the version-bound entries above 16 |
 | SQLite | `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 (via `Microsoft.Data.Sqlite` 9.0.5) |
-| SQL Server | SQL Server 2022 |
+| SQL Server | SQL Server 2022, plus SQL Server 2025 (`mcr.microsoft.com/mssql/server:2025-latest`) for the version-bound entries above 2022 and its `RegexpOptions` alphabet |
 
 An older or newer engine version may disagree with a `false` entry in
 either direction — that's what the `supported`/`unsupported` overrides are
@@ -6317,8 +6327,9 @@ bug — please open an
 - **Verified engines**: every release passes the
   [integration test matrix](https://github.com/h-tacayama/SqlArtisan/tree/main/tests/SqlArtisan.IntegrationTests)
   against one representative version each of MySQL, Oracle, PostgreSQL,
-  SQLite, and SQL Server — Oracle at two, since its version-bound entries are
-  proven at 23ai (exact versions in the analyzer's
+  SQLite, and SQL Server — Oracle, PostgreSQL and SQL Server at a second,
+  newer one too, where their version-bound entries are proven (exact versions
+  in the analyzer's
   [verified-against table](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#verified-against-versions)).
   Other engine versions generally work — the emitted SQL is plain text —
   but dialect-availability claims are only made for the verified ones.

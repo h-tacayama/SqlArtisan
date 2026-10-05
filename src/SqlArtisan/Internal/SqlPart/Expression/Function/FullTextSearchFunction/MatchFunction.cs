@@ -28,7 +28,7 @@ public sealed class MatchFunction : IIncompleteExpression
     /// <returns>A <see cref="MatchAgainstCondition"/> for a <c>WHERE</c> clause.</returns>
     /// <remarks>MySQL syntax.</remarks>
     public MatchAgainstCondition Against(object searchExpr) =>
-        new(_columns, Resolve(searchExpr), null);
+        new(_columns, ResolveSearchText(searchExpr), null);
 
     /// <inheritdoc cref="Against(object)"/>
     /// <param name="searchExpr">The text to search for.</param>
@@ -36,7 +36,7 @@ public sealed class MatchFunction : IIncompleteExpression
     /// <see cref="SearchModifier.InBooleanMode"/>), emitted after the text.</param>
     /// <remarks>MySQL syntax.</remarks>
     public MatchAgainstCondition Against(object searchExpr, SearchModifier modifier) =>
-        new(_columns, Resolve(searchExpr), modifier);
+        new(_columns, ResolveSearchText(searchExpr), modifier);
 
     /// <summary>
     /// Supplies the mandatory <c>AGAINST</c> clause as a value — the relevance
@@ -56,4 +56,14 @@ public sealed class MatchFunction : IIncompleteExpression
     /// <remarks>MySQL syntax.</remarks>
     public MatchAgainstExpression AgainstScore(object searchExpr, SearchModifier modifier) =>
         new(_columns, Resolve(searchExpr), modifier);
+
+    // MySQL 8.0 runs AGAINST (NULL) and matches no row, so neither Sql.Null nor a NULL
+    // test is a remedy for the predicate (#614).
+    private static SqlExpression ResolveSearchText(object searchExpr) =>
+        searchExpr is null
+            ? throw new ArgumentNullException(
+                nameof(searchExpr),
+                "AGAINST cannot take a C# null, and a NULL search text matches no row; "
+                    + "pass the text, or leave the predicate out.")
+            : Resolve(searchExpr);
 }

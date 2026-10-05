@@ -131,6 +131,78 @@ public class ArgumentValueValidityAnalyzerTests
             """,
             AnalyzerVerifier.EditorConfig("mysql"));
 
+    // SQL Server's alphabet applies only where REGEXP_* is in scope: 2025 declared,
+    // or a supported override; below that the construct-level verdict owns the call.
+    [Fact]
+    public Task RegexpLike_SqlServer2025_NewLine_ReportsSqla0104() =>
+        RunReporting(
+            """SqlCondition c = RegexpLike(t.Name, "ab", {|#0:RegexpOptions.NewLine|});""",
+            AnalyzerVerifier.EditorConfig("sqlserver", "2025"),
+            "RegexpLike", "NewLine", "match option", "SQL Server");
+
+    [Fact]
+    public Task RegexpReplace_SqlServer2025_ExcludingWhiteSpace_ReportsSqla0104() =>
+        RunReporting(
+            """
+            var e = RegexpReplace(t.Name, "ab", "x", 1, 0,
+                {|#0:RegexpOptions.ExcludingWhiteSpace|});
+            """,
+            AnalyzerVerifier.EditorConfig("sqlserver", "2025"));
+
+    [Fact]
+    public Task RegexpLike_SqlServer2025_LettersItHas_StaySilent() =>
+        RunSilent(
+            """
+            SqlCondition c = RegexpLike(t.Name, "ab", RegexpOptions.CaseSensitive
+                | RegexpOptions.CaseInsensitive | RegexpOptions.MultipleLines);
+            """,
+            AnalyzerVerifier.EditorConfig("sqlserver", "2025"));
+
+    [Fact]
+    public Task RegexpLike_SqlServer_UndeclaredVersion_IsOwnedBySqla0100() =>
+        RunOwnedBySqla0100(
+            """
+            SqlCondition c = {|#0:RegexpLike(t.Name, "ab", RegexpOptions.NewLine)|};
+            """,
+            AnalyzerVerifier.EditorConfig("sqlserver"));
+
+    [Fact]
+    public Task RegexpLike_SqlServer2022_IsOwnedBySqla0101() =>
+        RunAsync(
+            Usage("""
+                SqlCondition c = {|#0:RegexpLike(t.Name, "ab", RegexpOptions.NewLine)|};
+                """),
+            AnalyzerVerifier.EditorConfig("sqlserver", "2022"),
+            "SQLA0101");
+
+    [Fact]
+    public Task RegexpLike_SqlServer_SupportedOverride_ReportsSqla0104() =>
+        RunReporting(
+            """SqlCondition c = RegexpLike(t.Name, "ab", {|#0:RegexpOptions.NewLine|});""",
+            """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_sqlserver = any
+            sqlartisan_construct_regexp_like = supported
+            """);
+
+    [Fact]
+    public Task RegexpLike_MySqlAndSqlServer2025_JoinsTheFailingOnes() =>
+        RunReporting(
+            """
+            SqlCondition c = RegexpLike(t.Name, "ab",
+                {|#0:RegexpOptions.ExcludingWhiteSpace|});
+            """,
+            """
+            root = true
+
+            [*.cs]
+            sqlartisan_syntax_mysql = any
+            sqlartisan_syntax_sqlserver = 2025
+            """,
+            "RegexpLike", "ExcludingWhiteSpace", "match option", "MySQL and SQL Server");
+
     [Fact]
     public Task RegexpLike_NonConstantOptions_StaysSilent() =>
         RunSilent(

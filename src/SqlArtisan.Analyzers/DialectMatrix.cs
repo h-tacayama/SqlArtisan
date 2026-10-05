@@ -831,22 +831,24 @@ internal static class DialectMatrix
         [new MatrixKey("Values", 3)] = new VersionBounds(postgreSql: V("15")),
         // PostgreSQL 17 release notes; proven by the PostgreSql17 lane's bound sweep.
         [new MatrixKey("WhenNotMatchedBySource")] = new VersionBounds(postgreSql: V("17")),
-        [new MatrixKey("RegexpLike")] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15")),
+        // The sqlServer bounds in this group: SQL Server 2025 added the REGEXP_* family
+        // (#614). REGEXP_LIKE also needs compatibility level 170, which no bound can express.
+        [new MatrixKey("RegexpLike")] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
+        [new MatrixKey("RegexpCount")] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
         // RegexpReplace's 3-arg base form predates 15 (which added the position/
-        // occurrence signature), so the bound sits on the extended arities only and
-        // the member key stays unbounded.
-        [new MatrixKey("RegexpReplace", 4)] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("RegexpReplace", 5)] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("RegexpReplace", 6)] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15")),
+        // occurrence signature), so its PostgreSQL bound sits on the extended arities only.
+        [new MatrixKey("RegexpReplace")] = new VersionBounds(sqlServer: V("2025")),
+        [new MatrixKey("RegexpReplace", 4)] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
+        [new MatrixKey("RegexpReplace", 5)] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
+        [new MatrixKey("RegexpReplace", 6)] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
+        [new MatrixKey("RegexpSubstr")] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
         // TryGetMinVersion looks up the matched key exactly, with no member-wide
         // fallback (unlike Entries' TryGetEntryFrom) — the 6-arg key needs its own
         // bound row or a 6-arg PostgreSQL call below 15 would go unflagged.
-        [new MatrixKey("RegexpSubstr", 6)] = new VersionBounds(postgreSql: V("15")),
-        [new MatrixKey("RegexpInstr")] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpSubstr", 6)] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
+        [new MatrixKey("RegexpInstr")] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
         // Same reasoning as RegexpSubstr's arity-6 row above.
-        [new MatrixKey("RegexpInstr", 7)] = new VersionBounds(postgreSql: V("15")),
+        [new MatrixKey("RegexpInstr", 7)] = new VersionBounds(postgreSql: V("15"), sqlServer: V("2025")),
         // Log10 sits in this group by file position only, not by version — log10() itself
         // landed in PostgreSQL 12, three releases before MERGE/REGEXP_*'s 15.
         [new MatrixKey("Log10")] = new VersionBounds(postgreSql: V("12"), sqlite: V("3.35")),
@@ -900,6 +902,8 @@ internal static class DialectMatrix
         [new MatrixKey("Rtrim", 2)] = new VersionBounds(sqlServer: V("2022")),
         [new MatrixKey("Trim", 2)] = new VersionBounds(sqlServer: V("2022")),
         [new MatrixKey("Trim")] = new VersionBounds(sqlServer: V("2017")),
+        // SQL Server 2025 added || (#614), proven by the SqlServer2025 lane's bound sweep.
+        [new MatrixKey("DoublePipe")] = new VersionBounds(sqlServer: V("2025")),
     };
 
     internal static EngineVersion V(string text) => EngineVersion.Parse(text);
