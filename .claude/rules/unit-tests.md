@@ -55,6 +55,11 @@ paths:
   hold the 100-column limit, the brace-adjacent blank lines and the
   line-ending `+` / `&&` / `||` at zero, with no baseline at all, over `src/`
   and `tests/` alike.
+- **A test reads only tracked files or what its own project's restore/build
+  writes.** `dotnet test` on one project restores only that project's
+  reference graph, so another project's `obj/`/`bin/` is absent on a clean
+  checkout; reach it through a `ReferenceOutputAssembly="false"`
+  `Private="false"` `ProjectReference`, as `BenchmarkDocsTests` does (#629).
 - `FunctionTests.{A..Y}.cs` mirror `Sql.{A..Y}.cs`; put a function's tests in the
   file for its leading letter (`public partial class FunctionTests`).
 - Run `dotnet test tests/SqlArtisan.Tests` and `dotnet format SqlArtisan.sln`
