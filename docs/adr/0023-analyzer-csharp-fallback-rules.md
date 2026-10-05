@@ -69,7 +69,10 @@ for the same reason: nothing proves a query object is involved.
 `SQLA0301` also needs the `bool` to land in a parameter of another type, where
 it is boxed and bound. `ConditionIf(bool when, …)` takes the C# test on purpose
 — `ConditionIf(extra != null, extra)` is the optional-filter idiom — so a
-`bool` parameter is correct code, not the hazard. A comparison with a `null`
+`bool` parameter is correct code, not the hazard. `Bind(...)` and
+`new BindValue(...)` are skipped for the same reason: they take a .NET value
+and reject every SqlArtisan object, so a comparison passed there is meant as
+C#, and no operand order would make it SQL. A comparison with a `null`
 constant (`null`, `default`, a null `const`) is skipped wherever it lands: no
 operand order makes a null check SQL, so it is never the swapped-operand
 mistake the rule names. The same holds when neither operand's static type can

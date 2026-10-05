@@ -247,8 +247,8 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor ReferenceEqualityBound = new(
         id: "SQLA0301",
         title: "C# reference equality on a SqlArtisan object binds a bool",
-        messageFormat: "This compares C# references and binds the bool result; put the SqlArtisan "
-            + "expression on the left so its operator builds the SQL comparison",
+        messageFormat: "This compares C# references and binds the bool result, not a SQL "
+            + "comparison; a SQL comparison needs a SqlArtisan expression on the left",
         category: ValidityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

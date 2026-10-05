@@ -4638,7 +4638,7 @@ C# compares the two references and passes the `bool` on:
 // sqlartisan_syntax_postgresql = any
 object value = 42;
 var q = Select(value == u.Id).From(u);
-// warning SQLA0301: This compares C# references and binds the bool result; ...
+// warning SQLA0301: This compares C# references and binds the bool result, not a SQL comparison; ...
 ```
 
 Put the column on the left (`u.Id == value`) so SqlArtisan's operator builds
@@ -4667,7 +4667,8 @@ proves a SqlArtisan object is involved. `SQLA0301` also stays silent on a null
 check (`extra != null`, `p == default`), on a comparison where neither side's
 type can hold a SqlArtisan expression (two tables, two sequences — an `object`
 or `SqlPart` beside a table still reports), and on a reference check passed as
-`ConditionIf`'s `when`, a C# `bool` by design.
+`ConditionIf`'s `when` or to `Bind(...)` / `new BindValue(...)`, which take a C#
+value by design.
 
 `SQLA0302` reports an object only where its text is provably a type name: its
 type is sealed (a column, a sequence, a generated table class), or a SqlArtisan

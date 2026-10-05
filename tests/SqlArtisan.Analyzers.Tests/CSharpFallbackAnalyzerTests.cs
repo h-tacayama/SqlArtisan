@@ -88,6 +88,11 @@ public class CSharpFallbackAnalyzerTests
             var r = Select(default(SqlPart) == t.Id, (object)null == t.Id).From(t);
             """);
 
+    // Bind takes a .NET value and rejects a SQL comparison, so the C# test is meant.
+    [Fact]
+    public Task ReferenceCheckIntoBind_StaysSilent() =>
+        RunSilent("var q = Select(Bind(o == t.Id), new BindValue(p != t.Name)).From(t);");
+
     // Neither side can be a SqlExpression, so no operand order makes a SQL comparison.
     [Fact]
     public Task ReferenceCheckBetweenTables_StaysSilent() =>

@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   value stays silent. Both report only where the value goes straight into a
   SqlArtisan argument or operator operand; a log line, a reference check
   elsewhere, a null check, a comparison of two tables, or one passed as
-  `ConditionIf`'s `when` stays silent. (#614)
+  `ConditionIf`'s `when` or to `Bind(...)` stays silent. (#614)
 - `SQLA0102` reports a `Returning(...)` consumed without `.Into(...)` on
   Oracle — built, or passed on as an `ISqlBuilder` — since Oracle takes
   `RETURNING` only as `RETURNING ... INTO` (live-verified on XE 21.3.0). A

@@ -34,9 +34,12 @@ internal static class CSharpFallbackRule
             // A null check is meant as C#: no operand order makes it SQL.
             || IsNullConstant(binary.LeftOperand)
             || IsNullConstant(binary.RightOperand)
-            || !TryFindSqlArtisanSink(binary, out ITypeSymbol? parameterType)
-            // A bool parameter (ConditionIf's `when`) takes the C# test on purpose.
+            || !TryFindSqlArtisanSink(
+                binary, out ITypeSymbol? parameterType, out IMethodSymbol sink)
+            // A bool parameter (ConditionIf's `when`) and Bind's value take the C# test on
+            // purpose: neither accepts a SQL comparison, so no operand order fixes it.
             || parameterType?.SpecialType == SpecialType.System_Boolean
+            || IsBindValue(sink)
             // CS0019 already rejects it: nothing compiles, so nothing binds.
             || binary.SemanticModel?.GetDiagnostics(binary.Syntax.Span, context.CancellationToken)
                 .Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error) != false)
@@ -56,7 +59,7 @@ internal static class CSharpFallbackRule
         if (binary.OperatorMethod is not null
             || binary.OperatorKind != BinaryOperatorKind.Add
             || binary.Type?.SpecialType != SpecialType.System_String
-            || !TryFindSqlArtisanSink(binary, out _))
+            || !TryFindSqlArtisanSink(binary, out _, out _))
         {
             return;
         }
@@ -77,7 +80,7 @@ internal static class CSharpFallbackRule
         OperationAnalysisContext context,
         IInterpolatedStringOperation interpolated)
     {
-        if (!TryFindSqlArtisanSink(interpolated, out _))
+        if (!TryFindSqlArtisanSink(interpolated, out _, out _))
         {
             return;
         }
@@ -202,6 +205,11 @@ internal static class CSharpFallbackRule
         return false;
     }
 
+    // Sql.Bind and new BindValue(...) take a .NET value and reject every SqlArtisan object.
+    private static bool IsBindValue(IMethodSymbol method) =>
+        method.ContainingType.Name == "BindValue" && method.MethodKind == MethodKind.Constructor
+        || method.ContainingType.Name == "Sql" && method.Name == "Bind";
+
     // `null`, `default`, a null constant: any compile-time null.
     private static bool IsNullConstant(IOperation operand) =>
         Unconverted(operand).ConstantValue is { HasValue: true, Value: null };
@@ -219,9 +227,13 @@ internal static class CSharpFallbackRule
     // Where the value lands: an argument of a SqlArtisan member or an operand of a
     // SqlArtisan operator, reached through implicit conversions, an enclosing string
     // concatenation and a params array. Anything else (a local, a ternary) stops the walk.
-    private static bool TryFindSqlArtisanSink(IOperation operation, out ITypeSymbol? parameterType)
+    private static bool TryFindSqlArtisanSink(
+        IOperation operation,
+        out ITypeSymbol? parameterType,
+        out IMethodSymbol sink)
     {
         parameterType = null;
+        sink = null!;
         IOperation child = operation;
         IOperation? current = operation.Parent;
         while (current is IConversionOperation { IsImplicit: true }
@@ -252,6 +264,8 @@ internal static class CSharpFallbackRule
         {
             return false;
         }
+
+        sink = method;
 
         parameterType = current switch
         {
