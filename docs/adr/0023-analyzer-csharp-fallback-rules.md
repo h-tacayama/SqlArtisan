@@ -20,8 +20,8 @@ left three open, because no overload can reach them:
 - Interpolation (`$"{col}"`), which reaches `ToString()` with no operator at
   all.
 
-Each compiles, and each auto-parameterizes a value the author never meant: the
-query runs and returns the wrong rows. No `Build()` guard can see it either —
+Each compiles, and each auto-parameterizes a value the author never meant — a
+`bool` or a type name. No `Build()` guard can see it either —
 by the time SqlArtisan receives the argument, it is an ordinary `bool` or
 `string`.
 
@@ -44,9 +44,11 @@ equality binds a `bool` whatever the object's `ToString()` says.
 `SQLA0302` needs more: proof the text is a type name. That holds when nothing on
 the static type's chain overrides `ToString()` *and* no subclass can hide behind
 it — the type is sealed (`DbColumn`, `DbSequence`, a generated table class), or
-a SqlArtisan member created the object (a builder stage, `Listagg(...)` before
-`.WithinGroup(...)`). Any other static type stays silent, whether or not the
-value sits in a variable: a `DbTableBase`- or `SqlPart`-typed value, or a type
+a SqlArtisan method, property or constructor returned the object (a builder
+stage, `Listagg(...)` before `.WithinGroup(...)`). A comparison an operator
+returns is typed as an abstract condition, so it falls outside both. Any other
+static type stays silent, whether or not the value sits in a variable: a
+`DbTableBase`- or `SqlPart`-typed value, or a type
 parameter constrained to one, may hold a user table class whose override
 returns real text, and the rule does not split the remaining non-sealed types
 (`SqlExpression`, `ISubquery`, a builder stage held in a `var`) from those. A
@@ -108,8 +110,8 @@ The hazard holds on every engine, but the analyzer as a whole is opt-in (ADR
   built-in ones.
 - **A missing warning never means the operand is safe.** A result routed
   through a variable, `object` on both sides, or an operand whose static type
-  is not sealed and that no SqlArtisan member has just created reaches the same
-  `ToString()` unreported.
+  is not sealed and that no SqlArtisan method, property or constructor has just
+  returned reaches the same `ToString()` unreported.
 - **Suppression is per rule ID**; no `.editorconfig` key family ships.
 
 Related: #614 (this change), #558 (the review), #613 (the overloads that

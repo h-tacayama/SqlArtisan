@@ -12,9 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   comparing in SQL. `SQLA0302` reports a SqlArtisan object interpolated
   (`$"{col}"`) or concatenated with a string where no SqlArtisan `+` takes it (a
   subquery, `RowNumber()` before `.Over(...)`), which binds the object's type
-  name — reported only for a sealed type or an object a SqlArtisan member has
-  just created, so a subquery held in a variable or a `SqlExpression`-typed
-  value stays silent. Both report only where the value goes straight into a
+  name — reported only for a sealed type or an object a SqlArtisan method,
+  property or constructor has just returned, so a subquery held in a variable,
+  a `SqlExpression`-typed value or an operator's comparison stays silent. Both report only where the value goes straight into a
   SqlArtisan argument or operator operand; a log line, a reference check
   elsewhere, a null check, a comparison with a table on either side, or one passed as
   `ConditionIf`'s `when` or to `Bind(...)` stays silent. (#614)

@@ -208,7 +208,6 @@ internal static class CSharpFallbackRule
         return false;
     }
 
-    // Sql.Bind and new BindValue(...) take a .NET value and reject every SqlArtisan object.
     private static bool IsBindValue(IMethodSymbol method) =>
         method.ContainingType.Name == "BindValue" && method.MethodKind == MethodKind.Constructor
         || method.ContainingType.Name == "Sql" && method.Name == "Bind";
@@ -226,9 +225,7 @@ internal static class CSharpFallbackRule
         return operation;
     }
 
-    // Where the value lands: an argument of a SqlArtisan member or an operand of a
-    // SqlArtisan operator, reached through implicit conversions, an enclosing string
-    // concatenation and a params array. Anything else (a local, a ternary) stops the walk.
+    // A local or a ternary stops the walk: past one, the value may be used as plain C#.
     private static bool TryFindSqlArtisanSink(
         IOperation operation,
         out ITypeSymbol? parameterType,

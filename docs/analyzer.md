@@ -1102,8 +1102,8 @@ this rule reports.
 ## C# fallbacks (SQLA0301, SQLA0302)
 
 C# uses its own built-in operator whenever no SqlArtisan one applies, and the
-result is an ordinary value SqlArtisan binds as a parameter. The query runs,
-and matches the wrong rows.
+result is an ordinary value — a `bool` or a type name you never meant — that
+SqlArtisan binds as a parameter.
 
 `SQLA0301` reports `==` or `!=` whose left operand is not a SqlArtisan
 expression — an `object`, a `SqlPart`, a type parameter constrained to one.
@@ -1152,10 +1152,11 @@ value by design.
 
 `SQLA0302` reports an object only where its text is provably a type name: its
 type is sealed (a column, a sequence, a generated table class), or a SqlArtisan
-member has just created it (`Select(...).From(...)`, `Listagg(...)`). Any other
-static type stays silent — a subquery held in a variable, a value typed
-`SqlExpression`, or one typed `DbTableBase`, which may hold a table class of
-yours that overrides `ToString()`. A missing warning therefore never means the operand is safe.
+method, property or constructor has just returned it (`Select(...).From(...)`,
+`Listagg(...)`). Any other static type stays silent — a subquery held in a
+variable, a value typed `SqlExpression`, a comparison an operator returns
+(`$"{u.Id == 1}"`), or a value typed `DbTableBase`, which may hold a table class
+of yours that overrides `ToString()`. A missing warning therefore never means the operand is safe.
 
 Suppression is per rule ID, the standard Roslyn way
 (`#pragma warning disable SQLA0301`, a `[SuppressMessage]` attribute, or

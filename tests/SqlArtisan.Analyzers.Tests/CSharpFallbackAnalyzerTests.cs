@@ -221,6 +221,11 @@ public class CSharpFallbackAnalyzerTests
             var q = Select(t.Id).From(t).Where(t.Name.Like($"{f}"));
             """);
 
+    // An operator's comparison is typed as an abstract condition, which nothing proves.
+    [Fact]
+    public Task OperatorComparisonInterpolated_StaysSilent() =>
+        RunSilent("var q = Select(t.Id).From(t).Where(t.Name.Like($\"{t.Id == 1}\"));");
+
     [Fact]
     public Task StringInterpolatedIntoLike_StaysSilent() =>
         RunSilent("var q = Select(t.Id).From(t).Where(t.Name.Like($\"%{name}%\"));");
