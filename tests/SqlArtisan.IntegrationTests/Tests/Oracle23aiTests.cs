@@ -227,24 +227,26 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         transaction.Rollback();
     }
 
-    // #582: SQLA0102 reports DELETE ... USING on Oracle at every version. 23ai's own
-    // direct-join DELETE, which SqlArtisan has no spelling for, runs as the control.
-    // No user has id -1, so neither statement can trip the orders foreign key.
+    // #582: the acceptance twin behind SQLA0102's Oracle 23 floor for DELETE ... USING,
+    // as SqlArtisan emits it. Alice's two orders go and the other three stay, so the
+    // join filters as PostgreSQL's does rather than deleting every row.
     [Fact]
-    public void DeleteUsing_IsRejectedByTheEngine()
+    public void DeleteUsing_Executes()
     {
-        UsersTable u = new("u");
         OrdersTable o = new("o");
+        UsersTable u = new("u");
         using IDbConnection connection = _fixture.OpenConnection();
         using IDbTransaction transaction = connection.BeginTransaction();
 
-        connection.Execute(
-            "DELETE users \"u\" FROM orders \"o\" "
-                + "WHERE \"o\".user_id = \"u\".id AND \"u\".id = -1",
-            transaction: transaction);
-        Assert.ThrowsAny<Exception>(() => connection.Execute(
-            DeleteFrom(u).Using(o).Where((u.Id == o.UserId) & (u.Id == -1)),
-            transaction));
+        int deleted = connection.Execute(
+            DeleteFrom(o).Using(u).Where((o.UserId == u.Id) & (u.Name == "Alice")),
+            transaction);
+        int[] remaining = connection
+            .Query<int>("SELECT id FROM orders ORDER BY id", transaction: transaction)
+            .ToArray();
+
+        Assert.Equal(2, deleted);
+        Assert.Equal([3, 4, 5], remaining);
         transaction.Rollback();
     }
 
