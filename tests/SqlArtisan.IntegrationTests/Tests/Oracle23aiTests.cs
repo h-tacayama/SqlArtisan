@@ -241,9 +241,12 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         int deleted = connection.Execute(
             DeleteFrom(o).Using(u).Where((o.UserId == u.Id) & (u.Name == "Alice")),
             transaction);
-        int[] remaining = connection
-            .Query<int>("SELECT id FROM orders ORDER BY id", transaction: transaction)
-            .ToArray();
+        int[] remaining =
+        [
+            .. connection.Query<int>(
+                "SELECT id FROM orders ORDER BY id",
+                transaction: transaction),
+        ];
 
         Assert.Equal(2, deleted);
         Assert.Equal([3, 4, 5], remaining);

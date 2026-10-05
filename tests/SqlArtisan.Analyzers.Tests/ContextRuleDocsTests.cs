@@ -36,6 +36,7 @@ public class ContextRuleDocsTests
             {
                 ContextRules.DmlShape.JoinedUpdateFrom => "From",
                 ContextRules.DmlShape.InsertValuesRow => "Values",
+                ContextRules.DmlShape.DeleteUsing => "Using",
                 _ => throw new InvalidOperationException($"Name the trigger of {shape} here."),
             };
 

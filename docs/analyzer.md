@@ -511,7 +511,7 @@ verdict exactly; where the bound sits above the dialect's verified baseline
 | `Datetrunc`, `Greatest`, `Least`, the 2-argument `Ltrim`/`Rtrim`/`Trim` forms | SQL Server | 2022 | `DATETRUNC`, `GREATEST`/`LEAST`, and the trim-characters overloads all landed in SQL Server 2022. |
 | `DoublePipe`, `RegexpLike`, `RegexpCount`, `RegexpReplace`, `RegexpSubstr`, `RegexpInstr` (every form) | SQL Server | 2025 | The `\|\|` concatenation operator and the `REGEXP_*` family landed in SQL Server 2025 — live-verified on the SQL Server 2025 lane. `REGEXP_LIKE` also needs the database at compatibility level 170: at 160, which an upgraded database can keep, SQL Server 2025 does not recognize it, and the declared version cannot tell the two apart. |
 
-Two `SQLA0102` DML rules carry the same kind of floor — a version from which
+Three `SQLA0102` DML rules carry the same kind of floor — a version from which
 a dialect stops rejecting the position (see
 [DML statement shapes](#dml-statement-shapes)). They read the declared version
 exactly as the table above does, but below the floor they report `SQLA0102`, not
@@ -522,12 +522,13 @@ exactly as the table above does, but below the floor they report `SQLA0102`, not
 | `From` | `UPDATE ... SET ... FROM` | Oracle | 23 |
 | `From` | `UPDATE ... SET ... FROM` | SQLite | 3.33 |
 | `Values` | a second `VALUES` row | Oracle | 23 |
+| `Using` | `DELETE ... USING` | Oracle | 23 |
 
 <details>
 <summary>Sources for these version bounds — the vendor documentation behind each version</summary>
 
-Every minimum version above is drawn from the vendor's own documentation,
-linked below — and each is more than a citation: the integration suite runs
+Every minimum version above but one (noted under Oracle) is drawn from the
+vendor's own documentation, linked below — and each is more than a citation: the integration suite runs
 the construct against a live engine at that dialect's verified baseline, so
 the "supported from version N" direction is reproduced, not just quoted. The
 "unsupported below N" direction rests on the documentation alone, because the
@@ -558,6 +559,10 @@ as new in Oracle Database 23ai. The `UPDATE ... FROM` direct join and the
 multi-row `VALUES` table value constructor are new in 23ai, per
 [Explore SQL Features in Oracle Database 23ai](https://docs.oracle.com/en/learn/db23ai-sql-features/index.html);
 both are live-verified on Free 23ai, and their rejection on XE 21.3.0.
+`DELETE ... USING` is the exception to the first sentence above: that material
+shows only the `FROM` form of 23ai's direct-join `DELETE`, so its floor rests on
+the live run alone — Free 23ai deletes the joined rows, XE 21.3.0 rejects the
+statement.
 
 **PostgreSQL** — the
 [version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)
@@ -763,7 +768,7 @@ on a `MERGE` action, or a second `VALUES` row has a different grammar on some
 engines, and SqlArtisan emits whichever one you write. The seven rules below
 name the engines that reject the spelling; where a spelling has no valid form
 at all on the resolved dialect, `Build(Dbms)` throws instead and no warning is
-needed. Two of them have a version from which a dialect accepts the position
+needed. Three of them have a version from which a dialect accepts the position
 (the [context-rule floors](#version-bound-constructs)): declaring that version
 or a later one silences the warning, and declaring none reads the engine at its
 verified baseline, as the version-bound register does.
@@ -776,7 +781,7 @@ rules that read back up the chain stay silent there.
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
 Server parse. On Oracle, PostgreSQL and SQLite, write the join as
-`Using(...)` (PostgreSQL) or as a correlated `Where(...)` subquery.
+`Using(...)` (PostgreSQL, Oracle 23ai) or as a correlated `Where(...)` subquery.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -787,9 +792,9 @@ var q = DeleteFrom(u).From(u, o).Where(u.Id == o.UserId);
 **`DELETE ... USING`.** `Using` names two different clauses — `MERGE ... USING`
 and `DELETE ... USING` — so its construct-level entry is their union, and
 Oracle reads "supported" on the strength of its `MERGE` alone. Its `DELETE`
-grammar has no `USING` (ORA-00933); join through a correlated `Where(...)`
-subquery instead. PostgreSQL is the one dialect whose `DELETE` takes the
-clause. The entry already reads unsupported for MySQL and SQLite, so
+takes `USING` only from 23ai (a floor, above); before that it is ORA-00933, so
+join through a correlated `Where(...)` subquery instead. PostgreSQL and Oracle
+23ai are the dialects whose `DELETE` takes the clause. The entry already reads unsupported for MySQL and SQLite, so
 `SQLA0100` covers those two without a context rule, and SQL Server — which has
 no `DELETE ... USING` either — is rejected at `Build(Dbms)`.
 

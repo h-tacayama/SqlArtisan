@@ -294,6 +294,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Free 23ai), and it now reports SQLite before 3.33, which added it. Declaring
   no version keeps reading Oracle and SQLite at their verified baselines, so
   that default is unchanged. (#582)
+- `SQLA0102`'s `DELETE ... USING` rule no longer reports Oracle 23 or later:
+  Free 23ai runs `DeleteFrom(t).Using(s)` and deletes the joined rows, where XE
+  21.3.0 rejects it. Declaring no Oracle version still reads the 21c baseline
+  and reports it. (#582)
 - `Build()` throws on a leading `With(...)` before an `INSERT` with
   `OnDuplicateKeyUpdate(...)`, on every target. `ON DUPLICATE KEY UPDATE` is
   MySQL's alone and MySQL's `INSERT` takes no leading `WITH`, so no engine
