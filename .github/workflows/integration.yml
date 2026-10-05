@@ -30,8 +30,9 @@ jobs:
         # the analyzer's version-bound entries at 23ai rather than repeating
         # the full sweep, so it pays the same heavy image start as Oracle but
         # runs only a handful of statements. PostgreSql17 does the same for the
-        # PostgreSQL bounds above the 16 baseline (#582).
-        engine: [Sqlite, PostgreSql, MySql, SqlServer, Oracle, Oracle23ai, PostgreSql17]
+        # PostgreSQL bounds above the 16 baseline (#582), and SqlServer2025 for
+        # what SQL Server added above the 2022 baseline (#614).
+        engine: [Sqlite, PostgreSql, MySql, SqlServer, Oracle, Oracle23ai, PostgreSql17, SqlServer2025]
 
     steps:
       - name: Checkout

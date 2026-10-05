@@ -19,7 +19,7 @@ internal static class ArgumentValueValidity
 
     // The parameter SQLA0104 reads the literal RegexpOptions out of — each entry
     // matches that factory's own parameter name in Sql.R.cs. RegexpCount is listed
-    // for Oracle and PostgreSQL; the matrix owns MySQL, which has no REGEXP_COUNT.
+    // for Oracle, PostgreSQL and SQL Server; the matrix owns MySQL, which has none.
     internal static readonly Dictionary<string, string> MatchOptionParameterName = new(
         StringComparer.Ordinal)
     {
@@ -52,11 +52,19 @@ internal static class ArgumentValueValidity
         "CaseSensitive", "CaseInsensitive", "MultipleLines", "NewLine", "ExcludingWhiteSpace",
     };
 
+    // learn.microsoft.com REGEXP_LIKE, flags: c, i, m and s. SQL Server 2025 rejects 'n'
+    // and 'x', so NewLine and ExcludingWhiteSpace are the gaps; 2022 has no REGEXP_*.
+    private static readonly HashSet<string> SqlServerMatchOptions = new(StringComparer.Ordinal)
+    {
+        "CaseSensitive", "CaseInsensitive", "MultipleLines",
+    };
+
     private static readonly Dictionary<TargetDbms, HashSet<string>> MatchOptionTable = new()
     {
         [TargetDbms.MySql] = MySqlMatchOptions,
         [TargetDbms.Oracle] = OracleMatchOptions,
         [TargetDbms.PostgreSql] = PostgreSqlMatchOptions,
+        [TargetDbms.SqlServer] = SqlServerMatchOptions,
     };
 
     // --- Row counts: where a negative constant is rejected (#529) ---

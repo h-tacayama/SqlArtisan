@@ -52,8 +52,9 @@ diagnostic `SQLA0101`.**
   row: `supported ⇔ declared ≥ min`. A currently-`true` cell below its bound
   flips to unsupported (SQL Server 2019 asking about `Datetrunc`, `true` in
   `Entries`); a currently-`false` cell above its bound would flip to
-  supported — no seeded bound sits on a false cell today (see the
-  `WithRecursive` record below), but the semantics are symmetric by design.
+  supported — the semantics are symmetric by design, and the Oracle 23,
+  PostgreSQL 17 and SQL Server 2025 rows lift false cells this way (the
+  `WithRecursive` record below is a candidate the live lane disproved).
   With no declared version, or no `Bounds` row for that exact
   key, the plain bool decides — identical to every build before this ADR.
   Per the #262 reservation, `sqlartisan_construct_*` overrides are checked
@@ -160,7 +161,8 @@ other SQLite rows do.
 - A future above-baseline flip (a currently-`false` cell gaining a bound)
   needs its own live-proof lane before it can ship — the pinned 23ai lane
   already exists for Oracle, a PostgreSQL 17 lane (`PostgreSql17BoundSweepTests`)
-  for PostgreSQL since `WhenNotMatchedBySource` (#582), and this ADR's `WithRecursive` record is
+  for PostgreSQL since `WhenNotMatchedBySource` (#582), a SQL Server 2025 lane
+  (`SqlServer2025BoundSweepTests`) since `||` and `REGEXP_*` (#614), and this ADR's `WithRecursive` record is
   the discipline's proof of value: a plausible register claim was caught by
   the lane, a plausible-but-wrong fix was falsified by the same lane, and a
   raw-SQL grammar probe settled the underlying engine fact before anything

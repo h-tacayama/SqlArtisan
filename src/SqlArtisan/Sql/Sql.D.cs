@@ -487,12 +487,12 @@ public static partial class Sql
     /// <param name="others">Any further string expressions, chained in order.</param>
     /// <returns>A <see cref="DoublePipeOperator"/> emitting <c>(a || b || ...)</c>.</returns>
     /// <remarks>
-    /// Oracle, PostgreSQL, and SQLite (every version) syntax. On MySQL, <c>||</c> is
-    /// <em>logical OR</em> under the default <c>sql_mode</c> — valid SQL with silently
-    /// different semantics — so use <see cref="Concat(object, object)"/> /
-    /// <see cref="Concat(object, object, object, object[])"/> there instead. SQL Server
-    /// 2022 rejects <c>||</c>; its concatenation operator is <c>+</c>, already
-    /// emitted by the existing <c>+</c> operator on <see cref="SqlExpression"/>.
+    /// Oracle, PostgreSQL, SQLite (every version), and SQL Server (2025+) syntax. On MySQL,
+    /// <c>||</c> is <em>logical OR</em> under the default <c>sql_mode</c> — valid SQL with
+    /// silently different semantics — so use <see cref="Concat(object, object)"/> /
+    /// <see cref="Concat(object, object, object, object[])"/> there instead. Below SQL
+    /// Server 2025 the concatenation operator is <c>+</c>, already emitted by the existing
+    /// <c>+</c> operator on <see cref="SqlExpression"/>.
     /// </remarks>
     public static DoublePipeOperator DoublePipe(
         object primary,

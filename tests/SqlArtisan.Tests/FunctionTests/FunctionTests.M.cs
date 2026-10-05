@@ -77,6 +77,31 @@ public partial class FunctionTests
         Assert.Equal("database", sql.Parameters.Get<string>("?0"));
     }
 
+    // MySQL 8.0's AGAINST (NULL) matches no row, so Sql.Null is no remedy here (#614).
+    [Fact]
+    public void Match_MySql_AgainstNull_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => Match(_t.Name).Against(null!));
+
+        Assert.Equal(
+            "AGAINST cannot take a C# null, and a NULL search text matches no row; "
+                + "pass the text, or leave the predicate out. (Parameter 'searchExpr')",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Match_MySql_AgainstNullWithModifier_ThrowsArgumentNullException()
+    {
+        ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
+            () => Match(_t.Name).Against(null!, SearchModifier.InBooleanMode));
+
+        Assert.Equal(
+            "AGAINST cannot take a C# null, and a NULL search text matches no row; "
+                + "pass the text, or leave the predicate out. (Parameter 'searchExpr')",
+            ex.Message);
+    }
+
     [Fact]
     public void Match_MySql_AgainstScore_CorrectSql()
     {

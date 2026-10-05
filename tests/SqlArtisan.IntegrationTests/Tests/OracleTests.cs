@@ -868,6 +868,35 @@ public sealed class OracleTests : IntegrationTestBase, IClassFixture<OracleFixtu
             "'ab'", "'Ab'", StringComparison.Ordinal)));
     }
 
+    // docs/query-statements.md's hint example (#614): the alias renders quoted ("u"), so a
+    // hint naming it bare folds to U and resolves to nothing, which Oracle drops silently.
+    [Fact]
+    public void HintNamingAQuotedAliasBare_IsUnresolved()
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        if (connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM user_indexes WHERE index_name = 'USERS_IX'") == 0)
+        {
+            connection.Execute("CREATE INDEX users_ix ON users(name)");
+        }
+
+        string bare = HintReport(connection, "/*+ INDEX(u users_ix) */");
+        string quoted = HintReport(connection, "/*+ INDEX(\"u\" users_ix) */");
+
+        Assert.True(
+            bare.Contains("Unresolved", StringComparison.Ordinal)
+                && !quoted.Contains("Unresolved", StringComparison.Ordinal),
+            $"bare:\n{bare}\nquoted:\n{quoted}");
+    }
+
+    private static string HintReport(IDbConnection connection, string hint)
+    {
+        connection.Execute($"EXPLAIN PLAN FOR SELECT {hint} \"u\".id FROM users \"u\"");
+        return string.Join("\n", connection.Query<string>(
+            "SELECT plan_table_output FROM TABLE(DBMS_XPLAN.DISPLAY(NULL, NULL, "
+                + "'BASIC +HINT_REPORT'))"));
+    }
+
     // The live twin of SortOrder's repeated-NULLS guard (#614); one ordering runs.
     [Fact]
     public void RepeatedNullOrdering_IsRejectedByTheEngine()

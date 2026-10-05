@@ -455,9 +455,13 @@ the caller did not mean. Judge a null argument by which failure it produces:
   `REGEXP_LIKE`, the array and JSONB predicates bar a `?&` / `?|` key, `@@`),
   where `Sql.Null` builds a comparison with NULL rather than a NULL test, so a
   new predicate factory resolves its operands with `ResolveCompared`, which
-  names `.IsNull` (#614). The full-text predicates (`Contains`, `Freetext`,
-  `Against`, SQLite `Match`) keep the `Sql.Null` message until their engines'
-  NULL handling is verified; SQLite's `MATCH NULL` fails loudly — string identifiers
+  names `.IsNull` (#614). MySQL's `Against` takes search text, not a compared
+  value, so neither remedy fits: its own message says a NULL search text
+  matches no row (live on 8.0, in every modifier form) and names passing the
+  text or dropping the predicate; `AgainstScore`, unmeasured, keeps the
+  `Sql.Null` message. The other full-text predicates (`Contains`, `Freetext`,
+  SQLite `Match`) keep the `Sql.Null` message until their engines' NULL
+  handling is verified; SQLite's `MATCH NULL` fails loudly — string identifiers
   (`StringGuard`), null elements inside arrays/`params` (#403), a null
   subquery in `CteBase.As` (previously emitted `WITH "c" AS ()`),
   `new BindValue(null)` (a never-true `= NULL` predicate the factory already

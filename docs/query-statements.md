@@ -109,13 +109,18 @@ PostgreSQL syntax; emitted faithfully on every dialect, with availability left t
 // The hint below refers to this alias "u".
 UsersTable u = new("u");
 SqlStatement sql =
-    Select(Hints("/*+ INDEX(u users_ix) */"), u.Id)
+    Select(Hints("/*+ INDEX(\"u\" users_ix) */"), u.Id)
     .From(u)
     .Build();
 
-// SELECT /*+ INDEX(u users_ix) */ "u".id
+// SELECT /*+ INDEX("u" users_ix) */ "u".id
 // FROM users "u"
 ```
+The hint text is emitted verbatim, so name the alias as it renders.
+
+> [!NOTE]
+> On Oracle, a bare `u` in a hint folds to `U`, matches no alias, and the hint
+> is silently ignored — the query runs with the plan the hint meant to change.
 
 ---
 

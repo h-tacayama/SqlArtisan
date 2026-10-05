@@ -14,10 +14,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   subquery, `RowNumber()` before `.Over(...)`), which binds the object's type
   name — reported only for a sealed type or an object a SqlArtisan method,
   property or constructor has just returned, so a subquery held in a variable,
-  a `SqlExpression`-typed value or an operator's comparison stays silent. Both report only where the value goes straight into a
-  SqlArtisan argument or operator operand; a log line, a reference check
-  elsewhere, a null check, a comparison with a table on either side, or one passed as
-  `ConditionIf`'s `when` or to `Bind(...)` stays silent. (#614)
+  a `SqlExpression`-typed value or an operator's comparison stays silent. Both
+  report only where the value goes straight into a SqlArtisan argument or
+  operator operand; a log line, a reference check elsewhere, a null check, a
+  comparison with a table on either side, or one passed as `ConditionIf`'s
+  `when` or to `Bind(...)` stays silent. (#614)
+- The analyzer knows SQL Server 2025's `||` and `REGEXP_*` functions: with
+  `sqlartisan_syntax_sqlserver` declaring 2025 or later, `DoublePipe` and the
+  `Regexp*` functions are no longer reported, and below it they report
+  `SQLA0101` instead of `SQLA0100`. `SQLA0104` reads SQL Server 2025's
+  match-parameter alphabet, which has no letter for `RegexpOptions.NewLine` or
+  `ExcludingWhiteSpace`. `REGEXP_LIKE` also needs the database at compatibility
+  level 170, which the declared version cannot show. Live-verified on SQL
+  Server 2025. (#614)
 - `SQLA0102` reports a `Returning(...)` consumed without `.Into(...)` on
   Oracle — built, or passed on as an `ISqlBuilder` — since Oracle takes
   `RETURNING` only as `RETURNING ... INTO` (live-verified on XE 21.3.0). A
@@ -51,6 +60,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
+- `Match(...).Against(null)` no longer suggests `Sql.Null`: MySQL 8.0 runs
+  `AGAINST (NULL)` and matches no row, so the message says so and asks for the
+  search text or no predicate at all. `AgainstScore(null)` keeps the
+  `Sql.Null` message. (#614)
 - An unaliased target of a joined `UPDATE` or `DELETE` throws at the `From(...)`,
   join or `Using(...)` call that joins it instead of at `Build()`; the alias is
   fixed by then, and a `DELETE`'s `From(...)` already threw its re-list check.
@@ -308,6 +321,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   header, which drops one phantom entry from its baseline. (#614)
 
 ### Docs
+- The Oracle hint example quotes the alias it names
+  (`INDEX("u" users_ix)`): a bare `u` folds to `U`, matches no alias, and
+  Oracle ignores the hint. (#614)
 - `docs/versioning.md` says how a public enum member is replaced: its
   successor takes the next unused value and the old member is marked
   `[Obsolete]`, never aliased. (#614)
@@ -319,8 +335,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   a null connection resolves to `Dbms.Unknown`. (#614)
 - `NotIn<T>(...)` shows its own `NOT IN` text in IntelliSense instead of
   `In<T>`'s, `DerivedTable`, `DerivedTableBase` and `Cte` document their name
-  parameter, and `DoublePipe(...)`'s remarks scope SQL Server's `||` rejection
-  to the verified 2022. (#614)
+  parameter. (#614)
 - `RegexpOptions.NewLine` and `.MultipleLines` now say what they do on
   PostgreSQL, where `'n'` and `'m'` both mean newline-sensitive matching: `.`
   stops matching a newline, the opposite of `NewLine` on MySQL and Oracle. A

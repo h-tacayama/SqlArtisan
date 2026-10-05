@@ -644,6 +644,42 @@ public sealed class MySqlTests : IntegrationTestBase, IClassFixture<MySqlFixture
     private static string MatchParameterProbe(string flags) =>
         $"SELECT REGEXP_LIKE('Ab', 'ab', '{flags}')";
 
+    // Why Against(...)'s null message names no Sql.Null remedy (#614): AGAINST (NULL)
+    // runs and matches no row in every modifier form, beside a twin that matches Alice.
+    [Theory]
+    [InlineData("")]
+    [InlineData(" IN NATURAL LANGUAGE MODE")]
+    [InlineData(" IN BOOLEAN MODE")]
+    [InlineData(" WITH QUERY EXPANSION")]
+    public void AgainstNull_MatchesNoRow(string modifier)
+    {
+        using IDbConnection connection = _fixture.OpenConnection();
+        long existing = connection.ExecuteScalar<long>(
+            "SELECT COUNT(*) FROM information_schema.STATISTICS "
+            + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' "
+            + "AND INDEX_NAME = 'probe_ft_name'");
+        if (existing == 0)
+        {
+            connection.Execute("CREATE FULLTEXT INDEX probe_ft_name ON users(name)");
+        }
+
+        Assert.True(connection.ExecuteScalar<long>(
+            $"SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST('Alice'{modifier})") > 0);
+
+        string verdict;
+        try
+        {
+            verdict = "rows=" + connection.ExecuteScalar<long>(
+                $"SELECT COUNT(*) FROM users WHERE MATCH(name) AGAINST(NULL{modifier})");
+        }
+        catch (DbException ex)
+        {
+            verdict = "rejected: " + ex.Message;
+        }
+
+        Assert.Equal("rows=0", verdict);
+    }
+
     // RegexpOptions.NewLine's documented meaning (#614): 'n' lets `.` match a
     // line terminator, which it does not by default. A '\n' escape, not CHAR(10),
     // keeps the subject non-binary, which REGEXP_LIKE requires beside the pattern.
