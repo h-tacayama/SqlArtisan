@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `SQLA0301` reports `==` / `!=` that C# resolves as reference equality —
+  the left operand an `object`, a `SqlPart` or a type parameter constrained to
+  one — passed to a SqlArtisan member, where it binds a `bool` instead of
+  comparing in SQL. `SQLA0302` reports a SqlArtisan object interpolated
+  (`$"{col}"`) or concatenated with a string where no SqlArtisan `+` takes it (a
+  subquery, `RowNumber()` before `.Over(...)`), which binds the object's type
+  name — reported only for a sealed type or an object a SqlArtisan method,
+  property or constructor has just returned, so a subquery held in a variable,
+  a `SqlExpression`-typed value or an operator's comparison stays silent. Both
+  report only where the value goes straight into a SqlArtisan argument or
+  operator operand; a log line, a reference check elsewhere, a null check, a
+  comparison with a table on either side, or one passed as `ConditionIf`'s
+  `when` or to `Bind(...)` stays silent. (#614)
 - The analyzer knows SQL Server 2025's `||` and `REGEXP_*` functions: with
   `sqlartisan_syntax_sqlserver` declaring 2025 or later, `DoublePipe` and the
   `Regexp*` functions are no longer reported, and below it they report

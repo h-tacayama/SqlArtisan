@@ -326,7 +326,13 @@ decided by compiling them against every neighbouring order, not by this file.
   (#613): `.As(...)` binds before `+`, so `"Dr. " + col.As("n")` adds the
   string to the alias, and no SqlArtisan operator takes an alias as an operand
   (`col + col.As("n")` throws).
-- Open today, each an analyzer candidate in #614:
+- Open today: each still compiles as below. The analyzer reports the subset it
+  can prove binds a `bool` or a type name in a SqlArtisan argument or operator
+  operand — `SQLA0301` for `==` / `!=`, `SQLA0302` for `+` and interpolation.
+  What stays unreported (a null check, a table on either side, `ConditionIf`'s
+  `when` or `Bind`, a non-sealed operand no SqlArtisan method, property or
+  constructor has just returned, `+=`, and more) is fixed in ADR 0023, not
+  repeated here:
   - `+` between a `string` and an operand typed as neither `SqlExpression`
     (or a type derived from it) nor `ExpressionAlias`, in either order (and
     `+=` on a string): a subquery stage (`"x" + Select(...)`), a function

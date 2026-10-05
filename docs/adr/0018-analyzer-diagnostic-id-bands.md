@@ -1,6 +1,8 @@
 # ADR 0018 — Analyzer diagnostic ID bands: one numbered range per category
 
-**Status:** Accepted
+**Status:** Accepted — the Validity band's question widened by
+[ADR 0023](0023-analyzer-csharp-fallback-rules.md) from "would `Build()` reject
+this?" to "can this statement mean what it says?". Everything else here stands.
 
 ## Context
 
