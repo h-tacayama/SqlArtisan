@@ -49,8 +49,10 @@ a SqlArtisan member created the object (a builder stage, `Listagg(...)` before
 value sits in a variable: a `DbTableBase`- or `SqlPart`-typed value, or a type
 parameter constrained to one, may hold a user table class whose override
 returns real text, and the rule does not split the remaining non-sealed types
-(`SqlExpression`, `ISubquery`, a builder stage held in a `var`) from those. A built `SqlStatement` is never reported:
-its `ToString()` is its SQL text, by design.
+(`SqlExpression`, `ISubquery`, a builder stage held in a `var`) from those. A
+built `SqlStatement` is never reported: its `ToString()` is its SQL text, by
+design. Interpolation formats through `IFormattable` when a type implements it,
+so an interpolated value of such a type stays silent too.
 
 ### Only the flow into SqlArtisan is reported
 
@@ -75,9 +77,9 @@ and reject every SqlArtisan object, so a comparison passed there is meant as
 C#, and no operand order would make it SQL. A comparison with a `null`
 constant (`null`, `default`, a null `const`) is skipped wherever it lands: no
 operand order makes a null check SQL, so it is never the swapped-operand
-mistake the rule names. The same holds when neither operand's static type can
-be a `SqlExpression` (two tables, two sequences), and the rule skips that too;
-an interface or `object` counts as one that can.
+mistake the rule names. The same holds when either operand's static type
+cannot be a `SqlExpression` (a table or a sequence on either side), and the
+rule skips that too; an interface or `object` counts as one that can.
 
 ### The band
 

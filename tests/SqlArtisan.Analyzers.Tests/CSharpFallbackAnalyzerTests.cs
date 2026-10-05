@@ -17,6 +17,12 @@ public class CSharpFallbackAnalyzerTests
             public T(string alias = "") : base("t", alias) { Id = new DbColumn(this, "id"); Name = new DbColumn(this, "name"); }
         }
 
+        sealed class F : DbTableBase, System.IFormattable
+        {
+            public F() : base("f", "") { }
+            public string ToString(string format, System.IFormatProvider provider) => "f";
+        }
+
         class C
         {
             void M(object o, SqlPart p, string name)
@@ -93,12 +99,12 @@ public class CSharpFallbackAnalyzerTests
     public Task ReferenceCheckIntoBind_StaysSilent() =>
         RunSilent("var q = Select(Bind(o == t.Id), new BindValue(p != t.Name)).From(t);");
 
-    // Neither side can be a SqlExpression, so no operand order makes a SQL comparison.
+    // A table on either side cannot be a SqlExpression, so no order makes it SQL.
     [Fact]
-    public Task ReferenceCheckBetweenTables_StaysSilent() =>
+    public Task ReferenceCheckWithATable_StaysSilent() =>
         RunSilent("""
             DbTableBase a = t, b = new T("u");
-            var q = Select(a == b, Bind(t == new T("u")), a != t).From(t);
+            var q = Select(a == b, a != t, o == t, p != a).From(t);
             """);
 
     // CS0019 already rejects the comparison, so nothing binds.
@@ -206,6 +212,14 @@ public class CSharpFallbackAnalyzerTests
     [Fact]
     public Task ObjectConcatenatedIntoLike_StaysSilent() =>
         RunSilent("var q = Select(t.Id).From(t).Where(t.Name.Like(\"x\" + o));");
+
+    // Interpolation formats an IFormattable through its own ToString(format, provider).
+    [Fact]
+    public Task FormattableTableInterpolated_StaysSilent() =>
+        RunSilent("""
+            var f = new F();
+            var q = Select(t.Id).From(t).Where(t.Name.Like($"{f}"));
+            """);
 
     [Fact]
     public Task StringInterpolatedIntoLike_StaysSilent() =>

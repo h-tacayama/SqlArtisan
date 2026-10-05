@@ -257,8 +257,8 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor QueryObjectAsText = new(
         id: "SQLA0302",
         title: "A SqlArtisan object formatted as text binds its type name",
-        messageFormat: "'{0}' formats as a type name, not as SQL; build the text in SQL "
-            + "instead, with Concat(...) for example",
+        messageFormat: "'{0}' formats as a type name, not as SQL; build the text in SQL from "
+            + "the value you meant, with Concat(...) for example",
         category: ValidityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

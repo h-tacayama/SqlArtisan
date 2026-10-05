@@ -1132,8 +1132,11 @@ var q = Select(u.Id).From(u).Where(u.Name.Like($"%{u.Name}%"));
 // warning SQLA0302: 'DbColumn' formats as a type name, not as SQL; ...
 ```
 
-Build the text in SQL instead, with `Concat(...)` for example. A built
-`SqlStatement` is not reported: its text is its SQL by design.
+Build the text in SQL from the value you meant — a column, or a sequence's
+`Nextval` — with `Concat(...)` for example; a table or a sequence itself is no
+SQL value. A built `SqlStatement` is not reported: its text is its SQL by
+design, and neither is a type that implements `IFormattable`, which
+interpolation formats its own way.
 
 Both rules report only where the value goes straight into an argument of a
 SqlArtisan member or an operand of a SqlArtisan operator (`u.Name == $"{u.Id}"`).
@@ -1141,9 +1144,9 @@ The same C# anywhere else — a log line, a reference check — is correct code,
 so a result held in a variable first stays silent, and so does a comparison
 with `object` on both sides, or an `object` beside a string's `+`: nothing
 proves a SqlArtisan object is involved. `SQLA0301` also stays silent on a null
-check (`extra != null`, `p == default`), on a comparison where neither side's
-type can hold a SqlArtisan expression (two tables, two sequences — an `object`
-or `SqlPart` beside a table still reports), and on a reference check passed as
+check (`extra != null`, `p == default`), on a comparison where either side's
+type cannot hold a SqlArtisan expression (a table or a sequence on either
+side), and on a reference check passed as
 `ConditionIf`'s `when` or to `Bind(...)` / `new BindValue(...)`, which take a C#
 value by design.
 

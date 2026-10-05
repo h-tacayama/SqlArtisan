@@ -27,10 +27,10 @@ internal static class CSharpFallbackRule
             || binary.OperatorKind
                 is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals)
             || !(IsSqlArtisanObject(left) || IsSqlArtisanObject(right))
-            // Two tables or two sequences: no operand order makes that a SQL comparison.
+            // A table or sequence on either side: no operand order makes that SQL.
             || context.Compilation.GetTypeByMetadataName("SqlArtisan.SqlExpression")
                 is not { } expression
-            || !(CanHoldExpression(left, expression) || CanHoldExpression(right, expression))
+            || !(CanHoldExpression(left, expression) && CanHoldExpression(right, expression))
             // A null check is meant as C#: no operand order makes it SQL.
             || IsNullConstant(binary.LeftOperand)
             || IsNullConstant(binary.RightOperand)
@@ -87,7 +87,11 @@ internal static class CSharpFallbackRule
 
         foreach (IInterpolatedStringContentOperation part in interpolated.Parts)
         {
-            if (part is IInterpolationOperation hole && FormatsAsTypeName(hole.Expression))
+            // Interpolation formats through IFormattable when the type implements it.
+            if (part is IInterpolationOperation hole
+                && FormatsAsTypeName(hole.Expression)
+                && !hole.Expression.Type!.AllInterfaces.Any(
+                    contract => contract.ToDisplayString() == "System.IFormattable"))
             {
                 context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.QueryObjectAsText,
