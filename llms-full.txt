@@ -4641,8 +4641,10 @@ var q = Select(value == u.Id).From(u);
 // warning SQLA0301: This compares C# references and binds the bool result, not a SQL comparison; ...
 ```
 
-Put the column on the left (`u.Id == value`) so SqlArtisan's operator builds
-the SQL comparison.
+A SQL comparison belongs in a condition position, with the column on the left:
+`.Where(u.Id == value)`. A select list takes no condition — `Select(u.Id == value)`
+throws — so if a C# `bool` is what you meant there, pass it to `Bind(...)`, which
+`SQLA0301` leaves alone.
 
 `SQLA0302` reports a SqlArtisan object formatted as text: interpolated
 (`$"%{u.Name}%"`), or concatenated with a string where no SqlArtisan `+` takes
