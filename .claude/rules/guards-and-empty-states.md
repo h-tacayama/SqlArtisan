@@ -461,9 +461,11 @@ the caller did not mean. Judge a null argument by which failure it produces:
   text or dropping the predicate; `AgainstScore`, unmeasured, keeps the
   `Sql.Null` message. The other full-text predicates (`Contains`, `Freetext`,
   SQLite `Match`) keep the `Sql.Null` message, because following it fails
-  loudly: SQLite's `MATCH NULL` errors (live), and SQL Server rejects a NULL
-  or empty full-text predicate with Msg 7645 (documented; not run here, as the
-  lane images ship without Full-Text Search) — string identifiers
+  loudly. SQLite's `MATCH NULL` errors (3.45.1, live). SQL Server rejects a
+  NULL search variable with Msg 7645 (community reports; not run here, as the
+  lane images ship without Full-Text Search), and the literal `NULL` that
+  `Sql.Null` emits is expected to fail the same way or as a parse error.
+  Other shipped instances: string identifiers
   (`StringGuard`), null elements inside arrays/`params` (#403), a null
   subquery in `CteBase.As` (previously emitted `WITH "c" AS ()`),
   `new BindValue(null)` (a never-true `= NULL` predicate the factory already
