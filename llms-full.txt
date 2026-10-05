@@ -4660,8 +4660,8 @@ var q = Select(u.Id).From(u).Where(u.Name.Like($"%{u.Name}%"));
 Build the text in SQL from the value you meant — a column, or a sequence's
 `Nextval` — with `Concat(...)` for example; a table or a sequence itself is no
 SQL value. A built `SqlStatement` is not reported: its text is its SQL by
-design, and neither is a type that implements `IFormattable`, which
-interpolation formats its own way.
+design. Neither is an interpolated value whose type implements `IFormattable`,
+which interpolation formats its own way; concatenating one still reports.
 
 Both rules report only where the value goes straight into an argument of a
 SqlArtisan member or an operand of a SqlArtisan operator (`u.Name == $"{u.Id}"`).

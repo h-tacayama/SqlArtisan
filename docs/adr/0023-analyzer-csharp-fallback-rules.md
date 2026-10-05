@@ -66,7 +66,9 @@ SqlArtisan operator (`col == $"{col}"` binds the type name as surely as a
 `Select` argument does). A result held in a local, a ternary, a helper's return
 value stops the walk — and stays silent, the price of no false positives. An
 `object` on both sides of `==` / `!=`, or beside a string's `+`, stays silent
-for the same reason: nothing proves a query object is involved.
+for the same reason: nothing proves a query object is involved. A string `+=`
+stays silent as well: the rules read the binary `+` and interpolation only,
+never a compound assignment.
 
 `SQLA0301` also needs the `bool` to land in a parameter of another type, where
 it is boxed and bound. `ConditionIf(bool when, …)` takes the C# test on purpose

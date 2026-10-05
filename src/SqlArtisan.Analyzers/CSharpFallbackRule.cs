@@ -101,7 +101,6 @@ internal static class CSharpFallbackRule
         }
     }
 
-    // A reference type from SqlArtisan, or one deriving from or implementing one.
     private static bool IsSqlArtisanObject(ITypeSymbol? type)
     {
         if (type is ITypeParameterSymbol parameter)
@@ -214,7 +213,6 @@ internal static class CSharpFallbackRule
         method.ContainingType.Name == "BindValue" && method.MethodKind == MethodKind.Constructor
         || method.ContainingType.Name == "Sql" && method.Name == "Bind";
 
-    // `null`, `default`, a null constant: any compile-time null.
     private static bool IsNullConstant(IOperation operand) =>
         Unconverted(operand).ConstantValue is { HasValue: true, Value: null };
 
