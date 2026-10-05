@@ -121,8 +121,8 @@ diagnostic `SQLA0101`.**
 
 A context rule (`SQLA0102`, ADR 0013) names the dialects that reject a
 position, and a dialect can stop rejecting it at a version: Oracle 23ai added
-`UPDATE ... FROM` and the multi-row `VALUES` table value constructor, and
-SQLite 3.33 added `UPDATE ... FROM`. Each such pairing carries a floor
+`UPDATE ... FROM`, the multi-row `VALUES` table value constructor and
+`DELETE ... USING`, and SQLite 3.33 added `UPDATE ... FROM`. Each such pairing carries a floor
 (`DialectUsageAnalyzer.DmlShapeFloors`), with a row and a source in
 `docs/analyzer.md`'s version-bound register that
 `ContextRuleDocsTests.EveryDmlShapeFloor_HasARegisterRow` ties to the code. It
@@ -131,11 +131,21 @@ declared version, or with none the `BaselineVersion`, at or past the floor is
 silent. Below it the rule still reports `SQLA0102`, not `SQLA0101`: the
 version-bound message's remedy is a `sqlartisan_construct_*` override, which a
 context rule never consults, since the construct itself is supported. The
-seed and live-proof discipline above applies unchanged: both Oracle floors lift
-a rejection at the baseline, so each has a 23ai acceptance twin
-(`Oracle23aiTests.MultiRowValues_Executes`, `JoinedUpdateFrom_Executes`); the
-SQLite floor sits below the baseline and rests on the release notes, as the
-other SQLite rows do.
+seed and live-proof discipline above applies: the three Oracle floors lift a
+rejection at the baseline, so each has a 23ai acceptance twin
+(`Oracle23aiTests.MultiRowValues_Executes`, `JoinedUpdateFrom_Executes`,
+`DeleteUsing_Executes`); the SQLite floor sits below the baseline and rests on
+the release notes, as the other SQLite rows do.
+
+`DELETE ... USING` is the one floor seeded without criterion (a): Oracle's 23ai
+material documents only the `FROM` form of the direct-join `DELETE`, and the
+`USING` form surfaced when a rejection twin probing it on the 23ai lane ran
+instead. Leaving the floor out would keep a live-proven false positive, which
+ADR 0003 weighs above an unsourced seed. What `LeftJoinLateral` lacked does not
+apply here: the evidence is no inference, but a twin on each side — XE 21.3.0
+rejects the statement, and Free 23ai deletes exactly the joined rows rather
+than merely parsing it. The lane's image tag floats within 23, so the floor
+means "as that 23.x runs"; a 23.x release before it is unproven either way.
 
 ## Rejected alternatives
 

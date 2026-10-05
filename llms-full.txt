@@ -4057,14 +4057,15 @@ exactly as the table above does, but below the floor they report `SQLA0102`, not
 | `Using` | `DELETE ... USING` | Oracle | 23 |
 
 <details>
-<summary>Sources for these version bounds — the vendor documentation behind each version</summary>
+<summary>Sources for these version bounds — the vendor documentation behind each version, and the one live-only floor</summary>
 
 Every minimum version above but one (noted under Oracle) is drawn from the
 vendor's own documentation, linked below — and each is more than a citation: the integration suite runs
 the construct against a live engine at that dialect's verified baseline, so
 the "supported from version N" direction is reproduced, not just quoted. The
 "unsupported below N" direction rests on the documentation alone, because the
-suite does not pin a below-baseline image of every engine.
+suite does not pin a below-baseline image of every engine — except for the
+live-only floor, whose "below" side is the live XE 21.3.0 rejection.
 
 **MySQL** — the reference manual gives the introducing release for each:
 
@@ -4313,7 +4314,8 @@ rules that read back up the chain stay silent there.
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
 Server parse. On Oracle, PostgreSQL and SQLite, write the join as
-`Using(...)` (PostgreSQL, Oracle 23ai) or as a correlated `Where(...)` subquery.
+`Using(...)` (PostgreSQL, and Oracle at or past its
+[floor](#version-bound-constructs)) or as a correlated `Where(...)` subquery.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -4324,11 +4326,12 @@ var q = DeleteFrom(u).From(u, o).Where(u.Id == o.UserId);
 **`DELETE ... USING`.** `Using` names two different clauses — `MERGE ... USING`
 and `DELETE ... USING` — so its construct-level entry is their union, and
 Oracle reads "supported" on the strength of its `MERGE` alone. Its `DELETE`
-takes `USING` only from 23ai (a floor, above); before that it is ORA-00933, so
-join through a correlated `Where(...)` subquery instead. PostgreSQL and Oracle
-23ai are the dialects whose `DELETE` takes the clause. The entry already reads unsupported for MySQL and SQLite, so
-`SQLA0100` covers those two without a context rule, and SQL Server — which has
-no `DELETE ... USING` either — is rejected at `Build(Dbms)`.
+takes `USING` only at or past its [floor](#version-bound-constructs); below it
+the statement is ORA-00933, so join through a correlated `Where(...)` subquery
+instead. PostgreSQL, and Oracle at or past that floor, are the dialects whose
+`DELETE` takes the clause. The entry already reads unsupported for MySQL and
+SQLite, so `SQLA0100` covers those two without a context rule, and SQL Server —
+which has no `DELETE ... USING` either — is rejected at `Build(Dbms)`.
 
 ```csharp
 // sqlartisan_syntax_oracle = any
