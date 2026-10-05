@@ -227,6 +227,27 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         transaction.Rollback();
     }
 
+    // #582: SQLA0102 reports DELETE ... USING on Oracle at every version. 23ai's own
+    // direct-join DELETE, which SqlArtisan has no spelling for, runs as the control.
+    // No user has id -1, so neither statement can trip the orders foreign key.
+    [Fact]
+    public void DeleteUsing_IsRejectedByTheEngine()
+    {
+        UsersTable u = new("u");
+        OrdersTable o = new("o");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(
+            "DELETE users \"u\" FROM orders \"o\" "
+                + "WHERE \"o\".user_id = \"u\".id AND \"u\".id = -1",
+            transaction: transaction);
+        Assert.ThrowsAny<Exception>(() => connection.Execute(
+            DeleteFrom(u).Using(o).Where((u.Id == o.UserId) & (u.Id == -1)),
+            transaction));
+        transaction.Rollback();
+    }
+
     [Fact]
     public void JoinedUpdateJoinForm_IsRejectedByTheEngine()
     {

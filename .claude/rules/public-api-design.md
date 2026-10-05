@@ -478,8 +478,9 @@ value; `INSERT IGNORE ... ON DUPLICATE KEY UPDATE`; SQLite's
 `INSERT OR IGNORE` / `OR REPLACE` and MySQL's `REPLACE`; MySQL's
 `UPDATE`/`DELETE ... ORDER BY [LIMIT]`, multi-target `DELETE` and
 `UPDATE`/`DELETE IGNORE`; PostgreSQL's `OVERRIDING SYSTEM VALUE`; Oracle's
-`INSERT ALL`/`INSERT FIRST`. Several ON CONFLICT clauses in one `INSERT` are
-decided separately, below.
+`INSERT ALL`/`INSERT FIRST`, and 23ai's direct-join `DELETE t a FROM s b`,
+whose `FROM` does not re-list the target as the joined `DeleteFrom` does.
+Several ON CONFLICT clauses in one `INSERT` are decided separately, below.
 
 **Not yet offered (#614):** the A4 review found these expression and
 table-source forms with no spelling, and none needs a breaking change to add,
