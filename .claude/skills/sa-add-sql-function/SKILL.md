@@ -129,9 +129,10 @@ Rules:
   (`using static SqlArtisan.Internal.ExpressionResolver;` is at the top of each
   `Sql.*.cs`).
 - Return the concrete `<Name>Function` type, not `SqlExpression`.
-- Keep the signature (and expression body) on as few lines as fit within
-  **100 columns** — `Cast` / `Currval` / the JSON factories are the shape to
-  copy; wrap one parameter per line only when a line would exceed 100 (#209).
+- Keep the signature on one line when it fits within **100 columns**; wrap
+  one parameter per line only when it would not (#209). Where the expression
+  body breaks after `=>` is the author's call
+  (`.claude/rules/csharp-formatting.md` § Expression bodies).
 - Adding a guard (empty `params`, empty collection, mandatory argument)?
   Follow `.claude/rules/guards-and-empty-states.md` — the eager vs
   Build()-time timing decision and the message grammar live there.
