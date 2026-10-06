@@ -60,6 +60,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   earlier branch held in a variable stays silent. (#582)
 
 ### Changed
+- `ExecuteArrayBind`'s type-mismatch messages no longer name "another row" —
+  the hint and the value can come from one bind — and say, for example,
+  `Int32 values map to OracleDbType.Int32` rather than `a Int32 value maps`.
+  The output-parameter and all-null messages are now one sentence each, their
+  remedy joined by `so` or `;`. (#640)
 - `Match(...).Against(null)` no longer suggests `Sql.Null`: MySQL 8.0 runs
   `AGAINST (NULL)` and matches no row, so the message says so and asks for the
   search text or no predicate at all. `AgainstScore(null)` keeps the
@@ -238,6 +243,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#569)
 
 ### Fixed
+- `ExecuteArrayBind` binds by name. A `BindValue` passed to several clauses
+  emits its marker in each (`UPDATE t SET qty = :0 WHERE id = :0`), and bound by
+  position the repeated marker had no parameter of its own; the same statement
+  already ran through `SqlArtisan.Dapper`, which binds by name. (#640)
 - An aliased `UPDATE`/`DELETE` target on SQL Server throws a message that
   names a remedy the statement can take: an unaliased target, or the aliased
   target re-listed in `From(...)` when a subquery correlates with it. It told

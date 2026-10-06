@@ -83,8 +83,7 @@ public static partial class SqlMapper
         CommandType? commandType = null,
         CancellationToken cancellationToken = default)
     {
-        // Built through ToCommand like every other verb so the flags parity lives in
-        // one place; the bag this verb owes its caller comes back off the command.
+        // Not the sync twin's shape: Dapper's string overloads take no CancellationToken.
         CommandDefinition command = ToCommand(
             cnn,
             sqlBuilder,

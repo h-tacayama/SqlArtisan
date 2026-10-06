@@ -6,6 +6,8 @@ paths:
   - "src/SqlArtisan/Internal/SqlBuilder/**/I*.cs"
   - "src/SqlArtisan.Analyzers/DialectMatrix.cs"
   - "tests/SqlArtisan.IntegrationTests/Infrastructure/MatrixSweepCatalog.cs"
+  - "src/SqlArtisan.Dapper/**/*.cs"
+  - "src/SqlArtisan.ArrayBind/**/*.cs"
 ---
 
 # Public API design
@@ -179,6 +181,15 @@ connection and `SortOrder` is the type a sort helper declares; `SqlStatement`
 with MySQL Connector/NET's `MySqlX.XDevAPI.Relational.SqlStatement`; and
 `SqlExpression` with EF Core's
 `Microsoft.EntityFrameworkCore.Query.SqlExpressions.SqlExpression`.
+
+A **namespace** can capture a simple name too. Inside any namespace beginning
+`SqlArtisan.`, the name `Dapper` binds to `SqlArtisan.Dapper` before the global
+`Dapper`, so `Dapper.SqlMapper.AddTypeHandler(...)` fails with `CS0117` and
+`Dapper.DynamicParameters` with `CS0234`. It reaches only code declared under
+the `SqlArtisan.` prefix — this repo's own projects, or an extension written
+there — and the fix is `global::Dapper.…` or a file-level `using Dapper;`, as
+`ArrayQueryParameter.cs` and `PostgreSqlTests.cs` do. Not grounds for a rename:
+the namespace is the package's name (#640).
 
 ## Overload split for analyzer arity
 
@@ -415,6 +426,11 @@ deriving from another assembly, which is how three bases could be subclassed to
 emit an arbitrary operator token (#492). So write the constructor out: `internal`
 on a public concrete node, `private protected` on a public abstract base. An
 internal node can keep its primary constructor.
+
+The companion packages (`SqlArtisan.Dapper`, `SqlArtisan.ArrayBind`) have no
+`Internal` namespace, so the rule there is plainer: a type is `internal` unless
+it is a static entry point a caller names. `PublicSurfaceBoundaryTests` holds
+each companion's exported set to its listed entry points (#640).
 
 > Worked example (#282): fixing `Sql.Bind` to return `BindValue` (above) put
 > that type through criterion 2 — its entire feature is a caller holding the

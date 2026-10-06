@@ -7,6 +7,8 @@ paths:
   - "src/SqlArtisan/SqlBuilder/*.cs"
   - "src/SqlArtisan/SqlPart/**/*.cs"
   - "src/SqlArtisan.TableClassGen/**/*.cs"
+  - "src/SqlArtisan.Dapper/**/*.cs"
+  - "src/SqlArtisan.ArrayBind/**/*.cs"
 ---
 
 # Guards and empty states

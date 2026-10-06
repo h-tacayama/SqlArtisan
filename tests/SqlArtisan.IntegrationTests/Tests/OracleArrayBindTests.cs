@@ -189,6 +189,61 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         transaction.Rollback();
     }
 
+    // One BindValue in two clauses repeats its marker; bound by position, the repeat
+    // would have no parameter of its own (#640).
+    [Fact]
+    public void ExecuteArrayBind_SharedBindValue_UpdatesAllRows()
+    {
+        UsersTable u = new();
+        using OracleConnection connection = (OracleConnection)_fixture.OpenConnection();
+        using OracleTransaction transaction = connection.BeginTransaction();
+
+        connection.Execute(InsertInto(u, u.Id).Values(9301), transaction);
+        connection.Execute(InsertInto(u, u.Id).Values(9302), transaction);
+
+        BindValue first = Bind(9301);
+        BindValue second = Bind(9302);
+        List<ISqlBuilder> statements =
+        [
+            Update(u).Set(u.Age == first).Where(u.Id == first),
+            Update(u).Set(u.Age == second).Where(u.Id == second),
+        ];
+
+        int updated = connection.ExecuteArrayBind(statements, transaction);
+
+        Assert.Equal(2, updated);
+
+        IEnumerable<int> ages = connection.Query<int>(
+            Select(u.Age).From(u).Where(u.Id >= 9301).OrderBy(u.Id),
+            transaction);
+        Assert.Equal(new[] { 9301, 9302 }, ages);
+
+        transaction.Rollback();
+    }
+
+    // With no parameter to carry an array, ArrayBindCount alone decides how many times
+    // the statement runs; the row count shows it ran once per statement (#640).
+    [Fact]
+    public void ExecuteArrayBind_ParameterlessStatements_RunsOncePerStatement()
+    {
+        UsersTable u = new();
+        using OracleConnection connection = (OracleConnection)_fixture.OpenConnection();
+        using OracleTransaction transaction = connection.BeginTransaction();
+
+        long rows = connection.ExecuteScalar<long>(Select(Count(u.Id)).From(u), transaction);
+        List<ISqlBuilder> statements =
+        [
+            Update(u).Set(u.Age == u.Age),
+            Update(u).Set(u.Age == u.Age),
+        ];
+
+        int updated = connection.ExecuteArrayBind(statements, transaction);
+
+        Assert.Equal(2 * rows, updated);
+
+        transaction.Rollback();
+    }
+
     private sealed class UserRow
     {
         public long Id { get; init; }
