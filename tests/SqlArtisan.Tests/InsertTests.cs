@@ -238,9 +238,8 @@ public class InsertTests
             InsertInto(t, t.Code, t.Name).Values(1, "a").Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
-                + "statement; use an unaliased target table — a correlated UPDATE or DELETE joins "
-                + "through From(...) instead.",
+            "SQL Server does not support aliasing the target of an INSERT statement; "
+                + "use an unaliased target table.",
             ex.Message);
     }
 

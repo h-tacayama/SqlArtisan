@@ -63,10 +63,9 @@ public class BuilderReuseTests
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() => stmt.Build(Dbms.SqlServer));
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
-                + "statement; use an unaliased target table — "
-                + "a correlated UPDATE or DELETE joins "
-                + "through From(...) instead.",
+            "SQL Server does not support aliasing the DELETE target directly; use an "
+                + "unaliased target table, or re-list the aliased target in From(...) when "
+                + "a subquery correlates with it.",
             ex.Message);
 
         SqlStatement sql = stmt.Build(Dbms.PostgreSql);
@@ -383,10 +382,9 @@ public class BuilderReuseTests
         ArgumentException ex = Assert.Throws<ArgumentException>(() =>
             stage.Build(Dbms.SqlServer));
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
-                + "statement; use an unaliased target table — "
-                + "a correlated UPDATE or DELETE joins "
-                + "through From(...) instead.",
+            "SQL Server does not support aliasing the UPDATE target directly; use an "
+                + "unaliased target table, or re-list the aliased target in From(...) when "
+                + "a subquery correlates with it.",
             ex.Message);
 
         SqlStatement sql = stage.Build(Dbms.PostgreSql);
@@ -875,10 +873,9 @@ public class BuilderReuseTests
         ArgumentException guard = Assert.Throws<ArgumentException>(
             () => stage.Build(Dbms.SqlServer));
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
-                + "statement; use an unaliased target table — "
-                + "a correlated UPDATE or DELETE joins "
-                + "through From(...) instead.",
+            "SQL Server does not support aliasing the UPDATE target directly; use an "
+                + "unaliased target table, or re-list the aliased target in From(...) when "
+                + "a subquery correlates with it.",
             guard.Message);
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() => inner.Build(Dbms.PostgreSql));

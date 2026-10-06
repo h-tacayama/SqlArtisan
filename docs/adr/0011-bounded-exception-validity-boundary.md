@@ -47,9 +47,14 @@ deterministic signal, only a runtime syntax error the analyzer can't pre-empt.
 
 The library **throws at `Build(SqlServer)`** (an `ArgumentException`, per the #69
 / #190 guard precedent) when the target of an `INSERT`, `UPDATE`, or `DELETE`
-carries an alias. The message names the construct and states the requirement:
+carries an alias. The message names the construct and states the requirement,
+with a remedy the statement can reach — an `INSERT` has no `From(...)`, and an
+`UPDATE` or `DELETE` that a subquery correlates with takes its alias only by
+re-listing the target there (#636):
 
-> `SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE statement; use an unaliased target table — a correlated UPDATE or DELETE joins through From(...) instead.`
+> `SQL Server does not support aliasing the target of an INSERT statement; use an unaliased target table.`
+>
+> `SQL Server does not support aliasing the UPDATE target directly; use an unaliased target table, or re-list the aliased target in From(...) when a subquery correlates with it.` (`DELETE` alike)
 
 This is a **bounded exception to ADR 0007**, not a repeal of it. It is confined
 to exactly the case where both of ADR 0007's dialect-availability safety nets are

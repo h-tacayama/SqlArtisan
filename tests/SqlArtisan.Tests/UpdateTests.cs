@@ -93,9 +93,9 @@ public class UpdateTests
             Update(t).Set(t.Name == "a").Where(t.Code == 1).Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
-                + "statement; use an unaliased target table — a correlated UPDATE or DELETE joins "
-                + "through From(...) instead.",
+            "SQL Server does not support aliasing the UPDATE target directly; use an "
+                + "unaliased target table, or re-list the aliased target in From(...) when "
+                + "a subquery correlates with it.",
             ex.Message);
     }
 
@@ -119,6 +119,33 @@ public class UpdateTests
         expected.Append("code = @1");
 
         Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void Update_SqlServer_CorrelatedRelistedTarget_CorrectSql()
+    {
+        // The remedy the aliased-target guard names: re-listed in FROM, the target
+        // takes its alias there, so the subquery correlates with it.
+        TestTable t = new("t");
+        TestTable r = new("r");
+
+        SqlStatement sql =
+            Update(t)
+            .Set(t.Name == "a")
+            .From(t)
+            .Where(Exists(Select(r.Code).From(r).Where(r.Code == t.Code)))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("UPDATE \"t\" ");
+        expected.Append("SET \"t\".name = @0 ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("WHERE EXISTS ");
+        expected.Append("(SELECT \"r\".code FROM test_table \"r\" ");
+        expected.Append("WHERE \"r\".code = \"t\".code)");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+        Assert.Equal("a", sql.Parameters.Get<string>("@0"));
     }
 
     [Fact]

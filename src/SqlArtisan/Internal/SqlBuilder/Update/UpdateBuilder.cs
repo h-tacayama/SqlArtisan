@@ -182,7 +182,7 @@ internal sealed class UpdateBuilder(
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: false);
         if (!state.IsJoined)
         {
-            DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
+            DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms, Keywords.Update);
         }
 
         DmlTargetGuard.ThrowIfUpdateJoinSpellingsMixed(state);
