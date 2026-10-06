@@ -142,8 +142,8 @@ below the baseline and rests on the release notes, as the other SQLite rows do.
 give its version. The `DELETE` reference page that documents the clause is the
 26 edition, so its 23 rests on live runs — XE 21.3.0 rejects the statement, and
 Free 23ai deletes the joined rows on a pinned 23.4 image and on the lane's 23.26
-alike. The 23.4 run was a one-off; the lane's floating tag keeps proving 23.26
-only.
+alike. The 23.4 run was a one-off; the lane's floating tag keeps proving only
+the release it resolves to.
 
 ## Rejected alternatives
 
