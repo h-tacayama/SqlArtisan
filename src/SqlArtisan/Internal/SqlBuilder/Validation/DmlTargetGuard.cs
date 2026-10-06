@@ -11,15 +11,27 @@ internal static class DmlTargetGuard
         throw new ArgumentException(
             "The target of a correlated UPDATE, DELETE, or MERGE must be aliased.");
 
-    internal static void ThrowIfAliasedOnSqlServer(DbTableBase table, Dbms dbms)
+    internal static void ThrowIfAliasedOnSqlServer(
+        DbTableBase table, Dbms dbms, string statementName)
     {
-        if (dbms == Dbms.SqlServer && table.HasAlias)
+        if (dbms != Dbms.SqlServer || !table.HasAlias)
+        {
+            return;
+        }
+
+        // An INSERT has no From(...) to re-list in; an UPDATE or DELETE that a
+        // subquery correlates with can take its alias only from there.
+        if (statementName == Keywords.Insert)
         {
             throw new ArgumentException(
-                "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
-                + "statement; use an unaliased target table — a correlated UPDATE or DELETE joins "
-                + "through From(...) instead.");
+                "SQL Server does not support aliasing the target of an INSERT statement; "
+                + "use an unaliased target table.");
         }
+
+        throw new ArgumentException(
+            $"SQL Server does not support aliasing the {statementName} target directly; use "
+            + "an unaliased target table, or re-list the aliased target in From(...) when a "
+            + "subquery correlates with it.");
     }
 
     // A decided uniform requirement, not a grammar fact on every dialect

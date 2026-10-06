@@ -186,7 +186,7 @@ internal sealed class InsertBuilder(
         DmlTargetGuard.ThrowIfLeadingWithBeforeOnDuplicateKeyUpdate(
             PartsSpan, onDuplicateKeyUpdate);
         DmlTargetGuard.ThrowIfLeadingWithUnsupported(PartsSpan, dbms, insert: true);
-        DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms);
+        DmlTargetGuard.ThrowIfAliasedOnSqlServer(table, dbms, Keywords.Insert);
         DmlTargetGuard.ThrowIfInsertTargetAliasedOnMySql(table, dbms);
 
         OnConflictClause? onConflict = FindPart<OnConflictClause>();

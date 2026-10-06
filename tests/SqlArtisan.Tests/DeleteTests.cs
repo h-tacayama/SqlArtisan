@@ -67,9 +67,9 @@ public class DeleteTests
             DeleteFrom(_t).Where(_t.Code == 1).Build(Dbms.SqlServer));
 
         Assert.Equal(
-            "SQL Server does not support aliasing the target of an INSERT, UPDATE, or DELETE "
-                + "statement; use an unaliased target table — a correlated UPDATE or DELETE joins "
-                + "through From(...) instead.",
+            "SQL Server does not support aliasing the DELETE target directly; use an "
+                + "unaliased target table, or re-list the aliased target in From(...) when "
+                + "a subquery correlates with it.",
             ex.Message);
     }
 
@@ -90,6 +90,30 @@ public class DeleteTests
         expected.Append("test_table ");
         expected.Append("WHERE ");
         expected.Append("code = @0");
+
+        Assert.Equal(expected.ToString(), sql.Text);
+    }
+
+    [Fact]
+    public void DeleteFrom_SqlServer_CorrelatedRelistedTarget_CorrectSql()
+    {
+        // The remedy the aliased-target guard names: re-listed in FROM, the target
+        // takes its alias there, so the subquery correlates with it.
+        TestTable t = new("t");
+        TestTable r = new("r");
+
+        SqlStatement sql =
+            DeleteFrom(t)
+            .From(t)
+            .Where(NotExists(Select(r.Code).From(r).Where(r.Code == t.Code)))
+            .Build(Dbms.SqlServer);
+
+        StringBuilder expected = new();
+        expected.Append("DELETE \"t\" ");
+        expected.Append("FROM test_table \"t\" ");
+        expected.Append("WHERE NOT EXISTS ");
+        expected.Append("(SELECT \"r\".code FROM test_table \"r\" ");
+        expected.Append("WHERE \"r\".code = \"t\".code)");
 
         Assert.Equal(expected.ToString(), sql.Text);
     }

@@ -231,6 +231,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   (#569)
 
 ### Fixed
+- An aliased `UPDATE`/`DELETE` target on SQL Server throws a message that
+  names a remedy the statement can take: an unaliased target, or the aliased
+  target re-listed in `From(...)` when a subquery correlates with it. It told
+  a correlated statement to join an unaliased target through `From(...)`,
+  which the joined-target guard rejects. The `INSERT` message now names only
+  the unaliased target. (#636)
 - `SQLA0100` reports `Sql.Nextval("s")` and `Sql.Currval("s")` on Oracle, where
   `NEXTVAL('s')` is not Oracle's form; `Sequence("s").Nextval` stays silent
   there. The two forms shared one matrix row, the union of their dialects, so
