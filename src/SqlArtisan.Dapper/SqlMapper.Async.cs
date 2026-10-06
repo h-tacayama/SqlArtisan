@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 using static Dapper.SqlMapper;
 
@@ -553,6 +554,34 @@ public static partial class SqlMapper
     /// <returns>A task producing an <see cref="IDataReader"/> over the result set.</returns>
     public static Task<IDataReader> ExecuteReaderAsync(
         this IDbConnection cnn,
+        ISqlBuilder sqlBuilder,
+        IDbTransaction? transaction = null,
+        int? commandTimeout = null,
+        CommandType? commandType = null,
+        CancellationToken cancellationToken = default)
+        => cnn.ExecuteReaderAsync(ToCommand(
+            cnn,
+            sqlBuilder,
+            transaction,
+            commandTimeout,
+            commandType,
+            CommandFlags.Buffered,
+            cancellationToken));
+
+    /// <summary>
+    /// Builds <paramref name="sqlBuilder"/> for the connection's dialect and runs it through
+    /// Dapper's <c>ExecuteReaderAsync</c>, returning a <see cref="DbDataReader"/> whose rows
+    /// <see cref="DbDataReader.ReadAsync()"/> reads asynchronously.
+    /// </summary>
+    /// <param name="cnn">The open connection; its provider type selects the dialect.</param>
+    /// <param name="sqlBuilder">The SqlArtisan query/statement builder to execute.</param>
+    /// <param name="transaction">The transaction to enlist in, if any.</param>
+    /// <param name="commandTimeout">Command timeout in seconds.</param>
+    /// <param name="commandType">How to interpret the command text.</param>
+    /// <param name="cancellationToken">The token to cancel the operation.</param>
+    /// <returns>A task producing a <see cref="DbDataReader"/> over the result set.</returns>
+    public static Task<DbDataReader> ExecuteReaderAsync(
+        this DbConnection cnn,
         ISqlBuilder sqlBuilder,
         IDbTransaction? transaction = null,
         int? commandTimeout = null,

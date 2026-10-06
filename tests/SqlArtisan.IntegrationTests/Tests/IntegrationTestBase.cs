@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using System.Threading.Tasks;
 using SqlArtisan;
 using SqlArtisan.Dapper;
@@ -822,6 +823,14 @@ public abstract class IntegrationTestBase
             await connection.ExecuteReaderAsync(Select(u.Id).From(u).Where(u.Id == 1)))
         {
             Assert.True(reader.Read());
+        }
+
+        // A DbConnection receiver binds the DbDataReader overload, the one with ReadAsync.
+        DbConnection dbConnection = (DbConnection)connection;
+        await using (DbDataReader reader =
+            await dbConnection.ExecuteReaderAsync(Select(u.Id).From(u).Where(u.Id == 1)))
+        {
+            Assert.True(await reader.ReadAsync());
         }
 
         using (

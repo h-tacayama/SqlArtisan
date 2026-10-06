@@ -109,6 +109,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `A JOIN's ON clause requires a condition.`: the `SELECT` message's
   "an unconditioned join is a CROSS JOIN" pointed at a `CrossJoin` those chains
   do not have. The `SELECT` message is unchanged. (#582)
+- **Breaking:** `SqlArtisan.Dapper` adds Dapper's `DbConnection` twin of
+  `ExecuteReaderAsync`, returning `Task<DbDataReader>`, so a reader opened
+  asynchronously can also read asynchronously (`ReadAsync`, `await using`). A
+  call whose connection is typed as a `DbConnection` (`SqliteConnection`,
+  `NpgsqlConnection`, ...) now binds it; one that stores the result as a
+  `Task<IDataReader>` must use `Task<DbDataReader>` or type the connection as
+  `IDbConnection`. Compiled assemblies are unaffected. (#639)
 - **Breaking:** `WhenMatched(condition)` and `WhenNotMatched(condition)` no
   longer offer Oracle's action `Where(...)` / `DeleteWhere(...)`: Oracle has no
   `AND` on `WHEN`, and PostgreSQL and SQL Server have no action `WHERE`, so the
