@@ -182,12 +182,12 @@ with MySQL Connector/NET's `MySqlX.XDevAPI.Relational.SqlStatement`; and
 `SqlExpression` with EF Core's
 `Microsoft.EntityFrameworkCore.Query.SqlExpressions.SqlExpression`.
 
-A **namespace** can capture a simple name too. Inside any namespace beginning
-`SqlArtisan.`, the name `Dapper` binds to `SqlArtisan.Dapper` before the global
-`Dapper`, so `Dapper.SqlMapper.AddTypeHandler(...)` fails with `CS0117` and
-`Dapper.DynamicParameters` with `CS0234`. It reaches only code declared under
-the `SqlArtisan.` prefix — this repo's own projects, or an extension written
-there — and the fix is `global::Dapper.…` or a file-level `using Dapper;`, as
+A **namespace** can capture a simple name too. Inside `namespace SqlArtisan` or
+any namespace beneath it, the name `Dapper` binds to `SqlArtisan.Dapper` before
+the global `Dapper`, so `Dapper.SqlMapper.AddTypeHandler(...)` fails with
+`CS0117` and `Dapper.DynamicParameters` with `CS0234`. It reaches only code
+declared in that namespace tree — this repo's own projects, or an extension
+written there — and the fix is `global::Dapper.…` or a file-level `using Dapper;`, as
 `ArrayQueryParameter.cs` and `PostgreSqlTests.cs` do. Not grounds for a rename:
 the namespace is the package's name (#640).
 

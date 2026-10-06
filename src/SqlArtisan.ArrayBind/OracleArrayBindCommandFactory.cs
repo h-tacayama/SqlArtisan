@@ -49,9 +49,9 @@ internal static class OracleArrayBindCommandFactory
         if (parameterCount == 0 && built.Length > 1)
         {
             throw new ArgumentException(
-                $"ExecuteArrayBind cannot run {built.Length} statements that bind no value, "
-                    + "since ODP.NET runs a parameterless command only once; execute each "
-                    + "statement on its own (e.g. SqlArtisan.Dapper's Execute) instead.");
+                $"ExecuteArrayBind cannot run {built.Length} statements that bind no value, since "
+                    + "ODP.NET runs a parameterless command only once; execute each statement on "
+                    + "its own (e.g. SqlArtisan.Dapper's Execute) instead.");
         }
 
         object[][] values = new object[parameterCount][];
@@ -167,10 +167,9 @@ internal static class OracleArrayBindCommandFactory
             if (fromValues.HasValue && fromValues.Value != hinted)
             {
                 throw new ArgumentException(
-                    $"ExecuteArrayBind cannot bind parameter :{position} as "
-                        + $"OracleDbType.{hinted} from its DbType.{dbTypeHint.Value} hint; "
-                        + $"{seenType!.Name} values bound there map to "
-                        + $"OracleDbType.{fromValues.Value} instead.");
+                    $"ExecuteArrayBind cannot bind parameter :{position} as OracleDbType.{hinted} "
+                        + $"from its DbType.{dbTypeHint.Value} hint; {seenType!.Name} values bound "
+                        + $"there map to OracleDbType.{fromValues.Value} instead.");
             }
 
             return hinted;

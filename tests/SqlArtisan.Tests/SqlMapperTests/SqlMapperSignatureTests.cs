@@ -5,9 +5,9 @@ using DapperMapper = SqlArtisan.Dapper.SqlMapper;
 namespace SqlArtisan.Tests;
 
 /// <summary>
-/// The #486 shape, pinned here because SqlArtisan.Dapper has no public-surface gate of its
-/// own. From 1.0 a verb shipping without the token cannot quietly gain one: appending the
-/// parameter breaks compiled callers, so recovery costs a second overload family.
+/// The #486 shape, pinned here because the companion surface gate holds which types export,
+/// not their signatures. From 1.0 a verb shipping without the token cannot quietly gain one:
+/// appending the parameter breaks compiled callers, so recovery costs a second overload family.
 /// </summary>
 public class SqlMapperSignatureTests
 {

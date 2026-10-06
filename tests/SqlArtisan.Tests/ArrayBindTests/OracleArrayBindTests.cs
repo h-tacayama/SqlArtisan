@@ -450,9 +450,8 @@ public class OracleArrayBindTests
 
         Assert.Equal(
             "ExecuteArrayBind does not support RETURNING ... INTO output parameters; "
-                + "parameter :out_id binds with Direction=Output, so "
-                + "execute the statements one at a time (e.g. SqlArtisan.Dapper's "
-                + "ExecuteReturningInto) instead.",
+                + "parameter :out_id binds with Direction=Output, so execute the statements one "
+                + "at a time (e.g. SqlArtisan.Dapper's ExecuteReturningInto) instead.",
             ex.Message);
     }
 

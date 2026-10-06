@@ -243,6 +243,25 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         transaction.Rollback();
     }
 
+    // What an array-bound SELECT does decides whether ExecuteArrayBind must reject one (#640).
+    [Fact]
+    public void ExecuteArrayBind_SelectStatements_ReturnsNoRowCount()
+    {
+        UsersTable u = new();
+        using OracleConnection connection = (OracleConnection)_fixture.OpenConnection();
+        List<ISqlBuilder> statements =
+        [
+            Select(u.Id).From(u).Where(u.Id == 1),
+            Select(u.Id).From(u).Where(u.Id == 2),
+        ];
+
+        int result = 0;
+        Exception? ex = Record.Exception(() => result = connection.ExecuteArrayBind(statements));
+
+        Assert.Null(ex);
+        Assert.Equal(-1, result);
+    }
+
     private sealed class UserRow
     {
         public long Id { get; init; }
