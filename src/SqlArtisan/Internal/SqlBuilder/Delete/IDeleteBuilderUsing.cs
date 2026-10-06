@@ -1,7 +1,7 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>DELETE FROM target USING aux</c> (PostgreSQL, and Oracle from a later
+/// The state after <c>DELETE FROM target USING aux</c> (PostgreSQL, and Oracle from a specific
 /// release): narrow with <c>WHERE</c>, add <c>RETURNING</c>, or build. Relate the target to the
 /// <c>USING</c> tables in the <c>WHERE</c> predicate.
 /// </summary>

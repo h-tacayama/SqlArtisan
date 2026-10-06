@@ -785,8 +785,8 @@ rules that read back up the chain stay silent there.
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
 Server parse. On Oracle, PostgreSQL and SQLite, write the join as
-`Using(...)` (PostgreSQL, and Oracle at or past its
-[floor](#version-bound-constructs)) or as a correlated `Where(...)` subquery.
+`Using(...)` (Oracle at or past its [floor](#version-bound-constructs), and
+PostgreSQL) or as a correlated `Where(...)` subquery.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -799,7 +799,7 @@ and `DELETE ... USING` — so its construct-level entry is their union, and
 Oracle reads "supported" on the strength of its `MERGE` alone. Its `DELETE`
 takes `USING` only at or past its [floor](#version-bound-constructs); below it
 the statement is ORA-00933, so join through a correlated `Where(...)` subquery
-instead. PostgreSQL, and Oracle at or past that floor, are the dialects whose
+instead. Oracle at or past that floor, and PostgreSQL, are the dialects whose
 `DELETE` takes the clause. The entry already reads unsupported for MySQL and
 SQLite, so `SQLA0100` covers those two without a context rule, and SQL Server —
 which has no `DELETE ... USING` either — is rejected at `Build(Dbms)`.
@@ -814,7 +814,8 @@ var q = DeleteFrom(u).Using(o).Where(u.Id == o.UserId);
 `Update(t).InnerJoin(...).On(...).Set(...)` is MySQL's spelling, where the
 join precedes `SET`. No other dialect has it: PostgreSQL and SQLite take
 `Set(...).From(...)` instead, SQL Server re-lists the target in `From(...)`,
-and Oracle takes a correlated subquery.
+and Oracle takes `Set(...).From(...)` at or past its
+[floor](#version-bound-constructs) and a correlated subquery below it.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
@@ -825,7 +826,8 @@ var q = Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 30);
 **`UPDATE ... SET ... FROM`.** The mirror case: PostgreSQL, SQLite and SQL
 Server take a `FROM` clause on `UPDATE`; MySQL does not, and nor do Oracle and
 SQLite below their [floors](#version-bound-constructs). Use the
-join-before-`SET` form on MySQL, and a correlated subquery on Oracle.
+join-before-`SET` form on MySQL, and a correlated subquery on Oracle below its
+floor.
 
 ```csharp
 // sqlartisan_syntax_mysql = any

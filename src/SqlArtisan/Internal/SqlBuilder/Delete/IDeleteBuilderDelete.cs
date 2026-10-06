@@ -2,7 +2,7 @@ namespace SqlArtisan.Internal;
 
 /// <summary>
 /// The state after <c>DELETE FROM table</c>: join other tables with <c>USING</c> (PostgreSQL,
-/// and Oracle from a later release) or <c>FROM</c> (SQL Server / MySQL, re-listing the target),
+/// and Oracle from a specific release) or <c>FROM</c> (SQL Server / MySQL, re-listing the target),
 /// narrow with <c>WHERE</c>, add <c>RETURNING</c>, or build.
 /// </summary>
 public interface IDeleteBuilderDelete : ISqlBuilder, IReturning
@@ -18,7 +18,7 @@ public interface IDeleteBuilderDelete : ISqlBuilder, IReturning
 
     /// <summary>
     /// Appends <c>USING table, ...</c> for <c>DELETE ... USING</c> (PostgreSQL, and
-    /// Oracle from a later release); relate the target to these tables in the
+    /// Oracle from a specific release); relate the target to these tables in the
     /// <c>WHERE</c> predicate.
     /// </summary>
     /// <param name="tables">The tables the delete draws from.</param>
