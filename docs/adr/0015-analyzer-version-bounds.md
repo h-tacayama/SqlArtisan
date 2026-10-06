@@ -94,6 +94,15 @@ diagnostic `SQLA0101`.**
   (`Oracle23aiBoundSweepTests`) exists for exactly this — it derives its
   expectations directly from `Bounds`, so any future above-baseline Oracle
   bound is pulled in and proven automatically, with no test-file change.
+  "Pinned" in this record means the image fixes at least the major version,
+  not one release: some lanes fix the exact release (Oracle XE 21.3.0, the
+  bundled SQLite build); the others name only a version above it and run
+  whatever release their tag resolves to (Free 23ai's `23-slim-faststart`,
+  `mysql:8.0`, PostgreSQL's `pgvector/pgvector:0.8.6-pg16` and `postgres:17`,
+  SQL Server's `2022-latest` and `2025-latest`). A claim resting on one
+  release names the release the tag resolved to when it ran, as
+  `DELETE ... USING` does below; the earlier `WithRecursive` runs did not
+  record theirs.
   `LeftJoinLateral` (inferred from an existing comment about Oracle's
   pre-23ai boolean-literal gap, not a documented "landed in 23ai" fact) did
   not survive this discipline and was dropped before ever seeding it —
