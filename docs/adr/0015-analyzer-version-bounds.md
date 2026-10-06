@@ -122,8 +122,9 @@ diagnostic `SQLA0101`.**
 A context rule (`SQLA0102`, ADR 0013) names the dialects that reject a
 position, and a dialect can stop rejecting it at a version: Oracle 23ai added
 `UPDATE ... FROM`, the multi-row `VALUES` table value constructor and
-`DELETE ... USING`, and SQLite 3.33 added `UPDATE ... FROM`. Each such pairing carries a floor
-(`DialectUsageAnalyzer.DmlShapeFloors`), with a row and a source in
+`DELETE ... USING`, and SQLite 3.33 added `UPDATE ... FROM`. Each such
+pairing carries a floor (`DialectUsageAnalyzer.DmlShapeFloors`), with a row and
+a source in
 `docs/analyzer.md`'s version-bound register that
 `ContextRuleDocsTests.EveryDmlShapeFloor_HasARegisterRow` ties to the code. It
 is read exactly as a `Bounds` row is: the
@@ -137,8 +138,9 @@ rejection at the baseline, so each has a 23ai acceptance twin
 `DeleteUsing_Executes`); the SQLite floor sits below the baseline and rests on
 the release notes, as the other SQLite rows do.
 
-`DELETE ... USING` is the one floor seeded without criterion (a): Oracle's 23ai
-material documents only the `FROM` form of the direct-join `DELETE`, and the
+`DELETE ... USING` is the one floor seeded without criterion (a): the 23ai
+tutorial the register cites for the other two shows only the `FROM` form of
+the direct-join `DELETE`, no record in the repo named `USING`, and the
 `USING` form surfaced when a rejection twin probing it on the 23ai lane ran
 instead. Leaving the floor out would keep a live-proven false positive, which
 ADR 0003 weighs above an unsourced seed. What `LeftJoinLateral` lacked does not

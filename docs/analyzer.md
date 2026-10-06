@@ -528,12 +528,13 @@ exactly as the table above does, but below the floor they report `SQLA0102`, not
 <summary>Sources for these version bounds — the vendor documentation behind each version, and the one live-only floor</summary>
 
 Every minimum version above but one (noted under Oracle) is drawn from the
-vendor's own documentation, linked below — and each is more than a citation: the integration suite runs
-the construct against a live engine at that dialect's verified baseline, so
-the "supported from version N" direction is reproduced, not just quoted. The
-"unsupported below N" direction rests on the documentation alone, because the
-suite does not pin a below-baseline image of every engine — except for the
-live-only floor, whose "below" side is the live XE 21.3.0 rejection.
+vendor's own documentation, linked below — and each is more than a citation.
+A version at or below a dialect's verified baseline runs live at that
+baseline, so its "supported from version N" side is reproduced, not just
+quoted; its "unsupported below N" side rests on the documentation alone,
+because the suite pins no older image. A version above the baseline is run on
+both sides: the baseline lane reproduces the rejection, and a lane at that
+version (Oracle 23ai, PostgreSQL 17, SQL Server 2025) reproduces the support.
 
 **MySQL** — the reference manual gives the introducing release for each:
 
@@ -560,9 +561,9 @@ as new in Oracle Database 23ai. The `UPDATE ... FROM` direct join and the
 multi-row `VALUES` table value constructor are new in 23ai, per
 [Explore SQL Features in Oracle Database 23ai](https://docs.oracle.com/en/learn/db23ai-sql-features/index.html);
 both are live-verified on Free 23ai, and their rejection on XE 21.3.0.
-`DELETE ... USING` is the exception to the first sentence above: that material
+`DELETE ... USING` is the exception to the first sentence above: that tutorial
 shows only the `FROM` form of 23ai's direct-join `DELETE`, so its floor rests on
-the live run alone — Free 23ai deletes the joined rows, XE 21.3.0 rejects the
+the live runs — Free 23ai deletes the joined rows, XE 21.3.0 rejects the
 statement.
 
 **PostgreSQL** — the
