@@ -22,7 +22,7 @@ public sealed class Oracle23aiFixture : IAsyncLifetime, IDatabaseFixture
     private const string Database = "FREEPDB1";
 
     private readonly IContainer _container = new ContainerBuilder()
-        .WithImage("gvenzl/oracle-free:23-slim-faststart")
+        .WithImage("gvenzl/oracle-free:23.4-slim-faststart")
         .WithPortBinding(1521, assignRandomHostPort: true)
         .WithEnvironment("ORACLE_PASSWORD", Password)
         .WithEnvironment("APP_USER", Username)
