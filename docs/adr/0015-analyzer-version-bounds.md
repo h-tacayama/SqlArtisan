@@ -132,11 +132,18 @@ declared version, or with none the `BaselineVersion`, at or past the floor is
 silent. Below it the rule still reports `SQLA0102`, not `SQLA0101`: the
 version-bound message's remedy is a `sqlartisan_construct_*` override, which a
 context rule never consults, since the construct itself is supported. The
-seed and live-proof discipline above applies unchanged: the three Oracle floors
-lift a rejection at the baseline, so each has a 23ai acceptance twin
-(`Oracle23aiTests.MultiRowValues_Executes`, `JoinedUpdateFrom_Executes`,
-`DeleteUsing_Executes`); the SQLite floor sits below the baseline and rests on
-the release notes, as the other SQLite rows do.
+seed and live-proof discipline above applies, with the one exception below:
+the three Oracle floors lift a rejection at the baseline, so each has a 23ai
+acceptance twin (`Oracle23aiTests.MultiRowValues_Executes`,
+`JoinedUpdateFrom_Executes`, `DeleteUsing_Executes`); the SQLite floor sits
+below the baseline and rests on the release notes, as the other SQLite rows do.
+
+`DELETE ... USING` is that exception: criterion (a)'s documentation does not
+give its version. The `DELETE` reference page that documents the clause is the
+26 edition, so its 23 rests on live runs — XE 21.3.0 rejects the statement, and
+Free 23ai deletes the joined rows on a pinned 23.4 image and on the lane's 23.26
+alike. The 23.4 run was a one-off; the lane's floating tag keeps proving 23.26
+only.
 
 ## Rejected alternatives
 
