@@ -967,8 +967,8 @@ target in `FROM`, or `From(...)` throws; on SQL Server a joined `UPDATE` must to
 at `Build()`. Every other wrong-dialect spelling is emitted as written and rejected
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
-Oracle before the release that added `UPDATE … FROM` and `DELETE … USING` takes
-none of the joined forms above.
+Oracle and SQLite before the releases that added `UPDATE … FROM` take none of
+the joined forms above, and SQLite has no joined `DELETE` at any version.
 
 The MySQL / SQL Server `DELETE ... FROM` and MySQL's join-before-`SET` stages
 do not offer `Returning(...)`, since neither engine has `RETURNING`; on an

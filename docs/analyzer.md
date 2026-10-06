@@ -785,9 +785,9 @@ rules that read back up the chain stay silent there.
 
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
-Server parse. On PostgreSQL, and on Oracle at or past its
-[floor](#version-bound-constructs), write the join as `Using(...)`; SQLite and
-Oracle below that floor take neither form.
+Server parse. On Oracle at or past its [floor](#version-bound-constructs), and
+on PostgreSQL, write the join as `Using(...)`; Oracle below that floor and
+SQLite take neither form.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any

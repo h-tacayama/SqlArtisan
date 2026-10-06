@@ -1404,8 +1404,8 @@ target in `FROM`, or `From(...)` throws; on SQL Server a joined `UPDATE` must to
 at `Build()`. Every other wrong-dialect spelling is emitted as written and rejected
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
-Oracle before the release that added `UPDATE … FROM` and `DELETE … USING` takes
-none of the joined forms above.
+Oracle and SQLite before the releases that added `UPDATE … FROM` take none of
+the joined forms above, and SQLite has no joined `DELETE` at any version.
 
 The MySQL / SQL Server `DELETE ... FROM` and MySQL's join-before-`SET` stages
 do not offer `Returning(...)`, since neither engine has `RETURNING`; on an
@@ -4320,9 +4320,9 @@ rules that read back up the chain stay silent there.
 
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
-Server parse. On PostgreSQL, and on Oracle at or past its
-[floor](#version-bound-constructs), write the join as `Using(...)`; SQLite and
-Oracle below that floor take neither form.
+Server parse. On Oracle at or past its [floor](#version-bound-constructs), and
+on PostgreSQL, write the join as `Using(...)`; Oracle below that floor and
+SQLite take neither form.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any

@@ -325,6 +325,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   header, which drops one phantom entry from its baseline. (#614)
 
 ### Docs
+- The joined and correlated `UPDATE`/`DELETE` docs no longer suggest a
+  correlated subquery or a `MERGE` in place of a joined form Oracle or SQLite
+  lacks below its floor; they say the form is unavailable there. For a
+  correlated `UPDATE`/`DELETE` on SQL Server they now say to re-list the aliased
+  target in `From(...)` and keep the subquery, instead of a joined form or a
+  `MERGE`, and `docs/analyzer.md` no longer names `.Using(...)`, which
+  `Build(Dbms.SqlServer)` rejects. (#634)
 - The joined `UPDATE`/`DELETE` docs and XML summaries name Oracle beside
   PostgreSQL for `UPDATE ... FROM` and `DELETE ... USING`, from the release the
   version-bound register gives; they named PostgreSQL (and SQLite) alone. (#582)
