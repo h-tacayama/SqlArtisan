@@ -24,8 +24,7 @@ public class SqlMapperSignatureTests
         // A pure conversion has nothing to await.
         "SqlParametersExtensions.ToDynamicParameters",
 
-        // Dapper's own DbConnection twin is async-only: the DbDataReader exists for
-        // ReadAsync, which a blocking ExecuteReader has no use for (#639).
+        // Dapper ships this receiver on the async verb only; the mirror follows Dapper (#639).
         "SqlMapper.ExecuteReaderAsync(DbConnection)",
     ];
 
