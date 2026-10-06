@@ -621,6 +621,25 @@ public class ContextRuleAnalyzerTests
             var q = {|#0:DeleteFrom(t).Using(s)|}.Where(t.Dep == s.Id);
             """, "oracle");
 
+    // Oracle 23ai added DELETE ... USING; the baseline (21) still reports, as above.
+    [Fact]
+    public Task DeleteUsing_Oracle_BelowFloor_ReportsSqla0102() =>
+        RunAsync(
+            Usage("""
+                var q = {|#0:DeleteFrom(t).Using(s)|}.Where(t.Dep == s.Id);
+                """),
+            AnalyzerVerifier.EditorConfig("oracle", "21"),
+            expectWarning: true);
+
+    [Fact]
+    public Task DeleteUsing_Oracle_AtFloor_StaysSilent() =>
+        RunAsync(
+            AnalyzerVerifier.Unmarked(Usage("""
+                var q = DeleteFrom(t).Using(s).Where(t.Dep == s.Id);
+                """)),
+            AnalyzerVerifier.EditorConfig("oracle", "23"),
+            expectWarning: false);
+
     [Fact]
     public Task DeleteUsing_PostgreSql_StaysSilent() =>
         RunSilent("""

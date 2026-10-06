@@ -462,6 +462,7 @@ public sealed class DialectUsageAnalyzer : DiagnosticAnalyzer
             (ContextRules.DmlShape.JoinedUpdateFrom, TargetDbms.Oracle, DialectMatrix.V("23")),
             (ContextRules.DmlShape.JoinedUpdateFrom, TargetDbms.Sqlite, DialectMatrix.V("3.33")),
             (ContextRules.DmlShape.InsertValuesRow, TargetDbms.Oracle, DialectMatrix.V("23")),
+            (ContextRules.DmlShape.DeleteUsing, TargetDbms.Oracle, DialectMatrix.V("23")),
         ];
 
     private static EngineVersion? AcceptedFrom(ContextRules.DmlShape shape, TargetDbms dbms)

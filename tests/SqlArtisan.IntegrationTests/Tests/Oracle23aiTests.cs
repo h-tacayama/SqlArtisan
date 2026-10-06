@@ -227,6 +227,32 @@ public sealed class Oracle23aiTests : IClassFixture<Oracle23aiFixture>
         transaction.Rollback();
     }
 
+    // #582: the acceptance twin behind SQLA0102's Oracle 23 floor for DELETE ... USING,
+    // as SqlArtisan emits it. Alice's two orders go and the other three stay, so the
+    // join filters as PostgreSQL's does rather than deleting every row.
+    [Fact]
+    public void DeleteUsing_Executes()
+    {
+        OrdersTable o = new("o");
+        UsersTable u = new("u");
+        using IDbConnection connection = _fixture.OpenConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        int deleted = connection.Execute(
+            DeleteFrom(o).Using(u).Where((o.UserId == u.Id) & (u.Name == "Alice")),
+            transaction);
+        int[] remaining =
+        [
+            .. connection.Query<int>(
+                "SELECT id FROM orders ORDER BY id",
+                transaction: transaction),
+        ];
+
+        Assert.Equal(2, deleted);
+        Assert.Equal([3, 4, 5], remaining);
+        transaction.Rollback();
+    }
+
     [Fact]
     public void JoinedUpdateJoinForm_IsRejectedByTheEngine()
     {

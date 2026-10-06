@@ -1,7 +1,8 @@
 namespace SqlArtisan.Internal;
 
-// PostgreSQL's `DELETE FROM target USING a, b WHERE ...` source list. Distinct
-// from MERGE's single-source `MergeUsingClause` — here USING takes a comma list.
+// The `DELETE FROM target USING a, b WHERE ...` source list (Oracle from a specific
+// release, PostgreSQL). Distinct from MERGE's single-source `MergeUsingClause` —
+// here USING takes a comma list.
 internal sealed class DeleteUsingClause : SqlPart
 {
     private readonly TableReference[] _tables;

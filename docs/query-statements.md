@@ -902,9 +902,10 @@ SqlStatement sql =
 Update or delete rows using columns from other tables. Each dialect has its own
 grammar for this — the SQL you write is the SQL that runs.
 
-**`UPDATE … FROM` (PostgreSQL, SQLite):** the target stays in the
+**`UPDATE … FROM` (Oracle, PostgreSQL, SQLite):** the target stays in the
 `UPDATE`, the other tables go in `FROM`, and the join predicate lives in
-`WHERE`:
+`WHERE`. Oracle and SQLite added the form in a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs):
 
 ```csharp
 AcctTable t = new("t");
@@ -945,8 +946,10 @@ Update(t)
 // ON `t`.id = `u`.id SET `t`.total = `u`.amount
 ```
 
-Joined `DELETE` follows the same split — PostgreSQL uses `USING`, MySQL and SQL
-Server re-list the target after `FROM`:
+Joined `DELETE` follows the same split — Oracle and PostgreSQL use `USING`
+(Oracle from a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)),
+MySQL and SQL Server re-list the target after `FROM`:
 
 ```csharp
 DeleteFrom(t).Using(u).Where(t.Id == u.Id).Build(Dbms.PostgreSql);
@@ -964,8 +967,8 @@ target in `FROM`, or `From(...)` throws; on SQL Server a joined `UPDATE` must to
 at `Build()`. Every other wrong-dialect spelling is emitted as written and rejected
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
-On Oracle, express the shape as a correlated subquery or a
-[`MERGE`](#merge-statement).
+On Oracle before the release that added `UPDATE … FROM` and `DELETE … USING`,
+express the shape as a correlated subquery or a [`MERGE`](#merge-statement).
 
 The MySQL / SQL Server `DELETE ... FROM` and MySQL's join-before-`SET` stages
 do not offer `Returning(...)`, since neither engine has `RETURNING`; on an

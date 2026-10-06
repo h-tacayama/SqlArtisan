@@ -121,9 +121,10 @@ diagnostic `SQLA0101`.**
 
 A context rule (`SQLA0102`, ADR 0013) names the dialects that reject a
 position, and a dialect can stop rejecting it at a version: Oracle 23ai added
-`UPDATE ... FROM` and the multi-row `VALUES` table value constructor, and
-SQLite 3.33 added `UPDATE ... FROM`. Each such pairing carries a floor
-(`DialectUsageAnalyzer.DmlShapeFloors`), with a row and a source in
+`UPDATE ... FROM`, the multi-row `VALUES` table value constructor and
+`DELETE ... USING`, and SQLite 3.33 added `UPDATE ... FROM`. Each such
+pairing carries a floor (`DialectUsageAnalyzer.DmlShapeFloors`), with a row and
+a source in
 `docs/analyzer.md`'s version-bound register that
 `ContextRuleDocsTests.EveryDmlShapeFloor_HasARegisterRow` ties to the code. It
 is read exactly as a `Bounds` row is: the
@@ -131,11 +132,18 @@ declared version, or with none the `BaselineVersion`, at or past the floor is
 silent. Below it the rule still reports `SQLA0102`, not `SQLA0101`: the
 version-bound message's remedy is a `sqlartisan_construct_*` override, which a
 context rule never consults, since the construct itself is supported. The
-seed and live-proof discipline above applies unchanged: both Oracle floors lift
-a rejection at the baseline, so each has a 23ai acceptance twin
-(`Oracle23aiTests.MultiRowValues_Executes`, `JoinedUpdateFrom_Executes`); the
-SQLite floor sits below the baseline and rests on the release notes, as the
-other SQLite rows do.
+seed and live-proof discipline above applies, with the one exception below:
+the three Oracle floors lift a rejection at the baseline, so each has a 23ai
+acceptance twin (`Oracle23aiTests.MultiRowValues_Executes`,
+`JoinedUpdateFrom_Executes`, `DeleteUsing_Executes`); the SQLite floor sits
+below the baseline and rests on the release notes, as the other SQLite rows do.
+
+`DELETE ... USING` is that exception: criterion (a)'s documentation does not
+give its version. The `DELETE` reference page that documents the clause is the
+26 edition, so its 23 rests on live runs — XE 21.3.0 rejects the statement, and
+Free 23ai deletes the joined rows on a pinned 23.4 image and on 23.26.3, the
+release the lane's floating tag resolved to then. The 23.4 run was a one-off;
+the lane keeps proving only the release its tag resolves to.
 
 ## Rejected alternatives
 

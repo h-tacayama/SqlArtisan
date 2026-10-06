@@ -1,9 +1,9 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>UPDATE ... SET ... FROM aux</c> (the PostgreSQL / SQLite
-/// form, and — when the target is re-listed here — the SQL Server form): join
-/// further tables, filter with <c>WHERE</c>, add <c>RETURNING</c>, or build.
+/// The state after <c>UPDATE ... SET ... FROM aux</c> (PostgreSQL; Oracle and SQLite from a
+/// specific release; SQL Server when the target is re-listed here): join further tables, filter
+/// with <c>WHERE</c>, add <c>RETURNING</c>, or build.
 /// </summary>
 public interface IUpdateBuilderFrom : ISqlBuilder, IReturning
 {
