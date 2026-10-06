@@ -4096,7 +4096,8 @@ both are live-verified on Free 23ai, and their rejection on XE 21.3.0.
 `DELETE ... USING` is in the
 [SQL Language Reference's `DELETE` page](https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/DELETE.html),
 whose `from_using_clause` opens with `FROM` or `USING`; Free 23ai deletes the
-joined rows, and XE 21.3.0 rejects the statement.
+joined rows — on 23.26 and on a pinned 23.4 image alike (#633) — and XE 21.3.0
+rejects the statement.
 
 **PostgreSQL** — the
 [version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)
