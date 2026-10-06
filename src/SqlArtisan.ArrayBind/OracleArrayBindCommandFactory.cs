@@ -6,6 +6,8 @@ namespace SqlArtisan.ArrayBind;
 
 internal static class OracleArrayBindCommandFactory
 {
+    // A SELECT passes through unguarded: ODP.NET already fails an array-bound query loudly
+    // (ORA-03146, pinned by the Oracle integration suite).
     internal static OracleCommand Create(
         OracleConnection connection,
         IReadOnlyCollection<ISqlBuilder> statements,

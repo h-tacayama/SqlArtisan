@@ -129,6 +129,10 @@ Misuse fails loudly at the call, before anything reaches the database:
   parameter :... binds with Direction=..., so execute the statements one at a
   time (e.g. SqlArtisan.Dapper's ExecuteReturningInto) instead.`
 
+A `SELECT` is not rejected at the call, since the driver already refuses it:
+an array-bound query fails with `ORA-03146: invalid buffer length for TTC
+field` (Oracle XE 21c). Read rows through `SqlArtisan.Dapper` instead.
+
 `SqlArtisan.ArrayBind` is an optional companion package — the core stays a
 pure query builder. The package is a host for provider-specific array-bind
 paths; Oracle is the first, and other providers may join it.
