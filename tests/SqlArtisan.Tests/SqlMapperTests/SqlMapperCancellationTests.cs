@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using SqlArtisan.Dapper;
@@ -67,6 +68,8 @@ public class SqlMapperCancellationTests
             (c, b, t) => c.QueryMultipleAsync(b, cancellationToken: t)),
         ("SqlMapper.ExecuteReaderAsync",
             (c, b, t) => c.ExecuteReaderAsync(b, cancellationToken: t)),
+        ("SqlMapper.ExecuteReaderAsync(DbConnection)",
+            (c, b, t) => ((DbConnection)c).ExecuteReaderAsync(b, cancellationToken: t)),
     ];
 
     /// <summary>
@@ -107,7 +110,7 @@ public class SqlMapperCancellationTests
 
     /// <summary>
     /// A fresh chain per call: <c>Build()</c> finishes a builder, so one instance
-    /// cannot serve all 21 verbs.
+    /// cannot serve all 22 verbs.
     /// </summary>
     private static ISqlBuilder Query()
     {

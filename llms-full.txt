@@ -5944,6 +5944,10 @@ IEnumerable<UserDto> recent = await connection.QueryAsync<UserDto>(
     cancellationToken: HttpContext.RequestAborted);
 ```
 
+As in Dapper, `ExecuteReaderAsync` on a connection typed as `DbConnection`
+(not `IDbConnection`) returns a `DbDataReader`, so its rows can be read with
+`ReadAsync` too.
+
 The multi-map `Query` overloads and the `CommandDefinition` overloads aren't
 mirrored, so build the statement and hand `sql.Text` /
 `sql.Parameters.ToDynamicParameters()` to Dapper yourself for those —

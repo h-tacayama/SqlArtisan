@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Reflection;
 using DapperMapper = SqlArtisan.Dapper.SqlMapper;
 
@@ -16,11 +17,15 @@ public class SqlMapperSignatureTests
     /// <summary>
     /// Methods deliberately outside the sync/async mirror, keyed as
     /// <see cref="Key"/> keys them. An entry is the decision not to write the other
-    /// half, so it carries the reason: a pure conversion has nothing to await.
+    /// half, so it carries the reason.
     /// </summary>
     private static readonly string[] UnpairedMethods =
     [
+        // A pure conversion has nothing to await.
         "SqlParametersExtensions.ToDynamicParameters",
+
+        // Dapper ships this receiver on the async verb only; the mirror follows Dapper (#639).
+        "SqlMapper.ExecuteReaderAsync(DbConnection)",
     ];
 
     /// <summary>
@@ -176,14 +181,20 @@ public class SqlMapperSignatureTests
         !UnpairedMethods.Contains(Key(method));
 
     /// <summary>
-    /// A generic verb and its <see cref="Type"/>-taking and <see langword="dynamic"/>
-    /// siblings share a name; the arity tag is what tells them apart. Nothing else in
-    /// a class collides, so type plus name plus tag is unique across the assembly.
+    /// Same-named verbs differ by arity (generic, <see cref="Type"/>-taking, dynamic) or by
+    /// receiver (<c>ExecuteReaderAsync</c>'s <see cref="DbConnection"/> twin); nothing else
+    /// collides, so type plus name plus tags is unique across the assembly.
     /// </summary>
     private static string Key(MethodInfo method) => Qualify(method, method.Name);
 
     private static string Qualify(MethodInfo method, string name) =>
-        $"{method.DeclaringType!.Name}.{name}{ArityTag(method)}";
+        $"{method.DeclaringType!.Name}.{name}{ReceiverTag(method)}{ArityTag(method)}";
+
+    private static string ReceiverTag(MethodInfo method) =>
+        method.GetParameters() is [{ ParameterType: Type receiver }, ..]
+            && receiver == typeof(DbConnection)
+            ? "(DbConnection)"
+            : string.Empty;
 
     private static string ArityTag(MethodInfo method) =>
         method.IsGenericMethodDefinition ? "<T>"
