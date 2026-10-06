@@ -968,9 +968,7 @@ at `Build()`. Every other wrong-dialect spelling is emitted as written and rejec
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
 On Oracle before the release that added `UPDATE … FROM` and `DELETE … USING`,
-express the shape as a correlated subquery or a [`MERGE`](#merge-statement); on
-SQLite, a joined `DELETE`, and a joined `UPDATE` before its `FROM` release, take
-a correlated subquery.
+express the shape as a correlated subquery or a [`MERGE`](#merge-statement).
 
 The MySQL / SQL Server `DELETE ... FROM` and MySQL's join-before-`SET` stages
 do not offer `Returning(...)`, since neither engine has `RETURNING`; on an

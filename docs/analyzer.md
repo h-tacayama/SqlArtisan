@@ -815,8 +815,8 @@ var q = DeleteFrom(u).Using(o).Where(u.Id == o.UserId);
 join precedes `SET`. No other dialect has it: PostgreSQL takes
 `Set(...).From(...)` instead, as do Oracle and SQLite at or past their
 [floors](#version-bound-constructs), SQL Server re-lists the target in
-`From(...)`, and Oracle and SQLite below their floors take a correlated
-subquery.
+`From(...)`, and Oracle below its floor takes a correlated subquery; SQLite
+below its floor has no joined `UPDATE`.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
@@ -828,7 +828,8 @@ var q = Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 30);
 a `FROM` clause on `UPDATE`, as do Oracle and SQLite at or past their
 [floors](#version-bound-constructs); MySQL does not, and nor do Oracle and
 SQLite below them. Use the join-before-`SET` form on MySQL, and a correlated
-subquery on Oracle and SQLite below their floors.
+subquery on Oracle below its floor; SQLite below its floor has no joined
+`UPDATE`.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
