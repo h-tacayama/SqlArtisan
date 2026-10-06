@@ -128,6 +128,40 @@ public class OracleArrayBindTests
     }
 
     [Fact]
+    public void ExecuteArrayBind_ParameterlessStatements_ThrowsArgumentException()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+        List<ISqlBuilder> statements =
+        [
+            Update(t).Set(t.Qty == t.Qty),
+            Update(t).Set(t.Qty == t.Qty),
+        ];
+
+        ArgumentException ex = Assert.Throws<ArgumentException>(() =>
+            OracleArrayBindCommandFactory.Create(connection, statements, transaction: null));
+
+        Assert.Equal(
+            "ExecuteArrayBind cannot run 2 statements that bind no value, since ODP.NET runs a "
+                + "parameterless command only once; execute each statement on its own (e.g. "
+                + "SqlArtisan.Dapper's Execute) instead.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void ExecuteArrayBind_OneParameterlessStatement_BuildsTheCommand()
+    {
+        using OracleConnection connection = new();
+        ArrayBindTestTable t = new();
+
+        using OracleCommand command = OracleArrayBindCommandFactory.Create(
+            connection, [Update(t).Set(t.Qty == t.Qty)], transaction: null);
+
+        Assert.Equal(1, command.ArrayBindCount);
+        Assert.Empty(command.Parameters);
+    }
+
+    [Fact]
     public void ExecuteArrayBind_BindNull_BindsDbNullAtThatPosition()
     {
         using OracleConnection connection = new();

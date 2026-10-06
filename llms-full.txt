@@ -6137,6 +6137,10 @@ Misuse fails loudly at the call, before anything reaches the database:
 - A `dbType` hint disagrees with a real value at the same position —
   `ExecuteArrayBind cannot bind parameter :... as OracleDbType.... from its
   DbType.... hint; ... values bound there map to OracleDbType.... instead.`
+- More than one statement, none binding a value — `ExecuteArrayBind cannot
+  run ... statements that bind no value, since ODP.NET runs a parameterless
+  command only once; execute each statement on its own (e.g.
+  SqlArtisan.Dapper's Execute) instead.`
 - A statement carries a `RETURNING ... INTO` output parameter —
   `ExecuteArrayBind does not support RETURNING ... INTO output parameters;
   parameter :... binds with Direction=..., so execute the statements one at a

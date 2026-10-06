@@ -221,25 +221,24 @@ public sealed class OracleArrayBindTests : IClassFixture<OracleFixture>
         transaction.Rollback();
     }
 
-    // With no parameter to carry an array, ArrayBindCount alone decides how many times
-    // the statement runs; the row count shows it ran once per statement (#640).
+    // The engine fact ExecuteArrayBind's parameterless-batch guard rests on: with no
+    // parameter to carry an array, ODP.NET runs the command once, not ArrayBindCount times.
     [Fact]
-    public void ExecuteArrayBind_ParameterlessStatements_RunsOncePerStatement()
+    public void ArrayBindCount_WithoutParameters_RunsTheCommandOnce()
     {
         UsersTable u = new();
         using OracleConnection connection = (OracleConnection)_fixture.OpenConnection();
         using OracleTransaction transaction = connection.BeginTransaction();
 
         long rows = connection.ExecuteScalar<long>(Select(Count(u.Id)).From(u), transaction);
-        List<ISqlBuilder> statements =
-        [
-            Update(u).Set(u.Age == u.Age),
-            Update(u).Set(u.Age == u.Age),
-        ];
+        using OracleCommand command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "UPDATE users SET age = age";
+        command.ArrayBindCount = 2;
 
-        int updated = connection.ExecuteArrayBind(statements, transaction);
+        int updated = command.ExecuteNonQuery();
 
-        Assert.Equal(2 * rows, updated);
+        Assert.Equal(rows, updated);
 
         transaction.Rollback();
     }

@@ -247,6 +247,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   emits its marker in each (`UPDATE t SET qty = :0 WHERE id = :0`), and bound by
   position the repeated marker had no parameter of its own; the same statement
   already ran through `SqlArtisan.Dapper`, which binds by name. (#640)
+- `ExecuteArrayBind` rejects more than one statement when none binds a value:
+  ODP.NET runs a parameterless command once whatever its `ArrayBindCount`, so
+  all but the first statement silently did not run (live on Oracle XE 21c). A
+  single parameterless statement still runs. (#640)
 - An aliased `UPDATE`/`DELETE` target on SQL Server throws a message that
   names a remedy the statement can take: an unaliased target, or the aliased
   target re-listed in `From(...)` when a subquery correlates with it. It told
