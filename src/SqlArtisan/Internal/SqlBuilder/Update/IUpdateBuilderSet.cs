@@ -1,16 +1,16 @@
 namespace SqlArtisan.Internal;
 
 /// <summary>
-/// The state after <c>UPDATE ... SET</c>: join other tables with <c>FROM</c> (PostgreSQL / SQLite,
-/// Oracle from a specific release, and SQL Server when the target is re-listed), narrow with
-/// <c>WHERE</c>, add <c>RETURNING</c>, or build.
+/// The state after <c>UPDATE ... SET</c>: join other tables with <c>FROM</c> (PostgreSQL;
+/// Oracle and SQLite from a specific release; SQL Server when the target is re-listed), narrow
+/// with <c>WHERE</c>, add <c>RETURNING</c>, or build.
 /// </summary>
 public interface IUpdateBuilderSet : ISqlBuilder, IReturning
 {
     /// <summary>
-    /// Appends <c>FROM table, ...</c> naming the tables the update draws from (PostgreSQL / SQLite
-    /// <c>UPDATE ... FROM</c>, and Oracle's from a specific release). Re-list the target table here
-    /// for the SQL Server form (its alias then leads the statement).
+    /// Appends <c>FROM table, ...</c> naming the tables the update draws from (PostgreSQL's
+    /// <c>UPDATE ... FROM</c>, and Oracle's and SQLite's from a specific release). Re-list the
+    /// target table here for the SQL Server form (its alias then leads the statement).
     /// </summary>
     /// <param name="tables">The tables to join into the update; re-listing the target selects the SQL Server spelling.</param>
     /// <returns>The builder positioned to join further tables, filter with <c>WHERE</c>, add <c>RETURNING</c>, or build.</returns>

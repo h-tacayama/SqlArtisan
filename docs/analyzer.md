@@ -812,10 +812,10 @@ var q = DeleteFrom(u).Using(o).Where(u.Id == o.UserId);
 
 **A join placed directly on an `UPDATE` target.**
 `Update(t).InnerJoin(...).On(...).Set(...)` is MySQL's spelling, where the
-join precedes `SET`. No other dialect has it: PostgreSQL and SQLite take
-`Set(...).From(...)` instead, SQL Server re-lists the target in `From(...)`,
-and Oracle takes `Set(...).From(...)` at or past its
-[floor](#version-bound-constructs) and a correlated subquery below it.
+join precedes `SET`. No other dialect has it: PostgreSQL takes
+`Set(...).From(...)` instead, as do Oracle and SQLite at or past their
+[floors](#version-bound-constructs), SQL Server re-lists the target in
+`From(...)`, and Oracle below its floor takes a correlated subquery.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any

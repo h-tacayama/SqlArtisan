@@ -904,7 +904,7 @@ grammar for this — the SQL you write is the SQL that runs.
 
 **`UPDATE … FROM` (Oracle, PostgreSQL, SQLite):** the target stays in the
 `UPDATE`, the other tables go in `FROM`, and the join predicate lives in
-`WHERE`. Oracle added the form in a specific release — see the
+`WHERE`. Oracle and SQLite added the form in a specific release — see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs):
 
 ```csharp

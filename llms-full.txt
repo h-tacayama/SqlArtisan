@@ -1341,7 +1341,7 @@ grammar for this — the SQL you write is the SQL that runs.
 
 **`UPDATE … FROM` (Oracle, PostgreSQL, SQLite):** the target stays in the
 `UPDATE`, the other tables go in `FROM`, and the join predicate lives in
-`WHERE`. Oracle added the form in a specific release — see the
+`WHERE`. Oracle and SQLite added the form in a specific release — see the
 [version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs):
 
 ```csharp
@@ -4347,10 +4347,10 @@ var q = DeleteFrom(u).Using(o).Where(u.Id == o.UserId);
 
 **A join placed directly on an `UPDATE` target.**
 `Update(t).InnerJoin(...).On(...).Set(...)` is MySQL's spelling, where the
-join precedes `SET`. No other dialect has it: PostgreSQL and SQLite take
-`Set(...).From(...)` instead, SQL Server re-lists the target in `From(...)`,
-and Oracle takes `Set(...).From(...)` at or past its
-[floor](#version-bound-constructs) and a correlated subquery below it.
+join precedes `SET`. No other dialect has it: PostgreSQL takes
+`Set(...).From(...)` instead, as do Oracle and SQLite at or past their
+[floors](#version-bound-constructs), SQL Server re-lists the target in
+`From(...)`, and Oracle below its floor takes a correlated subquery.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
