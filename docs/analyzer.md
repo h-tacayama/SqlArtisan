@@ -816,8 +816,8 @@ var q = DeleteFrom(u).Using(o).Where(u.Id == o.UserId);
 join precedes `SET`. No other dialect has it: PostgreSQL takes
 `Set(...).From(...)` instead, as do Oracle and SQLite at or past their
 [floors](#version-bound-constructs), and SQL Server re-lists the target in
-`From(...)`. Below their floors, Oracle has no `UPDATE ... FROM` and SQLite has
-no joined `UPDATE`.
+`From(...)`. Oracle and SQLite below their floors take none of these joined
+`UPDATE` forms.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
@@ -828,8 +828,8 @@ var q = Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 30);
 **`UPDATE ... SET ... FROM`.** The mirror case: PostgreSQL and SQL Server take
 a `FROM` clause on `UPDATE`, as do Oracle and SQLite at or past their
 [floors](#version-bound-constructs); MySQL does not, and nor do Oracle and
-SQLite below them. Use the join-before-`SET` form on MySQL; SQLite below its
-floor has no joined `UPDATE`.
+SQLite below them. Use the join-before-`SET` form on MySQL; Oracle and SQLite
+below their floors take no joined `UPDATE` form.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
@@ -1076,9 +1076,9 @@ var q = DeleteFrom(u)
 The fix is the one the run-time guard demands: alias the target
 (`new UsersTable("u")`). On MySQL, Oracle, PostgreSQL, and SQLite the
 aliased target is the correlated form; on SQL Server an `UPDATE`/`DELETE`
-target cannot be aliased at all — write the joined form (`.From(...)` /
-`.Using(...)` with joins) instead. A MERGE target takes its alias on every
-dialect, and MERGE has no joined form.
+target cannot be aliased directly — re-list the aliased target in
+`From(...)`, which supplies T-SQL's alias, and keep the subquery. A MERGE
+target takes its alias on every dialect, and MERGE has no joined form.
 
 The diagnostic is **advisory duplication** of the `Build()` guard:
 suppressing it does not stop the exception — the statement still fails to

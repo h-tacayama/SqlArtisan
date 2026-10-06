@@ -895,7 +895,7 @@ SqlStatement sql =
 | DBMS | Correlated `UPDATE` / `DELETE` |
 |------|--------------------------------|
 | MySQL, Oracle, PostgreSQL, SQLite | Alias the target — `DeleteFrom(new UsersTable("u"))` — so the outer column renders qualified. |
-| SQL Server | The target cannot be aliased directly (aliasing throws at build); express the correlated shape as a [joined `UPDATE` / `DELETE`](#joined-update--delete) — the `FROM`-supplied alias is the T-SQL idiom — or a [`MERGE`](#merge-statement). |
+| SQL Server | The target cannot be aliased directly (aliasing throws at build); re-list the aliased target in `From(...)` — `DeleteFrom(u).From(u)`, T-SQL's way of aliasing it (see [joined `UPDATE` / `DELETE`](#joined-update--delete)) — and keep the subquery as written. |
 
 ### Joined UPDATE / DELETE
 
@@ -968,7 +968,7 @@ at `Build()`. Every other wrong-dialect spelling is emitted as written and rejec
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
 Oracle before the release that added `UPDATE … FROM` and `DELETE … USING` takes
-neither clause.
+none of the joined forms above.
 
 The MySQL / SQL Server `DELETE ... FROM` and MySQL's join-before-`SET` stages
 do not offer `Returning(...)`, since neither engine has `RETURNING`; on an
