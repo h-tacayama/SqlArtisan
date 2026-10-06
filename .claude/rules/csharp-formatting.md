@@ -138,6 +138,13 @@ the formatter cannot enforce it. `FormattingSweepTests` holds a line-ending
 `+`, `&&` or `||` at zero over `src/` and `tests/`, reading code outside
 literals and comments; any other operator's placement is review's to hold.)
 
+Every continuation line of one wrapped expression sits at the **same**
+indent, one level past the line it continues — a `+` line never steps in
+deeper than the `+` line above it. A wrapped string literal splits only where
+the line would otherwise pass the column limit, so each fragment fills its
+line rather than breaking mid-phrase. Neither is gated; the staircase this
+replaces was left in `OracleArrayBindCommandFactory.cs`'s messages (#640).
+
 ## Blank lines
 
 Blank-line *runs* are gated (IDE2000). The shapes the formatter cannot see:
