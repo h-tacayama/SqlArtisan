@@ -1404,8 +1404,8 @@ target in `FROM`, or `From(...)` throws; on SQL Server a joined `UPDATE` must to
 at `Build()`. Every other wrong-dialect spelling is emitted as written and rejected
 by the database; with the analyzer configured it is named first — see
 [Context rules](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#context-rules-sqla0102).
-On Oracle before the release that added `UPDATE … FROM` and `DELETE … USING`,
-express the shape as a correlated subquery or a [`MERGE`](#merge-statement).
+Oracle before the release that added `UPDATE … FROM` and `DELETE … USING` takes
+neither clause.
 
 The MySQL / SQL Server `DELETE ... FROM` and MySQL's join-before-`SET` stages
 do not offer `Returning(...)`, since neither engine has `RETURNING`; on an
@@ -4100,8 +4100,9 @@ both are live-verified on Free 23ai, and their rejection on XE 21.3.0.
 `DELETE ... USING` is in the
 [SQL Language Reference's `DELETE` page](https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/DELETE.html),
 whose `from_using_clause` opens with `FROM` or `USING`. That page is the 26
-edition, so the 23 comes from live runs: Free 23ai deletes the joined rows on
-a pinned 23.4 image and on 23.26 alike, and XE 21.3.0 rejects the statement.
+edition, so the 23 comes from live runs: XE 21.3.0 rejects the statement, and
+Free 23ai deleted the joined rows on a one-off 23.4 run and on 23.26.3, the
+release the sweep lane's floating tag resolved to then.
 
 **PostgreSQL** — the
 [version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)
@@ -4319,9 +4320,9 @@ rules that read back up the chain stay silent there.
 
 **A joined `DELETE`.** `DeleteFrom(t).From(t, ...)` leads with the target's
 bare alias (`DELETE t FROM ...`), the multi-table form only MySQL and SQL
-Server parse. On Oracle, PostgreSQL and SQLite, write the join as
-`Using(...)` (Oracle at or past its [floor](#version-bound-constructs), and
-PostgreSQL) or as a correlated `Where(...)` subquery.
+Server parse. On PostgreSQL, and on Oracle at or past its
+[floor](#version-bound-constructs), write the join as `Using(...)`; SQLite and
+Oracle below that floor take neither form.
 
 ```csharp
 // sqlartisan_syntax_postgresql = any
@@ -4333,10 +4334,10 @@ var q = DeleteFrom(u).From(u, o).Where(u.Id == o.UserId);
 and `DELETE ... USING` — so its construct-level entry is their union, and
 Oracle reads "supported" on the strength of its `MERGE` alone. Its `DELETE`
 takes `USING` only at or past its [floor](#version-bound-constructs); below it
-the statement is ORA-00933, so join through a correlated `Where(...)` subquery
-instead. Oracle at or past that floor, and PostgreSQL, are the dialects whose
-`DELETE` takes the clause. The entry already reads unsupported for MySQL and
-SQLite, so `SQLA0100` covers those two without a context rule, and SQL Server —
+the statement is ORA-00933. Oracle at or past that floor, and PostgreSQL, are
+the dialects whose `DELETE` takes the clause. The entry already reads
+unsupported for MySQL and SQLite, so `SQLA0100` covers those two without a
+context rule, and SQL Server —
 which has no `DELETE ... USING` either — is rejected at `Build(Dbms)`.
 
 ```csharp
@@ -4349,9 +4350,9 @@ var q = DeleteFrom(u).Using(o).Where(u.Id == o.UserId);
 `Update(t).InnerJoin(...).On(...).Set(...)` is MySQL's spelling, where the
 join precedes `SET`. No other dialect has it: PostgreSQL takes
 `Set(...).From(...)` instead, as do Oracle and SQLite at or past their
-[floors](#version-bound-constructs), SQL Server re-lists the target in
-`From(...)`, and Oracle below its floor takes a correlated subquery; SQLite
-below its floor has no joined `UPDATE`.
+[floors](#version-bound-constructs), and SQL Server re-lists the target in
+`From(...)`. Below their floors, Oracle has no `UPDATE ... FROM` and SQLite has
+no joined `UPDATE`.
 
 ```csharp
 // sqlartisan_syntax_sqlite = any
@@ -4362,9 +4363,8 @@ var q = Update(u).InnerJoin(o).On(u.Id == o.UserId).Set(u.Age == 30);
 **`UPDATE ... SET ... FROM`.** The mirror case: PostgreSQL and SQL Server take
 a `FROM` clause on `UPDATE`, as do Oracle and SQLite at or past their
 [floors](#version-bound-constructs); MySQL does not, and nor do Oracle and
-SQLite below them. Use the join-before-`SET` form on MySQL, and a correlated
-subquery on Oracle below its floor; SQLite below its floor has no joined
-`UPDATE`.
+SQLite below them. Use the join-before-`SET` form on MySQL; SQLite below its
+floor has no joined `UPDATE`.
 
 ```csharp
 // sqlartisan_syntax_mysql = any
