@@ -396,6 +396,13 @@ expand the array into an `IN` list, so `SqlArtisan.Dapper` does exactly this
 `SqlParameters` needs the same test, so criterion 3 fails for it: no root type
 names the distinction (#556).
 
+An execution layer also **binds by name**. One `BindValue` passed to several
+clauses emits the same marker in each (`BindValue`'s own summary documents
+it), so a statement's marker count can exceed its parameter count; bound by
+position, the repeated marker has no parameter of its own. Dapper sets
+`BindByName` on Oracle commands itself; a layer that builds its own
+`OracleCommand`, as `SqlArtisan.ArrayBind` does, must set it (#640).
+
 A **public** type in `Internal/` is public only because a signature hands it
 back, so it exposes **no public constructor**, and it is declared `internal`
 when no signature names it. Both are gated (`PublicSurfaceBoundaryTests`), along
