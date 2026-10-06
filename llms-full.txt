@@ -4102,7 +4102,7 @@ both are live-verified on Free 23ai, and their rejection on XE 21.3.0.
 whose `from_using_clause` opens with `FROM` or `USING`. That page is the 26
 edition, so the 23 comes from live runs: XE 21.3.0 rejects the statement, and
 Free 23ai deleted the joined rows on a one-off 23.4 run and on 23.26.3, the
-release the sweep lane's floating tag resolved to then.
+release the Free 23ai lane's floating tag resolved to then.
 
 **PostgreSQL** — the
 [version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)
