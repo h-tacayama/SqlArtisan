@@ -325,6 +325,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   header, which drops one phantom entry from its baseline. (#614)
 
 ### Docs
+- The joined `UPDATE`/`DELETE` docs and XML summaries name Oracle beside
+  PostgreSQL for `UPDATE ... FROM` and `DELETE ... USING`, from the release the
+  version-bound register gives; they named PostgreSQL (and SQLite) alone. (#582)
 - The Oracle hint example quotes the alias it names
   (`INDEX("u" users_ix)`): a bare `u` folds to `U`, matches no alias, and
   Oracle ignores the hint. (#614)

@@ -528,7 +528,8 @@ exactly as the table above does, but below the floor they report `SQLA0102`, not
 <summary>Sources for these version bounds — the vendor documentation behind each version</summary>
 
 Every minimum version above is drawn from the vendor's own documentation,
-linked below — and each is more than a citation.
+linked below — one Oracle row excepted, as noted there — and each is more than
+a citation.
 A version at or below a dialect's verified baseline runs live at that
 baseline, so its "supported from version N" side is reproduced, not just
 quoted; its "unsupported below N" side rests on the documentation alone,
@@ -563,9 +564,9 @@ multi-row `VALUES` table value constructor are new in 23ai, per
 both are live-verified on Free 23ai, and their rejection on XE 21.3.0.
 `DELETE ... USING` is in the
 [SQL Language Reference's `DELETE` page](https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/DELETE.html),
-whose `from_using_clause` opens with `FROM` or `USING`; Free 23ai deletes the
-joined rows — on 23.26 and on a pinned 23.4 image alike (#633) — and XE 21.3.0
-rejects the statement.
+whose `from_using_clause` opens with `FROM` or `USING`. That page is the 26
+edition, so the 23 comes from live runs: Free 23ai deletes the joined rows on
+a pinned 23.4 image and on 23.26 alike, and XE 21.3.0 rejects the statement.
 
 **PostgreSQL** — the
 [version 15 release notes](https://www.postgresql.org/docs/15/release-15.html)

@@ -902,9 +902,10 @@ SqlStatement sql =
 Update or delete rows using columns from other tables. Each dialect has its own
 grammar for this — the SQL you write is the SQL that runs.
 
-**`UPDATE … FROM` (PostgreSQL, SQLite):** the target stays in the
+**`UPDATE … FROM` (PostgreSQL, SQLite, Oracle):** the target stays in the
 `UPDATE`, the other tables go in `FROM`, and the join predicate lives in
-`WHERE`:
+`WHERE`. Oracle added the form in a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs):
 
 ```csharp
 AcctTable t = new("t");
@@ -945,8 +946,9 @@ Update(t)
 // ON `t`.id = `u`.id SET `t`.total = `u`.amount
 ```
 
-Joined `DELETE` follows the same split — PostgreSQL uses `USING`, MySQL and SQL
-Server re-list the target after `FROM`:
+Joined `DELETE` follows the same split — PostgreSQL and Oracle use `USING`
+(Oracle from a specific release — see the
+[version-bound register](https://github.com/h-tacayama/SqlArtisan/blob/main/docs/analyzer.md#version-bound-constructs)), MySQL and SQL Server re-list the target after `FROM`:
 
 ```csharp
 DeleteFrom(t).Using(u).Where(t.Id == u.Id).Build(Dbms.PostgreSql);
