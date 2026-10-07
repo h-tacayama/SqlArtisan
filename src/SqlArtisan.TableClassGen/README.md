@@ -233,8 +233,10 @@ invalid one, a disabled or hypothetical SQL Server one — records `false` rathe
 than `true`: no query can reach that index. On Oracle, one function-based index
 leaves every column of that table unrecorded.
 
-`HasDefault` records `false` for an explicit `DEFAULT NULL` on Oracle, SQLite
-and SQL Server, since it supplies nothing an `INSERT` can omit; PostgreSQL stores no default for it at all. MySQL
+`HasDefault` records `false` for an explicit `DEFAULT NULL` on Oracle,
+PostgreSQL, SQLite and SQL Server, since it supplies nothing an `INSERT` can omit
+(PostgreSQL stores one only for a type with a length or precision, as
+`NULL::character varying`, and none otherwise, which stays unknown). MySQL
 reports an explicit `DEFAULT NULL` as no default, which stays unknown, and a
 string default `'NULL'` as bare `NULL` text, which stays a default.
 

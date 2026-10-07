@@ -86,10 +86,10 @@ internal sealed class DbConnectionInfo(
         };
 
     // A run that skipped the table would leave its committed class to read as removed,
-    // and one that wrote it column-less would empty that class.
+    // and one that wrote only the visible columns would strip the rest from that class.
     public string NoVisibleColumnsMessage(string tableName) =>
-        $"No column of table '{tableName}' is visible to --user '{Username}'; grant "
-            + "SELECT on its columns, or name only the other tables with --tables";
+        $"Not every column of table '{tableName}' is visible to --user '{Username}'; "
+            + "grant SELECT on its columns, or name only the other tables with --tables";
 
     // The driver reports what it observed, never which option produced it, so the
     // options that built the connection string are named here.

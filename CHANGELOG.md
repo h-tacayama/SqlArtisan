@@ -418,14 +418,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `Binary`, so comparing one to a string raised `SQLA0205`.
   - A MySQL `YEAR` column is `Numeric`, not `Temporal`: MySQL compares it as a
     number, so `y == 2024` raised `SQLA0205` on a predicate that matches.
-  - An explicit `DEFAULT NULL` records `HasDefault = false` on Oracle, SQLite
-    and SQL Server. It supplies no value, so `SQLA0202` stayed silent on an
+  - An explicit `DEFAULT NULL` records `HasDefault = false` on Oracle,
+    PostgreSQL (a typed `NULL::character varying` included), SQLite and SQL
+    Server. It supplies no value, so `SQLA0202` stayed silent on an
     `INSERT` the engine rejects.
   - A PostgreSQL table with no columns gets a class with no properties. A full
-    run skipped it and exited 0, and `--tables` called it absent. A table whose
-    columns the user cannot see (a role holding only `DELETE` on it) fails the
-    run naming the table; it used to be skipped, so its committed class read as
-    removed.
+    run skipped it and exited 0, and `--tables` called it absent. A table
+    with no column visible to the user fails the run naming the table, and on
+    PostgreSQL so does one with any column hidden (a role holding only
+    `DELETE`, or `SELECT` on some columns); it used to be skipped, or written
+    with only the visible columns.
   - `--tables` on MySQL, PostgreSQL and SQL Server emits the table name as the
     catalog stores it, as SQLite already did: under SQL Server's
     case-insensitive collation, `--tables ORDERS` wrote `"ORDERS"` for

@@ -555,8 +555,9 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
                 () => new InformationSchemaCatalogReader(connInfo, false).GetAllTables());
 
             Assert.Equal(
-                "No column of table 'priv_probe' is visible to --user 'sqlartisan_cleaner'; "
-                    + "grant SELECT on its columns, or name only the other tables with --tables",
+                "Not every column of table 'priv_probe' is visible to --user "
+                    + "'sqlartisan_cleaner'; grant SELECT on its columns, or name only the other "
+                    + "tables with --tables",
                 ex.Message);
         }
         finally
@@ -564,6 +565,64 @@ public sealed class PostgreSqlTableClassGenTests : IClassFixture<PostgreSqlFixtu
             NpgsqlConnection.ClearAllPools();
             Execute("DROP TABLE priv_probe");
             Execute("DROP ROLE sqlartisan_cleaner");
+        }
+    }
+
+    // A column grant hides the other columns from information_schema, so writing
+    // the visible ones stripped the rest from the committed class and exited 0.
+    [Fact]
+    public void GenerateTables_PostgreSql_SomeColumnsInvisibleToTheUser_FailsNamingTheTable()
+    {
+        Execute("CREATE TABLE partial_probe (id INTEGER, v TEXT)");
+        Execute("CREATE ROLE sqlartisan_partial LOGIN PASSWORD 'Partial-Pw1!'");
+        Execute("GRANT SELECT (id) ON partial_probe TO sqlartisan_partial");
+        try
+        {
+            NpgsqlConnectionStringBuilder builder = new(_fixture.ConnectionString);
+            DbConnectionInfo connInfo = new(
+                Dbms.PostgreSql,
+                builder.Host!,
+                builder.Port,
+                builder.Database!,
+                "public",
+                "sqlartisan_partial",
+                "Partial-Pw1!");
+
+            CommandLineException ex = Assert.Throws<CommandLineException>(
+                () => new InformationSchemaCatalogReader(connInfo, false).GetAllTables());
+
+            Assert.Equal(
+                "Not every column of table 'partial_probe' is visible to --user "
+                    + "'sqlartisan_partial'; grant SELECT on its columns, or name only the other "
+                    + "tables with --tables",
+                ex.Message);
+        }
+        finally
+        {
+            NpgsqlConnection.ClearAllPools();
+            Execute("DROP TABLE partial_probe");
+            Execute("DROP ROLE sqlartisan_partial");
+        }
+    }
+
+    // PostgreSQL drops a bare DEFAULT NULL but keeps one cast to a type with a length
+    // or precision, which reads as a default unless the cast is seen through.
+    [Fact]
+    public void GenerateTables_PostgreSql_TypedDefaultNull_IsNoDefault()
+    {
+        Execute(
+            "CREATE TABLE default_null_probe (a VARCHAR(10) NOT NULL DEFAULT NULL, "
+                + "b INTEGER DEFAULT NULL, c NUMERIC(10,2) DEFAULT NULL, d TEXT DEFAULT 'NULL')");
+        try
+        {
+            CatalogTable table = new InformationSchemaCatalogReader(ConnInfo(), false)
+                .GetAllTables()
+                .Single(t => t.TableName == "default_null_probe");
+            Assert.Equal([false, null, false, true], table.Columns.Select(c => c.HasDefault));
+        }
+        finally
+        {
+            Execute("DROP TABLE default_null_probe");
         }
     }
 

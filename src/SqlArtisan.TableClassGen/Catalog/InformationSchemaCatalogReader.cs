@@ -105,8 +105,10 @@ internal sealed class InformationSchemaCatalogReader(
         }
 
         // A column-less table (PostgreSQL allows one) gets its class: skipped, the run
-        // exited 0 short a table. One whose columns the user cannot see is refused.
-        if (columns.Count == 0 && !HasNoColumns(conn, tableName))
+        // exited 0 short a table. One with a column the user cannot see is refused.
+        if (LiveColumnCount(conn, tableName) is { } live
+            ? columns.Count != live
+            : columns.Count == 0)
         {
             throw new CommandLineException(_connInfo.NoVisibleColumnsMessage(tableName));
         }
@@ -115,14 +117,14 @@ internal sealed class InformationSchemaCatalogReader(
         return true;
     }
 
-    // PostgreSQL lists a table on any privilege but a column only on a column-level
-    // one, so a role holding just DELETE sees no columns; pg_attribute tells the two
-    // apart. MySQL and SQL Server reject a table with no columns outright.
-    private bool HasNoColumns(IDbConnection conn, string tableName)
+    // PostgreSQL lists a table on any privilege but each column only on a privilege
+    // over it, and pg_attribute counts the columns whatever the grants. MySQL and SQL
+    // Server have no such count (null), and reject a table with no columns outright.
+    private long? LiveColumnCount(IDbConnection conn, string tableName)
     {
         if (_connInfo.Dbms != Dbms.PostgreSql)
         {
-            return false;
+            return null;
         }
 
         using IDbCommand command = conn.CreateCommand();
@@ -138,7 +140,7 @@ internal sealed class InformationSchemaCatalogReader(
         CatalogCommand.AddParameter(command, "@schema_name", _connInfo.Schema);
         CatalogCommand.AddParameter(command, "@table_name", tableName);
 
-        return Convert.ToInt64(command.ExecuteScalar()) == 0;
+        return Convert.ToInt64(command.ExecuteScalar());
     }
 
     private static bool? ReadIsNullable(IDataReader reader, int ordinal) =>

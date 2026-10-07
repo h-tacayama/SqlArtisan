@@ -610,9 +610,12 @@ count as failing. Each clause below is a shape A6 found (#645):
   case, as an unquoted identifier is stored.
 - **A full run writes every table it lists, or fails naming it.** A table with
   no columns is generated: PostgreSQL's was skipped while the run exited 0, and
-  `--tables` called it absent. One whose columns the user cannot see fails the
-  run: PostgreSQL lists a table on any privilege but a column only on a
-  column-level one, so writing it column-less emptied a committed class.
+  `--tables` called it absent. One with a column the user cannot see fails the
+  run: PostgreSQL lists a table on any privilege but each column only on a
+  privilege over it, so writing the visible ones stripped the rest from a
+  committed class; `pg_attribute` counts them whatever the grants. MySQL and
+  SQL Server have no such count, so only an empty list is caught there, open
+  in #645.
   Oracle's case folding still skips a quoted mixed-case table the listing
   returns, open in #645.
 - **Every check runs before the first write.** A guard, a catalog read, and
