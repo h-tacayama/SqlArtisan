@@ -396,7 +396,8 @@ Its eighth pass added the bare-`OFFSET` rejection on MySQL and SQLite (ADR
 direct-join chain, made the CTE-body exemption cover nested subqueries, and
 extended this rule to TableClassGen: a CLI guard sees the whole schema, not
 the narrowed run (`GuardClassNames` plus the on-disk table-name check), and
-a `--config` value is checked at parse for its JSON kind, never coerced.
+an object-valued `--config` key is rejected at parse (the full kind check is
+the JSON-kind clause in § "TableClassGen" below, #645).
 The empty `IN`/`NOT IN` collection and empty `VALUES` row guards (ERG-05/ERG-07,
 #243) shipped in #396, alongside the same sweep's guards for empty `SET`
 (`UpdateBuilder`/`InsertBuilder`), empty `DO UPDATE SET` / `ON DUPLICATE KEY
@@ -604,8 +605,9 @@ count as failing. Each clause below is a shape A6 found (#645):
 - **A guard that cannot read its fact fails closed.** A file at a path the
   run would write, whose table literal or header the tool cannot parse, is
   refused, never passed: skipping the check let a run overwrite another
-  table's file and exit 0. The orphan scan's skipping of hand-written files
-  elsewhere in the directory is not this case.
+  table's file and exit 0. The orphan scan, which only reports, is not this
+  case: it skips a file without the generated header or one it cannot read,
+  by design (`Run_Check_UnreadableFileInOutputDirectory_IsSkippedNotFatal`).
 - **A blank value is an absent value**, for every option and config key
   (`Required`, `NonBlankValue`); a path helper that reads `""` differently from
   the default it stands for (`Directory.Exists("")`) splits the two.
@@ -613,9 +615,10 @@ count as failing. Each clause below is a shape A6 found (#645):
   `--config` key is rejected at parse: keeping the last `--tables` silently
   narrowed `--check` (#643).
 - **A `--config` value's JSON kind matches its option**, checked after `null`
-  and a blank string have read as absent: a switch takes a boolean, `tables`
-  an array or string, and a value option a string or number. `"output": false`
-  must not become the directory `false`.
+  and a blank string have read as absent: a switch takes a boolean or the
+  string `true`/`false`, as `Flag` reads it; `tables` an array or string; a
+  value option a string or number. `"output": false` must not become the
+  directory `false`.
 
 ## Message grammar
 
@@ -636,13 +639,15 @@ so the wording is part of the contract.
 - A guard shared by several clauses names the clause the caller wrote, never
   one sibling's spelling: `AssignmentResolver` takes each caller's clause,
   since `ON DUPLICATE KEY UPDATE` has no `SET` token to name (#582).
-- **TableClassGen's construct is the flag.** A CLI message names the flag
-  that fixes it by its spelling (`--schema`), or the schema object when no flag
-  can (`rename the column`). It prints as one `error: <message>` line, so the
-  tool's own sentence takes the parse errors' shape, with no terminal period;
-  an appended driver or file-system cause keeps its own text. That cause is
-  appended, never substituted: an exception reaching `CliRunner` unwrapped
-  prints a message that names no flag or path (#645).
+- **TableClassGen's construct is the flag.** A CLI message names the flag or
+  `--config` key that fixes it by its spelling (`--schema`, `"schema"` in the
+  `--config` file), the file for a malformed `--config`, or the schema object
+  when none can (`rename the column`). It prints as one `error: <message>`
+  line, so the tool's own sentence takes the parse errors' shape, with no
+  terminal period; an appended driver or file-system cause keeps its own text.
+  That cause is appended, never substituted: an exception reaching `CliRunner`
+  unwrapped prints a message that names no flag, and a driver's names no path
+  either (#645).
 
 The `Invalid type for <X>: <type>` family is built by one helper,
 `ExpressionResolver.UnresolvableValue`, and `<X>` names **the position the
