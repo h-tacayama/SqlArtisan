@@ -82,6 +82,30 @@ public class CommandLineTests
         Assert.Equal("Unknown option '--tabels' (see --help)", ex.Message);
     }
 
+    // Last-wins narrowed `--check --tables b --tables a` to a, reporting in sync
+    // over b's drift (#643).
+    [Fact]
+    public void Parse_RepeatedOption_ThrowsCommandLineException()
+    {
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse([.. MinimalSqlite, "--tables", "b", "--tables", "a"]));
+
+        Assert.Equal("'--tables' is given more than once (see --help)", ex.Message);
+    }
+
+    // A switch repeats harmlessly, but one rule for every option is the one a
+    // caller can predict; two spellings of one option are a repeat as well.
+    [Theory]
+    [InlineData("--verbose", "--verbose")]
+    [InlineData("--dry-run", "--dryrun")]
+    public void Parse_RepeatedSwitch_ThrowsCommandLineException(string first, string second)
+    {
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse([.. MinimalSqlite, first, second]));
+
+        Assert.Equal($"'{second}' is given more than once (see --help)", ex.Message);
+    }
+
     [Fact]
     public void Parse_NonNumericPort_ThrowsCommandLineException()
     {
@@ -236,6 +260,19 @@ public class CommandLineTests
             () => CommandLine.Parse(["--config", config.Path]));
 
         Assert.Equal($"Unknown key 'namesapce' in {config.Path} (see --help)", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("""{"dbms":"sqlite","file":"a","namespace":"A","namespace":"B"}""", "namespace")]
+    [InlineData("""{"dbms":"sqlite","file":"a","namespace":"A","Namespace":"B"}""", "Namespace")]
+    public void Parse_RepeatedConfigKey_ThrowsCommandLineException(string json, string key)
+    {
+        using TempFile config = TempFile.Create(json);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => CommandLine.Parse(["--config", config.Path]));
+
+        Assert.Equal($"Key '{key}' is given more than once in {config.Path}", ex.Message);
     }
 
     // "$schema" is editor plumbing every JSON config file is entitled to carry.
@@ -399,9 +436,14 @@ public class CommandLineTests
     [InlineData("fix")]
     public void Parse_ConfigObjectValue_ThrowsCommandLineException(string key)
     {
+        // The key under test replaces its base entry: a repeated key is rejected
+        // before its value's kind is read.
+        string baseKeys = string.Join(
+            ", ",
+            new[] { "\"dbms\": \"sqlite\"", "\"file\": \"a.db\"", "\"namespace\": \"N\"" }
+                .Where(entry => !entry.StartsWith($"\"{key}\"", StringComparison.Ordinal)));
         using TempFile config = TempFile.Create(
-            "{\"dbms\": \"sqlite\", \"file\": \"a.db\", \"namespace\": \"N\", "
-                + $"\"{key}\": {{\"nested\": \"x\"}}}}");
+            $"{{{baseKeys}, \"{key}\": {{\"nested\": \"x\"}}}}");
 
         CommandLineException ex = Assert.Throws<CommandLineException>(() =>
             CommandLine.Parse(["--config", config.Path]));

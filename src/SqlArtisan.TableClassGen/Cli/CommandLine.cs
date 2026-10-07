@@ -115,6 +115,14 @@ internal static class CommandLine
                 throw new CommandLineException($"Unknown option '{argument}' (see --help)");
             }
 
+            // Last-wins would silently narrow a run: `--tables b --tables a` checked
+            // only a, and --check reported in sync over b's drift (#643).
+            if (values.ContainsKey(name))
+            {
+                throw new CommandLineException(
+                    $"'{argument}' is given more than once (see --help)");
+            }
+
             if (Switches.Contains(name))
             {
                 values[name] = "true";
@@ -145,6 +153,7 @@ internal static class CommandLine
         }
 
         Dictionary<string, string> values = new(StringComparer.Ordinal);
+        HashSet<string> fileKeys = new(StringComparer.Ordinal);
 
         try
         {
@@ -168,6 +177,14 @@ internal static class CommandLine
                 {
                     throw new CommandLineException(
                         $"Unknown key '{property.Name}' in {path} (see --help)");
+                }
+
+                // JSON admits a repeated key and the parser keeps both, so the file
+                // takes the command line's rule; "dryRun" and "dry-run" are one key.
+                if (!fileKeys.Add(Normalize(property.Name)))
+                {
+                    throw new CommandLineException(
+                        $"Key '{property.Name}' is given more than once in {path}");
                 }
 
                 // null is "not set", like an absent key — never a switch turned on.

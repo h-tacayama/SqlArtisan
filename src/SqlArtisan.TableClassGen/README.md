@@ -140,6 +140,10 @@ reports what a run would write without writing it.
 | `--dry-run` | report what would be written, write nothing (also with `--fix`) |
 | `--format text\|json` / `--verbose` | output format and detail |
 
+Each option is given once: a repeated flag, or a key repeated in the `--config`
+file, is an error rather than a silent override, so `--tables a --tables b`
+cannot check only `b`. List several tables as `--tables a,b`.
+
 The SQL Server connection sets `TrustServerCertificate=true` — the tool targets
 the dev or container instance it is pointed at, whose certificate is typically
 self-signed.
