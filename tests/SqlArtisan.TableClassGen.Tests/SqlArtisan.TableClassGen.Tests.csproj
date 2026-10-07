@@ -30,4 +30,9 @@
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Committed generated files, read back by FixtureCorpusTests; .txt keeps them
+         out of this project's compilation and the repo's source-file gates. -->
+    <None Include="Fixtures/**/*.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

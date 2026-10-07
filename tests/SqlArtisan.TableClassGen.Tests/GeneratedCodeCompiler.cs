@@ -13,7 +13,9 @@ internal static class GeneratedCodeCompiler
 
     // Each generated table class is a complete file (own namespace), so the
     // sources compile as separate syntax trees, not one concatenated unit.
-    public static void AssertCompiles(IEnumerable<string> sources, bool warningsAsErrors = false)
+    public static CSharpCompilation AssertCompiles(
+        IEnumerable<string> sources,
+        bool warningsAsErrors = false)
     {
         CSharpCompilation compilation = CSharpCompilation.Create(
             "GeneratedTables",
@@ -37,6 +39,8 @@ internal static class GeneratedCodeCompiler
         Assert.True(
             result.Success,
             $"Generated code failed to compile:{Environment.NewLine}{errors}");
+
+        return compilation;
     }
 
     private static IReadOnlyList<MetadataReference> BuildReferences()
