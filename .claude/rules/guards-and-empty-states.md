@@ -615,14 +615,18 @@ count as failing. Each clause below is a shape A6 found (#645):
   writes, so a subdirectory it could not enter aborted a `--fix` that had
   already rewritten every file, with an empty report.
 - **A guard that cannot read its fact fails closed.** A file at a path the
-  run would write, whose table literal or header the tool cannot parse, is
-  refused, never passed: skipping the check let a run overwrite another
-  table's file and exit 0. The orphan scan is not this case: it skips a file
-  without the generated header, and one it cannot read, so that one unrelated
-  unreadable file does not abort every `--check`
-  (`Run_Check_UnreadableFileInOutputDirectory_IsSkippedNotFatal`). The cost
-  is that an unreadable orphan of the tool's own reads as in sync; whether to
-  report it instead is open in #645.
+  run would write whose table literal (`: base("<table>", tableAlias)`) the
+  tool cannot read is refused, never passed: skipping the check let a run
+  overwrite another table's file and exit 0. The literal is the fact, not the
+  header, which 0.7 and earlier never wrote. The orphan scan fails the run on a
+  `.cs` file it cannot read, hand-written or not: skipped, an unreadable orphan
+  of the tool's own read as in sync (decided in #645 over the earlier skip). It
+  counts a file as its own by the generated header among the leading comments
+  and the run's `--namespace`, so another generation nested under `--output` is
+  not claimed. The readers (`CommittedFile`) accept the table literal of every
+  version, the column literal of 0.6 on, the header of 0.8 on, and both
+  core-name spellings; `FixtureCorpusTests` holds them to the 0.8 and 1.0
+  shapes.
 - **A blank value is an absent value**, for every option and config key. It
   is dropped where the value is stored (`ParseArguments`, `ReadConfigFile`), so
   a blank flag leaves its key to the `--config` file and no reader downstream

@@ -91,7 +91,7 @@ public class TableClassGeneratorTests : IDisposable
         File.WriteAllText(
             itemPath,
             File.ReadAllText(itemPath).Replace(
-                "new DbColumn(this, \"code\")", "new DbColumn(this, \"co\\uAB\")"));
+                "DbColumn(this, \"code\")", "DbColumn(this, \"co\\uAB\")"));
 
         TableResult item = Single(Run(db, RunMode.Check), "item");
 
@@ -374,13 +374,14 @@ public class TableClassGeneratorTests : IDisposable
             ex.Message);
     }
 
-    // The orphan scan's catch used to cover IOException only, so an access-denied file
-    // aborted the whole --check run. File modes don't bind root, so the denied path is
-    // exercised on CI's unprivileged runner; under root the file reads as not-ours.
+    // Unreadable, a file may be one of the tool's own orphans, so it fails the run
+    // naming the file rather than reading as absent: skipped, an orphan the run
+    // could not read reported in sync (#645, decided over the earlier skip).
     [Fact]
-    public void Run_Check_UnreadableFileInOutputDirectory_IsSkippedNotFatal()
+    public void Run_Check_UnreadableFileInOutputDirectory_FailsNamingTheFile()
     {
-        if (OperatingSystem.IsWindows())
+        // File modes do not bind root, and Windows has none.
+        if (OperatingSystem.IsWindows() || Environment.UserName == "root")
         {
             return;
         }
@@ -394,13 +395,164 @@ public class TableClassGeneratorTests : IDisposable
 
         try
         {
-            Assert.DoesNotContain(
-                Run(db, RunMode.Check), r => r.Status == TableStatus.Removed);
+            CommandLineException ex = Assert.Throws<CommandLineException>(
+                () => Run(db, RunMode.Check));
+
+            Assert.StartsWith(
+                $"Cannot read {locked} under --output (",
+                ex.Message,
+                StringComparison.Ordinal);
         }
         finally
         {
             File.SetUnixFileMode(locked, UnixFileMode.UserRead | UnixFileMode.UserWrite);
         }
+    }
+
+    // A literal the reader cannot match (wrapped by a formatter, say) used to pass
+    // the guard, so a --tables run overwrote another table's file and exited 0.
+    [Theory]
+    [InlineData("base(\n        \"order_item\", tableAlias)")]
+    [InlineData(null)]
+    public void Run_CommittedFileWithNoReadableTable_IsRefused(string? baseCall)
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(
+            """
+            CREATE TABLE order_item (id INTEGER PRIMARY KEY);
+            CREATE TABLE orderItem (code TEXT PRIMARY KEY);
+            """);
+        Run(db, RunMode.Generate, tableNames: ["order_item"]);
+        string path = Path.Combine(_outputDirectory, "OrderItemTable.cs");
+        string committed = baseCall is null
+            ? "// hand-written\npublic sealed class OrderItemTable { }\n"
+            : File.ReadAllText(path).Replace(
+                "base(\"order_item\", tableAlias)", baseCall, StringComparison.Ordinal);
+        File.WriteAllText(path, committed);
+
+        CommandLineException ex = Assert.Throws<CommandLineException>(
+            () => Run(db, RunMode.Generate, tableNames: ["orderItem"]));
+
+        Assert.Equal(
+            "OrderItemTable.cs is where this run writes 'orderItem', but no table the tool "
+                + "can read is named in it; move the file, or generate into another --output",
+            ex.Message);
+        Assert.Equal(committed, File.ReadAllText(path));
+    }
+
+    // 0.7 and earlier wrote no header, so the guard reads the table literal alone:
+    // requiring the header would refuse every pre-0.8 file a regeneration replaces.
+    [Fact]
+    public void Run_OverAPre0_8FileOfTheSameTable_RegeneratesIt()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Directory.CreateDirectory(_outputDirectory);
+        string path = Path.Combine(_outputDirectory, "ItemTable.cs");
+        File.WriteAllText(
+            path,
+            """
+            using SqlArtisan;
+
+            namespace Generated.Tables;
+
+            internal sealed class ItemTable : DbTableBase
+            {
+            	public ItemTable(string tableAlias = "") : base("item", tableAlias)
+            	{
+            		Id = new DbColumn(tableAlias, "id");
+            	}
+
+            	public DbColumn Id { get; }
+            }
+            """);
+
+        TableResult item = Single(Run(db, RunMode.Generate), "item");
+
+        Assert.Equal(TableStatus.Modified, item.Status);
+        Assert.Contains("global::SqlArtisan.DbTableBase", File.ReadAllText(path));
+    }
+
+    // A license header a tool prepends used to hide the file from the orphan scan,
+    // which read the generated header only at offset zero.
+    [Theory]
+    [InlineData("// Copyright (c) Example\n\n")]
+    [InlineData("/*\n * Copyright (c) Example\n */\n\n")]
+    public void Run_Check_OrphanWithAPrependedComment_IsReportedRemoved(string license)
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+        string tag = Path.Combine(_outputDirectory, "TagTable.cs");
+        File.WriteAllText(tag, license + File.ReadAllText(tag));
+        db.Execute("DROP TABLE tag");
+
+        TableResult removed = Assert.Single(
+            Run(db, RunMode.Check), r => r.Status == TableStatus.Removed);
+
+        Assert.Equal("TagTable.cs", removed.TableName);
+    }
+
+    // The emitter copies --namespace as given, so the scan compared `App.Tables `
+    // with the file's `App.Tables` and reported a dropped table's file in sync.
+    [Fact]
+    public void Run_Check_NamespaceWithStrayWhitespace_StillFindsTheOrphan()
+    {
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        RunOptions options = new(
+            RunMode.Generate,
+            db.ConnectionInfo,
+            TestSettings.Create(outputNamespace: "App.Tables ", outputDirectory: _outputDirectory));
+        ICatalogReader catalog = CatalogReaderFactory.Create(db.ConnectionInfo, false);
+        new TableClassGenerator(catalog, options).Run();
+        db.Execute("DROP TABLE tag");
+
+        IReadOnlyList<TableResult> results = new TableClassGenerator(
+            catalog,
+            new RunOptions(RunMode.Check, db.ConnectionInfo, options.Settings)).Run();
+
+        Assert.Single(results, r => r.Status == TableStatus.Removed);
+    }
+
+    // The tool's own remedy for a class-name clash, separate --output directories,
+    // nests easily; the scan then claimed the inner generation's files for good.
+    [Fact]
+    public void Run_Check_AnotherNamespacesFilesInANestedDirectory_AreNotOrphans()
+    {
+        using TempSqliteDatabase other = TempSqliteDatabase.Create(
+            "CREATE TABLE audit (id INTEGER PRIMARY KEY);");
+        new TableClassGenerator(
+            CatalogReaderFactory.Create(other.ConnectionInfo, lowercaseNames: false),
+            new RunOptions(
+                RunMode.Generate,
+                other.ConnectionInfo,
+                TestSettings.Create(
+                    outputNamespace: "Generated.Tables.Audit",
+                    outputDirectory: Path.Combine(_outputDirectory, "Audit")))).Run();
+        using TempSqliteDatabase db = TempSqliteDatabase.Create(Schema);
+        Run(db, RunMode.Generate);
+
+        Assert.All(Run(db, RunMode.Check), r => Assert.Equal(TableStatus.Unchanged, r.Status));
+    }
+
+    // No case-folding file system in CI, so the decision is pinned on its inputs:
+    // the regenerated file lists under its old spelling while the computed path
+    // exists without listing; on a case-sensitive one both spellings list.
+    [Theory]
+    [InlineData(new[] { "/o/APIKeysTable.cs" }, true, true)]
+    [InlineData(new[] { "/o/APIKeysTable.cs", "/o/ApikeysTable.cs" }, true, false)]
+    [InlineData(new[] { "/o/APIKeysTable.cs" }, false, false)]
+    public void IsListedUnderAnotherCase_DecidesByListingAndExistence(
+        string[] listed,
+        bool computedExists,
+        bool expected)
+    {
+        HashSet<string> computed = ["/o/ApikeysTable.cs"];
+
+        bool sameFile = TableClassGenerator.IsListedUnderAnotherCase(
+            "/o/APIKeysTable.cs",
+            computed,
+            new HashSet<string>(listed),
+            path => computedExists && computed.Contains(path) || listed.Contains(path));
+
+        Assert.Equal(expected, sameFile);
     }
 
     // The property-name guard used to run per table inside the write loop, so a
@@ -548,8 +700,8 @@ public class TableClassGeneratorTests : IDisposable
 
         Assert.Equal(
             "OrderItemTable.cs already describes table 'order_item', and this run generates "
-                + "'orderItem' into it. Generate the two into separate --output directories, "
-                + "or rename one of the tables.",
+                + "'orderItem' into it; generate the two into separate --output directories, "
+                + "or rename one of the tables",
             ex.Message);
         Assert.Contains(
             "base(\"order_item\"",

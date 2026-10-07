@@ -1,7 +1,3 @@
-using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
-
 namespace SqlArtisan.TableClassGen;
 
 internal enum TableStatus
@@ -36,14 +32,6 @@ internal sealed class TableResult(
 // generated classes are the only committed representation of the schema.
 internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions options)
 {
-    // Matches the escaped literal TableClassEmitter.Quote produces, so a column
-    // name carrying a quote or backslash still round-trips through the diff.
-    private static readonly Regex ColumnPattern =
-        new("""new DbColumn\(this, "(?<name>(?:[^"\\]|\\.)*)"\)""", RegexOptions.Compiled);
-
-    private static readonly Regex TablePattern =
-        new(""": base\("(?<name>(?:[^"\\]|\\.)*)", tableAlias\)""", RegexOptions.Compiled);
-
     private readonly CodeGenerationSettings _settings = options.Settings;
 
     private readonly TableClassEmitter _emitter = new(options.Settings);
@@ -216,7 +204,7 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
             return new TableResult(table.TableName, path, TableStatus.Added, []);
         }
 
-        string committed = File.ReadAllText(path);
+        string committed = ReadCommitted(path);
 
         // Compared with line endings normalized: a checkout under a different
         // autocrlf setting is not a schema change.
@@ -241,27 +229,33 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
 
             if (File.Exists(path))
             {
-                GuardTableName(path, File.ReadAllText(path), code);
+                GuardTableName(path, ReadCommitted(path), code);
             }
         }
     }
 
     // Two tables can share a class name across --tables runs, where GuardClassNames
-    // sees only one of them; the file on disk then names the other.
+    // sees only one of them; the file on disk then names the other. A file whose
+    // table it cannot read is refused: passing it let a run overwrite another's.
     private static void GuardTableName(string path, string committed, string generated)
     {
-        string? existing = TableName(committed);
-        string? current = TableName(generated);
+        string current = CommittedFile.TableName(generated)!;
 
-        if (existing is null || current is null || NameOneTable(existing, current))
+        if (CommittedFile.TableName(committed) is not { } existing)
         {
-            return;
+            throw new CommandLineException(
+                $"{Path.GetFileName(path)} is where this run writes '{current}', but no table "
+                    + "the tool can read is named in it; move the file, or generate into "
+                    + "another --output");
         }
 
-        throw new CommandLineException(
-            $"{Path.GetFileName(path)} already describes table '{existing}', and this run "
-                + $"generates '{current}' into it. Generate the two into separate "
-                + "--output directories, or rename one of the tables.");
+        if (!NameOneTable(existing, current))
+        {
+            throw new CommandLineException(
+                $"{Path.GetFileName(path)} already describes table '{existing}', and this run "
+                    + $"generates '{current}' into it; generate the two into separate --output "
+                    + "directories, or rename one of the tables");
+        }
     }
 
     // The committed file carries the emitted literal, which --lowercase and
@@ -291,13 +285,10 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
             : (tableName[..separator], tableName[(separator + 1)..]);
     }
 
-    private static string? TableName(string code) =>
-        TablePattern.Match(code) is { Success: true } m ? Unescape(m.Groups["name"].Value) : null;
-
     private static IReadOnlyList<string> Diff(string committed, string generated)
     {
-        List<string> before = ColumnNames(committed);
-        List<string> after = ColumnNames(generated);
+        List<string> before = CommittedFile.ColumnNames(committed);
+        List<string> after = CommittedFile.ColumnNames(generated);
 
         List<string> changes =
         [
@@ -308,47 +299,6 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
         // Same columns, different text: metadata, ordering, or an emitter option
         // moved. Naming the columns would be misleading, so say only what is known.
         return changes.Count > 0 ? changes : ["~ column metadata or layout changed"];
-    }
-
-    private static List<string> ColumnNames(string code) =>
-        [.. ColumnPattern.Matches(code).Select(m => Unescape(m.Groups["name"].Value))];
-
-    // Reverses TableClassEmitter.Quote's escaping, so a diff names the column as it
-    // reads in the database rather than as it reads inside a C# string literal.
-    private static string Unescape(string literal)
-    {
-        StringBuilder unescaped = new(literal.Length);
-
-        for (int i = 0; i < literal.Length; i++)
-        {
-            if (literal[i] != '\\')
-            {
-                unescaped.Append(literal[i]);
-                continue;
-            }
-
-            char next = literal[++i];
-
-            // A malformed \u — hand-edited or corrupted; Quote never emits one —
-            // reads back literally rather than aborting the whole --check/--fix run.
-            if (next == 'u'
-                && i + 4 < literal.Length
-                && int.TryParse(
-                    literal.AsSpan(i + 1, 4),
-                    NumberStyles.AllowHexSpecifier,
-                    CultureInfo.InvariantCulture,
-                    out int code))
-            {
-                unescaped.Append((char)code);
-                i += 4;
-            }
-            else
-            {
-                unescaped.Append(next);
-            }
-        }
-
-        return unescaped.ToString();
     }
 
     private bool ShouldWrite(TableResult result) =>
@@ -366,16 +316,28 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
         HashSet<string> expected = new(
             results.Select(r => Path.GetFullPath(r.Path)),
             StringComparer.Ordinal);
+        string[] files = ListSourceFiles();
+        HashSet<string> listed = new(files.Select(Path.GetFullPath), StringComparer.Ordinal);
 
+        return files
+            .Where(p => !expected.Contains(Path.GetFullPath(p))
+                && !IsListedUnderAnotherCase(Path.GetFullPath(p), expected, listed, File.Exists)
+                && IsOwnGeneratedFile(p))
+            .Order(StringComparer.Ordinal)
+            // Named by file, not by table: the table is gone, so its catalog name is
+            // no longer knowable.
+            .Select(p => new TableResult(Path.GetFileName(p), p, TableStatus.Removed, []))
+            .ToList();
+    }
+
+    private string[] ListSourceFiles()
+    {
         try
         {
-            return Directory
-                .EnumerateFiles(_settings.OutputDirectory, "*.cs", SearchOption.AllDirectories)
-                .Where(p => !expected.Contains(Path.GetFullPath(p)) && IsGeneratedTableClass(p))
-                // Named by file, not by table: the table is gone, so its catalog name is
-                // no longer knowable.
-                .Select(p => new TableResult(Path.GetFileName(p), p, TableStatus.Removed, []))
-                .ToList();
+            return Directory.GetFiles(
+                _settings.OutputDirectory,
+                "*.cs",
+                SearchOption.AllDirectories);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -387,19 +349,39 @@ internal sealed class TableClassGenerator(ICatalogReader catalog, RunOptions opt
         }
     }
 
-    // Recognizing our own header keeps hand-written files in the same directory out
-    // of the report — and out of any future --prune.
-    private static bool IsGeneratedTableClass(string path)
+    // A case-folding file system keeps an overwritten entry's old spelling, so an
+    // expected path that exists yet does not list is the listed file under another
+    // case; on a case-sensitive file system an existing path always lists.
+    internal static bool IsListedUnderAnotherCase(
+        string listedPath,
+        IReadOnlySet<string> expected,
+        IReadOnlySet<string> listed,
+        Func<string, bool> exists) =>
+        expected.Any(e => string.Equals(e, listedPath, StringComparison.OrdinalIgnoreCase)
+            && !listed.Contains(e)
+            && exists(e));
+
+    // The generated header keeps hand-written files out of the report, and the
+    // namespace keeps out another generation's files in a nested --output.
+    private bool IsOwnGeneratedFile(string path)
+    {
+        string text = ReadCommitted(path);
+
+        return CommittedFile.IsGenerated(text)
+            && CommittedFile.IsInNamespace(text, _settings.OutputNamespace);
+    }
+
+    // A file the run cannot read may be one of its own, so it fails the run rather
+    // than reading as absent, which reported an unreadable orphan as in sync.
+    private static string ReadCommitted(string path)
     {
         try
         {
-            string text = File.ReadAllText(path);
-            return text.StartsWith("// <auto-generated/>", StringComparison.Ordinal)
-                && text.Contains(": DbTableBase", StringComparison.Ordinal);
+            return File.ReadAllText(path);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return false;
+            throw new CommandLineException($"Cannot read {path} under --output ({ex.Message})");
         }
     }
 }
