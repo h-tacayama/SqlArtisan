@@ -605,8 +605,10 @@ outlive the run that made them, so the API rules above have a CLI analogue
 
 - **Script-readable output is spelled explicitly.** An option name, an exit
   code, and a `--format json` field or value is spelled at the output site (a
-  string literal, or the anonymous-type member that is the field), never
-  derived from an internal identifier by `ToString()` or `nameof`: renaming
+  string literal, or an anonymous-type member named explicitly:
+  `name = r.TableName`, never the projection `r.TableName`), never derived
+  from an internal identifier (`ToString()`, `nameof`, a projection
+  initializer, or a serialized named type's properties): renaming
   `TableStatus.Removed` must not change what a script parses.
 - **Emitted code binds every core name whatever the consuming project
   declares.** The file lands in the user's namespace, where a user type named

@@ -605,9 +605,12 @@ count as failing. Each clause below is a shape A6 found (#645):
 - **A guard that cannot read its fact fails closed.** A file at a path the
   run would write, whose table literal or header the tool cannot parse, is
   refused, never passed: skipping the check let a run overwrite another
-  table's file and exit 0. The orphan scan, which only reports, is not this
-  case: it skips a file without the generated header or one it cannot read,
-  by design (`Run_Check_UnreadableFileInOutputDirectory_IsSkippedNotFatal`).
+  table's file and exit 0. The orphan scan is not this case: it skips a file
+  without the generated header, and one it cannot read, so that one unrelated
+  unreadable file does not abort every `--check`
+  (`Run_Check_UnreadableFileInOutputDirectory_IsSkippedNotFatal`). The cost
+  is that an unreadable orphan of the tool's own reads as in sync; whether to
+  report it instead is open in #645.
 - **A blank value is an absent value**, for every option and config key
   (`Required`, `NonBlankValue`); a path helper that reads `""` differently from
   the default it stands for (`Directory.Exists("")`) splits the two.
